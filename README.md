@@ -110,7 +110,7 @@ In your `.eslintrc.json` file:
 
 ### Rules configuration
 
-Some rules require extra configuration, and it has to be defined in each specific "rule" property of the `.eslintrc.json` file. For example, allowed types relationships has to be provided for the [boundaries/types rule](docs/rules/types.md). Rules requiring extra configuration with no default value are disabled by default, and will print a warning in case they are enabled without the needed extra config. Please refer to the docs of each rule for further info.
+Some rules require extra configuration, and it has to be defined in each specific "rule" property of the `.eslintrc.json` file. For example, allowed types relationships has to be provided for the [boundaries/allowed-types rule](docs/rules/allowed-types.md). Rules requiring extra configuration will print a warning in case they are enabled without the needed extra config. Please refer to the docs of each rule for further info.
 
 ### Predefined configurations
 
