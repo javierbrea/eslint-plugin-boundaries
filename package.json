@@ -18,6 +18,7 @@
   ],
   "main": "index.js",
   "scripts": {
+    "coveralls": "cat ./coverage/lcov.info | coveralls",
     "lint": "eslint index.js src *.js",
     "lint-staged": "lint-staged",
     "test:ci": "echo \"Tests pending\"",
