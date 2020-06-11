@@ -22,6 +22,7 @@
     "_coveralls": "cat ./coverage/lcov.info | coveralls",
     "lint": "eslint index.js src *.js",
     "lint-staged": "lint-staged",
+    "test:coverage": "echo \"Tests pending\"",
     "test:ci": "echo \"Tests pending\"",
     "stryker:dev": "stryker run stryker.conf.local.js",
     "stryker": "stryker run"
