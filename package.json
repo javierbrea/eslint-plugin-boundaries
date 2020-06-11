@@ -18,7 +18,8 @@
   ],
   "main": "index.js",
   "scripts": {
-    "coveralls": "cat ./coverage/lcov.info | coveralls",
+    "coveralls": "echo \"Coverage pending\"",
+    "_coveralls": "cat ./coverage/lcov.info | coveralls",
     "lint": "eslint index.js src *.js",
     "lint-staged": "lint-staged",
     "test:ci": "echo \"Tests pending\"",
@@ -27,6 +28,9 @@
   },
   "peerDependencies": {
     "eslint": "^6.0.0 || ^7.0.0"
+  },
+  "dependencies": {
+    "globule": "1.3.2"
   },
   "devDependencies": {
     "@stryker-mutator/core": "3.2.4",
