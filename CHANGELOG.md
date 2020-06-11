@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 ### Removed
 
+## [1.0.0-beta.2] - 2020-06-11
+### Fixed
+- fix(helpers): Avoid error in helper when an element is not recognized
+
 ## [1.0.0-beta.1] - 2020-06-11
 ### Added
 - First pre-release
