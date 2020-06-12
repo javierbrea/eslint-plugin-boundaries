@@ -27,8 +27,9 @@ module.exports = {
       ImportDeclaration: (node) => {
         const dependencyInfo = getDependencyInfo(fileName, node.source.value, context.settings);
         if (
-          dependencyInfo.type &&
           dependencyInfo.isLocal &&
+          !dependencyInfo.isIgnored &&
+          dependencyInfo.type &&
           dependencyInfo.parents &&
           dependencyInfo.parents[0] &&
           !dependencyInfo.isInternal &&

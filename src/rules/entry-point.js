@@ -42,8 +42,9 @@ module.exports = {
         const requiredEntryPoint = typeOption || defaultOption;
 
         if (
-          dependencyInfo.type &&
           dependencyInfo.isLocal &&
+          !dependencyInfo.isIgnored &&
+          dependencyInfo.type &&
           !dependencyInfo.isInternal &&
           requiredEntryPoint &&
           dependencyInfo.privatePath !== requiredEntryPoint

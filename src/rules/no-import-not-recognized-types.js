@@ -17,7 +17,7 @@ module.exports = {
       ImportDeclaration: (node) => {
         const dependencyInfo = getDependencyInfo(fileName, node.source.value, context.settings);
 
-        if (dependencyInfo.isLocal && !dependencyInfo.type) {
+        if (dependencyInfo.isLocal && !dependencyInfo.isIgnored && !dependencyInfo.type) {
           context.report({
             message: `Importing not recognized elements is not allowed`,
             type: PLUGIN_NAME,

@@ -9,7 +9,7 @@ module.exports = {
     validateSettings(context);
     const fileName = context.getFilename();
     const currentElementInfo = getElementInfo(fileName, context.settings);
-    if (currentElementInfo.type) {
+    if (currentElementInfo.type || currentElementInfo.isIgnored) {
       return {};
     }
     return {
