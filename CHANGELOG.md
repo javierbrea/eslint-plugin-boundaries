@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - fix(no-external): Fix no-external rule. There was an error reading options, so it was not being applied.
 - fix(prefer-recognized-types): Do not apply prefer-recognized-types rule to ignored files.
+- fix(rules): Ignore dependencies in all rules (except no-import-ignored) if they are marked as ignored
 
 ## [1.0.0-beta.2] - 2020-06-11
 ### Fixed
