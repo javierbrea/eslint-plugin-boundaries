@@ -24,11 +24,12 @@ module.exports = {
       return {};
     }
     checkOptions(context, "forbid", RULE_NO_EXTERNAL);
+    const forbidOptions = (context.options[0] && context.options[0].forbid) || {};
 
     return {
       ImportDeclaration: (node) => {
         const dependencyInfo = getDependencyInfo(fileName, node.source.value, context.settings);
-        const currentElementOptions = context.options[0][currentElementInfo.type];
+        const currentElementOptions = forbidOptions[currentElementInfo.type];
 
         if (
           !dependencyInfo.isLocal &&
