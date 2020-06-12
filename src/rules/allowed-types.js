@@ -53,8 +53,9 @@ module.exports = {
         const currentElementOptions = allowOption[currentElementInfo.type];
 
         if (
-          dependencyInfo.type &&
           dependencyInfo.isLocal &&
+          !dependencyInfo.isIgnored &&
+          dependencyInfo.type &&
           !dependencyInfo.isInternal &&
           currentElementOptions &&
           !currentElementOptions.includes(dependencyInfo.type)
