@@ -1,3 +1,5 @@
+const chalk = require("chalk");
+
 const { TYPES } = require("../constants/settings");
 const { PLUGIN_NAME } = require("../constants/plugin");
 
@@ -5,7 +7,7 @@ const warns = [];
 
 const warn = (message) => {
   if (!warns.includes(message)) {
-    console.warn(`[${PLUGIN_NAME}]: ${message}`);
+    console.warn(chalk.yellow(`[${PLUGIN_NAME}]: ${message}`));
     warns.push(message);
   }
 };
