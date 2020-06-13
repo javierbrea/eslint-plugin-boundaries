@@ -20,21 +20,25 @@ const checkOptions = (context, property, ruleName, validate) => {
   const options = context.options;
   const settings = context.settings;
   const optionToCheck = options[0] && options[0][property];
-  Object.keys(optionToCheck).forEach((type) => {
-    if (!settings[TYPES].includes(type)) {
-      warn(`Invalid element type '${type}' in '${ruleName}' rule config`);
-    }
-    if (!Array.isArray(optionToCheck[type])) {
-      warn(
-        `Invalid config in '${ruleName}' rule for '${type}' elements. Please provide an array of valid elements`
-      );
-    }
-    optionToCheck[type].forEach((element) => {
-      if (validate) {
-        validate(type, element, context);
+  if (optionToCheck) {
+    Object.keys(optionToCheck).forEach((type) => {
+      if (!settings[TYPES].includes(type)) {
+        warn(`Invalid element type '${type}' in '${ruleName}' rule config`);
       }
+      if (!Array.isArray(optionToCheck[type])) {
+        warn(
+          `Invalid config in '${ruleName}' rule for '${type}' elements. Please provide an array of valid elements`
+        );
+      }
+      optionToCheck[type].forEach((element) => {
+        if (validate) {
+          validate(type, element, context);
+        }
+      });
     });
-  });
+  } else {
+    warn(`Required property '${property}' not found in '${ruleName}' config`);
+  }
 };
 
 const meta = (description, category, schema = []) => {

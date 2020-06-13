@@ -9,6 +9,7 @@ const absoluteFilePath = (relativePath) =>
 const settings = {
   "boundaries/types": ["components", "modules", "helpers"],
   "boundaries/alias": {
+    helpers: relativeFilePath("src/helpers"),
     components: relativeFilePath("src/components"),
     modules: relativeFilePath("src/modules"),
   },
