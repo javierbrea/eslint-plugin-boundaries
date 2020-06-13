@@ -62,6 +62,16 @@ ruleTester.run(RULE, rule, {
       code: "import ComponentA from 'components/component-a'",
       options,
     },
+    // Modules can import other not recognized types when alias is not set
+    {
+      filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
+      code: "import ComponentA from 'components/component-a'",
+      options,
+      settings: {
+        ...settings,
+        "boundaries/alias": null,
+      },
+    },
     // Modules can import modules
     {
       filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
