@@ -29,5 +29,5 @@ module.exports = {
 
   // The glob patterns Jest uses to detect test files
   testMatch: ["**/test/**/*.spec.js"],
-  // testMatch: ["**/test/src/rules/no-import-ignored.spec.js"],
+  // testMatch: ["**/test/src/rules/no-private.spec.js"],
 };
