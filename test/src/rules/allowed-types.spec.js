@@ -29,7 +29,7 @@ ruleTester.run(RULE, rule, {
     // Components can import helpers
     {
       filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
-      code: "import HelperA from 'test/fixtures/src/helpers/helper-a'",
+      code: "import HelperA from '../../helpers/helper-a'",
       options,
     },
     // Components can import helpers using alias
@@ -75,13 +75,13 @@ ruleTester.run(RULE, rule, {
     // Modules can import modules
     {
       filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
-      code: "import ModuleB from 'test/fixtures/src/modules/module-b'",
+      code: "import ModuleB from '../module-b'",
       options,
     },
     // Modules can import non existant modules files
     {
       filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
-      code: "import ModuleB from 'test/fixtures/src/modules/module-b/foo.js'",
+      code: "import ModuleB from '../../modules/module-b/foo.js'",
       options,
     },
     // Helpers can import ignored helpers
@@ -97,13 +97,13 @@ ruleTester.run(RULE, rule, {
     // Invalid options
     {
       filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
-      code: "import ModuleB from 'test/fixtures/src/modules/module-b/foo.js'",
+      code: "import ModuleB from '../module-b/foo.js'",
       options: [{ allow: undefined }],
     },
     // Invalid options
     {
       filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
-      code: "import ModuleB from 'test/fixtures/src/modules/module-b/foo.js'",
+      code: "import ModuleB from '../module-b/foo.js'",
       options: [
         {
           allow: {
@@ -115,7 +115,7 @@ ruleTester.run(RULE, rule, {
     // Invalid options
     {
       filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
-      code: "import ModuleB from 'test/fixtures/src/modules/module-b/foo.js'",
+      code: "import ModuleB from '../../modules/module-b/foo.js'",
       options: [
         {
           allow: {
@@ -127,7 +127,7 @@ ruleTester.run(RULE, rule, {
     // Invalid options
     {
       filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
-      code: "import ModuleB from 'test/fixtures/src/modules/module-b/foo.js'",
+      code: "import ModuleB from '../../modules/module-b/foo.js'",
       options: [
         {
           allow: {
@@ -139,7 +139,7 @@ ruleTester.run(RULE, rule, {
     // No types provided in settings
     {
       filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
-      code: "import ModuleB from 'test/fixtures/src/modules/module-b/foo.js'",
+      code: "import ModuleB from '../../modules/module-b/foo.js'",
       settings: {
         ...settings,
         "boundaries/types": null,
@@ -148,7 +148,7 @@ ruleTester.run(RULE, rule, {
     // Repeat no type provided, check that it continues working
     {
       filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
-      code: "import ModuleB from 'test/fixtures/src/modules/module-b/foo.js'",
+      code: "import ModuleB from '../../modules/module-b/foo.js'",
       settings: {
         ...settings,
         "boundaries/types": null,
