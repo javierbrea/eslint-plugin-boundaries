@@ -1,8 +1,7 @@
-const { PREFER_RECOGNIZED_TYPES } = require("../../../src/constants/rules");
+const { PREFER_RECOGNIZED_TYPES: RULE } = require("../../../src/constants/rules");
 
 const { createRuleTester, absoluteFilePath, relativeFilePath, settings } = require("../helpers");
 
-const RULE = PREFER_RECOGNIZED_TYPES;
 const rule = require(`../../../src/rules/${RULE}`);
 const ruleTester = createRuleTester();
 

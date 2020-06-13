@@ -11,7 +11,7 @@ const warn = (message) => {
 };
 
 const validateSettings = (context) => {
-  if (!context.settings[TYPES].length) {
+  if (!context.settings[TYPES] || !context.settings[TYPES].length) {
     warn(`Please provide element types using the '${TYPES}' setting`);
   }
 };
@@ -29,12 +29,13 @@ const checkOptions = (context, property, ruleName, validate) => {
         warn(
           `Invalid config in '${ruleName}' rule for '${type}' elements. Please provide an array of valid elements`
         );
+      } else {
+        optionToCheck[type].forEach((element) => {
+          if (validate) {
+            validate(type, element, context);
+          }
+        });
       }
-      optionToCheck[type].forEach((element) => {
-        if (validate) {
-          validate(type, element, context);
-        }
-      });
     });
   } else {
     warn(`Required property '${property}' not found in '${ruleName}' config`);
