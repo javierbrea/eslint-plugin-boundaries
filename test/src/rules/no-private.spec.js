@@ -82,6 +82,20 @@ ruleTester.run(RULE, rule, {
       code: 'import HelperA from "components/component-a/helpers/helper-a"',
       options,
     },
+    // External dependencies are allowed
+    {
+      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      code: 'import React from "react"',
+      options,
+    },
+    // Not recognized dependencies are allowed
+    {
+      filename: absoluteFilePath(
+        "src/components/component-a/components/component-b/ComponentB.js"
+      ),
+      code: "import foo from '../../../../foo/foo2'",
+      options,
+    },
   ],
   invalid: [
     /* Private elements can't be used by anyone except its parent
