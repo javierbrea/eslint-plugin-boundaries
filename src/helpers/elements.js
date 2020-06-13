@@ -57,7 +57,12 @@ const getDependencyInfo = (filePath, dependencyPath, settings) => {
   return dependencyPathInfo;
 };
 
+const isNotRecognizedOrIgnored = (elementInfo) => {
+  return !elementInfo.type || elementInfo.isIgnored;
+};
+
 module.exports = {
   getElementInfo,
   getDependencyInfo,
+  isNotRecognizedOrIgnored,
 };

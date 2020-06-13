@@ -1,15 +1,13 @@
 const { PLUGIN_NAME } = require("../constants/plugin");
-const { meta, dependencyLocation, validateSettings } = require("../helpers/rules");
-const { getDependencyInfo, getElementInfo } = require("../helpers/elements");
+const { meta, dependencyLocation, getContextInfo } = require("../helpers/rules");
+const { getDependencyInfo, isNotRecognizedOrIgnored } = require("../helpers/elements");
 
 module.exports = {
   ...meta(`Prevent importing not recognized elements from the recognized ones`, PLUGIN_NAME),
 
   create: function (context) {
-    validateSettings(context);
-    const fileName = context.getFilename();
-    const currentElementInfo = getElementInfo(fileName, context.settings);
-    if (!currentElementInfo.type || currentElementInfo.isIgnored) {
+    const { currentElementInfo, fileName } = getContextInfo(context);
+    if (isNotRecognizedOrIgnored(currentElementInfo)) {
       return {};
     }
 

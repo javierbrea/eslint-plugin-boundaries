@@ -2,6 +2,7 @@ const chalk = require("chalk");
 
 const { TYPES } = require("../constants/settings");
 const { PLUGIN_NAME } = require("../constants/plugin");
+const { getElementInfo } = require("./elements");
 
 const warns = [];
 
@@ -75,10 +76,18 @@ const dependencyLocation = (node, context) => {
   };
 };
 
+const getContextInfo = (context) => {
+  validateSettings(context);
+  const fileName = context.getFilename();
+  const currentElementInfo = getElementInfo(fileName, context.settings);
+  return { fileName, currentElementInfo };
+};
+
 module.exports = {
   checkOptions,
   meta,
   dependencyLocation,
   validateSettings,
   warn,
+  getContextInfo,
 };

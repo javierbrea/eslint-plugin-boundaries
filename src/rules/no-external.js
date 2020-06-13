@@ -1,7 +1,7 @@
 const { PLUGIN_NAME } = require("../constants/plugin");
 const { RULE_NO_EXTERNAL } = require("../constants/settings");
-const { meta, dependencyLocation, validateSettings, checkOptions } = require("../helpers/rules");
-const { getDependencyInfo, getElementInfo } = require("../helpers/elements");
+const { meta, dependencyLocation, getContextInfo, checkOptions } = require("../helpers/rules");
+const { getDependencyInfo, isNotRecognizedOrIgnored } = require("../helpers/elements");
 
 module.exports = {
   ...meta(`Enforce elements of one type to not use some external dependencies`, PLUGIN_NAME, [
@@ -17,10 +17,8 @@ module.exports = {
   ]),
 
   create: function (context) {
-    validateSettings(context);
-    const fileName = context.getFilename();
-    const currentElementInfo = getElementInfo(fileName, context.settings);
-    if (!currentElementInfo.type || currentElementInfo.isIgnored) {
+    const { currentElementInfo, fileName } = getContextInfo(context);
+    if (isNotRecognizedOrIgnored(currentElementInfo)) {
       return {};
     }
     checkOptions(context, "forbid", RULE_NO_EXTERNAL);
