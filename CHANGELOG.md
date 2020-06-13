@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 ### Removed
 
+## [1.0.0] - 2020-06-13
+### Added
+- test(unit): Add unit tests
+- test(coverage): Increase coverage threshold to 100
+- feat(logs): Add chalk to warning logs
+
+### Changed
+- refactor: Remove duplicated code
+
 ## [1.0.0-beta.3] - 2020-06-12
 ### Fixed
 - fix(no-external): Fix no-external rule. There was an error reading options, so it was not being applied.
