@@ -112,7 +112,7 @@ In your `.eslintrc.json` file:
 * __`boundaries/ignore`__: Files matching these glob expressions will be ignored by the plugin.
 * __`boundaries/alias`__: If you are using alias in the project (e.g. [webpack resolve alias](https://webpack.js.org/configuration/resolve/#resolvealias) or [babel-plugin-module-resolver](https://www.npmjs.com/package/babel-plugin-module-resolver)), you'll have to provide those alias also to the plugin configuration.
 
-> NOTE: The plugin uses [glob](https://www.npmjs.com/package/glob) under the hood to do file names and folders matching.
+> NOTE: The plugin uses [globule](https://www.npmjs.com/package/globule) under the hood to do file names and folders matching.
 
 ### Rules configuration
 
