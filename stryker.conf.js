@@ -3,7 +3,7 @@ const STRYKER_DASHBOARD_API_KEY = process.env.STRYKER_DASHBOARD_API_KEY;
 
 const BASE_CONFIG = {
   mutator: "javascript",
-  files: ["*.js", "src/**/*.js", "test/**/*.js"],
+  files: ["*.js", "src/**/*.js", "test/**/*.js", "test/**/*.spec.js"],
   packageManager: "npm",
   thresholds: {
     high: 80,

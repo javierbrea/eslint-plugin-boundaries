@@ -8,7 +8,7 @@
 
 In words of Robert C. Martin, _"Software architecture is the art of drawing lines that I call boundaries. Those boundaries separate software elements from one another, and restrict those on one side from knowing about those on the other."_ _([\*acknowledgements](#acknowledgements))_
 
-__This plugin ensures that your architecture boundaries are respected by the elements in your project.__ _Read the [main rules overview chapter](#main-rules-overview) for better comprehension._
+__This plugin ensures that your architecture boundaries are respected by the elements in your project__ checking the folders and files structure and the `import` statements (_Read the [main rules overview chapter](#main-rules-overview) for better comprehension._). __It is not a replacement for [eslint-plugin-import](https://www.npmjs.com/package/eslint-plugin-import), on the contrary, the combination of both plugins is recommended.__
 
 ## Installation
 
@@ -128,7 +128,6 @@ This plugin is distributed with two different predefined configurations: "recomm
 We recommend to use this setting until you are familiarized with the folders structure required by this plugin and its configuration, or if you are applying the plugin to an already existing project. Rules `boundaries/prefer-recognized-types`, `boundaries/no-import-not-recognized-types` and `boundaries/no-import-ignored` are disabled, so it allows to have parts of the project non-compliant with your element types, allowing refactor the code progressively.
 
 ```json
-//.eslintrc.json
 {
   "extends": ["plugin:boundaries/recommended"]
 }
@@ -139,7 +138,6 @@ We recommend to use this setting until you are familiarized with the folders str
 All rules are enabled, so all elements in the project will be compliant with your architecture boundaries. 😃
 
 ```json
-//.eslintrc.json
 {
   "extends": ["plugin:boundaries/strict"]
 }
