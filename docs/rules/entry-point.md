@@ -33,7 +33,7 @@ src/
 
 ```js
 // src/components/component-a/ComponentA.js
-import ComponentB from "../components/component-b/ComponentB.js"
+import ComponentB from "../component-b/ComponentB.js"
 
 ```
 

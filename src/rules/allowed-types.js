@@ -4,10 +4,10 @@ const {
   meta,
   dependencyLocation,
   warn,
-  validateSettings,
   checkOptions,
+  getContextInfo,
 } = require("../helpers/rules");
-const { getDependencyInfo, getElementInfo } = require("../helpers/elements");
+const { getDependencyInfo, isNotRecognizedOrIgnored } = require("../helpers/elements");
 
 const checkElement = (type, element, context) => {
   if (!context.settings[TYPES].includes(element)) {
@@ -35,10 +35,8 @@ module.exports = {
   ),
 
   create: function (context) {
-    validateSettings(context);
-    const fileName = context.getFilename();
-    const currentElementInfo = getElementInfo(fileName, context.settings);
-    if (!currentElementInfo.type || currentElementInfo.isIgnored) {
+    const { currentElementInfo, fileName } = getContextInfo(context);
+    if (isNotRecognizedOrIgnored(currentElementInfo)) {
       return {};
     }
     checkOptions(context, "allow", RULE_ALLOWED_TYPES, checkElement);

@@ -1,14 +1,11 @@
 const { PLUGIN_NAME } = require("../constants/plugin");
-const { meta, validateSettings } = require("../helpers/rules");
-const { getElementInfo } = require("../helpers/elements");
+const { meta, getContextInfo } = require("../helpers/rules");
 
 module.exports = {
   ...meta(`Prevent creating files not recognized as any of the element types`, PLUGIN_NAME),
 
   create: function (context) {
-    validateSettings(context);
-    const fileName = context.getFilename();
-    const currentElementInfo = getElementInfo(fileName, context.settings);
+    const { currentElementInfo } = getContextInfo(context);
     if (currentElementInfo.type || currentElementInfo.isIgnored) {
       return {};
     }

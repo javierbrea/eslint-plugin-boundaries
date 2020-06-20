@@ -5,7 +5,7 @@ const getLastParent = (elementInfo) => {
 };
 
 const getCommonAncestor = (elementInfo, dependencyInfo) => {
-  if (!dependencyInfo.parents || !elementInfo.parents) {
+  if (!dependencyInfo.parents) {
     return;
   }
   return elementInfo.parents.find((parent) => dependencyInfo.parents.includes(parent));
@@ -57,7 +57,12 @@ const getDependencyInfo = (filePath, dependencyPath, settings) => {
   return dependencyPathInfo;
 };
 
+const isNotRecognizedOrIgnored = (elementInfo) => {
+  return !elementInfo.type || elementInfo.isIgnored;
+};
+
 module.exports = {
   getElementInfo,
   getDependencyInfo,
+  isNotRecognizedOrIgnored,
 };
