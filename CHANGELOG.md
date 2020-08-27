@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 ### Removed
 
+## [1.0.1] - 2020-08-27
+### Changed
+- chore: Update dependencies
+
+### Fixed
+- docs: Fix typo
+
 ## [1.0.0] - 2020-06-13
 ### Added
 - test(unit): Add unit tests
