@@ -59,7 +59,7 @@ Examples of usage:
 
 Read the [docs of the `boundaries/allowed-types` rule](docs/rules/allowed-types.md) for further info.
 
-### Fordidden external modules
+### Forbidden external modules
 
 External dependencies used by each type of element in your project can be checked using this rule. For example, you can define that "helpers" can't import `react`, or "components" can't import  `react-router-dom`.
 
