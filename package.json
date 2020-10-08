@@ -39,7 +39,7 @@
     "@stryker-mutator/javascript-mutator": "3.3.1",
     "@stryker-mutator/jest-runner": "3.3.1",
     "coveralls": "3.0.9",
-    "eslint": "7.8.1",
+    "eslint": "7.10.0",
     "eslint-config-prettier": "6.11.0",
     "eslint-plugin-prettier": "3.1.4",
     "husky": "4.2.5",
