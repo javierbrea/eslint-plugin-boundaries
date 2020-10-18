@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 ### Removed
 
+## [1.0.2] - 2020-10-18
+### Added
+- chore: Run tests on Windows OS in pipelines
+
+### Fixed
+- fix: Plugin was not working properly on Windows
+
 ## [1.0.1] - 2020-08-27
 ### Changed
 - chore: Update dependencies
