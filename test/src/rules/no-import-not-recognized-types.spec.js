@@ -1,6 +1,6 @@
 const { NO_IMPORT_NOT_RECOGNIZED_TYPES: RULE } = require("../../../src/constants/rules");
 
-const { createRuleTester, absoluteFilePath, relativeFilePath, settings } = require("../helpers");
+const { createRuleTester, absoluteFilePath, settingsFilePath, settings } = require("../helpers");
 
 const rule = require(`../../../src/rules/${RULE}`);
 const ruleTester = createRuleTester();
@@ -9,7 +9,7 @@ const ERROR_MESSAGE = "Importing not recognized elements is not allowed";
 
 const customSettings = {
   ...settings,
-  "boundaries/ignore": [relativeFilePath("src/components/component-b/**/*.js")],
+  "boundaries/ignore": [settingsFilePath("src/components/component-b/**/*.js")],
 };
 
 ruleTester.run(RULE, rule, {
@@ -26,7 +26,7 @@ ruleTester.run(RULE, rule, {
       code: "import Foo from '../../foo'",
       settings: {
         ...settings,
-        "boundaries/ignore": [relativeFilePath("src/components/**/*.js")],
+        "boundaries/ignore": [settingsFilePath("src/components/**/*.js")],
       },
     },
     // Recognized types can be imported
