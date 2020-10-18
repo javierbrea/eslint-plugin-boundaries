@@ -36,9 +36,9 @@ const isAlias = (relativeFilePath, settings) => !!getUsedAlias(relativeFilePath,
 
 const replaceAliasByAbsolutePath = (relativeFilePath, settings) => {
   const usedAlias = getUsedAlias(relativeFilePath, settings);
-  return relativeFilePath.replace(
-    usedAlias,
-    path.resolve(getBasePath(), settings[ALIAS][usedAlias])
+  return path.resolve(
+    getBasePath(),
+    relativeFilePath.replace(usedAlias, settings[ALIAS][usedAlias])
   );
 };
 
