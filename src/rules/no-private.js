@@ -24,7 +24,6 @@ module.exports = {
     return {
       ImportDeclaration: (node) => {
         const dependencyInfo = getDependencyInfo(fileName, node.source.value, context.settings);
-        console.log({ dependencyInfo });
         if (
           dependencyInfo.isLocal &&
           !dependencyInfo.isIgnored &&

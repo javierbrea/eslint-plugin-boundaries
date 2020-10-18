@@ -28,6 +28,6 @@ module.exports = {
   testEnvironment: "node",
 
   // The glob patterns Jest uses to detect test files
-  //testMatch: ["**/test/**/*.spec.js"],
-  testMatch: ["**/test/src/rules/no-private.spec.js"],
+  testMatch: ["**/test/**/*.spec.js"],
+  // testMatch: ["**/test/src/rules/no-private.spec.js"],
 };
