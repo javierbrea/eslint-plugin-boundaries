@@ -7,6 +7,5 @@ jobs:
   include:
     - stage: windows test
       os: windows
-      env: ALLOW_FAIL=1
       script:
         - npm run test:ci
