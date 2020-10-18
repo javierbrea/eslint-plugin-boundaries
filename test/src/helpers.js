@@ -1,17 +1,24 @@
 const path = require("path");
 const RuleTester = require("eslint").RuleTester;
 
-const relativeFilePath = (relativePath) => path.join("test", "fixtures", relativePath);
+const codeFilePath = (relativePath) => {
+  return ["test", "fixtures", relativePath].join("/");
+};
 
-const absoluteFilePath = (relativePath) =>
-  path.resolve(process.cwd(), path.join("test", "fixtures", relativePath));
+const relativeFilePath = (relativePath) => {
+  return path.join("test", "fixtures", relativePath);
+};
+
+const absoluteFilePath = (relativePath) => {
+  return path.resolve(process.cwd(), relativeFilePath(relativePath));
+};
 
 const settings = {
   "boundaries/types": ["components", "modules", "helpers"],
   "boundaries/alias": {
-    helpers: relativeFilePath("src/helpers"),
-    components: relativeFilePath("src/components"),
-    modules: relativeFilePath("src/modules"),
+    helpers: codeFilePath("src/helpers"),
+    components: codeFilePath("src/components"),
+    modules: codeFilePath("src/modules"),
   },
 };
 
@@ -31,4 +38,5 @@ module.exports = {
   createRuleTester,
   absoluteFilePath,
   relativeFilePath,
+  codeFilePath,
 };

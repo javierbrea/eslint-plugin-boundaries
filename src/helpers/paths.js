@@ -3,7 +3,8 @@ const globule = require("globule");
 
 const { IGNORE, ALIAS, TYPES } = require("../constants/settings");
 
-const PATH_SEP = "/";
+const CODE_PATH_SEP = "/";
+const PATH_SEP = path.sep;
 const NODE_MODULES = "node_modules";
 const INDEX = "index.js";
 
@@ -35,9 +36,9 @@ const isAlias = (relativeFilePath, settings) => !!getUsedAlias(relativeFilePath,
 
 const replaceAliasByAbsolutePath = (relativeFilePath, settings) => {
   const usedAlias = getUsedAlias(relativeFilePath, settings);
-  return relativeFilePath.replace(
-    usedAlias,
-    path.resolve(getBasePath(), settings[ALIAS][usedAlias])
+  return path.resolve(
+    getBasePath(),
+    relativeFilePath.replace(usedAlias, settings[ALIAS][usedAlias])
   );
 };
 
@@ -81,8 +82,8 @@ const isAliasToNodeModules = (dependencyPath, settings) => {
 
 const isLocalDependency = (dependencyPath, settings) => {
   return (
-    ((dependencyPath.indexOf(`..${PATH_SEP}`) === 0 ||
-      dependencyPath.indexOf(`.${PATH_SEP}`) === 0) &&
+    ((dependencyPath.indexOf(`..${CODE_PATH_SEP}`) === 0 ||
+      dependencyPath.indexOf(`.${CODE_PATH_SEP}`) === 0) &&
       dependencyPath.indexOf(NODE_MODULES) < 1) ||
     (isAlias(dependencyPath, settings) && !isAliasToNodeModules(dependencyPath, settings))
   );

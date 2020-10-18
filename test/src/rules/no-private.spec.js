@@ -1,6 +1,12 @@
 const { NO_PRIVATE: RULE } = require("../../../src/constants/rules");
 
-const { createRuleTester, absoluteFilePath, relativeFilePath, settings } = require("../helpers");
+const {
+  createRuleTester,
+  absoluteFilePath,
+  relativeFilePath,
+  codeFilePath,
+  settings,
+} = require("../helpers");
 
 const rule = require(`../../../src/rules/${RULE}`);
 const ruleTester = createRuleTester();
@@ -28,7 +34,7 @@ ruleTester.run(RULE, rule, {
       options,
       settings: {
         ...settings,
-        "boundaries/ignore": [relativeFilePath("src/components/component-a/ComponentA.js")],
+        "boundaries/ignore": [codeFilePath("src/components/component-a/ComponentA.js")],
       },
     },
     // Ignored dependencies can be imported
@@ -39,7 +45,7 @@ ruleTester.run(RULE, rule, {
       settings: {
         ...settings,
         "boundaries/ignore": [
-          relativeFilePath("src/components/component-a/components/component-c/**/*.js"),
+          codeFilePath("src/components/component-a/components/component-c/**/*.js"),
         ],
       },
     },
