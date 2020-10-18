@@ -4,8 +4,8 @@ const {
   createRuleTester,
   absoluteFilePath,
   relativeFilePath,
-  // settingsFilePath,
-  // settings,
+  settingsFilePath,
+  settings,
 } = require("../helpers");
 
 const rule = require(`../../../src/rules/${RULE}`);
@@ -28,7 +28,7 @@ ruleTester.run(RULE, rule, {
       options,
     },
     // Ignored files can import whatever
-    /* {
+    {
       filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
       code: "import ComponentD from './components/component-c/components/component-d'",
       options,
@@ -45,7 +45,7 @@ ruleTester.run(RULE, rule, {
       settings: {
         ...settings,
         "boundaries/ignore": [
-          relativeFilePath("src/components/component-a/components/component-c/** REMOVE /*.js"),
+          settingsFilePath("src/components/component-a/components/component-c/**/*.js"),
         ],
       },
     },
@@ -68,20 +68,20 @@ ruleTester.run(RULE, rule, {
       filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
       code: 'import ComponentC from "./components/component-c"',
       options,
-    }, */
+    },
     /* Private elements can use other private element when both have the same parent.
     Component C can use helper A, as both are children of component A: */
-    /* {
+    {
       filename: absoluteFilePath(
         "src/components/component-a/components/component-c/ComponentC.js"
       ),
       code: 'import HelperA from "components/component-a/helpers/helper-a"',
       options,
-    }, */
+    },
     /* Private elements can use other private element if it is a direct child of a common ancestor,
     and the allowUncles option is enabled.
     Component D can use helper A as it is a direct child of common ancestor component A. */
-    /* {
+    {
       filename: absoluteFilePath(
         "src/components/component-a/components/component-c/components/component-d/ComponentD.js"
       ),
@@ -101,7 +101,7 @@ ruleTester.run(RULE, rule, {
       ),
       code: "import foo from '../../../../foo/foo2'",
       options,
-    }, */
+    },
   ],
   invalid: [
     /* Private elements can't be used by anyone except its parent
@@ -118,7 +118,7 @@ ruleTester.run(RULE, rule, {
       ],
     },
     // Component C is private of component A, so module A can't use it
-    /* {
+    {
       filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
       code: 'import ComponentC from "components/component-a/components/component-c"',
       options,
@@ -154,11 +154,11 @@ ruleTester.run(RULE, rule, {
           type: "ImportDeclaration",
         },
       ],
-    }, */
+    },
     /* Private elements can't use other private element if it is a direct child of a common ancestor,
     but the allowUncles option is disabled. Component D can't use helper A as it is a direct child of
     common ancestor component A, but allowUncles option is disabled. */
-    /* {
+    {
       filename: absoluteFilePath(
         "src/components/component-a/components/component-c/components/component-d/ComponentD.js"
       ),
@@ -174,6 +174,6 @@ ruleTester.run(RULE, rule, {
           type: "ImportDeclaration",
         },
       ],
-    }, */
+    },
   ],
 });
