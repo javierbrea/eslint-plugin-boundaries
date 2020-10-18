@@ -38,6 +38,7 @@ ruleTester.run(RULE, rule, {
       filename: absoluteFilePath("src/foo/index.js"),
       code: "import HelperA from 'helpers/helper-a/HelperA.js'",
       options,
+      settings,
     },
     // No option provided
     {
@@ -59,30 +60,35 @@ ruleTester.run(RULE, rule, {
       filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
       code: "import ComponentB from '../component-b/index'",
       options: defaultOptions,
+      settings,
     },
     // import folder with default option
     {
       filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
       code: "import ComponentB from '../component-b'",
       options: defaultOptions,
+      settings,
     },
     // import alias folder with default option
     {
       filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
       code: "import ComponentB from 'components/component-b'",
       options: defaultOptions,
+      settings,
     },
     // import default file with custom config
     {
       filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
       code: "import ComponentB from 'helpers/helper-b/main'",
       options,
+      settings,
     },
     // import type file with custom config
     {
       filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
       code: "import ComponentB from 'components/component-b/Component'",
       options,
+      settings,
     },
   ],
   invalid: [
@@ -91,6 +97,7 @@ ruleTester.run(RULE, rule, {
       filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
       code: "import ComponentB from '../component-b/ComponentB.js'",
       options: defaultOptions,
+      settings,
       errors: [
         {
           message: errorMessage("src/components/component-b", "index.js"),
@@ -103,6 +110,7 @@ ruleTester.run(RULE, rule, {
       filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
       code: "import HelperA from 'helpers/helper-a'",
       options,
+      settings,
       errors: [
         {
           message: errorMessage("src/helpers/helper-a", "main.js"),
@@ -115,6 +123,7 @@ ruleTester.run(RULE, rule, {
       filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
       code: "import HelperA from 'helpers/helper-a/index.js'",
       options,
+      settings,
       errors: [
         {
           message: errorMessage("src/helpers/helper-a", "main.js"),
@@ -127,6 +136,7 @@ ruleTester.run(RULE, rule, {
       filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
       code: "import ComponentB from 'components/component-b/main.js'",
       options,
+      settings,
       errors: [
         {
           message: errorMessage("src/components/component-b", "Component.js"),
