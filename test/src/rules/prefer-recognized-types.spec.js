@@ -1,6 +1,6 @@
 const { PREFER_RECOGNIZED_TYPES: RULE } = require("../../../src/constants/rules");
 
-const { createRuleTester, absoluteFilePath, settingsFilePath, settings } = require("../helpers");
+const { createRuleTester, absoluteFilePath, codeFilePath, settings } = require("../helpers");
 
 const rule = require(`../../../src/rules/${RULE}`);
 const ruleTester = createRuleTester();
@@ -36,7 +36,7 @@ ruleTester.run(RULE, rule, {
       code: FOO_CODE,
       settings: {
         ...settings,
-        "boundaries/ignore": [settingsFilePath("src/foo/*.js")],
+        "boundaries/ignore": [codeFilePath("src/foo/*.js")],
       },
     },
   ],

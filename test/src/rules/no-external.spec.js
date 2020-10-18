@@ -1,6 +1,6 @@
 const { NO_EXTERNAL: RULE } = require("../../../src/constants/rules");
 
-const { createRuleTester, absoluteFilePath, settingsFilePath, settings } = require("../helpers");
+const { createRuleTester, absoluteFilePath, codeFilePath, settings } = require("../helpers");
 
 const rule = require(`../../../src/rules/${RULE}`);
 const ruleTester = createRuleTester();
@@ -38,7 +38,7 @@ ruleTester.run(RULE, rule, {
       options,
       settings: {
         ...settings,
-        "boundaries/ignore": [settingsFilePath("src/components/component-a/**/*.js")],
+        "boundaries/ignore": [codeFilePath("src/components/component-a/**/*.js")],
       },
     },
     // Modules can import react-router-dom

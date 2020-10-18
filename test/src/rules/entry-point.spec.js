@@ -4,7 +4,7 @@ const {
   createRuleTester,
   absoluteFilePath,
   relativeFilePath,
-  settingsFilePath,
+  codeFilePath,
   settings,
 } = require("../helpers");
 
@@ -51,7 +51,7 @@ ruleTester.run(RULE, rule, {
       options,
       settings: {
         ...settings,
-        "boundaries/ignore": [settingsFilePath("src/helpers/helper-b/**/*.js")],
+        "boundaries/ignore": [codeFilePath("src/helpers/helper-b/**/*.js")],
       },
     },
     // import index with default option

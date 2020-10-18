@@ -1,6 +1,6 @@
 const { ALLOWED_TYPES: RULE } = require("../../../src/constants/rules");
 
-const { createRuleTester, absoluteFilePath, settings, settingsFilePath } = require("../helpers");
+const { createRuleTester, absoluteFilePath, settings, codeFilePath } = require("../helpers");
 
 const rule = require(`../../../src/rules/${RULE}`);
 const ruleTester = createRuleTester();
@@ -91,7 +91,7 @@ ruleTester.run(RULE, rule, {
       options,
       settings: {
         ...settings,
-        "boundaries/ignore": [settingsFilePath("src/helpers/helper-b/**/*.js")],
+        "boundaries/ignore": [codeFilePath("src/helpers/helper-b/**/*.js")],
       },
     },
     // Invalid options
