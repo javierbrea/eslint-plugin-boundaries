@@ -3,7 +3,7 @@ const globule = require("globule");
 
 const { IGNORE, ALIAS, TYPES } = require("../constants/settings");
 
-const PATH_SEP = "/";
+const PATH_SEP = path.sep;
 const NODE_MODULES = "node_modules";
 const INDEX = "index.js";
 
