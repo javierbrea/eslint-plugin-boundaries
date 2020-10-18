@@ -1,11 +1,14 @@
 const path = require("path");
 const RuleTester = require("eslint").RuleTester;
 
-const relativeFilePath = (relativePath) => `test/fixtures/${relativePath}`;
+const relativeFilePath = (relativePath) => {
+  console.log("Relative", path.join("test", "fixtures", relativePath));
+  return path.join("test", "fixtures", relativePath);
+};
 
 const absoluteFilePath = (relativePath) => {
-  console.log("Absolute", path.join("test", "fixtures", relativePath));
-  return path.resolve(process.cwd(), path.join("test", "fixtures", relativePath));
+  console.log("Absolute", path.resolve(process.cwd(), relativeFilePath(relativePath)));
+  return path.resolve(process.cwd(), relativeFilePath(relativePath));
 };
 
 const settings = {
