@@ -31,6 +31,7 @@ module.exports = {
     return {
       ImportDeclaration: (node) => {
         const dependencyInfo = getDependencyInfo(fileName, node.source.value, context.settings);
+        console.log({ dependencyInfo });
         const typeOption =
           context.options[0] &&
           context.options[0].byType &&
