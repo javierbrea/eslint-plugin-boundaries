@@ -1,2 +1,4 @@
 version: ~> 1.0
 import: javierbrea/nodejs-ci-cd-shared-config:.travis.yml@master
+os:
+  - windows
