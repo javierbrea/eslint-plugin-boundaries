@@ -1,6 +1,6 @@
 const { NO_IMPORT_IGNORED: RULE } = require("../../../src/constants/rules");
 
-const { createRuleTester, absoluteFilePath, relativeFilePath, settings } = require("../helpers");
+const { createRuleTester, absoluteFilePath, codeFilePath, settings } = require("../helpers");
 
 const rule = require(`../../../src/rules/${RULE}`);
 const ruleTester = createRuleTester();
@@ -9,7 +9,7 @@ const ERROR_MESSAGE = "Importing ignored files is not allowed";
 
 const customSettings = {
   ...settings,
-  "boundaries/ignore": [relativeFilePath("src/components/component-b/**/*.js")],
+  "boundaries/ignore": [codeFilePath("src/components/component-b/**/*.js")],
 };
 
 ruleTester.run(RULE, rule, {
@@ -26,7 +26,7 @@ ruleTester.run(RULE, rule, {
       code: "import ComponentB from 'components/component-b'",
       settings: {
         ...settings,
-        "boundaries/ignore": [relativeFilePath("src/components/**/*.js")],
+        "boundaries/ignore": [codeFilePath("src/components/**/*.js")],
       },
     },
     // Non ignored files can be imported

@@ -1,2 +1,11 @@
 version: ~> 1.0
-import: javierbrea/nodejs-ci-cd-shared-config:.travis.yml@master
+import:
+- source: javierbrea/nodejs-ci-cd-shared-config:.travis.yml@master
+  mode: deep_merge_prepend
+
+jobs:
+  include:
+    - stage: windows test
+      os: windows
+      script:
+        - npm run test:ci

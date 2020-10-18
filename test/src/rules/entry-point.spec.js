@@ -1,6 +1,12 @@
 const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
 
-const { createRuleTester, absoluteFilePath, relativeFilePath, settings } = require("../helpers");
+const {
+  createRuleTester,
+  absoluteFilePath,
+  relativeFilePath,
+  codeFilePath,
+  settings,
+} = require("../helpers");
 
 const rule = require(`../../../src/rules/${RULE}`);
 const ruleTester = createRuleTester();
@@ -45,7 +51,7 @@ ruleTester.run(RULE, rule, {
       options,
       settings: {
         ...settings,
-        "boundaries/ignore": [relativeFilePath("src/helpers/helper-b/**/*.js")],
+        "boundaries/ignore": [codeFilePath("src/helpers/helper-b/**/*.js")],
       },
     },
     // import index with default option
