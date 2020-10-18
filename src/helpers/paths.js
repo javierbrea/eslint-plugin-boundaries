@@ -157,7 +157,6 @@ const getElementPathInfo = (absolutePath, settings) => {
 const getDependencyPathInfo = (filePath, dependencyPath, settings) => {
   if (isLocalDependency(dependencyPath, settings)) {
     const absolutePath = getDependencyAbsolutePath(filePath, dependencyPath, settings);
-    console.log({ getDependencyPathInfo: getElementPathInfo(absolutePath, settings) });
     return getElementPathInfo(absolutePath, settings);
   }
 
