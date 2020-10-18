@@ -27,3 +27,4 @@ node_js:
 
 script:
   - npm run test:ci
+  - npm run coveralls
