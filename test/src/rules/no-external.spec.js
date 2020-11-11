@@ -8,10 +8,18 @@ const ruleTester = createRuleTester();
 const errorMessage = (elementType, dependencyName) =>
   `Usage of external module '${dependencyName}' is not allowed in '${elementType}'`;
 
+const destructuredErrorMessage = (elementType, imported, dependencyName) =>
+  `Usage of '${imported}' from external module '${dependencyName}' is not allowed in '${elementType}'`;
+
 const options = [
   {
     forbid: {
-      helpers: ["react"],
+      helpers: [
+        "react",
+        {
+          "foo-library": ["Link", "Router"],
+        },
+      ],
       components: ["react-router-dom"],
       modules: [],
     },
@@ -47,6 +55,67 @@ ruleTester.run(RULE, rule, {
       code: "import { withRouter } from 'react-router-dom'",
       options,
     },
+    // TODO, really? If we are forbidding importing specifiers, should we allow importing all library?
+    // Helpers can import foo-library
+    {
+      filename: absoluteFilePath("src/helpers/helper-a/HelperA.js"),
+      code: "import FooLibrary from 'foo-library'",
+      options,
+      errors: [
+        {
+          message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+          type: "ImportDeclaration",
+        },
+      ],
+    },
+    // Helpers can import foo-library using namespace
+    {
+      filename: absoluteFilePath("src/helpers/helper-a/HelperA.js"),
+      code: "import FooLibrary, * as Namespace from 'foo-library'",
+      options,
+      errors: [
+        {
+          message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+          type: "ImportDeclaration",
+        },
+      ],
+    },
+    // Helpers can import * from foo-library
+    {
+      filename: absoluteFilePath("src/helpers/helper-a/HelperA.js"),
+      code: "import * as Link from 'foo-library'",
+      options,
+      errors: [
+        {
+          message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+          type: "ImportDeclaration",
+        },
+      ],
+    },
+    // Helpers can import * from foo-library
+    {
+      filename: absoluteFilePath("src/helpers/helper-a/HelperA.js"),
+      code: "import * as FooLibrary from 'foo-library'",
+      options,
+      errors: [
+        {
+          message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+          type: "ImportDeclaration",
+        },
+      ],
+    },
+    // Helpers can import Foo from foo-library
+    {
+      filename: absoluteFilePath("src/helpers/helper-a/HelperA.js"),
+      code: "import { Foo } from 'foo-library'",
+      options,
+      errors: [
+        {
+          message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+          type: "ImportDeclaration",
+        },
+      ],
+    },
   ],
   invalid: [
     // Helpers can't import react
@@ -69,6 +138,66 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message: errorMessage("components", "react-router-dom"),
+          type: "ImportDeclaration",
+        },
+      ],
+    },
+    // Helpers can't import foo-library Link
+    {
+      filename: absoluteFilePath("src/helpers/helper-a/HelperA.js"),
+      code: "import { Link } from 'foo-library'",
+      options,
+      errors: [
+        {
+          message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+          type: "ImportDeclaration",
+        },
+      ],
+    },
+    // Helpers can't import foo-library Link
+    {
+      filename: absoluteFilePath("src/helpers/helper-a/HelperA.js"),
+      code: "import FooLibrary, { Link } from 'foo-library'",
+      options,
+      errors: [
+        {
+          message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+          type: "ImportDeclaration",
+        },
+      ],
+    },
+    // Helpers can't import foo-library Link when there are more specifiers
+    {
+      filename: absoluteFilePath("src/helpers/helper-a/HelperA.js"),
+      code: "import { Link, Foo } from 'foo-library'",
+      options,
+      errors: [
+        {
+          message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+          type: "ImportDeclaration",
+        },
+      ],
+    },
+    // Helpers can't import foo-library Link when specifers are renamed locally
+    {
+      filename: absoluteFilePath("src/helpers/helper-a/HelperA.js"),
+      code: "import { Link as LocalLink, Foo } from 'foo-library'",
+      options,
+      errors: [
+        {
+          message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+          type: "ImportDeclaration",
+        },
+      ],
+    },
+    // Helpers can't import foo-library Link nor Router
+    {
+      filename: absoluteFilePath("src/helpers/helper-a/HelperA.js"),
+      code: "import { Link as LocalLink, Router } from 'foo-library'",
+      options,
+      errors: [
+        {
+          message: destructuredErrorMessage("helpers", "Link, Router", "foo-library"),
           type: "ImportDeclaration",
         },
       ],
