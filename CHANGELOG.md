@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 ### Added
+- feat(no-external): Allow forbid importing external libraries specifiers
+- fix(no-external): Do not allow importing subfolders of forbidden external libraries
+
 ### Changed
 ### Fixed
 ### Removed

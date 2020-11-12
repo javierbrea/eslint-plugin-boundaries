@@ -32,7 +32,12 @@ src/
         "forbid": {
           "helpers": ["react"],
           "components": ["react-router-dom"],
-          "modules": []
+          "modules": [
+            "material-ui",
+            {
+              "react-router-dom": ["Link"],
+            }
+          ]
         }
       }
     ]
@@ -57,9 +62,30 @@ _Components can't import `react-router-dom`:_
 import { withRouter } from "react-router-dom"
 ```
 
+_Modules can't import `material-ui`:_
+
+```js
+// src/modules/module-a/ModuleA.js
+import { Label } from "material-ui/core";
+```
+
+_Modules can't import Link from `react-router-dom`:_
+
+```js
+// src/modules/module-a/ModuleA.js
+import { Link } from "react-router-dom";
+```
+
 ### Examples of **correct** code for this rule:
 
-_Modules can import `react-router-dom`:_
+_Modules can import `react`:_
+
+```js
+// src/modules/module-a/ModuleA.js
+import React from "react"
+```
+
+_Modules can import `withRouter` from `react-router-dom` (Note in the configuration that only `Link` is forbidden for modules)._
 
 ```js
 // src/modules/module-a/ModuleA.js
@@ -75,7 +101,10 @@ import { withRouter } from "react-router-dom"
 ```
 
 * `enabled`: for enabling the rule. 0=off, 1=warn, 2=error.
-* `forbid`: Define forbidden external dependencies for each element type. (Use element type as a key in the object to define its forbidden dependencies)
+* `forbid`: Define forbidden external dependencies for each element type. (Use element type as a key in the object to define its forbidden dependencies as an array)
+  * Dependencies can be defined as:
+    * `<String>`: The name of the library not allowed to be imported.
+    * `{ <String>: [<String>, <String>]}`: An object containing a key with the library name, and and array of forbidden import specifiers as value.
 
 ```json
 {
@@ -84,7 +113,12 @@ import { withRouter } from "react-router-dom"
         "forbid": {
           "helpers": ["react"],
           "components": ["react-router-dom"],
-          "modules": []
+          "modules": [
+            "material-ui",
+            {
+              "react-router-dom": ["Link"],
+            }
+          ]
         }
       }
     ]
