@@ -104,7 +104,7 @@ import { withRouter } from "react-router-dom"
 * `forbid`: Define forbidden external dependencies for each element type. (Use element type as a key in the object to define its forbidden dependencies as an array)
   * Dependencies can be defined as:
     * `<String>`: The name of the library not allowed to be imported.
-    * `{ <String>: [<String>, <String>]}`: An object containing a key with the library name, and and array of forbidden import specifiers as value.
+    * `{ <String>: [<String>, <String>]}`: An object containing a key with the library name, and an array of forbidden import specifiers as value.
 
 ```json
 {
