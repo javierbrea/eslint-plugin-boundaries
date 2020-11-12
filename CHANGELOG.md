@@ -5,10 +5,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
-### Added
 ### Changed
 ### Fixed
 ### Removed
+
+## [1.1.0] - 2020-11-12
+### Added
+- feat(no-external): Allow forbid importing external libraries specifiers
+- chore(ci-cd): Add github workflows for publishing to gpr and check package version
+
+### Fixed
+- fix(no-external): Do not allow importing subfolders of forbidden external libraries
 
 ## [1.0.2] - 2020-10-18
 ### Added

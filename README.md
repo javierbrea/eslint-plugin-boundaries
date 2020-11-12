@@ -61,7 +61,7 @@ Read the [docs of the `boundaries/allowed-types` rule](docs/rules/allowed-types.
 
 ### Forbidden external modules
 
-External dependencies used by each type of element in your project can be checked using this rule. For example, you can define that "helpers" can't import `react`, or "components" can't import  `react-router-dom`.
+External dependencies used by each type of element in your project can be checked using this rule. For example, you can define that "helpers" can't import `react`, or "components" can't import  `react-router-dom`, or modules can't import `{ Link } from react-router-dom`.
 
 Read the [docs of the `boundaries/no-external` rule](docs/rules/no-external.md) for further info.
 
@@ -82,7 +82,7 @@ So there are basic rules that have to be followed to make it work:
 * __[boundaries/no-private](docs/rules/no-private.md)__: Enforce elements to not use private elements of another element.
 * __[boundaries/entry-point](docs/rules/entry-point.md)__: Prevent other elements importing a file different from the allowed entry point.
 * __[boundaries/allowed-types](docs/rules/allowed-types.md)__: Prevent elements of one type to import any other element types not specified in the configuration of this rule.
-* __[boundaries/no-external](docs/rules/no-external.md)__: Enforce elements of one type to not use some external dependencies.
+* __[boundaries/no-external](docs/rules/no-external.md)__: Enforce elements of one type to not use some external dependencies or part of them.
 * [boundaries/prefer-recognized-types](docs/rules/prefer-recognized-types.md): Prevent creating files not recognized as any of the element types.
 * [boundaries/no-import-not-recognized-types](docs/rules/no-import-not-recognized-types.md): Prevent importing not recognized elements from the recognized ones.
 * [boundaries/no-import-ignored](docs/rules/no-import-ignored.md): Prevent importing files marked as ignored from the recognized elements.
