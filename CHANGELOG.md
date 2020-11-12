@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - feat(no-external): Allow forbid importing external libraries specifiers
 - chore(ci-cd): Add github workflows for publishing to gpr and check package version
+- chore(engines): Add node v15.x to engines
 
 ### Fixed
 - fix(no-external): Do not allow importing subfolders of forbidden external libraries
