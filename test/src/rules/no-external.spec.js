@@ -21,7 +21,12 @@ const options = [
         },
       ],
       components: ["react-router-dom"],
-      modules: [],
+      modules: [
+        "material-ui",
+        {
+          "react-router-dom": ["Link"],
+        },
+      ],
     },
   },
 ];
@@ -55,7 +60,12 @@ ruleTester.run(RULE, rule, {
       code: "import { withRouter } from 'react-router-dom'",
       options,
     },
-    // TODO, really? If we are forbidding importing specifiers, should we allow importing all library?
+    // Modules can import react
+    {
+      filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
+      code: "import React from 'react'",
+      options,
+    },
     // Helpers can import foo-library
     {
       filename: absoluteFilePath("src/helpers/helper-a/HelperA.js"),
@@ -198,6 +208,18 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message: destructuredErrorMessage("helpers", "Link, Router", "foo-library"),
+          type: "ImportDeclaration",
+        },
+      ],
+    },
+    // Modules can't import material-ui
+    {
+      filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
+      code: "import { Label } from 'material-ui/core'",
+      options,
+      errors: [
+        {
+          message: errorMessage("modules", "material-ui"),
           type: "ImportDeclaration",
         },
       ],

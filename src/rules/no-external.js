@@ -59,19 +59,20 @@ module.exports = {
     return {
       ImportDeclaration: (node) => {
         const dependencyInfo = getDependencyInfo(fileName, node.source.value, context.settings);
+        const cleanDependencyName = dependencyInfo.name.split("/")[0];
 
         if (!dependencyInfo.isLocal && currentElementOptions) {
-          if (currentElementOptions.includes(dependencyInfo.name)) {
+          if (currentElementOptions.includes(cleanDependencyName)) {
             // library is not allowed
             context.report({
-              message: `Usage of external module '${dependencyInfo.name}' is not allowed in '${currentElementInfo.type}'`,
+              message: `Usage of external module '${cleanDependencyName}' is not allowed in '${currentElementInfo.type}'`,
               type: PLUGIN_NAME,
               node: node,
               ...dependencyLocation(node, context),
             });
           } else {
             const forbiddenSpecifiersFound = forbiddenSpecifiers(
-              currentElementDestructuredOptions[dependencyInfo.name],
+              currentElementDestructuredOptions[cleanDependencyName],
               node.source.parent.specifiers
             );
             if (forbiddenSpecifiersFound.length > 0) {
@@ -79,7 +80,7 @@ module.exports = {
               context.report({
                 message: `Usage of '${forbiddenSpecifiersFound.join(
                   ", "
-                )}' from external module '${dependencyInfo.name}' is not allowed in '${
+                )}' from external module '${cleanDependencyName}' is not allowed in '${
                   currentElementInfo.type
                 }'`,
                 type: PLUGIN_NAME,
