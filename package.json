@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "coveralls": "3.0.9",
-    "eslint": "7.13.0",
+    "eslint": "7.14.0",
     "eslint-config-prettier": "6.15.0",
     "eslint-plugin-prettier": "3.1.4",
     "husky": "4.3.0",
