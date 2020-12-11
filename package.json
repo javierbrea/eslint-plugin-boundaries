@@ -18,12 +18,10 @@
   ],
   "main": "index.js",
   "scripts": {
-    "coveralls": "cat ./coverage/lcov.info | coveralls",
     "lint": "eslint index.js src *.js",
     "lint-staged": "lint-staged",
     "test": "jest",
-    "test:coverage": "npm run test",
-    "test:ci": "npm run test"
+    "test:unit": "npm run test"
   },
   "peerDependencies": {
     "eslint": "^6.0.0 || ^7.0.0"
@@ -52,6 +50,6 @@
     }
   },
   "engines": {
-    "node": "12.x || 14.x || 15.x"
+    "node": "10.x || 12.x || 14.x || 15.x"
   }
 }

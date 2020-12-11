@@ -1,4 +1,4 @@
-[![Build status][travisci-image]][travisci-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Quality Gate][quality-gate-image]][quality-gate-url]
+[![Build status][build-image]][build-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Quality Gate][quality-gate-image]][quality-gate-url]
 
 [![NPM dependencies][npm-dependencies-image]][npm-dependencies-url] [![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com) [![Last commit][last-commit-image]][last-commit-url] [![Last release][release-image]][release-url]
 
@@ -162,8 +162,8 @@ MIT, see [LICENSE](./LICENSE) for details.
 
 [coveralls-image]: https://coveralls.io/repos/github/javierbrea/eslint-plugin-boundaries/badge.svg
 [coveralls-url]: https://coveralls.io/github/javierbrea/eslint-plugin-boundaries
-[travisci-image]: https://travis-ci.com/javierbrea/eslint-plugin-boundaries.svg?branch=master
-[travisci-url]: https://travis-ci.com/javierbrea/eslint-plugin-boundaries
+[build-image]: https://github.com/javierbrea/eslint-plugin-boundaries/workflows/build/badge.svg?branch=master
+[build-url]: https://github.com/javierbrea/eslint-plugin-boundaries/actions?query=workflow%3Abuild+branch%3Amaster
 [last-commit-image]: https://img.shields.io/github/last-commit/javierbrea/eslint-plugin-boundaries.svg
 [last-commit-url]: https://github.com/javierbrea/eslint-plugin-boundaries/commits
 [license-image]: https://img.shields.io/npm/l/eslint-plugin-boundaries.svg
