@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - chore(ci-cd): Migrate build and publish pipelines to github actions
+- chore(deps): Update dependencies
 
 ### Fixed
 - fix(#65): Fixed error on dependency scanning when dependencyInfo.name is null (thanks to @skurfuerst)
