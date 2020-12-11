@@ -59,9 +59,9 @@ module.exports = {
     return {
       ImportDeclaration: (node) => {
         const dependencyInfo = getDependencyInfo(fileName, node.source.value, context.settings);
-        const cleanDependencyName = dependencyInfo.name.split("/")[0];
 
         if (!dependencyInfo.isLocal && currentElementOptions) {
+          const cleanDependencyName = dependencyInfo.name.split("/")[0];
           if (currentElementOptions.includes(cleanDependencyName)) {
             // library is not allowed
             context.report({

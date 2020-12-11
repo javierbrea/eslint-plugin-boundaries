@@ -5,9 +5,22 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
+### Added
 ### Changed
 ### Fixed
 ### Removed
+
+## [1.1.1] - 2020-12-11
+### Added
+- chore(deps): Add Node.js 10.x support while it is in maintenance
+
+### Changed
+- chore(ci-cd): Migrate build and publish pipelines to github actions
+- chore(deps): Update dependencies
+
+### Fixed
+- fix(#65): Fixed error on dependency scanning when dependencyInfo.name is null (thanks to @skurfuerst)
+
 
 ## [1.1.0] - 2020-11-12
 ### Added
