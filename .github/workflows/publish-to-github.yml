@@ -1,4 +1,4 @@
-name: publish-to-github-registry
+name: publish-to-github
 on:
   release:
     types: [created]

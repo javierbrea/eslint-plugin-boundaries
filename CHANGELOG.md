@@ -5,7 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
+### Added
 ### Changed
+- chore(ci-cd): Migrate build and publish pipelines to github actions
 ### Fixed
 ### Removed
 
