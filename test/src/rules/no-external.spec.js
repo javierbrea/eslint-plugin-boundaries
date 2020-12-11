@@ -54,6 +54,12 @@ ruleTester.run(RULE, rule, {
         "boundaries/ignore": [codeFilePath("src/components/component-a/**/*.js")],
       },
     },
+    // Modules can import any non-recognized local file
+    {
+      filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
+      code: "import { foo } from '../../foo/index'",
+      options,
+    },
     // Modules can import react-router-dom
     {
       filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
