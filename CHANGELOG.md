@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [unreleased]
 ### Added
 ### Changed
+- refactor: Use eslint-module-utils/resolve to resolve imports. import/resolver setting can be used for custom resolvers
 ### Fixed
 ### Removed
 

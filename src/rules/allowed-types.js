@@ -9,6 +9,8 @@ const {
 } = require("../helpers/rules");
 const { getDependencyInfo, isNotRecognizedOrIgnored } = require("../helpers/elements");
 
+const { importInfo } = require("../core/elements");
+
 const checkElement = (type, element, context) => {
   if (!context.settings[TYPES].includes(element)) {
     warn(
@@ -47,8 +49,16 @@ module.exports = {
 
     return {
       ImportDeclaration: (node) => {
+        console.log("-----------------------------------");
+        console.log(importInfo(node.source.value, context));
+
         const dependencyInfo = getDependencyInfo(fileName, node.source.value, context.settings);
         const currentElementOptions = allowOption[currentElementInfo.type];
+
+        console.log({
+          dependencyInfo,
+          currentElementInfo,
+        });
 
         if (
           dependencyInfo.isLocal &&

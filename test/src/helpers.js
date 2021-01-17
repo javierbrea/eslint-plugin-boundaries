@@ -20,6 +20,14 @@ const settings = {
     components: codeFilePath("src/components"),
     modules: codeFilePath("src/modules"),
   },
+  "import/resolver": {
+    "eslint-import-resolver-node": {},
+    [path.resolve(process.cwd(), "resolver-boundaries-alias")]: {
+      helpers: `./${codeFilePath("src/helpers")}`,
+      components: `./${codeFilePath("src/components")}`,
+      modules: `./${codeFilePath("src/modules")}`,
+    },
+  },
 };
 
 const createRuleTester = (extendSettings) => {
