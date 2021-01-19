@@ -2,7 +2,8 @@ const isCoreModule = require("is-core-module");
 const micromatch = require("micromatch");
 const resolve = require("eslint-module-utils/resolve").default;
 
-const { TYPES, IGNORE } = require("../constants/settings");
+const { IGNORE } = require("../constants/settings");
+const { getTypes } = require("../helpers/settings");
 
 function baseModule(name, path) {
   if (path) {
@@ -73,40 +74,39 @@ function elementTypeAndParents(path, settings) {
     .reduce((accumulator, elementPathSegment, segmentIndex, elementPaths) => {
       accumulator.unshift(elementPathSegment);
       let typeFound = false;
-      settings[TYPES] &&
-        settings[TYPES].forEach((type) => {
-          if (!typeFound) {
-            const pattern =
-              type.matchType === "parentFolders" && !typeResult.type
-                ? `${type.pattern}/**/*`
-                : type.pattern;
-            const capture = micromatch.capture(pattern, accumulator.join("/"));
-            if (capture) {
-              typeFound = true;
-              accumulator = [];
-              const captureValues = typeCaptureValues(capture, type.capture);
-              const typePath = elementPaths
-                .slice(segmentIndex - 1)
-                .reverse()
-                .join("/");
-              if (!typeResult.type) {
-                typeResult.type = type.name;
-                typeResult.typePath = typePath;
-                typeResult.typeCapture = capture;
-                typeResult.typeCapturedValues = captureValues;
-                typeResult.internalPath =
-                  type.matchType === "parentFolders" ? path.replace(`${typePath}/`, "") : null;
-              } else {
-                parents.push({
-                  type: type.name,
-                  typePath: typePath,
-                  typeCapture: capture,
-                  typeCapturedValues: captureValues,
-                });
-              }
+      getTypes(settings).forEach((type) => {
+        if (!typeFound) {
+          const pattern =
+            type.matchType === "parentFolders" && !typeResult.type
+              ? `${type.pattern}/**/*`
+              : type.pattern;
+          const capture = micromatch.capture(pattern, accumulator.join("/"));
+          if (capture) {
+            typeFound = true;
+            accumulator = [];
+            const captureValues = typeCaptureValues(capture, type.capture);
+            const typePath = elementPaths
+              .slice(segmentIndex - 1)
+              .reverse()
+              .join("/");
+            if (!typeResult.type) {
+              typeResult.type = type.name;
+              typeResult.typePath = typePath;
+              typeResult.typeCapture = capture;
+              typeResult.typeCapturedValues = captureValues;
+              typeResult.internalPath =
+                type.matchType === "parentFolders" ? path.replace(`${typePath}/`, "") : null;
+            } else {
+              parents.push({
+                type: type.name,
+                typePath: typePath,
+                typeCapture: capture,
+                typeCapturedValues: captureValues,
+              });
             }
           }
-        });
+        }
+      });
       return accumulator;
     }, []);
 

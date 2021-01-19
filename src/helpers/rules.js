@@ -45,21 +45,32 @@ const checkOptions = (context, property, ruleName, validate) => {
   }
 };
 
-const meta = (description, category, schema = []) => {
+const REPO_URL = "https://github.com/javierbrea/eslint-plugin-boundaries";
+
+function docsUrl(ruleName) {
+  return `${REPO_URL}/blob/master/docs/rules/${ruleName}.md`;
+}
+
+function meta2({ description, schema = [], ruleName }) {
   return {
     meta: {
       type: "problem",
       docs: {
+        url: docsUrl(ruleName),
         description,
-        category,
+        category: "dependencies",
       },
       fixable: null,
       schema,
     },
   };
-};
+}
 
-const dependencyLocation = (node, context) => {
+function meta(description, category, schema = [], ruleName) {
+  return meta2({ description, schema, ruleName });
+}
+
+function dependencyLocation(node, context) {
   const columnStart = context.getSourceCode().getText(node).indexOf(node.source.value) - 1;
   const columnEnd = columnStart + node.source.value.length + 2;
   return {
@@ -74,7 +85,7 @@ const dependencyLocation = (node, context) => {
       },
     },
   };
-};
+}
 
 const getContextInfo = (context) => {
   validateSettings(context);
@@ -86,6 +97,7 @@ const getContextInfo = (context) => {
 module.exports = {
   checkOptions,
   meta,
+  meta2,
   dependencyLocation,
   validateSettings,
   warn,
