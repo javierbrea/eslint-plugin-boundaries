@@ -22,7 +22,7 @@ const settings = {
   },
   "import/resolver": {
     "eslint-import-resolver-node": {},
-    [path.resolve(process.cwd(), "resolver-boundaries-alias")]: {
+    [path.resolve(process.cwd(), "resolver-legacy-alias")]: {
       helpers: `./${codeFilePath("src/helpers")}`,
       components: `./${codeFilePath("src/components")}`,
       modules: `./${codeFilePath("src/modules")}`,
