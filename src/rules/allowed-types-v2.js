@@ -4,6 +4,7 @@ const { meta } = require("../helpers/rules");
 const { dependencyLocation } = require("../helpers/rules");
 const { fileInfo } = require("../core/elementsInfo");
 const { dependencyInfo } = require("../core/dependencyInfo");
+const { validateTypesMatcher } = require("../helpers/validations");
 
 function capturesMatch(captures, capturesToMatch) {
   return Object.keys(captures).reduce((match, key) => {
@@ -41,7 +42,18 @@ function getAllowedElements(elementInfo, options) {
   const ruleMatchingFrom = [...options.allow].reverse().find((rule) => {
     return ruleMatchElement(rule.from, elementInfo);
   });
-  return ruleMatchingFrom && ruleMatchingFrom.targets;
+  return ruleMatchingFrom && ruleMatchingFrom.target;
+}
+
+function validateOptionsMatchers(matchers = [], settings) {
+  matchers.forEach((matcher) => {
+    validateTypesMatcher(matcher.from, settings);
+    validateTypesMatcher(matcher.target, settings);
+  });
+}
+
+function validateOptions(options, settings) {
+  validateOptionsMatchers(options.allow, settings);
 }
 
 module.exports = {
@@ -55,9 +67,11 @@ module.exports = {
             type: "object",
             properties: {
               from: {
+                // TODO, allow arrays, allow options
                 type: "string",
               },
-              targets: {
+              target: {
+                // TODO, allow string, allow options
                 type: "array",
                 items: {
                   type: "string",
@@ -78,6 +92,8 @@ module.exports = {
     if (!options || file.isIgnored || !file.type) {
       return {};
     }
+
+    validateOptions(options, context.settings);
 
     return {
       ImportDeclaration: (node) => {

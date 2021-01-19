@@ -47,7 +47,7 @@ module.exports = {
   },
   settings: {
     [TYPES]: [],
-    [IGNORE]: ["src/**/*.spec?.js", "src/**/*.test?.js"],
+    [IGNORE]: ["**/*.spec?.js", "**/*.test?.js"],
     [ALIAS]: [],
   },
 };

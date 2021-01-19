@@ -38,15 +38,15 @@ const options = [
     allow: [
       {
         from: "helpers",
-        targets: [],
+        target: [],
       },
       {
         from: "components",
-        targets: ["helpers", "components"],
+        target: ["helpers", "components"],
       },
       {
         from: "modules",
-        targets: ["helpers", "components", "modules"],
+        target: ["helpers", "components", "modules"],
       },
     ],
   },
@@ -134,20 +134,23 @@ ruleTester.run(RULE, rule, {
       code: "import ModuleB from '../module-b/foo.js'",
       options: [{ allow: undefined }],
     },
-    /*// Invalid options
+    // Invalid options
     {
       filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
       code: "import ModuleB from '../module-b/foo.js'",
       options: [
         {
-          allow: {
-            foo: ["components"],
-          },
+          allow: [
+            {
+              from: "foo",
+              target: ["var"],
+            },
+          ],
         },
       ],
     },
     // Invalid options
-    {
+    /* {
       filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
       code: "import ModuleB from '../../modules/module-b/foo.js'",
       options: [
