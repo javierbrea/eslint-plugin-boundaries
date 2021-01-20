@@ -1,8 +1,6 @@
-const { PLUGIN_NAME } = require("../constants/plugin");
-const { meta2 } = require("../helpers/rules");
 const { RULE_ALLOWED_TYPES } = require("../constants/settings");
 
-const { dependencyLocation } = require("../helpers/rules");
+const { meta2, dependencyLocation } = require("../helpers/rules");
 const { fileInfo } = require("../core/elementsInfo");
 const { dependencyInfo } = require("../core/dependencyInfo");
 const {
@@ -65,6 +63,7 @@ function validateOptions(options, settings) {
 
 module.exports = {
   ...meta2({
+    ruleName: RULE_ALLOWED_TYPES,
     description: `Check allowed dependencies between element types`,
     schema: [
       {
@@ -85,7 +84,6 @@ module.exports = {
         additionalProperties: false,
       },
     ],
-    ruleName: RULE_ALLOWED_TYPES,
   }),
 
   create: function (context) {
@@ -103,15 +101,6 @@ module.exports = {
         const allowedElementsRules = getAllowedElementsRules(file, options);
         const dependency = dependencyInfo(node.source.value, context);
 
-        /* console.log("-----------------------------------");
-        console.log("file");
-        console.log(JSON.stringify(file, null, 2));
-        console.log("dependency");
-        console.log(JSON.stringify(dependency, null, 2));
-        console.log("allowed");
-        console.log(file.type);
-        console.log(JSON.stringify(currentElementRules, null, 2)); */
-
         if (
           dependency.isLocal &&
           !dependency.isIgnored &&
@@ -122,7 +111,6 @@ module.exports = {
         ) {
           context.report({
             message: `Usage of '${dependency.type}' is not allowed in '${file.type}'`,
-            type: PLUGIN_NAME,
             node: node,
             ...dependencyLocation(node, context),
           });
