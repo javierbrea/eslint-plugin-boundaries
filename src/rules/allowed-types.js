@@ -18,7 +18,7 @@ function capturesMatch(captures, capturesToMatch) {
   }, true);
 }
 
-function rulesMatchElementType(elementsTypesMatchers, elementInfo) {
+function ruleMatchElementType(elementsTypesMatchers, elementInfo) {
   let match = false;
   const matchers = !Array.isArray(elementsTypesMatchers)
     ? [elementsTypesMatchers]
@@ -40,25 +40,33 @@ function rulesMatchElementType(elementsTypesMatchers, elementInfo) {
   return match;
 }
 
-function getAllowedElementsRules(elementInfo, options) {
-  if (!options.allow) {
-    return;
+function getElementRules(elementInfo, options) {
+  if (!options.rules) {
+    return [];
   }
-  const ruleMatchingFrom = [...options.allow].reverse().find((rule) => {
-    return rulesMatchElementType(rule.from, elementInfo);
-  });
-  return ruleMatchingFrom && ruleMatchingFrom.target;
-}
-
-function validateOptionsMatchers(matchers = [], settings) {
-  matchers.forEach((matcher) => {
-    validateElementTypesMatcher(matcher.from, settings);
-    validateElementTypesMatcher(matcher.target, settings);
+  return options.rules.filter((rule) => {
+    return ruleMatchElementType(rule.from, elementInfo);
   });
 }
 
-function validateOptions(options, settings) {
-  validateOptionsMatchers(options.allow, settings);
+function elementRulesAllowDependency(element, dependency, options) {
+  return getElementRules(element, options).reduce((allowed, rule) => {
+    if (rule.disallow && ruleMatchElementType(rule.disallow, dependency)) {
+      return false;
+    }
+    if (rule.allow && ruleMatchElementType(rule.allow, dependency)) {
+      return true;
+    }
+    return allowed;
+  }, options.default === "allow");
+}
+
+function validateRules(rules = [], settings) {
+  rules.forEach((rule) => {
+    validateElementTypesMatcher(rule.from, settings);
+    validateElementTypesMatcher(rule.allow, settings);
+    validateElementTypesMatcher(rule.disallow, settings);
+  });
 }
 
 module.exports = {
@@ -69,15 +77,28 @@ module.exports = {
       {
         type: "object",
         properties: {
-          allow: {
+          default: {
+            type: "string",
+            enum: ["allow", "disallow"],
+          },
+          rules: {
             type: "array",
             items: {
               type: "object",
               properties: {
                 from: ELEMENTS_MATCHER_SCHEMA,
-                target: ELEMENTS_MATCHER_SCHEMA,
+                allow: ELEMENTS_MATCHER_SCHEMA,
+                disallow: ELEMENTS_MATCHER_SCHEMA,
               },
               additionalProperties: false,
+              oneOf: [
+                {
+                  required: ["from", "allow"],
+                },
+                {
+                  required: ["from", "disallow"],
+                },
+              ],
             },
           },
         },
@@ -93,12 +114,11 @@ module.exports = {
       return {};
     }
 
-    validateOptions(options, context.settings);
+    validateRules(options.rules, context.settings);
     validateSettings(context.settings);
 
     return {
       ImportDeclaration: (node) => {
-        const allowedElementsRules = getAllowedElementsRules(file, options);
         const dependency = dependencyInfo(node.source.value, context);
 
         if (
@@ -106,8 +126,7 @@ module.exports = {
           !dependency.isIgnored &&
           dependency.type &&
           !dependency.isInternal &&
-          allowedElementsRules &&
-          !rulesMatchElementType(allowedElementsRules, dependency)
+          !elementRulesAllowDependency(file, dependency, options)
         ) {
           context.report({
             message: `Usage of '${dependency.type}' is not allowed in '${file.type}'`,

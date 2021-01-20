@@ -10,22 +10,37 @@ const errorMessage = (fileType, dependencyType) =>
 
 const options = [
   {
-    allow: [
-      {
-        from: "helpers",
-        target: [],
-      },
+    default: "disallow",
+    rules: [
       {
         from: "components",
-        target: ["helpers", "components"],
+        allow: ["helpers", "components"],
       },
       {
         from: "modules",
-        target: ["helpers", "components", "modules"],
+        allow: ["helpers", "components", "modules"],
       },
     ],
   },
 ];
+
+/*
+DISALLOW MODE
+const options = [
+  {
+    default: "allow",
+    rules: [
+      {
+        from: "helpers",
+        disallow: ["modules", "components", "helpers"],
+      },
+      {
+        from: "components",
+        disallow: ["modules"],
+      },
+    ],
+  },
+]; */
 
 ruleTester.run(RULE, rule, {
   valid: [
@@ -107,7 +122,7 @@ ruleTester.run(RULE, rule, {
     {
       filename: absoluteFilePath("src/modules/module-a/ModuleA.js"),
       code: "import ModuleB from '../module-b/foo.js'",
-      options: [{ allow: undefined }],
+      options: [{ rules: undefined }],
     },
     // Invalid options
     {
@@ -115,10 +130,10 @@ ruleTester.run(RULE, rule, {
       code: "import ModuleB from '../module-b/foo.js'",
       options: [
         {
-          allow: [
+          rules: [
             {
               from: "foo",
-              target: ["components"],
+              allow: ["components"],
             },
           ],
         },
@@ -130,10 +145,10 @@ ruleTester.run(RULE, rule, {
       code: "import ModuleB from '../../modules/module-b/foo.js'",
       options: [
         {
-          allow: [
+          rules: [
             {
               from: "components",
-              target: ["foo"],
+              disallow: ["foo"],
             },
           ],
         },
