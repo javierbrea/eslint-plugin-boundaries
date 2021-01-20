@@ -2,16 +2,16 @@ const { fileInfo, importInfo } = require("./elementsInfo");
 
 function getParent(elementInfo) {
   const parent = elementInfo.parents && elementInfo.parents[0];
-  return parent && parent.typePath;
+  return parent && parent.elementPath;
 }
 
 function getCommonAncestor(elementInfoA, elementInfoB) {
   const commonAncestor = elementInfoA.parents.find((elementParentA) => {
     return !!elementInfoB.parents.find((elementParentB) => {
-      return elementParentA.typePath === elementParentB.typePath;
+      return elementParentA.elementPath === elementParentB.elementPath;
     });
   });
-  return commonAncestor && commonAncestor.typePath;
+  return commonAncestor && commonAncestor.elementPath;
 }
 
 function isUncle(elementA, elementB) {
@@ -26,15 +26,15 @@ function isBrother(elementA, elementB) {
 }
 
 function isDescendant(elementA, elementB) {
-  return !!elementA.parents.find((parent) => parent.typePath === elementB.typePath);
+  return !!elementA.parents.find((parent) => parent.elementPath === elementB.elementPath);
 }
 
 function isChild(elementA, elementB) {
-  return getParent(elementA) == elementB.typePath;
+  return getParent(elementA) == elementB.elementPath;
 }
 
 function isInternal(elementA, elementB) {
-  return elementA.typePath === elementB.typePath;
+  return elementA.elementPath === elementB.elementPath;
 }
 
 function dependencyRelationship(dependencyInfo, elementInfo) {

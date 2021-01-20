@@ -3,7 +3,7 @@ const micromatch = require("micromatch");
 const resolve = require("eslint-module-utils/resolve").default;
 
 const { IGNORE } = require("../constants/settings");
-const { getTypes } = require("../helpers/settings");
+const { getElements } = require("../helpers/settings");
 
 function baseModule(name, path) {
   if (path) {
@@ -37,7 +37,7 @@ function isExternal(name, path) {
   return !path && (externalModuleRegExp.test(name) || isScoped(name));
 }
 
-function typeCaptureValues(capture, captureSettings) {
+function elementCaptureValues(capture, captureSettings) {
   if (!captureSettings) {
     return null;
   }
@@ -51,17 +51,17 @@ function typeCaptureValues(capture, captureSettings) {
 
 function elementTypeAndParents(path, settings) {
   const parents = [];
-  const typeResult = {
+  const elementResult = {
     type: null,
-    typePath: null,
-    typeCapture: null,
-    typeCapturedValues: null,
+    elementPath: null,
+    capture: null,
+    capturedValues: null,
     internalPath: null,
   };
 
   if (!path || isIgnored(path, settings)) {
     return {
-      ...typeResult,
+      ...elementResult,
       parents,
     };
   }
@@ -73,35 +73,35 @@ function elementTypeAndParents(path, settings) {
     .reverse()
     .reduce((accumulator, elementPathSegment, segmentIndex, elementPaths) => {
       accumulator.unshift(elementPathSegment);
-      let typeFound = false;
-      getTypes(settings).forEach((type) => {
-        if (!typeFound) {
+      let elementFound = false;
+      getElements(settings).forEach((element) => {
+        if (!elementFound) {
           const pattern =
-            type.matchType === "parentFolders" && !typeResult.type
-              ? `${type.pattern}/**/*`
-              : type.pattern;
+            element.match === "parentFolders" && !elementResult.type
+              ? `${element.pattern}/**/*`
+              : element.pattern;
           const capture = micromatch.capture(pattern, accumulator.join("/"));
           if (capture) {
-            typeFound = true;
+            elementFound = true;
             accumulator = [];
-            const captureValues = typeCaptureValues(capture, type.capture);
-            const typePath = elementPaths
+            const capturedValues = elementCaptureValues(capture, element.capture);
+            const elementPath = elementPaths
               .slice(segmentIndex - 1)
               .reverse()
               .join("/");
-            if (!typeResult.type) {
-              typeResult.type = type.name;
-              typeResult.typePath = typePath;
-              typeResult.typeCapture = capture;
-              typeResult.typeCapturedValues = captureValues;
-              typeResult.internalPath =
-                type.matchType === "parentFolders" ? path.replace(`${typePath}/`, "") : null;
+            if (!elementResult.type) {
+              elementResult.type = element.type;
+              elementResult.elementPath = elementPath;
+              elementResult.capture = capture;
+              elementResult.capturedValues = capturedValues;
+              elementResult.internalPath =
+                element.match === "parentFolders" ? path.replace(`${elementPath}/`, "") : null;
             } else {
               parents.push({
-                type: type.name,
-                typePath: typePath,
-                typeCapture: capture,
-                typeCapturedValues: captureValues,
+                type: element.type,
+                elementPath: elementPath,
+                capture: capture,
+                capturedValues: capturedValues,
               });
             }
           }
@@ -111,7 +111,7 @@ function elementTypeAndParents(path, settings) {
     }, []);
 
   return {
-    ...typeResult,
+    ...elementResult,
     parents,
   };
 }

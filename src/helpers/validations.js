@@ -2,16 +2,16 @@ const chalk = require("chalk");
 const micromatch = require("micromatch");
 
 const { PLUGIN_NAME } = require("../constants/plugin");
-const { TYPES, ALIAS } = require("../constants/settings");
+const { TYPES, ALIAS, ELEMENTS } = require("../constants/settings");
 
-const { getTypesNames, isLegacyType } = require("./settings");
+const { getElementsTypeNames, isLegacyType } = require("./settings");
 
 const warns = [];
 const invalidMatchers = [];
 
 const VALID_MATCH_TYPES = ["parentFolders"];
 
-const TYPES_MATCHER_SCHEMA = {
+const ELEMENTS_MATCHER_SCHEMA = {
   oneOf: [
     {
       type: "string", // single matcher
@@ -51,52 +51,52 @@ function warnOnce(message) {
   }
 }
 
-function isValidTypesMatcher(matcher, settings) {
-  return !matcher || micromatch.some(getTypesNames(settings), matcher);
+function isValidElementTypesMatcher(matcher, settings) {
+  return !matcher || micromatch.some(getElementsTypeNames(settings), matcher);
 }
 
-function validateTypesMatcher(elementMatcher, settings) {
-  const [matcher] = Array.isArray(elementMatcher) ? elementMatcher : [elementMatcher];
-  if (!invalidMatchers.includes(matcher) && !isValidTypesMatcher(matcher, settings)) {
+function validateElementTypesMatcher(elementsMatcher, settings) {
+  const [matcher] = Array.isArray(elementsMatcher) ? elementsMatcher : [elementsMatcher];
+  if (!invalidMatchers.includes(matcher) && !isValidElementTypesMatcher(matcher, settings)) {
     invalidMatchers.push(matcher);
-    warnOnce(`Option "${matcher}" does not match any type from "${TYPES}" setting`);
+    warnOnce(`Option "${matcher}" does not match any element type from "${ELEMENTS}" setting`);
   }
 }
 
-function validateTypes(types) {
-  if (!types || !Array.isArray(types) || !types.length) {
-    warnOnce(`Please provide element types using the "${TYPES}" setting`);
+function validateElements(elements) {
+  if (!elements || !Array.isArray(elements) || !elements.length) {
+    warnOnce(`Please provide element types using the "${ELEMENTS}" setting`);
   }
-  types.forEach((type) => {
+  elements.forEach((element) => {
     // TODO, remove in next major version
-    if (isLegacyType(type)) {
+    if (isLegacyType(element)) {
       warnOnce(
-        `Defining types as strings in "${TYPES}" setting is deprecated. Will be automatically converted, but this feature will be removed in next major versions`
+        `Defining elements as strings in settings is deprecated. Will be automatically converted, but this feature will be removed in next major versions`
       );
     } else {
-      Object.keys(type).forEach(() => {
-        if (!type.name || typeof type.name !== "string") {
-          warnOnce(`Please provide type name in "${TYPES}" setting`);
+      Object.keys(element).forEach(() => {
+        if (!element.type || typeof element.type !== "string") {
+          warnOnce(`Please provide type in "${ELEMENTS}" setting`);
         }
-        if (type.matchType && !VALID_MATCH_TYPES.includes(type.matchType)) {
+        if (element.match && !VALID_MATCH_TYPES.includes(element.match)) {
           warnOnce(
-            `Invalid matchType property in "${TYPES}" setting. Should be one of ${VALID_MATCH_TYPES.join(
+            `Invalid match property in "${ELEMENTS}" setting. Should be one of ${VALID_MATCH_TYPES.join(
               ","
             )}`
           );
         }
-        if (!type.pattern || typeof type.pattern !== "string") {
-          warnOnce(`Please provide pattern in "${TYPES}" setting`);
+        if (!element.pattern || typeof element.pattern !== "string") {
+          warnOnce(`Please provide pattern in "${ELEMENTS}" setting`);
         }
-        if (type.capture && !Array.isArray(type.capture)) {
-          warnOnce(`Invalid capture property in "${TYPES}" setting`);
+        if (element.capture && !Array.isArray(element.capture)) {
+          warnOnce(`Invalid capture property in "${ELEMENTS}" setting`);
         }
       });
     }
   });
 }
 
-function validateAlias(aliases) {
+function deprecateAlias(aliases) {
   if (aliases) {
     warnOnce(
       `Defining aliases in "${ALIAS}" setting is deprecated. Please use "import/resolver" setting`
@@ -104,13 +104,20 @@ function validateAlias(aliases) {
   }
 }
 
+function deprecateTypes(types) {
+  if (types) {
+    warnOnce(`"${TYPES}" setting is deprecated. Please use "${ELEMENTS}" instead`);
+  }
+}
+
 function validateSettings(settings) {
-  validateTypes(settings[TYPES]);
-  validateAlias(settings[ALIAS]);
+  deprecateTypes(settings[TYPES]);
+  deprecateAlias(settings[ALIAS]);
+  validateElements(settings[ELEMENTS] || settings[TYPES]);
 }
 
 module.exports = {
-  validateTypesMatcher,
+  validateElementTypesMatcher,
   validateSettings,
-  TYPES_MATCHER_SCHEMA,
+  ELEMENTS_MATCHER_SCHEMA,
 };

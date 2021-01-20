@@ -4,8 +4,8 @@ const { meta2, dependencyLocation } = require("../helpers/rules");
 const { fileInfo } = require("../core/elementsInfo");
 const { dependencyInfo } = require("../core/dependencyInfo");
 const {
-  TYPES_MATCHER_SCHEMA,
-  validateTypesMatcher,
+  ELEMENTS_MATCHER_SCHEMA,
+  validateElementTypesMatcher,
   validateSettings,
 } = require("../helpers/validations");
 
@@ -27,7 +27,7 @@ function rulesMatchElementType(elementsTypesMatchers, elementInfo) {
     if (!match) {
       if (Array.isArray(matcher)) {
         const [type, captures] = matcher;
-        if (elementInfo.type === type && capturesMatch(captures, elementInfo.typeCapturedValues)) {
+        if (elementInfo.type === type && capturesMatch(captures, elementInfo.capturedValues)) {
           match = true;
         }
       } else {
@@ -52,8 +52,8 @@ function getAllowedElementsRules(elementInfo, options) {
 
 function validateOptionsMatchers(matchers = [], settings) {
   matchers.forEach((matcher) => {
-    validateTypesMatcher(matcher.from, settings);
-    validateTypesMatcher(matcher.target, settings);
+    validateElementTypesMatcher(matcher.from, settings);
+    validateElementTypesMatcher(matcher.target, settings);
   });
 }
 
@@ -74,8 +74,8 @@ module.exports = {
             items: {
               type: "object",
               properties: {
-                from: TYPES_MATCHER_SCHEMA,
-                target: TYPES_MATCHER_SCHEMA,
+                from: ELEMENTS_MATCHER_SCHEMA,
+                target: ELEMENTS_MATCHER_SCHEMA,
               },
               additionalProperties: false,
             },

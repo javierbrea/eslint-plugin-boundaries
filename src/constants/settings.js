@@ -13,6 +13,7 @@ const {
 
 module.exports = {
   TYPES: `${PLUGIN_NAME}/types`,
+  ELEMENTS: `${PLUGIN_NAME}/elements`,
   IGNORE: `${PLUGIN_NAME}/ignore`,
   ALIAS: `${PLUGIN_NAME}/alias`,
   RULE_NO_PRIVATE: `${PLUGIN_NAME}/${NO_PRIVATE}`,

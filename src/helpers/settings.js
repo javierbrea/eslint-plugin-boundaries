@@ -1,4 +1,4 @@
-const { TYPES } = require("../constants/settings");
+const { TYPES, ELEMENTS } = require("../constants/settings");
 
 function isLegacyType(type) {
   return typeof type === "string";
@@ -11,30 +11,30 @@ function transformLegacyTypes(typesFromSettings) {
     // backward compatibility with v1
     if (isLegacyType(type)) {
       return {
-        name: type,
-        matchType: "parentFolders",
+        type: type,
+        match: "parentFolders",
         pattern: `${type}/*`,
         capture: ["elementName"],
       };
     }
     // default options
     return {
-      matchType: "parentFolders",
+      match: "parentFolders",
       ...type,
     };
   });
 }
 
-function getTypes(settings) {
-  return transformLegacyTypes(settings[TYPES]);
+function getElements(settings) {
+  return transformLegacyTypes(settings[ELEMENTS] || settings[TYPES]);
 }
 
-function getTypesNames(settings) {
-  return getTypes(settings).map((type) => type.name);
+function getElementsTypeNames(settings) {
+  return getElements(settings).map((element) => element.type);
 }
 
 module.exports = {
   isLegacyType,
-  getTypes,
-  getTypesNames,
+  getElements,
+  getElementsTypeNames,
 };
