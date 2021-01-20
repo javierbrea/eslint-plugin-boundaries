@@ -1,4 +1,4 @@
-const { NO_EXTERNAL: RULE } = require("../../../src/constants/rules");
+const { EXTERNAL: RULE } = require("../../../src/constants/rules");
 
 const { createRuleTester, absoluteFilePath, codeFilePath, settings } = require("../helpers");
 
@@ -13,21 +13,21 @@ const destructuredErrorMessage = (elementType, imported, dependencyName) =>
 
 const options = [
   {
-    forbid: {
-      helpers: [
-        "react",
-        {
-          "foo-library": ["Link", "Router"],
-        },
-      ],
-      components: ["react-router-dom"],
-      modules: [
-        "material-ui",
-        {
-          "react-router-dom": ["Link"],
-        },
-      ],
-    },
+    default: "allow",
+    rules: [
+      {
+        from: "helpers",
+        disallow: ["react", ["foo-library", { specifiers: ["Link", "Router"] }]],
+      },
+      {
+        from: "components",
+        disallow: ["react-router-dom"],
+      },
+      {
+        from: "modules",
+        disallow: ["material-ui", ["react-router-dom", { specifiers: ["Link"] }]],
+      },
+    ],
   },
 ];
 

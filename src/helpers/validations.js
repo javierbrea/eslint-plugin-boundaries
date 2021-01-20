@@ -11,67 +11,73 @@ const invalidMatchers = [];
 
 const VALID_MATCH_TYPES = ["parentFolders"];
 
-const ELEMENTS_MATCHER_SCHEMA = {
-  oneOf: [
-    {
-      type: "string", // single matcher
-    },
-    {
-      type: "array", // multiple matchers
-      items: {
-        oneOf: [
-          {
-            type: "string", // matcher with options
-          },
-          {
-            type: "array",
-            items: [
-              {
-                type: "string", // matcher
-              },
-              {
-                type: "object", // options
-              },
-            ],
-          },
-        ],
-      },
-    },
-  ],
+const DEFAULT_MATCHER_OPTIONS = {
+  type: "object",
 };
 
-const RULES_OPTIONS_SCHEMA = [
-  {
-    type: "object",
-    properties: {
-      default: {
-        type: "string",
-        enum: ["allow", "disallow"],
+function elementsMatcherSchema(matcherOptions = DEFAULT_MATCHER_OPTIONS) {
+  return {
+    oneOf: [
+      {
+        type: "string", // single matcher
       },
-      rules: {
-        type: "array",
+      {
+        type: "array", // multiple matchers
         items: {
-          type: "object",
-          properties: {
-            from: ELEMENTS_MATCHER_SCHEMA,
-            allow: ELEMENTS_MATCHER_SCHEMA,
-            disallow: ELEMENTS_MATCHER_SCHEMA,
-          },
-          additionalProperties: false,
           oneOf: [
             {
-              required: ["from", "allow"],
+              type: "string", // matcher with options
             },
             {
-              required: ["from", "disallow"],
+              type: "array",
+              items: [
+                {
+                  type: "string", // matcher
+                },
+                matcherOptions, // options
+              ],
             },
           ],
         },
       },
+    ],
+  };
+}
+
+function rulesOptionsSchema(options = {}) {
+  return [
+    {
+      type: "object",
+      properties: {
+        default: {
+          type: "string",
+          enum: ["allow", "disallow"],
+        },
+        rules: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              from: elementsMatcherSchema(),
+              allow: elementsMatcherSchema(options.targetMatcherOptions),
+              disallow: elementsMatcherSchema(options.targetMatcherOptions),
+            },
+            additionalProperties: false,
+            oneOf: [
+              {
+                required: ["from", "allow"],
+              },
+              {
+                required: ["from", "disallow"],
+              },
+            ],
+          },
+        },
+      },
+      additionalProperties: false,
     },
-    additionalProperties: false,
-  },
-];
+  ];
+}
 
 function warn(message) {
   console.warn(chalk.yellow(`[${PLUGIN_NAME}]: ${message}`));
@@ -92,13 +98,13 @@ function validateElementTypesMatcher(elementsMatcher, settings) {
   const [matcher] = Array.isArray(elementsMatcher) ? elementsMatcher : [elementsMatcher];
   if (!invalidMatchers.includes(matcher) && !isValidElementTypesMatcher(matcher, settings)) {
     invalidMatchers.push(matcher);
-    warnOnce(`Option "${matcher}" does not match any element type from "${ELEMENTS}" setting`);
+    warnOnce(`Option '${matcher}'' does not match any element type from '${ELEMENTS}' setting`);
   }
 }
 
 function validateElements(elements) {
   if (!elements || !Array.isArray(elements) || !elements.length) {
-    warnOnce(`Please provide element types using the "${ELEMENTS}" setting`);
+    warnOnce(`Please provide element types using the '${ELEMENTS}' setting`);
   }
   elements.forEach((element) => {
     // TODO, remove in next major version
@@ -109,20 +115,20 @@ function validateElements(elements) {
     } else {
       Object.keys(element).forEach(() => {
         if (!element.type || typeof element.type !== "string") {
-          warnOnce(`Please provide type in "${ELEMENTS}" setting`);
+          warnOnce(`Please provide type in '${ELEMENTS}' setting`);
         }
         if (element.match && !VALID_MATCH_TYPES.includes(element.match)) {
           warnOnce(
-            `Invalid match property in "${ELEMENTS}" setting. Should be one of ${VALID_MATCH_TYPES.join(
+            `Invalid match property in '${ELEMENTS}' setting. Should be one of ${VALID_MATCH_TYPES.join(
               ","
             )}`
           );
         }
         if (!element.pattern || typeof element.pattern !== "string") {
-          warnOnce(`Please provide pattern in "${ELEMENTS}" setting`);
+          warnOnce(`Please provide pattern in '${ELEMENTS}' setting`);
         }
         if (element.capture && !Array.isArray(element.capture)) {
-          warnOnce(`Invalid capture property in "${ELEMENTS}" setting`);
+          warnOnce(`Invalid capture property in '${ELEMENTS}' setting`);
         }
       });
     }
@@ -132,14 +138,14 @@ function validateElements(elements) {
 function deprecateAlias(aliases) {
   if (aliases) {
     warnOnce(
-      `Defining aliases in "${ALIAS}" setting is deprecated. Please use "import/resolver" setting`
+      `Defining aliases in '${ALIAS}' setting is deprecated. Please use 'import/resolver' setting`
     );
   }
 }
 
 function deprecateTypes(types) {
   if (types) {
-    warnOnce(`"${TYPES}" setting is deprecated. Please use "${ELEMENTS}" instead`);
+    warnOnce(`'${TYPES}' setting is deprecated. Please use '${ELEMENTS}' instead`);
   }
 }
 
@@ -149,17 +155,19 @@ function validateSettings(settings) {
   validateElements(settings[ELEMENTS] || settings[TYPES]);
 }
 
-function validateRules(rules = [], settings) {
+function validateRules(rules = [], settings, options = {}) {
   rules.forEach((rule) => {
     validateElementTypesMatcher(rule.from, settings);
-    validateElementTypesMatcher(rule.allow, settings);
-    validateElementTypesMatcher(rule.disallow, settings);
+    if (!options.onlyFrom) {
+      validateElementTypesMatcher(rule.allow, settings);
+      validateElementTypesMatcher(rule.disallow, settings);
+    }
   });
 }
 
 module.exports = {
-  RULES_OPTIONS_SCHEMA,
-  ELEMENTS_MATCHER_SCHEMA,
+  elementsMatcherSchema,
+  rulesOptionsSchema,
   validateElementTypesMatcher,
   validateSettings,
   validateRules,

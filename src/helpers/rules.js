@@ -92,35 +92,49 @@ function dependencyLocation(node, context) {
   };
 }
 
-function capturesMatch(captures, capturesToMatch) {
+function objectIsSubset(captures, capturesToMatch) {
   return Object.keys(captures).reduce((match, key) => {
-    if (!capturesToMatch[key] !== captures[key]) {
+    if (capturesToMatch[key] !== captures[key]) {
       return false;
     }
     return true;
   }, true);
 }
 
-function ruleMatchElementType(elementsTypesMatchers, elementInfo) {
-  let match = false;
-  const matchers = !Array.isArray(elementsTypesMatchers)
-    ? [elementsTypesMatchers]
-    : elementsTypesMatchers;
+function ruleMatch(ruleMatchers, elementInfo, isMatch) {
+  let match = { result: false, report: null };
+  const matchers = !Array.isArray(ruleMatchers) ? [ruleMatchers] : ruleMatchers;
   matchers.forEach((matcher) => {
-    if (!match) {
+    if (!match.result) {
       if (Array.isArray(matcher)) {
-        const [type, captures] = matcher;
-        if (elementInfo.type === type && capturesMatch(captures, elementInfo.capturedValues)) {
-          match = true;
-        }
+        const [value, captures] = matcher;
+        match = isMatch(elementInfo, value, captures);
       } else {
-        if (elementInfo.type === matcher) {
-          match = true;
-        }
+        match = isMatch(elementInfo, matcher);
       }
     }
   });
   return match;
+}
+
+function isMatchElementType(elementInfo, matcher, options) {
+  if (
+    options &&
+    elementInfo.type === matcher &&
+    objectIsSubset(options, elementInfo.capturedValues)
+  ) {
+    return {
+      result: true,
+    };
+  }
+  if (elementInfo.type === matcher) {
+    return {
+      result: true,
+    };
+  }
+  return {
+    result: false,
+  };
 }
 
 function getElementRules(elementInfo, options) {
@@ -128,20 +142,33 @@ function getElementRules(elementInfo, options) {
     return [];
   }
   return options.rules.filter((rule) => {
-    return ruleMatchElementType(rule.from, elementInfo);
+    return ruleMatch(rule.from, elementInfo, isMatchElementType).result;
   });
 }
 
-function elementRulesAllow({ element, dependency, options, ruleMatcher }) {
-  return getElementRules(element, options).reduce((allowed, rule) => {
-    if (rule.disallow && ruleMatcher(rule.disallow, dependency)) {
-      return false;
-    }
-    if (rule.allow && ruleMatcher(rule.allow, dependency)) {
-      return true;
-    }
-    return allowed;
-  }, options.default === "allow");
+function elementRulesAllowDependency({ element, dependency, options, isMatch }) {
+  const [result, report] = getElementRules(element, options).reduce(
+    (allowed, rule) => {
+      if (rule.disallow) {
+        const match = ruleMatch(rule.disallow, dependency, isMatch);
+        if (match.result) {
+          return [false, match.report];
+        }
+      }
+      if (rule.allow) {
+        const match = ruleMatch(rule.allow, dependency, isMatch);
+        if (match.result) {
+          return [true, match.report];
+        }
+      }
+      return allowed;
+    },
+    [options.default === "allow", null]
+  );
+  return {
+    result,
+    report,
+  };
 }
 
 // TODO, remove
@@ -160,7 +187,8 @@ module.exports = {
   validateSettings,
   warn,
   getContextInfo,
+  objectIsSubset,
+  isMatchElementType,
+  elementRulesAllowDependency,
   getElementRules,
-  ruleMatchElementType,
-  elementRulesAllow,
 };

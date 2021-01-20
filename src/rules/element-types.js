@@ -3,32 +3,28 @@ const { RULE_ELEMENT_TYPES } = require("../constants/settings");
 const { fileInfo } = require("../core/elementsInfo");
 const { dependencyInfo } = require("../core/dependencyInfo");
 
-const {
-  RULES_OPTIONS_SCHEMA,
-  validateSettings,
-  validateRules,
-} = require("../helpers/validations");
+const { rulesOptionsSchema, validateSettings, validateRules } = require("../helpers/validations");
 const {
   meta2,
   dependencyLocation,
-  ruleMatchElementType,
-  elementRulesAllow,
+  isMatchElementType,
+  elementRulesAllowDependency,
 } = require("../helpers/rules");
 
 function elementRulesAllowDependencyType(element, dependency, options) {
-  return elementRulesAllow({
+  return elementRulesAllowDependency({
     element,
     dependency,
     options,
-    ruleMatcher: ruleMatchElementType,
-  });
+    isMatch: isMatchElementType,
+  }).result;
 }
 
 module.exports = {
   ...meta2({
     ruleName: RULE_ELEMENT_TYPES,
     description: `Check allowed dependencies between element types`,
-    schema: RULES_OPTIONS_SCHEMA,
+    schema: rulesOptionsSchema(),
   }),
 
   create: function (context) {
