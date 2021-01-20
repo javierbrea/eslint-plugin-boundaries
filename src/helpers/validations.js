@@ -21,7 +21,7 @@ const ELEMENTS_MATCHER_SCHEMA = {
       items: {
         oneOf: [
           {
-            type: "string", // matcher with no capture options
+            type: "string", // matcher with options
           },
           {
             type: "array",
@@ -30,7 +30,7 @@ const ELEMENTS_MATCHER_SCHEMA = {
                 type: "string", // matcher
               },
               {
-                type: "object", // capture options
+                type: "object", // options
               },
             ],
           },

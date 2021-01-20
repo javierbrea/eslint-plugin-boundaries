@@ -4,8 +4,10 @@ const { TYPES } = require("../constants/settings");
 const { PLUGIN_NAME } = require("../constants/plugin");
 const { getElementInfo } = require("./elements");
 
+// TODO, remove
 const warns = [];
 
+// TODO, remove
 const warn = (message) => {
   if (!warns.includes(message)) {
     console.warn(chalk.yellow(`[${PLUGIN_NAME}]: ${message}`));
@@ -13,12 +15,14 @@ const warn = (message) => {
   }
 };
 
+// TODO, remove
 const validateSettings = (context) => {
   if (!context.settings[TYPES] || !context.settings[TYPES].length) {
     warn(`Please provide element types using the '${TYPES}' setting`);
   }
 };
 
+// TODO, remove
 const checkOptions = (context, property, ruleName, validate) => {
   const options = context.options;
   const settings = context.settings;
@@ -66,6 +70,7 @@ function meta2({ description, schema = [], ruleName }) {
   };
 }
 
+// TODO, remove
 function meta(description, category, schema = [], ruleName) {
   return meta2({ description, schema, ruleName });
 }

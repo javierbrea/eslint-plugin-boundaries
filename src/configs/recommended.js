@@ -6,7 +6,7 @@ const {
   ALIAS,
   RULE_NO_PRIVATE,
   RULE_ENTRY_POINT,
-  RULE_ALLOWED_TYPES,
+  RULE_TYPES,
   RULE_NO_EXTERNAL,
   RULE_PREFER_RECOGNIZED_TYPES,
   RULE_NO_IMPORT_NOT_RECOGNIZED_TYPES,
@@ -29,7 +29,7 @@ module.exports = {
         byType: {},
       },
     ],
-    [RULE_ALLOWED_TYPES]: [
+    [RULE_TYPES]: [
       2,
       {
         allow: {},

@@ -1,4 +1,4 @@
-const { ALLOWED_TYPES: RULE } = require("../../../src/constants/rules");
+const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 
 const { createRuleTester, absoluteFilePath, settings, codeFilePath } = require("../helpers");
 

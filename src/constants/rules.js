@@ -1,7 +1,7 @@
 module.exports = {
   NO_PRIVATE: "no-private",
   ENTRY_POINT: "entry-point",
-  ALLOWED_TYPES: "allowed-types",
+  ELEMENT_TYPES: "element-types",
   NO_EXTERNAL: "no-external",
   NO_EXTERNAL_V2: "no-external-v2",
   PREFER_RECOGNIZED_TYPES: "prefer-recognized-types",

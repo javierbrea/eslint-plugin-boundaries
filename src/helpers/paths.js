@@ -1,3 +1,5 @@
+// TODO, remove
+
 const path = require("path");
 const globule = require("globule");
 

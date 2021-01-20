@@ -1,4 +1,4 @@
-const { RULE_ALLOWED_TYPES } = require("../constants/settings");
+const { RULE_ELEMENT_TYPES } = require("../constants/settings");
 
 const { meta2, dependencyLocation } = require("../helpers/rules");
 const { fileInfo } = require("../core/elementsInfo");
@@ -49,7 +49,7 @@ function getElementRules(elementInfo, options) {
   });
 }
 
-function elementRulesAllowDependency(element, dependency, options) {
+function elementRulesAllowDependencyType(element, dependency, options) {
   return getElementRules(element, options).reduce((allowed, rule) => {
     if (rule.disallow && ruleMatchElementType(rule.disallow, dependency)) {
       return false;
@@ -71,7 +71,7 @@ function validateRules(rules = [], settings) {
 
 module.exports = {
   ...meta2({
-    ruleName: RULE_ALLOWED_TYPES,
+    ruleName: RULE_ELEMENT_TYPES,
     description: `Check allowed dependencies between element types`,
     schema: [
       {
@@ -126,7 +126,7 @@ module.exports = {
           !dependency.isIgnored &&
           dependency.type &&
           !dependency.isInternal &&
-          !elementRulesAllowDependency(file, dependency, options)
+          !elementRulesAllowDependencyType(file, dependency, options)
         ) {
           context.report({
             message: `Usage of '${dependency.type}' is not allowed in '${file.type}'`,

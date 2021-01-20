@@ -1,3 +1,5 @@
+// TODO, remove
+
 const { getDependencyPathInfo, getElementPathInfo } = require("./paths");
 
 const getLastParent = (elementInfo) => {
