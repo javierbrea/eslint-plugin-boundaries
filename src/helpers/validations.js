@@ -40,6 +40,39 @@ const ELEMENTS_MATCHER_SCHEMA = {
   ],
 };
 
+const RULES_OPTIONS_SCHEMA = [
+  {
+    type: "object",
+    properties: {
+      default: {
+        type: "string",
+        enum: ["allow", "disallow"],
+      },
+      rules: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            from: ELEMENTS_MATCHER_SCHEMA,
+            allow: ELEMENTS_MATCHER_SCHEMA,
+            disallow: ELEMENTS_MATCHER_SCHEMA,
+          },
+          additionalProperties: false,
+          oneOf: [
+            {
+              required: ["from", "allow"],
+            },
+            {
+              required: ["from", "disallow"],
+            },
+          ],
+        },
+      },
+    },
+    additionalProperties: false,
+  },
+];
+
 function warn(message) {
   console.warn(chalk.yellow(`[${PLUGIN_NAME}]: ${message}`));
 }
@@ -116,8 +149,18 @@ function validateSettings(settings) {
   validateElements(settings[ELEMENTS] || settings[TYPES]);
 }
 
+function validateRules(rules = [], settings) {
+  rules.forEach((rule) => {
+    validateElementTypesMatcher(rule.from, settings);
+    validateElementTypesMatcher(rule.allow, settings);
+    validateElementTypesMatcher(rule.disallow, settings);
+  });
+}
+
 module.exports = {
+  RULES_OPTIONS_SCHEMA,
+  ELEMENTS_MATCHER_SCHEMA,
   validateElementTypesMatcher,
   validateSettings,
-  ELEMENTS_MATCHER_SCHEMA,
+  validateRules,
 };

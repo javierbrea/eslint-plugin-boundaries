@@ -92,6 +92,59 @@ function dependencyLocation(node, context) {
   };
 }
 
+function capturesMatch(captures, capturesToMatch) {
+  return Object.keys(captures).reduce((match, key) => {
+    if (!capturesToMatch[key] !== captures[key]) {
+      return false;
+    }
+    return true;
+  }, true);
+}
+
+function ruleMatchElementType(elementsTypesMatchers, elementInfo) {
+  let match = false;
+  const matchers = !Array.isArray(elementsTypesMatchers)
+    ? [elementsTypesMatchers]
+    : elementsTypesMatchers;
+  matchers.forEach((matcher) => {
+    if (!match) {
+      if (Array.isArray(matcher)) {
+        const [type, captures] = matcher;
+        if (elementInfo.type === type && capturesMatch(captures, elementInfo.capturedValues)) {
+          match = true;
+        }
+      } else {
+        if (elementInfo.type === matcher) {
+          match = true;
+        }
+      }
+    }
+  });
+  return match;
+}
+
+function getElementRules(elementInfo, options) {
+  if (!options.rules) {
+    return [];
+  }
+  return options.rules.filter((rule) => {
+    return ruleMatchElementType(rule.from, elementInfo);
+  });
+}
+
+function elementRulesAllow({ element, dependency, options, ruleMatcher }) {
+  return getElementRules(element, options).reduce((allowed, rule) => {
+    if (rule.disallow && ruleMatcher(rule.disallow, dependency)) {
+      return false;
+    }
+    if (rule.allow && ruleMatcher(rule.allow, dependency)) {
+      return true;
+    }
+    return allowed;
+  }, options.default === "allow");
+}
+
+// TODO, remove
 const getContextInfo = (context) => {
   validateSettings(context);
   const fileName = context.getFilename();
@@ -107,4 +160,7 @@ module.exports = {
   validateSettings,
   warn,
   getContextInfo,
+  getElementRules,
+  ruleMatchElementType,
+  elementRulesAllow,
 };
