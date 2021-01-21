@@ -66,8 +66,6 @@ function elementTypeAndParents(path, settings) {
     };
   }
 
-  // TODO, convert string types to default patterns for backward compatibility
-
   path
     .split("/")
     .reverse()

@@ -93,13 +93,12 @@ function dependencyLocation(node, context) {
   };
 }
 
-function objectIsSubset(captures, capturesToMatch) {
-  return Object.keys(captures).reduce((match, key) => {
-    // TODO, use micromatch
-    if (capturesToMatch[key] !== captures[key]) {
+function isObjectMatch(objectWithMatchers, object) {
+  return Object.keys(objectWithMatchers).reduce((isMatch, key) => {
+    if (isMatch && micromatch.isMatch(object[key], objectWithMatchers[key])) {
       return false;
     }
-    return true;
+    return isMatch;
   }, true);
 }
 
@@ -124,23 +123,14 @@ function ruleMatch(ruleMatchers, elementInfo, isMatch) {
 }
 
 function isMatchElementKey(elementInfo, matcher, options, elementKey) {
-  if (
-    options &&
-    elementInfo.type === matcher &&
-    objectIsSubset(options, elementInfo.capturedValues)
-  ) {
-    return {
-      result: true,
-    };
-  }
-  // TODO, use micromatch
-  if (micromatch.isMatch(elementInfo[elementKey], matcher)) {
+  const isMatch = micromatch.isMatch(elementInfo[elementKey], matcher);
+  if (isMatch && options && isObjectMatch(options, elementInfo.capturedValues)) {
     return {
       result: true,
     };
   }
   return {
-    result: false,
+    result: isMatch,
   };
 }
 
@@ -205,7 +195,7 @@ module.exports = {
   validateSettings,
   warn,
   getContextInfo,
-  objectIsSubset,
+  isObjectMatch,
   isMatchElementKey,
   isMatchElementType,
   elementRulesAllowDependency,
