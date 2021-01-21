@@ -3,11 +3,11 @@ const { dependencyInfo } = require("../core/dependencyInfo");
 
 const { validateSettings, validateRules } = require("../helpers/validations");
 
-const { meta2 } = require("../helpers/rules");
+const { meta } = require("../helpers/rules");
 
 module.exports = function (ruleDescription, rule, ruleOptions = {}) {
   return {
-    ...meta2(ruleDescription),
+    ...meta(ruleDescription),
     create: function (context) {
       const options = context.options[0];
       const file = fileInfo(context);

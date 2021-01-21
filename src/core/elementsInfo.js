@@ -125,7 +125,6 @@ function importInfo(source, context) {
   const isBuiltInModule = isBuiltIn(source, path);
   const isExternalModule = isExternal(source, path);
   return {
-    // filePath: projectPath(context.getFilename()),
     source,
     path,
     isIgnored: isIgnored(path, context.settings),
