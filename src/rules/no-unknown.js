@@ -7,7 +7,7 @@ const { dependencyLocation } = require("../helpers/rules");
 module.exports = dependencyRule(
   {
     ruleName: RULE_NO_UNKNOWN,
-    description: `Prevent importing unknown elements from known ones`,
+    description: `Prevent importing unknown elements from the known ones`,
   },
   function ({ dependency, node, context }) {
     if (!dependency.isIgnored && dependency.isLocal && !dependency.type) {

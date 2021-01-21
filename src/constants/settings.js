@@ -7,9 +7,7 @@ const {
   NO_IGNORED,
   NO_UNKNOWN,
   NO_PRIVATE,
-
-  // To be removed
-  PREFER_RECOGNIZED_TYPES,
+  NO_UNKNOWN_FILES,
 } = require("./rules");
 
 module.exports = {
@@ -21,11 +19,9 @@ module.exports = {
   RULE_NO_IGNORED: `${PLUGIN_NAME}/${NO_IGNORED}`,
   RULE_NO_UNKNOWN: `${PLUGIN_NAME}/${NO_UNKNOWN}`,
   RULE_NO_PRIVATE: `${PLUGIN_NAME}/${NO_PRIVATE}`,
+  RULE_NO_UNKNOWN_FILES: `${PLUGIN_NAME}/${NO_UNKNOWN_FILES}`,
 
   // Deprecated
   TYPES: `${PLUGIN_NAME}/types`,
   ALIAS: `${PLUGIN_NAME}/alias`,
-
-  // To be removed
-  RULE_PREFER_RECOGNIZED_TYPES: `${PLUGIN_NAME}/${PREFER_RECOGNIZED_TYPES}`,
 };

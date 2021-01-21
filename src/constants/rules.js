@@ -5,7 +5,5 @@ module.exports = {
   NO_IGNORED: "no-ignored",
   NO_UNKNOWN: "no-unknown",
   NO_PRIVATE: "no-private",
-
-  // To be removed
-  PREFER_RECOGNIZED_TYPES: "prefer-recognized-types",
+  NO_UNKNOWN_FILES: "no-unknown-files",
 };

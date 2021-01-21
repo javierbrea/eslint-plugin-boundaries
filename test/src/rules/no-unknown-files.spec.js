@@ -1,4 +1,4 @@
-const { PREFER_RECOGNIZED_TYPES: RULE } = require("../../../src/constants/rules");
+const { NO_UNKNOWN_FILES: RULE } = require("../../../src/constants/rules");
 
 const { createRuleTester, absoluteFilePath, codeFilePath, settings } = require("../helpers");
 
@@ -6,7 +6,7 @@ const rule = require(`../../../src/rules/${RULE}`);
 const ruleTester = createRuleTester();
 
 const FOO_CODE = "export default {}";
-const ERROR_MESSAGE = "File does not belong to any element type";
+const ERROR_MESSAGE = "File does not belong to any known element type";
 
 ruleTester.run(RULE, rule, {
   valid: [
