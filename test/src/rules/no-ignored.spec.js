@@ -1,49 +1,52 @@
 const { NO_IGNORED: RULE } = require("../../../src/constants/rules");
-
-const { createRuleTester, absoluteFilePath, codeFilePath, settings } = require("../helpers");
+const { SETTINGS, createRuleTester, pathResolvers } = require("../helpers");
 
 const rule = require(`../../../src/rules/${RULE}`);
-const ruleTester = createRuleTester();
+
+const settings = SETTINGS.deprecated;
+const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
+
+const ruleTester = createRuleTester(settings);
 
 const ERROR_MESSAGE = "Importing ignored files is not allowed";
 
 const customSettings = {
   ...settings,
-  "boundaries/ignore": [codeFilePath("src/components/component-b/**/*.js")],
+  "boundaries/ignore": [codeFilePath("components/component-b/**/*.js")],
 };
 
 ruleTester.run(RULE, rule, {
   valid: [
     // Non recognized types can import whatever, even when ignored
     {
-      filename: absoluteFilePath("src/foo/index.js"),
+      filename: absoluteFilePath("foo/index.js"),
       code: "import ComponentB from 'components/component-b'",
       settings: customSettings,
     },
     // Ignored files can import whatever, even other ignored ones
     {
-      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
       code: "import ComponentB from 'components/component-b'",
       settings: {
         ...settings,
-        "boundaries/ignore": [codeFilePath("src/components/**/*.js")],
+        "boundaries/ignore": [codeFilePath("components/**/*.js")],
       },
     },
     // Non ignored files can be imported
     {
-      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
       code: "import ComponentB from 'components/component-b'",
     },
     // Non local files can be imported
     {
-      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
       code: "import React from 'react'",
     },
   ],
   invalid: [
     // Recognized but ignored type
     {
-      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
       code: "import ComponentB from '../component-b'",
       settings: customSettings,
       errors: [
@@ -55,7 +58,7 @@ ruleTester.run(RULE, rule, {
     },
     // Recognized but ignored type with alias
     {
-      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
       code: "import ComponentB from 'components/component-b'",
       settings: customSettings,
       errors: [

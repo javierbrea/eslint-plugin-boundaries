@@ -1,9 +1,12 @@
 const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
-
-const { createRuleTester, absoluteFilePath, codeFilePath, settings } = require("../helpers");
+const { SETTINGS, createRuleTester, pathResolvers } = require("../helpers");
 
 const rule = require(`../../../src/rules/${RULE}`);
-const ruleTester = createRuleTester();
+
+const settings = SETTINGS.deprecated;
+const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
+
+const ruleTester = createRuleTester(settings);
 
 const errorMessage = (disallowedEntryPoint, type) =>
   `Entry point '${disallowedEntryPoint}' is not allowed in '${type}'`;
@@ -44,52 +47,52 @@ ruleTester.run(RULE, rule, {
   valid: [
     // Non recognized types can import whatever
     {
-      filename: absoluteFilePath("src/foo/index.js"),
+      filename: absoluteFilePath("foo/index.js"),
       code: "import HelperA from 'helpers/helper-a/HelperA.js'",
       options,
     },
     // No option provided
     {
-      filename: absoluteFilePath("src/helpers/helper-b/HelperB.js"),
+      filename: absoluteFilePath("helpers/helper-b/HelperB.js"),
       code: "import HelperA from 'helpers/helper-a/HelperA.js'",
     },
     // Ignored files can import whatever
     {
-      filename: absoluteFilePath("src/helpers/helper-b/HelperB.js"),
+      filename: absoluteFilePath("helpers/helper-b/HelperB.js"),
       code: "import HelperA from 'helpers/helper-a/HelperA.js'",
       options,
       settings: {
         ...settings,
-        "boundaries/ignore": [codeFilePath("src/helpers/helper-b/**/*.js")],
+        "boundaries/ignore": [codeFilePath("helpers/helper-b/**/*.js")],
       },
     },
     // import index with default option
     {
-      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
       code: "import ComponentB from '../component-b/index'",
       options: defaultOptions,
     },
     // import folder with default option
     {
-      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
       code: "import ComponentB from '../component-b'",
       options: defaultOptions,
     },
     // import alias folder with default option
     {
-      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
       code: "import ComponentB from 'components/component-b'",
       options: defaultOptions,
     },
     // import default file with custom config
     {
-      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
       code: "import ComponentB from 'helpers/helper-b/main'",
       options,
     },
     // import type file with custom config
     {
-      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
       code: "import ComponentB from 'components/component-b/Component'",
       options,
     },
@@ -97,7 +100,7 @@ ruleTester.run(RULE, rule, {
   invalid: [
     // Not index.js with default config
     {
-      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
       code: "import ComponentB from '../component-b/ComponentB.js'",
       options: defaultOptions,
       errors: [
@@ -109,7 +112,7 @@ ruleTester.run(RULE, rule, {
     },
     // folder with config not set to index.js
     {
-      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
       code: "import HelperA from 'helpers/helper-a'",
       options,
       errors: [
@@ -121,7 +124,7 @@ ruleTester.run(RULE, rule, {
     },
     // index.js with another default config
     {
-      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
       code: "import HelperA from 'helpers/helper-a/index.js'",
       options,
       errors: [
@@ -133,7 +136,7 @@ ruleTester.run(RULE, rule, {
     },
     // default option but not type option
     {
-      filename: absoluteFilePath("src/components/component-a/ComponentA.js"),
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
       code: "import ComponentB from 'components/component-b/main.js'",
       options,
       errors: [
