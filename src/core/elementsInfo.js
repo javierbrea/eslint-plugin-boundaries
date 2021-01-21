@@ -2,7 +2,7 @@ const isCoreModule = require("is-core-module");
 const micromatch = require("micromatch");
 const resolve = require("eslint-module-utils/resolve").default;
 
-const { IGNORE } = require("../constants/settings");
+const { IGNORE, VALID_MATCH_TYPES } = require("../constants/settings");
 const { getElements } = require("../helpers/settings");
 
 function baseModule(name, path) {
@@ -73,9 +73,12 @@ function elementTypeAndParents(path, settings) {
       accumulator.unshift(elementPathSegment);
       let elementFound = false;
       getElements(settings).forEach((element) => {
+        const typeOfMatch = VALID_MATCH_TYPES.includes(element.match)
+          ? element.match
+          : VALID_MATCH_TYPES[0];
         if (!elementFound) {
           const pattern =
-            element.match === "parentFolders" && !elementResult.type
+            typeOfMatch === VALID_MATCH_TYPES[0] && !elementResult.type
               ? `${element.pattern}/**/*`
               : element.pattern;
           const capture = micromatch.capture(pattern, accumulator.join("/"));
@@ -93,7 +96,7 @@ function elementTypeAndParents(path, settings) {
               elementResult.capture = capture;
               elementResult.capturedValues = capturedValues;
               elementResult.internalPath =
-                element.match === "parentFolders" ? path.replace(`${elementPath}/`, "") : null;
+                typeOfMatch === VALID_MATCH_TYPES[0] ? path.replace(`${elementPath}/`, "") : null;
             } else {
               parents.push({
                 type: element.type,

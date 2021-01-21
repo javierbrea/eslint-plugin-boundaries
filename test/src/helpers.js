@@ -30,6 +30,33 @@ const SETTINGS = {
       },
     },
   },
+  oneLevel: {
+    "boundaries/elements": [
+      {
+        type: "helpers",
+        pattern: "helpers/*",
+        capture: ["elementName"],
+      },
+      {
+        type: "components",
+        pattern: "components/*",
+        capture: ["elementName"],
+      },
+      {
+        type: "modules",
+        pattern: "modules/*",
+        capture: ["elementName"],
+      },
+    ],
+    "import/resolver": {
+      "eslint-import-resolver-node": {},
+      [path.resolve(process.cwd(), "resolver-legacy-alias")]: {
+        helpers: `./${codeFilePath("one-level", "helpers")}`,
+        components: `./${codeFilePath("one-level", "components")}`,
+        modules: `./${codeFilePath("one-level", "modules")}`,
+      },
+    },
+  },
 };
 
 const createRuleTester = (settings) => {

@@ -2,15 +2,13 @@ const chalk = require("chalk");
 const micromatch = require("micromatch");
 
 const { PLUGIN_NAME } = require("../constants/plugin");
-const { TYPES, ALIAS, ELEMENTS } = require("../constants/settings");
+const { TYPES, ALIAS, ELEMENTS, VALID_MATCH_TYPES } = require("../constants/settings");
 
 const { getElementsTypeNames, isLegacyType } = require("./settings");
 const { rulesMainKey } = require("./rules");
 
 const warns = [];
 const invalidMatchers = [];
-
-const VALID_MATCH_TYPES = ["parentFolders"];
 
 const DEFAULT_MATCHER_OPTIONS = {
   type: "object",
@@ -65,7 +63,10 @@ function rulesOptionsSchema(options = {}) {
               disallow: elementsMatcherSchema(options.targetMatcherOptions),
             },
             additionalProperties: false,
-            oneOf: [
+            anyOf: [
+              {
+                required: [mainKey, "allow", "disallow"],
+              },
               {
                 required: [mainKey, "allow"],
               },
@@ -107,6 +108,7 @@ function validateElementTypesMatcher(elementsMatcher, settings) {
 function validateElements(elements) {
   if (!elements || !Array.isArray(elements) || !elements.length) {
     warnOnce(`Please provide element types using the '${ELEMENTS}' setting`);
+    return;
   }
   elements.forEach((element) => {
     // TODO, remove in next major version
@@ -123,7 +125,7 @@ function validateElements(elements) {
           warnOnce(
             `Invalid match property in '${ELEMENTS}' setting. Should be one of ${VALID_MATCH_TYPES.join(
               ","
-            )}`
+            )}. Default value "${VALID_MATCH_TYPES[0]}" will be used instead`
           );
         }
         if (!element.pattern || typeof element.pattern !== "string") {

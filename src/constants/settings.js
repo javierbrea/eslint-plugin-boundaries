@@ -27,4 +27,7 @@ module.exports = {
   // deprecated settings
   TYPES: `${PLUGIN_NAME}/types`,
   ALIAS: `${PLUGIN_NAME}/alias`,
+
+  // elements settings properties,
+  VALID_MATCH_TYPES: ["parentFolders"],
 };

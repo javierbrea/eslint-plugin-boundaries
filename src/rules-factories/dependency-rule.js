@@ -10,6 +10,7 @@ module.exports = function (ruleDescription, rule, ruleOptions = {}) {
     ...meta(ruleDescription),
     create: function (context) {
       const options = context.options[0];
+      validateSettings(context.settings);
       const file = fileInfo(context);
       if ((ruleOptions.validate !== false && !options) || file.isIgnored || !file.type) {
         return {};
@@ -17,7 +18,6 @@ module.exports = function (ruleDescription, rule, ruleOptions = {}) {
       if (ruleOptions.validate !== false) {
         validateRules(options.rules, context.settings, ruleOptions.validateRules);
       }
-      validateSettings(context.settings);
 
       return {
         ImportDeclaration: (node) => {

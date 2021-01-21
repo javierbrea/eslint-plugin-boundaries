@@ -1,4 +1,4 @@
-const { TYPES, ELEMENTS } = require("../constants/settings");
+const { TYPES, ELEMENTS, VALID_MATCH_TYPES } = require("../constants/settings");
 
 function isLegacyType(type) {
   return typeof type === "string";
@@ -12,14 +12,14 @@ function transformLegacyTypes(typesFromSettings) {
     if (isLegacyType(type)) {
       return {
         type: type,
-        match: "parentFolders",
+        match: VALID_MATCH_TYPES[0],
         pattern: `${type}/*`,
         capture: ["elementName"],
       };
     }
     // default options
     return {
-      match: "parentFolders",
+      match: VALID_MATCH_TYPES[0],
       ...type,
     };
   });
