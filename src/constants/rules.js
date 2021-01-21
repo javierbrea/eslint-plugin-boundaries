@@ -3,9 +3,9 @@ module.exports = {
   EXTERNAL: "external",
   ENTRY_POINT: "entry-point",
   NO_IGNORED: "no-ignored",
-  ONLY_KNOWN_ELEMENTS: "only-known-elements",
+  ONLY_KNOWN: "only-known",
+  NO_PRIVATE: "no-private",
 
   // To be removed
-  NO_PRIVATE: "no-private",
   PREFER_RECOGNIZED_TYPES: "prefer-recognized-types",
 };

@@ -1,17 +1,11 @@
 const { NO_PRIVATE: RULE } = require("../../../src/constants/rules");
 
-const {
-  createRuleTester,
-  absoluteFilePath,
-  relativeFilePath,
-  codeFilePath,
-  settings,
-} = require("../helpers");
+const { createRuleTester, absoluteFilePath, codeFilePath, settings } = require("../helpers");
 
 const rule = require(`../../../src/rules/${RULE}`);
 const ruleTester = createRuleTester();
 
-const errorMessage = (parent) => `Dependency is private of '${relativeFilePath(parent)}'`;
+const errorMessage = () => `Dependency is private of another element`;
 
 const options = [
   {
@@ -112,7 +106,7 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("src/components/component-a/components/component-c"),
+          message: errorMessage(),
           type: "ImportDeclaration",
         },
       ],
@@ -124,7 +118,7 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("src/components/component-a"),
+          message: errorMessage(),
           type: "ImportDeclaration",
         },
       ],
@@ -138,7 +132,7 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("src/components/component-a/helpers/helper-a"),
+          message: errorMessage(),
           type: "ImportDeclaration",
         },
       ],
@@ -150,7 +144,7 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("src/components/component-a/helpers/helper-a"),
+          message: errorMessage(),
           type: "ImportDeclaration",
         },
       ],
@@ -170,7 +164,7 @@ ruleTester.run(RULE, rule, {
       ],
       errors: [
         {
-          message: errorMessage("src/components/component-a"),
+          message: errorMessage(),
           type: "ImportDeclaration",
         },
       ],

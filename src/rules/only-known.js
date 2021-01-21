@@ -1,4 +1,4 @@
-const { ONLY_KNOWN_ELEMENTS } = require("../constants/settings");
+const { RULE_ONLY_KNOWN } = require("../constants/settings");
 
 const dependencyRule = require("../rules-factories/dependency-rule");
 
@@ -6,7 +6,7 @@ const { dependencyLocation } = require("../helpers/rules");
 
 module.exports = dependencyRule(
   {
-    ruleName: ONLY_KNOWN_ELEMENTS,
+    ruleName: RULE_ONLY_KNOWN,
     description: `Prevent importing unknown elements from known ones`,
   },
   function ({ dependency, node, context }) {
