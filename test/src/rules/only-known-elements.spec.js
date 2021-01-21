@@ -1,11 +1,11 @@
-const { NO_IMPORT_NOT_RECOGNIZED_TYPES: RULE } = require("../../../src/constants/rules");
+const { ONLY_KNOWN_ELEMENTS: RULE } = require("../../../src/constants/rules");
 
 const { createRuleTester, absoluteFilePath, codeFilePath, settings } = require("../helpers");
 
 const rule = require(`../../../src/rules/${RULE}`);
 const ruleTester = createRuleTester();
 
-const ERROR_MESSAGE = "Importing not recognized elements is not allowed";
+const ERROR_MESSAGE = "Importing unknown elements is not allowed";
 
 const customSettings = {
   ...settings,
