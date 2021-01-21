@@ -245,6 +245,42 @@ test(SETTINGS.deprecated, [
   },
 ]);
 
+// settings with no capture option
+test(
+  {
+    ...SETTINGS.oneLevel,
+    "boundaries/elements": [
+      {
+        type: "helpers",
+        pattern: "helpers/*",
+      },
+      {
+        type: "components",
+        pattern: "components/*",
+      },
+      {
+        type: "modules",
+        pattern: "modules/*",
+      },
+    ],
+  },
+  [
+    {
+      default: "allow",
+      rules: [
+        {
+          from: "helpers",
+          disallow: ["modules", "components", "helpers"],
+        },
+        {
+          from: "components",
+          disallow: ["modules"],
+        },
+      ],
+    },
+  ]
+);
+
 // disallow-based options
 
 test(SETTINGS.oneLevel, [
