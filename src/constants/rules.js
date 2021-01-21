@@ -3,7 +3,7 @@ module.exports = {
   EXTERNAL: "external",
   ENTRY_POINT: "entry-point",
   NO_IGNORED: "no-ignored",
-  ONLY_KNOWN: "only-known",
+  NO_UNKNOWN: "no-unknown",
   NO_PRIVATE: "no-private",
 
   // To be removed

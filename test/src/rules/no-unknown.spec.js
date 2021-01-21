@@ -1,4 +1,4 @@
-const { ONLY_KNOWN: RULE } = require("../../../src/constants/rules");
+const { NO_UNKNOWN: RULE } = require("../../../src/constants/rules");
 
 const { createRuleTester, absoluteFilePath, codeFilePath, settings } = require("../helpers");
 
