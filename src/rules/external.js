@@ -2,11 +2,10 @@ const micromatch = require("micromatch");
 
 const { RULE_EXTERNAL } = require("../constants/settings");
 
-const { fileInfo } = require("../core/elementsInfo");
-const { dependencyInfo } = require("../core/dependencyInfo");
+const dependencyRule = require("../rules-factories/dependency-rule");
 
-const { validateSettings, rulesOptionsSchema, validateRules } = require("../helpers/validations");
-const { meta2, dependencyLocation, elementRulesAllowDependency } = require("../helpers/rules");
+const { rulesOptionsSchema } = require("../helpers/validations");
+const { dependencyLocation, elementRulesAllowDependency } = require("../helpers/rules");
 
 function specifiersMatch(specifiers, options) {
   const importedSpecifiersNames = specifiers
@@ -45,8 +44,8 @@ function elementRulesAllowExternalDependency(element, dependency, options) {
   });
 }
 
-module.exports = {
-  ...meta2({
+module.exports = dependencyRule(
+  {
     ruleName: RULE_EXTERNAL,
     description: `Check allowed external dependencies by element type`,
     schema: rulesOptionsSchema({
@@ -63,47 +62,34 @@ module.exports = {
         additionalProperties: false,
       },
     }),
-  }),
-
-  create: function (context) {
-    const options = context.options[0];
-    const file = fileInfo(context);
-    if (!options || file.isIgnored || !file.type) {
-      return {};
-    }
-
-    validateRules(options.rules, context.settings, { onlyMainKey: true });
-    validateSettings(context.settings);
-
-    return {
-      ImportDeclaration: (node) => {
-        const dependency = dependencyInfo(node.source.value, context);
-
-        if (dependency.isExternal) {
-          const isAllowed = elementRulesAllowExternalDependency(
-            file,
-            { ...dependency, specifiers: node.source.parent.specifiers },
-            options
-          );
-          if (!isAllowed.result) {
-            if (isAllowed.report) {
-              context.report({
-                message: `Usage of '${isAllowed.report.join(", ")}' from external module '${
-                  dependency.baseModule
-                }' is not allowed in '${file.type}'`,
-                node: node,
-                ...dependencyLocation(node, context),
-              });
-            } else {
-              context.report({
-                message: `Usage of external module '${dependency.baseModule}' is not allowed in '${file.type}'`,
-                node: node,
-                ...dependencyLocation(node, context),
-              });
-            }
-          }
-        }
-      },
-    };
   },
-};
+  function ({ dependency, file, node, context, options }) {
+    if (dependency.isExternal) {
+      const isAllowed = elementRulesAllowExternalDependency(
+        file,
+        { ...dependency, specifiers: node.source.parent.specifiers },
+        options
+      );
+      if (!isAllowed.result) {
+        if (isAllowed.report) {
+          context.report({
+            message: `Usage of '${isAllowed.report.join(", ")}' from external module '${
+              dependency.baseModule
+            }' is not allowed in '${file.type}'`,
+            node: node,
+            ...dependencyLocation(node, context),
+          });
+        } else {
+          context.report({
+            message: `Usage of external module '${dependency.baseModule}' is not allowed in '${file.type}'`,
+            node: node,
+            ...dependencyLocation(node, context),
+          });
+        }
+      }
+    }
+  },
+  {
+    validateRules: { onlyMainKey: true },
+  }
+);

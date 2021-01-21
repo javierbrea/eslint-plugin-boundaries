@@ -1,4 +1,4 @@
-const { NO_IMPORT_IGNORED: RULE } = require("../../../src/constants/rules");
+const { NO_IGNORED: RULE } = require("../../../src/constants/rules");
 
 const { createRuleTester, absoluteFilePath, codeFilePath, settings } = require("../helpers");
 
