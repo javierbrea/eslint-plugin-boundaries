@@ -11,17 +11,20 @@ const {
 } = require("./rules");
 
 module.exports = {
+  // settings
   ELEMENTS: `${PLUGIN_NAME}/elements`,
   IGNORE: `${PLUGIN_NAME}/ignore`,
+
+  // rules
   RULE_ELEMENT_TYPES: `${PLUGIN_NAME}/${ELEMENT_TYPES}`,
-  RULE_EXTERNAL: `${PLUGIN_NAME}/${EXTERNAL}`,
   RULE_ENTRY_POINT: `${PLUGIN_NAME}/${ENTRY_POINT}`,
+  RULE_EXTERNAL: `${PLUGIN_NAME}/${EXTERNAL}`,
   RULE_NO_IGNORED: `${PLUGIN_NAME}/${NO_IGNORED}`,
-  RULE_NO_UNKNOWN: `${PLUGIN_NAME}/${NO_UNKNOWN}`,
   RULE_NO_PRIVATE: `${PLUGIN_NAME}/${NO_PRIVATE}`,
   RULE_NO_UNKNOWN_FILES: `${PLUGIN_NAME}/${NO_UNKNOWN_FILES}`,
+  RULE_NO_UNKNOWN: `${PLUGIN_NAME}/${NO_UNKNOWN}`,
 
-  // Deprecated
+  // deprecated settings
   TYPES: `${PLUGIN_NAME}/types`,
   ALIAS: `${PLUGIN_NAME}/alias`,
 };
