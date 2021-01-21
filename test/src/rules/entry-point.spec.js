@@ -1,33 +1,42 @@
 const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
 
-const {
-  createRuleTester,
-  absoluteFilePath,
-  relativeFilePath,
-  codeFilePath,
-  settings,
-} = require("../helpers");
+const { createRuleTester, absoluteFilePath, codeFilePath, settings } = require("../helpers");
 
 const rule = require(`../../../src/rules/${RULE}`);
 const ruleTester = createRuleTester();
 
-const errorMessage = (dependencyInfo, requiredEntryPoint) =>
-  `Entry point of element '${relativeFilePath(dependencyInfo)}' must be '${requiredEntryPoint}'`;
+const errorMessage = (disallowedEntryPoint, type) =>
+  `Entry point '${disallowedEntryPoint}' is not allowed in '${type}'`;
 
 const defaultOptions = [
   {
-    default: "index.js",
-    byType: {},
+    default: "disallow",
+    rules: [
+      {
+        target: "*",
+        allow: "index.js",
+      },
+    ],
   },
 ];
 
 const options = [
   {
-    default: "main.js",
-    byType: {
-      components: "Component.js",
-      modules: "Module.js",
-    },
+    default: "disallow",
+    rules: [
+      {
+        target: "helpers",
+        allow: "main.js",
+      },
+      {
+        target: "components",
+        allow: "Component.js",
+      },
+      {
+        target: "modules",
+        allow: "Module.js",
+      },
+    ],
   },
 ];
 
@@ -93,7 +102,7 @@ ruleTester.run(RULE, rule, {
       options: defaultOptions,
       errors: [
         {
-          message: errorMessage("src/components/component-b", "index.js"),
+          message: errorMessage("ComponentB.js", "components"),
           type: "ImportDeclaration",
         },
       ],
@@ -105,7 +114,7 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("src/helpers/helper-a", "main.js"),
+          message: errorMessage("index.js", "helpers"),
           type: "ImportDeclaration",
         },
       ],
@@ -117,7 +126,7 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("src/helpers/helper-a", "main.js"),
+          message: errorMessage("index.js", "helpers"),
           type: "ImportDeclaration",
         },
       ],
@@ -129,7 +138,7 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("src/components/component-b", "Component.js"),
+          message: errorMessage("main.js", "components"),
           type: "ImportDeclaration",
         },
       ],

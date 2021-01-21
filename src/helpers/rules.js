@@ -1,4 +1,5 @@
 const chalk = require("chalk");
+const micromatch = require("micromatch");
 
 const { TYPES } = require("../constants/settings");
 const { PLUGIN_NAME } = require("../constants/plugin");
@@ -94,11 +95,16 @@ function dependencyLocation(node, context) {
 
 function objectIsSubset(captures, capturesToMatch) {
   return Object.keys(captures).reduce((match, key) => {
+    // TODO, use micromatch
     if (capturesToMatch[key] !== captures[key]) {
       return false;
     }
     return true;
   }, true);
+}
+
+function rulesMainKey(key) {
+  return key || "from";
 }
 
 function ruleMatch(ruleMatchers, elementInfo, isMatch) {
@@ -117,7 +123,7 @@ function ruleMatch(ruleMatchers, elementInfo, isMatch) {
   return match;
 }
 
-function isMatchElementType(elementInfo, matcher, options) {
+function isMatchElementKey(elementInfo, matcher, options, elementKey) {
   if (
     options &&
     elementInfo.type === matcher &&
@@ -127,7 +133,8 @@ function isMatchElementType(elementInfo, matcher, options) {
       result: true,
     };
   }
-  if (elementInfo.type === matcher) {
+  // TODO, use micromatch
+  if (micromatch.isMatch(elementInfo[elementKey], matcher)) {
     return {
       result: true,
     };
@@ -137,17 +144,28 @@ function isMatchElementType(elementInfo, matcher, options) {
   };
 }
 
-function getElementRules(elementInfo, options) {
+function isMatchElementType(elementInfo, matcher, options) {
+  return isMatchElementKey(elementInfo, matcher, options, "type");
+}
+
+function getElementRules(elementInfo, options, mainKey) {
   if (!options.rules) {
     return [];
   }
+  const key = rulesMainKey(mainKey);
   return options.rules.filter((rule) => {
-    return ruleMatch(rule.from, elementInfo, isMatchElementType).result;
+    return ruleMatch(rule[key], elementInfo, isMatchElementType).result;
   });
 }
 
-function elementRulesAllowDependency({ element, dependency, options, isMatch }) {
-  const [result, report] = getElementRules(element, options).reduce(
+function elementRulesAllowDependency({
+  element,
+  dependency,
+  options,
+  isMatch,
+  rulesMainKey: mainKey,
+}) {
+  const [result, report] = getElementRules(element, options, mainKey).reduce(
     (allowed, rule) => {
       if (rule.disallow) {
         const match = ruleMatch(rule.disallow, dependency, isMatch);
@@ -188,7 +206,9 @@ module.exports = {
   warn,
   getContextInfo,
   objectIsSubset,
+  isMatchElementKey,
   isMatchElementType,
   elementRulesAllowDependency,
   getElementRules,
+  rulesMainKey,
 };

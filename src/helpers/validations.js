@@ -5,6 +5,7 @@ const { PLUGIN_NAME } = require("../constants/plugin");
 const { TYPES, ALIAS, ELEMENTS } = require("../constants/settings");
 
 const { getElementsTypeNames, isLegacyType } = require("./settings");
+const { rulesMainKey } = require("./rules");
 
 const warns = [];
 const invalidMatchers = [];
@@ -45,6 +46,7 @@ function elementsMatcherSchema(matcherOptions = DEFAULT_MATCHER_OPTIONS) {
 }
 
 function rulesOptionsSchema(options = {}) {
+  const mainKey = rulesMainKey(options.rulesMainKey);
   return [
     {
       type: "object",
@@ -58,17 +60,17 @@ function rulesOptionsSchema(options = {}) {
           items: {
             type: "object",
             properties: {
-              from: elementsMatcherSchema(),
+              [mainKey]: elementsMatcherSchema(),
               allow: elementsMatcherSchema(options.targetMatcherOptions),
               disallow: elementsMatcherSchema(options.targetMatcherOptions),
             },
             additionalProperties: false,
             oneOf: [
               {
-                required: ["from", "allow"],
+                required: [mainKey, "allow"],
               },
               {
-                required: ["from", "disallow"],
+                required: [mainKey, "disallow"],
               },
             ],
           },
@@ -98,7 +100,7 @@ function validateElementTypesMatcher(elementsMatcher, settings) {
   const [matcher] = Array.isArray(elementsMatcher) ? elementsMatcher : [elementsMatcher];
   if (!invalidMatchers.includes(matcher) && !isValidElementTypesMatcher(matcher, settings)) {
     invalidMatchers.push(matcher);
-    warnOnce(`Option '${matcher}'' does not match any element type from '${ELEMENTS}' setting`);
+    warnOnce(`Option '${matcher}' does not match any element type from '${ELEMENTS}' setting`);
   }
 }
 
@@ -156,9 +158,10 @@ function validateSettings(settings) {
 }
 
 function validateRules(rules = [], settings, options = {}) {
+  const mainKey = rulesMainKey(options.mainKey);
   rules.forEach((rule) => {
-    validateElementTypesMatcher(rule.from, settings);
-    if (!options.onlyFrom) {
+    validateElementTypesMatcher([rule[mainKey]], settings);
+    if (!options.onlyMainKey) {
       validateElementTypesMatcher(rule.allow, settings);
       validateElementTypesMatcher(rule.disallow, settings);
     }

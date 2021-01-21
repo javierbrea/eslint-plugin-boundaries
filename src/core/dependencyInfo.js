@@ -77,6 +77,7 @@ function dependencyInfo(source, context) {
   return {
     ...dependency,
     relationship: dependencyRelationship(dependency, elementInfo),
+    isInternal: isInternal(dependency, elementInfo),
   };
 }
 
