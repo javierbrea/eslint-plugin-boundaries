@@ -94,7 +94,8 @@ function warnOnce(message) {
 }
 
 function isValidElementTypesMatcher(matcher, settings) {
-  return !matcher || micromatch.some(getElementsTypeNames(settings), matcher);
+  const mathcherToCheck = Array.isArray(matcher) ? matcher[0] : matcher;
+  return !matcher || micromatch.some(getElementsTypeNames(settings), mathcherToCheck);
 }
 
 function validateElementTypesMatcher(elementsMatcher, settings) {

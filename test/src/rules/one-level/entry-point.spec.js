@@ -129,6 +129,52 @@ const test = (settings, options) => {
   });
 };
 
+const testCapture = (settings, options) => {
+  const ruleTester = createRuleTester(settings);
+  ruleTester.run(RULE, rule, {
+    valid: [
+      // helper-a entry-point is index.js
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import HelperA from 'helpers/helper-a'",
+        options,
+      },
+      // helper-b entry-point is main.js
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import HelperA from 'helpers/helper-b/main'",
+        options,
+      },
+    ],
+    invalid: [
+      // import helper-b index.js
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import HelperA from 'helpers/helper-b'",
+        options,
+        errors: [
+          {
+            message: errorMessage("index.js", "helpers"),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+      // import helper-a main.js
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import HelperA from 'helpers/helper-a/main'",
+        options,
+        errors: [
+          {
+            message: errorMessage("main.js", "helpers"),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+    ],
+  });
+};
+
 // deprecated settings
 
 test(SETTINGS.deprecated, [
@@ -220,6 +266,36 @@ test(SETTINGS.oneLevel, [
       {
         target: "modules",
         disallow: "*",
+      },
+      {
+        target: "modules",
+        allow: "Module.js",
+      },
+    ],
+  },
+]);
+
+// options with capture
+
+testCapture(SETTINGS.oneLevel, [
+  {
+    default: "disallow",
+    rules: [
+      {
+        target: "helpers",
+        allow: "main.js",
+      },
+      {
+        target: [["helpers", { elementName: "*-a" }]],
+        disallow: "*",
+      },
+      {
+        target: [["helpers", { elementName: "*-a" }]],
+        allow: "index.*",
+      },
+      {
+        target: "components",
+        allow: "Component.js",
       },
       {
         target: "modules",

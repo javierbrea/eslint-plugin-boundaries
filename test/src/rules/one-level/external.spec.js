@@ -60,60 +60,30 @@ const test = (settings, options, specifiers) => {
         filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
         code: "import FooLibrary from 'foo-library'",
         options,
-        errors: [
-          {
-            message: destructuredErrorMessage("helpers", "Link", "foo-library"),
-            type: "ImportDeclaration",
-          },
-        ],
       },
       // Helpers can import foo-library using namespace
       {
         filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
         code: "import FooLibrary, * as Namespace from 'foo-library'",
         options,
-        errors: [
-          {
-            message: destructuredErrorMessage("helpers", "Link", "foo-library"),
-            type: "ImportDeclaration",
-          },
-        ],
       },
       // Helpers can import * from foo-library
       {
         filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
         code: "import * as Link from 'foo-library'",
         options,
-        errors: [
-          {
-            message: destructuredErrorMessage("helpers", "Link", "foo-library"),
-            type: "ImportDeclaration",
-          },
-        ],
       },
       // Helpers can import * from foo-library
       {
         filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
         code: "import * as FooLibrary from 'foo-library'",
         options,
-        errors: [
-          {
-            message: destructuredErrorMessage("helpers", "Link", "foo-library"),
-            type: "ImportDeclaration",
-          },
-        ],
       },
       // Helpers can import Foo from foo-library
       {
         filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
         code: "import { Foo } from 'foo-library'",
         options,
-        errors: [
-          {
-            message: destructuredErrorMessage("helpers", "Link", "foo-library"),
-            type: "ImportDeclaration",
-          },
-        ],
       },
       // Modules can import material-ui/icons
       {
@@ -227,6 +197,70 @@ const test = (settings, options, specifiers) => {
   });
 };
 
+const testCapture = (settings, options) => {
+  const ruleTester = createRuleTester(settings);
+  ruleTester.run(RULE, rule, {
+    valid: [
+      // Module A can import react-router-dom
+      {
+        filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+        code: "import { withRouter } from 'react-router-dom'",
+        options,
+      },
+      // Helpers A can import foo-library
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import FooLibrary from 'foo-library'",
+        options,
+      },
+      // Helper B can import foo-library using namespace
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperB.js"),
+        code: "import FooLibrary, * as Namespace from 'foo-library'",
+        options,
+      },
+    ],
+    invalid: [
+      // Module B can't import react-router-dom
+      {
+        filename: absoluteFilePath("modules/module-b/ModuleB.js"),
+        code: "import { withRouter } from 'react-router-dom'",
+        options,
+        errors: [
+          {
+            message: errorMessage("modules", "react-router-dom"),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+      // Helpers B can't import foo-library
+      {
+        filename: absoluteFilePath("helpers/helper-b/HelperB.js"),
+        code: "import FooLibrary from 'foo-library'",
+        options,
+        errors: [
+          {
+            message: errorMessage("helpers", "foo-library"),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+      // Helper A can't import foo-library using namespace
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import FooLibrary, { Link } from 'foo-library'",
+        options,
+        errors: [
+          {
+            message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+    ],
+  });
+};
+
 // deprecated settings
 test(SETTINGS.deprecated, [
   {
@@ -327,6 +361,28 @@ test(SETTINGS.oneLevel, [
       {
         from: "modules",
         allow: ["@material-ui/icons"],
+      },
+    ],
+  },
+]);
+
+// options with capture allow-based
+
+testCapture(SETTINGS.oneLevel, [
+  {
+    default: "allow",
+    rules: [
+      {
+        from: [["modules", { elementName: "module-b" }]],
+        disallow: ["react-router-dom"],
+      },
+      {
+        from: [["helpers", { elementName: "helper-b" }]],
+        disallow: ["foo-library"],
+      },
+      {
+        from: [["helpers", { elementName: "helper-a" }]],
+        disallow: [["foo-library", { specifiers: ["Link"] }]],
       },
     ],
   },
