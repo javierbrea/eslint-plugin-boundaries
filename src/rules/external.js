@@ -14,7 +14,7 @@ function specifiersMatch(specifiers, options) {
     })
     .map((specifier) => specifier.imported.name);
   return options.reduce((found, option) => {
-    if (importedSpecifiersNames.includes(option)) {
+    if (micromatch.some(importedSpecifiersNames, option)) {
       found.push(option);
     }
     return found;

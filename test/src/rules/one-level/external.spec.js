@@ -11,7 +11,8 @@ const errorMessage = (elementType, dependencyName) =>
 const destructuredErrorMessage = (elementType, imported, dependencyName) =>
   `Usage of '${imported}' from external module '${dependencyName}' is not allowed in '${elementType}'`;
 
-const test = (settings, options) => {
+const test = (settings, options, specifiers) => {
+  const failingSpecifiers = specifiers || ["Link", "Router"];
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
     valid: [
@@ -153,7 +154,7 @@ const test = (settings, options) => {
         options,
         errors: [
           {
-            message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+            message: destructuredErrorMessage("helpers", failingSpecifiers[0], "foo-library"),
             type: "ImportDeclaration",
           },
         ],
@@ -165,7 +166,7 @@ const test = (settings, options) => {
         options,
         errors: [
           {
-            message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+            message: destructuredErrorMessage("helpers", failingSpecifiers[0], "foo-library"),
             type: "ImportDeclaration",
           },
         ],
@@ -177,7 +178,7 @@ const test = (settings, options) => {
         options,
         errors: [
           {
-            message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+            message: destructuredErrorMessage("helpers", failingSpecifiers[0], "foo-library"),
             type: "ImportDeclaration",
           },
         ],
@@ -189,7 +190,7 @@ const test = (settings, options) => {
         options,
         errors: [
           {
-            message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+            message: destructuredErrorMessage("helpers", failingSpecifiers[0], "foo-library"),
             type: "ImportDeclaration",
           },
         ],
@@ -201,7 +202,11 @@ const test = (settings, options) => {
         options,
         errors: [
           {
-            message: destructuredErrorMessage("helpers", "Link, Router", "foo-library"),
+            message: destructuredErrorMessage(
+              "helpers",
+              `${failingSpecifiers[0]}, ${failingSpecifiers[1]}`,
+              "foo-library"
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -268,6 +273,36 @@ test(SETTINGS.oneLevel, [
     ],
   },
 ]);
+
+// specifiers with micromatch
+
+test(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "allow",
+      rules: [
+        {
+          from: "helpers",
+          disallow: ["react", ["foo-library", { specifiers: ["L*", "R*"] }]],
+        },
+        {
+          from: "components",
+          disallow: ["react-router-dom"],
+        },
+        {
+          from: "modules",
+          disallow: ["@material-ui/*", ["react-router-dom", { specifiers: ["L*"] }]],
+        },
+        {
+          from: "modules",
+          allow: ["@material-ui/icons"],
+        },
+      ],
+    },
+  ],
+  ["L*", "R*"]
+);
 
 // disallow-based options
 
