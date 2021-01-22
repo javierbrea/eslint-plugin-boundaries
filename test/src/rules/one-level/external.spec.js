@@ -114,6 +114,12 @@ const test = (settings, options) => {
           },
         ],
       },
+      // Modules can import material-ui/icons
+      {
+        filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+        code: "import { Icon } from '@material-ui/icons'",
+        options,
+      },
     ],
     invalid: [
       // Helpers can't import react
@@ -255,6 +261,10 @@ test(SETTINGS.oneLevel, [
         from: "modules",
         disallow: ["@material-ui/*", ["react-router-dom", { specifiers: ["Link"] }]],
       },
+      {
+        from: "modules",
+        allow: ["@material-ui/icons"],
+      },
     ],
   },
 ]);
@@ -278,6 +288,10 @@ test(SETTINGS.oneLevel, [
         from: "modules",
         allow: ["react", "react-router-dom"],
         disallow: [["react-router-dom", { specifiers: ["Link"] }]],
+      },
+      {
+        from: "modules",
+        allow: ["@material-ui/icons"],
       },
     ],
   },
