@@ -173,6 +173,28 @@ test(SETTINGS.oneLevel, [
   },
 ]);
 
+// micromatch based options
+
+test(SETTINGS.oneLevel, [
+  {
+    default: "disallow",
+    rules: [
+      {
+        target: "h*",
+        allow: "main.*",
+      },
+      {
+        target: "c*",
+        allow: "C*.*",
+      },
+      {
+        target: "m*",
+        allow: "M*.*",
+      },
+    ],
+  },
+]);
+
 // redundant options
 
 test(SETTINGS.oneLevel, [

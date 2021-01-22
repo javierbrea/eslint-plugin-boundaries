@@ -274,7 +274,7 @@ test(SETTINGS.oneLevel, [
   },
 ]);
 
-// specifiers with micromatch
+// micromatch-based options
 
 test(
   SETTINGS.oneLevel,
@@ -283,20 +283,20 @@ test(
       default: "allow",
       rules: [
         {
-          from: "helpers",
-          disallow: ["react", ["foo-library", { specifiers: ["L*", "R*"] }]],
+          from: "h*",
+          disallow: ["react", ["foo-*", { specifiers: ["L*", "R*"] }]],
         },
         {
-          from: "components",
-          disallow: ["react-router-dom"],
+          from: "c*",
+          disallow: ["react-router-*"],
         },
         {
-          from: "modules",
-          disallow: ["@material-ui/*", ["react-router-dom", { specifiers: ["L*"] }]],
+          from: "m*",
+          disallow: ["@material-ui/*", ["react-router-*", { specifiers: ["L*"] }]],
         },
         {
-          from: "modules",
-          allow: ["@material-ui/icons"],
+          from: "m*",
+          allow: ["@material-ui/i*"],
         },
       ],
     },
