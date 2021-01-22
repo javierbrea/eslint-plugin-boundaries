@@ -23,60 +23,30 @@ const test = (settings, options) => {
             default: "disallow",
           },
         ],
-        errors: [
-          {
-            message: errorMessage("helpers", "helpers"),
-            type: "ImportDeclaration",
-          },
-        ],
       },
       // Helpers can't import another helper
       {
         filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
         code: "import HelperB from 'helpers/helper-b'",
         options,
-        errors: [
-          {
-            message: errorMessage("helpers", "helpers"),
-            type: "ImportDeclaration",
-          },
-        ],
       },
       // Helpers can't import a component:
       {
         filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
         code: "import ComponentA from 'components/component-a'",
         options,
-        errors: [
-          {
-            message: errorMessage("helpers", "components"),
-            type: "ImportDeclaration",
-          },
-        ],
       },
       // Helpers can't import a module:
       {
         filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
         code: "import ModuleA from 'modules/module-a'",
         options,
-        errors: [
-          {
-            message: errorMessage("helpers", "modules"),
-            type: "ImportDeclaration",
-          },
-        ],
       },
       // Components can't import a module:
       {
         filename: absoluteFilePath("components/component-a/ComponentA.js"),
         code: "import ModuleA from 'modules/module-a'",
         options,
-        errors: [
-          {
-            message: errorMessage("components", "modules"),
-            type: "ImportDeclaration",
-          },
-        ],
       },
     ],
     invalid: [

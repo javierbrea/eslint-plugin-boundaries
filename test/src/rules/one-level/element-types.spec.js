@@ -93,6 +93,16 @@ const test = (settings, options) => {
           "boundaries/ignore": [codeFilePath("helpers/helper-b/**/*.js")],
         },
       },
+      // Helpers can import ignored helpers using micromatch
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options,
+        settings: {
+          ...settings,
+          "boundaries/ignore": ["**/helpers/helper-b/**/*"],
+        },
+      },
       // Invalid options
       {
         filename: absoluteFilePath("modules/module-a/ModuleA.js"),

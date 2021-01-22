@@ -203,11 +203,11 @@ const test = (settings, options) => {
       // Modules can't import material-ui
       {
         filename: absoluteFilePath("modules/module-a/ModuleA.js"),
-        code: "import { Label } from 'material-ui/core'",
+        code: "import { Label } from '@material-ui/core'",
         options,
         errors: [
           {
-            message: errorMessage("modules", "material-ui"),
+            message: errorMessage("modules", "@material-ui/core"),
             type: "ImportDeclaration",
           },
         ],
@@ -231,7 +231,7 @@ test(SETTINGS.deprecated, [
       },
       {
         from: "modules",
-        disallow: ["material-ui", ["react-router-dom", { specifiers: ["Link"] }]],
+        disallow: ["@material-ui/core", ["react-router-dom", { specifiers: ["Link"] }]],
       },
     ],
   },
@@ -253,7 +253,7 @@ test(SETTINGS.oneLevel, [
       },
       {
         from: "modules",
-        disallow: ["material-ui", ["react-router-dom", { specifiers: ["Link"] }]],
+        disallow: ["@material-ui/*", ["react-router-dom", { specifiers: ["Link"] }]],
       },
     ],
   },
