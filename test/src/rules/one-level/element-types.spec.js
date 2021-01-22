@@ -237,6 +237,95 @@ const test = (settings, options) => {
   });
 };
 
+const testCapture = (settings, options) => {
+  const ruleTester = createRuleTester(settings);
+
+  ruleTester.run(RULE, rule, {
+    valid: [
+      // Components can import helper-a
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import HelperA from '../../helpers/helper-a'",
+        options,
+      },
+      // Components can import helper-a using alias
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import HelperA from 'helpers/helper-a'",
+        options,
+      },
+      // Components can import component-b using alias
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import ComponentB from 'components/component-b'",
+        options,
+      },
+      // Component A can import internal files
+      {
+        filename: absoluteFilePath("components/component-a/index.js"),
+        code: "import ComponentA from './ComponentA'",
+        options,
+      },
+      // Modules can import helper-a using alias
+      {
+        filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+        code: "import HelperA from 'helpers/helper-a'",
+        options,
+      },
+    ],
+    invalid: [
+      // Components can't import helper-b
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import HelperB from '../../helpers/helper-b'",
+        options,
+        errors: [
+          {
+            message: errorMessage("components", "helpers"),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+      // Components can't import helper-b using alias
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import HelperA from 'helpers/helper-b'",
+        options,
+        errors: [
+          {
+            message: errorMessage("components", "helpers"),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+      // Components can't import component-a
+      {
+        filename: absoluteFilePath("components/component-b/ComponentB.js"),
+        code: "import ComponentB from 'components/component-a'",
+        options,
+        errors: [
+          {
+            message: errorMessage("components", "components"),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+      // Modules can't import helper-b
+      {
+        filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options,
+        errors: [
+          {
+            message: errorMessage("modules", "helpers"),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+    ],
+  });
+};
+
 // deprecated settings
 
 test(SETTINGS.deprecated, [
@@ -339,6 +428,65 @@ test(SETTINGS.oneLevel, [
       {
         from: "components",
         disallow: ["modules"],
+      },
+    ],
+  },
+]);
+
+// capture options
+
+testCapture(SETTINGS.oneLevel, [
+  {
+    default: "disallow",
+    rules: [
+      {
+        from: "components",
+        allow: [["helpers", { elementName: "helper-a" }], "components"],
+        disallow: [["components", { elementName: "component-a" }]],
+      },
+      {
+        from: "modules",
+        allow: [["helpers", { elementName: "helper-a" }], "components", "modules"],
+      },
+    ],
+  },
+]);
+
+// capture options with micromatch negative expression
+
+testCapture(SETTINGS.oneLevel, [
+  {
+    default: "disallow",
+    rules: [
+      {
+        from: "components",
+        allow: [
+          ["helpers", { elementName: "helper-a" }],
+          ["components", { elementName: "!component-a" }],
+        ],
+      },
+      {
+        from: "modules",
+        allow: [["helpers", { elementName: "helper-a" }], "components", "modules"],
+      },
+    ],
+  },
+]);
+
+// capture options with micromatch
+
+testCapture(SETTINGS.oneLevel, [
+  {
+    default: "disallow",
+    rules: [
+      {
+        from: "c*",
+        allow: [["helpers", { elementName: "*-a" }], "c*"],
+        disallow: [["c*", { elementName: "*-a" }]],
+      },
+      {
+        from: "modules",
+        allow: [["h*", { elementName: "*-a" }], "c*", "m*"],
       },
     ],
   },

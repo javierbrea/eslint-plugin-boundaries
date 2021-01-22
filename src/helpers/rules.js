@@ -40,11 +40,11 @@ function dependencyLocation(node, context) {
 
 function isObjectMatch(objectWithMatchers, object) {
   return Object.keys(objectWithMatchers).reduce((isMatch, key) => {
-    if (isMatch && micromatch.isMatch(object[key], objectWithMatchers[key])) {
+    if (isMatch === false) {
       return false;
     }
-    return isMatch;
-  }, true);
+    return micromatch.isMatch(object[key], objectWithMatchers[key]);
+  }, null);
 }
 
 function rulesMainKey(key) {
@@ -69,9 +69,9 @@ function ruleMatch(ruleMatchers, elementInfo, isMatch) {
 
 function isMatchElementKey(elementInfo, matcher, options, elementKey) {
   const isMatch = micromatch.isMatch(elementInfo[elementKey], matcher);
-  if (isMatch && options && isObjectMatch(options, elementInfo.capturedValues)) {
+  if (isMatch && options) {
     return {
-      result: true,
+      result: isObjectMatch(options, elementInfo.capturedValues),
     };
   }
   return {
