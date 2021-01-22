@@ -49,6 +49,23 @@ function elementCaptureValues(capture, captureSettings) {
   }, {});
 }
 
+function getElementPath(pattern, pathSegmentsMatching, fullPath) {
+  // Get full left side of the path matching pattern (full element path except internal files)
+  const elementPathRegexp = micromatch.makeRe(pattern);
+  const testedSegments = [];
+  let result;
+  pathSegmentsMatching.forEach((pathSegment) => {
+    if (!result) {
+      testedSegments.push(pathSegment);
+      const joinedSegments = testedSegments.join("/");
+      if (elementPathRegexp.test(joinedSegments)) {
+        result = joinedSegments;
+      }
+    }
+  });
+  return `${[...fullPath].reverse().join("/").split(result)[0]}${result}`;
+}
+
 function elementTypeAndParents(path, settings) {
   const parents = [];
   const elementResult = {
@@ -84,12 +101,9 @@ function elementTypeAndParents(path, settings) {
           const capture = micromatch.capture(pattern, accumulator.join("/"));
           if (capture) {
             elementFound = true;
-            accumulator = [];
             const capturedValues = elementCaptureValues(capture, element.capture);
-            const elementPath = elementPaths
-              .slice(segmentIndex - 1)
-              .reverse()
-              .join("/");
+            const elementPath = getElementPath(element.pattern, accumulator, elementPaths);
+            accumulator = [];
             if (!elementResult.type) {
               elementResult.type = element.type;
               elementResult.elementPath = elementPath;

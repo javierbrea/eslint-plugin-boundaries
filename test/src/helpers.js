@@ -57,6 +57,33 @@ const SETTINGS = {
       },
     },
   },
+  twoLevels: {
+    "boundaries/elements": [
+      {
+        type: "helpers",
+        pattern: "helpers/*",
+        capture: ["elementName"],
+      },
+      {
+        type: "components",
+        pattern: "components/*/*",
+        capture: ["category", "elementName"],
+      },
+      {
+        type: "modules",
+        pattern: "modules/*/*",
+        capture: ["domain", "elementName"],
+      },
+    ],
+    "import/resolver": {
+      "eslint-import-resolver-node": {},
+      [path.resolve(process.cwd(), "resolver-legacy-alias")]: {
+        helpers: `./${codeFilePath("two-levels", "helpers")}`,
+        components: `./${codeFilePath("two-levels", "components")}`,
+        modules: `./${codeFilePath("two-levels", "modules")}`,
+      },
+    },
+  },
 };
 
 const createRuleTester = (settings) => {
