@@ -25,6 +25,7 @@ module.exports = dependencyRule(
     schema: rulesOptionsSchema(),
   },
   function ({ dependency, file, node, context, options }) {
+    // console.log({ dependency, file });
     if (
       dependency.isLocal &&
       !dependency.isIgnored &&

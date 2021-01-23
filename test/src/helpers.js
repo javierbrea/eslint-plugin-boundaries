@@ -84,6 +84,46 @@ const SETTINGS = {
       },
     },
   },
+  twoLevelsWithPrivate: {
+    "boundaries/elements": [
+      {
+        type: "helpers",
+        pattern: "helpers/*",
+        capture: ["elementName"],
+      },
+      {
+        type: "components",
+        pattern: "components/*/*",
+        capture: ["category", "elementName"],
+      },
+      // Trying to capture a left-side folder produces subelements to be wrongly recognized,
+      // as the pattern match with the parent element
+      // a workaround is to define a different pattern for each subelement level
+      {
+        type: "modules",
+        pattern: "modules/*/**/submodules/**/submodules/*",
+        capture: ["domain", "ancestorsPaths", "ancestorSubmodules", "elementName"],
+      },
+      {
+        type: "modules",
+        pattern: "modules/*/**/submodules/*",
+        capture: ["domain", "ancestorsPaths", "elementName"],
+      },
+      {
+        type: "modules",
+        pattern: "modules/*/*",
+        capture: ["domain", "elementName"],
+      },
+    ],
+    "import/resolver": {
+      "eslint-import-resolver-node": {},
+      [path.resolve(process.cwd(), "resolver-legacy-alias")]: {
+        helpers: `./${codeFilePath("two-levels-with-private", "helpers")}`,
+        components: `./${codeFilePath("two-levels-with-private", "components")}`,
+        modules: `./${codeFilePath("two-levels-with-private", "modules")}`,
+      },
+    },
+  },
 };
 
 const createRuleTester = (settings) => {

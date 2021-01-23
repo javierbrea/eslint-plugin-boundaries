@@ -3,12 +3,10 @@ const { SETTINGS, createRuleTester, pathResolvers } = require("../../helpers");
 
 const rule = require(`../../../../src/rules/${RULE}`);
 
-const { absoluteFilePath } = pathResolvers("two-levels");
-
 const errorMessage = (elementType, dependencyName) =>
   `Usage of external module '${dependencyName}' is not allowed in '${elementType}'`;
 
-const test = (settings, options) => {
+const test = (settings, options, { absoluteFilePath }) => {
   const ruleTester = createRuleTester(settings);
 
   ruleTester.run(RULE, rule, {
@@ -159,30 +157,66 @@ const test = (settings, options) => {
 
 // disallow-based options
 
-test(SETTINGS.twoLevels, [
-  {
-    default: "disallow",
-    rules: [
-      {
-        from: "helpers",
-        allow: ["foo-library"],
-      },
-      {
-        from: [["components", { elementName: "*-b" }]],
-        allow: ["@material-ui/*"],
-      },
-      {
-        from: [["modules", { domain: "!pages" }]],
-        allow: ["react-router-dom"],
-      },
-      {
-        from: [["modules", { domain: "*-a" }]],
-        allow: ["react"],
-      },
-      {
-        from: [["modules", { domain: "pages" }]],
-        allow: ["react"],
-      },
-    ],
-  },
-]);
+test(
+  SETTINGS.twoLevels,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          from: "helpers",
+          allow: ["foo-library"],
+        },
+        {
+          from: [["components", { elementName: "*-b" }]],
+          allow: ["@material-ui/*"],
+        },
+        {
+          from: [["modules", { domain: "!pages" }]],
+          allow: ["react-router-dom"],
+        },
+        {
+          from: [["modules", { domain: "*-a" }]],
+          allow: ["react"],
+        },
+        {
+          from: [["modules", { domain: "pages" }]],
+          allow: ["react"],
+        },
+      ],
+    },
+  ],
+  pathResolvers("two-levels")
+);
+
+test(
+  SETTINGS.twoLevelsWithPrivate,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          from: "helpers",
+          allow: ["foo-library"],
+        },
+        {
+          from: [["components", { elementName: "*-b" }]],
+          allow: ["@material-ui/*"],
+        },
+        {
+          from: [["modules", { domain: "!pages" }]],
+          allow: ["react-router-dom"],
+        },
+        {
+          from: [["modules", { domain: "*-a" }]],
+          allow: ["react"],
+        },
+        {
+          from: [["modules", { domain: "pages" }]],
+          allow: ["react"],
+        },
+      ],
+    },
+  ],
+  pathResolvers("two-levels-with-private")
+);

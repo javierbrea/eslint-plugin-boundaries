@@ -3,12 +3,10 @@ const { SETTINGS, createRuleTester, pathResolvers } = require("../../helpers");
 
 const rule = require(`../../../../src/rules/${RULE}`);
 
-const { absoluteFilePath } = pathResolvers("two-levels");
-
 const errorMessage = (disallowedEntryPoint, type) =>
   `Entry point '${disallowedEntryPoint}' is not allowed in '${type}'`;
 
-const test = (settings, options) => {
+const test = (settings, options, { absoluteFilePath }) => {
   const ruleTester = createRuleTester(settings);
 
   ruleTester.run(RULE, rule, {
@@ -175,43 +173,92 @@ const test = (settings, options) => {
   });
 };
 
-test(SETTINGS.twoLevels, [
-  {
-    default: "disallow",
-    rules: [
-      {
-        target: "helpers",
-        allow: "main.js",
-      },
-      {
-        target: [["helpers", { elementName: "*-a" }]],
-        disallow: "*",
-      },
-      {
-        target: [["helpers", { elementName: "*-a" }]],
-        allow: "index.*",
-      },
-      {
-        target: [["components", { category: "atoms" }]],
-        allow: "Atom*.js",
-      },
-      {
-        target: [["components", { category: "molecules" }]],
-        allow: "Molecule*.js",
-      },
-      {
-        target: [["components", { category: "layouts" }]],
-        allow: "Layout*.js",
-      },
-      {
-        target: "modules",
-        allow: "Module*.js",
-      },
-      {
-        target: [["modules", { domain: "pages" }]],
-        disallow: "Module*.js",
-        allow: "Page*.js",
-      },
-    ],
-  },
-]);
+test(
+  SETTINGS.twoLevels,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          target: "helpers",
+          allow: "main.js",
+        },
+        {
+          target: [["helpers", { elementName: "*-a" }]],
+          disallow: "*",
+        },
+        {
+          target: [["helpers", { elementName: "*-a" }]],
+          allow: "index.*",
+        },
+        {
+          target: [["components", { category: "atoms" }]],
+          allow: "Atom*.js",
+        },
+        {
+          target: [["components", { category: "molecules" }]],
+          allow: "Molecule*.js",
+        },
+        {
+          target: [["components", { category: "layouts" }]],
+          allow: "Layout*.js",
+        },
+        {
+          target: "modules",
+          allow: "Module*.js",
+        },
+        {
+          target: [["modules", { domain: "pages" }]],
+          disallow: "Module*.js",
+          allow: "Page*.js",
+        },
+      ],
+    },
+  ],
+  pathResolvers("two-levels")
+);
+
+test(
+  SETTINGS.twoLevelsWithPrivate,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          target: "helpers",
+          allow: "main.js",
+        },
+        {
+          target: [["helpers", { elementName: "*-a" }]],
+          disallow: "*",
+        },
+        {
+          target: [["helpers", { elementName: "*-a" }]],
+          allow: "index.*",
+        },
+        {
+          target: [["components", { category: "atoms" }]],
+          allow: "Atom*.js",
+        },
+        {
+          target: [["components", { category: "molecules" }]],
+          allow: "Molecule*.js",
+        },
+        {
+          target: [["components", { category: "layouts" }]],
+          allow: "Layout*.js",
+        },
+        {
+          target: "modules",
+          allow: "Module*.js",
+        },
+        {
+          target: [["modules", { domain: "pages" }]],
+          disallow: "Module*.js",
+          allow: "Page*.js",
+        },
+      ],
+    },
+  ],
+  pathResolvers("two-levels-with-private")
+);
