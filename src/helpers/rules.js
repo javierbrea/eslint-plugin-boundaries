@@ -38,12 +38,21 @@ function dependencyLocation(node, context) {
   };
 }
 
-function isObjectMatch(objectWithMatchers, object) {
+function micromatchPatternReplacingObjectValues(pattern, object) {
+  return Object.keys(object).reduce((result, objectKey) => {
+    return result.replace(`\${${objectKey}}`, object[objectKey]);
+  }, pattern);
+}
+
+function isObjectMatch(objectWithMatchers, object, objectWithValuesToReplace) {
   return Object.keys(objectWithMatchers).reduce((isMatch, key) => {
     if (isMatch === false) {
       return false;
     }
-    return micromatch.isMatch(object[key], objectWithMatchers[key]);
+    const micromatchPattern = objectWithValuesToReplace
+      ? micromatchPatternReplacingObjectValues(objectWithMatchers[key], objectWithValuesToReplace)
+      : objectWithMatchers[key];
+    return micromatch.isMatch(object[key], micromatchPattern);
   }, null);
 }
 
@@ -51,14 +60,14 @@ function rulesMainKey(key) {
   return key || "from";
 }
 
-function ruleMatch(ruleMatchers, elementInfo, isMatch) {
+function ruleMatch(ruleMatchers, elementInfo, isMatch, elementToCompare = {}) {
   let match = { result: false, report: null };
   const matchers = !Array.isArray(ruleMatchers) ? [ruleMatchers] : ruleMatchers;
   matchers.forEach((matcher) => {
     if (!match.result) {
       if (Array.isArray(matcher)) {
         const [value, captures] = matcher;
-        match = isMatch(elementInfo, value, captures);
+        match = isMatch(elementInfo, value, captures, elementToCompare.capturedValues);
       } else {
         match = isMatch(elementInfo, matcher);
       }
@@ -67,11 +76,17 @@ function ruleMatch(ruleMatchers, elementInfo, isMatch) {
   return match;
 }
 
-function isMatchElementKey(elementInfo, matcher, options, elementKey) {
+function isMatchElementKey(
+  elementInfo,
+  matcher,
+  options,
+  elementKey,
+  elementToCompareCapturedValues
+) {
   const isMatch = micromatch.isMatch(elementInfo[elementKey], matcher);
   if (isMatch && options) {
     return {
-      result: isObjectMatch(options, elementInfo.capturedValues),
+      result: isObjectMatch(options, elementInfo.capturedValues, elementToCompareCapturedValues),
     };
   }
   return {
@@ -79,8 +94,8 @@ function isMatchElementKey(elementInfo, matcher, options, elementKey) {
   };
 }
 
-function isMatchElementType(elementInfo, matcher, options) {
-  return isMatchElementKey(elementInfo, matcher, options, "type");
+function isMatchElementType(elementInfo, matcher, options, elementToCompareCapturedValues) {
+  return isMatchElementKey(elementInfo, matcher, options, "type", elementToCompareCapturedValues);
 }
 
 function getElementRules(elementInfo, options, mainKey) {
@@ -103,13 +118,13 @@ function elementRulesAllowDependency({
   const [result, report] = getElementRules(element, options, mainKey).reduce(
     (allowed, rule) => {
       if (rule.disallow) {
-        const match = ruleMatch(rule.disallow, dependency, isMatch);
+        const match = ruleMatch(rule.disallow, dependency, isMatch, element);
         if (match.result) {
           return [false, match.report];
         }
       }
       if (rule.allow) {
-        const match = ruleMatch(rule.allow, dependency, isMatch);
+        const match = ruleMatch(rule.allow, dependency, isMatch, element);
         if (match.result) {
           return [true, match.report];
         }

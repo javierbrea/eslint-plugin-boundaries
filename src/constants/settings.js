@@ -29,5 +29,5 @@ module.exports = {
   ALIAS: `${PLUGIN_NAME}/alias`,
 
   // elements settings properties,
-  VALID_MATCH_TYPES: ["parentFolders"],
+  VALID_MATCH_TYPES: ["parentFolder", "exact"],
 };

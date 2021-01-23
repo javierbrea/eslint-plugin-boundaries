@@ -124,6 +124,65 @@ const SETTINGS = {
       },
     },
   },
+  nestjsExample: {
+    "boundaries/elements": [
+      {
+        type: "main",
+        match: "exact",
+        pattern: "*/main.js",
+      },
+      {
+        type: "app",
+        match: "exact",
+        pattern: "*/app.module.js",
+      },
+      {
+        type: "module",
+        pattern: "**/*/*.module.js",
+        match: "exact",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "controller",
+        pattern: "**/*/*.controller.js",
+        match: "exact",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "service",
+        pattern: "**/*/*.service.js",
+        match: "exact",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "interceptor",
+        pattern: "**/*/interceptors/*.interceptor.js",
+        match: "exact",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "interface",
+        pattern: "**/*/interfaces/*.interface.js",
+        match: "exact",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "dto",
+        pattern: "**/*/dto/*.dto.js",
+        match: "exact",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "common",
+        pattern: "**/common/*/*.*.js",
+        match: "exact",
+        capture: ["base", "category", "fileName"],
+      },
+    ],
+    "import/resolver": {
+      "eslint-import-resolver-node": {},
+    },
+  },
 };
 
 const createRuleTester = (settings) => {
