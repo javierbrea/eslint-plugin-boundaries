@@ -73,9 +73,41 @@ const test = (settings, options) => {
         code: "import LayoutA from 'components/layouts/layout-a'",
         options,
       },
+      // domain-a modules subfiles can import layout components
+      {
+        filename: absoluteFilePath("modules/domain-a/module-a/subfolder-1/subfile-1"),
+        code: "import LayoutA from 'components/layouts/layout-a'",
+        options,
+      },
+      // domain-a modules subfiles can import internal files
+      {
+        filename: absoluteFilePath("modules/domain-a/module-a/subfolder-1/subfile-1"),
+        code: "import LayoutA from './subfolder-2/subfile-2'",
+        options,
+      },
+      // domain-a modules subfiles can import internal files
+      {
+        filename: absoluteFilePath("modules/domain-a/module-a/subfolder-1/subfolder-2/subfile-2"),
+        code: "import LayoutA from '../subfile-1'",
+        options,
+      },
       // domain-a modules can import domain-a modules
       {
         filename: absoluteFilePath("modules/domain-a/module-a/ModuleA.js"),
+        code: "import ModuleB from 'modules/domain-a/module-b'",
+        options,
+      },
+      // domain-a module subfiles can import domain-a modules
+      {
+        filename: absoluteFilePath("modules/domain-a/module-a/subfolder-1/subfile-1.js"),
+        code: "import ModuleB from 'modules/domain-a/module-b'",
+        options,
+      },
+      // domain-a module subfiles can import domain-a modules
+      {
+        filename: absoluteFilePath(
+          "modules/domain-a/module-a/subfolder-1/subfolder-2/subfolder-2.js"
+        ),
         code: "import ModuleB from 'modules/domain-a/module-b'",
         options,
       },
@@ -91,6 +123,18 @@ const test = (settings, options) => {
         code: "import ModuleB from 'modules/domain-a/module-a'",
         options,
       },
+      // domain-b modules can import domain-a modules subfiles
+      {
+        filename: absoluteFilePath("modules/domain-b/module-a/ModuleA.js"),
+        code: "import ModuleB from 'modules/domain-a/module-a/subfolder-1/subfile-1'",
+        options,
+      },
+      // domain-b modules can import domain-a modules subfiles
+      {
+        filename: absoluteFilePath("modules/domain-b/module-a/ModuleA.js"),
+        code: "import ModuleB from 'modules/domain-a/module-a/subfolder-1/subfolder-2/subfile-2'",
+        options,
+      },
       // domain-b module-b can import atom components
       {
         filename: absoluteFilePath("modules/domain-b/module-b/ModuleB.js"),
@@ -101,6 +145,24 @@ const test = (settings, options) => {
       {
         filename: absoluteFilePath("modules/domain-a/module-a/ModuleA.js"),
         code: "import AtomA from 'components/atoms/atom-b'",
+        options,
+      },
+      // module-a subfiles in domain-a can import atom-b atom component
+      {
+        filename: absoluteFilePath("modules/domain-a/module-a/subfolder-1/subfile-1"),
+        code: "import AtomA from 'components/atoms/atom-b'",
+        options,
+      },
+      // module-a subfiles in domain-a can import atom-b atom component subfiles
+      {
+        filename: absoluteFilePath("modules/domain-a/module-a/subfolder-1/subfile-1"),
+        code: "import AtomA from 'components/atoms/atom-b/subfolder-1/subfile-1'",
+        options,
+      },
+      // module-a subfiles in domain-a can import atom-b atom component subfiles
+      {
+        filename: absoluteFilePath("modules/domain-a/module-a/subfolder-1/subfile-1"),
+        code: "import AtomA from 'components/atoms/atom-b/subfolder-1/subfolder-2/subfile-2'",
         options,
       },
     ],
@@ -278,6 +340,18 @@ const test = (settings, options) => {
       {
         filename: absoluteFilePath("modules/domain-a/module-b/index.js"),
         code: "import Component from 'components/atoms/atom-b'",
+        options,
+        errors: [
+          {
+            message: errorMessage("modules", "components"),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+      // domain a modules can't import atom components subfiles
+      {
+        filename: absoluteFilePath("modules/domain-a/module-b/index.js"),
+        code: "import AtomB from 'components/atoms/atom-b/subfolder-1/subfolder-2/subfile-2'",
         options,
         errors: [
           {
