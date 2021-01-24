@@ -44,7 +44,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - fix(#65): Fixed error on dependency scanning when dependencyInfo.name is null (thanks to @skurfuerst)
 
-
 ## [1.1.0] - 2020-11-12
 ### Added
 - feat(no-external): Allow forbid importing external libraries specifiers
