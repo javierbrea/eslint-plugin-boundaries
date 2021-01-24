@@ -58,12 +58,12 @@ The plugin will use the provided patterns to identify each file or local `import
 
 This is only a basic example of configuration. The plugin can be configured to identify elements being a file, or elements being a folder containing files. It also supports capturing path fragments to be used afterwards on each rule options, etc. __Read the [configuration chapter](#configuration) for further info, as configuring it properly is crucial__ to take advantage of all of the plugin features.
 
-Once your project elements are defined, you can use them to configure each rule using its own options. For example, you could define which elements can be dependencies of other ones configuring the `elements` rule as in:
+Once your project elements are defined, you can use them to configure each rule using its own options. For example, you could define which elements can be dependencies of other ones configuring the `element-types` rule as in:
 
 ```json
 {
   "rules": {
-    "boundaries/elements": [2, {
+    "boundaries/element-types": [2, {
       "default": "disallow",
       "rules": [
         {
@@ -93,7 +93,7 @@ Examples of usage:
 * Define types in your project as "models", "views" and "controllers". Then ensure that "views" and "models" can be imported only by "controllers", and "controllers" will never be used by "views" or "models".
 * Define types in your project as "components", "views", "layouts", "pages", "helpers". Then ensure that "components" can only import "helpers", that "views" can only import "components" or "helpers", that "layouts" can only import "views", "components" or "helpers", and that "pages" can import any other element type.
 
-Read the [docs of the `boundaries/elements` rule](docs/rules/elements.md) for further info.
+Read the [docs of the `boundaries/element-types` rule](docs/rules/element-types.md) for further info.
 
 ### Allowed external modules
 
@@ -115,7 +115,7 @@ Read the [docs of the `boundaries/entry-point` rule](docs/rules/entry-point.md) 
 
 ## Rules
 
-* __[boundaries/elements](docs/rules/elements.md)__: Check allowed dependencies between element types
+* __[boundaries/element-types](docs/rules/element-types.md)__: Check allowed dependencies between element types
 * __[boundaries/external](docs/rules/external.md)__: Check allowed external dependencies by element type
 * __[boundaries/entry-point](docs/rules/entry-point.md)__: Check entry point used for each element type
 * [boundaries/no-private](docs/rules/no-private.md): Prevent importing private elements of another element
@@ -127,7 +127,7 @@ Read the [docs of the `boundaries/entry-point` rule](docs/rules/entry-point.md) 
 
 ### Global settings
 
-#### __`boundaries/elements`__
+#### __`boundaries/element-types`__
 
 Define patterns to recognize each file in the project as one of this element types. All rules need this setting to be configured properly to work. The plugin tries to identify each file being analized or `import` statement in rules as one of the defined element types. The assigned element type will be that with the first matching pattern, in the same order that elements are defined in the array, so you __should sort them from the most accurate patterns to the less ones__. Properties of each `element`:
 
@@ -202,27 +202,27 @@ All rules are enabled, so all elements in the project will be compliant with you
 
 ### Rules configuration
 
-Some rules require extra configuration, and it has to be defined in each specific `rule` property of the `.eslintrc..(yml|json|js)` file. For example, allowed element types relationships has to be provided as an option to the [`boundaries/elements` rule](docs/rules/elements.md). Rules requiring extra configuration will print a warning in case they are enabled without the needed options.
+Some rules require extra configuration, and it has to be defined in each specific `rule` property of the `.eslintrc..(yml|json|js)` file. For example, allowed element types relationships has to be provided as an option to the [`boundaries/element-types` rule](docs/rules/element-types.md). Rules requiring extra configuration will print a warning in case they are enabled without the needed options.
 
 #### Main format of rules options
 
-The docs of each rule contains an specification of their own options, but the main rules share the format in which the options have to be defined. The format described is valid for options of [`elements`](docs/rules/elements.md), [`external`](docs/rules/external.md) and [`entry-point`](docs/rules/entry-point.md) rules.
+The docs of each rule contains an specification of their own options, but the main rules share the format in which the options have to be defined. The format described here is valid for options of [`element-types`](docs/rules/element-types.md), [`external`](docs/rules/external.md) and [`entry-point`](docs/rules/entry-point.md) rules.
 
 Options set an "allow/disallow" value by default, and provide an array of rules. Each matching rule will override the default value and the value returned by previous matching rules. So, the final result of the options, once processed for each case, will be "allow" or "disallow", and this value will be applied by the plugin rule in the correspondant way, making it to produce an eslint error or not.
 
 ```json
 {
   "rules": {
-    "boundaries/elements": [2, {
+    "boundaries/element-types": [2, {
       "default": "allow",
       "rules": [
         {
           "from": ["helpers"],
-          "disallow": ["modules", "components", "helpers"],
+          "disallow": ["modules", "components", "helpers"]
         },
         {
           "from": ["components"],
-          "disallow": ["modules"],
+          "disallow": ["modules"]
         }
       ]
     }]
@@ -235,29 +235,30 @@ Remember that:
 * All rules are executed, and the resultant value will be the one returned by the last matching one.
 * If one rule contains both `allow` and `disallow` properties, the `disallow` one has priority. It will not try to match the `allow` one if `disallow` matches. The result for that rule will be `disallow` in that case.
 
-##### Rules properties
+##### Rules options properties
 
 * __`from/target`__: `<element matchers>` Depending of the rule to which the options are for, the rule will be applied only if the file being analized matches with this element matcher (`from`), or the dependency being imported matches with this element matcher (`target`).
-* __`disallow`__: `<element matchers>` If the plugin rule target matches with this, then the result of the rule will be "disallow".
-* __`allow`__: `<element matchers>` If the plugin rule target matches with this, then the result of the rule will be "allow".
+* __`disallow/allow`__: `<value matchers>` If the plugin rule target matches with this, then the result of the rule will be "disallow/allow". Each rule will require a type of value here depending of what it is checking. In the case of the `element-types` rule, for example, another `<element matcher>` has to be provided in order to check the type of the local dependency.
 
-> Each property can receive a single element matcher, or an array of element matchers.
+> Tip: All properties can receive a single matcher, or an array of matchers.
 
 ##### Element matchers
 
-Element matchers used in the rules properties can have the next formats:
+Element matchers used in the rules options can have the next formats:
 
-* __`<string>`__: Will return `true` when the element type matches with this `micromatch` pattern.
-* __`[<string>, <optionsObject>]`__: Will match when the element type matches with the first element in the array, and all of the options also match. Options are used in different ways depending of the plugin rule.
+* __`<string>`__: Will return `true` when the element type matches with this [`micromatch` pattern](https://github.com/micromatch/micromatch).
+* __`[<string>, <capturedValuesObject>]`__: Will return `true` whe when the element type matches with the first element in the array, and all of the captured values also match. <br/>The `<capturedValuesObject>` has to be an object containing `capture` keys from the [`boundaries/element-types` setting](#boundarieselement-types) of the element as keys, and [`micromatch` patterns](https://github.com/micromatch/micromatch) as values.<br/>For example, for an element of type "helpers" with settings as `{ type: "helpers", pattern": "helpers/*/*.js", "capture": ["category", "elementName"]}`, you could write element matchers as:
+  * `["helpers", { category: "data", elementName: "parsers"}]`: Will only match with helpers with category "data" and elementName "parsers" (`helpers/data/parsers.js`).
+  * `["helpers", { category: "data" }]`: Will match with all helpers with category "data" (`helpers/data/*.js`)
 
 ##### Advanced example of a rule configuration
 
-Just to illustrate the high level of customization that the plugin allows, here is an example of a configuration for the `boundaries/elements` rule based on the previous global `elements` settings example:
+Just to illustrate the high level of customization that the plugin supports, here is an example of advanced options for the `boundaries/element-types` rule based on the previous global `elements` settings example:
 
 ```jsonc
 {
   "rules": {
-    "boundaries/elements": [2, {
+    "boundaries/element-types": [2, {
       // disallow importing any element by default
       "default": "disallow",
       "rules": [
@@ -269,14 +270,12 @@ Just to illustrate the high level of customization that the plugin allows, here 
         {
           // when file is inside an element of type "components"
           "from": ["components"],
-          "disallow": [
-            // disallow importing components from a different family
-            ["components", { "family": "!${family}" }]
-          ],
           "allow": [
+            // allow importing components of the same family
+            ["components", { "family": "${family}" }],
             // allow importing helpers with captured category "data"
             ["helpers", { "category": "data" }],
-          ],
+          ]
         },
         {
           // when component has captured family "molecule"
@@ -288,11 +287,11 @@ Just to illustrate the high level of customization that the plugin allows, here 
         },
         {
           // when component has captured family "atom"
-          "from": ["components", { "family": "atom" }],
+          "from": [["components", { "family": "atom" }]],
           "disallow": [
             // disallow importing helpers with captured category "data"
             ["helpers", { "category": "data" }]
-          ],
+          ]
         },
         {
           // when file is inside a module
@@ -301,17 +300,17 @@ Just to illustrate the high level of customization that the plugin allows, here 
             // allow importing any type of component or helper
             "helpers",
             "components"
-          ],
+          ]
         },
         {
           // when module name starts by "page-"
-          "from": ["modules", { "elementName": "page-*" }],
+          "from": [["modules", { "elementName": "page-*" }]],
           "disallow": [
             // disallow importing any type of component not being of family layout
             ["components", { "family": "!layout" }]
-          ],
-        },
-      ],
+          ]
+        }
+      ]
     }]
   }
 }
