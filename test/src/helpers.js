@@ -183,6 +183,36 @@ const SETTINGS = {
       "eslint-import-resolver-node": {},
     },
   },
+  docsExamples: {
+    "boundaries/elements": [
+      {
+        type: "helpers",
+        pattern: "helpers/*/*.js",
+        match: "exact",
+        capture: ["category", "elementName"],
+      },
+      {
+        type: "components",
+        pattern: "components/*/*",
+        // mode: "folder",
+        capture: ["family", "elementName"],
+      },
+      {
+        type: "modules",
+        pattern: "modules/*",
+        // mode: "folder",
+        capture: ["elementName"],
+      },
+    ],
+    "import/resolver": {
+      "eslint-import-resolver-node": {},
+      [path.resolve(process.cwd(), "resolver-legacy-alias")]: {
+        helpers: `./${codeFilePath("docs-examples", "helpers")}`,
+        components: `./${codeFilePath("docs-examples", "components")}`,
+        modules: `./${codeFilePath("docs-examples", "modules")}`,
+      },
+    },
+  },
 };
 
 const createRuleTester = (settings) => {

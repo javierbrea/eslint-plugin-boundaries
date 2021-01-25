@@ -13,7 +13,7 @@ It checks `import` statements between the element types of the project based on 
 ```
 
 * `enabled`: for enabling the rule. 0=off, 1=warn, 2=error.
-* `default`: `allow` or `disallow`. If no one `rule` matches, the dependency will allowed or disallowed based on this value.
+* `default`: `allow` or `disallow`. If no one `rule` matches, the dependency will be allowed or disallowed based on this value.
 * `rules`: Rules to be processed in order to decide if the `import` statement has to be allowed or not.
   * `from`: `<element matchers>` If the file being analyzed matches with this, then the rule will be executed to know if it allows/disallows the `import`. If not, the rule is skipped.
   * `disallow`: `<element matchers>` If the element being imported matches with this, then the result of the rule will be "disallow", and the import will be notified as an `eslint` error (this value can be overwritten by a next rule returning "allow")
@@ -66,12 +66,10 @@ So, if the `from` element has captured values `{ family: "atom", elementName: "c
             ]
           },
           {
-            // from components with captured family "molecule"
-            "from": [["components", { "family": "molecule" }]],
-            "allow": [
-              // allow importing components with captured family "atom"
-              ["components", { "family": "atom" }]
-            ]
+            // from modules
+            "from": ["modules"],
+            // allow importing helpers, components and modules
+            "allow": ["helpers", "components", "modules"]
           },
         ]
       }
@@ -82,24 +80,31 @@ So, if the `from` element has captured values `{ family: "atom", elementName: "c
 
 ### Settings
 
-Project structure and settings and in which next examples are based:
+Examples in the next sections are based on the previous options example and these files and settings.
 
 ```txt
 src/
 ├── components/
-│   ├── component-a/
-│   │   ├── index.js
-│   │   └── ComponentA.js
-│   └── component-b/
-│       ├── index.js
-│       └── ComponentB.js
+│   ├── atoms/
+│   │   ├── atom-a/
+│   │   │   ├── index.js
+│   │   │   └── AtomA.js
+│   │   └── atom-b/
+│   │       ├── index.js
+│   │       └── AtomB.js
+│   └── molecules/
+│       ├── molecule-a/
+│       │   ├── index.js
+│       │   └── MoleculeA.js
+│       └── molecule-b/
+│           ├── index.js
+│           └── MoleculeB.js
 ├── helpers/
-│   ├── helper-a/
-│   │   ├── index.js
-│   │   └── HelperA.js
-│   └── helper-b/
-│       ├── index.js
-│       └── HelperB.js
+│   ├── data/
+│   │   ├── sort.js
+│   │   └── parse.js
+│   └── permissions/
+│       └── roles.js
 └── modules/
     ├── module-a/
     │   ├── index.js
@@ -126,80 +131,106 @@ src/
       },
       {
         "type": "modules",
-        "pattern": "module/*",
+        "pattern": "modules/*",
         "mode": "folder",
         "capture": ["elementName"]
       }
-    ]
+    ],
+    "import/resolver": {
+      "babel-module": {}
+    }
   }
 }
 ```
 
+> Next examples are written as is the project has configured babel aliases for folders `src/helpers`, `src/components` and `src/modules`. This is made for better readability of the examples, but it would work also with relative paths. You can configure the plugin to recognize babel aliases [using `eslint-import-resolver-babel-module` as a resolver](../../README.md#resolvers), as you can see in the settings example.
+
 ### Examples of **incorrect** code for this rule:
 
-_Helpers can't import another helper:_
+_Helpers can't import components:_
 
 ```js
-// src/helpers/helper-a/HelperA.js
-import HelperB from "helpers/helper-b"
+// src/helpers/permissions/roles.js
+import AtomA from 'components/atoms/atom-a'
 ```
 
-_Helpers can't import a component:_
+_Helpers can't import modules:_
 
 ```js
-// src/helpers/helper-a/HelperA.js
-import ComponentA from "components/component-a"
+// src/helpers/permissions/roles.js
+import ModuleA from 'modules/module-a'
 ```
 
-_Helpers can't import a module:_
+_Components can't import components of another family:_
 
 ```js
-// src/helpers/helper-a/HelperA.js
-import ModuleA from "modules/module-a"
+// src/components/atoms/atom-a/AtomA.js
+import MoleculeA from 'components/molecules/molecule-a'
 ```
 
-_Components can't import a module:_
+_Components can't import helpers of a category different to "data":_
 
 ```js
-// src/components/component-a/ComponentA
-import ModuleA from "modules/module-a"
+// src/components/atoms/atom-a/AtomA.js
+import { roleHasPermissions } from 'helpers/permissions/roles'
+```
+
+_Components can't import modules:_
+
+```js
+// src/components/atoms/atom-a/AtomA.js
+import ModuleA from 'modules/module-a'
 ```
 
 ### Examples of **correct** code for this rule:
 
-_Components can import helpers:_
+_Helpers can import helpers:_
 
 ```js
-// src/components/component-a/ComponentA.js
-import HelperA from "helpers/helper-a"
+// src/helpers/permissions/roles.js
+import { someParser } from 'helpers/data/parse'
 ```
 
-_Components can import another components:_
+_Components can import components of the same family:_
 
 ```js
-// src/components/component-a/ComponentA.js
-import ComponentB from "components/component-b"
+// src/components/atoms/atom-a/AtomA.js
+import AtomB from 'components/atoms/atom-b'
+```
+
+_Components can import helpers of "data" category:_
+
+```js
+// src/components/atoms/atom-a/AtomA.js
+import { someParser } from 'helpers/data/parse'
+```
+
+_Components of family "molecule" can import components of family "atom":_
+
+```js
+// src/components/molecules/molecule-a/MoleculeA.js
+import AtomA from 'components/atoms/atoms-a'
 ```
 
 _Modules can import helpers:_
 
 ```js
 // src/modules/module-a/ModuleA.js
-import HelperA from "helpers/helper-a"
+import { someParser } from 'helpers/data/parse'
 ```
 
 _Modules can import components:_
 
 ```js
 // src/modules/module-a/ModuleA.js
-import ComponentA from "components/component-a"
+import AtomA from 'components/atoms/atom-a'
 ```
 
-_Modules can import other modules:_
+_Modules can import another modules:_
 
 ```js
 // src/modules/module-a/ModuleA.js
-import  ModuleB from "modules/module-b"
+import ModuleB from 'modules/module-b'
 ```
 
 ## Further reading
