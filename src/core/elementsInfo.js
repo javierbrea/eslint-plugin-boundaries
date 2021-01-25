@@ -108,7 +108,9 @@ function elementTypeAndParents(path, settings) {
               elementResult.capture = capture;
               elementResult.capturedValues = capturedValues;
               elementResult.internalPath =
-                typeOfMatch === VALID_MODES[0] ? path.replace(`${elementPath}/`, "") : null;
+                typeOfMatch === VALID_MODES[0]
+                  ? path.replace(`${elementPath}/`, "")
+                  : elementPath.split("/").pop();
             } else {
               parents.push({
                 type: element.type,
