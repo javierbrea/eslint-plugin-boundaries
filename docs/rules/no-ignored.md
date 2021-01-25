@@ -1,53 +1,83 @@
-# boundaries/no-import-ignored
+# boundaries/no-ignored
 
-> Prevent importing files marked as ignored from the recognized elements
+> Prevent importing ignored files from recognized elements
 
 ## Rule details
 
-Project structure and settings in which next examples are based:
+It checks `import` statements to local files. If the imported file is marked as ignored in the plugin settings, the `import` will be notified as an error.
 
-```txt
-src/
-├── index.js
-└─ components/
-   └── component-a/
-        ├── index.js
-        └── ComponentA.js
+### Options
+
 ```
-
-```json
-{
-  "settings": {
-    "boundaries/types": ["components"],
-    "boundaries/ignore": ["src/index.js"]
-  }
-}
-```
-
-
-### Examples of **incorrect** files for this rule:
-
-_index.js file element is ignored, so it can't be used by components_
-
-```js
-// src/components/component-a/ComponentA.js
-import index from "../../index"
-```
-
-## Rule options
-
-```js
-...
-"boundaries/prefer-recognized-types": <enabled>
-...
+"boundaries/no-ignored": [<enabled>]
 ```
 
 * `enabled`: for enabling the rule. 0=off, 1=warn, 2=error.
 
-```json
+##### Options example
+
+```jsonc
 {
   "rules": {
-    "boundaries/prefer-recognized-types": 2
+    "boundaries/no-ignored": [2]
   }
 }
+```
+
+### Settings
+
+Examples in the next sections are based on the previous options example and these files and settings.
+
+```txt
+src/
+├── helpers/
+│   ├── data/
+│   │   ├── sort.js
+│   │   └── parse.js
+│   └── permissions/
+│       └── roles.js
+│
+├── foo.js
+└── index.js
+```
+
+```jsonc
+{
+  "settings": {
+    "boundaries/ignore": ["src/foo.js"]
+  }
+}
+```
+
+```jsonc
+{
+  "settings": {
+    "boundaries/elements": [
+      {
+        "type": "helpers",
+        "pattern": "helpers/*/*.js",
+        "mode": "file",
+        "capture": ["category", "elementName"]
+      }
+    ]
+  }
+}
+```
+
+### Examples of **incorrect** code for this rule:
+
+_`index.js` file is ignored, so it can't be imported by helpers_
+
+```js
+// src/helpers/data/sort.js
+import foo from "../../foo"
+```
+
+### Examples of **correct** code for this rule:
+
+_`index.js` file is not recognized as any element, so it can import `foo.js`_
+
+```js
+// src/index.js
+import foo from "./foo"
 ```

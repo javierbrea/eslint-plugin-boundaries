@@ -4,7 +4,7 @@
 
 ## Rule details
 
-Project structure and settings in which next examples are based:
+It checks `import` statements to local files. If the imported file is not recognized as part of any element defined in settings the `import` will be notified as an error.
 
 ```txt
 src/
