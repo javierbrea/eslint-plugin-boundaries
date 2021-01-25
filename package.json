@@ -18,7 +18,7 @@
   ],
   "main": "index.js",
   "scripts": {
-    "lint": "eslint index.js src *.js",
+    "lint": "eslint index.js src *.js test",
     "lint-staged": "lint-staged",
     "test": "jest",
     "test:unit": "npm run test"
