@@ -133,7 +133,7 @@ Define patterns to recognize each file in the project as one of this element typ
 
 * __`type`__: `<string>` Element type to be assigned to files or imports matching the `pattern`. This type will be used afterwards in the rules configuration.
 * __`pattern`__: `<string>|<array>` [`micromatch` pattern](https://github.com/micromatch/micromatch). The plugin will try to match this pattern progressively starting from the right side of each file path. This means that you don't have to define patterns matching from the base project path, but only the last part of the path that you want to be matched. This is made because the plugin supports elements being children of other elements, and otherwise it could wrongly recognize children elements as a part of the parent one. <br/>For example, given a path `src/helpers/awesome-helper/index.js`, it will try to assign the element to a pattern matching `index.js`, then `awesome-helper/index.js`, then `helpers/awesome-helper/index.js`, etc. _Once a pattern matches, it assign the correspondent element type, and continues searching for parents elements with the same logic until the full path has been analyzed._
-* __`mode`__: `<string> file|folder` Optional. If it is set to `folder`, the element type will be assigned to the first file's parent folder matching the pattern. In the practice, it is like adding `**/*` to the given pattern, but the plugin makes it by itself because it needs to know exactly which parent folder has to be considered the element. Default is `file`, which does not modify the given pattern.
+* __`mode`__: `<string> file|folder` Optional. When it is set to `folder` (default value), the element type will be assigned to the first file's parent folder matching the pattern. In the practice, it is like adding `**/*` to the given pattern, but the plugin makes it by itself because it needs to know exactly which parent folder has to be considered the element. If it is set to `file`, the given pattern will not be modified.
 * __`capture`__: `<array>` Optional. This is a very powerful feature of the plugin. It allows to capture values of some fragments in the matching path to use them later in the rules configuration. It uses [`micromatch` capture feature](https://github.com/micromatch/micromatch#capture) under the hood, and stores each value in an object with the given `capture` key being in the same index of the captured array.<br/>For example, given `pattern: "helpers/*/*.js"`, `capture: ["category", "elementName"]`, and a path `helpers/data/parsers.js`, it will result in `{ category: "data", elementName: "parsers" }`.
 
 ```json
@@ -143,18 +143,17 @@ Define patterns to recognize each file in the project as one of this element typ
       {
         "type": "helpers",
         "pattern": "helpers/*/*.js",
+        "mode": "file",
         "capture": ["category", "elementName"]
       },
       {
         "type": "components",
         "pattern": "components/*/*",
-        "mode": "folder",
         "capture": ["family", "elementName"]
       },
       {
         "type": "modules",
         "pattern": "module/*",
-        "mode": "folder",
         "capture": ["elementName"]
       }
     ]

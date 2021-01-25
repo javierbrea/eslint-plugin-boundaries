@@ -100,14 +100,14 @@ test(
   []
 );
 
-// no valid match
+// no valid mode
 
 test(
   {
     ...SETTINGS.oneLevel,
     "boundaries/elements": [
       {
-        match: "foo",
+        mode: "foo",
       },
     ],
   },

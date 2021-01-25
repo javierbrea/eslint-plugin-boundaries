@@ -121,6 +121,7 @@ src/
       {
         "type": "helpers",
         "pattern": "helpers/*/*.js",
+        "mode": "file",
         "capture": ["category", "elementName"]
       },
       {

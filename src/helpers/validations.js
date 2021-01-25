@@ -2,7 +2,7 @@ const chalk = require("chalk");
 const micromatch = require("micromatch");
 
 const { PLUGIN_NAME } = require("../constants/plugin");
-const { TYPES, ALIAS, ELEMENTS, VALID_MATCH_TYPES } = require("../constants/settings");
+const { TYPES, ALIAS, ELEMENTS, VALID_MODES } = require("../constants/settings");
 
 const { getElementsTypeNames, isLegacyType } = require("./settings");
 const { rulesMainKey } = require("./rules");
@@ -122,11 +122,11 @@ function validateElements(elements) {
         if (!element.type || typeof element.type !== "string") {
           warnOnce(`Please provide type in '${ELEMENTS}' setting`);
         }
-        if (element.match && !VALID_MATCH_TYPES.includes(element.match)) {
+        if (element.mode && !VALID_MODES.includes(element.mode)) {
           warnOnce(
-            `Invalid match property in '${ELEMENTS}' setting. Should be one of ${VALID_MATCH_TYPES.join(
+            `Invalid mode property in '${ELEMENTS}' setting. Should be one of ${VALID_MODES.join(
               ","
-            )}. Default value "${VALID_MATCH_TYPES[0]}" will be used instead`
+            )}. Default value "${VALID_MODES[0]}" will be used instead`
           );
         }
         if (!element.pattern || typeof element.pattern !== "string") {
