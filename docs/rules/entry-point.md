@@ -23,7 +23,7 @@ It checks `import` statements to the elements of the project and ensure that eac
 * [Main format of rules options](../../README.md#main-format-of-rules-options)
 * [Element matchers](../../README.md#element-matchers)
 
-##### Example
+##### Options example
 
 ```jsonc
 {

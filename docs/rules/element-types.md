@@ -32,7 +32,7 @@ Suposse you want that helpers of one category can only import helpers of the sam
 So, if the `from` element has captured values `{ family: "atom", elementName: "component-a" }`, then the next element matcher in the `allow` property: `["helpers", { "category": "!${family}-${elementName}" }]` will only match if the helper captured category has a value matching `"!atom-component-a"` _(which may has not sense at all, but is useful to illustrate how the replacement works. An example with a more useful usage of this feature can be seen in the next options example)_
 
 
-##### Example
+##### Options example
 
 ```jsonc
 {

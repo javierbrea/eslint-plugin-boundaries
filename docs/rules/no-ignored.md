@@ -81,3 +81,8 @@ _`index.js` file is not recognized as any element, so it can import `foo.js`_
 // src/index.js
 import foo from "./foo"
 ```
+
+## Further reading
+
+Read [how to configure the `boundaries/elements` setting](../../README.md#global-settings) to assign an element type to each project's file.
+
