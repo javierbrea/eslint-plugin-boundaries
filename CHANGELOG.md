@@ -6,12 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 ### Added
+### Changed
+### Fixed
+### Removed
+### BREAKING CHANGES
+
+## [2.0.0-beta.1] - 2021-01-26
+
+### Added
 - feat: Support multiple levels of categorization and any type of project structure (#75)
 - feat: Support elements as files (#75)
 - feat(settings): Added support for `import/resolver` setting
 - feat(options): Support micromatch patterns in rules options (#11, #10)
 - test: Add more than 500 tests using different project structure examples, with different categorization levels, elements as folders, as files, etc.
 - test: Add one test for each rules docs example
+
 ### Changed
 - feat(settings): Deprecated `boundaries/types` setting. `boundaries/elements` should be used instead. If it is not present, `boundaries/types` will be used as fallback
 - feat(rules): Rename `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Change the format of rule options
@@ -21,10 +30,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - feat(rules): Rename `no-import-not-recognized-types` rule into `no-unknown`
 - feat(rules): Rename `prefer-recognized-types` rule into `no-unknown-files`
 - refactor(core): Use `eslint-module-utils/resolve` to get files and import paths. Use `micromatch` to match settings and options. Adapt the whole core to this new approach
+
 ### Fixed
 - fix: Support scoped packages in external rule (#59)
+
 ### Removed
 - feat(settings): Removed `boundaries/alias` setting
+
 ### BREAKING CHANGES
 - Removed `boundaries/alias` setting. `import/resolver` has to be used instead
 - Renamed `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Changed the format of rule options
