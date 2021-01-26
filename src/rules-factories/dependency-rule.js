@@ -16,7 +16,7 @@ module.exports = function (ruleDescription, rule, ruleOptions = {}) {
         return {};
       }
       if (ruleOptions.validate !== false) {
-        validateRules(options.rules, context.settings, ruleOptions.validateRules);
+        validateRules(context.settings, options.rules, ruleOptions.validateRules);
       }
 
       return {
