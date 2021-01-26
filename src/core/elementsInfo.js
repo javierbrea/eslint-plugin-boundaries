@@ -137,14 +137,6 @@ function replacePathSlashes(absolutePath) {
 
 function projectPath(absolutePath) {
   if (absolutePath) {
-    console.log({
-      cwd: replacePathSlashes(process.cwd()),
-      absolutePath: replacePathSlashes(absolutePath),
-      replaced: replacePathSlashes(absolutePath).replace(
-        `${replacePathSlashes(process.cwd())}/`,
-        ""
-      ),
-    });
     return replacePathSlashes(absolutePath).replace(`${replacePathSlashes(process.cwd())}/`, "");
   }
 }
