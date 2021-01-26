@@ -8,7 +8,9 @@
     "architecture",
     "boundaries",
     "dependencies",
-    "hierarchy"
+    "elements",
+    "hierarchy",
+    "import"
   ],
   "author": "Javier Brea",
   "license": "MIT",
