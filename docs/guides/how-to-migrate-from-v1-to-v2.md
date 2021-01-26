@@ -186,6 +186,8 @@ Should be migrated to:
 
 Rule options have to be migrated to a [valid v2.x format](../rules/entry-point.md).
 
+Now configuration presets don't assign a default value to the rule (it was `index.js` in v1.x)
+
 Given v1.x options like:
 
 ```jsonc

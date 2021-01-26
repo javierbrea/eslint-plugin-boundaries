@@ -35,7 +35,7 @@ It checks `import` statements to the elements of the project and ensure that eac
           {
             // when importing helpers
             "target": ["helpers"],
-            // allow everything (helpers are single files)
+            // allow file (helpers are single files)
             "allow": "*"
           },
           {
