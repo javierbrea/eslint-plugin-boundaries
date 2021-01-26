@@ -37,34 +37,29 @@ function isInternal(elementA, elementB) {
   return elementA.elementPath === elementB.elementPath;
 }
 
-function dependencyRelationship(dependencyInfo, elementInfo) {
-  if (
-    !dependencyInfo.isLocal ||
-    dependencyInfo.isIgnored ||
-    !elementInfo.type ||
-    !dependencyInfo.type
-  ) {
+function dependencyRelationship(dependency, element) {
+  if (!dependency.isLocal || dependency.isIgnored || !element.type || !dependency.type) {
     return null;
   }
-  if (isInternal(dependencyInfo, elementInfo)) {
+  if (isInternal(dependency, element)) {
     return "internal";
   }
-  if (isChild(dependencyInfo, elementInfo)) {
+  if (isChild(dependency, element)) {
     return "child";
   }
-  if (isDescendant(dependencyInfo, elementInfo)) {
+  if (isDescendant(dependency, element)) {
     return "descendant";
   }
-  if (isBrother(dependencyInfo, elementInfo)) {
+  if (isBrother(dependency, element)) {
     return "brother";
   }
-  if (isChild(elementInfo, dependencyInfo)) {
+  if (isChild(element, dependency)) {
     return "parent";
   }
-  if (isUncle(dependencyInfo, elementInfo)) {
+  if (isUncle(dependency, element)) {
     return "uncle";
   }
-  if (isDescendant(elementInfo, dependencyInfo)) {
+  if (isDescendant(element, dependency)) {
     return "ancestor";
   }
   return null;

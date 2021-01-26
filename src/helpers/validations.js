@@ -160,7 +160,7 @@ function validateSettings(settings) {
   validateElements(settings[ELEMENTS] || settings[TYPES]);
 }
 
-function validateRules(rules = [], settings, options = {}) {
+function validateRules(rules = [], settings = {}, options = {}) {
   const mainKey = rulesMainKey(options.mainKey);
   rules.forEach((rule) => {
     validateElementTypesMatcher([rule[mainKey]], settings);

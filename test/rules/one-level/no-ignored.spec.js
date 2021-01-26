@@ -3,13 +3,12 @@ const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/hel
 
 const rule = require(`../../../src/rules/${RULE}`);
 
-const settings = SETTINGS.deprecated;
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
 const ERROR_MESSAGE = "Importing ignored files is not allowed";
 
 const customSettings = {
-  ...settings,
+  ...SETTINGS.deprecated,
   "boundaries/ignore": [codeFilePath("components/component-b/**/*.js")],
 };
 

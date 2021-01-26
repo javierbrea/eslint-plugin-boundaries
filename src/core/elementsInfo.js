@@ -10,8 +10,8 @@ function baseModule(name, path) {
     return null;
   }
   if (isScoped(name)) {
-    const [scope, pkg] = name.split("/");
-    return `${scope}/${pkg}`;
+    const [scope, packageName] = name.split("/");
+    return `${scope}/${packageName}`;
   }
   const [pkg] = name.split("/");
   return pkg;
@@ -41,9 +41,9 @@ function elementCaptureValues(capture, captureSettings) {
   if (!captureSettings) {
     return null;
   }
-  return capture.reduce((captureValues, capture, index) => {
+  return capture.reduce((captureValues, captureValue, index) => {
     if (captureSettings[index]) {
-      captureValues[captureSettings[index]] = capture;
+      captureValues[captureSettings[index]] = captureValue;
     }
     return captureValues;
   }, {});
@@ -134,11 +134,11 @@ function elementTypeAndParents(path, settings) {
 function projectPath(absolutePath) {
   if (absolutePath) {
     console.log({
-      cwd: process.cwd(),
-      absolutePath,
-      replaced: absolutePath.replace(`${process.cwd()}/`, ""),
+      cwd: process.cwd().replace(/\\/g, "/"),
+      absolutePath: absolutePath.replace(/\\/g, "/"),
+      replaced: absolutePath.replace(/\\/g, "/").replace(`${process.cwd()}/`, ""),
     });
-    return absolutePath.replace(`${process.cwd()}/`, "");
+    return absolutePath.replace(/\\/g, "/").replace(`${process.cwd()}/`, "");
   }
 }
 
