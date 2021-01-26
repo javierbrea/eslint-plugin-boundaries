@@ -27,9 +27,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - feat(settings): Removed `boundaries/alias` setting
 ### BREAKING CHANGES
 - Removed `boundaries/alias` setting. `import/resolver` has to be used instead
-- Renamed `no-external` rule into `external` (now it can be used to allow/disallow). Changed the format of rule options
-- Renamed `no-external` rule into `external` (now it can be used to allow/disallow). Changed the format of rule options
+- Renamed `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Changed the format of rule options
 - Changed the format of `entry-point` rule options (now it support allow/disallow format)
+- Renamed `no-external` rule into `external` (now it can be used to allow/disallow). Changed the format of rule options
 - Renamed `no-import-ignored` rule into `no-ignored` (the majority of the plugin rules are referred to `import` statements, so it is not necessary to specify it in the rule name)
 - Renamed `no-import-not-recognized-types` rule into `no-unknown`
 - Renamed `prefer-recognized-types` rule into `no-unknown-files`

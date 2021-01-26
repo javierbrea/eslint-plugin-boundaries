@@ -28,7 +28,7 @@ It checks `import` statements to the elements of the project and ensure that eac
 ```jsonc
 {
   "rules": {
-    "boundaries/element-types": [2, {
+    "boundaries/entry-point": [2, {
         // disallow all entry-points by default
         "default": "disallow",
         "rules": [

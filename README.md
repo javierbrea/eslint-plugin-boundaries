@@ -56,6 +56,10 @@ Activate the plugin and one of the canned configs in your `.eslintrc.(yml|json|j
 }
 ```
 
+## Migrating from v1.x
+
+New v2.0.0 release has introduced many breaking changes. If you were using v1.x, you should [read the "how to migrate from v1 to v2" guide](./docs/guides/how-to-migrate-from-v1-to-v2.md).
+
 ## Overview
 
 All of the plugin rules need to be able to identify the elements in the project, so, first of all you have to define your project elements using the `boundaries/elements` setting.
