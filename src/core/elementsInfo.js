@@ -132,12 +132,12 @@ function elementTypeAndParents(path, settings) {
 }
 
 function projectPath(absolutePath) {
-  console.log({
-    cwd: process.cwd(),
-    absolutePath,
-    replaced: absolutePath.replace(`${process.cwd()}/`, ""),
-  });
   if (absolutePath) {
+    console.log({
+      cwd: process.cwd(),
+      absolutePath,
+      replaced: absolutePath.replace(`${process.cwd()}/`, ""),
+    });
     return absolutePath.replace(`${process.cwd()}/`, "");
   }
 }

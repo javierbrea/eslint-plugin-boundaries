@@ -46,13 +46,16 @@ function micromatchPatternReplacingObjectValues(pattern, object) {
 
 function isObjectMatch(objectWithMatchers, object, objectWithValuesToReplace) {
   return Object.keys(objectWithMatchers).reduce((isMatch, key) => {
-    if (isMatch === false) {
-      return false;
+    if (isMatch !== false) {
+      const micromatchPattern = objectWithValuesToReplace
+        ? micromatchPatternReplacingObjectValues(
+            objectWithMatchers[key],
+            objectWithValuesToReplace
+          )
+        : objectWithMatchers[key];
+      return micromatch.isMatch(object[key], micromatchPattern);
     }
-    const micromatchPattern = objectWithValuesToReplace
-      ? micromatchPatternReplacingObjectValues(objectWithMatchers[key], objectWithValuesToReplace)
-      : objectWithMatchers[key];
-    return micromatch.isMatch(object[key], micromatchPattern);
+    return isMatch;
   }, null);
 }
 
