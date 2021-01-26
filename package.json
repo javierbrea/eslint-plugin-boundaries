@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-boundaries",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0-beta.2",
   "description": "Eslint plugin checking architecture boundaries between elements",
   "keywords": [
     "eslint",
@@ -14,7 +14,8 @@
   "license": "MIT",
   "repository": "https://github.com/javierbrea/eslint-plugin-boundaries",
   "files": [
-    "src"
+    "src",
+    "resolver-legacy-alias"
   ],
   "main": "index.js",
   "scripts": {

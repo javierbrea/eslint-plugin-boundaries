@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [2.0.0-beta.2] - 2021-01-26
+
+### Fixed
+- feat: Add folder resolver-legacy-alias to npm package
+
 ## [2.0.0-beta.1] - 2021-01-26
 
 ### Added
