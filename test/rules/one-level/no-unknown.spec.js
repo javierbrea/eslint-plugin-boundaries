@@ -37,6 +37,11 @@ const test = (settings) => {
         filename: absoluteFilePath("components/component-a/ComponentA.js"),
         code: "import ComponentB from 'components/component-b'",
       },
+      // External dependencies can be imported
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import 'chalk'",
+      },
     ],
     invalid: [
       // Not recognized type

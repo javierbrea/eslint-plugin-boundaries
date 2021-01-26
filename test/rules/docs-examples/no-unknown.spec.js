@@ -22,6 +22,11 @@ ruleTester.run(RULE, rule, {
       filename: absoluteFilePath("index.js"),
       code: "import foo from './foo'",
     },
+    // External dependencies can be imported
+    {
+      filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
+      code: "import 'chalk'",
+    },
   ],
   invalid: [
     // Helpers can't import `foo.js` file because it is unknown

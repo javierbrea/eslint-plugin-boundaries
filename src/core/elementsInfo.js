@@ -34,7 +34,10 @@ function isScoped(name) {
 
 const externalModuleRegExp = /^\w/;
 function isExternal(name, path) {
-  return !path && (externalModuleRegExp.test(name) || isScoped(name));
+  return (
+    (!path || (!!path && path.indexOf("node_modules") === 0)) &&
+    (externalModuleRegExp.test(name) || isScoped(name))
+  );
 }
 
 function elementCaptureValues(capture, captureSettings) {
@@ -145,15 +148,16 @@ function importInfo(source, context) {
   const path = projectPath(resolve(source, context));
   const isBuiltInModule = isBuiltIn(source, path);
   const isExternalModule = isExternal(source, path);
+  const pathToUse = isExternalModule ? null : path;
   return {
     source,
-    path,
-    isIgnored: isIgnored(path, context.settings),
-    isLocal: !!path && !isBuiltInModule && !isExternalModule,
+    path: pathToUse,
+    isIgnored: !isExternalModule && isIgnored(pathToUse, context.settings),
+    isLocal: !isExternalModule && !isBuiltInModule,
     isBuiltIn: isBuiltInModule,
     isExternal: isExternalModule,
-    baseModule: baseModule(source, path),
-    ...elementTypeAndParents(path, context.settings),
+    baseModule: baseModule(source, pathToUse),
+    ...elementTypeAndParents(pathToUse, context.settings),
   };
 }
 

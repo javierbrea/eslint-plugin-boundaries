@@ -77,6 +77,11 @@ const test = (settings, options, { absoluteFilePath }) => {
         code: "import React from 'react'",
         options,
       },
+      // External dependencies can be imported
+      {
+        filename: absoluteFilePath("modules/pages/page-a/PageA.js"),
+        code: "import 'chalk'",
+      },
     ],
     invalid: [
       // Helpers can't import react
