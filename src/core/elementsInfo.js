@@ -131,14 +131,21 @@ function elementTypeAndParents(path, settings) {
   };
 }
 
+function replacePathSlashes(absolutePath) {
+  return absolutePath.replace(/\\/g, "/");
+}
+
 function projectPath(absolutePath) {
   if (absolutePath) {
     console.log({
-      cwd: process.cwd().replace(/\\/g, "/"),
-      absolutePath: absolutePath.replace(/\\/g, "/"),
-      replaced: absolutePath.replace(/\\/g, "/").replace(`${process.cwd()}/`, ""),
+      cwd: replacePathSlashes(process.cwd()),
+      absolutePath: replacePathSlashes(absolutePath),
+      replaced: replacePathSlashes(absolutePath).replace(
+        `${replacePathSlashes(process.cwd())}/`,
+        ""
+      ),
     });
-    return absolutePath.replace(/\\/g, "/").replace(`${process.cwd()}/`, "");
+    return replacePathSlashes(absolutePath).replace(`${replacePathSlashes(process.cwd())}/`, "");
   }
 }
 
