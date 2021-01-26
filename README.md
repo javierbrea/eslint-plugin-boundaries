@@ -10,6 +10,33 @@ In words of Robert C. Martin, _"Software architecture is the art of drawing line
 
 __This plugin ensures that your architecture boundaries are respected by the elements in your project__ checking the folders and files structure and the `import` statements (_Read the [main rules overview chapter](#main-rules-overview) for better comprehension._). __It is not a replacement for [eslint-plugin-import](https://www.npmjs.com/package/eslint-plugin-import), on the contrary, the combination of both plugins is recommended.__
 
+## Table of Contents
+
+<details>
+<summary><strong>Details</strong></summary>
+
+- [Installation](#installation)
+- [Overview](#overview)
+- [Main rules overview](#main-rules-overview)
+  * [Allowed element types](#allowed-element-types)
+  * [Allowed external modules](#allowed-external-modules)
+  * [Private elements](#private-elements)
+  * [Entry point](#entry-point)
+- [Rules](#rules)
+- [Configuration](#configuration)
+  * [Global settings](#global-settings)
+  * [Predefined configurations](#predefined-configurations)
+  * [Rules configuration](#rules-configuration)
+    * [Main format of rules options](#main-format-of-rules-options)
+    * [Elements matchers](#elements-matchers)
+    * [Advanced example](#advanced-example)
+- [Resolvers](#resolvers)
+- [Acknowledgements](#acknowledgements)
+- [Contributing](#contributing)
+- [License](#license)
+
+</details>
+
 ## Installation
 
 This module is distributed via npm which is bundled with node and should be installed as one of your project's devDependencies:
@@ -241,9 +268,9 @@ Remember that:
 
 > Tip: All properties can receive a single matcher, or an array of matchers.
 
-##### Element matchers
+##### Elements matchers
 
-Element matchers used in the rules options can have the next formats:
+Elements matchers used in the rules options can have the next formats:
 
 * __`<string>`__: Will return `true` when the element type matches with this [`micromatch` pattern](https://github.com/micromatch/micromatch).
 * __`[<string>, <capturedValuesObject>]`__: Will return `true` whe when the element type matches with the first element in the array, and all of the captured values also match. <br/>The `<capturedValuesObject>` has to be an object containing `capture` keys from the [`boundaries/element-types` setting](#boundarieselement-types) of the element as keys, and [`micromatch` patterns](https://github.com/micromatch/micromatch) as values.<br/>For example, for an element of type "helpers" with settings as `{ type: "helpers", pattern": "helpers/*/*.js", "capture": ["category", "elementName"]}`, you could write element matchers as:
