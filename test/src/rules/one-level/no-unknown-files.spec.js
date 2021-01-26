@@ -6,7 +6,7 @@ const rule = require(`../../../../src/rules/${RULE}`);
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
 const FOO_CODE = "export default {}";
-const ERROR_MESSAGE = "File does not belong to any known element type";
+const ERROR_MESSAGE = "File is not of any known element type";
 
 const test = (settings) => {
   const ruleTester = createRuleTester(settings);

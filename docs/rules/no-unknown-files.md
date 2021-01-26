@@ -1,79 +1,83 @@
-# boundaries/prefer-recognized-types
+# boundaries/no-unknown-files
 
 > Prevent creating files not recognized as any of the element types
 
 ## Rule details
 
-It checks `import` statements to local files. If the imported file is not recognized as part of any element defined in settings the `import` will be notified as an error.
+It checks local files paths. If the file is not recognized as part of any element defined in settings, it will be notified as an error.
 
-```txt
-src/
-├── index.js
-├── components/
-│   └── component-a/
-│       ├── index.js
-│       └── ComponentA.js
-├── helpers/
-│   └── helper-a/
-│       ├── index.js
-│       └── HelperA.js
-└── foo/
-    └── foo-a/
-        └── index.js
+### Options
+
+```
+"boundaries/no-unknown-files": [<enabled>]
 ```
 
-```json
+* `enabled`: for enabling the rule. 0=off, 1=warn, 2=error.
+
+##### Options example
+
+```jsonc
 {
-  "settings": {
-    "boundaries/types": ["helpers", "components" ],
-    "boundaries/ignore": ["src/index.js"]
+  "rules": {
+    "boundaries/no-unknown-files": [2]
   }
 }
 ```
 
+### Settings
+
+Examples in the next sections are based on the previous options example and these files and settings.
+
+```txt
+src/
+├── helpers/
+│   ├── data/
+│   │   ├── sort.js
+│   │   └── parse.js
+│   └── permissions/
+│       └── roles.js
+│
+├── foo.js
+└── index.js
+```
+
+```jsonc
+{
+  "settings": {
+    "boundaries/ignore": ["src/index.js"],
+    "boundaries/elements": [
+      {
+        "type": "helpers",
+        "pattern": "helpers/*/*.js",
+        "mode": "file"
+      }
+    ]
+  }
+}
+```
 
 ### Examples of **incorrect** files for this rule:
 
-_Foo A element is not recognized as a "component" nor a "helper", because it is not under any of these folders_
+_`foo.js` file is not recognized, so it is not allowed_
 
 ```js
-// src/foo/foo-a/index.js
+// src/foo.js
 ```
 
 ### Examples of **correct** files for this rule:
 
-_index.js file is not allowed as it is not recognized as "component" or "helper", because it is not under any of these folders, and it has not its own element folder, but it is ignored in settings:_
+_Helper files are allowed_
+
+```js
+// src/helpers/data/sort.js
+```
+
+_`index.js` file is not recognized, but it is ignored in settings_
 
 ```js
 // src/index.js
 ```
 
-_HelperA.js file is recognized as a "helper", because it is under "helpers" folder, and it has its own element folder_
+## Further reading
 
-```js
-// src/helpers/helper-a/HelperA.js
-```
-
-_ComponentA.js file is recognized as a "component", because it is under "components" folder, and it has its own element folder_
-
-```js
-// src/components/component-a/ComponentA.js
-```
-
-## Rule options
-
-```js
-...
-"boundaries/prefer-recognized-types": <enabled>
-...
-```
-
-* `enabled`: for enabling the rule. 0=off, 1=warn, 2=error.
-
-```json
-{
-  "rules": {
-    "boundaries/prefer-recognized-types": 2
-  }
-}
-```
+* Read [how to configure the `boundaries/elements` setting](../../README.md#global-settings) to assign an element type to each project's file.

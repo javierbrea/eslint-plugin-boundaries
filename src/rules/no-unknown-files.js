@@ -17,7 +17,7 @@ module.exports = {
     return {
       Program: (node) => {
         context.report({
-          message: `File does not belong to any known element type`,
+          message: `File is not of any known element type`,
           node: node,
         });
       },

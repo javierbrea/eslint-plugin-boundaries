@@ -44,14 +44,7 @@ src/
 ```jsonc
 {
   "settings": {
-    "boundaries/ignore": ["src/foo.js"]
-  }
-}
-```
-
-```jsonc
-{
-  "settings": {
+    "boundaries/ignore": ["src/foo.js"],
     "boundaries/elements": [
       {
         "type": "helpers",
