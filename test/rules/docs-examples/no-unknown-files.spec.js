@@ -1,7 +1,7 @@
-const { NO_UNKNOWN_FILES: RULE } = require("../../../../src/constants/rules");
-const { SETTINGS, createRuleTester, pathResolvers } = require("../../helpers");
+const { NO_UNKNOWN_FILES: RULE } = require("../../../src/constants/rules");
+const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
 
-const rule = require(`../../../../src/rules/${RULE}`);
+const rule = require(`../../../src/rules/${RULE}`);
 
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath, codeFilePath } = pathResolvers("docs-examples");

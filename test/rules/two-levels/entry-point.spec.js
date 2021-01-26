@@ -1,7 +1,7 @@
-const { ENTRY_POINT: RULE } = require("../../../../src/constants/rules");
-const { SETTINGS, createRuleTester, pathResolvers } = require("../../helpers");
+const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
+const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
 
-const rule = require(`../../../../src/rules/${RULE}`);
+const rule = require(`../../../src/rules/${RULE}`);
 
 const errorMessage = (disallowedEntryPoint, type) =>
   `Entry point '${disallowedEntryPoint}' is not allowed in '${type}'`;

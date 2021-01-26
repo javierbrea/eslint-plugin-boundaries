@@ -1,7 +1,7 @@
-const { NO_IGNORED: RULE } = require("../../../../src/constants/rules");
-const { SETTINGS, createRuleTester, pathResolvers } = require("../../helpers");
+const { NO_IGNORED: RULE } = require("../../../src/constants/rules");
+const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
 
-const rule = require(`../../../../src/rules/${RULE}`);
+const rule = require(`../../../src/rules/${RULE}`);
 
 const settings = SETTINGS.deprecated;
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
