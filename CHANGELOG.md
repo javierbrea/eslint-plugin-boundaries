@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - feat: Support elements as files (#75)
 - feat(settings): Added support for `import/resolver` setting
 - feat(options): Support micromatch patterns in rules options (#11, #10)
-- test: Added tests using different project structure examples, with different categorization levels, elements as folders, as files, etc.
+- test: Add more than 500 tests using different project structure examples, with different categorization levels, elements as folders, as files, etc.
+- test: Add one test for each rules docs example
 ### Changed
 - feat(settings): Deprecated `boundaries/types` setting. `boundaries/elements` should be used instead. If it is not present, `boundaries/types` will be used as fallback
 - feat(rules): Rename `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Change the format of rule options
