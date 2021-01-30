@@ -20,6 +20,6 @@ jobs:
         key: 'name'
         value: '@javierbrea/eslint-plugin-boundaries'
     - run: npm ci
-    - run: npm publish
+    - run: npm publish --tag beta
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
