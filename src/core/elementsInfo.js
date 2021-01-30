@@ -4,6 +4,7 @@ const resolve = require("eslint-module-utils/resolve").default;
 
 const { IGNORE, VALID_MODES } = require("../constants/settings");
 const { getElements } = require("../helpers/settings");
+const { debugFileInfo } = require("../helpers/debug");
 
 function baseModule(name, path) {
   if (path) {
@@ -94,36 +95,47 @@ function elementTypeAndParents(path, settings) {
       let elementFound = false;
       getElements(settings).forEach((element) => {
         const typeOfMatch = VALID_MODES.includes(element.mode) ? element.mode : VALID_MODES[0];
-        if (!elementFound) {
-          const pattern =
-            typeOfMatch === VALID_MODES[0] && !elementResult.type
-              ? `${element.pattern}/**/*`
-              : element.pattern;
-          const capture = micromatch.capture(pattern, accumulator.join("/"));
-          if (capture) {
-            elementFound = true;
-            const capturedValues = elementCaptureValues(capture, element.capture);
-            const elementPath = getElementPath(element.pattern, accumulator, elementPaths);
-            accumulator = [];
-            if (!elementResult.type) {
-              elementResult.type = element.type;
-              elementResult.elementPath = elementPath;
-              elementResult.capture = capture;
-              elementResult.capturedValues = capturedValues;
-              elementResult.internalPath =
-                typeOfMatch === VALID_MODES[0]
-                  ? path.replace(`${elementPath}/`, "")
-                  : elementPath.split("/").pop();
-            } else {
-              parents.push({
-                type: element.type,
-                elementPath: elementPath,
-                capture: capture,
-                capturedValues: capturedValues,
-              });
+        const elementPatterns = Array.isArray(element.pattern)
+          ? element.pattern
+          : [element.pattern];
+        elementPatterns.forEach((elementPattern) => {
+          if (!elementFound) {
+            const useFullPathMatch = typeOfMatch === VALID_MODES[2] && !elementResult.type;
+            const pattern =
+              typeOfMatch === VALID_MODES[0] && !elementResult.type
+                ? `${elementPattern}/**/*`
+                : elementPattern;
+            const capture = micromatch.capture(
+              pattern,
+              useFullPathMatch ? path : accumulator.join("/")
+            );
+            if (capture) {
+              elementFound = true;
+              const capturedValues = elementCaptureValues(capture, element.capture);
+              const elementPath = useFullPathMatch
+                ? path
+                : getElementPath(elementPattern, accumulator, elementPaths);
+              accumulator = [];
+              if (!elementResult.type) {
+                elementResult.type = element.type;
+                elementResult.elementPath = elementPath;
+                elementResult.capture = capture;
+                elementResult.capturedValues = capturedValues;
+                elementResult.internalPath =
+                  typeOfMatch === VALID_MODES[0]
+                    ? path.replace(`${elementPath}/`, "")
+                    : elementPath.split("/").pop();
+              } else {
+                parents.push({
+                  type: element.type,
+                  elementPath: elementPath,
+                  capture: capture,
+                  capturedValues: capturedValues,
+                });
+              }
             }
           }
-        }
+        });
       });
       return accumulator;
     }, []);
@@ -149,7 +161,7 @@ function importInfo(source, context) {
   const isBuiltInModule = isBuiltIn(source, path);
   const isExternalModule = isExternal(source, path);
   const pathToUse = isExternalModule ? null : path;
-  return {
+  const result = {
     source,
     path: pathToUse,
     isIgnored: !isExternalModule && isIgnored(pathToUse, context.settings),
@@ -159,15 +171,23 @@ function importInfo(source, context) {
     baseModule: baseModule(source, pathToUse),
     ...elementTypeAndParents(pathToUse, context.settings),
   };
+
+  if (result.isLocal) {
+    debugFileInfo(result);
+  }
+
+  return result;
 }
 
 function fileInfo(context) {
   const path = projectPath(context.getFilename());
-  return {
+  const result = {
     path,
     isIgnored: isIgnored(path, context.settings),
     ...elementTypeAndParents(path, context.settings),
   };
+  debugFileInfo(result);
+  return result;
 }
 
 module.exports = {

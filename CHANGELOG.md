@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [2.0.0-beta.4] - 2021-01-30
+
+### Added
+- feat: debug files and imports info when ESLINT_PLUGIN_BOUNDARIES_DEBUG environment variable exists
+- feat: `mode` option in `elements` setting now also accepts `full` as value. Pattern will try to match the full path in that case.
+- feat: support defining multiple micromatch patterns in an array in the `pattern` property of `elements` setting.
+
 ## [2.0.0-beta.3] - 2021-01-26
 
 ### Fixed

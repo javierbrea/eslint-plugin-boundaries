@@ -39,7 +39,7 @@ const SETTINGS = {
       },
       {
         type: "components",
-        pattern: "components/*",
+        pattern: ["components/*"],
         capture: ["elementName"],
       },
       {
@@ -61,7 +61,7 @@ const SETTINGS = {
     "boundaries/elements": [
       {
         type: "helpers",
-        pattern: "helpers/*",
+        pattern: ["helpers/*"],
         capture: ["elementName"],
       },
       {
@@ -101,7 +101,7 @@ const SETTINGS = {
       // a workaround is to define a different pattern for each subelement level
       {
         type: "modules",
-        pattern: "modules/*/**/submodules/**/submodules/*",
+        pattern: ["modules/*/**/submodules/**/submodules/*"],
         capture: ["domain", "ancestorsPaths", "ancestorSubmodules", "elementName"],
       },
       {
@@ -124,70 +124,11 @@ const SETTINGS = {
       },
     },
   },
-  nestjsExample: {
-    "boundaries/elements": [
-      {
-        type: "main",
-        mode: "file",
-        pattern: "*/main.js",
-      },
-      {
-        type: "app",
-        mode: "file",
-        pattern: "*/app.module.js",
-      },
-      {
-        type: "module",
-        pattern: "**/*/*.module.js",
-        mode: "file",
-        capture: ["base", "feature", "fileName"],
-      },
-      {
-        type: "controller",
-        pattern: "**/*/*.controller.js",
-        mode: "file",
-        capture: ["base", "feature", "fileName"],
-      },
-      {
-        type: "service",
-        pattern: "**/*/*.service.js",
-        mode: "file",
-        capture: ["base", "feature", "fileName"],
-      },
-      {
-        type: "interceptor",
-        pattern: "**/*/interceptors/*.interceptor.js",
-        mode: "file",
-        capture: ["base", "feature", "fileName"],
-      },
-      {
-        type: "interface",
-        pattern: "**/*/interfaces/*.interface.js",
-        mode: "file",
-        capture: ["base", "feature", "fileName"],
-      },
-      {
-        type: "dto",
-        pattern: "**/*/dto/*.dto.js",
-        mode: "file",
-        capture: ["base", "feature", "fileName"],
-      },
-      {
-        type: "common",
-        pattern: "**/common/*/*.*.js",
-        mode: "file",
-        capture: ["base", "category", "fileName"],
-      },
-    ],
-    "import/resolver": {
-      "eslint-import-resolver-node": {},
-    },
-  },
   docsExamples: {
     "boundaries/elements": [
       {
         type: "helpers",
-        pattern: "helpers/*/*.js",
+        pattern: ["helpers/*/*.js"],
         mode: "file",
         capture: ["category", "elementName"],
       },

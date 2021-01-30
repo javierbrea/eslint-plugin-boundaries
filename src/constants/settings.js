@@ -29,5 +29,5 @@ module.exports = {
   ALIAS: `${PLUGIN_NAME}/alias`,
 
   // elements settings properties,
-  VALID_MODES: ["folder", "file"],
+  VALID_MODES: ["folder", "file", "full"],
 };

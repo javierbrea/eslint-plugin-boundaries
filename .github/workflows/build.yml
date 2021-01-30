@@ -40,6 +40,8 @@ jobs:
       - name: Lint
         run: npm run lint
       - name: Test unit
+        env:
+          ESLINT_PLUGIN_BOUNDARIES_DEBUG: 1
         run: npm run test:unit
       - name: Upload test results
         uses: actions/upload-artifact@v2

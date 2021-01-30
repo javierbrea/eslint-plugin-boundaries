@@ -1,13 +1,11 @@
-const chalk = require("chalk");
 const micromatch = require("micromatch");
 
-const { PLUGIN_NAME } = require("../constants/plugin");
 const { TYPES, ALIAS, ELEMENTS, VALID_MODES } = require("../constants/settings");
 
 const { getElementsTypeNames, isLegacyType } = require("./settings");
 const { rulesMainKey } = require("./rules");
+const { warnOnce } = require("./debug");
 
-const warns = [];
 const invalidMatchers = [];
 
 const DEFAULT_MATCHER_OPTIONS = {
@@ -82,17 +80,6 @@ function rulesOptionsSchema(options = {}) {
   ];
 }
 
-function warn(message) {
-  console.warn(chalk.yellow(`[${PLUGIN_NAME}]: ${message}`));
-}
-
-function warnOnce(message) {
-  if (!warns.includes(message)) {
-    warns.push(message);
-    warn(message);
-  }
-}
-
 function isValidElementTypesMatcher(matcher, settings) {
   const mathcherToCheck = Array.isArray(matcher) ? matcher[0] : matcher;
   return !matcher || micromatch.some(getElementsTypeNames(settings), mathcherToCheck);
@@ -129,8 +116,11 @@ function validateElements(elements) {
             )}. Default value "${VALID_MODES[0]}" will be used instead`
           );
         }
-        if (!element.pattern || typeof element.pattern !== "string") {
-          warnOnce(`Please provide pattern in '${ELEMENTS}' setting`);
+        if (
+          !element.pattern ||
+          !(typeof element.pattern === "string" || Array.isArray(element.pattern))
+        ) {
+          warnOnce(`Please provide a valid pattern in '${ELEMENTS}' setting`);
         }
         if (element.capture && !Array.isArray(element.capture)) {
           warnOnce(`Invalid capture property in '${ELEMENTS}' setting`);

@@ -1,5 +1,5 @@
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
-const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { createRuleTester, pathResolvers } = require("../../support/helpers");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
@@ -56,7 +56,7 @@ const test = (settings, options, { absoluteFilePath }) => {
       // cats controller can import common decorator
       {
         filename: absoluteFilePath("cats/cats.controller.js"),
-        code: "import { RolesGuard } from '../common/guards/roles.guard'",
+        code: "import { RolesGuard } from '../common/guards/roles.guards'",
         options,
       },
       // cats controller can import cats service
@@ -75,6 +75,24 @@ const test = (settings, options, { absoluteFilePath }) => {
       {
         filename: absoluteFilePath("cats/cats.controller.js"),
         code: "import { CreateCatDto } from './dto/create-cat.dto'",
+        options,
+      },
+      // cats controller can import persian-cat model
+      {
+        filename: absoluteFilePath("cats/cats.controller.js"),
+        code: "import { PersianCat } from './models/persian-cat.model'",
+        options,
+      },
+      // cats controller can import siamese-cat model
+      {
+        filename: absoluteFilePath("cats/cats.controller.js"),
+        code: "import { SiameseCat } from './models/siamese-cat.dto'",
+        options,
+      },
+      // core controller can import core model
+      {
+        filename: absoluteFilePath("core/core.controller.js"),
+        code: "import { CoreModel } from './core.model'",
         options,
       },
       // cats service can import cats interface
@@ -205,44 +223,290 @@ const test = (settings, options, { absoluteFilePath }) => {
           },
         ],
       },
+      // core controller can't import cats model
+      {
+        filename: absoluteFilePath("core/core.controller.js"),
+        code: "import { PersianCatModel } from '../cats/models/persian-cat.model'",
+        options,
+        errors: [
+          {
+            message: errorMessage("controller", "model"),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+      // core controller can't import cats model
+      {
+        filename: absoluteFilePath("core/core.controller.js"),
+        code: "import { SiameseCatModel } from '../cats/models/siamese-cat.dto'",
+        options,
+        errors: [
+          {
+            message: errorMessage("controller", "model"),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+      // cats controller can't import core model
+      {
+        filename: absoluteFilePath("cats/cats.controller.js"),
+        code: "import { CoreModel } from '../core/core.model'",
+        options,
+        errors: [
+          {
+            message: errorMessage("controller", "model"),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
     ],
   });
 };
 
+const options = [
+  {
+    default: "disallow",
+    rules: [
+      {
+        from: "app",
+        allow: "module",
+      },
+      {
+        from: "module",
+        allow: [
+          "module",
+          ["controller", { feature: "${feature}" }],
+          ["service", { feature: "${feature}" }],
+          ["interceptor", { feature: "${feature}" }],
+        ],
+      },
+      {
+        from: "controller",
+        allow: [
+          "common",
+          ["service", { feature: "${feature}" }],
+          ["interface", { feature: "${feature}" }],
+          ["dto", { feature: "${feature}" }],
+          ["model", { feature: "${feature}" }],
+        ],
+      },
+      {
+        from: "service",
+        allow: [["interface", { feature: "${feature}" }]],
+      },
+    ],
+  },
+];
+
 test(
-  SETTINGS.nestjsExample,
-  [
-    {
-      default: "disallow",
-      rules: [
-        {
-          from: "app",
-          allow: "module",
-        },
-        {
-          from: "module",
-          allow: [
-            "module",
-            ["controller", { feature: "${feature}" }],
-            ["service", { feature: "${feature}" }],
-            ["interceptor", { feature: "${feature}" }],
-          ],
-        },
-        {
-          from: "controller",
-          allow: [
-            "common",
-            ["service", { feature: "${feature}" }],
-            ["interface", { feature: "${feature}" }],
-            ["dto", { feature: "${feature}" }],
-          ],
-        },
-        {
-          from: "service",
-          allow: [["interface", { feature: "${feature}" }]],
-        },
-      ],
-    },
-  ],
+  {
+    "boundaries/elements": [
+      {
+        type: "main",
+        mode: "file",
+        pattern: "*/main.js",
+      },
+      {
+        type: "app",
+        mode: "file",
+        pattern: "*/app.module.js",
+      },
+      {
+        type: "module",
+        pattern: "**/*/*.module.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "controller",
+        pattern: "**/*/*.controller.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "model",
+        pattern: ["**/*/models/*.{model,dto}.js", "**/*/*.model.js"],
+        mode: "full",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "service",
+        pattern: ["**/*/*.service.js"],
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "interceptor",
+        pattern: ["**/*/interceptors/*.interceptor.js"],
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "interface",
+        pattern: "**/*/interfaces/*.interface.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "dto",
+        pattern: "**/*/dto/*.dto.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "common",
+        pattern: "**/common/*/*.*.js",
+        mode: "file",
+        capture: ["base", "category", "fileName"],
+      },
+    ],
+  },
+  options,
+  pathResolvers("nestjs-example")
+);
+
+test(
+  {
+    "boundaries/elements": [
+      {
+        type: "main",
+        mode: "file",
+        pattern: "*/main.js",
+      },
+      {
+        type: "app",
+        mode: "file",
+        pattern: "*/app.module.js",
+      },
+      {
+        type: "module",
+        pattern: "**/*/*.module.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "controller",
+        pattern: "**/*/*.controller.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "model",
+        pattern: "**/*/models/*.{model,dto}.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "model",
+        pattern: "*/*/*.model.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "service",
+        pattern: ["**/*/*.service.js"],
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "interceptor",
+        pattern: ["**/*/interceptors/*.interceptor.js"],
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "interface",
+        pattern: "**/*/interfaces/*.interface.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "dto",
+        pattern: "**/*/dto/*.dto.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "common",
+        pattern: "**/common/*/*.*.js",
+        mode: "file",
+        capture: ["base", "category", "fileName"],
+      },
+    ],
+  },
+  options,
+  pathResolvers("nestjs-example")
+);
+
+test(
+  {
+    "boundaries/elements": [
+      {
+        type: "main",
+        mode: "file",
+        pattern: "*/main.js",
+      },
+      {
+        type: "app",
+        mode: "file",
+        pattern: "*/app.module.js",
+      },
+      {
+        type: "module",
+        pattern: "**/*/*.module.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "controller",
+        pattern: "**/*/*.controller.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "model",
+        pattern: "**/*/models/*.{model,dto}.js",
+        mode: "full",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "model",
+        pattern: "**/*/*.model.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "service",
+        pattern: ["**/*/*.service.js"],
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "interceptor",
+        pattern: ["**/*/interceptors/*.interceptor.js"],
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "interface",
+        pattern: "**/*/interfaces/*.interface.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "dto",
+        pattern: "**/*/dto/*.dto.js",
+        mode: "file",
+        capture: ["base", "feature", "fileName"],
+      },
+      {
+        type: "common",
+        pattern: "**/common/*/*.*.js",
+        mode: "file",
+        capture: ["base", "category", "fileName"],
+      },
+    ],
+  },
+  options,
   pathResolvers("nestjs-example")
 );
