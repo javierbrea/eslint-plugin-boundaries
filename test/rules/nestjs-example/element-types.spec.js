@@ -263,7 +263,7 @@ const test = (settings, options, { absoluteFilePath }) => {
   });
 };
 
-const options = [
+const ruleOptions = [
   {
     default: "disallow",
     rules: [
@@ -361,7 +361,7 @@ test(
       },
     ],
   },
-  options,
+  ruleOptions,
   pathResolvers("nestjs-example")
 );
 
@@ -434,7 +434,7 @@ test(
       },
     ],
   },
-  options,
+  ruleOptions,
   pathResolvers("nestjs-example")
 );
 
@@ -507,6 +507,6 @@ test(
       },
     ],
   },
-  options,
+  ruleOptions,
   pathResolvers("nestjs-example")
 );
