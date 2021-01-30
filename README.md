@@ -31,6 +31,7 @@ __This plugin ensures that your architecture boundaries are respected by the ele
     * [Elements matchers](#elements-matchers)
     * [Advanced example](#advanced-example)
 - [Resolvers](#resolvers)
+- [Debug mode](#debug-mode)
 - [Acknowledgements](#acknowledgements)
 - [Contributing](#contributing)
 - [License](#license)
@@ -194,6 +195,8 @@ Define patterns to recognize each file in the project as one of this element typ
   }
 }
 ```
+
+> Tip: You can enable the [debug mode](debug-mode) when configuring the plugin, and you will get information about the type assigned to each file in the project.
 
 
 #### __`boundaries/ignore`__
@@ -367,6 +370,14 @@ This plugin uses `eslint-module-utils/resolve` module under the hood, which is a
     }
   }
 }
+```
+
+## Debug mode
+
+In order to help during the configuration process, the plugin can trace information about the files and imports being analyzed. The information includes the file path, the assigned element type, the captured values, etc. So, it can help you to check that your `elements` setting works as expected. You can enable it using the `ESLINT_PLUGIN_BOUNDARIES_DEBUG` environment variable.
+
+```bash
+ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 npm run lint
 ```
 
 ## Acknowledgements
