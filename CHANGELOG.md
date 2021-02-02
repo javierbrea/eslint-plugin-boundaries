@@ -9,6 +9,96 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 ### Fixed
 ### Removed
+### BREAKING CHANGES
+
+## [2.0.0] - 2021-02-02
+
+### Added
+- feat: Support multiple levels of categorization and any type of project structure (#75)
+- feat: Support elements as files (#75)
+- feat(settings): Added support for `import/resolver` setting
+- feat(options): Support micromatch patterns in rules options (#11, #10)
+- feat: Add debug mode
+- test: Add more than 500 tests using different project structure examples, with different categorization levels, elements as folders, as files, etc.
+- test: Add one test for each rules docs example
+- chore: Run tests on Windows OS again (#74)
+
+### Changed
+- feat(settings): Deprecated `boundaries/types` setting. `boundaries/elements` should be used instead. If it is not present, `boundaries/types` will be used as fallback
+- feat(rules): Rename `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Change the format of rule options
+- feat(rules): Rename `no-external` rule into `external` (now it can be used to allow/disallow). Change the format of rule options
+- feat(rules): Change the format of `entry-point` rule options (now it support allow/disallow format)
+- feat(rules): Rename `no-import-ignored` rule into `no-ignored` (the majority of the plugin rules are referred to `import` statements, so it is not necessary to specify it in the rule name)
+- feat(rules): Rename `no-import-not-recognized-types` rule into `no-unknown`
+- feat(rules): Rename `prefer-recognized-types` rule into `no-unknown-files`
+- refactor(core): Use `eslint-module-utils/resolve` to get files and import paths. Use `micromatch` to match settings and options. Adapt the whole core to this new approach
+
+### Fixed
+- fix: Support scoped packages in external rule (#59)
+
+### Removed
+- feat(settings): Removed `boundaries/alias` setting
+
+### BREAKING CHANGES
+- Removed `boundaries/alias` setting. `import/resolver` has to be used instead
+- Renamed `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Changed the format of rule options
+- Changed the format of `entry-point` rule options (now it support allow/disallow format)
+- Renamed `no-external` rule into `external` (now it can be used to allow/disallow). Changed the format of rule options
+- Renamed `no-import-ignored` rule into `no-ignored` (the majority of the plugin rules are referred to `import` statements, so it is not necessary to specify it in the rule name)
+- Renamed `no-import-not-recognized-types` rule into `no-unknown`
+- Renamed `prefer-recognized-types` rule into `no-unknown-files`
+
+## [2.0.0-beta.4] - 2021-01-30
+
+### Added
+- feat: debug files and imports info when ESLINT_PLUGIN_BOUNDARIES_DEBUG environment variable exists
+- feat: `mode` option in `elements` setting now also accepts `full` as value. Pattern will try to match the full path in that case.
+- feat: support defining multiple micromatch patterns in an array in the `pattern` property of `elements` setting.
+
+## [2.0.0-beta.3] - 2021-01-26
+
+### Fixed
+- fix: node_modules packages were being recognized as local
+
+## [2.0.0-beta.2] - 2021-01-26
+
+### Fixed
+- fix: Add folder resolver-legacy-alias to npm package
+
+## [2.0.0-beta.1] - 2021-01-26
+
+### Added
+- feat: Support multiple levels of categorization and any type of project structure (#75)
+- feat: Support elements as files (#75)
+- feat(settings): Added support for `import/resolver` setting
+- feat(options): Support micromatch patterns in rules options (#11, #10)
+- test: Add more than 500 tests using different project structure examples, with different categorization levels, elements as folders, as files, etc.
+- test: Add one test for each rules docs example
+
+### Changed
+- feat(settings): Deprecated `boundaries/types` setting. `boundaries/elements` should be used instead. If it is not present, `boundaries/types` will be used as fallback
+- feat(rules): Rename `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Change the format of rule options
+- feat(rules): Rename `no-external` rule into `external` (now it can be used to allow/disallow). Change the format of rule options
+- feat(rules): Change the format of `entry-point` rule options (now it support allow/disallow format)
+- feat(rules): Rename `no-import-ignored` rule into `no-ignored` (the majority of the plugin rules are referred to `import` statements, so it is not necessary to specify it in the rule name)
+- feat(rules): Rename `no-import-not-recognized-types` rule into `no-unknown`
+- feat(rules): Rename `prefer-recognized-types` rule into `no-unknown-files`
+- refactor(core): Use `eslint-module-utils/resolve` to get files and import paths. Use `micromatch` to match settings and options. Adapt the whole core to this new approach
+
+### Fixed
+- fix: Support scoped packages in external rule (#59)
+
+### Removed
+- feat(settings): Removed `boundaries/alias` setting
+
+### BREAKING CHANGES
+- Removed `boundaries/alias` setting. `import/resolver` has to be used instead
+- Renamed `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Changed the format of rule options
+- Changed the format of `entry-point` rule options (now it support allow/disallow format)
+- Renamed `no-external` rule into `external` (now it can be used to allow/disallow). Changed the format of rule options
+- Renamed `no-import-ignored` rule into `no-ignored` (the majority of the plugin rules are referred to `import` statements, so it is not necessary to specify it in the rule name)
+- Renamed `no-import-not-recognized-types` rule into `no-unknown`
+- Renamed `prefer-recognized-types` rule into `no-unknown-files`
 
 ## [1.1.1] - 2020-12-11
 ### Added
@@ -20,7 +110,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - fix(#65): Fixed error on dependency scanning when dependencyInfo.name is null (thanks to @skurfuerst)
-
 
 ## [1.1.0] - 2020-11-12
 ### Added

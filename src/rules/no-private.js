@@ -1,48 +1,44 @@
-const { PLUGIN_NAME } = require("../constants/plugin");
-const { meta, dependencyLocation, getContextInfo } = require("../helpers/rules");
-const { getDependencyInfo, isNotRecognizedOrIgnored } = require("../helpers/elements");
+const { RULE_NO_INTERNAL } = require("../constants/settings");
 
-module.exports = {
-  ...meta(`Enforce elements to not use private elements of another element`, PLUGIN_NAME, [
-    {
-      type: "object",
-      properties: {
-        allowUncles: {
-          type: "boolean",
+const dependencyRule = require("../rules-factories/dependency-rule");
+
+const { dependencyLocation } = require("../helpers/rules");
+
+module.exports = dependencyRule(
+  {
+    ruleName: RULE_NO_INTERNAL,
+    description: `Prevent importing private elements of another element`,
+    schema: [
+      {
+        type: "object",
+        properties: {
+          allowUncles: {
+            type: "boolean",
+          },
         },
+        additionalProperties: false,
       },
-      additionalProperties: false,
-    },
-  ]),
-
-  create: function (context) {
-    const { currentElementInfo, fileName } = getContextInfo(context);
-    if (isNotRecognizedOrIgnored(currentElementInfo)) {
-      return {};
-    }
-    const options = context.options[0];
-    return {
-      ImportDeclaration: (node) => {
-        const dependencyInfo = getDependencyInfo(fileName, node.source.value, context.settings);
-        if (
-          dependencyInfo.isLocal &&
-          !dependencyInfo.isIgnored &&
-          dependencyInfo.type &&
-          dependencyInfo.parents &&
-          dependencyInfo.parents[0] &&
-          !dependencyInfo.isInternal &&
-          !dependencyInfo.isBrother &&
-          !dependencyInfo.isChild &&
-          (!options || !options.allowUncles || !dependencyInfo.isCommonAncestorChild)
-        ) {
-          context.report({
-            message: `Dependency is private of '${dependencyInfo.parents[0]}'`,
-            type: PLUGIN_NAME,
-            node: node,
-            ...dependencyLocation(node, context),
-          });
-        }
-      },
-    };
+    ],
   },
-};
+  function ({ dependency, node, context, options }) {
+    if (
+      !dependency.isIgnored &&
+      dependency.isLocal &&
+      dependency.type &&
+      dependency.parents.length &&
+      dependency.relationship !== "internal" &&
+      dependency.relationship !== "child" &&
+      dependency.relationship !== "brother" &&
+      (!options || !options.allowUncles || dependency.relationship !== "uncle")
+    ) {
+      context.report({
+        message: `Dependency is private of another element`,
+        node: node,
+        ...dependencyLocation(node, context),
+      });
+    }
+  },
+  {
+    validate: false,
+  }
+);

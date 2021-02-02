@@ -28,6 +28,6 @@ module.exports = {
   testEnvironment: "node",
 
   // The glob patterns Jest uses to detect test files
-  testMatch: ["**/test/**/*.spec.js"],
-  // testMatch: ["**/test/src/rules/entry-point.spec.js"],
+  testMatch: ["<rootDir>/test/**/*.spec.js"],
+  // testMatch: ["<rootDir>/test/**/nestjs-example/*.spec.js"],
 };

@@ -1,9 +1,9 @@
 module.exports = {
-  NO_PRIVATE: "no-private",
+  ELEMENT_TYPES: "element-types",
   ENTRY_POINT: "entry-point",
-  ALLOWED_TYPES: "allowed-types",
-  NO_EXTERNAL: "no-external",
-  PREFER_RECOGNIZED_TYPES: "prefer-recognized-types",
-  NO_IMPORT_NOT_RECOGNIZED_TYPES: "no-import-not-recognized-types",
-  NO_IMPORT_IGNORED: "no-import-ignored",
+  EXTERNAL: "external",
+  NO_IGNORED: "no-ignored",
+  NO_PRIVATE: "no-private",
+  NO_UNKNOWN_FILES: "no-unknown-files",
+  NO_UNKNOWN: "no-unknown",
 };

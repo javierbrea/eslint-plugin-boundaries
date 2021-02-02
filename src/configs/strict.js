@@ -1,7 +1,7 @@
 const {
-  RULE_PREFER_RECOGNIZED_TYPES,
-  RULE_NO_IMPORT_NOT_RECOGNIZED_TYPES,
-  RULE_NO_IMPORT_IGNORED,
+  RULE_NO_IGNORED,
+  RULE_NO_UNKNOWN_FILES,
+  RULE_NO_UNKNOWN,
 } = require("../constants/settings");
 
 const recommended = require("./recommended");
@@ -10,8 +10,8 @@ module.exports = {
   ...recommended,
   rules: {
     ...recommended.rules,
-    [RULE_PREFER_RECOGNIZED_TYPES]: 2,
-    [RULE_NO_IMPORT_NOT_RECOGNIZED_TYPES]: 2,
-    [RULE_NO_IMPORT_IGNORED]: 2,
+    [RULE_NO_IGNORED]: 2,
+    [RULE_NO_UNKNOWN_FILES]: 2,
+    [RULE_NO_UNKNOWN]: 2,
   },
 };
