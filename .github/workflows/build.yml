@@ -40,8 +40,6 @@ jobs:
       - name: Lint
         run: npm run lint
       - name: Test unit
-        env:
-          ESLINT_PLUGIN_BOUNDARIES_DEBUG: 1
         run: npm run test:unit
       - name: Upload test results
         uses: actions/upload-artifact@v2
@@ -78,8 +76,6 @@ jobs:
           HUSKY_SKIP_INSTALL: 1
       - name: Test unit
         run: npm run test:unit
-        env:
-          ESLINT_PLUGIN_BOUNDARIES_DEBUG: 1
   quality:
     runs-on: ubuntu-latest
     needs: test

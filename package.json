@@ -24,7 +24,7 @@
     "lint": "eslint src *.js test",
     "lint-staged": "lint-staged",
     "test": "jest",
-    "test:unit": "npm run test"
+    "test:unit": "cross-env ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 npm run test"
   },
   "peerDependencies": {
     "eslint": "^6.0.0 || ^7.0.0"
