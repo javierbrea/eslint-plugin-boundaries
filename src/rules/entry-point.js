@@ -1,60 +1,51 @@
-const { PLUGIN_NAME } = require("../constants/plugin");
-const { meta, dependencyLocation, getContextInfo } = require("../helpers/rules");
-const { getDependencyInfo, isNotRecognizedOrIgnored } = require("../helpers/elements");
+const { RULE_ENTRY_POINT } = require("../constants/settings");
 
-module.exports = {
-  ...meta(
-    `Prevent other elements importing a file different from the allowed entry point`,
-    PLUGIN_NAME,
-    [
-      {
-        properties: {
-          default: {
-            type: "string",
-          },
-          byType: {
-            type: "object",
-          },
-        },
-        additionalProperties: false,
-      },
-    ]
-  ),
+const dependencyRule = require("../rules-factories/dependency-rule");
 
-  create: function (context) {
-    const { currentElementInfo, fileName } = getContextInfo(context);
-    if (isNotRecognizedOrIgnored(currentElementInfo)) {
-      return {};
-    }
-    const defaultOption = (context.options[0] && context.options[0].default) || null;
+const { rulesOptionsSchema } = require("../helpers/validations");
+const {
+  dependencyLocation,
+  isMatchElementKey,
+  elementRulesAllowDependency,
+} = require("../helpers/rules");
 
-    return {
-      ImportDeclaration: (node) => {
-        const dependencyInfo = getDependencyInfo(fileName, node.source.value, context.settings);
-        const typeOption =
-          context.options[0] &&
-          context.options[0].byType &&
-          context.options[0].byType[dependencyInfo.type]
-            ? context.options[0].byType[dependencyInfo.type]
-            : null;
-        const requiredEntryPoint = typeOption || defaultOption;
+function isMatchElementInternalPath(elementInfo, matcher, options) {
+  return isMatchElementKey(elementInfo, matcher, options, "internalPath");
+}
 
-        if (
-          dependencyInfo.isLocal &&
-          !dependencyInfo.isIgnored &&
-          dependencyInfo.type &&
-          !dependencyInfo.isInternal &&
-          requiredEntryPoint &&
-          dependencyInfo.privatePath !== requiredEntryPoint
-        ) {
-          context.report({
-            message: `Entry point of element '${dependencyInfo.self}' must be '${requiredEntryPoint}'`,
-            type: PLUGIN_NAME,
-            node: node,
-            ...dependencyLocation(node, context),
-          });
-        }
-      },
-    };
+function elementRulesAllowEntryPoint(element, dependency, options) {
+  return elementRulesAllowDependency({
+    element: dependency,
+    dependency,
+    options,
+    isMatch: isMatchElementInternalPath,
+    rulesMainKey: "target",
+  }).result;
+}
+
+module.exports = dependencyRule(
+  {
+    ruleName: RULE_ENTRY_POINT,
+    description: `Check entry point used for each element type`,
+    schema: rulesOptionsSchema({
+      rulesMainKey: "target",
+    }),
   },
-};
+  function ({ dependency, file, node, context, options }) {
+    if (
+      !dependency.isIgnored &&
+      dependency.type &&
+      !dependency.isInternal &&
+      !elementRulesAllowEntryPoint(file, dependency, options)
+    ) {
+      context.report({
+        message: `Entry point '${dependency.internalPath}' is not allowed in '${dependency.type}'`,
+        node: node,
+        ...dependencyLocation(node, context),
+      });
+    }
+  },
+  {
+    validateRules: { onlyMainKey: true, mainKey: "target" },
+  }
+);

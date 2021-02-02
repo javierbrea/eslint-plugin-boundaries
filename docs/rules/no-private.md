@@ -1,6 +1,6 @@
 # boundaries/no-private
 
-> Enforce elements to not use private elements of another element
+> Prevent importing private elements of another element
 
 ## Rule details
 
@@ -8,159 +8,127 @@ This rule follow the next principles:
 
 * An element becomes private when it is under another element.
 * Private elements can't be used by anyone except its parent. _(and any other descendant of the parent when `allowUncles` option is enabled)_
-* Private elements can use public elements.
-* Private elements can use other private element when both have the same parent _("brother elements")_
-* Private elements can use other private element if it is a direct child of a common ancestor, and the `allowUncles` option is enabled.
+* Private elements can import public elements.
+* Private elements can import another private element when both have the same parent _("brother elements")_
+* Private elements can import anoother private element if it is a direct child of a common ancestor, and the `allowUncles` option is enabled.
 
-Project structure and settings in which next examples are based:
+### Options
+
+```
+"boundaries/no-private": [<enabled>, { "allowUncles": <boolean> }]
+```
+
+* `enabled`: for enabling the rule. 0=off, 1=warn, 2=error.
+* `allowUncles`: Optional. If set to `false`, it disallows importing "uncle elements". Default is `true`.
+
+##### Options example
+
+```jsonc
+{
+  "rules": {
+    "boundaries/no-private": [2, { "allowUncles": true }]
+  }
+}
+```
+
+### Settings
+
+Examples in the next sections are based on the previous options example and these files and settings.
 
 ```txt
 src/
-├── components/
-│   ├── component-a/
-│   │   ├── index.js
-│   │   ├── ComponentA.js
-│   │   ├── helpers/
-│   │   │   └── helper-a/
-│   │   │       ├── index.js
-│   │   │       ├── HelperA.js
-│   │   │       └── helpers/
-│   │   │           ├── helper-b/
-│   │   │           ├── index.js
-│   │   │           └── HelperB.js
-│   │   └── components/
-│   │       └── component-c/
-│   │           ├── index.js
-│   │           ├── ComponentC.js
-│   │           └── components/
-│   │               ├── component-d/
-│   │               │   ├── index.js
-│   │               │   └── ComponentD.js
-│   │               └── component-e/
-│   │                   ├── index.js
-│   │                   └── ComponentE.js
-│   └── component-b/
-│       ├── index.js
-│       └── ComponentB.js
 └── modules/
-    └── module-a/
+    ├── module-a/
+    │   ├── index.js
+    │   └── ModuleA.js
+    └── module-b/
         ├── index.js
-        └── ModuleA.js
+        ├── ModuleB.js
+        └── modules
+            ├── module-c
+            │   ├── index.js
+            │   ├── ModuleC.js
+            │   └── modules
+            │       └── module-e
+            │           ├── index.js
+            │           └── ModuleE.js
+            └── module-d
+                ├── index.js
+                └── ModuleD.js
 ```
 
-```json
+```jsonc
 {
   "settings": {
-    "boundaries/types": ["components", "modules", "helpers"],
-    "boundaries/alias": {
-      "components": "src/components",
-      "modules": "src/modules"
+    "boundaries/elements": [
+      {
+        "type": "modules",
+        "pattern": "modules/*",
+        "mode": "folder"
+      }
+    ],
+    "import/resolver": {
+      "babel-module": {}
     }
   }
 }
 ```
 
+> Some of the next examples are written as is the project has configured a babel alias for the folder `src/modules`. This is made for better readability of the examples, but it would work also with relative paths. You can configure the plugin to recognize babel aliases [using `eslint-import-resolver-babel-module` as a resolver](../../README.md#resolvers), as you can see in the settings example.
 
 ### Examples of **incorrect** code for this rule:
 
-_Private elements can't be used by anyone except its parent (and other descendants of the parent when `allowUncles` option is enabled)_
+_`module-a` can't import `module-c` because it is child of `module-b`_
 
 ```js
-// src/components/component-a/ComponentA.js
-import ComponentD from "./components/component-c/components/component-d"
+// src/modules/module-a/moduleA.js
+import ModuleC from 'modules/module-b/modules/module-c'
 ```
 
-_Component C is private of component A, so module A can't use it:_
+_`module-b` can't import `module-e` because it is child of `module-c` (even when it is his grandchild)_
 
 ```js
-// src/modules/module-a/ModuleA.js
-import ComponentC from "components/component-a/components/component-c"
+// src/modules/module-b/moduleB.js
+import ModuleE from './modules/module-c/modules/module-e'
 ```
 
-_Helper B is private of helper A, so component C can't use it:_
+_`module-e` can't import `module-d` when `allowUncles` option is disabled_
 
 ```js
-// src/components/component-a/components/component-c/ComponentC.js
-import HelperB from "../../helpers/helper-a/helpers/helper-b"
-```
-
-_Helper B is private of helper A, so component A can't use it (even when it is its "grandchild"):_
-
-```js
-// src/components/component-a/ComponentA.js
-import HelperB from "./helpers/helper-a/helpers/helper-b"
-```
-
-_Private elements can't use other private element if it is a direct child of a common ancestor, but the `allowUncles` option is disabled. Component D can't use helper A as it is a direct child of common ancestor component A, but `allowUncles` option is disabled._
-
-```js
-// .eslintrc.json
-...
-"boundaries/no-private": [2, {
-  "allowUncles": false
-}]
-...
-```
-
-```js
-// src/components/component-a/components/component-c/components/component-d/ComponentD.js
-import HelperA from "components/component-a/helpers/helper-a"
+// src/modules/module-b/modules/module-c/modules/module-e/ModuleE
+import ModuleD from 'modules/module-b/modules/module-d'
 ```
 
 ### Examples of **correct** code for this rule:
 
-_Component A is public, as it is not child of any other element, so anyone can use it:_
+_`module-b` can import `module-c` because it is his direct child_
 
 ```js
-// src/modules/module-a/ModuleA.js
-import ComponentA from "components/component-a"
+// src/modules/module-b/ModuleB.js
+import ModuleC from './modules/module-c'
 ```
 
-_Private elements can use public elements:_
+_`module-c` can import `module-a` because it is public_
 
 ```js
-// src/components/component-a/components/component-c/ComponentC.js
-import ModuleA from "modules/module-a"
+// src/modules/module-b/modules/module-c/ModuleC.js
+import ModuleA from 'modules/module-a'
 ```
 
-_Elements can use their direct children elements:_
+_`module-c` can import `module-d` because it is his brother_
 
 ```js
-// src/components/component-a/ComponentA.js
-import ComponentC from "./components/component-c"
+// modules/module-b/modules/module-c/ModuleC.js
+import ModuleD from '../module-d'
 ```
 
-_Private elements can use other private element when both have the same parent. Component C can use helper A, as both are children of component A:_
+_`module-e` can import `module-d` because it is his uncle_
 
 ```js
-// src/components/component-a/components/component-c/ComponentC.js
-import HelperA from "components/component-a/helpers/helper-a"
+// modules/module-b/modules/module-c/modules/module-e/ModuleE
+import ModuleD from 'modules/module-b/modules/module-d'
 ```
 
-_Private elements can use other private element if it is a direct child of a common ancestor, and the `allowUncles` option is enabled_. Component D can use helper A as it is a direct child of common ancestor component A.
+## Further reading
 
-```js
-// src/components/component-a/components/component-c/components/component-d/ComponentD.js
-import HelperA from "components/component-a/helpers/helper-a"
-```
-
-## Rule options
-
-```js
-...
-"boundaries/no-private": [<enabled>, { "allowUncles": <boolean> }]
-...
-```
-
-* `enabled`: for enabling the rule. 0=off, 1=warn, 2=error.
-* `allowUncles`: Optional boolean set to `false` to disallow importing "uncle elements". Default is `true`.
-
-```json
-{
-  "rules": {
-    "boundaries/no-private": [2, {
-      "allowUncles": true
-    }]
-  }
-}
-```
+Read [how to configure the `boundaries/elements` setting](../../README.md#global-settings) to assign an element type to each project's file.
