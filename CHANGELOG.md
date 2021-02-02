@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - feat: Add debug mode
 - test: Add more than 500 tests using different project structure examples, with different categorization levels, elements as folders, as files, etc.
 - test: Add one test for each rules docs example
+- chore: Run tests on Windows OS again (#74)
 
 ### Changed
 - feat(settings): Deprecated `boundaries/types` setting. `boundaries/elements` should be used instead. If it is not present, `boundaries/types` will be used as fallback
