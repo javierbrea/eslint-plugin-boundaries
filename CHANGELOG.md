@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [unreleased]
 ### Added
 ### Changed
-chore(deps): Update dependencies
+- chore(deps): Update dependencies
 ### Fixed
+- fix: Avoid crash when import path is broken (#96)
 ### Removed
 ### BREAKING CHANGES
 

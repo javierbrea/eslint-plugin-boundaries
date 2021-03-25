@@ -19,7 +19,7 @@ function baseModule(name, path) {
 }
 
 function isIgnored(path, settings) {
-  return micromatch.isMatch(path, settings[IGNORE] || []);
+  return !path || micromatch.isMatch(path, settings[IGNORE] || []);
 }
 
 function isBuiltIn(name, path) {
@@ -80,7 +80,7 @@ function elementTypeAndParents(path, settings) {
     internalPath: null,
   };
 
-  if (!path || isIgnored(path, settings)) {
+  if (isIgnored(path, settings)) {
     return {
       ...elementResult,
       parents,
