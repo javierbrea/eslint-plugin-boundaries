@@ -154,6 +154,32 @@ const SETTINGS = {
       },
     },
   },
+  basePattern: {
+    "boundaries/elements": [
+      {
+        type: "modules",
+        mode: "folder",
+        pattern: "modules/*",
+        basePattern: "**/domains/*",
+        capture: ["elementName"],
+        baseCapture: ["parentFolders", "domain"],
+      },
+      {
+        type: "components",
+        mode: "folder",
+        pattern: "components/{molecules,atoms}/*",
+        basePattern: "**/domains/*",
+        capture: ["type", "elementName"],
+        baseCapture: ["parentFolders", "domain"],
+      },
+    ],
+    "import/resolver": {
+      "eslint-import-resolver-node": {},
+      [path.resolve(process.cwd(), "resolver-legacy-alias")]: {
+        domains: `./${codeFilePath("base-pattern", "domains")}`,
+      },
+    },
+  },
 };
 
 const createRuleTester = (settings) => {
