@@ -6,13 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 ### Added
-- feat: Add basePattern and baseCapture options to elements settings (#97)
 ### Changed
-- chore(deps): Update dependencies
 ### Fixed
-- fix: Avoid crash when import path is broken (#96)
 ### Removed
 ### BREAKING CHANGES
+
+## [2.1.0] - 2021-03-25
+
+### Added
+- feat: Add basePattern and baseCapture options to elements settings (#97)
+
+### Changed
+- chore(deps): Update dependencies
+
+### Fixed
+- fix: Avoid crash when import path is broken (#96)
 
 ## [2.0.0] - 2021-02-02
 
