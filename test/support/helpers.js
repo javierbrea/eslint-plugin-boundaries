@@ -183,12 +183,10 @@ const SETTINGS = {
 };
 
 const createRuleTester = (settings) => {
-  const ruleTester = new RuleTester({
+  return new RuleTester({
     parserOptions: { ecmaVersion: 2015, sourceType: "module" },
     settings,
   });
-
-  return ruleTester;
 };
 
 const pathResolvers = (basePath) => {
