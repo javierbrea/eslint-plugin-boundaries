@@ -6,8 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 ### Added
+- feat: Add basePattern and baseCapture options to elements settings (#97)
 ### Changed
-chore(deps): Update dependencies
+- chore(deps): Update dependencies
 ### Fixed
 ### Removed
 ### BREAKING CHANGES
