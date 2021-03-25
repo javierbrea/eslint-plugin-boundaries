@@ -90,55 +90,77 @@ function elementTypeAndParents(path, settings) {
   path
     .split("/")
     .reverse()
-    .reduce((accumulator, elementPathSegment, segmentIndex, elementPaths) => {
-      accumulator.unshift(elementPathSegment);
-      let elementFound = false;
-      getElements(settings).forEach((element) => {
-        const typeOfMatch = VALID_MODES.includes(element.mode) ? element.mode : VALID_MODES[0];
-        const elementPatterns = Array.isArray(element.pattern)
-          ? element.pattern
-          : [element.pattern];
-        elementPatterns.forEach((elementPattern) => {
-          if (!elementFound) {
-            const useFullPathMatch = typeOfMatch === VALID_MODES[2] && !elementResult.type;
-            const pattern =
-              typeOfMatch === VALID_MODES[0] && !elementResult.type
-                ? `${elementPattern}/**/*`
-                : elementPattern;
-            const capture = micromatch.capture(
-              pattern,
-              useFullPathMatch ? path : accumulator.join("/")
-            );
-            if (capture) {
-              elementFound = true;
-              const capturedValues = elementCaptureValues(capture, element.capture);
-              const elementPath = useFullPathMatch
-                ? path
-                : getElementPath(elementPattern, accumulator, elementPaths);
-              accumulator = [];
-              if (!elementResult.type) {
-                elementResult.type = element.type;
-                elementResult.elementPath = elementPath;
-                elementResult.capture = capture;
-                elementResult.capturedValues = capturedValues;
-                elementResult.internalPath =
-                  typeOfMatch === VALID_MODES[0]
-                    ? path.replace(`${elementPath}/`, "")
-                    : elementPath.split("/").pop();
-              } else {
-                parents.push({
-                  type: element.type,
-                  elementPath: elementPath,
-                  capture: capture,
-                  capturedValues: capturedValues,
-                });
+    .reduce(
+      ({ accumulator, lastSegmentMatching }, elementPathSegment, segmentIndex, elementPaths) => {
+        accumulator.unshift(elementPathSegment);
+        let elementFound = false;
+        getElements(settings).forEach((element) => {
+          const typeOfMatch = VALID_MODES.includes(element.mode) ? element.mode : VALID_MODES[0];
+          const elementPatterns = Array.isArray(element.pattern)
+            ? element.pattern
+            : [element.pattern];
+          elementPatterns.forEach((elementPattern) => {
+            if (!elementFound) {
+              const useFullPathMatch = typeOfMatch === VALID_MODES[2] && !elementResult.type;
+              const pattern =
+                typeOfMatch === VALID_MODES[0] && !elementResult.type
+                  ? `${elementPattern}/**/*`
+                  : elementPattern;
+              let basePatternCapture = true;
+
+              if (element.basePattern) {
+                basePatternCapture = micromatch.capture(
+                  [element.basePattern, "**", pattern].join("/"),
+                  path
+                    .split("/")
+                    .slice(0, path.split("/").length - lastSegmentMatching)
+                    .join("/")
+                );
+              }
+              const capture = micromatch.capture(
+                pattern,
+                useFullPathMatch ? path : accumulator.join("/")
+              );
+
+              if (capture && basePatternCapture) {
+                elementFound = true;
+                lastSegmentMatching = segmentIndex + 1;
+                let capturedValues = elementCaptureValues(capture, element.capture);
+                if (element.basePattern) {
+                  capturedValues = {
+                    ...elementCaptureValues(basePatternCapture, element.baseCapture),
+                    ...capturedValues,
+                  };
+                }
+                const elementPath = useFullPathMatch
+                  ? path
+                  : getElementPath(elementPattern, accumulator, elementPaths);
+                accumulator = [];
+                if (!elementResult.type) {
+                  elementResult.type = element.type;
+                  elementResult.elementPath = elementPath;
+                  elementResult.capture = capture;
+                  elementResult.capturedValues = capturedValues;
+                  elementResult.internalPath =
+                    typeOfMatch === VALID_MODES[0]
+                      ? path.replace(`${elementPath}/`, "")
+                      : elementPath.split("/").pop();
+                } else {
+                  parents.push({
+                    type: element.type,
+                    elementPath: elementPath,
+                    capture: capture,
+                    capturedValues: capturedValues,
+                  });
+                }
               }
             }
-          }
+          });
         });
-      });
-      return accumulator;
-    }, []);
+        return { accumulator, lastSegmentMatching };
+      },
+      { accumulator: [], lastSegmentMatching: 0 }
+    );
 
   return {
     ...elementResult,
