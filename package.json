@@ -34,7 +34,7 @@
     "eslint-module-utils": "2.6.0",
     "chalk": "4.1.0",
     "is-core-module": "2.2.0",
-    "micromatch": "4.0.2"
+    "micromatch": "4.0.4"
   },
   "devDependencies": {
     "cross-env": "7.0.3",
