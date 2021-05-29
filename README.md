@@ -409,7 +409,7 @@ MIT, see [LICENSE](./LICENSE) for details.
 [npm-downloads-url]: https://www.npmjs.com/package/eslint-plugin-boundaries
 [npm-dependencies-image]: https://img.shields.io/david/javierbrea/eslint-plugin-boundaries.svg
 [npm-dependencies-url]: https://david-dm.org/javierbrea/eslint-plugin-boundaries
-[quality-gate-image]: https://sonarcloud.io/api/project_badges/measure?project=eslint-plugin-boundaries&metric=alert_status
-[quality-gate-url]: https://sonarcloud.io/dashboard?id=eslint-plugin-boundaries
+[quality-gate-image]: https://sonarcloud.io/api/project_badges/measure?project=javierbrea_eslint-plugin-boundaries&metric=alert_status
+[quality-gate-url]: https://sonarcloud.io/dashboard?id=javierbrea_eslint-plugin-boundaries
 [release-image]: https://img.shields.io/github/release-date/javierbrea/eslint-plugin-boundaries.svg
 [release-url]: https://github.com/javierbrea/eslint-plugin-boundaries/releases
