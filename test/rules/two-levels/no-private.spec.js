@@ -76,8 +76,7 @@ const test = (settings, { absoluteFilePath }) => {
     (and other descendants of the parent when allowUncles option is enabled) */
       {
         filename: absoluteFilePath("components/molecules/molecule-b/MoleculeB.js"),
-        code:
-          "import MoleculeD from 'components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d'",
+        code: "import MoleculeD from 'components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d'",
         options,
         errors: [
           {
@@ -88,8 +87,7 @@ const test = (settings, { absoluteFilePath }) => {
       },
       {
         filename: absoluteFilePath("modules/domain-a/module-a/ModuleA.js"),
-        code:
-          "import ComponentC from 'components/molecules/molecule-a/components/molecules/molecule-c'",
+        code: "import ComponentC from 'components/molecules/molecule-a/components/molecules/molecule-c'",
         options,
         errors: [
           {
@@ -113,8 +111,7 @@ const test = (settings, { absoluteFilePath }) => {
       // molecule d is private of molecule c, so molecule A can't use it (even when it is its "grandchild")
       {
         filename: absoluteFilePath("components/molecules/molecule-a/MoleculeA.js"),
-        code:
-          'import moleculeD from "./components/molecules/molecule-c/components/molecules/molecule-d"',
+        code: 'import moleculeD from "./components/molecules/molecule-c/components/molecules/molecule-d"',
         options,
         errors: [
           {

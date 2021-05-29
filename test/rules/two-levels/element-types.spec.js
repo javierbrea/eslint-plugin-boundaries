@@ -514,15 +514,13 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
       // molecule components can import private molecules
       {
         filename: absoluteFilePath("components/molecules/molecule-a/index.js"),
-        code:
-          "import MoleculeA from 'components/molecules/molecule-a/components/molecules/molecule-c'",
+        code: "import MoleculeA from 'components/molecules/molecule-a/components/molecules/molecule-c'",
         options,
       },
       // layout components can import private molecules
       {
         filename: absoluteFilePath("components/layouts/layout-a/LayoutA.js"),
-        code:
-          "import MoleculeA from 'components/molecules/molecule-a/components/molecules/molecule-c'",
+        code: "import MoleculeA from 'components/molecules/molecule-a/components/molecules/molecule-c'",
         options,
       },
       // domain-a private modules can import layout components
@@ -576,8 +574,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
       // private helper-c can import private module d
       {
         filename: absoluteFilePath("helpers/helper-a/helpers/helper-c/index.js"),
-        code:
-          "import ModuleD from 'modules/domain-a/module-a/submodules/module-c/submodules/module-d'",
+        code: "import ModuleD from 'modules/domain-a/module-a/submodules/module-c/submodules/module-d'",
         options,
       },
     ],
@@ -609,8 +606,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
       // atom components can't import private molecule components
       {
         filename: absoluteFilePath("components/atoms/atom-a/index.js"),
-        code:
-          "import MoleculeA from 'components/molecules/molecule-a/components/molecules/molecule-c'",
+        code: "import MoleculeA from 'components/molecules/molecule-a/components/molecules/molecule-c'",
         options,
         errors: [
           {
@@ -622,8 +618,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
       // atom components can't import private molecule components
       {
         filename: absoluteFilePath("components/atoms/atom-a/index.js"),
-        code:
-          "import MoleculeA from 'components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d'",
+        code: "import MoleculeA from 'components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d'",
         options,
         errors: [
           {
@@ -675,8 +670,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
       // page modules can't import private molecule components
       {
         filename: absoluteFilePath("modules/pages/page-a/index.js"),
-        code:
-          "import Component from 'components/molecules/molecule-a/components/molecules/molecule-c'",
+        code: "import Component from 'components/molecules/molecule-a/components/molecules/molecule-c'",
         options,
         errors: [
           {
@@ -700,8 +694,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
       // domain a private modules can't import private molecule components
       {
         filename: absoluteFilePath("modules/domain-a/module-a/submodules/module-c/index.js"),
-        code:
-          "import Component from 'components/molecules/molecule-a/components/molecules/molecule-c'",
+        code: "import Component from 'components/molecules/molecule-a/components/molecules/molecule-c'",
         options,
         errors: [
           {
