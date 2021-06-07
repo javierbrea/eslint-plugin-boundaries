@@ -44,7 +44,7 @@
     "eslint-plugin-prettier": "3.4.0",
     "husky": "6.0.0",
     "is-ci": "3.0.0",
-    "jest": "27.0.3",
+    "jest": "27.0.4",
     "lint-staged": "11.0.0",
     "prettier": "2.3.0"
   },
