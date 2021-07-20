@@ -4,36 +4,63 @@ const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/hel
 const rule = require(`../../../src/rules/${RULE}`);
 
 const settings = SETTINGS.docsExamples;
-const { absoluteFilePath, codeFilePath } = pathResolvers("docs-examples");
+const { absoluteFilePath } = pathResolvers("docs-examples");
 
 const ERROR_MESSAGE = "Importing ignored files is not allowed";
 
-const customSettings = {
-  ...settings,
-  "boundaries/ignore": [codeFilePath("foo.js")],
+const test = (customSettings) => {
+  const ruleTester = createRuleTester(customSettings);
+
+  ruleTester.run(RULE, rule, {
+    valid: [
+      // `index.js` file is not recognized as any element, so it can import `foo.js`
+      {
+        filename: absoluteFilePath("index.js"),
+        code: "import foo from './foo'",
+      },
+      // `foo2.js` file is not ignored, so it can be imported by helpers
+      {
+        filename: absoluteFilePath("helpers/data/sort.js"),
+        code: "import foo2 from '../../foo2'",
+        errors: [
+          {
+            message: ERROR_MESSAGE,
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+    ],
+    invalid: [
+      // `foo.js` file is ignored, so it can't be imported by helpers
+      {
+        filename: absoluteFilePath("helpers/data/sort.js"),
+        code: "import foo from '../../foo'",
+        errors: [
+          {
+            message: ERROR_MESSAGE,
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+    ],
+  });
 };
 
-const ruleTester = createRuleTester(customSettings);
+// ignore foo
+test({
+  ...settings,
+  "boundaries/ignore": ["**/foo.js"],
+});
 
-ruleTester.run(RULE, rule, {
-  valid: [
-    // `index.js` file is not recognized as any element, so it can import `foo.js`
-    {
-      filename: absoluteFilePath("index.js"),
-      code: "import foo from './foo'",
-    },
-  ],
-  invalid: [
-    // `foo.js` file is ignored, so it can't be imported by helpers
-    {
-      filename: absoluteFilePath("helpers/data/sort.js"),
-      code: "import foo from '../../foo'",
-      errors: [
-        {
-          message: ERROR_MESSAGE,
-          type: "ImportDeclaration",
-        },
-      ],
-    },
-  ],
+// include other file
+test({
+  ...settings,
+  "boundaries/include": ["**/foo2.js", "**/sort.js"],
+});
+
+// include all other files except "foo"
+test({
+  ...settings,
+  "boundaries/include": ["**/foo2.js", "**/sort.js", "**/foo.js"],
+  "boundaries/ignore": ["**/foo.js"],
 });

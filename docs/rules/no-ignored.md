@@ -4,7 +4,7 @@
 
 ## Rule details
 
-It checks `import` statements to local files. If the imported file is marked as ignored in the plugin settings, the `import` will be notified as an error.
+It checks `import` statements to local files. If the imported file is marked as ignored in the plugin settings, the `import` will be notified as an error in files recognized as "elements".
 
 ### Options
 
@@ -44,6 +44,7 @@ src/
 ```jsonc
 {
   "settings": {
+    "boundaries/include": ["src/**/*.js"],
     "boundaries/ignore": ["src/foo.js"],
     "boundaries/elements": [
       {
@@ -59,7 +60,7 @@ src/
 
 ### Examples of **incorrect** code for this rule:
 
-_`index.js` file is ignored, so it can't be imported by helpers_
+_`foo.js` file is ignored, so it can't be imported by helpers_
 
 ```js
 // src/helpers/data/sort.js
@@ -68,7 +69,7 @@ import foo from "../../foo"
 
 ### Examples of **correct** code for this rule:
 
-_`index.js` file is not recognized as any element, so it can import `foo.js`_
+_`index.js` file is not recognized as any known element type, so it can import `foo.js`_
 
 ```js
 // src/index.js
@@ -78,4 +79,3 @@ import foo from "./foo"
 ## Further reading
 
 Read [how to configure the `boundaries/elements` setting](../../README.md#global-settings) to assign an element type to each project's file.
-

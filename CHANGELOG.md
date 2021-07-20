@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [2.3.0] - 2021-07-20
+
+### Added
+- feat(#131): Add `boundaries/include` option allowing to ignore all by default except files matching the pattern.
+
+### Changed
+- feat(#132): Detect paths from any `node_modules` folder as external
+- chore(deps): Update devDependencies
+
 ## [2.2.0] - 2021-05-29
 
 ### Added

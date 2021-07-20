@@ -200,6 +200,17 @@ Define patterns to recognize each file in the project as one of this element typ
 
 > Tip: You can enable the [debug mode](debug-mode) when configuring the plugin, and you will get information about the type assigned to each file in the project.
 
+#### __`boundaries/include`__
+
+Files or dependencies not matching these [`micromatch` patterns](https://github.com/micromatch/micromatch) will be ignored by the plugin. If this option is not provided, all files will be included.
+
+```json
+{
+  "settings": {
+    "boundaries/include": ["src/**/*.js"]
+  }
+}
+```
 
 #### __`boundaries/ignore`__
 
@@ -212,6 +223,8 @@ Files or dependencies matching these [`micromatch` patterns](https://github.com/
   }
 }
 ```
+
+> Note: The `boundaries/include` option has preference over `boundaries/ignore`. If you define `boundaries/include`, use `boundaries/ignore` to ignore subsets of included files.
 
 ### Predefined configurations
 
