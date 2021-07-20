@@ -2,7 +2,7 @@ const isCoreModule = require("is-core-module");
 const micromatch = require("micromatch");
 const resolve = require("eslint-module-utils/resolve").default;
 
-const { IGNORE, VALID_MODES } = require("../constants/settings");
+const { IGNORE, INCLUDE, VALID_MODES } = require("../constants/settings");
 const { getElements } = require("../helpers/settings");
 const { debugFileInfo } = require("../helpers/debug");
 
@@ -18,8 +18,21 @@ function baseModule(name, path) {
   return pkg;
 }
 
+function matchesIgnoreSetting(path, settings) {
+  return micromatch.isMatch(path, settings[IGNORE] || []);
+}
+
 function isIgnored(path, settings) {
-  return !path || micromatch.isMatch(path, settings[IGNORE] || []);
+  if (!path) {
+    return true;
+  }
+  if (settings[INCLUDE]) {
+    if (micromatch.isMatch(path, settings[INCLUDE])) {
+      return matchesIgnoreSetting(path, settings);
+    }
+    return true;
+  }
+  return matchesIgnoreSetting(path, settings);
 }
 
 function isBuiltIn(name, path) {

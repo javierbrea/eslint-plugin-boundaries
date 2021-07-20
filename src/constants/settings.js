@@ -14,6 +14,7 @@ module.exports = {
   // settings
   ELEMENTS: `${PLUGIN_NAME}/elements`,
   IGNORE: `${PLUGIN_NAME}/ignore`,
+  INCLUDE: `${PLUGIN_NAME}/include`,
 
   // rules
   RULE_ELEMENT_TYPES: `${PLUGIN_NAME}/${ELEMENT_TYPES}`,
