@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [unreleased]
 ### Added
 ### Changed
+- feat(#132): Detect paths from any node_modules folder as external
 ### Fixed
 ### Removed
 ### BREAKING CHANGES

@@ -34,9 +34,10 @@ function isScoped(name) {
 }
 
 const externalModuleRegExp = /^\w/;
+
 function isExternal(name, path) {
   return (
-    (!path || (!!path && path.indexOf("node_modules") === 0)) &&
+    (!path || (!!path && path.includes("node_modules"))) &&
     (externalModuleRegExp.test(name) || isScoped(name))
   );
 }
