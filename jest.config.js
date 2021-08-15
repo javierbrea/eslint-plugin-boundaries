@@ -22,6 +22,15 @@ module.exports = {
       lines: 100,
       statements: 100,
     },
+    // Ignore coverage of debugger
+    "./src/core/cache.js": {
+      branches: 83,
+    },
+    // Decrease coverage due to cache branches
+    "./src/core/elementsInfo.js": {
+      branches: 96,
+      statements: 97,
+    },
   },
 
   // The test environment that will be used for testing
