@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [2.4.0] - 2021-08-15
+
+### Added
+- feat: Improve performance adding internal cache
+
+### Changed
+- chore(deps): Update devDependencies
+
 ## [2.3.0] - 2021-07-20
 
 ### Added

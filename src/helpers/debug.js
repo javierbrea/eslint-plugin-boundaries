@@ -13,6 +13,10 @@ function warn(message) {
   trace(message, "yellow");
 }
 
+function debug(message) {
+  trace(message, "grey");
+}
+
 function success(message) {
   trace(message, "green");
 }
@@ -38,6 +42,8 @@ function debugFileInfo(fileInfo) {
 }
 
 module.exports = {
+  debug,
+  success,
   debugFileInfo,
   warnOnce,
 };
