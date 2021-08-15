@@ -1,0 +1,63 @@
+const { debug } = require("../helpers/debug");
+
+class Cache {
+  constructor(name, settings) {
+    this._cache = {};
+    this._name = name;
+    this._settings = settings;
+  }
+
+  save(key, value) {
+    this._cache[key] = value;
+  }
+
+  load(key) {
+    if (this._cache[key]) {
+      if (process.env.ESLINT_PLUGIN_BOUNDARIES_DEBUG) {
+        debug(`Returning "${key}" ${this._name} info from cache`);
+      }
+      return this._cache[key];
+    }
+
+    return null;
+  }
+}
+
+class CachesManager {
+  constructor(name) {
+    this._name = name;
+    this._caches = [];
+  }
+
+  findCacheForSettings(settings) {
+    let cache = this._caches.find((cacheCandidate) => {
+      return cacheCandidate._settings === settings;
+    });
+    if (!cache) {
+      debug(`${this._name} cache not found, creating new`);
+      cache = new Cache(this._name, settings);
+      this._caches.push(cache);
+    }
+    return cache;
+  }
+
+  save(key, value, settings) {
+    const cache = this.findCacheForSettings(settings);
+    cache.save(key, value);
+  }
+
+  load(key, settings) {
+    const cache = this.findCacheForSettings(settings);
+    return cache.load(key);
+  }
+}
+
+const filesCache = new CachesManager("file");
+const importsCache = new CachesManager("import");
+const elementsCache = new CachesManager("element");
+
+module.exports = {
+  filesCache,
+  importsCache,
+  elementsCache,
+};

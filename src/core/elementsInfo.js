@@ -6,6 +6,8 @@ const { IGNORE, INCLUDE, VALID_MODES } = require("../constants/settings");
 const { getElements } = require("../helpers/settings");
 const { debugFileInfo } = require("../helpers/debug");
 
+const { filesCache, importsCache, elementsCache } = require("./cache");
+
 function baseModule(name, path) {
   if (path) {
     return null;
@@ -194,35 +196,69 @@ function projectPath(absolutePath) {
 
 function importInfo(source, context) {
   const path = projectPath(resolve(source, context));
-  const isBuiltInModule = isBuiltIn(source, path);
-  const isExternalModule = isExternal(source, path);
-  const pathToUse = isExternalModule ? null : path;
-  const result = {
-    source,
-    path: pathToUse,
-    isIgnored: !isExternalModule && isIgnored(pathToUse, context.settings),
-    isLocal: !isExternalModule && !isBuiltInModule,
-    isBuiltIn: isBuiltInModule,
-    isExternal: isExternalModule,
-    baseModule: baseModule(source, pathToUse),
-    ...elementTypeAndParents(pathToUse, context.settings),
-  };
+  const resultCache = importsCache.load(path, context.settings);
+  let elementCache;
+  let result;
+  let elementResult;
 
-  if (result.isLocal) {
-    debugFileInfo(result);
+  if (resultCache) {
+    result = resultCache;
+  } else {
+    elementCache = elementsCache.load(path, context.settings);
+    const isBuiltInModule = isBuiltIn(source, path);
+    const isExternalModule = isExternal(source, path);
+    const pathToUse = isExternalModule ? null : path;
+    if (elementCache) {
+      elementResult = elementCache;
+    } else {
+      elementResult = elementTypeAndParents(pathToUse, context.settings);
+      elementsCache.save(pathToUse, elementResult, context.settings);
+    }
+
+    result = {
+      source,
+      path: pathToUse,
+      isIgnored: !isExternalModule && isIgnored(pathToUse, context.settings),
+      isLocal: !isExternalModule && !isBuiltInModule,
+      isBuiltIn: isBuiltInModule,
+      isExternal: isExternalModule,
+      baseModule: baseModule(source, pathToUse),
+      ...elementResult,
+    };
+
+    importsCache.save(path, result, context.settings);
+
+    if (result.isLocal) {
+      debugFileInfo(result);
+    }
   }
-
   return result;
 }
 
 function fileInfo(context) {
   const path = projectPath(context.getFilename());
-  const result = {
-    path,
-    isIgnored: isIgnored(path, context.settings),
-    ...elementTypeAndParents(path, context.settings),
-  };
-  debugFileInfo(result);
+  const resultCache = filesCache.load(path, context.settings);
+  let elementCache;
+  let result;
+  let elementResult;
+  if (resultCache) {
+    result = resultCache;
+  } else {
+    elementCache = elementsCache.load(path, context.settings);
+    if (elementCache) {
+      elementResult = elementCache;
+    } else {
+      elementResult = elementTypeAndParents(path, context.settings);
+      elementsCache.save(path, elementResult, context.settings);
+    }
+    result = {
+      path,
+      isIgnored: isIgnored(path, context.settings),
+      ...elementResult,
+    };
+    filesCache.save(path, result, context.settings);
+    debugFileInfo(result);
+  }
   return result;
 }
 
