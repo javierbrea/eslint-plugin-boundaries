@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [2.4.1] - 2021-08-16
+
+### Fixed
+- fix: Remove trace when ESLINT_PLUGIN_BOUNDARIES_DEBUG is not set
+
 ## [2.4.0] - 2021-08-15
 
 ### Added

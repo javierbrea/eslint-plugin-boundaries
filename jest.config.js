@@ -23,8 +23,8 @@ module.exports = {
       statements: 100,
     },
     // Ignore coverage of debugger
-    "./src/core/cache.js": {
-      branches: 83,
+    "./src/helpers/debug.js": {
+      branches: 91,
     },
     // Decrease coverage due to cache branches
     "./src/core/elementsInfo.js": {

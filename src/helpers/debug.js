@@ -14,7 +14,9 @@ function warn(message) {
 }
 
 function debug(message) {
-  trace(message, "grey");
+  if (process.env.ESLINT_PLUGIN_BOUNDARIES_DEBUG) {
+    trace(message, "grey");
+  }
 }
 
 function success(message) {

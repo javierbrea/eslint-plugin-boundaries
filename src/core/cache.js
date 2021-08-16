@@ -13,9 +13,7 @@ class Cache {
 
   load(key) {
     if (this._cache[key]) {
-      if (process.env.ESLINT_PLUGIN_BOUNDARIES_DEBUG) {
-        debug(`Returning "${key}" ${this._name} info from cache`);
-      }
+      debug(`Returning "${key}" ${this._name} info from cache`);
       return this._cache[key];
     }
 
