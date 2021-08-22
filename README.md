@@ -31,6 +31,7 @@ __This plugin ensures that your architecture boundaries are respected by the ele
     * [Elements matchers](#elements-matchers)
     * [Advanced example](#advanced-example)
 - [Resolvers](#resolvers)
+- [Usage with TypeScript](#usage-with-typescript)
 - [Debug mode](#debug-mode)
 - [Acknowledgements](#acknowledgements)
 - [Contributing](#contributing)
@@ -386,6 +387,41 @@ This plugin uses `eslint-module-utils/resolve` module under the hood, which is a
   }
 }
 ```
+
+## Usage with TypeScript
+
+This plugin can be used also in [TypeScript](https://www.typescriptlang.org/) projects using `@typescript-eslint/eslint-plugin`. Follow next steps to configure it:
+
+Install dependencies:
+
+```bash
+npm i --save-dev @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-import-resolver-typescript
+```
+
+Configure [`@typescript-eslint/parser`](https://github.com/typescript-eslint/typescript-eslint) as parser, load the [`@typescript-eslint`](https://github.com/typescript-eslint/typescript-eslint) plugin, and setup the [`eslint-import-resolver-typescript`](https://github.com/alexgorbatchev/eslint-import-resolver-typescript) resolver in the `.eslintrc.js` config file:
+
+```js
+module.exports = {
+  parser: "@typescript-eslint/parser",
+  plugins: ["@typescript-eslint", "boundaries"],
+  extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:boundaries/recommended",
+  ],
+  settings: {
+    "import/resolver": {
+      typescript: {
+        alwaysTryTypes: true,
+      },
+    },
+  },
+};
+```
+
+> Note that `eslint-import-resolver-typescript` detects even custom paths defined in the `tsconfig.json` file, so its usage is also compatible with this plugin.
+
+In case you face any issue configuring it, you can also [use this repository as a guide](https://github.com/javierbrea/epb-ts-example). It contains a fully working and tested example.
 
 ## Debug mode
 

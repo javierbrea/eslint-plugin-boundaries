@@ -6,7 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 ### Added
+- docs(#107): Add usage with TypeScript docs
 ### Changed
+- chore(deps): Update devDependencies
 ### Fixed
 ### Removed
 ### BREAKING CHANGES
