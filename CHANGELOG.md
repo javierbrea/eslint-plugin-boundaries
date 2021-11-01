@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
-## [unreleased] - 2021-11-01
+## [2.5.0] - 2021-11-01
 ### Changed
 - chore(deps): Update devDependencies
 - chore(deps): Support any NodeJs version greater than 12.x. Run tests also with NodeJS 17. Use NodeJS 16 in publish pipelines
