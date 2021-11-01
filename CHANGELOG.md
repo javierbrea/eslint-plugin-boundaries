@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [unreleased] - 2021-11-01
+### Changed
+- chore(deps): Update devDependencies
+- chore(deps): Support any NodeJs version greater than 10.x.
+
 ## [2.4.2] - 2021-08-22
 
 ### Added
