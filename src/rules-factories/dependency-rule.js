@@ -5,9 +5,9 @@ const { validateSettings, validateRules } = require("../helpers/validations");
 
 const { meta } = require("../helpers/rules");
 
-module.exports = function (ruleDescription, rule, ruleOptions = {}) {
+module.exports = function (ruleMeta, rule, ruleOptions = {}) {
   return {
-    ...meta(ruleDescription),
+    ...meta(ruleMeta),
     create: function (context) {
       const options = context.options[0];
       validateSettings(context.settings);

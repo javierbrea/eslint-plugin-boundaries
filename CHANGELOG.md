@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [2.5.1] - 2021-11-06
+
+### Fixed
+- docs(#160): Fix links to debug mode section
+- fix(#133): Remove plugin namespace from rules documentation links
+- fix(#133): no-private rule had undefined name
+
+### Removed
+- docs: Remove npm dependencies badge because david-dm site is down
+
 ## [2.5.0] - 2021-11-01
 ### Changed
 - chore(deps): Update devDependencies

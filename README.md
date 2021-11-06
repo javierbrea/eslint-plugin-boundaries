@@ -1,6 +1,6 @@
 [![Build status][build-image]][build-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Quality Gate][quality-gate-image]][quality-gate-url]
 
-[![NPM dependencies][npm-dependencies-image]][npm-dependencies-url] [![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com) [![Last commit][last-commit-image]][last-commit-url] [![Last release][release-image]][release-url]
+[![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com) [![Last commit][last-commit-image]][last-commit-url] [![Last release][release-image]][release-url]
 
 [![NPM downloads][npm-downloads-image]][npm-downloads-url] [![License][license-image]][license-url]
 
@@ -199,7 +199,7 @@ Define patterns to recognize each file in the project as one of this element typ
 }
 ```
 
-> Tip: You can enable the [debug mode](debug-mode) when configuring the plugin, and you will get information about the type assigned to each file in the project.
+> Tip: You can enable the [debug mode](#debug-mode) when configuring the plugin, and you will get information about the type assigned to each file in the project.
 
 #### __`boundaries/include`__
 
@@ -456,8 +456,6 @@ MIT, see [LICENSE](./LICENSE) for details.
 [license-url]: https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/LICENSE
 [npm-downloads-image]: https://img.shields.io/npm/dm/eslint-plugin-boundaries.svg
 [npm-downloads-url]: https://www.npmjs.com/package/eslint-plugin-boundaries
-[npm-dependencies-image]: https://img.shields.io/david/javierbrea/eslint-plugin-boundaries.svg
-[npm-dependencies-url]: https://david-dm.org/javierbrea/eslint-plugin-boundaries
 [quality-gate-image]: https://sonarcloud.io/api/project_badges/measure?project=javierbrea_eslint-plugin-boundaries&metric=alert_status
 [quality-gate-url]: https://sonarcloud.io/dashboard?id=javierbrea_eslint-plugin-boundaries
 [release-image]: https://img.shields.io/github/release-date/javierbrea/eslint-plugin-boundaries.svg

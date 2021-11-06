@@ -1,4 +1,4 @@
-const { RULE_NO_INTERNAL } = require("../constants/settings");
+const { RULE_NO_PRIVATE } = require("../constants/settings");
 
 const dependencyRule = require("../rules-factories/dependency-rule");
 
@@ -6,7 +6,7 @@ const { dependencyLocation } = require("../helpers/rules");
 
 module.exports = dependencyRule(
   {
-    ruleName: RULE_NO_INTERNAL,
+    ruleName: RULE_NO_PRIVATE,
     description: `Prevent importing private elements of another element`,
     schema: [
       {
