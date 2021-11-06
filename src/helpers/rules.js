@@ -2,8 +2,12 @@ const micromatch = require("micromatch");
 
 const REPO_URL = "https://github.com/javierbrea/eslint-plugin-boundaries";
 
+function removePluginNamespace(ruleName) {
+  return ruleName.replace("boundaries/", "");
+}
+
 function docsUrl(ruleName) {
-  return `${REPO_URL}/blob/master/docs/rules/${ruleName}.md`;
+  return `${REPO_URL}/blob/master/docs/rules/${removePluginNamespace(ruleName)}.md`;
 }
 
 function meta({ description, schema = [], ruleName }) {
