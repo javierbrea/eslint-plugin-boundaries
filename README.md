@@ -199,7 +199,7 @@ Define patterns to recognize each file in the project as one of this element typ
 }
 ```
 
-> Tip: You can enable the [debug mode](debug-mode) when configuring the plugin, and you will get information about the type assigned to each file in the project.
+> Tip: You can enable the [debug mode](#debug-mode) when configuring the plugin, and you will get information about the type assigned to each file in the project.
 
 #### __`boundaries/include`__
 
