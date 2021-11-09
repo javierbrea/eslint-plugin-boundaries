@@ -29,7 +29,7 @@ function errorMessage(ruleData, file, dependency) {
   }
   return `Importing ${ruleElementMessage(
     ruleReport.disallow,
-    dependency.capturedValues
+    file.capturedValues
   )} is not allowed in ${ruleElementMessage(
     ruleReport.element,
     file.capturedValues
