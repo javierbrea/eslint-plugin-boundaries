@@ -1,10 +1,8 @@
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { ELEMENT_TYPES_DEFAULT_MESSAGE } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
-
-const errorMessage = (fileType, dependencyType) =>
-  `Usage of '${dependencyType}' is not allowed in '${fileType}'`;
 
 const { absoluteFilePath } = pathResolvers("docs-examples");
 
@@ -103,7 +101,7 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("helpers", "components"),
+          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
           type: "ImportDeclaration",
         },
       ],
@@ -115,7 +113,7 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("helpers", "modules"),
+          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
           type: "ImportDeclaration",
         },
       ],
@@ -127,7 +125,7 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("components", "components"),
+          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
           type: "ImportDeclaration",
         },
       ],
@@ -139,7 +137,7 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("components", "helpers"),
+          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
           type: "ImportDeclaration",
         },
       ],
@@ -151,7 +149,7 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("components", "modules"),
+          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
           type: "ImportDeclaration",
         },
       ],

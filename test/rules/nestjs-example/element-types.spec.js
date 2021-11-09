@@ -1,12 +1,10 @@
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 const { createRuleTester, pathResolvers } = require("../../support/helpers");
+const { elementTypesErrorMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
-const errorMessage = (fileType, dependencyType) =>
-  `Usage of '${dependencyType}' is not allowed in '${fileType}'`;
-
-const test = (settings, options, { absoluteFilePath }) => {
+const test = (settings, options, { absoluteFilePath }, errorMessages) => {
   const ruleTester = createRuleTester(settings);
 
   ruleTester.run(RULE, rule, {
@@ -110,7 +108,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("app", "interface"),
+            message: elementTypesErrorMessage(errorMessages, 0),
             type: "ImportDeclaration",
           },
         ],
@@ -122,7 +120,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("app", "controller"),
+            message: elementTypesErrorMessage(errorMessages, 1),
             type: "ImportDeclaration",
           },
         ],
@@ -134,7 +132,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("app", "service"),
+            message: elementTypesErrorMessage(errorMessages, 2),
             type: "ImportDeclaration",
           },
         ],
@@ -146,7 +144,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("module", "controller"),
+            message: elementTypesErrorMessage(errorMessages, 3),
             type: "ImportDeclaration",
           },
         ],
@@ -158,7 +156,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("module", "service"),
+            message: elementTypesErrorMessage(errorMessages, 4),
             type: "ImportDeclaration",
           },
         ],
@@ -170,7 +168,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("module", "interceptor"),
+            message: elementTypesErrorMessage(errorMessages, 5),
             type: "ImportDeclaration",
           },
         ],
@@ -182,7 +180,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("module", "interceptor"),
+            message: elementTypesErrorMessage(errorMessages, 6),
             type: "ImportDeclaration",
           },
         ],
@@ -194,7 +192,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("controller", "service"),
+            message: elementTypesErrorMessage(errorMessages, 7),
             type: "ImportDeclaration",
           },
         ],
@@ -206,7 +204,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("controller", "dto"),
+            message: elementTypesErrorMessage(errorMessages, 8),
             type: "ImportDeclaration",
           },
         ],
@@ -218,7 +216,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("controller", "interface"),
+            message: elementTypesErrorMessage(errorMessages, 9),
             type: "ImportDeclaration",
           },
         ],
@@ -230,7 +228,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("controller", "model"),
+            message: elementTypesErrorMessage(errorMessages, 10),
             type: "ImportDeclaration",
           },
         ],
@@ -242,7 +240,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("controller", "model"),
+            message: elementTypesErrorMessage(errorMessages, 11),
             type: "ImportDeclaration",
           },
         ],
@@ -254,7 +252,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("controller", "model"),
+            message: elementTypesErrorMessage(errorMessages, 12),
             type: "ImportDeclaration",
           },
         ],
@@ -362,7 +360,8 @@ test(
     ],
   },
   ruleOptions,
-  pathResolvers("nestjs-example")
+  pathResolvers("nestjs-example"),
+  {}
 );
 
 test(
@@ -435,7 +434,8 @@ test(
     ],
   },
   ruleOptions,
-  pathResolvers("nestjs-example")
+  pathResolvers("nestjs-example"),
+  {}
 );
 
 test(
@@ -508,5 +508,6 @@ test(
     ],
   },
   ruleOptions,
-  pathResolvers("nestjs-example")
+  pathResolvers("nestjs-example"),
+  {}
 );

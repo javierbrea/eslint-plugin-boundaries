@@ -5,6 +5,7 @@ const resolve = require("eslint-module-utils/resolve").default;
 const { IGNORE, INCLUDE, VALID_MODES } = require("../constants/settings");
 const { getElements } = require("../helpers/settings");
 const { debugFileInfo } = require("../helpers/debug");
+const { isArray } = require("../helpers/utils");
 
 const { filesCache, importsCache, elementsCache } = require("./cache");
 
@@ -112,9 +113,7 @@ function elementTypeAndParents(path, settings) {
         let elementFound = false;
         getElements(settings).forEach((element) => {
           const typeOfMatch = VALID_MODES.includes(element.mode) ? element.mode : VALID_MODES[0];
-          const elementPatterns = Array.isArray(element.pattern)
-            ? element.pattern
-            : [element.pattern];
+          const elementPatterns = isArray(element.pattern) ? element.pattern : [element.pattern];
           elementPatterns.forEach((elementPattern) => {
             if (!elementFound) {
               const useFullPathMatch = typeOfMatch === VALID_MODES[2] && !elementResult.type;

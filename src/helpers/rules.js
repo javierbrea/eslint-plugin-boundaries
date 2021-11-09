@@ -1,5 +1,7 @@
 const micromatch = require("micromatch");
 
+const { isArray } = require("./utils");
+
 const REPO_URL = "https://github.com/javierbrea/eslint-plugin-boundaries";
 
 function removePluginNamespace(ruleName) {
@@ -42,9 +44,19 @@ function dependencyLocation(node, context) {
   };
 }
 
+function replaceObjectValueInMicromatchPattern(micromatchPattern, key, value) {
+  return micromatchPattern.replace(`\${${key}}`, value);
+}
+
 function micromatchPatternReplacingObjectValues(pattern, object) {
   return Object.keys(object).reduce((result, objectKey) => {
-    return result.replace(`\${${objectKey}}`, object[objectKey]);
+    // If micromatch pattern is an array, replace key by value in all patterns
+    if (isArray(result)) {
+      return result.map((resultEntry) => {
+        return replaceObjectValueInMicromatchPattern(resultEntry, objectKey, object[objectKey]);
+      });
+    }
+    return replaceObjectValueInMicromatchPattern(result, objectKey, object[objectKey]);
   }, pattern);
 }
 
@@ -69,10 +81,10 @@ function rulesMainKey(key) {
 
 function ruleMatch(ruleMatchers, elementInfo, isMatch, elementToCompare = {}) {
   let match = { result: false, report: null };
-  const matchers = !Array.isArray(ruleMatchers) ? [ruleMatchers] : ruleMatchers;
+  const matchers = !isArray(ruleMatchers) ? [ruleMatchers] : ruleMatchers;
   matchers.forEach((matcher) => {
     if (!match.result) {
-      if (Array.isArray(matcher)) {
+      if (isArray(matcher)) {
         const [value, captures] = matcher;
         match = isMatch(elementInfo, value, captures, elementToCompare.capturedValues);
       } else {
@@ -110,9 +122,16 @@ function getElementRules(elementInfo, options, mainKey) {
     return [];
   }
   const key = rulesMainKey(mainKey);
-  return options.rules.filter((rule) => {
-    return ruleMatch(rule[key], elementInfo, isMatchElementType).result;
-  });
+  return options.rules
+    .map((rule, index) => {
+      return {
+        ...rule,
+        index,
+      };
+    })
+    .filter((rule) => {
+      return ruleMatch(rule[key], elementInfo, isMatchElementType).result;
+    });
 }
 
 function elementRulesAllowDependency({
@@ -122,12 +141,20 @@ function elementRulesAllowDependency({
   isMatch,
   rulesMainKey: mainKey,
 }) {
-  const [result, report] = getElementRules(element, options, mainKey).reduce(
+  const [result, report, ruleReport] = getElementRules(element, options, mainKey).reduce(
     (allowed, rule) => {
       if (rule.disallow) {
         const match = ruleMatch(rule.disallow, dependency, isMatch, element);
         if (match.result) {
-          return [false, match.report];
+          return [
+            false,
+            match.report,
+            {
+              element: rule[rulesMainKey(mainKey)],
+              disallow: rule.disallow,
+              index: rule.index,
+            },
+          ];
         }
       }
       if (rule.allow) {
@@ -138,11 +165,18 @@ function elementRulesAllowDependency({
       }
       return allowed;
     },
-    [options.default === "allow", null]
+    [
+      options.default === "allow",
+      null,
+      {
+        isDefault: true,
+      },
+    ]
   );
   return {
     result,
     report,
+    ruleReport,
   };
 }
 
@@ -155,4 +189,5 @@ module.exports = {
   elementRulesAllowDependency,
   getElementRules,
   rulesMainKey,
+  micromatchPatternReplacingObjectValues,
 };

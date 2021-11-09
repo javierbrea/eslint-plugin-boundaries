@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [unreleased]
+
+### Changed
+- feat(#87): Add context about the specific rule forbidding the import to the `element-types` error message
+- refactor: Add isArray and isString utils
+
+### Fixed
+- fix: Support array of micromatch patterns when replacing captured values
+
 ## [2.5.1] - 2021-11-06
 
 ### Fixed

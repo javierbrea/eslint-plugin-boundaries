@@ -1,12 +1,10 @@
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { elementTypesErrorMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
-const errorMessage = (fileType, dependencyType) =>
-  `Usage of '${dependencyType}' is not allowed in '${fileType}'`;
-
-const test = (settings, options, { absoluteFilePath }) => {
+const test = (settings, options, { absoluteFilePath }, errorMessages) => {
   const ruleTester = createRuleTester(settings);
 
   ruleTester.run(RULE, rule, {
@@ -172,7 +170,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("helpers", "components"),
+            message: elementTypesErrorMessage(errorMessages, 0),
             type: "ImportDeclaration",
           },
         ],
@@ -184,7 +182,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("helpers", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 1),
             type: "ImportDeclaration",
           },
         ],
@@ -196,7 +194,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(errorMessages, 2),
             type: "ImportDeclaration",
           },
         ],
@@ -208,7 +206,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(errorMessages, 3),
             type: "ImportDeclaration",
           },
         ],
@@ -220,7 +218,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(errorMessages, 4),
             type: "ImportDeclaration",
           },
         ],
@@ -232,7 +230,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(errorMessages, 5),
             type: "ImportDeclaration",
           },
         ],
@@ -244,7 +242,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 6),
             type: "ImportDeclaration",
           },
         ],
@@ -256,7 +254,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(errorMessages, 7),
             type: "ImportDeclaration",
           },
         ],
@@ -268,7 +266,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 8),
             type: "ImportDeclaration",
           },
         ],
@@ -280,7 +278,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(errorMessages, 9),
             type: "ImportDeclaration",
           },
         ],
@@ -292,7 +290,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(errorMessages, 10),
             type: "ImportDeclaration",
           },
         ],
@@ -304,7 +302,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 11),
             type: "ImportDeclaration",
           },
         ],
@@ -316,7 +314,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 12),
             type: "ImportDeclaration",
           },
         ],
@@ -328,7 +326,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 13),
             type: "ImportDeclaration",
           },
         ],
@@ -341,7 +339,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(errorMessages, 14),
             type: "ImportDeclaration",
           },
         ],
@@ -353,7 +351,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(errorMessages, 15),
             type: "ImportDeclaration",
           },
         ],
@@ -365,7 +363,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(errorMessages, 16),
             type: "ImportDeclaration",
           },
         ],
@@ -377,7 +375,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 17),
             type: "ImportDeclaration",
           },
         ],
@@ -389,7 +387,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 18),
             type: "ImportDeclaration",
           },
         ],
@@ -401,7 +399,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 19),
             type: "ImportDeclaration",
           },
         ],
@@ -413,7 +411,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(errorMessages, 20),
             type: "ImportDeclaration",
           },
         ],
@@ -425,7 +423,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(errorMessages, 21),
             type: "ImportDeclaration",
           },
         ],
@@ -437,7 +435,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 22),
             type: "ImportDeclaration",
           },
         ],
@@ -449,7 +447,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(errorMessages, 23),
             type: "ImportDeclaration",
           },
         ],
@@ -461,7 +459,7 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(errorMessages, 24),
             type: "ImportDeclaration",
           },
         ],
@@ -470,7 +468,7 @@ const test = (settings, options, { absoluteFilePath }) => {
   });
 };
 
-const testPrivate = (settings, options, { absoluteFilePath }) => {
+const testPrivate = (settings, options, { absoluteFilePath }, errorMessages) => {
   const ruleTester = createRuleTester(settings);
 
   ruleTester.run(RULE, rule, {
@@ -586,7 +584,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("helpers", "components"),
+            message: elementTypesErrorMessage(errorMessages, 0),
             type: "ImportDeclaration",
           },
         ],
@@ -598,7 +596,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("helpers", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 1),
             type: "ImportDeclaration",
           },
         ],
@@ -610,7 +608,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(errorMessages, 2),
             type: "ImportDeclaration",
           },
         ],
@@ -622,7 +620,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(errorMessages, 3),
             type: "ImportDeclaration",
           },
         ],
@@ -636,7 +634,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(errorMessages, 4),
             type: "ImportDeclaration",
           },
         ],
@@ -650,7 +648,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 5),
             type: "ImportDeclaration",
           },
         ],
@@ -662,7 +660,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 6),
             type: "ImportDeclaration",
           },
         ],
@@ -674,7 +672,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(errorMessages, 7),
             type: "ImportDeclaration",
           },
         ],
@@ -686,7 +684,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 8),
             type: "ImportDeclaration",
           },
         ],
@@ -698,7 +696,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(errorMessages, 9),
             type: "ImportDeclaration",
           },
         ],
@@ -710,7 +708,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 10),
             type: "ImportDeclaration",
           },
         ],
@@ -722,7 +720,7 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 11),
             type: "ImportDeclaration",
           },
         ],
@@ -784,7 +782,8 @@ test(
       ],
     },
   ],
-  pathResolvers("two-levels")
+  pathResolvers("two-levels"),
+  {}
 );
 
 testPrivate(
@@ -850,5 +849,72 @@ testPrivate(
       ],
     },
   ],
-  pathResolvers("two-levels-with-private")
+  pathResolvers("two-levels-with-private"),
+  {}
+);
+
+testPrivate(
+  SETTINGS.twoLevelsWithPrivate,
+  [
+    {
+      default: "allow",
+      rules: [
+        {
+          from: [["helpers", { elementName: "helper-c" }]],
+          disallow: [["components", { category: "atoms", elementName: "*-a" }]],
+        },
+        {
+          from: [["helpers", { elementName: "helper-c" }]],
+          disallow: [["modules", { domain: "domain-a", elementName: "*-a" }]],
+        },
+        {
+          from: [["components", { category: "atoms" }]],
+          disallow: [["components", { category: "molecules" }]],
+        },
+        {
+          from: [["components", { category: "molecules" }]],
+          disallow: [["components", { category: "layouts" }]],
+        },
+        {
+          from: [["components", { category: "*" }]],
+          disallow: ["modules"],
+        },
+        {
+          from: [["modules", { domain: "pages" }]],
+          disallow: [["modules", { domain: "domain-a" }]],
+        },
+        {
+          from: [["modules", { domain: "pages" }]],
+          disallow: [["components", { category: "molecules" }]],
+        },
+        {
+          from: [["modules", { domain: "domain-a" }]],
+          disallow: [["components", { category: "molecules" }]],
+        },
+        {
+          from: [["modules", { domain: "domain-a" }]],
+          disallow: [["modules", { domain: "pages" }]],
+        },
+        {
+          from: [["modules", { domain: "domain-a" }]],
+          disallow: [["modules", { domain: "domain-b" }]],
+        },
+      ],
+    },
+  ],
+  pathResolvers("two-levels-with-private"),
+  {
+    0: "Importing elements of type 'components' with category 'atoms' and elementName '*-a' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1",
+    1: "Importing elements of type 'modules' with domain 'domain-a' and elementName '*-a' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 2",
+    2: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'components' with category 'atoms'. Disallowed in rule 3",
+    3: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'components' with category 'atoms'. Disallowed in rule 3",
+    4: "Importing elements of type 'components' with category 'layouts' is not allowed in elements of type 'components' with category 'molecules'. Disallowed in rule 4",
+    5: "Importing elements of type 'modules' is not allowed in elements of type 'components' with category '*'. Disallowed in rule 5",
+    6: "Importing elements of type 'modules' is not allowed in elements of type 'components' with category '*'. Disallowed in rule 5",
+    7: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 7",
+    8: "Importing elements of type 'modules' with domain 'domain-a' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 6",
+    9: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 8",
+    10: "Importing elements of type 'modules' with domain 'pages' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 9",
+    11: "Importing elements of type 'modules' with domain 'domain-b' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 10",
+  }
 );

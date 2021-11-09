@@ -5,6 +5,7 @@ const { TYPES, ALIAS, ELEMENTS, VALID_MODES } = require("../constants/settings")
 const { getElementsTypeNames, isLegacyType } = require("./settings");
 const { rulesMainKey } = require("./rules");
 const { warnOnce } = require("./debug");
+const { isArray } = require("./utils");
 
 const invalidMatchers = [];
 
@@ -81,12 +82,12 @@ function rulesOptionsSchema(options = {}) {
 }
 
 function isValidElementTypesMatcher(matcher, settings) {
-  const mathcherToCheck = Array.isArray(matcher) ? matcher[0] : matcher;
+  const mathcherToCheck = isArray(matcher) ? matcher[0] : matcher;
   return !matcher || micromatch.some(getElementsTypeNames(settings), mathcherToCheck);
 }
 
 function validateElementTypesMatcher(elementsMatcher, settings) {
-  const [matcher] = Array.isArray(elementsMatcher) ? elementsMatcher : [elementsMatcher];
+  const [matcher] = isArray(elementsMatcher) ? elementsMatcher : [elementsMatcher];
   if (!invalidMatchers.includes(matcher) && !isValidElementTypesMatcher(matcher, settings)) {
     invalidMatchers.push(matcher);
     warnOnce(`Option '${matcher}' does not match any element type from '${ELEMENTS}' setting`);
@@ -94,7 +95,7 @@ function validateElementTypesMatcher(elementsMatcher, settings) {
 }
 
 function validateElements(elements) {
-  if (!elements || !Array.isArray(elements) || !elements.length) {
+  if (!elements || !isArray(elements) || !elements.length) {
     warnOnce(`Please provide element types using the '${ELEMENTS}' setting`);
     return;
   }
@@ -118,11 +119,11 @@ function validateElements(elements) {
         }
         if (
           !element.pattern ||
-          !(typeof element.pattern === "string" || Array.isArray(element.pattern))
+          !(typeof element.pattern === "string" || isArray(element.pattern))
         ) {
           warnOnce(`Please provide a valid pattern in '${ELEMENTS}' setting`);
         }
-        if (element.capture && !Array.isArray(element.capture)) {
+        if (element.capture && !isArray(element.capture)) {
           warnOnce(`Invalid capture property in '${ELEMENTS}' setting`);
         }
       });

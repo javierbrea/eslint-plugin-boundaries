@@ -1,14 +1,12 @@
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { elementTypesErrorMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
-const errorMessage = (fileType, dependencyType) =>
-  `Usage of '${dependencyType}' is not allowed in '${fileType}'`;
-
-const test = (settings, options) => {
+const test = (settings, options, errorMessages) => {
   const ruleTester = createRuleTester(settings);
 
   ruleTester.run(RULE, rule, {
@@ -180,7 +178,7 @@ const test = (settings, options) => {
         ],
         errors: [
           {
-            message: errorMessage("helpers", "helpers"),
+            message: elementTypesErrorMessage(errorMessages, 0),
             type: "ImportDeclaration",
           },
         ],
@@ -192,7 +190,7 @@ const test = (settings, options) => {
         options,
         errors: [
           {
-            message: errorMessage("helpers", "helpers"),
+            message: elementTypesErrorMessage(errorMessages, 1),
             type: "ImportDeclaration",
           },
         ],
@@ -204,7 +202,7 @@ const test = (settings, options) => {
         options,
         errors: [
           {
-            message: errorMessage("helpers", "components"),
+            message: elementTypesErrorMessage(errorMessages, 2),
             type: "ImportDeclaration",
           },
         ],
@@ -216,7 +214,7 @@ const test = (settings, options) => {
         options,
         errors: [
           {
-            message: errorMessage("helpers", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 3),
             type: "ImportDeclaration",
           },
         ],
@@ -228,7 +226,7 @@ const test = (settings, options) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "modules"),
+            message: elementTypesErrorMessage(errorMessages, 4),
             type: "ImportDeclaration",
           },
         ],
@@ -237,7 +235,7 @@ const test = (settings, options) => {
   });
 };
 
-const testCapture = (settings, options) => {
+const testCapture = (settings, options, errorMessages) => {
   const ruleTester = createRuleTester(settings);
 
   ruleTester.run(RULE, rule, {
@@ -281,7 +279,7 @@ const testCapture = (settings, options) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "helpers"),
+            message: elementTypesErrorMessage(errorMessages, 0),
             type: "ImportDeclaration",
           },
         ],
@@ -293,7 +291,7 @@ const testCapture = (settings, options) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "helpers"),
+            message: elementTypesErrorMessage(errorMessages, 1),
             type: "ImportDeclaration",
           },
         ],
@@ -305,7 +303,7 @@ const testCapture = (settings, options) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(errorMessages, 2),
             type: "ImportDeclaration",
           },
         ],
@@ -317,7 +315,7 @@ const testCapture = (settings, options) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "helpers"),
+            message: elementTypesErrorMessage(errorMessages, 3),
             type: "ImportDeclaration",
           },
         ],
@@ -328,21 +326,25 @@ const testCapture = (settings, options) => {
 
 // deprecated settings
 
-test(SETTINGS.deprecated, [
-  {
-    default: "disallow",
-    rules: [
-      {
-        from: "components",
-        allow: ["helpers", "components"],
-      },
-      {
-        from: "modules",
-        allow: ["helpers", "components", "modules"],
-      },
-    ],
-  },
-]);
+test(
+  SETTINGS.deprecated,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          from: "components",
+          allow: ["helpers", "components"],
+        },
+        {
+          from: "modules",
+          allow: ["helpers", "components", "modules"],
+        },
+      ],
+    },
+  ],
+  {}
+);
 
 // settings with no capture option
 test(
@@ -377,117 +379,202 @@ test(
         },
       ],
     },
-  ]
+  ],
+  {
+    1: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    2: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    3: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    4: "Importing elements of type 'modules' is not allowed in elements of type 'components'. Disallowed in rule 2",
+  }
 );
 
 // disallow-based options
 
-test(SETTINGS.oneLevel, [
-  {
-    default: "disallow",
-    rules: [
-      {
-        from: "components",
-        allow: ["helpers", "components"],
-      },
-      {
-        from: "modules",
-        allow: ["helpers", "components", "modules"],
-      },
-    ],
-  },
-]);
+test(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          from: "components",
+          allow: ["helpers", "components"],
+        },
+        {
+          from: "modules",
+          allow: ["helpers", "components", "modules"],
+        },
+      ],
+    },
+  ],
+  {}
+);
 
 // micromatch-based options
 
-test(SETTINGS.oneLevel, [
-  {
-    default: "disallow",
-    rules: [
-      {
-        from: "c*",
-        allow: ["h*", "c*"],
-      },
-      {
-        from: "m*",
-        allow: ["h*", "c*", "m*"],
-      },
-    ],
-  },
-]);
+test(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          from: "c*",
+          allow: ["h*", "c*"],
+        },
+        {
+          from: "m*",
+          allow: ["h*", "c*", "m*"],
+        },
+      ],
+    },
+  ],
+  {}
+);
 
 // allow-based options
-test(SETTINGS.oneLevel, [
+test(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "allow",
+      rules: [
+        {
+          from: "helpers",
+          disallow: ["modules", "components", "helpers"],
+        },
+        {
+          from: "components",
+          disallow: ["modules"],
+        },
+      ],
+    },
+  ],
   {
-    default: "allow",
-    rules: [
-      {
-        from: "helpers",
-        disallow: ["modules", "components", "helpers"],
-      },
-      {
-        from: "components",
-        disallow: ["modules"],
-      },
-    ],
-  },
-]);
+    1: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    2: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    3: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    4: "Importing elements of type 'modules' is not allowed in elements of type 'components'. Disallowed in rule 2",
+  }
+);
 
 // capture options
 
-testCapture(SETTINGS.oneLevel, [
+testCapture(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          from: "components",
+          allow: [["helpers", { elementName: "helper-a" }], "components"],
+          disallow: [["components", { elementName: "component-a" }]],
+        },
+        {
+          from: "modules",
+          allow: [["helpers", { elementName: "helper-a" }], "components", "modules"],
+        },
+      ],
+    },
+  ],
   {
-    default: "disallow",
-    rules: [
-      {
-        from: "components",
-        allow: [["helpers", { elementName: "helper-a" }], "components"],
-        disallow: [["components", { elementName: "component-a" }]],
-      },
-      {
-        from: "modules",
-        allow: [["helpers", { elementName: "helper-a" }], "components", "modules"],
-      },
-    ],
-  },
-]);
+    2: "Importing elements of type 'components' with elementName 'component-a' is not allowed in elements of type 'components'. Disallowed in rule 1",
+  }
+);
 
 // capture options with micromatch negative expression
 
-testCapture(SETTINGS.oneLevel, [
-  {
-    default: "disallow",
-    rules: [
-      {
-        from: "components",
-        allow: [
-          ["helpers", { elementName: "helper-a" }],
-          ["components", { elementName: "!component-a" }],
-        ],
-      },
-      {
-        from: "modules",
-        allow: [["helpers", { elementName: "helper-a" }], "components", "modules"],
-      },
-    ],
-  },
-]);
+testCapture(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          from: "components",
+          allow: [
+            ["helpers", { elementName: "helper-a" }],
+            ["components", { elementName: "!component-a" }],
+          ],
+        },
+        {
+          from: "modules",
+          allow: [["helpers", { elementName: "helper-a" }], "components", "modules"],
+        },
+      ],
+    },
+  ],
+  {}
+);
 
 // capture options with micromatch
 
-testCapture(SETTINGS.oneLevel, [
+testCapture(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          from: "c*",
+          allow: [["helpers", { elementName: "*-a" }], "c*"],
+          disallow: [["c*", { elementName: "*-a" }]],
+        },
+        {
+          from: "modules",
+          allow: [["h*", { elementName: "*-a" }], "c*", "m*"],
+        },
+      ],
+    },
+  ],
   {
-    default: "disallow",
-    rules: [
-      {
-        from: "c*",
-        allow: [["helpers", { elementName: "*-a" }], "c*"],
-        disallow: [["c*", { elementName: "*-a" }]],
-      },
-      {
-        from: "modules",
-        allow: [["h*", { elementName: "*-a" }], "c*", "m*"],
-      },
-    ],
-  },
-]);
+    2: "Importing elements of type 'c*' with elementName '*-a' is not allowed in elements of type 'c*'. Disallowed in rule 1",
+  }
+);
+
+testCapture(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          from: "c*",
+          allow: [["helpers", { elementName: "*-a" }], "c*"],
+          disallow: [["c*", { elementName: ["*-a", "component-a", "*t-a"] }]],
+        },
+        {
+          from: "modules",
+          allow: [["h*", { elementName: "*-a" }], "c*", "m*"],
+        },
+      ],
+    },
+  ],
+  {
+    2: "Importing elements of type 'c*' with elementName '*-a', 'component-a' or '*t-a' is not allowed in elements of type 'c*'. Disallowed in rule 1",
+  }
+);
+
+testCapture(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          from: ["c*"],
+          allow: [["helpers", { elementName: "*-a" }], "c*"],
+          disallow: [["c*", { elementName: ["*-a"] }]],
+        },
+        {
+          from: "modules",
+          allow: [["h*", { elementName: "*-a" }], "c*", "m*"],
+        },
+      ],
+    },
+  ],
+  {
+    2: "Importing elements of type 'c*' with elementName '*-a' is not allowed in elements of type 'c*'. Disallowed in rule 1",
+  }
+);
