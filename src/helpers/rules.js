@@ -1,6 +1,6 @@
 const micromatch = require("micromatch");
 
-const { isArray } = require("./utils");
+const { isArray, replaceObjectValuesInTemplates } = require("./utils");
 
 const REPO_URL = "https://github.com/javierbrea/eslint-plugin-boundaries";
 
@@ -44,20 +44,8 @@ function dependencyLocation(node, context) {
   };
 }
 
-function replaceObjectValueInMicromatchPattern(micromatchPattern, key, value) {
-  return micromatchPattern.replace(`\${${key}}`, value);
-}
-
 function micromatchPatternReplacingObjectValues(pattern, object) {
-  return Object.keys(object).reduce((result, objectKey) => {
-    // If micromatch pattern is an array, replace key by value in all patterns
-    if (isArray(result)) {
-      return result.map((resultEntry) => {
-        return replaceObjectValueInMicromatchPattern(resultEntry, objectKey, object[objectKey]);
-      });
-    }
-    return replaceObjectValueInMicromatchPattern(result, objectKey, object[objectKey]);
-  }, pattern);
+  return replaceObjectValuesInTemplates(pattern, object);
 }
 
 function isObjectMatch(objectWithMatchers, object, objectWithValuesToReplace) {
@@ -153,6 +141,7 @@ function elementRulesAllowDependency({
               element: rule[rulesMainKey(mainKey)],
               disallow: rule.disallow,
               index: rule.index,
+              message: rule.message,
             },
           ];
         }
@@ -170,6 +159,7 @@ function elementRulesAllowDependency({
       null,
       {
         isDefault: true,
+        message: options.message,
       },
     ]
   );

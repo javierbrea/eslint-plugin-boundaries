@@ -8,7 +8,7 @@ const {
   isMatchElementType,
   elementRulesAllowDependency,
 } = require("../helpers/rules");
-const { ruleElementMessage } = require("../helpers/messages");
+const { customErrorMessage, ruleElementMessage } = require("../helpers/messages");
 
 function elementRulesAllowDependencyType(element, dependency, options) {
   return elementRulesAllowDependency({
@@ -19,27 +19,20 @@ function elementRulesAllowDependencyType(element, dependency, options) {
   });
 }
 
-function customErrorMessage(message /*, elementCapturedValues, dependencyCapturedValues*/) {
-  // TODO, replace element captured values, including "type", and dependency captured values, including "type"
-  // "Do not import ${dependency.type} from ${file.type} with ${file.elementName}";
-  // TODO, support "message" property in rule settings at first level. Use it if present.
-  return message;
-}
-
-function errorMessage(ruleData, elementCapturedValues) {
+function errorMessage(ruleData, file, dependency) {
   const ruleReport = ruleData.ruleReport;
+  if (ruleReport.message) {
+    return customErrorMessage(ruleReport.message, file, dependency);
+  }
   if (ruleReport.isDefault) {
     return "Importing elements is disallowed by default. No rule allowing this dependency was found";
   }
-  if (ruleReport.message) {
-    return customErrorMessage(ruleData, elementCapturedValues);
-  }
   return `Importing ${ruleElementMessage(
     ruleReport.disallow,
-    elementCapturedValues
+    dependency.capturedValues
   )} is not allowed in ${ruleElementMessage(
     ruleReport.element,
-    elementCapturedValues
+    file.capturedValues
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 }
 
@@ -47,14 +40,17 @@ module.exports = dependencyRule(
   {
     ruleName: RULE_ELEMENT_TYPES,
     description: `Check allowed dependencies between element types`,
-    schema: rulesOptionsSchema(),
+    schema: rulesOptionsSchema({
+      customMessage: true,
+      customRuleMessage: true,
+    }),
   },
   function ({ dependency, file, node, context, options }) {
     if (dependency.isLocal && !dependency.isIgnored && dependency.type && !dependency.isInternal) {
       const ruleData = elementRulesAllowDependencyType(file, dependency, options);
       if (!ruleData.result) {
         context.report({
-          message: errorMessage(ruleData, file.capturedValues),
+          message: errorMessage(ruleData, file, dependency),
           node: node,
           ...dependencyLocation(node, context),
         });

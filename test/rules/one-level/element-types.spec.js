@@ -533,6 +533,38 @@ testCapture(
   }
 );
 
+// Custom error message
+
+testCapture(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "disallow",
+      message:
+        "Importing ${dependency.type} with name ${dependency.elementName} is not allowed in ${file.type} with name ${file.elementName}",
+      rules: [
+        {
+          from: "c*",
+          allow: [["helpers", { elementName: "*-a" }], "c*"],
+          disallow: [["c*", { elementName: "*-a" }]],
+          message:
+            "Do not import ${dependency.type} named ${dependency.elementName} from ${file.type} named ${file.elementName}",
+        },
+        {
+          from: "modules",
+          allow: [["h*", { elementName: "*-a" }], "c*", "m*"],
+        },
+      ],
+    },
+  ],
+  {
+    0: "Importing helpers with name helper-b is not allowed in components with name component-a",
+    1: "Importing helpers with name helper-b is not allowed in components with name component-a",
+    2: "Do not import components named component-a from components named component-b",
+    3: "Importing helpers with name helper-b is not allowed in modules with name module-a",
+  }
+);
+
 testCapture(
   SETTINGS.oneLevel,
   [

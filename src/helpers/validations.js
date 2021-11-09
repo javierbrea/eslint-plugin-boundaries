@@ -44,7 +44,7 @@ function elementsMatcherSchema(matcherOptions = DEFAULT_MATCHER_OPTIONS) {
 
 function rulesOptionsSchema(options = {}) {
   const mainKey = rulesMainKey(options.rulesMainKey);
-  return [
+  const schema = [
     {
       type: "object",
       properties: {
@@ -79,6 +79,17 @@ function rulesOptionsSchema(options = {}) {
       additionalProperties: false,
     },
   ];
+  if (options.customMessage) {
+    schema[0].properties.message = {
+      type: "string",
+    };
+  }
+  if (options.customRuleMessage) {
+    schema[0].properties.rules.items.properties.message = {
+      type: "string",
+    };
+  }
+  return schema;
 }
 
 function isValidElementTypesMatcher(matcher, settings) {

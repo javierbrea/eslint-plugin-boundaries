@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased]
 
+### Added
+- feat(#87): Support custom messages in `element-types` config
+
 ### Changed
 - feat(#87): Add context about the specific rule forbidding the import to the `element-types` error message
 - refactor: Add isArray and isString utils

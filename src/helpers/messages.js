@@ -1,4 +1,4 @@
-const { isString, isArray } = require("./utils");
+const { isString, isArray, replaceObjectValuesInTemplates } = require("./utils");
 const { micromatchPatternReplacingObjectValues } = require("./rules");
 
 function quote(str) {
@@ -78,7 +78,16 @@ function ruleElementMessage(elementPatterns, elementCapturedValues) {
   }
 }
 
+function customErrorMessage(message, file, dependency) {
+  return replaceObjectValuesInTemplates(
+    replaceObjectValuesInTemplates(message, { ...file.capturedValues, type: file.type }, "file"),
+    { ...dependency.capturedValues, type: dependency.type },
+    "dependency"
+  );
+}
+
 module.exports = {
   quote,
   ruleElementMessage,
+  customErrorMessage,
 };
