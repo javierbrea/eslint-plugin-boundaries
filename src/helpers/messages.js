@@ -14,9 +14,6 @@ function micromatchPatternMessage(micromatchPatterns, elementCapturedValues) {
     micromatchPatterns,
     elementCapturedValues
   );
-  if (isString(micromatchPatternsWithValues)) {
-    return quote(micromatchPatternsWithValues);
-  }
   if (isArray(micromatchPatternsWithValues)) {
     if (micromatchPatternsWithValues.length === 1) {
       return quote(micromatchPatternsWithValues[0]);
@@ -31,6 +28,7 @@ function micromatchPatternMessage(micromatchPatterns, elementCapturedValues) {
       return `${message}, ${quote(micromatchPattern)}`;
     }, "");
   }
+  return quote(micromatchPatternsWithValues);
 }
 
 function capturedValuesMatcherMessage(capturedValuesPattern, elementCapturedValues) {
@@ -62,9 +60,6 @@ function elementMatcherMessage(elementMatcher, elementCapturedValues) {
 }
 
 function ruleElementMessage(elementPatterns, elementCapturedValues) {
-  if (isString(elementPatterns)) {
-    return elementMatcherMessage(elementPatterns, elementCapturedValues);
-  }
   if (isArray(elementPatterns)) {
     if (elementPatterns.length === 1) {
       return elementMatcherMessage(elementPatterns[0], elementCapturedValues);
@@ -76,6 +71,7 @@ function ruleElementMessage(elementPatterns, elementCapturedValues) {
       return `${message}, or ${elementMatcherMessage(elementPattern, elementCapturedValues)}`;
     }, "");
   }
+  return elementMatcherMessage(elementPatterns, elementCapturedValues);
 }
 
 function customErrorMessage(message, file, dependency) {

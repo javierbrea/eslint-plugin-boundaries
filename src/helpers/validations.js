@@ -42,7 +42,7 @@ function elementsMatcherSchema(matcherOptions = DEFAULT_MATCHER_OPTIONS) {
   };
 }
 
-function rulesOptionsSchema(options = {}) {
+function rulesOptionsSchema(options) {
   const mainKey = rulesMainKey(options.rulesMainKey);
   const schema = [
     {
