@@ -1,6 +1,6 @@
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
-const { ELEMENT_TYPES_DEFAULT_MESSAGE } = require("../../support/messages");
+const { elementTypesNoRuleMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
@@ -101,7 +101,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
+          message: elementTypesNoRuleMessage({
+            file: "'helpers' with category 'permissions' and elementName 'roles'",
+            dep: "'components' with family 'atoms' and elementName 'atom-a'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -113,7 +116,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
+          message: elementTypesNoRuleMessage({
+            file: "'helpers' with category 'permissions' and elementName 'roles'",
+            dep: "'modules' with elementName 'module-a'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -125,7 +131,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
+          message: elementTypesNoRuleMessage({
+            file: "'components' with family 'atoms' and elementName 'atom-a'",
+            dep: "'components' with family 'molecules' and elementName 'molecule-a'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -137,7 +146,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
+          message: elementTypesNoRuleMessage({
+            file: "'components' with family 'atoms' and elementName 'atom-a'",
+            dep: "'helpers' with category 'permissions' and elementName 'roles'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -149,7 +161,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
+          message: elementTypesNoRuleMessage({
+            file: "'components' with family 'atoms' and elementName 'atom-a'",
+            dep: "'modules' with elementName 'module-a'",
+          }),
           type: "ImportDeclaration",
         },
       ],

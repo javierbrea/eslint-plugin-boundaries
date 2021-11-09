@@ -1,6 +1,6 @@
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
-const { elementTypesErrorMessage } = require("../../support/messages");
+const { elementTypesErrorMessage, elementTypesNoRuleMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
@@ -60,7 +60,14 @@ const test = (settings, options, errorMessages) => {
         ],
         errors: [
           {
-            message: elementTypesErrorMessage(errorMessages, 0),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              0,
+              elementTypesNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "'helpers' with elementName 'helper-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],

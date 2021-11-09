@@ -17,11 +17,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - feat(#87): Support custom messages in `element-types` config
 
 ### Changed
-- feat(#87): Add context about the specific rule forbidding the import to the `element-types` error message
+- feat(#87): Add context about the specific rule forbidding the import to the `element-types` error message. Add information about file and dependency when import is forbidden due to the default configuration.
 - refactor: Add isArray and isString utils
 
 ### Fixed
 - fix: Support array of micromatch patterns when replacing captured values
+
+### Removed
+- feat: Remove cache traces from debug mode
 
 ## [2.5.1] - 2021-11-06
 

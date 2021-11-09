@@ -1,6 +1,6 @@
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
-const { elementTypesErrorMessage } = require("../../support/messages");
+const { elementTypesErrorMessage, elementTypesNoRuleMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
@@ -178,7 +178,14 @@ const test = (settings, options, errorMessages) => {
         ],
         errors: [
           {
-            message: elementTypesErrorMessage(errorMessages, 0),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              0,
+              elementTypesNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "'helpers' with elementName 'helper-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -190,7 +197,14 @@ const test = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(errorMessages, 1),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              1,
+              elementTypesNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "'helpers' with elementName 'helper-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -202,7 +216,14 @@ const test = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(errorMessages, 2),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              2,
+              elementTypesNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "'components' with elementName 'component-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -214,7 +235,14 @@ const test = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(errorMessages, 3),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              3,
+              elementTypesNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "'modules' with elementName 'module-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -226,7 +254,14 @@ const test = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(errorMessages, 4),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              4,
+              elementTypesNoRuleMessage({
+                file: "'components' with elementName 'component-a'",
+                dep: "'modules' with elementName 'module-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -279,7 +314,14 @@ const testCapture = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(errorMessages, 0),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              0,
+              elementTypesNoRuleMessage({
+                file: "'components' with elementName 'component-a'",
+                dep: "'helpers' with elementName 'helper-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -291,7 +333,14 @@ const testCapture = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(errorMessages, 1),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              1,
+              elementTypesNoRuleMessage({
+                file: "'components' with elementName 'component-a'",
+                dep: "'helpers' with elementName 'helper-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -303,7 +352,14 @@ const testCapture = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(errorMessages, 2),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              2,
+              elementTypesNoRuleMessage({
+                file: "'components' with elementName 'component-b'",
+                dep: "'components' with elementName 'component-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -315,7 +371,14 @@ const testCapture = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(errorMessages, 3),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              3,
+              elementTypesNoRuleMessage({
+                file: "'modules' with elementName 'module-a'",
+                dep: "'helpers' with elementName 'helper-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -381,6 +444,10 @@ test(
     },
   ],
   {
+    0: elementTypesNoRuleMessage({
+      file: "'helpers'",
+      dep: "'helpers'",
+    }),
     1: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     2: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     3: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",

@@ -1,6 +1,6 @@
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
-const { ELEMENT_TYPES_DEFAULT_MESSAGE } = require("../../support/messages");
+const { elementTypesNoRuleMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
@@ -138,7 +138,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
+          message: elementTypesNoRuleMessage({
+            file: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a' and elementName 'module-a'",
+            dep: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b' and elementName 'module-c'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -150,7 +153,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
+          message: elementTypesNoRuleMessage({
+            file: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a' and elementName 'module-h'",
+            dep: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b' and elementName 'module-c'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -162,7 +168,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
+          message: elementTypesNoRuleMessage({
+            file: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a' and elementName 'module-a'",
+            dep: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b', type 'atoms' and elementName 'atom-c'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -174,7 +183,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
+          message: elementTypesNoRuleMessage({
+            file: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a', type 'molecules' and elementName 'molecule-a'",
+            dep: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a' and elementName 'module-a'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -186,7 +198,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
+          message: elementTypesNoRuleMessage({
+            file: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a', type 'molecules' and elementName 'molecule-a'",
+            dep: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b' and elementName 'module-c'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -198,7 +213,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
+          message: elementTypesNoRuleMessage({
+            file: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a', type 'molecules' and elementName 'molecule-a'",
+            dep: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b', type 'atoms' and elementName 'atom-c'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -212,7 +230,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
+          message: elementTypesNoRuleMessage({
+            file: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a', type 'molecules' and elementName 'molecule-e'",
+            dep: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b', type 'atoms' and elementName 'atom-c'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -224,7 +245,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
+          message: elementTypesNoRuleMessage({
+            file: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b', type 'molecules' and elementName 'molecule-c'",
+            dep: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b' and elementName 'module-c'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -236,7 +260,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ELEMENT_TYPES_DEFAULT_MESSAGE,
+          message: elementTypesNoRuleMessage({
+            file: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b', type 'molecules' and elementName 'molecule-c'",
+            dep: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a' and elementName 'module-a'",
+          }),
           type: "ImportDeclaration",
         },
       ],

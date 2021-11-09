@@ -8,7 +8,7 @@ const {
   isMatchElementType,
   elementRulesAllowDependency,
 } = require("../helpers/rules");
-const { customErrorMessage, ruleElementMessage } = require("../helpers/messages");
+const { customErrorMessage, ruleElementMessage, elementMessage } = require("../helpers/messages");
 
 function elementRulesAllowDependencyType(element, dependency, options) {
   return elementRulesAllowDependency({
@@ -25,7 +25,9 @@ function errorMessage(ruleData, file, dependency) {
     return customErrorMessage(ruleReport.message, file, dependency);
   }
   if (ruleReport.isDefault) {
-    return "Importing elements is disallowed by default. No rule allowing this dependency was found";
+    return `No rule allowing this dependency was found. File is ${elementMessage(
+      file
+    )}. Dependency is ${elementMessage(dependency)}`;
   }
   return `Importing ${ruleElementMessage(
     ruleReport.disallow,

@@ -9,6 +9,16 @@ function typeMessage(elementMatcher) {
   return `elements of type ${quote(elementMatcher)}`;
 }
 
+function propertiesConcater(properties, index) {
+  if (properties.length > 1 && index === properties.length - 1) {
+    return " and";
+  }
+  if (index === 0) {
+    return " with";
+  }
+  return ",";
+}
+
 function micromatchPatternMessage(micromatchPatterns, elementCapturedValues) {
   const micromatchPatternsWithValues = micromatchPatternReplacingObjectValues(
     micromatchPatterns,
@@ -38,14 +48,9 @@ function capturedValuesMatcherMessage(capturedValuesPattern, elementCapturedValu
       return [key, capturedValuesPattern[key]];
     })
     .reduce((message, propertyNameAndMatcher, index) => {
-      const concater =
-        capturedValuesPatternKeys.length > 1 && index === capturedValuesPatternKeys.length - 1
-          ? " and"
-          : " with";
-      return `${message}${concater} ${propertyNameAndMatcher[0]} ${micromatchPatternMessage(
-        propertyNameAndMatcher[1],
-        elementCapturedValues
-      )}`;
+      return `${message}${propertiesConcater(capturedValuesPatternKeys, index)} ${
+        propertyNameAndMatcher[0]
+      } ${micromatchPatternMessage(propertyNameAndMatcher[1], elementCapturedValues)}`;
     }, "");
 }
 
@@ -82,8 +87,31 @@ function customErrorMessage(message, file, dependency) {
   );
 }
 
+function elementCapturedValuesMessage(capturedValues) {
+  if (!capturedValues) {
+    return "";
+  }
+  const capturedValuesKeys = Object.keys(capturedValues);
+  return capturedValuesKeys
+    .map((key) => {
+      return [key, capturedValues[key]];
+    })
+    .reduce((message, propertyNameAndValue, index) => {
+      return `${message}${propertiesConcater(capturedValuesKeys, index)} ${
+        propertyNameAndValue[0]
+      } ${quote(propertyNameAndValue[1])}`;
+    }, "");
+}
+
+function elementMessage(elementInfo) {
+  return `of type ${quote(elementInfo.type)}${elementCapturedValuesMessage(
+    elementInfo.capturedValues
+  )}`;
+}
+
 module.exports = {
   quote,
   ruleElementMessage,
   customErrorMessage,
+  elementMessage,
 };
