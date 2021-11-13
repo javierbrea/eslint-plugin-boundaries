@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - feat(#87): Add context about the specific rule forbidding the import to the `element-types` error message. Add information about file and dependency when import is forbidden due to the default configuration.
 - refactor: Add isArray and isString utils
+- chore(deps): Support any eslint version greater than 6.x in peerDependencies
 
 ### Fixed
 - fix: Support array of micromatch patterns when replacing captured values
