@@ -14,10 +14,12 @@ It checks `import` statements between the element types of the project based on 
 
 * `enabled`: for enabling the rule. 0=off, 1=warn, 2=error.
 * `default`: `allow` or `disallow`. If no one `rule` matches, the dependency will be allowed or disallowed based on this value.
-* `rules`: Rules to be processed in order to decide if the `import` statement has to be allowed or not.
+* `message`: Custom message for the rule errors. Note that __the rule default message provides a lot of information about why the error was produced__, so you should define a custom message only if you are sure about what you are doing. Read ["error messages"]("#error-messages") for further information.
+* `rules`: Rules to be processed in order to decide if the `import` statement has to be allowed or not. It must be an array of objects containing:
   * `from`: `<element matchers>` If the file being analyzed matches with this, then the rule will be executed to know if it allows/disallows the `import`. If not, the rule is skipped.
   * `disallow`: `<element matchers>` If the element being imported matches with this, then the result of the rule will be "disallow", and the import will be notified as an `eslint` error (this value can be overwritten by a next rule returning "allow")
   * `allow`: `<element matchers>` If the element being imported matches with this, then the result of the rule will be "allow", and the import will not be notified as an `eslint` error (this value can be overwritten by a next rule returning "disallow")
+  * `message`: `<string>` Custom error message only for this rule. Read ["error messages"](../../README.md#error-messages) for further info.
 
 ##### Further reading:
 * [Main format of rules options](../../README.md#main-format-of-rules-options)
@@ -78,6 +80,15 @@ So, if the `from` element has captured values `{ family: "atom", elementName: "c
   }
 }
 ```
+
+### Error messages
+
+This rule provides a lot of information about the specific option producing an error, so the user can have enough context to solve it.
+
+* If the error is produced because all imports are disallowed by default, and no rule is specificly allowing it, then the message provides information about the file and the dependency types and captured values: `No rule allowing this dependency was found. File is of type 'components' with category 'molecules' and elementName 'molecule-c'. Dependency is of type 'modules' with domain 'domain-a' and elementName 'module-a'`.
+* If the error is produced by a specific option, the the message includes information about the option producing it: `Importing elements of type 'components' with category 'atoms' and elementName '*-a' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1`
+
+Anyway, you can configure a custom error message for changing this behaviour, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) for further info about how to configure messages.
 
 ### Settings
 
