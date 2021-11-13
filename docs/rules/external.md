@@ -51,7 +51,7 @@ __Examples__
 
 ##### Further reading:
 * [Main format of rules options](../../README.md#main-format-of-rules-options)
-* [Element matchers](../../README.md#element-matchers)
+* [Element matchers](../../README.md#elements-matchers)
 
 ##### Options example
 

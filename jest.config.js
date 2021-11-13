@@ -24,7 +24,7 @@ module.exports = {
     },
     // Ignore coverage of debugger
     "./src/helpers/debug.js": {
-      branches: 91,
+      branches: 83,
     },
     // Decrease coverage due to cache branches
     "./src/core/elementsInfo.js": {
@@ -38,5 +38,5 @@ module.exports = {
 
   // The glob patterns Jest uses to detect test files
   testMatch: ["<rootDir>/test/**/*.spec.js"],
-  // testMatch: ["<rootDir>/test/**/base-pattern/*.spec.js"],
+  // testMatch: ["<rootDir>/test/**/nestjs-example/element-types.spec.js"],
 };

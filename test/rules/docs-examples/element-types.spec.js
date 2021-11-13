@@ -1,10 +1,8 @@
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { elementTypesNoRuleMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
-
-const errorMessage = (fileType, dependencyType) =>
-  `Usage of '${dependencyType}' is not allowed in '${fileType}'`;
 
 const { absoluteFilePath } = pathResolvers("docs-examples");
 
@@ -103,7 +101,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("helpers", "components"),
+          message: elementTypesNoRuleMessage({
+            file: "'helpers' with category 'permissions' and elementName 'roles'",
+            dep: "'components' with family 'atoms' and elementName 'atom-a'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -115,7 +116,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("helpers", "modules"),
+          message: elementTypesNoRuleMessage({
+            file: "'helpers' with category 'permissions' and elementName 'roles'",
+            dep: "'modules' with elementName 'module-a'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -127,7 +131,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("components", "components"),
+          message: elementTypesNoRuleMessage({
+            file: "'components' with family 'atoms' and elementName 'atom-a'",
+            dep: "'components' with family 'molecules' and elementName 'molecule-a'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -139,7 +146,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("components", "helpers"),
+          message: elementTypesNoRuleMessage({
+            file: "'components' with family 'atoms' and elementName 'atom-a'",
+            dep: "'helpers' with category 'permissions' and elementName 'roles'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -151,7 +161,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("components", "modules"),
+          message: elementTypesNoRuleMessage({
+            file: "'components' with family 'atoms' and elementName 'atom-a'",
+            dep: "'modules' with elementName 'module-a'",
+          }),
           type: "ImportDeclaration",
         },
       ],

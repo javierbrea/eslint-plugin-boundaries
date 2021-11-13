@@ -1,12 +1,10 @@
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { elementTypesErrorMessage, elementTypesNoRuleMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
-const errorMessage = (fileType, dependencyType) =>
-  `Usage of '${dependencyType}' is not allowed in '${fileType}'`;
-
-const test = (settings, options, { absoluteFilePath }) => {
+const test = (settings, options, { absoluteFilePath }, errorMessages) => {
   const ruleTester = createRuleTester(settings);
 
   ruleTester.run(RULE, rule, {
@@ -172,7 +170,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("helpers", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              0,
+              elementTypesNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "'components' with category 'atoms' and elementName 'atom-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -184,7 +189,15 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("helpers", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              1,
+              elementTypesNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+              })
+            ),
+
             type: "ImportDeclaration",
           },
         ],
@@ -196,7 +209,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              2,
+              elementTypesNoRuleMessage({
+                file: "'components' with category 'atoms' and elementName 'atom-a'",
+                dep: "'components' with category 'molecules' and elementName 'molecule-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -208,7 +228,15 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              3,
+              elementTypesNoRuleMessage({
+                file: "'components' with category 'atoms' and elementName 'atom-a'",
+                dep: "'components' with category 'layouts' and elementName 'layout-a'",
+              })
+            ),
+
             type: "ImportDeclaration",
           },
         ],
@@ -220,7 +248,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              4,
+              elementTypesNoRuleMessage({
+                file: "'components' with category 'atoms' and elementName 'atom-a'",
+                dep: "'components' with category 'layouts' and elementName 'layout-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -232,7 +267,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              5,
+              elementTypesNoRuleMessage({
+                file: "'components' with category 'molecules' and elementName 'molecule-a'",
+                dep: "'components' with category 'layouts' and elementName 'layout-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -244,7 +286,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              6,
+              elementTypesNoRuleMessage({
+                file: "'components' with category 'molecules' and elementName 'molecule-a'",
+                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -256,7 +305,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              7,
+              elementTypesNoRuleMessage({
+                file: "'components' with category 'layouts' and elementName 'layout-a'",
+                dep: "'components' with category 'atoms' and elementName 'atom-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -268,7 +324,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              8,
+              elementTypesNoRuleMessage({
+                file: "'components' with category 'layouts' and elementName 'layout-a'",
+                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -280,7 +343,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              9,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'pages' and elementName 'page-a'",
+                dep: "'components' with category 'atoms' and elementName 'atom-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -292,7 +362,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              10,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'pages' and elementName 'page-a'",
+                dep: "'components' with category 'molecules' and elementName 'molecule-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -304,7 +381,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              11,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'pages' and elementName 'page-a'",
+                dep: "'modules' with domain 'pages' and elementName 'page-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -316,7 +400,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              12,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'pages' and elementName 'page-a'",
+                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -328,7 +419,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              13,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'pages' and elementName 'page-a'",
+                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -341,7 +439,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              14,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'domain-a' and elementName 'module-b'",
+                dep: "'components' with category 'atoms' and elementName 'atom-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -353,7 +458,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              15,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'domain-a' and elementName 'module-b'",
+                dep: "'components' with category 'atoms' and elementName 'atom-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -365,7 +477,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              16,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'domain-a' and elementName 'module-a'",
+                dep: "'components' with category 'molecules' and elementName 'molecule-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -377,7 +496,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              17,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'domain-a' and elementName 'module-a'",
+                dep: "'modules' with domain 'pages' and elementName 'page-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -389,7 +515,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              18,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'domain-a' and elementName 'module-a'",
+                dep: "'modules' with domain 'domain-b' and elementName 'module-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -401,7 +534,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              19,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'domain-a' and elementName 'module-a'",
+                dep: "'modules' with domain 'domain-b' and elementName 'module-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -413,7 +553,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              20,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'domain-b' and elementName 'module-a'",
+                dep: "'components' with category 'layouts' and elementName 'layout-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -425,7 +572,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              21,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'domain-b' and elementName 'module-a'",
+                dep: "'components' with category 'molecules' and elementName 'molecule-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -437,7 +591,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              22,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'domain-b' and elementName 'module-a'",
+                dep: "'modules' with domain 'pages' and elementName 'page-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -449,7 +610,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              23,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'domain-b' and elementName 'module-a'",
+                dep: "'components' with category 'atoms' and elementName 'atom-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -461,7 +629,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              24,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'domain-a' and elementName 'module-a'",
+                dep: "'components' with category 'atoms' and elementName 'atom-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -470,7 +645,7 @@ const test = (settings, options, { absoluteFilePath }) => {
   });
 };
 
-const testPrivate = (settings, options, { absoluteFilePath }) => {
+const testPrivate = (settings, options, { absoluteFilePath }, errorMessages) => {
   const ruleTester = createRuleTester(settings);
 
   ruleTester.run(RULE, rule, {
@@ -586,7 +761,14 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("helpers", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              0,
+              elementTypesNoRuleMessage({
+                file: "'helpers' with elementName 'helper-c'",
+                dep: "'components' with category 'atoms' and elementName 'atom-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -598,7 +780,14 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("helpers", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              1,
+              elementTypesNoRuleMessage({
+                file: "'helpers' with elementName 'helper-c'",
+                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -610,7 +799,14 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              2,
+              elementTypesNoRuleMessage({
+                file: "'components' with category 'atoms' and elementName 'atom-a'",
+                dep: "'components' with category 'molecules' and elementName 'molecule-c'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -622,7 +818,14 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              3,
+              elementTypesNoRuleMessage({
+                file: "'components' with category 'atoms' and elementName 'atom-a'",
+                dep: "'components' with category 'molecules' and elementName 'molecule-d'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -636,7 +839,14 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              4,
+              elementTypesNoRuleMessage({
+                file: "'components' with category 'molecules' and elementName 'molecule-c'",
+                dep: "'components' with category 'layouts' and elementName 'layout-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -650,7 +860,14 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              5,
+              elementTypesNoRuleMessage({
+                file: "'components' with category 'molecules' and elementName 'molecule-c'",
+                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -662,7 +879,14 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              6,
+              elementTypesNoRuleMessage({
+                file: "'components' with category 'layouts' and elementName 'layout-a'",
+                dep: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -674,7 +898,14 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              7,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'pages' and elementName 'page-a'",
+                dep: "'components' with category 'molecules' and elementName 'molecule-c'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -686,7 +917,14 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              8,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'pages' and elementName 'page-a'",
+                dep: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -698,7 +936,14 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "components"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              9,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
+                dep: "'components' with category 'molecules' and elementName 'molecule-c'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -710,7 +955,14 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              10,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
+                dep: "'modules' with domain 'pages' and elementName 'page-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -722,7 +974,14 @@ const testPrivate = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "modules"),
+            message: elementTypesErrorMessage(
+              errorMessages,
+              11,
+              elementTypesNoRuleMessage({
+                file: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
+                dep: "'modules' with domain 'domain-b' and elementName 'module-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -784,7 +1043,8 @@ test(
       ],
     },
   ],
-  pathResolvers("two-levels")
+  pathResolvers("two-levels"),
+  {}
 );
 
 testPrivate(
@@ -850,5 +1110,72 @@ testPrivate(
       ],
     },
   ],
-  pathResolvers("two-levels-with-private")
+  pathResolvers("two-levels-with-private"),
+  {}
+);
+
+testPrivate(
+  SETTINGS.twoLevelsWithPrivate,
+  [
+    {
+      default: "allow",
+      rules: [
+        {
+          from: [["helpers", { elementName: "helper-c" }]],
+          disallow: [["components", { category: "atoms", elementName: "*-a" }]],
+        },
+        {
+          from: [["helpers", { elementName: "helper-c" }]],
+          disallow: [["modules", { domain: "domain-a", elementName: "*-a" }]],
+        },
+        {
+          from: [["components", { category: "atoms" }]],
+          disallow: [["components", { category: "molecules" }]],
+        },
+        {
+          from: [["components", { category: "molecules" }]],
+          disallow: [["components", { category: "layouts" }]],
+        },
+        {
+          from: [["components", { category: "*" }]],
+          disallow: ["modules"],
+        },
+        {
+          from: [["modules", { domain: "pages" }]],
+          disallow: [["modules", { domain: "domain-a" }]],
+        },
+        {
+          from: [["modules", { domain: "pages" }]],
+          disallow: [["components", { category: "molecules" }]],
+        },
+        {
+          from: [["modules", { domain: "domain-a" }]],
+          disallow: [["components", { category: "molecules" }]],
+        },
+        {
+          from: [["modules", { domain: "domain-a" }]],
+          disallow: [["modules", { domain: "pages" }]],
+        },
+        {
+          from: [["modules", { domain: "domain-a" }]],
+          disallow: [["modules", { domain: ["!${domain}", "domain-b"] }]],
+        },
+      ],
+    },
+  ],
+  pathResolvers("two-levels-with-private"),
+  {
+    0: "Importing elements of type 'components' with category 'atoms' and elementName '*-a' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1",
+    1: "Importing elements of type 'modules' with domain 'domain-a' and elementName '*-a' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 2",
+    2: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'components' with category 'atoms'. Disallowed in rule 3",
+    3: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'components' with category 'atoms'. Disallowed in rule 3",
+    4: "Importing elements of type 'components' with category 'layouts' is not allowed in elements of type 'components' with category 'molecules'. Disallowed in rule 4",
+    5: "Importing elements of type 'modules' is not allowed in elements of type 'components' with category '*'. Disallowed in rule 5",
+    6: "Importing elements of type 'modules' is not allowed in elements of type 'components' with category '*'. Disallowed in rule 5",
+    7: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 7",
+    8: "Importing elements of type 'modules' with domain 'domain-a' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 6",
+    9: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 8",
+    10: "Importing elements of type 'modules' with domain '!domain-a' or 'domain-b' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 10",
+    11: "Importing elements of type 'modules' with domain '!domain-a' or 'domain-b' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 10",
+  }
 );

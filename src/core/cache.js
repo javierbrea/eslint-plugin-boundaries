@@ -1,5 +1,3 @@
-const { debug } = require("../helpers/debug");
-
 class Cache {
   constructor(name, settings) {
     this._cache = {};
@@ -13,7 +11,6 @@ class Cache {
 
   load(key) {
     if (this._cache[key]) {
-      debug(`Returning "${key}" ${this._name} info from cache`);
       return this._cache[key];
     }
 
@@ -32,7 +29,6 @@ class CachesManager {
       return cacheCandidate._settings === settings;
     });
     if (!cache) {
-      debug(`${this._name} cache not found, creating new`);
       cache = new Cache(this._name, settings);
       this._caches.push(cache);
     }
