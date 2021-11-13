@@ -5,7 +5,7 @@ const { TYPES, ALIAS, ELEMENTS, VALID_MODES } = require("../constants/settings")
 const { getElementsTypeNames, isLegacyType } = require("./settings");
 const { rulesMainKey } = require("./rules");
 const { warnOnce } = require("./debug");
-const { isArray } = require("./utils");
+const { isArray, isString } = require("./utils");
 
 const invalidMatchers = [];
 
@@ -118,7 +118,7 @@ function validateElements(elements) {
       );
     } else {
       Object.keys(element).forEach(() => {
-        if (!element.type || typeof element.type !== "string") {
+        if (!element.type || !isString(element.type)) {
           warnOnce(`Please provide type in '${ELEMENTS}' setting`);
         }
         if (element.mode && !VALID_MODES.includes(element.mode)) {
@@ -128,10 +128,7 @@ function validateElements(elements) {
             )}. Default value "${VALID_MODES[0]}" will be used instead`
           );
         }
-        if (
-          !element.pattern ||
-          !(typeof element.pattern === "string" || isArray(element.pattern))
-        ) {
+        if (!element.pattern || !(isString(element.pattern) || isArray(element.pattern))) {
           warnOnce(`Please provide a valid pattern in '${ELEMENTS}' setting`);
         }
         if (element.capture && !isArray(element.capture)) {
