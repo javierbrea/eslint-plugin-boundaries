@@ -28,7 +28,7 @@
     "prepare": "is-ci || husky install"
   },
   "peerDependencies": {
-    "eslint": "6.x || 7.x || 8.x"
+    "eslint": ">=6.0.0"
   },
   "dependencies": {
     "eslint-import-resolver-node": "0.3.6",

@@ -5,6 +5,7 @@ const { TYPES, ALIAS, ELEMENTS, VALID_MODES } = require("../constants/settings")
 const { getElementsTypeNames, isLegacyType } = require("./settings");
 const { rulesMainKey } = require("./rules");
 const { warnOnce } = require("./debug");
+const { isArray, isString } = require("./utils");
 
 const invalidMatchers = [];
 
@@ -41,9 +42,9 @@ function elementsMatcherSchema(matcherOptions = DEFAULT_MATCHER_OPTIONS) {
   };
 }
 
-function rulesOptionsSchema(options = {}) {
+function rulesOptionsSchema(options) {
   const mainKey = rulesMainKey(options.rulesMainKey);
-  return [
+  const schema = [
     {
       type: "object",
       properties: {
@@ -78,15 +79,26 @@ function rulesOptionsSchema(options = {}) {
       additionalProperties: false,
     },
   ];
+  if (options.customMessage) {
+    schema[0].properties.message = {
+      type: "string",
+    };
+  }
+  if (options.customRuleMessage) {
+    schema[0].properties.rules.items.properties.message = {
+      type: "string",
+    };
+  }
+  return schema;
 }
 
 function isValidElementTypesMatcher(matcher, settings) {
-  const mathcherToCheck = Array.isArray(matcher) ? matcher[0] : matcher;
+  const mathcherToCheck = isArray(matcher) ? matcher[0] : matcher;
   return !matcher || micromatch.some(getElementsTypeNames(settings), mathcherToCheck);
 }
 
 function validateElementTypesMatcher(elementsMatcher, settings) {
-  const [matcher] = Array.isArray(elementsMatcher) ? elementsMatcher : [elementsMatcher];
+  const [matcher] = isArray(elementsMatcher) ? elementsMatcher : [elementsMatcher];
   if (!invalidMatchers.includes(matcher) && !isValidElementTypesMatcher(matcher, settings)) {
     invalidMatchers.push(matcher);
     warnOnce(`Option '${matcher}' does not match any element type from '${ELEMENTS}' setting`);
@@ -94,7 +106,7 @@ function validateElementTypesMatcher(elementsMatcher, settings) {
 }
 
 function validateElements(elements) {
-  if (!elements || !Array.isArray(elements) || !elements.length) {
+  if (!elements || !isArray(elements) || !elements.length) {
     warnOnce(`Please provide element types using the '${ELEMENTS}' setting`);
     return;
   }
@@ -106,7 +118,7 @@ function validateElements(elements) {
       );
     } else {
       Object.keys(element).forEach(() => {
-        if (!element.type || typeof element.type !== "string") {
+        if (!element.type || !isString(element.type)) {
           warnOnce(`Please provide type in '${ELEMENTS}' setting`);
         }
         if (element.mode && !VALID_MODES.includes(element.mode)) {
@@ -116,13 +128,10 @@ function validateElements(elements) {
             )}. Default value "${VALID_MODES[0]}" will be used instead`
           );
         }
-        if (
-          !element.pattern ||
-          !(typeof element.pattern === "string" || Array.isArray(element.pattern))
-        ) {
+        if (!element.pattern || !(isString(element.pattern) || isArray(element.pattern))) {
           warnOnce(`Please provide a valid pattern in '${ELEMENTS}' setting`);
         }
-        if (element.capture && !Array.isArray(element.capture)) {
+        if (element.capture && !isArray(element.capture)) {
           warnOnce(`Invalid capture property in '${ELEMENTS}' setting`);
         }
       });

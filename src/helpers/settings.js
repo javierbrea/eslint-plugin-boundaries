@@ -1,7 +1,8 @@
 const { TYPES, ELEMENTS, VALID_MODES } = require("../constants/settings");
+const { isString } = require("./utils");
 
 function isLegacyType(type) {
-  return typeof type === "string";
+  return isString(type);
 }
 
 // TODO, remove in next major version

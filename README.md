@@ -29,6 +29,7 @@ __This plugin ensures that your architecture boundaries are respected by the ele
   * [Rules configuration](#rules-configuration)
     * [Main format of rules options](#main-format-of-rules-options)
     * [Elements matchers](#elements-matchers)
+    * [Error messages](#error-messages)
     * [Advanced example](#advanced-example)
 - [Resolvers](#resolvers)
 - [Usage with TypeScript](#usage-with-typescript)
@@ -199,7 +200,7 @@ Define patterns to recognize each file in the project as one of this element typ
 }
 ```
 
-> Tip: You can enable the [debug mode](#debug-mode) when configuring the plugin, and you will get information about the type assigned to each file in the project.
+> Tip: You can enable the [debug mode](#debug-mode) when configuring the plugin, and you will get information about the type assigned to each file in the project, as well as captured properties and values.
 
 #### __`boundaries/include`__
 
@@ -258,23 +259,31 @@ Some rules require extra configuration, and it has to be defined in each specifi
 
 #### Main format of rules options
 
-The docs of each rule contains an specification of their own options, but the main rules share the format in which the options have to be defined. The format described here is valid for options of [`element-types`](docs/rules/element-types.md), [`external`](docs/rules/external.md) and [`entry-point`](docs/rules/entry-point.md) rules.
+The docs of each rule contains an specification of their own options, but __the main rules share the format in which the options have to be defined__. The format described here is valid for options of [`element-types`](docs/rules/element-types.md), [`external`](docs/rules/external.md) and [`entry-point`](docs/rules/entry-point.md) rules, __except the `message` properties, which for the moment are only supported in the [`element-types`](docs/rules/element-types.md) rule settings.
 
 Options set an "allow/disallow" value by default, and provide an array of rules. Each matching rule will override the default value and the value returned by previous matching rules. So, the final result of the options, once processed for each case, will be "allow" or "disallow", and this value will be applied by the plugin rule in the correspondant way, making it to produce an eslint error or not.
 
-```json
+```jsonc
 {
   "rules": {
     "boundaries/element-types": [2, {
+      // Allow or disallow any dependency by default
       "default": "allow",
+      // Define a custom message for this rule
+      "message": "${file.type} is not allowed to import ${dependency.type}",
       "rules": [
         {
+          // In this type of files...
           "from": ["helpers"],
-          "disallow": ["modules", "components", "helpers"]
+          // ...disallow importing this type of elements
+          "disallow": ["modules", "components"],
+          // ...and return this custom error message
+          "message": "Helpers must not import other thing than helpers"
         },
         {
           "from": ["components"],
           "disallow": ["modules"]
+          // As this rule has not "message" property, it will use the message defined at first level
         }
       ]
     }]
@@ -291,8 +300,9 @@ Remember that:
 
 * __`from/target`__: `<element matchers>` Depending of the rule to which the options are for, the rule will be applied only if the file being analized matches with this element matcher (`from`), or the dependency being imported matches with this element matcher (`target`).
 * __`disallow/allow`__: `<value matchers>` If the plugin rule target matches with this, then the result of the rule will be "disallow/allow". Each rule will require a type of value here depending of what it is checking. In the case of the `element-types` rule, for example, another `<element matcher>` has to be provided in order to check the type of the local dependency.
+* __`message`__: `<string>` Optional. If the rule results in an error, the plugin will return this message.
 
-> Tip: All properties can receive a single matcher, or an array of matchers.
+> Tip: Properties `from/target` and `disallow/allow` can receive a single matcher, or an array of matchers.
 
 ##### Elements matchers
 
@@ -302,6 +312,22 @@ Elements matchers used in the rules options can have the next formats:
 * __`[<string>, <capturedValuesObject>]`__: Will return `true` whe when the element type matches with the first element in the array, and all of the captured values also match. <br/>The `<capturedValuesObject>` has to be an object containing `capture` keys from the [`boundaries/element-types` setting](#boundarieselement-types) of the element as keys, and [`micromatch` patterns](https://github.com/micromatch/micromatch) as values.<br/>For example, for an element of type "helpers" with settings as `{ type: "helpers", pattern": "helpers/*/*.js", "capture": ["category", "elementName"]}`, you could write element matchers as:
   * `["helpers", { category: "data", elementName: "parsers"}]`: Will only match with helpers with category "data" and elementName "parsers" (`helpers/data/parsers.js`).
   * `["helpers", { category: "data" }]`: Will match with all helpers with category "data" (`helpers/data/*.js`)
+
+##### Error messages
+
+The plugin returns a different default message for each rule, check the documentation of each one for further info. But some rules support defining custom messages in their configuration, as seen in ["Main format of rules options"](#main-format-of-rules-options).
+
+When defining custom messages, it is possible to provide information about the type or captured properties of the current file or dependency. Use `${file.PROPERTY}` or `${dependency.PROPERTY}`, and it will be replaced by the correspondent captured value from the file or the dependency:
+
+```jsonc
+{
+  "message": "${file.type}s of category ${file.category} are not allowed to import ${dependency.category}s"
+  // If the error was produced by a file with type "component" and captured value "category" being "atom", trying to import a dependency with category "molecule", the message would be:
+  // "components of category atom are not allowed to import molecules"
+}
+```
+
+> Tip: Read ["Global settings"](#global-settings) for further info about how to capture values from elements.
 
 ##### Advanced example of a rule configuration
 
@@ -343,7 +369,9 @@ Just to illustrate the high level of customization that the plugin supports, her
           "disallow": [
             // disallow importing helpers with captured category "data"
             ["helpers", { "category": "data" }]
-          ]
+          ],
+          // Custom message only for this specific error
+          "message": "Atom components can't import data helpers"
         },
         {
           // when file is inside a module
@@ -360,7 +388,9 @@ Just to illustrate the high level of customization that the plugin supports, her
           "disallow": [
             // disallow importing any type of component not being of family layout
             ["components", { "family": "!layout" }]
-          ]
+          ],
+          // Custom message only for this specific error
+          "message": "Modules with name starting by 'page-' can't import not layout components. You tried to import a component of family ${dependency.family} from a module with name ${file.elementName}"
         }
       ]
     }]
