@@ -141,7 +141,7 @@ function elementRulesAllowDependency({
               element: rule[rulesMainKey(mainKey)],
               disallow: rule.disallow,
               index: rule.index,
-              message: rule.message,
+              message: rule.message || options.message,
             },
           ];
         }
