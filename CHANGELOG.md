@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - fix: Support array of micromatch patterns when replacing captured values
+- docs: Fix broken links
 
 ### Removed
 - feat: Remove cache traces from debug mode

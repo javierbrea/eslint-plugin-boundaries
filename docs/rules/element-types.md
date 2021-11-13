@@ -14,7 +14,7 @@ It checks `import` statements between the element types of the project based on 
 
 * `enabled`: for enabling the rule. 0=off, 1=warn, 2=error.
 * `default`: `allow` or `disallow`. If no one `rule` matches, the dependency will be allowed or disallowed based on this value.
-* `message`: Custom message for the rule errors. Note that __the rule default message provides a lot of information about why the error was produced__, so you should define a custom message only if you are sure about what you are doing. Read ["error messages"]("#error-messages") for further information.
+* `message`: Custom message for the rule errors. Note that __the rule default message provides a lot of information about why the error was produced__, so you should define a custom message only if you are sure about what you are doing. Read ["error messages"](#error-messages) for further information.
 * `rules`: Rules to be processed in order to decide if the `import` statement has to be allowed or not. It must be an array of objects containing:
   * `from`: `<element matchers>` If the file being analyzed matches with this, then the rule will be executed to know if it allows/disallows the `import`. If not, the rule is skipped.
   * `disallow`: `<element matchers>` If the element being imported matches with this, then the result of the rule will be "disallow", and the import will be notified as an `eslint` error (this value can be overwritten by a next rule returning "allow")
@@ -23,7 +23,7 @@ It checks `import` statements between the element types of the project based on 
 
 ##### Further reading:
 * [Main format of rules options](../../README.md#main-format-of-rules-options)
-* [Element matchers](../../README.md#element-matchers)
+* [Element matchers](../../README.md#elements-matchers)
 
 ##### Comparing captures of the file element with captures of the imported element
 
