@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
-## [unreleased]
+## [2.6.0] - 2021-11-13
 
 ### Added
 - feat(#87): Support custom messages in `element-types` config
