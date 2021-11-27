@@ -10,7 +10,12 @@ function elementTypesNoRuleMessage({ file, dep }) {
   return `No rule allowing this dependency was found. File is of type ${file}. Dependency is of type ${dep}`;
 }
 
+function entryPointNoRuleMessage({ entryPoint, dep }) {
+  return `No rule allows the entry point '${entryPoint}' in dependencies of type ${dep}`;
+}
+
 module.exports = {
   customErrorMessage,
   elementTypesNoRuleMessage,
+  entryPointNoRuleMessage,
 };

@@ -1,12 +1,10 @@
 const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { customErrorMessage, entryPointNoRuleMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
-const errorMessage = (disallowedEntryPoint, type) =>
-  `Entry point '${disallowedEntryPoint}' is not allowed in '${type}'`;
-
-const test = (settings, options, { absoluteFilePath }) => {
+const test = (settings, options, { absoluteFilePath }, errorMessages = {}) => {
   const ruleTester = createRuleTester(settings);
 
   ruleTester.run(RULE, rule, {
@@ -68,7 +66,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("index.js", "helpers"),
+            message: customErrorMessage(
+              errorMessages,
+              0,
+              entryPointNoRuleMessage({
+                entryPoint: "index.js",
+                dep: "'helpers' with elementName 'helper-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -80,7 +85,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("main.js", "helpers"),
+            message: customErrorMessage(
+              errorMessages,
+              1,
+              entryPointNoRuleMessage({
+                entryPoint: "main.js",
+                dep: "'helpers' with elementName 'helper-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -92,7 +104,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("index.js", "components"),
+            message: customErrorMessage(
+              errorMessages,
+              2,
+              entryPointNoRuleMessage({
+                entryPoint: "index.js",
+                dep: "'components' with category 'atoms' and elementName 'atom-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -104,7 +123,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("index.js", "components"),
+            message: customErrorMessage(
+              errorMessages,
+              3,
+              entryPointNoRuleMessage({
+                entryPoint: "index.js",
+                dep: "'components' with category 'molecules' and elementName 'molecule-b'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -116,7 +142,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("index.js", "components"),
+            message: customErrorMessage(
+              errorMessages,
+              4,
+              entryPointNoRuleMessage({
+                entryPoint: "index.js",
+                dep: "'components' with category 'layouts' and elementName 'layout-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -128,7 +161,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("index.js", "modules"),
+            message: customErrorMessage(
+              errorMessages,
+              5,
+              entryPointNoRuleMessage({
+                entryPoint: "index.js",
+                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -140,7 +180,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("subfolder-1/subfolder-2/ModuleA.js", "modules"),
+            message: customErrorMessage(
+              errorMessages,
+              6,
+              entryPointNoRuleMessage({
+                entryPoint: "subfolder-1/subfolder-2/ModuleA.js",
+                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -152,7 +199,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("ModuleA.js", "modules"),
+            message: customErrorMessage(
+              errorMessages,
+              7,
+              entryPointNoRuleMessage({
+                entryPoint: "ModuleA.js",
+                dep: "'modules' with domain 'pages' and elementName 'page-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -164,7 +218,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("index.js", "modules"),
+            message: customErrorMessage(
+              errorMessages,
+              8,
+              entryPointNoRuleMessage({
+                entryPoint: "index.js",
+                dep: "'modules' with domain 'pages' and elementName 'page-a'",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -215,7 +276,11 @@ test(
       ],
     },
   ],
-  pathResolvers("two-levels")
+  pathResolvers("two-levels"),
+  {
+    1: "The entry point 'main.js' is not allowed in elements of type 'helpers' with elementName '*-a'. Disallowed in rule 2",
+    7: "The entry point 'ModuleA.js' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 8",
+  }
 );
 
 test(
@@ -260,5 +325,9 @@ test(
       ],
     },
   ],
-  pathResolvers("two-levels-with-private")
+  pathResolvers("two-levels-with-private"),
+  {
+    1: "The entry point 'main.js' is not allowed in elements of type 'helpers' with elementName '*-a'. Disallowed in rule 2",
+    7: "The entry point 'ModuleA.js' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 8",
+  }
 );

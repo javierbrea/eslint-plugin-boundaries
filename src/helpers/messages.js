@@ -82,7 +82,7 @@ function ruleElementMessage(elementPatterns, elementCapturedValues) {
 function customErrorMessage(message, file, dependency) {
   return replaceObjectValuesInTemplates(
     replaceObjectValuesInTemplates(message, { ...file.capturedValues, type: file.type }, "file"),
-    { ...dependency.capturedValues, type: dependency.type },
+    { ...dependency.capturedValues, type: dependency.type, internalPath: dependency.internalPath },
     "dependency"
   );
 }
