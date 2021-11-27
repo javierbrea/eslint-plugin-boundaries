@@ -1,6 +1,6 @@
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
-const { elementTypesErrorMessage, elementTypesNoRuleMessage } = require("../../support/messages");
+const { customErrorMessage, elementTypesNoRuleMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
@@ -178,7 +178,7 @@ const test = (settings, options, errorMessages) => {
         ],
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               0,
               elementTypesNoRuleMessage({
@@ -197,7 +197,7 @@ const test = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               1,
               elementTypesNoRuleMessage({
@@ -216,7 +216,7 @@ const test = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               2,
               elementTypesNoRuleMessage({
@@ -235,7 +235,7 @@ const test = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               3,
               elementTypesNoRuleMessage({
@@ -254,7 +254,7 @@ const test = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               4,
               elementTypesNoRuleMessage({
@@ -314,7 +314,7 @@ const testCapture = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               0,
               elementTypesNoRuleMessage({
@@ -333,7 +333,7 @@ const testCapture = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               1,
               elementTypesNoRuleMessage({
@@ -352,7 +352,7 @@ const testCapture = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               2,
               elementTypesNoRuleMessage({
@@ -371,7 +371,7 @@ const testCapture = (settings, options, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               3,
               elementTypesNoRuleMessage({

@@ -1,12 +1,10 @@
 const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { customErrorMessage, entryPointNoRuleMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
 const { absoluteFilePath } = pathResolvers("docs-examples");
-
-const errorMessage = (disallowedEntryPoint, type) =>
-  `Entry point '${disallowedEntryPoint}' is not allowed in '${type}'`;
 
 const settings = SETTINGS.docsExamples;
 
@@ -30,6 +28,8 @@ const options = [
     ],
   },
 ];
+
+const errorMessages = {};
 
 const ruleTester = createRuleTester(settings);
 
@@ -68,7 +68,14 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("AtomA.js", "components"),
+          message: customErrorMessage(
+            errorMessages,
+            0,
+            entryPointNoRuleMessage({
+              entryPoint: "AtomA.js",
+              dep: "'components' with family 'atoms' and elementName 'atom-a'",
+            })
+          ),
           type: "ImportDeclaration",
         },
       ],
@@ -80,7 +87,14 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("ModuleB.js", "modules"),
+          message: customErrorMessage(
+            errorMessages,
+            1,
+            entryPointNoRuleMessage({
+              entryPoint: "ModuleB.js",
+              dep: "'modules' with elementName 'module-b'",
+            })
+          ),
           type: "ImportDeclaration",
         },
       ],

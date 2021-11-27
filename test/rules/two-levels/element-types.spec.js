@@ -1,6 +1,6 @@
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
-const { elementTypesErrorMessage, elementTypesNoRuleMessage } = require("../../support/messages");
+const { customErrorMessage, elementTypesNoRuleMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
@@ -170,7 +170,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               0,
               elementTypesNoRuleMessage({
@@ -189,7 +189,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               1,
               elementTypesNoRuleMessage({
@@ -209,7 +209,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               2,
               elementTypesNoRuleMessage({
@@ -228,7 +228,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               3,
               elementTypesNoRuleMessage({
@@ -248,7 +248,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               4,
               elementTypesNoRuleMessage({
@@ -267,7 +267,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               5,
               elementTypesNoRuleMessage({
@@ -286,7 +286,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               6,
               elementTypesNoRuleMessage({
@@ -305,7 +305,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               7,
               elementTypesNoRuleMessage({
@@ -324,7 +324,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               8,
               elementTypesNoRuleMessage({
@@ -343,7 +343,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               9,
               elementTypesNoRuleMessage({
@@ -362,7 +362,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               10,
               elementTypesNoRuleMessage({
@@ -381,7 +381,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               11,
               elementTypesNoRuleMessage({
@@ -400,7 +400,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               12,
               elementTypesNoRuleMessage({
@@ -419,7 +419,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               13,
               elementTypesNoRuleMessage({
@@ -439,7 +439,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               14,
               elementTypesNoRuleMessage({
@@ -458,7 +458,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               15,
               elementTypesNoRuleMessage({
@@ -477,7 +477,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               16,
               elementTypesNoRuleMessage({
@@ -496,7 +496,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               17,
               elementTypesNoRuleMessage({
@@ -515,7 +515,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               18,
               elementTypesNoRuleMessage({
@@ -534,7 +534,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               19,
               elementTypesNoRuleMessage({
@@ -553,7 +553,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               20,
               elementTypesNoRuleMessage({
@@ -572,7 +572,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               21,
               elementTypesNoRuleMessage({
@@ -591,7 +591,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               22,
               elementTypesNoRuleMessage({
@@ -610,7 +610,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               23,
               elementTypesNoRuleMessage({
@@ -629,7 +629,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               24,
               elementTypesNoRuleMessage({
@@ -761,7 +761,7 @@ const testPrivate = (settings, options, { absoluteFilePath }, errorMessages) => 
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               0,
               elementTypesNoRuleMessage({
@@ -780,7 +780,7 @@ const testPrivate = (settings, options, { absoluteFilePath }, errorMessages) => 
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               1,
               elementTypesNoRuleMessage({
@@ -799,7 +799,7 @@ const testPrivate = (settings, options, { absoluteFilePath }, errorMessages) => 
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               2,
               elementTypesNoRuleMessage({
@@ -818,7 +818,7 @@ const testPrivate = (settings, options, { absoluteFilePath }, errorMessages) => 
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               3,
               elementTypesNoRuleMessage({
@@ -839,7 +839,7 @@ const testPrivate = (settings, options, { absoluteFilePath }, errorMessages) => 
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               4,
               elementTypesNoRuleMessage({
@@ -860,7 +860,7 @@ const testPrivate = (settings, options, { absoluteFilePath }, errorMessages) => 
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               5,
               elementTypesNoRuleMessage({
@@ -879,7 +879,7 @@ const testPrivate = (settings, options, { absoluteFilePath }, errorMessages) => 
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               6,
               elementTypesNoRuleMessage({
@@ -898,7 +898,7 @@ const testPrivate = (settings, options, { absoluteFilePath }, errorMessages) => 
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               7,
               elementTypesNoRuleMessage({
@@ -917,7 +917,7 @@ const testPrivate = (settings, options, { absoluteFilePath }, errorMessages) => 
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               8,
               elementTypesNoRuleMessage({
@@ -936,7 +936,7 @@ const testPrivate = (settings, options, { absoluteFilePath }, errorMessages) => 
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               9,
               elementTypesNoRuleMessage({
@@ -955,7 +955,7 @@ const testPrivate = (settings, options, { absoluteFilePath }, errorMessages) => 
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               10,
               elementTypesNoRuleMessage({
@@ -974,7 +974,7 @@ const testPrivate = (settings, options, { absoluteFilePath }, errorMessages) => 
         options,
         errors: [
           {
-            message: elementTypesErrorMessage(
+            message: customErrorMessage(
               errorMessages,
               11,
               elementTypesNoRuleMessage({
