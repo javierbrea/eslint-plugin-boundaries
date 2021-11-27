@@ -20,7 +20,11 @@ function elementRulesAllowEntryPoint(element, dependency, options) {
     options,
     isMatch: isMatchElementInternalPath,
     rulesMainKey: "target",
-  }).result;
+  });
+}
+
+function errorMessage(ruleData, file, dependency) {
+  return `Entry point '${dependency.internalPath}' is not allowed in '${dependency.type}'`;
 }
 
 module.exports = dependencyRule(
@@ -32,17 +36,15 @@ module.exports = dependencyRule(
     }),
   },
   function ({ dependency, file, node, context, options }) {
-    if (
-      !dependency.isIgnored &&
-      dependency.type &&
-      !dependency.isInternal &&
-      !elementRulesAllowEntryPoint(file, dependency, options)
-    ) {
-      context.report({
-        message: `Entry point '${dependency.internalPath}' is not allowed in '${dependency.type}'`,
-        node: node,
-        ...dependencyLocation(node, context),
-      });
+    if (!dependency.isIgnored && dependency.type && !dependency.isInternal) {
+      const ruleData = elementRulesAllowEntryPoint(file, dependency, options);
+      if (!ruleData.result) {
+        context.report({
+          message: errorMessage(ruleData, file, dependency),
+          node: node,
+          ...dependencyLocation(node, context),
+        });
+      }
     }
   },
   {

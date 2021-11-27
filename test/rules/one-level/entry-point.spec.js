@@ -45,6 +45,16 @@ const test = (settings, options) => {
           "boundaries/ignore": [codeFilePath("helpers/helper-b/**/*.js")],
         },
       },
+      // Files can import ignored dependencies
+      {
+        filename: absoluteFilePath("helpers/helper-b/HelperB.js"),
+        code: "import HelperA from 'helpers/helper-a/HelperA.js'",
+        options,
+        settings: {
+          ...settings,
+          "boundaries/ignore": [codeFilePath("helpers/helper-a/**/*.js")],
+        },
+      },
       // import index with default option
       {
         filename: absoluteFilePath("components/component-a/ComponentA.js"),
