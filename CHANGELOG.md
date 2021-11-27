@@ -11,13 +11,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
-## [unreleased]
+## [2.7.0] - 2021-11-27
 
 ### Added
 - feat(#169): Support custom messages in `entry-point` rule config
 
 ### Fixed
 - docs: Fix some typos and links in `element-types` rule docs
+
+### Changed
+- chore(deps): Update devDependencies
 
 ## [2.6.0] - 2021-11-13
 
