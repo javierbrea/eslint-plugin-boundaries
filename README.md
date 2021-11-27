@@ -259,7 +259,7 @@ Some rules require extra configuration, and it has to be defined in each specifi
 
 #### Main format of rules options
 
-The docs of each rule contains an specification of their own options, but __the main rules share the format in which the options have to be defined__. The format described here is valid for options of [`element-types`](docs/rules/element-types.md), [`external`](docs/rules/external.md) and [`entry-point`](docs/rules/entry-point.md) rules, __except the `message` properties, which for the moment are only supported in the [`element-types`](docs/rules/element-types.md) rule settings.
+The docs of each rule contains an specification of their own options, but __the main rules share the format in which the options have to be defined__. The format described here is valid for options of [`element-types`](docs/rules/element-types.md), [`external`](docs/rules/external.md) and [`entry-point`](docs/rules/entry-point.md) rules, __except the `message` property, which for the moment is only supported in the [`element-types`](docs/rules/element-types.md) and [`entry-point`](docs/rules/entry-point.md) rules settings.
 
 Options set an "allow/disallow" value by default, and provide an array of rules. Each matching rule will override the default value and the value returned by previous matching rules. So, the final result of the options, once processed for each case, will be "allow" or "disallow", and this value will be applied by the plugin rule in the correspondant way, making it to produce an eslint error or not.
 
@@ -300,7 +300,7 @@ Remember that:
 
 * __`from/target`__: `<element matchers>` Depending of the rule to which the options are for, the rule will be applied only if the file being analized matches with this element matcher (`from`), or the dependency being imported matches with this element matcher (`target`).
 * __`disallow/allow`__: `<value matchers>` If the plugin rule target matches with this, then the result of the rule will be "disallow/allow". Each rule will require a type of value here depending of what it is checking. In the case of the `element-types` rule, for example, another `<element matcher>` has to be provided in order to check the type of the local dependency.
-* __`message`__: `<string>` Optional. If the rule results in an error, the plugin will return this message.
+* __`message`__: `<string>` Optional. If the rule results in an error, the plugin will return this message instead of the default one. Read [error messages](#error-messages) for further info.
 
 > Tip: Properties `from/target` and `disallow/allow` can receive a single matcher, or an array of matchers.
 
@@ -317,7 +317,7 @@ Elements matchers used in the rules options can have the next formats:
 
 The plugin returns a different default message for each rule, check the documentation of each one for further info. But some rules support defining custom messages in their configuration, as seen in ["Main format of rules options"](#main-format-of-rules-options).
 
-When defining custom messages, it is possible to provide information about the type or captured properties of the current file or dependency. Use `${file.PROPERTY}` or `${dependency.PROPERTY}`, and it will be replaced by the correspondent captured value from the file or the dependency:
+When defining custom messages, it is possible to provide information about the current file or dependency. Use `${file.PROPERTY}` or `${dependency.PROPERTY}`, and it will be replaced by the correspondent captured value from the file or the dependency:
 
 ```jsonc
 {
@@ -326,6 +326,13 @@ When defining custom messages, it is possible to provide information about the t
   // "components of category atom are not allowed to import molecules"
 }
 ```
+
+Available properties in error templates both from `file` or `dependency` are:
+
+* `type`: Element's type.
+* `internalPath`: File path being analyzed or imported. Relative to the element's root path.
+* ...All captured properties are also available
+
 
 > Tip: Read ["Global settings"](#global-settings) for further info about how to capture values from elements.
 

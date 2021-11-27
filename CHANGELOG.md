@@ -11,10 +11,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [2.7.0] - 2021-11-27
+
+### Added
+- feat(#169): Support custom messages in `entry-point` rule config
+
+### Fixed
+- docs: Fix some typos and links in `element-types` rule docs
+
+### Changed
+- chore(deps): Update devDependencies
+
 ## [2.6.0] - 2021-11-13
 
 ### Added
-- feat(#87): Support custom messages in `element-types` config
+- feat(#87): Support custom messages in `element-types` rule config
 
 ### Changed
 - feat(#87): Add context about the specific rule forbidding the import to the `element-types` error message. Add information about file and dependency when import is forbidden due to the default configuration.
