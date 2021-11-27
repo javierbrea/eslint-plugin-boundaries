@@ -2,7 +2,7 @@ function errorMessage(errors, index, defaultMessage) {
   return errors[index] || defaultMessage;
 }
 
-function elementTypesErrorMessage(errors, index, defaultMessage) {
+function customErrorMessage(errors, index, defaultMessage) {
   return errorMessage(errors, index, defaultMessage);
 }
 
@@ -11,6 +11,6 @@ function elementTypesNoRuleMessage({ file, dep }) {
 }
 
 module.exports = {
-  elementTypesErrorMessage,
+  customErrorMessage,
   elementTypesNoRuleMessage,
 };
