@@ -8,6 +8,7 @@ const {
   isMatchElementKey,
   elementRulesAllowDependency,
 } = require("../helpers/rules");
+const { customErrorMessage, ruleElementMessage, elementMessage } = require("../helpers/messages");
 
 function isMatchElementInternalPath(elementInfo, matcher, options) {
   return isMatchElementKey(elementInfo, matcher, options, "internalPath");
@@ -24,7 +25,19 @@ function elementRulesAllowEntryPoint(element, dependency, options) {
 }
 
 function errorMessage(ruleData, file, dependency) {
-  return `Entry point '${dependency.internalPath}' is not allowed in '${dependency.type}'`;
+  const ruleReport = ruleData.ruleReport;
+  if (ruleReport.message) {
+    return customErrorMessage(ruleReport.message, file, dependency);
+  }
+  if (ruleReport.isDefault) {
+    return `No rule allows the entry point '${
+      dependency.internalPath
+    }' in dependencies ${elementMessage(dependency)}`;
+  }
+  return `The entry point '${dependency.internalPath}' is not allowed in ${ruleElementMessage(
+    ruleReport.element,
+    dependency.capturedValues
+  )}. Disallowed in rule ${ruleReport.index + 1}`;
 }
 
 module.exports = dependencyRule(
@@ -33,6 +46,8 @@ module.exports = dependencyRule(
     description: `Check entry point used for each element type`,
     schema: rulesOptionsSchema({
       rulesMainKey: "target",
+      customMessage: true,
+      customRuleMessage: true,
     }),
   },
   function ({ dependency, file, node, context, options }) {
