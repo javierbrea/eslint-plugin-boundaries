@@ -19,11 +19,7 @@ It checks `import` statements between the element types of the project based on 
   * `from`: `<element matchers>` If the file being analyzed matches with this, then the rule will be executed to know if it allows/disallows the `import`. If not, the rule is skipped.
   * `disallow`: `<element matchers>` If the element being imported matches with this, then the result of the rule will be "disallow", and the import will be notified as an `eslint` error (this value can be overwritten by a next rule returning "allow")
   * `allow`: `<element matchers>` If the element being imported matches with this, then the result of the rule will be "allow", and the import will not be notified as an `eslint` error (this value can be overwritten by a next rule returning "disallow")
-  * `message`: `<string>` Custom error message only for this rule. Read ["error messages"](../../README.md#error-messages) for further info.
-
-##### Further reading:
-* [Main format of rules options](../../README.md#main-format-of-rules-options)
-* [Element matchers](../../README.md#elements-matchers)
+  * `message`: `<string>` Custom error message only for this rule. Read ["error messages"](#error-messages) for further info.
 
 ##### Comparing captures of the file element with captures of the imported element
 
@@ -80,15 +76,6 @@ So, if the `from` element has captured values `{ family: "atom", elementName: "c
   }
 }
 ```
-
-### Error messages
-
-This rule provides a lot of information about the specific option producing an error, so the user can have enough context to solve it.
-
-* If the error is produced because all imports are disallowed by default, and no rule is specificly allowing it, then the message provides information about the file and the dependency types and captured values: `No rule allowing this dependency was found. File is of type 'components' with category 'molecules' and elementName 'molecule-c'. Dependency is of type 'modules' with domain 'domain-a' and elementName 'module-a'`.
-* If the error is produced by a specific option, the the message includes information about the option producing it: `Importing elements of type 'components' with category 'atoms' and elementName '*-a' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1`
-
-Anyway, you can configure a custom error message for changing this behaviour, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) for further info about how to configure messages.
 
 ### Settings
 
@@ -245,6 +232,15 @@ _Modules can import another modules:_
 // src/modules/module-a/ModuleA.js
 import ModuleB from 'modules/module-b'
 ```
+
+### Error messages
+
+This rule provides a lot of information about the specific option producing an error, so the user can have enough context to solve it.
+
+* If the error is produced because all imports are disallowed by default, and no rule is specificly allowing it, then the message provides information about the file and the dependency types and captured values: `No rule allowing this dependency was found. File is of type 'components' with category 'molecules' and elementName 'molecule-c'. Dependency is of type 'modules' with domain 'domain-a' and elementName 'module-a'`.
+* If the error is produced by a specific option, then the message includes information about the option producing it: `Importing elements of type 'components' with category 'atoms' and elementName '*-a' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1`
+
+You can also configure a custom error message for changing this default behaviour, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) in the main docs for further info about how to configure messages.
 
 ## Further reading
 
