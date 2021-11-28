@@ -259,7 +259,7 @@ Some rules require extra configuration, and it has to be defined in each specifi
 
 #### Main format of rules options
 
-The docs of each rule contains an specification of their own options, but __the main rules share the format in which the options have to be defined__. The format described here is valid for options of [`element-types`](docs/rules/element-types.md), [`external`](docs/rules/external.md) and [`entry-point`](docs/rules/entry-point.md) rules, __except the `message` property, which for the moment is only supported in the [`element-types`](docs/rules/element-types.md) and [`entry-point`](docs/rules/entry-point.md) rules settings.
+The docs of each rule contains an specification of their own options, but __the main rules share the format in which the options have to be defined__. The format described here is valid for options of [`element-types`](docs/rules/element-types.md), [`external`](docs/rules/external.md) and [`entry-point`](docs/rules/entry-point.md) rules, __except the `message` property, which for the moment is only supported in the [`element-types`](docs/rules/element-types.md), [`entry-point`](docs/rules/entry-point.md) and [`no-private`](docs/rules/no-private.md) rules settings.
 
 Options set an "allow/disallow" value by default, and provide an array of rules. Each matching rule will override the default value and the value returned by previous matching rules. So, the final result of the options, once processed for each case, will be "allow" or "disallow", and this value will be applied by the plugin rule in the correspondant way, making it to produce an eslint error or not.
 
@@ -331,6 +331,7 @@ Available properties in error templates both from `file` or `dependency` are:
 
 * `type`: Element's type.
 * `internalPath`: File path being analyzed or imported. Relative to the element's root path.
+* `parent`: If the element is child of another element, it is also available in this property, which contains correspondent `type`, `internalPath` and captured properties as well.
 * ...All captured properties are also available
 
 

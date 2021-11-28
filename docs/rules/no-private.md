@@ -10,16 +10,17 @@ This rule follow the next principles:
 * Private elements can't be used by anyone except its parent. _(and any other descendant of the parent when `allowUncles` option is enabled)_
 * Private elements can import public elements.
 * Private elements can import another private element when both have the same parent _("brother elements")_
-* Private elements can import anoother private element if it is a direct child of a common ancestor, and the `allowUncles` option is enabled.
+* Private elements can import another private element if it is a direct child of a common ancestor, and the `allowUncles` option is enabled.
 
 ### Options
 
 ```
-"boundaries/no-private": [<enabled>, { "allowUncles": <boolean> }]
+"boundaries/no-private": [<enabled>, { "allowUncles": <boolean>, "message": <string> }]
 ```
 
 * `enabled`: for enabling the rule. 0=off, 1=warn, 2=error.
 * `allowUncles`: Optional. If set to `false`, it disallows importing "uncle elements". Default is `true`.
+* `message`: Custom message for the rule errors. Note that __the rule default message provides enough information about why the error was produced__, so you should define a custom message only if you are sure about what you are doing. Read ["error messages"](#error-messages) for further information.
 
 ##### Options example
 
@@ -128,6 +129,12 @@ _`module-e` can import `module-d` because it is his uncle_
 // modules/module-b/modules/module-c/modules/module-e/ModuleE
 import ModuleD from 'modules/module-b/modules/module-d'
 ```
+
+### Error messages
+
+This rule provides information about the parent element of the imported one in case it is private, e.g. `Dependency is private of element of type 'modules' with elementName 'module-b'`
+
+You can also configure a custom error message for changing this default behaviour, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) in the main docs for further info about how to configure messages.
 
 ## Further reading
 

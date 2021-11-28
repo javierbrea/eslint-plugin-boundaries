@@ -9,7 +9,7 @@ It checks `import` statements between the element types of the project based on 
 ### Options
 
 ```
-"boundaries/element-types": [<enabled>, { "default": <string>, "rules": <object> }]
+"boundaries/element-types": [<enabled>, { "default": <string>, "message": <string>, "rules": <object> }]
 ```
 
 * `enabled`: for enabling the rule. 0=off, 1=warn, 2=error.

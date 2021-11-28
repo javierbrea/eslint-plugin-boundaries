@@ -1,11 +1,10 @@
 const { NO_PRIVATE: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { noPrivateMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
-
-const errorMessage = () => `Dependency is private of another element`;
 
 const options = [
   {
@@ -116,7 +115,9 @@ const test = (settings) => {
         options,
         errors: [
           {
-            message: errorMessage(),
+            message: noPrivateMessage({
+              dep: "'components' with elementName 'component-c'",
+            }),
             type: "ImportDeclaration",
           },
         ],
@@ -128,7 +129,9 @@ const test = (settings) => {
         options,
         errors: [
           {
-            message: errorMessage(),
+            message: noPrivateMessage({
+              dep: "'components' with elementName 'component-a'",
+            }),
             type: "ImportDeclaration",
           },
         ],
@@ -140,7 +143,9 @@ const test = (settings) => {
         options,
         errors: [
           {
-            message: errorMessage(),
+            message: noPrivateMessage({
+              dep: "'helpers' with elementName 'helper-a'",
+            }),
             type: "ImportDeclaration",
           },
         ],
@@ -152,7 +157,9 @@ const test = (settings) => {
         options,
         errors: [
           {
-            message: errorMessage(),
+            message: noPrivateMessage({
+              dep: "'helpers' with elementName 'helper-a'",
+            }),
             type: "ImportDeclaration",
           },
         ],
@@ -172,7 +179,51 @@ const test = (settings) => {
         ],
         errors: [
           {
-            message: errorMessage(),
+            message: noPrivateMessage({
+              dep: "'components' with elementName 'component-a'",
+            }),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+      /* Custom message */
+      {
+        filename: absoluteFilePath(
+          "components/component-a/components/component-c/components/component-d/ComponentD.js"
+        ),
+        code: 'import HelperA from "components/component-a/helpers/helper-a"',
+        options: [
+          {
+            allowUncles: false,
+            message:
+              "The element of type '${dependency.type}' with name '${dependency.elementName}' is child of element of type '${dependency.parent.type}' with name '${dependency.parent.elementName}'",
+          },
+        ],
+        errors: [
+          {
+            message:
+              "The element of type 'helpers' with name 'helper-a' is child of element of type 'components' with name 'component-a'",
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+      /* Custom message with file info*/
+      {
+        filename: absoluteFilePath(
+          "components/component-a/components/component-c/components/component-d/ComponentD.js"
+        ),
+        code: 'import HelperA from "components/component-a/helpers/helper-a"',
+        options: [
+          {
+            allowUncles: false,
+            message:
+              "This element is of type '${file.type}' with name '${file.elementName}', and it is child of element of type '${file.parent.type}' with name '${file.parent.elementName}'",
+          },
+        ],
+        errors: [
+          {
+            message:
+              "This element is of type 'components' with name 'component-d', and it is child of element of type 'components' with name 'component-c'",
             type: "ImportDeclaration",
           },
         ],

@@ -9,7 +9,7 @@ It checks `import` statements to the elements of the project and ensure that eac
 ### Options
 
 ```
-"boundaries/entry-point": [<enabled>, { "default": <string>, "rules": <object> }]
+"boundaries/entry-point": [<enabled>, { "default": <string>, "message": <string>, "rules": <object> }]
 ```
 
 * `enabled`: for enabling the rule. 0=off, 1=warn, 2=error.
