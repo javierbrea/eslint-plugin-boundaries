@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [2.8.0] - 2021-11-28
+
+### Added
+- feat(#171): Support custom messages in `no-private` rule config
+
 ## [2.7.0] - 2021-11-27
 
 ### Added

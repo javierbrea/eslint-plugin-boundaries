@@ -1,12 +1,11 @@
 const { NO_PRIVATE: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { noPrivateMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath } = pathResolvers("docs-examples");
-
-const ERROR_MESSAGE = "Dependency is private of another element";
 
 const options = [
   {
@@ -51,7 +50,9 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ERROR_MESSAGE,
+          message: noPrivateMessage({
+            dep: "'modules' with elementName 'module-b'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -63,7 +64,9 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: ERROR_MESSAGE,
+          message: noPrivateMessage({
+            dep: "'modules' with elementName 'module-c'",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -79,7 +82,9 @@ ruleTester.run(RULE, rule, {
       ],
       errors: [
         {
-          message: ERROR_MESSAGE,
+          message: noPrivateMessage({
+            dep: "'modules' with elementName 'module-b'",
+          }),
           type: "ImportDeclaration",
         },
       ],
