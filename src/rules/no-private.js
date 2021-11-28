@@ -3,6 +3,14 @@ const { RULE_NO_PRIVATE } = require("../constants/settings");
 const dependencyRule = require("../rules-factories/dependency-rule");
 
 const { dependencyLocation } = require("../helpers/rules");
+const { customErrorMessage, elementMessage } = require("../helpers/messages");
+
+function errorMessage(file, dependency, options) {
+  if (options.message) {
+    return customErrorMessage(options.message, file, dependency);
+  }
+  return `Dependency is private of element ${elementMessage(dependency.parents[0])}`;
+}
 
 module.exports = dependencyRule(
   {
@@ -15,12 +23,15 @@ module.exports = dependencyRule(
           allowUncles: {
             type: "boolean",
           },
+          message: {
+            type: "string",
+          },
         },
         additionalProperties: false,
       },
     ],
   },
-  function ({ dependency, node, context, options }) {
+  function ({ file, dependency, node, context, options }) {
     if (
       !dependency.isIgnored &&
       dependency.isLocal &&
@@ -32,7 +43,7 @@ module.exports = dependencyRule(
       (!options || !options.allowUncles || dependency.relationship !== "uncle")
     ) {
       context.report({
-        message: `Dependency is private of another element`,
+        message: errorMessage(file, dependency, options),
         node: node,
         ...dependencyLocation(node, context),
       });

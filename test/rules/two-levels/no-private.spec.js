@@ -1,9 +1,8 @@
 const { NO_PRIVATE: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { noPrivateMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
-
-const errorMessage = () => `Dependency is private of another element`;
 
 const options = [
   {
@@ -80,7 +79,9 @@ const test = (settings, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage(),
+            message: noPrivateMessage({
+              dep: "'components' with category 'molecules' and elementName 'molecule-c'",
+            }),
             type: "ImportDeclaration",
           },
         ],
@@ -91,7 +92,9 @@ const test = (settings, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage(),
+            message: noPrivateMessage({
+              dep: "'components' with category 'molecules' and elementName 'molecule-a'",
+            }),
             type: "ImportDeclaration",
           },
         ],
@@ -103,7 +106,9 @@ const test = (settings, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage(),
+            message: noPrivateMessage({
+              dep: "'helpers' with elementName 'helper-a'",
+            }),
             type: "ImportDeclaration",
           },
         ],
@@ -115,7 +120,9 @@ const test = (settings, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage(),
+            message: noPrivateMessage({
+              dep: "'components' with category 'molecules' and elementName 'molecule-c'",
+            }),
             type: "ImportDeclaration",
           },
         ],
@@ -135,7 +142,9 @@ const test = (settings, { absoluteFilePath }) => {
         ],
         errors: [
           {
-            message: errorMessage(),
+            message: noPrivateMessage({
+              dep: "'components' with category 'molecules' and elementName 'molecule-a'",
+            }),
             type: "ImportDeclaration",
           },
         ],

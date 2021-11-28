@@ -14,8 +14,13 @@ function entryPointNoRuleMessage({ entryPoint, dep }) {
   return `No rule allows the entry point '${entryPoint}' in dependencies of type ${dep}`;
 }
 
+function noPrivateMessage({ dep }) {
+  return `Dependency is private of element of type ${dep}`;
+}
+
 module.exports = {
   customErrorMessage,
   elementTypesNoRuleMessage,
   entryPointNoRuleMessage,
+  noPrivateMessage,
 };

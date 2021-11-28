@@ -79,12 +79,31 @@ function ruleElementMessage(elementPatterns, elementCapturedValues) {
   return elementMatcherMessage(elementPatterns, elementCapturedValues);
 }
 
+function elementPropertiesToReplaceInTemplate(element) {
+  return { ...element.capturedValues, type: element.type, internalPath: element.internalPath };
+}
+
 function customErrorMessage(message, file, dependency) {
-  return replaceObjectValuesInTemplates(
-    replaceObjectValuesInTemplates(message, { ...file.capturedValues, type: file.type }, "file"),
-    { ...dependency.capturedValues, type: dependency.type, internalPath: dependency.internalPath },
+  let replacedMessage = replaceObjectValuesInTemplates(
+    replaceObjectValuesInTemplates(message, elementPropertiesToReplaceInTemplate(file), "file"),
+    elementPropertiesToReplaceInTemplate(dependency),
     "dependency"
   );
+  if (file.parents[0]) {
+    replacedMessage = replaceObjectValuesInTemplates(
+      replacedMessage,
+      elementPropertiesToReplaceInTemplate(file.parents[0]),
+      "file.parent"
+    );
+  }
+  if (dependency.parents[0]) {
+    replacedMessage = replaceObjectValuesInTemplates(
+      replacedMessage,
+      elementPropertiesToReplaceInTemplate(dependency.parents[0]),
+      "dependency.parent"
+    );
+  }
+  return replacedMessage;
 }
 
 function elementCapturedValuesMessage(capturedValues) {
