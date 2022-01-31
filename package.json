@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "eslint-import-resolver-node": "0.3.6",
-    "eslint-module-utils": "2.7.2",
+    "eslint-module-utils": "2.7.3",
     "chalk": "4.1.2",
     "is-core-module": "2.8.1",
     "micromatch": "4.0.4"
