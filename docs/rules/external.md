@@ -14,10 +14,12 @@ It checks `import` statements to external modules and allow or disallow them bas
 
 * `enabled`: for enabling the rule. 0=off, 1=warn, 2=error.
 * `default`: `allow` or `disallow`. If no one `rule` matches, the external dependency will be allowed or disallowed based on this value.
+* `message`: Custom message for the rule errors. Note that __the rule default message provides a lot of information about why the error was produced__, so you should define a custom message only if you are sure about what you are doing. Read ["error messages"](#error-messages) for further information.
 * `rules`: Rules to be processed in order to decide if the `import` statement has to be allowed or not.
   * `from`: `<element matchers>` If the file being analyzed matches with this, then the rule will be executed to know if it allows/disallows the `import`. If not, the rule is skipped.
   * `disallow`: `<external modules matchers>` If the element being imported matches with this, then the result of the rule will be "disallow", and the import will be notified as an `eslint` error (this value can be overwritten by a next rule returning "allow")
   * `allow`: `<external modules matchers>` If the element being imported matches with this, then the result of the rule will be "allow", and the import will not be notified as an `eslint` error (this value can be overwritten by a next rule returning "disallow")
+  * `message`: `<string>` Custom error message only for this rule. Read ["error messages"](#error-messages) for further info.
 
 ##### External modules matchers
 
@@ -25,7 +27,7 @@ It checks `import` statements to external modules and allow or disallow them bas
 
 * `<string>`. A [`micromatch` pattern](https://github.com/micromatch/micromatch) to match the name of the module.
 * `[<string>, <object>]`. An array containing a [`micromatch` pattern](https://github.com/micromatch/micromatch) as first element, and an options object, which can have next properties:
-  * `specifiers`: `<array>` Array of used specifiers when importing the library. Each specifier can be expressed also as a [`micromatch` pattern](https://github.com/micromatch/micromatch).
+  * `specifiers`: `<array>` Array of used specifiers when importing the library. Each specifier can be expressed also as a [`micromatch` pattern](https://github.com/micromatch/micromatch). Matching specifiers are available as `${report.specifiers}` when defining custom error messages.
 
 If `specifiers` option is provided, then it will only match if any of the specifiers is used in the `import` statement.
 
@@ -232,7 +234,16 @@ _Modules can import `useHistory` from `react-router-dom`:_
 import { useHistory } from 'react-router-dom'
 ```
 
+### Error messages
+
+This rule provides a lot of information about the specific option producing an error, so the user can have enough context to solve it.
+
+* If the error is produced because all imports are disallowed by default, and no rule is specificly allowing it, then the message provides information about the file and the external dependency: `No rule allows the usage of external module 'react' in elements of type 'helper'`.
+* If the error is produced by a specific option, then the message includes information about the option producing it: `Usage of external module 'react' is not allowed in elements of type 'helper' with elementName 'helper-a'. Disallowed in rule 2`
+* If the error is produced by a specific option including specifiers property, then the message includes information it: `Usage of 'useMemo, useEffect' from external module 'react' is not allowed in elements of type 'helper' with elementName 'helper-a'. Disallowed in rule 2`
+
+You can also configure a custom error message for changing this default behaviour, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) in the main docs for further info about how to configure messages.
+
 ## Further reading
 
 Read [how to configure the `boundaries/elements` setting](../../README.md#global-settings) to assign an element type to each project's file.
-

@@ -1,12 +1,10 @@
 const { EXTERNAL: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { externalNoRuleMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
 const { absoluteFilePath } = pathResolvers("docs-examples");
-
-const errorMessage = (elementType, dependencyName) =>
-  `Usage of external module '${dependencyName}' is not allowed in '${elementType}'`;
 
 const settings = SETTINGS.docsExamples;
 
@@ -96,7 +94,25 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("helpers", "react"),
+          message: externalNoRuleMessage({
+            file: "'helpers' with category 'data' and elementName 'parse'",
+            dep: "react",
+          }),
+          type: "ImportDeclaration",
+        },
+      ],
+    },
+    // Helpers can't import specifier from react
+    {
+      filename: absoluteFilePath("helpers/data/parse.js"),
+      code: "import { useMemo } from 'react'",
+      options,
+      errors: [
+        {
+          message: externalNoRuleMessage({
+            file: "'helpers' with category 'data' and elementName 'parse'",
+            dep: "react",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -108,7 +124,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("components", "moment"),
+          message: externalNoRuleMessage({
+            file: "'components' with family 'atoms' and elementName 'atom-a'",
+            dep: "moment",
+          }),
           type: "ImportDeclaration",
         },
       ],
@@ -120,7 +139,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("components", "@material-ui/icons"),
+          message:
+            "Usage of external module '@material-ui/icons' is not allowed in elements of type 'components' with family 'molecules'. Disallowed in rule 3",
           type: "ImportDeclaration",
         },
       ],
@@ -132,7 +152,10 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage("modules", "react-router-dom"),
+          message: externalNoRuleMessage({
+            file: "'modules' with elementName 'module-a'",
+            dep: "react-router-dom",
+          }),
           type: "ImportDeclaration",
         },
       ],
