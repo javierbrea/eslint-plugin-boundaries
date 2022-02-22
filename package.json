@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-boundaries",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "description": "Eslint plugin checking architecture boundaries between elements",
   "keywords": [
     "eslint",
@@ -32,21 +32,21 @@
   },
   "dependencies": {
     "eslint-import-resolver-node": "0.3.6",
-    "eslint-module-utils": "2.7.1",
+    "eslint-module-utils": "2.7.3",
     "chalk": "4.1.2",
-    "is-core-module": "2.8.0",
+    "is-core-module": "2.8.1",
     "micromatch": "4.0.4"
   },
   "devDependencies": {
     "cross-env": "7.0.3",
-    "eslint": "8.3.0",
-    "eslint-config-prettier": "8.3.0",
+    "eslint": "8.9.0",
+    "eslint-config-prettier": "8.4.0",
     "eslint-plugin-prettier": "4.0.0",
     "husky": "7.0.4",
     "is-ci": "3.0.1",
-    "jest": "27.3.1",
-    "lint-staged": "12.1.2",
-    "prettier": "2.4.1"
+    "jest": "27.5.1",
+    "lint-staged": "12.3.4",
+    "prettier": "2.5.1"
   },
   "lint-staged": {
     "test/**/*.js": "eslint",

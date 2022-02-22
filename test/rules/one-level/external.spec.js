@@ -1,22 +1,16 @@
 const { EXTERNAL: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { customErrorMessage, externalNoRuleMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
-const errorMessage = (elementType, dependencyName) =>
-  `Usage of external module '${dependencyName}' is not allowed in '${elementType}'`;
-
-const destructuredErrorMessage = (elementType, imported, dependencyName) =>
-  `Usage of '${imported}' from external module '${dependencyName}' is not allowed in '${elementType}'`;
-
-const test = (settings, options, specifiers) => {
-  const failingSpecifiers = specifiers || ["Link", "Router"];
+const test = (settings, options, errorMessages) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
     valid: [
-      // Non recognized types can import whatever
+      // Non recognized types can import anything
       {
         filename: absoluteFilePath("foo/index.js"),
         code: "import React from 'react'",
@@ -27,7 +21,7 @@ const test = (settings, options, specifiers) => {
         filename: absoluteFilePath("components/component-a/ComponentA.js"),
         code: "import { withRouter } from 'react-router-dom'",
       },
-      // Ignored files can import whatever
+      // Ignored files can import anything
       {
         filename: absoluteFilePath("components/component-a/ComponentA.js"),
         code: "import { withRouter } from 'react-router-dom'",
@@ -100,7 +94,14 @@ const test = (settings, options, specifiers) => {
         options,
         errors: [
           {
-            message: errorMessage("helpers", "react"),
+            message: customErrorMessage(
+              errorMessages,
+              0,
+              externalNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "react",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -112,7 +113,14 @@ const test = (settings, options, specifiers) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "react-router-dom"),
+            message: customErrorMessage(
+              errorMessages,
+              1,
+              externalNoRuleMessage({
+                file: "'components' with elementName 'component-a'",
+                dep: "react-router-dom",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -124,7 +132,14 @@ const test = (settings, options, specifiers) => {
         options,
         errors: [
           {
-            message: destructuredErrorMessage("helpers", failingSpecifiers[0], "foo-library"),
+            message: customErrorMessage(
+              errorMessages,
+              2,
+              externalNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "foo-library",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -136,7 +151,14 @@ const test = (settings, options, specifiers) => {
         options,
         errors: [
           {
-            message: destructuredErrorMessage("helpers", failingSpecifiers[0], "foo-library"),
+            message: customErrorMessage(
+              errorMessages,
+              3,
+              externalNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "foo-library",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -148,7 +170,14 @@ const test = (settings, options, specifiers) => {
         options,
         errors: [
           {
-            message: destructuredErrorMessage("helpers", failingSpecifiers[0], "foo-library"),
+            message: customErrorMessage(
+              errorMessages,
+              4,
+              externalNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "foo-library",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -160,7 +189,14 @@ const test = (settings, options, specifiers) => {
         options,
         errors: [
           {
-            message: destructuredErrorMessage("helpers", failingSpecifiers[0], "foo-library"),
+            message: customErrorMessage(
+              errorMessages,
+              5,
+              externalNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "foo-library",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -172,10 +208,13 @@ const test = (settings, options, specifiers) => {
         options,
         errors: [
           {
-            message: destructuredErrorMessage(
-              "helpers",
-              `${failingSpecifiers[0]}, ${failingSpecifiers[1]}`,
-              "foo-library"
+            message: customErrorMessage(
+              errorMessages,
+              6,
+              externalNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "foo-library",
+              })
             ),
             type: "ImportDeclaration",
           },
@@ -188,7 +227,14 @@ const test = (settings, options, specifiers) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "@material-ui/core"),
+            message: customErrorMessage(
+              errorMessages,
+              7,
+              externalNoRuleMessage({
+                file: "'modules' with elementName 'module-a'",
+                dep: "@material-ui/core",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -197,7 +243,7 @@ const test = (settings, options, specifiers) => {
   });
 };
 
-const testCapture = (settings, options) => {
+const testCapture = (settings, options, errorMessages) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
     valid: [
@@ -228,7 +274,14 @@ const testCapture = (settings, options) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "react-router-dom"),
+            message: customErrorMessage(
+              errorMessages,
+              0,
+              externalNoRuleMessage({
+                file: "'modules'",
+                dep: "react-router-dom",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -240,7 +293,14 @@ const testCapture = (settings, options) => {
         options,
         errors: [
           {
-            message: errorMessage("helpers", "foo-library"),
+            message: customErrorMessage(
+              errorMessages,
+              1,
+              externalNoRuleMessage({
+                file: "'helpers' with elementName 'helper-b'",
+                dep: "foo-library",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -252,7 +312,15 @@ const testCapture = (settings, options) => {
         options,
         errors: [
           {
-            message: destructuredErrorMessage("helpers", "Link", "foo-library"),
+            message: customErrorMessage(
+              errorMessages,
+              2,
+              externalNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "foo-library",
+                specifiers: ["Link"],
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -262,51 +330,77 @@ const testCapture = (settings, options) => {
 };
 
 // deprecated settings
-test(SETTINGS.deprecated, [
+test(
+  SETTINGS.deprecated,
+  [
+    {
+      default: "allow",
+      rules: [
+        {
+          from: "helpers",
+          disallow: ["react", ["foo-library", { specifiers: ["Link", "Router"] }]],
+        },
+        {
+          from: "components",
+          disallow: ["react-router-dom"],
+        },
+        {
+          from: "modules",
+          disallow: ["@material-ui/core", ["react-router-dom", { specifiers: ["Link"] }]],
+        },
+      ],
+    },
+  ],
   {
-    default: "allow",
-    rules: [
-      {
-        from: "helpers",
-        disallow: ["react", ["foo-library", { specifiers: ["Link", "Router"] }]],
-      },
-      {
-        from: "components",
-        disallow: ["react-router-dom"],
-      },
-      {
-        from: "modules",
-        disallow: ["@material-ui/core", ["react-router-dom", { specifiers: ["Link"] }]],
-      },
-    ],
-  },
-]);
+    0: "Usage of external module 'react' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    1: "Usage of external module 'react-router-dom' is not allowed in elements of type 'components'. Disallowed in rule 2",
+    2: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    3: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    4: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    5: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+  }
+);
 
 // allow-based options
 
-test(SETTINGS.oneLevel, [
+test(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "allow",
+      rules: [
+        {
+          from: "helpers",
+          disallow: ["react", ["foo-library", { specifiers: ["Link", "Router"] }]],
+        },
+        {
+          from: "components",
+          disallow: ["react-router-dom"],
+        },
+        {
+          from: "modules",
+          disallow: ["@material-ui/*", ["react-router-dom", { specifiers: ["Link"] }]],
+        },
+        {
+          from: "modules",
+          allow: ["@material-ui/icons"],
+        },
+      ],
+    },
+  ],
   {
-    default: "allow",
-    rules: [
-      {
-        from: "helpers",
-        disallow: ["react", ["foo-library", { specifiers: ["Link", "Router"] }]],
-      },
-      {
-        from: "components",
-        disallow: ["react-router-dom"],
-      },
-      {
-        from: "modules",
-        disallow: ["@material-ui/*", ["react-router-dom", { specifiers: ["Link"] }]],
-      },
-      {
-        from: "modules",
-        allow: ["@material-ui/icons"],
-      },
-    ],
-  },
-]);
+    0: "Usage of external module 'react' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    1: "Usage of external module 'react-router-dom' is not allowed in elements of type 'components'. Disallowed in rule 2",
+    2: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    3: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    4: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    5: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+  }
+);
 
 // micromatch-based options
 
@@ -335,55 +429,126 @@ test(
       ],
     },
   ],
-  ["L*", "R*"]
+  {
+    0: "Usage of external module 'react' is not allowed in elements of type 'h*'. Disallowed in rule 1",
+    1: "Usage of external module 'react-router-dom' is not allowed in elements of type 'c*'. Disallowed in rule 2",
+    2: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
+    3: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
+    4: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
+    5: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
+    6: "Usage of 'L*, R*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
+    7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'm*'. Disallowed in rule 3",
+  }
 );
 
 // disallow-based options
 
-test(SETTINGS.oneLevel, [
+test(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          from: "helpers",
+          allow: ["foo-library"],
+          disallow: [["foo-library", { specifiers: ["Link", "Router"] }]],
+        },
+        {
+          from: "components",
+          allow: ["react"],
+        },
+        {
+          from: "modules",
+          allow: ["react", "react-router-dom"],
+          disallow: [["react-router-dom", { specifiers: ["Link"] }]],
+        },
+        {
+          from: "modules",
+          allow: ["@material-ui/icons"],
+        },
+      ],
+    },
+  ],
   {
-    default: "disallow",
-    rules: [
-      {
-        from: "helpers",
-        allow: ["foo-library"],
-        disallow: [["foo-library", { specifiers: ["Link", "Router"] }]],
-      },
-      {
-        from: "components",
-        allow: ["react"],
-      },
-      {
-        from: "modules",
-        allow: ["react", "react-router-dom"],
-        disallow: [["react-router-dom", { specifiers: ["Link"] }]],
-      },
-      {
-        from: "modules",
-        allow: ["@material-ui/icons"],
-      },
-    ],
-  },
-]);
+    2: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    3: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    4: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    5: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+  }
+);
+
+// custom error messages
+
+test(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "disallow",
+      message:
+        "Importing ${dependency.source} is not allowed in ${file.type} with name ${file.elementName}",
+      rules: [
+        {
+          from: "helpers",
+          allow: ["foo-library"],
+          disallow: [["foo-library", { specifiers: ["Link", "Router"] }]],
+          message: "Do not import ${report.specifiers} from ${dependency.source} in helpers",
+        },
+        {
+          from: "components",
+          allow: ["react"],
+        },
+        {
+          from: "modules",
+          allow: ["react", "react-router-dom"],
+          disallow: [["react-router-dom", { specifiers: ["Link"] }]],
+        },
+        {
+          from: "modules",
+          allow: ["@material-ui/icons"],
+        },
+      ],
+    },
+  ],
+  {
+    0: "Importing react is not allowed in helpers with name helper-a",
+    1: "Importing react-router-dom is not allowed in components with name component-a",
+    2: "Do not import Link from foo-library in helpers",
+    3: "Do not import Link from foo-library in helpers",
+    4: "Do not import Link from foo-library in helpers",
+    5: "Do not import Link from foo-library in helpers",
+    6: "Do not import Link, Router from foo-library in helpers",
+    7: "Importing @material-ui/core is not allowed in modules with name module-a",
+  }
+);
 
 // options with capture allow-based
 
-testCapture(SETTINGS.oneLevel, [
+testCapture(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "allow",
+      rules: [
+        {
+          from: [["modules", { elementName: "module-b" }]],
+          disallow: ["react-router-dom"],
+        },
+        {
+          from: [["helpers", { elementName: "helper-b" }]],
+          disallow: ["foo-library"],
+        },
+        {
+          from: [["helpers", { elementName: "helper-a" }]],
+          disallow: [["foo-library", { specifiers: ["Link"] }]],
+        },
+      ],
+    },
+  ],
   {
-    default: "allow",
-    rules: [
-      {
-        from: [["modules", { elementName: "module-b" }]],
-        disallow: ["react-router-dom"],
-      },
-      {
-        from: [["helpers", { elementName: "helper-b" }]],
-        disallow: ["foo-library"],
-      },
-      {
-        from: [["helpers", { elementName: "helper-a" }]],
-        disallow: [["foo-library", { specifiers: ["Link"] }]],
-      },
-    ],
-  },
-]);
+    0: "Usage of external module 'react-router-dom' is not allowed in elements of type 'modules' with elementName 'module-b'. Disallowed in rule 1",
+    1: "Usage of external module 'foo-library' is not allowed in elements of type 'helpers' with elementName 'helper-b'. Disallowed in rule 2",
+    2: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers' with elementName 'helper-a'. Disallowed in rule 3",
+  }
+);

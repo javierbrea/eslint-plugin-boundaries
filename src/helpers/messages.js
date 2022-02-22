@@ -80,10 +80,15 @@ function ruleElementMessage(elementPatterns, elementCapturedValues) {
 }
 
 function elementPropertiesToReplaceInTemplate(element) {
-  return { ...element.capturedValues, type: element.type, internalPath: element.internalPath };
+  return {
+    ...element.capturedValues,
+    type: element.type,
+    internalPath: element.internalPath,
+    source: element.source,
+  };
 }
 
-function customErrorMessage(message, file, dependency) {
+function customErrorMessage(message, file, dependency, report = {}) {
   let replacedMessage = replaceObjectValuesInTemplates(
     replaceObjectValuesInTemplates(message, elementPropertiesToReplaceInTemplate(file), "file"),
     elementPropertiesToReplaceInTemplate(dependency),
@@ -103,7 +108,7 @@ function customErrorMessage(message, file, dependency) {
       "dependency.parent"
     );
   }
-  return replacedMessage;
+  return replaceObjectValuesInTemplates(replacedMessage, report, "report");
 }
 
 function elementCapturedValuesMessage(capturedValues) {
