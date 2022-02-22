@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
-## [unreleased]
+## [2.9.0] - 2022-02-22
 
 ### Added
 - feat(#170): Support custom messages in `no-external` rule config
