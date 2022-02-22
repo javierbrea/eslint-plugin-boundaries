@@ -44,6 +44,15 @@ function elementRulesAllowExternalDependency(element, dependency, options) {
   });
 }
 
+function errorMessage(ruleData, file, dependency) {
+  if (ruleData.report) {
+    return `Usage of '${ruleData.report.join(", ")}' from external module '${
+      dependency.baseModule
+    }' is not allowed in '${file.type}'`;
+  }
+  return `Usage of external module '${dependency.baseModule}' is not allowed in '${file.type}'`;
+}
+
 module.exports = dependencyRule(
   {
     ruleName: RULE_EXTERNAL,
@@ -65,27 +74,17 @@ module.exports = dependencyRule(
   },
   function ({ dependency, file, node, context, options }) {
     if (dependency.isExternal) {
-      const isAllowed = elementRulesAllowExternalDependency(
+      const ruleData = elementRulesAllowExternalDependency(
         file,
         { ...dependency, specifiers: node.source.parent.specifiers },
         options
       );
-      if (!isAllowed.result) {
-        if (isAllowed.report) {
-          context.report({
-            message: `Usage of '${isAllowed.report.join(", ")}' from external module '${
-              dependency.baseModule
-            }' is not allowed in '${file.type}'`,
-            node: node,
-            ...dependencyLocation(node, context),
-          });
-        } else {
-          context.report({
-            message: `Usage of external module '${dependency.baseModule}' is not allowed in '${file.type}'`,
-            node: node,
-            ...dependencyLocation(node, context),
-          });
-        }
+      if (!ruleData.result) {
+        context.report({
+          message: errorMessage(ruleData, file, dependency),
+          node: node,
+          ...dependencyLocation(node, context),
+        });
       }
     }
   },
