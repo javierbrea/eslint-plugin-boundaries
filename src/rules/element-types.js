@@ -42,10 +42,7 @@ module.exports = dependencyRule(
   {
     ruleName: RULE_ELEMENT_TYPES,
     description: `Check allowed dependencies between element types`,
-    schema: rulesOptionsSchema({
-      customMessage: true,
-      customRuleMessage: true,
-    }),
+    schema: rulesOptionsSchema(),
   },
   function ({ dependency, file, node, context, options }) {
     if (dependency.isLocal && !dependency.isIgnored && dependency.type && !dependency.isInternal) {

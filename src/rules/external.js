@@ -6,6 +6,7 @@ const dependencyRule = require("../rules-factories/dependency-rule");
 
 const { rulesOptionsSchema } = require("../helpers/validations");
 const { dependencyLocation, elementRulesAllowDependency } = require("../helpers/rules");
+const { customErrorMessage, ruleElementMessage, elementMessage } = require("../helpers/messages");
 
 function specifiersMatch(specifiers, options) {
   const importedSpecifiersNames = specifiers
@@ -44,6 +45,32 @@ function elementRulesAllowExternalDependency(element, dependency, options) {
   });
 }
 
+function errorMessage(ruleData, file, dependency) {
+  const ruleReport = ruleData.ruleReport;
+  if (ruleReport.message) {
+    return customErrorMessage(ruleReport.message, file, dependency, {
+      specifiers: ruleData.report && ruleData.report.join(", "),
+    });
+  }
+  if (ruleReport.isDefault) {
+    return `No rule allows the usage of external module '${
+      dependency.baseModule
+    }' in elements ${elementMessage(file)}`;
+  }
+
+  const fileReport = `is not allowed in ${ruleElementMessage(
+    ruleReport.element,
+    file.capturedValues
+  )}. Disallowed in rule ${ruleReport.index + 1}`;
+
+  if (ruleData.report) {
+    return `Usage of '${ruleData.report.join(", ")}' from external module '${
+      dependency.baseModule
+    }' ${fileReport}`;
+  }
+  return `Usage of external module '${dependency.baseModule}' ${fileReport}`;
+}
+
 module.exports = dependencyRule(
   {
     ruleName: RULE_EXTERNAL,
@@ -65,27 +92,17 @@ module.exports = dependencyRule(
   },
   function ({ dependency, file, node, context, options }) {
     if (dependency.isExternal) {
-      const isAllowed = elementRulesAllowExternalDependency(
+      const ruleData = elementRulesAllowExternalDependency(
         file,
         { ...dependency, specifiers: node.source.parent.specifiers },
         options
       );
-      if (!isAllowed.result) {
-        if (isAllowed.report) {
-          context.report({
-            message: `Usage of '${isAllowed.report.join(", ")}' from external module '${
-              dependency.baseModule
-            }' is not allowed in '${file.type}'`,
-            node: node,
-            ...dependencyLocation(node, context),
-          });
-        } else {
-          context.report({
-            message: `Usage of external module '${dependency.baseModule}' is not allowed in '${file.type}'`,
-            node: node,
-            ...dependencyLocation(node, context),
-          });
-        }
+      if (!ruleData.result) {
+        context.report({
+          message: errorMessage(ruleData, file, dependency),
+          node: node,
+          ...dependencyLocation(node, context),
+        });
       }
     }
   },

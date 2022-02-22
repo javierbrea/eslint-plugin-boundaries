@@ -46,8 +46,6 @@ module.exports = dependencyRule(
     description: `Check entry point used for each element type`,
     schema: rulesOptionsSchema({
       rulesMainKey: "target",
-      customMessage: true,
-      customRuleMessage: true,
     }),
   },
   function ({ dependency, file, node, context, options }) {

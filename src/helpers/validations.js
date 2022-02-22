@@ -42,12 +42,15 @@ function elementsMatcherSchema(matcherOptions = DEFAULT_MATCHER_OPTIONS) {
   };
 }
 
-function rulesOptionsSchema(options) {
+function rulesOptionsSchema(options = {}) {
   const mainKey = rulesMainKey(options.rulesMainKey);
-  const schema = [
+  return [
     {
       type: "object",
       properties: {
+        message: {
+          type: "string",
+        },
         default: {
           type: "string",
           enum: ["allow", "disallow"],
@@ -60,6 +63,9 @@ function rulesOptionsSchema(options) {
               [mainKey]: elementsMatcherSchema(),
               allow: elementsMatcherSchema(options.targetMatcherOptions),
               disallow: elementsMatcherSchema(options.targetMatcherOptions),
+              message: {
+                type: "string",
+              },
             },
             additionalProperties: false,
             anyOf: [
@@ -79,17 +85,6 @@ function rulesOptionsSchema(options) {
       additionalProperties: false,
     },
   ];
-  if (options.customMessage) {
-    schema[0].properties.message = {
-      type: "string",
-    };
-  }
-  if (options.customRuleMessage) {
-    schema[0].properties.rules.items.properties.message = {
-      type: "string",
-    };
-  }
-  return schema;
 }
 
 function isValidElementTypesMatcher(matcher, settings) {

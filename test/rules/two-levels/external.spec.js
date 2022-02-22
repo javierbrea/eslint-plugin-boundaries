@@ -1,12 +1,10 @@
 const { EXTERNAL: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { customErrorMessage, externalNoRuleMessage } = require("../../support/messages");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
-const errorMessage = (elementType, dependencyName) =>
-  `Usage of external module '${dependencyName}' is not allowed in '${elementType}'`;
-
-const test = (settings, options, { absoluteFilePath }) => {
+const test = (settings, options, { absoluteFilePath }, errorMessages) => {
   const ruleTester = createRuleTester(settings);
 
   ruleTester.run(RULE, rule, {
@@ -91,7 +89,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("helpers", "react"),
+            message: customErrorMessage(
+              errorMessages,
+              0,
+              externalNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "react",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -103,7 +108,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "@material-ui/core"),
+            message: customErrorMessage(
+              errorMessages,
+              1,
+              externalNoRuleMessage({
+                file: "'components' with category 'atoms' and elementName 'atom-a'",
+                dep: "@material-ui/core",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -115,7 +127,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "@material-ui/core"),
+            message: customErrorMessage(
+              errorMessages,
+              2,
+              externalNoRuleMessage({
+                file: "'components' with category 'molecules' and elementName 'molecule-a'",
+                dep: "@material-ui/core",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -127,7 +146,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("components", "@material-ui/core"),
+            message: customErrorMessage(
+              errorMessages,
+              3,
+              externalNoRuleMessage({
+                file: "'components' with category 'layouts' and elementName 'layout-a'",
+                dep: "@material-ui/core",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -139,7 +165,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "react-router-dom"),
+            message: customErrorMessage(
+              errorMessages,
+              4,
+              externalNoRuleMessage({
+                file: "'modules' with domain 'pages' and elementName 'page-a'",
+                dep: "react-router-dom",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -151,7 +184,14 @@ const test = (settings, options, { absoluteFilePath }) => {
         options,
         errors: [
           {
-            message: errorMessage("modules", "react"),
+            message: customErrorMessage(
+              errorMessages,
+              4,
+              externalNoRuleMessage({
+                file: "'modules' with domain 'domain-b' and elementName 'module-b'",
+                dep: "react",
+              })
+            ),
             type: "ImportDeclaration",
           },
         ],
@@ -191,7 +231,8 @@ test(
       ],
     },
   ],
-  pathResolvers("two-levels")
+  pathResolvers("two-levels"),
+  {}
 );
 
 test(
@@ -223,5 +264,6 @@ test(
       ],
     },
   ],
-  pathResolvers("two-levels-with-private")
+  pathResolvers("two-levels-with-private"),
+  {}
 );
