@@ -14,7 +14,7 @@ const replaceAliases = (filePath, config) => {
 
 module.exports = {
   interfaceVersion: 2,
-  resolve: function (source, file, config) {
+  resolve: function (source, _file, config) {
     if (resolve.isCore(source)) return { found: true, path: null };
     try {
       return {
