@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - chore(): Run tests also using Node.js v18.x
 
 ### Changed
+- chore(deps): Update dependencies
 - chore(deps): Update devDependencies
 
 ## [2.9.0] - 2022-02-22
