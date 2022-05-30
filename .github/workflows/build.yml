@@ -11,16 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ["12.22.1", "14.16.1", "15.14.0", "16.13.0", "17.0.1"]
+        node: ["12.22.1", "14.16.1", "15.14.0", "16.13.0", "17.0.1", "18.2.0"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Extract branch name
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF##*/})"
         id: extract-branch
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
       - name: Cache npm
@@ -51,12 +51,12 @@ jobs:
     runs-on: windows-2019
     strategy:
       matrix:
-        node: ["12.22.1", "14.16.1", "15.14.0", "16.13.0", "17.0.1"]
+        node: ["12.22.1", "14.16.1", "15.14.0", "16.13.0", "17.0.1", "18.2.0"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
       - name: Cache npm
@@ -81,7 +81,7 @@ jobs:
     needs: test
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Download test results

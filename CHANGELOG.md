@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [2.10.0] - 2022-05-30
+
+### Added
+- chore(): Run tests also using Node.js v18.x
+
+### Changed
+- chore(deps): Update dependencies
+- chore(deps): Update devDependencies
+
 ## [2.9.0] - 2022-02-22
 
 ### Added
