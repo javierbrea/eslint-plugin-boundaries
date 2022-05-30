@@ -24,7 +24,7 @@ jobs:
           exit 1
       - name: Get NPM version
         id: package-version
-        uses: martinbeentjes/npm-get-version-action@v1.1.0
+        uses: martinbeentjes/npm-get-version-action@v1.2.3
       - name: Check Changelog version
         id: changelog_reader
         uses: mindsers/changelog-reader-action@v2.0.0
