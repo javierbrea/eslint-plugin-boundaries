@@ -42,7 +42,7 @@ jobs:
       - name: Test unit
         run: npm run test:unit
       - name: Upload test results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-${{ matrix.node }}
           path: coverage
