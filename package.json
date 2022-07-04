@@ -41,7 +41,7 @@
     "cross-env": "7.0.3",
     "eslint": "8.18.0",
     "eslint-config-prettier": "8.5.0",
-    "eslint-plugin-prettier": "4.0.0",
+    "eslint-plugin-prettier": "4.2.1",
     "husky": "8.0.1",
     "is-ci": "3.0.1",
     "jest": "28.1.2",
