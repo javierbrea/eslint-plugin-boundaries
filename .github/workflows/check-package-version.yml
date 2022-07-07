@@ -27,7 +27,7 @@ jobs:
         uses: martinbeentjes/npm-get-version-action@v1.2.3
       - name: Check Changelog version
         id: changelog_reader
-        uses: mindsers/changelog-reader-action@v2.1.0
+        uses: mindsers/changelog-reader-action@v2.1.1
         with:
           version: ${{ steps.package-version.outputs.current-version }}
           path: ./CHANGELOG.md
