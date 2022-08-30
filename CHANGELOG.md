@@ -10,14 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 ### Removed
 
-## [unreleased]
+## [2.10.2]
 
 ### Changed
 - chore(deps): Update devDependencies
 - chore(renovate): Avoid upgrading chalk to v5
 
 ### Removed
-- chore(deps): Drop support for Node.js 12.x
+- chore(deps): Drop support for Node.js 12.x. (Affects only to dev scripts)
+
+### Fixed
+- docs: Fix typo in readme
 
 ## [2.10.1] - 2022-05-30
 

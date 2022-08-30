@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-boundaries",
-  "version": "2.10.1",
+  "version": "2.10.2",
   "description": "Eslint plugin checking architecture boundaries between elements",
   "keywords": [
     "eslint",
