@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 ### Removed
 
+## [3.0.0] - 2022-08-30
+
+### Removed
+- chore(deps): Drop support for Node.js 12.x
+
 ## [2.10.2] - 2022-08-30
 
 ### Changed
