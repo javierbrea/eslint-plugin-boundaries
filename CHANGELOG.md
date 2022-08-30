@@ -12,8 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 
+### Changed
 - chore(deps): Update devDependencies
 - chore(renovate): Avoid upgrading chalk to v5
+
+### Removed
+- chore(deps): Drop support for Node.js 12.x
 
 ## [2.10.1] - 2022-05-30
 
