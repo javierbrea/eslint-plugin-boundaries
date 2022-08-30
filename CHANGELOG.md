@@ -1,15 +1,23 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/)
-and this project adheres to [Semantic Versioning](http://semver.org/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/)
+and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 ### Added
 ### Changed
 ### Fixed
 ### Removed
-### BREAKING CHANGES
+
+## [unreleased]
+
+### Changed
+- chore(deps): Update devDependencies
+- chore(renovate): Avoid upgrading chalk to v5
+
+### Removed
+- chore(deps): Drop support for Node.js 12.x
 
 ## [2.10.1] - 2022-05-30
 

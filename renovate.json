@@ -1,5 +1,12 @@
 {
   "extends": [
     "github>javierbrea/nodejs-ci-cd-shared-config"
+  ],
+  "packageRules": [
+    {
+      "matchPaths": ["package.json"],
+      "matchPackageNames": ["chalk"],
+      "allowedVersions": "<5.0.0"
+    }
   ]
 }
