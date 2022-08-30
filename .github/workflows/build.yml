@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ["12.22.1", "14.16.1", "15.14.0", "16.13.0", "17.0.1", "18.2.0"]
+        node: ["14.16.1", "15.14.0", "16.13.0", "17.0.1", "18.2.0"]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Cache npm
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-npm
         with:
@@ -42,7 +42,7 @@ jobs:
       - name: Test unit
         run: npm run test:unit
       - name: Upload test results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-${{ matrix.node }}
           path: coverage
@@ -51,7 +51,7 @@ jobs:
     runs-on: windows-2019
     strategy:
       matrix:
-        node: ["12.22.1", "14.16.1", "15.14.0", "16.13.0", "17.0.1", "18.2.0"]
+        node: ["14.16.1", "15.14.0", "16.13.0", "17.0.1", "18.2.0"]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -60,7 +60,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Cache npm
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-windows-npm
         with:
@@ -85,7 +85,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Download test results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: coverage-16.13.0
           path: coverage
