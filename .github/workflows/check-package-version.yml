@@ -33,7 +33,7 @@ jobs:
           path: ./CHANGELOG.md
       - name: Read version from Sonar config
         id: sonar-version
-        uses: christian-draeger/read-properties@1.0.1
+        uses: christian-draeger/read-properties@1.1.0
         with:
           path: './sonar-project.properties'
           property: 'sonar.projectVersion'
