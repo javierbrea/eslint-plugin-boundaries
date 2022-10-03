@@ -44,17 +44,24 @@ function dependencyLocation(node, context) {
   };
 }
 
-function micromatchPatternReplacingObjectValues(pattern, object) {
-  return replaceObjectValuesInTemplates(pattern, object);
+function micromatchPatternReplacingObjectsValues(pattern, object) {
+  let patternToReplace = pattern;
+  // Backward compatibility
+  if (object.from) {
+    patternToReplace = replaceObjectValuesInTemplates(patternToReplace, object.from);
+  }
+  return Object.keys(object).reduce((replacedPattern, namespace) => {
+    return replaceObjectValuesInTemplates(replacedPattern, object, namespace);
+  }, patternToReplace);
 }
 
-function isObjectMatch(objectWithMatchers, object, objectWithValuesToReplace) {
+function isObjectMatch(objectWithMatchers, object, objectsWithValuesToReplace) {
   return Object.keys(objectWithMatchers).reduce((isMatch, key) => {
     if (isMatch) {
-      const micromatchPattern = objectWithValuesToReplace
-        ? micromatchPatternReplacingObjectValues(
+      const micromatchPattern = objectsWithValuesToReplace
+        ? micromatchPatternReplacingObjectsValues(
             objectWithMatchers[key],
-            objectWithValuesToReplace
+            objectsWithValuesToReplace
           )
         : objectWithMatchers[key];
       return micromatch.isMatch(object[key], micromatchPattern);
@@ -67,16 +74,27 @@ function rulesMainKey(key) {
   return key || "from";
 }
 
-function ruleMatch(ruleMatchers, elementInfo, isMatch, elementToCompare = {}) {
+function ruleMatch(ruleMatchers, targetElement, isMatch, fromElement = {}) {
   let match = { result: false, report: null };
   const matchers = !isArray(ruleMatchers) ? [ruleMatchers] : ruleMatchers;
   matchers.forEach((matcher) => {
     if (!match.result) {
       if (isArray(matcher)) {
         const [value, captures] = matcher;
-        match = isMatch(elementInfo, value, captures, elementToCompare.capturedValues);
+        match = isMatch(targetElement, value, captures, {
+          from: fromElement.capturedValues,
+          target: targetElement.capturedValues,
+        });
       } else {
-        match = isMatch(elementInfo, matcher, {}, elementInfo.capturedValues);
+        match = isMatch(
+          targetElement,
+          matcher,
+          {},
+          {
+            from: fromElement.capturedValues,
+            target: targetElement.capturedValues,
+          }
+        );
       }
     }
   });
@@ -88,15 +106,20 @@ function isMatchElementKey(
   matcher,
   options,
   elementKey,
-  elementToCompareCapturedValues
+  elementsToCompareCapturedValues
 ) {
-  const isMatch = micromatch.isMatch(
-    elementInfo[elementKey],
-    replaceObjectValuesInTemplates(matcher, elementToCompareCapturedValues || {})
-  );
+  let isMatch;
+  if (elementsToCompareCapturedValues) {
+    isMatch = micromatch.isMatch(
+      elementInfo[elementKey],
+      micromatchPatternReplacingObjectsValues(matcher, elementsToCompareCapturedValues)
+    );
+  } else {
+    isMatch = micromatch.isMatch(elementInfo[elementKey], matcher);
+  }
   if (isMatch && options) {
     return {
-      result: isObjectMatch(options, elementInfo.capturedValues, elementToCompareCapturedValues),
+      result: isObjectMatch(options, elementInfo.capturedValues, elementsToCompareCapturedValues),
     };
   }
   return {
@@ -104,8 +127,8 @@ function isMatchElementKey(
   };
 }
 
-function isMatchElementType(elementInfo, matcher, options, elementToCompareCapturedValues) {
-  return isMatchElementKey(elementInfo, matcher, options, "type", elementToCompareCapturedValues);
+function isMatchElementType(elementInfo, matcher, options, elementsToCompareCapturedValues) {
+  return isMatchElementKey(elementInfo, matcher, options, "type", elementsToCompareCapturedValues);
 }
 
 function getElementRules(elementInfo, options, mainKey) {
@@ -182,5 +205,5 @@ module.exports = {
   elementRulesAllowDependency,
   getElementRules,
   rulesMainKey,
-  micromatchPatternReplacingObjectValues,
+  micromatchPatternReplacingObjectsValues,
 };

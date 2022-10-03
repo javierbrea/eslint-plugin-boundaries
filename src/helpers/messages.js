@@ -1,5 +1,5 @@
 const { isString, isArray, replaceObjectValuesInTemplates } = require("./utils");
-const { micromatchPatternReplacingObjectValues } = require("./rules");
+const { micromatchPatternReplacingObjectsValues } = require("./rules");
 
 function quote(str) {
   return `'${str}'`;
@@ -20,9 +20,9 @@ function propertiesConcater(properties, index) {
 }
 
 function micromatchPatternMessage(micromatchPatterns, elementCapturedValues) {
-  const micromatchPatternsWithValues = micromatchPatternReplacingObjectValues(
+  const micromatchPatternsWithValues = micromatchPatternReplacingObjectsValues(
     micromatchPatterns,
-    elementCapturedValues
+    { from: elementCapturedValues }
   );
   if (isArray(micromatchPatternsWithValues)) {
     if (micromatchPatternsWithValues.length === 1) {
