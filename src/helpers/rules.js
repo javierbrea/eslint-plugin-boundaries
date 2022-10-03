@@ -50,7 +50,7 @@ function micromatchPatternReplacingObjectValues(pattern, object) {
 
 function isObjectMatch(objectWithMatchers, object, objectWithValuesToReplace) {
   return Object.keys(objectWithMatchers).reduce((isMatch, key) => {
-    if (isMatch || isMatch === null) {
+    if (isMatch) {
       const micromatchPattern = objectWithValuesToReplace
         ? micromatchPatternReplacingObjectValues(
             objectWithMatchers[key],
@@ -60,7 +60,7 @@ function isObjectMatch(objectWithMatchers, object, objectWithValuesToReplace) {
       return micromatch.isMatch(object[key], micromatchPattern);
     }
     return isMatch;
-  }, null);
+  }, true);
 }
 
 function rulesMainKey(key) {
@@ -76,7 +76,7 @@ function ruleMatch(ruleMatchers, elementInfo, isMatch, elementToCompare = {}) {
         const [value, captures] = matcher;
         match = isMatch(elementInfo, value, captures, elementToCompare.capturedValues);
       } else {
-        match = isMatch(elementInfo, matcher);
+        match = isMatch(elementInfo, matcher, {}, elementInfo.capturedValues);
       }
     }
   });
@@ -90,7 +90,10 @@ function isMatchElementKey(
   elementKey,
   elementToCompareCapturedValues
 ) {
-  const isMatch = micromatch.isMatch(elementInfo[elementKey], matcher);
+  const isMatch = micromatch.isMatch(
+    elementInfo[elementKey],
+    replaceObjectValuesInTemplates(matcher, elementToCompareCapturedValues || {})
+  );
   if (isMatch && options) {
     return {
       result: isObjectMatch(options, elementInfo.capturedValues, elementToCompareCapturedValues),
@@ -118,7 +121,7 @@ function getElementRules(elementInfo, options, mainKey) {
       };
     })
     .filter((rule) => {
-      return ruleMatch(rule[key], elementInfo, isMatchElementType).result;
+      return ruleMatch(rule[key], elementInfo, isMatchElementType, elementInfo).result;
     });
 }
 

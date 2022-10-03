@@ -24,7 +24,7 @@ function specifiersMatch(specifiers, options) {
 
 function isMatchExternalDependency(dependency, matcher, options) {
   const isMatch = micromatch.isMatch(dependency.baseModule, matcher);
-  if (isMatch && options) {
+  if (isMatch && options && Object.keys(options).length) {
     const specifiersResult = specifiersMatch(dependency.specifiers, options.specifiers);
     return {
       result: specifiersResult.length > 0,
