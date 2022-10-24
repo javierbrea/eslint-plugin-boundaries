@@ -34,7 +34,7 @@
     "chalk": "4.1.2",
     "eslint-import-resolver-node": "0.3.6",
     "eslint-module-utils": "2.7.4",
-    "is-core-module": "2.10.0",
+    "is-core-module": "2.11.0",
     "micromatch": "4.0.5"
   },
   "devDependencies": {
