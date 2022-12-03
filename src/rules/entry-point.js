@@ -10,8 +10,8 @@ const {
 } = require("../helpers/rules");
 const { customErrorMessage, ruleElementMessage, elementMessage } = require("../helpers/messages");
 
-function isMatchElementInternalPath(elementInfo, matcher, options) {
-  return isMatchElementKey(elementInfo, matcher, options, "internalPath");
+function isMatchElementInternalPath(elementInfo, matcher, options, elementsCapturedValues) {
+  return isMatchElementKey(elementInfo, matcher, options, "internalPath", elementsCapturedValues);
 }
 
 function elementRulesAllowEntryPoint(_element, dependency, options) {

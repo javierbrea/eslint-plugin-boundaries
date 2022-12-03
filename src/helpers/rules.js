@@ -51,7 +51,10 @@ function micromatchPatternReplacingObjectsValues(pattern, object) {
     patternToReplace = replaceObjectValuesInTemplates(patternToReplace, object.from);
   }
   return Object.keys(object).reduce((replacedPattern, namespace) => {
-    return replaceObjectValuesInTemplates(replacedPattern, object, namespace);
+    if (!object[namespace]) {
+      return replacedPattern;
+    }
+    return replaceObjectValuesInTemplates(replacedPattern, object[namespace], namespace);
   }, patternToReplace);
 }
 
