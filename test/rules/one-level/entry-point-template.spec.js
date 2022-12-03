@@ -113,28 +113,7 @@ const testCapture = (settings, options, errorMessages = {}) => {
 // options with capture
 
 testCapture(
-  {
-    ...SETTINGS.oneLevel,
-    ...{
-      "boundaries/elements": [
-        {
-          type: "helpers",
-          pattern: "helpers/*",
-          capture: ["elementName"],
-        },
-        {
-          type: "components",
-          pattern: ["components/*"],
-          capture: ["elementName"],
-        },
-        {
-          type: "modules",
-          pattern: "modules/*",
-          capture: ["elementName"],
-        },
-      ],
-    },
-  },
+  SETTINGS.oneLevel,
   [
     {
       default: "disallow",
@@ -166,28 +145,7 @@ testCapture(
 // Custom messages
 
 testCapture(
-  {
-    ...SETTINGS.oneLevel,
-    ...{
-      "boundaries/elements": [
-        {
-          type: "helpers",
-          pattern: "helpers/*",
-          capture: ["elementName"],
-        },
-        {
-          type: "components",
-          pattern: ["components/*"],
-          capture: ["elementName"],
-        },
-        {
-          type: "modules",
-          pattern: "modules/*",
-          capture: ["elementName"],
-        },
-      ],
-    },
-  },
+  SETTINGS.oneLevel,
   [
     {
       default: "disallow",
