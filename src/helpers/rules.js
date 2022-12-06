@@ -61,12 +61,10 @@ function micromatchPatternReplacingObjectsValues(pattern, object) {
 function isObjectMatch(objectWithMatchers, object, objectsWithValuesToReplace) {
   return Object.keys(objectWithMatchers).reduce((isMatch, key) => {
     if (isMatch) {
-      const micromatchPattern = objectsWithValuesToReplace
-        ? micromatchPatternReplacingObjectsValues(
-            objectWithMatchers[key],
-            objectsWithValuesToReplace
-          )
-        : objectWithMatchers[key];
+      const micromatchPattern = micromatchPatternReplacingObjectsValues(
+        objectWithMatchers[key],
+        objectsWithValuesToReplace
+      );
       return micromatch.isMatch(object[key], micromatchPattern);
     }
     return isMatch;
@@ -77,7 +75,7 @@ function rulesMainKey(key) {
   return key || "from";
 }
 
-function ruleMatch(ruleMatchers, targetElement, isMatch, fromElement = {}) {
+function ruleMatch(ruleMatchers, targetElement, isMatch, fromElement) {
   let match = { result: false, report: null };
   const matchers = !isArray(ruleMatchers) ? [ruleMatchers] : ruleMatchers;
   matchers.forEach((matcher) => {
@@ -111,15 +109,10 @@ function isMatchElementKey(
   elementKey,
   elementsToCompareCapturedValues
 ) {
-  let isMatch;
-  if (elementsToCompareCapturedValues) {
-    isMatch = micromatch.isMatch(
-      elementInfo[elementKey],
-      micromatchPatternReplacingObjectsValues(matcher, elementsToCompareCapturedValues)
-    );
-  } else {
-    isMatch = micromatch.isMatch(elementInfo[elementKey], matcher);
-  }
+  const isMatch = micromatch.isMatch(
+    elementInfo[elementKey],
+    micromatchPatternReplacingObjectsValues(matcher, elementsToCompareCapturedValues)
+  );
   if (isMatch && options) {
     return {
       result: isObjectMatch(options, elementInfo.capturedValues, elementsToCompareCapturedValues),
