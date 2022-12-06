@@ -1,5 +1,5 @@
 const { isString, isArray, replaceObjectValuesInTemplates } = require("./utils");
-const { micromatchPatternReplacingObjectValues } = require("./rules");
+const { micromatchPatternReplacingObjectsValues } = require("./rules");
 
 function quote(str) {
   return `'${str}'`;
@@ -20,9 +20,9 @@ function propertiesConcater(properties, index) {
 }
 
 function micromatchPatternMessage(micromatchPatterns, elementCapturedValues) {
-  const micromatchPatternsWithValues = micromatchPatternReplacingObjectValues(
+  const micromatchPatternsWithValues = micromatchPatternReplacingObjectsValues(
     micromatchPatterns,
-    elementCapturedValues
+    { from: elementCapturedValues }
   );
   if (isArray(micromatchPatternsWithValues)) {
     if (micromatchPatternsWithValues.length === 1) {
@@ -94,11 +94,25 @@ function customErrorMessage(message, file, dependency, report = {}) {
     elementPropertiesToReplaceInTemplate(dependency),
     "dependency"
   );
+  replacedMessage = replaceObjectValuesInTemplates(
+    replaceObjectValuesInTemplates(
+      replacedMessage,
+      elementPropertiesToReplaceInTemplate(file),
+      "from"
+    ),
+    elementPropertiesToReplaceInTemplate(dependency),
+    "target"
+  );
   if (file.parents[0]) {
     replacedMessage = replaceObjectValuesInTemplates(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(file.parents[0]),
       "file.parent"
+    );
+    replacedMessage = replaceObjectValuesInTemplates(
+      replacedMessage,
+      elementPropertiesToReplaceInTemplate(file.parents[0]),
+      "from.parent"
     );
   }
   if (dependency.parents[0]) {
@@ -106,6 +120,11 @@ function customErrorMessage(message, file, dependency, report = {}) {
       replacedMessage,
       elementPropertiesToReplaceInTemplate(dependency.parents[0]),
       "dependency.parent"
+    );
+    replacedMessage = replaceObjectValuesInTemplates(
+      replacedMessage,
+      elementPropertiesToReplaceInTemplate(dependency.parents[0]),
+      "target.parent"
     );
   }
   return replaceObjectValuesInTemplates(replacedMessage, report, "report");

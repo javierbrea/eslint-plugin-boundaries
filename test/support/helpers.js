@@ -54,6 +54,7 @@ const SETTINGS = {
         helpers: `./${codeFilePath("one-level", "helpers")}`,
         components: `./${codeFilePath("one-level", "components")}`,
         modules: `./${codeFilePath("one-level", "modules")}`,
+        "module-a-helpers": `./${codeFilePath("one-level", "module-a-helpers")}`,
       },
     },
   },

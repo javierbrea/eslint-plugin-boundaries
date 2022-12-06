@@ -308,10 +308,17 @@ Remember that:
 
 Elements matchers used in the rules options can have the next formats:
 
-* __`<string>`__: Will return `true` when the element type matches with this [`micromatch` pattern](https://github.com/micromatch/micromatch).
-* __`[<string>, <capturedValuesObject>]`__: Will return `true` whe when the element type matches with the first element in the array, and all of the captured values also match. <br/>The `<capturedValuesObject>` has to be an object containing `capture` keys from the [`boundaries/element-types` setting](#boundarieselement-types) of the element as keys, and [`micromatch` patterns](https://github.com/micromatch/micromatch) as values.<br/>For example, for an element of type "helpers" with settings as `{ type: "helpers", pattern": "helpers/*/*.js", "capture": ["category", "elementName"]}`, you could write element matchers as:
+* __`<string>`__: Will return `true` when the element type matches with this [`micromatch` pattern](https://github.com/micromatch/micromatch). It [supports templating](#templating) for using values from captured values.
+* __`[<string>, <capturedValuesObject>]`__: Will return `true` whe when the element type matches with the first element in the array, and all of the captured values also match. <br/>The `<capturedValuesObject>` has to be an object containing `capture` keys from the [`boundaries/element-types` setting](#boundarieselement-types) of the element as keys, and [`micromatch` patterns](https://github.com/micromatch/micromatch) as values. (values also support [templating](#templating)) <br/>For example, for an element of type "helpers" with settings as `{ type: "helpers", pattern": "helpers/*/*.js", "capture": ["category", "elementName"]}`, you could write element matchers as:
   * `["helpers", { category: "data", elementName: "parsers"}]`: Will only match with helpers with category "data" and elementName "parsers" (`helpers/data/parsers.js`).
   * `["helpers", { category: "data" }]`: Will match with all helpers with category "data" (`helpers/data/*.js`)
+  * `["data-${from.elementName}", { category: "${from.category}" }]`: Will only match with helpers with the type equals to the `elementName` of the file importing plus a `data-` prefix, and the category being equal to the `category` of the file importing the dependency.
+
+##### Templating
+
+When defining [__Element matchers__](#elements-matchers), the values captured both from the element importing ("from") and from the imported element ("target") are available to be replaced. They are replaced both in the main string and in the `<capturedValuesObject>`.
+
+Templates must be defined with the format `${from.CAPTURED_PROPERTY}` or `${target.CAPTURED_PROPERTY}`.
 
 ##### Error messages
 
@@ -366,7 +373,7 @@ Just to illustrate the high level of customization that the plugin supports, her
           "from": ["components"],
           "allow": [
             // allow importing components of the same family
-            ["components", { "family": "${family}" }],
+            ["components", { "family": "${from.family}" }],
             // allow importing helpers with captured category "data"
             ["helpers", { "category": "data" }],
           ]
@@ -403,10 +410,10 @@ Just to illustrate the high level of customization that the plugin supports, her
           "from": [["modules", { "elementName": "page-*" }]],
           "disallow": [
             // disallow importing any type of component not being of family layout
-            ["components", { "family": "!layout" }]
+            ["components", { "family": "!layout" }],
           ],
           // Custom message only for this specific error
-          "message": "Modules with name starting by 'page-' can't import not layout components. You tried to import a component of family ${dependency.family} from a module with name ${file.elementName}"
+          "message": "Modules with name starting by 'page-' can't import not layout components. You tried to import a component of family ${target.family} from a module with name ${from.elementName}"
         }
       ]
     }]
