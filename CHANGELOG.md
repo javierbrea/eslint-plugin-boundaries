@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 - chore(deps): Update dependencies
 
+### Fixed
+
+- fix(#260): Avoid wrong caches in external dependencies. Use the dependency source as cache key in that case.
+
 ## [3.0.0] - 2022-08-30
 
 ### Removed

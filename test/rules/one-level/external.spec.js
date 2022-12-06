@@ -163,6 +163,39 @@ const test = (settings, options, errorMessages) => {
           },
         ],
       },
+      // Helpers can't import react nor foo-library Link
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: `
+          import React from 'react';
+          import FooLibrary, { Link } from 'foo-library';
+        `,
+        options,
+        errors: [
+          {
+            message: customErrorMessage(
+              errorMessages,
+              0,
+              externalNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "react",
+              })
+            ),
+            type: "ImportDeclaration",
+          },
+          {
+            message: customErrorMessage(
+              errorMessages,
+              3,
+              externalNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "foo-library",
+              })
+            ),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
       // Helpers can't import foo-library Link when there are more specifiers
       {
         filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
