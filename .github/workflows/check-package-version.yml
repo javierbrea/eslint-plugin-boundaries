@@ -38,7 +38,7 @@ jobs:
           path: './sonar-project.properties'
           properties: 'sonar.projectVersion'
       - name: Check Sonar version
-        if: steps.sonar-version.outputs.value != steps.package-version.outputs.current-version
+        if: steps.sonar-version.outputs.sonar-projectVersion != steps.package-version.outputs.current-version
         run: |
           echo "Version not changed"
           exit 1
