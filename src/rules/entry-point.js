@@ -14,9 +14,9 @@ function isMatchElementInternalPath(elementInfo, matcher, options, elementsCaptu
   return isMatchElementKey(elementInfo, matcher, options, "internalPath", elementsCapturedValues);
 }
 
-function elementRulesAllowEntryPoint(_element, dependency, options) {
+function elementRulesAllowEntryPoint(element, dependency, options) {
   return elementRulesAllowDependency({
-    element: dependency,
+    element,
     dependency,
     options,
     isMatch: isMatchElementInternalPath,

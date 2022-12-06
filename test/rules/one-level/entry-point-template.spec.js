@@ -19,13 +19,19 @@ const testCapture = (settings, options, errorMessages = {}) => {
       // componentD entry-point is componentD.js
       {
         filename: absoluteFilePath("modules/module-a/ModuleA.js"),
-        code: "import ComponentC from 'components/ComponentD/ComponentD'",
+        code: "import ComponentD from 'components/ComponentD/ComponentD'",
         options,
       },
       // helper-b entry-point is main.js
       {
         filename: absoluteFilePath("components/component-a/ComponentA.js"),
         code: "import HelperA from 'helpers/helper-b/main'",
+        options,
+      },
+      // module-a can import entry-point module-a in componentD
+      {
+        filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+        code: "import ComponentD from 'components/ComponentD/module-a'",
         options,
       },
     ],
@@ -132,9 +138,8 @@ testCapture(
         },
         {
           target: ["components"],
-          allow: "${target.elementName}.js",
+          allow: ["${target.elementName}.js", "${from.elementName}.js"],
         },
-        // TODO, add test using "from"
       ],
     },
   ],
@@ -159,7 +164,8 @@ testCapture(
         {
           target: [["helpers", { elementName: "*-a" }]],
           disallow: "*",
-          message: "Do not import any type of file from helpers with name *-a",
+          message:
+            "Do not import any type of file from helpers with name *-a (importing from ${from.elementName})",
         },
         {
           target: [["helpers", { elementName: "*-a" }]],
@@ -167,9 +173,8 @@ testCapture(
         },
         {
           target: ["components"],
-          allow: "${target.elementName}.js",
+          allow: ["${target.elementName}.js", "${from.elementName}.js"],
         },
-        // TODO, add test using "from"
       ],
     },
   ],
@@ -177,6 +182,6 @@ testCapture(
     0: "Importing the file index.js is not allowed in components",
     1: "Importing the file ComponentA.js is not allowed in components",
     2: "Importing the file index.js is not allowed in helpers",
-    3: "Do not import any type of file from helpers with name *-a",
+    3: "Do not import any type of file from helpers with name *-a (importing from component-a)",
   }
 );

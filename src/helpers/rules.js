@@ -3,6 +3,7 @@ const micromatch = require("micromatch");
 const { isArray, replaceObjectValuesInTemplates } = require("./utils");
 
 const REPO_URL = "https://github.com/javierbrea/eslint-plugin-boundaries";
+const FROM = "from";
 
 function removePluginNamespace(ruleName) {
   return ruleName.replace("boundaries/", "");
@@ -72,7 +73,7 @@ function isObjectMatch(objectWithMatchers, object, objectsWithValuesToReplace) {
 }
 
 function rulesMainKey(key) {
-  return key || "from";
+  return key || FROM;
 }
 
 function ruleMatch(ruleMatchers, targetElement, isMatch, fromElement) {
@@ -144,6 +145,17 @@ function getElementRules(elementInfo, options, mainKey) {
     });
 }
 
+function isFromRule(mainKey) {
+  return rulesMainKey(mainKey) === FROM;
+}
+
+function elementToGetRulesFrom(element, dependency, mainKey) {
+  if (!isFromRule(mainKey)) {
+    return dependency;
+  }
+  return element;
+}
+
 function elementRulesAllowDependency({
   element,
   dependency,
@@ -151,7 +163,11 @@ function elementRulesAllowDependency({
   isMatch,
   rulesMainKey: mainKey,
 }) {
-  const [result, report, ruleReport] = getElementRules(element, options, mainKey).reduce(
+  const [result, report, ruleReport] = getElementRules(
+    elementToGetRulesFrom(element, dependency, mainKey),
+    options,
+    mainKey
+  ).reduce(
     (allowed, rule) => {
       if (rule.disallow) {
         const match = ruleMatch(rule.disallow, dependency, isMatch, element);
