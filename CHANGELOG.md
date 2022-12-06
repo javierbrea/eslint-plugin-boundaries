@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 ### Removed
 
+## [3.1.0]
+
+### Added
+- feat(#243): Support templates in rules main matchers. `${from.X}` and `${target.X}` templates are replaced by corresponding captured values
+- feat: Add aliases `from` (file) and `target` (dependency) to custom messages templates
+
+### Changed
+- chore(deps): Update dependencies
+
+### Fixed
+
+- fix(#260): Avoid wrong caches in external dependencies. Use the dependency source as cache key in that case.
+- chore: Fix check-package-version action
+
 ## [3.0.0] - 2022-08-30
 
 ### Removed

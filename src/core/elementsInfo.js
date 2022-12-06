@@ -195,7 +195,8 @@ function projectPath(absolutePath) {
 
 function importInfo(source, context) {
   const path = projectPath(resolve(source, context));
-  const resultCache = importsCache.load(path, context.settings);
+  const isExternalModule = isExternal(source, path);
+  const resultCache = importsCache.load(isExternalModule ? source : path, context.settings);
   let elementCache;
   let result;
   let elementResult;
@@ -205,7 +206,6 @@ function importInfo(source, context) {
   } else {
     elementCache = elementsCache.load(path, context.settings);
     const isBuiltInModule = isBuiltIn(source, path);
-    const isExternalModule = isExternal(source, path);
     const pathToUse = isExternalModule ? null : path;
     if (elementCache) {
       elementResult = elementCache;

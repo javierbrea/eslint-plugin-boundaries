@@ -207,6 +207,27 @@ const test = (settings) => {
           },
         ],
       },
+      /* Custom message */
+      {
+        filename: absoluteFilePath(
+          "components/component-a/components/component-c/components/component-d/ComponentD.js"
+        ),
+        code: 'import HelperA from "components/component-a/helpers/helper-a"',
+        options: [
+          {
+            allowUncles: false,
+            message:
+              "The element of type '${target.type}' with name '${target.elementName}' is child of element of type '${target.parent.type}' with name '${target.parent.elementName}'",
+          },
+        ],
+        errors: [
+          {
+            message:
+              "The element of type 'helpers' with name 'helper-a' is child of element of type 'components' with name 'component-a'",
+            type: "ImportDeclaration",
+          },
+        ],
+      },
       /* Custom message with file info*/
       {
         filename: absoluteFilePath(
@@ -218,6 +239,27 @@ const test = (settings) => {
             allowUncles: false,
             message:
               "This element is of type '${file.type}' with name '${file.elementName}', and it is child of element of type '${file.parent.type}' with name '${file.parent.elementName}'",
+          },
+        ],
+        errors: [
+          {
+            message:
+              "This element is of type 'components' with name 'component-d', and it is child of element of type 'components' with name 'component-c'",
+            type: "ImportDeclaration",
+          },
+        ],
+      },
+      /* Custom message with file info*/
+      {
+        filename: absoluteFilePath(
+          "components/component-a/components/component-c/components/component-d/ComponentD.js"
+        ),
+        code: 'import HelperA from "components/component-a/helpers/helper-a"',
+        options: [
+          {
+            allowUncles: false,
+            message:
+              "This element is of type '${from.type}' with name '${from.elementName}', and it is child of element of type '${from.parent.type}' with name '${from.parent.elementName}'",
           },
         ],
         errors: [
