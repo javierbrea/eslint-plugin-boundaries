@@ -5,27 +5,43 @@ const { RULE_EXTERNAL } = require("../constants/settings");
 const dependencyRule = require("../rules-factories/dependency-rule");
 
 const { rulesOptionsSchema } = require("../helpers/validations");
-const { dependencyLocation, elementRulesAllowDependency } = require("../helpers/rules");
+const {
+  dependencyLocation,
+  elementRulesAllowDependency,
+  micromatchPatternReplacingObjectsValues,
+} = require("../helpers/rules");
 const { customErrorMessage, ruleElementMessage, elementMessage } = require("../helpers/messages");
 
-function specifiersMatch(specifiers, options) {
+function specifiersMatch(specifiers, options, elementsCapturedValues) {
   const importedSpecifiersNames = specifiers
     .filter((specifier) => {
       return specifier.type === "ImportSpecifier" && specifier.imported.name;
     })
     .map((specifier) => specifier.imported.name);
   return options.reduce((found, option) => {
-    if (micromatch.some(importedSpecifiersNames, option)) {
+    const matcherWithTemplateReplaced = micromatchPatternReplacingObjectsValues(
+      option,
+      elementsCapturedValues
+    );
+    if (micromatch.some(importedSpecifiersNames, matcherWithTemplateReplaced)) {
       found.push(option);
     }
     return found;
   }, []);
 }
 
-function isMatchExternalDependency(dependency, matcher, options) {
-  const isMatch = micromatch.isMatch(dependency.baseModule, matcher);
+function isMatchExternalDependency(dependency, matcher, options, elementsCapturedValues) {
+  const matcherWithTemplatesReplaced = micromatchPatternReplacingObjectsValues(
+    matcher,
+    elementsCapturedValues
+  );
+  const isMatch = micromatch.isMatch(dependency.baseModule, matcherWithTemplatesReplaced);
   if (isMatch && options && Object.keys(options).length) {
-    const specifiersResult = specifiersMatch(dependency.specifiers, options.specifiers);
+    const specifiersResult = specifiersMatch(
+      dependency.specifiers,
+      options.specifiers,
+      elementsCapturedValues
+    );
     return {
       result: specifiersResult.length > 0,
       report: specifiersResult,

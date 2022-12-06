@@ -134,6 +134,7 @@ testCapture(
           target: ["components"],
           allow: "${target.elementName}.js",
         },
+        // TODO, add test using "from"
       ],
     },
   ],
@@ -168,6 +169,7 @@ testCapture(
           target: ["components"],
           allow: "${target.elementName}.js",
         },
+        // TODO, add test using "from"
       ],
     },
   ],
