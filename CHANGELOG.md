@@ -10,7 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 ### Removed
 
-## [3.1.0]
+## [3.1.1] - 2023-04-03
+
+### Changed
+- chore(deps): Update dependencies
+
+
+## [3.1.0] - 2022-12-06
 
 ### Added
 - feat(#243): Support templates in rules main matchers. `${from.X}` and `${target.X}` templates are replaced by corresponding captured values
