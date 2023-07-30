@@ -9,10 +9,7 @@ const { isArray } = require("../helpers/utils");
 
 const { filesCache, importsCache, elementsCache } = require("./cache");
 
-function baseModule(name, path) {
-  if (path) {
-    return null;
-  }
+function baseModule(name) {
   if (isScoped(name)) {
     const [scope, packageName] = name.split("/");
     return `${scope}/${packageName}`;
@@ -193,6 +190,10 @@ function projectPath(absolutePath) {
   }
 }
 
+function externalModulePath(source, baseModuleValue) {
+  return source.replace(baseModuleValue, "");
+}
+
 function importInfo(source, context) {
   const path = projectPath(resolve(source, context));
   const isExternalModule = isExternal(source, path);
@@ -205,8 +206,9 @@ function importInfo(source, context) {
     result = resultCache;
   } else {
     elementCache = elementsCache.load(path, context.settings);
+    const baseModuleValue = isExternalModule ? baseModule(source) : null;
     const isBuiltInModule = isBuiltIn(source, path);
-    const pathToUse = isExternalModule ? null : path;
+    const pathToUse = isExternalModule ? externalModulePath(source, baseModuleValue) : path;
     if (elementCache) {
       elementResult = elementCache;
     } else {
@@ -221,7 +223,7 @@ function importInfo(source, context) {
       isLocal: !isExternalModule && !isBuiltInModule,
       isBuiltIn: isBuiltInModule,
       isExternal: isExternalModule,
-      baseModule: baseModule(source, pathToUse),
+      baseModule: baseModuleValue,
       ...elementResult,
     };
 
