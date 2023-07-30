@@ -66,12 +66,16 @@ function isMatchExternalDependency(dependency, matcher, options, elementsCapture
       );
       return {
         result: specifiersResult.length > 0,
-        report: specifiersResult,
+        report: {
+          specifiers: specifiersResult,
+        },
       };
     }
     return {
       result: isPathMatch,
-      report: [dependency.path],
+      report: {
+        path: dependency.path,
+      },
     };
   }
   return {
@@ -88,11 +92,20 @@ function elementRulesAllowExternalDependency(element, dependency, options) {
   });
 }
 
+function getErrorReportMessage(report) {
+  if (report.path) {
+    return report.path;
+  }
+  return report.specifiers.join(", ");
+}
+
 function errorMessage(ruleData, file, dependency) {
   const ruleReport = ruleData.ruleReport;
   if (ruleReport.message) {
     return customErrorMessage(ruleReport.message, file, dependency, {
-      specifiers: ruleData.report && ruleData.report.join(", "),
+      specifiers:
+        ruleData.report && ruleData.report.specifiers && ruleData.report.specifiers.join(", "),
+      path: ruleData.report && ruleData.report.path,
     });
   }
   if (ruleReport.isDefault) {
@@ -107,7 +120,7 @@ function errorMessage(ruleData, file, dependency) {
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 
   if (ruleData.report) {
-    return `Usage of '${ruleData.report.join(", ")}' from external module '${
+    return `Usage of '${getErrorReportMessage(ruleData.report)}' from external module '${
       dependency.baseModule
     }' ${fileReport}`;
   }

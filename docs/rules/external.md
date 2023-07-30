@@ -28,8 +28,12 @@ It checks `import` statements to external modules and allow or disallow them bas
 * `<string>`. A [`micromatch` pattern](https://github.com/micromatch/micromatch) to match the name of the module.
 * `[<string>, <object>]`. An array containing a [`micromatch` pattern](https://github.com/micromatch/micromatch) as first element, and an options object, which can have next properties:
   * `specifiers`: `<array>` Array of used specifiers when importing the library. Each specifier can be expressed also as a [`micromatch` pattern](https://github.com/micromatch/micromatch). Matching specifiers are available as `${report.specifiers}` when defining custom error messages.
+  * `path`: `<string>` or `Array<string>`. Micromatch patterns to match the path of the imported module. If the path is an array, then the module will match if any of the patterns matches. __Note that the path must start with a `/` character__. The path is available as `${report.path}` when defining custom error messages.
 
-If `specifiers` option is provided, then it will only match if any of the specifiers is used in the `import` statement.
+When using options, note that:
+
+* If `path` option is provided, then it will only match if the path of the imported module matches with any of the patterns.
+* If `specifiers` option is provided, then it will only match if any of the specifiers is used in the `import` statement.
 
 __Examples__
 
@@ -96,6 +100,8 @@ __Examples__
               "react",
               // allow importing useHistory, Switch and Route from react-router-dom
               ["react-router-dom", { "specifiers": ["useHistory", "Switch", "Route"] }],
+              // allow importing Menu icon and any icon starting with "Log" from @mui/icons-material
+              ["@mui/icons-material", { "path": ["/Menu", "/Log*"] }
             ]
           },
         ]
@@ -198,6 +204,13 @@ _Modules can't import `withRouter` from `react-router-dom`:_
 import { withRouter } from 'react-router-dom'
 ```
 
+_Modules can't import `@mui/icons-material`:_
+
+```js
+// src/modules/module-a/ModuleA.js
+import { Login } from '@mui/icons-material'
+```
+
 ### Examples of **correct** code for this rule:
 
 _Helpers can import `moment`:_
@@ -234,6 +247,20 @@ _Modules can import `useHistory` from `react-router-dom`:_
 import { useHistory } from 'react-router-dom'
 ```
 
+_Modules can import `@mui/icons-material/Menu`:_
+
+```js
+// src/modules/module-a/ModuleA.js
+import Login from '@mui/icons-material/Menu'
+```
+
+_Modules can import `@mui/icons-material/Login`:_
+
+```js
+// src/modules/module-a/ModuleA.js
+import Login from '@mui/icons-material/Login'
+```
+
 ### Error messages
 
 This rule provides a lot of information about the specific option producing an error, so the user can have enough context to solve it.
@@ -241,6 +268,7 @@ This rule provides a lot of information about the specific option producing an e
 * If the error is produced because all imports are disallowed by default, and no rule is specificly allowing it, then the message provides information about the file and the external dependency: `No rule allows the usage of external module 'react' in elements of type 'helper'`.
 * If the error is produced by a specific option, then the message includes information about the option producing it: `Usage of external module 'react' is not allowed in elements of type 'helper' with elementName 'helper-a'. Disallowed in rule 2`
 * If the error is produced by a specific option including specifiers property, then the message includes information it: `Usage of 'useMemo, useEffect' from external module 'react' is not allowed in elements of type 'helper' with elementName 'helper-a'. Disallowed in rule 2`
+* If the error is produced by a specific option including path property, then the message includes information it: `Usage of '/Login' from external module '@mui/icons-material' is not allowed in elements of type 'module' with elementName 'module-a'. Disallowed in rule 3`
 
 You can also configure a custom error message for changing this default behaviour, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) in the main docs for further info about how to configure messages.
 

@@ -534,10 +534,13 @@ test(
         {
           from: "modules",
           allow: ["react", "react-router-dom"],
-          disallow: [
-            ["react-router-dom", { specifiers: ["Link"], path: ["*"] }],
-            ["react-router-dom", { path: ["/var/foo", "fake"] }],
-          ],
+          disallow: [["react-router-dom", { specifiers: ["Link"], path: ["*"] }]],
+        },
+        {
+          from: "modules",
+          allow: ["react", "react-router-dom"],
+          disallow: [["react-router-dom", { path: ["/var/foo", "fake"] }]],
+          message: "Do not import ${report.path} from RDD in modules",
         },
         {
           from: "modules",
@@ -552,7 +555,7 @@ test(
     4: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     5: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+    8: "Do not import /var/foo from RDD in modules",
   }
 );
 
