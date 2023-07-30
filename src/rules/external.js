@@ -11,14 +11,15 @@ const {
   micromatchPatternReplacingObjectsValues,
 } = require("../helpers/rules");
 const { customErrorMessage, ruleElementMessage, elementMessage } = require("../helpers/messages");
+const { isArray } = require("../helpers/utils");
 
-function specifiersMatch(specifiers, options, elementsCapturedValues) {
+function specifiersMatch(specifiers, specifierOptions, elementsCapturedValues) {
   const importedSpecifiersNames = specifiers
     .filter((specifier) => {
       return specifier.type === "ImportSpecifier" && specifier.imported.name;
     })
     .map((specifier) => specifier.imported.name);
-  return options.reduce((found, option) => {
+  return specifierOptions.reduce((found, option) => {
     const matcherWithTemplateReplaced = micromatchPatternReplacingObjectsValues(
       option,
       elementsCapturedValues
@@ -30,6 +31,23 @@ function specifiersMatch(specifiers, options, elementsCapturedValues) {
   }, []);
 }
 
+function pathMatch(path, pathOptions, elementsCapturedValues) {
+  const pathMatchers = isArray(pathOptions) ? pathOptions : [pathOptions];
+  return pathMatchers.reduce((isMatch, option) => {
+    if (isMatch) {
+      return isMatch;
+    }
+    const matcherWithTemplateReplaced = micromatchPatternReplacingObjectsValues(
+      option,
+      elementsCapturedValues
+    );
+    if (micromatch.some(path, matcherWithTemplateReplaced)) {
+      isMatch = true;
+    }
+    return isMatch;
+  }, false);
+}
+
 function isMatchExternalDependency(dependency, matcher, options, elementsCapturedValues) {
   const matcherWithTemplatesReplaced = micromatchPatternReplacingObjectsValues(
     matcher,
@@ -37,14 +55,23 @@ function isMatchExternalDependency(dependency, matcher, options, elementsCapture
   );
   const isMatch = micromatch.isMatch(dependency.baseModule, matcherWithTemplatesReplaced);
   if (isMatch && options && Object.keys(options).length) {
-    const specifiersResult = specifiersMatch(
-      dependency.specifiers,
-      options.specifiers,
-      elementsCapturedValues
-    );
+    const isPathMatch = options.path
+      ? pathMatch(dependency.path, options.path, elementsCapturedValues)
+      : true;
+    if (isPathMatch && options.specifiers) {
+      const specifiersResult = specifiersMatch(
+        dependency.specifiers,
+        options.specifiers,
+        elementsCapturedValues
+      );
+      return {
+        result: specifiersResult.length > 0,
+        report: specifiersResult,
+      };
+    }
     return {
-      result: specifiersResult.length > 0,
-      report: specifiersResult,
+      result: isPathMatch,
+      report: [dependency.path],
     };
   }
   return {
@@ -100,6 +127,19 @@ module.exports = dependencyRule(
             items: {
               type: "string",
             },
+          },
+          path: {
+            oneOf: [
+              {
+                type: "string",
+              },
+              {
+                type: "array",
+                items: {
+                  type: "string",
+                },
+              },
+            ],
           },
         },
         additionalProperties: false,

@@ -43,6 +43,12 @@ const test = (settings, options, errorMessages) => {
         code: "import { withRouter } from 'react-router-dom'",
         options,
       },
+      // Modules can import react-router-dom /foo/var path
+      {
+        filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+        code: "import { withRouter } from 'react-router-dom/foo/var'",
+        options,
+      },
       // Modules can import react
       {
         filename: absoluteFilePath("modules/module-a/ModuleA.js"),
@@ -272,6 +278,25 @@ const test = (settings, options, errorMessages) => {
           },
         ],
       },
+      // Modules can't import var/foo from react-router-dom
+      {
+        filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+        code: "import Foo from 'react-router-dom/var/foo'",
+        options,
+        errors: [
+          {
+            message: customErrorMessage(
+              errorMessages,
+              8,
+              externalNoRuleMessage({
+                file: "'modules' with elementName 'module-a'",
+                dep: "react-router-dom",
+              })
+            ),
+            type: "ImportDeclaration",
+          },
+        ],
+      },
     ],
   });
 };
@@ -379,7 +404,11 @@ test(
         },
         {
           from: "modules",
-          disallow: ["@material-ui/core", ["react-router-dom", { specifiers: ["Link"] }]],
+          disallow: [
+            "@material-ui/core",
+            ["react-router-dom", { specifiers: ["Link"] }],
+            ["react-router-dom", { path: ["/var/*"] }],
+          ],
         },
       ],
     },
@@ -393,6 +422,7 @@ test(
     5: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+    8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 3",
   }
 );
 
@@ -414,7 +444,11 @@ test(
         },
         {
           from: "modules",
-          disallow: ["@material-ui/*", ["react-router-dom", { specifiers: ["Link"] }]],
+          disallow: [
+            "@material-ui/*",
+            ["react-router-dom", { specifiers: ["Link"] }],
+            ["react-router-*", { path: ["/var/foo"] }],
+          ],
         },
         {
           from: "modules",
@@ -432,6 +466,7 @@ test(
     5: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+    8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 3",
   }
 );
 
@@ -453,7 +488,11 @@ test(
         },
         {
           from: "m*",
-          disallow: ["@material-ui/*", ["react-router-*", { specifiers: ["L*"] }]],
+          disallow: [
+            "@material-ui/*",
+            ["react-router-*", { specifiers: ["L*"] }],
+            ["react-*", { path: ["/var/f*"] }],
+          ],
         },
         {
           from: "m*",
@@ -471,6 +510,7 @@ test(
     5: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
     6: "Usage of 'L*, R*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
     7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'm*'. Disallowed in rule 3",
+    8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'm*'. Disallowed in rule 3",
   }
 );
 
@@ -494,7 +534,10 @@ test(
         {
           from: "modules",
           allow: ["react", "react-router-dom"],
-          disallow: [["react-router-dom", { specifiers: ["Link"] }]],
+          disallow: [
+            ["react-router-dom", { specifiers: ["Link"], path: ["*"] }],
+            ["react-router-dom", { path: ["/var/foo", "fake"] }],
+          ],
         },
         {
           from: "modules",
@@ -509,6 +552,7 @@ test(
     4: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     5: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 3",
   }
 );
 
@@ -535,7 +579,10 @@ test(
         {
           from: "modules",
           allow: ["react", "react-router-dom"],
-          disallow: [["react-router-dom", { specifiers: ["Link"] }]],
+          disallow: [
+            ["react-router-dom", { specifiers: ["Link"] }],
+            ["react-router-dom", { path: "/var/foo" }],
+          ],
         },
         {
           from: "modules",
@@ -553,6 +600,7 @@ test(
     5: "Do not import Link from foo-library in helpers",
     6: "Do not import Link, Router from foo-library in helpers",
     7: "Importing @material-ui/core is not allowed in modules with name module-a",
+    8: "Importing react-router-dom/var/foo is not allowed in modules with name module-a",
   }
 );
 
