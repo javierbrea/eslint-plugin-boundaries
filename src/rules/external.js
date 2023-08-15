@@ -103,9 +103,8 @@ function errorMessage(ruleData, file, dependency) {
   const ruleReport = ruleData.ruleReport;
   if (ruleReport.message) {
     return customErrorMessage(ruleReport.message, file, dependency, {
-      specifiers:
-        ruleData.report && ruleData.report.specifiers && ruleData.report.specifiers.join(", "),
-      path: ruleData.report && ruleData.report.path,
+      specifiers: ruleData.report?.specifiers?.join(", "),
+      path: ruleData.report?.path,
     });
   }
   if (ruleReport.isDefault) {
