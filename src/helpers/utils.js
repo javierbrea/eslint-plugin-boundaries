@@ -8,7 +8,8 @@ function isArray(object) {
 
 function replaceObjectValueInTemplate(template, key, value, namespace) {
   const keyToReplace = namespace ? `${namespace}.${key}` : key;
-  return template.replace(`\${${keyToReplace}}`, value);
+  const regexp = new RegExp(`\\$\\{${keyToReplace}\\}`, "g");
+  return template.replace(regexp, value);
 }
 
 function replaceObjectValuesInTemplates(strings, object, namespace) {

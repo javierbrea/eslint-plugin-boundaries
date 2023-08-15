@@ -615,7 +615,7 @@ testCapture(
           allow: [["helpers", { elementName: "*-a" }], "c*"],
           disallow: [["c*", { elementName: "*-a" }]],
           message:
-            "Do not import ${dependency.type} named ${dependency.elementName} from ${file.type} named ${file.elementName}",
+            "Do not import ${dependency.type} named ${dependency.elementName} from ${file.type} named ${file.elementName}. Repeat: Do not import ${dependency.type} named ${dependency.elementName} from ${file.type} named ${file.elementName}.",
         },
         {
           from: "modules",
@@ -627,7 +627,7 @@ testCapture(
   {
     0: "Importing helpers with name helper-b is not allowed in components with name component-a",
     1: "Importing helpers with name helper-b is not allowed in components with name component-a",
-    2: "Do not import components named component-a from components named component-b",
+    2: "Do not import components named component-a from components named component-b. Repeat: Do not import components named component-a from components named component-b.",
     3: "Importing helpers with name helper-b is not allowed in modules with name module-a",
   }
 );
