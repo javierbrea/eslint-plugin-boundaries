@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 ### Removed
 
+## [unreleased]
+
+### Fixed
+- fix(#295): Replace template values in custom messages using a Regexp, so it replaces all occurrences
+
 ## [3.2.0] - 2023-07-30
 
 ### Changed
