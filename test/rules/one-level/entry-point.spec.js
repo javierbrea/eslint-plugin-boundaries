@@ -98,7 +98,7 @@ const test = (settings, options, errorMessages = {}) => {
               entryPointNoRuleMessage({
                 entryPoint: "ComponentB.js",
                 dep: "'components' with elementName 'component-b'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -117,7 +117,7 @@ const test = (settings, options, errorMessages = {}) => {
               entryPointNoRuleMessage({
                 entryPoint: "index.js",
                 dep: "'helpers' with elementName 'helper-a'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -136,7 +136,7 @@ const test = (settings, options, errorMessages = {}) => {
               entryPointNoRuleMessage({
                 entryPoint: "index.js",
                 dep: "'helpers' with elementName 'helper-a'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -155,7 +155,7 @@ const test = (settings, options, errorMessages = {}) => {
               entryPointNoRuleMessage({
                 entryPoint: "main.js",
                 dep: "'components' with elementName 'component-b'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -196,7 +196,7 @@ const testCapture = (settings, options, errorMessages = {}) => {
               entryPointNoRuleMessage({
                 entryPoint: "index.js",
                 dep: "'helpers' with elementName 'helper-b'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -215,7 +215,7 @@ const testCapture = (settings, options, errorMessages = {}) => {
               entryPointNoRuleMessage({
                 entryPoint: "main.js",
                 dep: "'helpers' with elementName 'helper-a'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -330,7 +330,7 @@ test(
     1: "The entry point 'index.js' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     2: "The entry point 'index.js' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     3: "The entry point 'main.js' is not allowed in elements of type 'components'. Disallowed in rule 3",
-  }
+  },
 );
 
 // options with capture
@@ -366,7 +366,7 @@ testCapture(
   ],
   {
     1: "The entry point 'main.js' is not allowed in elements of type 'helpers' with elementName '*-a'. Disallowed in rule 2",
-  }
+  },
 );
 
 // Custom messages
@@ -406,5 +406,5 @@ testCapture(
   {
     0: "Importing the file index.js is not allowed in helpers",
     1: "Do not import any type of file from helpers with name *-a",
-  }
+  },
 );

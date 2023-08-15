@@ -37,7 +37,7 @@ const test = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "@module-helpers/module-b",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -56,7 +56,7 @@ const test = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'modules' with elementName 'ModuleC'",
                 dep: "@module-helpers/all",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -85,5 +85,5 @@ test(
       ],
     },
   ],
-  {}
+  {},
 );

@@ -114,7 +114,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages, base) => {
               elementTypesNoRuleMessage({
                 file: "'app'",
                 dep: "'interface' with base '', feature 'cats' and fileName 'cats'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -133,7 +133,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages, base) => {
               elementTypesNoRuleMessage({
                 file: "'app'",
                 dep: "'controller' with base '', feature 'cats' and fileName 'cats'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -152,7 +152,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages, base) => {
               elementTypesNoRuleMessage({
                 file: "'app'",
                 dep: "'service' with base '', feature 'cats' and fileName 'cats'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -171,7 +171,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages, base) => {
               elementTypesNoRuleMessage({
                 file: "'module' with base '', feature 'core' and fileName 'core'",
                 dep: "'controller' with base '', feature 'cats' and fileName 'cats'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -190,7 +190,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages, base) => {
               elementTypesNoRuleMessage({
                 file: "'module' with base '', feature 'core' and fileName 'core'",
                 dep: "'service' with base '', feature 'cats' and fileName 'cats'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -209,7 +209,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages, base) => {
               elementTypesNoRuleMessage({
                 file: "'module' with base '', feature 'cats' and fileName 'cats'",
                 dep: "'interceptor' with base '', feature 'core' and fileName 'logging'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -228,7 +228,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages, base) => {
               elementTypesNoRuleMessage({
                 file: "'module' with base '', feature 'cats' and fileName 'cats'",
                 dep: "'interceptor' with base '', feature 'core' and fileName 'transform'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -247,7 +247,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages, base) => {
               elementTypesNoRuleMessage({
                 file: "'controller' with base '', feature 'core' and fileName 'core'",
                 dep: "'service' with base '', feature 'cats' and fileName 'cats'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -266,7 +266,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages, base) => {
               elementTypesNoRuleMessage({
                 file: "'controller' with base '', feature 'core' and fileName 'core'",
                 dep: "'dto' with base '', feature 'cats' and fileName 'create-cat'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -285,7 +285,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages, base) => {
               elementTypesNoRuleMessage({
                 file: "'controller' with base '', feature 'core' and fileName 'core'",
                 dep: "'interface' with base '', feature 'cats' and fileName 'cats'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -304,7 +304,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages, base) => {
               elementTypesNoRuleMessage({
                 file: "'controller' with base '', feature 'core' and fileName 'core'",
                 dep: `'model' with base '${base}', feature 'cats' and fileName 'persian-cat'`,
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -323,7 +323,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages, base) => {
               elementTypesNoRuleMessage({
                 file: "'controller' with base '', feature 'core' and fileName 'core'",
                 dep: `'model' with base '${base}', feature 'cats' and fileName 'siamese-cat'`,
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -342,7 +342,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages, base) => {
               elementTypesNoRuleMessage({
                 file: "'controller' with base '', feature 'cats' and fileName 'cats'",
                 dep: `'model' with base '${base}', feature 'core' and fileName 'core'`,
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -453,7 +453,7 @@ test(
   ruleOptions,
   pathResolvers("nestjs-example"),
   {},
-  "test/fixtures/nestjs-example"
+  "test/fixtures/nestjs-example",
 );
 
 test(
@@ -533,7 +533,7 @@ test(
       dep: `'model' with base 'nestjs-example', feature 'core' and fileName 'core'`,
     }),
   },
-  ""
+  "",
 );
 
 test(
@@ -613,5 +613,5 @@ test(
       dep: `'model' with base '', feature 'core' and fileName 'core'`,
     }),
   },
-  "test/fixtures/nestjs-example"
+  "test/fixtures/nestjs-example",
 );
