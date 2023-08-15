@@ -22,7 +22,7 @@ function specifiersMatch(specifiers, specifierOptions, elementsCapturedValues) {
   return specifierOptions.reduce((found, option) => {
     const matcherWithTemplateReplaced = micromatchPatternReplacingObjectsValues(
       option,
-      elementsCapturedValues
+      elementsCapturedValues,
     );
     if (micromatch.some(importedSpecifiersNames, matcherWithTemplateReplaced)) {
       found.push(option);
@@ -39,7 +39,7 @@ function pathMatch(path, pathOptions, elementsCapturedValues) {
     }
     const matcherWithTemplateReplaced = micromatchPatternReplacingObjectsValues(
       option,
-      elementsCapturedValues
+      elementsCapturedValues,
     );
     if (micromatch.some(path, matcherWithTemplateReplaced)) {
       isMatch = true;
@@ -51,7 +51,7 @@ function pathMatch(path, pathOptions, elementsCapturedValues) {
 function isMatchExternalDependency(dependency, matcher, options, elementsCapturedValues) {
   const matcherWithTemplatesReplaced = micromatchPatternReplacingObjectsValues(
     matcher,
-    elementsCapturedValues
+    elementsCapturedValues,
   );
   const isMatch = micromatch.isMatch(dependency.baseModule, matcherWithTemplatesReplaced);
   if (isMatch && options && Object.keys(options).length) {
@@ -62,7 +62,7 @@ function isMatchExternalDependency(dependency, matcher, options, elementsCapture
       const specifiersResult = specifiersMatch(
         dependency.specifiers,
         options.specifiers,
-        elementsCapturedValues
+        elementsCapturedValues,
       );
       return {
         result: specifiersResult.length > 0,
@@ -103,9 +103,8 @@ function errorMessage(ruleData, file, dependency) {
   const ruleReport = ruleData.ruleReport;
   if (ruleReport.message) {
     return customErrorMessage(ruleReport.message, file, dependency, {
-      specifiers:
-        ruleData.report && ruleData.report.specifiers && ruleData.report.specifiers.join(", "),
-      path: ruleData.report && ruleData.report.path,
+      specifiers: ruleData.report?.specifiers?.join(", "),
+      path: ruleData.report?.path,
     });
   }
   if (ruleReport.isDefault) {
@@ -116,7 +115,7 @@ function errorMessage(ruleData, file, dependency) {
 
   const fileReport = `is not allowed in ${ruleElementMessage(
     ruleReport.element,
-    file.capturedValues
+    file.capturedValues,
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 
   if (ruleData.report) {
@@ -164,7 +163,7 @@ module.exports = dependencyRule(
       const ruleData = elementRulesAllowExternalDependency(
         file,
         { ...dependency, specifiers: node.source.parent.specifiers },
-        options
+        options,
       );
       if (!ruleData.result) {
         context.report({
@@ -177,5 +176,5 @@ module.exports = dependencyRule(
   },
   {
     validateRules: { onlyMainKey: true },
-  }
+  },
 );

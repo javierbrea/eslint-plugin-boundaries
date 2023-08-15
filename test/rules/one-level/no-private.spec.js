@@ -80,7 +80,7 @@ const test = (settings) => {
     Component D can use helper A as it is a direct child of common ancestor component A. */
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/components/component-d/ComponentD.js"
+          "components/component-a/components/component-c/components/component-d/ComponentD.js",
         ),
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options,
@@ -88,7 +88,7 @@ const test = (settings) => {
       // Private elements can use an ancestor // TODO, add relationships rule to avoid this
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/components/component-d/ComponentD.js"
+          "components/component-a/components/component-c/components/component-d/ComponentD.js",
         ),
         code: 'import HelperA from "../../../../"',
         options,
@@ -169,7 +169,7 @@ const test = (settings) => {
     common ancestor component A, but allowUncles option is disabled. */
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/components/component-d/ComponentD.js"
+          "components/component-a/components/component-c/components/component-d/ComponentD.js",
         ),
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options: [
@@ -189,7 +189,7 @@ const test = (settings) => {
       /* Custom message */
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/components/component-d/ComponentD.js"
+          "components/component-a/components/component-c/components/component-d/ComponentD.js",
         ),
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options: [
@@ -210,7 +210,7 @@ const test = (settings) => {
       /* Custom message */
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/components/component-d/ComponentD.js"
+          "components/component-a/components/component-c/components/component-d/ComponentD.js",
         ),
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options: [
@@ -231,7 +231,7 @@ const test = (settings) => {
       /* Custom message with file info*/
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/components/component-d/ComponentD.js"
+          "components/component-a/components/component-c/components/component-d/ComponentD.js",
         ),
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options: [
@@ -252,7 +252,7 @@ const test = (settings) => {
       /* Custom message with file info*/
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/components/component-d/ComponentD.js"
+          "components/component-a/components/component-c/components/component-d/ComponentD.js",
         ),
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options: [

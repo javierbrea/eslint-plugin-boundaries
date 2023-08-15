@@ -36,7 +36,7 @@ function errorMessage(ruleData, file, dependency) {
   }
   return `The entry point '${dependency.internalPath}' is not allowed in ${ruleElementMessage(
     ruleReport.element,
-    dependency.capturedValues
+    dependency.capturedValues,
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 }
 
@@ -62,5 +62,5 @@ module.exports = dependencyRule(
   },
   {
     validateRules: { onlyMainKey: true, mainKey: "target" },
-  }
+  },
 );

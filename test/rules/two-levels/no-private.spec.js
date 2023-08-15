@@ -23,7 +23,7 @@ const test = (settings, { absoluteFilePath }) => {
       // Private elements can use a parent elements: // TODO, add relationship rule to avoid this
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/index.js"
+          "components/molecules/molecule-a/components/molecules/molecule-c/index.js",
         ),
         code: 'import molecule from "../../../"',
         options,
@@ -31,7 +31,7 @@ const test = (settings, { absoluteFilePath }) => {
       // Private elements can use public elements:
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/index.js"
+          "components/molecules/molecule-a/components/molecules/molecule-c/index.js",
         ),
         code: 'import ModuleA from "components/atoms/atom-a"',
         options,
@@ -46,7 +46,7 @@ const test = (settings, { absoluteFilePath }) => {
     molecule-c can use atom-c, as both are children of molecule-a */
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/index.js"
+          "components/molecules/molecule-a/components/molecules/molecule-c/index.js",
         ),
         code: 'import HelperA from "components/molecules/molecule-a/components/atoms/atom-c"',
         options,
@@ -56,7 +56,7 @@ const test = (settings, { absoluteFilePath }) => {
     molecule-d can use atom-c as it is a direct child of common ancestor molecule-a */
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/MoleculeD.js"
+          "components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/MoleculeD.js",
         ),
         code: 'import HelperA from "components/molecules/molecule-a/components/atoms/atom-c"',
         options,
@@ -64,7 +64,7 @@ const test = (settings, { absoluteFilePath }) => {
       // Private elements can use an ancestor // TODO, add relationships rule to avoid this
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/MoleculeD.js"
+          "components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/MoleculeD.js",
         ),
         code: 'import HelperA from "../../../../../../"',
         options,
@@ -132,7 +132,7 @@ const test = (settings, { absoluteFilePath }) => {
     common ancestor component A, but allowUncles option is disabled. */
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/MoleculeD.js"
+          "components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/MoleculeD.js",
         ),
         code: 'import HelperA from "components/molecules/molecule-a/components/atoms/atom-c"',
         options: [

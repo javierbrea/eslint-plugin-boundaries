@@ -64,7 +64,7 @@ function isObjectMatch(objectWithMatchers, object, objectsWithValuesToReplace) {
     if (isMatch) {
       const micromatchPattern = micromatchPatternReplacingObjectsValues(
         objectWithMatchers[key],
-        objectsWithValuesToReplace
+        objectsWithValuesToReplace,
       );
       return micromatch.isMatch(object[key], micromatchPattern);
     }
@@ -95,7 +95,7 @@ function ruleMatch(ruleMatchers, targetElement, isMatch, fromElement) {
           {
             from: fromElement.capturedValues,
             target: targetElement.capturedValues,
-          }
+          },
         );
       }
     }
@@ -108,11 +108,11 @@ function isMatchElementKey(
   matcher,
   options,
   elementKey,
-  elementsToCompareCapturedValues
+  elementsToCompareCapturedValues,
 ) {
   const isMatch = micromatch.isMatch(
     elementInfo[elementKey],
-    micromatchPatternReplacingObjectsValues(matcher, elementsToCompareCapturedValues)
+    micromatchPatternReplacingObjectsValues(matcher, elementsToCompareCapturedValues),
   );
   if (isMatch && options) {
     return {
@@ -166,7 +166,7 @@ function elementRulesAllowDependency({
   const [result, report, ruleReport] = getElementRules(
     elementToGetRulesFrom(element, dependency, mainKey),
     options,
-    mainKey
+    mainKey,
   ).reduce(
     (allowed, rule) => {
       if (rule.disallow) {
@@ -199,7 +199,7 @@ function elementRulesAllowDependency({
         isDefault: true,
         message: options.message,
       },
-    ]
+    ],
   );
   return {
     result,

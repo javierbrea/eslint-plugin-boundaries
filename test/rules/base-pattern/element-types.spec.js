@@ -90,7 +90,7 @@ ruleTester.run(RULE, rule, {
     // private module from domain b can import component from domain b
     {
       filename: absoluteFilePath(
-        "domains/domain-b/modules/module-d/modules/module-e/modules/module-g/ModuleG.js"
+        "domains/domain-b/modules/module-d/modules/module-e/modules/module-g/ModuleG.js",
       ),
       code: "import ComponentA from 'domains/domain-b/components/molecules/molecule-c'",
       options,
@@ -98,7 +98,7 @@ ruleTester.run(RULE, rule, {
     // private module from domain b can import component from domain a
     {
       filename: absoluteFilePath(
-        "domains/domain-b/modules/module-d/modules/module-e/modules/module-g/ModuleG.js"
+        "domains/domain-b/modules/module-d/modules/module-e/modules/module-g/ModuleG.js",
       ),
       code: "import ComponentA from 'domains/domain-a/components/atoms/atom-a'",
       options,
@@ -112,7 +112,7 @@ ruleTester.run(RULE, rule, {
     // private component from domain a can import component from domain a
     {
       filename: absoluteFilePath(
-        "domains/domain-a/modules/module-a/components/atoms/atom-e/AtomE.js"
+        "domains/domain-a/modules/module-a/components/atoms/atom-e/AtomE.js",
       ),
       code: "import ComponentA from 'domains/domain-a/components/molecules/molecule-a/MoleculeA.js'",
       options,
@@ -224,7 +224,7 @@ ruleTester.run(RULE, rule, {
     // private component from domain a can't import component from domain b
     {
       filename: absoluteFilePath(
-        "domains/domain-a/modules/module-a/components/molecules/molecule-e/MoleculeE.js"
+        "domains/domain-a/modules/module-a/components/molecules/molecule-e/MoleculeE.js",
       ),
       code: "import ComponentC from 'domains/domain-b/components/atoms/atom-c'",
       options,
