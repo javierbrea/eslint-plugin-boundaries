@@ -40,7 +40,7 @@ module.exports = dependencyRule(
       dependency.relationship !== "internal" &&
       dependency.relationship !== "child" &&
       dependency.relationship !== "brother" &&
-      (!options || !options.allowUncles || dependency.relationship !== "uncle")
+      (!options?.allowUncles || dependency.relationship !== "uncle")
     ) {
       context.report({
         message: errorMessage(file, dependency, options),

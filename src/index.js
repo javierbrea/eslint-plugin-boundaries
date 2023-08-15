@@ -1,3 +1,4 @@
+const packageJson = require("../package.json");
 const rules = require("./constants/rules");
 const recommendedConfig = require("./configs/recommended");
 const strictConfig = require("./configs/strict");
@@ -17,6 +18,10 @@ const importRules = (ruleNames) => {
 // export all configs
 
 module.exports = {
+  meta: {
+    name: packageJson.name,
+    version: packageJson.version,
+  },
   rules: importRules(rules),
   configs: {
     recommended: recommendedConfig,

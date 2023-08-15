@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 - chore(deps): Update dependencies
 - chore(deps): Use NodeJs 16.x, 18.x and 20.x in pipelines
+- refactor: Use optional chain expressions
+
+### Added
+- chore: Add meta name and version to plugin exported object
 
 ## [3.2.0] - 2023-07-30
 
