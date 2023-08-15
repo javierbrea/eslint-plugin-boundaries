@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 - chore: Add meta name and version to plugin exported object
+- chore: Handle concurrency in pipelines
 
 ## [3.2.0] - 2023-07-30
 
