@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 - fix(#295): Replace template values in custom messages using a Regexp, so it replaces all occurrences
 
+### Changed
+- chore(deps): Update dependencies
+- chore(deps): Use NodeJs 16.x, 18.x and 20.x in pipelines
+
 ## [3.2.0] - 2023-07-30
 
 ### Changed

@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ["14.16.1", "15.14.0", "16.13.0", "17.0.1", "18.2.0"]
+        node: ["16.14.0", "18.2.0", "20.5.1"]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -47,7 +47,7 @@ jobs:
     runs-on: windows-2019
     strategy:
       matrix:
-        node: ["14.16.1", "15.14.0", "16.13.0", "17.0.1", "18.2.0"]
+        node: ["16.14.0", "18.2.0", "20.5.1"]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -83,7 +83,7 @@ jobs:
       - name: Download test results
         uses: actions/download-artifact@v3
         with:
-          name: coverage-16.13.0
+          name: coverage-18.2.0
           path: coverage
       - name: Coveralls
         uses: coverallsapp/github-action@master
