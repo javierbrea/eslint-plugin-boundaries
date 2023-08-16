@@ -9,6 +9,7 @@ const {
   dependencyLocation,
   elementRulesAllowDependency,
   micromatchPatternReplacingObjectsValues,
+  isMatchImportKind,
 } = require("../helpers/rules");
 const { customErrorMessage, ruleElementMessage, elementMessage } = require("../helpers/messages");
 const { isArray } = require("../helpers/utils");
@@ -48,11 +49,20 @@ function pathMatch(path, pathOptions, elementsCapturedValues) {
   }, false);
 }
 
-function isMatchExternalDependency(dependency, matcher, options, elementsCapturedValues) {
+function isMatchExternalDependency(
+  dependency,
+  matcher,
+  options,
+  elementsCapturedValues,
+  importKind,
+) {
   const matcherWithTemplatesReplaced = micromatchPatternReplacingObjectsValues(
     matcher,
     elementsCapturedValues,
   );
+  if (!isMatchImportKind(dependency, importKind)) {
+    return { result: false };
+  }
   const isMatch = micromatch.isMatch(dependency.baseModule, matcherWithTemplatesReplaced);
   if (isMatch && options && Object.keys(options).length) {
     const isPathMatch = options.path

@@ -7,10 +7,20 @@ const {
   dependencyLocation,
   isMatchElementKey,
   elementRulesAllowDependency,
+  isMatchImportKind,
 } = require("../helpers/rules");
 const { customErrorMessage, ruleElementMessage, elementMessage } = require("../helpers/messages");
 
-function isMatchElementInternalPath(elementInfo, matcher, options, elementsCapturedValues) {
+function isMatchElementInternalPath(
+  elementInfo,
+  matcher,
+  options,
+  elementsCapturedValues,
+  importKind,
+) {
+  if (!isMatchImportKind(elementInfo, importKind)) {
+    return { result: false };
+  }
   return isMatchElementKey(elementInfo, matcher, options, "internalPath", elementsCapturedValues);
 }
 

@@ -21,7 +21,7 @@ module.exports = function (ruleMeta, rule, ruleOptions = {}) {
 
       return {
         ImportDeclaration: (node) => {
-          const dependency = dependencyInfo(node.source.value, context);
+          const dependency = dependencyInfo(node.source.value, node.importKind, context);
 
           rule({ file, dependency, options, node, context });
         },

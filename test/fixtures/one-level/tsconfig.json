@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+      "target": "es6",
+      "module": "commonjs",
+      "outDir": "dist",
+      "baseUrl": ".",
+      "paths": {
+        "modules/*": ["modules/*"],
+        "components/*": ["components/*"],
+        "helpers/*": ["helpers/*"],
+        "foo/*": ["foo/*"]
+      },
+  },
+}

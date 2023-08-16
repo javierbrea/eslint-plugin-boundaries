@@ -184,8 +184,10 @@ const SETTINGS = {
 };
 
 const createRuleTester = (settings) => {
+  const parserOptions = settings.parserOptions || { ecmaVersion: 2015, sourceType: "module" };
   return new RuleTester({
-    parserOptions: { ecmaVersion: 2015, sourceType: "module" },
+    parser: settings.parser,
+    parserOptions: parserOptions,
     settings,
   });
 };
