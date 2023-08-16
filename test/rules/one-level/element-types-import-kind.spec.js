@@ -276,11 +276,11 @@ test(
       file: "'helpers'",
       dep: "'helpers'",
     }),
-    1: "Importing elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
-    2: "Importing elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
-    3: "Importing elements of type 'modules' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    4: "Importing elements of type 'modules' is not allowed in elements of type 'components'. Disallowed in rule 3",
-    5: "Importing elements of type 'helpers' is not allowed in elements of type 'modules'. Disallowed in rule 4",
+    1: "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+    2: "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+    3: "Importing kind 'value' from elements of type 'modules' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
+    4: "Importing kind 'value' from elements of type 'modules' is not allowed in elements of type 'components'. Disallowed in rule 3",
+    5: "Importing kind 'type' from elements of type 'helpers' is not allowed in elements of type 'modules'. Disallowed in rule 4",
   },
 );
 
@@ -321,4 +321,54 @@ test(
     },
   ],
   {},
+);
+
+// Custom messages
+
+test(
+  settingsOneLevelTypeScript,
+  [
+    {
+      default: "allow",
+      rules: [
+        {
+          from: "helpers",
+          disallow: ["modules"],
+          importKind: "*",
+          message: "Do not import ${dependency.importKind} from modules in helpers",
+        },
+        {
+          from: "helpers",
+          disallow: ["components", "helpers"],
+          importKind: "value",
+          message: "Do not import value from ${dependency.type} in helpers",
+        },
+        {
+          from: "components",
+          disallow: ["modules"],
+          importKind: "value",
+          message:
+            "Do not import ${dependency.importKind} from ${dependency.type} in ${file.type}",
+        },
+        {
+          from: "modules",
+          disallow: ["helpers"],
+          importKind: "type",
+          message:
+            "Do not import ${dependency.importKind} from ${dependency.type} in ${file.type}",
+        },
+      ],
+    },
+  ],
+  {
+    0: elementTypesNoRuleMessage({
+      file: "'helpers'",
+      dep: "'helpers'",
+    }),
+    1: "Do not import value from helpers in helpers",
+    2: "Do not import value from components in helpers",
+    3: "Do not import value from modules in helpers",
+    4: "Do not import value from modules in components",
+    5: "Do not import type from helpers in modules",
+  },
 );

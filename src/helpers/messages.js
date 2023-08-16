@@ -85,6 +85,7 @@ function elementPropertiesToReplaceInTemplate(element) {
     type: element.type,
     internalPath: element.internalPath,
     source: element.source,
+    importKind: element.importKind,
   };
 }
 
@@ -152,9 +153,17 @@ function elementMessage(elementInfo) {
   )}`;
 }
 
+function dependencyImportKindMessage(ruleImportKind, dependencyInfo) {
+  if (ruleImportKind && dependencyInfo.importKind) {
+    return `kind ${quote(dependencyInfo.importKind)} from `;
+  }
+  return "";
+}
+
 module.exports = {
   quote,
   ruleElementMessage,
   customErrorMessage,
   elementMessage,
+  dependencyImportKindMessage,
 };

@@ -203,6 +203,7 @@ function elementRulesAllowDependency({
               disallow: rule.disallow,
               index: rule.index,
               message: rule.message || options.message,
+              importKind: rule.importKind,
             },
           ];
         }
