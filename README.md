@@ -261,7 +261,7 @@ Some rules require extra configuration, and it has to be defined in each specifi
 
 The docs of each rule contains an specification of their own options, but __the main rules share the format in which the options have to be defined__. The format described here is valid for options of [`element-types`](docs/rules/element-types.md), [`external`](docs/rules/external.md) and [`entry-point`](docs/rules/entry-point.md) rules.
 
-Options set an `allow` or `disallow` value by default, and provide an array of rules. Each matching rule will override the default value and the value returned by previous matching rules. So, the final result of the options, once processed for each case, will be `allow` or `disallow`, and this value will be applied by the plugin rule in the correspondant way, making it to produce an eslint error or not.
+Options set an `allow` or `disallow` value by default, and provide an array of rules. Each matching rule will override the default value and the value returned by previous matching rules. So, the final result of the options, once processed for each case, will be `allow` or `disallow`, and this value will be applied by the plugin rule in the correspondent way, making it to produce an eslint error or not.
 
 ```jsonc
 {
@@ -277,6 +277,8 @@ Options set an `allow` or `disallow` value by default, and provide an array of r
           "from": ["helpers"],
           // ...disallow importing this type of elements
           "disallow": ["modules", "components"],
+          // ..for this kind of imports (applies only when using TypeScript)
+          "importKind": "value",
           // ...and return this custom error message
           "message": "Helpers must not import other thing than helpers"
         },
@@ -300,6 +302,7 @@ Remember that:
 
 * __`from/target`__: `<element matchers>` Depending of the rule to which the options are for, the rule will be applied only if the file being analyzed matches with this element matcher (`from`), or the dependency being imported matches with this element matcher (`target`).
 * __`disallow/allow`__: `<value matchers>` If the plugin rule target matches with this, then the result of the rule will be "disallow/allow". Each rule will require a type of value here depending of what it is checking. In the case of the `element-types` rule, for example, another `<element matcher>` has to be provided in order to check the type of the local dependency.
+* __`importKind`__: `<string>` Optional. It allows to check the kind of import being analyzed. It can be also defined as an array of strings, or a micromatch pattern. Note that possible values to match with are `"value"`, `"type"` or `"typeof"`. It is useful only when using TypeScript, as it allows to check if the dependency is being imported as a value or as a type. For example, you could define that "components" can import "helpers" as a value, but not as a type. So, `import { helper } from "helpers/helper-a"` would be allowed, but `import type { Helper } from "helpers/helper-a"` would be disallowed.
 * __`message`__: `<string>` Optional. If the rule results in an error, the plugin will return this message instead of the default one. Read [error messages](#error-messages) for further info.
 
 > Tip: Properties `from/target` and `disallow/allow` can receive a single matcher, or an array of matchers.
@@ -340,6 +343,7 @@ Available properties in error templates both from `file` or `dependency` are:
 * `internalPath`: File path being analyzed or imported. Relative to the element's root path.
 * `source`: Available only for `dependency`. The source of the `import` statement as it is in the code.
 * `parent`: If the element is child of another element, it is also available in this property, which contains correspondent `type`, `internalPath` and captured properties as well.
+* `importKind`: Available only for `dependency` when using TypeScript. It contains the kind of import being analyzed. Possible values are `"value"`, `"type"` or `"typeof"`.
 * ...All captured properties are also available
 
 > Tip: Read ["Global settings"](#global-settings) for further info about how to capture values from elements.

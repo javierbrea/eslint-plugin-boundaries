@@ -19,13 +19,14 @@ It checks `import` statements between the element types of the project based on 
   * `from`: `<element matchers>` If the file being analyzed matches with this, then the rule will be executed to know if it allows/disallows the `import`. If not, the rule is skipped.
   * `disallow`: `<element matchers>` If the element being imported matches with this, then the result of the rule will be "disallow", and the import will be notified as an `eslint` error (this value can be overwritten by a next rule returning "allow")
   * `allow`: `<element matchers>` If the element being imported matches with this, then the result of the rule will be "allow", and the import will not be notified as an `eslint` error (this value can be overwritten by a next rule returning "disallow")
+  * `importKind`: `<string>` Optional. It allows to check the kind of import being analyzed. It can be also defined as an array of strings, or a micromatch pattern. Note that possible values to match with are `"value"`, `"type"` or `"typeof"`. It is useful only when using TypeScript, as it allows to check if the dependency is being imported as a value or as a type.
   * `message`: `<string>` Custom error message only for this rule. Read ["error messages"](#error-messages) for further info.
 
 ##### Comparing captures of the file element with captures of the imported element
 
 As a bonus of this rule, the `<capturedValuesObject>` option of the "element matchers" in the `allow`/`disallow` properties supports replacements with the captured values of the `from` element. It sounds complicated, but it can be easy to understand with an example:
 
-Suposse you want that helpers of one category can only import helpers of the same category. Then, you need to compare the value of the `category` captured in `from` with the value of the `category` captured in `allow`. You can use the special pattern `${capturedKey}` in the `allow` options, and it will be replaced by the correspondant captured key in `from` before using `micromatch` to check if the value matches.
+Suppose you want that helpers of one category can only import helpers of the same category. Then, you need to compare the value of the `category` captured in `from` with the value of the `category` captured in `allow`. You can use the special pattern `${capturedKey}` in the `allow` options, and it will be replaced by the correspondent captured key in `from` before using `micromatch` to check if the value matches.
 
 So, if the `from` element has captured values `{ family: "atom", elementName: "component-a" }`, then the next element matcher in the `allow` property: `["helpers", { "category": "!${family}-${elementName}" }]` will only match if the helper captured category has a value matching `"!atom-component-a"` _(which may has not sense at all, but is useful to illustrate how the replacement works. An example with a more useful usage of this feature can be seen in the next options example)_
 
@@ -44,7 +45,9 @@ So, if the `from` element has captured values `{ family: "atom", elementName: "c
             // from helper elements
             "from": ["helpers"],
             // allow importing helper elements
-            "allow": ["helpers"]
+            "allow": ["helpers"],
+            // allow only importing value, not type. Useful only in TypeScript
+            "importKind": "value"
           },
           {
             // from component elements
@@ -154,6 +157,13 @@ _Helpers can't import components:_
 import AtomA from 'components/atoms/atom-a'
 ```
 
+_Helpers can't import type from helpers:_
+
+```js
+// src/helpers/permissions/roles.js
+import type { SomeParser } from 'helpers/data/parse'
+```
+
 _Helpers can't import modules:_
 
 ```js
@@ -237,10 +247,11 @@ import ModuleB from 'modules/module-b'
 
 This rule provides a lot of information about the specific option producing an error, so the user can have enough context to solve it.
 
-* If the error is produced because all imports are disallowed by default, and no rule is specificly allowing it, then the message provides information about the file and the dependency types and captured values: `No rule allowing this dependency was found. File is of type 'components' with category 'molecules' and elementName 'molecule-c'. Dependency is of type 'modules' with domain 'domain-a' and elementName 'module-a'`.
+* If the error is produced because all imports are disallowed by default, and no rule is specifically allowing it, then the message provides information about the file and the dependency types and captured values: `No rule allowing this dependency was found. File is of type 'components' with category 'molecules' and elementName 'molecule-c'. Dependency is of type 'modules' with domain 'domain-a' and elementName 'module-a'`.
 * If the error is produced by a specific option, then the message includes information about the option producing it: `Importing elements of type 'components' with category 'atoms' and elementName '*-a' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1`
+* If the rule contains an `importKind` property, then the message also includes information about the import kind: `Importing kind "value" from elements of type 'components' with category 'atoms' and elementName '*-a' as 'value' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1`
 
-You can also configure a custom error message for changing this default behaviour, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) in the main docs for further info about how to configure messages.
+You can also configure a custom error message for changing this default behavior, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) in the main docs for further info about how to configure messages.
 
 ## Further reading
 
