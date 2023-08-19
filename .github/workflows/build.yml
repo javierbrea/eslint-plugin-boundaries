@@ -47,7 +47,7 @@ jobs:
           path: coverage
           retention-days: 1
   test-windows:
-    runs-on: windows-2019
+    runs-on: windows-2022
     strategy:
       matrix:
         node: ["16.14.0", "18.2.0", "20.5.1"]
