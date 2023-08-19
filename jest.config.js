@@ -38,5 +38,4 @@ module.exports = {
 
   // The glob patterns Jest uses to detect test files
   testMatch: ["<rootDir>/test/**/*.spec.js"],
-  // testMatch: ["<rootDir>/test/rules/one-level/element-types-import-kind.spec.js"],
 };
