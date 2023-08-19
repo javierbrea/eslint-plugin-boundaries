@@ -9,8 +9,14 @@ const {
   dependencyLocation,
   elementRulesAllowDependency,
   micromatchPatternReplacingObjectsValues,
+  isMatchImportKind,
 } = require("../helpers/rules");
-const { customErrorMessage, ruleElementMessage, elementMessage } = require("../helpers/messages");
+const {
+  customErrorMessage,
+  ruleElementMessage,
+  elementMessage,
+  dependencyUsageKindMessage,
+} = require("../helpers/messages");
 const { isArray } = require("../helpers/utils");
 
 function specifiersMatch(specifiers, specifierOptions, elementsCapturedValues) {
@@ -22,7 +28,7 @@ function specifiersMatch(specifiers, specifierOptions, elementsCapturedValues) {
   return specifierOptions.reduce((found, option) => {
     const matcherWithTemplateReplaced = micromatchPatternReplacingObjectsValues(
       option,
-      elementsCapturedValues
+      elementsCapturedValues,
     );
     if (micromatch.some(importedSpecifiersNames, matcherWithTemplateReplaced)) {
       found.push(option);
@@ -39,7 +45,7 @@ function pathMatch(path, pathOptions, elementsCapturedValues) {
     }
     const matcherWithTemplateReplaced = micromatchPatternReplacingObjectsValues(
       option,
-      elementsCapturedValues
+      elementsCapturedValues,
     );
     if (micromatch.some(path, matcherWithTemplateReplaced)) {
       isMatch = true;
@@ -48,11 +54,20 @@ function pathMatch(path, pathOptions, elementsCapturedValues) {
   }, false);
 }
 
-function isMatchExternalDependency(dependency, matcher, options, elementsCapturedValues) {
+function isMatchExternalDependency(
+  dependency,
+  matcher,
+  options,
+  elementsCapturedValues,
+  importKind,
+) {
   const matcherWithTemplatesReplaced = micromatchPatternReplacingObjectsValues(
     matcher,
-    elementsCapturedValues
+    elementsCapturedValues,
   );
+  if (!isMatchImportKind(dependency, importKind)) {
+    return { result: false };
+  }
   const isMatch = micromatch.isMatch(dependency.baseModule, matcherWithTemplatesReplaced);
   if (isMatch && options && Object.keys(options).length) {
     const isPathMatch = options.path
@@ -62,7 +77,7 @@ function isMatchExternalDependency(dependency, matcher, options, elementsCapture
       const specifiersResult = specifiersMatch(
         dependency.specifiers,
         options.specifiers,
-        elementsCapturedValues
+        elementsCapturedValues,
       );
       return {
         result: specifiersResult.length > 0,
@@ -103,9 +118,8 @@ function errorMessage(ruleData, file, dependency) {
   const ruleReport = ruleData.ruleReport;
   if (ruleReport.message) {
     return customErrorMessage(ruleReport.message, file, dependency, {
-      specifiers:
-        ruleData.report && ruleData.report.specifiers && ruleData.report.specifiers.join(", "),
-      path: ruleData.report && ruleData.report.path,
+      specifiers: ruleData.report?.specifiers?.join(", "),
+      path: ruleData.report?.path,
     });
   }
   if (ruleReport.isDefault) {
@@ -116,15 +130,20 @@ function errorMessage(ruleData, file, dependency) {
 
   const fileReport = `is not allowed in ${ruleElementMessage(
     ruleReport.element,
-    file.capturedValues
+    file.capturedValues,
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 
   if (ruleData.report) {
-    return `Usage of '${getErrorReportMessage(ruleData.report)}' from external module '${
+    return `Usage of ${dependencyUsageKindMessage(
+      ruleReport.importKind,
+      dependency,
+    )}'${getErrorReportMessage(ruleData.report)}' from external module '${
       dependency.baseModule
     }' ${fileReport}`;
   }
-  return `Usage of external module '${dependency.baseModule}' ${fileReport}`;
+  return `Usage of ${dependencyUsageKindMessage(ruleReport.importKind, dependency, {
+    suffix: " from ",
+  })}external module '${dependency.baseModule}' ${fileReport}`;
 }
 
 module.exports = dependencyRule(
@@ -164,7 +183,7 @@ module.exports = dependencyRule(
       const ruleData = elementRulesAllowExternalDependency(
         file,
         { ...dependency, specifiers: node.source.parent.specifiers },
-        options
+        options,
       );
       if (!ruleData.result) {
         context.report({
@@ -177,5 +196,5 @@ module.exports = dependencyRule(
   },
   {
     validateRules: { onlyMainKey: true },
-  }
+  },
 );

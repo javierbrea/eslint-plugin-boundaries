@@ -74,7 +74,7 @@ ruleTester.run(RULE, rule, {
             entryPointNoRuleMessage({
               entryPoint: "AtomA.js",
               dep: "'components' with family 'atoms' and elementName 'atom-a'",
-            })
+            }),
           ),
           type: "ImportDeclaration",
         },
@@ -93,7 +93,7 @@ ruleTester.run(RULE, rule, {
             entryPointNoRuleMessage({
               entryPoint: "ModuleB.js",
               dep: "'modules' with elementName 'module-b'",
-            })
+            }),
           ),
           type: "ImportDeclaration",
         },

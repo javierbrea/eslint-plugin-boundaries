@@ -8,7 +8,12 @@ const {
   isMatchElementType,
   elementRulesAllowDependency,
 } = require("../helpers/rules");
-const { customErrorMessage, ruleElementMessage, elementMessage } = require("../helpers/messages");
+const {
+  customErrorMessage,
+  ruleElementMessage,
+  elementMessage,
+  dependencyImportKindMessage,
+} = require("../helpers/messages");
 
 function elementRulesAllowDependencyType(element, dependency, options) {
   return elementRulesAllowDependency({
@@ -26,15 +31,18 @@ function errorMessage(ruleData, file, dependency) {
   }
   if (ruleReport.isDefault) {
     return `No rule allowing this dependency was found. File is ${elementMessage(
-      file
+      file,
     )}. Dependency is ${elementMessage(dependency)}`;
   }
-  return `Importing ${ruleElementMessage(
+  return `Importing ${dependencyImportKindMessage(
+    ruleReport.importKind,
+    dependency,
+  )}${ruleElementMessage(
     ruleReport.disallow,
-    file.capturedValues
+    file.capturedValues,
   )} is not allowed in ${ruleElementMessage(
     ruleReport.element,
-    file.capturedValues
+    file.capturedValues,
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 }
 
@@ -55,5 +63,5 @@ module.exports = dependencyRule(
         });
       }
     }
-  }
+  },
 );

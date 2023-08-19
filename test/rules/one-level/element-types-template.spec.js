@@ -68,7 +68,7 @@ const testCapture = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'components' with elementName 'component-a'",
                 dep: "'helpers' with elementName 'helper-b'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -87,7 +87,7 @@ const testCapture = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'components' with elementName 'component-a'",
                 dep: "'helpers' with elementName 'helper-b'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -106,7 +106,7 @@ const testCapture = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'components' with elementName 'component-b'",
                 dep: "'components' with elementName 'component-a'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -125,7 +125,7 @@ const testCapture = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "'helpers' with elementName 'helper-b'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -144,7 +144,7 @@ const testCapture = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'modules' with elementName 'module-b'",
                 dep: "'module-a-helpers' with elementName 'helper-1'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -163,7 +163,7 @@ const testCapture = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'modules' with elementName 'module-b'",
                 dep: "'helpers' with elementName 'module-a'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -229,5 +229,5 @@ testCapture(
   ],
   {
     2: "Importing elements of type 'components' with elementName 'component-a' is not allowed in elements of type 'components'. Disallowed in rule 1",
-  }
+  },
 );

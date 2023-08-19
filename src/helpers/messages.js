@@ -22,7 +22,7 @@ function propertiesConcater(properties, index) {
 function micromatchPatternMessage(micromatchPatterns, elementCapturedValues) {
   const micromatchPatternsWithValues = micromatchPatternReplacingObjectsValues(
     micromatchPatterns,
-    { from: elementCapturedValues }
+    { from: elementCapturedValues },
   );
   if (isArray(micromatchPatternsWithValues)) {
     if (micromatchPatternsWithValues.length === 1) {
@@ -60,7 +60,7 @@ function elementMatcherMessage(elementMatcher, elementCapturedValues) {
   }
   return `${typeMessage(elementMatcher[0])}${capturedValuesMatcherMessage(
     elementMatcher[1],
-    elementCapturedValues
+    elementCapturedValues,
   )}`;
 }
 
@@ -85,6 +85,7 @@ function elementPropertiesToReplaceInTemplate(element) {
     type: element.type,
     internalPath: element.internalPath,
     source: element.source,
+    importKind: element.importKind,
   };
 }
 
@@ -92,39 +93,39 @@ function customErrorMessage(message, file, dependency, report = {}) {
   let replacedMessage = replaceObjectValuesInTemplates(
     replaceObjectValuesInTemplates(message, elementPropertiesToReplaceInTemplate(file), "file"),
     elementPropertiesToReplaceInTemplate(dependency),
-    "dependency"
+    "dependency",
   );
   replacedMessage = replaceObjectValuesInTemplates(
     replaceObjectValuesInTemplates(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(file),
-      "from"
+      "from",
     ),
     elementPropertiesToReplaceInTemplate(dependency),
-    "target"
+    "target",
   );
   if (file.parents[0]) {
     replacedMessage = replaceObjectValuesInTemplates(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(file.parents[0]),
-      "file.parent"
+      "file.parent",
     );
     replacedMessage = replaceObjectValuesInTemplates(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(file.parents[0]),
-      "from.parent"
+      "from.parent",
     );
   }
   if (dependency.parents[0]) {
     replacedMessage = replaceObjectValuesInTemplates(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(dependency.parents[0]),
-      "dependency.parent"
+      "dependency.parent",
     );
     replacedMessage = replaceObjectValuesInTemplates(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(dependency.parents[0]),
-      "target.parent"
+      "target.parent",
     );
   }
   return replaceObjectValuesInTemplates(replacedMessage, report, "report");
@@ -148,8 +149,30 @@ function elementCapturedValuesMessage(capturedValues) {
 
 function elementMessage(elementInfo) {
   return `of type ${quote(elementInfo.type)}${elementCapturedValuesMessage(
-    elementInfo.capturedValues
+    elementInfo.capturedValues,
   )}`;
+}
+
+function hasToPrintKindMessage(ruleImportKind, dependencyInfo) {
+  return ruleImportKind && dependencyInfo.importKind;
+}
+
+function dependencyImportKindMessage(ruleImportKind, dependencyInfo) {
+  if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
+    return `kind ${quote(dependencyInfo.importKind)} from `;
+  }
+  return "";
+}
+
+function dependencyUsageKindMessage(
+  ruleImportKind,
+  dependencyInfo,
+  { suffix = " ", prefix = "" } = {},
+) {
+  if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
+    return `${prefix}${dependencyInfo.importKind}${suffix}`;
+  }
+  return "";
 }
 
 module.exports = {
@@ -157,4 +180,6 @@ module.exports = {
   ruleElementMessage,
   customErrorMessage,
   elementMessage,
+  dependencyImportKindMessage,
+  dependencyUsageKindMessage,
 };

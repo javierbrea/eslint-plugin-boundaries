@@ -95,7 +95,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "react",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -114,7 +114,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
               externalNoRuleMessage({
                 file: "'components' with category 'atoms' and elementName 'atom-a'",
                 dep: "@material-ui/core",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -133,7 +133,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
               externalNoRuleMessage({
                 file: "'components' with category 'molecules' and elementName 'molecule-a'",
                 dep: "@material-ui/core",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -152,7 +152,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
               externalNoRuleMessage({
                 file: "'components' with category 'layouts' and elementName 'layout-a'",
                 dep: "@material-ui/core",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -171,7 +171,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
               externalNoRuleMessage({
                 file: "'modules' with domain 'pages' and elementName 'page-a'",
                 dep: "react-router-dom",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -190,7 +190,7 @@ const test = (settings, options, { absoluteFilePath }, errorMessages) => {
               externalNoRuleMessage({
                 file: "'modules' with domain 'domain-b' and elementName 'module-b'",
                 dep: "react",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -232,7 +232,7 @@ test(
     },
   ],
   pathResolvers("two-levels"),
-  {}
+  {},
 );
 
 test(
@@ -265,5 +265,5 @@ test(
     },
   ],
   pathResolvers("two-levels-with-private"),
-  {}
+  {},
 );

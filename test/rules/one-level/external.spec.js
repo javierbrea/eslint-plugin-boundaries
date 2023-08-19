@@ -106,7 +106,7 @@ const test = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "react",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -125,7 +125,7 @@ const test = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'components' with elementName 'component-a'",
                 dep: "react-router-dom",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -144,7 +144,7 @@ const test = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -163,7 +163,7 @@ const test = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -185,7 +185,7 @@ const test = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "react",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -196,7 +196,7 @@ const test = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -215,7 +215,7 @@ const test = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -234,7 +234,7 @@ const test = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -253,7 +253,7 @@ const test = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -272,7 +272,7 @@ const test = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "@material-ui/core",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -291,7 +291,7 @@ const test = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "react-router-dom",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -338,7 +338,7 @@ const testCapture = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'modules'",
                 dep: "react-router-dom",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -357,7 +357,7 @@ const testCapture = (settings, options, errorMessages) => {
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-b'",
                 dep: "foo-library",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -377,7 +377,7 @@ const testCapture = (settings, options, errorMessages) => {
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
                 specifiers: ["Link"],
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -423,7 +423,7 @@ test(
     6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'modules'. Disallowed in rule 3",
     8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 3",
-  }
+  },
 );
 
 // allow-based options
@@ -467,7 +467,7 @@ test(
     6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'modules'. Disallowed in rule 3",
     8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 3",
-  }
+  },
 );
 
 // micromatch-based options
@@ -511,7 +511,7 @@ test(
     6: "Usage of 'L*, R*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
     7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'm*'. Disallowed in rule 3",
     8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'm*'. Disallowed in rule 3",
-  }
+  },
 );
 
 // disallow-based options
@@ -556,7 +556,7 @@ test(
     5: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     8: "Do not import /var/foo from RDD in modules",
-  }
+  },
 );
 
 // custom error messages
@@ -604,7 +604,7 @@ test(
     6: "Do not import Link, Router from foo-library in helpers",
     7: "Importing @material-ui/core is not allowed in modules with name module-a",
     8: "Importing react-router-dom/var/foo is not allowed in modules with name module-a",
-  }
+  },
 );
 
 // options with capture allow-based
@@ -634,5 +634,5 @@ testCapture(
     0: "Usage of external module 'react-router-dom' is not allowed in elements of type 'modules' with elementName 'module-b'. Disallowed in rule 1",
     1: "Usage of external module 'foo-library' is not allowed in elements of type 'helpers' with elementName 'helper-b'. Disallowed in rule 2",
     2: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers' with elementName 'helper-a'. Disallowed in rule 3",
-  }
+  },
 );

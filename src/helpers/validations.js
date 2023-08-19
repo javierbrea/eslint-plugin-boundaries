@@ -63,6 +63,19 @@ function rulesOptionsSchema(options = {}) {
               [mainKey]: elementsMatcherSchema(),
               allow: elementsMatcherSchema(options.targetMatcherOptions),
               disallow: elementsMatcherSchema(options.targetMatcherOptions),
+              importKind: {
+                oneOf: [
+                  {
+                    type: "string",
+                  },
+                  {
+                    type: "array",
+                    items: {
+                      type: "string",
+                    },
+                  },
+                ],
+              },
               message: {
                 type: "string",
               },
@@ -109,7 +122,7 @@ function validateElements(elements) {
     // TODO, remove in next major version
     if (isLegacyType(element)) {
       warnOnce(
-        `Defining elements as strings in settings is deprecated. Will be automatically converted, but this feature will be removed in next major versions`
+        `Defining elements as strings in settings is deprecated. Will be automatically converted, but this feature will be removed in next major versions`,
       );
     } else {
       Object.keys(element).forEach(() => {
@@ -119,8 +132,8 @@ function validateElements(elements) {
         if (element.mode && !VALID_MODES.includes(element.mode)) {
           warnOnce(
             `Invalid mode property in '${ELEMENTS}' setting. Should be one of ${VALID_MODES.join(
-              ","
-            )}. Default value "${VALID_MODES[0]}" will be used instead`
+              ",",
+            )}. Default value "${VALID_MODES[0]}" will be used instead`,
           );
         }
         if (!element.pattern || !(isString(element.pattern) || isArray(element.pattern))) {
@@ -137,7 +150,7 @@ function validateElements(elements) {
 function deprecateAlias(aliases) {
   if (aliases) {
     warnOnce(
-      `Defining aliases in '${ALIAS}' setting is deprecated. Please use 'import/resolver' setting`
+      `Defining aliases in '${ALIAS}' setting is deprecated. Please use 'import/resolver' setting`,
     );
   }
 }

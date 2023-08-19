@@ -10,6 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 ### Removed
 
+## [3.3.0] - 2023-08-19
+
+### Added
+- feat(#298): Add `importKind` option to `element-types`, `entry-point` and `external` rules. It allows to define if the rule applies when the dependency is being imported as a value or as a type.
+- chore: Add meta name and version to plugin exported object
+- chore: Handle concurrency in pipelines
+
+### Fixed
+- fix(#295): Replace template values in custom messages using a Regexp, so it replaces all occurrences
+- fix: Do not throw error when rule contains matchers for captured values but element has not captured values
+
+### Changed
+- chore(deps): Update dependencies
+- chore(deps): Use NodeJs 16.x, 18.x and 20.x in pipelines
+- refactor: Use optional chain expressions
+
 ## [3.2.0] - 2023-07-30
 
 ### Changed

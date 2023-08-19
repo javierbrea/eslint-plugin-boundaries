@@ -62,9 +62,12 @@ function micromatchPatternReplacingObjectsValues(pattern, object) {
 function isObjectMatch(objectWithMatchers, object, objectsWithValuesToReplace) {
   return Object.keys(objectWithMatchers).reduce((isMatch, key) => {
     if (isMatch) {
+      if (!object) {
+        return false;
+      }
       const micromatchPattern = micromatchPatternReplacingObjectsValues(
         objectWithMatchers[key],
-        objectsWithValuesToReplace
+        objectsWithValuesToReplace,
       );
       return micromatch.isMatch(object[key], micromatchPattern);
     }
@@ -76,17 +79,23 @@ function rulesMainKey(key) {
   return key || FROM;
 }
 
-function ruleMatch(ruleMatchers, targetElement, isMatch, fromElement) {
+function ruleMatch(ruleMatchers, targetElement, isMatch, fromElement, importKind) {
   let match = { result: false, report: null };
   const matchers = !isArray(ruleMatchers) ? [ruleMatchers] : ruleMatchers;
   matchers.forEach((matcher) => {
     if (!match.result) {
       if (isArray(matcher)) {
         const [value, captures] = matcher;
-        match = isMatch(targetElement, value, captures, {
-          from: fromElement.capturedValues,
-          target: targetElement.capturedValues,
-        });
+        match = isMatch(
+          targetElement,
+          value,
+          captures,
+          {
+            from: fromElement.capturedValues,
+            target: targetElement.capturedValues,
+          },
+          importKind,
+        );
       } else {
         match = isMatch(
           targetElement,
@@ -95,7 +104,8 @@ function ruleMatch(ruleMatchers, targetElement, isMatch, fromElement) {
           {
             from: fromElement.capturedValues,
             target: targetElement.capturedValues,
-          }
+          },
+          importKind,
         );
       }
     }
@@ -108,11 +118,11 @@ function isMatchElementKey(
   matcher,
   options,
   elementKey,
-  elementsToCompareCapturedValues
+  elementsToCompareCapturedValues,
 ) {
   const isMatch = micromatch.isMatch(
     elementInfo[elementKey],
-    micromatchPatternReplacingObjectsValues(matcher, elementsToCompareCapturedValues)
+    micromatchPatternReplacingObjectsValues(matcher, elementsToCompareCapturedValues),
   );
   if (isMatch && options) {
     return {
@@ -124,7 +134,23 @@ function isMatchElementKey(
   };
 }
 
-function isMatchElementType(elementInfo, matcher, options, elementsToCompareCapturedValues) {
+function isMatchImportKind(elementInfo, importKind) {
+  if (!elementInfo.importKind || !importKind) {
+    return true;
+  }
+  return micromatch.isMatch(elementInfo.importKind, importKind);
+}
+
+function isMatchElementType(
+  elementInfo,
+  matcher,
+  options,
+  elementsToCompareCapturedValues,
+  importKind,
+) {
+  if (!isMatchImportKind(elementInfo, importKind)) {
+    return { result: false };
+  }
   return isMatchElementKey(elementInfo, matcher, options, "type", elementsToCompareCapturedValues);
 }
 
@@ -166,11 +192,11 @@ function elementRulesAllowDependency({
   const [result, report, ruleReport] = getElementRules(
     elementToGetRulesFrom(element, dependency, mainKey),
     options,
-    mainKey
+    mainKey,
   ).reduce(
     (allowed, rule) => {
       if (rule.disallow) {
-        const match = ruleMatch(rule.disallow, dependency, isMatch, element);
+        const match = ruleMatch(rule.disallow, dependency, isMatch, element, rule.importKind);
         if (match.result) {
           return [
             false,
@@ -180,12 +206,13 @@ function elementRulesAllowDependency({
               disallow: rule.disallow,
               index: rule.index,
               message: rule.message || options.message,
+              importKind: rule.importKind,
             },
           ];
         }
       }
       if (rule.allow) {
-        const match = ruleMatch(rule.allow, dependency, isMatch, element);
+        const match = ruleMatch(rule.allow, dependency, isMatch, element, rule.importKind);
         if (match.result) {
           return [true, match.report];
         }
@@ -199,7 +226,7 @@ function elementRulesAllowDependency({
         isDefault: true,
         message: options.message,
       },
-    ]
+    ],
   );
   return {
     result,
@@ -218,4 +245,5 @@ module.exports = {
   getElementRules,
   rulesMainKey,
   micromatchPatternReplacingObjectsValues,
+  isMatchImportKind,
 };

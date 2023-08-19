@@ -184,7 +184,7 @@ const test = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "'helpers' with elementName 'helper-b'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -203,7 +203,7 @@ const test = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "'helpers' with elementName 'helper-b'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -222,7 +222,7 @@ const test = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "'components' with elementName 'component-a'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -241,7 +241,7 @@ const test = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "'modules' with elementName 'module-a'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -260,7 +260,7 @@ const test = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'components' with elementName 'component-a'",
                 dep: "'modules' with elementName 'module-a'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -320,7 +320,7 @@ const testCapture = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'components' with elementName 'component-a'",
                 dep: "'helpers' with elementName 'helper-b'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -339,7 +339,7 @@ const testCapture = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'components' with elementName 'component-a'",
                 dep: "'helpers' with elementName 'helper-b'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -358,7 +358,7 @@ const testCapture = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'components' with elementName 'component-b'",
                 dep: "'components' with elementName 'component-a'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -377,7 +377,7 @@ const testCapture = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "'helpers' with elementName 'helper-b'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -406,7 +406,7 @@ test(
       ],
     },
   ],
-  {}
+  {},
 );
 
 // settings with no capture option
@@ -440,6 +440,10 @@ test(
           from: "components",
           disallow: ["modules"],
         },
+        {
+          from: [["components", { elementName: "component-a" }]],
+          allow: [["modules", { elementName: "module-b" }]],
+        },
       ],
     },
   ],
@@ -452,7 +456,7 @@ test(
     2: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     3: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     4: "Importing elements of type 'modules' is not allowed in elements of type 'components'. Disallowed in rule 2",
-  }
+  },
 );
 
 // disallow-based options
@@ -474,7 +478,7 @@ test(
       ],
     },
   ],
-  {}
+  {},
 );
 
 // micromatch-based options
@@ -496,7 +500,7 @@ test(
       ],
     },
   ],
-  {}
+  {},
 );
 
 // allow-based options
@@ -522,7 +526,7 @@ test(
     2: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     3: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     4: "Importing elements of type 'modules' is not allowed in elements of type 'components'. Disallowed in rule 2",
-  }
+  },
 );
 
 // capture options
@@ -547,7 +551,7 @@ testCapture(
   ],
   {
     2: "Importing elements of type 'components' with elementName 'component-a' is not allowed in elements of type 'components'. Disallowed in rule 1",
-  }
+  },
 );
 
 // capture options with micromatch negative expression
@@ -572,7 +576,7 @@ testCapture(
       ],
     },
   ],
-  {}
+  {},
 );
 
 // capture options with micromatch
@@ -597,7 +601,7 @@ testCapture(
   ],
   {
     2: "Importing elements of type 'c*' with elementName '*-a' is not allowed in elements of type 'c*'. Disallowed in rule 1",
-  }
+  },
 );
 
 // Custom error message
@@ -615,7 +619,7 @@ testCapture(
           allow: [["helpers", { elementName: "*-a" }], "c*"],
           disallow: [["c*", { elementName: "*-a" }]],
           message:
-            "Do not import ${dependency.type} named ${dependency.elementName} from ${file.type} named ${file.elementName}",
+            "Do not import ${dependency.type} named ${dependency.elementName} from ${file.type} named ${file.elementName}. Repeat: Do not import ${dependency.type} named ${dependency.elementName} from ${file.type} named ${file.elementName}.",
         },
         {
           from: "modules",
@@ -627,9 +631,9 @@ testCapture(
   {
     0: "Importing helpers with name helper-b is not allowed in components with name component-a",
     1: "Importing helpers with name helper-b is not allowed in components with name component-a",
-    2: "Do not import components named component-a from components named component-b",
+    2: "Do not import components named component-a from components named component-b. Repeat: Do not import components named component-a from components named component-b.",
     3: "Importing helpers with name helper-b is not allowed in modules with name module-a",
-  }
+  },
 );
 
 // Custom error message default
@@ -659,7 +663,7 @@ testCapture(
     1: "Importing helpers with name helper-b is not allowed in components with name component-a",
     2: "Importing components with name component-a is not allowed in components with name component-b",
     3: "Importing helpers with name helper-b is not allowed in modules with name module-a",
-  }
+  },
 );
 
 testCapture(
@@ -682,7 +686,7 @@ testCapture(
   ],
   {
     2: "Importing elements of type 'c*' with elementName '*-a', 'component-a' or '*t-a' is not allowed in elements of type 'c*'. Disallowed in rule 1",
-  }
+  },
 );
 
 testCapture(
@@ -705,5 +709,5 @@ testCapture(
   ],
   {
     2: "Importing elements of type 'c*' with elementName '*-a' is not allowed in elements of type 'c*'. Disallowed in rule 1",
-  }
+  },
 );

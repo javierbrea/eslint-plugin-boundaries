@@ -66,7 +66,7 @@ const test = (settings, options, errorMessages) => {
               elementTypesNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "'helpers' with elementName 'helper-b'",
-              })
+              }),
             ),
             type: "ImportDeclaration",
           },
@@ -88,7 +88,7 @@ test(
       default: "disallow",
     },
   ],
-  {}
+  {},
 );
 
 // no type
@@ -104,7 +104,7 @@ test(
     ],
   },
   [],
-  {}
+  {},
 );
 
 // no valid mode
@@ -119,7 +119,7 @@ test(
     ],
   },
   [],
-  {}
+  {},
 );
 
 // no valid capture
@@ -135,5 +135,5 @@ test(
     ],
   },
   [],
-  {}
+  {},
 );

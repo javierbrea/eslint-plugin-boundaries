@@ -126,12 +126,12 @@ function elementTypeAndParents(path, settings) {
                   path
                     .split("/")
                     .slice(0, path.split("/").length - lastSegmentMatching)
-                    .join("/")
+                    .join("/"),
                 );
               }
               const capture = micromatch.capture(
                 pattern,
-                useFullPathMatch ? path : accumulator.join("/")
+                useFullPathMatch ? path : accumulator.join("/"),
               );
 
               if (capture && basePatternCapture) {
@@ -171,7 +171,7 @@ function elementTypeAndParents(path, settings) {
         });
         return { accumulator, lastSegmentMatching };
       },
-      { accumulator: [], lastSegmentMatching: 0 }
+      { accumulator: [], lastSegmentMatching: 0 },
     );
 
   return {
