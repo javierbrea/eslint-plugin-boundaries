@@ -64,12 +64,13 @@ function dependencyRelationship(dependency, element) {
   return null;
 }
 
-function dependencyInfo(source, context) {
+function dependencyInfo(source, importKind, context) {
   const elementInfo = fileInfo(context);
   const dependency = importInfo(source, context);
 
   return {
     ...dependency,
+    importKind: importKind || "value",
     relationship: dependencyRelationship(dependency, elementInfo),
     isInternal: isInternal(dependency, elementInfo),
   };

@@ -63,6 +63,19 @@ function rulesOptionsSchema(options = {}) {
               [mainKey]: elementsMatcherSchema(),
               allow: elementsMatcherSchema(options.targetMatcherOptions),
               disallow: elementsMatcherSchema(options.targetMatcherOptions),
+              importKind: {
+                oneOf: [
+                  {
+                    type: "string",
+                  },
+                  {
+                    type: "array",
+                    items: {
+                      type: "string",
+                    },
+                  },
+                ],
+              },
               message: {
                 type: "string",
               },

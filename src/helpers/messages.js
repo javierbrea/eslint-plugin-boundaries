@@ -85,6 +85,7 @@ function elementPropertiesToReplaceInTemplate(element) {
     type: element.type,
     internalPath: element.internalPath,
     source: element.source,
+    importKind: element.importKind,
   };
 }
 
@@ -152,9 +153,33 @@ function elementMessage(elementInfo) {
   )}`;
 }
 
+function hasToPrintKindMessage(ruleImportKind, dependencyInfo) {
+  return ruleImportKind && dependencyInfo.importKind;
+}
+
+function dependencyImportKindMessage(ruleImportKind, dependencyInfo) {
+  if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
+    return `kind ${quote(dependencyInfo.importKind)} from `;
+  }
+  return "";
+}
+
+function dependencyUsageKindMessage(
+  ruleImportKind,
+  dependencyInfo,
+  { suffix = " ", prefix = "" } = {},
+) {
+  if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
+    return `${prefix}${dependencyInfo.importKind}${suffix}`;
+  }
+  return "";
+}
+
 module.exports = {
   quote,
   ruleElementMessage,
   customErrorMessage,
   elementMessage,
+  dependencyImportKindMessage,
+  dependencyUsageKindMessage,
 };

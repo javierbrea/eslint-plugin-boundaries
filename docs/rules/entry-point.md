@@ -19,6 +19,7 @@ It checks `import` statements to the elements of the project and ensure that eac
   * `target`: `<element matchers>` If the element being imported matches with this, then the rule will be executed to know if it allows/disallows the `import`. If not, the rule is skipped.
   * `disallow`: `<string>` A [`micromatch` pattern](https://github.com/micromatch/micromatch). If the element being imported matches with this, then the result of the rule will be "disallow", and the import will be notified as an `eslint` error (this value can be overwritten by a next rule returning "allow")
   * `allow`: `<string>` A [`micromatch` pattern](https://github.com/micromatch/micromatch). If the element being imported matches with this, then the result of the rule will be "allow", and the import will not be notified as an `eslint` error (this value can be overwritten by a next rule returning "disallow")
+  * `importKind`: `<string>` Optional. It is useful only when using TypeScript, as it allows to define if the rule applies when the dependency is being imported as a value or as a type. It can be also defined as an array of strings, or a micromatch pattern. Note that possible values to match with are `"value"`, `"type"` or `"typeof"`.
   * `message`: `<string>` Custom error message only for this rule. Read ["error messages"](#error-messages) for further info.
 
 ##### Options example
@@ -40,7 +41,9 @@ It checks `import` statements to the elements of the project and ensure that eac
             // when importing components or modules
             "target": ["components", "modules"],
             // only allow index.js
-            "allow": "index.js"
+            "allow": "index.js",
+            // allow only importing values, not types. Useful only in TypeScript
+            "importKind": "value"
           }
         ]
       }
@@ -134,6 +137,14 @@ import ModuleB from 'modules/module-b/ModuleB'
 
 ```
 
+_type from index.js from modules can't be imported:_
+
+```js
+// src/modules/module-a/ModuleA.js
+import type ModuleB from 'modules/module-b'
+
+```
+
 ### Examples of **correct** code for this rule:
 
 _Helper file can be imported:_
@@ -174,6 +185,7 @@ This rule provides a lot of information about the specific option producing an e
 
 * If the error is produced because all entry points are disallowed by default, and no rule is specificly allowing it, then the message provides information about the dependency type and captured values: `No rule allows the entry point 'fooFile.js' in dependencies of type 'components' with category 'molecules' and elementName 'molecule-c'`.
 * If the error is produced by a specific option, then the message includes information about the option producing it: `The entry point 'fooFile.js' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 2`
+* If the rule contains an `importKind` property, then the message also includes information about the import kind: `The entry point 'fooFile.js' is not allowed in elements of type 'helpers' with elementName 'helper-c' when importing type. Disallowed in rule 2`
 
 You can also configure a custom error message for changing this default behaviour, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) in the main docs for further info about how to configure messages.
 

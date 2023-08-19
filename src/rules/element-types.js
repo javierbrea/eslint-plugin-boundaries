@@ -8,7 +8,12 @@ const {
   isMatchElementType,
   elementRulesAllowDependency,
 } = require("../helpers/rules");
-const { customErrorMessage, ruleElementMessage, elementMessage } = require("../helpers/messages");
+const {
+  customErrorMessage,
+  ruleElementMessage,
+  elementMessage,
+  dependencyImportKindMessage,
+} = require("../helpers/messages");
 
 function elementRulesAllowDependencyType(element, dependency, options) {
   return elementRulesAllowDependency({
@@ -29,7 +34,10 @@ function errorMessage(ruleData, file, dependency) {
       file,
     )}. Dependency is ${elementMessage(dependency)}`;
   }
-  return `Importing ${ruleElementMessage(
+  return `Importing ${dependencyImportKindMessage(
+    ruleReport.importKind,
+    dependency,
+  )}${ruleElementMessage(
     ruleReport.disallow,
     file.capturedValues,
   )} is not allowed in ${ruleElementMessage(

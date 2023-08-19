@@ -7,10 +7,25 @@ const {
   dependencyLocation,
   isMatchElementKey,
   elementRulesAllowDependency,
+  isMatchImportKind,
 } = require("../helpers/rules");
-const { customErrorMessage, ruleElementMessage, elementMessage } = require("../helpers/messages");
+const {
+  customErrorMessage,
+  ruleElementMessage,
+  elementMessage,
+  dependencyUsageKindMessage,
+} = require("../helpers/messages");
 
-function isMatchElementInternalPath(elementInfo, matcher, options, elementsCapturedValues) {
+function isMatchElementInternalPath(
+  elementInfo,
+  matcher,
+  options,
+  elementsCapturedValues,
+  importKind,
+) {
+  if (!isMatchImportKind(elementInfo, importKind)) {
+    return { result: false };
+  }
   return isMatchElementKey(elementInfo, matcher, options, "internalPath", elementsCapturedValues);
 }
 
@@ -37,7 +52,10 @@ function errorMessage(ruleData, file, dependency) {
   return `The entry point '${dependency.internalPath}' is not allowed in ${ruleElementMessage(
     ruleReport.element,
     dependency.capturedValues,
-  )}. Disallowed in rule ${ruleReport.index + 1}`;
+  )}${dependencyUsageKindMessage(ruleReport.importKind, dependency, {
+    prefix: " when importing ",
+    suffix: "",
+  })}. Disallowed in rule ${ruleReport.index + 1}`;
 }
 
 module.exports = dependencyRule(
