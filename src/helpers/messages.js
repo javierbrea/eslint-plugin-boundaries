@@ -164,9 +164,13 @@ function dependencyImportKindMessage(ruleImportKind, dependencyInfo) {
   return "";
 }
 
-function dependencyUsageKindMessage(ruleImportKind, dependencyInfo, suffix = "") {
+function dependencyUsageKindMessage(
+  ruleImportKind,
+  dependencyInfo,
+  { suffix = " ", prefix = "" } = {},
+) {
   if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
-    return `${dependencyInfo.importKind}${suffix} `;
+    return `${prefix}${dependencyInfo.importKind}${suffix}`;
   }
   return "";
 }

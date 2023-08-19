@@ -141,11 +141,9 @@ function errorMessage(ruleData, file, dependency) {
       dependency.baseModule
     }' ${fileReport}`;
   }
-  return `Usage of ${dependencyUsageKindMessage(
-    ruleReport.importKind,
-    dependency,
-    " from",
-  )}external module '${dependency.baseModule}' ${fileReport}`;
+  return `Usage of ${dependencyUsageKindMessage(ruleReport.importKind, dependency, {
+    suffix: " from ",
+  })}external module '${dependency.baseModule}' ${fileReport}`;
 }
 
 module.exports = dependencyRule(

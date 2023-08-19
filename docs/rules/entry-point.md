@@ -185,6 +185,7 @@ This rule provides a lot of information about the specific option producing an e
 
 * If the error is produced because all entry points are disallowed by default, and no rule is specificly allowing it, then the message provides information about the dependency type and captured values: `No rule allows the entry point 'fooFile.js' in dependencies of type 'components' with category 'molecules' and elementName 'molecule-c'`.
 * If the error is produced by a specific option, then the message includes information about the option producing it: `The entry point 'fooFile.js' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 2`
+* If the rule contains an `importKind` property, then the message also includes information about the import kind: `The entry point 'fooFile.js' is not allowed in elements of type 'helpers' with elementName 'helper-c' when importing type. Disallowed in rule 2`
 
 You can also configure a custom error message for changing this default behaviour, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) in the main docs for further info about how to configure messages.
 

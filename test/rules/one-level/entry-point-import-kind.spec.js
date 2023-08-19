@@ -159,9 +159,9 @@ test(
     },
   ],
   {
-    0: "The entry point 'main.js' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
-    1: "The entry point 'Component.js' is not allowed in elements of type 'components'. Disallowed in rule 4",
-    2: "The entry point 'index.js' is not allowed in elements of type 'modules'. Disallowed in rule 5",
-    3: "The entry point 'index.js' is not allowed in elements of type 'modules'. Disallowed in rule 5",
+    0: "The entry point 'main.js' is not allowed in elements of type 'helpers' when importing type. Disallowed in rule 2",
+    1: "The entry point 'Component.js' is not allowed in elements of type 'components' when importing value. Disallowed in rule 4",
+    2: "The entry point 'index.js' is not allowed in elements of type 'modules' when importing value. Disallowed in rule 5",
+    3: "The entry point 'index.js' is not allowed in elements of type 'modules' when importing type. Disallowed in rule 5",
   },
 );
