@@ -11,7 +11,12 @@ const {
   micromatchPatternReplacingObjectsValues,
   isMatchImportKind,
 } = require("../helpers/rules");
-const { customErrorMessage, ruleElementMessage, elementMessage } = require("../helpers/messages");
+const {
+  customErrorMessage,
+  ruleElementMessage,
+  elementMessage,
+  dependencyUsageKindMessage,
+} = require("../helpers/messages");
 const { isArray } = require("../helpers/utils");
 
 function specifiersMatch(specifiers, specifierOptions, elementsCapturedValues) {
@@ -129,11 +134,18 @@ function errorMessage(ruleData, file, dependency) {
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 
   if (ruleData.report) {
-    return `Usage of '${getErrorReportMessage(ruleData.report)}' from external module '${
+    return `Usage of ${dependencyUsageKindMessage(
+      ruleReport.importKind,
+      dependency,
+    )}'${getErrorReportMessage(ruleData.report)}' from external module '${
       dependency.baseModule
     }' ${fileReport}`;
   }
-  return `Usage of external module '${dependency.baseModule}' ${fileReport}`;
+  return `Usage of ${dependencyUsageKindMessage(
+    ruleReport.importKind,
+    dependency,
+    " from",
+  )}external module '${dependency.baseModule}' ${fileReport}`;
 }
 
 module.exports = dependencyRule(

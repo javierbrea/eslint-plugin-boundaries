@@ -153,9 +153,20 @@ function elementMessage(elementInfo) {
   )}`;
 }
 
+function hasToPrintKindMessage(ruleImportKind, dependencyInfo) {
+  return ruleImportKind && dependencyInfo.importKind;
+}
+
 function dependencyImportKindMessage(ruleImportKind, dependencyInfo) {
-  if (ruleImportKind && dependencyInfo.importKind) {
+  if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
     return `kind ${quote(dependencyInfo.importKind)} from `;
+  }
+  return "";
+}
+
+function dependencyUsageKindMessage(ruleImportKind, dependencyInfo, suffix = "") {
+  if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
+    return `${dependencyInfo.importKind}${suffix} `;
   }
   return "";
 }
@@ -166,4 +177,5 @@ module.exports = {
   customErrorMessage,
   elementMessage,
   dependencyImportKindMessage,
+  dependencyUsageKindMessage,
 };

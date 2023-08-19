@@ -19,7 +19,7 @@ It checks `import` statements between the element types of the project based on 
   * `from`: `<element matchers>` If the file being analyzed matches with this, then the rule will be executed to know if it allows/disallows the `import`. If not, the rule is skipped.
   * `disallow`: `<element matchers>` If the element being imported matches with this, then the result of the rule will be "disallow", and the import will be notified as an `eslint` error (this value can be overwritten by a next rule returning "allow")
   * `allow`: `<element matchers>` If the element being imported matches with this, then the result of the rule will be "allow", and the import will not be notified as an `eslint` error (this value can be overwritten by a next rule returning "disallow")
-  * `importKind`: `<string>` Optional. It allows to check the kind of import being analyzed. It can be also defined as an array of strings, or a micromatch pattern. Note that possible values to match with are `"value"`, `"type"` or `"typeof"`. It is useful only when using TypeScript, as it allows to check if the dependency is being imported as a value or as a type.
+  * `importKind`: `<string>` Optional. It is useful only when using TypeScript, as it allows to define if the rule applies when the dependency is being imported as a value or as a type. It can be also defined as an array of strings, or a micromatch pattern. Note that possible values to match with are `"value"`, `"type"` or `"typeof"`.
   * `message`: `<string>` Custom error message only for this rule. Read ["error messages"](#error-messages) for further info.
 
 ##### Comparing captures of the file element with captures of the imported element

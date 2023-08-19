@@ -1,7 +1,6 @@
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
-const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
+const { TYPESCRIPT_SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
 const { customErrorMessage, elementTypesNoRuleMessage } = require("../../support/messages");
-const path = require("path");
 
 const rule = require(`../../../src/rules/${RULE}`);
 
@@ -211,7 +210,7 @@ const test = (settings, options, errorMessages) => {
 };
 
 const settingsOneLevelTypeScript = {
-  ...SETTINGS.oneLevel,
+  ...TYPESCRIPT_SETTINGS.oneLevel,
   "boundaries/elements": [
     {
       type: "helpers",
@@ -226,19 +225,6 @@ const settingsOneLevelTypeScript = {
       pattern: "modules/*",
     },
   ],
-  parser: path.resolve(
-    __dirname,
-    "..",
-    "..",
-    "..",
-    "node_modules",
-    "@typescript-eslint/parser/dist",
-  ),
-  parserOptions: {
-    ecmaVersion: 2018,
-    tsconfigRootDir: path.resolve(__dirname, "../../fixtures/one-level"),
-    project: "./tsconfig.json",
-  },
 };
 
 //

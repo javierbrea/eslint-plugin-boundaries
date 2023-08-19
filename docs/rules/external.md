@@ -19,6 +19,7 @@ It checks `import` statements to external modules and allow or disallow them bas
   * `from`: `<element matchers>` If the file being analyzed matches with this, then the rule will be executed to know if it allows/disallows the `import`. If not, the rule is skipped.
   * `disallow`: `<external modules matchers>` If the element being imported matches with this, then the result of the rule will be "disallow", and the import will be notified as an `eslint` error (this value can be overwritten by a next rule returning "allow")
   * `allow`: `<external modules matchers>` If the element being imported matches with this, then the result of the rule will be "allow", and the import will not be notified as an `eslint` error (this value can be overwritten by a next rule returning "disallow")
+  * `importKind`: `<string>` Optional. It is useful only when using TypeScript, as it allows to define if the rule applies when the dependency is being imported as a value or as a type. It can be also defined as an array of strings, or a micromatch pattern. Note that possible values to match with are `"value"`, `"type"` or `"typeof"`.
   * `message`: `<string>` Custom error message only for this rule. Read ["error messages"](#error-messages) for further info.
 
 ##### External modules matchers
@@ -72,7 +73,9 @@ __Examples__
             // from helper elements
             "from": ["helpers"],
             // allow importing moment
-            "allow": ["moment"]
+            "allow": ["moment"],
+            // allow only importing types, not values. Useful only in TypeScript
+            "importKind": "type"
           },
           {
             // from component elements
@@ -176,6 +179,13 @@ src/
 
 ### Examples of **incorrect** code for this rule:
 
+_Helpers can't import value from `moment`:_
+
+```js
+// src/helpers/data/parse.js
+import moment from 'moment'
+```
+
 _Helpers can't import `react`:_
 
 ```js
@@ -213,11 +223,11 @@ import { Login } from '@mui/icons-material'
 
 ### Examples of **correct** code for this rule:
 
-_Helpers can import `moment`:_
+_Helpers can import type from `moment`:_
 
 ```js
 // src/helpers/data/parse.js
-import moment from 'moment'
+import type moment from 'moment'
 ```
 
 _Components can import `react`:_
@@ -269,6 +279,7 @@ This rule provides a lot of information about the specific option producing an e
 * If the error is produced by a specific option, then the message includes information about the option producing it: `Usage of external module 'react' is not allowed in elements of type 'helper' with elementName 'helper-a'. Disallowed in rule 2`
 * If the error is produced by a specific option including specifiers property, then the message includes information it: `Usage of 'useMemo, useEffect' from external module 'react' is not allowed in elements of type 'helper' with elementName 'helper-a'. Disallowed in rule 2`
 * If the error is produced by a specific option including path property, then the message includes information it: `Usage of '/Login' from external module '@mui/icons-material' is not allowed in elements of type 'module' with elementName 'module-a'. Disallowed in rule 3`
+* If the rule contains an `importKind` property, then the message also includes information about the import kind: `Usage of type 'useMemo, useEffect' from external module 'react' is not allowed in elements of type 'helper' with elementName 'helper-a'. Disallowed in rule 2`
 
 You can also configure a custom error message for changing this default behaviour, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) in the main docs for further info about how to configure messages.
 
