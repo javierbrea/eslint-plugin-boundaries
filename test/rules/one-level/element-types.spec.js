@@ -440,6 +440,10 @@ test(
           from: "components",
           disallow: ["modules"],
         },
+        {
+          from: [["components", { elementName: "component-a" }]],
+          allow: [["modules", { elementName: "module-b" }]],
+        },
       ],
     },
   ],

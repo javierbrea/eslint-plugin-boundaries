@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 - fix(#295): Replace template values in custom messages using a Regexp, so it replaces all occurrences
+- fix: Do not throw error when rule contains matchers for captured values but element has not captured values
 
 ### Changed
 - chore(deps): Update dependencies
