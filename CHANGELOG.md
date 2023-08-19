@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 ### Removed
 
-## [unreleased]
+## [3.3.0] - 2023-08-19
 
 ### Added
 - feat(#298): Add `importKind` option to `element-types`, `entry-point` and `external` rules. It allows to define if the rule applies when the dependency is being imported as a value or as a type.
