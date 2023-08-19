@@ -396,54 +396,10 @@ test(
   },
 );
 
-// micromatch-based options
-
-/* test(
-  SETTINGS.oneLevel,
-  [
-    {
-      default: "allow",
-      rules: [
-        {
-          from: "h*",
-          disallow: ["react", ["foo-*", { specifiers: ["L*", "R*"] }]],
-        },
-        {
-          from: "c*",
-          disallow: ["react-router-*"],
-        },
-        {
-          from: "m*",
-          disallow: [
-            "@material-ui/*",
-            ["react-router-*", { specifiers: ["L*"] }],
-            ["react-*", { path: ["/var/f*"] }],
-          ],
-        },
-        {
-          from: "m*",
-          allow: ["@material-ui/i*"],
-        },
-      ],
-    },
-  ],
-  {
-    0: "Usage of external module 'react' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    1: "Usage of external module 'react-router-dom' is not allowed in elements of type 'c*'. Disallowed in rule 2",
-    2: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    3: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    4: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    5: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    6: "Usage of 'L*, R*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'm*'. Disallowed in rule 3",
-    8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'm*'. Disallowed in rule 3",
-  },
-);
-
 // disallow-based options
 
 test(
-  SETTINGS.oneLevel,
+  TYPESCRIPT_SETTINGS.oneLevel,
   [
     {
       default: "disallow",
@@ -451,114 +407,60 @@ test(
         {
           from: "helpers",
           allow: ["foo-library"],
+          importKind: "*",
+        },
+        {
+          from: "helpers",
           disallow: [["foo-library", { specifiers: ["Link", "Router"] }]],
+          importKind: "value",
         },
         {
           from: "components",
           allow: ["react"],
+          importKind: "*",
+        },
+        {
+          from: "components",
+          allow: ["react-router-dom"],
+          importKind: "value",
         },
         {
           from: "modules",
           allow: ["react", "react-router-dom"],
+          importKind: "*",
+        },
+        {
+          from: "modules",
           disallow: [["react-router-dom", { specifiers: ["Link"], path: ["*"] }]],
+          importKind: "*",
         },
         {
           from: "modules",
-          allow: ["react", "react-router-dom"],
           disallow: [["react-router-dom", { path: ["/var/foo", "fake"] }]],
-          message: "Do not import ${report.path} from RDD in modules",
+          message: "Do not import ${dependency.importKind} ${report.path} from RDD in modules",
+          importKind: "*",
         },
         {
           from: "modules",
           allow: ["@material-ui/icons"],
+          importKind: "value",
         },
       ],
     },
   ],
   {
-    2: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    3: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    4: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    5: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    8: "Do not import /var/foo from RDD in modules",
+    0: "No rule allows the usage of external module 'react' in elements of type 'helpers' with elementName 'helper-a'",
+    1: "No rule allows the usage of external module 'react-router-dom' in elements of type 'components' with elementName 'component-a'",
+    2: "Usage of value 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+    3: "Usage of value 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+    4: "Usage of value 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+    5: "Usage of value 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+    6: "Usage of value 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+    7: "No rule allows the usage of external module '@material-ui/core' in elements of type 'modules' with elementName 'module-a'",
+    8: "No rule allows the usage of external module '@material-ui/core' in elements of type 'modules' with elementName 'module-a'",
+    9: "Do not import value /var/foo from RDD in modules",
+    10: "Do not import type /var/foo from RDD in modules",
+    11: "No rule allows the usage of external module '@material-ui/icons' in elements of type 'modules' with elementName 'module-a'",
+    12: "No rule allows the usage of external module '@material-ui/icons' in elements of type 'modules' with elementName 'module-a'",
   },
 );
-
-// custom error messages
-
-test(
-  SETTINGS.oneLevel,
-  [
-    {
-      default: "disallow",
-      message:
-        "Importing ${dependency.source} is not allowed in ${file.type} with name ${file.elementName}",
-      rules: [
-        {
-          from: "helpers",
-          allow: ["foo-library"],
-          disallow: [["foo-library", { specifiers: ["Link", "Router"] }]],
-          message: "Do not import ${report.specifiers} from ${dependency.source} in helpers",
-        },
-        {
-          from: "components",
-          allow: ["react"],
-        },
-        {
-          from: "modules",
-          allow: ["react", "react-router-dom"],
-          disallow: [
-            ["react-router-dom", { specifiers: ["Link"] }],
-            ["react-router-dom", { path: "/var/foo" }],
-          ],
-        },
-        {
-          from: "modules",
-          allow: ["@material-ui/icons"],
-        },
-      ],
-    },
-  ],
-  {
-    0: "Importing react is not allowed in helpers with name helper-a",
-    1: "Importing react-router-dom is not allowed in components with name component-a",
-    2: "Do not import Link from foo-library in helpers",
-    3: "Do not import Link from foo-library in helpers",
-    4: "Do not import Link from foo-library in helpers",
-    5: "Do not import Link from foo-library in helpers",
-    6: "Do not import Link, Router from foo-library in helpers",
-    7: "Importing @material-ui/core is not allowed in modules with name module-a",
-    8: "Importing react-router-dom/var/foo is not allowed in modules with name module-a",
-  },
-);
-
-// options with capture allow-based
-
-testCapture(
-  SETTINGS.oneLevel,
-  [
-    {
-      default: "allow",
-      rules: [
-        {
-          from: [["modules", { elementName: "module-b" }]],
-          disallow: ["react-router-dom"],
-        },
-        {
-          from: [["helpers", { elementName: "helper-b" }]],
-          disallow: ["foo-library"],
-        },
-        {
-          from: [["helpers", { elementName: "helper-a" }]],
-          disallow: [["foo-library", { specifiers: ["Link"] }]],
-        },
-      ],
-    },
-  ],
-  {
-    0: "Usage of external module 'react-router-dom' is not allowed in elements of type 'modules' with elementName 'module-b'. Disallowed in rule 1",
-    1: "Usage of external module 'foo-library' is not allowed in elements of type 'helpers' with elementName 'helper-b'. Disallowed in rule 2",
-    2: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers' with elementName 'helper-a'. Disallowed in rule 3",
-  },
-); */

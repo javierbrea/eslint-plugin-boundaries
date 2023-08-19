@@ -281,7 +281,7 @@ This rule provides a lot of information about the specific option producing an e
 * If the error is produced by a specific option including path property, then the message includes information it: `Usage of '/Login' from external module '@mui/icons-material' is not allowed in elements of type 'module' with elementName 'module-a'. Disallowed in rule 3`
 * If the rule contains an `importKind` property, then the message also includes information about the import kind: `Usage of type 'useMemo, useEffect' from external module 'react' is not allowed in elements of type 'helper' with elementName 'helper-a'. Disallowed in rule 2`
 
-You can also configure a custom error message for changing this default behaviour, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) in the main docs for further info about how to configure messages.
+You can also configure a custom error message for changing this default behavior, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) in the main docs for further info about how to configure messages.
 
 ## Further reading
 
