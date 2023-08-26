@@ -3,7 +3,7 @@ const micromatch = require("micromatch");
 const resolve = require("eslint-module-utils/resolve").default;
 
 const { IGNORE, INCLUDE, VALID_MODES } = require("../constants/settings");
-const { getElements } = require("../helpers/settings");
+const { getElements, getRootPath } = require("../helpers/settings");
 const { debugFileInfo } = require("../helpers/debug");
 const { isArray } = require("../helpers/utils");
 
@@ -184,9 +184,9 @@ function replacePathSlashes(absolutePath) {
   return absolutePath.replace(/\\/g, "/");
 }
 
-function projectPath(absolutePath) {
+function projectPath(absolutePath, rootPath) {
   if (absolutePath) {
-    return replacePathSlashes(absolutePath).replace(`${replacePathSlashes(process.cwd())}/`, "");
+    return replacePathSlashes(absolutePath).replace(`${replacePathSlashes(rootPath)}/`, "");
   }
 }
 
@@ -195,7 +195,7 @@ function externalModulePath(source, baseModuleValue) {
 }
 
 function importInfo(source, context) {
-  const path = projectPath(resolve(source, context));
+  const path = projectPath(resolve(source, context), getRootPath(context.settings));
   const isExternalModule = isExternal(source, path);
   const resultCache = importsCache.load(isExternalModule ? source : path, context.settings);
   let elementCache;
@@ -237,7 +237,7 @@ function importInfo(source, context) {
 }
 
 function fileInfo(context) {
-  const path = projectPath(context.getFilename());
+  const path = projectPath(context.getFilename(), getRootPath(context.settings));
   const resultCache = filesCache.load(path, context.settings);
   let elementCache;
   let result;

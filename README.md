@@ -228,6 +228,37 @@ Files or dependencies matching these [`micromatch` patterns](https://github.com/
 
 > Note: The `boundaries/include` option has preference over `boundaries/ignore`. If you define `boundaries/include`, use `boundaries/ignore` to ignore subsets of included files.
 
+#### __`boundaries/root-path`__
+
+Use this setting only if you are facing issues with the plugin when executing the lint command from a different path than the project root.
+
+<details>
+<summary>How to define the root path of the project</summary>
+
+By default, the plugin uses the current working directory (`process.cwd()`) as root path of the project. This path is used as the base path when resolving file matchers from rules and `boundaries/elements` settings. This is specially important when using the `basePattern` option or the `full` mode in the `boundaries/elements` setting. This may produce unexpected results [when the lint command is executed from a different path than the project root](https://github.com/javierbrea/eslint-plugin-boundaries/issues/296). To fix this, you can define a different root path using this option.
+
+For example, supposing that the `.eslintrc.js` file is located in the project root, you could define the root path as in:
+
+```js
+{
+  settings: {
+    "boundaries/root-path": path.resolve(__dirname)
+  }
+}
+```
+
+Note that the path should be absolute and resolved before passing it to the plugin. Otherwise, it will be resolved using the current working directory, and the problem will persist. In case you are defining the configuration in a `.eslintrc.(yml|json)` file, and you don't want to hardcode an absolute path, you can use the next environment variable to define the root path when executing the lint command:
+
+```bash
+ESLINT_PLUGIN_BOUNDARIES_ROOT_PATH=../../project-root npm run lint
+```
+
+You can also provide an absolute path in the environment variable, but it may be more useful to use a relative path to the project root. Remember that it will be resolved from the path where the lint command is executed.
+
+</details>
+
+
+
 ### Predefined configurations
 
 This plugin is distributed with two different predefined configurations: "recommended" and "strict".

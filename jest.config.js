@@ -22,10 +22,6 @@ module.exports = {
       lines: 100,
       statements: 100,
     },
-    // Ignore coverage of debugger
-    "./src/helpers/debug.js": {
-      branches: 83,
-    },
     // Decrease coverage due to cache branches
     "./src/core/elementsInfo.js": {
       branches: 96,
