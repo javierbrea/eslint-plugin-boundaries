@@ -1,6 +1,7 @@
 const chalk = require("chalk");
 
 const { PLUGIN_NAME } = require("../constants/plugin");
+const { isDebugModeEnabled } = require("./settings");
 
 const warns = [];
 const debuggedFiles = [];
@@ -11,12 +12,6 @@ function trace(message, color) {
 
 function warn(message) {
   trace(message, "yellow");
-}
-
-function debug(message) {
-  if (process.env.ESLINT_PLUGIN_BOUNDARIES_DEBUG) {
-    trace(message, "grey");
-  }
 }
 
 function success(message) {
@@ -32,7 +27,7 @@ function warnOnce(message) {
 
 function debugFileInfo(fileInfo) {
   const fileInfoKey = fileInfo.path || fileInfo.source;
-  if (process.env.ESLINT_PLUGIN_BOUNDARIES_DEBUG && !debuggedFiles.includes(fileInfoKey)) {
+  if (isDebugModeEnabled() && !debuggedFiles.includes(fileInfoKey)) {
     debuggedFiles.push(fileInfoKey);
     if (fileInfo.type) {
       success(`'${fileInfoKey}' is of type '${fileInfo.type}'`);
@@ -44,7 +39,6 @@ function debugFileInfo(fileInfo) {
 }
 
 module.exports = {
-  debug,
   success,
   debugFileInfo,
   warnOnce,

@@ -1,4 +1,4 @@
-const { PLUGIN_NAME } = require("./plugin");
+const { PLUGIN_NAME, PLUGIN_ENV_VARS_PREFIX } = require("./plugin");
 
 const {
   ELEMENT_TYPES,
@@ -15,6 +15,11 @@ module.exports = {
   ELEMENTS: `${PLUGIN_NAME}/elements`,
   IGNORE: `${PLUGIN_NAME}/ignore`,
   INCLUDE: `${PLUGIN_NAME}/include`,
+  ROOT_PATH: `${PLUGIN_NAME}/root-path`,
+
+  // env vars
+  DEBUG: `${PLUGIN_ENV_VARS_PREFIX}_DEBUG`,
+  ENV_ROOT_PATH: `${PLUGIN_ENV_VARS_PREFIX}_ROOT_PATH`,
 
   // rules
   RULE_ELEMENT_TYPES: `${PLUGIN_NAME}/${ELEMENT_TYPES}`,

@@ -1,3 +1,4 @@
+const { resolve } = require("path");
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 const { SETTINGS, createRuleTester, pathResolvers } = require("../../support/helpers");
 const { customErrorMessage, elementTypesNoRuleMessage } = require("../../support/messages");
@@ -463,6 +464,50 @@ test(
 
 test(
   SETTINGS.oneLevel,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          from: "components",
+          allow: ["helpers", "components"],
+        },
+        {
+          from: "modules",
+          allow: ["helpers", "components", "modules"],
+        },
+      ],
+    },
+  ],
+  {},
+);
+
+// root-path absolute setting
+
+test(
+  { ...SETTINGS.oneLevel, "boundaries/root-path": resolve(__dirname, "..", "..", "..") },
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          from: "components",
+          allow: ["helpers", "components"],
+        },
+        {
+          from: "modules",
+          allow: ["helpers", "components", "modules"],
+        },
+      ],
+    },
+  ],
+  {},
+);
+
+// root-path relative setting
+
+test(
+  { ...SETTINGS.oneLevel, "boundaries/root-path": "." },
   [
     {
       default: "disallow",

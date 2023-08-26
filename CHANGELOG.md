@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 ### Removed
 
+## [unreleased]
+
+### Added
+
+- feat(#296): Add `root-path` setting to allow defining the root path of the project. It is useful when executing the eslint command from a different folder than the project root.
+
 ## [3.3.0] - 2023-08-19
 
 ### Added
