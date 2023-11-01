@@ -1,6 +1,6 @@
 {
   "extends": [
-    "github>javierbrea/nodejs-ci-cd-shared-config"
+    "github>javierbrea/nodejs-ci-cd-shared-config/renovate.json"
   ],
   "packageRules": [
     {
