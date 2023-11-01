@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Get NPM version is new
         id: check
         uses: EndBug/version-check@v2.1.1
@@ -27,7 +27,7 @@ jobs:
           exit 1
       - name: Get NPM version
         id: package-version
-        uses: martinbeentjes/npm-get-version-action@v1.2.3
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
       - name: Check Changelog version
         id: changelog_reader
         uses: mindsers/changelog-reader-action@v2.2.2
