@@ -16,6 +16,7 @@ module.exports = {
   IGNORE: `${PLUGIN_NAME}/ignore`,
   INCLUDE: `${PLUGIN_NAME}/include`,
   ROOT_PATH: `${PLUGIN_NAME}/root-path`,
+  ADDITIONAL_DEPENDENCY_NODES: `${PLUGIN_NAME}/additional-dependency-nodes`,
 
   // env vars
   DEBUG: `${PLUGIN_ENV_VARS_PREFIX}_DEBUG`,

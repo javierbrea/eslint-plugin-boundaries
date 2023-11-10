@@ -1,3 +1,4 @@
+const { ADDITIONAL_DEPENDENCY_NODES } = require("../constants/settings");
 const { fileInfo } = require("../core/elementsInfo");
 const { dependencyInfo } = require("../core/dependencyInfo");
 
@@ -18,14 +19,21 @@ module.exports = function (ruleMeta, rule, ruleOptions = {}) {
       if (ruleOptions.validate !== false) {
         validateRules(context.settings, options.rules, ruleOptions.validateRules);
       }
+      const dependencyNodes = [
+        { selector: "ImportDeclaration:not([importKind=type]) > Literal", kind: "value" },
+        { selector: "ImportDeclaration[importKind=type] > Literal", kind: "type" },
+        ...(context.settings[ADDITIONAL_DEPENDENCY_NODES] ?? []),
+      ];
 
-      return {
-        ImportDeclaration: (node) => {
-          const dependency = dependencyInfo(node.source.value, node.importKind, context);
+      return dependencyNodes.reduce((visitors, { selector, kind = "value" }) => {
+        visitors[selector] = (node) => {
+          const dependency = dependencyInfo(node.value, kind, context);
 
           rule({ file, dependency, options, node, context });
-        },
-      };
+        };
+
+        return visitors;
+      }, {});
     },
   };
 };

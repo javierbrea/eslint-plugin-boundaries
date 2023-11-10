@@ -4,7 +4,6 @@ const dependencyRule = require("../rules-factories/dependency-rule");
 
 const { rulesOptionsSchema } = require("../helpers/validations");
 const {
-  dependencyLocation,
   isMatchElementKey,
   elementRulesAllowDependency,
   isMatchImportKind,
@@ -73,7 +72,6 @@ module.exports = dependencyRule(
         context.report({
           message: errorMessage(ruleData, file, dependency),
           node: node,
-          ...dependencyLocation(node, context),
         });
       }
     }

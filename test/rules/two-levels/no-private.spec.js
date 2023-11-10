@@ -82,7 +82,7 @@ const test = (settings, { absoluteFilePath }) => {
             message: noPrivateMessage({
               dep: "'components' with category 'molecules' and elementName 'molecule-c'",
             }),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -95,7 +95,7 @@ const test = (settings, { absoluteFilePath }) => {
             message: noPrivateMessage({
               dep: "'components' with category 'molecules' and elementName 'molecule-a'",
             }),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -109,7 +109,7 @@ const test = (settings, { absoluteFilePath }) => {
             message: noPrivateMessage({
               dep: "'helpers' with elementName 'helper-a'",
             }),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -123,7 +123,7 @@ const test = (settings, { absoluteFilePath }) => {
             message: noPrivateMessage({
               dep: "'components' with category 'molecules' and elementName 'molecule-c'",
             }),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -145,7 +145,7 @@ const test = (settings, { absoluteFilePath }) => {
             message: noPrivateMessage({
               dep: "'components' with category 'molecules' and elementName 'molecule-a'",
             }),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },

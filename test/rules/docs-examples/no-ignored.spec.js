@@ -25,7 +25,7 @@ const test = (customSettings) => {
         errors: [
           {
             message: ERROR_MESSAGE,
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -38,7 +38,7 @@ const test = (customSettings) => {
         errors: [
           {
             message: ERROR_MESSAGE,
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },

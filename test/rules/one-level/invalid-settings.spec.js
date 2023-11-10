@@ -68,7 +68,7 @@ const test = (settings, options, errorMessages) => {
                 dep: "'helpers' with elementName 'helper-b'",
               }),
             ),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
