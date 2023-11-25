@@ -1,11 +1,19 @@
 const micromatch = require("micromatch");
 
-const { TYPES, ALIAS, ELEMENTS, VALID_MODES } = require("../constants/settings");
+const {
+  TYPES,
+  ALIAS,
+  ELEMENTS,
+  VALID_MODES,
+  ADDITIONAL_DEPENDENCY_NODES,
+  VALID_DEPENDENCY_NODE_KINDS,
+  PREDEFINED_DEPENDENCY_NODES,
+} = require("../constants/settings");
 
 const { getElementsTypeNames, isLegacyType } = require("./settings");
 const { rulesMainKey } = require("./rules");
 const { warnOnce } = require("./debug");
-const { isArray, isString } = require("./utils");
+const { isArray, isString, isObject } = require("./utils");
 
 const invalidMatchers = [];
 
@@ -147,6 +155,38 @@ function validateElements(elements) {
   });
 }
 
+function validateAdditionalDependencyNodes(additionalDependencyNodes) {
+  if (!additionalDependencyNodes) {
+    return;
+  }
+
+  const predefinedNodesNames = Object.keys(PREDEFINED_DEPENDENCY_NODES);
+  const invalidFormatMessage = [
+    `Please provide a valid value in ${ADDITIONAL_DEPENDENCY_NODES} setting.`,
+    `The value should be an array composed of the following elements:`,
+    `one of the strings "${predefinedNodesNames.join('", "')}",`,
+    `or an object formatted as { selector: "<esquery selector>", kind: "value" | "type" }.`,
+  ].join(" ");
+
+  if (!isArray(additionalDependencyNodes)) {
+    warnOnce(invalidFormatMessage);
+    return;
+  }
+
+  additionalDependencyNodes.forEach((dependencyNode) => {
+    const isValidPredefinedNode =
+      isString(dependencyNode) && predefinedNodesNames.includes(dependencyNode);
+    const isValidObject =
+      isObject(dependencyNode) &&
+      isString(dependencyNode.selector) &&
+      (!dependencyNode.kind || VALID_DEPENDENCY_NODE_KINDS.includes(dependencyNode.kind));
+
+    if (!isValidPredefinedNode && !isValidObject) {
+      warnOnce(invalidFormatMessage);
+    }
+  });
+}
+
 function deprecateAlias(aliases) {
   if (aliases) {
     warnOnce(
@@ -165,6 +205,7 @@ function validateSettings(settings) {
   deprecateTypes(settings[TYPES]);
   deprecateAlias(settings[ALIAS]);
   validateElements(settings[ELEMENTS] || settings[TYPES]);
+  validateAdditionalDependencyNodes(settings[ADDITIONAL_DEPENDENCY_NODES]);
 }
 
 function validateRules(settings, rules = [], options = {}) {

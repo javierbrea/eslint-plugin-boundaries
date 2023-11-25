@@ -6,6 +6,10 @@ function isArray(object) {
   return Array.isArray(object);
 }
 
+function isObject(object) {
+  return typeof object === "object" && object !== null && !isArray(object);
+}
+
 function replaceObjectValueInTemplate(template, key, value, namespace) {
   const keyToReplace = namespace ? `${namespace}.${key}` : key;
   const regexp = new RegExp(`\\$\\{${keyToReplace}\\}`, "g");
@@ -27,5 +31,6 @@ function replaceObjectValuesInTemplates(strings, object, namespace) {
 module.exports = {
   isString,
   isArray,
+  isObject,
   replaceObjectValuesInTemplates,
 };

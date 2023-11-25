@@ -37,4 +37,28 @@ module.exports = {
 
   // elements settings properties,
   VALID_MODES: ["folder", "file", "full"],
+
+  VALID_DEPENDENCY_NODE_KINDS: ["value", "type"],
+  PREDEFINED_DEPENDENCY_NODES: {
+    import: [
+      // import x from 'source'
+      { selector: "ImportDeclaration:not([importKind=type]) > Literal", kind: "value" },
+      // import type x from 'source'
+      { selector: "ImportDeclaration[importKind=type] > Literal", kind: "type" },
+    ],
+    "dynamic-import": [
+      // import('source')
+      { selector: "ImportExpression > Literal", kind: "value" },
+    ],
+    export: [
+      // export * from 'source';
+      { selector: "ExportAllDeclaration:not([exportKind=type]) > Literal", kind: "value" },
+      // export type * from 'source';
+      { selector: "ExportAllDeclaration[exportKind=type] > Literal", kind: "type" },
+      // export { x } from 'source';
+      { selector: "ExportNamedDeclaration:not([exportKind=type]) > Literal", kind: "value" },
+      // export type { x } from 'source';
+      { selector: "ExportNamedDeclaration[exportKind=type] > Literal", kind: "type" },
+    ],
+  },
 };
