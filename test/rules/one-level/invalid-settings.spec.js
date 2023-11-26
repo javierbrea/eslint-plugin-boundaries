@@ -137,3 +137,34 @@ test(
   [],
   {},
 );
+
+// invalid additional dependency nodes
+
+test(
+  {
+    "boundaries/additional-dependency-nodes": [
+      // valid
+      "export",
+      { selector: "Selector", kind: "value" },
+      { selector: "Selector", kind: "type" },
+      // invalid
+      "unknown-predefined-nodes",
+      { selector: 0, kind: "value" },
+      { kind: "value" },
+      { selector: "Selector", kind: "unknown-kind" },
+      { unknown: "object" },
+      0, // invalid type
+    ],
+  },
+  [],
+  {},
+);
+
+// invalid additional dependency nodes - not an array
+test(
+  {
+    "boundaries/additional-dependency-nodes": "invalid-value",
+  },
+  [],
+  {},
+);

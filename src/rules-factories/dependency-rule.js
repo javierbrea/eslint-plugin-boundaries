@@ -2,7 +2,7 @@ const {
   ADDITIONAL_DEPENDENCY_NODES,
   PREDEFINED_DEPENDENCY_NODES,
 } = require("../constants/settings");
-const { isString } = require("../helpers/utils");
+const { isArray, isString } = require("../helpers/utils");
 const { fileInfo } = require("../core/elementsInfo");
 const { dependencyInfo } = require("../core/dependencyInfo");
 
@@ -24,15 +24,16 @@ module.exports = function (ruleMeta, rule, ruleOptions = {}) {
         validateRules(context.settings, options.rules, ruleOptions.validateRules);
       }
 
-      const additionalDependencyNodes = (context.settings[ADDITIONAL_DEPENDENCY_NODES] ?? []).map(
-        (dependencyNode) => {
-          if (isString(dependencyNode)) {
-            return PREDEFINED_DEPENDENCY_NODES[dependencyNode];
-          }
+      const additionalDependencyNodesSetting = context.settings[ADDITIONAL_DEPENDENCY_NODES];
+      const additionalDependencyNodes = (
+        isArray(additionalDependencyNodesSetting) ? additionalDependencyNodesSetting : []
+      ).map((dependencyNode) => {
+        if (isString(dependencyNode)) {
+          return PREDEFINED_DEPENDENCY_NODES[dependencyNode];
+        }
 
-          return dependencyNode;
-        },
-      );
+        return dependencyNode;
+      });
 
       const dependencyNodes = [PREDEFINED_DEPENDENCY_NODES.import, ...additionalDependencyNodes]
         .flat()
