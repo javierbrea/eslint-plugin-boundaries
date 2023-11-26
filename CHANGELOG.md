@@ -6,9 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 ### Added
+
+- feat(#213): Add `additional-dependency-nodes` setting to allow analyzing dependencies from additional nodes, such as exports or dynamic imports.
+
 ### Changed
 ### Fixed
 ### Removed
+
+### BREAKING CHANGES
+
+- Fixed the error position in multiline imports. See ["how to migrate from v3 to v4" guide](./docs/guides/how-to-migrate-from-v3-to-v4.md).
 
 ## [3.4.1] - 2023-11-01
 

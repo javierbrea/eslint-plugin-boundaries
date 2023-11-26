@@ -59,6 +59,10 @@ Activate the plugin and one of the canned configs in your `.eslintrc.(yml|json|j
 }
 ```
 
+## Migrating from v3.x
+
+New v4.0.0 release has introduced breaking changes. If you were using v3.x, you should [read the "how to migrate from v3 to v4" guide](./docs/guides/how-to-migrate-from-v3-to-v4.md).
+
 ## Migrating from v1.x
 
 New v2.0.0 release has introduced many breaking changes. If you were using v1.x, you should [read the "how to migrate from v1 to v2" guide](./docs/guides/how-to-migrate-from-v1-to-v2.md).
@@ -257,7 +261,37 @@ You can also provide an absolute path in the environment variable, but it may be
 
 </details>
 
+### __`boundaries/additional-dependency-nodes`__
 
+By default, the plugin will check only the `import` statements. Use this setting if you want to analyze dependencies introduced by other nodes, for example, the `export` statements. All the rules defined for the plugin will be applicable to the additional nodes defined in this setting.
+
+The setting should be an array of the following elements:
+
+- `'export'` - check `export` statements.
+- `'dynamic-import'` - check `import(...)` statements.
+- Object with the following structure:
+  - __`selector`__: The [esquery selector](https://github.com/estools/esquery) for the `Literal` node in which dependency source are defined. For example, to analyze `jest.mock(...)` calls you could use this selector: `CallExpression[callee.object.name=jest][callee.property.name=mock] > Literal:first-child`.
+  _ __`kind`__: The kind of dependency, possible values are: `"value"` or `"type"`. It is available only when using TypeScript.
+
+Example of usage:
+
+```jsonc
+{
+  "boundaries/additional-dependency-nodes": [
+    // export { x } from 'source';
+    // export type { x } from 'source';
+    // export * from 'source';
+    "export",
+    // import('source');
+    "dynamic-import",
+    // jest.mock('source', ...);
+    {
+      "selector": "CallExpression[callee.object.name=jest][callee.property.name=mock] > Literal:first-child",
+      "kind": "value",
+    },
+  ],
+}
+```
 
 ### Predefined configurations
 
