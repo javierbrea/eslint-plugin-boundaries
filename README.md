@@ -271,7 +271,7 @@ The setting should be an array of the following elements:
 - `'dynamic-import'` - check `import(...)` statements.
 - Object with the following structure:
   - __`selector`__: The [esquery selector](https://github.com/estools/esquery) for the `Literal` node in which dependency source are defined. For example, to analyze `jest.mock(...)` calls you could use this selector: `CallExpression[callee.object.name=jest][callee.property.name=mock] > Literal:first-child`.
-  _ __`kind`__: The kind of dependency, possible values are: `"value"` or `"type"`. It is available only when using TypeScript.
+  - __`kind`__: The kind of dependency, possible values are: `"value"` or `"type"`. It is available only when using TypeScript.
 
 Example of usage:
 

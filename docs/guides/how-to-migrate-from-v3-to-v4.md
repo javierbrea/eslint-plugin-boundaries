@@ -1,5 +1,10 @@
 # How to migrate from v3.x to v4.x
 
+## Table of Contents
+
+- [Breaking changes](#breaking-changes)
+- [How to migrate](#how-to-migrate)
+
 ## Breaking changes
 
 There is only one breaking change in the v4.0.0 release. We've fixed the bug that caused ESLint to incorrectly mark the error position for multiline imports.
