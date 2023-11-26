@@ -39,7 +39,7 @@ module.exports = function (ruleMeta, rule, ruleOptions = {}) {
         .flat()
         .filter(Boolean);
 
-      return dependencyNodes.reduce((visitors, { selector, kind = "value" }) => {
+      return dependencyNodes.reduce((visitors, { selector, kind }) => {
         visitors[selector] = (node) => {
           const dependency = dependencyInfo(node.value, kind, context);
 
