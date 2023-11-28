@@ -16,6 +16,7 @@ module.exports = {
   IGNORE: `${PLUGIN_NAME}/ignore`,
   INCLUDE: `${PLUGIN_NAME}/include`,
   ROOT_PATH: `${PLUGIN_NAME}/root-path`,
+  DEPENDENCY_NODES: `${PLUGIN_NAME}/dependency-nodes`,
   ADDITIONAL_DEPENDENCY_NODES: `${PLUGIN_NAME}/additional-dependency-nodes`,
 
   // env vars
@@ -39,7 +40,7 @@ module.exports = {
   VALID_MODES: ["folder", "file", "full"],
 
   VALID_DEPENDENCY_NODE_KINDS: ["value", "type"],
-  PREDEFINED_DEPENDENCY_NODES: {
+  DEFAULT_DEPENDENCY_NODES: {
     import: [
       // import x from 'source'
       { selector: "ImportDeclaration:not([importKind=type]) > Literal", kind: "value" },

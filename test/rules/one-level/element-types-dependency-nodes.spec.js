@@ -12,17 +12,20 @@ const { absoluteFilePath } = pathResolvers("one-level");
 
 const settings = {
   ...SETTINGS.oneLevel,
+  "boundaries/dependency-nodes": ["import"],
   parserOptions: {
     // Due to dynamic import usage
     ecmaVersion: 2020,
     sourceType: "module",
   },
 };
-const typescriptSettings = TYPESCRIPT_SETTINGS.oneLevel;
-const additionalDependencyNodesSetting = {
+const typescriptSettings = {
+  ...TYPESCRIPT_SETTINGS.oneLevel,
+  "boundaries/dependency-nodes": ["import"],
+};
+const dependencyNodesSettings = {
+  "boundaries/dependency-nodes": ["import", "export", "dynamic-import"],
   "boundaries/additional-dependency-nodes": [
-    "export",
-    "dynamic-import",
     {
       // mock('source')
       selector: "CallExpression[callee.name=mock] > Literal",
@@ -58,7 +61,7 @@ const options = [
   },
 ];
 
-// Without additional dependency nodes
+// Without redefined dependency nodes
 createRuleTester(settings).run(RULE, rule, {
   valid: [
     // Components can export value from helpers (unknown dependency node)
@@ -113,12 +116,18 @@ createRuleTester(settings).run(RULE, rule, {
   ],
 });
 
-// With additional dependency nodes
+// With redefined dependency nodes
 createRuleTester({
   ...settings,
-  ...additionalDependencyNodesSetting,
+  ...dependencyNodesSettings,
 }).run(RULE, rule, {
   valid: [
+    // Components can import value from helpers
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import { HelperA } from 'helpers/helper-a'",
+      options,
+    },
     // Components can export value from helpers
     {
       filename: absoluteFilePath("components/component-a/ComponentA.js"),
@@ -139,6 +148,17 @@ createRuleTester({
     },
   ],
   invalid: [
+    // Helpers can't export value from another helper
+    {
+      filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+      code: "import { HelperB } from 'helpers/helper-b'",
+      options,
+      errors: [
+        {
+          type: "Literal",
+        },
+      ],
+    },
     // Helpers can't export value from another helper
     {
       filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
@@ -175,7 +195,7 @@ createRuleTester({
   ],
 });
 
-// Typescript without additional dependency nodes
+// Typescript without redefined dependency nodes
 createRuleTester(typescriptSettings).run(RULE, rule, {
   valid: [
     // Helpers can export type from components (unknown dependency node)
@@ -242,10 +262,10 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
   ],
 });
 
-// Typescript with additional dependency nodes
+// Typescript with redefined dependency nodes
 createRuleTester({
   ...typescriptSettings,
-  ...additionalDependencyNodesSetting,
+  ...dependencyNodesSettings,
 }).run(RULE, rule, {
   valid: [
     // Helpers can export type from components

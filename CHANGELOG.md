@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [unreleased]
 ### Added
 
-- feat(#213): Add `additional-dependency-nodes` setting to allow analyzing dependencies from additional nodes, such as exports or dynamic imports.
+- feat(#213): Add `dependency-nodes` setting to allow analyzing dependencies from additional nodes, such as exports or dynamic imports.
 
 ### Changed
 ### Fixed

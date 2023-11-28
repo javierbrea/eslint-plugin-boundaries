@@ -5,9 +5,10 @@ const {
   ALIAS,
   ELEMENTS,
   VALID_MODES,
+  DEPENDENCY_NODES,
   ADDITIONAL_DEPENDENCY_NODES,
   VALID_DEPENDENCY_NODE_KINDS,
-  PREDEFINED_DEPENDENCY_NODES,
+  DEFAULT_DEPENDENCY_NODES,
 } = require("../constants/settings");
 
 const { getElementsTypeNames, isLegacyType } = require("./settings");
@@ -155,17 +156,39 @@ function validateElements(elements) {
   });
 }
 
+function validateDependencyNodes(dependencyNodes) {
+  if (!dependencyNodes) {
+    return;
+  }
+
+  const defaultNodesNames = Object.keys(DEFAULT_DEPENDENCY_NODES);
+  const invalidFormatMessage = [
+    `Please provide a valid value in ${DEPENDENCY_NODES} setting.`,
+    `The value should be an array of the following strings:`,
+    ` "${defaultNodesNames.join('", "')}".`,
+  ].join(" ");
+
+  if (!isArray(dependencyNodes)) {
+    warnOnce(invalidFormatMessage);
+    return;
+  }
+
+  dependencyNodes.forEach((dependencyNode) => {
+    if (!isString(dependencyNode) || !defaultNodesNames.includes(dependencyNode)) {
+      warnOnce(invalidFormatMessage);
+    }
+  });
+}
+
 function validateAdditionalDependencyNodes(additionalDependencyNodes) {
   if (!additionalDependencyNodes) {
     return;
   }
 
-  const predefinedNodesNames = Object.keys(PREDEFINED_DEPENDENCY_NODES);
   const invalidFormatMessage = [
     `Please provide a valid value in ${ADDITIONAL_DEPENDENCY_NODES} setting.`,
-    `The value should be an array composed of the following elements:`,
-    `one of the strings "${predefinedNodesNames.join('", "')}",`,
-    `or an object formatted as { selector: "<esquery selector>", kind: "value" | "type" }.`,
+    "The value should be an array composed of the following objects:",
+    '{ selector: "<esquery selector>", kind: "value" | "type" }.',
   ].join(" ");
 
   if (!isArray(additionalDependencyNodes)) {
@@ -174,14 +197,12 @@ function validateAdditionalDependencyNodes(additionalDependencyNodes) {
   }
 
   additionalDependencyNodes.forEach((dependencyNode) => {
-    const isValidPredefinedNode =
-      isString(dependencyNode) && predefinedNodesNames.includes(dependencyNode);
     const isValidObject =
       isObject(dependencyNode) &&
       isString(dependencyNode.selector) &&
       (!dependencyNode.kind || VALID_DEPENDENCY_NODE_KINDS.includes(dependencyNode.kind));
 
-    if (!isValidPredefinedNode && !isValidObject) {
+    if (!isValidObject) {
       warnOnce(invalidFormatMessage);
     }
   });
@@ -205,6 +226,7 @@ function validateSettings(settings) {
   deprecateTypes(settings[TYPES]);
   deprecateAlias(settings[ALIAS]);
   validateElements(settings[ELEMENTS] || settings[TYPES]);
+  validateDependencyNodes(settings[DEPENDENCY_NODES]);
   validateAdditionalDependencyNodes(settings[ADDITIONAL_DEPENDENCY_NODES]);
 }
 

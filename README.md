@@ -261,30 +261,44 @@ You can also provide an absolute path in the environment variable, but it may be
 
 </details>
 
+### __`boundaries/dependency-nodes`__
+
+This setting allows to modify built-in default dependency nodes. By default, the plugin will analyze only the `import` statements. All the rules defined for the plugin will be applicable to the nodes defined in this setting.
+
+The setting should be an array of the following strings:
+
+* `'import'`: analyze `import` statements.
+* `'export'`: analyze `export` statements.
+* `'dynamic-import'`: analyze [dynamic import](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) statements.
+
+If you want to define custom dependency nodes, such as `jest.mock(...)`, use [additional-dependency-nodes](#boundariesadditional-dependency-nodes) setting.
+
+For example, if you want to analyze only the `import` and `dynamic-import` statements you should use the following value:
+
+```jsonc
+"boundaries/dependency-nodes": ["import", "dynamic-import"],
+```
+
 ### __`boundaries/additional-dependency-nodes`__
 
-By default, the plugin will check only the `import` statements. Use this setting if you want to analyze dependencies introduced by other nodes, for example, the `export` statements. All the rules defined for the plugin will be applicable to the additional nodes defined in this setting.
+This setting allows to define custom dependency nodes to analyze. All the rules defined for the plugin will be applicable to the nodes defined in this setting. 
 
-The setting should be an array of the following elements:
+The setting should be an array of objects with the following structure:
 
-- `'export'` - check `export` statements.
-- `'dynamic-import'` - check `import(...)` statements.
-- Object with the following structure:
-  - __`selector`__: The [esquery selector](https://github.com/estools/esquery) for the `Literal` node in which dependency source are defined. For example, to analyze `jest.mock(...)` calls you could use this selector: `CallExpression[callee.object.name=jest][callee.property.name=mock] > Literal:first-child`.
-  - __`kind`__: The kind of dependency, possible values are: `"value"` or `"type"`. It is available only when using TypeScript.
+* __`selector`__: The [esquery selector](https://github.com/estools/esquery) for the `Literal` node in which dependency source are defined. For example, to analyze `jest.mock(...)` calls you could use this selector: `CallExpression[callee.object.name=jest][callee.property.name=mock] > Literal:first-child`.
+* __`kind`__: The kind of dependency, possible values are: `"value"` or `"type"`. It is available only when using TypeScript.
 
 Example of usage:
 
 ```jsonc
 {
   "boundaries/additional-dependency-nodes": [
-    // export { x } from 'source';
-    // export type { x } from 'source';
-    // export * from 'source';
-    "export",
-    // import('source');
-    "dynamic-import",
-    // jest.mock('source', ...);
+    // jest.requireActual('source')
+    {
+      "selector": "CallExpression[callee.object.name=jest][callee.property.name=requireActual] > Literal",
+      "kind": "value",
+    },
+    // jest.mock('source', ...)
     {
       "selector": "CallExpression[callee.object.name=jest][callee.property.name=mock] > Literal:first-child",
       "kind": "value",

@@ -138,22 +138,55 @@ test(
   {},
 );
 
+// invalid dependency nodes
+
+test(
+  {
+    "boundaries/dependency-nodes": [
+      // valid
+      "import",
+      "export",
+      "dynamic-import",
+      { selector: "Selector", kind: "value" },
+      { selector: "Selector", kind: "type" },
+      // invalid
+      "unknown-default-node",
+      { selector: "Selector", kind: "unknown-kind" },
+      { selector: 0, kind: "value" },
+      { kind: "value" },
+      { unknown: "object" },
+      0, // invalid type
+    ],
+  },
+  [],
+  {},
+);
+
+// invalid dependency nodes - not an array
+test(
+  {
+    "boundaries/dependency-nodes": "invalid-value",
+  },
+  [],
+  {},
+);
+
 // invalid additional dependency nodes
 
 test(
   {
     "boundaries/additional-dependency-nodes": [
       // valid
-      "export",
       { selector: "Selector", kind: "value" },
       { selector: "Selector", kind: "type" },
       // invalid
-      "unknown-predefined-nodes",
+      { selector: "Selector", kind: "unknown-kind" },
       { selector: 0, kind: "value" },
       { kind: "value" },
-      { selector: "Selector", kind: "unknown-kind" },
       { unknown: "object" },
-      0, // invalid type
+      "import",
+      "any-string",
+      0,
     ],
   },
   [],
