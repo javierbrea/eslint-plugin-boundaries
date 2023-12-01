@@ -749,6 +749,10 @@ testCapture(
           from: "modules",
           allow: [["h*", { elementName: "*-a" }], "c*", "m*"],
         },
+        {
+          from: "modules",
+          disallow: [["h*", { foo: "*-a" }], "c*", "m*"],
+        },
       ],
     },
   ],

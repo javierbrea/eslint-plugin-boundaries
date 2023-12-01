@@ -45,7 +45,7 @@ function micromatchPatternReplacingObjectsValues(pattern, object) {
 function isObjectMatch(objectWithMatchers, object, objectsWithValuesToReplace) {
   return Object.keys(objectWithMatchers).reduce((isMatch, key) => {
     if (isMatch) {
-      if (!object) {
+      if (!object || !object[key]) {
         return false;
       }
       const micromatchPattern = micromatchPatternReplacingObjectsValues(
