@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [4.0.1] - 2023-12-01
+
+### Fixed
+- fix: Avoid error when rule element matchers define a capture key but some element does not have that capture key
+
 ## [4.0.0] - 2023-12-01
 
 ### Added
