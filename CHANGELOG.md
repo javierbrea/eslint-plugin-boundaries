@@ -6,16 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 ### Added
-
-- feat(#213): Add `dependency-nodes` setting to allow analyzing dependencies from additional nodes, such as exports or dynamic imports.
-
 ### Changed
 ### Fixed
 ### Removed
+### BREAKING CHANGES
+
+## [4.0.0] - 2023-12-01
+
+### Added
+
+- feat(#213): Add `dependency-nodes` setting to allow analyzing dependencies from additional nodes, such as exports or dynamic imports.
+- feat: Add `additional-dependency-nodes` setting to add custom dependency nodes to the default ones. For example, you could enable to analyze dependencies in `jest.mock(...)`, etc.
 
 ### BREAKING CHANGES
 
-- Fixed the error position in multiline imports. See ["how to migrate from v3 to v4" guide](./docs/guides/how-to-migrate-from-v3-to-v4.md).
+- fix: Fixed the error position in multiline imports. See ["how to migrate from v3 to v4" guide](./docs/guides/how-to-migrate-from-v3-to-v4.md).
 
 ## [3.4.1] - 2023-11-01
 

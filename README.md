@@ -8,7 +8,9 @@
 
 In words of Robert C. Martin, _"Software architecture is the art of drawing lines that I call boundaries. Those boundaries separate software elements from one another, and restrict those on one side from knowing about those on the other."_ _([\*acknowledgements](#acknowledgements))_
 
-__This plugin ensures that your architecture boundaries are respected by the elements in your project__ checking the folders and files structure and the `import` statements (_Read the [main rules overview chapter](#main-rules-overview) for better comprehension._). __It is not a replacement for [eslint-plugin-import](https://www.npmjs.com/package/eslint-plugin-import), on the contrary, the combination of both plugins is recommended.__
+__This plugin ensures that your architecture boundaries are respected by the elements in your project__ checking the folders and files structure and the dependencies between them. __It is not a replacement for [eslint-plugin-import](https://www.npmjs.com/package/eslint-plugin-import), on the contrary, the combination of both plugins is recommended.__
+
+By default, the plugin works by checking `import` statements, but it is also able to analyze exports, dynamic imports, and can be configured to check any other [AST nodes](https://eslint.org/docs/latest/extend/selectors). (_Read the [main rules overview](#main-rules-overview) and [configuration](#configuration) chapters for better comprehension_)
 
 ## Table of Contents
 
@@ -33,6 +35,7 @@ __This plugin ensures that your architecture boundaries are respected by the ele
     * [Advanced example](#advanced-example)
 - [Resolvers](#resolvers)
 - [Usage with TypeScript](#usage-with-typescript)
+- [Migration guides](#migration-guides)
 - [Debug mode](#debug-mode)
 - [Acknowledgements](#acknowledgements)
 - [Contributing](#contributing)
@@ -59,19 +62,11 @@ Activate the plugin and one of the canned configs in your `.eslintrc.(yml|json|j
 }
 ```
 
-## Migrating from v3.x
-
-New v4.0.0 release has introduced breaking changes. If you were using v3.x, you should [read the "how to migrate from v3 to v4" guide](./docs/guides/how-to-migrate-from-v3-to-v4.md).
-
-## Migrating from v1.x
-
-New v2.0.0 release has introduced many breaking changes. If you were using v1.x, you should [read the "how to migrate from v1 to v2" guide](./docs/guides/how-to-migrate-from-v1-to-v2.md).
-
 ## Overview
 
-All of the plugin rules need to be able to identify the elements in the project, so, first of all you have to define your project elements using the `boundaries/elements` setting.
+All of the plugin rules need to be able to identify the elements in the project, so, first of all you have to define your project element types by using the `boundaries/elements` setting.
 
-The plugin will use the provided patterns to identify each file or local `import` statement as one of the element types.
+The plugin will use the provided patterns to identify each file as one of the element types. It will also assign a type to each dependency detected in the [dependency nodes (`import` or other statements)](#boundariesdependency-nodes), and will check if the relationship between the dependent element and the dependency is allowed or not.
 
 ```json
 {
@@ -96,7 +91,7 @@ The plugin will use the provided patterns to identify each file or local `import
 
 This is only a basic example of configuration. The plugin can be configured to identify elements being a file, or elements being a folder containing files. It also supports capturing path fragments to be used afterwards on each rule options, etc. __Read the [configuration chapter](#configuration) for further info, as configuring it properly is crucial__ to take advantage of all of the plugin features.
 
-Once your project elements are defined, you can use them to configure each rule using its own options. For example, you could define which elements can be dependencies of other ones configuring the `element-types` rule as in:
+Once your project element types are defined, you can use them to configure each rule using its own options. For example, you could define which elements can be dependencies of other ones by configuring the `element-types` rule as in:
 
 ```json
 {
@@ -118,7 +113,7 @@ Once your project elements are defined, you can use them to configure each rule 
 }
 ```
 
-> The plugin won't apply rules to a file or `import` when it does not recognize its element type, but you can force all files in your project to belong to an element type enabling the [boundaries/no-unknown-files](docs/rules/no-unknown-files.md) rule.
+> The plugin won't apply rules to a file or dependency when it does not recognize its element type, but you can force all files in your project to belong to an element type by enabling the [boundaries/no-unknown-files](docs/rules/no-unknown-files.md) rule.
 
 ## Main rules overview
 
@@ -206,6 +201,52 @@ Define patterns to recognize each file in the project as one of this element typ
 
 > Tip: You can enable the [debug mode](#debug-mode) when configuring the plugin, and you will get information about the type assigned to each file in the project, as well as captured properties and values.
 
+#### __`boundaries/dependency-nodes`__
+
+This setting allows to modify built-in default dependency nodes. By default, the plugin will analyze only the `import` statements. All the rules defined for the plugin will be applicable to the nodes defined in this setting.
+
+The setting should be an array of the following strings:
+
+* `'import'`: analyze `import` statements.
+* `'export'`: analyze `export` statements.
+* `'dynamic-import'`: analyze [dynamic import](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) statements.
+
+If you want to define custom dependency nodes, such as `jest.mock(...)`, use [additional-dependency-nodes](#boundariesadditional-dependency-nodes) setting.
+
+For example, if you want to analyze the `import` and `dynamic-import` statements, you should use the following value:
+
+```jsonc
+"boundaries/dependency-nodes": ["import", "dynamic-import"],
+```
+
+#### __`boundaries/additional-dependency-nodes`__
+
+This setting allows to define custom dependency nodes to analyze. All the rules defined for the plugin will be applicable to the nodes defined in this setting. 
+
+The setting should be an array of objects with the following structure:
+
+* __`selector`__: The [esquery selector](https://github.com/estools/esquery) for the `Literal` node in which dependency source are defined. For example, to analyze `jest.mock(...)` calls you could use this [AST selector](https://eslint.org/docs/latest/extend/selectors): `CallExpression[callee.object.name=jest][callee.property.name=mock] > Literal:first-child`.
+* __`kind`__: The kind of dependency, possible values are: `"value"` or `"type"`. It is available only when using TypeScript.
+
+Example of usage:
+
+```jsonc
+{
+  "boundaries/additional-dependency-nodes": [
+    // jest.requireActual('source')
+    {
+      "selector": "CallExpression[callee.object.name=jest][callee.property.name=requireActual] > Literal",
+      "kind": "value",
+    },
+    // jest.mock('source', ...)
+    {
+      "selector": "CallExpression[callee.object.name=jest][callee.property.name=mock] > Literal:first-child",
+      "kind": "value",
+    },
+  ],
+}
+```
+
 #### __`boundaries/include`__
 
 Files or dependencies not matching these [`micromatch` patterns](https://github.com/micromatch/micromatch) will be ignored by the plugin. If this option is not provided, all files will be included.
@@ -239,7 +280,7 @@ Use this setting only if you are facing issues with the plugin when executing th
 <details>
 <summary>How to define the root path of the project</summary>
 
-By default, the plugin uses the current working directory (`process.cwd()`) as root path of the project. This path is used as the base path when resolving file matchers from rules and `boundaries/elements` settings. This is specially important when using the `basePattern` option or the `full` mode in the `boundaries/elements` setting. This may produce unexpected results [when the lint command is executed from a different path than the project root](https://github.com/javierbrea/eslint-plugin-boundaries/issues/296). To fix this, you can define a different root path using this option.
+By default, the plugin uses the current working directory (`process.cwd()`) as root path of the project. This path is used as the base path when resolving file matchers from rules and `boundaries/elements` settings. This is specially important when using the `basePattern` option or the `full` mode in the `boundaries/elements` setting. This may produce unexpected results [when the lint command is executed from a different path than the project root](https://github.com/javierbrea/eslint-plugin-boundaries/issues/296). To fix this, you can define a different root path by using this option.
 
 For example, supposing that the `.eslintrc.js` file is located in the project root, you could define the root path as in:
 
@@ -261,56 +302,9 @@ You can also provide an absolute path in the environment variable, but it may be
 
 </details>
 
-### __`boundaries/dependency-nodes`__
-
-This setting allows to modify built-in default dependency nodes. By default, the plugin will analyze only the `import` statements. All the rules defined for the plugin will be applicable to the nodes defined in this setting.
-
-The setting should be an array of the following strings:
-
-* `'import'`: analyze `import` statements.
-* `'export'`: analyze `export` statements.
-* `'dynamic-import'`: analyze [dynamic import](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) statements.
-
-If you want to define custom dependency nodes, such as `jest.mock(...)`, use [additional-dependency-nodes](#boundariesadditional-dependency-nodes) setting.
-
-For example, if you want to analyze only the `import` and `dynamic-import` statements you should use the following value:
-
-```jsonc
-"boundaries/dependency-nodes": ["import", "dynamic-import"],
-```
-
-### __`boundaries/additional-dependency-nodes`__
-
-This setting allows to define custom dependency nodes to analyze. All the rules defined for the plugin will be applicable to the nodes defined in this setting. 
-
-The setting should be an array of objects with the following structure:
-
-* __`selector`__: The [esquery selector](https://github.com/estools/esquery) for the `Literal` node in which dependency source are defined. For example, to analyze `jest.mock(...)` calls you could use this selector: `CallExpression[callee.object.name=jest][callee.property.name=mock] > Literal:first-child`.
-* __`kind`__: The kind of dependency, possible values are: `"value"` or `"type"`. It is available only when using TypeScript.
-
-Example of usage:
-
-```jsonc
-{
-  "boundaries/additional-dependency-nodes": [
-    // jest.requireActual('source')
-    {
-      "selector": "CallExpression[callee.object.name=jest][callee.property.name=requireActual] > Literal",
-      "kind": "value",
-    },
-    // jest.mock('source', ...)
-    {
-      "selector": "CallExpression[callee.object.name=jest][callee.property.name=mock] > Literal:first-child",
-      "kind": "value",
-    },
-  ],
-}
-```
-
 ### Predefined configurations
 
-This plugin is distributed with two different predefined configurations: "recommended" and "strict".
-
+The plugin is distributed with two different predefined configurations: "recommended" and "strict".
 
 #### Recommended
 
@@ -381,7 +375,7 @@ Remember that:
 
 * __`from/target`__: `<element matchers>` Depending of the rule to which the options are for, the rule will be applied only if the file being analyzed matches with this element matcher (`from`), or the dependency being imported matches with this element matcher (`target`).
 * __`disallow/allow`__: `<value matchers>` If the plugin rule target matches with this, then the result of the rule will be "disallow/allow". Each rule will require a type of value here depending of what it is checking. In the case of the `element-types` rule, for example, another `<element matcher>` has to be provided in order to check the type of the local dependency.
-* __`importKind`__: `<string>` _Optional_. It is useful only when using TypeScript, as it allows to define if the rule applies when the dependency is being imported as a value or as a type. It can be also defined as an array of strings, or a micromatch pattern. Note that possible values to match with are `"value"`, `"type"` or `"typeof"`. For example, you could define that "components" can import "helpers" as a value, but not as a type. So, `import { helper } from "helpers/helper-a"` would be allowed, but `import type { Helper } from "helpers/helper-a"` would be disallowed.
+* __`importKind`__: `<string>` _Optional_. It is useful only when using TypeScript, because it allows to define if the rule applies when the dependency is being imported as a value or as a type. It can be also defined as an array of strings, or a micromatch pattern. Note that possible values to match with are `"value"`, `"type"` or `"typeof"`. For example, you could define that "components" can import "helpers" as a value, but not as a type. So, `import { helper } from "helpers/helper-a"` would be allowed, but `import type { Helper } from "helpers/helper-a"` would be disallowed.
 * __`message`__: `<string>` Optional. If the rule results in an error, the plugin will return this message instead of the default one. Read [error messages](#error-messages) for further info.
 
 > Tip: Properties `from/target` and `disallow/allow` can receive a single matcher, or an array of matchers.
@@ -558,6 +552,16 @@ module.exports = {
 > Note that `eslint-import-resolver-typescript` detects even custom paths defined in the `tsconfig.json` file, so its usage is also compatible with this plugin.
 
 In case you face any issue configuring it, you can also [use this repository as a guide](https://github.com/javierbrea/epb-ts-example). It contains a fully working and tested example.
+
+## Migration guides
+
+### Migrating from v3.x
+
+New v4.0.0 release has introduced breaking changes. If you were using v3.x, you should [read the "how to migrate from v3 to v4" guide](./docs/guides/how-to-migrate-from-v3-to-v4.md).
+
+### Migrating from v1.x
+
+New v2.0.0 release has introduced many breaking changes. If you were using v1.x, you should [read the "how to migrate from v1 to v2" guide](./docs/guides/how-to-migrate-from-v1-to-v2.md).
 
 ## Debug mode
 

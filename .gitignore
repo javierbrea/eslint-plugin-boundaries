@@ -23,6 +23,7 @@ yarn-error.log*
 # ides
 .idea
 .vs
+.vscode
 
 # stryker temp files
 /reports
