@@ -1,11 +1,20 @@
 const micromatch = require("micromatch");
 
-const { TYPES, ALIAS, ELEMENTS, VALID_MODES } = require("../constants/settings");
+const {
+  TYPES,
+  ALIAS,
+  ELEMENTS,
+  VALID_MODES,
+  DEPENDENCY_NODES,
+  ADDITIONAL_DEPENDENCY_NODES,
+  VALID_DEPENDENCY_NODE_KINDS,
+  DEFAULT_DEPENDENCY_NODES,
+} = require("../constants/settings");
 
 const { getElementsTypeNames, isLegacyType } = require("./settings");
 const { rulesMainKey } = require("./rules");
 const { warnOnce } = require("./debug");
-const { isArray, isString } = require("./utils");
+const { isArray, isString, isObject } = require("./utils");
 
 const invalidMatchers = [];
 
@@ -147,6 +156,58 @@ function validateElements(elements) {
   });
 }
 
+function validateDependencyNodes(dependencyNodes) {
+  if (!dependencyNodes) {
+    return;
+  }
+
+  const defaultNodesNames = Object.keys(DEFAULT_DEPENDENCY_NODES);
+  const invalidFormatMessage = [
+    `Please provide a valid value in ${DEPENDENCY_NODES} setting.`,
+    `The value should be an array of the following strings:`,
+    ` "${defaultNodesNames.join('", "')}".`,
+  ].join(" ");
+
+  if (!isArray(dependencyNodes)) {
+    warnOnce(invalidFormatMessage);
+    return;
+  }
+
+  dependencyNodes.forEach((dependencyNode) => {
+    if (!isString(dependencyNode) || !defaultNodesNames.includes(dependencyNode)) {
+      warnOnce(invalidFormatMessage);
+    }
+  });
+}
+
+function validateAdditionalDependencyNodes(additionalDependencyNodes) {
+  if (!additionalDependencyNodes) {
+    return;
+  }
+
+  const invalidFormatMessage = [
+    `Please provide a valid value in ${ADDITIONAL_DEPENDENCY_NODES} setting.`,
+    "The value should be an array composed of the following objects:",
+    '{ selector: "<esquery selector>", kind: "value" | "type" }.',
+  ].join(" ");
+
+  if (!isArray(additionalDependencyNodes)) {
+    warnOnce(invalidFormatMessage);
+    return;
+  }
+
+  additionalDependencyNodes.forEach((dependencyNode) => {
+    const isValidObject =
+      isObject(dependencyNode) &&
+      isString(dependencyNode.selector) &&
+      (!dependencyNode.kind || VALID_DEPENDENCY_NODE_KINDS.includes(dependencyNode.kind));
+
+    if (!isValidObject) {
+      warnOnce(invalidFormatMessage);
+    }
+  });
+}
+
 function deprecateAlias(aliases) {
   if (aliases) {
     warnOnce(
@@ -165,6 +226,8 @@ function validateSettings(settings) {
   deprecateTypes(settings[TYPES]);
   deprecateAlias(settings[ALIAS]);
   validateElements(settings[ELEMENTS] || settings[TYPES]);
+  validateDependencyNodes(settings[DEPENDENCY_NODES]);
+  validateAdditionalDependencyNodes(settings[ADDITIONAL_DEPENDENCY_NODES]);
 }
 
 function validateRules(settings, rules = [], options = {}) {

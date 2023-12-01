@@ -2,8 +2,6 @@ const { RULE_NO_IGNORED } = require("../constants/settings");
 
 const dependencyRule = require("../rules-factories/dependency-rule");
 
-const { dependencyLocation } = require("../helpers/rules");
-
 module.exports = dependencyRule(
   {
     ruleName: RULE_NO_IGNORED,
@@ -14,7 +12,6 @@ module.exports = dependencyRule(
       context.report({
         message: `Importing ignored files is not allowed`,
         node: node,
-        ...dependencyLocation(node, context),
       });
     }
   },

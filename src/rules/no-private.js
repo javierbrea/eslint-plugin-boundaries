@@ -2,7 +2,6 @@ const { RULE_NO_PRIVATE } = require("../constants/settings");
 
 const dependencyRule = require("../rules-factories/dependency-rule");
 
-const { dependencyLocation } = require("../helpers/rules");
 const { customErrorMessage, elementMessage } = require("../helpers/messages");
 
 function errorMessage(file, dependency, options) {
@@ -45,7 +44,6 @@ module.exports = dependencyRule(
       context.report({
         message: errorMessage(file, dependency, options),
         node: node,
-        ...dependencyLocation(node, context),
       });
     }
   },

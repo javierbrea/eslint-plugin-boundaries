@@ -36,7 +36,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message: ERROR_MESSAGE,
-          type: "ImportDeclaration",
+          type: "Literal",
         },
       ],
     },
@@ -47,7 +47,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message: ERROR_MESSAGE,
-          type: "ImportDeclaration",
+          type: "Literal",
         },
       ],
     },
