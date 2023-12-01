@@ -51,7 +51,7 @@ const test = (settings) => {
         errors: [
           {
             message: ERROR_MESSAGE,
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },

@@ -118,7 +118,7 @@ const test = (settings) => {
             message: noPrivateMessage({
               dep: "'components' with elementName 'component-c'",
             }),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -132,7 +132,7 @@ const test = (settings) => {
             message: noPrivateMessage({
               dep: "'components' with elementName 'component-a'",
             }),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -146,7 +146,7 @@ const test = (settings) => {
             message: noPrivateMessage({
               dep: "'helpers' with elementName 'helper-a'",
             }),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -160,7 +160,7 @@ const test = (settings) => {
             message: noPrivateMessage({
               dep: "'helpers' with elementName 'helper-a'",
             }),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -182,7 +182,7 @@ const test = (settings) => {
             message: noPrivateMessage({
               dep: "'components' with elementName 'component-a'",
             }),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -203,7 +203,7 @@ const test = (settings) => {
           {
             message:
               "The element of type 'helpers' with name 'helper-a' is child of element of type 'components' with name 'component-a'",
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -224,7 +224,7 @@ const test = (settings) => {
           {
             message:
               "The element of type 'helpers' with name 'helper-a' is child of element of type 'components' with name 'component-a'",
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -245,7 +245,7 @@ const test = (settings) => {
           {
             message:
               "This element is of type 'components' with name 'component-d', and it is child of element of type 'components' with name 'component-c'",
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -266,7 +266,7 @@ const test = (settings) => {
           {
             message:
               "This element is of type 'components' with name 'component-d', and it is child of element of type 'components' with name 'component-c'",
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },

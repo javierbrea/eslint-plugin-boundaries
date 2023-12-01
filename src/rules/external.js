@@ -6,7 +6,6 @@ const dependencyRule = require("../rules-factories/dependency-rule");
 
 const { rulesOptionsSchema } = require("../helpers/validations");
 const {
-  dependencyLocation,
   elementRulesAllowDependency,
   micromatchPatternReplacingObjectsValues,
   isMatchImportKind,
@@ -19,18 +18,29 @@ const {
 } = require("../helpers/messages");
 const { isArray } = require("../helpers/utils");
 
+function getSpecifiers(node) {
+  if (node.parent.type === "ImportDeclaration") {
+    return node.parent.specifiers
+      .filter((specifier) => specifier.type === "ImportSpecifier" && specifier.imported.name)
+      .map((specifier) => specifier.imported.name);
+  }
+
+  if (node.parent.type === "ExportNamedDeclaration") {
+    return node.parent.specifiers
+      .filter((specifier) => specifier.type === "ExportSpecifier" && specifier.exported.name)
+      .map((specifier) => specifier.exported.name);
+  }
+
+  return [];
+}
+
 function specifiersMatch(specifiers, specifierOptions, elementsCapturedValues) {
-  const importedSpecifiersNames = specifiers
-    .filter((specifier) => {
-      return specifier.type === "ImportSpecifier" && specifier.imported.name;
-    })
-    .map((specifier) => specifier.imported.name);
   return specifierOptions.reduce((found, option) => {
     const matcherWithTemplateReplaced = micromatchPatternReplacingObjectsValues(
       option,
       elementsCapturedValues,
     );
-    if (micromatch.some(importedSpecifiersNames, matcherWithTemplateReplaced)) {
+    if (micromatch.some(specifiers, matcherWithTemplateReplaced)) {
       found.push(option);
     }
     return found;
@@ -182,14 +192,13 @@ module.exports = dependencyRule(
     if (dependency.isExternal) {
       const ruleData = elementRulesAllowExternalDependency(
         file,
-        { ...dependency, specifiers: node.source.parent.specifiers },
+        { ...dependency, specifiers: getSpecifiers(node) },
         options,
       );
       if (!ruleData.result) {
         context.report({
           message: errorMessage(ruleData, file, dependency),
           node: node,
-          ...dependencyLocation(node, context),
         });
       }
     }

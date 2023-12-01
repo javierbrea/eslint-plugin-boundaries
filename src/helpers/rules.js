@@ -28,23 +28,6 @@ function meta({ description, schema = [], ruleName }) {
   };
 }
 
-function dependencyLocation(node, context) {
-  const columnStart = context.getSourceCode().getText(node).indexOf(node.source.value) - 1;
-  const columnEnd = columnStart + node.source.value.length + 2;
-  return {
-    loc: {
-      start: {
-        line: node.loc.start.line,
-        column: columnStart,
-      },
-      end: {
-        line: node.loc.end.line,
-        column: columnEnd,
-      },
-    },
-  };
-}
-
 function micromatchPatternReplacingObjectsValues(pattern, object) {
   let patternToReplace = pattern;
   // Backward compatibility
@@ -237,7 +220,6 @@ function elementRulesAllowDependency({
 
 module.exports = {
   meta,
-  dependencyLocation,
   isObjectMatch,
   isMatchElementKey,
   isMatchElementType,

@@ -44,7 +44,7 @@ const test = (settings, options, errorMessages = {}) => {
         errors: [
           {
             message: customErrorMessage(errorMessages, 0, ""),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -56,7 +56,7 @@ const test = (settings, options, errorMessages = {}) => {
         errors: [
           {
             message: customErrorMessage(errorMessages, 1, ""),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -68,7 +68,7 @@ const test = (settings, options, errorMessages = {}) => {
         errors: [
           {
             message: customErrorMessage(errorMessages, 2, ""),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },
@@ -80,7 +80,7 @@ const test = (settings, options, errorMessages = {}) => {
         errors: [
           {
             message: customErrorMessage(errorMessages, 3, ""),
-            type: "ImportDeclaration",
+            type: "Literal",
           },
         ],
       },

@@ -53,7 +53,7 @@ ruleTester.run(RULE, rule, {
           message: noPrivateMessage({
             dep: "'modules' with elementName 'module-b'",
           }),
-          type: "ImportDeclaration",
+          type: "Literal",
         },
       ],
     },
@@ -67,7 +67,7 @@ ruleTester.run(RULE, rule, {
           message: noPrivateMessage({
             dep: "'modules' with elementName 'module-c'",
           }),
-          type: "ImportDeclaration",
+          type: "Literal",
         },
       ],
     },
@@ -85,7 +85,7 @@ ruleTester.run(RULE, rule, {
           message: noPrivateMessage({
             dep: "'modules' with elementName 'module-b'",
           }),
-          type: "ImportDeclaration",
+          type: "Literal",
         },
       ],
     },
