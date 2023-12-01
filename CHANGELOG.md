@@ -15,8 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- feat(#213): Add `dependency-nodes` setting to allow analyzing dependencies from additional nodes, such as exports or dynamic imports.
-- feat: Add `additional-dependency-nodes` setting to add custom dependency nodes to the default ones. For example, you could enable to analyze dependencies in `jest.mock(...)`, etc.
+- feat(#213): Add `dependency-nodes` setting to allow analyzing dependencies from additional nodes, such as exports or dynamic imports. ([@gridsane](https://github.com/gridsane))
+- feat: Add `additional-dependency-nodes` setting to add custom dependency nodes to the default ones. For example, you could enable to analyze dependencies in `jest.mock(...)`, etc. ([@gridsane](https://github.com/gridsane))
 
 ### BREAKING CHANGES
 
