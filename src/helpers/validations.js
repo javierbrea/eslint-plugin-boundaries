@@ -140,16 +140,20 @@ function validateElements(elements) {
         }
         if (element.mode && !VALID_MODES.includes(element.mode)) {
           warnOnce(
-            `Invalid mode property in '${ELEMENTS}' setting. Should be one of ${VALID_MODES.join(
+            `Invalid mode property of type ${
+              element.type
+            } in '${ELEMENTS}' setting. Should be one of ${VALID_MODES.join(
               ",",
             )}. Default value "${VALID_MODES[0]}" will be used instead`,
           );
         }
         if (!element.pattern || !(isString(element.pattern) || isArray(element.pattern))) {
-          warnOnce(`Please provide a valid pattern in '${ELEMENTS}' setting`);
+          warnOnce(
+            `Please provide a valid pattern to type ${element.type} in '${ELEMENTS}' setting`,
+          );
         }
         if (element.capture && !isArray(element.capture)) {
-          warnOnce(`Invalid capture property in '${ELEMENTS}' setting`);
+          warnOnce(`Invalid capture property of type ${element.type} in '${ELEMENTS}' setting`);
         }
       });
     }

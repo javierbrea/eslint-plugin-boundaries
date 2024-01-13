@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [4.1.0] - 2024-01-13
+
+### Changed
+- feat(#323): Specify which element type has issues during settings validation (Thanks to [@hmnzr](https://github.com/hmnzr))
+
 ## [4.0.1] - 2023-12-01
 
 ### Fixed
