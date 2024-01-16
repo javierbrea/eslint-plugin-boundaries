@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [4.2.0] - 2024-01-16
+
+### Added
+- feat: Add `require` dependency node, enabling to analyze dependencies in `require(...)` calls
+- chore: Lint code using eslint-plugin-boundaries in its own codebase
+
 ## [4.1.0] - 2024-01-13
 
 ### Changed
