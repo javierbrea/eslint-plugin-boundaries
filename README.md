@@ -10,7 +10,7 @@ In words of Robert C. Martin, _"Software architecture is the art of drawing line
 
 __This plugin ensures that your architecture boundaries are respected by the elements in your project__ checking the folders and files structure and the dependencies between them. __It is not a replacement for [eslint-plugin-import](https://www.npmjs.com/package/eslint-plugin-import), on the contrary, the combination of both plugins is recommended.__
 
-By default, __the plugin works by checking `import` statements, but it is also able to analyze exports, dynamic imports, and can be configured to check any other [AST nodes](https://eslint.org/docs/latest/extend/selectors)__. (_Read the [main rules overview](#main-rules-overview) and [configuration](#configuration) chapters for better comprehension_)
+By default, __the plugin works by checking `import` statements, but it is also able to analyze "require", "exports" and dynamic imports, and can be configured to check any other [AST nodes](https://eslint.org/docs/latest/extend/selectors)__. (_Read the [main rules overview](#main-rules-overview) and [configuration](#configuration) chapters for better comprehension_)
 
 ## Table of Contents
 
@@ -207,6 +207,7 @@ This setting allows to modify built-in default dependency nodes. By default, the
 
 The setting should be an array of the following strings:
 
+* `'require'`: analyze `require` statements.
 * `'import'`: analyze `import` statements.
 * `'export'`: analyze `export` statements.
 * `'dynamic-import'`: analyze [dynamic import](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) statements.

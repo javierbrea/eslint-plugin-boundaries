@@ -24,7 +24,7 @@ const typescriptSettings = {
   "boundaries/dependency-nodes": ["import"],
 };
 const dependencyNodesSettings = {
-  "boundaries/dependency-nodes": ["import", "export", "dynamic-import"],
+  "boundaries/dependency-nodes": ["require", "import", "export", "dynamic-import"],
   "boundaries/additional-dependency-nodes": [
     {
       // mock('source')
@@ -146,6 +146,12 @@ createRuleTester({
       code: "mock('helpers/helper-a')",
       options,
     },
+    // Components can require helpers
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "require('helpers/helper-a')",
+      options,
+    },
   ],
   invalid: [
     // Helpers can't export value from another helper
@@ -185,6 +191,17 @@ createRuleTester({
     {
       filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
       code: "mock('helpers/helper-b')",
+      options,
+      errors: [
+        {
+          type: "Literal",
+        },
+      ],
+    },
+    // Helpers can't require another helper
+    {
+      filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+      code: "require('helpers/helper-b')",
       options,
       errors: [
         {
