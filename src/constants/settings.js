@@ -41,6 +41,13 @@ module.exports = {
 
   VALID_DEPENDENCY_NODE_KINDS: ["value", "type"],
   DEFAULT_DEPENDENCY_NODES: {
+    require: [
+      // Note: detects "require('source')"
+      {
+        selector: "CallExpression[callee.name=require] > Literal",
+        kind: "value",
+      },
+    ],
     import: [
       // Note: detects "import x from 'source'"
       { selector: "ImportDeclaration:not([importKind=type]) > Literal", kind: "value" },
