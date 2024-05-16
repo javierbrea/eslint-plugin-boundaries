@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ["16.14.0", "18.2.0", "20.5.1"]
+        node: ["18.20.2", "20.13.1", "22.2.0"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Cache npm
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: cache-npm
         with:
@@ -41,7 +41,7 @@ jobs:
       - name: Test unit
         run: npm run test:unit
       - name: Upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.node }}
           path: coverage
@@ -50,7 +50,7 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
-        node: ["16.14.0", "18.2.0", "20.5.1"]
+        node: ["18.20.2", "20.13.1", "22.2.0"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -59,7 +59,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Cache npm
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: cache-windows-npm
         with:
@@ -84,9 +84,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Download test results
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: coverage-18.2.0
+          name: coverage-18.20.2
           path: coverage
       - name: Coveralls
         uses: coverallsapp/github-action@master
