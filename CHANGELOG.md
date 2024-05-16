@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - chore: Bump eslint-module-utils to 2.8.1
 - chore: Update devDependencies
 - chore: Upgrade Node.js versions used in pipelines. Remove Node.js 16.x. Add Node.js 22.x
+- chore: Bump actions/cache to v4
+- chore: Bump actions/upload-artifact to v4
 
 ## [4.2.0] - 2024-01-16
 

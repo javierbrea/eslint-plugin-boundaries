@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Cache npm
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: cache-npm
         with:
@@ -41,7 +41,7 @@ jobs:
       - name: Test unit
         run: npm run test:unit
       - name: Upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.node }}
           path: coverage
@@ -59,7 +59,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Cache npm
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: cache-windows-npm
         with:
