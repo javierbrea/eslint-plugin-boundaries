@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [4.2.1] - 2024-05-16
+
+### Changed
+- chore: Bump eslint-module-utils to 2.8.1
+- chore: Update devDependencies
+
 ## [4.2.0] - 2024-01-16
 
 ### Added
