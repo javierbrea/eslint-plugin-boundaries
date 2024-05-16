@@ -84,7 +84,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Download test results
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: coverage-18.20.2
           path: coverage

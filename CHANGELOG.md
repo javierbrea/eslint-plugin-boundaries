@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - chore: Upgrade Node.js versions used in pipelines. Remove Node.js 16.x. Add Node.js 22.x
 - chore: Bump actions/cache to v4
 - chore: Bump actions/upload-artifact to v4
+- chore: Bump actions/download-artifact to v4
 
 ## [4.2.0] - 2024-01-16
 
