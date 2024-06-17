@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-boundaries",
-  "version": "4.2.1",
+  "version": "5.0.0-beta.0",
   "description": "Eslint plugin checking architecture boundaries between elements",
   "keywords": [
     "eslint",
@@ -25,11 +25,11 @@
     "lint": "eslint src *.js test",
     "lint-staged": "lint-staged",
     "test": "jest",
-    "test:unit": "cross-env ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 npm run test",
+    "test:unit": "cross-env ESLINT_USE_FLAT_CONFIG=true ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 npm run test",
     "prepare": "is-ci || husky install"
   },
   "peerDependencies": {
-    "eslint": ">=6.0.0"
+    "eslint": ">=9.0.0"
   },
   "dependencies": {
     "chalk": "4.1.2",
@@ -39,12 +39,11 @@
     "micromatch": "4.0.5"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "7.9.0",
-    "@typescript-eslint/parser": "7.9.0",
+    "@typescript-eslint/parser": "8.0.0-alpha.30",
+    "@typescript-eslint/eslint-plugin": "8.0.0-alpha.30",
     "cross-env": "7.0.3",
-    "eslint": "8.56.0",
+    "eslint": "9.5.0",
     "eslint-config-prettier": "9.1.0",
-    "eslint-import-resolver-typescript": "3.6.1",
     "eslint-plugin-local-rules": "2.0.1",
     "eslint-plugin-prettier": "5.1.3",
     "husky": "9.0.11",
@@ -59,6 +58,6 @@
     "*.js": "eslint"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.18"
   }
 }

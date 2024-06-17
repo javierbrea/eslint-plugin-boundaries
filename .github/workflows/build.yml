@@ -4,6 +4,7 @@ on:
     branches:
       - master
       - release
+      - release-eslint-v9
       - pre-release
   pull_request:
 concurrency:  
@@ -14,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ["18.20.2", "20.13.1", "22.2.0"]
+        node: ["18.20.3", "20.13.1", "22.2.0"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,7 +51,7 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
-        node: ["18.20.2", "20.13.1", "22.2.0"]
+        node: ["18.20.3", "20.13.1", "22.2.0"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -86,7 +87,7 @@ jobs:
       - name: Download test results
         uses: actions/download-artifact@v4
         with:
-          name: coverage-18.20.2
+          name: coverage-18.20.3
           path: coverage
       - name: Coveralls
         uses: coverallsapp/github-action@master

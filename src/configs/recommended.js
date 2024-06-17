@@ -1,8 +1,5 @@
-const { PLUGIN_NAME } = require("../constants/plugin");
-
 const {
   ELEMENTS,
-  IGNORE,
   // rules
   RULE_ELEMENT_TYPES,
   RULE_ENTRY_POINT,
@@ -14,7 +11,6 @@ const {
 } = require("../constants/settings");
 
 module.exports = {
-  plugins: [PLUGIN_NAME],
   rules: {
     [RULE_ELEMENT_TYPES]: [2],
     [RULE_ENTRY_POINT]: [2],
@@ -31,6 +27,5 @@ module.exports = {
   },
   settings: {
     [ELEMENTS]: [],
-    [IGNORE]: ["**/*.spec?.js", "**/*.test?.js"],
   },
 };

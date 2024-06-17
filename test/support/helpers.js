@@ -1,5 +1,6 @@
 const path = require("path");
 const RuleTester = require("eslint").RuleTester;
+const typescriptParser = require("@typescript-eslint/parser");
 
 const codeFilePath = (basePath, relativePath) => {
   return ["test", "fixtures", basePath, relativePath].join("/");
@@ -186,20 +187,30 @@ const SETTINGS = {
 const TYPESCRIPT_SETTINGS = {
   oneLevel: {
     ...SETTINGS.oneLevel,
-    parser: path.resolve(__dirname, "..", "..", "node_modules", "@typescript-eslint/parser/dist"),
-    parserOptions: {
+    languageOptions: {
+      parser: typescriptParser,
       ecmaVersion: 2018,
       tsconfigRootDir: path.resolve(__dirname, "../fixtures/one-level"),
       project: "./tsconfig.json",
     },
+    //parser: path.resolve(__dirname, "..", "..", "node_modules", "@typescript-eslint/parser/dist"),
+    /* parserOptions: {
+      ecmaVersion: 2018,
+      tsconfigRootDir: path.resolve(__dirname, "../fixtures/one-level"),
+      project: "./tsconfig.json",
+    }, */
   },
 };
 
 const createRuleTester = (settings) => {
   const parserOptions = settings.parserOptions || { ecmaVersion: 2015, sourceType: "module" };
   return new RuleTester({
-    parser: settings.parser,
-    parserOptions: parserOptions,
+    languageOptions: {
+      parser: settings.languageOptions?.parser,
+      ...parserOptions,
+    },
+    // parser: settings.parser,
+    //parserOptions: parserOptions,
     settings,
   });
 };

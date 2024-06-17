@@ -53,14 +53,35 @@ npm install --save-dev eslint eslint-plugin-boundaries
 
 `eslint-plugin-boundaries` does not install `eslint` for you. You must install it yourself.
 
-Activate the plugin and one of the canned configs in your `.eslintrc.(yml|json|js)`:
+Activate the plugin and one of the canned configs in your `.eslint.config.js` file:
 
-```json
-{
-  "plugins": ["boundaries"],
-  "extends": ["plugin:boundaries/recommended"]
-}
+```js
+import boundaries from "eslint-plugin-boundaries";
+
+export default [
+  {
+    files: ["**/*.js"],
+    plugins: {
+      boundaries,
+    },
+    rules: {
+      ...boundaries.configs.recommended.rules,
+    }
+  }
+];
 ```
+
+### Eslint v9 and above
+
+You must use beta versions of this plugin starting from `5.0.0-beta.0` to use it with eslint v9 and above. The compatibility is not guaranteed yet. In case you face any issue, please [open an issue](https://github.com/javierbrea/eslint-plugin-boundaries/issues).
+
+To install the latest beta version, you can use the next command:
+
+```bash
+npm install --save-dev eslint-plugin-boundaries@beta
+```
+
+Note that all examples in these docs except the installation one are still written using JSON format, but you should use JavaScript format in your `.eslint.config.js` file for eslint version 9 and above. Please read the [eslint v9 migration guide](https://eslint.org/docs/latest/use/migrate-to-9.0.0) for further info. Once we have tested enough the compatibility with eslint v9 of predefined configurations, examples, and the integration with other eslint plugins, such as those needed to use TypeScript with this plugin, we will update the examples and release a stable version.
 
 ## Overview
 
@@ -68,7 +89,7 @@ All of the plugin rules need to be able to identify the elements in the project,
 
 The plugin will use the provided patterns to identify each file as one of the element types. It will also assign a type to each dependency detected in the [dependency nodes (`import` or other statements)](#boundariesdependency-nodes), and it will check if the relationship between the dependent element and the dependency is allowed or not.
 
-```json
+```js
 {
   "settings": {
     "boundaries/elements": [
@@ -286,14 +307,12 @@ By default, the plugin uses the current working directory (`process.cwd()`) as r
 For example, supposing that the `.eslintrc.js` file is located in the project root, you could define the root path as in:
 
 ```js
-{
   settings: {
     "boundaries/root-path": path.resolve(__dirname)
   }
-}
 ```
 
-Note that the path should be absolute and resolved before passing it to the plugin. Otherwise, it will be resolved using the current working directory, and the problem will persist. In case you are defining the configuration in a `.eslintrc.(yml|json)` file, and you don't want to hardcode an absolute path, you can use the next environment variable to define the root path when executing the lint command:
+Note that the path should be absolute and resolved before passing it to the plugin. Otherwise, it will be resolved using the current working directory, and the problem will persist. You can also use the next environment variable to define the root path when executing the lint command:
 
 ```bash
 ESLINT_PLUGIN_BOUNDARIES_ROOT_PATH=../../project-root npm run lint

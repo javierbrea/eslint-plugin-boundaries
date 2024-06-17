@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [5.0.0-beta.0] - 2024-06-17
+
+### Changed
+- feat: Modify dependencies and tests to support eslint v9
+- feat: Remove `plugins` property from preset configurations, given that eslint v9 does not support defining plugins by using strings in the configuration. Added example to the main readme file to show how the plugin and predefined configurations should be used now.
+- chore: Migrate self eslint configuration to v9 format.
+
+### Removed
+- chore: Drop support for Node.js versions lower than 18.18
+
 ## [4.2.1] - 2024-05-16
 
 ### Changed

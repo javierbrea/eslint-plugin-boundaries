@@ -25,7 +25,7 @@ const test = (settings, options, errorMessages) => {
       // Helpers can't import another helper
       {
         filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import HelperB from 'helpers/helper-b'",
+        code: 'import HelperB from "helpers/helper-b"',
         options,
       },
       // Helpers can't import a component:
