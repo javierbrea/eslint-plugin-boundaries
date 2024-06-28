@@ -9,7 +9,7 @@ const { isArray } = require("../helpers/utils");
 
 const { filesCache, importsCache, elementsCache } = require("./cache");
 
-function isBuiltin(moduleName) {
+function isCoreModule(moduleName) {
   const moduleNameWithoutPrefix = moduleName.startsWith("node:")
     ? moduleName.slice(5)
     : moduleName;
@@ -46,7 +46,7 @@ function isIgnored(path, settings) {
 function isBuiltIn(name, path) {
   if (path || !name) return false;
   const base = baseModule(name);
-  return isBuiltin(base);
+  return isCoreModule(base);
 }
 
 const scopedRegExp = /^@[^/]*\/?[^/]+/;
