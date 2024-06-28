@@ -1,4 +1,4 @@
-const isCoreModule = require("is-core-module");
+const mod = require("module");
 const micromatch = require("micromatch");
 const resolve = require("eslint-module-utils/resolve").default;
 
@@ -8,6 +8,14 @@ const { debugFileInfo } = require("../helpers/debug");
 const { isArray } = require("../helpers/utils");
 
 const { filesCache, importsCache, elementsCache } = require("./cache");
+
+function isBuiltin(moduleName) {
+  const moduleNameWithoutPrefix = moduleName.startsWith("node:")
+    ? moduleName.slice(5)
+    : moduleName;
+
+  return mod.builtinModules.includes(moduleNameWithoutPrefix);
+}
 
 function baseModule(name) {
   if (isScoped(name)) {
@@ -38,7 +46,7 @@ function isIgnored(path, settings) {
 function isBuiltIn(name, path) {
   if (path || !name) return false;
   const base = baseModule(name);
-  return isCoreModule(base);
+  return isBuiltin(base);
 }
 
 const scopedRegExp = /^@[^/]*\/?[^/]+/;
