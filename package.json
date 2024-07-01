@@ -42,7 +42,7 @@
     "@typescript-eslint/eslint-plugin": "7.9.0",
     "@typescript-eslint/parser": "7.9.0",
     "cross-env": "7.0.3",
-    "eslint": "8.56.0",
+    "eslint": "9.6.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-import-resolver-typescript": "3.6.1",
     "eslint-plugin-local-rules": "2.0.1",
