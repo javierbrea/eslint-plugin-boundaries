@@ -166,6 +166,18 @@ const test = (settings, options, errorMessages) => {
           },
         ],
       },
+      // Can import fs module
+      {
+        filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+        code: "import fs from 'fs'",
+        options,
+      },
+      // Can import node:fs module
+      {
+        filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+        code: "import fs from 'node:fs'",
+        options,
+      },
     ],
     invalid: [
       // Helpers can't import another if everything is disallowed
