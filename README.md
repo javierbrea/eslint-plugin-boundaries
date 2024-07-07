@@ -62,6 +62,18 @@ Activate the plugin and one of the canned configs in your `.eslintrc.(yml|json|j
 }
 ```
 
+### Eslint v9 and above
+
+You must use beta versions of this plugin starting from 5.0.0-beta.0 to use it with eslint v9 and above. The compatibility is not guaranteed yet. In case you face any issue, please open an issue.
+
+To install the latest beta version, you can use the next command:
+
+```sh
+npm install --save-dev eslint-plugin-boundaries@beta
+```
+
+The beta eslint v9 beta versions are maintained in the [`release-eslint-v9` branch](https://github.com/javierbrea/eslint-plugin-boundaries/tree/release-eslint-v9). Once we have tested enough the compatibility with eslint v9 of predefined configurations, examples, and the integration with other eslint plugins, such as those needed to use TypeScript with this plugin, we will release a stable version.
+
 ## Overview
 
 All of the plugin rules need to be able to identify the elements in the project, so, first of all you have to define your project element types by using the `boundaries/elements` setting.
