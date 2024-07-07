@@ -11,6 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [5.0.0-beta.1] - 2024-07-07
+
+### Changed
+- chore: Add changes from release [4.2.2](#4-2-2)
+
+## [4.2.2] - 2024-07-07
+
+### Changed
+- chore([#334](https://github.com/javierbrea/eslint-plugin-boundaries/issues/334)): Remove is-core-module dependency ([@hmnzr](https://github.com/hmnzr))
+- chore(dependencies): Bump micromatch to 4.0.7
+- chore(devDependencies): Bum @typescript-eslint/eslint-plugin" to 7.15.0
+- chore(devDependencies): Bump @typescript-eslint/parser to 7.15.0
+- chore(devDependencies): Bump eslint to 8.57.0
+- chore(devDependencies): Bump eslint-plugin-local-rules to 3.0.2
+- chore(devDependencies): Bump lint-staged to 15.2.7
+- chore(devDependencies): Bump mindsers/changelog-reader-action action to v2.2.3
+- chore(devDependencies): Bumb prettier to 3.3.2
+- chore(devDependencies): Bump EndBug/version-check action to v2.1.4
+
 ## [5.0.0-beta.0] - 2024-06-17
 
 ### Changed
@@ -20,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Removed
 - chore: Drop support for Node.js versions lower than 18.18
+
 
 ## [4.2.1] - 2024-05-16
 
