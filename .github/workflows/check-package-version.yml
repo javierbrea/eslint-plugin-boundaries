@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Get NPM version is new
         id: check
-        uses: EndBug/version-check@v2.1.1
+        uses: EndBug/version-check@v2.1.4
         with:
           diff-search: true
           file-name: ./package.json
@@ -30,7 +30,7 @@ jobs:
         uses: martinbeentjes/npm-get-version-action@v1.3.1
       - name: Check Changelog version
         id: changelog_reader
-        uses: mindsers/changelog-reader-action@v2.2.2
+        uses: mindsers/changelog-reader-action@v2.2.3
         with:
           version: ${{ steps.package-version.outputs.current-version }}
           path: ./CHANGELOG.md
