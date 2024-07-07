@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [4.2.2] - 2024-07-07
 
 ### Changed
-- chore([#334](https://github.com/javierbrea/eslint-plugin-boundaries/issues/334)): Remove is-core-module dependency ([@hmnzr](https://github.com/hmnzr))
+- chore([#334](https://github.com/javierbrea/eslint-plugin-boundaries/issues/334)): Remove is-core-module dependency ([@wojtekmaj](https://github.com/wojtekmaj))
 - chore(dependencies): Bump micromatch to 4.0.7
 - chore(devDependencies): Bum @typescript-eslint/eslint-plugin" to 7.15.0
 - chore(devDependencies): Bump @typescript-eslint/parser to 7.15.0
