@@ -284,7 +284,7 @@ Files or dependencies matching these [`micromatch` patterns](https://github.com/
 }
 ```
 
-> Note: The `boundaries/include` option has preference over `boundaries/ignore`. If you define `boundaries/include`, use `boundaries/ignore` to ignore subsets of included files.
+> Note: The `boundaries/ignore` option has precedence over `boundaries/include`. If you define `boundaries/include`, use `boundaries/ignore` to ignore subsets of included files.
 
 #### __`boundaries/root-path`__
 
