@@ -193,12 +193,6 @@ const TYPESCRIPT_SETTINGS = {
       tsconfigRootDir: path.resolve(__dirname, "../fixtures/one-level"),
       project: "./tsconfig.json",
     },
-    //parser: path.resolve(__dirname, "..", "..", "node_modules", "@typescript-eslint/parser/dist"),
-    /* parserOptions: {
-      ecmaVersion: 2018,
-      tsconfigRootDir: path.resolve(__dirname, "../fixtures/one-level"),
-      project: "./tsconfig.json",
-    }, */
   },
 };
 
@@ -209,8 +203,6 @@ const createRuleTester = (settings) => {
       parser: settings.languageOptions?.parser,
       ...parserOptions,
     },
-    // parser: settings.parser,
-    //parserOptions: parserOptions,
     settings,
   });
 };

@@ -3,7 +3,6 @@ on:
   pull_request:
     branches:
       - master
-      - release-eslint-v9
 concurrency:  
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
