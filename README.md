@@ -60,7 +60,6 @@ import boundaries from "eslint-plugin-boundaries";
 
 export default [
   {
-    files: ["**/*.js"],
     plugins: {
       boundaries,
     },
@@ -71,17 +70,9 @@ export default [
 ];
 ```
 
-### Eslint v9 and above
+### Eslint v8 and below
 
-You must use beta versions of this plugin starting from `5.0.0-beta.0` to use it with eslint v9 and above. The compatibility is not guaranteed yet. In case you face any issue, please [open an issue](https://github.com/javierbrea/eslint-plugin-boundaries/issues).
-
-To install the latest beta version, you can use the next command:
-
-```bash
-npm install --save-dev eslint-plugin-boundaries@beta
-```
-
-Note that all examples in these docs except the installation one are still written using JSON format, but you should use JavaScript format in your `eslint.config.js` file for eslint version 9 and above. Please read the [eslint v9 migration guide](https://eslint.org/docs/latest/use/migrate-to-9.0.0) for further info. Once we have tested enough the compatibility with eslint v9 of predefined configurations, examples, and the integration with other eslint plugins, such as those needed to use TypeScript with this plugin, we will update the examples and release a stable version.
+From version `5.0.0`, this plugin is compatible with eslint v9 and above. If you are using eslint v8 or below, you should use versions `4.x.x` of this plugin.
 
 ## Overview
 
@@ -592,13 +583,17 @@ In case you face any issue configuring it, you can also [use this repository as 
 
 ## Migration guides
 
+### Migrating from v4.x
+
+v5.0.0 release is compatible with eslint v9 and above. If you were using v4.x with eslint below v9, you should [read the eslint guide to migrate to v9](https://eslint.org/docs/latest/use/migrate-to-9.0.0).
+
 ### Migrating from v3.x
 
-New v4.0.0 release has introduced breaking changes. If you were using v3.x, you should [read the "how to migrate from v3 to v4" guide](./docs/guides/how-to-migrate-from-v3-to-v4.md).
+v4.0.0 release introduced breaking changes. If you were using v3.x, you should [read the "how to migrate from v3 to v4" guide](./docs/guides/how-to-migrate-from-v3-to-v4.md).
 
 ### Migrating from v1.x
 
-New v2.0.0 release has introduced many breaking changes. If you were using v1.x, you should [read the "how to migrate from v1 to v2" guide](./docs/guides/how-to-migrate-from-v1-to-v2.md).
+v2.0.0 release introduced many breaking changes. If you were using v1.x, you should [read the "how to migrate from v1 to v2" guide](./docs/guides/how-to-migrate-from-v1-to-v2.md).
 
 ## Debug mode
 
