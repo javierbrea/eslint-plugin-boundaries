@@ -2,6 +2,5 @@
   "sonarlint.connectedMode.project": {
       "connectionId": "javierbrea",
       "projectKey": "javierbrea_eslint-plugin-boundaries"
-  },
-  "eslint.useFlatConfig": true,
+  }
 }

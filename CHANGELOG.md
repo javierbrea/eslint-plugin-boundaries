@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [5.0.0] - 2024-11-05
+
+### Changed
+
+- feat: Modify dependencies, tests and docs to support eslint v9
+
 ## [5.0.0-beta.1] - 2024-07-07
 
 ### Changed
