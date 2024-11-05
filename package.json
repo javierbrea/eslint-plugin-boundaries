@@ -22,7 +22,7 @@
   "main": "index.js",
   "scripts": {
     "eslint": "eslint",
-    "lint": "eslint src *.js test",
+    "lint": "eslint .",
     "lint-staged": "lint-staged",
     "test": "jest",
     "test:unit": "cross-env ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 npm run test",
@@ -52,9 +52,9 @@
     "prettier": "3.3.3"
   },
   "lint-staged": {
-    "test/**/*.js": "eslint",
-    "src/**/*.js": "eslint",
-    "*.js": "eslint"
+    "**/*.js": "eslint",
+    "**/*.ts": "eslint",
+    "**/*.mjs": "eslint"
   },
   "engines": {
     "node": ">=18.18"
