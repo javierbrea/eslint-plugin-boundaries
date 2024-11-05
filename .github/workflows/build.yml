@@ -4,7 +4,6 @@ on:
     branches:
       - master
       - release
-      - pre-release
   pull_request:
 concurrency:  
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ["18.20.2", "20.13.1", "22.2.0"]
+        node: ["18.20.3", "20.13.1", "22.2.0"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,18 +21,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      - name: Cache npm
-        uses: actions/cache@v4
-        env:
-          cache-name: cache-npm
-        with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+          cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Lint
@@ -50,7 +38,7 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
-        node: ["18.20.2", "20.13.1", "22.2.0"]
+        node: ["18.20.3", "20.13.1", "22.2.0"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -58,17 +46,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      - name: Cache npm
-        uses: actions/cache@v4
-        env:
-          cache-name: cache-windows-npm
-        with:
-          path: ~\AppData\Roaming\npm-cache
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+          cache: "npm"
       - name: Install dependencies
         run: npm ci --ignore-scripts
         env:
@@ -86,7 +64,7 @@ jobs:
       - name: Download test results
         uses: actions/download-artifact@v4
         with:
-          name: coverage-18.20.2
+          name: coverage-18.20.3
           path: coverage
       - name: Coveralls
         uses: coverallsapp/github-action@master

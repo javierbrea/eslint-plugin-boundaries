@@ -76,10 +76,10 @@ const test = (settings, options, errorMessages) => {
         code: "import ModuleB from '../module-b'",
         options,
       },
-      // Modules can import non existant modules files
+      // Modules can import non existent modules files
       {
         filename: absoluteFilePath("modules/module-a/ModuleA.js"),
-        code: "import ModuleB from '../../modules/module-b/foo.js'",
+        code: "import MyModuleB from '../../modules/module-b/foo.js'",
         options,
       },
       // Helpers can import ignored helpers
@@ -126,7 +126,7 @@ const test = (settings, options, errorMessages) => {
       // Invalid options
       {
         filename: absoluteFilePath("modules/module-a/ModuleA.js"),
-        code: "import ModuleB from '../../modules/module-b/foo.js'",
+        code: "import MyModuleB from '../../modules/module-b/foo.js'",
         options: [
           {
             rules: [
@@ -141,7 +141,7 @@ const test = (settings, options, errorMessages) => {
       // No types provided in settings
       {
         filename: absoluteFilePath("modules/module-a/ModuleA.js"),
-        code: "import ModuleB from '../../modules/module-b/foo.js'",
+        code: "import B from '../../modules/module-b/foo.js'",
         settings: {
           ...settings,
           "boundaries/types": null,

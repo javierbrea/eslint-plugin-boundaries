@@ -53,26 +53,25 @@ npm install --save-dev eslint eslint-plugin-boundaries
 
 `eslint-plugin-boundaries` does not install `eslint` for you. You must install it yourself.
 
-Activate the plugin and one of the canned configs in your `.eslintrc.(yml|json|js)`:
+Activate the plugin and one of the canned configs in your `eslint.config.js` file:
 
-```json
-{
-  "plugins": ["boundaries"],
-  "extends": ["plugin:boundaries/recommended"]
-}
+```js
+import boundaries from "eslint-plugin-boundaries";
+
+export default [
+  {
+    plugins: {
+      boundaries,
+    },
+    rules: {
+      ...boundaries.configs.recommended.rules,
+    }
+  }
+];
 ```
 
-### Eslint v9 and above
-
-You must use beta versions of this plugin starting from 5.0.0-beta.0 to use it with eslint v9 and above. The compatibility is not guaranteed yet. In case you face any issue, please open an issue.
-
-To install the latest beta version, you can use the next command:
-
-```sh
-npm install --save-dev eslint-plugin-boundaries@beta
-```
-
-The beta eslint v9 beta versions are maintained in the [`release-eslint-v9` branch](https://github.com/javierbrea/eslint-plugin-boundaries/tree/release-eslint-v9). Once we have tested enough the compatibility with eslint v9 of predefined configurations, examples, and the integration with other eslint plugins, such as those needed to use TypeScript with this plugin, we will release a stable version.
+> [!NOTE]  
+> From version `5.0.0`, this plugin is compatible with eslint v9 and above. It may be also compatible with previous eslint versions, but you might read the [documentation of the `4.2.2` version](https://github.com/javierbrea/eslint-plugin-boundaries/tree/v4.2.2) to know how to configure it properly using the legacy configuration format.
 
 ## Overview
 
@@ -80,49 +79,49 @@ All of the plugin rules need to be able to identify the elements in the project,
 
 The plugin will use the provided patterns to identify each file as one of the element types. It will also assign a type to each dependency detected in the [dependency nodes (`import` or other statements)](#boundariesdependency-nodes), and it will check if the relationship between the dependent element and the dependency is allowed or not.
 
-```json
-{
-  "settings": {
+```js
+export default [{
+  settings: {
     "boundaries/elements": [
       {
-        "type": "helpers",
-        "pattern": "helpers/*"
+        type: "helpers",
+        pattern: "helpers/*"
       },
       {
-        "type": "components",
-        "pattern": "components/*"
+        type: "components",
+        pattern: "components/*"
       },
       {
-        "type": "modules",
-        "pattern": "modules/*"
+        type: "modules",
+        pattern: "modules/*"
       }
     ]
   }
-}
+}]
 ```
 
 This is only a basic example of configuration. The plugin can be configured to identify elements being a file, or elements being a folder containing files. It also supports capturing path fragments to be used afterwards on each rule options, etc. __Read the [configuration chapter](#configuration) for further info, as configuring it properly is crucial__ to take advantage of all of the plugin features.
 
 Once your project element types are defined, you can use them to configure each rule using its own options. For example, you could define which elements can be dependencies of other ones by configuring the `element-types` rule as in:
 
-```json
-{
-  "rules": {
+```js
+export default [{
+  rules: {
     "boundaries/element-types": [2, {
-      "default": "disallow",
-      "rules": [
+      default: "disallow",
+      rules: [
         {
-          "from": "components",
-          "allow": ["helpers", "components"]
+          from: "components",
+          allow: ["helpers", "components"]
         },
         {
-          "from": "modules",
-          "allow": ["helpers", "components", "modules"]
+          from: "modules",
+          allow: ["helpers", "components", "modules"]
         }
       ]
     }]
   }
-}
+}]
 ```
 
 > The plugin won't apply rules to a file or dependency when it does not recognize its element type, but you can force all files in your project to belong to an element type by enabling the [boundaries/no-unknown-files](docs/rules/no-unknown-files.md) rule.
@@ -186,29 +185,29 @@ Define patterns to recognize each file in the project as one of this element typ
 * __`capture`__: `<array>` Optional. This is a very powerful feature of the plugin. It allows to capture values of some fragments in the matching path to use them later in the rules configuration. It uses [`micromatch` capture feature](https://github.com/micromatch/micromatch#capture) under the hood, and stores each value in an object with the given `capture` key being in the same index of the captured array.<br/>For example, given `pattern: "helpers/*/*.js"`, `capture: ["category", "elementName"]`, and a path `helpers/data/parsers.js`, it will result in `{ category: "data", elementName: "parsers" }`.
 * __`baseCapture`__: `<array>` Optional. [`micromatch` pattern](https://github.com/micromatch/micromatch). It allows capturing values from `basePattern` as `capture` does with `pattern`. All keys from `capture` and `baseCapture` can be used in the rules configuration.
 
-```json
-{
-  "settings": {
+```js
+export default [{
+  settings: {
     "boundaries/elements": [
       {
-        "type": "helpers",
-        "pattern": "helpers/*/*.js",
-        "mode": "file",
-        "capture": ["category", "elementName"]
+        type: "helpers",
+        pattern: "helpers/*/*.js",
+        mode: "file",
+        capture: ["category", "elementName"]
       },
       {
-        "type": "components",
-        "pattern": "components/*/*",
-        "capture": ["family", "elementName"]
+        type: "components",
+        pattern: "components/*/*",
+        capture: ["family", "elementName"]
       },
       {
-        "type": "modules",
-        "pattern": "module/*",
-        "capture": ["elementName"]
+        type: "modules",
+        pattern: "module/*",
+        capture: ["elementName"]
       }
     ]
   }
-}
+}]
 ```
 
 > Tip: You can enable the [debug mode](#debug-mode) when configuring the plugin, and you will get information about the type assigned to each file in the project, as well as captured properties and values.
@@ -243,45 +242,47 @@ The setting should be an array of objects with the following structure:
 
 Example of usage:
 
-```jsonc
-{
-  "boundaries/additional-dependency-nodes": [
-    // jest.requireActual('source')
-    {
-      "selector": "CallExpression[callee.object.name=jest][callee.property.name=requireActual] > Literal",
-      "kind": "value",
-    },
-    // jest.mock('source', ...)
-    {
-      "selector": "CallExpression[callee.object.name=jest][callee.property.name=mock] > Literal:first-child",
-      "kind": "value",
-    },
-  ],
-}
+```js
+export default [{
+  settings: {
+    "boundaries/additional-dependency-nodes": [
+      // jest.requireActual('source')
+      {
+        selector: "CallExpression[callee.object.name=jest][callee.property.name=requireActual] > Literal",
+        kind: "value",
+      },
+      // jest.mock('source', ...)
+      {
+        selector: "CallExpression[callee.object.name=jest][callee.property.name=mock] > Literal:first-child",
+        kind: "value",
+      },
+    ],
+  }
+}]
 ```
 
 #### __`boundaries/include`__
 
 Files or dependencies not matching these [`micromatch` patterns](https://github.com/micromatch/micromatch) will be ignored by the plugin. If this option is not provided, all files will be included.
 
-```json
-{
-  "settings": {
+```js
+export default [{
+  settings: {
     "boundaries/include": ["src/**/*.js"]
   }
-}
+}]
 ```
 
 #### __`boundaries/ignore`__
 
 Files or dependencies matching these [`micromatch` patterns](https://github.com/micromatch/micromatch) will be ignored by the plugin.
 
-```json
-{
-  "settings": {
+```js
+export default [{
+  settings: {
     "boundaries/ignore": ["**/*.spec.js", "src/legacy-code/**/*"]
   }
-}
+}]
 ```
 
 > Note: The `boundaries/ignore` option has precedence over `boundaries/include`. If you define `boundaries/include`, use `boundaries/ignore` to ignore subsets of included files.
@@ -295,17 +296,19 @@ Use this setting only if you are facing issues with the plugin when executing th
 
 By default, the plugin uses the current working directory (`process.cwd()`) as root path of the project. This path is used as the base path when resolving file matchers from rules and `boundaries/elements` settings. This is specially important when using the `basePattern` option or the `full` mode in the `boundaries/elements` setting. This may produce unexpected results [when the lint command is executed from a different path than the project root](https://github.com/javierbrea/eslint-plugin-boundaries/issues/296). To fix this, you can define a different root path by using this option.
 
-For example, supposing that the `.eslintrc.js` file is located in the project root, you could define the root path as in:
+For example, supposing that the `eslint.config.js` file is located in the project root, you could define the root path as in:
 
 ```js
-{
+import { resolve } from "node:path";
+
+export default [{
   settings: {
-    "boundaries/root-path": path.resolve(__dirname)
+    "boundaries/root-path": resolve(import.meta.dirname)
   }
-}
+}]
 ```
 
-Note that the path should be absolute and resolved before passing it to the plugin. Otherwise, it will be resolved using the current working directory, and the problem will persist. In case you are defining the configuration in a `.eslintrc.(yml|json)` file, and you don't want to hardcode an absolute path, you can use the next environment variable to define the root path when executing the lint command:
+Note that the path should be absolute and resolved before passing it to the plugin. Otherwise, it will be resolved using the current working directory, and the problem will persist. You can also use the next environment variable to define the root path when executing the lint command:
 
 ```bash
 ESLINT_PLUGIN_BOUNDARIES_ROOT_PATH=../../project-root npm run lint
@@ -323,25 +326,33 @@ The plugin is distributed with two different predefined configurations: "recomme
 
 We recommend to use this setting if you are applying the plugin to an already existing project. Rules `boundaries/no-unknown`, `boundaries/no-unknown-files` and `boundaries/no-ignored` are disabled, so it allows to have parts of the project non-compliant with your element types, allowing to refactor the code progressively.
 
-```json
-{
-  "extends": ["plugin:boundaries/recommended"]
-}
+```js
+import boundaries from "eslint-plugin-boundaries";
+
+export default [{
+  rules: {
+    ...boundaries.configs.recommended.rules,
+  }
+}]
 ```
 
 #### Strict
 
 All rules are enabled, so all elements in the project will be compliant with your architecture boundaries. 😃
 
-```json
-{
-  "extends": ["plugin:boundaries/strict"]
-}
+```js
+import boundaries from "eslint-plugin-boundaries";
+
+export default [{
+  rules: {
+    ...boundaries.configs.strict.rules,
+  }
+}]
 ```
 
 ### Rules configuration
 
-Some rules require extra configuration, and it has to be defined in each specific `rule` property of the `.eslintrc..(yml|json|js)` file. For example, allowed element types relationships has to be provided as an option to the [`boundaries/element-types` rule](docs/rules/element-types.md). Rules requiring extra configuration will print a warning in case they are enabled without the needed options.
+Some rules require extra configuration, and it has to be defined in each specific `rule` property of the `eslint.config.js` file. For example, allowed element types relationships has to be provided as an option to the [`boundaries/element-types` rule](docs/rules/element-types.md). Rules requiring extra configuration will print a warning in case they are enabled without the needed options.
 
 #### Main format of rules options
 
@@ -349,34 +360,34 @@ The docs of each rule contains an specification of their own options, but __the 
 
 Options set an `allow` or `disallow` value by default, and provide an array of rules. Each matching rule will override the default value and the value returned by previous matching rules. So, the final result of the options, once processed for each case, will be `allow` or `disallow`, and this value will be applied by the plugin rule in the correspondent way, making it to produce an eslint error or not.
 
-```jsonc
-{
-  "rules": {
+```js
+export default [{
+  rules: {
     "boundaries/element-types": [2, {
       // Allow or disallow any dependency by default
-      "default": "allow",
+      default: "allow",
       // Define a custom message for this rule
-      "message": "${file.type} is not allowed to import ${dependency.type}",
-      "rules": [
+      message: "${file.type} is not allowed to import ${dependency.type}",
+      rules: [
         {
           // In this type of files...
-          "from": ["helpers"],
+          from: ["helpers"],
           // ...disallow importing this type of elements
-          "disallow": ["modules", "components"],
+          disallow: ["modules", "components"],
           // ..for this kind of imports (applies only when using TypeScript)
-          "importKind": "value",
+          importKind: "value",
           // ...and return this custom error message
-          "message": "Helpers must not import other thing than helpers"
+          message: "Helpers must not import other thing than helpers"
         },
         {
-          "from": ["components"],
-          "disallow": ["modules"]
+          from: ["components"],
+          disallow: ["modules"]
           // As this rule has not "message" property, it will use the message defined at first level
         }
       ]
     }]
   }
-}
+}]
 ```
 
 Remember that:
@@ -446,50 +457,50 @@ Some rules also provide extra information about the reported error. For example,
 
 Just to illustrate the high level of customization that the plugin supports, here is an example of advanced options for the `boundaries/element-types` rule based on the previous global `elements` settings example:
 
-```jsonc
-{
-  "rules": {
+```js
+export default [{
+  rules: {
     "boundaries/element-types": [2, {
       // disallow importing any element by default
-      "default": "disallow",
-      "rules": [
+      default: "disallow",
+      rules: [
         {
           // allow importing helpers files from helpers files
-          "from": ["helpers"],
-          "allow": ["helpers"]
+          from: ["helpers"],
+          allow: ["helpers"]
         },
         {
           // when file is inside an element of type "components"
-          "from": ["components"],
-          "allow": [
+          from: ["components"],
+          allow: [
             // allow importing components of the same family
-            ["components", { "family": "${from.family}" }],
+            ["components", { family: "${from.family}" }],
             // allow importing helpers with captured category "data"
-            ["helpers", { "category": "data" }],
+            ["helpers", { category: "data" }],
           ]
         },
         {
           // when component has captured family "molecule"
-          "from": [["components", { "family": "molecule" }]],
-          "allow": [
+          from: [["components", { family: "molecule" }]],
+          allow: [
             // allow importing components with captured family "atom"
-            ["components", { "family": "atom" }],
+            ["components", { family: "atom" }],
           ],
         },
         {
           // when component has captured family "atom"
-          "from": [["components", { "family": "atom" }]],
-          "disallow": [
+          from: [["components", { family: "atom" }]],
+          disallow: [
             // disallow importing helpers with captured category "data"
-            ["helpers", { "category": "data" }]
+            ["helpers", { category: "data" }]
           ],
           // Custom message only for this specific error
-          "message": "Atom components can't import data helpers"
+          message: "Atom components can't import data helpers"
         },
         {
           // when file is inside a module
-          "from": ["modules"],
-          "allow": [
+          from: ["modules"],
+          allow: [
             // allow importing any type of component or helper
             "helpers",
             "components"
@@ -497,19 +508,18 @@ Just to illustrate the high level of customization that the plugin supports, her
         },
         {
           // when module name starts by "page-"
-          "from": [["modules", { "elementName": "page-*" }]],
-          "disallow": [
+          from: [["modules", { elementName: "page-*" }]],
+          disallow: [
             // disallow importing any type of component not being of family layout
-            ["components", { "family": "!layout" }],
+            ["components", { family: "!layout" }],
           ],
           // Custom message only for this specific error
-          "message": "Modules with name starting by 'page-' can't import not layout components. You tried to import a component of family ${target.family} from a module with name ${from.elementName}"
+          message: "Modules with name starting by 'page-' can't import not layout components. You tried to import a component of family ${target.family} from a module with name ${from.elementName}"
         }
       ]
     }]
   }
-}
-
+}]
 ```
 
 ## Resolvers
@@ -520,15 +530,15 @@ This plugin uses `eslint-module-utils/resolve` module under the hood, which is a
 
 [Read the `resolvers` chapter of the `eslint-plugin-import` plugin for further info](https://github.com/benmosher/eslint-plugin-import#resolvers).
 
-```json
-{
-  "settings": {
+```js
+export default [{
+  settings: {
     "import/resolver": {
       "eslint-import-resolver-node": {},
-      "some-other-custom-resolver": { "someConfig": "value" }
+      "some-other-custom-resolver": { someConfig: "value" }
     }
   }
-}
+}]
 ```
 
 ## Usage with TypeScript
@@ -541,17 +551,21 @@ Install dependencies:
 npm i --save-dev @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-import-resolver-typescript
 ```
 
-Configure [`@typescript-eslint/parser`](https://github.com/typescript-eslint/typescript-eslint) as parser, load the [`@typescript-eslint`](https://github.com/typescript-eslint/typescript-eslint) plugin, and setup the [`eslint-import-resolver-typescript`](https://github.com/alexgorbatchev/eslint-import-resolver-typescript) resolver in the `.eslintrc.js` config file:
+Configure [`@typescript-eslint/parser`](https://github.com/typescript-eslint/typescript-eslint) as parser, load the [`@typescript-eslint`](https://github.com/typescript-eslint/typescript-eslint) plugin, and setup the [`eslint-import-resolver-typescript`](https://github.com/alexgorbatchev/eslint-import-resolver-typescript) resolver in the `eslint.config.js` config file:
 
 ```js
-module.exports = {
-  parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint", "boundaries"],
-  extends: [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:boundaries/recommended",
-  ],
+import boundaries from "eslint-plugin-boundaries";
+import typescriptParser from "@typescript-eslint/parser";
+import typescriptEslintPlugin from "@typescript-eslint/eslint-plugin";
+
+export default [{
+  languageOptions: {
+    parser: typescriptParser,
+  },
+  plugins: {
+    "@typescript-eslint": typescriptEslintPlugin,
+    boundaries,
+  },
   settings: {
     "import/resolver": {
       typescript: {
@@ -559,7 +573,7 @@ module.exports = {
       },
     },
   },
-};
+}];
 ```
 
 > Note that `eslint-import-resolver-typescript` detects even custom paths defined in the `tsconfig.json` file, so its usage is also compatible with this plugin.
@@ -568,13 +582,17 @@ In case you face any issue configuring it, you can also [use this repository as 
 
 ## Migration guides
 
+### Migrating from v4.x
+
+v5.0.0 release is compatible with eslint v9 and above. It may be also compatible with previous eslint versions, but you might read the [documentation of the `4.2.2` version](https://github.com/javierbrea/eslint-plugin-boundaries/tree/v4.2.2) to know how to configure it properly using the legacy configuration format. You may also be interested on reading the [eslint guide to migrate to v9](https://eslint.org/docs/latest/use/migrate-to-9.0.0).
+
 ### Migrating from v3.x
 
-New v4.0.0 release has introduced breaking changes. If you were using v3.x, you should [read the "how to migrate from v3 to v4" guide](./docs/guides/how-to-migrate-from-v3-to-v4.md).
+v4.0.0 release introduced breaking changes. If you were using v3.x, you should [read the "how to migrate from v3 to v4" guide](./docs/guides/how-to-migrate-from-v3-to-v4.md).
 
 ### Migrating from v1.x
 
-New v2.0.0 release has introduced many breaking changes. If you were using v1.x, you should [read the "how to migrate from v1 to v2" guide](./docs/guides/how-to-migrate-from-v1-to-v2.md).
+v2.0.0 release introduced many breaking changes. If you were using v1.x, you should [read the "how to migrate from v1 to v2" guide](./docs/guides/how-to-migrate-from-v1-to-v2.md).
 
 ## Debug mode
 

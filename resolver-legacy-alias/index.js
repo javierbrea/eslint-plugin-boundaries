@@ -23,7 +23,7 @@ module.exports = {
           basedir: process.cwd(),
         }),
       };
-    } catch (err) {
+    } catch {
       return { found: false };
     }
   },
