@@ -11,6 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [5.0.0] - 2024-11-05
+
+### Changed
+
+- feat([#329](https://github.com/javierbrea/eslint-plugin-boundaries/issues/329)): Modify dependencies, tests and docs to support eslint v9
+- chore([#338](https://github.com/javierbrea/eslint-plugin-boundaries/issues/338)): Bump micromatch dependency to 4.0.8
+- docs: Clarify include/exclude precedence in docs ([@robw-mercury](https://github.com/robw-mercury))
+
+## [5.0.0-beta.1] - 2024-07-07
+
+### Changed
+- chore: Add changes from release [4.2.2](#4-2-2)
+
 ## [4.2.2] - 2024-07-07
 
 ### Changed
@@ -24,6 +37,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - chore(devDependencies): Bump mindsers/changelog-reader-action action to v2.2.3
 - chore(devDependencies): Bumb prettier to 3.3.2
 - chore(devDependencies): Bump EndBug/version-check action to v2.1.4
+
+## [5.0.0-beta.0] - 2024-06-17
+
+### Changed
+- feat: Modify dependencies and tests to support eslint v9
+- feat: Remove `plugins` property from preset configurations, given that eslint v9 does not support defining plugins by using strings in the configuration. Added example to the main readme file to show how the plugin and predefined configurations should be used now.
+- chore: Migrate self eslint configuration to v9 format.
+
+### Removed
+- chore: Drop support for Node.js versions lower than 18.18
+
 
 ## [4.2.1] - 2024-05-16
 

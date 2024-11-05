@@ -109,6 +109,8 @@ createRuleTester(settings).run(RULE, rule, {
       options,
       errors: [
         {
+          message:
+            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -161,6 +163,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -172,6 +176,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -183,6 +189,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -194,6 +202,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -205,6 +215,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -272,6 +284,8 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       options,
       errors: [
         {
+          message:
+            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -318,6 +332,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -329,6 +345,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Importing kind 'type' from elements of type 'helpers' is not allowed in elements of type 'modules'. Disallowed in rule 4",
           type: "Literal",
         },
       ],
@@ -340,6 +358,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -351,6 +371,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
           type: "Literal",
         },
       ],

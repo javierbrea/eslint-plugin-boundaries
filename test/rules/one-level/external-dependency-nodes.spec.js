@@ -69,6 +69,8 @@ createRuleTester(settings).run(RULE, rule, {
       options,
       errors: [
         {
+          message:
+            "Usage of value 'Link' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -82,6 +84,8 @@ createRuleTester(settings).run(RULE, rule, {
       options,
       errors: [
         {
+          message:
+            "Usage of value 'Link' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -134,6 +138,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Usage of value 'Link' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -145,6 +151,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
           type: "Literal",
         },
       ],
@@ -156,6 +164,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
           type: "Literal",
         },
       ],
@@ -167,6 +177,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
           type: "Literal",
         },
       ],
@@ -178,6 +190,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
           type: "Literal",
         },
       ],
@@ -201,6 +215,7 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       options,
       errors: [
         {
+          message: "foo",
           type: "Literal",
         },
       ],
@@ -214,6 +229,8 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       options,
       errors: [
         {
+          message:
+            "Usage of type 'Link' from external module 'react-router-dom' is not allowed in elements of type 'components'. Disallowed in rule 1",
           type: "Literal",
         },
       ],
@@ -225,6 +242,8 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       options,
       errors: [
         {
+          message:
+            "Usage of value 'Link' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -283,6 +302,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Usage of type 'Link' from external module 'react-router-dom' is not allowed in elements of type 'components'. Disallowed in rule 1",
           type: "Literal",
         },
       ],
@@ -294,6 +315,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Usage of value 'Link' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -305,6 +328,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
           type: "Literal",
         },
       ],
@@ -316,6 +341,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Usage of type from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
           type: "Literal",
         },
       ],
@@ -327,6 +354,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
           type: "Literal",
         },
       ],
@@ -338,6 +367,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
           type: "Literal",
         },
       ],
@@ -349,6 +380,8 @@ createRuleTester({
       options,
       errors: [
         {
+          message:
+            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
           type: "Literal",
         },
       ],
