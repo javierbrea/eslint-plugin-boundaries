@@ -15,7 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- feat: Modify dependencies, tests and docs to support eslint v9
+- feat([#329](https://github.com/javierbrea/eslint-plugin-boundaries/issues/329)): Modify dependencies, tests and docs to support eslint v9
+- chore([#338](https://github.com/javierbrea/eslint-plugin-boundaries/issues/338)): Bump micromatch dependency to 4.0.8
+- docs: Clarify include/exclude precedence in docs ([@robw-mercury](https://github.com/robw-mercury))
 
 ## [5.0.0-beta.1] - 2024-07-07
 
