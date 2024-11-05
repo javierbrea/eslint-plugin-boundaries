@@ -70,9 +70,8 @@ export default [
 ];
 ```
 
-### Eslint v8 and below
-
-From version `5.0.0`, this plugin is compatible with eslint v9 and above. If you are using eslint v8 or below, you should use versions `4.x.x` of this plugin.
+> [!NOTE]  
+> From version `5.0.0`, this plugin is compatible with eslint v9 and above. It may be also compatible with previous eslint versions, but you might read the [documentation of the `4.2.2` version](https://github.com/javierbrea/eslint-plugin-boundaries/tree/v4.2.2) to know how to configure it properly using the legacy configuration format.
 
 ## Overview
 
@@ -585,7 +584,7 @@ In case you face any issue configuring it, you can also [use this repository as 
 
 ### Migrating from v4.x
 
-v5.0.0 release is compatible with eslint v9 and above. If you were using v4.x with eslint below v9, you should [read the eslint guide to migrate to v9](https://eslint.org/docs/latest/use/migrate-to-9.0.0).
+v5.0.0 release is compatible with eslint v9 and above. It may be also compatible with previous eslint versions, but you might read the [documentation of the `4.2.2` version](https://github.com/javierbrea/eslint-plugin-boundaries/tree/v4.2.2) to know how to configure it properly using the legacy configuration format. You may also be interested on reading the [eslint guide to migrate to v9](https://eslint.org/docs/latest/use/migrate-to-9.0.0).
 
 ### Migrating from v3.x
 
