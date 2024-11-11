@@ -137,7 +137,7 @@ function isMatchElementType(
   return isMatchElementKey(elementInfo, matcher, options, "type", elementsToCompareCapturedValues);
 }
 
-function getElementRules(elementInfo, options, mainKey) {
+function getElementRules(targetElement, options, mainKey, fromElement) {
   if (!options.rules) {
     return [];
   }
@@ -150,7 +150,7 @@ function getElementRules(elementInfo, options, mainKey) {
       };
     })
     .filter((rule) => {
-      return ruleMatch(rule[key], elementInfo, isMatchElementType, elementInfo).result;
+      return ruleMatch(rule[key], targetElement, isMatchElementType, fromElement).result;
     });
 }
 
@@ -172,10 +172,12 @@ function elementRulesAllowDependency({
   isMatch,
   rulesMainKey: mainKey,
 }) {
+  const targetElement = elementToGetRulesFrom(element, dependency, mainKey);
   const [result, report, ruleReport] = getElementRules(
-    elementToGetRulesFrom(element, dependency, mainKey),
+    targetElement,
     options,
     mainKey,
+    targetElement === element ? dependency : element,
   ).reduce(
     (allowed, rule) => {
       if (rule.disallow) {

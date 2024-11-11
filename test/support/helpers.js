@@ -182,6 +182,22 @@ const SETTINGS = {
       },
     },
   },
+  layered: {
+    "boundaries/elements": [
+      {
+        type: "modules",
+        mode: "file",
+        pattern: ["modules/*/**", "modules/*.*"],
+        capture: ["elementName"],
+      },
+    ],
+    "import/resolver": {
+      "eslint-import-resolver-node": {},
+      [path.resolve(process.cwd(), "resolver-legacy-alias")]: {
+        modules: `./${codeFilePath("layered", "modules")}`,
+      },
+    },
+  },
 };
 
 const TYPESCRIPT_SETTINGS = {
