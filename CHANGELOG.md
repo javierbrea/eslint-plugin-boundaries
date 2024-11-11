@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [5.0.1] - 2024-11-11
+
+- fix([#340](https://github.com/javierbrea/eslint-plugin-boundaries/issues/340)): Fix bug producing that target option had captured values from the target dependency when templating `${from}` property ([@DeyLak](https://github.com/DeyLak))
+
 ## [5.0.0] - 2024-11-05
 
 ### Changed
