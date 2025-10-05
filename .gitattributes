@@ -3,6 +3,7 @@
 
 # Ensure certain files always have LF line endings
 *.js text eol=lf
+*.cjs text eol=lf
 *.mjs text eol=lf
 *.ts text eol=lf
 *.json text eol=lf
