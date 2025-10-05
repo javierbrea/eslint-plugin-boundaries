@@ -2,5 +2,9 @@
   "sonarlint.connectedMode.project": {
       "connectionId": "javierbrea",
       "projectKey": "javierbrea_eslint-plugin-boundaries"
+  },
+  "files.associations": {
+    "nx.json": "jsonc",
+    "**/project.json": "jsonc"
   }
 }

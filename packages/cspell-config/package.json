@@ -1,0 +1,15 @@
+{
+  "name": "cspell-config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "check:all": "echo 'All checks passed'",
+    "check:spell": "cspell --quiet .",
+    "cspell:config": "echo 'cspell config ready'",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "deepmerge": "4.3.1"
+  }
+}

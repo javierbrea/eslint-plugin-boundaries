@@ -1,0 +1,32 @@
+name: Install and cache
+description: Setup the runner environment, by installing dependencies and restoring caches
+
+inputs:
+  node-version:
+    description: The Node.js version to use
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'pnpm'
+
+    - name: Cache dependencies
+      id: cache-pnpm
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+
+    - name: Install Node.js dependencies
+      shell: bash
+      run: pnpm install
+      env:
+        HUSKY_SKIP_INSTALL: 1

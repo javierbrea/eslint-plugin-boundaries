@@ -1,0 +1,20 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "eslint-config",
+  "projectType": "library",
+  "tags": [
+    "type:node:config"
+  ],
+  "implicitDependencies": [
+    "cspell-config"
+  ],
+  "targets": {
+    "eslint:config": {
+      "cache": true,
+      "inputs": ["default"],
+      "outputs": [
+        "{projectRoot}/**/*"
+      ]
+    }
+  }
+}
