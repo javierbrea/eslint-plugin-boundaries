@@ -13,8 +13,12 @@
   "rangeStrategy": "pin",
   "packageRules": [
     {
-      "matchPaths": ["package.json"],
-      "matchPackageNames": ["chalk"],
+      "matchFileNames": [
+        "package.json"
+      ],
+      "matchPackageNames": [
+        "chalk"
+      ],
       "allowedVersions": "<5.0.0"
     }
   ]
