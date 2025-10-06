@@ -10,7 +10,7 @@ Please check the following boxes after you have read and understood each item.
 
 * [ ] I have read the [CONTRIBUTING](https://github.com/javierbrea/eslint-plugin-boundaries/blob/main/.github/CONTRIBUTING.md) document
 * [ ] I have read the [CODE_OF_CONDUCT](https://github.com/javierbrea/eslint-plugin-boundaries/blob/main/.github/CODE_OF_CONDUCT.md) document
-* [ ] I have read and understood the [CONTRIBUTOR LICENSE AGREEMENT](https://github.com/javierbrea/eslint-plugin-boundaries/blob/main/.github/CLA.md) document, and I agree to the terms and declare that all my contributions are compliant with it.
+* [ ] I have read the [CONTRIBUTOR LICENSE AGREEMENT](https://github.com/javierbrea/eslint-plugin-boundaries/blob/main/.github/CLA.md) document, and I agree to the terms and declare that all my contributions are compliant with it.
 
 **Closing issues**
 
