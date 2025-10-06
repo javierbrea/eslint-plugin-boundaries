@@ -171,7 +171,7 @@ Read the [docs of the `boundaries/entry-point` rule](docs/rules/entry-point.md) 
 
 ### Global settings
 
-#### __`boundaries/element-types`__
+#### __`boundaries/elements`__
 
 Define patterns to recognize each file in the project as one of this element types. All rules need this setting to be configured properly to work. The plugin tries to identify each file being analyzed or `import` statement in rules as one of the defined element types. The assigned element type will be that with the first matching pattern, in the same order that elements are defined in the array, so you __should sort them from the most accurate patterns to the less ones__. Properties of each `element`:
 
@@ -619,7 +619,7 @@ MIT, see [LICENSE](./LICENSE) for details.
 
 [coveralls-image]: https://coveralls.io/repos/github/javierbrea/eslint-plugin-boundaries/badge.svg
 [coveralls-url]: https://coveralls.io/github/javierbrea/eslint-plugin-boundaries
-[build-image]: https://github.com/javierbrea/eslint-plugin-boundaries/workflows/build/badge.svg?branch=master
+[build-image]: https://github.com/javierbrea/eslint-plugin-boundaries/workflows/build/badge.svg
 [build-url]: https://github.com/javierbrea/eslint-plugin-boundaries/actions?query=workflow%3Abuild+branch%3Amaster
 [last-commit-image]: https://img.shields.io/github/last-commit/javierbrea/eslint-plugin-boundaries.svg
 [last-commit-url]: https://github.com/javierbrea/eslint-plugin-boundaries/commits

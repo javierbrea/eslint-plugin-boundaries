@@ -1,61 +1,73 @@
-name: build
+name: Build
 on:
   push:
     branches:
       - master
       - release
+      - refactor/monorepo
   pull_request:
 concurrency:  
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  test:
+  check-root:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node: ["18.20.3", "20.13.1", "22.2.0"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Use Node.js
-        uses: actions/setup-node@v4
+      - uses: ./.github/actions/install
+        with:
+          node-version: 22.14.0
+      - name: Lint repo root
+        run: pnpm lint
+      - name: Spell check repo root
+        run: pnpm check:spell
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ["18.20.3", "20.13.1", "22.14.0"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/install
         with:
           node-version: ${{ matrix.node }}
-          cache: "npm"
-      - name: Install dependencies
-        run: npm ci
-      - name: Lint
-        run: npm run lint
-      - name: Test unit
-        run: npm run test:unit
+      # NOTE: For the moment, we run the check:all target in all packages instead of running affected check in affected packages only
+      - name: Check all
+        if: ${{ matrix.node == '22.14.0' }}
+        run: pnpm nx run-many --target=check:all --all --output-style=stream --parallel=1
+      # NOTE: In other Node versions, we only run unit tests to save time in the CI and to avoid dev tools Node incompatibilities
+      - name: Test Unit
+        if: ${{ matrix.node != '22.14.0' }}
+        run: pnpm nx run-many --target=test:unit --all
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.node }}
-          path: coverage
+          path: packages/eslint-plugin-boundaries/coverage
           retention-days: 1
-  test-windows:
+  build-windows:
     runs-on: windows-2022
     strategy:
       matrix:
-        node: ["18.20.3", "20.13.1", "22.2.0"]
+        node: ["18.20.3", "20.13.1", "22.14.0"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Use Node.js
-        uses: actions/setup-node@v4
+      - uses: ./.github/actions/install
         with:
           node-version: ${{ matrix.node }}
-          cache: "npm"
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
-        env:
-          HUSKY_SKIP_INSTALL: 1
-      - name: Test unit
-        run: npm run test:unit
-  quality:
+      - name: Check all
+        if: ${{ matrix.node == '22.14.0' }}
+        run: pnpm nx run-many --target=check:all --all
+      # NOTE: In other Node versions, we only run unit tests to save time in the CI and to avoid dev tools Node incompatibilities
+      - name: Test Unit
+        if: ${{ matrix.node != '22.14.0' }}
+        run: pnpm nx run-many --target=test:unit --all
+  reports:
     runs-on: ubuntu-latest
-    needs: test
+    needs: build
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -64,15 +76,43 @@ jobs:
       - name: Download test results
         uses: actions/download-artifact@v4
         with:
-          name: coverage-18.20.3
-          path: coverage
+          name: coverage-22.14.0
+          path: packages/eslint-plugin-boundaries/coverage
       - name: Coveralls
-        uses: coverallsapp/github-action@master
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          base-path: packages/eslint-plugin-boundaries
+      # TODO: Configure sonarcloud for monorepo
       - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@master
         if: env.SONAR_TOKEN != ''
+        uses: sonarsource/sonarcloud-github-action@master
+        with:
+          projectBaseDir: packages/eslint-plugin-boundaries
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  
+  # Consolidation job that depends on all other jobs
+  # Configure only this job as required status check in GitHub
+  all-checks:
+    runs-on: ubuntu-latest
+    needs: [check-root, build, build-windows, reports]
+    if: always()
+    steps:
+      - name: Check all jobs status
+        run: |
+          echo "check-root: ${{ needs.check-root.result }}"
+          echo "build: ${{ needs.build.result }}"
+          echo "build-windows: ${{ needs.build-windows.result }}"
+          echo "reports: ${{ needs.reports.result }}"
+          
+          if [[ "${{ needs.check-root.result }}" != "success" ]] || \
+             [[ "${{ needs.build.result }}" != "success" ]] || \
+             [[ "${{ needs.build-windows.result }}" != "success" ]] || \
+             [[ "${{ needs.reports.result }}" != "success" ]]; then
+            echo "❌ One or more jobs failed"
+            exit 1
+          fi
+          
+          echo "✅ All jobs completed successfully"

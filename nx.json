@@ -1,0 +1,94 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "defaultBase": "origin/master",
+  "parallel": 2,
+  "namedInputs": {
+    // Root workspace configuration is an input for all targets in all projects
+    "sharedGlobals": [
+      "{workspaceRoot}/package.json",
+      "{workspaceRoot}/pnpm-lock.yaml",
+      "{workspaceRoot}/nx.json",
+      "{workspaceRoot}/pnpm-workspace.yaml",
+      { "runtime": "node --version" }
+    ],
+    // By default, all projects depend on the whole workspace configuration and their own source code
+    "default": [
+      "{projectRoot}/**/*",
+      "sharedGlobals"
+    ],
+    // Usual input for the build targets. It excludes test files, mocks, and other non-production files. This should be overridden in projects that have different test files
+    "production": [
+      "!{projectRoot}/**/*.spec.*",
+      "!{projectRoot}/**/*.test.*",
+      "!{projectRoot}/test/**/*",
+      "!{projectRoot}/*",
+      "{projectRoot}/package.json"
+    ]
+  },
+  "targetDefaults": {
+    "lint": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ]
+    },
+    "check:spell": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      "dependsOn": [
+        {
+          "target": "cspell:config",
+          "projects": ["cspell-config"]
+        }
+      ]
+    },
+    "check:types": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "test:unit": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      "outputs": ["{projectRoot}/coverage"],
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "build": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default",
+        "production"
+      ],
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
+    },
+    "check:all": {
+      "dependsOn": [
+        "check:spell",
+        "lint",
+        "check:types",
+        "test:unit",
+        "build"
+      ]
+    }
+  }
+}
