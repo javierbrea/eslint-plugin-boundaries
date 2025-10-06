@@ -17,7 +17,7 @@
 
 # Getting started
 
-This repository is a [Pnpm]https://pnpm.io/es/ and [Nx](https://nx.dev/react) monorepo that contains multiple packages. Each package can be built, tested, and linted independently.
+This repository is a [Pnpm](https://pnpm.io/es/) and [Nx](https://nx.dev/react) monorepo that contains multiple packages. Each package can be built, tested, and linted independently.
 
 Every package has to be created in the `packages` folder. Each one must contain its own package.json file, and it can have its own dependencies. Common dependencies for development and testing should be added to the root package.json file.
 
