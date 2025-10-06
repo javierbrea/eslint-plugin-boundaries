@@ -1,1 +1,6 @@
-npm run lint-staged
+if ! [ -x "$(command -v pnpm)" ]; then
+  echo 'Pnpm is not installed, skipping lint hook' >&2
+  exit 0
+else
+  pnpm lint:staged
+fi

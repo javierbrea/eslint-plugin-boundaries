@@ -1,0 +1,45 @@
+{
+  "name": "eslint-plugin-boundaries",
+  "version": "5.0.1",
+  "description": "Eslint plugin checking architecture boundaries between elements",
+  "keywords": [
+    "eslint",
+    "plugin",
+    "architecture",
+    "boundaries",
+    "dependencies",
+    "elements",
+    "hierarchy",
+    "import"
+  ],
+  "author": "Javier Brea",
+  "license": "MIT",
+  "repository": "https://github.com/javierbrea/eslint-plugin-boundaries",
+  "files": [
+    "src",
+    "resolver-legacy-alias"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "eslint": "eslint",
+    "build": "cross-env node ./scripts/copy-readme.js",
+    "check:all": "echo 'All checks passed'",
+    "check:spell": "cspell --quiet .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "jest",
+    "test:unit": "cross-env ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 pnpm run test"
+  },
+  "peerDependencies": {
+    "eslint": ">=6.0.0"
+  },
+  "dependencies": {
+    "chalk": "4.1.2",
+    "eslint-import-resolver-node": "0.3.9",
+    "eslint-module-utils": "2.12.1",
+    "micromatch": "4.0.8"
+  },
+  "engines": {
+    "node": ">=18.18"
+  }
+}

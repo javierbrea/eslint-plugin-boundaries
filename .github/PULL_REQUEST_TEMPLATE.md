@@ -1,10 +1,16 @@
-**IMPORTANT: Please do not create a Pull Request without creating an issue first.**
+# <!-- Add your title here -->
 
-*Any change needs to be discussed before proceeding. Failure to do so may result in the rejection of the pull request.*
+## Description
 
-Please provide enough information so that others can review your pull request:
+<!-- __Please provide enough information and context so that others can review your pull request easily__ -->
 
-Explain the **details** for making this change. What existing problem does the pull request solve?
+## Agreement
+
+Please check the following boxes after you have read and understood each item.
+
+* [ ] I have read the [CONTRIBUTING](https://github.com/javierbrea/eslint-plugin-boundaries/blob/main/.github/CONTRIBUTING.md) document
+* [ ] I have read the [CODE_OF_CONDUCT](https://github.com/javierbrea/eslint-plugin-boundaries/blob/main/.github/CODE_OF_CONDUCT.md) document
+* [ ] I have read the [CONTRIBUTOR LICENSE AGREEMENT](https://github.com/javierbrea/eslint-plugin-boundaries/blob/main/.github/CLA.md) document, and I agree to the terms and declare that all my contributions are compliant with it.
 
 **Closing issues**
 
