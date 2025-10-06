@@ -1,4 +1,4 @@
-name: publish-to-npm
+name: publish-to-github
 on:
   release:
     types: [created]
