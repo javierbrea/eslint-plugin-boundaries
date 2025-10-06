@@ -62,7 +62,7 @@ pnpm nx test:unit eslint-plugin-boundaries
 To run a task in all packages, use the following syntax: `pnpm nx run-many <task> --all`. For example, to run the unit tests in all packages, use the following command:
 
 ```bash
-pnpm nx run-many test:unit --all
+pnpm nx run-many -t test:unit --all
 ```
 
 This will run the `test:unit` task in all packages and also the corresponding dependencies, in the right order, so everything is built and tested correctly.
