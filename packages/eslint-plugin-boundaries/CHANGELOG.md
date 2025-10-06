@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- chore: Publish package only to NPM registry. Stop publishing to GitHub registry
+- chore: Update dependencies
 
 ## [5.0.1] - 2024-11-11
 
