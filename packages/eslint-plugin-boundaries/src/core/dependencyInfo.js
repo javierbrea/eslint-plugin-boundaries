@@ -25,7 +25,7 @@ function isBrother(elementA, elementB) {
 }
 
 function isDescendant(elementA, elementB) {
-  return !!elementA.parents.find(
+  return elementA.parents.some(
     (parent) => parent.elementPath === elementB.elementPath,
   );
 }

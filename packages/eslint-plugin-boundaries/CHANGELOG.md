@@ -13,8 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## Unreleased
 
+## [5.0.2] - 2025-10-06
+
 ### Changed
 - chore: Update dependencies
+- refactor: Fix Sonar smells
 
 ### Fixed
 - docs([#350](https://github.com/javierbrea/eslint-plugin-boundaries/issues/350)): Fix boundaries/elements setting name in README
