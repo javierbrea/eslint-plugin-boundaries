@@ -22,6 +22,7 @@
   "main": "index.js",
   "scripts": {
     "eslint": "eslint",
+    "build": "cross-env node ./scripts/copy-readme.js",
     "check:all": "echo 'All checks passed'",
     "check:spell": "cspell --quiet .",
     "lint": "eslint .",
