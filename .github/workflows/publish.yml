@@ -2,9 +2,6 @@ name: publish-to-npm
 on:
   release:
     types: [created]
-  push:
-    branches:
-      - chore/publish-to-npm
 jobs:
   publish:
     runs-on: ubuntu-latest
