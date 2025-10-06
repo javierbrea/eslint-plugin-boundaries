@@ -68,11 +68,11 @@ jobs:
         with:
           name: coverage-22.14.0
           path: packages/eslint-plugin-boundaries/coverage
-      # TODO: Configure coveralls for monorepo
-      #- name: Coveralls
-        #uses: coverallsapp/github-action@master
-        #with:
-          # github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          base-path: packages/eslint-plugin-boundaries
       # TODO: Configure sonarcloud for monorepo
       # - name: SonarCloud Scan
         # uses: sonarsource/sonarcloud-github-action@master
