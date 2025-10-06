@@ -12,7 +12,7 @@
     "eslint": "eslint",
     "lint": "eslint *.* .vscode --no-warn-ignored",
     "lint:staged": "lint-staged",
-    "prepare": "husky install",
+    "prepare": "husky",
     "check:spell": "cspell --quiet *.* .vscode/*.* .husky/*.* .github/*.* docs/*.*"
   },
   "devDependencies": {
