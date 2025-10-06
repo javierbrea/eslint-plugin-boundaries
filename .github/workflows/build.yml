@@ -69,7 +69,7 @@ jobs:
           name: coverage-22.14.0
           path: packages/eslint-plugin-boundaries/coverage
       - name: Coveralls
-        uses: coverallsapp/github-action@master
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           base-path: packages/eslint-plugin-boundaries
