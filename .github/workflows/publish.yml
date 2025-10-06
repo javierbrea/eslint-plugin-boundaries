@@ -11,4 +11,5 @@ jobs:
     - run: pnpm nx run-many -t check:all --all
     - run: pnpm -r publish --no-git-checks
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
