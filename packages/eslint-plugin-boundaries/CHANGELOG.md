@@ -14,8 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## Unreleased
 
 ### Changed
-
 - chore: Update dependencies
+
+### Fixed
+- docs([#350](https://github.com/javierbrea/eslint-plugin-boundaries/issues/350)): Fix boundaries/elements setting name in README
 
 ## [5.0.1] - 2024-11-11
 
