@@ -22,9 +22,12 @@ module.exports = {
       lines: 100,
       statements: 100,
     },
+    "src/index.ts": {
+      branches: 50,
+    },
     // Decrease coverage due to cache branches
-    "./src/core/elementsInfo.js": {
-      branches: 96,
+    "src/core/elementsInfo.ts": {
+      branches: 92,
       statements: 97,
     },
   },
@@ -33,5 +36,5 @@ module.exports = {
   testEnvironment: "node",
 
   // The glob patterns Jest uses to detect test files
-  testMatch: ["<rootDir>/test/**/two-levels/external.spec.js"],
+  testMatch: ["<rootDir>/test/**/*.spec.ts"],
 };

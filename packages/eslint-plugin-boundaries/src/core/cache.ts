@@ -1,4 +1,4 @@
-class Cache {
+class CacheManager {
   constructor(name, settings) {
     this._cache = {};
     this._name = name;
@@ -29,7 +29,7 @@ class CachesManager {
       return cacheCandidate._settings === settings;
     });
     if (!cache) {
-      cache = new Cache(this._name, settings);
+      cache = new CacheManager(this._name, settings);
       this._caches.push(cache);
     }
     return cache;

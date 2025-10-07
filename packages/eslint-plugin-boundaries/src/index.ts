@@ -10,6 +10,7 @@ const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
 
 const importRules = (ruleNames: any) => {
   return Object.keys(ruleNames).reduce((loadedRules: any, ruleKey) => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const ruleModule = require(`./rules/${rules[ruleKey]}`);
     loadedRules[rules[ruleKey]] = ruleModule.default || ruleModule;
     return loadedRules;

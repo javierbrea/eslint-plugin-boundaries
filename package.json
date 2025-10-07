@@ -16,6 +16,10 @@
     "check:spell": "cspell --quiet *.* .vscode/*.* .husky/*.* .github/*.* docs/*.*"
   },
   "devDependencies": {
+    "@babel/core": "7.26.0",
+    "@babel/preset-env": "7.26.0",
+    "@babel/preset-typescript": "7.26.0",
+    "@types/jest": "29.5.14",
     "@types/node": "22.9.0",
     "cross-env": "10.1.0",
     "cspell": "9.2.1",

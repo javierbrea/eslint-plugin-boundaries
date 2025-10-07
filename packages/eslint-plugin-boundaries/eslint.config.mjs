@@ -124,6 +124,9 @@ export default [
   },
   {
     ...jestConfig,
-    files: ["test/src/**/*.js"],
+    files: ["test/**/*.js", "test/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-require-imports": [0],
+    },
   },
 ];
