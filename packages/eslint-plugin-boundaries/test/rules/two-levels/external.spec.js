@@ -1,4 +1,4 @@
-const { EXTERNAL: RULE } = require("../../../src/constants/rules");
+const { EXTERNAL: RULE } = require("../../../dist/constants/rules");
 const {
   SETTINGS,
   createRuleTester,
@@ -9,7 +9,9 @@ const {
   externalNoRuleMessage,
 } = require("../../support/messages");
 
-const rule = require(`../../../src/rules/${RULE}`);
+const rule = require(`../../../dist/rules/${RULE}`).default;
+
+// Generic test function
 
 const test = (settings, options, { absoluteFilePath }, errorMessages) => {
   const ruleTester = createRuleTester(settings);

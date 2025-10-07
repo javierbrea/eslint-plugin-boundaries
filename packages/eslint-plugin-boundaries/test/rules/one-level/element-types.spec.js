@@ -1,5 +1,5 @@
 const { resolve } = require("path");
-const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
+const { ELEMENT_TYPES: RULE } = require("../../../dist/constants/rules");
 const {
   SETTINGS,
   createRuleTester,
@@ -10,7 +10,7 @@ const {
   elementTypesNoRuleMessage,
 } = require("../../support/messages");
 
-const rule = require(`../../../src/rules/${RULE}`);
+const rule = require(`../../../dist/rules/${RULE}`).default;
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 

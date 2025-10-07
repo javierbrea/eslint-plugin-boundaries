@@ -16,19 +16,21 @@
   "license": "MIT",
   "repository": "https://github.com/javierbrea/eslint-plugin-boundaries",
   "files": [
-    "src",
-    "resolver-legacy-alias"
+    "dist"
   ],
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "eslint": "eslint",
-    "build": "cross-env node ./scripts/copy-readme.js",
+    "build": "pnpm build:tsc && pnpm copy:readme",
+    "build:tsc": "tsc",
+    "copy:readme": "cross-env node ./scripts/copy-readme.js",
     "check:all": "echo 'All checks passed'",
     "check:spell": "cspell --quiet .",
+    "check:types": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "jest",
-    "test:unit": "cross-env ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 pnpm run test"
+    "test:unit": "cross-env ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 pnpm test"
   },
   "peerDependencies": {
     "eslint": ">=6.0.0"
@@ -41,5 +43,8 @@
   },
   "engines": {
     "node": ">=18.18"
+  },
+  "devDependencies": {
+    "@types/micromatch": "^4.0.9"
   }
 }

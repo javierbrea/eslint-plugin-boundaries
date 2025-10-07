@@ -1,3 +1,5 @@
+import { SETTINGS } from "../constants/settings";
+
 const {
   ELEMENTS,
   // rules
@@ -8,9 +10,9 @@ const {
   RULE_NO_PRIVATE,
   RULE_NO_UNKNOWN_FILES,
   RULE_NO_UNKNOWN,
-} = require("../constants/settings");
+} = SETTINGS;
 
-module.exports = {
+export default {
   rules: {
     [RULE_ELEMENT_TYPES]: [2],
     [RULE_ENTRY_POINT]: [2],

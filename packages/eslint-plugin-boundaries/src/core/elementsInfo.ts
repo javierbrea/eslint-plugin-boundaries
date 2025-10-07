@@ -1,13 +1,15 @@
-const mod = require("module");
-const micromatch = require("micromatch");
-const resolve = require("eslint-module-utils/resolve").default;
+import mod from "module";
+import micromatch from "micromatch";
+import resolve from "eslint-module-utils/resolve";
 
-const { IGNORE, INCLUDE, VALID_MODES } = require("../constants/settings");
-const { getElements, getRootPath } = require("../helpers/settings");
-const { debugFileInfo } = require("../helpers/debug");
-const { isArray } = require("../helpers/utils");
+import { SETTINGS } from "../constants/settings";
+import { getElements, getRootPath } from "../helpers/settings";
+import { debugFileInfo } from "../helpers/debug";
+import { isArray } from "../helpers/utils";
 
-const { filesCache, importsCache, elementsCache } = require("./cache");
+import { filesCache, importsCache, elementsCache } from "./cache";
+
+const { IGNORE, INCLUDE, VALID_MODES } = SETTINGS;
 
 function isCoreModule(moduleName) {
   const moduleNameWithoutPrefix = moduleName.startsWith("node:")
@@ -221,7 +223,7 @@ function externalModulePath(source, baseModuleValue) {
   return source.replace(baseModuleValue, "");
 }
 
-function importInfo(source, context) {
+export function importInfo(source, context) {
   const path = projectPath(
     resolve(source, context),
     getRootPath(context.settings),
@@ -271,7 +273,7 @@ function importInfo(source, context) {
   return result;
 }
 
-function fileInfo(context) {
+export function fileInfo(context) {
   const path = projectPath(
     context.getFilename(),
     getRootPath(context.settings),
@@ -300,8 +302,3 @@ function fileInfo(context) {
   }
   return result;
 }
-
-module.exports = {
-  importInfo,
-  fileInfo,
-};

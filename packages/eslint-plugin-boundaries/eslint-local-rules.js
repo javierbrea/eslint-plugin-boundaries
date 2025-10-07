@@ -1,4 +1,4 @@
-const eslintPluginBoundaries = require("./src/index.js");
+const eslintPluginBoundaries = require("./dist/index.js");
 
 module.exports = Object.keys(eslintPluginBoundaries.rules).reduce(
   (rules, ruleName) => {

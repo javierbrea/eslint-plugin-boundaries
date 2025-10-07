@@ -14,6 +14,12 @@ const absoluteFilePath = (basePath, relativePath) => {
   return path.resolve(process.cwd(), relativeFilePath(basePath, relativePath));
 };
 
+const resolverLegacyAliasPath = path.resolve(
+  process.cwd(),
+  "test",
+  "resolver-legacy-alias",
+);
+
 const SETTINGS = {
   deprecated: {
     "boundaries/types": ["components", "modules", "helpers"],
@@ -24,7 +30,7 @@ const SETTINGS = {
     },
     "import/resolver": {
       "eslint-import-resolver-node": {},
-      [path.resolve(process.cwd(), "resolver-legacy-alias")]: {
+      [resolverLegacyAliasPath]: {
         helpers: `./${codeFilePath("one-level", "helpers")}`,
         components: `./${codeFilePath("one-level", "components")}`,
         modules: `./${codeFilePath("one-level", "modules")}`,
@@ -51,7 +57,7 @@ const SETTINGS = {
     ],
     "import/resolver": {
       "eslint-import-resolver-node": {},
-      [path.resolve(process.cwd(), "resolver-legacy-alias")]: {
+      [resolverLegacyAliasPath]: {
         helpers: `./${codeFilePath("one-level", "helpers")}`,
         components: `./${codeFilePath("one-level", "components")}`,
         modules: `./${codeFilePath("one-level", "modules")}`,
@@ -79,7 +85,7 @@ const SETTINGS = {
     ],
     "import/resolver": {
       "eslint-import-resolver-node": {},
-      [path.resolve(process.cwd(), "resolver-legacy-alias")]: {
+      [resolverLegacyAliasPath]: {
         helpers: `./${codeFilePath("two-levels", "helpers")}`,
         components: `./${codeFilePath("two-levels", "components")}`,
         modules: `./${codeFilePath("two-levels", "modules")}`,
@@ -124,7 +130,7 @@ const SETTINGS = {
     ],
     "import/resolver": {
       "eslint-import-resolver-node": {},
-      [path.resolve(process.cwd(), "resolver-legacy-alias")]: {
+      [resolverLegacyAliasPath]: {
         helpers: `./${codeFilePath("two-levels-with-private", "helpers")}`,
         components: `./${codeFilePath("two-levels-with-private", "components")}`,
         modules: `./${codeFilePath("two-levels-with-private", "modules")}`,
@@ -154,7 +160,7 @@ const SETTINGS = {
     ],
     "import/resolver": {
       "eslint-import-resolver-node": {},
-      [path.resolve(process.cwd(), "resolver-legacy-alias")]: {
+      [resolverLegacyAliasPath]: {
         helpers: `./${codeFilePath("docs-examples", "helpers")}`,
         components: `./${codeFilePath("docs-examples", "components")}`,
         modules: `./${codeFilePath("docs-examples", "modules")}`,
@@ -182,7 +188,7 @@ const SETTINGS = {
     ],
     "import/resolver": {
       "eslint-import-resolver-node": {},
-      [path.resolve(process.cwd(), "resolver-legacy-alias")]: {
+      [resolverLegacyAliasPath]: {
         domains: `./${codeFilePath("base-pattern", "domains")}`,
       },
     },
@@ -198,7 +204,7 @@ const SETTINGS = {
     ],
     "import/resolver": {
       "eslint-import-resolver-node": {},
-      [path.resolve(process.cwd(), "resolver-legacy-alias")]: {
+      [resolverLegacyAliasPath]: {
         modules: `./${codeFilePath("layered", "modules")}`,
       },
     },

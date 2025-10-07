@@ -1,6 +1,6 @@
-const { PLUGIN_NAME, PLUGIN_ENV_VARS_PREFIX } = require("./plugin");
+import { PLUGIN_NAME, PLUGIN_ENV_VARS_PREFIX } from "./plugin";
 
-const {
+import {
   ELEMENT_TYPES,
   EXTERNAL,
   ENTRY_POINT,
@@ -8,9 +8,9 @@ const {
   NO_UNKNOWN,
   NO_PRIVATE,
   NO_UNKNOWN_FILES,
-} = require("./rules");
+} from "./rules";
 
-module.exports = {
+export const SETTINGS = {
   // settings
   ELEMENTS: `${PLUGIN_NAME}/elements`,
   IGNORE: `${PLUGIN_NAME}/ignore`,

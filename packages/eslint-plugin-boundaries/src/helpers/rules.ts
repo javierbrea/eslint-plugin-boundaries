@@ -1,6 +1,6 @@
-const micromatch = require("micromatch");
+import micromatch from "micromatch";
 
-const { isArray, replaceObjectValuesInTemplates } = require("./utils");
+import { isArray, replaceObjectValuesInTemplates } from "./utils";
 
 const REPO_URL = "https://github.com/javierbrea/eslint-plugin-boundaries";
 const FROM = "from";
@@ -13,7 +13,7 @@ function docsUrl(ruleName) {
   return `${REPO_URL}/blob/master/docs/rules/${removePluginNamespace(ruleName)}.md`;
 }
 
-function meta({ description, schema = [], ruleName }) {
+export function meta({ description, schema = [], ruleName }) {
   return {
     meta: {
       type: "problem",
@@ -28,7 +28,7 @@ function meta({ description, schema = [], ruleName }) {
   };
 }
 
-function micromatchPatternReplacingObjectsValues(pattern, object) {
+export function micromatchPatternReplacingObjectsValues(pattern, object) {
   let patternToReplace = pattern;
   // Backward compatibility
   if (object.from) {
@@ -49,7 +49,11 @@ function micromatchPatternReplacingObjectsValues(pattern, object) {
   }, patternToReplace);
 }
 
-function isObjectMatch(objectWithMatchers, object, objectsWithValuesToReplace) {
+export function isObjectMatch(
+  objectWithMatchers,
+  object,
+  objectsWithValuesToReplace,
+) {
   return Object.keys(objectWithMatchers).reduce((isMatch, key) => {
     if (isMatch) {
       if (!object || !object[key]) {
@@ -65,7 +69,7 @@ function isObjectMatch(objectWithMatchers, object, objectsWithValuesToReplace) {
   }, true);
 }
 
-function rulesMainKey(key) {
+export function rulesMainKey(key) {
   return key || FROM;
 }
 
@@ -109,7 +113,7 @@ function ruleMatch(
   return match;
 }
 
-function isMatchElementKey(
+export function isMatchElementKey(
   elementInfo,
   matcher,
   options,
@@ -137,14 +141,14 @@ function isMatchElementKey(
   };
 }
 
-function isMatchImportKind(elementInfo, importKind) {
+export function isMatchImportKind(elementInfo, importKind) {
   if (!elementInfo.importKind || !importKind) {
     return true;
   }
   return micromatch.isMatch(elementInfo.importKind, importKind);
 }
 
-function isMatchElementType(
+export function isMatchElementType(
   elementInfo,
   matcher,
   options,
@@ -163,7 +167,7 @@ function isMatchElementType(
   );
 }
 
-function getElementRules(targetElement, options, mainKey, fromElement) {
+export function getElementRules(targetElement, options, mainKey, fromElement) {
   if (!options.rules) {
     return [];
   }
@@ -196,7 +200,7 @@ function elementToGetRulesFrom(element, dependency, mainKey) {
   return element;
 }
 
-function elementRulesAllowDependency({
+export function elementRulesAllowDependency({
   element,
   dependency,
   options,

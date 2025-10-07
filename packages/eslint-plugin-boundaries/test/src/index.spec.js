@@ -1,6 +1,6 @@
-const pluginPackage = require("../../src/index");
+const pluginPackage = require("../../dist/index");
 
-const RULES = require("../../src/constants/rules");
+const RULES = require("../../dist/constants/rules").default;
 
 describe("package", () => {
   describe("rules property", () => {

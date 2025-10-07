@@ -1,4 +1,11 @@
-const micromatch = require("micromatch");
+import micromatch from "micromatch";
+
+import { SETTINGS } from "../constants/settings";
+
+import { getElementsTypeNames, isLegacyType } from "./settings";
+import { rulesMainKey } from "./rules";
+import { warnOnce } from "./debug";
+import { isArray, isString, isObject } from "./utils";
 
 const {
   TYPES,
@@ -9,12 +16,7 @@ const {
   ADDITIONAL_DEPENDENCY_NODES,
   VALID_DEPENDENCY_NODE_KINDS,
   DEFAULT_DEPENDENCY_NODES,
-} = require("../constants/settings");
-
-const { getElementsTypeNames, isLegacyType } = require("./settings");
-const { rulesMainKey } = require("./rules");
-const { warnOnce } = require("./debug");
-const { isArray, isString, isObject } = require("./utils");
+} = SETTINGS;
 
 const invalidMatchers = [];
 
@@ -22,7 +24,9 @@ const DEFAULT_MATCHER_OPTIONS = {
   type: "object",
 };
 
-function elementsMatcherSchema(matcherOptions = DEFAULT_MATCHER_OPTIONS) {
+export function elementsMatcherSchema(
+  matcherOptions = DEFAULT_MATCHER_OPTIONS,
+) {
   return {
     oneOf: [
       {
@@ -51,7 +55,7 @@ function elementsMatcherSchema(matcherOptions = DEFAULT_MATCHER_OPTIONS) {
   };
 }
 
-function rulesOptionsSchema(options = {}) {
+export function rulesOptionsSchema(options = {}) {
   const mainKey = rulesMainKey(options.rulesMainKey);
   return [
     {
@@ -116,7 +120,7 @@ function isValidElementTypesMatcher(matcher, settings) {
   );
 }
 
-function validateElementTypesMatcher(elementsMatcher, settings) {
+export function validateElementTypesMatcher(elementsMatcher, settings) {
   const [matcher] = isArray(elementsMatcher)
     ? elementsMatcher
     : [elementsMatcher];
@@ -246,7 +250,7 @@ function deprecateTypes(types) {
   }
 }
 
-function validateSettings(settings) {
+export function validateSettings(settings) {
   deprecateTypes(settings[TYPES]);
   deprecateAlias(settings[ALIAS]);
   validateElements(settings[ELEMENTS] || settings[TYPES]);
@@ -254,7 +258,7 @@ function validateSettings(settings) {
   validateAdditionalDependencyNodes(settings[ADDITIONAL_DEPENDENCY_NODES]);
 }
 
-function validateRules(settings, rules = [], options = {}) {
+export function validateRules(settings, rules = [], options = {}) {
   const mainKey = rulesMainKey(options.mainKey);
   rules.forEach((rule) => {
     validateElementTypesMatcher([rule[mainKey]], settings);
@@ -264,11 +268,3 @@ function validateRules(settings, rules = [], options = {}) {
     }
   });
 }
-
-module.exports = {
-  elementsMatcherSchema,
-  rulesOptionsSchema,
-  validateElementTypesMatcher,
-  validateSettings,
-  validateRules,
-};

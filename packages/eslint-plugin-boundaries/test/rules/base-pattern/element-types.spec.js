@@ -1,4 +1,4 @@
-const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
+const { ELEMENT_TYPES: RULE } = require("../../../dist/constants/rules");
 const {
   SETTINGS,
   createRuleTester,
@@ -6,7 +6,7 @@ const {
 } = require("../../support/helpers");
 const { elementTypesNoRuleMessage } = require("../../support/messages");
 
-const rule = require(`../../../src/rules/${RULE}`);
+const rule = require(`../../../dist/rules/${RULE}`).default;
 
 const settings = SETTINGS.basePattern;
 

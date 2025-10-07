@@ -18,17 +18,13 @@ export default [
   markdownConfig,
   jsBaseConfig,
   {
-    files: ["**/*.js"],
+    files: ["**/*.ts"],
     plugins: {
       "local-rules": localRules,
     },
-    languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "commonjs",
-    },
   },
   {
-    files: ["src/**/*.js"],
+    files: ["src/**/*.ts"],
 
     settings: {
       "boundaries/dependency-nodes": [
@@ -42,43 +38,43 @@ export default [
         {
           type: "config",
           mode: "file",
-          pattern: ["src/configs/*.js", "(package.json)"],
+          pattern: ["src/configs/*.ts", "(package.json)"],
           capture: ["name"],
         },
         {
           type: "constants",
           mode: "file",
-          pattern: "src/constants/*.js",
+          pattern: "src/constants/*.ts",
           capture: ["name"],
         },
         {
           type: "core",
           mode: "file",
-          pattern: "src/core/*.js",
+          pattern: "src/core/*.ts",
           capture: ["name"],
         },
         {
           type: "helper",
           mode: "file",
-          pattern: "src/helpers/*.js",
+          pattern: "src/helpers/*.ts",
           capture: ["name"],
         },
         {
           type: "rule",
           mode: "file",
-          pattern: "src/rules/*.js",
+          pattern: "src/rules/*.ts",
           capture: ["name"],
         },
         {
           type: "rule-factory",
           mode: "file",
-          pattern: "src/rules-factories/*.js",
+          pattern: "src/rules-factories/*.ts",
           capture: ["name"],
         },
         {
           type: "plugin",
           mode: "full",
-          pattern: ["src/index.js"],
+          pattern: ["src/index.ts"],
         },
       ],
     },

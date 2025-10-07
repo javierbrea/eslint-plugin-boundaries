@@ -1,7 +1,7 @@
-const chalk = require("chalk");
+import chalk from "chalk";
 
-const { PLUGIN_NAME } = require("../constants/plugin");
-const { isDebugModeEnabled } = require("./settings");
+import { PLUGIN_NAME } from "../constants/plugin";
+import { isDebugModeEnabled } from "./settings";
 
 const warns = [];
 const debuggedFiles = [];
@@ -15,18 +15,18 @@ function warn(message) {
   trace(message, "yellow");
 }
 
-function success(message) {
+export function success(message) {
   trace(message, "green");
 }
 
-function warnOnce(message) {
+export function warnOnce(message) {
   if (!warns.includes(message)) {
     warns.push(message);
     warn(message);
   }
 }
 
-function debugFileInfo(fileInfo) {
+export function debugFileInfo(fileInfo) {
   const fileInfoKey = fileInfo.path || fileInfo.source;
   if (isDebugModeEnabled() && !debuggedFiles.includes(fileInfoKey)) {
     debuggedFiles.push(fileInfoKey);
@@ -38,9 +38,3 @@ function debugFileInfo(fileInfo) {
     trace(`\n${JSON.stringify(fileInfo, null, 2)}`, "gray");
   }
 }
-
-module.exports = {
-  success,
-  debugFileInfo,
-  warnOnce,
-};

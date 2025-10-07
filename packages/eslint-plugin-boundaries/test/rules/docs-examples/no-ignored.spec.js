@@ -1,11 +1,11 @@
-const { NO_IGNORED: RULE } = require("../../../src/constants/rules");
+const { NO_IGNORED: RULE } = require("../../../dist/constants/rules");
 const {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } = require("../../support/helpers");
 
-const rule = require(`../../../src/rules/${RULE}`);
+const rule = require(`../../../dist/rules/${RULE}`).default;
 
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath } = pathResolvers("docs-examples");

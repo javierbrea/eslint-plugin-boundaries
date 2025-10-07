@@ -1,11 +1,11 @@
-const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
+const { ELEMENT_TYPES: RULE } = require("../../../dist/constants/rules");
 const { createRuleTester, pathResolvers } = require("../../support/helpers");
 const {
   customErrorMessage,
   elementTypesNoRuleMessage,
 } = require("../../support/messages");
 
-const rule = require(`../../../src/rules/${RULE}`);
+const rule = require(`../../../dist/rules/${RULE}`).default;
 
 const test = (settings, options, { absoluteFilePath }, errorMessages, base) => {
   const ruleTester = createRuleTester(settings);

@@ -127,7 +127,11 @@ export const typescriptConfig = {
     "@typescript-eslint": typescriptEslintPlugin,
   },
   rules: {
-    ...typescriptEslintPlugin.configs.recommended.rules,
+    ...typescriptEslintPlugin.configs?.recommended?.rules,
+    "@typescript-eslint/no-unused-expressions": [
+      1,
+      { allowShortCircuit: true, allowTernary: true },
+    ],
   },
   settings: {
     "import/resolver": {

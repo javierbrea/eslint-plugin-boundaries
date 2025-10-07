@@ -1,8 +1,10 @@
-const { RULE_NO_IGNORED } = require("../constants/settings");
+import { SETTINGS } from "../constants/settings";
 
-const dependencyRule = require("../rules-factories/dependency-rule");
+import dependencyRule from "../rules-factories/dependency-rule";
 
-module.exports = dependencyRule(
+const { RULE_NO_IGNORED } = SETTINGS;
+
+export default dependencyRule(
   {
     ruleName: RULE_NO_IGNORED,
     description: `Prevent importing ignored files from recognized elements`,

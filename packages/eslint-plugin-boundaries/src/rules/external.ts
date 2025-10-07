@@ -1,22 +1,24 @@
-const micromatch = require("micromatch");
+import micromatch from "micromatch";
 
-const { RULE_EXTERNAL } = require("../constants/settings");
+import { SETTINGS } from "../constants/settings";
 
-const dependencyRule = require("../rules-factories/dependency-rule");
+import dependencyRule from "../rules-factories/dependency-rule";
 
-const { rulesOptionsSchema } = require("../helpers/validations");
-const {
+import { rulesOptionsSchema } from "../helpers/validations";
+import {
   elementRulesAllowDependency,
   micromatchPatternReplacingObjectsValues,
   isMatchImportKind,
-} = require("../helpers/rules");
-const {
+} from "../helpers/rules";
+import {
   customErrorMessage,
   ruleElementMessage,
   elementMessage,
   dependencyUsageKindMessage,
-} = require("../helpers/messages");
-const { isArray } = require("../helpers/utils");
+} from "../helpers/messages";
+import { isArray } from "../helpers/utils";
+
+const { RULE_EXTERNAL } = SETTINGS;
 
 function getSpecifiers(node) {
   if (node.parent.type === "ImportDeclaration") {
@@ -169,7 +171,7 @@ function errorMessage(ruleData, file, dependency) {
   )}external module '${dependency.baseModule}' ${fileReport}`;
 }
 
-module.exports = dependencyRule(
+export default dependencyRule(
   {
     ruleName: RULE_EXTERNAL,
     description: `Check allowed external dependencies by element type`,

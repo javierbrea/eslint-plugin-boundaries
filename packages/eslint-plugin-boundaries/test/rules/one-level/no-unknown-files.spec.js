@@ -1,11 +1,11 @@
-const { NO_UNKNOWN_FILES: RULE } = require("../../../src/constants/rules");
+const { NO_UNKNOWN_FILES: RULE } = require("../../../dist/constants/rules");
 const {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } = require("../../support/helpers");
 
-const rule = require(`../../../src/rules/${RULE}`);
+const rule = require(`../../../dist/rules/${RULE}`).default;
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 

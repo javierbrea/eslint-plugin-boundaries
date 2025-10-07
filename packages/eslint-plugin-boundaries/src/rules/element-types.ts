@@ -1,18 +1,20 @@
-const { RULE_ELEMENT_TYPES } = require("../constants/settings");
+import { SETTINGS } from "../constants/settings";
 
-const dependencyRule = require("../rules-factories/dependency-rule");
+import dependencyRule from "../rules-factories/dependency-rule";
 
-const { rulesOptionsSchema } = require("../helpers/validations");
-const {
+import { rulesOptionsSchema } from "../helpers/validations";
+import {
   isMatchElementType,
   elementRulesAllowDependency,
-} = require("../helpers/rules");
-const {
+} from "../helpers/rules";
+import {
   customErrorMessage,
   ruleElementMessage,
   elementMessage,
   dependencyImportKindMessage,
-} = require("../helpers/messages");
+} from "../helpers/messages";
+
+const { RULE_ELEMENT_TYPES } = SETTINGS;
 
 function elementRulesAllowDependencyType(element, dependency, options) {
   return elementRulesAllowDependency({
@@ -45,7 +47,7 @@ function errorMessage(ruleData, file, dependency) {
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 }
 
-module.exports = dependencyRule(
+export default dependencyRule(
   {
     ruleName: RULE_ELEMENT_TYPES,
     description: `Check allowed dependencies between element types`,

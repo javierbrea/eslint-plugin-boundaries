@@ -1,11 +1,7 @@
-const {
-  isString,
-  isArray,
-  replaceObjectValuesInTemplates,
-} = require("./utils");
-const { micromatchPatternReplacingObjectsValues } = require("./rules");
+import { isString, isArray, replaceObjectValuesInTemplates } from "./utils";
+import { micromatchPatternReplacingObjectsValues } from "./rules";
 
-function quote(str) {
+export function quote(str) {
   return `'${str}'`;
 }
 
@@ -74,7 +70,7 @@ function elementMatcherMessage(elementMatcher, elementCapturedValues) {
   )}`;
 }
 
-function ruleElementMessage(elementPatterns, elementCapturedValues) {
+export function ruleElementMessage(elementPatterns, elementCapturedValues) {
   if (isArray(elementPatterns)) {
     if (elementPatterns.length === 1) {
       return elementMatcherMessage(elementPatterns[0], elementCapturedValues);
@@ -99,7 +95,7 @@ function elementPropertiesToReplaceInTemplate(element) {
   };
 }
 
-function customErrorMessage(message, file, dependency, report = {}) {
+export function customErrorMessage(message, file, dependency, report = {}) {
   let replacedMessage = replaceObjectValuesInTemplates(
     replaceObjectValuesInTemplates(
       message,
@@ -161,7 +157,7 @@ function elementCapturedValuesMessage(capturedValues) {
     }, "");
 }
 
-function elementMessage(elementInfo) {
+export function elementMessage(elementInfo) {
   return `of type ${quote(elementInfo.type)}${elementCapturedValuesMessage(
     elementInfo.capturedValues,
   )}`;
@@ -171,14 +167,14 @@ function hasToPrintKindMessage(ruleImportKind, dependencyInfo) {
   return ruleImportKind && dependencyInfo.importKind;
 }
 
-function dependencyImportKindMessage(ruleImportKind, dependencyInfo) {
+export function dependencyImportKindMessage(ruleImportKind, dependencyInfo) {
   if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
     return `kind ${quote(dependencyInfo.importKind)} from `;
   }
   return "";
 }
 
-function dependencyUsageKindMessage(
+export function dependencyUsageKindMessage(
   ruleImportKind,
   dependencyInfo,
   { suffix = " ", prefix = "" } = {},
@@ -188,12 +184,3 @@ function dependencyUsageKindMessage(
   }
   return "";
 }
-
-module.exports = {
-  quote,
-  ruleElementMessage,
-  customErrorMessage,
-  elementMessage,
-  dependencyImportKindMessage,
-  dependencyUsageKindMessage,
-};

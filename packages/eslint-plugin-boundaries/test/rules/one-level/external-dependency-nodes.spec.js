@@ -1,4 +1,4 @@
-const { EXTERNAL: RULE } = require("../../../src/constants/rules");
+const { EXTERNAL: RULE } = require("../../../dist/constants/rules");
 const {
   SETTINGS,
   TYPESCRIPT_SETTINGS,
@@ -6,7 +6,7 @@ const {
   pathResolvers,
 } = require("../../support/helpers");
 
-const rule = require(`../../../src/rules/${RULE}`);
+const rule = require(`../../../dist/rules/${RULE}`).default;
 
 const { absoluteFilePath } = pathResolvers("one-level");
 

@@ -1,9 +1,11 @@
-const { RULE_NO_UNKNOWN_FILES } = require("../constants/settings");
+import { SETTINGS } from "../constants/settings";
 
-const { fileInfo } = require("../core/elementsInfo");
-const { meta } = require("../helpers/rules");
+import { fileInfo } from "../core/elementsInfo";
+import { meta } from "../helpers/rules";
 
-module.exports = {
+const { RULE_NO_UNKNOWN_FILES } = SETTINGS;
+
+export default {
   ...meta({
     ruleName: RULE_NO_UNKNOWN_FILES,
     description: `Prevent creating files not recognized as any of the element types`,

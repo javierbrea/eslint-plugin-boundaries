@@ -1,4 +1,4 @@
-const { EXTERNAL: RULE } = require("../../../src/constants/rules");
+const { EXTERNAL: RULE } = require("../../../dist/constants/rules");
 const {
   SETTINGS,
   createRuleTester,
@@ -6,7 +6,7 @@ const {
 } = require("../../support/helpers");
 const { externalNoRuleMessage } = require("../../support/messages");
 
-const rule = require(`../../../src/rules/${RULE}`);
+const rule = require(`../../../dist/rules/${RULE}`).default;
 
 const { absoluteFilePath } = pathResolvers("docs-examples");
 

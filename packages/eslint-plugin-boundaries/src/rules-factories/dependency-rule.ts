@@ -1,17 +1,19 @@
+import { SETTINGS } from "../constants/settings";
+import { getArrayOrNull } from "../helpers/utils";
+import { fileInfo } from "../core/elementsInfo";
+import { dependencyInfo } from "../core/dependencyInfo";
+
+import { validateSettings, validateRules } from "../helpers/validations";
+
+import { meta } from "../helpers/rules";
+
 const {
   DEPENDENCY_NODES,
   DEFAULT_DEPENDENCY_NODES,
   ADDITIONAL_DEPENDENCY_NODES,
-} = require("../constants/settings");
-const { getArrayOrNull } = require("../helpers/utils");
-const { fileInfo } = require("../core/elementsInfo");
-const { dependencyInfo } = require("../core/dependencyInfo");
+} = SETTINGS;
 
-const { validateSettings, validateRules } = require("../helpers/validations");
-
-const { meta } = require("../helpers/rules");
-
-module.exports = function (ruleMeta, rule, ruleOptions = {}) {
+export default function (ruleMeta, rule, ruleOptions = {}) {
   return {
     ...meta(ruleMeta),
     create: function (context) {
@@ -59,4 +61,4 @@ module.exports = function (ruleMeta, rule, ruleOptions = {}) {
       );
     },
   };
-};
+}

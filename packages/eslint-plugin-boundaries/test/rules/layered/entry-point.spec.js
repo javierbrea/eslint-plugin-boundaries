@@ -1,11 +1,11 @@
-const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
+const { ENTRY_POINT: RULE } = require("../../../dist/constants/rules");
 const {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } = require("../../support/helpers");
 
-const rule = require(`../../../src/rules/${RULE}`);
+const rule = require(`../../../dist/rules/${RULE}`).default;
 
 const { absoluteFilePath } = pathResolvers("layered");
 

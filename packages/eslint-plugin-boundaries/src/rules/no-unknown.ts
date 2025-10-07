@@ -1,8 +1,9 @@
-const { RULE_NO_UNKNOWN } = require("../constants/settings");
+import { SETTINGS } from "../constants/settings";
 
-const dependencyRule = require("../rules-factories/dependency-rule");
+import dependencyRule from "../rules-factories/dependency-rule";
+const { RULE_NO_UNKNOWN } = SETTINGS;
 
-module.exports = dependencyRule(
+export default dependencyRule(
   {
     ruleName: RULE_NO_UNKNOWN,
     description: `Prevent importing unknown elements from the known ones`,

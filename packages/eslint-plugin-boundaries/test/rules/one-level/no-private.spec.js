@@ -1,4 +1,4 @@
-const { NO_PRIVATE: RULE } = require("../../../src/constants/rules");
+const { NO_PRIVATE: RULE } = require("../../../dist/constants/rules");
 const {
   SETTINGS,
   createRuleTester,
@@ -6,7 +6,7 @@ const {
 } = require("../../support/helpers");
 const { noPrivateMessage } = require("../../support/messages");
 
-const rule = require(`../../../src/rules/${RULE}`);
+const rule = require(`../../../dist/rules/${RULE}`).default;
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 

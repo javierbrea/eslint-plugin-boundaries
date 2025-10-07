@@ -1,15 +1,11 @@
-const {
-  TYPES,
-  ELEMENTS,
-  VALID_MODES,
-  ROOT_PATH,
-  ENV_ROOT_PATH,
-  DEBUG,
-} = require("../constants/settings");
-const { isString } = require("./utils");
-const { isAbsolute, resolve } = require("path");
+import { SETTINGS } from "../constants/settings";
+import { isString } from "./utils";
+import { isAbsolute, resolve } from "node:path";
 
-function isLegacyType(type) {
+const { TYPES, ELEMENTS, VALID_MODES, ROOT_PATH, ENV_ROOT_PATH, DEBUG } =
+  SETTINGS;
+
+export function isLegacyType(type) {
   return isString(type);
 }
 
@@ -34,15 +30,15 @@ function transformLegacyTypes(typesFromSettings) {
   });
 }
 
-function getElements(settings) {
+export function getElements(settings) {
   return transformLegacyTypes(settings[ELEMENTS] || settings[TYPES]);
 }
 
-function getElementsTypeNames(settings) {
+export function getElementsTypeNames(settings) {
   return getElements(settings).map((element) => element.type);
 }
 
-function getRootPath(settings) {
+export function getRootPath(settings) {
   const rootPathUserSetting = process.env[ENV_ROOT_PATH] || settings[ROOT_PATH];
   if (rootPathUserSetting) {
     return isAbsolute(rootPathUserSetting)
@@ -52,14 +48,6 @@ function getRootPath(settings) {
   return process.cwd();
 }
 
-function isDebugModeEnabled() {
+export function isDebugModeEnabled() {
   return process.env[DEBUG];
 }
-
-module.exports = {
-  isLegacyType,
-  getElements,
-  getElementsTypeNames,
-  isDebugModeEnabled,
-  getRootPath,
-};

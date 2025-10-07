@@ -1,8 +1,10 @@
-const { RULE_NO_PRIVATE } = require("../constants/settings");
+import { SETTINGS } from "../constants/settings";
 
-const dependencyRule = require("../rules-factories/dependency-rule");
+import dependencyRule from "../rules-factories/dependency-rule";
 
-const { customErrorMessage, elementMessage } = require("../helpers/messages");
+import { customErrorMessage, elementMessage } from "../helpers/messages";
+
+const { RULE_NO_PRIVATE } = SETTINGS;
 
 function errorMessage(file, dependency, options) {
   if (options.message) {
@@ -11,7 +13,7 @@ function errorMessage(file, dependency, options) {
   return `Dependency is private of element ${elementMessage(dependency.parents[0])}`;
 }
 
-module.exports = dependencyRule(
+export default dependencyRule(
   {
     ruleName: RULE_NO_PRIVATE,
     description: `Prevent importing private elements of another element`,

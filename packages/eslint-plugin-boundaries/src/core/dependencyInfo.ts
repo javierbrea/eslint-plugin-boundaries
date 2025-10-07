@@ -1,4 +1,4 @@
-const { fileInfo, importInfo } = require("./elementsInfo");
+import { fileInfo, importInfo } from "./elementsInfo";
 
 function getParent(elementInfo) {
   return elementInfo.parents?.[0]?.elementPath;
@@ -71,7 +71,7 @@ function dependencyRelationship(dependency, element) {
   return null;
 }
 
-function dependencyInfo(source, importKind, context) {
+export function dependencyInfo(source, importKind, context) {
   const elementInfo = fileInfo(context);
   const dependency = importInfo(source, context);
 
@@ -82,7 +82,3 @@ function dependencyInfo(source, importKind, context) {
     isInternal: isInternal(dependency, elementInfo),
   };
 }
-
-module.exports = {
-  dependencyInfo,
-};

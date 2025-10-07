@@ -1,16 +1,16 @@
-function isString(object) {
+export function isString(object) {
   return typeof object === "string";
 }
 
-function isArray(object) {
+export function isArray(object) {
   return Array.isArray(object);
 }
 
-function isObject(object) {
+export function isObject(object) {
   return typeof object === "object" && object !== null && !isArray(object);
 }
 
-function getArrayOrNull(value) {
+export function getArrayOrNull(value) {
   return isArray(value) ? value : null;
 }
 
@@ -20,7 +20,7 @@ function replaceObjectValueInTemplate(template, key, value, namespace) {
   return template.replace(regexp, value);
 }
 
-function replaceObjectValuesInTemplates(strings, object, namespace) {
+export function replaceObjectValuesInTemplates(strings, object, namespace) {
   return Object.keys(object).reduce((result, objectKey) => {
     // If template is an array, replace key by value in all patterns
     if (isArray(result)) {
@@ -41,11 +41,3 @@ function replaceObjectValuesInTemplates(strings, object, namespace) {
     );
   }, strings);
 }
-
-module.exports = {
-  isString,
-  isArray,
-  isObject,
-  getArrayOrNull,
-  replaceObjectValuesInTemplates,
-};
