@@ -1,13 +1,13 @@
-import * as pluginPackage from "../../src/index";
+import { RULE_NAMES } from "../../src/constants/rules";
 
-import RULES from "../../src/constants/rules";
+const eslintPluginBoundaries = require("../../src/index");
 
 describe("package", () => {
   describe("rules property", () => {
-    it.each(Object.keys(RULES))(
+    it.each(RULE_NAMES)(
       "should contain rule '%s' with a defined create function",
-      (ruleKey) => {
-        expect(pluginPackage.rules[RULES[ruleKey]].create).toBeDefined();
+      (ruleName) => {
+        expect(eslintPluginBoundaries.rules[ruleName].create).toBeDefined();
       },
     );
   });

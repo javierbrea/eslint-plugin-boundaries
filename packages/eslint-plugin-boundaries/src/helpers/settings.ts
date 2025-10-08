@@ -1,6 +1,8 @@
-import { SETTINGS } from "../constants/settings";
-import { isString } from "./utils";
 import { isAbsolute, resolve } from "node:path";
+
+import { SETTINGS } from "../constants/settings";
+
+import { isString } from "./utils";
 
 const { TYPES, ELEMENTS, VALID_MODES, ROOT_PATH, ENV_ROOT_PATH, DEBUG } =
   SETTINGS;

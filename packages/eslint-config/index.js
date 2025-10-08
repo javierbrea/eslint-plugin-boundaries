@@ -93,6 +93,7 @@ export const jsBaseConfig = {
   },
   rules: {
     ...importPlugin.flatConfigs.recommended.rules,
+    ...importPlugin.flatConfigs["typescript"].rules,
     ...js.configs.recommended.rules,
     ...eslintConfigPrettier.rules,
     ...eslintPluginPrettierRecommended.rules,
@@ -104,6 +105,35 @@ export const jsBaseConfig = {
       2,
       { vars: "all", args: "after-used", ignoreRestSiblings: false },
     ],
+    "import/no-named-as-default-member": [2],
+    "import/no-named-as-default": [2],
+    "import/no-namespace": [
+      "error",
+      {
+        allowComputed: false,
+      },
+    ],
+    "import/no-unresolved": [2],
+    "import/order": [
+      2,
+      {
+        groups: [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index",
+        ],
+        "newlines-between": "always",
+        alphabetize: {
+          order:
+            "asc" /* sort in ascending order. Options: ['ignore', 'asc', 'desc'] */,
+          caseInsensitive: true /* ignore case. Options: [true, false] */,
+        },
+      },
+    ],
+    "import/extensions": [2, "never"],
   },
 };
 
@@ -132,6 +162,14 @@ export const typescriptConfig = {
       1,
       { allowShortCircuit: true, allowTernary: true },
     ],
+    "@typescript-eslint/consistent-type-imports": [
+      2,
+      {
+        "prefer": "type-imports",
+        "disallowTypeAnnotations": true,
+        "fixStyle": "separate-type-imports"
+      }
+    ]
   },
   settings: {
     "import/resolver": {

@@ -1,10 +1,11 @@
-const { NO_PRIVATE: RULE } = require("../../../src/constants/rules");
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
 import { noPrivateMessage } from "../../support/messages";
+
+const { NO_PRIVATE: RULE } = require("../../../src/constants/rules");
 
 const rule = require(`../../../src/rules/${RULE}`).default;
 

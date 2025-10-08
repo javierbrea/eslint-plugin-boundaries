@@ -1,10 +1,11 @@
-const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 import {
   SETTINGS,
   TYPESCRIPT_SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
+
+const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 
 const rule = require(`../../../src/rules/${RULE}`).default;
 

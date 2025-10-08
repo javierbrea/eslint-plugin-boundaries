@@ -1,6 +1,8 @@
-const path = require("path");
-const RuleTester = require("eslint").RuleTester;
-const typescriptParser = require("@typescript-eslint/parser");
+import path from "node:path";
+
+// @ts-expect-error types are not being detected properly
+import * as typescriptParser from "@typescript-eslint/parser"; // eslint-disable-line import/no-namespace
+import { RuleTester } from "eslint";
 
 const codeFilePath = (basePath, relativePath) => {
   return ["test", "fixtures", basePath, relativePath].join("/");

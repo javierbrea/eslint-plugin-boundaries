@@ -117,8 +117,11 @@ importers:
         specifier: 4.0.8
         version: 4.0.8
     devDependencies:
+      '@types/estree':
+        specifier: 1.0.8
+        version: 1.0.8
       '@types/micromatch':
-        specifier: ^4.0.9
+        specifier: 4.0.9
         version: 4.0.9
 
 packages:

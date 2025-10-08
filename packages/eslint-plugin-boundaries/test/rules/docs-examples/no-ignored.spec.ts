@@ -1,9 +1,10 @@
-const { NO_IGNORED: RULE } = require("../../../src/constants/rules");
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
+
+const { NO_IGNORED: RULE } = require("../../../src/constants/rules");
 
 const rule = require(`../../../src/rules/${RULE}`).default;
 

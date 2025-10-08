@@ -1,48 +1,72 @@
+import type { Rule } from "eslint";
+import type { Identifier, ImportSpecifier } from "estree";
 import micromatch from "micromatch";
 
+import type { FileInfo } from "src/core/ElementsInfo.types";
+
+import type {
+  ExternalRuleOptions,
+  RuleMatcherElementsCapturedValues,
+  RuleResult,
+  RuleResultReport,
+  ExternalLibraryDetailsMatcher,
+} from "../constants/Options.types";
+import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
+import type { ImportKind } from "../constants/settings";
 import { SETTINGS } from "../constants/settings";
-
-import dependencyRule from "../rules-factories/dependency-rule";
-
-import { rulesOptionsSchema } from "../helpers/validations";
-import {
-  elementRulesAllowDependency,
-  micromatchPatternReplacingObjectsValues,
-  isMatchImportKind,
-} from "../helpers/rules";
+import type { DependencyInfo } from "../core/DependencyInfo.types";
 import {
   customErrorMessage,
   ruleElementMessage,
   elementMessage,
   dependencyUsageKindMessage,
 } from "../helpers/messages";
+import {
+  elementRulesAllowDependency,
+  micromatchPatternReplacingObjectsValues,
+  isMatchImportKind,
+} from "../helpers/rules";
 import { isArray } from "../helpers/utils";
+import { rulesOptionsSchema } from "../helpers/validations";
+import dependencyRule from "../rules-factories/dependency-rule";
 
 const { RULE_EXTERNAL } = SETTINGS;
 
-function getSpecifiers(node) {
+// TODO: Add always to all dependencies info
+function getSpecifiers(node: Rule.Node): string[] {
   if (node.parent.type === "ImportDeclaration") {
     return node.parent.specifiers
       .filter(
         (specifier) =>
-          specifier.type === "ImportSpecifier" && specifier.imported.name,
+          specifier.type === "ImportSpecifier" &&
+          specifier.imported &&
+          (specifier.imported as Identifier).name,
       )
-      .map((specifier) => specifier.imported.name);
+      .map(
+        (specifier) =>
+          ((specifier as ImportSpecifier).imported as Identifier).name,
+      );
   }
 
   if (node.parent.type === "ExportNamedDeclaration") {
     return node.parent.specifiers
       .filter(
         (specifier) =>
-          specifier.type === "ExportSpecifier" && specifier.exported.name,
+          specifier.type === "ExportSpecifier" &&
+          (specifier.exported as Identifier).name,
       )
-      .map((specifier) => specifier.exported.name);
+      .map((specifier) => (specifier.exported as Identifier).name);
   }
 
   return [];
 }
 
-function specifiersMatch(specifiers, specifierOptions, elementsCapturedValues) {
+function specifiersMatch(
+  specifiers: string[] = [],
+  specifierOptions: string[] = [],
+  elementsCapturedValues: RuleMatcherElementsCapturedValues,
+) {
+  let result: string[] = [];
   return specifierOptions.reduce((found, option) => {
     const matcherWithTemplateReplaced = micromatchPatternReplacingObjectsValues(
       option,
@@ -52,10 +76,14 @@ function specifiersMatch(specifiers, specifierOptions, elementsCapturedValues) {
       found.push(option);
     }
     return found;
-  }, []);
+  }, result);
 }
 
-function pathMatch(path, pathOptions, elementsCapturedValues) {
+function pathMatch(
+  path: string,
+  pathOptions: string | string[],
+  elementsCapturedValues: RuleMatcherElementsCapturedValues,
+) {
   const pathMatchers = isArray(pathOptions) ? pathOptions : [pathOptions];
   return pathMatchers.reduce((isMatch, option) => {
     if (isMatch) {
@@ -73,11 +101,11 @@ function pathMatch(path, pathOptions, elementsCapturedValues) {
 }
 
 function isMatchExternalDependency(
-  dependency,
-  matcher,
-  options,
-  elementsCapturedValues,
-  importKind,
+  dependency: DependencyInfo,
+  matcher: string | string[],
+  options: ExternalLibraryDetailsMatcher,
+  elementsCapturedValues: RuleMatcherElementsCapturedValues,
+  importKind: ImportKind,
 ) {
   const matcherWithTemplatesReplaced = micromatchPatternReplacingObjectsValues(
     matcher,
@@ -86,10 +114,9 @@ function isMatchExternalDependency(
   if (!isMatchImportKind(dependency, importKind)) {
     return { result: false };
   }
-  const isMatch = micromatch.isMatch(
-    dependency.baseModule,
-    matcherWithTemplatesReplaced,
-  );
+  const isMatch = dependency.baseModule
+    ? micromatch.isMatch(dependency.baseModule, matcherWithTemplatesReplaced)
+    : false;
   if (isMatch && options && Object.keys(options).length) {
     const isPathMatch = options.path
       ? pathMatch(dependency.path, options.path, elementsCapturedValues)
@@ -119,7 +146,11 @@ function isMatchExternalDependency(
   };
 }
 
-function elementRulesAllowExternalDependency(element, dependency, options) {
+function elementRulesAllowExternalDependency(
+  element: FileInfo,
+  dependency: DependencyInfo,
+  options?: ExternalRuleOptions,
+) {
   return elementRulesAllowDependency({
     element,
     dependency,
@@ -128,15 +159,23 @@ function elementRulesAllowExternalDependency(element, dependency, options) {
   });
 }
 
-function getErrorReportMessage(report) {
+function getErrorReportMessage(report: RuleResultReport) {
   if (report.path) {
     return report.path;
   }
-  return report.specifiers.join(", ");
+  return report.specifiers?.join(", ") || "";
 }
 
-function errorMessage(ruleData, file, dependency) {
+function errorMessage(
+  ruleData: RuleResult,
+  file: FileInfo,
+  dependency: DependencyInfo,
+) {
   const ruleReport = ruleData.ruleReport;
+  if (!ruleReport) {
+    return `No detailed rule report available. This is likely a bug in ${PLUGIN_NAME}. Please report it at ${PLUGIN_ISSUES_URL}`;
+  }
+
   if (ruleReport.message) {
     return customErrorMessage(ruleReport.message, file, dependency, {
       specifiers: ruleData.report?.specifiers?.join(", "),
@@ -171,7 +210,7 @@ function errorMessage(ruleData, file, dependency) {
   )}external module '${dependency.baseModule}' ${fileReport}`;
 }
 
-export default dependencyRule(
+export default dependencyRule<ExternalRuleOptions>(
   {
     ruleName: RULE_EXTERNAL,
     description: `Check allowed external dependencies by element type`,

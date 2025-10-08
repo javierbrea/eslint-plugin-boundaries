@@ -1,5 +1,4 @@
 import { PLUGIN_NAME, PLUGIN_ENV_VARS_PREFIX } from "./plugin";
-
 import {
   ELEMENT_TYPES,
   EXTERNAL,
@@ -9,6 +8,23 @@ import {
   NO_PRIVATE,
   NO_UNKNOWN_FILES,
 } from "./rules";
+
+export type ImportKind = "type" | "value";
+
+export const DEPENDENCY_NODES = {
+  REQUIRE: "require",
+  IMPORT: "import",
+  DYNAMIC_IMPORT: "dynamic-import",
+  EXPORT: "export",
+} as const;
+
+export type DependencyNodeKey =
+  (typeof DEPENDENCY_NODES)[keyof typeof DEPENDENCY_NODES];
+
+export type DependencyNodeSelector = {
+  selector: string;
+  kind: ImportKind;
+};
 
 export const SETTINGS = {
   // settings
@@ -41,14 +57,14 @@ export const SETTINGS = {
 
   VALID_DEPENDENCY_NODE_KINDS: ["value", "type"],
   DEFAULT_DEPENDENCY_NODES: {
-    require: [
+    [DEPENDENCY_NODES.REQUIRE]: [
       // Note: detects "require('source')"
       {
         selector: "CallExpression[callee.name=require] > Literal",
         kind: "value",
       },
     ],
-    import: [
+    [DEPENDENCY_NODES.IMPORT]: [
       // Note: detects "import x from 'source'"
       {
         selector: "ImportDeclaration:not([importKind=type]) > Literal",
@@ -60,11 +76,11 @@ export const SETTINGS = {
         kind: "type",
       },
     ],
-    "dynamic-import": [
+    [DEPENDENCY_NODES.DYNAMIC_IMPORT]: [
       // Note: detects "import('source')"
       { selector: "ImportExpression > Literal", kind: "value" },
     ],
-    export: [
+    [DEPENDENCY_NODES.EXPORT]: [
       // Note: detects "export * from 'source'";
       {
         selector: "ExportAllDeclaration:not([exportKind=type]) > Literal",
@@ -87,4 +103,25 @@ export const SETTINGS = {
       },
     ],
   },
+} as const;
+
+export const SETTINGS_KEYS = {
+  ELEMENTS: SETTINGS.ELEMENTS,
+  IGNORE: SETTINGS.IGNORE,
+  INCLUDE: SETTINGS.INCLUDE,
+  ROOT_PATH: SETTINGS.ROOT_PATH,
+  DEPENDENCY_NODES: SETTINGS.DEPENDENCY_NODES,
+  ADDITIONAL_DEPENDENCY_NODES: SETTINGS.ADDITIONAL_DEPENDENCY_NODES,
+} as const;
+
+export type PluginSettingsKey =
+  (typeof SETTINGS_KEYS)[keyof typeof SETTINGS_KEYS];
+
+export type PluginSettings = {
+  [SETTINGS_KEYS.ELEMENTS]?: unknown;
+  [SETTINGS_KEYS.IGNORE]?: unknown;
+  [SETTINGS_KEYS.INCLUDE]?: unknown;
+  [SETTINGS_KEYS.ROOT_PATH]?: unknown;
+  [SETTINGS_KEYS.DEPENDENCY_NODES]?: DependencyNodeKey[];
+  [SETTINGS_KEYS.ADDITIONAL_DEPENDENCY_NODES]?: DependencyNodeSelector[];
 };

@@ -8,6 +8,7 @@ import {
   jsBaseConfig,
   jestConfig,
   typescriptConfig,
+  // eslint-disable-next-line import/extensions
 } from "../eslint-config/index.js";
 
 export default [
@@ -112,7 +113,7 @@ export default [
             },
             {
               from: "rule-factory",
-              allow: ["constants", "helper", "core"],
+              allow: ["constants", "helper", "core", "rule-factory"],
             },
           ],
         },

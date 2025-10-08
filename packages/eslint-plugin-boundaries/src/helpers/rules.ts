@@ -1,19 +1,53 @@
+import type { Rule } from "eslint";
 import micromatch from "micromatch";
 
+import { PLUGIN_NAME, REPO_URL } from "src/constants/plugin";
+import type { RuleName } from "src/constants/rules";
+
+import type {
+  RuleResult,
+  RuleMatcher,
+  RuleOptionsWithRules,
+  CapturedValuesMatcher,
+  ExternalLibraryDetailsMatcher,
+} from "../constants/Options.types";
+import type { DependencyInfo } from "../core/DependencyInfo.types";
+import type { FileInfo } from "../core/ElementsInfo.types";
+
+import type { RuleMainKey } from "./Helpers.types";
+import type { RuleMetaDefinition } from "./Rules.types";
 import { isArray, replaceObjectValuesInTemplates } from "./utils";
 
-const REPO_URL = "https://github.com/javierbrea/eslint-plugin-boundaries";
 const FROM = "from";
 
-function removePluginNamespace(ruleName) {
-  return ruleName.replace("boundaries/", "");
+/**
+ * Removes the plugin namespace from a rule name.
+ * @param ruleName The name of the rule.
+ * @returns The rule name without the plugin namespace.
+ */
+function removePluginNamespace(ruleName: RuleName) {
+  return ruleName.replace(`${PLUGIN_NAME}/`, "");
 }
 
-function docsUrl(ruleName) {
+/**
+ * Returns the documentation URL for an ESLint rule.
+ * @param ruleName The name of the rule.
+ * @returns The documentation URL for the ESLint rule.
+ */
+function docsUrl(ruleName: RuleName) {
   return `${REPO_URL}/blob/master/docs/rules/${removePluginNamespace(ruleName)}.md`;
 }
 
-export function meta({ description, schema = [], ruleName }) {
+/**
+ * Returns the meta object for an ESLint rule.
+ * @param param0 The rule metadata definition.
+ * @returns The meta object for the ESLint rule.
+ */
+export function meta({
+  description,
+  schema = [],
+  ruleName,
+}: RuleMetaDefinition): Pick<Rule.RuleModule, "meta"> {
   return {
     meta: {
       type: "problem",
@@ -22,7 +56,6 @@ export function meta({ description, schema = [], ruleName }) {
         description,
         category: "dependencies",
       },
-      fixable: null,
       schema,
     },
   };
@@ -69,8 +102,8 @@ export function isObjectMatch(
   }, true);
 }
 
-export function rulesMainKey(key) {
-  return key || FROM;
+export function rulesMainKey(key: RuleMainKey = FROM) {
+  return key;
 }
 
 function ruleMatch(
@@ -117,7 +150,7 @@ export function isMatchElementKey(
   elementInfo,
   matcher,
   options,
-  elementKey,
+  elementKey: keyof FileInfo,
   elementsToCompareCapturedValues,
 ) {
   const isMatch = micromatch.isMatch(
@@ -167,7 +200,12 @@ export function isMatchElementType(
   );
 }
 
-export function getElementRules(targetElement, options, mainKey, fromElement) {
+export function getElementRules(
+  targetElement,
+  options,
+  mainKey: RuleMainKey,
+  fromElement,
+) {
   if (!options.rules) {
     return [];
   }
@@ -189,24 +227,35 @@ export function getElementRules(targetElement, options, mainKey, fromElement) {
     });
 }
 
-function isFromRule(mainKey) {
+function isFromRule(mainKey: RuleMainKey) {
   return rulesMainKey(mainKey) === FROM;
 }
 
-function elementToGetRulesFrom(element, dependency, mainKey) {
+function elementToGetRulesFrom(element, dependency, mainKey: RuleMainKey) {
   if (!isFromRule(mainKey)) {
     return dependency;
   }
   return element;
 }
 
-export function elementRulesAllowDependency({
+export function elementRulesAllowDependency<
+  FileOrDependencyInfo extends FileInfo | DependencyInfo = FileInfo,
+  RuleMatchers extends
+    | CapturedValuesMatcher
+    | ExternalLibraryDetailsMatcher = CapturedValuesMatcher,
+>({
   element,
   dependency,
-  options,
+  options = {},
   isMatch,
   rulesMainKey: mainKey,
-}) {
+}: {
+  element: FileInfo;
+  dependency: DependencyInfo;
+  options?: RuleOptionsWithRules;
+  isMatch: RuleMatcher<FileOrDependencyInfo, RuleMatchers>;
+  rulesMainKey?: RuleMainKey;
+}): RuleResult {
   const targetElement = elementToGetRulesFrom(element, dependency, mainKey);
   const [result, report, ruleReport] = getElementRules(
     targetElement,
@@ -252,6 +301,7 @@ export function elementRulesAllowDependency({
       return allowed;
     },
     [
+      // TODO: Use value from map
       options.default === "allow",
       null,
       {
@@ -266,15 +316,3 @@ export function elementRulesAllowDependency({
     ruleReport,
   };
 }
-
-module.exports = {
-  meta,
-  isObjectMatch,
-  isMatchElementKey,
-  isMatchElementType,
-  elementRulesAllowDependency,
-  getElementRules,
-  rulesMainKey,
-  micromatchPatternReplacingObjectsValues,
-  isMatchImportKind,
-};

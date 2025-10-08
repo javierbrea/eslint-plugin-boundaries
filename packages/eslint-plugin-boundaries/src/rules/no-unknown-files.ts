@@ -1,11 +1,12 @@
-import { SETTINGS } from "../constants/settings";
+import type { Rule } from "eslint";
 
+import { SETTINGS } from "../constants/settings";
 import { fileInfo } from "../core/elementsInfo";
 import { meta } from "../helpers/rules";
 
 const { RULE_NO_UNKNOWN_FILES } = SETTINGS;
 
-export default {
+const noUnknownFilesRule: Rule.RuleModule = {
   ...meta({
     ruleName: RULE_NO_UNKNOWN_FILES,
     description: `Prevent creating files not recognized as any of the element types`,
@@ -26,3 +27,5 @@ export default {
     };
   },
 };
+
+export default noUnknownFilesRule;

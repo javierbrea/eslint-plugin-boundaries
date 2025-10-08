@@ -1,9 +1,10 @@
-const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
+
+const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
 
 const rule = require(`../../../src/rules/${RULE}`).default;
 

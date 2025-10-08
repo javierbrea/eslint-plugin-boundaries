@@ -1,5 +1,4 @@
 import { SETTINGS } from "../constants/settings";
-
 import dependencyRule from "../rules-factories/dependency-rule";
 const { RULE_NO_UNKNOWN } = SETTINGS;
 

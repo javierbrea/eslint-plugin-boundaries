@@ -1,4 +1,3 @@
-const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 import {
   SETTINGS,
   createRuleTester,
@@ -8,6 +7,8 @@ import {
   customErrorMessage,
   elementTypesNoRuleMessage,
 } from "../../support/messages";
+
+const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 
 const rule = require(`../../../src/rules/${RULE}`).default;
 

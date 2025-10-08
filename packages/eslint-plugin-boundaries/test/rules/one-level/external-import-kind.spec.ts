@@ -1,4 +1,3 @@
-const { EXTERNAL: RULE } = require("../../../src/constants/rules");
 import {
   TYPESCRIPT_SETTINGS,
   createRuleTester,
@@ -8,6 +7,8 @@ import {
   customErrorMessage,
   externalNoRuleMessage,
 } from "../../support/messages";
+
+const { EXTERNAL: RULE } = require("../../../src/constants/rules");
 
 const rule = require(`../../../src/rules/${RULE}`).default;
 

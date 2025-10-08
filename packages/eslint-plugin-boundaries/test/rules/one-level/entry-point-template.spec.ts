@@ -1,4 +1,3 @@
-const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
 import {
   SETTINGS,
   createRuleTester,
@@ -8,6 +7,8 @@ import {
   customErrorMessage,
   entryPointNoRuleMessage,
 } from "../../support/messages";
+
+const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
 
 const rule = require(`../../../src/rules/${RULE}`).default;
 

@@ -1,5 +1,5 @@
-import { isString, isArray, replaceObjectValuesInTemplates } from "./utils";
 import { micromatchPatternReplacingObjectsValues } from "./rules";
+import { isString, isArray, replaceObjectValuesInTemplates } from "./utils";
 
 export function quote(str) {
   return `'${str}'`;

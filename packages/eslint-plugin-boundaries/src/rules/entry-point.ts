@@ -1,28 +1,37 @@
+import type { FileInfo, ElementInfo } from "src/core/ElementsInfo.types";
+
+import type {
+  EntryPointRuleOptions,
+  RuleMatcherElementsCapturedValues,
+  RuleResult,
+  CapturedValuesMatcher,
+} from "../constants/Options.types";
+import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
+import type { ImportKind } from "../constants/settings";
 import { SETTINGS } from "../constants/settings";
-
-import dependencyRule from "../rules-factories/dependency-rule";
-
-import { rulesOptionsSchema } from "../helpers/validations";
-import {
-  isMatchElementKey,
-  elementRulesAllowDependency,
-  isMatchImportKind,
-} from "../helpers/rules";
+import type { DependencyInfo } from "../core/DependencyInfo.types";
 import {
   customErrorMessage,
   ruleElementMessage,
   elementMessage,
   dependencyUsageKindMessage,
 } from "../helpers/messages";
+import {
+  isMatchElementKey,
+  elementRulesAllowDependency,
+  isMatchImportKind,
+} from "../helpers/rules";
+import { rulesOptionsSchema } from "../helpers/validations";
+import dependencyRule from "../rules-factories/dependency-rule";
 
 const { RULE_ENTRY_POINT } = SETTINGS;
 
 function isMatchElementInternalPath(
-  elementInfo,
-  matcher,
-  options,
-  elementsCapturedValues,
-  importKind,
+  elementInfo: ElementInfo,
+  matcher: string,
+  options: CapturedValuesMatcher,
+  elementsCapturedValues: RuleMatcherElementsCapturedValues,
+  importKind: ImportKind,
 ) {
   if (!isMatchImportKind(elementInfo, importKind)) {
     return { result: false };
@@ -36,7 +45,11 @@ function isMatchElementInternalPath(
   );
 }
 
-function elementRulesAllowEntryPoint(element, dependency, options) {
+function elementRulesAllowEntryPoint(
+  element: FileInfo,
+  dependency: DependencyInfo,
+  options: EntryPointRuleOptions = {},
+) {
   return elementRulesAllowDependency({
     element,
     dependency,
@@ -46,8 +59,16 @@ function elementRulesAllowEntryPoint(element, dependency, options) {
   });
 }
 
-function errorMessage(ruleData, file, dependency) {
+function errorMessage(
+  ruleData: RuleResult,
+  file: FileInfo,
+  dependency: DependencyInfo,
+) {
   const ruleReport = ruleData.ruleReport;
+  if (!ruleReport) {
+    return `No detailed rule report available. This is likely a bug in ${PLUGIN_NAME}. Please report it at ${PLUGIN_ISSUES_URL}`;
+  }
+
   if (ruleReport.message) {
     return customErrorMessage(ruleReport.message, file, dependency);
   }
@@ -65,7 +86,7 @@ function errorMessage(ruleData, file, dependency) {
   })}. Disallowed in rule ${ruleReport.index + 1}`;
 }
 
-export default dependencyRule(
+export default dependencyRule<EntryPointRuleOptions>(
   {
     ruleName: RULE_ENTRY_POINT,
     description: `Check entry point used for each element type`,
@@ -85,6 +106,7 @@ export default dependencyRule(
     }
   },
   {
+    // TODO: Define main keys in a map
     validateRules: { onlyMainKey: true, mainKey: "target" },
   },
 );

@@ -1,22 +1,32 @@
+import type { FileInfo } from "src/core/ElementsInfo.types";
+
+import type {
+  ElementTypesRuleOptions,
+  RuleResult,
+} from "../constants/Options.types";
+import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
 import { SETTINGS } from "../constants/settings";
-
-import dependencyRule from "../rules-factories/dependency-rule";
-
-import { rulesOptionsSchema } from "../helpers/validations";
-import {
-  isMatchElementType,
-  elementRulesAllowDependency,
-} from "../helpers/rules";
+import type { DependencyInfo } from "../core/DependencyInfo.types";
 import {
   customErrorMessage,
   ruleElementMessage,
   elementMessage,
   dependencyImportKindMessage,
 } from "../helpers/messages";
+import {
+  isMatchElementType,
+  elementRulesAllowDependency,
+} from "../helpers/rules";
+import { rulesOptionsSchema } from "../helpers/validations";
+import dependencyRule from "../rules-factories/dependency-rule";
 
 const { RULE_ELEMENT_TYPES } = SETTINGS;
 
-function elementRulesAllowDependencyType(element, dependency, options) {
+function elementRulesAllowDependencyType(
+  element: FileInfo,
+  dependency: DependencyInfo,
+  options: ElementTypesRuleOptions = {},
+) {
   return elementRulesAllowDependency({
     element,
     dependency,
@@ -25,8 +35,17 @@ function elementRulesAllowDependencyType(element, dependency, options) {
   });
 }
 
-function errorMessage(ruleData, file, dependency) {
+function errorMessage(
+  ruleData: RuleResult,
+  file: FileInfo,
+  dependency: DependencyInfo,
+) {
   const ruleReport = ruleData.ruleReport;
+
+  if (!ruleReport) {
+    return `No detailed rule report available. This is likely a bug in ${PLUGIN_NAME}. Please report it at ${PLUGIN_ISSUES_URL}`;
+  }
+
   if (ruleReport.message) {
     return customErrorMessage(ruleReport.message, file, dependency);
   }
@@ -47,7 +66,7 @@ function errorMessage(ruleData, file, dependency) {
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 }
 
-export default dependencyRule(
+export default dependencyRule<ElementTypesRuleOptions>(
   {
     ruleName: RULE_ELEMENT_TYPES,
     description: `Check allowed dependencies between element types`,
@@ -68,7 +87,7 @@ export default dependencyRule(
       if (!ruleData.result) {
         context.report({
           message: errorMessage(ruleData, file, dependency),
-          node: node,
+          node,
         });
       }
     }

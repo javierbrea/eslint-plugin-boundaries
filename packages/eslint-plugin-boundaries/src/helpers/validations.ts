@@ -1,10 +1,19 @@
+import type { Rule } from "eslint";
 import micromatch from "micromatch";
 
-import { SETTINGS } from "../constants/settings";
+import type { RuleOptionsRules } from "src/constants/Options.types";
 
-import { getElementsTypeNames, isLegacyType } from "./settings";
-import { rulesMainKey } from "./rules";
+import type {
+  DependencyNodeKey,
+  DependencyNodeSelector,
+  PluginSettings,
+} from "../constants/settings";
+import { SETTINGS, SETTINGS_KEYS } from "../constants/settings";
+
 import { warnOnce } from "./debug";
+import type { ValidateRulesOptions } from "./Helpers.types";
+import { rulesMainKey } from "./rules";
+import { getElementsTypeNames, isLegacyType } from "./settings";
 import { isArray, isString, isObject } from "./utils";
 
 const {
@@ -178,7 +187,9 @@ function validateElements(elements) {
   });
 }
 
-function validateDependencyNodes(dependencyNodes) {
+function validateDependencyNodes(
+  dependencyNodes: DependencyNodeKey[] | undefined | unknown,
+): DependencyNodeKey[] | undefined {
   if (!dependencyNodes) {
     return;
   }
@@ -203,9 +214,15 @@ function validateDependencyNodes(dependencyNodes) {
       warnOnce(invalidFormatMessage);
     }
   });
+
+  // TODO: Return only valid values, using a function to validate and type guard
+
+  return dependencyNodes;
 }
 
-function validateAdditionalDependencyNodes(additionalDependencyNodes) {
+function validateAdditionalDependencyNodes(
+  additionalDependencyNodes: DependencyNodeSelector[] | undefined | unknown,
+): DependencyNodeSelector[] | undefined {
   if (!additionalDependencyNodes) {
     return;
   }
@@ -232,6 +249,10 @@ function validateAdditionalDependencyNodes(additionalDependencyNodes) {
       warnOnce(invalidFormatMessage);
     }
   });
+
+  // TODO: Return only valid values, using a function to validate and type guard
+
+  return additionalDependencyNodes;
 }
 
 function deprecateAlias(aliases) {
@@ -250,17 +271,35 @@ function deprecateTypes(types) {
   }
 }
 
-export function validateSettings(settings) {
+export function validateSettings(
+  settings: Rule.RuleContext["settings"],
+): PluginSettings {
   deprecateTypes(settings[TYPES]);
   deprecateAlias(settings[ALIAS]);
   validateElements(settings[ELEMENTS] || settings[TYPES]);
-  validateDependencyNodes(settings[DEPENDENCY_NODES]);
-  validateAdditionalDependencyNodes(settings[ADDITIONAL_DEPENDENCY_NODES]);
+  const dependencyNodes = validateDependencyNodes(settings[DEPENDENCY_NODES]);
+  const additionalDependencyNodes = validateAdditionalDependencyNodes(
+    settings[ADDITIONAL_DEPENDENCY_NODES],
+  );
+
+  return {
+    [SETTINGS_KEYS.ELEMENTS]: settings[SETTINGS_KEYS.ELEMENTS],
+    [SETTINGS_KEYS.IGNORE]: settings[SETTINGS_KEYS.IGNORE],
+    [SETTINGS_KEYS.INCLUDE]: settings[SETTINGS_KEYS.INCLUDE],
+    [SETTINGS_KEYS.ROOT_PATH]: settings[SETTINGS_KEYS.ROOT_PATH],
+    [SETTINGS_KEYS.DEPENDENCY_NODES]: dependencyNodes,
+    [SETTINGS_KEYS.ADDITIONAL_DEPENDENCY_NODES]: additionalDependencyNodes,
+  };
 }
 
-export function validateRules(settings, rules = [], options = {}) {
+export function validateRules(
+  settings: PluginSettings,
+  rules: RuleOptionsRules[] = [],
+  options: ValidateRulesOptions = {},
+) {
   const mainKey = rulesMainKey(options.mainKey);
   rules.forEach((rule) => {
+    //@ts-expect-error TODO: Add a different schema validation for each rule type, so keys are properly validated
     validateElementTypesMatcher([rule[mainKey]], settings);
     if (!options.onlyMainKey) {
       validateElementTypesMatcher(rule.allow, settings);

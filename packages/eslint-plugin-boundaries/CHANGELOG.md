@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## Unreleased
 
+### Added
+
+- feat: Validate nodes. Print a warning in case a dependency node defined selected with the `additional-dependency-nodes` setting is not valid Literal.
+- feat: Add internal validations. Display message with repo issues link when an unexpected situation is found.
+
 ## [5.0.2] - 2025-10-06
 
 ### Changed

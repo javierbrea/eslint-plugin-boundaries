@@ -10,7 +10,7 @@ export function isObject(object) {
   return typeof object === "object" && object !== null && !isArray(object);
 }
 
-export function getArrayOrNull(value) {
+export function getArrayOrNull<T>(value: unknown): T[] | null {
   return isArray(value) ? value : null;
 }
 

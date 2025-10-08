@@ -1,10 +1,11 @@
-const { EXTERNAL: RULE } = require("../../../src/constants/rules");
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
 import { externalNoRuleMessage } from "../../support/messages";
+
+const { EXTERNAL: RULE } = require("../../../src/constants/rules");
 
 const rule = require(`../../../src/rules/${RULE}`).default;
 

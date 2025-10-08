@@ -1,32 +1,40 @@
 import chalk from "chalk";
 
 import { PLUGIN_NAME } from "../constants/plugin";
+import type { FileInfo, ImportInfo } from "../core/ElementsInfo.types";
+
 import { isDebugModeEnabled } from "./settings";
 
-const warns = [];
-const debuggedFiles = [];
+const warns: string[] = [];
+const debuggedFiles: string[] = [];
 
-function trace(message, color) {
+// TODO: Create a mapping of colors to use
+type TraceColor = "gray" | "green" | "yellow";
+
+// TODO: Define valid colors for trace
+function trace(message: string, color: TraceColor) {
   // eslint-disable-next-line no-console
   console.log(chalk[color](`[${PLUGIN_NAME}]: ${message}`));
 }
 
-function warn(message) {
+function warn(message: string) {
   trace(message, "yellow");
 }
 
-export function success(message) {
+export function success(message: string) {
   trace(message, "green");
 }
 
-export function warnOnce(message) {
+export function warnOnce(message: string) {
   if (!warns.includes(message)) {
     warns.push(message);
     warn(message);
   }
 }
 
-export function debugFileInfo(fileInfo) {
+// TODO: Add type guard to know if it's FileInfo or ImportInfo
+
+export function debugFileInfo(fileInfo: FileInfo | ImportInfo) {
   const fileInfoKey = fileInfo.path || fileInfo.source;
   if (isDebugModeEnabled() && !debuggedFiles.includes(fileInfoKey)) {
     debuggedFiles.push(fileInfoKey);

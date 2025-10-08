@@ -1,13 +1,16 @@
 import mod from "module";
-import micromatch from "micromatch";
+
+import type { Rule } from "eslint";
 import resolve from "eslint-module-utils/resolve";
+import micromatch from "micromatch";
 
 import { SETTINGS } from "../constants/settings";
-import { getElements, getRootPath } from "../helpers/settings";
 import { debugFileInfo } from "../helpers/debug";
+import { getElements, getRootPath } from "../helpers/settings";
 import { isArray } from "../helpers/utils";
 
 import { filesCache, importsCache, elementsCache } from "./cache";
+import type { FileInfo, ImportInfo, ElementInfo } from "./ElementsInfo.types";
 
 const { IGNORE, INCLUDE, VALID_MODES } = SETTINGS;
 
@@ -96,7 +99,7 @@ function getElementPath(pattern, pathSegmentsMatching, fullPath) {
 
 function elementTypeAndParents(path, settings) {
   const parents = [];
-  const elementResult = {
+  const elementResult: ElementInfo = {
     type: null,
     elementPath: null,
     capture: null,
@@ -223,7 +226,10 @@ function externalModulePath(source, baseModuleValue) {
   return source.replace(baseModuleValue, "");
 }
 
-export function importInfo(source, context) {
+export function importInfo(
+  source: string,
+  context: Rule.RuleContext,
+): ImportInfo {
   const path = projectPath(
     resolve(source, context),
     getRootPath(context.settings),
@@ -273,7 +279,7 @@ export function importInfo(source, context) {
   return result;
 }
 
-export function fileInfo(context) {
+export function fileInfo(context: Rule.RuleContext): FileInfo {
   const path = projectPath(
     context.getFilename(),
     getRootPath(context.settings),

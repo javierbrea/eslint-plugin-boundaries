@@ -1,9 +1,10 @@
-const { ELEMENT_TYPES: RULE } = require("../../../dist/constants/rules");
 import { createRuleTester, pathResolvers } from "../../support/helpers";
 import {
   customErrorMessage,
   elementTypesNoRuleMessage,
 } from "../../support/messages";
+
+const { ELEMENT_TYPES: RULE } = require("../../../dist/constants/rules");
 
 const rule = require(`../../../dist/rules/${RULE}`).default;
 

@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/extensions
 const eslintPluginBoundaries = require("./dist/index.js");
 
 module.exports = Object.keys(eslintPluginBoundaries.rules).reduce(

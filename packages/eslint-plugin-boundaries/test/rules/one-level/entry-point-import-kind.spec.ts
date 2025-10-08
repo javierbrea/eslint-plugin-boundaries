@@ -1,10 +1,11 @@
-const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
 import {
   TYPESCRIPT_SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
 import { customErrorMessage } from "../../support/messages";
+
+const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
 
 const rule = require(`../../../src/rules/${RULE}`).default;
 

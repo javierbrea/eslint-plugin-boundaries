@@ -47,6 +47,7 @@
     "node": ">=18.18"
   },
   "devDependencies": {
-    "@types/micromatch": "^4.0.9"
+    "@types/estree": "1.0.8",
+    "@types/micromatch": "4.0.9"
   }
 }
