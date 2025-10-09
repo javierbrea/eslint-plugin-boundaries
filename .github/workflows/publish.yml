@@ -6,7 +6,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: ./.github/actions/install
     - run: pnpm nx run-many -t check:all --all
     - run: pnpm -r publish --no-git-checks
