@@ -4,17 +4,24 @@ import type { Rule } from "eslint";
 import resolve from "eslint-module-utils/resolve";
 import micromatch from "micromatch";
 
+import type {
+  CapturedValues,
+  CapturedValuesMatcher,
+} from "src/constants/Options.types";
+
+import type { PluginSettings } from "../constants/settings";
 import { SETTINGS } from "../constants/settings";
 import { debugFileInfo } from "../helpers/debug";
 import { getElements, getRootPath } from "../helpers/settings";
 import { isArray } from "../helpers/utils";
 
 import { filesCache, importsCache, elementsCache } from "./cache";
-import type { FileInfo, ImportInfo, ElementInfo } from "./ElementsInfo.types";
+import type { DependencyInfo } from "./DependencyInfo.types";
+import type { FileInfo, ElementInfo } from "./ElementsInfo.types";
 
 const { IGNORE, INCLUDE, VALID_MODES } = SETTINGS;
 
-function isCoreModule(moduleName) {
+function isCoreModule(moduleName: string) {
   const moduleNameWithoutPrefix = moduleName.startsWith("node:")
     ? moduleName.slice(5)
     : moduleName;
@@ -22,7 +29,7 @@ function isCoreModule(moduleName) {
   return mod.builtinModules.includes(moduleNameWithoutPrefix);
 }
 
-function baseModule(name) {
+function baseModule(name: string) {
   if (isScoped(name)) {
     const [scope, packageName] = name.split("/");
     return `${scope}/${packageName}`;
@@ -31,11 +38,11 @@ function baseModule(name) {
   return pkg;
 }
 
-function matchesIgnoreSetting(path, settings) {
+function matchesIgnoreSetting(path: string, settings: PluginSettings) {
   return micromatch.isMatch(path, settings[IGNORE] || []);
 }
 
-function isIgnored(path, settings) {
+function isIgnored(path: string | undefined, settings: PluginSettings) {
   if (!path) {
     return true;
   }
@@ -48,27 +55,30 @@ function isIgnored(path, settings) {
   return matchesIgnoreSetting(path, settings);
 }
 
-function isBuiltIn(name, path) {
+function isBuiltIn(name: string | undefined, path: string | undefined) {
   if (path || !name) return false;
   const base = baseModule(name);
   return isCoreModule(base);
 }
 
 const scopedRegExp = /^@[^/]*\/?[^/]+/;
-function isScoped(name) {
+function isScoped(name: string | undefined) {
   return name && scopedRegExp.test(name);
 }
 
 const externalModuleRegExp = /^\w/;
 
-function isExternal(name, path) {
+function isExternal(name: string, path: string | undefined) {
   return (
     (!path || (!!path && path.includes("node_modules"))) &&
     (externalModuleRegExp.test(name) || isScoped(name))
   );
 }
 
-function elementCaptureValues(capture, captureSettings) {
+function elementCaptureValues(
+  capture: string[],
+  captureSettings: CapturedValuesMatcher | undefined,
+): CapturedValues | null {
   if (!captureSettings) {
     return null;
   }
@@ -77,14 +87,18 @@ function elementCaptureValues(capture, captureSettings) {
       captureValues[captureSettings[index]] = captureValue;
     }
     return captureValues;
-  }, {});
+  }, {} as CapturedValues);
 }
 
-function getElementPath(pattern, pathSegmentsMatching, fullPath) {
+function getElementPath(
+  pattern: string,
+  pathSegmentsMatching: string[],
+  fullPath: string[],
+) {
   // Get full left side of the path matching pattern (full element path except internal files)
   const elementPathRegexp = micromatch.makeRe(pattern);
-  const testedSegments = [];
-  let result;
+  const testedSegments: string[] = [];
+  let result: string | undefined;
   pathSegmentsMatching.forEach((pathSegment) => {
     if (!result) {
       testedSegments.push(pathSegment);
@@ -94,11 +108,16 @@ function getElementPath(pattern, pathSegmentsMatching, fullPath) {
       }
     }
   });
-  return `${[...fullPath].reverse().join("/").split(result)[0]}${result}`;
+  return `${
+    [...fullPath]
+      .reverse()
+      .join("/")
+      .split(result)[0]
+  }${result}`;
 }
 
-function elementTypeAndParents(path, settings) {
-  const parents = [];
+function elementTypeAndParents(path: string, settings: PluginSettings) {
+  const parents: ElementInfo[] = [];
   const elementResult: ElementInfo = {
     type: null,
     elementPath: null,
@@ -209,11 +228,14 @@ function elementTypeAndParents(path, settings) {
   };
 }
 
-function replacePathSlashes(absolutePath) {
+function replacePathSlashes(absolutePath: string) {
   return absolutePath.replace(/\\/g, "/");
 }
 
-function projectPath(absolutePath, rootPath) {
+function projectPath(
+  absolutePath: string | undefined | null,
+  rootPath: string,
+) {
   if (absolutePath) {
     return replacePathSlashes(absolutePath).replace(
       `${replacePathSlashes(rootPath)}/`,
@@ -222,29 +244,33 @@ function projectPath(absolutePath, rootPath) {
   }
 }
 
-function externalModulePath(source, baseModuleValue) {
+function externalModulePath(source: string, baseModuleValue: string | null) {
+  if (!baseModuleValue) {
+    return source;
+  }
   return source.replace(baseModuleValue, "");
 }
 
 export function importInfo(
   source: string,
   context: Rule.RuleContext,
-): ImportInfo {
+): DependencyInfo {
   const path = projectPath(
     resolve(source, context),
     getRootPath(context.settings),
   );
   const isExternalModule = isExternal(source, path);
+  // TODO: Define types for the cache storage
   const resultCache = importsCache.load(
     isExternalModule ? source : path,
     context.settings,
   );
   let elementCache;
-  let result;
+  let result: DependencyInfo;
   let elementResult;
 
   if (resultCache) {
-    result = resultCache;
+    result = resultCache as DependencyInfo;
   } else {
     elementCache = elementsCache.load(path, context.settings);
     const baseModuleValue = isExternalModule ? baseModule(source) : null;
@@ -286,10 +312,10 @@ export function fileInfo(context: Rule.RuleContext): FileInfo {
   );
   const resultCache = filesCache.load(path, context.settings);
   let elementCache;
-  let result;
+  let result: FileInfo;
   let elementResult;
   if (resultCache) {
-    result = resultCache;
+    result = resultCache as FileInfo;
   } else {
     elementCache = elementsCache.load(path, context.settings);
     if (elementCache) {

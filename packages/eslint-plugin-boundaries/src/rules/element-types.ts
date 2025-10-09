@@ -1,5 +1,3 @@
-import type { FileInfo } from "src/core/ElementsInfo.types";
-
 import type {
   ElementTypesRuleOptions,
   RuleResult,
@@ -7,6 +5,7 @@ import type {
 import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
 import { SETTINGS } from "../constants/settings";
 import type { DependencyInfo } from "../core/DependencyInfo.types";
+import type { FileInfo } from "../core/ElementsInfo.types";
 import {
   customErrorMessage,
   ruleElementMessage,

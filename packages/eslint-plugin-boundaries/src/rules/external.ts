@@ -2,8 +2,6 @@ import type { Rule } from "eslint";
 import type { Identifier, ImportSpecifier } from "estree";
 import micromatch from "micromatch";
 
-import type { FileInfo } from "src/core/ElementsInfo.types";
-
 import type {
   ExternalRuleOptions,
   RuleMatcherElementsCapturedValues,
@@ -15,6 +13,7 @@ import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
 import type { ImportKind } from "../constants/settings";
 import { SETTINGS } from "../constants/settings";
 import type { DependencyInfo } from "../core/DependencyInfo.types";
+import type { FileInfo } from "../core/ElementsInfo.types";
 import {
   customErrorMessage,
   ruleElementMessage,

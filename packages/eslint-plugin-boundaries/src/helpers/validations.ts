@@ -7,8 +7,7 @@ import type {
   ExternalLibraryMatcher,
   ExternalLibraryMatchers,
   RuleOptionsRules,
-} from "src/constants/Options.types";
-
+} from "../constants/Options.types";
 import type {
   DependencyNodeKey,
   DependencyNodeSelector,

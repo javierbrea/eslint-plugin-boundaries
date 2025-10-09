@@ -1,3 +1,6 @@
+import type { DependencyInfo } from "../core/DependencyInfo.types";
+import type { FileInfo, ElementInfo } from "../core/ElementsInfo.types";
+
 export function isString(object: unknown): object is string {
   return typeof object === "string";
 }
@@ -58,4 +61,13 @@ export function replaceObjectValuesInTemplate(
   namespace?: string | null,
 ): string {
   return replaceObjectValuesInTemplates(template, object, namespace) as string;
+}
+
+export function isDependencyInfo(
+  elementInfo: ElementInfo | FileInfo | DependencyInfo,
+): elementInfo is DependencyInfo {
+  return (
+    (elementInfo as DependencyInfo).importKind !== undefined ||
+    (elementInfo as DependencyInfo).source !== undefined
+  );
 }

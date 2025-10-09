@@ -50,8 +50,8 @@ export type RuleReport = {
   message?: string;
   isDefault?: boolean;
   importKind?: ImportKind;
-  disallow?: ElementMatchers | ExternalLibraryMatchers;
-  element: ElementMatchers | FileInfo | DependencyInfo;
+  disallow?: ElementMatchers;
+  element: ElementMatchers;
   index: number;
 };
 

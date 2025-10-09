@@ -4,6 +4,7 @@ import { PLUGIN_NAME } from "../constants/plugin";
 import type { FileInfo, ImportInfo } from "../core/ElementsInfo.types";
 
 import { isDebugModeEnabled } from "./settings";
+import { isDependencyInfo } from "./utils";
 
 const warns: string[] = [];
 const debuggedFiles: string[] = [];
@@ -32,10 +33,9 @@ export function warnOnce(message: string) {
   }
 }
 
-// TODO: Add type guard to know if it's FileInfo or ImportInfo
-
 export function debugFileInfo(fileInfo: FileInfo | ImportInfo) {
-  const fileInfoKey = fileInfo.path || fileInfo.source;
+  const fileInfoKey =
+    fileInfo.path || (isDependencyInfo(fileInfo) ? fileInfo.source : "");
   if (isDebugModeEnabled() && !debuggedFiles.includes(fileInfoKey)) {
     debuggedFiles.push(fileInfoKey);
     if (fileInfo.type) {

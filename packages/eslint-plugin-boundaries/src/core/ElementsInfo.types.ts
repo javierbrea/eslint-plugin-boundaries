@@ -1,5 +1,3 @@
-import type { Rule } from "eslint";
-
 import type { CapturedValues } from "../constants/Options.types";
 
 export type PathCapturedValues = string[];
@@ -15,7 +13,6 @@ export type ElementInfo = {
 
 export type ImportInfo = {
   source: string;
-  context: Rule.RuleContext;
   path: string;
   isIgnored: boolean;
   isLocal: boolean;

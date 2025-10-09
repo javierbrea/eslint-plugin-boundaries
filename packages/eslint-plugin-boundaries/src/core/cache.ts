@@ -1,15 +1,25 @@
+import type { PluginSettings } from "../constants/settings";
+
 class CacheManager {
-  constructor(name, settings) {
+  private _cache: Record<string, unknown>;
+  private _name: string;
+  private _settings: PluginSettings;
+
+  constructor(name: string, settings: PluginSettings) {
     this._cache = {};
     this._name = name;
     this._settings = settings;
   }
 
-  save(key, value) {
+  public get settings() {
+    return this._settings;
+  }
+
+  save(key: string, value: unknown) {
     this._cache[key] = value;
   }
 
-  load(key) {
+  load(key: string) {
     if (this._cache[key]) {
       return this._cache[key];
     }
@@ -19,14 +29,16 @@ class CacheManager {
 }
 
 class CachesManager {
-  constructor(name) {
+  private _name: string;
+  private _caches: CacheManager[];
+  constructor(name: string) {
     this._name = name;
     this._caches = [];
   }
 
-  findCacheForSettings(settings) {
+  findCacheForSettings(settings: PluginSettings) {
     let cache = this._caches.find((cacheCandidate) => {
-      return cacheCandidate._settings === settings;
+      return cacheCandidate.settings === settings;
     });
     if (!cache) {
       cache = new CacheManager(this._name, settings);
@@ -35,12 +47,12 @@ class CachesManager {
     return cache;
   }
 
-  save(key, value, settings) {
+  save(key: string, value: unknown, settings: PluginSettings) {
     const cache = this.findCacheForSettings(settings);
     cache.save(key, value);
   }
 
-  load(key, settings) {
+  load(key: string, settings: PluginSettings) {
     const cache = this.findCacheForSettings(settings);
     return cache.load(key);
   }

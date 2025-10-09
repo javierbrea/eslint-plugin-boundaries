@@ -1,15 +1,30 @@
-import { micromatchPatternReplacingObjectsValues } from "./rules";
-import { isString, isArray, replaceObjectValuesInTemplate } from "./utils";
+import type {
+  CapturedValues,
+  ElementMatcher,
+  ElementMatchers,
+  CapturedValuesMatcher,
+} from "../constants/Options.types";
+import type { ImportKind } from "../constants/settings";
+import type { DependencyInfo } from "../core/DependencyInfo.types";
+import type { ElementInfo, FileInfo } from "../core/ElementsInfo.types";
 
-export function quote(str) {
-  return `'${str}'`;
+import { micromatchPatternReplacingObjectsValues } from "./rules";
+import {
+  isDependencyInfo,
+  isString,
+  isArray,
+  replaceObjectValuesInTemplate,
+} from "./utils";
+
+export function quote(str: string | undefined | null) {
+  return `'${str || ""}'`;
 }
 
-function typeMessage(elementMatcher) {
+function typeMessage(elementMatcher: string) {
   return `elements of type ${quote(elementMatcher)}`;
 }
 
-function propertiesConcatenator(properties, index) {
+function propertiesConcatenator(properties: string[], index: number) {
   if (properties.length > 1 && index === properties.length - 1) {
     return " and";
   }
@@ -19,7 +34,10 @@ function propertiesConcatenator(properties, index) {
   return ",";
 }
 
-function micromatchPatternMessage(micromatchPatterns, elementCapturedValues) {
+function micromatchPatternMessage(
+  micromatchPatterns: string | undefined,
+  elementCapturedValues: CapturedValues,
+) {
   const micromatchPatternsWithValues = micromatchPatternReplacingObjectsValues(
     micromatchPatterns,
     { from: elementCapturedValues },
@@ -45,13 +63,13 @@ function micromatchPatternMessage(micromatchPatterns, elementCapturedValues) {
 }
 
 function capturedValuesMatcherMessage(
-  capturedValuesPattern,
-  elementCapturedValues,
+  capturedValuesPattern: CapturedValuesMatcher | undefined,
+  elementCapturedValues: CapturedValues,
 ) {
-  const capturedValuesPatternKeys = Object.keys(capturedValuesPattern);
+  const capturedValuesPatternKeys = Object.keys(capturedValuesPattern || {});
   return capturedValuesPatternKeys
     .map((key) => {
-      return [key, capturedValuesPattern[key]];
+      return [key, capturedValuesPattern?.[key]];
     })
     .reduce((message, propertyNameAndMatcher, index) => {
       return `${message}${propertiesConcatenator(capturedValuesPatternKeys, index)} ${
@@ -60,17 +78,26 @@ function capturedValuesMatcherMessage(
     }, "");
 }
 
-function elementMatcherMessage(elementMatcher, elementCapturedValues) {
+function elementMatcherMessage(
+  elementMatcher: ElementMatcher | CapturedValuesMatcher | undefined,
+  elementCapturedValues: CapturedValues,
+) {
+  if (!elementMatcher) {
+    return "";
+  }
   if (isString(elementMatcher)) {
     return typeMessage(elementMatcher);
   }
   return `${typeMessage(elementMatcher[0])}${capturedValuesMatcherMessage(
-    elementMatcher[1],
+    elementMatcher[1] as CapturedValuesMatcher,
     elementCapturedValues,
   )}`;
 }
 
-export function ruleElementMessage(elementPatterns, elementCapturedValues) {
+export function ruleElementMessage(
+  elementPatterns: ElementMatchers | undefined,
+  elementCapturedValues: CapturedValues,
+) {
   if (isArray(elementPatterns)) {
     if (elementPatterns.length === 1) {
       return elementMatcherMessage(elementPatterns[0], elementCapturedValues);
@@ -85,17 +112,31 @@ export function ruleElementMessage(elementPatterns, elementCapturedValues) {
   return elementMatcherMessage(elementPatterns, elementCapturedValues);
 }
 
-function elementPropertiesToReplaceInTemplate(element) {
+function elementPropertiesToReplaceInTemplate(
+  element: ElementInfo | FileInfo | DependencyInfo,
+) {
+  if (isDependencyInfo(element)) {
+    return {
+      ...element.capturedValues,
+      type: element.type || "",
+      internalPath: element.internalPath || "",
+      source: element.source || "",
+      importKind: element.importKind || "",
+    };
+  }
   return {
     ...element.capturedValues,
-    type: element.type,
-    internalPath: element.internalPath,
-    source: element.source,
-    importKind: element.importKind,
+    type: element.type || "",
+    internalPath: element.internalPath || "",
   };
 }
 
-export function customErrorMessage(message, file, dependency, report = {}) {
+export function customErrorMessage(
+  message: string,
+  file: FileInfo,
+  dependency: DependencyInfo,
+  report = {},
+) {
   let replacedMessage = replaceObjectValuesInTemplate(
     replaceObjectValuesInTemplate(
       message,
@@ -141,7 +182,7 @@ export function customErrorMessage(message, file, dependency, report = {}) {
   return replaceObjectValuesInTemplate(replacedMessage, report, "report");
 }
 
-function elementCapturedValuesMessage(capturedValues) {
+function elementCapturedValuesMessage(capturedValues: CapturedValues) {
   if (!capturedValues) {
     return "";
   }
@@ -157,17 +198,23 @@ function elementCapturedValuesMessage(capturedValues) {
     }, "");
 }
 
-export function elementMessage(elementInfo) {
+export function elementMessage(elementInfo: ElementInfo) {
   return `of type ${quote(elementInfo.type)}${elementCapturedValuesMessage(
     elementInfo.capturedValues,
   )}`;
 }
 
-function hasToPrintKindMessage(ruleImportKind, dependencyInfo) {
+function hasToPrintKindMessage(
+  ruleImportKind: ImportKind | undefined,
+  dependencyInfo: DependencyInfo,
+) {
   return ruleImportKind && dependencyInfo.importKind;
 }
 
-export function dependencyImportKindMessage(ruleImportKind, dependencyInfo) {
+export function dependencyImportKindMessage(
+  ruleImportKind: ImportKind | undefined,
+  dependencyInfo: DependencyInfo,
+) {
   if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
     return `kind ${quote(dependencyInfo.importKind)} from `;
   }
@@ -175,9 +222,15 @@ export function dependencyImportKindMessage(ruleImportKind, dependencyInfo) {
 }
 
 export function dependencyUsageKindMessage(
-  ruleImportKind,
-  dependencyInfo,
-  { suffix = " ", prefix = "" } = {},
+  ruleImportKind: ImportKind | undefined,
+  dependencyInfo: DependencyInfo,
+  {
+    suffix = " ",
+    prefix = "",
+  }: {
+    suffix?: string;
+    prefix?: string;
+  } = {},
 ) {
   if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
     return `${prefix}${dependencyInfo.importKind}${suffix}`;

@@ -25,7 +25,11 @@ import type { FileInfo } from "../core/ElementsInfo.types";
 
 import type { RuleMainKey } from "./Helpers.types";
 import type { RuleMetaDefinition } from "./Rules.types";
-import { isArray, replaceObjectValuesInTemplates } from "./utils";
+import {
+  isArray,
+  replaceObjectValuesInTemplates,
+  isDependencyInfo,
+} from "./utils";
 
 const FROM = "from";
 
@@ -71,10 +75,13 @@ export function meta({
 }
 
 export function micromatchPatternReplacingObjectsValues(
-  pattern: string,
-  object: RuleMatcherElementsCapturedValues,
+  pattern: string | string[] | undefined,
+  object: Partial<RuleMatcherElementsCapturedValues>,
 ) {
   let patternToReplace = pattern;
+  if (!patternToReplace) {
+    return "";
+  }
   // Backward compatibility. Possibly unused, because the value is already replaced in the next step.
   // For the moment, keep it to avoid unexpected issues until the oncoming refactor.
   if (object.from) {
@@ -89,7 +96,7 @@ export function micromatchPatternReplacingObjectsValues(
     }
     return replaceObjectValuesInTemplates(
       replacedPattern,
-      object[namespace as keyof typeof object],
+      object[namespace as keyof typeof object] || {},
       namespace,
     ) as string;
   }, patternToReplace);
@@ -197,12 +204,6 @@ export function isMatchElementKey(
     report: null,
     ruleReport: null,
   };
-}
-
-export function isDependencyInfo(
-  elementInfo: FileInfo | DependencyInfo,
-): elementInfo is DependencyInfo {
-  return (elementInfo as DependencyInfo).importKind !== undefined;
 }
 
 export function isMatchImportKind(
@@ -327,6 +328,7 @@ export function elementRulesAllowDependency<
     mainKey,
   );
 
+  // @ts-expect-error TODO: Improve typing, and probably split this logic. One for each type of rule, so types are not mixed
   const [result, report, ruleReport] = elementRules.reduce((allowed, rule) => {
     if (rule.disallow) {
       const match = ruleMatch<FileOrDependencyInfo, RuleMatchers>(
