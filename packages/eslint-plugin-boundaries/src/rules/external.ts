@@ -102,17 +102,17 @@ function pathMatch(
 
 function isMatchExternalDependency(
   dependency: DependencyInfo,
-  matcher: string | string[],
+  matcher: string,
   options: ExternalLibraryDetailsMatcher,
   elementsCapturedValues: RuleMatcherElementsCapturedValues,
-  importKind: ImportKind,
-) {
+  importKind?: ImportKind,
+): RuleResult {
   const matcherWithTemplatesReplaced = micromatchPatternReplacingObjectsValues(
     matcher,
     elementsCapturedValues,
   );
   if (!isMatchImportKind(dependency, importKind)) {
-    return { result: false };
+    return { result: false, report: null, ruleReport: null };
   }
   const isMatch = dependency.baseModule
     ? micromatch.isMatch(dependency.baseModule, matcherWithTemplatesReplaced)
@@ -132,6 +132,7 @@ function isMatchExternalDependency(
         report: {
           specifiers: specifiersResult,
         },
+        ruleReport: null,
       };
     }
     return {
@@ -139,10 +140,13 @@ function isMatchExternalDependency(
       report: {
         path: dependency.path,
       },
+      ruleReport: null,
     };
   }
   return {
     result: isMatch,
+    report: null,
+    ruleReport: null,
   };
 }
 

@@ -1,4 +1,4 @@
-import type { FileInfo, ElementInfo } from "src/core/ElementsInfo.types";
+import type { FileInfo } from "src/core/ElementsInfo.types";
 
 import type {
   EntryPointRuleOptions,
@@ -27,14 +27,14 @@ import dependencyRule from "../rules-factories/dependency-rule";
 const { RULE_ENTRY_POINT } = SETTINGS;
 
 function isMatchElementInternalPath(
-  elementInfo: ElementInfo,
+  elementInfo: FileInfo | DependencyInfo,
   matcher: string,
   options: CapturedValuesMatcher,
   elementsCapturedValues: RuleMatcherElementsCapturedValues,
-  importKind: ImportKind,
-) {
+  importKind?: ImportKind,
+): RuleResult {
   if (!isMatchImportKind(elementInfo, importKind)) {
-    return { result: false };
+    return { result: false, report: null, ruleReport: null };
   }
   return isMatchElementKey(
     elementInfo,

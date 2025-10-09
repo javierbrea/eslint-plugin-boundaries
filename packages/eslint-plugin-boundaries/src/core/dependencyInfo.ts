@@ -76,7 +76,7 @@ function dependencyRelationship(dependency, element) {
 
 export function dependencyInfo(
   source: string,
-  importKind: ImportKind | null,
+  importKind: ImportKind,
   context: Rule.RuleContext,
 ): DependencyInfo {
   const elementInfo = fileInfo(context);

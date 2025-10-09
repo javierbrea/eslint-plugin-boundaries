@@ -7,9 +7,19 @@ import type {
   RuleOptionsWithRules,
   CapturedValuesMatcher,
   ExternalLibraryDetailsMatcher,
+  ExternalRule,
+  EntryPointRule,
+  ElementTypesRule,
+  RuleMatcherElementsCapturedValues,
+  ElementMatchers,
+  RuleReport,
+  ExternalLibraryMatchers,
+  CapturedValues,
+  RuleResultReport,
 } from "../constants/Options.types";
 import { PLUGIN_NAME, REPO_URL } from "../constants/plugin";
 import type { RuleName } from "../constants/rules";
+import type { ImportKind } from "../constants/settings";
 import type { DependencyInfo } from "../core/DependencyInfo.types";
 import type { FileInfo } from "../core/ElementsInfo.types";
 
@@ -60,42 +70,49 @@ export function meta({
   };
 }
 
-export function micromatchPatternReplacingObjectsValues(pattern, object) {
+export function micromatchPatternReplacingObjectsValues(
+  pattern: string,
+  object: RuleMatcherElementsCapturedValues,
+) {
   let patternToReplace = pattern;
-  // Backward compatibility
+  // Backward compatibility. Possibly unused, because the value is already replaced in the next step.
+  // For the moment, keep it to avoid unexpected issues until the oncoming refactor.
   if (object.from) {
     patternToReplace = replaceObjectValuesInTemplates(
       patternToReplace,
       object.from,
-    );
+    ) as string;
   }
   return Object.keys(object).reduce((replacedPattern, namespace) => {
-    if (!object[namespace]) {
+    if (!object[namespace as keyof typeof object]) {
       return replacedPattern;
     }
     return replaceObjectValuesInTemplates(
       replacedPattern,
-      object[namespace],
+      object[namespace as keyof typeof object],
       namespace,
-    );
+    ) as string;
   }, patternToReplace);
 }
 
 export function isObjectMatch(
-  objectWithMatchers,
-  object,
-  objectsWithValuesToReplace,
+  objectWithMatchers: CapturedValuesMatcher | ExternalLibraryDetailsMatcher,
+  object: CapturedValues,
+  objectsWithValuesToReplace: RuleMatcherElementsCapturedValues,
 ) {
   return Object.keys(objectWithMatchers).reduce((isMatch, key) => {
     if (isMatch) {
-      if (!object || !object[key]) {
+      if (!object || !object[key as keyof typeof object]) {
         return false;
       }
       const micromatchPattern = micromatchPatternReplacingObjectsValues(
-        objectWithMatchers[key],
+        objectWithMatchers[key as keyof typeof objectWithMatchers] as string,
         objectsWithValuesToReplace,
       );
-      return micromatch.isMatch(object[key], micromatchPattern);
+      return micromatch.isMatch(
+        object[key as keyof typeof object],
+        micromatchPattern,
+      );
     }
     return isMatch;
   }, true);
@@ -105,23 +122,28 @@ export function rulesMainKey(key: RuleMainKey = FROM) {
   return key;
 }
 
-function ruleMatch(
-  ruleMatchers,
-  targetElement,
-  isMatch,
-  fromElement,
-  importKind,
-) {
-  let match = { result: false, report: null };
+function ruleMatch<
+  FileOrDependencyInfo extends FileInfo | DependencyInfo = FileInfo,
+  RuleMatchers extends
+    | CapturedValuesMatcher
+    | ExternalLibraryDetailsMatcher = CapturedValuesMatcher,
+>(
+  ruleMatchers: ElementMatchers | ExternalLibraryMatchers,
+  targetElement: FileInfo | DependencyInfo,
+  isMatch: RuleMatcher<FileOrDependencyInfo, RuleMatchers>,
+  fromElement: FileInfo,
+  importKind?: ImportKind,
+): RuleResult {
+  let match: RuleResult = { result: false, report: null, ruleReport: null };
   const matchers = !isArray(ruleMatchers) ? [ruleMatchers] : ruleMatchers;
   matchers.forEach((matcher) => {
     if (!match.result) {
       if (isArray(matcher)) {
         const [value, captures] = matcher;
         match = isMatch(
-          targetElement,
+          targetElement as FileOrDependencyInfo,
           value,
-          captures,
+          captures as RuleMatchers,
           {
             from: fromElement.capturedValues,
             target: targetElement.capturedValues,
@@ -130,9 +152,9 @@ function ruleMatch(
         );
       } else {
         match = isMatch(
-          targetElement,
-          matcher,
-          {},
+          targetElement as FileOrDependencyInfo,
+          matcher as string,
+          {} as RuleMatchers,
           {
             from: fromElement.capturedValues,
             target: targetElement.capturedValues,
@@ -146,14 +168,14 @@ function ruleMatch(
 }
 
 export function isMatchElementKey(
-  elementInfo,
-  matcher,
-  options,
-  elementKey: keyof FileInfo,
-  elementsToCompareCapturedValues,
+  elementInfo: FileInfo | DependencyInfo,
+  matcher: string,
+  options: CapturedValuesMatcher | ExternalLibraryDetailsMatcher,
+  elementKey: keyof FileInfo | keyof DependencyInfo,
+  elementsToCompareCapturedValues: RuleMatcherElementsCapturedValues,
 ) {
   const isMatch = micromatch.isMatch(
-    elementInfo[elementKey],
+    elementInfo[elementKey as keyof typeof elementInfo] as string,
     micromatchPatternReplacingObjectsValues(
       matcher,
       elementsToCompareCapturedValues,
@@ -166,29 +188,42 @@ export function isMatchElementKey(
         elementInfo.capturedValues,
         elementsToCompareCapturedValues,
       ),
+      report: null,
+      ruleReport: null,
     };
   }
   return {
     result: isMatch,
+    report: null,
+    ruleReport: null,
   };
 }
 
-export function isMatchImportKind(elementInfo, importKind) {
-  if (!elementInfo.importKind || !importKind) {
+export function isDependencyInfo(
+  elementInfo: FileInfo | DependencyInfo,
+): elementInfo is DependencyInfo {
+  return (elementInfo as DependencyInfo).importKind !== undefined;
+}
+
+export function isMatchImportKind(
+  elementInfo: DependencyInfo | FileInfo,
+  importKind?: ImportKind,
+) {
+  if (!isDependencyInfo(elementInfo) || !importKind) {
     return true;
   }
   return micromatch.isMatch(elementInfo.importKind, importKind);
 }
 
 export function isMatchElementType(
-  elementInfo,
-  matcher,
-  options,
-  elementsToCompareCapturedValues,
-  importKind,
+  elementInfo: FileInfo,
+  matcher: string,
+  options: CapturedValuesMatcher | ExternalLibraryDetailsMatcher,
+  elementsToCompareCapturedValues: RuleMatcherElementsCapturedValues,
+  importKind?: ImportKind,
 ) {
   if (!isMatchImportKind(elementInfo, importKind)) {
-    return { result: false };
+    return { result: false, report: null, ruleReport: null };
   }
   return isMatchElementKey(
     elementInfo,
@@ -199,12 +234,17 @@ export function isMatchElementType(
   );
 }
 
-export function getElementRules(
-  targetElement,
-  options,
-  mainKey: RuleMainKey,
-  fromElement,
-) {
+export function getElementRules<
+  FileOrDependencyInfo extends FileInfo | DependencyInfo = FileInfo,
+  RuleMatchers extends
+    | CapturedValuesMatcher
+    | ExternalLibraryDetailsMatcher = CapturedValuesMatcher,
+>(
+  targetElement: FileInfo | DependencyInfo,
+  options: RuleOptionsWithRules,
+  fromElement: FileInfo | DependencyInfo,
+  mainKey?: RuleMainKey,
+): ((ExternalRule | EntryPointRule | ElementTypesRule) & { index: number })[] {
   if (!options.rules) {
     return [];
   }
@@ -217,20 +257,27 @@ export function getElementRules(
       };
     })
     .filter((rule) => {
-      return ruleMatch(
-        rule[key],
+      return ruleMatch<FileOrDependencyInfo, RuleMatchers>(
+        // TODO: Improve typing, so TypeScript can determine the type of the rule, and if the key is valid
+        rule[key as keyof typeof rule] as unknown as ElementMatchers,
         targetElement,
         isMatchElementType,
         fromElement,
       ).result;
-    });
+    }) as ((ExternalRule | EntryPointRule | ElementTypesRule) & {
+    index: number;
+  })[];
 }
 
-function isFromRule(mainKey: RuleMainKey) {
+function isFromRule(mainKey?: RuleMainKey) {
   return rulesMainKey(mainKey) === FROM;
 }
 
-function elementToGetRulesFrom(element, dependency, mainKey: RuleMainKey) {
+function elementToGetRulesFrom(
+  element: FileInfo,
+  dependency: DependencyInfo,
+  mainKey?: RuleMainKey,
+): FileInfo | DependencyInfo {
   if (!isFromRule(mainKey)) {
     return dependency;
   }
@@ -256,59 +303,71 @@ export function elementRulesAllowDependency<
   rulesMainKey?: RuleMainKey;
 }): RuleResult {
   const targetElement = elementToGetRulesFrom(element, dependency, mainKey);
-  const [result, report, ruleReport] = getElementRules(
+
+  const initialReportResult: Partial<RuleReport> = {
+    isDefault: true,
+    message: options.message,
+  };
+
+  const initialReport: [
+    RuleResult["result"],
+    RuleResultReport | null,
+    RuleReport | null,
+  ] = [
+    // TODO: Use value from map
+    options.default === "allow",
+    null,
+    initialReportResult as RuleReport,
+  ];
+
+  const elementRules = getElementRules<FileOrDependencyInfo, RuleMatchers>(
     targetElement,
     options,
-    mainKey,
     targetElement === element ? dependency : element,
-  ).reduce(
-    (allowed, rule) => {
-      if (rule.disallow) {
-        const match = ruleMatch(
-          rule.disallow,
-          dependency,
-          isMatch,
-          element,
-          rule.importKind,
-        );
-        if (match.result) {
-          return [
-            false,
-            match.report,
-            {
-              element: rule[rulesMainKey(mainKey)],
-              disallow: rule.disallow,
-              index: rule.index,
-              message: rule.message || options.message,
-              importKind: rule.importKind,
-            },
-          ];
-        }
-      }
-      if (rule.allow) {
-        const match = ruleMatch(
-          rule.allow,
-          dependency,
-          isMatch,
-          element,
-          rule.importKind,
-        );
-        if (match.result) {
-          return [true, match.report];
-        }
-      }
-      return allowed;
-    },
-    [
-      // TODO: Use value from map
-      options.default === "allow",
-      null,
-      {
-        isDefault: true,
-        message: options.message,
-      },
-    ],
+    mainKey,
   );
+
+  const [result, report, ruleReport] = elementRules.reduce((allowed, rule) => {
+    if (rule.disallow) {
+      const match = ruleMatch<FileOrDependencyInfo, RuleMatchers>(
+        rule.disallow,
+        dependency,
+        isMatch,
+        element,
+        rule.importKind,
+      );
+      if (match.result) {
+        return [
+          false,
+          match.report,
+          {
+            // TODO: Improve typing, so TypeScript can determine the type of the rule, if the key is valid, and the type of element
+            element: rule[
+              rulesMainKey(mainKey) as keyof typeof rule
+            ] as unknown as FileInfo | DependencyInfo,
+            disallow: rule.disallow,
+            index: rule.index,
+            message: rule.message || options.message,
+            importKind: rule.importKind,
+          },
+        ];
+      }
+    }
+    if (rule.allow) {
+      const match = ruleMatch<FileOrDependencyInfo, RuleMatchers>(
+        rule.allow,
+        dependency,
+        isMatch,
+        element,
+        rule.importKind,
+      );
+      if (match.result) {
+        return [true, match.report, null];
+      }
+    }
+    return allowed;
+  }, initialReport);
+
   return {
     result,
     report,

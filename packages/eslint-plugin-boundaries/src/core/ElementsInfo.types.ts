@@ -1,5 +1,7 @@
 import type { Rule } from "eslint";
 
+import type { CapturedValues } from "../constants/Options.types";
+
 export type PathCapturedValues = string[];
 
 export type ElementInfo = {
@@ -7,7 +9,7 @@ export type ElementInfo = {
   type: string | null;
   parents: ElementInfo[];
   capture: string | null;
-  capturedValues: PathCapturedValues;
+  capturedValues: CapturedValues;
   internalPath: string | null;
 };
 

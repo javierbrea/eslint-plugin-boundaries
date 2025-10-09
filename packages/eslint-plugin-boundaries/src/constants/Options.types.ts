@@ -49,9 +49,9 @@ export type RuleBaseOptions = {
 export type RuleReport = {
   message?: string;
   isDefault?: boolean;
-  importKind: ImportKind;
-  disallow?: ElementMatchers;
-  element: ElementMatchers;
+  importKind?: ImportKind;
+  disallow?: ElementMatchers | ExternalLibraryMatchers;
+  element: ElementMatchers | FileInfo | DependencyInfo;
   index: number;
 };
 
@@ -62,13 +62,13 @@ export type RuleResultReport = {
 
 export type RuleResult = {
   result: boolean;
-  ruleReport?: RuleReport;
-  report?: RuleResultReport;
+  ruleReport: RuleReport | null;
+  report: RuleResultReport | null;
 };
 
 export type RuleMatcherElementsCapturedValues = {
   from: CapturedValues;
-  to: CapturedValues;
+  target: CapturedValues;
 };
 
 export type RuleMatcher<
@@ -86,7 +86,7 @@ export type RuleMatcher<
   // eslint-disable-next-line no-unused-vars
   elementsCapturedValues: RuleMatcherElementsCapturedValues,
   // eslint-disable-next-line no-unused-vars
-  importKind: ImportKind,
+  importKind?: ImportKind,
 ) => RuleResult;
 
 // Specific rule options
