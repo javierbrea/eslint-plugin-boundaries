@@ -4,9 +4,9 @@ import {
   elementTypesNoRuleMessage,
 } from "../../support/messages";
 
-const { ELEMENT_TYPES: RULE } = require("../../../dist/constants/rules");
+const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 
-const rule = require(`../../../dist/rules/${RULE}`).default;
+const rule = require(`../../../src/rules/${RULE}`).default;
 
 const runTest = (
   settings,

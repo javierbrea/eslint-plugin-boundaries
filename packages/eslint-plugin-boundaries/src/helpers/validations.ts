@@ -1,40 +1,49 @@
 import type { Rule } from "eslint";
 import micromatch from "micromatch";
 
-import type { RuleOptionsRules } from "src/constants/Options.types";
+import type {
+  ElementMatcher,
+  ElementMatchers,
+  ExternalLibraryMatcher,
+  ExternalLibraryMatchers,
+  RuleOptionsRules,
+} from "src/constants/Options.types";
 
 import type {
   DependencyNodeKey,
   DependencyNodeSelector,
+  ElementAssigners,
   PluginSettings,
+  IgnoreSetting,
+  IncludeSetting,
+  ImportKind,
 } from "../constants/settings";
 import { SETTINGS, SETTINGS_KEYS } from "../constants/settings";
 
 import { warnOnce } from "./debug";
-import type { ValidateRulesOptions } from "./Helpers.types";
+import type { RuleMainKey, ValidateRulesOptions } from "./Helpers.types";
 import { rulesMainKey } from "./rules";
-import { getElementsTypeNames, isLegacyType } from "./settings";
+import { getElementsTypeNames, isValidElementAssigner } from "./settings";
 import { isArray, isString, isObject } from "./utils";
 
 const {
   TYPES,
   ALIAS,
   ELEMENTS,
-  VALID_MODES,
   DEPENDENCY_NODES,
   ADDITIONAL_DEPENDENCY_NODES,
   VALID_DEPENDENCY_NODE_KINDS,
   DEFAULT_DEPENDENCY_NODES,
 } = SETTINGS;
 
-const invalidMatchers = [];
+const invalidMatchers: (ElementMatcher | ExternalLibraryMatcher)[] = [];
 
 const DEFAULT_MATCHER_OPTIONS = {
   type: "object",
 };
 
 export function elementsMatcherSchema(
-  matcherOptions = DEFAULT_MATCHER_OPTIONS,
+  matcherOptions: Record<string, unknown> = DEFAULT_MATCHER_OPTIONS,
 ) {
   return {
     oneOf: [
@@ -64,7 +73,12 @@ export function elementsMatcherSchema(
   };
 }
 
-export function rulesOptionsSchema(options = {}) {
+export function rulesOptionsSchema(
+  options: {
+    rulesMainKey?: RuleMainKey;
+    targetMatcherOptions?: Record<string, unknown>;
+  } = {},
+) {
   const mainKey = rulesMainKey(options.rulesMainKey);
   return [
     {
@@ -122,14 +136,20 @@ export function rulesOptionsSchema(options = {}) {
   ];
 }
 
-function isValidElementTypesMatcher(matcher, settings) {
+function isValidElementTypesMatcher(
+  matcher: ElementMatcher | ExternalLibraryMatcher,
+  settings: PluginSettings,
+) {
   const matcherToCheck = isArray(matcher) ? matcher[0] : matcher;
   return (
     !matcher || micromatch.some(getElementsTypeNames(settings), matcherToCheck)
   );
 }
 
-export function validateElementTypesMatcher(elementsMatcher, settings) {
+export function validateElementTypesMatcher(
+  elementsMatcher: ElementMatchers | ExternalLibraryMatchers,
+  settings: PluginSettings,
+) {
   const [matcher] = isArray(elementsMatcher)
     ? elementsMatcher
     : [elementsMatcher];
@@ -144,47 +164,18 @@ export function validateElementTypesMatcher(elementsMatcher, settings) {
   }
 }
 
-function validateElements(elements) {
+function validateElements(elements: unknown): ElementAssigners | undefined {
   if (!elements || !isArray(elements) || !elements.length) {
     warnOnce(`Please provide element types using the '${ELEMENTS}' setting`);
     return;
   }
-  elements.forEach((element) => {
-    // TODO, remove in next major version
-    if (isLegacyType(element)) {
-      warnOnce(
-        `Defining elements as strings in settings is deprecated. Will be automatically converted, but this feature will be removed in next major versions`,
-      );
-    } else {
-      Object.keys(element).forEach(() => {
-        if (!element.type || !isString(element.type)) {
-          warnOnce(`Please provide type in '${ELEMENTS}' setting`);
-        }
-        if (element.mode && !VALID_MODES.includes(element.mode)) {
-          warnOnce(
-            `Invalid mode property of type ${
-              element.type
-            } in '${ELEMENTS}' setting. Should be one of ${VALID_MODES.join(
-              ",",
-            )}. Default value "${VALID_MODES[0]}" will be used instead`,
-          );
-        }
-        if (
-          !element.pattern ||
-          !(isString(element.pattern) || isArray(element.pattern))
-        ) {
-          warnOnce(
-            `Please provide a valid pattern to type ${element.type} in '${ELEMENTS}' setting`,
-          );
-        }
-        if (element.capture && !isArray(element.capture)) {
-          warnOnce(
-            `Invalid capture property of type ${element.type} in '${ELEMENTS}' setting`,
-          );
-        }
-      });
-    }
-  });
+  return elements.filter(isValidElementAssigner);
+}
+
+function isDependencyNodeKey(value: unknown): value is DependencyNodeKey {
+  return (
+    isString(value) && Object.keys(DEFAULT_DEPENDENCY_NODES).includes(value)
+  );
 }
 
 function validateDependencyNodes(
@@ -207,21 +198,33 @@ function validateDependencyNodes(
   }
 
   dependencyNodes.forEach((dependencyNode) => {
-    if (
-      !isString(dependencyNode) ||
-      !defaultNodesNames.includes(dependencyNode)
-    ) {
+    if (!isDependencyNodeKey(dependencyNode)) {
       warnOnce(invalidFormatMessage);
     }
   });
 
-  // TODO: Return only valid values, using a function to validate and type guard
+  return dependencyNodes.filter(isDependencyNodeKey);
+}
 
-  return dependencyNodes;
+function isValidDependencyNodeSelector(
+  selector: unknown,
+): selector is DependencyNodeSelector {
+  const isValidObject =
+    isObject(selector) &&
+    isString(selector.selector) &&
+    (!selector.kind ||
+      (isString(selector.kind) &&
+        VALID_DEPENDENCY_NODE_KINDS.includes(selector.kind as ImportKind)));
+  if (!isValidObject) {
+    warnOnce(
+      `Please provide a valid object in ${ADDITIONAL_DEPENDENCY_NODES} setting. The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type" }. The invalid object will be ignored.`,
+    );
+  }
+  return isValidObject;
 }
 
 function validateAdditionalDependencyNodes(
-  additionalDependencyNodes: DependencyNodeSelector[] | undefined | unknown,
+  additionalDependencyNodes: unknown,
 ): DependencyNodeSelector[] | undefined {
   if (!additionalDependencyNodes) {
     return;
@@ -238,24 +241,10 @@ function validateAdditionalDependencyNodes(
     return;
   }
 
-  additionalDependencyNodes.forEach((dependencyNode) => {
-    const isValidObject =
-      isObject(dependencyNode) &&
-      isString(dependencyNode.selector) &&
-      (!dependencyNode.kind ||
-        VALID_DEPENDENCY_NODE_KINDS.includes(dependencyNode.kind));
-
-    if (!isValidObject) {
-      warnOnce(invalidFormatMessage);
-    }
-  });
-
-  // TODO: Return only valid values, using a function to validate and type guard
-
-  return additionalDependencyNodes;
+  return additionalDependencyNodes.filter(isValidDependencyNodeSelector);
 }
 
-function deprecateAlias(aliases) {
+function deprecateAlias(aliases: unknown) {
   if (aliases) {
     warnOnce(
       `Defining aliases in '${ALIAS}' setting is deprecated. Please use 'import/resolver' setting`,
@@ -263,7 +252,7 @@ function deprecateAlias(aliases) {
   }
 }
 
-function deprecateTypes(types) {
+function deprecateTypes(types: unknown) {
   if (types) {
     warnOnce(
       `'${TYPES}' setting is deprecated. Please use '${ELEMENTS}' instead`,
@@ -271,24 +260,65 @@ function deprecateTypes(types) {
   }
 }
 
+function validateIgnore(ignore: unknown): IgnoreSetting | undefined {
+  if (!ignore) {
+    return;
+  }
+  if (isString(ignore) || (isArray(ignore) && ignore.every(isString))) {
+    return ignore;
+  }
+  warnOnce(
+    `Please provide a valid value in '${SETTINGS_KEYS.IGNORE}' setting. The value should be a string or an array of strings.`,
+  );
+  return;
+}
+
+function validateInclude(include: unknown): IncludeSetting | undefined {
+  if (!include) {
+    return;
+  }
+  if (isString(include) || (isArray(include) && include.every(isString))) {
+    return include;
+  }
+  warnOnce(
+    `Please provide a valid value in '${SETTINGS_KEYS.INCLUDE}' setting. The value should be a string or an array of strings.`,
+  );
+  return;
+}
+
+function validateRootPath(rootPath: unknown): string | undefined {
+  if (!rootPath) {
+    return;
+  }
+  if (isString(rootPath)) {
+    return rootPath;
+  }
+  warnOnce(
+    `Please provide a valid value in '${SETTINGS_KEYS.ROOT_PATH}' setting. The value should be a string.`,
+  );
+  return;
+}
+
 export function validateSettings(
   settings: Rule.RuleContext["settings"],
 ): PluginSettings {
   deprecateTypes(settings[TYPES]);
   deprecateAlias(settings[ALIAS]);
-  validateElements(settings[ELEMENTS] || settings[TYPES]);
-  const dependencyNodes = validateDependencyNodes(settings[DEPENDENCY_NODES]);
-  const additionalDependencyNodes = validateAdditionalDependencyNodes(
-    settings[ADDITIONAL_DEPENDENCY_NODES],
-  );
 
   return {
-    [SETTINGS_KEYS.ELEMENTS]: settings[SETTINGS_KEYS.ELEMENTS],
-    [SETTINGS_KEYS.IGNORE]: settings[SETTINGS_KEYS.IGNORE],
-    [SETTINGS_KEYS.INCLUDE]: settings[SETTINGS_KEYS.INCLUDE],
-    [SETTINGS_KEYS.ROOT_PATH]: settings[SETTINGS_KEYS.ROOT_PATH],
-    [SETTINGS_KEYS.DEPENDENCY_NODES]: dependencyNodes,
-    [SETTINGS_KEYS.ADDITIONAL_DEPENDENCY_NODES]: additionalDependencyNodes,
+    [SETTINGS_KEYS.ELEMENTS]: validateElements(
+      settings[ELEMENTS] || settings[TYPES],
+    ),
+    [SETTINGS_KEYS.IGNORE]: validateIgnore(settings[SETTINGS_KEYS.IGNORE]),
+    [SETTINGS_KEYS.INCLUDE]: validateInclude(settings[SETTINGS_KEYS.INCLUDE]),
+    [SETTINGS_KEYS.ROOT_PATH]: validateRootPath(
+      settings[SETTINGS_KEYS.ROOT_PATH],
+    ),
+    [SETTINGS_KEYS.DEPENDENCY_NODES]: validateDependencyNodes(
+      settings[DEPENDENCY_NODES],
+    ),
+    [SETTINGS_KEYS.ADDITIONAL_DEPENDENCY_NODES]:
+      validateAdditionalDependencyNodes(settings[ADDITIONAL_DEPENDENCY_NODES]),
   };
 }
 
@@ -302,8 +332,12 @@ export function validateRules(
     //@ts-expect-error TODO: Add a different schema validation for each rule type, so keys are properly validated
     validateElementTypesMatcher([rule[mainKey]], settings);
     if (!options.onlyMainKey) {
-      validateElementTypesMatcher(rule.allow, settings);
-      validateElementTypesMatcher(rule.disallow, settings);
+      if (rule.allow) {
+        validateElementTypesMatcher(rule.allow, settings);
+      }
+      if (rule.disallow) {
+        validateElementTypesMatcher(rule.disallow, settings);
+      }
     }
   });
 }

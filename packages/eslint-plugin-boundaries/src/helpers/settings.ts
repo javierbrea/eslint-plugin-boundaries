@@ -1,19 +1,90 @@
 import { isAbsolute, resolve } from "node:path";
 
 import { SETTINGS } from "../constants/settings";
+import type {
+  ElementAssigners,
+  ElementAssigner,
+  PluginSettings,
+  ElementAssignerMode,
+} from "../constants/settings";
 
-import { isString } from "./utils";
+import { warnOnce } from "./debug";
+import { isString, isArray, isObject } from "./utils";
 
 const { TYPES, ELEMENTS, VALID_MODES, ROOT_PATH, ENV_ROOT_PATH, DEBUG } =
   SETTINGS;
 
-export function isLegacyType(type) {
+export function isLegacyType(type: unknown): type is string {
   return isString(type);
 }
 
+export function isValidElementAssigner(
+  element: unknown,
+): element is ElementAssigner {
+  if (!element || !isObject(element)) {
+    warnOnce(
+      `Please provide a valid object to define element types in '${ELEMENTS}' setting`,
+    );
+    return false;
+  }
+  if (isLegacyType(element)) {
+    warnOnce(
+      `Defining elements as strings in settings is deprecated. Will be automatically converted, but this feature will be removed in next major versions`,
+    );
+    return true;
+  } else {
+    const isObjectElement = isObject(element);
+    if (!isObjectElement) {
+      warnOnce(
+        `Please provide a valid object to define element types in '${ELEMENTS}' setting`,
+      );
+      return false;
+    }
+    if (!element.type || !isString(element.type)) {
+      warnOnce(`Please provide type in '${ELEMENTS}' setting`);
+      return false;
+    }
+    if (
+      element.mode &&
+      isString(element.mode) &&
+      !VALID_MODES.includes(element.mode as ElementAssignerMode)
+    ) {
+      warnOnce(
+        `Invalid mode property of type ${
+          element.type
+        } in '${ELEMENTS}' setting. Should be one of ${VALID_MODES.join(
+          ",",
+        )}. Default value "${VALID_MODES[0]}" will be used instead`,
+      );
+      return false;
+    }
+    if (
+      !element.pattern ||
+      !(isString(element.pattern) || isArray(element.pattern))
+    ) {
+      warnOnce(
+        `Please provide a valid pattern to type ${element.type} in '${ELEMENTS}' setting`,
+      );
+      return false;
+    }
+    if (element.capture && !isArray(element.capture)) {
+      warnOnce(
+        `Invalid capture property of type ${element.type} in '${ELEMENTS}' setting`,
+      );
+      return false;
+    }
+    return true;
+  }
+}
+
 // TODO, remove in next major version
-function transformLegacyTypes(typesFromSettings) {
+function transformLegacyTypes(
+  typesFromSettings?: string[] | ElementAssigners,
+): ElementAssigners {
   const types = typesFromSettings || [];
+  if (!isArray(types)) {
+    return [];
+  }
   return types.map((type) => {
     // backward compatibility with v1
     if (isLegacyType(type)) {
@@ -32,15 +103,15 @@ function transformLegacyTypes(typesFromSettings) {
   });
 }
 
-export function getElements(settings) {
+export function getElements(settings: PluginSettings): ElementAssigners {
   return transformLegacyTypes(settings[ELEMENTS] || settings[TYPES]);
 }
 
-export function getElementsTypeNames(settings) {
+export function getElementsTypeNames(settings: PluginSettings): string[] {
   return getElements(settings).map((element) => element.type);
 }
 
-export function getRootPath(settings) {
+export function getRootPath(settings: PluginSettings): string {
   const rootPathUserSetting = process.env[ENV_ROOT_PATH] || settings[ROOT_PATH];
   if (rootPathUserSetting) {
     return isAbsolute(rootPathUserSetting)

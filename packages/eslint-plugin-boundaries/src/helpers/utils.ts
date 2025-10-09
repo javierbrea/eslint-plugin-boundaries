@@ -1,26 +1,36 @@
-export function isString(object) {
+export function isString(object: unknown): object is string {
   return typeof object === "string";
 }
 
-export function isArray(object) {
+export function isArray(object: unknown): object is unknown[] {
   return Array.isArray(object);
 }
 
-export function isObject(object) {
+export function isObject(object: unknown): object is Record<string, unknown> {
   return typeof object === "object" && object !== null && !isArray(object);
 }
 
 export function getArrayOrNull<T>(value: unknown): T[] | null {
-  return isArray(value) ? value : null;
+  return isArray(value) ? (value as T[]) : null;
 }
 
-function replaceObjectValueInTemplate(template, key, value, namespace) {
+function replaceObjectValueInTemplate(
+  template: string,
+  key: string,
+  value: string,
+  namespace?: string | null,
+) {
   const keyToReplace = namespace ? `${namespace}.${key}` : key;
   const regexp = new RegExp(`\\$\\{${keyToReplace}\\}`, "g");
   return template.replace(regexp, value);
 }
 
-export function replaceObjectValuesInTemplates(strings, object, namespace) {
+export function replaceObjectValuesInTemplates(
+  strings: string | string[],
+  object: Record<string, string>,
+  namespace?: string | null,
+): string | string[] {
+  const finalResult = isArray(strings) ? [...strings] : strings;
   return Object.keys(object).reduce((result, objectKey) => {
     // If template is an array, replace key by value in all patterns
     if (isArray(result)) {
@@ -39,5 +49,13 @@ export function replaceObjectValuesInTemplates(strings, object, namespace) {
       object[objectKey],
       namespace,
     );
-  }, strings);
+  }, finalResult);
+}
+
+export function replaceObjectValuesInTemplate(
+  template: string,
+  object: Record<string, string>,
+  namespace?: string | null,
+): string {
+  return replaceObjectValuesInTemplates(template, object, namespace) as string;
 }

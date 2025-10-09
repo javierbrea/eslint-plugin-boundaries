@@ -112,16 +112,43 @@ export const SETTINGS_KEYS = {
   ROOT_PATH: SETTINGS.ROOT_PATH,
   DEPENDENCY_NODES: SETTINGS.DEPENDENCY_NODES,
   ADDITIONAL_DEPENDENCY_NODES: SETTINGS.ADDITIONAL_DEPENDENCY_NODES,
+  /** @deprecated Use 'ELEMENTS' instead */
+  TYPES: SETTINGS.TYPES,
+  /** @deprecated Use import/resolver settings instead */
+  ALIAS: SETTINGS.ALIAS,
 } as const;
 
 export type PluginSettingsKey =
   (typeof SETTINGS_KEYS)[keyof typeof SETTINGS_KEYS];
 
+export type IncludeSetting = string | string[];
+export type IgnoreSetting = string | string[];
+export type RootPathSetting = string;
+
+// TODO: Create a map
+export type ElementAssignerMode = "folder" | "file" | "full";
+
+export type ElementAssigner = {
+  type: string;
+  pattern: string | string[];
+  basePattern?: string;
+  mode?: ElementAssignerMode;
+  capture?: string[];
+  baseCapture?: string[];
+};
+
+export type ElementAssigners = ElementAssigner[];
+
+// TODO: Define types
 export type PluginSettings = {
-  [SETTINGS_KEYS.ELEMENTS]?: unknown;
-  [SETTINGS_KEYS.IGNORE]?: unknown;
-  [SETTINGS_KEYS.INCLUDE]?: unknown;
-  [SETTINGS_KEYS.ROOT_PATH]?: unknown;
+  [SETTINGS_KEYS.ELEMENTS]?: ElementAssigners;
+  [SETTINGS_KEYS.IGNORE]?: IgnoreSetting;
+  [SETTINGS_KEYS.INCLUDE]?: IncludeSetting;
+  [SETTINGS_KEYS.ROOT_PATH]?: RootPathSetting;
   [SETTINGS_KEYS.DEPENDENCY_NODES]?: DependencyNodeKey[];
   [SETTINGS_KEYS.ADDITIONAL_DEPENDENCY_NODES]?: DependencyNodeSelector[];
+  /** @deprecated Use 'DEPENDENCY_NODES' instead */
+  [SETTINGS_KEYS.TYPES]?: ElementAssigners;
+  /** @deprecated Use import/resolver settings instead */
+  [SETTINGS_KEYS.ALIAS]?: Record<string, string>;
 };

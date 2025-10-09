@@ -170,7 +170,7 @@ function errorMessage(
   ruleData: RuleResult,
   file: FileInfo,
   dependency: DependencyInfo,
-) {
+): string {
   const ruleReport = ruleData.ruleReport;
   if (!ruleReport) {
     return `No detailed rule report available. This is likely a bug in ${PLUGIN_NAME}. Please report it at ${PLUGIN_ISSUES_URL}`;

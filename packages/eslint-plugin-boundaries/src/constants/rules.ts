@@ -37,3 +37,9 @@ export const RULE_NAMES = [
 export type RuleName = (typeof RULE_NAMES)[number];
 
 export type RuleNames = typeof RULE_NAMES;
+
+export const RULE_SHORT_NAMES = [...Object.values(RULES_MAP)] as const;
+
+export type RuleShortName = (typeof RULE_SHORT_NAMES)[number];
+
+export type RuleShortNames = typeof RULE_SHORT_NAMES;

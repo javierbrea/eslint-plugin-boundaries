@@ -1,5 +1,5 @@
 import { micromatchPatternReplacingObjectsValues } from "./rules";
-import { isString, isArray, replaceObjectValuesInTemplates } from "./utils";
+import { isString, isArray, replaceObjectValuesInTemplate } from "./utils";
 
 export function quote(str) {
   return `'${str}'`;
@@ -96,8 +96,8 @@ function elementPropertiesToReplaceInTemplate(element) {
 }
 
 export function customErrorMessage(message, file, dependency, report = {}) {
-  let replacedMessage = replaceObjectValuesInTemplates(
-    replaceObjectValuesInTemplates(
+  let replacedMessage = replaceObjectValuesInTemplate(
+    replaceObjectValuesInTemplate(
       message,
       elementPropertiesToReplaceInTemplate(file),
       "file",
@@ -105,8 +105,8 @@ export function customErrorMessage(message, file, dependency, report = {}) {
     elementPropertiesToReplaceInTemplate(dependency),
     "dependency",
   );
-  replacedMessage = replaceObjectValuesInTemplates(
-    replaceObjectValuesInTemplates(
+  replacedMessage = replaceObjectValuesInTemplate(
+    replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(file),
       "from",
@@ -115,30 +115,30 @@ export function customErrorMessage(message, file, dependency, report = {}) {
     "target",
   );
   if (file.parents[0]) {
-    replacedMessage = replaceObjectValuesInTemplates(
+    replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(file.parents[0]),
       "file.parent",
     );
-    replacedMessage = replaceObjectValuesInTemplates(
+    replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(file.parents[0]),
       "from.parent",
     );
   }
   if (dependency.parents[0]) {
-    replacedMessage = replaceObjectValuesInTemplates(
+    replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(dependency.parents[0]),
       "dependency.parent",
     );
-    replacedMessage = replaceObjectValuesInTemplates(
+    replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(dependency.parents[0]),
       "target.parent",
     );
   }
-  return replaceObjectValuesInTemplates(replacedMessage, report, "report");
+  return replaceObjectValuesInTemplate(replacedMessage, report, "report");
 }
 
 function elementCapturedValuesMessage(capturedValues) {
