@@ -39,7 +39,7 @@ export const jestConfig = {
 };
 
 export const ignores = {
-  ignores: ["node_modules/**", ".husky/**", "pnpm-lock.yaml", "dist/**"],
+  ignores: ["**/node_modules/**", ".husky/**", "pnpm-lock.yaml", "**/dist/**"],
 };
 
 export const jsonConfig = {

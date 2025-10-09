@@ -67,6 +67,13 @@ pnpm nx run-many -t test:unit --all
 
 This will run the `test:unit` task in all packages and also the corresponding dependencies, in the right order, so everything is built and tested correctly.
 
+## Running check in all packages
+To run all the checks in all packages, use the following command:
+
+```bash
+pnpm nx run-many -t check:all --all
+```
+
 # Branching model
 
 The repository follows a branching model based on two main branches: `main` and `release`. The `main` branch reflects the latest stable published version of the packages, while the `release` branch is used to prepare the next release.
