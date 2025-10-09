@@ -1,8 +1,8 @@
 import type { Rule } from "eslint";
 import type { Literal } from "estree";
 
-import type { DependencyInfo } from "../core/DependencyInfo.types";
-import type { FileInfo } from "../core/ElementsInfo.types";
+import type { DependencyInfo } from "../constants/DependencyInfo.types";
+import type { FileInfo } from "../constants/ElementsInfo.types";
 import type { ValidateRulesOptions } from "../helpers/Helpers.types";
 
 export type EslintLiteralNode = Literal & {

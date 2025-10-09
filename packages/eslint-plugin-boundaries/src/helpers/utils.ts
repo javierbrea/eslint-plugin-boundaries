@@ -1,5 +1,5 @@
-import type { DependencyInfo } from "../core/DependencyInfo.types";
-import type { FileInfo, ElementInfo } from "../core/ElementsInfo.types";
+import type { DependencyInfo } from "../constants/DependencyInfo.types";
+import type { FileInfo, ElementInfo } from "../constants/ElementsInfo.types";
 
 export function isString(object: unknown): object is string {
   return typeof object === "string";
@@ -63,8 +63,25 @@ export function replaceObjectValuesInTemplate(
   return replaceObjectValuesInTemplates(template, object, namespace) as string;
 }
 
+export function isNotParentInfo(
+  elementInfo:
+    | ElementInfo
+    | FileInfo
+    | DependencyInfo
+    | ElementInfo["parents"][0],
+): elementInfo is ElementInfo | FileInfo | DependencyInfo {
+  return (
+    (elementInfo as ElementInfo | FileInfo | DependencyInfo).internalPath !==
+    undefined
+  );
+}
+
 export function isDependencyInfo(
-  elementInfo: ElementInfo | FileInfo | DependencyInfo,
+  elementInfo:
+    | ElementInfo
+    | FileInfo
+    | DependencyInfo
+    | ElementInfo["parents"][0],
 ): elementInfo is DependencyInfo {
   return (
     (elementInfo as DependencyInfo).importKind !== undefined ||

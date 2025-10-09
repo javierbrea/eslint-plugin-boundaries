@@ -1,10 +1,10 @@
 import type { Rule } from "eslint";
 
+import type { DependencyInfo } from "../constants/DependencyInfo.types";
+import type { ElementInfo, ImportInfo } from "../constants/ElementsInfo.types";
 import type { ImportKind } from "../constants/settings";
 
-import type { DependencyInfo } from "./DependencyInfo.types";
 import { fileInfo, importInfo } from "./elementsInfo";
-import type { ElementInfo } from "./ElementsInfo.types";
 
 function getParent(elementInfo: ElementInfo) {
   return elementInfo.parents?.[0]?.elementPath;
@@ -47,10 +47,7 @@ function isInternal(elementA: ElementInfo, elementB: ElementInfo) {
   return elementA.elementPath === elementB.elementPath;
 }
 
-function dependencyRelationship(
-  dependency: DependencyInfo,
-  element: ElementInfo,
-) {
+function dependencyRelationship(dependency: ImportInfo, element: ElementInfo) {
   if (
     !dependency.isLocal ||
     dependency.isIgnored ||

@@ -5,19 +5,21 @@ import resolve from "eslint-module-utils/resolve";
 import micromatch from "micromatch";
 
 import type {
-  CapturedValues,
-  CapturedValuesMatcher,
-} from "src/constants/Options.types";
-
-import type { PluginSettings } from "../constants/settings";
+  FileInfo,
+  ElementInfo,
+  ImportInfo,
+} from "../constants/ElementsInfo.types";
+import type { CapturedValues } from "../constants/Options.types";
+import type {
+  ElementAssignerMode,
+  PluginSettings,
+} from "../constants/settings";
 import { SETTINGS } from "../constants/settings";
 import { debugFileInfo } from "../helpers/debug";
 import { getElements, getRootPath } from "../helpers/settings";
 import { isArray } from "../helpers/utils";
 
 import { filesCache, importsCache, elementsCache } from "./cache";
-import type { DependencyInfo } from "./DependencyInfo.types";
-import type { FileInfo, ElementInfo } from "./ElementsInfo.types";
 
 const { IGNORE, INCLUDE, VALID_MODES } = SETTINGS;
 
@@ -68,16 +70,16 @@ function isScoped(name: string | undefined) {
 
 const externalModuleRegExp = /^\w/;
 
-function isExternal(name: string, path: string | undefined) {
-  return (
+function isExternal(name: string, path: string | undefined): boolean {
+  return Boolean(
     (!path || (!!path && path.includes("node_modules"))) &&
-    (externalModuleRegExp.test(name) || isScoped(name))
+      (externalModuleRegExp.test(name) || isScoped(name)),
   );
 }
 
 function elementCaptureValues(
   capture: string[],
-  captureSettings: CapturedValuesMatcher | undefined,
+  captureSettings: string[] | undefined,
 ): CapturedValues | null {
   if (!captureSettings) {
     return null;
@@ -108,22 +110,28 @@ function getElementPath(
       }
     }
   });
-  return `${
-    [...fullPath]
-      .reverse()
-      .join("/")
-      .split(result)[0]
-  }${result}`;
+  if (!result) {
+    return [...fullPath].reverse().join("/");
+  }
+  return `${[...fullPath].reverse().join("/").split(result)[0]}${result}`;
 }
 
-function elementTypeAndParents(path: string, settings: PluginSettings) {
-  const parents: ElementInfo[] = [];
+function isValidMode(mode: string | undefined): mode is ElementAssignerMode {
+  return VALID_MODES.includes(mode as ElementAssignerMode);
+}
+
+function elementTypeAndParents(
+  path: string,
+  settings: PluginSettings,
+): ElementInfo {
+  const parents: ElementInfo["parents"] = [];
   const elementResult: ElementInfo = {
     type: null,
-    elementPath: null,
+    elementPath: "",
     capture: null,
-    capturedValues: null,
+    capturedValues: {},
     internalPath: null,
+    parents: [],
   };
 
   if (isIgnored(path, settings)) {
@@ -132,6 +140,14 @@ function elementTypeAndParents(path: string, settings: PluginSettings) {
       parents,
     };
   }
+
+  const result: {
+    accumulator: string[];
+    lastSegmentMatching: number;
+  } = {
+    accumulator: [],
+    lastSegmentMatching: 0,
+  };
 
   path
     .split("/")
@@ -146,7 +162,7 @@ function elementTypeAndParents(path: string, settings: PluginSettings) {
         accumulator.unshift(elementPathSegment);
         let elementFound = false;
         getElements(settings).forEach((element) => {
-          const typeOfMatch = VALID_MODES.includes(element.mode)
+          const typeOfMatch = isValidMode(element.mode)
             ? element.mode
             : VALID_MODES[0];
           const elementPatterns = isArray(element.pattern)
@@ -160,7 +176,8 @@ function elementTypeAndParents(path: string, settings: PluginSettings) {
                 typeOfMatch === VALID_MODES[0] && !elementResult.type
                   ? `${elementPattern}/**/*`
                   : elementPattern;
-              let basePatternCapture = true;
+              let hasCapture = true;
+              let basePatternCapture: string[] | null = null;
 
               if (element.basePattern) {
                 basePatternCapture = micromatch.capture(
@@ -170,20 +187,19 @@ function elementTypeAndParents(path: string, settings: PluginSettings) {
                     .slice(0, path.split("/").length - lastSegmentMatching)
                     .join("/"),
                 );
+                hasCapture = basePatternCapture !== null;
               }
               const capture = micromatch.capture(
                 pattern,
                 useFullPathMatch ? path : accumulator.join("/"),
               );
 
-              if (capture && basePatternCapture) {
+              if (capture && hasCapture) {
                 elementFound = true;
                 lastSegmentMatching = segmentIndex + 1;
-                let capturedValues = elementCaptureValues(
-                  capture,
-                  element.capture,
-                );
-                if (element.basePattern) {
+                let capturedValues =
+                  elementCaptureValues(capture, element.capture) || {};
+                if (element.basePattern && basePatternCapture) {
                   capturedValues = {
                     ...elementCaptureValues(
                       basePatternCapture,
@@ -204,7 +220,7 @@ function elementTypeAndParents(path: string, settings: PluginSettings) {
                   elementResult.internalPath =
                     typeOfMatch === VALID_MODES[0]
                       ? path.replace(`${elementPath}/`, "")
-                      : elementPath.split("/").pop();
+                      : elementPath.split("/").pop() || null;
                 } else {
                   parents.push({
                     type: element.type,
@@ -219,7 +235,7 @@ function elementTypeAndParents(path: string, settings: PluginSettings) {
         });
         return { accumulator, lastSegmentMatching };
       },
-      { accumulator: [], lastSegmentMatching: 0 },
+      result,
     );
 
   return {
@@ -242,6 +258,7 @@ function projectPath(
       "",
     );
   }
+  return "";
 }
 
 function externalModulePath(source: string, baseModuleValue: string | null) {
@@ -254,7 +271,7 @@ function externalModulePath(source: string, baseModuleValue: string | null) {
 export function importInfo(
   source: string,
   context: Rule.RuleContext,
-): DependencyInfo {
+): ImportInfo {
   const path = projectPath(
     resolve(source, context),
     getRootPath(context.settings),
@@ -266,11 +283,11 @@ export function importInfo(
     context.settings,
   );
   let elementCache;
-  let result: DependencyInfo;
-  let elementResult;
+  let result: ImportInfo;
+  let elementResult: ElementInfo;
 
   if (resultCache) {
-    result = resultCache as DependencyInfo;
+    result = resultCache as ImportInfo;
   } else {
     elementCache = elementsCache.load(path, context.settings);
     const baseModuleValue = isExternalModule ? baseModule(source) : null;
@@ -279,7 +296,7 @@ export function importInfo(
       ? externalModulePath(source, baseModuleValue)
       : path;
     if (elementCache) {
-      elementResult = elementCache;
+      elementResult = elementCache as ElementInfo;
     } else {
       elementResult = elementTypeAndParents(pathToUse, context.settings);
       elementsCache.save(pathToUse, elementResult, context.settings);
@@ -294,6 +311,7 @@ export function importInfo(
       isExternal: isExternalModule,
       baseModule: baseModuleValue,
       ...elementResult,
+      // TODO: Check why it is necessary the cast
     };
 
     importsCache.save(path, result, context.settings);
@@ -313,13 +331,13 @@ export function fileInfo(context: Rule.RuleContext): FileInfo {
   const resultCache = filesCache.load(path, context.settings);
   let elementCache;
   let result: FileInfo;
-  let elementResult;
+  let elementResult: ElementInfo;
   if (resultCache) {
     result = resultCache as FileInfo;
   } else {
     elementCache = elementsCache.load(path, context.settings);
     if (elementCache) {
-      elementResult = elementCache;
+      elementResult = elementCache as ElementInfo;
     } else {
       elementResult = elementTypeAndParents(path, context.settings);
       elementsCache.save(path, elementResult, context.settings);

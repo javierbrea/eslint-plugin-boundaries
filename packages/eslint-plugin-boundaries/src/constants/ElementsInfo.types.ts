@@ -1,12 +1,15 @@
-import type { CapturedValues } from "../constants/Options.types";
+import type { CapturedValues } from "./Options.types";
 
 export type PathCapturedValues = string[];
 
 export type ElementInfo = {
   elementPath: string;
   type: string | null;
-  parents: ElementInfo[];
-  capture: string | null;
+  parents: Pick<
+    ElementInfo,
+    "elementPath" | "type" | "capture" | "capturedValues"
+  >[];
+  capture: string[] | null;
   capturedValues: CapturedValues;
   internalPath: string | null;
 };

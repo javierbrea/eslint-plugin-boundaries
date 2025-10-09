@@ -1,6 +1,5 @@
-import type { ImportKind } from "../constants/settings";
-
 import type { ImportInfo } from "./ElementsInfo.types";
+import type { ImportKind } from "./settings";
 
 export type ElementsRelationship =
   | "internal"

@@ -1,6 +1,8 @@
 import type { Rule } from "eslint";
 import micromatch from "micromatch";
 
+import type { DependencyInfo } from "../constants/DependencyInfo.types";
+import type { FileInfo } from "../constants/ElementsInfo.types";
 import type {
   RuleResult,
   RuleMatcher,
@@ -20,8 +22,6 @@ import type {
 import { PLUGIN_NAME, REPO_URL } from "../constants/plugin";
 import type { RuleName } from "../constants/rules";
 import type { ImportKind } from "../constants/settings";
-import type { DependencyInfo } from "../core/DependencyInfo.types";
-import type { FileInfo } from "../core/ElementsInfo.types";
 
 import type { RuleMainKey } from "./Helpers.types";
 import type { RuleMetaDefinition } from "./Rules.types";

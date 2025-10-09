@@ -1,3 +1,5 @@
+import type { DependencyInfo } from "../constants/DependencyInfo.types";
+import type { ElementInfo, FileInfo } from "../constants/ElementsInfo.types";
 import type {
   CapturedValues,
   ElementMatcher,
@@ -5,8 +7,6 @@ import type {
   CapturedValuesMatcher,
 } from "../constants/Options.types";
 import type { ImportKind } from "../constants/settings";
-import type { DependencyInfo } from "../core/DependencyInfo.types";
-import type { ElementInfo, FileInfo } from "../core/ElementsInfo.types";
 
 import { micromatchPatternReplacingObjectsValues } from "./rules";
 import {
@@ -14,6 +14,7 @@ import {
   isString,
   isArray,
   replaceObjectValuesInTemplate,
+  isNotParentInfo,
 } from "./utils";
 
 export function quote(str: string | undefined | null) {
@@ -113,7 +114,7 @@ export function ruleElementMessage(
 }
 
 function elementPropertiesToReplaceInTemplate(
-  element: ElementInfo | FileInfo | DependencyInfo,
+  element: ElementInfo | FileInfo | DependencyInfo | ElementInfo["parents"][0],
 ) {
   if (isDependencyInfo(element)) {
     return {
@@ -124,10 +125,21 @@ function elementPropertiesToReplaceInTemplate(
       importKind: element.importKind || "",
     };
   }
+  if (isNotParentInfo(element)) {
+    return {
+      ...element.capturedValues,
+      type: element.type || "",
+      internalPath: element.internalPath || "",
+      source: "",
+      importKind: "",
+    };
+  }
   return {
     ...element.capturedValues,
     type: element.type || "",
-    internalPath: element.internalPath || "",
+    internalPath: "",
+    source: "",
+    importKind: "",
   };
 }
 
@@ -182,7 +194,7 @@ export function customErrorMessage(
   return replaceObjectValuesInTemplate(replacedMessage, report, "report");
 }
 
-function elementCapturedValuesMessage(capturedValues: CapturedValues) {
+function elementCapturedValuesMessage(capturedValues: CapturedValues | null) {
   if (!capturedValues) {
     return "";
   }
@@ -198,7 +210,9 @@ function elementCapturedValuesMessage(capturedValues: CapturedValues) {
     }, "");
 }
 
-export function elementMessage(elementInfo: ElementInfo) {
+export function elementMessage(
+  elementInfo: ElementInfo | ElementInfo["parents"][0],
+) {
   return `of type ${quote(elementInfo.type)}${elementCapturedValuesMessage(
     elementInfo.capturedValues,
   )}`;

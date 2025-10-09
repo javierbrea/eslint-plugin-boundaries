@@ -1,7 +1,7 @@
 import chalk from "chalk";
 
+import type { FileInfo, ImportInfo } from "../constants/ElementsInfo.types";
 import { PLUGIN_NAME } from "../constants/plugin";
-import type { FileInfo, ImportInfo } from "../core/ElementsInfo.types";
 
 import { isDebugModeEnabled } from "./settings";
 import { isDependencyInfo } from "./utils";

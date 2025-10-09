@@ -1,6 +1,5 @@
-import type { DependencyInfo } from "../core/DependencyInfo.types";
-import type { FileInfo } from "../core/ElementsInfo.types";
-
+import type { DependencyInfo } from "./DependencyInfo.types";
+import type { FileInfo } from "./ElementsInfo.types";
 import type { ImportKind } from "./settings";
 
 export type CapturedValues = Record<string, string>;

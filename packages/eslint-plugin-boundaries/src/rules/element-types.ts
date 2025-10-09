@@ -1,11 +1,11 @@
+import type { DependencyInfo } from "../constants/DependencyInfo.types";
+import type { FileInfo } from "../constants/ElementsInfo.types";
 import type {
   ElementTypesRuleOptions,
   RuleResult,
 } from "../constants/Options.types";
 import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
 import { SETTINGS } from "../constants/settings";
-import type { DependencyInfo } from "../core/DependencyInfo.types";
-import type { FileInfo } from "../core/ElementsInfo.types";
 import {
   customErrorMessage,
   ruleElementMessage,

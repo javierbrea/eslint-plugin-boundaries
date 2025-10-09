@@ -1,3 +1,5 @@
+import type { DependencyInfo } from "../constants/DependencyInfo.types";
+import type { FileInfo } from "../constants/ElementsInfo.types";
 import type {
   EntryPointRuleOptions,
   RuleMatcherElementsCapturedValues,
@@ -7,8 +9,6 @@ import type {
 import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
 import type { ImportKind } from "../constants/settings";
 import { SETTINGS } from "../constants/settings";
-import type { DependencyInfo } from "../core/DependencyInfo.types";
-import type { FileInfo } from "../core/ElementsInfo.types";
 import {
   customErrorMessage,
   ruleElementMessage,
