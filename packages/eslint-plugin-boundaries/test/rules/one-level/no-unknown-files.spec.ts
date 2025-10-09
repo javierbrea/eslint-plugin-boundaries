@@ -3,6 +3,7 @@ import {
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
+import type { RuleTesterSettings } from "../../support/helpers";
 
 const { NO_UNKNOWN_FILES: RULE } = require("../../../src/constants/rules");
 
@@ -13,7 +14,7 @@ const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 const FOO_CODE = "export default {}";
 const ERROR_MESSAGE = "File is not of any known element type";
 
-const runTest = (settings) => {
+const runTest = (settings: RuleTesterSettings) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
     valid: [

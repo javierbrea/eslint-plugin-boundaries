@@ -4,6 +4,7 @@ import {
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
+import type { RuleTesterSettings } from "../../support/helpers";
 
 const { EXTERNAL: RULE } = require("../../../src/constants/rules");
 
@@ -19,7 +20,7 @@ const settings = {
     ecmaVersion: 2020,
     sourceType: "module",
   },
-};
+} as RuleTesterSettings;
 const typescriptSettings = {
   ...TYPESCRIPT_SETTINGS.oneLevel,
   "boundaries/dependency-nodes": ["import"],
@@ -68,13 +69,6 @@ createRuleTester(settings).run(RULE, rule, {
       filename: absoluteFilePath("modules/module-a/ModuleA.js"),
       code: "export { Link } from 'react-router-dom'",
       options,
-      errors: [
-        {
-          message:
-            "Usage of value 'Link' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 2",
-          type: "Literal",
-        },
-      ],
     },
   ],
   invalid: [
@@ -214,12 +208,6 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       filename: absoluteFilePath("modules/module-a/ModuleA.js"),
       code: "export { Link } from 'react-router-dom'",
       options,
-      errors: [
-        {
-          message: "foo",
-          type: "Literal",
-        },
-      ],
     },
   ],
   invalid: [

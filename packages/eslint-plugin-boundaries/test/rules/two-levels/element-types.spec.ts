@@ -3,6 +3,7 @@ import {
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
+import type { RuleTesterSettings } from "../../support/helpers";
 import {
   customErrorMessage,
   elementTypesNoRuleMessage,
@@ -12,7 +13,16 @@ const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 
 const rule = require(`../../../src/rules/${RULE}`).default;
 
-const runTest = (settings, options, { absoluteFilePath }, errorMessages) => {
+const runTest = (
+  settings: RuleTesterSettings,
+  options: unknown[],
+  {
+    absoluteFilePath,
+  }: {
+    absoluteFilePath: ReturnType<typeof pathResolvers>["absoluteFilePath"];
+  },
+  errorMessages: Record<number, string> = {},
+) => {
   const ruleTester = createRuleTester(settings);
 
   ruleTester.run(RULE, rule, {
@@ -674,10 +684,14 @@ const runTest = (settings, options, { absoluteFilePath }, errorMessages) => {
 };
 
 const testPrivate = (
-  settings,
-  options,
-  { absoluteFilePath },
-  errorMessages,
+  settings: RuleTesterSettings,
+  options: unknown[],
+  {
+    absoluteFilePath,
+  }: {
+    absoluteFilePath: ReturnType<typeof pathResolvers>["absoluteFilePath"];
+  },
+  errorMessages: Record<number, string> = {},
 ) => {
   const ruleTester = createRuleTester(settings);
 

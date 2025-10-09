@@ -4,13 +4,13 @@ import {
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
+import type { RuleTesterSettings } from "../../support/helpers";
 
 const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
 
 const rule = require(`../../../src/rules/${RULE}`).default;
 
 const { absoluteFilePath } = pathResolvers("one-level");
-
 const settings = {
   ...SETTINGS.oneLevel,
   "boundaries/dependency-nodes": ["import"],
@@ -19,7 +19,7 @@ const settings = {
     ecmaVersion: 2020,
     sourceType: "module",
   },
-};
+} as RuleTesterSettings;
 const typescriptSettings = {
   ...TYPESCRIPT_SETTINGS.oneLevel,
   "boundaries/dependency-nodes": ["import"],

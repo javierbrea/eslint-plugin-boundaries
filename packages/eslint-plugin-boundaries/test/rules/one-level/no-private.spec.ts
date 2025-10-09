@@ -3,6 +3,7 @@ import {
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
+import type { RuleTesterSettings } from "../../support/helpers";
 import { noPrivateMessage } from "../../support/messages";
 
 const { NO_PRIVATE: RULE } = require("../../../src/constants/rules");
@@ -17,7 +18,7 @@ const options = [
   },
 ];
 
-const runTest = (settings) => {
+const runTest = (settings: RuleTesterSettings) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
     valid: [

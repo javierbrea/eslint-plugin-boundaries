@@ -3,6 +3,7 @@ import {
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
+import type { RuleTesterSettings } from "../../support/helpers";
 import {
   customErrorMessage,
   entryPointNoRuleMessage,
@@ -14,7 +15,11 @@ const rule = require(`../../../src/rules/${RULE}`).default;
 
 const { absoluteFilePath } = pathResolvers("one-level");
 
-const testCapture = (settings, options, errorMessages = {}) => {
+const testCapture = (
+  settings: RuleTesterSettings,
+  options: unknown[],
+  errorMessages: Record<number, string>,
+) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
     valid: [

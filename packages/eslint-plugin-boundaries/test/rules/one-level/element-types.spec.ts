@@ -3,6 +3,7 @@ import {
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
+import type { RuleTesterSettings } from "../../support/helpers";
 import {
   customErrorMessage,
   elementTypesNoRuleMessage,
@@ -16,7 +17,11 @@ const rule = require(`../../../src/rules/${RULE}`).default;
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
-const runTest = (settings, options, errorMessages) => {
+const runTest = (
+  settings: RuleTesterSettings,
+  options: unknown[],
+  errorMessages: Record<number, string>,
+) => {
   const ruleTester = createRuleTester(settings);
 
   ruleTester.run(RULE, rule, {
@@ -292,7 +297,11 @@ const runTest = (settings, options, errorMessages) => {
   });
 };
 
-const testCapture = (settings, options, errorMessages) => {
+const testCapture = (
+  settings: RuleTesterSettings,
+  options: unknown[],
+  errorMessages: Record<number, string>,
+) => {
   const ruleTester = createRuleTester(settings);
 
   ruleTester.run(RULE, rule, {
@@ -449,7 +458,7 @@ runTest(
         pattern: "modules/*",
       },
     ],
-  },
+  } as RuleTesterSettings,
   [
     {
       default: "allow",
@@ -509,7 +518,7 @@ runTest(
   {
     ...SETTINGS.oneLevel,
     "boundaries/root-path": resolve(__dirname, "..", "..", ".."),
-  },
+  } as RuleTesterSettings,
   [
     {
       default: "disallow",
@@ -531,7 +540,7 @@ runTest(
 // root-path relative setting
 
 runTest(
-  { ...SETTINGS.oneLevel, "boundaries/root-path": "." },
+  { ...SETTINGS.oneLevel, "boundaries/root-path": "." } as RuleTesterSettings,
   [
     {
       default: "disallow",

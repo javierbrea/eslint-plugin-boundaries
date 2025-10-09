@@ -3,6 +3,7 @@ import {
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
+import type { RuleTesterSettings } from "../../support/helpers";
 import { noPrivateMessage } from "../../support/messages";
 
 const { NO_PRIVATE: RULE } = require("../../../src/constants/rules");
@@ -15,7 +16,14 @@ const options = [
   },
 ];
 
-const runTest = (settings, { absoluteFilePath }) => {
+const runTest = (
+  settings: RuleTesterSettings,
+  {
+    absoluteFilePath,
+  }: {
+    absoluteFilePath: ReturnType<typeof pathResolvers>["absoluteFilePath"];
+  },
+) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
     valid: [

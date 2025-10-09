@@ -3,6 +3,7 @@ import {
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
+import type { RuleTesterSettings } from "../../support/helpers";
 
 const { NO_UNKNOWN: RULE } = require("../../../src/constants/rules");
 
@@ -12,7 +13,7 @@ const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
 const ERROR_MESSAGE = "Importing unknown elements is not allowed";
 
-const runTest = (settings) => {
+const runTest = (settings: RuleTesterSettings) => {
   const ruleTester = createRuleTester(settings);
 
   const customSettings = {

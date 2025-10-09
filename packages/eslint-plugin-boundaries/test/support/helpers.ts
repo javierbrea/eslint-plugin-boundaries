@@ -2,17 +2,18 @@ import path from "node:path";
 
 // @ts-expect-error types are not being detected properly
 import * as typescriptParser from "@typescript-eslint/parser"; // eslint-disable-line import/no-namespace
+import type { Linter } from "eslint";
 import { RuleTester } from "eslint";
 
-const codeFilePath = (basePath, relativePath) => {
+const codeFilePath = (basePath: string, relativePath: string) => {
   return ["test", "fixtures", basePath, relativePath].join("/");
 };
 
-const relativeFilePath = (basePath, relativePath) => {
+const relativeFilePath = (basePath: string, relativePath: string) => {
   return path.join("test", "fixtures", basePath, relativePath);
 };
 
-const absoluteFilePath = (basePath, relativePath) => {
+const absoluteFilePath = (basePath: string, relativePath: string) => {
   return path.resolve(process.cwd(), relativeFilePath(basePath, relativePath));
 };
 
@@ -22,7 +23,11 @@ const resolverLegacyAliasPath = path.resolve(
   "resolver-legacy-alias",
 );
 
-export const SETTINGS = {
+export type RuleTesterSettings = Linter.Config<Linter.RulesRecord> & {
+  parserOptions?: Linter.ParserOptions;
+};
+
+export const SETTINGS: Record<string, RuleTesterSettings> = {
   deprecated: {
     "boundaries/types": ["components", "modules", "helpers"],
     "boundaries/alias": {
@@ -211,9 +216,9 @@ export const SETTINGS = {
       },
     },
   },
-};
+} as Record<string, RuleTesterSettings>;
 
-export const TYPESCRIPT_SETTINGS = {
+export const TYPESCRIPT_SETTINGS: Record<string, RuleTesterSettings> = {
   oneLevel: {
     ...SETTINGS.oneLevel,
     languageOptions: {
@@ -223,9 +228,13 @@ export const TYPESCRIPT_SETTINGS = {
       project: "./tsconfig.json",
     },
   },
-};
+} as Record<string, RuleTesterSettings>;
 
-export const createRuleTester = (settings) => {
+export const createRuleTester = (
+  settings: Linter.Config<Linter.RulesRecord> & {
+    parserOptions?: Linter.ParserOptions;
+  } = {},
+) => {
   const parserOptions = settings.parserOptions || {
     ecmaVersion: 2015,
     sourceType: "module",
@@ -235,16 +244,18 @@ export const createRuleTester = (settings) => {
       parser: settings.languageOptions?.parser,
       ...parserOptions,
     },
+    // @ts-expect-error TODO: Do not mix parserOptions and languageOptions
     settings,
   });
 };
 
-export const pathResolvers = (basePath) => {
+export const pathResolvers = (basePath: string) => {
   return {
-    codeFilePath: (relativePath) => codeFilePath(basePath, relativePath),
-    relativeFilePath: (relativePath) =>
+    codeFilePath: (relativePath: string) =>
+      codeFilePath(basePath, relativePath),
+    relativeFilePath: (relativePath: string) =>
       relativeFilePath(basePath, relativePath),
-    absoluteFilePath: (relativePath) =>
+    absoluteFilePath: (relativePath: string) =>
       absoluteFilePath(basePath, relativePath),
   };
 };
