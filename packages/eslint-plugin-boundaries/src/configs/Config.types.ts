@@ -25,24 +25,24 @@ export type {
   NoPrivateOptions,
 } from "../constants/Options.types";
 
-export interface Config<TNamespace extends string = typeof PLUGIN_NAME>
+export interface Config<PluginName extends string = typeof PLUGIN_NAME>
   extends Linter.Config {
   settings?: Settings;
   rules?: {
-    [K in `${TNamespace}/${
+    [K in `${PluginName}/${
       | typeof ELEMENT_TYPES
       | typeof ENTRY_POINT
       | typeof EXTERNAL
       | typeof NO_IGNORED
       | typeof NO_PRIVATE
       | typeof NO_UNKNOWN_FILES
-      | typeof NO_UNKNOWN}`]?: K extends `${TNamespace}/${typeof ELEMENT_TYPES}`
+      | typeof NO_UNKNOWN}`]?: K extends `${PluginName}/${typeof ELEMENT_TYPES}`
       ? Linter.RuleEntry<ElementTypesRuleOptions[]>
-      : K extends `${TNamespace}/${typeof ENTRY_POINT}`
+      : K extends `${PluginName}/${typeof ENTRY_POINT}`
         ? Linter.RuleEntry<EntryPointRuleOptions[]>
-        : K extends `${TNamespace}/${typeof EXTERNAL}`
+        : K extends `${PluginName}/${typeof EXTERNAL}`
           ? Linter.RuleEntry<ExternalRuleOptions[]>
-          : K extends `${TNamespace}/${typeof NO_PRIVATE}`
+          : K extends `${PluginName}/${typeof NO_PRIVATE}`
             ? Linter.RuleEntry<NoPrivateOptions[]>
             : Linter.RuleEntry<never>;
   };
