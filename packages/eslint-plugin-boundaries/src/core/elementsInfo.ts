@@ -11,8 +11,8 @@ import type {
 } from "../constants/ElementsInfo.types";
 import type { CapturedValues } from "../constants/Options.types";
 import type {
-  ElementAssignerMode,
-  PluginSettings,
+  ElementMappingMode,
+  Settings,
 } from "../constants/settings";
 import { SETTINGS } from "../constants/settings";
 import { debugFileInfo } from "../helpers/debug";
@@ -40,11 +40,11 @@ function baseModule(name: string) {
   return pkg;
 }
 
-function matchesIgnoreSetting(path: string, settings: PluginSettings) {
+function matchesIgnoreSetting(path: string, settings: Settings) {
   return micromatch.isMatch(path, settings[IGNORE] || []);
 }
 
-function isIgnored(path: string | undefined, settings: PluginSettings) {
+function isIgnored(path: string | undefined, settings: Settings) {
   if (!path) {
     return true;
   }
@@ -116,13 +116,13 @@ function getElementPath(
   return `${[...fullPath].reverse().join("/").split(result)[0]}${result}`;
 }
 
-function isValidMode(mode: string | undefined): mode is ElementAssignerMode {
-  return VALID_MODES.includes(mode as ElementAssignerMode);
+function isValidMode(mode: string | undefined): mode is ElementMappingMode {
+  return VALID_MODES.includes(mode as ElementMappingMode);
 }
 
 function elementTypeAndParents(
   path: string,
-  settings: PluginSettings,
+  settings: Settings,
 ): ElementInfo {
   const parents: ElementInfo["parents"] = [];
   const elementResult: ElementInfo = {

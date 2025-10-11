@@ -9,7 +9,7 @@ import type {
   RuleMatcherElementsCapturedValues,
   RuleResult,
   RuleResultReport,
-  ExternalLibraryDetailsMatcher,
+  ExternalLibraryMatcherOptions,
 } from "../constants/Options.types";
 import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
 import type { ImportKind } from "../constants/settings";
@@ -102,7 +102,7 @@ function pathMatch(
 function isMatchExternalDependency(
   dependency: DependencyInfo,
   matcher: string,
-  options: ExternalLibraryDetailsMatcher,
+  options: ExternalLibraryMatcherOptions,
   elementsCapturedValues: RuleMatcherElementsCapturedValues,
   importKind?: ImportKind,
 ): RuleResult {

@@ -8,7 +8,7 @@ import type {
   RuleMatcher,
   RuleOptionsWithRules,
   CapturedValuesMatcher,
-  ExternalLibraryDetailsMatcher,
+  ExternalLibraryMatcherOptions,
   ExternalRule,
   EntryPointRule,
   ElementTypesRule,
@@ -103,7 +103,7 @@ export function micromatchPatternReplacingObjectsValues(
 }
 
 export function isObjectMatch(
-  objectWithMatchers: CapturedValuesMatcher | ExternalLibraryDetailsMatcher,
+  objectWithMatchers: CapturedValuesMatcher | ExternalLibraryMatcherOptions,
   object: CapturedValues,
   objectsWithValuesToReplace: RuleMatcherElementsCapturedValues,
 ) {
@@ -133,7 +133,7 @@ function ruleMatch<
   FileOrDependencyInfo extends FileInfo | DependencyInfo = FileInfo,
   RuleMatchers extends
     | CapturedValuesMatcher
-    | ExternalLibraryDetailsMatcher = CapturedValuesMatcher,
+    | ExternalLibraryMatcherOptions = CapturedValuesMatcher,
 >(
   ruleMatchers: ElementMatchers | ExternalLibraryMatchers,
   targetElement: FileInfo | DependencyInfo,
@@ -177,7 +177,7 @@ function ruleMatch<
 export function isMatchElementKey(
   elementInfo: FileInfo | DependencyInfo,
   matcher: string,
-  options: CapturedValuesMatcher | ExternalLibraryDetailsMatcher,
+  options: CapturedValuesMatcher | ExternalLibraryMatcherOptions,
   elementKey: keyof FileInfo | keyof DependencyInfo,
   elementsToCompareCapturedValues: RuleMatcherElementsCapturedValues,
 ) {
@@ -219,7 +219,7 @@ export function isMatchImportKind(
 export function isMatchElementType(
   elementInfo: FileInfo,
   matcher: string,
-  options: CapturedValuesMatcher | ExternalLibraryDetailsMatcher,
+  options: CapturedValuesMatcher | ExternalLibraryMatcherOptions,
   elementsToCompareCapturedValues: RuleMatcherElementsCapturedValues,
   importKind?: ImportKind,
 ) {
@@ -239,7 +239,7 @@ export function getElementRules<
   FileOrDependencyInfo extends FileInfo | DependencyInfo = FileInfo,
   RuleMatchers extends
     | CapturedValuesMatcher
-    | ExternalLibraryDetailsMatcher = CapturedValuesMatcher,
+    | ExternalLibraryMatcherOptions = CapturedValuesMatcher,
 >(
   targetElement: FileInfo | DependencyInfo,
   options: RuleOptionsWithRules,
@@ -289,7 +289,7 @@ export function elementRulesAllowDependency<
   FileOrDependencyInfo extends FileInfo | DependencyInfo = FileInfo,
   RuleMatchers extends
     | CapturedValuesMatcher
-    | ExternalLibraryDetailsMatcher = CapturedValuesMatcher,
+    | ExternalLibraryMatcherOptions = CapturedValuesMatcher,
 >({
   element,
   dependency,

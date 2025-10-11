@@ -11,8 +11,8 @@ import type {
 import type {
   DependencyNodeKey,
   DependencyNodeSelector,
-  ElementAssigners,
-  PluginSettings,
+  ElementMappings,
+  Settings,
   IgnoreSetting,
   IncludeSetting,
   ImportKind,
@@ -137,7 +137,7 @@ export function rulesOptionsSchema(
 
 function isValidElementTypesMatcher(
   matcher: ElementMatcher | ExternalLibraryMatcher,
-  settings: PluginSettings,
+  settings: Settings,
 ) {
   const matcherToCheck = isArray(matcher) ? matcher[0] : matcher;
   return (
@@ -147,7 +147,7 @@ function isValidElementTypesMatcher(
 
 export function validateElementTypesMatcher(
   elementsMatcher: ElementMatchers | ExternalLibraryMatchers,
-  settings: PluginSettings,
+  settings: Settings,
 ) {
   const [matcher] = isArray(elementsMatcher)
     ? elementsMatcher
@@ -163,7 +163,7 @@ export function validateElementTypesMatcher(
   }
 }
 
-function validateElements(elements: unknown): ElementAssigners | undefined {
+function validateElements(elements: unknown): ElementMappings | undefined {
   if (!elements || !isArray(elements) || !elements.length) {
     warnOnce(`Please provide element types using the '${ELEMENTS}' setting`);
     return;
@@ -300,7 +300,7 @@ function validateRootPath(rootPath: unknown): string | undefined {
 
 export function validateSettings(
   settings: Rule.RuleContext["settings"],
-): PluginSettings {
+): Settings {
   deprecateTypes(settings[TYPES]);
   deprecateAlias(settings[ALIAS]);
 
@@ -322,7 +322,7 @@ export function validateSettings(
 }
 
 export function validateRules(
-  settings: PluginSettings,
+  settings: Settings,
   rules: RuleOptionsRules[] = [],
   options: ValidateRulesOptions = {},
 ) {

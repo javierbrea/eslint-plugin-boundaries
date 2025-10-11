@@ -6,29 +6,29 @@ export type CapturedValues = Record<string, string>;
 
 export type CapturedValuesMatcher = Record<string, string>;
 
-export type ElementMatcherWithCaptureRules = [string, CapturedValuesMatcher];
+export type ElementMatcherWithOptions = [string, CapturedValuesMatcher];
 
-export type ElementMatcher = string | ElementMatcherWithCaptureRules;
+export type ElementMatcher = string | ElementMatcherWithOptions;
 
 export type ElementMatchers = ElementMatcher | ElementMatcher[];
 
-export type ExternalLibraryDetailsMatcher = {
+export type ExternalLibraryMatcherOptions = {
   path: string | string[];
   specifiers?: string[];
 };
 
-export type ExternalLibraryMatcherWithDetails = [
+export type ExternalLibraryMatcherWithOptions = [
   string,
-  ExternalLibraryDetailsMatcher,
+  ExternalLibraryMatcherOptions,
 ];
 
-export type ExternalLibraryMatcher = string | ExternalLibraryMatcherWithDetails;
+export type ExternalLibraryMatcher = string | ExternalLibraryMatcherWithOptions;
 
 export type ExternalLibraryMatchers =
   | ExternalLibraryMatcher
   | ExternalLibraryMatcher[];
 
-export type RuleDefault = "allow" | "disallow";
+export type RulePolicy = "allow" | "disallow";
 
 export type BaseRule = {
   from?: ElementMatchers;
@@ -41,7 +41,7 @@ export type BaseRule = {
 };
 
 export type RuleBaseOptions = {
-  default?: RuleDefault;
+  default?: RulePolicy;
   message?: string;
 };
 
@@ -74,7 +74,7 @@ export type RuleMatcher<
   FileOrDependencyInfo extends FileInfo | DependencyInfo = FileInfo,
   RuleMatchers extends
     | CapturedValuesMatcher
-    | ExternalLibraryDetailsMatcher = CapturedValuesMatcher,
+    | ExternalLibraryMatcherOptions = CapturedValuesMatcher,
 > = (
   // eslint-disable-next-line no-unused-vars
   elementInfo: FileOrDependencyInfo,

@@ -4,13 +4,16 @@
   "description": "Eslint plugin checking architecture boundaries between elements",
   "keywords": [
     "eslint",
+    "eslint-plugin",
+    "eslintplugin",
     "plugin",
     "architecture",
     "boundaries",
     "dependencies",
     "elements",
     "hierarchy",
-    "import"
+    "import",
+    "dependency"
   ],
   "author": "Javier Brea",
   "license": "MIT",
@@ -19,6 +22,24 @@
     "dist"
   ],
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./config": "./dist/types/Config.d.ts",
+    "./recommended": "./dist/configs/recommended.js",
+    "./settings": "./dist/types/Settings.d.ts",
+    "./strict": "./dist/configs/strict.js",
+    "./rules": "./dist/types/Rules.d.ts"
+  },
+  "typesVersions": {
+    "*": {
+      "config": ["dist/types/Config.d.ts"],
+      "recommended": ["dist/configs/recommended.d.ts"],
+      "settings": ["dist/types/Settings.d.ts"],
+      "strict": ["dist/configs/strict.d.ts"],
+      "rules": ["dist/types/Rules.d.ts"]
+    }
+  },
   "scripts": {
     "eslint": "eslint",
     "build": "pnpm build:tsc && pnpm copy:readme",

@@ -77,6 +77,12 @@ export default [
           mode: "full",
           pattern: ["src/index.ts"],
         },
+        {
+          type: "types",
+          mode: "file",
+          pattern: "src/types/*.ts",
+          capture: ["name"],
+        },
       ],
     },
 
@@ -89,7 +95,7 @@ export default [
           rules: [
             {
               from: "plugin",
-              allow: ["constants", "config", "rule"],
+              allow: ["constants", "config", "rule", "types"],
             },
             {
               from: "config",
@@ -114,6 +120,10 @@ export default [
             {
               from: "rule-factory",
               allow: ["constants", "helper", "core", "rule-factory"],
+            },
+            {
+              from: "types",
+              allow: ["types", "constants", "config"],
             },
           ],
         },

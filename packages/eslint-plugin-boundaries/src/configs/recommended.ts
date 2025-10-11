@@ -1,5 +1,7 @@
 import { SETTINGS } from "../constants/settings";
 
+import type { Config } from "./Config.types";
+
 const {
   ELEMENTS,
   // rules
@@ -12,7 +14,7 @@ const {
   RULE_NO_UNKNOWN,
 } = SETTINGS;
 
-export default {
+const config: Config = {
   rules: {
     [RULE_ELEMENT_TYPES]: [2],
     [RULE_ENTRY_POINT]: [2],
@@ -31,3 +33,8 @@ export default {
     [ELEMENTS]: [],
   },
 };
+
+export default config;
+
+// For CommonJS compatibility
+module.exports = config;

@@ -90,7 +90,7 @@ importers:
         specifier: 29.0.1
         version: 29.0.1(@typescript-eslint/eslint-plugin@8.46.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0)(typescript@5.9.3))(eslint@9.37.0)(typescript@5.9.3))(eslint@9.37.0)(jest@30.2.0(@types/node@22.9.0))(typescript@5.9.3)
       eslint-plugin-local-rules:
-        specifier: ^3.0.2
+        specifier: 3.0.2
         version: 3.0.2
       eslint-plugin-prettier:
         specifier: 5.5.4
@@ -123,6 +123,18 @@ importers:
       '@types/micromatch':
         specifier: 4.0.9
         version: 4.0.9
+
+  packages/eslint-plugin-boundaries-e2e:
+    dependencies:
+      chalk:
+        specifier: 5.6.2
+        version: 5.6.2
+      eslint:
+        specifier: 9.37.0
+        version: 9.37.0
+      eslint-plugin-boundaries:
+        specifier: workspace:*
+        version: link:../eslint-plugin-boundaries
 
 packages:
 

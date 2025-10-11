@@ -2,10 +2,10 @@ import { isAbsolute, resolve } from "node:path";
 
 import { SETTINGS } from "../constants/settings";
 import type {
-  ElementAssigners,
-  ElementAssigner,
-  PluginSettings,
-  ElementAssignerMode,
+  ElementMappings,
+  ElementMapping,
+  Settings,
+  ElementMappingMode,
 } from "../constants/settings";
 
 import { warnOnce } from "./debug";
@@ -20,7 +20,7 @@ export function isLegacyType(type: unknown): type is string {
 
 export function isValidElementAssigner(
   element: unknown,
-): element is ElementAssigner {
+): element is ElementMapping {
   if (!element || !isObject(element)) {
     warnOnce(
       `Please provide a valid object to define element types in '${ELEMENTS}' setting`,
@@ -47,7 +47,7 @@ export function isValidElementAssigner(
     if (
       element.mode &&
       isString(element.mode) &&
-      !VALID_MODES.includes(element.mode as ElementAssignerMode)
+      !VALID_MODES.includes(element.mode as ElementMappingMode)
     ) {
       warnOnce(
         `Invalid mode property of type ${
@@ -79,8 +79,8 @@ export function isValidElementAssigner(
 
 // TODO, remove in next major version
 function transformLegacyTypes(
-  typesFromSettings?: string[] | ElementAssigners,
-): ElementAssigners {
+  typesFromSettings?: string[] | ElementMappings,
+): ElementMappings {
   const types = typesFromSettings || [];
   if (!isArray(types)) {
     return [];
@@ -103,15 +103,15 @@ function transformLegacyTypes(
   });
 }
 
-export function getElements(settings: PluginSettings): ElementAssigners {
+export function getElements(settings: Settings): ElementMappings {
   return transformLegacyTypes(settings[ELEMENTS] || settings[TYPES]);
 }
 
-export function getElementsTypeNames(settings: PluginSettings): string[] {
+export function getElementsTypeNames(settings: Settings): string[] {
   return getElements(settings).map((element) => element.type);
 }
 
-export function getRootPath(settings: PluginSettings): string {
+export function getRootPath(settings: Settings): string {
   const rootPathUserSetting = process.env[ENV_ROOT_PATH] || settings[ROOT_PATH];
   if (rootPathUserSetting) {
     return isAbsolute(rootPathUserSetting)

@@ -1,12 +1,12 @@
 import { PLUGIN_NAME } from "./plugin";
 
-export const ELEMENT_TYPES = "element-types";
-export const ENTRY_POINT = "entry-point";
-export const EXTERNAL = "external";
-export const NO_IGNORED = "no-ignored";
-export const NO_PRIVATE = "no-private";
-export const NO_UNKNOWN_FILES = "no-unknown-files";
-export const NO_UNKNOWN = "no-unknown";
+export const ELEMENT_TYPES = "element-types" as const;
+export const ENTRY_POINT = "entry-point" as const;
+export const EXTERNAL = "external" as const;
+export const NO_IGNORED = "no-ignored" as const;
+export const NO_PRIVATE = "no-private" as const;
+export const NO_UNKNOWN_FILES = "no-unknown-files" as const;
+export const NO_UNKNOWN = "no-unknown" as const;
 
 /**
  * Mapping of all rule names

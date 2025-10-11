@@ -1,10 +1,11 @@
 import { SETTINGS } from "../constants/settings";
 
-const { RULE_NO_IGNORED, RULE_NO_UNKNOWN_FILES, RULE_NO_UNKNOWN } = SETTINGS;
-
+import type { Config } from "./Config.types";
 import recommended from "./recommended";
 
-export default {
+const { RULE_NO_IGNORED, RULE_NO_UNKNOWN_FILES, RULE_NO_UNKNOWN } = SETTINGS;
+
+const config: Config = {
   ...recommended,
   rules: {
     ...recommended.rules,
@@ -13,3 +14,8 @@ export default {
     [RULE_NO_UNKNOWN]: 2,
   },
 };
+
+export default config;
+
+// For CommonJS compatibility
+module.exports = config;

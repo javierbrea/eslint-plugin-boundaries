@@ -8,6 +8,8 @@ import strictConfig from "./configs/strict";
 import type { RuleShortName, RuleShortNames } from "./constants/rules";
 import { RULE_SHORT_NAMES } from "./constants/rules";
 
+export * from "./types";
+
 /**
  * The path to the plugin package.json file
  */
@@ -50,14 +52,21 @@ function importRules(ruleNames: RuleShortNames) {
   );
 }
 
-module.exports = {
+const publicInterface = {
   meta: {
-    name: packageJson.name,
-    version: packageJson.version,
+    name: packageJson.name as string,
+    version: packageJson.version as string,
   },
   rules: importRules(RULE_SHORT_NAMES),
   configs: {
     recommended: recommendedConfig,
     strict: strictConfig,
   },
+};
+
+export default publicInterface;
+
+// For CommonJS compatibility
+module.exports = {
+  ...publicInterface,
 };

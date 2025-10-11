@@ -1,0 +1,16 @@
+{
+  "name": "@eslint-plugin-boundaries/e2e-tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check:types": "tsc --noEmit",
+    "test": "node test/e2e.spec.js",
+    "test:debug": "node --inspect test/e2e.spec.js"
+  },
+  "dependencies": {
+    "chalk": "5.6.2",
+    "eslint": "9.37.0",
+    "eslint-plugin-boundaries": "workspace:*"
+  }
+}

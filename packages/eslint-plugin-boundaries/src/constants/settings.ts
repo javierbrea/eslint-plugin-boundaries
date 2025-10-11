@@ -118,37 +118,37 @@ export const SETTINGS_KEYS = {
   ALIAS: SETTINGS.ALIAS,
 } as const;
 
-export type PluginSettingsKey =
-  (typeof SETTINGS_KEYS)[keyof typeof SETTINGS_KEYS];
+export type SettingsKey = (typeof SETTINGS_KEYS)[keyof typeof SETTINGS_KEYS];
 
 export type IncludeSetting = string | string[];
 export type IgnoreSetting = string | string[];
 export type RootPathSetting = string;
+export type AliasSetting = Record<string, string>;
 
 // TODO: Create a map
-export type ElementAssignerMode = "folder" | "file" | "full";
+export type ElementMappingMode = "folder" | "file" | "full";
 
-export type ElementAssigner = {
+export type ElementMapping = {
   type: string;
   pattern: string | string[];
   basePattern?: string;
-  mode?: ElementAssignerMode;
+  mode?: ElementMappingMode;
   capture?: string[];
   baseCapture?: string[];
 };
 
-export type ElementAssigners = ElementAssigner[];
+export type ElementMappings = ElementMapping[];
 
 // TODO: Define types
-export type PluginSettings = {
-  [SETTINGS_KEYS.ELEMENTS]?: ElementAssigners;
+export type Settings = {
+  [SETTINGS_KEYS.ELEMENTS]?: ElementMappings;
   [SETTINGS_KEYS.IGNORE]?: IgnoreSetting;
   [SETTINGS_KEYS.INCLUDE]?: IncludeSetting;
   [SETTINGS_KEYS.ROOT_PATH]?: RootPathSetting;
   [SETTINGS_KEYS.DEPENDENCY_NODES]?: DependencyNodeKey[];
   [SETTINGS_KEYS.ADDITIONAL_DEPENDENCY_NODES]?: DependencyNodeSelector[];
   /** @deprecated Use 'DEPENDENCY_NODES' instead */
-  [SETTINGS_KEYS.TYPES]?: ElementAssigners;
+  [SETTINGS_KEYS.TYPES]?: ElementMappings;
   /** @deprecated Use import/resolver settings instead */
-  [SETTINGS_KEYS.ALIAS]?: Record<string, string>;
+  [SETTINGS_KEYS.ALIAS]?: AliasSetting;
 };

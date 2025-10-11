@@ -1,11 +1,11 @@
-import type { PluginSettings } from "../constants/settings";
+import type { Settings } from "../constants/settings";
 
 class CacheManager {
   private _cache: Record<string, unknown>;
   private _name: string;
-  private _settings: PluginSettings;
+  private _settings: Settings;
 
-  constructor(name: string, settings: PluginSettings) {
+  constructor(name: string, settings: Settings) {
     this._cache = {};
     this._name = name;
     this._settings = settings;
@@ -36,7 +36,7 @@ class CachesManager {
     this._caches = [];
   }
 
-  findCacheForSettings(settings: PluginSettings) {
+  findCacheForSettings(settings: Settings) {
     let cache = this._caches.find((cacheCandidate) => {
       return cacheCandidate.settings === settings;
     });
@@ -47,12 +47,12 @@ class CachesManager {
     return cache;
   }
 
-  save(key: string, value: unknown, settings: PluginSettings) {
+  save(key: string, value: unknown, settings: Settings) {
     const cache = this.findCacheForSettings(settings);
     cache.save(key, value);
   }
 
-  load(key: string, settings: PluginSettings) {
+  load(key: string, settings: Settings) {
     const cache = this.findCacheForSettings(settings);
     return cache.load(key);
   }
