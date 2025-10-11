@@ -2,14 +2,65 @@ import { ESLint } from 'eslint';
 import { join } from 'path';
 import chalk from 'chalk';
 
-// Simple assertion system
+/**
+ * @typedef {Object} TestResult
+ * @property {string} description - Test description
+ * @property {'passed' | 'failed'} status - Test status
+ * @property {string} [error] - Error message if test failed
+ */
+
+/**
+ * @typedef {Object} ESLintFileResult
+ * @property {string} filePath - Path to the linted file
+ * @property {Array<Object>} messages - ESLint messages for this file
+ * @property {number} errorCount - Number of errors in this file
+ * @property {number} warningCount - Number of warnings in this file
+ */
+
+/**
+ * @typedef {Object} ESLintResult
+ * @property {boolean} success - Whether ESLint ran successfully
+ * @property {Array<Object>} [results] - Raw ESLint results
+ * @property {number} [errorCount] - Total number of errors
+ * @property {number} [warningCount] - Total number of warnings
+ * @property {Array<ESLintFileResult>} [files] - Processed file results
+ * @property {string} [error] - Error message if ESLint failed
+ */
+
+/**
+ * @typedef {function(TestRunner, ESLintResult): Promise<void>} AssertFunction
+ */
+
+/**
+ * @typedef {Object} TestDefinition
+ * @property {string} name - Test name/identifier
+ * @property {Object} config - ESLint configuration object
+ * @property {string} fixture - Path to the fixture directory
+ * @property {AssertFunction} assert - Function that runs test assertions
+ */
+
+/**
+ * Simple assertion system for running tests
+ */
 export class TestRunner {
+  /**
+   * Creates a new TestRunner instance
+   */
   constructor() {
+    /** @type {number} */
     this.passedTests = 0;
+    /** @type {number} */
     this.failedTests = 0;
+    /** @type {Array<TestResult>} */
     this.tests = [];
   }
 
+  /**
+   * Runs an assertion and tracks the result
+   * @param {string} description - Description of what is being tested
+   * @param {function(): Promise<boolean>} assertion - Async function that returns true if test passes
+   * @returns {Promise<void>}
+   */
   async assert(description, assertion) {
     try {
       const result = await assertion();
@@ -30,6 +81,10 @@ export class TestRunner {
     }
   }
 
+  /**
+   * Prints a summary of all test results and exits if tests failed
+   * @returns {void}
+   */
   printSummary() {
     const total = this.passedTests + this.failedTests;
     console.log(`\n${chalk.bold('=== Test Summary ===')}`);
@@ -48,7 +103,12 @@ export class TestRunner {
   }
 }
 
-// Function to run ESLint on a specific fixture with provided config
+/**
+ * Runs ESLint on a specific fixture with the provided configuration
+ * @param {string} fixturePath - Absolute path to the fixture directory
+ * @param {Object} eslintConfig - ESLint configuration object
+ * @returns {Promise<ESLintResult>} Promise that resolves to the ESLint result
+ */
 async function runESLintOnFixture(fixturePath, eslintConfig) {
   try {
     const eslint = new ESLint({
@@ -80,36 +140,52 @@ async function runESLintOnFixture(fixturePath, eslintConfig) {
 }
 
 /**
- * Runs tests on the provided fixtures
- * @param {Array} fixtures - Array of fixture objects with structure: { name: string, config: object, path: string }
- * @param {Object} fixtureTests - Object with fixture-specific test functions
+ * Runs tests on the provided test definitions
+ * @param {Array<TestDefinition>} tests - Array of test definitions
+ * @returns {Promise<void>} Promise that resolves when all tests complete
+ * @example
+ * ```javascript
+ * const tests = [
+ *   {
+ *     name: 'basic-test',
+ *     config: { rules: { 'no-console': 'error' } },
+ *     fixture: '/path/to/fixture',
+ *     assert: async (runner, result) => {
+ *       await runner.assert('should have errors', async () => {
+ *         return result.errorCount > 0;
+ *       });
+ *     }
+ *   }
+ * ];
+ * 
+ * await runTests(tests);
+ * ```
  */
-export async function runTests(fixtures, fixtureTests = {}) {
+export async function runTests(tests) {
   const runner = new TestRunner();
   
   console.log(`${chalk.blue.bold('Running ESLint Plugin Boundaries E2E Tests')}\n`);
   
-  if (!fixtures || fixtures.length === 0) {
-    console.log(`${chalk.yellow('No fixtures provided')}`);
+  if (!tests || tests.length === 0) {
+    console.log(`${chalk.yellow('No tests provided')}`);
     return;
   }
 
-  console.log(`Found ${fixtures.length} fixture(s): ${fixtures.map(f => f.name).join(', ')}\n`);
+  console.log(`Found ${tests.length} test(s): ${tests.map(t => t.name).join(', ')}\n`);
 
-  for (const fixture of fixtures) {
-    console.log(`${chalk.blue(`Running tests for fixture: ${fixture.name}`)}`);
+  for (const test of tests) {
+    console.log(`${chalk.blue(`Running tests for: ${test.name}`)}`);
     
-    const result = await runESLintOnFixture(fixture.path, fixture.config);
+    const result = await runESLintOnFixture(test.fixture, test.config);
     
-    await runner.assert(`ESLint should run successfully on ${fixture.name}`, async () => {
+    await runner.assert(`ESLint should run successfully on ${test.name}`, async () => {
       return result.success;
     });
 
     if (result.success) {
-      // Run fixture-specific tests if available
-      const fixtureTestFn = fixtureTests[fixture.name];
-      if (fixtureTestFn) {
-        await fixtureTestFn(runner, result);
+      // Run test-specific assertions if available
+      if (test.assert && typeof test.assert === 'function') {
+        await test.assert(runner, result);
       }
 
       // Additional information about results
@@ -134,7 +210,7 @@ export async function runTests(fixtures, fixtureTests = {}) {
       console.log(`  ${chalk.red(`ESLint execution failed: ${result.error}`)}`);
     }
     
-    console.log(''); // Empty line between fixtures
+    console.log(''); // Empty line between tests
   }
 
   runner.printSummary();

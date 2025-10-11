@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "check:types": "tsc --noEmit",
+    "check:types:tests": "tsc --noEmit --project test/tsconfig.json",
     "test": "node test/e2e.spec.js",
     "test:debug": "node --inspect test/e2e.spec.js"
   },
