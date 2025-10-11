@@ -1,7 +1,9 @@
-import { ESLint } from 'eslint';
-import { join } from 'path';
-import chalk from 'chalk';
+/* eslint-disable no-console */
 
+import chalk from "chalk";
+import { ESLint } from "eslint";
+
+// Exported types for external use
 /**
  * @typedef {Object} TestResult
  * @property {string} description - Test description
@@ -10,9 +12,18 @@ import chalk from 'chalk';
  */
 
 /**
+ * @typedef {Object} ESLintMessage
+ * @property {number} line - Line number
+ * @property {number} column - Column number
+ * @property {string} message - Error message
+ * @property {string | null} ruleId - ESLint rule ID
+ * @property {number} severity - 1 for warning, 2 for error
+ */
+
+/**
  * @typedef {Object} ESLintFileResult
  * @property {string} filePath - Path to the linted file
- * @property {Array<Object>} messages - ESLint messages for this file
+ * @property {Array<ESLintMessage>} messages - ESLint messages for this file
  * @property {number} errorCount - Number of errors in this file
  * @property {number} warningCount - Number of warnings in this file
  */
@@ -66,18 +77,28 @@ export class TestRunner {
       const result = await assertion();
       if (result) {
         this.passedTests++;
-        console.log(`${chalk.green('✓')} ${description}`);
-        this.tests.push({ description, status: 'passed' });
+        console.log(`${chalk.green("✓")} ${description}`);
+        this.tests.push({ description, status: "passed" });
       } else {
         this.failedTests++;
-        console.log(`${chalk.red('✗')} ${description}`);
-        this.tests.push({ description, status: 'failed', error: 'Assertion failed' });
+        console.log(`${chalk.red("✗")} ${description}`);
+        this.tests.push({
+          description,
+          status: "failed",
+          error: "Assertion failed",
+        });
       }
     } catch (error) {
       this.failedTests++;
-      console.log(`${chalk.red('✗')} ${description}`);
-      console.log(`  ${chalk.red(`Error: ${error.message}`)}`);
-      this.tests.push({ description, status: 'failed', error: error.message });
+      console.log(`${chalk.red("✗")} ${description}`);
+      console.log(
+        `  ${chalk.red(`Error: ${error instanceof Error ? error.message : String(error)}`)}`,
+      );
+      this.tests.push({
+        description,
+        status: "failed",
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -87,17 +108,17 @@ export class TestRunner {
    */
   printSummary() {
     const total = this.passedTests + this.failedTests;
-    console.log(`\n${chalk.bold('=== Test Summary ===')}`);
+    console.log(`\n${chalk.bold("=== Test Summary ===")}`);
     console.log(`Total: ${total}`);
     console.log(`${chalk.green(`Passed: ${this.passedTests}`)}`);
     if (this.failedTests > 0) {
       console.log(`${chalk.red(`Failed: ${this.failedTests}`)}`);
     }
-    
+
     if (this.failedTests === 0) {
-      console.log(`\n${chalk.green.bold('All tests passed!')}`);
+      console.log(`\n${chalk.green.bold("All tests passed!")}`);
     } else {
-      console.log(`\n${chalk.red.bold('Some tests failed!')}`);
+      console.log(`\n${chalk.red.bold("Some tests failed!")}`);
       process.exit(1);
     }
   }
@@ -113,28 +134,31 @@ async function runESLintOnFixture(fixturePath, eslintConfig) {
   try {
     const eslint = new ESLint({
       overrideConfig: eslintConfig,
-      cwd: fixturePath
+      cwd: fixturePath,
     });
 
     // Get all .js files in the src folder
-    const results = await eslint.lintFiles(['src/**/*.js']);
-    
+    const results = await eslint.lintFiles(["src/**/*.js"]);
+
     return {
       success: true,
       results,
       errorCount: results.reduce((sum, result) => sum + result.errorCount, 0),
-      warningCount: results.reduce((sum, result) => sum + result.warningCount, 0),
-      files: results.map(result => ({
+      warningCount: results.reduce(
+        (sum, result) => sum + result.warningCount,
+        0,
+      ),
+      files: results.map((result) => ({
         filePath: result.filePath,
         messages: result.messages,
         errorCount: result.errorCount,
-        warningCount: result.warningCount
-      }))
+        warningCount: result.warningCount,
+      })),
     };
   } catch (error) {
     return {
       success: false,
-      error: error.message
+      error: error instanceof Error ? error.message : String(error),
     };
   }
 }
@@ -157,50 +181,68 @@ async function runESLintOnFixture(fixturePath, eslintConfig) {
  *     }
  *   }
  * ];
- * 
+ *
  * await runTests(tests);
  * ```
  */
 export async function runTests(tests) {
   const runner = new TestRunner();
-  
-  console.log(`${chalk.blue.bold('Running ESLint Plugin Boundaries E2E Tests')}\n`);
-  
+
+  console.log(
+    `${chalk.blue.bold("Running ESLint Plugin Boundaries E2E Tests")}\n`,
+  );
+
   if (!tests || tests.length === 0) {
-    console.log(`${chalk.yellow('No tests provided')}`);
+    console.log(`${chalk.yellow("No tests provided")}`);
     return;
   }
 
-  console.log(`Found ${tests.length} test(s): ${tests.map(t => t.name).join(', ')}\n`);
+  console.log(
+    `Found ${tests.length} test(s): ${tests.map((t) => t.name).join(", ")}\n`,
+  );
 
   for (const test of tests) {
     console.log(`${chalk.blue(`Running tests for: ${test.name}`)}`);
-    
+
     const result = await runESLintOnFixture(test.fixture, test.config);
-    
-    await runner.assert(`ESLint should run successfully on ${test.name}`, async () => {
-      return result.success;
-    });
+
+    await runner.assert(
+      `ESLint should run successfully on ${test.name}`,
+      async () => {
+        return result.success;
+      },
+    );
 
     if (result.success) {
       // Run test-specific assertions if available
-      if (test.assert && typeof test.assert === 'function') {
+      if (test.assert && typeof test.assert === "function") {
         await test.assert(runner, result);
       }
 
       // Additional information about results
-      if (result.files.length > 0) {
-        console.log(`  ${chalk.yellow(`Files processed: ${result.files.length}`)}`);
-        console.log(`  ${chalk.yellow(`Total errors: ${result.errorCount}`)}`);
-        console.log(`  ${chalk.yellow(`Total warnings: ${result.warningCount}`)}`);
-        
+      if (result.files && result.files.length > 0) {
+        console.log(
+          `  ${chalk.yellow(`Files processed: ${result.files.length}`)}`,
+        );
+        console.log(
+          `  ${chalk.yellow(`Total errors: ${result.errorCount || 0}`)}`,
+        );
+        console.log(
+          `  ${chalk.yellow(`Total warnings: ${result.warningCount || 0}`)}`,
+        );
+
         // Show specific errors for debugging
-        result.files.forEach(file => {
+        result.files.forEach((file) => {
           if (file.errorCount > 0) {
-            console.log(`    ${chalk.red(`Errors in ${file.filePath.split('/').pop()}:`)}`);
-            file.messages.forEach(msg => {
-              if (msg.severity === 2) { // Error
-                console.log(`      Line ${msg.line}: ${msg.message} (${msg.ruleId})`);
+            console.log(
+              `    ${chalk.red(`Errors in ${file.filePath.split("/").pop()}:`)}`,
+            );
+            file.messages.forEach((msg) => {
+              if (msg.severity === 2) {
+                // Error
+                console.log(
+                  `      Line ${msg.line}: ${msg.message} (${msg.ruleId})`,
+                );
               }
             });
           }
@@ -209,8 +251,8 @@ export async function runTests(tests) {
     } else {
       console.log(`  ${chalk.red(`ESLint execution failed: ${result.error}`)}`);
     }
-    
-    console.log(''); // Empty line between tests
+
+    console.log(""); // Empty line between tests
   }
 
   runner.printSummary();

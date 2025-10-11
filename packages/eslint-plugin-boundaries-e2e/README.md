@@ -1,105 +1,123 @@
 # ESLint Plugin Boundaries E2E Tests
 
-This package contains end-to-end (E2E) tests for the `eslint-plugin-boundaries` plugin. The tests run ESLint programmatically with different configurations to ensure that the plugin works correctly in different scenarios.
-
-## Structure
-
-```
-test/
-├── e2e.spec.js          # Main test runner
-└── fixtures/            # Test configurations
-    ├── basic-config/     # Basic element-types test
-    │   ├── eslint.config.js
-    │   └── src/
-    └── strict-config/    # Stricter test
-        ├── eslint.config.js
-        └── src/
-```
+This package contains end-to-end (E2E) tests for the eslint-plugin-boundaries plugin. The tests run ESLint programmatically with different configurations to ensure that the plugin works correctly in different scenarios using real imports. These tests mainly focus on verifying the various paths, types, and configuration utilities of the plugin, ensuring that the public interface behaves as expected after publication. Functional behavior is fully covered by the plugin's own unit tests.
 
 ## How it works
 
-1. **Test Runner**: `e2e.spec.js` contains a simple testing system without external dependencies
-2. **Fixtures**: Each folder in `test/fixtures/` represents an independent test case
-3. **Configurations**: Each fixture has its own `eslint.config.js` and test files
-4. **Assertions**: The runner executes ESLint and verifies expected results
+1. **Test Definitions**: `e2e.spec.js` defines test cases with specific configurations and assertions
+2. **Test Runner**: `runner.js` provides a custom test runner with assertion system and colored output
+3. **Configurations**: Different ESLint configurations for tests in `configs/` and `configs-ts/` directories
+4. **Fixtures**: Test scenarios in `fixtures/` directory with source files to lint
+5. **Programmatic Execution**: Uses ESLint API to lint files and validate results
 
 ## Run tests
 
 ```bash
 # Run all E2E tests
-npm test
-
-# Run with debug
-npm run test:debug
+pnpm nx test:e2e eslint-plugin-boundaries-e2e
 ```
 
 ## Adding new tests
 
 To add a new test case:
 
-1. Create a new folder in `test/fixtures/`
-2. Add an `eslint.config.js` with specific configuration
-3. Create test files in a `src/` folder
-4. Register specific test assertions using the callback system
+1. Add a new configuration in `test/configs/` or `test/configs-ts/` if needed.
+2. Create a new folder in `test/fixtures/` with your files structure to lint if needed
+3. Define your test in the `tests` array in `e2e.spec.js`
 
-### Fixture example
+> [!WARNING]
+> TypeScript configurations are transpiled to JavaScript before test execution via the `build` script. To assert type errors, use `@ts-expect-error` for the expected incorrect types. From the test runner's perspective, always import the corresponding `.js` file from `configs-ts/`, not the original `.ts` file.
 
-```
-test/fixtures/my-new-test/
-├── eslint.config.js     # ESLint configuration
-└── src/
-    ├── valid.js         # File that should pass
-    └── invalid.js       # File that should fail
-```
-
-### Adding fixture-specific tests
-
-Add your test function to the `fixtureTests` object in `e2e.spec.js`:
+### Test Definition Example
 
 ```javascript
-const fixtureTests = {
-  'my-new-test': async (runner, result) => {
-    await runner.assert(`my-new-test should have specific behavior`, async () => {
+{
+  name: "my-new-test",
+  config: myConfig, // Import your configuration
+  fixture: join(___dirname, "fixtures", "my-new-fixture"), // Path to your fixture
+  assert: async (runner, result) => {
+    await runner.assert(`Description of what should happen`, async () => {
       // Your test logic here
       return result.errorCount === expectedErrors;
     });
   }
-};
+}
 ```
 
-### Test callback parameters
+### Test Assertion Parameters
 
-Each fixture test callback receives:
-- `runner`: TestRunner instance with `assert` method
-- `result`: ESLint execution result containing:
+Each test assertion callback receives:
+- `runner`: TestRunner instance with `assert` method for running assertions
+- `result`: ESLintResult object containing:
   - `success`: Boolean indicating if ESLint ran successfully
-  - `errorCount`: Total number of errors
-  - `warningCount`: Total number of warnings
-  - `files`: Array of file results with messages and counts
+  - `errorCount`: Total number of errors across all files
+  - `warningCount`: Total number of warnings across all files
+  - `files`: Array of ESLintFileResult objects with detailed results per file
+  - `error`: Error message if ESLint execution failed
 
-## System features
+### ESLintFileResult Structure
 
-- **No external frameworks**: Uses only Node.js and ESLint
-- **Programmatic execution**: Runs ESLint as an IDE or CI would
-- **Simple assertions**: Basic but effective assertion system
-- **Colored output**: Easy to read results
-- **Automatic detection**: Automatically finds all fixtures
-- **Detailed information**: Shows specific errors and statistics
+Each file result contains:
+- `filePath`: Absolute path to the linted file
+- `messages`: Array of ESLint messages (errors/warnings)
+- `errorCount`: Number of errors in this specific file
+- `warningCount`: Number of warnings in this specific file
 
-## Types of tests you can do
+### Message Structure
 
-- Verify that certain imports generate errors
-- Check that valid imports don't generate errors
-- Test different plugin configurations
-- Try different element types and rules
-- Verify behavior with different project structures
+Each ESLint message contains:
+- `line`: Line number where the issue was found
+- `column`: Column number where the issue was found
+- `message`: Human-readable error/warning message
+- `ruleId`: ESLint rule that triggered (e.g., "boundaries/element-types")
+- `severity`: 1 for warning, 2 for error
+
+## System Features
+
+- **Custom Test Runner**: Built-in test runner with assertion system (no external test frameworks)
+- **Programmatic ESLint**: Runs ESLint via API as an IDE or CI would
+- **Colored Output**: Uses chalk for easy-to-read colored console output
+- **Detailed Results**: Shows file-by-file results, error counts, and specific messages
+- **TypeScript Support**: Tests both JavaScript and TypeScript configurations
+- **Error Details**: Shows line numbers, rule IDs, and specific error messages for debugging
 
 ## Debugging
 
-If a test fails, the runner will show:
-- Which assertion failed
-- Specific ESLint errors found
-- Files processed and statistics
-- Detailed error messages
+When a test fails, the runner provides comprehensive debugging information:
 
-This allows you to quickly identify problems in the plugin or test configuration.
+- **Assertion Results**: Clear pass/fail indicators with ✓ and ✗ symbols
+- **Error Details**: Specific ESLint errors found in each file
+- **File Statistics**: Number of files processed, errors, and warnings per test
+- **Message Details**: Line numbers, column positions, and rule IDs for each issue
+- **Test Summary**: Total passed/failed count at the end
+
+### Example Output
+
+```
+Running ESLint Plugin Boundaries E2E Tests
+
+Found 3 test(s): basic-config, basic-config-ts, strict-config
+
+Running tests for: basic-config
+✓ ESLint should run successfully on basic-config
+✓ basic-config should have ESLint errors in invalid.js
+✓ basic-config should have no errors in valid files
+✓ basic-config should detect boundaries violation
+  Files processed: 2
+  Total errors: 1
+  Total warnings: 0
+    Errors in invalid.js:
+      Line 3: No rule allowing this dependency was found (boundaries/element-types)
+
+=== Test Summary ===
+Total: 6
+Passed: 6
+
+All tests passed!
+```
+
+This detailed output allows you to quickly identify:
+- Which specific assertions are failing
+- What ESLint errors are being generated
+- Whether the plugin is working as expected
+- How to fix configuration or test issues

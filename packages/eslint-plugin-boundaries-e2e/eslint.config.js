@@ -1,13 +1,26 @@
+import {
+  ignores,
+  jsonConfig,
+  jsoncConfig,
+  markdownConfig,
+  jsBaseConfig,
+  typescriptConfig,
+} from "../eslint-config/index.js";
+
 export default [
+  typescriptConfig,
+  ignores,
+  jsonConfig,
+  jsoncConfig,
+  markdownConfig,
   {
-    files: ['**/*.js'],
+    ...jsBaseConfig,
     rules: {
-      'no-console': 'off',
-      'quotes': 'off',
-      'import/order': 'off',
-      'no-global-assign': 'off',
-      'no-implicit-globals': 'off',
-      'comma-dangle': 'off'
-    }
-  }
+      ...jsBaseConfig.rules,
+      "import/extensions": 0,
+    },
+  },
+  {
+    ignores: ["test/configs-ts/**/*.js"],
+  },
 ];

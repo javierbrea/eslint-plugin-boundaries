@@ -1,35 +1,38 @@
-import boundaries from 'eslint-plugin-boundaries';
+import boundaries from "eslint-plugin-boundaries";
 
 export default [
   {
-    files: ['**/*.js', '**/*.ts'],
+    files: ["**/*.js", "**/*.ts"],
     plugins: {
-      boundaries
+      boundaries,
     },
     settings: {
-      'boundaries/elements': [
+      "boundaries/elements": [
         {
-          type: 'module',
-          pattern: 'src/modules/*',
-          capture: ['module']
+          type: "module",
+          pattern: "src/modules/*",
+          capture: ["module"],
         },
         {
-          type: 'component',
-          pattern: 'src/components/*',
-          capture: ['component']
-        }
-      ]
+          type: "component",
+          pattern: "src/components/*",
+          capture: ["component"],
+        },
+      ],
     },
     rules: {
-      'boundaries/element-types': ['error', {
-        default: 'disallow',
-        rules: [
-          {
-            from: 'module',
-            allow: ['component']
-          }
-        ]
-      }]
-    }
-  }
+      "boundaries/element-types": [
+        "error",
+        {
+          default: "disallow",
+          rules: [
+            {
+              from: "module",
+              allow: ["component"],
+            },
+          ],
+        },
+      ],
+    },
+  },
 ];
