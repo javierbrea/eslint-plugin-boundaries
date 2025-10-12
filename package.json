@@ -10,10 +10,10 @@
   "scripts": {
     "nx": "nx",
     "eslint": "eslint",
-    "lint": "eslint *.* .vscode --no-warn-ignored",
+    "lint": "eslint *.* .vscode scripts --no-warn-ignored",
     "lint:staged": "lint-staged",
     "prepare": "husky",
-    "check:spell": "cspell --quiet *.* .vscode/*.* .husky/*.* .github/*.* docs/*.*"
+    "check:spell": "cspell --quiet *.* .vscode/*.* .husky/*.* .github/*.* docs/*.* scripts/*.*"
   },
   "devDependencies": {
     "@babel/core": "7.26.0",
@@ -31,11 +31,7 @@
     "typescript": "5.6.3"
   },
   "lint-staged": {
-    "*.js": "eslint",
-    "*.mjs": "eslint",
-    "*.cjs": "eslint",
-    "*.json": "eslint",
-    "*.md": "eslint",
+    "*.{js,mjs,cjs,ts,tsx,json,md}": "node scripts/lint-staged-file.js",
     "*.*": "cspell --no-must-find-files"
   },
   "engines": {
