@@ -38,7 +38,7 @@ export const boundariesConfig = createConfig(
       ],
     },
   },
-  "newName",
+  "customBoundaries",
 );
 
 export const boundariesConfig2 = createConfig(
@@ -58,12 +58,12 @@ export const boundariesConfig2 = createConfig(
         },
       ],
       // @ts-expect-error Invalid key because renamed key can't be used in settings
-      "newName/ignore": ["**/ignored/**/*.js"],
+      "customBoundaries/ignore": ["**/ignored/**/*.js"],
     },
     rules: {
       ...recommendedBoundariesConfig.rules,
       // Function also supports passing renamed rules
-      "newName/element-types": [
+      "customBoundaries/element-types": [
         "error",
         {
           default: "disallow",
@@ -77,7 +77,7 @@ export const boundariesConfig2 = createConfig(
       ],
     },
   },
-  "newName",
+  "customBoundaries",
 );
 
 export const boundariesConfig3 = createConfig({
@@ -96,12 +96,12 @@ export const boundariesConfig3 = createConfig({
       },
     ],
     // @ts-expect-error Invalid key because renamed key can't be used in settings
-    "newName/ignore": ["**/ignored/**/*.js"],
+    "customBoundaries/ignore": ["**/ignored/**/*.js"],
   },
   rules: {
     ...recommendedBoundariesConfig.rules,
     // @ts-expect-error Function only supports passing renamed rules if second argument is provided
-    "newName/element-types": [
+    "customBoundaries/element-types": [
       "error",
       {
         default: "disallow",

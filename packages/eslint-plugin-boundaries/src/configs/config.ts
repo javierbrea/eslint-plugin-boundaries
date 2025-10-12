@@ -4,6 +4,8 @@ import { PLUGIN_NAME } from "../constants/plugin";
 import plugin from "../index";
 
 import type { PluginBoundaries, Config, Rules } from "./Config.types";
+import recommendedConfig from "./recommended";
+import strictConfig from "./strict";
 
 type PluginFullConfig<PluginName extends string = typeof PLUGIN_NAME> = {
   plugins: Record<PluginName, PluginBoundaries>;
@@ -50,4 +52,5 @@ export function createConfig<PluginName extends string = typeof PLUGIN_NAME>(
   };
 }
 
-export * from "./Config.types";
+export const recommended = recommendedConfig;
+export const strict = strictConfig;

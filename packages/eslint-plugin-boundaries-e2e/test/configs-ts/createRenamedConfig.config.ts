@@ -1,10 +1,9 @@
-import { createConfig } from "eslint-plugin-boundaries/config";
-import recommendedBoundariesConfig from "eslint-plugin-boundaries/recommended";
+import { createConfig, recommended } from "eslint-plugin-boundaries/config";
 
 const boundariesConfig = createConfig(
   {
     settings: {
-      ...recommendedBoundariesConfig.settings,
+      ...recommended.settings,
       "boundaries/elements": [
         {
           type: "module",
@@ -20,7 +19,7 @@ const boundariesConfig = createConfig(
       "boundaries/ignore": ["**/ignored/**/*.js"],
     },
     rules: {
-      ...recommendedBoundariesConfig.rules,
+      ...recommended.rules,
       "boundaries/element-types": [
         "error",
         {
@@ -35,7 +34,7 @@ const boundariesConfig = createConfig(
       ],
     },
   },
-  "newName",
+  "customBoundaries",
 );
 
 export default [boundariesConfig];

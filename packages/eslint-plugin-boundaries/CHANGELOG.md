@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- feat: Add full TypeScript typings for all plugin settings and rules. Export main `Config` type and individual rule/setting option types. Support custom plugin name prefixes.
+- feat: Add new createConfig helper that enforces valid types, automatically adds the plugin, and includes JS/TS file patterns. Support custom plugin name prefixes.
 - feat: Validate nodes. Print a warning in case a dependency node defined selected with the `additional-dependency-nodes` setting is not valid Literal.
 - feat: Add internal validations. Display message with repo issues link when an unexpected situation is found.
 

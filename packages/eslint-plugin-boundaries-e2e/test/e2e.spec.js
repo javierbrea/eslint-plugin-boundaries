@@ -203,7 +203,7 @@ const tests = [
               boundariesErrorFile?.errorCount > 0 &&
               boundariesErrorFile?.messages.some(
                 (msg) =>
-                  msg.ruleId === "newName/element-types" &&
+                  msg.ruleId === "customBoundaries/element-types" &&
                   msg.message.includes(
                     "No rule allowing this dependency was found",
                   ),
@@ -251,7 +251,7 @@ const tests = [
               boundariesErrorFile?.errorCount > 0 &&
               boundariesErrorFile?.messages.some(
                 (msg) =>
-                  msg.ruleId === "newName/element-types" &&
+                  msg.ruleId === "customBoundaries/element-types" &&
                   msg.message.includes(
                     "No rule allowing this dependency was found",
                   ),

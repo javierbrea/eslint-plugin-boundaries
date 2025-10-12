@@ -1,4 +1,4 @@
-[![Build status][build-image]][build-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Quality Gate][quality-gate-image]][quality-gate-url]
+[![Build status][build-image]][build-url] [![Coverage Status][coveralls-image]][coveralls-url] <!-- [![Quality Gate][quality-gate-image]][quality-gate-url] -->
 
 [![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com) [![Last commit][last-commit-image]][last-commit-url] [![Last release][release-image]][release-url]
 
@@ -28,13 +28,15 @@ By default, __the plugin works by checking `import` statements, but it is also a
 - [Configuration](#configuration)
   * [Global settings](#global-settings)
   * [Predefined configurations](#predefined-configurations)
+  * [createConfig helper](#createconfig-helper)
   * [Rules configuration](#rules-configuration)
     * [Main format of rules options](#main-format-of-rules-options)
     * [Elements matchers](#elements-matchers)
     * [Error messages](#error-messages)
     * [Advanced example](#advanced-example)
 - [Resolvers](#resolvers)
-- [Usage with TypeScript](#usage-with-typescript)
+- [TypeScript Support](#typescript-support)
+    * [Exported Types](#exported-types)
 - [Migration guides](#migration-guides)
 - [Debug mode](#debug-mode)
 - [Acknowledgements](#acknowledgements)
@@ -328,27 +330,93 @@ We recommend to use this setting if you are applying the plugin to an already ex
 
 ```js
 import boundaries from "eslint-plugin-boundaries";
+import { recommended } from "eslint-plugin-boundaries/config";
 
 export default [{
+  plugins: {
+    boundaries,
+  },
+  settings: {
+    ...recommended.settings,
+    // Define your own elements here
+    "boundaries/elements": [
+      {
+        type: "helpers",
+        pattern: "helpers/*"
+      },
+    ]
+  },
   rules: {
-    ...boundaries.configs.recommended.rules,
+    ...recommended.rules,
+    "boundaries/element-types": [2, {
+      // Define your own options here
+    }],
   }
 }]
 ```
 
 #### Strict
 
-All rules are enabled, so all elements in the project will be compliant with your architecture boundaries. 😃
+All rules are enabled by default, so all elements in the project will be compliant with your architecture boundaries. 😃
+
+Follow the same example as in "recommended" configuration, but importing `strict` instead of `recommended`.
 
 ```js
-import boundaries from "eslint-plugin-boundaries";
-
-export default [{
-  rules: {
-    ...boundaries.configs.strict.rules,
-  }
-}]
+import { strict } from "eslint-plugin-boundaries/config";
 ```
+
+### createConfig helper
+
+A `createConfig` helper is also available for making configurations easier.
+
+It enforces valid types for settings and rules and automatically:
+
+* Adds the plugin to the plugins property
+* Includes JavaScript and TypeScript file patterns in the files property
+* Validates that all provided settings and rules belong to the plugin
+
+```js
+import { createConfig, recommended } from "eslint-plugin-boundaries/config";
+
+const config = createConfig({
+  settings: {
+    ...recommended.settings,
+    "boundaries/elements": [],
+    "boundaries/ignore": ["**/ignored/**/*.js"],
+  },
+  rules: {
+    ...recommended.rules,
+    "boundaries/element-types": ["error", { default: "disallow" }],
+  }
+});
+
+export default [config];
+```
+
+You can also rename the plugin by passing a second argument. The helper will rename all rules from `boundaries/` prefix to the provided one, so recommended or strict configs can be used as a base without issues.
+
+```js
+import { createConfig, recommended } from "eslint-plugin-boundaries/config";
+
+const config = createConfig({
+  settings: {
+    ...recommended.settings,
+    "boundaries/elements": [], // Note the original prefix here
+  },
+  rules: {
+    ...recommended.rules,
+    "custom-boundaries/element-types": ["error", { default: "disallow" }], // Note the renamed prefix here
+    "boundaries/entry-point": 0, // The original prefix still works too
+    // @ts-expect-error Any other prefix raises an error
+    "foo/entry-point": 2, // This rule does not match the new plugin name nor the original one
+  }
+}, "custom-boundaries");
+
+export default [config];
+```
+
+> [!WARNING]
+> Note that the settings still must use the `boundaries/` prefix — ESLint doesn’t namespace settings by plugin name.
 
 ### Rules configuration
 
@@ -541,7 +609,7 @@ export default [{
 }]
 ```
 
-## Usage with TypeScript
+## TypeScript Support
 
 This plugin can be used also in [TypeScript](https://www.typescriptlang.org/) projects using `@typescript-eslint/eslint-plugin`. Follow next steps to configure it:
 
@@ -579,6 +647,88 @@ export default [{
 > Note that `eslint-import-resolver-typescript` detects even custom paths defined in the `tsconfig.json` file, so its usage is also compatible with this plugin.
 
 In case you face any issue configuring it, you can also [use this repository as a guide](https://github.com/javierbrea/epb-ts-example). It contains a fully working and tested example.
+
+### Exported Types
+
+The main type exported by the plugin is `Config`, which represents a fully typed [Flat Config](https://eslint.org/docs/latest/use/core-concepts/glossary#flat-config).
+
+```ts
+import type { Config } from "eslint-plugin-boundaries";
+
+const config: Config = {
+  plugins: {
+    boundaries,
+  },
+  settings: {
+    "boundaries/elements": [],
+    "boundaries/ignore": ["**/ignored/**/*.js"],
+  },
+  rules: {
+    "boundaries/element-types": [
+      "error",
+      { default: "disallow", rules: [] },
+    ],
+  },
+};
+```
+
+Types also support renaming the plugin when loading it in the `plugins` property, so rules and must be defined using the new name:
+
+```ts
+import type { Config } from "eslint-plugin-boundaries";
+
+const config: Config<"custom-boundaries"> = {
+  plugins: {
+    "custom-boundaries": boundaries, // NOTE the renamed prefix here
+  },
+  settings: {
+    "boundaries/elements": [],
+    "boundaries/ignore": ["**/ignored/**/*.js"],
+  },
+  rules: {
+    "custom-boundaries/element-types": 2, // NOTE the renamed prefix here
+  },
+};
+```
+
+> [!WARNING]
+> Note that the settings still use the `boundaries/` prefix — ESLint doesn’t namespace settings by plugin name.
+
+In addition, individual subtypes are available for each part of the configuration, such as:
+
+* `Settings`, `Rules`, `ElementMapping`, `ElementTypesRule`, `ElementTypesRuleOptions`, `ElementMatcher`, `IgnoreSetting`, etc.
+
+This allows you to import only what you need and get full autocompletion and type safety.
+
+```ts
+import type {
+  Config,
+  Settings,
+  Rules,
+  ElementMapping,
+  ElementTypesRuleOptions,
+} from "eslint-plugin-boundaries";
+
+const moduleMapping: ElementMapping = {
+  type: "module",
+  pattern: "src/modules/*",
+  capture: ["module"],
+};
+
+const settings: Settings = {
+  "boundaries/elements": [moduleMapping],
+};
+
+const rules: Rules = {
+  "boundaries/element-types": ["error", { default: "disallow", rules: [] }],
+};
+
+const config: Config = {
+  files: ["**/*.js", "**/*.ts"],
+  settings,
+  rules,
+};
+```
 
 ## Migration guides
 

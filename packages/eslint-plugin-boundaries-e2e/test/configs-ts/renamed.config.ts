@@ -2,7 +2,7 @@ import type { Config, Rules, Settings } from "eslint-plugin-boundaries";
 import boundaries from "eslint-plugin-boundaries";
 // import recommendedBoundariesConfig from "eslint-plugin-boundaries/recommended";
 
-export const invalidRule: Rules<"newName"> = {
+export const invalidRule: Rules<"customBoundaries"> = {
   // @ts-expect-error Testing that the rule is not valid for the plugin because it has been renamed
   "boundaries/element-types": 0,
 };
@@ -12,9 +12,9 @@ export const invalidSetting: Settings = {
   "foo/elements": [],
 };
 
-const boundariesConfig: Config<"newName"> = {
+const boundariesConfig: Config<"customBoundaries"> = {
   plugins: {
-    newName: boundaries,
+    customBoundaries: boundaries,
     // ts-expect-error Testing that the setting is not valid for the plugin because it has been renamed
     boundaries: boundaries,
   },
@@ -34,7 +34,7 @@ const boundariesConfig: Config<"newName"> = {
     "boundaries/ignore": ["**/ignored/**/*.js"],
   },
   rules: {
-    "newName/element-types": [
+    "customBoundaries/element-types": [
       "error",
       {
         default: "disallow",

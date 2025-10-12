@@ -1,4 +1,4 @@
-import type { Linter, Rule } from "eslint";
+import type { ESLint, Linter, Rule } from "eslint";
 
 import type {
   ElementTypesRuleOptions,
@@ -51,7 +51,7 @@ export interface Config<PluginName extends string = typeof PLUGIN_NAME>
   rules?: Rules<PluginName>;
 }
 
-export type PluginBoundaries = {
+export interface PluginBoundaries extends ESLint.Plugin {
   meta: {
     name: string;
     version: string;
@@ -61,4 +61,4 @@ export type PluginBoundaries = {
     recommended: Config;
     strict: Config;
   };
-};
+}
