@@ -3,105 +3,68 @@ import { fileURLToPath } from "url";
 
 import chalk from "chalk";
 
-import basicConfig from "./configs/basic.config.js";
+import recommendedConfig from "./configs/recommended.config.js";
 import strictConfig from "./configs/strict.config.js";
-import basicConfigTs from "./configs-ts/basic.config.js";
 import { runTests } from "./runner.js";
 
 const ___filename = fileURLToPath(import.meta.url);
 const ___dirname = dirname(___filename);
 
+/**
+ * Find the results of a file given a portion of the file name
+ * @param {string} fileNameFragment - Fragment of the file name
+ * @param {import('./runner.js').ESLintResult} result - ESLint result object containing file results
+ * @returns {import('./runner.js').ESLintFileResult | undefined} The file result if found, undefined otherwise
+ */
+function findFileResult(fileNameFragment, result) {
+  return result.files?.find((file) => file.filePath.includes(fileNameFragment));
+}
+
 // Define tests with their configurations, fixtures and assertions
 /** @type {Array<import('./runner.js').TestDefinition>} */
 const tests = [
   {
-    name: "basic-config",
-    config: basicConfig,
-    fixture: join(___dirname, "fixtures", "basic-config"),
+    name: "recommended-config",
+    config: recommendedConfig,
+    fixture: join(___dirname, "fixtures", "basic"),
     assert: async (runner, result) => {
       await runner.assert(
-        `basic-config should have ESLint errors in invalid.js`,
+        `recommended config should detect 1 error`,
         async () => {
-          if (!result.files) return false;
-          const invalidFile = result.files.find((f) =>
-            f.filePath.includes("invalid.js"),
-          );
-          return !!(invalidFile && invalidFile.errorCount > 0);
+          return result.errorCount === 1;
         },
       );
 
       await runner.assert(
-        `basic-config should have no errors in valid files`,
+        `recommended config should have no errors when importing unknown elements`,
         async () => {
-          if (!result.files) return true;
-          const validFiles = result.files.filter(
-            (f) => !f.filePath.includes("invalid.js"),
-          );
-          return validFiles.every((f) => f.errorCount === 0);
+          const fileResult = findFileResult("ignored-import", result);
+          return fileResult?.errorCount === 0;
         },
       );
 
       await runner.assert(
-        `basic-config should detect boundaries violation`,
+        `recommended config should have no errors when importing ignored elements`,
         async () => {
-          if (!result.files) return false;
-          const invalidFile = result.files.find((f) =>
-            f.filePath.includes("invalid.js"),
-          );
-          if (!invalidFile) return false;
-
-          return invalidFile.messages.some(
-            (msg) =>
-              msg.ruleId === "boundaries/element-types" &&
-              msg.message.includes(
-                "No rule allowing this dependency was found",
-              ),
-          );
-        },
-      );
-    },
-  },
-  {
-    name: "basic-config-ts",
-    config: basicConfigTs,
-    fixture: join(___dirname, "fixtures", "basic-config"),
-    assert: async (runner, result) => {
-      await runner.assert(
-        `basic-config should have ESLint errors in invalid.js`,
-        async () => {
-          if (!result.files) return false;
-          const invalidFile = result.files.find((f) =>
-            f.filePath.includes("invalid.js"),
-          );
-          return !!(invalidFile && invalidFile.errorCount > 0);
+          const fileResult = findFileResult("unknown-import", result);
+          return fileResult?.errorCount === 0;
         },
       );
 
       await runner.assert(
-        `basic-config should have no errors in valid files`,
+        `recommended config should detect boundaries violation`,
         async () => {
-          if (!result.files) return true;
-          const validFiles = result.files.filter(
-            (f) => !f.filePath.includes("invalid.js"),
-          );
-          return validFiles.every((f) => f.errorCount === 0);
-        },
-      );
+          const boundariesErrorFile = findFileResult("boundary-import", result);
 
-      await runner.assert(
-        `basic-config should detect boundaries violation`,
-        async () => {
-          if (!result.files) return false;
-          const invalidFile = result.files.find((f) =>
-            f.filePath.includes("invalid.js"),
-          );
-          if (!invalidFile) return false;
-
-          return invalidFile.messages.some(
-            (msg) =>
-              msg.ruleId === "boundaries/element-types" &&
-              msg.message.includes(
-                "No rule allowing this dependency was found",
+          return Boolean(
+            boundariesErrorFile?.errorCount &&
+              boundariesErrorFile?.errorCount > 0 &&
+              boundariesErrorFile?.messages.some(
+                (msg) =>
+                  msg.ruleId === "boundaries/element-types" &&
+                  msg.message.includes(
+                    "No rule allowing this dependency was found",
+                  ),
               ),
           );
         },
@@ -111,12 +74,75 @@ const tests = [
   {
     name: "strict-config",
     config: strictConfig,
-    fixture: join(___dirname, "fixtures", "strict-config"),
+    fixture: join(___dirname, "fixtures", "basic"),
     assert: async (runner, result) => {
+      await runner.assert(`strict config should detect 4 errors`, async () => {
+        return result.errorCount === 4;
+      });
+
       await runner.assert(
-        `strict-config should run without critical errors`,
+        `strict config should have errors when importing unknown elements`,
         async () => {
-          return (result.errorCount || 0) >= 0; // Allow expected errors
+          const fileResult = findFileResult("unknown-import", result);
+          return (
+            fileResult?.errorCount === 1 &&
+            fileResult?.messages.some(
+              (msg) =>
+                msg.ruleId === "boundaries/no-unknown" &&
+                msg.message.includes(
+                  "Importing unknown elements is not allowed",
+                ),
+            )
+          );
+        },
+      );
+
+      await runner.assert(
+        `strict config should have errors in unknown elements`,
+        async () => {
+          const fileResult = findFileResult("unknown.js", result);
+          return (
+            fileResult?.errorCount === 1 &&
+            fileResult?.messages.some(
+              (msg) =>
+                msg.ruleId === "boundaries/no-unknown-files" &&
+                msg.message.includes("File is not of any known element type"),
+            )
+          );
+        },
+      );
+
+      await runner.assert(
+        `strict config should have errors when importing ignored elements`,
+        async () => {
+          const fileResult = findFileResult("ignored-import", result);
+          return (
+            fileResult?.errorCount === 1 &&
+            fileResult?.messages.some(
+              (msg) =>
+                msg.ruleId === "boundaries/no-ignored" &&
+                msg.message.includes("Importing ignored files is not allowed"),
+            )
+          );
+        },
+      );
+
+      await runner.assert(
+        `strict config should detect boundaries violation`,
+        async () => {
+          const boundariesErrorFile = findFileResult("boundary-import", result);
+
+          return Boolean(
+            boundariesErrorFile?.errorCount &&
+              boundariesErrorFile?.errorCount > 0 &&
+              boundariesErrorFile?.messages.some(
+                (msg) =>
+                  msg.ruleId === "boundaries/element-types" &&
+                  msg.message.includes(
+                    "No rule allowing this dependency was found",
+                  ),
+              ),
+          );
         },
       );
     },

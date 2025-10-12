@@ -14,6 +14,7 @@ const {
   RULE_NO_UNKNOWN,
 } = SETTINGS;
 
+// TODO In next major version: Export also files, plugin, etc.
 const config: Config = {
   rules: {
     [RULE_ELEMENT_TYPES]: [2],

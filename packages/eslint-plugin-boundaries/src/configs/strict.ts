@@ -5,6 +5,7 @@ import recommended from "./recommended";
 
 const { RULE_NO_IGNORED, RULE_NO_UNKNOWN_FILES, RULE_NO_UNKNOWN } = SETTINGS;
 
+// TODO In next major version: Export also files, plugin, etc.
 const config: Config = {
   ...recommended,
   rules: {
