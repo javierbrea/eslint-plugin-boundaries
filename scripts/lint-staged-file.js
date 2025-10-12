@@ -5,7 +5,6 @@
  * Compatible with monorepos where each package may have its own config.
  *
  * Supports both eslint.config.js and eslint.config.mjs.
- * Works with .js, .mjs, .cjs, .ts, .tsx, .json, .md, etc.
  */
 
 import { execSync } from "node:child_process";
