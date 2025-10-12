@@ -25,7 +25,7 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
-    "./config": "./dist/types/Config.d.ts",
+    "./config": "./dist/configs/config.js",
     "./recommended": "./dist/configs/recommended.js",
     "./settings": "./dist/types/Settings.d.ts",
     "./strict": "./dist/configs/strict.js",
@@ -33,7 +33,7 @@
   },
   "typesVersions": {
     "*": {
-      "config": ["dist/types/Config.d.ts"],
+      "config": ["dist/configs/config.d.ts"],
       "recommended": ["dist/configs/recommended.d.ts"],
       "settings": ["dist/types/Settings.d.ts"],
       "strict": ["dist/configs/strict.d.ts"],

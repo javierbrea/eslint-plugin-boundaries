@@ -3,6 +3,7 @@ import { join } from "path";
 
 import type { Rule } from "eslint";
 
+import type { PluginBoundaries } from "./configs/Config.types";
 import recommendedConfig from "./configs/recommended";
 import strictConfig from "./configs/strict";
 import type { RuleShortName, RuleShortNames } from "./constants/rules";
@@ -52,7 +53,7 @@ function importRules(ruleNames: RuleShortNames) {
   );
 }
 
-const publicInterface = {
+const publicInterface: PluginBoundaries = {
   meta: {
     name: packageJson.name as string,
     version: packageJson.version as string,
