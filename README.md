@@ -72,7 +72,7 @@ export default [
 ];
 ```
 
-> [!NOTE]  
+> [!NOTE]
 > From version `5.0.0`, this plugin is compatible with eslint v9 and above. It may be also compatible with previous eslint versions, but you might read the [documentation of the `4.2.2` version](https://github.com/javierbrea/eslint-plugin-boundaries/tree/v4.2.2) to know how to configure it properly using the legacy configuration format.
 
 ## Overview

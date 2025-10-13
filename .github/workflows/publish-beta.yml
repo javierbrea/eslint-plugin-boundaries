@@ -1,10 +1,11 @@
-name: publish-to-npm
+name: publish-beta-to-npm
 on:
   release:
     types: [created]
 jobs:
   publish:
     runs-on: ubuntu-latest
+    if: contains(github.event.release.target_commitish, 'release-') && contains(github.event.release.target_commitish, '-beta.')
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/install
