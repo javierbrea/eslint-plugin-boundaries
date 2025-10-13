@@ -43,3 +43,7 @@ export const RULE_SHORT_NAMES = [...Object.values(RULES_MAP)] as const;
 export type RuleShortName = (typeof RULE_SHORT_NAMES)[number];
 
 export type RuleShortNames = typeof RULE_SHORT_NAMES;
+
+export function isRuleShortName(ruleName: string): ruleName is RuleShortName {
+  return RULE_SHORT_NAMES.includes(ruleName as RuleShortName);
+}

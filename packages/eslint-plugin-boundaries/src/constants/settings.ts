@@ -120,6 +120,10 @@ export const SETTINGS_KEYS = {
 
 export type SettingsKey = (typeof SETTINGS_KEYS)[keyof typeof SETTINGS_KEYS];
 
+export function isSettingsKey(value: string): value is SettingsKey {
+  return Object.values(SETTINGS_KEYS).includes(value as SettingsKey);
+}
+
 export type IncludeSetting = string | string[];
 export type IgnoreSetting = string | string[];
 export type RootPathSetting = string;

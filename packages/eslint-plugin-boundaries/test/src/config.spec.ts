@@ -154,6 +154,127 @@ describe("createConfig", () => {
     });
   });
 
+  describe("settings validation", () => {
+    it("should allow valid plugin settings", () => {
+      const validSettings = {
+        "boundaries/elements": [
+          {
+            type: "component",
+            pattern: "src/components/*",
+          },
+        ],
+        "boundaries/ignore": ["**/*.test.js"],
+        "boundaries/include": ["src/**/*"],
+        "boundaries/root-path": "./src",
+      };
+
+      expect(() => createConfig({ settings: validSettings })).not.toThrow();
+    });
+
+    it("should throw error when invalid settings key is provided", () => {
+      const invalidSettings = {
+        "boundaries/elements": [{ type: "component", pattern: "src/*" }],
+        "import/resolver": { node: true }, // Invalid - not a boundaries setting
+      };
+
+      expect(() => createConfig({ settings: invalidSettings })).toThrow(
+        'Invalid settings key "import/resolver". When using createConfig, all settings keys must belong to eslint-plugin-boundaries.',
+      );
+    });
+
+    it("should throw error when multiple invalid settings keys are provided", () => {
+      const invalidSettings = {
+        "boundaries/elements": [{ type: "component", pattern: "src/*" }],
+        "eslint-plugin-import/resolver": { node: true },
+        "typescript-eslint/prefer-readonly": true,
+      };
+
+      expect(() => createConfig({ settings: invalidSettings })).toThrow(
+        'Invalid settings key "eslint-plugin-import/resolver". When using createConfig, all settings keys must belong to eslint-plugin-boundaries.',
+      );
+    });
+
+    it("should allow deprecated settings keys", () => {
+      const deprecatedSettings = {
+        "boundaries/types": [{ type: "legacy", pattern: "legacy/*" }],
+        "boundaries/alias": { "@": "./src" },
+      };
+
+      expect(() =>
+        createConfig({ settings: deprecatedSettings }),
+      ).not.toThrow();
+    });
+
+    it("should handle empty settings object", () => {
+      const emptySettings = {};
+
+      expect(() => createConfig({ settings: emptySettings })).not.toThrow();
+    });
+
+    it("should handle null settings", () => {
+      expect(() => createConfig({ settings: null })).not.toThrow();
+    });
+
+    it("should handle undefined settings", () => {
+      expect(() => createConfig({ settings: undefined })).not.toThrow();
+    });
+
+    it("should throw error for non-boundaries settings even with valid boundaries settings", () => {
+      const mixedSettings = {
+        "boundaries/elements": [{ type: "component", pattern: "src/*" }],
+        "boundaries/ignore": ["test/**/*"],
+        "react/jsx-runtime": "automatic", // Invalid - not a boundaries setting
+        "boundaries/root-path": "./src",
+      };
+
+      expect(() => createConfig({ settings: mixedSettings })).toThrow(
+        'Invalid settings key "react/jsx-runtime". When using createConfig, all settings keys must belong to eslint-plugin-boundaries.',
+      );
+    });
+
+    it("should validate settings with custom plugin name", () => {
+      const customName = "customBoundaries";
+      const validSettings = {
+        "boundaries/elements": [{ type: "component", pattern: "src/*" }],
+      };
+
+      expect(() =>
+        createConfig({ settings: validSettings }, customName),
+      ).not.toThrow();
+    });
+
+    it("should throw error for invalid settings with custom plugin name", () => {
+      const customName = "customBoundaries";
+      const invalidSettings = {
+        "boundaries/elements": [{ type: "component", pattern: "src/*" }],
+        "custom/setting": "value", // Invalid - not a boundaries setting
+      };
+
+      expect(() =>
+        createConfig({ settings: invalidSettings }, customName),
+      ).toThrow(
+        'Invalid settings key "custom/setting". When using createConfig, all settings keys must belong to eslint-plugin-boundaries.',
+      );
+    });
+
+    it("should allow all valid boundaries settings keys", () => {
+      const allValidSettings = {
+        "boundaries/elements": [{ type: "component", pattern: "src/*" }],
+        "boundaries/ignore": ["test/**/*"],
+        "boundaries/include": ["src/**/*"],
+        "boundaries/root-path": "./src",
+        "boundaries/dependency-nodes": ["import", "require"],
+        "boundaries/additional-dependency-nodes": [
+          { selector: "CallExpression", kind: "value" },
+        ],
+        "boundaries/types": [{ type: "legacy", pattern: "legacy/*" }], // deprecated
+        "boundaries/alias": { "@": "./src" }, // deprecated
+      };
+
+      expect(() => createConfig({ settings: allValidSettings })).not.toThrow();
+    });
+  });
+
   describe("edge cases", () => {
     it("should handle undefined rules", () => {
       const config = createConfig({ rules: undefined });
@@ -282,6 +403,33 @@ describe("createConfig", () => {
         "customBoundaries/element-types": [2, { default: "disallow" }],
         "customBoundaries/no-private": [1, { allowUncles: true }],
       });
+    });
+
+    it("should throw error when non-existent plugin rule name is provided", () => {
+      const inputConfig = {
+        rules: {
+          "boundaries/non-existent-rule": [2],
+          "boundaries/element-types": [1],
+        },
+      };
+
+      expect(() => createConfig(inputConfig)).toThrow(
+        'Invalid rule name "non-existent-rule". When using createConfig, all rules must belong to eslint-plugin-boundaries.',
+      );
+    });
+
+    it("should throw error when invalid rule name is provided with custom plugin name", () => {
+      const customName = "myBoundaries";
+      const inputConfig = {
+        rules: {
+          "myBoundaries/invalid-rule-name": [2],
+          "myBoundaries/element-types": [1],
+        },
+      };
+
+      expect(() => createConfig(inputConfig, customName)).toThrow(
+        'Invalid rule name "invalid-rule-name". When using createConfig, all rules must belong to eslint-plugin-boundaries.',
+      );
     });
   });
 });
