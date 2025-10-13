@@ -2,10 +2,10 @@ import { isAbsolute, resolve } from "node:path";
 
 import { SETTINGS } from "../constants/settings";
 import type {
-  ElementMappings,
-  ElementMapping,
+  ElementDescriptors,
+  ElementDescriptor,
   Settings,
-  ElementMappingMode,
+  ElementDescriptorMode,
 } from "../constants/settings";
 
 import { warnOnce } from "./debug";
@@ -20,7 +20,7 @@ export function isLegacyType(type: unknown): type is string {
 
 export function isValidElementAssigner(
   element: unknown,
-): element is ElementMapping {
+): element is ElementDescriptor {
   if (!element || !isObject(element)) {
     warnOnce(
       `Please provide a valid object to define element types in '${ELEMENTS}' setting`,
@@ -47,7 +47,7 @@ export function isValidElementAssigner(
     if (
       element.mode &&
       isString(element.mode) &&
-      !VALID_MODES.includes(element.mode as ElementMappingMode)
+      !VALID_MODES.includes(element.mode as ElementDescriptorMode)
     ) {
       warnOnce(
         `Invalid mode property of type ${
@@ -79,8 +79,8 @@ export function isValidElementAssigner(
 
 // TODO, remove in next major version
 function transformLegacyTypes(
-  typesFromSettings?: string[] | ElementMappings,
-): ElementMappings {
+  typesFromSettings?: string[] | ElementDescriptors,
+): ElementDescriptors {
   const types = typesFromSettings || [];
   if (!isArray(types)) {
     return [];
@@ -103,7 +103,7 @@ function transformLegacyTypes(
   });
 }
 
-export function getElements(settings: Settings): ElementMappings {
+export function getElements(settings: Settings): ElementDescriptors {
   return transformLegacyTypes(settings[ELEMENTS] || settings[TYPES]);
 }
 

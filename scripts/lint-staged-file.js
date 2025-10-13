@@ -43,10 +43,13 @@ let exitCode = 0;
 
 for (const file of files) {
   const configPath = findConfig(file);
+  const configFolder = path.dirname(configPath);
+  const relativeFilePath = path.relative(configFolder, path.resolve(file));
 
   try {
-    execSync(`./node_modules/.bin/eslint --config "${configPath}" "${file}"`, {
+    execSync(`pnpm eslint "${relativeFilePath}"`, {
       stdio: "inherit",
+      cwd: configFolder,
       shell: true,
     });
   } catch {

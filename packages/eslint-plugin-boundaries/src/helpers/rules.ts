@@ -13,7 +13,7 @@ import type {
   EntryPointRule,
   ElementTypesRule,
   RuleMatcherElementsCapturedValues,
-  ElementMatchers,
+  ElementSelectors,
   RuleReport,
   ExternalLibraryMatchers,
   CapturedValues,
@@ -135,7 +135,7 @@ function ruleMatch<
     | CapturedValuesMatcher
     | ExternalLibraryMatcherOptions = CapturedValuesMatcher,
 >(
-  ruleMatchers: ElementMatchers | ExternalLibraryMatchers,
+  ruleMatchers: ElementSelectors | ExternalLibraryMatchers,
   targetElement: FileInfo | DependencyInfo,
   isMatch: RuleMatcher<FileOrDependencyInfo, RuleMatchers>,
   fromElement: FileInfo,
@@ -260,7 +260,7 @@ export function getElementRules<
     .filter((rule) => {
       return ruleMatch<FileOrDependencyInfo, RuleMatchers>(
         // TODO: Improve typing, so TypeScript can determine the type of the rule, and if the key is valid
-        rule[key as keyof typeof rule] as unknown as ElementMatchers,
+        rule[key as keyof typeof rule] as unknown as ElementSelectors,
         targetElement,
         isMatchElementType,
         fromElement,

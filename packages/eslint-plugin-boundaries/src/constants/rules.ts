@@ -9,7 +9,7 @@ export const NO_UNKNOWN_FILES = "no-unknown-files" as const;
 export const NO_UNKNOWN = "no-unknown" as const;
 
 /**
- * Mapping of all rule names
+ * Descriptor of all rule names
  */
 export const RULES_MAP = {
   ELEMENT_TYPES,

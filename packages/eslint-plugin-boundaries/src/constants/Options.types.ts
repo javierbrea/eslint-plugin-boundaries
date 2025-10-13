@@ -6,11 +6,11 @@ export type CapturedValues = Record<string, string>;
 
 export type CapturedValuesMatcher = Record<string, string>;
 
-export type ElementMatcherWithOptions = [string, CapturedValuesMatcher];
+export type ElementSelectorWithOptions = [string, CapturedValuesMatcher];
 
-export type ElementMatcher = string | ElementMatcherWithOptions;
+export type ElementSelector = string | ElementSelectorWithOptions;
 
-export type ElementMatchers = ElementMatcher | ElementMatcher[];
+export type ElementSelectors = ElementSelector | ElementSelector[];
 
 export type ExternalLibraryMatcherOptions = {
   path: string | string[];
@@ -31,11 +31,11 @@ export type ExternalLibraryMatchers =
 export type RulePolicy = "allow" | "disallow";
 
 export type BaseRule = {
-  from?: ElementMatchers;
-  to?: ElementMatchers;
-  target?: ElementMatchers;
-  disallow?: ElementMatchers;
-  allow?: ElementMatchers;
+  from?: ElementSelectors;
+  to?: ElementSelectors;
+  target?: ElementSelectors;
+  disallow?: ElementSelectors;
+  allow?: ElementSelectors;
   importKind?: ImportKind;
   message?: string;
 };
@@ -49,8 +49,8 @@ export type RuleReport = {
   message?: string;
   isDefault?: boolean;
   importKind?: ImportKind;
-  disallow?: ElementMatchers;
-  element: ElementMatchers;
+  disallow?: ElementSelectors;
+  element: ElementSelectors;
   index: number;
 };
 
@@ -93,9 +93,9 @@ export type RuleMatcher<
 // TODO: Change the Options type to a generic one that receives the Rule type
 
 export type ElementTypesRule = {
-  from: ElementMatchers;
-  disallow?: ElementMatchers;
-  allow?: ElementMatchers;
+  from: ElementSelectors;
+  disallow?: ElementSelectors;
+  allow?: ElementSelectors;
   importKind?: ImportKind;
   message?: string;
 };
@@ -105,9 +105,9 @@ export type ElementTypesRuleOptions = Omit<RuleBaseOptions, "rules"> & {
 };
 
 export type EntryPointRule = {
-  target: ElementMatchers;
-  disallow?: ElementMatchers;
-  allow?: ElementMatchers;
+  target: ElementSelectors;
+  disallow?: ElementSelectors;
+  allow?: ElementSelectors;
   importKind?: ImportKind;
   message?: string;
 };
@@ -117,7 +117,7 @@ export type EntryPointRuleOptions = Omit<RuleBaseOptions, "rules"> & {
 };
 
 export type ExternalRule = {
-  from: ElementMatchers;
+  from: ElementSelectors;
   disallow?: ExternalLibraryMatchers;
   allow?: ExternalLibraryMatchers;
   importKind?: ImportKind;

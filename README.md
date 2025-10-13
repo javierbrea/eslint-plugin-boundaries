@@ -31,7 +31,7 @@ By default, __the plugin works by checking `import` statements, but it is also a
   * [createConfig helper](#createconfig-helper)
   * [Rules configuration](#rules-configuration)
     * [Main format of rules options](#main-format-of-rules-options)
-    * [Elements matchers](#elements-matchers)
+    * [Elements selectors](#elements-selectors)
     * [Error messages](#error-messages)
     * [Advanced example](#advanced-example)
 - [Resolvers](#resolvers)
@@ -465,26 +465,26 @@ Remember that:
 
 ##### Rules options properties
 
-* __`from/target`__: `<element matchers>` Depending of the rule to which the options are for, the rule will be applied only if the file being analyzed matches with this element matcher (`from`), or the dependency being imported matches with this element matcher (`target`).
-* __`disallow/allow`__: `<value matchers>` If the plugin rule target matches with this, then the result of the rule will be "disallow/allow". Each rule will require a type of value here depending of what it is checking. In the case of the `element-types` rule, for example, another `<element matcher>` has to be provided in order to check the type of the local dependency.
+* __`from/target`__: `<element selectors>` Depending of the rule to which the options are for, the rule will be applied only if the file being analyzed matches with this element selector (`from`), or the dependency being imported matches with this element selector (`target`).
+* __`disallow/allow`__: `<selectors>` If the plugin rule target matches with this, then the result of the rule will be "disallow/allow". Each rule will require a type of value here depending of what it is checking. In the case of the `element-types` rule, for example, another `<element selector>` has to be provided in order to check the type of the local dependency.
 * __`importKind`__: `<string>` _Optional_. It is useful only when using TypeScript, because it allows to define if the rule applies when the dependency is being imported as a value or as a type. It can be also defined as an array of strings, or a micromatch pattern. Note that possible values to match with are `"value"`, `"type"` or `"typeof"`. For example, you could define that "components" can import "helpers" as a value, but not as a type. So, `import { helper } from "helpers/helper-a"` would be allowed, but `import type { Helper } from "helpers/helper-a"` would be disallowed.
 * __`message`__: `<string>` Optional. If the rule results in an error, the plugin will return this message instead of the default one. Read [error messages](#error-messages) for further info.
 
-> Tip: Properties `from/target` and `disallow/allow` can receive a single matcher, or an array of matchers.
+> Tip: Properties `from/target` and `disallow/allow` can receive a single selector, or an array of selectors.
 
-##### Elements matchers
+##### Elements selectors
 
-Elements matchers used in the rules options can have the next formats:
+Elements selectors used in the rules options can have the next formats:
 
 * __`<string>`__: Will return `true` when the element type matches with this [`micromatch` pattern](https://github.com/micromatch/micromatch). It [supports templating](#templating) for using values from captured values.
-* __`[<string>, <capturedValuesObject>]`__: Will return `true` whe when the element type matches with the first element in the array, and all of the captured values also match. <br/>The `<capturedValuesObject>` has to be an object containing `capture` keys from the [`boundaries/element-types` setting](#boundarieselement-types) of the element as keys, and [`micromatch` patterns](https://github.com/micromatch/micromatch) as values. (values also support [templating](#templating)) <br/>For example, for an element of type "helpers" with settings as `{ type: "helpers", pattern": "helpers/*/*.js", "capture": ["category", "elementName"]}`, you could write element matchers as:
+* __`[<string>, <capturedValuesObject>]`__: Will return `true` whe when the element type matches with the first element in the array, and all of the captured values also match. <br/>The `<capturedValuesObject>` has to be an object containing `capture` keys from the [`boundaries/element-types` setting](#boundarieselement-types) of the element as keys, and [`micromatch` patterns](https://github.com/micromatch/micromatch) as values. (values also support [templating](#templating)) <br/>For example, for an element of type "helpers" with settings as `{ type: "helpers", pattern": "helpers/*/*.js", "capture": ["category", "elementName"]}`, you could write element selectors as:
   * `["helpers", { category: "data", elementName: "parsers"}]`: Will only match with helpers with category "data" and elementName "parsers" (`helpers/data/parsers.js`).
   * `["helpers", { category: "data" }]`: Will match with all helpers with category "data" (`helpers/data/*.js`)
   * `["data-${from.elementName}", { category: "${from.category}" }]`: Will only match with helpers with the type equals to the `elementName` of the file importing plus a `data-` prefix, and the category being equal to the `category` of the file importing the dependency.
 
 ##### Templating
 
-When defining [__Element matchers__](#elements-matchers), the values captured both from the element importing ("from") and from the imported element ("target") are available to be replaced. They are replaced both in the main string and in the `<capturedValuesObject>`.
+When defining [__Element selectors__](#elements-selectors), the values captured both from the element importing ("from") and from the imported element ("target") are available to be replaced. They are replaced both in the main string and in the `<capturedValuesObject>`.
 
 Templates must be defined with the format `${from.CAPTURED_PROPERTY}` or `${target.CAPTURED_PROPERTY}`.
 
@@ -696,7 +696,7 @@ const config: Config<"custom-boundaries"> = {
 
 In addition, individual subtypes are available for each part of the configuration, such as:
 
-* `Settings`, `Rules`, `ElementMapping`, `ElementTypesRule`, `ElementTypesRuleOptions`, `ElementMatcher`, `IgnoreSetting`, etc.
+* `Settings`, `Rules`, `ElementDescriptor`, `ElementTypesRule`, `ElementTypesRuleOptions`, `ElementSelector`, `IgnoreSetting`, etc.
 
 This allows you to import only what you need and get full autocompletion and type safety.
 
@@ -705,18 +705,18 @@ import type {
   Config,
   Settings,
   Rules,
-  ElementMapping,
+  ElementDescriptor,
   ElementTypesRuleOptions,
 } from "eslint-plugin-boundaries";
 
-const moduleMapping: ElementMapping = {
+const moduleDescriptor: ElementDescriptor = {
   type: "module",
   pattern: "src/modules/*",
   capture: ["module"],
 };
 
 const settings: Settings = {
-  "boundaries/elements": [moduleMapping],
+  "boundaries/elements": [moduleDescriptor],
 };
 
 const rules: Rules = {

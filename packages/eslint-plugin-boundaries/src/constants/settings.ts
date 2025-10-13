@@ -126,29 +126,29 @@ export type RootPathSetting = string;
 export type AliasSetting = Record<string, string>;
 
 // TODO: Create a map
-export type ElementMappingMode = "folder" | "file" | "full";
+export type ElementDescriptorMode = "folder" | "file" | "full";
 
-export type ElementMapping = {
+export type ElementDescriptor = {
   type: string;
   pattern: string | string[];
   basePattern?: string;
-  mode?: ElementMappingMode;
+  mode?: ElementDescriptorMode;
   capture?: string[];
   baseCapture?: string[];
 };
 
-export type ElementMappings = ElementMapping[];
+export type ElementDescriptors = ElementDescriptor[];
 
 // TODO: Define types
 export type Settings = {
-  [SETTINGS_KEYS.ELEMENTS]?: ElementMappings;
+  [SETTINGS_KEYS.ELEMENTS]?: ElementDescriptors;
   [SETTINGS_KEYS.IGNORE]?: IgnoreSetting;
   [SETTINGS_KEYS.INCLUDE]?: IncludeSetting;
   [SETTINGS_KEYS.ROOT_PATH]?: RootPathSetting;
   [SETTINGS_KEYS.DEPENDENCY_NODES]?: DependencyNodeKey[];
   [SETTINGS_KEYS.ADDITIONAL_DEPENDENCY_NODES]?: DependencyNodeSelector[];
   /** @deprecated Use 'DEPENDENCY_NODES' instead */
-  [SETTINGS_KEYS.TYPES]?: ElementMappings;
+  [SETTINGS_KEYS.TYPES]?: ElementDescriptors;
   /** @deprecated Use import/resolver settings instead */
   [SETTINGS_KEYS.ALIAS]?: AliasSetting;
 };

@@ -2,8 +2,8 @@ import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { ElementInfo, FileInfo } from "../constants/ElementsInfo.types";
 import type {
   CapturedValues,
-  ElementMatcher,
-  ElementMatchers,
+  ElementSelector,
+  ElementSelectors,
   CapturedValuesMatcher,
 } from "../constants/Options.types";
 import type { ImportKind } from "../constants/settings";
@@ -80,7 +80,7 @@ function capturedValuesMatcherMessage(
 }
 
 function elementMatcherMessage(
-  elementMatcher: ElementMatcher | CapturedValuesMatcher | undefined,
+  elementMatcher: ElementSelector | CapturedValuesMatcher | undefined,
   elementCapturedValues: CapturedValues,
 ) {
   if (!elementMatcher) {
@@ -96,7 +96,7 @@ function elementMatcherMessage(
 }
 
 export function ruleElementMessage(
-  elementPatterns: ElementMatchers | undefined,
+  elementPatterns: ElementSelectors | undefined,
   elementCapturedValues: CapturedValues,
 ) {
   if (isArray(elementPatterns)) {

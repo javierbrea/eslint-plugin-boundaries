@@ -10,7 +10,7 @@ import type {
   ImportInfo,
 } from "../constants/ElementsInfo.types";
 import type { CapturedValues } from "../constants/Options.types";
-import type { ElementMappingMode, Settings } from "../constants/settings";
+import type { ElementDescriptorMode, Settings } from "../constants/settings";
 import { SETTINGS } from "../constants/settings";
 import { debugFileInfo } from "../helpers/debug";
 import { getElements, getRootPath } from "../helpers/settings";
@@ -113,8 +113,8 @@ function getElementPath(
   return `${[...fullPath].reverse().join("/").split(result)[0]}${result}`;
 }
 
-function isValidMode(mode: string | undefined): mode is ElementMappingMode {
-  return VALID_MODES.includes(mode as ElementMappingMode);
+function isValidMode(mode: string | undefined): mode is ElementDescriptorMode {
+  return VALID_MODES.includes(mode as ElementDescriptorMode);
 }
 
 function elementTypeAndParents(path: string, settings: Settings): ElementInfo {

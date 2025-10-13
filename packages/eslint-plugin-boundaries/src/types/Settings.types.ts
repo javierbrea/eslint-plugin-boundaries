@@ -1,8 +1,8 @@
 export type {
   Settings,
-  ElementMapping,
-  ElementMappings,
-  ElementMappingMode,
+  ElementDescriptor,
+  ElementDescriptors,
+  ElementDescriptorMode,
   IgnoreSetting,
   IncludeSetting,
   RootPathSetting,

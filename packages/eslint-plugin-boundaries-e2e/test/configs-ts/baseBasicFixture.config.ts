@@ -1,25 +1,25 @@
 import type {
-  ElementMappings,
+  ElementDescriptors,
   IgnoreSetting,
   ElementTypesRule,
   ElementTypesRuleOptions,
   Config,
   Settings,
   Rules,
-  ElementMapping,
-  ElementMatcher,
-  ElementMatchers,
+  ElementDescriptor,
+  ElementSelector,
+  ElementSelectors,
   AliasSetting,
 } from "eslint-plugin-boundaries";
 
-const moduleElementMapping: ElementMapping = {
+const moduleElementDescriptor: ElementDescriptor = {
   type: "module",
   pattern: "src/modules/*",
   capture: ["module"],
 };
 
-const elementsMapping: ElementMappings = [
-  moduleElementMapping,
+const elementsMapping: ElementDescriptors = [
+  moduleElementDescriptor,
   {
     type: "component",
     pattern: "src/components/*",
@@ -34,12 +34,12 @@ const allowComponentsFromModules: ElementTypesRule = {
   allow: ["component"],
 };
 
-const componentToComponentRuleAllowMatcher: ElementMatcher = [
+const componentToComponentRuleAllowMatcher: ElementSelector = [
   "component",
   { name: "foo" },
 ];
 
-const componentToComponentRuleElementMatchers: ElementMatchers = [
+const componentToComponentRuleElementSelectors: ElementSelectors = [
   "component",
   componentToComponentRuleAllowMatcher,
 ];
@@ -50,7 +50,7 @@ const elementTypesRuleOptions: ElementTypesRuleOptions = {
     allowComponentsFromModules,
     {
       from: "component",
-      allow: componentToComponentRuleElementMatchers,
+      allow: componentToComponentRuleElementSelectors,
     },
   ],
 };

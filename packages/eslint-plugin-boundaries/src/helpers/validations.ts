@@ -2,8 +2,8 @@ import type { Rule } from "eslint";
 import micromatch from "micromatch";
 
 import type {
-  ElementMatcher,
-  ElementMatchers,
+  ElementSelector,
+  ElementSelectors,
   ExternalLibraryMatcher,
   ExternalLibraryMatchers,
   RuleOptionsRules,
@@ -11,7 +11,7 @@ import type {
 import type {
   DependencyNodeKey,
   DependencyNodeSelector,
-  ElementMappings,
+  ElementDescriptors,
   Settings,
   IgnoreSetting,
   IncludeSetting,
@@ -35,7 +35,7 @@ const {
   DEFAULT_DEPENDENCY_NODES,
 } = SETTINGS;
 
-const invalidMatchers: (ElementMatcher | ExternalLibraryMatcher)[] = [];
+const invalidMatchers: (ElementSelector | ExternalLibraryMatcher)[] = [];
 
 const DEFAULT_MATCHER_OPTIONS = {
   type: "object",
@@ -136,7 +136,7 @@ export function rulesOptionsSchema(
 }
 
 function isValidElementTypesMatcher(
-  matcher: ElementMatcher | ExternalLibraryMatcher,
+  matcher: ElementSelector | ExternalLibraryMatcher,
   settings: Settings,
 ) {
   const matcherToCheck = isArray(matcher) ? matcher[0] : matcher;
@@ -146,7 +146,7 @@ function isValidElementTypesMatcher(
 }
 
 export function validateElementTypesMatcher(
-  elementsMatcher: ElementMatchers | ExternalLibraryMatchers,
+  elementsMatcher: ElementSelectors | ExternalLibraryMatchers,
   settings: Settings,
 ) {
   const [matcher] = isArray(elementsMatcher)
@@ -163,7 +163,7 @@ export function validateElementTypesMatcher(
   }
 }
 
-function validateElements(elements: unknown): ElementMappings | undefined {
+function validateElements(elements: unknown): ElementDescriptors | undefined {
   if (!elements || !isArray(elements) || !elements.length) {
     warnOnce(`Please provide element types using the '${ELEMENTS}' setting`);
     return;
