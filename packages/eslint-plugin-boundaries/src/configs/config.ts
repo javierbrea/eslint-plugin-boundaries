@@ -13,8 +13,8 @@ type PluginFullConfig<PluginName extends string = typeof PLUGIN_NAME> = {
 } & Omit<Config<PluginName>, "plugins">;
 
 function renamePluginRules<PluginName extends string = typeof PLUGIN_NAME>(
-  rules: Config["rules"],
-  pluginName: PluginName,
+  rules?: Config["rules"],
+  pluginName?: PluginName,
 ): Rules<PluginName> {
   if (!rules) {
     return {};
@@ -25,18 +25,33 @@ function renamePluginRules<PluginName extends string = typeof PLUGIN_NAME>(
       const newKey =
         `${pluginName}/${key.slice(`${PLUGIN_NAME}/`.length)}` as keyof Rules<PluginName>;
       acc[newKey] = value as Rules<PluginName>[typeof newKey];
+      return acc;
     }
+    if (!key.startsWith(`${pluginName}/`)) {
+      throw new Error(
+        `Invalid rule key "${key}". When using createConfig, all rules must belong to eslint-plugin-boundaries. You can prefix them with the original plugin name "${PLUGIN_NAME}/", or with the provided plugin name "${pluginName}/".`,
+      );
+    }
+    // If rule already has the correct plugin prefix, preserve it
+    acc[key as keyof Rules<PluginName>] =
+      value as Rules<PluginName>[keyof Rules<PluginName>];
     return acc;
   }, {} as Rules<PluginName>);
 }
 
 export function createConfig<PluginName extends string = typeof PLUGIN_NAME>(
-  config: Config<PluginName> | Config,
+  config: Omit<Config<PluginName> | Config, "plugins">,
   name: PluginName = PLUGIN_NAME as PluginName,
 ): PluginFullConfig<PluginName> {
   const pluginsRegistration = {
     [name]: plugin as PluginBoundaries,
   } as Record<PluginName, PluginBoundaries>;
+
+  if (Object.prototype.hasOwnProperty.call(config, "plugins")) {
+    throw new Error(
+      "The 'plugins' field is managed by createConfig and should not be provided in the config argument.",
+    );
+  }
   return {
     files: [
       "**/*.js",
@@ -48,7 +63,7 @@ export function createConfig<PluginName extends string = typeof PLUGIN_NAME>(
     ],
     ...config,
     plugins: pluginsRegistration,
-    rules: renamePluginRules(config.rules ?? {}, name),
+    rules: renamePluginRules(config.rules, name),
   };
 }
 

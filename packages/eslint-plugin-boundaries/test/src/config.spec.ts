@@ -74,7 +74,7 @@ describe("createConfig", () => {
       });
     });
 
-    it("should preserve non-plugin rules unchanged", () => {
+    it("should throw error when non-plugin rules are provided", () => {
       const customName = "customBoundaries";
       const inputConfig = {
         rules: {
@@ -84,12 +84,9 @@ describe("createConfig", () => {
         },
       };
 
-      const config = createConfig(inputConfig, customName);
-
-      expect(config.rules).toEqual({
-        "customBoundaries/element-types": [2],
-        // Note: non-plugin rules are not included since renamePluginRules only processes plugin rules
-      });
+      expect(() => createConfig(inputConfig, customName)).toThrow(
+        'Invalid rule key "no-console". When using createConfig, all rules must belong to eslint-plugin-boundaries. You can prefix them with the original plugin name "boundaries/", or with the provided plugin name "customBoundaries/".',
+      );
     });
 
     it("should handle empty rules with custom plugin name", () => {
@@ -164,7 +161,7 @@ describe("createConfig", () => {
       expect(config.rules).toEqual({});
     });
 
-    it("should handle mixed plugin and non-plugin rules", () => {
+    it("should throw error when mixed plugin and non-plugin rules are provided", () => {
       const inputConfig = {
         rules: {
           "boundaries/element-types": [2],
@@ -175,27 +172,22 @@ describe("createConfig", () => {
         },
       };
 
-      const config = createConfig(inputConfig);
-
-      expect(config.rules).toEqual({
-        "boundaries/element-types": [2],
-        "boundaries/no-private": [1],
-      });
+      expect(() => createConfig(inputConfig)).toThrow(
+        'Invalid rule key "eslint-comments/no-unused-disable". When using createConfig, all rules must belong to eslint-plugin-boundaries. You can prefix them with the original plugin name "boundaries/", or with the provided plugin name "boundaries/".',
+      );
     });
 
-    it("should handle plugin name that is a substring of another plugin", () => {
+    it("should throw error when plugin name is a substring of another plugin rule", () => {
       const inputConfig = {
         rules: {
           "boundaries/element-types": [2],
-          "boundaries-extra/some-rule": [1], // This should not be renamed
+          "boundaries-extra/some-rule": [1], // This should throw error
         },
       };
 
-      const config = createConfig(inputConfig, "myPlugin");
-
-      expect(config.rules).toEqual({
-        "myPlugin/element-types": [2],
-      });
+      expect(() => createConfig(inputConfig, "myPlugin")).toThrow(
+        'Invalid rule key "boundaries-extra/some-rule". When using createConfig, all rules must belong to eslint-plugin-boundaries. You can prefix them with the original plugin name "boundaries/", or with the provided plugin name "myPlugin/".',
+      );
     });
 
     it("should preserve file patterns when provided in input", () => {
@@ -258,6 +250,38 @@ describe("createConfig", () => {
       });
       expect(config.settings).toEqual(inputConfig.settings);
       expect(config.languageOptions).toEqual(inputConfig.languageOptions);
+    });
+
+    it("should throw error when plugins property is provided", () => {
+      const inputConfig = {
+        plugins: {
+          boundaries: {},
+        },
+        rules: {
+          "boundaries/element-types": [2],
+        },
+      };
+
+      expect(() => createConfig(inputConfig)).toThrow(
+        "The 'plugins' field is managed by createConfig and should not be provided in the config argument.",
+      );
+    });
+
+    it("should preserve rules with custom plugin name prefix", () => {
+      const customName = "customBoundaries";
+      const inputConfig = {
+        rules: {
+          "customBoundaries/element-types": [2, { default: "disallow" }],
+          "customBoundaries/no-private": [1, { allowUncles: true }],
+        },
+      };
+
+      const config = createConfig(inputConfig, customName);
+
+      expect(config.rules).toEqual({
+        "customBoundaries/element-types": [2, { default: "disallow" }],
+        "customBoundaries/no-private": [1, { allowUncles: true }],
+      });
     });
   });
 });
