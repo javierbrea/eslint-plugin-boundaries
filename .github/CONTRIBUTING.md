@@ -80,7 +80,8 @@ Some important points to consider:
 * __The "release" branch is the default branch for PRs.__ Only a project maintainer should open a PR to the "main" branch, and only when the release is ready to be published.
 * Usually, feature branches should be short-lived, and they should be merged into the "release" branch as soon as possible. This way, the changes will be included in the next release, and the feature branch can be deleted.
 * When necessary, a medium-lived branch can be created from the "release" branch to group changes that will be released together and require more time to be prepared. Once the changes are ready, the branch can be merged into the "release" branch.
-* For publishing beta versions or fix versions of precedent releases, medium-lived branches should be also created from the "release" branch, and the publish workflow should be modified accordingly to add the `--tag` option to the `pnpm publish` command. In this case, the maintainer should tag the releases directly in the branch without merging it into the "release" branch. When the code is ready to be published as a stable release, a PR should be opened to the "release" branch, and the branch should be deleted after the PR is merged.
+* For publishing beta versions or fix versions of precedent releases, medium-lived branches should be also created from the "release" branch. A branch naming convention should be followed in order to identify these branches easily. For example:
+   * `release-X.Y.Z-beta.N`: For beta versions of the next release.
 
 ## Merging strategy
 
@@ -151,7 +152,7 @@ The release process is as follows:
       NOTE: Publishing all packages when the first release is created has been done to avoid having packages without dependencies published due to possible errors when creating releases for each package manually. In the future, we could only release the target package based on the release tag, but some extra checks should be implemented in order to ensure that the dependencies are published before the dependent packages.
 
 > [!WARNING]
-> Some special cases may require a different process in order to avoid those versions being tagged as "latest" in the npm registry, such as publishing beta versions, or publishing fix versions of precedent releases. In such case, the release tag should be created on a branch different from "main". Read the [branching model section](#branching-model) for more information.
+> For publishing beta versions, please create a branch from the `release` branch named `release-X.Y.Z-beta.N` (Replace `X.Y.Z` with the version number of the next release and `N` with the beta version number, starting from 1). Then, you can open PRs to this branch, and when you merge them. When the release is ready, you can create a release in Github from that branch, following the same instructions as for a normal release. The only difference is that the version number should be `X.Y.Z-beta.N`. This way, the beta versions will be published to npm with the `beta` tag, and they will not affect the latest stable version of the packages. Once the beta testing is done, you can merge the `release-X.Y.Z-beta.N` branch into the `release` branch, and then create a normal release from there.
 
 # License
 
