@@ -4,10 +4,7 @@ import {
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
-import {
-  customErrorMessage,
-  entryPointNoRuleMessage,
-} from "../../support/messages";
+import { errorMessage, entryPointNoRuleMessage } from "../../support/messages";
 
 const rule = require(`../../../src/rules/${RULE}`).default;
 
@@ -75,7 +72,7 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: customErrorMessage(
+          message: errorMessage(
             errorMessages,
             0,
             entryPointNoRuleMessage({
@@ -94,7 +91,7 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: customErrorMessage(
+          message: errorMessage(
             errorMessages,
             1,
             entryPointNoRuleMessage({

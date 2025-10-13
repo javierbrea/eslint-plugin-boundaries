@@ -6,14 +6,6 @@ export function errorMessage(
   return errors[index] || defaultMessage;
 }
 
-export function customErrorMessage(
-  errors: Record<number, string>,
-  index: number,
-  defaultMessage: string,
-) {
-  return errorMessage(errors, index, defaultMessage);
-}
-
 export function elementTypesNoRuleMessage({
   file,
   dep,

@@ -1,7 +1,7 @@
 import { createRuleTester, pathResolvers } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import {
-  customErrorMessage,
+  errorMessage,
   elementTypesNoRuleMessage,
 } from "../../support/messages";
 
@@ -119,7 +119,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               0,
               elementTypesNoRuleMessage({
@@ -138,7 +138,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               1,
               elementTypesNoRuleMessage({
@@ -157,7 +157,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               2,
               elementTypesNoRuleMessage({
@@ -176,7 +176,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               3,
               elementTypesNoRuleMessage({
@@ -195,7 +195,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               4,
               elementTypesNoRuleMessage({
@@ -214,7 +214,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               5,
               elementTypesNoRuleMessage({
@@ -233,7 +233,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               6,
               elementTypesNoRuleMessage({
@@ -252,7 +252,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               7,
               elementTypesNoRuleMessage({
@@ -271,7 +271,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               8,
               elementTypesNoRuleMessage({
@@ -290,7 +290,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               9,
               elementTypesNoRuleMessage({
@@ -309,7 +309,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               10,
               elementTypesNoRuleMessage({
@@ -328,7 +328,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               11,
               elementTypesNoRuleMessage({
@@ -347,7 +347,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               12,
               elementTypesNoRuleMessage({

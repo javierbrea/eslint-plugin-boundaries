@@ -4,7 +4,7 @@ import {
   pathResolvers,
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
-import { customErrorMessage } from "../../support/messages";
+import { errorMessage } from "../../support/messages";
 
 const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
 
@@ -53,7 +53,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(errorMessages, 0, ""),
+            message: errorMessage(errorMessages, 0, ""),
             type: "Literal",
           },
         ],
@@ -65,7 +65,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(errorMessages, 1, ""),
+            message: errorMessage(errorMessages, 1, ""),
             type: "Literal",
           },
         ],
@@ -77,7 +77,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(errorMessages, 2, ""),
+            message: errorMessage(errorMessages, 2, ""),
             type: "Literal",
           },
         ],
@@ -89,7 +89,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(errorMessages, 3, ""),
+            message: errorMessage(errorMessages, 3, ""),
             type: "Literal",
           },
         ],

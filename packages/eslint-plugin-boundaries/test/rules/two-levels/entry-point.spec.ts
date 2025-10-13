@@ -4,10 +4,7 @@ import {
   pathResolvers,
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
-import {
-  customErrorMessage,
-  entryPointNoRuleMessage,
-} from "../../support/messages";
+import { errorMessage, entryPointNoRuleMessage } from "../../support/messages";
 
 const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
 
@@ -84,7 +81,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               0,
               entryPointNoRuleMessage({
@@ -103,7 +100,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               1,
               entryPointNoRuleMessage({
@@ -122,7 +119,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               2,
               entryPointNoRuleMessage({
@@ -141,7 +138,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               3,
               entryPointNoRuleMessage({
@@ -160,7 +157,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               4,
               entryPointNoRuleMessage({
@@ -179,7 +176,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               5,
               entryPointNoRuleMessage({
@@ -198,7 +195,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               6,
               entryPointNoRuleMessage({
@@ -217,7 +214,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               7,
               entryPointNoRuleMessage({
@@ -236,7 +233,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               8,
               entryPointNoRuleMessage({

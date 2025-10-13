@@ -5,7 +5,7 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import {
-  customErrorMessage,
+  errorMessage,
   elementTypesNoRuleMessage,
 } from "../../support/messages";
 
@@ -205,7 +205,7 @@ const runTest = (
         ],
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               0,
               elementTypesNoRuleMessage({
@@ -224,7 +224,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               1,
               elementTypesNoRuleMessage({
@@ -243,7 +243,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               2,
               elementTypesNoRuleMessage({
@@ -262,7 +262,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               3,
               elementTypesNoRuleMessage({
@@ -281,7 +281,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               4,
               elementTypesNoRuleMessage({
@@ -345,7 +345,7 @@ const testCapture = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               0,
               elementTypesNoRuleMessage({
@@ -364,7 +364,7 @@ const testCapture = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               1,
               elementTypesNoRuleMessage({
@@ -383,7 +383,7 @@ const testCapture = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               2,
               elementTypesNoRuleMessage({
@@ -402,7 +402,7 @@ const testCapture = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               3,
               elementTypesNoRuleMessage({

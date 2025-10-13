@@ -5,7 +5,7 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import {
-  customErrorMessage,
+  errorMessage,
   elementTypesNoRuleMessage,
 } from "../../support/messages";
 
@@ -208,7 +208,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               0,
               elementTypesNoRuleMessage({
@@ -227,7 +227,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               1,
               elementTypesNoRuleMessage({
@@ -247,7 +247,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               2,
               elementTypesNoRuleMessage({
@@ -266,7 +266,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               3,
               elementTypesNoRuleMessage({
@@ -286,7 +286,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               4,
               elementTypesNoRuleMessage({
@@ -305,7 +305,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               5,
               elementTypesNoRuleMessage({
@@ -324,7 +324,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               6,
               elementTypesNoRuleMessage({
@@ -343,7 +343,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               7,
               elementTypesNoRuleMessage({
@@ -362,7 +362,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               8,
               elementTypesNoRuleMessage({
@@ -381,7 +381,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               9,
               elementTypesNoRuleMessage({
@@ -400,7 +400,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               10,
               elementTypesNoRuleMessage({
@@ -419,7 +419,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               11,
               elementTypesNoRuleMessage({
@@ -438,7 +438,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               12,
               elementTypesNoRuleMessage({
@@ -457,7 +457,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               13,
               elementTypesNoRuleMessage({
@@ -477,7 +477,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               14,
               elementTypesNoRuleMessage({
@@ -496,7 +496,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               15,
               elementTypesNoRuleMessage({
@@ -515,7 +515,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               16,
               elementTypesNoRuleMessage({
@@ -534,7 +534,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               17,
               elementTypesNoRuleMessage({
@@ -553,7 +553,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               18,
               elementTypesNoRuleMessage({
@@ -572,7 +572,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               19,
               elementTypesNoRuleMessage({
@@ -591,7 +591,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               20,
               elementTypesNoRuleMessage({
@@ -610,7 +610,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               21,
               elementTypesNoRuleMessage({
@@ -629,7 +629,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               22,
               elementTypesNoRuleMessage({
@@ -648,7 +648,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               23,
               elementTypesNoRuleMessage({
@@ -667,7 +667,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               24,
               elementTypesNoRuleMessage({
@@ -822,7 +822,7 @@ const testPrivate = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               0,
               elementTypesNoRuleMessage({
@@ -843,7 +843,7 @@ const testPrivate = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               1,
               elementTypesNoRuleMessage({
@@ -862,7 +862,7 @@ const testPrivate = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               2,
               elementTypesNoRuleMessage({
@@ -881,7 +881,7 @@ const testPrivate = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               3,
               elementTypesNoRuleMessage({
@@ -902,7 +902,7 @@ const testPrivate = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               4,
               elementTypesNoRuleMessage({
@@ -923,7 +923,7 @@ const testPrivate = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               5,
               elementTypesNoRuleMessage({
@@ -942,7 +942,7 @@ const testPrivate = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               6,
               elementTypesNoRuleMessage({
@@ -961,7 +961,7 @@ const testPrivate = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               7,
               elementTypesNoRuleMessage({
@@ -980,7 +980,7 @@ const testPrivate = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               8,
               elementTypesNoRuleMessage({
@@ -1001,7 +1001,7 @@ const testPrivate = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               9,
               elementTypesNoRuleMessage({
@@ -1022,7 +1022,7 @@ const testPrivate = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               10,
               elementTypesNoRuleMessage({
@@ -1043,7 +1043,7 @@ const testPrivate = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               11,
               elementTypesNoRuleMessage({

@@ -5,7 +5,7 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import {
-  customErrorMessage,
+  errorMessage,
   elementTypesNoRuleMessage,
 } from "../../support/messages";
 
@@ -73,7 +73,7 @@ const runTest = (
         ],
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               0,
               elementTypesNoRuleMessage({

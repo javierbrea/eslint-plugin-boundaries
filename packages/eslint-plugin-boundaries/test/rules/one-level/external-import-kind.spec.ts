@@ -4,10 +4,7 @@ import {
   pathResolvers,
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
-import {
-  customErrorMessage,
-  externalNoRuleMessage,
-} from "../../support/messages";
+import { errorMessage, externalNoRuleMessage } from "../../support/messages";
 
 const { EXTERNAL: RULE } = require("../../../src/constants/rules");
 
@@ -80,7 +77,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               0,
               externalNoRuleMessage({
@@ -99,7 +96,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               1,
               externalNoRuleMessage({
@@ -118,7 +115,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               2,
               externalNoRuleMessage({
@@ -137,7 +134,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               3,
               externalNoRuleMessage({
@@ -159,7 +156,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               0,
               externalNoRuleMessage({
@@ -170,7 +167,7 @@ const runTest = (
             type: "Literal",
           },
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               3,
               externalNoRuleMessage({
@@ -189,7 +186,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               4,
               externalNoRuleMessage({
@@ -208,7 +205,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               5,
               externalNoRuleMessage({
@@ -227,7 +224,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               6,
               externalNoRuleMessage({
@@ -246,7 +243,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               7,
               externalNoRuleMessage({
@@ -265,7 +262,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               8,
               externalNoRuleMessage({
@@ -284,7 +281,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               9,
               externalNoRuleMessage({
@@ -303,7 +300,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               10,
               externalNoRuleMessage({
@@ -322,7 +319,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               11,
               externalNoRuleMessage({
@@ -341,7 +338,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: customErrorMessage(
+            message: errorMessage(
               errorMessages,
               12,
               externalNoRuleMessage({
