@@ -4,7 +4,7 @@ import type {
   EntryPointRuleOptions,
   RuleMatcherElementsCapturedValues,
   RuleResult,
-  CapturedValuesMatcher,
+  CapturedValuesSelector,
 } from "../constants/Options.types";
 import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
 import type { ImportKind } from "../constants/settings";
@@ -28,7 +28,7 @@ const { RULE_ENTRY_POINT } = SETTINGS;
 function isMatchElementInternalPath(
   elementInfo: FileInfo | DependencyInfo,
   matcher: string,
-  options: CapturedValuesMatcher,
+  options: CapturedValuesSelector,
   elementsCapturedValues: RuleMatcherElementsCapturedValues,
   importKind?: ImportKind,
 ): RuleResult {

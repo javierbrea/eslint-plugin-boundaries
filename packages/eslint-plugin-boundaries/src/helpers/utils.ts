@@ -1,9 +1,7 @@
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { FileInfo, ElementInfo } from "../constants/ElementsInfo.types";
 
-export function isString(object: unknown): object is string {
-  return typeof object === "string";
-}
+export { isString } from "../constants/settings";
 
 export function isArray(object: unknown): object is unknown[] {
   return Array.isArray(object);

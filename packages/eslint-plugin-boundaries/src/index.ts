@@ -53,6 +53,10 @@ function importRules(ruleNames: RuleShortNames) {
   );
 }
 
+/**
+ * Eslint plugin ensuring that architecture boundaries are respected by the elements in a project
+ * It enables to check the folders and files structure and the dependencies and relationships between them.
+ */
 const publicInterface: PluginBoundaries = {
   meta: {
     name: packageJson.name as string,

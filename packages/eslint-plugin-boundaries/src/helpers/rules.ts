@@ -7,15 +7,15 @@ import type {
   RuleResult,
   RuleMatcher,
   RuleOptionsWithRules,
-  CapturedValuesMatcher,
-  ExternalLibraryMatcherOptions,
+  CapturedValuesSelector,
+  ExternalLibrarySelectorOptions,
   ExternalRule,
   EntryPointRule,
   ElementTypesRule,
   RuleMatcherElementsCapturedValues,
   ElementSelectors,
   RuleReport,
-  ExternalLibraryMatchers,
+  ExternalLibrarySelectors,
   CapturedValues,
   RuleResultReport,
 } from "../constants/Options.types";
@@ -103,7 +103,7 @@ export function micromatchPatternReplacingObjectsValues(
 }
 
 export function isObjectMatch(
-  objectWithMatchers: CapturedValuesMatcher | ExternalLibraryMatcherOptions,
+  objectWithMatchers: CapturedValuesSelector | ExternalLibrarySelectorOptions,
   object: CapturedValues,
   objectsWithValuesToReplace: RuleMatcherElementsCapturedValues,
 ) {
@@ -132,10 +132,10 @@ export function rulesMainKey(key: RuleMainKey = FROM) {
 function ruleMatch<
   FileOrDependencyInfo extends FileInfo | DependencyInfo = FileInfo,
   RuleMatchers extends
-    | CapturedValuesMatcher
-    | ExternalLibraryMatcherOptions = CapturedValuesMatcher,
+    | CapturedValuesSelector
+    | ExternalLibrarySelectorOptions = CapturedValuesSelector,
 >(
-  ruleMatchers: ElementSelectors | ExternalLibraryMatchers,
+  ruleMatchers: ElementSelectors | ExternalLibrarySelectors,
   targetElement: FileInfo | DependencyInfo,
   isMatch: RuleMatcher<FileOrDependencyInfo, RuleMatchers>,
   fromElement: FileInfo,
@@ -177,7 +177,7 @@ function ruleMatch<
 export function isMatchElementKey(
   elementInfo: FileInfo | DependencyInfo,
   matcher: string,
-  options: CapturedValuesMatcher | ExternalLibraryMatcherOptions,
+  options: CapturedValuesSelector | ExternalLibrarySelectorOptions,
   elementKey: keyof FileInfo | keyof DependencyInfo,
   elementsToCompareCapturedValues: RuleMatcherElementsCapturedValues,
 ) {
@@ -219,7 +219,7 @@ export function isMatchImportKind(
 export function isMatchElementType(
   elementInfo: FileInfo,
   matcher: string,
-  options: CapturedValuesMatcher | ExternalLibraryMatcherOptions,
+  options: CapturedValuesSelector | ExternalLibrarySelectorOptions,
   elementsToCompareCapturedValues: RuleMatcherElementsCapturedValues,
   importKind?: ImportKind,
 ) {
@@ -238,8 +238,8 @@ export function isMatchElementType(
 export function getElementRules<
   FileOrDependencyInfo extends FileInfo | DependencyInfo = FileInfo,
   RuleMatchers extends
-    | CapturedValuesMatcher
-    | ExternalLibraryMatcherOptions = CapturedValuesMatcher,
+    | CapturedValuesSelector
+    | ExternalLibrarySelectorOptions = CapturedValuesSelector,
 >(
   targetElement: FileInfo | DependencyInfo,
   options: RuleOptionsWithRules,
@@ -288,8 +288,8 @@ function elementToGetRulesFrom(
 export function elementRulesAllowDependency<
   FileOrDependencyInfo extends FileInfo | DependencyInfo = FileInfo,
   RuleMatchers extends
-    | CapturedValuesMatcher
-    | ExternalLibraryMatcherOptions = CapturedValuesMatcher,
+    | CapturedValuesSelector
+    | ExternalLibrarySelectorOptions = CapturedValuesSelector,
 >({
   element,
   dependency,

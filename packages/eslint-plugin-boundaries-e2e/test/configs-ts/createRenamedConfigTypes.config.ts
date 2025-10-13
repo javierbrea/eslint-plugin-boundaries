@@ -1,4 +1,4 @@
-// NOTE: This test is not executed. It only checks types in build time
+// NOTE: This config is not executed in any test. It only checks types in build time
 import type { Linter } from "eslint";
 import { defineConfig } from "eslint/config";
 import { createConfig } from "eslint-plugin-boundaries/config";

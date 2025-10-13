@@ -101,7 +101,7 @@ export default [
           rules: [
             {
               from: "config-utils",
-              allow: ["plugin", "config", "constants"],
+              allow: ["plugin", "config", "constants", "types"],
             },
             {
               from: "plugin",

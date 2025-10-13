@@ -4,8 +4,8 @@ import micromatch from "micromatch";
 import type {
   ElementSelector,
   ElementSelectors,
-  ExternalLibraryMatcher,
-  ExternalLibraryMatchers,
+  ExternalLibrarySelector,
+  ExternalLibrarySelectors,
   RuleOptionsRules,
 } from "../constants/Options.types";
 import type {
@@ -17,7 +17,11 @@ import type {
   IncludeSetting,
   ImportKind,
 } from "../constants/settings";
-import { SETTINGS, SETTINGS_KEYS } from "../constants/settings";
+import {
+  SETTINGS,
+  SETTINGS_KEYS_MAP,
+  isDependencyNodeKey,
+} from "../constants/settings";
 
 import { warnOnce } from "./debug";
 import type { RuleMainKey, ValidateRulesOptions } from "./Helpers.types";
@@ -35,7 +39,7 @@ const {
   DEFAULT_DEPENDENCY_NODES,
 } = SETTINGS;
 
-const invalidMatchers: (ElementSelector | ExternalLibraryMatcher)[] = [];
+const invalidMatchers: (ElementSelector | ExternalLibrarySelector)[] = [];
 
 const DEFAULT_MATCHER_OPTIONS = {
   type: "object",
@@ -136,7 +140,7 @@ export function rulesOptionsSchema(
 }
 
 function isValidElementTypesMatcher(
-  matcher: ElementSelector | ExternalLibraryMatcher,
+  matcher: ElementSelector | ExternalLibrarySelector,
   settings: Settings,
 ) {
   const matcherToCheck = isArray(matcher) ? matcher[0] : matcher;
@@ -146,7 +150,7 @@ function isValidElementTypesMatcher(
 }
 
 export function validateElementTypesMatcher(
-  elementsMatcher: ElementSelectors | ExternalLibraryMatchers,
+  elementsMatcher: ElementSelectors | ExternalLibrarySelectors,
   settings: Settings,
 ) {
   const [matcher] = isArray(elementsMatcher)
@@ -169,12 +173,6 @@ function validateElements(elements: unknown): ElementDescriptors | undefined {
     return;
   }
   return elements.filter(isValidElementAssigner);
-}
-
-function isDependencyNodeKey(value: unknown): value is DependencyNodeKey {
-  return (
-    isString(value) && Object.keys(DEFAULT_DEPENDENCY_NODES).includes(value)
-  );
 }
 
 function validateDependencyNodes(
@@ -267,7 +265,7 @@ function validateIgnore(ignore: unknown): IgnoreSetting | undefined {
     return ignore;
   }
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS.IGNORE}' setting. The value should be a string or an array of strings.`,
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.IGNORE}' setting. The value should be a string or an array of strings.`,
   );
   return;
 }
@@ -280,7 +278,7 @@ function validateInclude(include: unknown): IncludeSetting | undefined {
     return include;
   }
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS.INCLUDE}' setting. The value should be a string or an array of strings.`,
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.INCLUDE}' setting. The value should be a string or an array of strings.`,
   );
   return;
 }
@@ -293,7 +291,7 @@ function validateRootPath(rootPath: unknown): string | undefined {
     return rootPath;
   }
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS.ROOT_PATH}' setting. The value should be a string.`,
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.ROOT_PATH}' setting. The value should be a string.`,
   );
   return;
 }
@@ -305,18 +303,22 @@ export function validateSettings(
   deprecateAlias(settings[ALIAS]);
 
   return {
-    [SETTINGS_KEYS.ELEMENTS]: validateElements(
+    [SETTINGS_KEYS_MAP.ELEMENTS]: validateElements(
       settings[ELEMENTS] || settings[TYPES],
     ),
-    [SETTINGS_KEYS.IGNORE]: validateIgnore(settings[SETTINGS_KEYS.IGNORE]),
-    [SETTINGS_KEYS.INCLUDE]: validateInclude(settings[SETTINGS_KEYS.INCLUDE]),
-    [SETTINGS_KEYS.ROOT_PATH]: validateRootPath(
-      settings[SETTINGS_KEYS.ROOT_PATH],
+    [SETTINGS_KEYS_MAP.IGNORE]: validateIgnore(
+      settings[SETTINGS_KEYS_MAP.IGNORE],
     ),
-    [SETTINGS_KEYS.DEPENDENCY_NODES]: validateDependencyNodes(
+    [SETTINGS_KEYS_MAP.INCLUDE]: validateInclude(
+      settings[SETTINGS_KEYS_MAP.INCLUDE],
+    ),
+    [SETTINGS_KEYS_MAP.ROOT_PATH]: validateRootPath(
+      settings[SETTINGS_KEYS_MAP.ROOT_PATH],
+    ),
+    [SETTINGS_KEYS_MAP.DEPENDENCY_NODES]: validateDependencyNodes(
       settings[DEPENDENCY_NODES],
     ),
-    [SETTINGS_KEYS.ADDITIONAL_DEPENDENCY_NODES]:
+    [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES]:
       validateAdditionalDependencyNodes(settings[ADDITIONAL_DEPENDENCY_NODES]),
   };
 }

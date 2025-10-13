@@ -175,7 +175,7 @@ Read the [docs of the `boundaries/entry-point` rule](docs/rules/entry-point.md) 
 
 #### __`boundaries/elements`__
 
-Define patterns to recognize each file in the project as one of this element types. All rules need this setting to be configured properly to work. The plugin tries to identify each file being analyzed or `import` statement in rules as one of the defined element types. The assigned element type will be that with the first matching pattern, in the same order that elements are defined in the array, so you __should sort them from the most accurate patterns to the less ones__. Properties of each `element`:
+Define element descriptors to recognize each file in the project as one of this element types. All rules need this setting to be configured properly to work. The plugin tries to identify each file being analyzed or `import` statement in rules as one of the defined element types. The assigned element type will be that with the first matching pattern, in the same order that elements are defined in the array, so you __should sort them from the most accurate patterns to the less ones__. Properties of each `element`:
 
 * __`type`__: `<string>` Element type to be assigned to files or imports matching the `pattern`. This type will be used afterwards in the rules configuration.
 * __`pattern`__: `<string>|<array>` [`micromatch` pattern](https://github.com/micromatch/micromatch). __By default the plugin will try to match this pattern progressively starting from the right side of each file path.__ This means that you don't have to define patterns matching from the base project path, but only the last part of the path that you want to be matched. This is made because the plugin supports elements being children of other elements, and otherwise it could wrongly recognize children elements as a part of the parent one. <br/>For example, given a path `src/helpers/awesome-helper/index.js`, it will try to assign the element to a pattern matching `index.js`, then `awesome-helper/index.js`, then `helpers/awesome-helper/index.js`, etc. Once a pattern matches, it assign the correspondent element type, and continues searching for parents elements with the same logic until the full path has been analyzed. __This behavior can be disabled setting the `mode` option to `full`__, then the provided pattern will try to match the full path.
@@ -338,7 +338,7 @@ export default [{
   },
   settings: {
     ...recommended.settings,
-    // Define your own elements here
+    // Define your own element descriptors here
     "boundaries/elements": [
       {
         type: "helpers",
@@ -417,6 +417,21 @@ export default [config];
 
 > [!WARNING]
 > Note that the settings still must use the `boundaries/` prefix — ESLint doesn’t namespace settings by plugin name.
+
+The plugin also exports constants and type guard methods for settings keys, rule names, and other configuration-related values. You can use them when defining your configuration. For example:
+
+```ts
+import {
+  RULE_NAMES_MAP,
+  isRuleName,
+  SETTINGS_KEYS_MAP,
+  isSettingsKey,
+  ELEMENT_DESCRIPTOR_MODES_MAP,
+  isElementDescriptorMode,
+  RULE_POLICIES_MAP,
+  isRulePolicy,
+} from "eslint-plugin-boundaries/config";
+```
 
 ### Rules configuration
 

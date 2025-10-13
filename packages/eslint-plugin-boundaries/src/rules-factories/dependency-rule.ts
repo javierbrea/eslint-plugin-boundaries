@@ -10,8 +10,8 @@ import type {
 } from "../constants/settings";
 import {
   SETTINGS,
-  SETTINGS_KEYS,
-  DEPENDENCY_NODES,
+  SETTINGS_KEYS_MAP,
+  DEPENDENCY_NODE_KEYS_MAP,
 } from "../constants/settings";
 import { dependencyInfo } from "../core/dependencyInfo";
 import { fileInfo } from "../core/elementsInfo";
@@ -61,18 +61,18 @@ export default function <Options extends RuleOptionsWithRules>(
       }
 
       const dependencyNodesSetting = getArrayOrNull<DependencyNodeKey>(
-        settings[SETTINGS_KEYS.DEPENDENCY_NODES],
+        settings[SETTINGS_KEYS_MAP.DEPENDENCY_NODES],
       );
       const additionalDependencyNodesSetting =
         getArrayOrNull<DependencyNodeSelector>(
           settings[ADDITIONAL_DEPENDENCY_NODES],
         );
-      const dependencyNodes = (
-        dependencyNodesSetting || [DEPENDENCY_NODES.IMPORT]
-      )
-        .map((dependencyNode) => DEFAULT_DEPENDENCY_NODES[dependencyNode])
-        .flat()
-        .filter(Boolean);
+      const dependencyNodes =
+        // TODO In next major version, make this default to all types of nodes !!!
+        (dependencyNodesSetting || [DEPENDENCY_NODE_KEYS_MAP.IMPORT])
+          .map((dependencyNode) => DEFAULT_DEPENDENCY_NODES[dependencyNode])
+          .flat()
+          .filter(Boolean);
       const additionalDependencyNodes = additionalDependencyNodesSetting || [];
 
       return [...dependencyNodes, ...additionalDependencyNodes].reduce(

@@ -4,7 +4,7 @@ import type {
   CapturedValues,
   ElementSelector,
   ElementSelectors,
-  CapturedValuesMatcher,
+  CapturedValuesSelector,
 } from "../constants/Options.types";
 import type { ImportKind } from "../constants/settings";
 
@@ -64,7 +64,7 @@ function micromatchPatternMessage(
 }
 
 function capturedValuesMatcherMessage(
-  capturedValuesPattern: CapturedValuesMatcher | undefined,
+  capturedValuesPattern: CapturedValuesSelector | undefined,
   elementCapturedValues: CapturedValues,
 ) {
   const capturedValuesPatternKeys = Object.keys(capturedValuesPattern || {});
@@ -80,7 +80,7 @@ function capturedValuesMatcherMessage(
 }
 
 function elementMatcherMessage(
-  elementMatcher: ElementSelector | CapturedValuesMatcher | undefined,
+  elementMatcher: ElementSelector | CapturedValuesSelector | undefined,
   elementCapturedValues: CapturedValues,
 ) {
   if (!elementMatcher) {
@@ -90,7 +90,7 @@ function elementMatcherMessage(
     return typeMessage(elementMatcher);
   }
   return `${typeMessage(elementMatcher[0])}${capturedValuesMatcherMessage(
-    elementMatcher[1] as CapturedValuesMatcher,
+    elementMatcher[1] as CapturedValuesSelector,
     elementCapturedValues,
   )}`;
 }

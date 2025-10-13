@@ -19,13 +19,12 @@ import type {
 } from "../constants/rules";
 import type { Settings } from "../constants/settings";
 
-export type {
-  ElementTypesRuleOptions,
-  EntryPointRuleOptions,
-  ExternalRuleOptions,
-  NoPrivateOptions,
-} from "../constants/Options.types";
-
+/**
+ * Eslint boundaries plugin rules.
+ * By default, rule names are prefixed with "boundaries/", but it can be customized via the `PluginName` generic parameter.
+ *
+ * @template PluginName - The name of the plugin, defaults to "boundaries". It defines the prefix for the rule names.
+ */
 export type Rules<PluginName extends string = typeof PLUGIN_NAME> = {
   [K in `${PluginName}/${
     | typeof ELEMENT_TYPES
@@ -45,12 +44,24 @@ export type Rules<PluginName extends string = typeof PLUGIN_NAME> = {
           : Linter.RuleEntry<never>;
 };
 
+/**
+ * ESLint configuration with optional settings and rules specific to the boundaries plugin.
+ */
 export interface Config<PluginName extends string = typeof PLUGIN_NAME>
   extends Linter.Config {
+  /**
+   * Optional settings specific to the boundaries plugin.
+   */
   settings?: Settings;
+  /**
+   * Optional rules specific to the boundaries plugin.
+   */
   rules?: Rules<PluginName>;
 }
 
+/**
+ * ESLint plugin interface for the boundaries plugin, including metadata, rules, and configurations.
+ */
 export interface PluginBoundaries extends ESLint.Plugin {
   meta: {
     name: string;
