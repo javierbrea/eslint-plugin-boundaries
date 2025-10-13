@@ -1,7 +1,0 @@
-const PLUGIN_NAME = "boundaries";
-const PLUGIN_ENV_VARS_PREFIX = "ESLINT_PLUGIN_BOUNDARIES";
-
-module.exports = {
-  PLUGIN_NAME,
-  PLUGIN_ENV_VARS_PREFIX,
-};

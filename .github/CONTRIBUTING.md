@@ -38,7 +38,7 @@ Package task names are standardized across the repository. This enables to defin
 * `check:spell`: Checks the spelling in the package.
 * `build`: Builds the package.
 * `test:unit`: Runs the unit tests.
-* `test:package`: Runs the package tests.
+* `test:e2e`: Runs the end-to-end tests.
 * `check:all`: Run all the checks and build the package.
 
 You can also rewrite the tasks to fit the package's needs. For example, if a package has special requirements for unit tests, you can define a `test:unit` task in the package's `project.json` file, redefining the Nx inputs, outputs, and dependencies in order to fit the package's needs and optimize the cache accordingly. _(See how the `eslint-plugin-boundaries` package does this for an example)_
@@ -66,6 +66,13 @@ pnpm nx run-many -t test:unit --all
 ```
 
 This will run the `test:unit` task in all packages and also the corresponding dependencies, in the right order, so everything is built and tested correctly.
+
+## Running check in all packages
+To run all the checks in all packages, use the following command:
+
+```bash
+pnpm nx run-many -t check:all --all
+```
 
 # Branching model
 

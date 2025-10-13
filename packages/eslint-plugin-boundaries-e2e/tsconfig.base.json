@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "rootDir": ".",
+    "declaration": true,
+    "target": "es2022",
+    "strict": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "module": "es2022",
+    "useDefineForClassFields": true,
+    "importsNotUsedAsValues": "remove",
+    "forceConsistentCasingInFileNames": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "strictPropertyInitialization": false
+  }
+}

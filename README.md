@@ -1,4 +1,4 @@
-[![Build status][build-image]][build-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Quality Gate][quality-gate-image]][quality-gate-url]
+[![Build status][build-image]][build-url] [![Coverage Status][coveralls-image]][coveralls-url] <!-- [![Quality Gate][quality-gate-image]][quality-gate-url] -->
 
 [![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com) [![Last commit][last-commit-image]][last-commit-url] [![Last release][release-image]][release-url]
 
@@ -28,13 +28,15 @@ By default, __the plugin works by checking `import` statements, but it is also a
 - [Configuration](#configuration)
   * [Global settings](#global-settings)
   * [Predefined configurations](#predefined-configurations)
+  * [createConfig helper](#createconfig-helper)
   * [Rules configuration](#rules-configuration)
     * [Main format of rules options](#main-format-of-rules-options)
-    * [Elements matchers](#elements-matchers)
+    * [Elements selectors](#elements-selectors)
     * [Error messages](#error-messages)
     * [Advanced example](#advanced-example)
 - [Resolvers](#resolvers)
-- [Usage with TypeScript](#usage-with-typescript)
+- [TypeScript Support](#typescript-support)
+    * [Exported Types](#exported-types)
 - [Migration guides](#migration-guides)
 - [Debug mode](#debug-mode)
 - [Acknowledgements](#acknowledgements)
@@ -173,7 +175,7 @@ Read the [docs of the `boundaries/entry-point` rule](docs/rules/entry-point.md) 
 
 #### __`boundaries/elements`__
 
-Define patterns to recognize each file in the project as one of this element types. All rules need this setting to be configured properly to work. The plugin tries to identify each file being analyzed or `import` statement in rules as one of the defined element types. The assigned element type will be that with the first matching pattern, in the same order that elements are defined in the array, so you __should sort them from the most accurate patterns to the less ones__. Properties of each `element`:
+Define element descriptors to recognize each file in the project as one of this element types. All rules need this setting to be configured properly to work. The plugin tries to identify each file being analyzed or `import` statement in rules as one of the defined element types. The assigned element type will be that with the first matching pattern, in the same order that elements are defined in the array, so you __should sort them from the most accurate patterns to the less ones__. Properties of each `element`:
 
 * __`type`__: `<string>` Element type to be assigned to files or imports matching the `pattern`. This type will be used afterwards in the rules configuration.
 * __`pattern`__: `<string>|<array>` [`micromatch` pattern](https://github.com/micromatch/micromatch). __By default the plugin will try to match this pattern progressively starting from the right side of each file path.__ This means that you don't have to define patterns matching from the base project path, but only the last part of the path that you want to be matched. This is made because the plugin supports elements being children of other elements, and otherwise it could wrongly recognize children elements as a part of the parent one. <br/>For example, given a path `src/helpers/awesome-helper/index.js`, it will try to assign the element to a pattern matching `index.js`, then `awesome-helper/index.js`, then `helpers/awesome-helper/index.js`, etc. Once a pattern matches, it assign the correspondent element type, and continues searching for parents elements with the same logic until the full path has been analyzed. __This behavior can be disabled setting the `mode` option to `full`__, then the provided pattern will try to match the full path.
@@ -328,26 +330,107 @@ We recommend to use this setting if you are applying the plugin to an already ex
 
 ```js
 import boundaries from "eslint-plugin-boundaries";
+import { recommended } from "eslint-plugin-boundaries/config";
 
 export default [{
+  plugins: {
+    boundaries,
+  },
+  settings: {
+    ...recommended.settings,
+    // Define your own element descriptors here
+    "boundaries/elements": [
+      {
+        type: "helpers",
+        pattern: "helpers/*"
+      },
+    ]
+  },
   rules: {
-    ...boundaries.configs.recommended.rules,
+    ...recommended.rules,
+    "boundaries/element-types": [2, {
+      // Define your own options here
+    }],
   }
 }]
 ```
 
 #### Strict
 
-All rules are enabled, so all elements in the project will be compliant with your architecture boundaries. 😃
+All rules are enabled by default, so all elements in the project will be compliant with your architecture boundaries. 😃
+
+Follow the same example as in "recommended" configuration, but importing `strict` instead of `recommended`.
 
 ```js
-import boundaries from "eslint-plugin-boundaries";
+import { strict } from "eslint-plugin-boundaries/config";
+```
 
-export default [{
+### createConfig helper
+
+A `createConfig` helper is also available for making configurations easier.
+
+It enforces valid types for settings and rules and automatically:
+
+* Adds the plugin to the plugins property
+* Includes JavaScript and TypeScript file patterns in the files property
+* Validates that all provided settings and rules belong to the plugin
+
+```js
+import { createConfig, recommended } from "eslint-plugin-boundaries/config";
+
+const config = createConfig({
+  settings: {
+    ...recommended.settings,
+    "boundaries/elements": [],
+    "boundaries/ignore": ["**/ignored/**/*.js"],
+  },
   rules: {
-    ...boundaries.configs.strict.rules,
+    ...recommended.rules,
+    "boundaries/element-types": ["error", { default: "disallow" }],
   }
-}]
+});
+
+export default [config];
+```
+
+You can also rename the plugin by passing a second argument. The helper will rename all rules from `boundaries/` prefix to the provided one, so recommended or strict configs can be used as a base without issues.
+
+```js
+import { createConfig, recommended } from "eslint-plugin-boundaries/config";
+
+const config = createConfig({
+  settings: {
+    ...recommended.settings,
+    "boundaries/elements": [], // Note the original prefix here
+  },
+  rules: {
+    ...recommended.rules,
+    "custom-boundaries/element-types": ["error", { default: "disallow" }], // Note the renamed prefix here
+    "boundaries/entry-point": 0, // The original prefix still works too
+    // @ts-expect-error Any other prefix raises an error
+    "foo/entry-point": 2, // This rule does not match the new plugin name nor the original one
+  }
+}, "custom-boundaries");
+
+export default [config];
+```
+
+> [!WARNING]
+> Note that the settings still must use the `boundaries/` prefix — ESLint doesn’t namespace settings by plugin name.
+
+The plugin also exports constants and type guard methods for settings keys, rule names, and other configuration-related values. You can use them when defining your configuration. For example:
+
+```ts
+import {
+  RULE_NAMES_MAP,
+  isRuleName,
+  SETTINGS_KEYS_MAP,
+  isSettingsKey,
+  ELEMENT_DESCRIPTOR_MODES_MAP,
+  isElementDescriptorMode,
+  RULE_POLICIES_MAP,
+  isRulePolicy,
+} from "eslint-plugin-boundaries/config";
 ```
 
 ### Rules configuration
@@ -397,26 +480,26 @@ Remember that:
 
 ##### Rules options properties
 
-* __`from/target`__: `<element matchers>` Depending of the rule to which the options are for, the rule will be applied only if the file being analyzed matches with this element matcher (`from`), or the dependency being imported matches with this element matcher (`target`).
-* __`disallow/allow`__: `<value matchers>` If the plugin rule target matches with this, then the result of the rule will be "disallow/allow". Each rule will require a type of value here depending of what it is checking. In the case of the `element-types` rule, for example, another `<element matcher>` has to be provided in order to check the type of the local dependency.
+* __`from/target`__: `<element selectors>` Depending of the rule to which the options are for, the rule will be applied only if the file being analyzed matches with this element selector (`from`), or the dependency being imported matches with this element selector (`target`).
+* __`disallow/allow`__: `<selectors>` If the plugin rule target matches with this, then the result of the rule will be "disallow/allow". Each rule will require a type of value here depending of what it is checking. In the case of the `element-types` rule, for example, another `<element selector>` has to be provided in order to check the type of the local dependency.
 * __`importKind`__: `<string>` _Optional_. It is useful only when using TypeScript, because it allows to define if the rule applies when the dependency is being imported as a value or as a type. It can be also defined as an array of strings, or a micromatch pattern. Note that possible values to match with are `"value"`, `"type"` or `"typeof"`. For example, you could define that "components" can import "helpers" as a value, but not as a type. So, `import { helper } from "helpers/helper-a"` would be allowed, but `import type { Helper } from "helpers/helper-a"` would be disallowed.
 * __`message`__: `<string>` Optional. If the rule results in an error, the plugin will return this message instead of the default one. Read [error messages](#error-messages) for further info.
 
-> Tip: Properties `from/target` and `disallow/allow` can receive a single matcher, or an array of matchers.
+> Tip: Properties `from/target` and `disallow/allow` can receive a single selector, or an array of selectors.
 
-##### Elements matchers
+##### Elements selectors
 
-Elements matchers used in the rules options can have the next formats:
+Elements selectors used in the rules options can have the next formats:
 
 * __`<string>`__: Will return `true` when the element type matches with this [`micromatch` pattern](https://github.com/micromatch/micromatch). It [supports templating](#templating) for using values from captured values.
-* __`[<string>, <capturedValuesObject>]`__: Will return `true` whe when the element type matches with the first element in the array, and all of the captured values also match. <br/>The `<capturedValuesObject>` has to be an object containing `capture` keys from the [`boundaries/element-types` setting](#boundarieselement-types) of the element as keys, and [`micromatch` patterns](https://github.com/micromatch/micromatch) as values. (values also support [templating](#templating)) <br/>For example, for an element of type "helpers" with settings as `{ type: "helpers", pattern": "helpers/*/*.js", "capture": ["category", "elementName"]}`, you could write element matchers as:
+* __`[<string>, <capturedValuesObject>]`__: Will return `true` whe when the element type matches with the first element in the array, and all of the captured values also match. <br/>The `<capturedValuesObject>` has to be an object containing `capture` keys from the [`boundaries/element-types` setting](#boundarieselement-types) of the element as keys, and [`micromatch` patterns](https://github.com/micromatch/micromatch) as values. (values also support [templating](#templating)) <br/>For example, for an element of type "helpers" with settings as `{ type: "helpers", pattern": "helpers/*/*.js", "capture": ["category", "elementName"]}`, you could write element selectors as:
   * `["helpers", { category: "data", elementName: "parsers"}]`: Will only match with helpers with category "data" and elementName "parsers" (`helpers/data/parsers.js`).
   * `["helpers", { category: "data" }]`: Will match with all helpers with category "data" (`helpers/data/*.js`)
   * `["data-${from.elementName}", { category: "${from.category}" }]`: Will only match with helpers with the type equals to the `elementName` of the file importing plus a `data-` prefix, and the category being equal to the `category` of the file importing the dependency.
 
 ##### Templating
 
-When defining [__Element matchers__](#elements-matchers), the values captured both from the element importing ("from") and from the imported element ("target") are available to be replaced. They are replaced both in the main string and in the `<capturedValuesObject>`.
+When defining [__Element selectors__](#elements-selectors), the values captured both from the element importing ("from") and from the imported element ("target") are available to be replaced. They are replaced both in the main string and in the `<capturedValuesObject>`.
 
 Templates must be defined with the format `${from.CAPTURED_PROPERTY}` or `${target.CAPTURED_PROPERTY}`.
 
@@ -541,7 +624,7 @@ export default [{
 }]
 ```
 
-## Usage with TypeScript
+## TypeScript Support
 
 This plugin can be used also in [TypeScript](https://www.typescriptlang.org/) projects using `@typescript-eslint/eslint-plugin`. Follow next steps to configure it:
 
@@ -579,6 +662,88 @@ export default [{
 > Note that `eslint-import-resolver-typescript` detects even custom paths defined in the `tsconfig.json` file, so its usage is also compatible with this plugin.
 
 In case you face any issue configuring it, you can also [use this repository as a guide](https://github.com/javierbrea/epb-ts-example). It contains a fully working and tested example.
+
+### Exported Types
+
+The main type exported by the plugin is `Config`, which represents a fully typed [Flat Config](https://eslint.org/docs/latest/use/core-concepts/glossary#flat-config).
+
+```ts
+import type { Config } from "eslint-plugin-boundaries";
+
+const config: Config = {
+  plugins: {
+    boundaries,
+  },
+  settings: {
+    "boundaries/elements": [],
+    "boundaries/ignore": ["**/ignored/**/*.js"],
+  },
+  rules: {
+    "boundaries/element-types": [
+      "error",
+      { default: "disallow", rules: [] },
+    ],
+  },
+};
+```
+
+Types also support renaming the plugin when loading it in the `plugins` property, so rules and must be defined using the new name:
+
+```ts
+import type { Config } from "eslint-plugin-boundaries";
+
+const config: Config<"custom-boundaries"> = {
+  plugins: {
+    "custom-boundaries": boundaries, // NOTE the renamed prefix here
+  },
+  settings: {
+    "boundaries/elements": [],
+    "boundaries/ignore": ["**/ignored/**/*.js"],
+  },
+  rules: {
+    "custom-boundaries/element-types": 2, // NOTE the renamed prefix here
+  },
+};
+```
+
+> [!WARNING]
+> Note that the settings still use the `boundaries/` prefix — ESLint doesn’t namespace settings by plugin name.
+
+In addition, individual subtypes are available for each part of the configuration, such as:
+
+* `Settings`, `Rules`, `ElementDescriptor`, `ElementTypesRule`, `ElementTypesRuleOptions`, `ElementSelector`, `IgnoreSetting`, etc.
+
+This allows you to import only what you need and get full autocompletion and type safety.
+
+```ts
+import type {
+  Config,
+  Settings,
+  Rules,
+  ElementDescriptor,
+  ElementTypesRuleOptions,
+} from "eslint-plugin-boundaries";
+
+const moduleDescriptor: ElementDescriptor = {
+  type: "module",
+  pattern: "src/modules/*",
+  capture: ["module"],
+};
+
+const settings: Settings = {
+  "boundaries/elements": [moduleDescriptor],
+};
+
+const rules: Rules = {
+  "boundaries/element-types": ["error", { default: "disallow", rules: [] }],
+};
+
+const config: Config = {
+  files: ["**/*.js", "**/*.ts"],
+  settings,
+  rules,
+};
+```
 
 ## Migration guides
 

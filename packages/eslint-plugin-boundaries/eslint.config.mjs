@@ -8,6 +8,7 @@ import {
   jsBaseConfig,
   jestConfig,
   typescriptConfig,
+  // eslint-disable-next-line import/extensions
 } from "../eslint-config/index.js";
 
 export default [
@@ -18,17 +19,13 @@ export default [
   markdownConfig,
   jsBaseConfig,
   {
-    files: ["**/*.js"],
+    files: ["**/*.ts"],
     plugins: {
       "local-rules": localRules,
     },
-    languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "commonjs",
-    },
   },
   {
-    files: ["src/**/*.js"],
+    files: ["src/**/*.ts"],
 
     settings: {
       "boundaries/dependency-nodes": [
@@ -40,45 +37,57 @@ export default [
 
       "boundaries/elements": [
         {
+          type: "config-utils",
+          mode: "file",
+          pattern: ["src/configs/config.ts"],
+          capture: ["name"],
+        },
+        {
           type: "config",
           mode: "file",
-          pattern: ["src/configs/*.js", "(package.json)"],
+          pattern: ["src/configs/*.ts", "(package.json)"],
           capture: ["name"],
         },
         {
           type: "constants",
           mode: "file",
-          pattern: "src/constants/*.js",
+          pattern: "src/constants/*.ts",
           capture: ["name"],
         },
         {
           type: "core",
           mode: "file",
-          pattern: "src/core/*.js",
+          pattern: "src/core/*.ts",
           capture: ["name"],
         },
         {
           type: "helper",
           mode: "file",
-          pattern: "src/helpers/*.js",
+          pattern: "src/helpers/*.ts",
           capture: ["name"],
         },
         {
           type: "rule",
           mode: "file",
-          pattern: "src/rules/*.js",
+          pattern: "src/rules/*.ts",
           capture: ["name"],
         },
         {
           type: "rule-factory",
           mode: "file",
-          pattern: "src/rules-factories/*.js",
+          pattern: "src/rules-factories/*.ts",
           capture: ["name"],
         },
         {
           type: "plugin",
           mode: "full",
-          pattern: ["src/index.js"],
+          pattern: ["src/index.ts"],
+        },
+        {
+          type: "types",
+          mode: "file",
+          pattern: "src/types/*.ts",
+          capture: ["name"],
         },
       ],
     },
@@ -91,8 +100,12 @@ export default [
 
           rules: [
             {
+              from: "config-utils",
+              allow: ["plugin", "config", "constants", "types"],
+            },
+            {
               from: "plugin",
-              allow: ["constants", "config", "rule"],
+              allow: ["constants", "config", "rule", "types"],
             },
             {
               from: "config",
@@ -116,7 +129,11 @@ export default [
             },
             {
               from: "rule-factory",
-              allow: ["constants", "helper", "core"],
+              allow: ["constants", "helper", "core", "rule-factory"],
+            },
+            {
+              from: "types",
+              allow: ["types", "constants", "config"],
             },
           ],
         },
@@ -128,6 +145,9 @@ export default [
   },
   {
     ...jestConfig,
-    files: ["test/src/**/*.js"],
+    files: ["test/**/*.js", "test/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-require-imports": [0],
+    },
   },
 ];
