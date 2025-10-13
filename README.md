@@ -12,8 +12,6 @@ __This plugin ensures that your architecture boundaries are respected by the ele
 
 By default, __the plugin works by checking `import` statements, but it is also able to analyze "require", "exports" and dynamic imports, and can be configured to check any other [AST nodes](https://eslint.org/docs/latest/extend/selectors)__. (_Read the [main rules overview](#main-rules-overview) and [configuration](#configuration) chapters for better comprehension_)
 
-![Boundaries illustration](docs/images/eslint-plugin-boundaries.png)
-
 ## Table of Contents
 
 <details>
@@ -125,11 +123,6 @@ export default [{
   }
 }]
 ```
-
-In this example, `components/` modules would be able to import from either `components/` or `helpers/` but not from `modules/`
-
-![visual example from components module](docs/images/example-from-components.png)
-
 
 > The plugin won't apply rules to a file or dependency when it does not recognize its element type, but you can force all files in your project to belong to an element type by enabling the [boundaries/no-unknown-files](docs/rules/no-unknown-files.md) rule.
 
