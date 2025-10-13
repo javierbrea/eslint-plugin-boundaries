@@ -1,4 +1,6 @@
 // NOTE: This test is not executed. It only checks types in build time
+import type { Linter } from "eslint";
+import { defineConfig } from "eslint/config";
 import { createConfig } from "eslint-plugin-boundaries/config";
 import recommendedBoundariesConfig from "eslint-plugin-boundaries/recommended";
 
@@ -40,6 +42,47 @@ export const boundariesConfig = createConfig(
   },
   "customBoundaries",
 );
+
+export const config: Linter.Config[] = defineConfig([
+  createConfig(
+    {
+      settings: {
+        ...recommendedBoundariesConfig.settings,
+        // @ts-expect-error Invalid key because it does not match plugin name nor new name
+        "foo/elements": [
+          {
+            type: "module",
+            pattern: "src/modules/*",
+            capture: ["module"],
+          },
+          {
+            type: "component",
+            pattern: "src/components/*",
+            capture: ["component"],
+          },
+        ],
+        "boundaries/ignore": ["**/ignored/**/*.js"],
+      },
+      rules: {
+        ...recommendedBoundariesConfig.rules,
+        // @ts-expect-error Invalid key because it does not match plugin name nor new name
+        "foo/element-types": [
+          "error",
+          {
+            default: "disallow",
+            rules: [
+              {
+                from: "module",
+                allow: ["component"],
+              },
+            ],
+          },
+        ],
+      },
+    },
+    "customBoundaries",
+  ),
+]);
 
 export const boundariesConfig2 = createConfig(
   {

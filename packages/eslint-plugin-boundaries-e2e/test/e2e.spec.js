@@ -3,6 +3,7 @@ import { fileURLToPath } from "url";
 
 import chalk from "chalk";
 
+import createdConfigWithDefine from "./configs/createAndDefineConfig.config.js";
 import createdConfig from "./configs/createConfig.config.js";
 import recommendedConfig from "./configs/recommended.config.js";
 import strictConfig from "./configs/strict.config.js";
@@ -102,6 +103,54 @@ const tests = [
 
       await runner.assert(
         `created config should detect boundaries violation`,
+        async () => {
+          const boundariesErrorFile = findFileResult("boundary-import", result);
+
+          return Boolean(
+            boundariesErrorFile?.errorCount &&
+              boundariesErrorFile?.errorCount > 0 &&
+              boundariesErrorFile?.messages.some(
+                (msg) =>
+                  msg.ruleId === "boundaries/element-types" &&
+                  msg.message.includes(
+                    "No rule allowing this dependency was found",
+                  ),
+              ),
+          );
+        },
+      );
+    },
+  },
+  {
+    name: "created-config-with-define",
+    config: createdConfigWithDefine,
+    fixture: join(___dirname, "fixtures", "basic"),
+    assert: async (runner, result) => {
+      await runner.assert(
+        `created config with define should detect 1 error`,
+        async () => {
+          return result.errorCount === 1;
+        },
+      );
+
+      await runner.assert(
+        `created config with define should have no errors when importing unknown elements`,
+        async () => {
+          const fileResult = findFileResult("ignored-import", result);
+          return fileResult?.errorCount === 0;
+        },
+      );
+
+      await runner.assert(
+        `created config with define should have no errors when importing ignored elements`,
+        async () => {
+          const fileResult = findFileResult("unknown-import", result);
+          return fileResult?.errorCount === 0;
+        },
+      );
+
+      await runner.assert(
+        `created config with define should detect boundaries violation`,
         async () => {
           const boundariesErrorFile = findFileResult("boundary-import", result);
 
