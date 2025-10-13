@@ -134,7 +134,7 @@ import ModuleD from 'modules/module-b/modules/module-d'
 
 This rule provides information about the parent element of the imported one in case it is private, e.g. `Dependency is private of element of type 'modules' with elementName 'module-b'`
 
-You can also configure a custom error message for changing this default behaviour, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) in the main docs for further info about how to configure messages.
+You can also configure a custom error message for changing this default behavior, or even custom error messages only for a specific rule option. Read ["error messages"](../../README.md#error-messages) in the main docs for further info about how to configure messages.
 
 ## Further reading
 

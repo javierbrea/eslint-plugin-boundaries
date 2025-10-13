@@ -13,7 +13,7 @@
     "lint": "eslint *.* .vscode scripts --no-warn-ignored",
     "lint:staged": "lint-staged",
     "prepare": "husky",
-    "check:spell": "cspell --quiet *.* .vscode/*.* .husky/*.* .github/*.* docs/*.* scripts/*.*"
+    "check:spell": "cspell --quiet *.* .vscode/*.* .husky/*.* .github/**/*.* docs/**/*.* scripts/**/*.*"
   },
   "devDependencies": {
     "@babel/core": "7.26.0",
