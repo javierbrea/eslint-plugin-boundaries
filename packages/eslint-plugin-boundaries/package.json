@@ -1,34 +1,59 @@
 {
   "name": "eslint-plugin-boundaries",
-  "version": "5.0.2",
+  "version": "5.1.0-beta.1",
   "description": "Eslint plugin checking architecture boundaries between elements",
   "keywords": [
     "eslint",
+    "eslint-plugin",
+    "eslintplugin",
     "plugin",
     "architecture",
     "boundaries",
     "dependencies",
     "elements",
     "hierarchy",
-    "import"
+    "import",
+    "dependency"
   ],
   "author": "Javier Brea",
   "license": "MIT",
   "repository": "https://github.com/javierbrea/eslint-plugin-boundaries",
   "files": [
-    "src",
-    "resolver-legacy-alias"
+    "dist"
   ],
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./config": "./dist/configs/config.js",
+    "./recommended": "./dist/configs/recommended.js",
+    "./settings": "./dist/types/Settings.d.ts",
+    "./strict": "./dist/configs/strict.js",
+    "./rules": "./dist/types/Rules.d.ts"
+  },
+  "typesVersions": {
+    "*": {
+      "config": ["dist/configs/config.d.ts"],
+      "recommended": ["dist/configs/recommended.d.ts"],
+      "settings": ["dist/types/Settings.d.ts"],
+      "strict": ["dist/configs/strict.d.ts"],
+      "rules": ["dist/types/Rules.d.ts"]
+    }
+  },
   "scripts": {
     "eslint": "eslint",
-    "build": "cross-env node ./scripts/copy-readme.js",
+    "build": "pnpm build:tsc && pnpm copy:readme",
+    "build:tsc": "tsc",
+    "copy:readme": "cross-env node ./scripts/copy-readme.js",
     "check:all": "echo 'All checks passed'",
     "check:spell": "cspell --quiet .",
+    "check:types": "pnpm check:types:code && pnpm check:types:test",
+    "check:types:code": "tsc --noEmit",
+    "check:types:test": "tsc --noEmit --project ./test/tsconfig.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "jest",
-    "test:unit": "cross-env ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 pnpm run test"
+    "test:unit": "cross-env ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 pnpm test"
   },
   "peerDependencies": {
     "eslint": ">=6.0.0"
@@ -41,5 +66,9 @@
   },
   "engines": {
     "node": ">=18.18"
+  },
+  "devDependencies": {
+    "@types/estree": "1.0.8",
+    "@types/micromatch": "4.0.9"
   }
 }

@@ -1,16 +1,16 @@
+import js from "@eslint/js";
 import json from "@eslint/json";
 import markdown from "@eslint/markdown";
-import prettier from "eslint-plugin-prettier";
-import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
-import eslintConfigPrettier from "eslint-config-prettier";
-import js from "@eslint/js";
-import globals from "globals";
-// eslint-disable-next-line import/no-unresolved
-import typescriptParser from "@typescript-eslint/parser";
 // eslint-disable-next-line import/no-unresolved
 import typescriptEslintPlugin from "@typescript-eslint/eslint-plugin";
-import pluginJest from "eslint-plugin-jest";
+// eslint-disable-next-line import/no-unresolved
+import typescriptParser from "@typescript-eslint/parser";
+import eslintConfigPrettier from "eslint-config-prettier";
 import importPlugin from "eslint-plugin-import";
+import pluginJest from "eslint-plugin-jest";
+import prettier from "eslint-plugin-prettier";
+import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import globals from "globals";
 
 export const jestConfig = {
   files: ["**/*.spec.js", "**/*.test.js", "**/*.spec.ts", "**/*.test.ts"],
@@ -39,7 +39,7 @@ export const jestConfig = {
 };
 
 export const ignores = {
-  ignores: ["node_modules/**", ".husky/**", "pnpm-lock.yaml", "dist/**"],
+  ignores: ["**/node_modules/**", ".husky/**", "pnpm-lock.yaml", "**/dist/**"],
 };
 
 export const jsonConfig = {
@@ -93,6 +93,7 @@ export const jsBaseConfig = {
   },
   rules: {
     ...importPlugin.flatConfigs.recommended.rules,
+    ...importPlugin.flatConfigs["typescript"].rules,
     ...js.configs.recommended.rules,
     ...eslintConfigPrettier.rules,
     ...eslintPluginPrettierRecommended.rules,
@@ -104,6 +105,35 @@ export const jsBaseConfig = {
       2,
       { vars: "all", args: "after-used", ignoreRestSiblings: false },
     ],
+    "import/no-named-as-default-member": [2],
+    "import/no-named-as-default": [2],
+    "import/no-namespace": [
+      "error",
+      {
+        allowComputed: false,
+      },
+    ],
+    "import/no-unresolved": [2],
+    "import/order": [
+      2,
+      {
+        groups: [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index",
+        ],
+        "newlines-between": "always",
+        alphabetize: {
+          order:
+            "asc" /* sort in ascending order. Options: ['ignore', 'asc', 'desc'] */,
+          caseInsensitive: true /* ignore case. Options: [true, false] */,
+        },
+      },
+    ],
+    "import/extensions": [2, "never"],
   },
 };
 
@@ -127,7 +157,19 @@ export const typescriptConfig = {
     "@typescript-eslint": typescriptEslintPlugin,
   },
   rules: {
-    ...typescriptEslintPlugin.configs.recommended.rules,
+    ...typescriptEslintPlugin.configs?.recommended?.rules,
+    "@typescript-eslint/no-unused-expressions": [
+      1,
+      { allowShortCircuit: true, allowTernary: true },
+    ],
+    "@typescript-eslint/consistent-type-imports": [
+      2,
+      {
+        prefer: "type-imports",
+        disallowTypeAnnotations: true,
+        fixStyle: "separate-type-imports",
+      },
+    ],
   },
   settings: {
     "import/resolver": {

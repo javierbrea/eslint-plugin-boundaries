@@ -16,7 +16,27 @@
         {
           "target": "eslint:config",
           "projects": ["eslint-config"]
-        }
+        },
+        "build"
+      ]
+    },
+    "test:unit": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "build": {
+      "cache": true,
+      "outputs": ["{projectRoot}/dist"],
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default",
+        "production"
       ]
     }
   },

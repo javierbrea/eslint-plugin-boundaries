@@ -21,7 +21,7 @@
 
 Another important change introduced was the usage of `eslint-module-utils/resolve` module to resolve the paths of the `imports` in v2.x. This change made the plugin very much solid and customizable for any type of project, but it forced to remove the `boundaries/alias` setting that was present in v1.x.
 
-Then, taking into account that v1.x configurations has to be modified before upgrading to v2.x anyway, the rules were also renamed to give them more understable names.
+Then, since v1.x configurations must be updated prior to upgrading to v2.x, the rules were also renamed to provide clearer and more descriptive names.
 
 - Removed `boundaries/alias` setting. `import/resolver` has to be used instead
 - Renamed `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Changed the format of rule options

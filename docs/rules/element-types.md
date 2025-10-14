@@ -16,19 +16,19 @@ It checks `import` statements between the element types of the project based on 
 * `default`: `allow` or `disallow`. If no one `rule` matches, the dependency will be allowed or disallowed based on this value.
 * `message`: Custom message for the rule errors. Note that __the rule default message provides a lot of information about why the error was produced__, so you should define a custom message only if you are sure about what you are doing. Read ["error messages"](#error-messages) for further information.
 * `rules`: Rules to be processed in order to decide if the `import` statement has to be allowed or not. It must be an array of objects containing:
-  * `from`: `<element matchers>` If the file being analyzed matches with this, then the rule will be executed to know if it allows/disallows the `import`. If not, the rule is skipped.
-  * `disallow`: `<element matchers>` If the element being imported matches with this, then the result of the rule will be "disallow", and the import will be notified as an `eslint` error (this value can be overwritten by a next rule returning "allow")
-  * `allow`: `<element matchers>` If the element being imported matches with this, then the result of the rule will be "allow", and the import will not be notified as an `eslint` error (this value can be overwritten by a next rule returning "disallow")
+  * `from`: `<element selectors>` If the file being analyzed matches with this, then the rule will be executed to know if it allows/disallows the `import`. If not, the rule is skipped.
+  * `disallow`: `<element selectors>` If the element being imported matches with this, then the result of the rule will be "disallow", and the import will be notified as an `eslint` error (this value can be overwritten by a next rule returning "allow")
+  * `allow`: `<element selectors>` If the element being imported matches with this, then the result of the rule will be "allow", and the import will not be notified as an `eslint` error (this value can be overwritten by a next rule returning "disallow")
   * `importKind`: `<string>` Optional. It is useful only when using TypeScript, as it allows to define if the rule applies when the dependency is being imported as a value or as a type. It can be also defined as an array of strings, or a micromatch pattern. Note that possible values to match with are `"value"`, `"type"` or `"typeof"`.
   * `message`: `<string>` Custom error message only for this rule. Read ["error messages"](#error-messages) for further info.
 
 ##### Comparing captures of the file element with captures of the imported element
 
-As a bonus of this rule, the `<capturedValuesObject>` option of the "element matchers" in the `allow`/`disallow` properties supports replacements with the captured values of the `from` element. It sounds complicated, but it can be easy to understand with an example:
+As a bonus of this rule, the `<capturedValuesObject>` option of the "element selectors" in the `allow`/`disallow` properties supports replacements with the captured values of the `from` element. It sounds complicated, but it can be easy to understand with an example:
 
 Suppose you want that helpers of one category can only import helpers of the same category. Then, you need to compare the value of the `category` captured in `from` with the value of the `category` captured in `allow`. You can use the special pattern `${capturedKey}` in the `allow` options, and it will be replaced by the correspondent captured key in `from` before using `micromatch` to check if the value matches.
 
-So, if the `from` element has captured values `{ family: "atom", elementName: "component-a" }`, then the next element matcher in the `allow` property: `["helpers", { "category": "!${family}-${elementName}" }]` will only match if the helper captured category has a value matching `"!atom-component-a"` _(which may has not sense at all, but is useful to illustrate how the replacement works. An example with a more useful usage of this feature can be seen in the next options example)_
+So, if the `from` element has captured values `{ family: "atom", elementName: "component-a" }`, then the next element selector in the `allow` property: `["helpers", { "category": "!${family}-${elementName}" }]` will only match if the helper captured category has a value matching `"!atom-component-a"` _(which may has not sense at all, but is useful to illustrate how the replacement works. An example with a more useful usage of this feature can be seen in the next options example)_
 
 > Tip: You can enable the [debug mode](../../README.md#debug-mode) when configuring the plugin, and you will get information about the type assigned and captured values from each file in the project.
 
