@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [5.1.0] - 2025-10-14
+
+### Added
+
+* feat([#346](https://github.com/javierbrea/eslint-plugin-boundaries/issues/346)): Add complete TypeScript typings for all plugin settings and rules. Export the main `Config` type along with individual rule and option types. Support for custom plugin name prefixes.
+* feat: Export constants and type guards for settings keys, rule names, and other configuration-related values.
+* feat: Introduce `createConfig` helper — ensures valid types, automatically includes the plugin, adds default JS/TS file patterns, and supports custom plugin name prefixes.
+* feat: Add `/config` export path, exposing the `createConfig` helper along with related constants and types.
+* feat: Validate dependency nodes — display a warning when a node specified through the `additional-dependency-nodes` setting is not a valid `Literal`.
+* feat: Add internal consistency checks — show a diagnostic message with a link to the repository issues page when an unexpected situation occurs.
+* test: Add `eslint-plugin-boundaries-e2e` private package — runs ESLint programmatically with multiple configurations to ensure plugin reliability across real-world scenarios. Focuses on validating configuration paths, types, and utilities, guaranteeing that the public API behaves correctly post-publication. (Functional behavior remains fully covered by the plugin’s unit tests.)
+
 ## [5.1.0-beta.1] - 2025-10-13
 
 ### Added
