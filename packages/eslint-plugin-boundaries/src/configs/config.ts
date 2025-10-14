@@ -26,6 +26,11 @@ function renamePluginRules<PluginName extends string = typeof PLUGIN_NAME>(
   const allowedPrefixes = [PLUGIN_NAME, pluginName];
   // Return the same rules objects, but converting plugin default rule keys with provided plugin name
   return Object.entries(rules).reduce((acc, [key, value]) => {
+    if (!key.includes("/")) {
+      throw new Error(
+        `Invalid rule key "${key}". When using createConfig, all rules must belong to eslint-plugin-boundaries. You can prefix them with the original plugin name "${PLUGIN_NAME}/", or with the provided plugin name "${pluginName}/".`,
+      );
+    }
     const splittedRuleKey = key.split("/");
     const rulePrefix = splittedRuleKey[0];
     const ruleName = splittedRuleKey[1];
