@@ -32,3 +32,4 @@ stryker.conf.local.js
 
 # Copy main README file to the package before publishing. This should be removed when the documentation is published into a website.
 README.md
+dist

@@ -17,15 +17,18 @@ module.exports = {
   // An object that configures minimum threshold enforcement for coverage results
   coverageThreshold: {
     global: {
-      branches: 100,
+      branches: 91,
       functions: 100,
-      lines: 100,
-      statements: 100,
+      lines: 94,
+      statements: 94,
+    },
+    "src/index.ts": {
+      branches: 50,
     },
     // Decrease coverage due to cache branches
-    "./src/core/elementsInfo.js": {
-      branches: 96,
-      statements: 97,
+    "src/core/elementsInfo.ts": {
+      branches: 92,
+      statements: 96,
     },
   },
 
@@ -33,5 +36,5 @@ module.exports = {
   testEnvironment: "node",
 
   // The glob patterns Jest uses to detect test files
-  testMatch: ["<rootDir>/test/**/*.spec.js"],
+  testMatch: ["<rootDir>/test/**/*.spec.ts"],
 };

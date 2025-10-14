@@ -1,5 +1,6 @@
-const deepMerge = require("deepmerge");
 const { resolve } = require("path");
+
+const deepMerge = require("deepmerge");
 
 const DICTIONARIES_BASE_PATH = resolve(__dirname, "dictionaries");
 

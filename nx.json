@@ -81,13 +81,24 @@
         "{projectRoot}/dist"
       ]
     },
+    "test:e2e": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      "dependsOn": [
+        "build"
+      ]
+    },
     "check:all": {
       "dependsOn": [
         "check:spell",
         "lint",
         "check:types",
         "test:unit",
-        "build"
+        "build",
+        "test:e2e"
       ]
     }
   }

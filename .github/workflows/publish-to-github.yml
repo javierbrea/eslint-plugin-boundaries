@@ -5,6 +5,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    if: contains(github.event.release.target_commitish, '-beta.') == false
     steps:
     - uses: actions/checkout@v4
     - name: Install pnpm
@@ -13,7 +14,7 @@ jobs:
     - name: Install Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: 22
+        node-version: 22.20.0
         registry-url: 'https://npm.pkg.github.com'
         # Defaults to the user or organization that owns the workflow file
         scope: '@javierbrea'

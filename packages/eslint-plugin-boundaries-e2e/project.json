@@ -1,0 +1,46 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "eslint-plugin-boundaries-e2e",
+  "projectType": "application",
+  "tags": [
+    "type:e2e"
+  ],
+  "targets": {
+    "lint": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      "dependsOn": [
+        {
+          "target": "eslint:config",
+          "projects": ["eslint-config"]
+        },
+        "build"
+      ]
+    },
+    "test:e2e": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "build": {
+      "cache": true,
+      "outputs": ["{projectRoot}/test/configs-ts/**/*.js"],
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ]
+    }
+  },
+  "implicitDependencies": [
+    "eslint-config",
+    "cspell-config"
+  ]
+}

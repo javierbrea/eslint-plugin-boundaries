@@ -14,7 +14,7 @@
   "packageRules": [
     {
       "matchFileNames": [
-        "package.json"
+        "**/package.json"
       ],
       "matchPackageNames": [
         "chalk"
