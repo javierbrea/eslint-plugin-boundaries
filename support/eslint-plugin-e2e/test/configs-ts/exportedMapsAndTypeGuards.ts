@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars,@typescript-eslint/no-unused-vars */
 // NOTE: This config is not executed in any test. It only checks types in build time
-import { Rule } from "eslint";
 import {
   createConfig,
   PLUGIN_NAME,
@@ -18,13 +17,14 @@ import {
   isElementDescriptorMode,
   RULE_POLICIES_MAP,
   isRulePolicy,
-} from "eslint-plugin-boundaries/config";
+} from "@boundaries/eslint-plugin/config";
 import type {
   RulePolicy,
   SettingsKey,
   DependencyNodeKey,
-} from "eslint-plugin-boundaries/config";
-import recommendedBoundariesConfig from "eslint-plugin-boundaries/recommended";
+} from "@boundaries/eslint-plugin/config";
+import recommendedBoundariesConfig from "@boundaries/eslint-plugin/recommended";
+import { Rule } from "eslint";
 
 const settingKey: SettingsKey = SETTINGS_KEYS_MAP.ELEMENTS;
 

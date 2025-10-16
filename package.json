@@ -1,9 +1,9 @@
 {
-  "name": "js-boundaries-monorepo",
+  "name": "@boundaries/repo",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Monorepo for js-boundaries packages",
+  "description": "Monorepo for @boundaries packages",
   "author": "Javier Brea",
   "packageManager": "pnpm@9.4.0",
   "license": "MIT",

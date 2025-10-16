@@ -9,7 +9,7 @@ import {
   jestConfig,
   typescriptConfig,
   // eslint-disable-next-line import/extensions
-} from "../eslint-config/index.js";
+} from "../../support/eslint-config/index.js";
 
 export default [
   typescriptConfig,
@@ -105,7 +105,7 @@ export default [
             },
             {
               from: "plugin",
-              allow: ["constants", "config", "rule", "types"],
+              allow: ["constants", "config", "rule", "types", "helper"],
             },
             {
               from: "config",

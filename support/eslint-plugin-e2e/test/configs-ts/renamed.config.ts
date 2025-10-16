@@ -1,6 +1,6 @@
-import type { Config, Rules, Settings } from "eslint-plugin-boundaries";
-import boundaries from "eslint-plugin-boundaries";
-// import recommendedBoundariesConfig from "eslint-plugin-boundaries/recommended";
+import type { Config, Rules, Settings } from "@boundaries/eslint-plugin";
+import boundaries from "@boundaries/eslint-plugin";
+// import recommendedBoundariesConfig from "@boundaries/eslint-plugin/recommended";
 
 export const invalidRule: Rules<"customBoundaries"> = {
   // @ts-expect-error Testing that the rule is not valid for the plugin because it has been renamed

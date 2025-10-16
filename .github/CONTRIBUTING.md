@@ -41,17 +41,17 @@ Package task names are standardized across the repository. This enables to defin
 * `test:e2e`: Runs the end-to-end tests.
 * `check:all`: Run all the checks and build the package.
 
-You can also rewrite the tasks to fit the package's needs. For example, if a package has special requirements for unit tests, you can define a `test:unit` task in the package's `project.json` file, redefining the Nx inputs, outputs, and dependencies in order to fit the package's needs and optimize the cache accordingly. _(See how the `eslint-plugin-boundaries` package does this for an example)_
+You can also rewrite the tasks to fit the package's needs. For example, if a package has special requirements for unit tests, you can define a `test:unit` task in the package's `project.json` file, redefining the Nx inputs, outputs, and dependencies in order to fit the package's needs and optimize the cache accordingly. _(See how the `eslint-plugin` package does this for an example)_
 
 > [!WARNING]
 > It is crucial to configure properly the tasks dependencies, input, and output files, so __Nx can keep or clean the cache correctly, avoiding running unnecessary tasks__, both locally or in the pipeline.
 
 ## Running tasks in packages
 
-Nx provides a way to run commands in a specific package, taking care of the task dependencies. To run a command in a package, use the following syntax: `pnpm nx run <task> <package>`. For example, to run the unit tests in the `eslint-plugin-boundaries` package, use the following command:
+Nx provides a way to run commands in a specific package, taking care of the task dependencies. To run a command in a package, use the following syntax: `pnpm nx run <task> <package>`. For example, to run the unit tests in the `eslint-plugin` package, use the following command:
 
 ```bash
-pnpm nx test:unit eslint-plugin-boundaries
+pnpm nx test:unit eslint-plugin
 ```
 
 > ![TIP]

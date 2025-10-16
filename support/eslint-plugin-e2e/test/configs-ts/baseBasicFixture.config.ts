@@ -10,7 +10,7 @@ import type {
   ElementSelector,
   ElementSelectors,
   AliasSetting,
-} from "eslint-plugin-boundaries";
+} from "@boundaries/eslint-plugin";
 
 const moduleElementDescriptor: ElementDescriptor = {
   type: "module",

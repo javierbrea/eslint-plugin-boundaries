@@ -39,21 +39,34 @@ function findConfig(file) {
   process.exit(1);
 }
 
-let exitCode = 0;
+// Group files by their config folder
+const filesByConfigFolder = new Map();
 
 for (const file of files) {
   const configPath = findConfig(file);
   const configFolder = path.dirname(configPath);
   const relativeFilePath = path.relative(configFolder, path.resolve(file));
 
+  if (!filesByConfigFolder.has(configFolder)) {
+    filesByConfigFolder.set(configFolder, []);
+  }
+  filesByConfigFolder.get(configFolder).push(relativeFilePath);
+}
+
+let exitCode = 0;
+
+// Execute ESLint once per config folder with all relevant files
+for (const [configFolder, relativeFilePaths] of filesByConfigFolder) {
+  const filesArg = relativeFilePaths.map((file) => `"${file}"`).join(" ");
+
   try {
-    execSync(`pnpm eslint "${relativeFilePath}"`, {
+    execSync(`pnpm eslint ${filesArg}`, {
       stdio: "inherit",
       cwd: configFolder,
       shell: true,
     });
   } catch {
-    exitCode = 1; // mark failure but continue with the next file
+    exitCode = 1; // mark failure but continue with the next config folder
   }
 }
 

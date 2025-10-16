@@ -8,6 +8,7 @@ import recommendedConfig from "./configs/recommended";
 import strictConfig from "./configs/strict";
 import type { RuleShortName, RuleShortNames } from "./constants/rules";
 import { RULE_SHORT_NAMES } from "./constants/rules";
+import { warn } from "./helpers/debug";
 
 export * from "./types";
 
@@ -20,6 +21,12 @@ const packageJsonPath = join(__dirname, "..", "package.json");
  * The content of the package.json file
  */
 const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+
+if (packageJson.name !== "eslint-plugin-boundaries") {
+  warn(
+    `\n⚠️ [eslint-plugin-boundaries] This package has been renamed to "@boundaries/eslint-plugin" and will be deprecated in a future release. Please update your configuration accordingly.\n`,
+  );
+}
 
 /**
  * Type guard to check if an object is a default export

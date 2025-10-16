@@ -32,7 +32,7 @@ You should also add the Nx implicit dependency to the `project.json` file:
 Then you should add the following file to the root of your package, and name it `eslint.config.js`:
 
 ```js
-import eslintConfig from "../eslint-config/index.js";
+import eslintConfig from "../../support/eslint-config/index.js";
 export default eslintConfig;
 ```
 
@@ -63,7 +63,7 @@ import {
   defaultConfigWithoutTypescript,
   typescriptConfig,
   jestConfig,
-} from "../eslint-config/index.js";
+} from "../../support/eslint-config/index.js";
 
 function packagePath() {
   return path.resolve.apply(null, [import.meta.dirname, ...arguments]);

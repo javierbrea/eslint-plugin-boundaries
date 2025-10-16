@@ -18,7 +18,7 @@ function trace(message: string, color: TraceColor) {
   console.log(chalk[color](`[${PLUGIN_NAME}]: ${message}`));
 }
 
-function warn(message: string) {
+export function warn(message: string) {
   trace(message, "yellow");
 }
 

@@ -1,9 +1,9 @@
 {
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "name": "eslint-plugin-boundaries-e2e",
-  "projectType": "application",
+  "name": "eslint-plugin",
+  "projectType": "library",
   "tags": [
-    "type:e2e"
+    "type:node:lib"
   ],
   "targets": {
     "lint": {
@@ -20,7 +20,7 @@
         "build"
       ]
     },
-    "test:e2e": {
+    "test:unit": {
       "cache": true,
       "inputs": [
         { "dependentTasksOutputFiles": "**/*", "transitive": true },
@@ -32,10 +32,11 @@
     },
     "build": {
       "cache": true,
-      "outputs": ["{projectRoot}/test/configs-ts/**/*.js"],
+      "outputs": ["{projectRoot}/dist"],
       "inputs": [
         { "dependentTasksOutputFiles": "**/*", "transitive": true },
-        "default"
+        "default",
+        "production"
       ]
     }
   },

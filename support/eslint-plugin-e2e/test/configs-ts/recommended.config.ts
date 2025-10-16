@@ -1,6 +1,6 @@
-import boundaries from "eslint-plugin-boundaries";
-import type { Config } from "eslint-plugin-boundaries";
-import recommendedBoundariesConfig from "eslint-plugin-boundaries/recommended";
+import boundaries from "@boundaries/eslint-plugin";
+import type { Config } from "@boundaries/eslint-plugin";
+import recommendedBoundariesConfig from "@boundaries/eslint-plugin/recommended";
 
 import baseBasicFixtureConfig from "./baseBasicFixture.config.js";
 

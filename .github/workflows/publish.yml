@@ -14,3 +14,12 @@ jobs:
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    - uses: MerthinTechnologies/edit-json-action@v1
+      with:
+        filename: './packages/eslint-plugin-boundaries/package.json'
+        key: 'name'
+        value: 'eslint-plugin-boundaries'
+    - run: pnpm -r publish --no-git-checks
+      env:
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

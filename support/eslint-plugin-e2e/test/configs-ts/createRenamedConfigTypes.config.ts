@@ -1,8 +1,8 @@
 // NOTE: This config is not executed in any test. It only checks types in build time
+import { createConfig } from "@boundaries/eslint-plugin/config";
+import recommendedBoundariesConfig from "@boundaries/eslint-plugin/recommended";
 import type { Linter } from "eslint";
 import { defineConfig } from "eslint/config";
-import { createConfig } from "eslint-plugin-boundaries/config";
-import recommendedBoundariesConfig from "eslint-plugin-boundaries/recommended";
 
 export const boundariesConfig = createConfig(
   {

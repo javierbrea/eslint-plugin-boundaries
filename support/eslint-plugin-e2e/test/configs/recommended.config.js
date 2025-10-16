@@ -1,7 +1,7 @@
-import boundaries from "eslint-plugin-boundaries";
+import boundaries from "@boundaries/eslint-plugin";
 // eslint disabled because eslint-plugin-import seems not to be resolving exports defined in package.json
 // eslint-disable-next-line import/no-unresolved
-import strictBoundariesConfig from "eslint-plugin-boundaries/strict";
+import recommendedBoundariesConfig from "@boundaries/eslint-plugin/recommended";
 
 import baseBasicFixtureConfig from "./baseBasicFixture.config.js";
 
@@ -12,7 +12,7 @@ export default [
       boundaries,
     },
     rules: {
-      ...strictBoundariesConfig.rules,
+      ...recommendedBoundariesConfig.rules,
       ...baseBasicFixtureConfig.rules,
     },
   },

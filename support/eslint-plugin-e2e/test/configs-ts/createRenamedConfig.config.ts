@@ -1,4 +1,4 @@
-import { createConfig, recommended } from "eslint-plugin-boundaries/config";
+import { createConfig, recommended } from "@boundaries/eslint-plugin/config";
 
 const boundariesConfig = createConfig(
   {
