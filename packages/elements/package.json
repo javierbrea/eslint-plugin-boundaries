@@ -1,0 +1,52 @@
+{
+  "name": "@boundaries/elements",
+  "version": "1.0.0",
+  "description": "Descriptor to define elements for @boundaries ecosystem",
+  "keywords": [
+    "boundaries",
+    "elements",
+    "hierarchy"
+  ],
+  "author": "Javier Brea",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/javierbrea/eslint-plugin-boundaries.git",
+    "folder": "packages/elements"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "eslint": "eslint",
+    "build": "tsc",
+    "check:all": "echo 'All checks passed'",
+    "check:spell": "cspell --quiet .",
+    "check:types": "pnpm check:types:code && pnpm check:types:test",
+    "check:types:code": "tsc --noEmit",
+    "check:types:test": "tsc --noEmit --project ./test/tsconfig.json",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test:unit": "jest"
+  },
+  "dependencies": {
+    "eslint-import-resolver-node": "0.3.9",
+    "eslint-module-utils": "2.12.1",
+    "micromatch": "4.0.8"
+  },
+  "engines": {
+    "node": ">=18.18"
+  },
+  "devDependencies": {
+    "@types/estree": "1.0.8",
+    "@types/micromatch": "4.0.9"
+  }
+}

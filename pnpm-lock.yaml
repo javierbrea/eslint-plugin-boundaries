@@ -48,8 +48,30 @@ importers:
         specifier: 5.6.3
         version: 5.6.3
 
+  packages/elements:
+    dependencies:
+      eslint-import-resolver-node:
+        specifier: 0.3.9
+        version: 0.3.9
+      eslint-module-utils:
+        specifier: 2.12.1
+        version: 2.12.1(@typescript-eslint/parser@8.46.0(eslint@9.37.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@4.4.4(eslint-plugin-import@2.32.0)(eslint@9.37.0))(eslint@9.37.0)
+      micromatch:
+        specifier: 4.0.8
+        version: 4.0.8
+    devDependencies:
+      '@types/estree':
+        specifier: 1.0.8
+        version: 1.0.8
+      '@types/micromatch':
+        specifier: 4.0.9
+        version: 4.0.9
+
   packages/eslint-plugin:
     dependencies:
+      '@boundaries/elements':
+        specifier: workspace:*
+        version: link:../elements
       chalk:
         specifier: 4.1.2
         version: 4.1.2
