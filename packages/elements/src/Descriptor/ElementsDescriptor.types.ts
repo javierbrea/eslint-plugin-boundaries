@@ -26,7 +26,7 @@ export type BaseElement = {
 /**
  * Description of a local element (file)
  */
-export type LocalElement = {
+export type LocalElement = BaseElement & {
   /** Parent elements */
   parents: BaseElement[];
   /** Absolute path of the file */
@@ -42,7 +42,7 @@ export type LocalElement = {
 /**
  * Base description of a dependency
  */
-export type BaseDependencyElement = {
+export type BaseDependencyElement = BaseElement & {
   /** Dependency source */
   source: string;
   /** Specifiers imported or exported from the dependency, if applicable */

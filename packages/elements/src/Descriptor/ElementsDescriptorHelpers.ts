@@ -1,4 +1,8 @@
-import { isNullish, isObject, isString } from "../Support/TypeGuards";
+import {
+  isNullish,
+  isString,
+  isObjectWithProperty,
+} from "../Support/TypeGuards";
 
 import type {
   ElementDescription,
@@ -9,25 +13,23 @@ import type {
 } from "./ElementsDescriptor.types";
 
 /**
- * Determines if the given element is a local element.
- * @param element The element to check.
- * @returns True if the element is a local element, false otherwise.
+ * Determines if the given value is a local element.
+ * @param value The value to check.
+ * @returns True if the value is a local element, false otherwise.
  */
-export function isLocalElement(
-  element: ElementDescription,
-): element is LocalElement {
-  return isObject(element) && isString((element as LocalElement).path);
+export function isLocalElement(value: unknown): value is LocalElement {
+  return isObjectWithProperty(value, "path") && isString(value.path);
 }
 
 /**
- * Determines if the given element is a dependency element.
- * @param element The element to check.
- * @returns True if the element is a dependency element, false otherwise.
+ * Determines if the given value is a dependency element.
+ * @param value The value to check.
+ * @returns True if the value is a dependency element, false otherwise.
  */
 export function isDependencyElement(
-  element: ElementDescription,
-): element is DependencyElement {
-  return isObject(element) && !isNullish((element as DependencyElement).source);
+  value: unknown,
+): value is DependencyElement {
+  return isObjectWithProperty(value, "source") && !isNullish(value.source);
 }
 
 /**
@@ -41,6 +43,7 @@ export function isLocalDependency(
   return (
     isDependencyElement(element) &&
     isLocalElement(element) &&
+    isObjectWithProperty(element, "isLocal") &&
     element.isLocal === true
   );
 }
@@ -58,4 +61,13 @@ export function isExternalDependency(
     element.isExternal === true &&
     isString((element as ExternalDependencyElement).baseModule)
   );
+}
+
+/**
+ * Determines if the given value is an element (local or dependency).
+ * @param value The value to check.
+ * @returns True if the value is an element, false otherwise.
+ */
+export function isElement(value: unknown): value is ElementDescription {
+  return isLocalElement(value) || isDependencyElement(value);
 }
