@@ -1,3 +1,7 @@
+import type {
+  DependencyKind,
+  ExternalLibrarySelectorOptions,
+} from "@boundaries/elements";
 import type { Rule } from "eslint";
 import type { Identifier, ImportSpecifier } from "estree";
 import micromatch from "micromatch";
@@ -9,10 +13,8 @@ import type {
   RuleMatcherElementsCapturedValues,
   RuleResult,
   RuleResultReport,
-  ExternalLibrarySelectorOptions,
 } from "../constants/Options.types";
 import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
-import type { ImportKind } from "../constants/settings";
 import { SETTINGS } from "../constants/settings";
 import {
   customErrorMessage,
@@ -104,7 +106,7 @@ function isMatchExternalDependency(
   matcher: string,
   options: ExternalLibrarySelectorOptions,
   elementsCapturedValues: RuleMatcherElementsCapturedValues,
-  importKind?: ImportKind,
+  importKind?: DependencyKind,
 ): RuleResult {
   const matcherWithTemplatesReplaced = micromatchPatternReplacingObjectsValues(
     matcher,

@@ -25,8 +25,24 @@ import type {
   ElementDescriptorWithCategory,
   ElementDescriptorWithTypeAndCategory,
   ElementDescriptor,
+  DependencyKind,
 } from "./ElementsDescriptor.types";
-import { ELEMENT_DESCRIPTOR_MODES_MAP } from "./ElementsDescriptor.types";
+import {
+  ELEMENT_DESCRIPTOR_MODES_MAP,
+  DEPENDENCY_KINDS_MAP,
+} from "./ElementsDescriptor.types";
+
+/**
+ * Determines if the value is a valid dependency kind.
+ * @param value The value to check
+ * @returns True if the value is a valid dependency kind, false otherwise.
+ */
+export function isDependencyKind(value: unknown): value is DependencyKind {
+  return (
+    isString(value) &&
+    Object.values(DEPENDENCY_KINDS_MAP).includes(value as DependencyKind)
+  );
+}
 
 /**
  * Determines if the value is a base element with type only

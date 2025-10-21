@@ -1,8 +1,8 @@
+import type { DependencyKind } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { ElementInfo, ImportInfo } from "../constants/ElementsInfo.types";
-import type { ImportKind } from "../constants/settings";
 
 import { fileInfo, importInfo } from "./elementsInfo";
 
@@ -82,7 +82,7 @@ function dependencyRelationship(dependency: ImportInfo, element: ElementInfo) {
 
 export function dependencyInfo(
   source: string,
-  importKind: ImportKind,
+  importKind: DependencyKind,
   context: Rule.RuleContext,
 ): DependencyInfo {
   const elementInfo = fileInfo(context);

@@ -8,11 +8,11 @@ import type {
 import {
   isCapturedValuesSelector,
   isSimpleElementSelectorByType,
-  isElementSelectorWithOptions,
+  isElementSelectorWithLegacyOptions,
   isElementSelectorByType,
   isElementSelectorByCategory,
   isElementSelectorByTypeAndCategory,
-  isElementSelectorByTypeOrCategory,
+  isElementSelectorData,
   isElementSelector,
   isElementsSelector,
   isExternalLibrarySelectorOptionsWithPath,
@@ -92,33 +92,35 @@ describe("elementsSelectorHelpers", () => {
         { name: "button" },
       ];
 
-      expect(isElementSelectorWithOptions(elementSelectorWithOptions)).toBe(
-        true,
-      );
+      expect(
+        isElementSelectorWithLegacyOptions(elementSelectorWithOptions),
+      ).toBe(true);
     });
 
     it("should return false for arrays with incorrect length", () => {
-      expect(isElementSelectorWithOptions(["component"])).toBe(false);
-      expect(isElementSelectorWithOptions(["component", {}, "extra"])).toBe(
-        false,
-      );
-      expect(isElementSelectorWithOptions([])).toBe(false);
+      expect(isElementSelectorWithLegacyOptions(["component"])).toBe(false);
+      expect(
+        isElementSelectorWithLegacyOptions(["component", {}, "extra"]),
+      ).toBe(false);
+      expect(isElementSelectorWithLegacyOptions([])).toBe(false);
     });
 
     it("should return false for arrays with invalid elements", () => {
-      expect(isElementSelectorWithOptions([123, {}])).toBe(false);
-      expect(isElementSelectorWithOptions(["component", "not-object"])).toBe(
+      expect(isElementSelectorWithLegacyOptions([123, {}])).toBe(false);
+      expect(
+        isElementSelectorWithLegacyOptions(["component", "not-object"]),
+      ).toBe(false);
+      expect(isElementSelectorWithLegacyOptions([null, {}])).toBe(false);
+      expect(isElementSelectorWithLegacyOptions(["component", null])).toBe(
         false,
       );
-      expect(isElementSelectorWithOptions([null, {}])).toBe(false);
-      expect(isElementSelectorWithOptions(["component", null])).toBe(false);
     });
 
     it("should return false for non-array values", () => {
-      expect(isElementSelectorWithOptions("string")).toBe(false);
-      expect(isElementSelectorWithOptions({})).toBe(false);
-      expect(isElementSelectorWithOptions(null)).toBe(false);
-      expect(isElementSelectorWithOptions(undefined)).toBe(false);
+      expect(isElementSelectorWithLegacyOptions("string")).toBe(false);
+      expect(isElementSelectorWithLegacyOptions({})).toBe(false);
+      expect(isElementSelectorWithLegacyOptions(null)).toBe(false);
+      expect(isElementSelectorWithLegacyOptions(undefined)).toBe(false);
     });
 
     it("should return true for objects with minimal required properties", () => {
@@ -126,16 +128,18 @@ describe("elementsSelectorHelpers", () => {
 
       // Array with [string, object] is the minimal requirement
       expect(
-        isElementSelectorWithOptions(minimalElementSelectorWithOptions),
+        isElementSelectorWithLegacyOptions(minimalElementSelectorWithOptions),
       ).toBe(true);
 
       // More cases: type object, category object and combined
-      expect(isElementSelectorWithOptions([{ type: "component" }, {}])).toBe(
+      expect(
+        isElementSelectorWithLegacyOptions([{ type: "component" }, {}]),
+      ).toBe(true);
+      expect(isElementSelectorWithLegacyOptions([{ category: "ui" }, {}])).toBe(
         true,
       );
-      expect(isElementSelectorWithOptions([{ category: "ui" }, {}])).toBe(true);
       expect(
-        isElementSelectorWithOptions([
+        isElementSelectorWithLegacyOptions([
           { type: "component", category: "ui" },
           {},
         ]),
@@ -143,17 +147,20 @@ describe("elementsSelectorHelpers", () => {
     });
 
     it("should return false when options are not valid captured values selector", () => {
-      expect(isElementSelectorWithOptions(["component", { type: 123 }])).toBe(
-        false,
-      );
+      expect(
+        isElementSelectorWithLegacyOptions(["component", { type: 123 }]),
+      ).toBe(false);
     });
   });
 
   describe("element selector helpers (by type/category)", () => {
-    it("isElementSelectorByType should match strings and objects with type", () => {
-      expect(isElementSelectorByType("component")).toBe(true);
+    it("isElementSelectorByType should match objects with type", () => {
       expect(isElementSelectorByType({ type: "component" })).toBe(true);
       expect(isElementSelectorByType({ type: 123 })).toBe(false);
+    });
+
+    it("isElementSelectorByType should not match strings", () => {
+      expect(isElementSelectorByType("component")).toBe(false);
     });
 
     it("isElementSelectorByType edge cases", () => {
@@ -202,18 +209,22 @@ describe("elementsSelectorHelpers", () => {
       ).toBe(false);
     });
 
-    it("isElementSelectorByTypeOrCategory should match either", () => {
-      expect(isElementSelectorByTypeOrCategory("component")).toBe(true);
-      expect(isElementSelectorByTypeOrCategory({ type: "component" })).toBe(
+    it("isElementSelectorData should match either", () => {
+      expect(isElementSelectorData({ type: "component" })).toBe(true);
+      expect(isElementSelectorData({ category: "ui" })).toBe(true);
+      expect(isElementSelectorData({ type: "component", category: "ui" })).toBe(
         true,
       );
-      expect(isElementSelectorByTypeOrCategory({ category: "ui" })).toBe(true);
-      expect(isElementSelectorByTypeOrCategory({})).toBe(false);
+      expect(isElementSelectorData({})).toBe(false);
     });
 
-    it("isElementSelectorByTypeOrCategory mixed invalid types", () => {
-      expect(isElementSelectorByTypeOrCategory({ type: 123 })).toBe(false);
-      expect(isElementSelectorByTypeOrCategory({ category: 123 })).toBe(false);
+    it("isElementSelectorData should not match simple strings", () => {
+      expect(isElementSelectorData("component")).toBe(false);
+    });
+
+    it("isElementSelectorData mixed invalid types", () => {
+      expect(isElementSelectorData({ type: 123 })).toBe(false);
+      expect(isElementSelectorData({ category: 123 })).toBe(false);
     });
   });
 

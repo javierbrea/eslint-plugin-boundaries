@@ -7,7 +7,7 @@ describe("elementsMatcher", () => {
     expect(
       matcher.isMatch({
         type: "foo-type",
-        types: ["foo-type"],
+        category: null,
         capturedValues: {},
         capture: null,
         path: "/src/test.ts",

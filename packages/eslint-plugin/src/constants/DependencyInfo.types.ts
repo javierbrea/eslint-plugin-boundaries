@@ -1,5 +1,6 @@
+import type { DependencyKind } from "@boundaries/elements";
+
 import type { ImportInfo } from "./ElementsInfo.types";
-import type { ImportKind } from "./settings";
 
 export type ElementsRelationship =
   | "internal"
@@ -12,7 +13,7 @@ export type ElementsRelationship =
   | null;
 
 export type DependencyInfo = ImportInfo & {
-  importKind: ImportKind;
+  importKind: DependencyKind;
   relationship: ElementsRelationship;
   isInternal: boolean;
   baseModule: string | null;

@@ -1,3 +1,11 @@
+import type {
+  DependencyKind,
+  CapturedValuesSelector,
+  ElementsSelector,
+  CapturedValues,
+  ExternalLibrarySelectorOptions,
+  ExternalLibrariesSelector,
+} from "@boundaries/elements";
 import type { Rule } from "eslint";
 import micromatch from "micromatch";
 
@@ -7,21 +15,15 @@ import type {
   RuleResult,
   RuleMatcher,
   RuleOptionsWithRules,
-  CapturedValuesSelector,
-  ExternalLibrarySelectorOptions,
   ExternalRule,
   EntryPointRule,
   ElementTypesRule,
   RuleMatcherElementsCapturedValues,
-  ElementSelectors,
   RuleReport,
-  ExternalLibrarySelectors,
-  CapturedValues,
   RuleResultReport,
 } from "../constants/Options.types";
 import { PLUGIN_NAME, REPO_URL } from "../constants/plugin";
 import type { RuleName } from "../constants/rules";
-import type { ImportKind } from "../constants/settings";
 
 import type { RuleMainKey } from "./Helpers.types";
 import type { RuleMetaDefinition } from "./Rules.types";
@@ -135,11 +137,11 @@ function ruleMatch<
     | CapturedValuesSelector
     | ExternalLibrarySelectorOptions = CapturedValuesSelector,
 >(
-  ruleMatchers: ElementSelectors | ExternalLibrarySelectors,
+  ruleMatchers: ElementsSelector | ExternalLibrariesSelector,
   targetElement: FileInfo | DependencyInfo,
   isMatch: RuleMatcher<FileOrDependencyInfo, RuleMatchers>,
   fromElement: FileInfo,
-  importKind?: ImportKind,
+  importKind?: DependencyKind,
 ): RuleResult {
   let match: RuleResult = { result: false, report: null, ruleReport: null };
   const matchers = !isArray(ruleMatchers) ? [ruleMatchers] : ruleMatchers;
@@ -208,7 +210,7 @@ export function isMatchElementKey(
 
 export function isMatchImportKind(
   elementInfo: DependencyInfo | FileInfo,
-  importKind?: ImportKind,
+  importKind?: DependencyKind,
 ) {
   if (!isDependencyInfo(elementInfo) || !importKind) {
     return true;
@@ -221,7 +223,7 @@ export function isMatchElementType(
   matcher: string,
   options: CapturedValuesSelector | ExternalLibrarySelectorOptions,
   elementsToCompareCapturedValues: RuleMatcherElementsCapturedValues,
-  importKind?: ImportKind,
+  importKind?: DependencyKind,
 ) {
   if (!isMatchImportKind(elementInfo, importKind)) {
     return { result: false, report: null, ruleReport: null };
@@ -260,7 +262,7 @@ export function getElementRules<
     .filter((rule) => {
       return ruleMatch<FileOrDependencyInfo, RuleMatchers>(
         // TODO: Improve typing, so TypeScript can determine the type of the rule, and if the key is valid
-        rule[key as keyof typeof rule] as unknown as ElementSelectors,
+        rule[key as keyof typeof rule] as unknown as ElementsSelector,
         targetElement,
         isMatchElementType,
         fromElement,

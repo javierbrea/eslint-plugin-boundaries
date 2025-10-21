@@ -1,21 +1,21 @@
+import type {
+  DependencyKind,
+  ElementDescriptors,
+  ElementSelector,
+  ExternalLibrarySelector,
+  ElementsSelector,
+  ExternalLibrariesSelector,
+} from "@boundaries/elements";
 import type { Rule } from "eslint";
 import micromatch from "micromatch";
 
-import type {
-  ElementSelector,
-  ElementSelectors,
-  ExternalLibrarySelector,
-  ExternalLibrarySelectors,
-  RuleOptionsRules,
-} from "../constants/Options.types";
+import type { RuleOptionsRules } from "../constants/Options.types";
 import type {
   DependencyNodeKey,
   DependencyNodeSelector,
-  ElementDescriptors,
   Settings,
   IgnoreSetting,
   IncludeSetting,
-  ImportKind,
 } from "../constants/settings";
 import {
   SETTINGS,
@@ -150,7 +150,7 @@ function isValidElementTypesMatcher(
 }
 
 export function validateElementTypesMatcher(
-  elementsMatcher: ElementSelectors | ExternalLibrarySelectors,
+  elementsMatcher: ElementsSelector | ExternalLibrariesSelector,
   settings: Settings,
 ) {
   const [matcher] = isArray(elementsMatcher)
@@ -211,7 +211,7 @@ function isValidDependencyNodeSelector(
     isString(selector.selector) &&
     (!selector.kind ||
       (isString(selector.kind) &&
-        VALID_DEPENDENCY_NODE_KINDS.includes(selector.kind as ImportKind)));
+        VALID_DEPENDENCY_NODE_KINDS.includes(selector.kind as DependencyKind)));
   if (!isValidObject) {
     warnOnce(
       `Please provide a valid object in ${ADDITIONAL_DEPENDENCY_NODES} setting. The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type" }. The invalid object will be ignored.`,

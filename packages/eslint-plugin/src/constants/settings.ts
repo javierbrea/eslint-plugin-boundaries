@@ -1,3 +1,6 @@
+import type { DependencyKind, ElementDescriptors } from "@boundaries/elements";
+import { DEPENDENCY_KINDS_MAP } from "@boundaries/elements";
+
 import { PLUGIN_NAME, PLUGIN_ENV_VARS_PREFIX } from "./plugin";
 import {
   ELEMENT_TYPES,
@@ -13,43 +16,21 @@ export function isString(object: unknown): object is string {
   return typeof object === "string";
 }
 
-export const IMPORT_KIND_TYPE = "type" as const;
-export const IMPORT_KIND_VALUE = "value" as const;
-
-/**
- * Map of the kinds of import, either a type import or a value import.
- */
-export const IMPORT_KINDS_MAP = {
-  /**
-   * Type import, e.g., `import type { X } from 'module'`
-   */
-  TYPE: IMPORT_KIND_TYPE,
-  /**
-   * Value import, e.g., `import x from 'module'` or `const x = require('module')`
-   */
-  VALUE: IMPORT_KIND_VALUE,
-} as const;
-
-/**
- * Kind of import, either a type import or a value import.
- */
-export type ImportKind =
-  (typeof IMPORT_KINDS_MAP)[keyof typeof IMPORT_KINDS_MAP];
-
 export const DEPENDENCY_NODE_REQUIRE = "require" as const;
 export const DEPENDENCY_NODE_IMPORT = "import" as const;
 export const DEPENDENCY_NODE_DYNAMIC_IMPORT = "dynamic-import" as const;
 export const DEPENDENCY_NODE_EXPORT = "export" as const;
 
 /**
- * Type guard to check if a value is a valid ImportKind.
+ * Type guard to check if a value is a valid DependencyKind.
  * @param value The value to check.
- * @returns True if the value is a valid ImportKind, false otherwise.
+ * @returns True if the value is a valid DependencyKind, false otherwise.
+ * @deprecated Use isDependencyKind instead.
  */
-export function isImportKind(value: unknown): value is ImportKind {
+export function isImportKind(value: unknown): value is DependencyKind {
   return (
     isString(value) &&
-    Object.values(IMPORT_KINDS_MAP).includes(value as ImportKind)
+    Object.values(DEPENDENCY_KINDS_MAP).includes(value as DependencyKind)
   );
 }
 
@@ -108,7 +89,7 @@ export type DependencyNodeSelector = {
   /**
    * The kind of import, either 'type' or 'value'.
    */
-  kind: ImportKind;
+  kind: DependencyKind;
 };
 
 export const SETTINGS = {
@@ -248,85 +229,6 @@ export type RootPathSetting = string;
  * @deprecated Use "import/resolver" settings instead
  */
 export type AliasSetting = Record<string, string>;
-
-/**
- * Map of the modes to interpret the pattern in an ElementDescriptor.
- */
-export const ELEMENT_DESCRIPTOR_MODES_MAP = {
-  FOLDER: "folder",
-  FILE: "file",
-  FULL: "full",
-} as const;
-
-/**
- * Mode to interpret the pattern in an ElementDescriptor.
- */
-export type ElementDescriptorMode =
-  (typeof ELEMENT_DESCRIPTOR_MODES_MAP)[keyof typeof ELEMENT_DESCRIPTOR_MODES_MAP];
-
-/**
- * Type guard to check if a value is a valid ElementDescriptorMode.
- * @param value The value to check.
- * @returns True if the value is a valid ElementDescriptorMode, false otherwise.
- */
-export function isElementDescriptorMode(
-  value: unknown,
-): value is ElementDescriptorMode {
-  return (
-    isString(value) &&
-    Object.values(ELEMENT_DESCRIPTOR_MODES_MAP).includes(
-      value as ElementDescriptorMode,
-    )
-  );
-}
-
-/**
- * Descriptor for an element (or layer) in the project.
- * Defines the type of the element, the pattern to match files, and optional settings like mode and capture groups.
- */
-export type ElementDescriptor = {
-  /** Type of the element (e.g., "service", "component", "util"). */
-  type: string;
-  /** Micromatch pattern(s) to match files belonging to this element. */
-  pattern: string | string[];
-  /**
-   * Optional micromatch pattern. If provided, the left side of the element path must match also with this pattern from the root of the project (like if pattern is [basePattern]/** /[pattern]).
-   * This option is useful when using the option mode with file or folder values, but capturing fragments from the rest of the full path is also needed
-   **/
-  basePattern?: string;
-  /**
-   * Mode to interpret the pattern. Can be "folder" (default), "file", or "full".
-   * - "folder": Default value. the element type will be assigned to the first file's parent folder matching the pattern.
-   *             In the practice, it is like adding ** /* to the given pattern, but the plugin makes it by itself because it needs to know exactly which parent folder has to be considered the element.
-   * - "file": The given pattern will not be modified, but the plugin will still try to match the last part of the path.
-   *           So, a pattern like *.model.js would match with paths src/foo.model.js, src/modules/foo/foo.model.js, src/modules/foo/models/foo.model.js, etc.
-   * - "full": The given pattern will only match with patterns matching the full path.
-   *           This means that you will have to provide patterns matching from the base project path.
-   *           So, in order to match src/modules/foo/foo.model.js you'll have to provide patterns like ** /*.model.js, ** /* /*.model.js, src/* /* /*.model.js, etc. (the chosen pattern will depend on what do you want to capture from the path)
-   */
-  mode?: ElementDescriptorMode;
-  /**
-   * It allows to capture values of some fragments in the matching path to use them later in the rules configuration.
-   * Must be an array of strings representing the names of the capture groups in the pattern.
-   * The number of capture names must be equal to the number of capturing groups in the pattern.
-   * For example, if the pattern is "src/modules/(* *)/(* *).service.js" the capture could be ["module", "service"].
-   * Then, in the rules configuration, you could use ["service", { module: "auth" }] to match only services from the auth module.
-   */
-  capture?: string[];
-  // TODO: Define precedence when merging with baseCapture, and document it
-  /**
-   * Like capture, but for the basePattern.
-   * This allows to capture values from the left side of the path, which is useful when using the basePattern option.
-   * The captured values will be merged with the ones from the capture option.
-   */
-  baseCapture?: string[];
-};
-
-/**
- * Descriptors of the elements (or layers) in the project.
- * Defines the types of elements, their patterns, and optional settings like mode and capture groups for each one.
- */
-export type ElementDescriptors = ElementDescriptor[];
 
 /**
  * Settings for the eslint-plugin-boundaries plugin.

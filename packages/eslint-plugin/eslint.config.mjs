@@ -37,6 +37,11 @@ export default [
 
       "boundaries/elements": [
         {
+          type: "@boundaries/elements",
+          mode: "file",
+          pattern: "**/packages/elements/**/*",
+        },
+        {
           type: "config-utils",
           mode: "file",
           pattern: ["src/configs/config.ts"],
@@ -99,6 +104,10 @@ export default [
           default: "disallow",
 
           rules: [
+            {
+              from: "*",
+              allow: ["@boundaries/elements"],
+            },
             {
               from: "config-utils",
               allow: ["plugin", "config", "constants", "types"],

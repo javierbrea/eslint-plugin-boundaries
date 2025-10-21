@@ -1,4 +1,4 @@
-import type { CapturedValues } from "./Options.types";
+import type { CapturedValues } from "@boundaries/elements";
 
 export type PathCapturedValues = string[];
 

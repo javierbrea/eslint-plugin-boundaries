@@ -17,6 +17,10 @@ import type {
   CapturedValuesSelector,
   ExternalLibrarySelectorOptions,
   SimpleElementSelectorByType,
+  ElementSelectorByTypeAndCategory,
+  ElementSelectorByCategory,
+  ElementSelectorByType,
+  ElementSelectorData,
 } from "./ElementsSelector.types";
 
 /**
@@ -53,11 +57,10 @@ export function isSimpleElementSelectorByType(
  */
 export function isElementSelectorByType(
   value: unknown,
-): value is { type: SimpleElementSelectorByType } {
+): value is ElementSelectorByType {
   return (
-    isSimpleElementSelectorByType(value) ||
-    (isObjectWithProperty(value, "type") &&
-      isSimpleElementSelectorByType(value.type))
+    isObjectWithProperty(value, "type") &&
+    isSimpleElementSelectorByType(value.type)
   );
 }
 
@@ -68,7 +71,7 @@ export function isElementSelectorByType(
  */
 export function isElementSelectorByCategory(
   value: unknown,
-): value is { category: string } {
+): value is ElementSelectorByCategory {
   return isObjectWithProperty(value, "category") && isString(value.category);
 }
 
@@ -79,18 +82,18 @@ export function isElementSelectorByCategory(
  */
 export function isElementSelectorByTypeAndCategory(
   value: unknown,
-): value is { type: SimpleElementSelectorByType; category: string } {
+): value is ElementSelectorByTypeAndCategory {
   return isElementSelectorByType(value) && isElementSelectorByCategory(value);
 }
 
 /**
- * Determines if the given selector is an element selector by type or category.
+ * Determines if the given selector is an element selector with type or category or both, and extra options.
  * @param value The value to check.
  * @returns True if the selector is an element selector by type or category, false otherwise.
  */
-export function isElementSelectorByTypeOrCategory(
+export function isElementSelectorData(
   value: unknown,
-): value is { type: SimpleElementSelectorByType } | { category: string } {
+): value is ElementSelectorData {
   return isElementSelectorByType(value) || isElementSelectorByCategory(value);
 }
 
@@ -99,13 +102,14 @@ export function isElementSelectorByTypeOrCategory(
  * @param value The value to check.
  * @returns True if the selector is an element selector with options, false otherwise.
  */
-export function isElementSelectorWithOptions(
+export function isElementSelectorWithLegacyOptions(
   value: unknown,
 ): value is ElementSelectorWithOptions {
   return (
     isArray(value) &&
     value.length === 2 &&
-    isElementSelectorByTypeOrCategory(value[0]) &&
+    (isSimpleElementSelectorByType(value[0]) ||
+      isElementSelectorData(value[0])) &&
     isCapturedValuesSelector(value[1])
   );
 }
@@ -117,8 +121,9 @@ export function isElementSelectorWithOptions(
  */
 export function isElementSelector(value: unknown): value is ElementSelector {
   return (
-    isElementSelectorByTypeOrCategory(value) ||
-    isElementSelectorWithOptions(value)
+    isSimpleElementSelectorByType(value) ||
+    isElementSelectorData(value) ||
+    isElementSelectorWithLegacyOptions(value)
   );
 }
 

@@ -1,5 +1,9 @@
 import mod from "module";
 
+import type {
+  CapturedValues,
+  ElementDescriptorMode,
+} from "@boundaries/elements";
 import type { Rule } from "eslint";
 import resolve from "eslint-module-utils/resolve";
 import micromatch from "micromatch";
@@ -9,8 +13,7 @@ import type {
   ElementInfo,
   ImportInfo,
 } from "../constants/ElementsInfo.types";
-import type { CapturedValues } from "../constants/Options.types";
-import type { ElementDescriptorMode, Settings } from "../constants/settings";
+import type { Settings } from "../constants/settings";
 import { SETTINGS } from "../constants/settings";
 import { debugFileInfo } from "../helpers/debug";
 import { getElements, getRootPath } from "../helpers/settings";

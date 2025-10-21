@@ -1,3 +1,5 @@
+import type { DependencyKind } from "../Descriptor";
+
 /**
  * Selector for matching captured values in element selectors.
  * It is a record where the keys are the names of the captured values and the values are the patterns to match on those captured values.
@@ -30,6 +32,20 @@ export type ElementSelectorByTypeAndCategory = ElementSelectorByType &
   ElementSelectorByCategory;
 
 /**
+ * Extra options for element selectors, including dependency kind, specifiers, and node kinds.
+ */
+export type ElementSelectorExtraOptions = {
+  /** Dependency kind to filter elements */
+  kind?: DependencyKind;
+  /** Micromatch pattern(s) to match only specific imports/exports */
+  specifiers?: string | string[];
+  /** Node kind to filter elements */
+  nodeKinds?: string | string[];
+  /** Captured values selector for dynamic matching */
+  captured?: CapturedValuesSelector;
+};
+
+/**
  * Element selector by type or category, which can be either by type, by category, or by both type and category.
  */
 export type ElementSelectorByTypeOrCategory =
@@ -39,21 +55,26 @@ export type ElementSelectorByTypeOrCategory =
   | ElementSelectorByTypeAndCategory;
 
 /**
+ * Element selector data, which includes the element selector by type or category along with extra options such as dependency kind, specifiers, etc.
+ */
+export type ElementSelectorData = ElementSelectorByTypeOrCategory &
+  ElementSelectorExtraOptions;
+
+/**
  * Element selector with options, including captured values for dynamic matching.
  * It is represented as a tuple where the first element is the element type (string)
  * and the second element is an object containing a selector for captured values.
+ * @deprecated Use ElementSelector defining an object with type and/or category with capturedValues directly instead.
  */
 export type ElementSelectorWithOptions = [
-  ElementSelectorByTypeOrCategory,
+  ElementSelectorData,
   CapturedValuesSelector,
 ];
 
 /**
  * Element selector, which can be a simple string, object with type and/or category, or an element selector with options.
  */
-export type ElementSelector =
-  | ElementSelectorByTypeOrCategory
-  | ElementSelectorWithOptions;
+export type ElementSelector = ElementSelectorData | ElementSelectorWithOptions;
 
 /**
  * Elements selector, which can be a single element selector or an array of element selectors.
@@ -75,7 +96,7 @@ export type ExternalLibrarySelectorOptions = {
    * Micromatch pattern(s) to match only one or more specific subpaths of the external library.
    */
   path?: string | string[];
-  /** Micromatch pattern(s) to match only specific imports from the external library. */
+  /** Micromatch pattern(s) to match only specific imports/exports */
   specifiers?: string[];
 };
 

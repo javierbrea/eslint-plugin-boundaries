@@ -20,9 +20,26 @@ import {
   isElementDescriptorWithCategory,
   isElementDescriptorWithTypeAndCategory,
   isElementDescriptor,
+  isDependencyKind,
 } from "../../../src/Descriptor/ElementsDescriptorHelpers";
 
 describe("elementHelpers", () => {
+  describe("isDependencyKind", () => {
+    it("should return true for valid kinds", () => {
+      expect(isDependencyKind("type")).toBe(true);
+      // Deprecated alias should still be accepted if present in the map
+      expect(isDependencyKind("value")).toBe(true);
+    });
+
+    it("should return false for invalid kinds and non-strings", () => {
+      expect(isDependencyKind(123)).toBe(false);
+      expect(isDependencyKind(null)).toBe(false);
+      expect(isDependencyKind(undefined)).toBe(false);
+      expect(isDependencyKind("invalid-kind")).toBe(false);
+      expect(isDependencyKind({})).toBe(false);
+    });
+  });
+
   describe("isLocalElement", () => {
     it("should return true for local elements", () => {
       const localElement: LocalElement = {
@@ -84,6 +101,8 @@ describe("elementHelpers", () => {
         isLocal: false,
         isBuiltIn: false,
         baseModule: "react",
+        kind: "type",
+        nodeKind: "import",
       };
 
       expect(isLocalElement(nonLocalElement)).toBe(false);
@@ -328,6 +347,8 @@ describe("elementHelpers", () => {
         source: "./Button.component",
         specifiers: ["Button", "ButtonProps"],
         isExternal: false,
+        kind: "type",
+        nodeKind: "import",
       };
 
       expect(isLocalDependency(localDependency)).toBe(true);
@@ -380,6 +401,8 @@ describe("elementHelpers", () => {
         isBuiltIn: false,
         baseModule: "lodash",
         isLocal: false,
+        kind: "type",
+        nodeKind: "import",
       };
 
       expect(isLocalDependency(nonLocalDependency)).toBe(false);
@@ -490,6 +513,8 @@ describe("elementHelpers", () => {
         isBuiltIn: true,
         baseModule: "fs",
         isLocal: false,
+        kind: "type",
+        nodeKind: "import",
       };
 
       expect(isExternalDependency(externalDependency)).toBe(true);
@@ -545,6 +570,8 @@ describe("elementHelpers", () => {
         isExternal: false,
         source: "../utils/http",
         specifiers: ["HttpClient"],
+        kind: "type",
+        nodeKind: "import",
       };
 
       expect(isExternalDependency(nonExternalDependency)).toBe(false);
@@ -731,6 +758,8 @@ describe("elementHelpers", () => {
         isLocal: false,
         isBuiltIn: false,
         baseModule: "lodash",
+        kind: "type",
+        nodeKind: "import",
       };
 
       expect(isElement(externalDependency)).toBe(true);
@@ -751,6 +780,8 @@ describe("elementHelpers", () => {
         source: "./constants",
         specifiers: ["PI", "E"],
         isExternal: false,
+        kind: "type",
+        nodeKind: "import",
       };
 
       expect(isElement(localDependency)).toBe(true);

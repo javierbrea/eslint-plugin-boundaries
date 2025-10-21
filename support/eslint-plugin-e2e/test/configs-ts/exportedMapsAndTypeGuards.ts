@@ -9,6 +9,8 @@ import {
   isRuleName,
   IMPORT_KINDS_MAP,
   isImportKind,
+  isDependencyKind,
+  DEPENDENCY_KINDS_MAP,
   DEPENDENCY_NODE_KEYS_MAP,
   isDependencyNodeKey,
   SETTINGS_KEYS_MAP,
@@ -17,6 +19,10 @@ import {
   isElementDescriptorMode,
   RULE_POLICIES_MAP,
   isRulePolicy,
+  isElementSelector,
+  isElementsSelector,
+  isExternalLibrarySelector,
+  isExternalLibrariesSelector,
 } from "@boundaries/eslint-plugin/config";
 import type {
   RulePolicy,

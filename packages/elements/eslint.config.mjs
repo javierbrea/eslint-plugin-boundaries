@@ -10,7 +10,15 @@ import {
 } from "../../support/eslint-config/index.js";
 
 export default [
-  typescriptConfig,
+  {
+    ...typescriptConfig,
+    languageOptions: {
+      ...typescriptConfig.languageOptions,
+      parserOptions: {
+        project: "./tsconfig.eslint.json",
+      },
+    },
+  },
   ignores,
   jsonConfig,
   jsoncConfig,

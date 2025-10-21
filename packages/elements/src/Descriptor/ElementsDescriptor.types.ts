@@ -22,7 +22,6 @@ export type BaseElementCapture = {
 export type BaseElementWithType = BaseElementCapture & {
   /** Type of the element **/
   type: string;
-
   /** Category of the element */
   category: null;
 };
@@ -33,7 +32,6 @@ export type BaseElementWithType = BaseElementCapture & {
 export type BaseElementWithCategory = BaseElementCapture & {
   /** Category of the element */
   category: string;
-
   /** Type of the element **/
   type: null;
 };
@@ -72,6 +70,30 @@ export type LocalElement = BaseElement & {
   isIgnored: boolean;
 };
 
+export const DEPENDENCY_KIND_TYPE = "type" as const;
+export const DEPENDENCY_KIND_VALUE = "value" as const;
+
+/**
+ * Map of the kinds of dependency, either a type dependency or a value dependency.
+ */
+export const DEPENDENCY_KINDS_MAP = {
+  /**
+   * Type import, e.g., `import type { X } from 'module'`
+   */
+  TYPE: DEPENDENCY_KIND_TYPE,
+
+  /**
+   * Value import, e.g., `import { X } from 'module'`
+   */
+  VALUE: DEPENDENCY_KIND_VALUE,
+} as const;
+
+/**
+ * Kind of dependency, either a type dependency or a value dependency.
+ */
+export type DependencyKind =
+  (typeof DEPENDENCY_KINDS_MAP)[keyof typeof DEPENDENCY_KINDS_MAP];
+
 /**
  * Base description of a dependency
  */
@@ -84,6 +106,10 @@ export type BaseDependencyElement = BaseElement & {
   isLocal: boolean;
   /** Indicates if the dependency is external */
   isExternal: boolean;
+  /** Kind of the dependency, either type or value */
+  kind: DependencyKind;
+  /** Node kind of the dependency (e.g. "import", "dynamic-import", "export", "require", etc.) */
+  nodeKind: string;
 };
 
 /**
@@ -212,3 +238,8 @@ export type ElementDescriptor =
   | ElementDescriptorWithType
   | ElementDescriptorWithCategory
   | ElementDescriptorWithTypeAndCategory;
+
+/**
+ * Array of element descriptors.
+ */
+export type ElementDescriptors = ElementDescriptor[];

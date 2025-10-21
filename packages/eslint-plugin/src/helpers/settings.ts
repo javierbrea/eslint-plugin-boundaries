@@ -1,12 +1,13 @@
 import { isAbsolute, resolve } from "node:path";
 
-import { SETTINGS } from "../constants/settings";
 import type {
-  ElementDescriptors,
   ElementDescriptor,
-  Settings,
+  ElementDescriptors,
   ElementDescriptorMode,
-} from "../constants/settings";
+} from "@boundaries/elements";
+
+import { SETTINGS } from "../constants/settings";
+import type { Settings } from "../constants/settings";
 
 import { warnOnce } from "./debug";
 import { isString, isArray, isObject } from "./utils";

@@ -1,12 +1,13 @@
+import type {
+  DependencyKind,
+  CapturedValuesSelector,
+  ElementSelector,
+  ElementsSelector,
+  CapturedValues,
+} from "@boundaries/elements";
+
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { ElementInfo, FileInfo } from "../constants/ElementsInfo.types";
-import type {
-  CapturedValues,
-  ElementSelector,
-  ElementSelectors,
-  CapturedValuesSelector,
-} from "../constants/Options.types";
-import type { ImportKind } from "../constants/settings";
 
 import { micromatchPatternReplacingObjectsValues } from "./rules";
 import {
@@ -96,7 +97,7 @@ function elementMatcherMessage(
 }
 
 export function ruleElementMessage(
-  elementPatterns: ElementSelectors | undefined,
+  elementPatterns: ElementsSelector | undefined,
   elementCapturedValues: CapturedValues,
 ) {
   if (isArray(elementPatterns)) {
@@ -219,14 +220,14 @@ export function elementMessage(
 }
 
 function hasToPrintKindMessage(
-  ruleImportKind: ImportKind | undefined,
+  ruleImportKind: DependencyKind | undefined,
   dependencyInfo: DependencyInfo,
 ) {
   return ruleImportKind && dependencyInfo.importKind;
 }
 
 export function dependencyImportKindMessage(
-  ruleImportKind: ImportKind | undefined,
+  ruleImportKind: DependencyKind | undefined,
   dependencyInfo: DependencyInfo,
 ) {
   if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
@@ -236,7 +237,7 @@ export function dependencyImportKindMessage(
 }
 
 export function dependencyUsageKindMessage(
-  ruleImportKind: ImportKind | undefined,
+  ruleImportKind: DependencyKind | undefined,
   dependencyInfo: DependencyInfo,
   {
     suffix = " ",
