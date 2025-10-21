@@ -17,6 +17,15 @@ export function isNullish(value: unknown): value is null | undefined {
 }
 
 /**
+ * Determines if the given value is null
+ * @param value The value to check
+ * @returns True if the value is null, false otherwise
+ */
+export function isNull(value: unknown): value is null {
+  return value === null;
+}
+
+/**
  * Determines if the given value is a non-null object.
  * @param value The value to check.
  * @returns True if the value is a non-null object, false otherwise.

@@ -7,8 +7,12 @@ import type {
 } from "../../../src/Selector/ElementsSelector.types";
 import {
   isCapturedValuesSelector,
-  isSimpleElementSelector,
+  isSimpleElementSelectorByType,
   isElementSelectorWithOptions,
+  isElementSelectorByType,
+  isElementSelectorByCategory,
+  isElementSelectorByTypeAndCategory,
+  isElementSelectorByTypeOrCategory,
   isElementSelector,
   isElementsSelector,
   isExternalLibrarySelectorOptionsWithPath,
@@ -34,11 +38,6 @@ describe("elementsSelectorHelpers", () => {
       expect(isCapturedValuesSelector({})).toBe(true);
     });
 
-    it("should return true for arrays (as they are objects in JavaScript)", () => {
-      expect(isCapturedValuesSelector([])).toBe(true);
-      expect(isCapturedValuesSelector(["item"])).toBe(true);
-    });
-
     it("should return false for non-object values", () => {
       expect(isCapturedValuesSelector("string")).toBe(false);
       expect(isCapturedValuesSelector(123)).toBe(false);
@@ -57,30 +56,32 @@ describe("elementsSelectorHelpers", () => {
     });
   });
 
-  describe("isSimpleElementSelector", () => {
+  describe("isSimpleElementSelectorByType", () => {
     it("should return true for string values", () => {
-      expect(isSimpleElementSelector("component")).toBe(true);
-      expect(isSimpleElementSelector("utils")).toBe(true);
-      expect(isSimpleElementSelector("")).toBe(true);
+      expect(isSimpleElementSelectorByType("component")).toBe(true);
+      expect(isSimpleElementSelectorByType("utils")).toBe(true);
+      expect(isSimpleElementSelectorByType("")).toBe(true);
     });
 
     it("should return false for primitive non-string values", () => {
-      expect(isSimpleElementSelector(123)).toBe(false);
-      expect(isSimpleElementSelector(true)).toBe(false);
-      expect(isSimpleElementSelector(null)).toBe(false);
-      expect(isSimpleElementSelector(undefined)).toBe(false);
+      expect(isSimpleElementSelectorByType(123)).toBe(false);
+      expect(isSimpleElementSelectorByType(true)).toBe(false);
+      expect(isSimpleElementSelectorByType(null)).toBe(false);
+      expect(isSimpleElementSelectorByType(undefined)).toBe(false);
     });
 
     it("should return false for object and array values", () => {
-      expect(isSimpleElementSelector({})).toBe(false);
-      expect(isSimpleElementSelector([])).toBe(false);
+      expect(isSimpleElementSelectorByType({})).toBe(false);
+      expect(isSimpleElementSelectorByType([])).toBe(false);
     });
 
     it("should return true for objects with minimal required properties", () => {
       const minimalSimpleElementSelector = "component";
       // String is the minimal requirement for SimpleElementSelector
 
-      expect(isSimpleElementSelector(minimalSimpleElementSelector)).toBe(true);
+      expect(isSimpleElementSelectorByType(minimalSimpleElementSelector)).toBe(
+        true,
+      );
     });
   });
 
@@ -88,7 +89,7 @@ describe("elementsSelectorHelpers", () => {
     it("should return true for valid element selectors with options", () => {
       const elementSelectorWithOptions: ElementSelectorWithOptions = [
         "component",
-        { type: "button" },
+        { name: "button" },
       ];
 
       expect(isElementSelectorWithOptions(elementSelectorWithOptions)).toBe(
@@ -122,11 +123,97 @@ describe("elementsSelectorHelpers", () => {
 
     it("should return true for objects with minimal required properties", () => {
       const minimalElementSelectorWithOptions = ["component", {}];
-      // Array with [string, object] is the minimal requirement
 
+      // Array with [string, object] is the minimal requirement
       expect(
         isElementSelectorWithOptions(minimalElementSelectorWithOptions),
       ).toBe(true);
+
+      // More cases: type object, category object and combined
+      expect(isElementSelectorWithOptions([{ type: "component" }, {}])).toBe(
+        true,
+      );
+      expect(isElementSelectorWithOptions([{ category: "ui" }, {}])).toBe(true);
+      expect(
+        isElementSelectorWithOptions([
+          { type: "component", category: "ui" },
+          {},
+        ]),
+      ).toBe(true);
+    });
+
+    it("should return false when options are not valid captured values selector", () => {
+      expect(isElementSelectorWithOptions(["component", { type: 123 }])).toBe(
+        false,
+      );
+    });
+  });
+
+  describe("element selector helpers (by type/category)", () => {
+    it("isElementSelectorByType should match strings and objects with type", () => {
+      expect(isElementSelectorByType("component")).toBe(true);
+      expect(isElementSelectorByType({ type: "component" })).toBe(true);
+      expect(isElementSelectorByType({ type: 123 })).toBe(false);
+    });
+
+    it("isElementSelectorByType edge cases", () => {
+      expect(isElementSelectorByType({})).toBe(false);
+      expect(isElementSelectorByType({ category: "ui" })).toBe(false);
+    });
+
+    it("isElementSelectorByCategory should match objects with category", () => {
+      expect(isElementSelectorByCategory({ category: "ui" })).toBe(true);
+      expect(isElementSelectorByCategory({ category: 123 })).toBe(false);
+      expect(isElementSelectorByCategory("ui")).toBe(false);
+    });
+
+    it("isElementSelectorByCategory edge cases", () => {
+      expect(isElementSelectorByCategory({})).toBe(false);
+      expect(isElementSelectorByCategory({ type: "component" })).toBe(false);
+    });
+
+    it("isElementSelectorByTypeAndCategory should match only when both present and valid", () => {
+      expect(
+        isElementSelectorByTypeAndCategory({
+          type: "component",
+          category: "ui",
+        }),
+      ).toBe(true);
+      expect(isElementSelectorByTypeAndCategory({ type: "component" })).toBe(
+        false,
+      );
+      expect(isElementSelectorByTypeAndCategory({ category: "ui" })).toBe(
+        false,
+      );
+    });
+
+    it("isElementSelectorByTypeAndCategory invalid values", () => {
+      expect(
+        isElementSelectorByTypeAndCategory({
+          type: 123,
+          category: "ui",
+        }),
+      ).toBe(false);
+      expect(
+        isElementSelectorByTypeAndCategory({
+          type: "component",
+          category: 123,
+        }),
+      ).toBe(false);
+    });
+
+    it("isElementSelectorByTypeOrCategory should match either", () => {
+      expect(isElementSelectorByTypeOrCategory("component")).toBe(true);
+      expect(isElementSelectorByTypeOrCategory({ type: "component" })).toBe(
+        true,
+      );
+      expect(isElementSelectorByTypeOrCategory({ category: "ui" })).toBe(true);
+      expect(isElementSelectorByTypeOrCategory({})).toBe(false);
+    });
+
+    it("isElementSelectorByTypeOrCategory mixed invalid types", () => {
+      expect(isElementSelectorByTypeOrCategory({ type: 123 })).toBe(false);
+      expect(isElementSelectorByTypeOrCategory({ category: 123 })).toBe(false);
     });
   });
 

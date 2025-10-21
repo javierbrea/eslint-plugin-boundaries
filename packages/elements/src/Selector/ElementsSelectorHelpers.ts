@@ -16,7 +16,7 @@ import type {
   ExternalLibrariesSelector,
   CapturedValuesSelector,
   ExternalLibrarySelectorOptions,
-  SimpleElementSelector,
+  SimpleElementSelectorByType,
 } from "./ElementsSelector.types";
 
 /**
@@ -27,7 +27,12 @@ import type {
 export function isCapturedValuesSelector(
   value: unknown,
 ): value is CapturedValuesSelector {
-  return isObject(value);
+  if (!isObject(value) || isArray(value)) {
+    return false;
+  }
+
+  // Ensure all values are strings
+  return Object.values(value).every(isString);
 }
 
 /**
@@ -35,10 +40,58 @@ export function isCapturedValuesSelector(
  * @param value The value to check.
  * @returns True if the selector is a simple element selector, false otherwise.
  */
-export function isSimpleElementSelector(
+export function isSimpleElementSelectorByType(
   value: unknown,
-): value is SimpleElementSelector {
+): value is SimpleElementSelectorByType {
   return isString(value);
+}
+
+/**
+ * Determines if the given selector is an element selector by type.
+ * @param value The value to check.
+ * @returns True if the selector is an element selector by type, false otherwise.
+ */
+export function isElementSelectorByType(
+  value: unknown,
+): value is { type: SimpleElementSelectorByType } {
+  return (
+    isSimpleElementSelectorByType(value) ||
+    (isObjectWithProperty(value, "type") &&
+      isSimpleElementSelectorByType(value.type))
+  );
+}
+
+/**
+ * Determines if the given selector is an element selector by category.
+ * @param value The value to check.
+ * @returns True if the selector is an element selector by category, false otherwise.
+ */
+export function isElementSelectorByCategory(
+  value: unknown,
+): value is { category: string } {
+  return isObjectWithProperty(value, "category") && isString(value.category);
+}
+
+/**
+ * Determines if the given selector is an element selector by both type and category.
+ * @param value The value to check.
+ * @returns True if the selector is an element selector by both type and category, false otherwise.
+ */
+export function isElementSelectorByTypeAndCategory(
+  value: unknown,
+): value is { type: SimpleElementSelectorByType; category: string } {
+  return isElementSelectorByType(value) && isElementSelectorByCategory(value);
+}
+
+/**
+ * Determines if the given selector is an element selector by type or category.
+ * @param value The value to check.
+ * @returns True if the selector is an element selector by type or category, false otherwise.
+ */
+export function isElementSelectorByTypeOrCategory(
+  value: unknown,
+): value is { type: SimpleElementSelectorByType } | { category: string } {
+  return isElementSelectorByType(value) || isElementSelectorByCategory(value);
 }
 
 /**
@@ -52,7 +105,7 @@ export function isElementSelectorWithOptions(
   return (
     isArray(value) &&
     value.length === 2 &&
-    isSimpleElementSelector(value[0]) &&
+    isElementSelectorByTypeOrCategory(value[0]) &&
     isCapturedValuesSelector(value[1])
   );
 }
@@ -63,7 +116,10 @@ export function isElementSelectorWithOptions(
  * @returns True if the value is an element selector, false otherwise.
  */
 export function isElementSelector(value: unknown): value is ElementSelector {
-  return isSimpleElementSelector(value) || isElementSelectorWithOptions(value);
+  return (
+    isElementSelectorByTypeOrCategory(value) ||
+    isElementSelectorWithOptions(value)
+  );
 }
 
 /**
@@ -130,7 +186,7 @@ export function isExternalLibrarySelectorWithOptions(
   return (
     isArray(value) &&
     value.length === 2 &&
-    isSimpleElementSelector(value[0]) &&
+    isSimpleElementSelectorByType(value[0]) &&
     isExternalLibrarySelectorOptions(value[1])
   );
 }
@@ -144,7 +200,7 @@ export function isExternalLibrarySelector(
   value: unknown,
 ): value is ExternalLibrarySelector {
   return (
-    isSimpleElementSelector(value) ||
+    isSimpleElementSelectorByType(value) ||
     isExternalLibrarySelectorWithOptions(value)
   );
 }
