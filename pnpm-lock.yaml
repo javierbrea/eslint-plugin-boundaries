@@ -152,7 +152,7 @@ importers:
         specifier: 16.4.0
         version: 16.4.0
 
-  support/eslint-plugin-e2e:
+  test/eslint-plugin-e2e:
     dependencies:
       '@boundaries/eslint-plugin':
         specifier: workspace:*

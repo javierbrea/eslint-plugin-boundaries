@@ -5,7 +5,7 @@ import {
   markdownConfig,
   jsBaseConfig,
   typescriptConfig,
-} from "../eslint-config/index.js";
+} from "../../support/eslint-config/index.js";
 
 export default [
   typescriptConfig,
