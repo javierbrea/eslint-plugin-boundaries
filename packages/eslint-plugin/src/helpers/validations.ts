@@ -26,7 +26,11 @@ import {
 import { warnOnce } from "./debug";
 import type { RuleMainKey, ValidateRulesOptions } from "./Helpers.types";
 import { rulesMainKey } from "./rules";
-import { getElementsTypeNames, isValidElementAssigner } from "./settings";
+import {
+  getElementsTypeNames,
+  getElementsCategoryNames,
+  isValidElementAssigner,
+} from "./settings";
 import { isArray, isString, isObject } from "./utils";
 
 const {
@@ -144,8 +148,21 @@ function isValidElementTypesMatcher(
   settings: Settings,
 ) {
   const matcherToCheck = isArray(matcher) ? matcher[0] : matcher;
+  const typeMatcherToCheck = isString(matcherToCheck)
+    ? matcherToCheck
+    : matcherToCheck.type;
+  const categoryMatcherToCheck = isString(matcherToCheck)
+    ? null
+    : matcherToCheck.category;
   return (
-    !matcher || micromatch.some(getElementsTypeNames(settings), matcherToCheck)
+    !matcher ||
+    (typeMatcherToCheck &&
+      micromatch.some(getElementsTypeNames(settings), typeMatcherToCheck)) ||
+    (categoryMatcherToCheck &&
+      micromatch.some(
+        getElementsCategoryNames(settings),
+        categoryMatcherToCheck,
+      ))
   );
 }
 

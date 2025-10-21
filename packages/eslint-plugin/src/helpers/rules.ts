@@ -1,10 +1,11 @@
-import type {
-  DependencyKind,
-  CapturedValuesSelector,
-  ElementsSelector,
-  CapturedValues,
-  ExternalLibrarySelectorOptions,
-  ExternalLibrariesSelector,
+import {
+  type DependencyKind,
+  type CapturedValuesSelector,
+  type ElementsSelector,
+  type CapturedValues,
+  type ExternalLibrarySelectorOptions,
+  type ExternalLibrariesSelector,
+  isElementSelectorData,
 } from "@boundaries/elements";
 import type { Rule } from "eslint";
 import micromatch from "micromatch";
@@ -149,9 +150,12 @@ function ruleMatch<
     if (!match.result) {
       if (isArray(matcher)) {
         const [value, captures] = matcher;
+        const valueToSend = isElementSelectorData(value)
+          ? ((value.type || value.category) as string) // TODO: Category should be handled separately
+          : value;
         match = isMatch(
           targetElement as FileOrDependencyInfo,
-          value,
+          valueToSend,
           captures as RuleMatchers,
           {
             from: fromElement.capturedValues,
@@ -160,9 +164,12 @@ function ruleMatch<
           importKind,
         );
       } else {
+        const valueToSend = isElementSelectorData(matcher)
+          ? ((matcher.type || matcher.category) as string) // TODO: Category should be handled separately
+          : (matcher as string);
         match = isMatch(
           targetElement as FileOrDependencyInfo,
-          matcher as string,
+          valueToSend,
           {} as RuleMatchers,
           {
             from: fromElement.capturedValues,

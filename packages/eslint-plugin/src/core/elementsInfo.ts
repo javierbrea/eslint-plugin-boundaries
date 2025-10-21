@@ -124,6 +124,7 @@ function elementTypeAndParents(path: string, settings: Settings): ElementInfo {
   const parents: ElementInfo["parents"] = [];
   const elementResult: ElementInfo = {
     type: null,
+    category: null,
     elementPath: "",
     capture: null,
     capturedValues: {},
@@ -209,8 +210,9 @@ function elementTypeAndParents(path: string, settings: Settings): ElementInfo {
                   ? path
                   : getElementPath(elementPattern, accumulator, elementPaths);
                 accumulator = [];
-                if (!elementResult.type) {
-                  elementResult.type = element.type;
+                if (!elementResult.type && !elementResult.category) {
+                  elementResult.type = element.type || null;
+                  elementResult.category = element.category || null;
                   elementResult.elementPath = elementPath;
                   elementResult.capture = capture;
                   elementResult.capturedValues = capturedValues;
@@ -220,7 +222,8 @@ function elementTypeAndParents(path: string, settings: Settings): ElementInfo {
                       : elementPath.split("/").pop() || null;
                 } else {
                   parents.push({
-                    type: element.type,
+                    type: element.type || null,
+                    category: element.category || null,
                     elementPath: elementPath,
                     capture: capture,
                     capturedValues: capturedValues,

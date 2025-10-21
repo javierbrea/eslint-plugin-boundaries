@@ -5,9 +5,10 @@ export type PathCapturedValues = string[];
 export type ElementInfo = {
   elementPath: string;
   type: string | null;
+  category: string | null;
   parents: Pick<
     ElementInfo,
-    "elementPath" | "type" | "capture" | "capturedValues"
+    "elementPath" | "type" | "capture" | "capturedValues" | "category"
   >[];
   capture: string[] | null;
   capturedValues: CapturedValues;

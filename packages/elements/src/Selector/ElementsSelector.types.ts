@@ -15,21 +15,31 @@ export type SimpleElementSelectorByType = string;
  * Element selector by type.
  */
 export type ElementSelectorByType = {
+  /** Type of the element */
   type: SimpleElementSelectorByType;
+  /** Category of the element */
+  category?: never;
 };
 
 /**
  * Element selector by category.
  */
 export type ElementSelectorByCategory = {
+  /** Category of the element */
   category: string;
+  /** Type of the element */
+  type?: never;
 };
 
 /**
  * Element selector by both type and category.
  */
-export type ElementSelectorByTypeAndCategory = ElementSelectorByType &
-  ElementSelectorByCategory;
+export type ElementSelectorByTypeAndCategory = {
+  /** Type of the element */
+  type: SimpleElementSelectorByType;
+  /** Category of the element */
+  category: string;
+};
 
 /**
  * Extra options for element selectors, including dependency kind, specifiers, and node kinds.
@@ -49,7 +59,6 @@ export type ElementSelectorExtraOptions = {
  * Element selector by type or category, which can be either by type, by category, or by both type and category.
  */
 export type ElementSelectorByTypeOrCategory =
-  | SimpleElementSelectorByType
   | ElementSelectorByType
   | ElementSelectorByCategory
   | ElementSelectorByTypeAndCategory;
@@ -66,15 +75,17 @@ export type ElementSelectorData = ElementSelectorByTypeOrCategory &
  * and the second element is an object containing a selector for captured values.
  * @deprecated Use ElementSelector defining an object with type and/or category with capturedValues directly instead.
  */
-export type ElementSelectorWithOptions = [
-  ElementSelectorData,
-  CapturedValuesSelector,
-];
+export type ElementSelectorWithOptions =
+  | [ElementSelectorData, CapturedValuesSelector]
+  | [SimpleElementSelectorByType, CapturedValuesSelector];
 
 /**
  * Element selector, which can be a simple string, object with type and/or category, or an element selector with options.
  */
-export type ElementSelector = ElementSelectorData | ElementSelectorWithOptions;
+export type ElementSelector =
+  | SimpleElementSelectorByType
+  | ElementSelectorData
+  | ElementSelectorWithOptions;
 
 /**
  * Elements selector, which can be a single element selector or an array of element selectors.

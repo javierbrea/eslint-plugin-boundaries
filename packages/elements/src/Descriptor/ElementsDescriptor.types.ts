@@ -215,6 +215,8 @@ export type BaseElementDescriptor = {
 export type ElementDescriptorWithType = BaseElementDescriptor & {
   /** Type of the element (e.g., "service", "component", "util"). */
   type: string;
+  /** Category of the element */
+  category?: never;
 };
 
 /**
@@ -223,13 +225,19 @@ export type ElementDescriptorWithType = BaseElementDescriptor & {
 export type ElementDescriptorWithCategory = BaseElementDescriptor & {
   /** Category of the element (e.g., "domain", "infrastructure", "application"). */
   category: string;
+  /** Type of the element*/
+  type?: never;
 };
 
 /**
  * Element descriptor with both type and category.
  */
-export type ElementDescriptorWithTypeAndCategory = ElementDescriptorWithType &
-  ElementDescriptorWithCategory;
+export type ElementDescriptorWithTypeAndCategory = BaseElementDescriptor & {
+  /** Type of the element (e.g., "service", "component", "util"). */
+  type: string;
+  /** Category of the element (e.g., "domain", "infrastructure", "application"). */
+  category: string;
+};
 
 /**
  * Element descriptor, which can be defined by type, category, or both.

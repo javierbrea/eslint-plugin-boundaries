@@ -109,7 +109,15 @@ export function getElements(settings: Settings): ElementDescriptors {
 }
 
 export function getElementsTypeNames(settings: Settings): string[] {
-  return getElements(settings).map((element) => element.type);
+  return getElements(settings)
+    .map((element) => element.type)
+    .filter(Boolean) as string[];
+}
+
+export function getElementsCategoryNames(settings: Settings): string[] {
+  return getElements(settings)
+    .map((element) => element.category)
+    .filter(Boolean) as string[];
 }
 
 export function getRootPath(settings: Settings): string {

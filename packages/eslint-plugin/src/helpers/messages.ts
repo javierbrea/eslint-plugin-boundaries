@@ -5,6 +5,7 @@ import type {
   ElementsSelector,
   CapturedValues,
 } from "@boundaries/elements";
+import { isElementSelectorData } from "@boundaries/elements";
 
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { ElementInfo, FileInfo } from "../constants/ElementsInfo.types";
@@ -24,6 +25,10 @@ export function quote(str: string | undefined | null) {
 
 function typeMessage(elementMatcher: string) {
   return `elements of type ${quote(elementMatcher)}`;
+}
+
+function categoryMessage(category: string) {
+  return `category ${quote(category)}`;
 }
 
 function propertiesConcatenator(properties: string[], index: number) {
@@ -90,6 +95,49 @@ function elementMatcherMessage(
   if (isString(elementMatcher)) {
     return typeMessage(elementMatcher);
   }
+  if (isElementSelectorData(elementMatcher)) {
+    const parts: string[] = [];
+    // TODO: Replace with implemented type guards
+    if ("type" in elementMatcher && elementMatcher.type) {
+      parts.push(typeMessage(elementMatcher.type));
+    }
+    // TODO: Replace with implemented type guards
+    if ("category" in elementMatcher && elementMatcher.category) {
+      parts.push(propertiesConcatenator(parts, parts.length + 1));
+      parts.push(categoryMessage(elementMatcher.category));
+    }
+    if (elementMatcher.captured) {
+      parts.push(
+        capturedValuesMatcherMessage(
+          elementMatcher.captured,
+          elementCapturedValues,
+        ),
+      );
+    }
+    return parts.join(" ");
+  }
+  if (isElementSelectorData(elementMatcher[0])) {
+    const parts: string[] = [];
+    // TODO: Replace with implemented type guards
+    if ("type" in elementMatcher[0] && elementMatcher[0].type) {
+      parts.push(typeMessage(elementMatcher[0].type));
+    }
+    // TODO: Replace with implemented type guards
+    if ("category" in elementMatcher[0] && elementMatcher[0].category) {
+      parts.push(propertiesConcatenator(parts, parts.length + 1));
+      parts.push(categoryMessage(elementMatcher[0].category));
+    }
+    if (elementMatcher[0].captured) {
+      parts.push(
+        capturedValuesMatcherMessage(
+          elementMatcher[0].captured,
+          elementCapturedValues,
+        ),
+      );
+    }
+    return parts.join(" ");
+  }
+  // Legacy captured values selector as second element of tuple
   return `${typeMessage(elementMatcher[0])}${capturedValuesMatcherMessage(
     elementMatcher[1] as CapturedValuesSelector,
     elementCapturedValues,
