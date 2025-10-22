@@ -4,6 +4,7 @@ import type {
   CapturedValues,
   ElementDescriptorMode,
 } from "@boundaries/elements";
+import { Elements } from "@boundaries/elements";
 import type { Rule } from "eslint";
 import resolve from "eslint-module-utils/resolve";
 import micromatch from "micromatch";
@@ -19,9 +20,11 @@ import { debugFileInfo } from "../helpers/debug";
 import { getElements, getRootPath } from "../helpers/settings";
 import { isArray } from "../helpers/utils";
 
-import { filesCache, importsCache, elementsCache } from "./cache";
+import { importsCache, elementsCache } from "./cache";
 
 const { IGNORE, INCLUDE, VALID_MODES } = SETTINGS;
+
+const elements = new Elements();
 
 function isCoreModule(moduleName: string) {
   const moduleNameWithoutPrefix = moduleName.startsWith("node:")
@@ -298,6 +301,7 @@ export function importInfo(
     if (elementCache) {
       elementResult = elementCache as ElementInfo;
     } else {
+      // TODO: Use elements from @boundaries/elements
       elementResult = elementTypeAndParents(pathToUse, context.settings);
       elementsCache.save(pathToUse, elementResult, context.settings);
     }
@@ -311,7 +315,6 @@ export function importInfo(
       isExternal: isExternalModule,
       baseModule: baseModuleValue,
       ...elementResult,
-      // TODO: Check why it is necessary the cast
     };
 
     importsCache.save(path, result, context.settings);
@@ -324,31 +327,17 @@ export function importInfo(
 }
 
 export function fileInfo(context: Rule.RuleContext): FileInfo {
-  const path = projectPath(
-    context.getFilename(),
-    getRootPath(context.settings),
+  const filesDescriptor = elements.getDescriptor(
+    getElements(context.settings),
+    {
+      ignorePaths: context.settings[SETTINGS.IGNORE] as string[],
+      includePaths: context.settings[SETTINGS.INCLUDE] as string[],
+      rootPath: getRootPath(context.settings),
+    },
   );
-  const resultCache = filesCache.load(path, context.settings);
-  let elementCache;
-  let result: FileInfo;
-  let elementResult: ElementInfo;
-  if (resultCache) {
-    result = resultCache as FileInfo;
-  } else {
-    elementCache = elementsCache.load(path, context.settings);
-    if (elementCache) {
-      elementResult = elementCache as ElementInfo;
-    } else {
-      elementResult = elementTypeAndParents(path, context.settings);
-      elementsCache.save(path, elementResult, context.settings);
-    }
-    result = {
-      path,
-      isIgnored: isIgnored(path, context.settings),
-      ...elementResult,
-    };
-    filesCache.save(path, result, context.settings);
-    debugFileInfo(result);
-  }
+  // TODO: Calculate project path in Elements. Rename to relativePath.
+  const path = projectPath(context.filename, getRootPath(context.settings));
+  const result = filesDescriptor.describeFile(path);
+  debugFileInfo(result);
   return result;
 }

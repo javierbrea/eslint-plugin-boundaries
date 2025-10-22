@@ -3,16 +3,16 @@ import type { CapturedValues } from "@boundaries/elements";
 export type PathCapturedValues = string[];
 
 export type ElementInfo = {
-  elementPath: string;
+  elementPath?: string;
   type: string | null;
   category: string | null;
   parents: Pick<
     ElementInfo,
     "elementPath" | "type" | "capture" | "capturedValues" | "category"
   >[];
-  capture: string[] | null;
+  capture?: string[] | null;
   capturedValues: CapturedValues;
-  internalPath: string | null;
+  internalPath?: string | null;
 };
 
 export type ImportInfo = {
@@ -28,5 +28,5 @@ export type ImportInfo = {
 
 export type FileInfo = ElementInfo & {
   path: string;
-  isIgnored: boolean;
+  isIgnored?: boolean;
 };

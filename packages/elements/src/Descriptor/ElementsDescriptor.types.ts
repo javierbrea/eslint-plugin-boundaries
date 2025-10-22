@@ -6,7 +6,7 @@ export type CapturedValues = Record<string, string>;
 /**
  * Base element properties related to captured values
  */
-export type BaseElementCommons = {
+export type BaseElement = {
   /** Type of the element */
   type: string | null;
   /** Category of the element */
@@ -14,21 +14,27 @@ export type BaseElementCommons = {
   /** Absolute path of the file */
   path: string;
   /** Parent elements */
-  parents: LocalElementParent[];
-  /** Captured values from the element */
+  parents: LocalElementParent[]; // TODO: Remove from external, unknown, and ignored elements It is only useful for local elements
+  /** Captured values from the element */ // TODO: Move to base known element?
   capturedValues: CapturedValues;
 };
 
 /**
- * Description of an ignored element
+ * Description of an unknown element
  */
-export type IgnoredElement = BaseElementCommons & {
+export type UnknownElement = BaseElement & {
   /** Type of the element */
   type: null;
   /** Category of the element */
   category: null;
   /** Parent elements */
   parents: [];
+};
+
+/**
+ * Description of an ignored element
+ */
+export type IgnoredElement = UnknownElement & {
   /** Indicates if the file is ignored */
   isIgnored: true;
 };
@@ -36,17 +42,18 @@ export type IgnoredElement = BaseElementCommons & {
 /**
  * Base Element with only type
  */
-export type BaseElementWithType = BaseElementCommons & {
+export type BaseElementWithType = BaseElement & {
   /** Type of the element **/
   type: string;
   /** Category of the element */
   category: null;
+  // TODO: Add property for easier type checking
 };
 
 /**
  * Base Element with only category
  */
-export type BaseElementWithCategory = BaseElementCommons & {
+export type BaseElementWithCategory = BaseElement & {
   /** Category of the element */
   category: string;
   /** Type of the element **/
@@ -56,7 +63,7 @@ export type BaseElementWithCategory = BaseElementCommons & {
 /**
  * Base Element with type and category
  */
-export type BaseElementWithTypeAndCategory = BaseElementCommons & {
+export type BaseElementWithTypeAndCategory = BaseElement & {
   /** Category of the element */
   category: string;
   /** Type of the element **/
@@ -66,7 +73,7 @@ export type BaseElementWithTypeAndCategory = BaseElementCommons & {
 /**
  * Base description of an element
  */
-export type BaseElement =
+export type BaseKnownElement =
   | BaseElementWithType
   | BaseElementWithCategory
   | BaseElementWithTypeAndCategory;
@@ -74,7 +81,7 @@ export type BaseElement =
 /**
  * Description of a local element (file)
  */
-export type LocalElement = BaseElement & {
+export type LocalElement = BaseKnownElement & {
   /** Path of the element */
   elementPath: string;
   /** Internal path of the file relative to the elementPath */
@@ -113,7 +120,7 @@ export type DependencyKind =
 /**
  * Base description of a dependency
  */
-export type BaseDependencyElement = BaseElement & {
+export type BaseDependencyElement = BaseKnownElement & {
   /** Dependency source */
   source: string;
   /** Specifiers imported or exported from the dependency, if applicable */
@@ -158,6 +165,7 @@ export type DependencyElement =
  * Description of an element, either local or dependency
  */
 export type ElementDescription =
+  | UnknownElement
   | IgnoredElement
   | LocalElement
   | DependencyElement;

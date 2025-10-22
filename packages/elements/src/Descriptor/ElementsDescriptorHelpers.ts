@@ -12,7 +12,7 @@ import type {
   BaseElementWithType,
   BaseElementWithCategory,
   BaseElementWithTypeAndCategory,
-  BaseElement,
+  BaseKnownElement,
   LocalElement,
   LocalDependencyElement,
   ExternalDependencyElement,
@@ -26,6 +26,8 @@ import type {
   ElementDescriptor,
   DependencyKind,
   IgnoredElement,
+  UnknownElement,
+  BaseElement,
 } from "./ElementsDescriptor.types";
 import {
   ELEMENT_DESCRIPTOR_MODES_MAP,
@@ -99,6 +101,21 @@ export function isBaseElementWithTypeAndCategory(
  */
 export function isBaseElement(value: unknown): value is BaseElement {
   return (
+    isObjectWithProperty(value, "type") &&
+    isObjectWithProperty(value, "category") &&
+    isObjectWithProperty(value, "path") &&
+    isObjectWithProperty(value, "capturedValues") &&
+    isObject(value.capturedValues)
+  );
+}
+
+/**
+ * Determines if the value is a BaseElement
+ * @param value The value to check
+ * @returns True if the value is a valid BaseElement, false otherwise
+ */
+export function isBaseKnownElement(value: unknown): value is BaseKnownElement {
+  return (
     (isBaseElementWithType(value) ||
       isBaseElementWithCategory(value) ||
       isBaseElementWithTypeAndCategory(value)) &&
@@ -115,7 +132,15 @@ export function isBaseElement(value: unknown): value is BaseElement {
  * @returns True if the element is an ignored element, false otherwise.
  */
 export function isIgnoredElement(value: unknown): value is IgnoredElement {
-  return isObjectWithProperty(value, "isIgnored") && value.isIgnored === true;
+  return (
+    isBaseElement(value) &&
+    isObjectWithProperty(value, "isIgnored") &&
+    value.isIgnored === true
+  );
+}
+
+export function isUnknownElement(value: unknown): value is UnknownElement {
+  return isBaseElement(value) && isNull(value.type) && isNull(value.category);
 }
 
 /**
@@ -125,7 +150,7 @@ export function isIgnoredElement(value: unknown): value is IgnoredElement {
  */
 export function isLocalElement(value: unknown): value is LocalElement {
   return (
-    isBaseElement(value) &&
+    isBaseKnownElement(value) &&
     isObjectWithProperty(value, "elementPath") &&
     isString(value.elementPath)
   );
@@ -140,7 +165,7 @@ export function isDependencyElement(
   value: unknown,
 ): value is DependencyElement {
   return (
-    isBaseElement(value) &&
+    isBaseKnownElement(value) &&
     isObjectWithProperty(value, "source") &&
     isString(value.source)
   );

@@ -13,8 +13,9 @@ import type {
   ElementsDescriptorSerializedCache,
   LocalElement,
   IgnoredElement,
-  BaseElementCommons,
+  BaseElement,
   CapturedValues,
+  UnknownElement,
 } from "./ElementsDescriptor.types";
 import { ELEMENT_DESCRIPTOR_MODES_MAP } from "./ElementsDescriptor.types";
 import {
@@ -108,6 +109,7 @@ export class ElementsDescriptor {
    * @param partialDescription The partial description to extend.
    * @returns The extended description.
    */
+  // TODO: Remove this method and return specific properties in each case
   private _extendBaseDescription(
     // eslint-disable-next-line no-unused-vars
     partialDescription: Pick<IgnoredElement, "path" | "isIgnored">,
@@ -118,7 +120,7 @@ export class ElementsDescriptor {
       | LocalElement
       | DependencyElement,
   ): ElementDescription {
-    const defaults: Omit<BaseElementCommons, "path"> = {
+    const defaults: Omit<BaseElement, "path"> = {
       type: null,
       category: null,
       parents: [],
@@ -186,9 +188,9 @@ export class ElementsDescriptor {
    * @param elementPath The path of the element to describe.
    * @returns The description of the element.
    */
-  private _getLocalFileDescription(
+  private _getFileDescription(
     filePath: string,
-  ): LocalElement | IgnoredElement {
+  ): LocalElement | IgnoredElement | UnknownElement {
     if (!this._pathIsIncluded(filePath)) {
       return this._extendBaseDescription({
         path: filePath,
@@ -201,22 +203,23 @@ export class ElementsDescriptor {
     };
 
     interface State {
-      accumulator: string[];
-      lastSegmentMatching: number;
+      pathSegmentsAccumulator: string[];
+      lastPathSegmentMatching: number;
     }
 
     const state: State = {
-      accumulator: [],
-      lastSegmentMatching: 0,
+      pathSegmentsAccumulator: [],
+      lastPathSegmentMatching: 0,
     };
 
     const pathSegments = filePath.split("/").reverse();
 
+    // TODO: Move to a separate method or helper
     const matchElementPattern = (
       element: ElementDescriptor,
-      accumulator: string[],
+      currentPathSegments: string[],
       fullPath: string,
-      lastSegmentMatching: number,
+      lastPathSegmentMatching: number,
     ): {
       matched: boolean;
       capture?: string[];
@@ -245,7 +248,7 @@ export class ElementsDescriptor {
         if (element.basePattern) {
           const baseTarget = filePath
             .split("/")
-            .slice(0, filePath.split("/").length - lastSegmentMatching)
+            .slice(0, filePath.split("/").length - lastPathSegmentMatching)
             .join("/");
           baseCapture = micromatch.capture(
             [element.basePattern, "**", effectivePattern].join("/"),
@@ -256,7 +259,7 @@ export class ElementsDescriptor {
 
         const capture = micromatch.capture(
           effectivePattern,
-          useFullPathMatch ? fullPath : accumulator.join("/"),
+          useFullPathMatch ? fullPath : currentPathSegments.join("/"),
         );
 
         if (capture && hasCapture) {
@@ -276,7 +279,7 @@ export class ElementsDescriptor {
     const processElementMatch = (
       element: ElementDescriptor,
       matchInfo: NonNullable<ReturnType<typeof matchElementPattern>>,
-      accumulator: string[],
+      currentPathSegments: string[],
       elementPaths: string[],
     ) => {
       const { capture, baseCapture, useFullPathMatch, patternUsed } = matchInfo;
@@ -293,7 +296,7 @@ export class ElementsDescriptor {
 
       const elementPath = useFullPathMatch
         ? filePath
-        : this._getElementPath(patternUsed, accumulator, elementPaths);
+        : this._getElementPath(patternUsed, currentPathSegments, elementPaths);
 
       if (!elementResult.type && !elementResult.category) {
         // It is the main element
@@ -318,20 +321,25 @@ export class ElementsDescriptor {
 
     for (let i = 0; i < pathSegments.length; i++) {
       const segment = pathSegments[i];
-      state.accumulator.unshift(segment);
+      state.pathSegmentsAccumulator.unshift(segment);
 
       for (const element of this._elementDescriptors) {
         const match = matchElementPattern(
           element,
-          state.accumulator,
+          state.pathSegmentsAccumulator,
           filePath,
-          state.lastSegmentMatching,
+          state.lastPathSegmentMatching,
         );
 
         if (match.matched) {
-          processElementMatch(element, match, state.accumulator, pathSegments);
-          state.accumulator = [];
-          state.lastSegmentMatching = i + 1;
+          processElementMatch(
+            element,
+            match,
+            state.pathSegmentsAccumulator,
+            pathSegments,
+          );
+          state.pathSegmentsAccumulator = [];
+          state.lastPathSegmentMatching = i + 1;
           break;
         }
       }
@@ -340,9 +348,15 @@ export class ElementsDescriptor {
     const result = { ...elementResult, parents };
 
     if (!isLocalElement(result)) {
-      throw new Error(
-        `The file at path "${filePath}" could not be described as a local element.`,
-      );
+      // Not matched as any element, return unknown element
+      return {
+        ...result,
+        path: filePath,
+        type: null,
+        category: null,
+        parents: [],
+        capturedValues: {},
+      };
     }
 
     return result;
@@ -357,7 +371,7 @@ export class ElementsDescriptor {
     if (this._elementsCache.has(filePath)) {
       return this._elementsCache.get(filePath)!;
     }
-    const description = this._getLocalFileDescription(filePath);
+    const description = this._getFileDescription(filePath);
     this._elementsCache.set(filePath, description);
     return description;
   }
