@@ -110,6 +110,8 @@ export function isElementSelectorWithLegacyOptions(
     value.length === 2 &&
     (isSimpleElementSelectorByType(value[0]) ||
       isElementSelectorData(value[0])) &&
+    // Avoid confusing an array of selectors with length 2, with legacy options
+    !isElementSelectorData(value[1]) &&
     isCapturedValuesSelector(value[1])
   );
 }

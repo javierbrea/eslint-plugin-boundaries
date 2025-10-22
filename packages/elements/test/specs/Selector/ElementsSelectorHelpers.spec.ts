@@ -237,10 +237,19 @@ describe("elementsSelectorHelpers", () => {
     it("should return true for element selectors with options", () => {
       const elementSelectorWithOptions: ElementSelectorWithOptions = [
         "component",
-        { type: "button" },
+        { foo: "button" },
       ];
 
       expect(isElementSelector(elementSelectorWithOptions)).toBe(true);
+    });
+
+    it("should return false for elementsSelector with length 2", () => {
+      const elementSelectorWithOptions: ElementSelectorWithOptions = [
+        "component",
+        { type: "button" },
+      ];
+
+      expect(isElementSelector(elementSelectorWithOptions)).toBe(false);
     });
 
     it("should return false for invalid element selectors", () => {
@@ -275,7 +284,7 @@ describe("elementsSelectorHelpers", () => {
     it("should return true for arrays of element selectors", () => {
       const elementsSelector: ElementSelectors = [
         "component",
-        ["utils", { type: "helper" }],
+        ["utils", { foo: "helper" }],
       ];
 
       expect(isElementsSelector(elementsSelector)).toBe(true);
@@ -284,7 +293,7 @@ describe("elementsSelectorHelpers", () => {
     it("should return true for arrays with mixed element selector types", () => {
       const mixedElementsSelector = [
         "component",
-        ["utils", { type: "helper" }],
+        ["utils", { foo: "helper" }],
         "service",
       ];
 
