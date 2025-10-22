@@ -13,7 +13,7 @@ import {
 } from "./ElementsSelectorHelpers";
 
 /**
- * Matcher class to determine if elements match a given selector. TODO: Design its API and implement it.
+ * Matcher class to determine if elements match a given selector.
  */
 export class ElementsMatcher {
   /**
@@ -88,7 +88,7 @@ export class ElementsMatcher {
    * @param element The element to check.
    * @returns Whether the element matches the selector.
    */
-  // @ts-expect-error TODO: Implement the matching logic
+  // @ts-expect-error Matching logic not implemented yet
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,no-unused-vars
   public isMatch(element: ElementDescription): boolean {
     // TODO: Implement the matching logic

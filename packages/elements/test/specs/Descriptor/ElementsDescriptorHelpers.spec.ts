@@ -46,12 +46,10 @@ describe("elementHelpers", () => {
         category: null,
         type: "component",
         capturedValues: {},
-        capture: null,
         parents: [],
         path: "/src/components/Button.tsx",
         elementPath: "/src/components",
         internalPath: "Button.tsx",
-        isIgnored: false,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -62,12 +60,10 @@ describe("elementHelpers", () => {
         category: "react",
         type: null,
         capturedValues: {},
-        capture: null,
         parents: [],
         path: "/src/components/Button.tsx",
         elementPath: "/src/components",
         internalPath: "Button.tsx",
-        isIgnored: false,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -78,12 +74,10 @@ describe("elementHelpers", () => {
         category: "react",
         type: "component",
         capturedValues: {},
-        capture: null,
         parents: [],
         path: "/src/components/Button.tsx",
         elementPath: "/src/components",
         internalPath: "Button.tsx",
-        isIgnored: false,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -94,11 +88,11 @@ describe("elementHelpers", () => {
         category: null,
         type: "dependency",
         capturedValues: {},
-        capture: null,
         source: "react",
         specifiers: ["useState", "useEffect"],
         isExternal: true,
-        isLocal: false,
+        parents: [],
+        path: "foo",
         isBuiltIn: false,
         baseModule: "react",
         kind: "type",
@@ -130,22 +124,15 @@ describe("elementHelpers", () => {
     });
 
     it("should return false for objects that don't comply with type contract", () => {
-      // @ts-expect-error - Testing behavior
       expect(isLocalElement({})).toBe(false);
-      // @ts-expect-error - Testing behavior
       expect(isLocalElement({ isLocal: false })).toBe(false);
-      // @ts-expect-error - Testing behavior
       expect(isLocalElement(null)).toBe(false);
-      // @ts-expect-error - Testing behavior
       expect(isLocalElement(undefined)).toBe(false);
     });
 
     it("should return false for primitive values", () => {
-      // @ts-expect-error - Testing behavior
       expect(isLocalElement("string")).toBe(false);
-      // @ts-expect-error - Testing behavior
       expect(isLocalElement(123)).toBe(false);
-      // @ts-expect-error - Testing behavior
       expect(isLocalElement(true)).toBe(false);
     });
 
@@ -221,27 +208,21 @@ describe("elementHelpers", () => {
       });
 
       it("should return false for objects that don't comply with type contract", () => {
-        // @ts-expect-error Check type guards
         expect(isDependencyElement({})).toBe(false);
 
         expect(
-          // @ts-expect-error Check type guards
           isDependencyElement({
             source: undefined,
             capturedValues: {},
             capture: null,
           }),
         ).toBe(false);
-        // @ts-expect-error Check type guards
         expect(isDependencyElement(null)).toBe(false);
       });
 
       it("should return false for primitive values and edge cases", () => {
-        // @ts-expect-error Check type guards
         expect(isDependencyElement(undefined)).toBe(false);
-        // @ts-expect-error Check type guards
         expect(isDependencyElement("not-an-object")).toBe(false);
-        // @ts-expect-error Check type guards
         expect(isDependencyElement([])).toBe(false);
       });
 
@@ -337,13 +318,10 @@ describe("elementHelpers", () => {
         type: "component",
         category: null,
         capturedValues: {},
-        capture: null,
         parents: [],
         path: "/src/components/Button/index.ts",
         elementPath: "/src/components/Button",
         internalPath: "index.ts",
-        isIgnored: false,
-        isLocal: true,
         source: "./Button.component",
         specifiers: ["Button", "ButtonProps"],
         isExternal: false,
@@ -377,13 +355,15 @@ describe("elementHelpers", () => {
       const nonLocalDependency: ExternalDependencyElement = {
         type: null,
         category: "category",
-        capture: null,
         source: "lodash",
         specifiers: ["isEmpty", "merge"],
         isExternal: true,
         isBuiltIn: false,
         baseModule: "lodash",
-        isLocal: false,
+        path: "foo",
+        parents: [],
+        kind: "type",
+        nodeKind: "import",
       };
 
       expect(isLocalDependency(nonLocalDependency)).toBe(false);
@@ -394,39 +374,29 @@ describe("elementHelpers", () => {
         type: "dependency",
         category: null,
         capturedValues: {},
-        capture: null,
         source: "lodash",
         specifiers: ["isEmpty", "merge"],
         isExternal: true,
         isBuiltIn: false,
         baseModule: "lodash",
-        isLocal: false,
         kind: "type",
         nodeKind: "import",
+        path: "foo",
+        parents: [],
       };
 
       expect(isLocalDependency(nonLocalDependency)).toBe(false);
     });
 
     it("should return false for objects that don't comply with type contract", () => {
-      // @ts-expect-error - Testing behavior with invalid object
       expect(isLocalDependency({})).toBe(false);
-
-      // @ts-expect-error - Testing behavior with partial object
       expect(isLocalDependency({ path: undefined })).toBe(false);
-
-      // @ts-expect-error - Testing behavior with null
       expect(isLocalDependency(null)).toBe(false);
     });
 
     it("should return false for primitive values and invalid objects", () => {
-      // @ts-expect-error - Testing behavior with undefined
       expect(isLocalDependency(undefined)).toBe(false);
-
-      // @ts-expect-error - Testing behavior with primitive values
       expect(isLocalDependency(42)).toBe(false);
-
-      // @ts-expect-error - Testing behavior with object missing required properties
       expect(isLocalDependency({ source: "valid-source" })).toBe(false);
     });
 
@@ -444,7 +414,6 @@ describe("elementHelpers", () => {
         baseModule: "react",
       };
 
-      // @ts-expect-error - Testing behavior with missing path
       expect(isLocalDependency(dependencyButNotLocal)).toBe(false);
 
       // Test object that passes both but has isLocal set to false
@@ -452,12 +421,10 @@ describe("elementHelpers", () => {
         type: "test",
         category: null,
         capturedValues: {},
-        capture: null,
         parents: [],
         path: "/src/test.ts",
         elementPath: "/src",
         internalPath: "test.ts",
-        isIgnored: false,
       };
 
       // LocalElement is not a dependency, so should return false
@@ -495,7 +462,6 @@ describe("elementHelpers", () => {
         // Missing other properties, but these are the minimal requirements
       };
 
-      // @ts-expect-error - Testing behavior with minimal properties
       expect(isLocalDependency(minimalLocalDependency)).toBe(true);
     });
   });
@@ -506,15 +472,15 @@ describe("elementHelpers", () => {
         type: "dependency",
         category: null,
         capturedValues: {},
-        capture: null,
         source: "fs",
         specifiers: ["readFileSync", "writeFileSync"],
         isExternal: true,
         isBuiltIn: true,
         baseModule: "fs",
-        isLocal: false,
         kind: "type",
         nodeKind: "import",
+        path: "foo",
+        parents: [],
       };
 
       expect(isExternalDependency(externalDependency)).toBe(true);
@@ -543,13 +509,11 @@ describe("elementHelpers", () => {
       const externalDependency: ExternalDependencyElement = {
         type: "dependency",
         category: null,
-        capture: null,
         source: "fs",
         specifiers: ["readFileSync", "writeFileSync"],
         isExternal: true,
         isBuiltIn: true,
         baseModule: "fs",
-        isLocal: false,
       };
 
       expect(isExternalDependency(externalDependency)).toBe(false);
@@ -560,13 +524,10 @@ describe("elementHelpers", () => {
         type: "service",
         category: null,
         capturedValues: {},
-        capture: null,
         parents: [],
         path: "/src/services/api.ts",
         elementPath: "/src/services",
         internalPath: "api.ts",
-        isIgnored: false,
-        isLocal: true,
         isExternal: false,
         source: "../utils/http",
         specifiers: ["HttpClient"],
@@ -578,24 +539,14 @@ describe("elementHelpers", () => {
     });
 
     it("should return false for objects that don't comply with type contract", () => {
-      // @ts-expect-error - Testing behavior with invalid object
       expect(isExternalDependency({})).toBe(false);
-
-      // @ts-expect-error - Testing behavior with partial object
       expect(isExternalDependency({ isExternal: false })).toBe(false);
-
-      // @ts-expect-error - Testing behavior with null
       expect(isExternalDependency(null)).toBe(false);
     });
 
     it("should return false for primitive values and malformed objects", () => {
-      // @ts-expect-error - Testing behavior with undefined
       expect(isExternalDependency(undefined)).toBe(false);
-
-      // @ts-expect-error - Testing behavior with primitive values
       expect(isExternalDependency(false)).toBe(false);
-
-      // @ts-expect-error - Testing behavior with object missing critical properties
       expect(isExternalDependency({ isExternal: true })).toBe(false);
     });
 
@@ -612,7 +563,6 @@ describe("elementHelpers", () => {
         isLocal: false,
       };
 
-      // @ts-expect-error - Testing behavior with invalid baseModule
       expect(isExternalDependency(elementWithInvalidBaseModule)).toBe(false);
     });
 
@@ -630,7 +580,6 @@ describe("elementHelpers", () => {
         isLocal: true,
       };
 
-      // @ts-expect-error - Testing behavior with isExternal: false
       expect(isExternalDependency(dependencyButNotExternal)).toBe(false);
 
       // Test object that fails isDependencyElement check
@@ -644,7 +593,6 @@ describe("elementHelpers", () => {
         baseModule: "test",
       };
 
-      // @ts-expect-error - Testing behavior with null source
       expect(isExternalDependency(notADependency)).toBe(false);
 
       // Test object with valid isExternal but invalid baseModule type
@@ -660,7 +608,6 @@ describe("elementHelpers", () => {
         isLocal: false,
       };
 
-      // @ts-expect-error - Testing behavior with non-string baseModule
       expect(isExternalDependency(externalWithInvalidBaseModule)).toBe(false);
     });
 
@@ -675,7 +622,6 @@ describe("elementHelpers", () => {
         // Missing other properties, but these are the minimal requirements
       };
 
-      // @ts-expect-error - Testing behavior with minimal properties
       expect(isExternalDependency(minimalExternalDependency)).toBe(true);
     });
   });
@@ -686,12 +632,10 @@ describe("elementHelpers", () => {
         type: "component",
         category: null,
         capturedValues: {},
-        capture: null,
         parents: [],
         path: "/src/components/Header.tsx",
         elementPath: "/src/components",
         internalPath: "Header.tsx",
-        isIgnored: false,
       };
 
       expect(isElement(localElement)).toBe(true);
@@ -719,12 +663,10 @@ describe("elementHelpers", () => {
         type: "type",
         category: "category",
         capturedValues: {},
-        capture: null,
         parents: [],
         path: "/src/components/Header.tsx",
         elementPath: "/src/components",
         internalPath: "Header.tsx",
-        isIgnored: false,
       };
 
       expect(isElement(localElement)).toBe(true);
@@ -735,12 +677,10 @@ describe("elementHelpers", () => {
       const localElement: LocalElement = {
         type: null,
         category: "category",
-        capture: null,
         parents: [],
         path: "/src/components/Header.tsx",
         elementPath: "/src/components",
         internalPath: "Header.tsx",
-        isIgnored: false,
       };
 
       expect(isElement(localElement)).toBe(false);
@@ -751,11 +691,11 @@ describe("elementHelpers", () => {
         type: "dependency",
         category: null,
         capturedValues: {},
-        capture: null,
+        path: "foo",
+        parents: [],
         source: "lodash",
         specifiers: ["map", "filter"],
         isExternal: true,
-        isLocal: false,
         isBuiltIn: false,
         baseModule: "lodash",
         kind: "type",
@@ -770,13 +710,10 @@ describe("elementHelpers", () => {
         type: "utils",
         category: null,
         capturedValues: {},
-        capture: null,
         parents: [],
         path: "/src/utils/math.ts",
         elementPath: "/src/utils",
         internalPath: "math.ts",
-        isIgnored: false,
-        isLocal: true,
         source: "./constants",
         specifiers: ["PI", "E"],
         isExternal: false,

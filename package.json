@@ -1,5 +1,5 @@
 {
-  "name": "@boundaries/repo",
+  "name": "@boundaries/workspace",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -13,6 +13,7 @@
     "lint": "eslint *.* .vscode scripts --no-warn-ignored",
     "lint:staged": "lint-staged",
     "prepare": "husky",
+    "check:all": "nx run-many -t check:all --all",
     "check:spell": "cspell --quiet *.* .vscode/*.* .husky/*.* .github/**/*.* docs/**/*.* scripts/**/*.*"
   },
   "devDependencies": {
@@ -35,7 +36,7 @@
     "*.*": "cspell --no-must-find-files"
   },
   "engines": {
-    "node": ">=18",
+    "node": ">=20",
     "pnpm": ">=9"
   }
 }

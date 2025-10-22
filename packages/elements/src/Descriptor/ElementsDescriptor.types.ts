@@ -6,20 +6,37 @@ export type CapturedValues = Record<string, string>;
 /**
  * Base element properties related to captured values
  */
-export type BaseElementCapture = {
+export type BaseElementCommons = {
+  /** Type of the element */
+  type: string | null;
+  /** Category of the element */
+  category: string | null;
+  /** Absolute path of the file */
+  path: string;
+  /** Parent elements */
+  parents: LocalElementParent[];
   /** Captured values from the element */
   capturedValues: CapturedValues;
-  /**
-   * Capture groups from the element path
-   * @deprecated This should be get from configuration if needed
-   */
-  capture: string[] | null;
+};
+
+/**
+ * Description of an ignored element
+ */
+export type IgnoredElement = BaseElementCommons & {
+  /** Type of the element */
+  type: null;
+  /** Category of the element */
+  category: null;
+  /** Parent elements */
+  parents: [];
+  /** Indicates if the file is ignored */
+  isIgnored: true;
 };
 
 /**
  * Base Element with only type
  */
-export type BaseElementWithType = BaseElementCapture & {
+export type BaseElementWithType = BaseElementCommons & {
   /** Type of the element **/
   type: string;
   /** Category of the element */
@@ -29,7 +46,7 @@ export type BaseElementWithType = BaseElementCapture & {
 /**
  * Base Element with only category
  */
-export type BaseElementWithCategory = BaseElementCapture & {
+export type BaseElementWithCategory = BaseElementCommons & {
   /** Category of the element */
   category: string;
   /** Type of the element **/
@@ -39,7 +56,7 @@ export type BaseElementWithCategory = BaseElementCapture & {
 /**
  * Base Element with type and category
  */
-export type BaseElementWithTypeAndCategory = BaseElementCapture & {
+export type BaseElementWithTypeAndCategory = BaseElementCommons & {
   /** Category of the element */
   category: string;
   /** Type of the element **/
@@ -58,17 +75,16 @@ export type BaseElement =
  * Description of a local element (file)
  */
 export type LocalElement = BaseElement & {
-  /** Parent elements */
-  parents: BaseElement[];
-  /** Absolute path of the file */
-  path: string;
   /** Path of the element */
   elementPath: string;
   /** Internal path of the file relative to the elementPath */
   internalPath: string;
-  /** Indicates if the file is ignored */
-  isIgnored: boolean;
 };
+
+export type LocalElementParent = Pick<
+  LocalElement,
+  "type" | "category" | "elementPath" | "capturedValues"
+>;
 
 export const DEPENDENCY_KIND_TYPE = "type" as const;
 export const DEPENDENCY_KIND_VALUE = "value" as const;
@@ -102,14 +118,12 @@ export type BaseDependencyElement = BaseElement & {
   source: string;
   /** Specifiers imported or exported from the dependency, if applicable */
   specifiers: string[] | null;
-  /** Indicates if the dependency is local */
-  isLocal: boolean;
-  /** Indicates if the dependency is external */
-  isExternal: boolean;
   /** Kind of the dependency, either type or value */
   kind: DependencyKind;
   /** Node kind of the dependency (e.g. "import", "dynamic-import", "export", "require", etc.) */
   nodeKind: string;
+  /** Indicates if the dependency is external */
+  isExternal: boolean;
 };
 
 /**
@@ -117,8 +131,6 @@ export type BaseDependencyElement = BaseElement & {
  */
 export type LocalDependencyElement = LocalElement &
   BaseDependencyElement & {
-    /** Indicates if the dependency is local */
-    isLocal: true;
     /** Indicates if the dependency is external */
     isExternal: false;
   };
@@ -127,14 +139,12 @@ export type LocalDependencyElement = LocalElement &
  * Description of an external dependency
  */
 export type ExternalDependencyElement = BaseDependencyElement & {
-  /** Indicates if the dependency is external */
-  isExternal: true;
-  /** Indicates if the dependency is local */
-  isLocal: false;
   /** Indicates if the dependency is a Node.js built-in module */
   isBuiltIn: boolean;
   /** Base module of the dependency */
   baseModule: string;
+  /** Indicates that the dependency is external */
+  isExternal: true;
 };
 
 /**
@@ -147,7 +157,10 @@ export type DependencyElement =
 /**
  * Description of an element, either local or dependency
  */
-export type ElementDescription = LocalElement | DependencyElement;
+export type ElementDescription =
+  | IgnoredElement
+  | LocalElement
+  | DependencyElement;
 
 /**
  * Map of the modes to interpret the pattern in an ElementDescriptor.
@@ -251,3 +264,11 @@ export type ElementDescriptor =
  * Array of element descriptors.
  */
 export type ElementDescriptors = ElementDescriptor[];
+
+/**
+ * Serialized cache of element descriptions.
+ */
+export type ElementsDescriptorSerializedCache = Record<
+  string,
+  ElementDescription
+>;

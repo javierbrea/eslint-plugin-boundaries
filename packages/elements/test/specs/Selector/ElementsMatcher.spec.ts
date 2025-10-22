@@ -10,11 +10,9 @@ describe("elementsMatcher", () => {
         type: "foo-type",
         category: null,
         capturedValues: {},
-        capture: null,
         path: "/src/test.ts",
         elementPath: "/src",
         internalPath: "test.ts",
-        isIgnored: false,
         parents: [],
       }),
     ).toBe(true);

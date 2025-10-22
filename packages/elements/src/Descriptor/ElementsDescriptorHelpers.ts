@@ -1,5 +1,4 @@
 import {
-  isNullish,
   isString,
   isObjectWithProperty,
   isArray,
@@ -26,6 +25,7 @@ import type {
   ElementDescriptorWithTypeAndCategory,
   ElementDescriptor,
   DependencyKind,
+  IgnoredElement,
 } from "./ElementsDescriptor.types";
 import {
   ELEMENT_DESCRIPTOR_MODES_MAP,
@@ -99,72 +99,80 @@ export function isBaseElementWithTypeAndCategory(
  */
 export function isBaseElement(value: unknown): value is BaseElement {
   return (
-    isObjectWithProperty(value, "capturedValues") &&
-    isObject(value.capturedValues) &&
     (isBaseElementWithType(value) ||
       isBaseElementWithCategory(value) ||
-      isBaseElementWithTypeAndCategory(value))
+      isBaseElementWithTypeAndCategory(value)) &&
+    isObjectWithProperty(value, "path") &&
+    isString(value.path) &&
+    isObjectWithProperty(value, "capturedValues") &&
+    isObject(value.capturedValues)
   );
 }
 
 /**
- * Determines if the given element is a local element.
+ * Determines if the given value is an ignored element.
  * @param value The element to check.
+ * @returns True if the element is an ignored element, false otherwise.
+ */
+export function isIgnoredElement(value: unknown): value is IgnoredElement {
+  return isObjectWithProperty(value, "isIgnored") && value.isIgnored === true;
+}
+
+/**
+ * Determines if the given value is a local element.
+ * @param value The value to check.
  * @returns True if the value is a local element, false otherwise.
  */
-export function isLocalElement(
-  element: ElementDescription,
-): element is LocalElement {
+export function isLocalElement(value: unknown): value is LocalElement {
   return (
-    isBaseElement(element) &&
-    isObjectWithProperty(element, "path") &&
-    isString(element.path)
+    isBaseElement(value) &&
+    isObjectWithProperty(value, "elementPath") &&
+    isString(value.elementPath)
   );
 }
 
 /**
- * Determines if the given element is a dependency element.
- * @param element The element to check.
+ * Determines if the given value is a dependency element.
+ * @param value The element to check.
  * @returns True if the element is a dependency element, false otherwise.
  */
 export function isDependencyElement(
-  element: ElementDescription,
-): element is DependencyElement {
+  value: unknown,
+): value is DependencyElement {
   return (
-    isBaseElement(element) &&
-    isObjectWithProperty(element, "source") &&
-    !isNullish(element.source)
+    isBaseElement(value) &&
+    isObjectWithProperty(value, "source") &&
+    isString(value.source)
   );
 }
 
 /**
- * Determines if the given element is a local dependency.
- * @param element The element to check.
+ * Determines if the given value is a local dependency.
+ * @param value The value to check.
  * @returns True if the element is a local dependency, false otherwise.
  */
 export function isLocalDependency(
-  element: ElementDescription,
-): element is LocalDependencyElement {
+  value: unknown,
+): value is LocalDependencyElement {
   return (
-    isDependencyElement(element) &&
-    isLocalElement(element) &&
-    isObjectWithProperty(element, "isLocal") &&
-    element.isLocal === true
+    isLocalElement(value) &&
+    isDependencyElement(value) &&
+    value.isExternal === false
   );
 }
 
 /**
- * Determines if the given element is an external dependency.
- * @param element The element to check.
+ * Determines if the given value is an external element.
+ * @param value The value to check.
  * @returns True if the element is an external dependency, false otherwise.
  */
 export function isExternalDependency(
-  element: ElementDescription,
-): element is ExternalDependencyElement {
+  value: unknown,
+): value is ExternalDependencyElement {
   return (
-    isDependencyElement(element) &&
-    element.isExternal === true &&
-    isString((element as ExternalDependencyElement).baseModule)
+    isDependencyElement(value) &&
+    value.isExternal === true &&
+    isString((value as ExternalDependencyElement).baseModule)
   );
 }
 
@@ -175,6 +183,7 @@ export function isExternalDependency(
  */
 export function isElement(value: unknown): value is ElementDescription {
   return (
+    isIgnoredElement(value as ElementDescription) ||
     isLocalElement(value as ElementDescription) ||
     isDependencyElement(value as ElementDescription)
   );
