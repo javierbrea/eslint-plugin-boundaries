@@ -6,14 +6,12 @@ import { Config } from "../Config";
 import { isArray } from "../Support";
 
 import type {
-  DependencyElement,
   ElementDescription,
   ElementDescriptor,
   ElementDescriptors,
   ElementsDescriptorSerializedCache,
   LocalElement,
   IgnoredElement,
-  BaseElement,
   CapturedValues,
   UnknownElement,
 } from "./ElementsDescriptor.types";
@@ -44,6 +42,7 @@ export class ElementsDescriptor {
 
   /**
    * The configuration options for this descriptor.
+   * @param elementDescriptors The element descriptors.
    * @param configOptions The configuration options.
    */
   constructor(
@@ -105,35 +104,6 @@ export class ElementsDescriptor {
   }
 
   /**
-   * Extends a partial description with default values for unknown elements.
-   * @param partialDescription The partial description to extend.
-   * @returns The extended description.
-   */
-  // TODO: Remove this method and return specific properties in each case
-  private _extendBaseDescription(
-    // eslint-disable-next-line no-unused-vars
-    partialDescription: Pick<IgnoredElement, "path" | "isIgnored">,
-  ): IgnoredElement;
-  private _extendBaseDescription(
-    partialDescription:
-      | Pick<IgnoredElement, "path" | "isIgnored">
-      | LocalElement
-      | DependencyElement,
-  ): ElementDescription {
-    const defaults: Omit<BaseElement, "path"> = {
-      type: null,
-      category: null,
-      parents: [],
-      capturedValues: {},
-    };
-
-    return {
-      ...defaults,
-      ...partialDescription,
-    } as ElementDescription;
-  }
-
-  /**
    * Gets captured values from the captured array and capture configuration.
    * @param captured The array of captured strings.
    * @param captureConfig The configuration for capturing values.
@@ -183,6 +153,84 @@ export class ElementsDescriptor {
     }
     return `${[...allPathSegments].reverse().join("/").split(result)[0]}${result}`;
   }
+
+  /**
+   * Determines if an element descriptor matches the given parameters in the provided path.
+   * @param options The options for matching the descriptor.
+   * @returns The result of the match, including whether it matched and any captured values.
+   */
+  private _descriptorMatch = ({
+    elementDescriptor,
+    filePath,
+    currentPathSegments,
+    lastPathSegmentMatching,
+    alreadyMatched,
+  }: {
+    /** The element descriptor to match. */
+    elementDescriptor: ElementDescriptor;
+    /** The file path to match against the descriptor */
+    filePath: string;
+    /** The current path segments leading to the element */
+    currentPathSegments: string[];
+    /** The last path segment that was matched */
+    lastPathSegmentMatching: number;
+    /** Whether the element matched previously */
+    alreadyMatched: boolean;
+  }): {
+    matched: boolean;
+    capture?: string[];
+    baseCapture?: string[] | null;
+    useFullPathMatch?: boolean;
+    patternUsed?: string;
+  } => {
+    const mode = isElementDescriptorMode(elementDescriptor.mode)
+      ? elementDescriptor.mode
+      : ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
+    const patterns = isArray(elementDescriptor.pattern)
+      ? elementDescriptor.pattern
+      : [elementDescriptor.pattern];
+
+    for (const pattern of patterns) {
+      const useFullPathMatch =
+        mode === ELEMENT_DESCRIPTOR_MODES_MAP.FULL && !alreadyMatched;
+      const effectivePattern =
+        mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER && !alreadyMatched
+          ? `${pattern}/**/*`
+          : pattern;
+
+      let baseCapture: string[] | null = null;
+      let hasCapture = true;
+
+      if (elementDescriptor.basePattern) {
+        const baseTarget = filePath
+          .split("/")
+          .slice(0, filePath.split("/").length - lastPathSegmentMatching)
+          .join("/");
+        baseCapture = micromatch.capture(
+          [elementDescriptor.basePattern, "**", effectivePattern].join("/"),
+          baseTarget,
+        );
+        hasCapture = baseCapture !== null;
+      }
+
+      const capture = micromatch.capture(
+        effectivePattern,
+        useFullPathMatch ? filePath : currentPathSegments.join("/"),
+      );
+
+      if (capture && hasCapture) {
+        return {
+          matched: true,
+          capture,
+          baseCapture,
+          useFullPathMatch,
+          patternUsed: pattern,
+        };
+      }
+    }
+
+    return { matched: false };
+  };
   /**
    * Retrieves the description of an element given its path.
    * @param elementPath The path of the element to describe.
@@ -192,10 +240,14 @@ export class ElementsDescriptor {
     filePath: string,
   ): LocalElement | IgnoredElement | UnknownElement {
     if (!this._pathIsIncluded(filePath)) {
-      return this._extendBaseDescription({
+      return {
+        type: null,
+        category: null,
+        parents: [],
+        capturedValues: {},
         path: filePath,
         isIgnored: true,
-      });
+      };
     }
     const parents: LocalElement["parents"] = [];
     const elementResult: Partial<LocalElement> = {
@@ -214,82 +266,26 @@ export class ElementsDescriptor {
 
     const pathSegments = filePath.split("/").reverse();
 
-    // TODO: Move to a separate method or helper
-    const matchElementPattern = (
-      element: ElementDescriptor,
-      currentPathSegments: string[],
-      fullPath: string,
-      lastPathSegmentMatching: number,
-    ): {
-      matched: boolean;
-      capture?: string[];
-      baseCapture?: string[] | null;
-      useFullPathMatch?: boolean;
-      patternUsed?: string;
-    } => {
-      const mode = isElementDescriptorMode(element.mode)
-        ? element.mode
-        : ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
-      const patterns = isArray(element.pattern)
-        ? element.pattern
-        : [element.pattern];
-
-      for (const pattern of patterns) {
-        const useFullPathMatch =
-          mode === ELEMENT_DESCRIPTOR_MODES_MAP.FULL && !elementResult.type;
-        const effectivePattern =
-          mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER && !elementResult.type
-            ? `${pattern}/**/*`
-            : pattern;
-
-        let baseCapture: string[] | null = null;
-        let hasCapture = true;
-
-        if (element.basePattern) {
-          const baseTarget = filePath
-            .split("/")
-            .slice(0, filePath.split("/").length - lastPathSegmentMatching)
-            .join("/");
-          baseCapture = micromatch.capture(
-            [element.basePattern, "**", effectivePattern].join("/"),
-            baseTarget,
-          );
-          hasCapture = baseCapture !== null;
-        }
-
-        const capture = micromatch.capture(
-          effectivePattern,
-          useFullPathMatch ? fullPath : currentPathSegments.join("/"),
-        );
-
-        if (capture && hasCapture) {
-          return {
-            matched: true,
-            capture,
-            baseCapture,
-            useFullPathMatch,
-            patternUsed: pattern,
-          };
-        }
-      }
-
-      return { matched: false };
-    };
-
     const processElementMatch = (
-      element: ElementDescriptor,
-      matchInfo: NonNullable<ReturnType<typeof matchElementPattern>>,
+      elementDescriptor: ElementDescriptor,
+      matchInfo: NonNullable<ReturnType<typeof this._descriptorMatch>>,
       currentPathSegments: string[],
       elementPaths: string[],
     ) => {
       const { capture, baseCapture, useFullPathMatch, patternUsed } = matchInfo;
       if (!capture || !patternUsed) return;
 
-      let capturedValues = this._getCapturedValues(capture, element.capture);
+      let capturedValues = this._getCapturedValues(
+        capture,
+        elementDescriptor.capture,
+      );
 
-      if (element.basePattern && baseCapture) {
+      if (elementDescriptor.basePattern && baseCapture) {
         capturedValues = {
-          ...this._getCapturedValues(baseCapture, element.baseCapture),
+          ...this._getCapturedValues(
+            baseCapture,
+            elementDescriptor.baseCapture,
+          ),
           ...capturedValues,
         };
       }
@@ -299,20 +295,22 @@ export class ElementsDescriptor {
         : this._getElementPath(patternUsed, currentPathSegments, elementPaths);
 
       if (!elementResult.type && !elementResult.category) {
+        const mode =
+          elementDescriptor.mode || ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
         // It is the main element
-        elementResult.type = element.type || null;
-        elementResult.category = element.category || null;
+        elementResult.type = elementDescriptor.type || null;
+        elementResult.category = elementDescriptor.category || null;
         elementResult.elementPath = elementPath;
         elementResult.capturedValues = capturedValues;
         elementResult.internalPath =
-          element.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER
+          mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER
             ? filePath.replace(`${elementPath}/`, "")
             : elementPath.split("/").pop();
       } else {
         // It is a parent element, because we have already matched the main one
         parents.push({
-          type: element.type || null,
-          category: element.category || null,
+          type: elementDescriptor.type || null,
+          category: elementDescriptor.category || null,
           elementPath,
           capturedValues,
         });
@@ -323,17 +321,19 @@ export class ElementsDescriptor {
       const segment = pathSegments[i];
       state.pathSegmentsAccumulator.unshift(segment);
 
-      for (const element of this._elementDescriptors) {
-        const match = matchElementPattern(
-          element,
-          state.pathSegmentsAccumulator,
+      for (const elementDescriptor of this._elementDescriptors) {
+        const match = this._descriptorMatch({
+          elementDescriptor,
           filePath,
-          state.lastPathSegmentMatching,
-        );
+          currentPathSegments: state.pathSegmentsAccumulator,
+          lastPathSegmentMatching: state.lastPathSegmentMatching,
+          alreadyMatched:
+            Boolean(elementResult.type) || Boolean(elementResult.category),
+        });
 
         if (match.matched) {
           processElementMatch(
-            element,
+            elementDescriptor,
             match,
             state.pathSegmentsAccumulator,
             pathSegments,

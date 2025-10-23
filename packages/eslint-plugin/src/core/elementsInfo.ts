@@ -1,9 +1,6 @@
 import mod from "module";
 
-import type {
-  CapturedValues,
-  ElementDescriptorMode,
-} from "@boundaries/elements";
+import type { ElementsDescriptor } from "@boundaries/elements";
 import { Elements } from "@boundaries/elements";
 import type { Rule } from "eslint";
 import resolve from "eslint-module-utils/resolve";
@@ -18,13 +15,24 @@ import type { Settings } from "../constants/settings";
 import { SETTINGS } from "../constants/settings";
 import { debugFileInfo } from "../helpers/debug";
 import { getElements, getRootPath } from "../helpers/settings";
-import { isArray } from "../helpers/utils";
 
 import { importsCache, elementsCache } from "./cache";
 
-const { IGNORE, INCLUDE, VALID_MODES } = SETTINGS;
+const { IGNORE, INCLUDE } = SETTINGS;
 
 const elements = new Elements();
+
+function getElementsDescriptor(context: Rule.RuleContext): ElementsDescriptor {
+  const elementsDescriptor = elements.getDescriptor(
+    getElements(context.settings),
+    {
+      ignorePaths: context.settings[SETTINGS.IGNORE] as string[],
+      includePaths: context.settings[SETTINGS.INCLUDE] as string[],
+      rootPath: getRootPath(context.settings),
+    },
+  );
+  return elementsDescriptor;
+}
 
 function isCoreModule(moduleName: string) {
   const moduleNameWithoutPrefix = moduleName.startsWith("node:")
@@ -78,173 +86,6 @@ function isExternal(name: string, path: string | undefined): boolean {
     (!path || (!!path && path.includes("node_modules"))) &&
       (externalModuleRegExp.test(name) || isScoped(name)),
   );
-}
-
-function elementCaptureValues(
-  capture: string[],
-  captureSettings: string[] | undefined,
-): CapturedValues | null {
-  if (!captureSettings) {
-    return null;
-  }
-  return capture.reduce((captureValues, captureValue, index) => {
-    if (captureSettings[index]) {
-      captureValues[captureSettings[index]] = captureValue;
-    }
-    return captureValues;
-  }, {} as CapturedValues);
-}
-
-function getElementPath(
-  pattern: string,
-  pathSegmentsMatching: string[],
-  fullPath: string[],
-) {
-  // Get full left side of the path matching pattern (full element path except internal files)
-  const elementPathRegexp = micromatch.makeRe(pattern);
-  const testedSegments: string[] = [];
-  let result: string | undefined;
-  pathSegmentsMatching.forEach((pathSegment) => {
-    if (!result) {
-      testedSegments.push(pathSegment);
-      const joinedSegments = testedSegments.join("/");
-      if (elementPathRegexp.test(joinedSegments)) {
-        result = joinedSegments;
-      }
-    }
-  });
-  if (!result) {
-    return [...fullPath].reverse().join("/");
-  }
-  return `${[...fullPath].reverse().join("/").split(result)[0]}${result}`;
-}
-
-function isValidMode(mode: string | undefined): mode is ElementDescriptorMode {
-  return VALID_MODES.includes(mode as ElementDescriptorMode);
-}
-
-function elementTypeAndParents(path: string, settings: Settings): ElementInfo {
-  const parents: ElementInfo["parents"] = [];
-  const elementResult: ElementInfo = {
-    type: null,
-    category: null,
-    elementPath: "",
-    capture: null,
-    capturedValues: {},
-    internalPath: null,
-    parents: [],
-  };
-
-  if (isIgnored(path, settings)) {
-    return {
-      ...elementResult,
-      parents,
-    };
-  }
-
-  const result: {
-    accumulator: string[];
-    lastSegmentMatching: number;
-  } = {
-    accumulator: [],
-    lastSegmentMatching: 0,
-  };
-
-  path
-    .split("/")
-    .reverse()
-    .reduce(
-      (
-        { accumulator, lastSegmentMatching },
-        elementPathSegment,
-        segmentIndex,
-        elementPaths,
-      ) => {
-        accumulator.unshift(elementPathSegment);
-        let elementFound = false;
-        getElements(settings).forEach((element) => {
-          const typeOfMatch = isValidMode(element.mode)
-            ? element.mode
-            : VALID_MODES[0];
-          const elementPatterns = isArray(element.pattern)
-            ? element.pattern
-            : [element.pattern];
-          elementPatterns.forEach((elementPattern) => {
-            if (!elementFound) {
-              const useFullPathMatch =
-                typeOfMatch === VALID_MODES[2] && !elementResult.type;
-              const pattern =
-                typeOfMatch === VALID_MODES[0] && !elementResult.type
-                  ? `${elementPattern}/**/*`
-                  : elementPattern;
-              let hasCapture = true;
-              let basePatternCapture: string[] | null = null;
-
-              if (element.basePattern) {
-                basePatternCapture = micromatch.capture(
-                  [element.basePattern, "**", pattern].join("/"),
-                  path
-                    .split("/")
-                    .slice(0, path.split("/").length - lastSegmentMatching)
-                    .join("/"),
-                );
-                hasCapture = basePatternCapture !== null;
-              }
-              const capture = micromatch.capture(
-                pattern,
-                useFullPathMatch ? path : accumulator.join("/"),
-              );
-
-              if (capture && hasCapture) {
-                elementFound = true;
-                lastSegmentMatching = segmentIndex + 1;
-                let capturedValues =
-                  elementCaptureValues(capture, element.capture) || {};
-                if (element.basePattern && basePatternCapture) {
-                  capturedValues = {
-                    ...elementCaptureValues(
-                      basePatternCapture,
-                      element.baseCapture,
-                    ),
-                    ...capturedValues,
-                  };
-                }
-                const elementPath = useFullPathMatch
-                  ? path
-                  : getElementPath(elementPattern, accumulator, elementPaths);
-                accumulator = [];
-                if (!elementResult.type && !elementResult.category) {
-                  elementResult.type = element.type || null;
-                  elementResult.category = element.category || null;
-                  elementResult.elementPath = elementPath;
-                  elementResult.capture = capture;
-                  elementResult.capturedValues = capturedValues;
-                  elementResult.internalPath =
-                    typeOfMatch === VALID_MODES[0]
-                      ? path.replace(`${elementPath}/`, "")
-                      : elementPath.split("/").pop() || null;
-                } else {
-                  parents.push({
-                    type: element.type || null,
-                    category: element.category || null,
-                    elementPath: elementPath,
-                    capture: capture,
-                    capturedValues: capturedValues,
-                  });
-                }
-              }
-            }
-          });
-        });
-        return { accumulator, lastSegmentMatching };
-      },
-      result,
-    );
-
-  return {
-    ...elementResult,
-    parents,
-  };
 }
 
 function replacePathSlashes(absolutePath: string) {
@@ -301,20 +142,20 @@ export function importInfo(
     if (elementCache) {
       elementResult = elementCache as ElementInfo;
     } else {
-      // TODO: Use elements from @boundaries/elements
-      elementResult = elementTypeAndParents(pathToUse, context.settings);
+      const elementsDescriptor = getElementsDescriptor(context);
+      elementResult = elementsDescriptor.describeFile(pathToUse);
       elementsCache.save(pathToUse, elementResult, context.settings);
     }
 
     result = {
       source,
-      path: pathToUse,
       isIgnored: !isExternalModule && isIgnored(pathToUse, context.settings),
       isLocal: !isExternalModule && !isBuiltInModule,
       isBuiltIn: isBuiltInModule,
       isExternal: isExternalModule,
       baseModule: baseModuleValue,
       ...elementResult,
+      path: pathToUse,
     };
 
     importsCache.save(path, result, context.settings);
@@ -327,17 +168,10 @@ export function importInfo(
 }
 
 export function fileInfo(context: Rule.RuleContext): FileInfo {
-  const filesDescriptor = elements.getDescriptor(
-    getElements(context.settings),
-    {
-      ignorePaths: context.settings[SETTINGS.IGNORE] as string[],
-      includePaths: context.settings[SETTINGS.INCLUDE] as string[],
-      rootPath: getRootPath(context.settings),
-    },
-  );
+  const elementsDescriptor = getElementsDescriptor(context);
   // TODO: Calculate project path in Elements. Rename to relativePath.
   const path = projectPath(context.filename, getRootPath(context.settings));
-  const result = filesDescriptor.describeFile(path);
+  const result = elementsDescriptor.describeFile(path);
   debugFileInfo(result);
   return result;
 }
