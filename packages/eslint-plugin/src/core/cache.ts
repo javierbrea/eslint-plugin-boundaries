@@ -58,6 +58,4 @@ class CachesManager {
   }
 }
 
-export const filesCache = new CachesManager("file");
-export const importsCache = new CachesManager("import");
 export const elementsCache = new CachesManager("element");

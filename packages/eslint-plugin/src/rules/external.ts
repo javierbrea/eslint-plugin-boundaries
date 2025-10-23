@@ -250,7 +250,7 @@ export default dependencyRule<ExternalRuleOptions>(
     }),
   },
   function ({ dependency, file, node, context, options }) {
-    if (dependency.isExternal) {
+    if (dependency.isExternal || dependency.isBuiltIn) {
       const ruleData = elementRulesAllowExternalDependency(
         file,
         { ...dependency, specifiers: getSpecifiers(node) },

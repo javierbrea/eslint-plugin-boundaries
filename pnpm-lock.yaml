@@ -56,6 +56,9 @@ importers:
       eslint-module-utils:
         specifier: 2.12.1
         version: 2.12.1(@typescript-eslint/parser@8.46.0(eslint@9.37.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@4.4.4(eslint-plugin-import@2.32.0)(eslint@9.37.0))(eslint@9.37.0)
+      is-core-module:
+        specifier: 2.16.1
+        version: 2.16.1
       micromatch:
         specifier: 4.0.8
         version: 4.0.8
@@ -66,6 +69,9 @@ importers:
       '@types/estree':
         specifier: 1.0.8
         version: 1.0.8
+      '@types/is-core-module':
+        specifier: 2.2.2
+        version: 2.2.2
       '@types/micromatch':
         specifier: 4.0.9
         version: 4.0.9
@@ -1575,6 +1581,9 @@ packages:
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
+
+  '@types/is-core-module@2.2.2':
+    resolution: {integrity: sha512-ht+SC4Z4M1WOSaGweZ052H51lNGErPltoQiCRMvlPUUxAx5fuNAk9f6oqFjxGH2ViBSjdGVUwOwpT9YNsDjFLQ==}
 
   '@types/istanbul-lib-coverage@2.0.6':
     resolution: {integrity: sha512-2QF/t/auWm0lsy8XtKVPG19v3sSOQlJe/YHZgfjb/KBBHOGSV+J2q/S671rcq9uTBrLAXmZpqJiaQbMT+zNU1w==}
@@ -5824,6 +5833,8 @@ snapshots:
       '@types/ms': 2.1.0
 
   '@types/estree@1.0.8': {}
+
+  '@types/is-core-module@2.2.2': {}
 
   '@types/istanbul-lib-coverage@2.0.6': {}
 

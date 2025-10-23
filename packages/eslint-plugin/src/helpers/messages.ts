@@ -206,7 +206,7 @@ export function customErrorMessage(
       "from.parent",
     );
   }
-  if (dependency.parents[0]) {
+  if (dependency.parents?.[0]) {
     replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(dependency.parents[0]),

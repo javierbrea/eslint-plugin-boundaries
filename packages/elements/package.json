@@ -58,6 +58,7 @@
   "dependencies": {
     "eslint-import-resolver-node": "0.3.9",
     "eslint-module-utils": "2.12.1",
+    "is-core-module": "2.16.1",
     "micromatch": "4.0.8",
     "object-hash": "3.0.0"
   },
@@ -66,6 +67,7 @@
   },
   "devDependencies": {
     "@types/estree": "1.0.8",
+    "@types/is-core-module": "2.2.2",
     "@types/micromatch": "4.0.9",
     "@types/object-hash": "3.0.6",
     "path-browserify": "1.0.1",

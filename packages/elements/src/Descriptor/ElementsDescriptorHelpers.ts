@@ -11,8 +11,7 @@ import type {
   BaseElementWithType,
   BaseElementWithCategory,
   BaseElementWithTypeAndCategory,
-  BaseKnownElement,
-  LocalElement,
+  LocalElementKnown,
   LocalDependencyElement,
   ExternalDependencyElement,
   DependencyElement,
@@ -25,12 +24,14 @@ import type {
   ElementDescriptor,
   DependencyKind,
   IgnoredElement,
-  UnknownElement,
+  LocalElementUnknown,
   BaseElement,
+  CoreDependencyElement,
 } from "./ElementsDescriptor.types";
 import {
   ELEMENT_DESCRIPTOR_MODES_MAP,
   DEPENDENCY_KINDS_MAP,
+  ELEMENT_ORIGINS_MAP,
 } from "./ElementsDescriptor.types";
 
 /**
@@ -102,33 +103,9 @@ export function isBaseElement(value: unknown): value is BaseElement {
   return (
     isObjectWithProperty(value, "type") &&
     isObjectWithProperty(value, "category") &&
-    isObjectWithProperty(value, "path")
-  );
-}
-
-/**
- * Determines if the value is a known Element
- * @param value The value to check
- * @returns True if the value is known, false otherwise
- */
-export function isKnownElement(value: unknown): value is BaseKnownElement {
-  return (
-    isBaseElement(value) &&
-    isObjectWithProperty(value, "isKnown") &&
-    value.isKnown === true
-  );
-}
-
-/**
- * Determines if the given value is an unknown element.
- * @param value The value to check.
- * @returns True if the element is an unknown element, false otherwise.
- */
-export function isUnknownElement(value: unknown): value is UnknownElement {
-  return (
-    isBaseElement(value) &&
-    isObjectWithProperty(value, "isKnown") &&
-    value.isKnown === false
+    isObjectWithProperty(value, "path") &&
+    isObjectWithProperty(value, "capturedValues") &&
+    isObjectWithProperty(value, "origin")
   );
 }
 
@@ -139,7 +116,7 @@ export function isUnknownElement(value: unknown): value is UnknownElement {
  */
 export function isIgnoredElement(value: unknown): value is IgnoredElement {
   return (
-    isUnknownElement(value) &&
+    isBaseElement(value) &&
     isObjectWithProperty(value, "isIgnored") &&
     value.isIgnored === true
   );
@@ -150,11 +127,41 @@ export function isIgnoredElement(value: unknown): value is IgnoredElement {
  * @param value The value to check.
  * @returns True if the value is a local element, false otherwise.
  */
-export function isLocalElement(value: unknown): value is LocalElement {
+export function isLocalElement(
+  value: unknown,
+): value is LocalElementKnown | LocalElementUnknown {
+  return isBaseElement(value) && value.origin === ELEMENT_ORIGINS_MAP.LOCAL;
+}
+
+/**
+ * Determines if the given element is local and unknown, because its type and category could not be determined.
+ * @param value The value to check.
+ * @returns True if the element is an unknown element, false otherwise.
+ */
+export function isUnknownLocalElement(
+  value: unknown,
+): value is LocalElementUnknown {
   return (
-    isKnownElement(value) &&
-    isObjectWithProperty(value, "isExternal") &&
-    value.isExternal === false
+    isLocalElement(value) &&
+    value.type === null &&
+    value.category === null &&
+    value.capturedValues === null
+  );
+}
+
+/**
+ * Determines if the given element is local and known, because its type and category were determined.
+ * @param value The value to check.
+ * @returns True if the element is an unknown element, false otherwise.
+ */
+export function isKnownLocalElement(
+  value: unknown,
+): value is LocalElementKnown {
+  return (
+    isLocalElement(value) &&
+    isObjectWithProperty(value, "parents") &&
+    isObjectWithProperty(value, "elementPath") &&
+    isObjectWithProperty(value, "internalPath")
   );
 }
 
@@ -167,9 +174,11 @@ export function isDependencyElement(
   value: unknown,
 ): value is DependencyElement {
   return (
-    isKnownElement(value) &&
+    isBaseElement(value) &&
     isObjectWithProperty(value, "source") &&
-    isString(value.source)
+    isString(value.source) &&
+    isObjectWithProperty(value, "baseSource") &&
+    isString(value.baseSource)
   );
 }
 
@@ -181,7 +190,7 @@ export function isDependencyElement(
 export function isLocalDependency(
   value: unknown,
 ): value is LocalDependencyElement {
-  return isLocalElement(value) && isDependencyElement(value);
+  return isDependencyElement(value) && isLocalElement(value);
 }
 
 /**
@@ -192,7 +201,22 @@ export function isLocalDependency(
 export function isExternalDependency(
   value: unknown,
 ): value is ExternalDependencyElement {
-  return isDependencyElement(value) && value.isExternal === true;
+  return (
+    isDependencyElement(value) && value.origin === ELEMENT_ORIGINS_MAP.EXTERNAL
+  );
+}
+
+/**
+ * Determines if the given value is a core element.
+ * @param value The value to check.
+ * @returns True if the element is a core dependency, false otherwise.
+ */
+export function isCoreDependency(
+  value: unknown,
+): value is CoreDependencyElement {
+  return (
+    isDependencyElement(value) && value.origin === ELEMENT_ORIGINS_MAP.CORE
+  );
 }
 
 /**
@@ -203,8 +227,8 @@ export function isExternalDependency(
 export function isElement(value: unknown): value is ElementDescription {
   return (
     isIgnoredElement(value) ||
-    isUnknownElement(value) ||
-    isLocalElement(value) ||
+    isUnknownLocalElement(value) ||
+    isKnownLocalElement(value) ||
     isDependencyElement(value)
   );
 }

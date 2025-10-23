@@ -7,30 +7,22 @@ export type CapturedValues = Record<string, string>;
  * Base element properties related to captured values
  */
 export type BaseElement = {
+  /** Absolute path of the file. It might be undefined when a dependency path can't be resolved */
+  path: string | null;
   /** Type of the element */
   type: string | null;
   /** Category of the element */
   category: string | null;
-  /** Absolute path of the file */
-  path: string;
-};
-
-/**
- * Description of an unknown element
- */
-export type UnknownElement = BaseElement & {
-  /** Type of the element */
-  type: null;
-  /** Category of the element */
-  category: null;
-  /** Indicates that the element is unknown */
-  isKnown: false;
+  /** Captured values from the element */
+  capturedValues: CapturedValues | null;
+  /** Origin of the element */
+  origin: ElementOrigin | null;
 };
 
 /**
  * Description of an ignored element
  */
-export type IgnoredElement = UnknownElement & {
+export type IgnoredElement = BaseElement & {
   /** Indicates if the file is ignored */
   isIgnored: true;
 };
@@ -66,35 +58,55 @@ export type BaseElementWithTypeAndCategory = BaseElement & {
 };
 
 /**
- * Base description of an element
+ * Origins of an element
  */
-export type BaseKnownElement = (
-  | BaseElementWithType
-  | BaseElementWithCategory
-  | BaseElementWithTypeAndCategory
-) & {
-  /** Captured values from the element */
-  capturedValues: CapturedValues;
-  /** Indicates that the element is known (not unknown or ignored) */
-  isKnown: true;
+export const ELEMENT_ORIGINS_MAP = {
+  /** Origin of local elements (files) */
+  LOCAL: "local",
+  /** Origin of external elements (libraries) */
+  EXTERNAL: "external",
+  /** Origin of core elements */
+  CORE: "core",
+} as const;
+
+/**
+ * Kind of element origin, either local, external, or core.
+ */
+export type ElementOrigin =
+  (typeof ELEMENT_ORIGINS_MAP)[keyof typeof ELEMENT_ORIGINS_MAP];
+
+/**
+ * Description of an unknown local element
+ */
+export type LocalElementUnknown = BaseElement & {
+  /** Type of the element */
+  type: null;
+  /** Category of the element */
+  category: null;
+  /** Unknown elements have not captured values */
+  capturedValues: null;
+  /** Indicated that the element is local */
+  origin: typeof ELEMENT_ORIGINS_MAP.LOCAL;
 };
 
 /**
  * Description of a local element (file)
  */
-export type LocalElement = BaseKnownElement & {
+export type LocalElementKnown = BaseElement & {
   /** Path of the element */
+  path: string;
+  /** Path of the file relative to the element */
   elementPath: string;
   /** Internal path of the file relative to the elementPath */
   internalPath: string;
   /** Parent elements */
   parents: LocalElementParent[];
   /** Indicates that the element is local */
-  isExternal: false;
+  origin: typeof ELEMENT_ORIGINS_MAP.LOCAL;
 };
 
 export type LocalElementParent = Pick<
-  LocalElement,
+  LocalElementKnown,
   "type" | "category" | "elementPath" | "capturedValues"
 >;
 
@@ -125,38 +137,50 @@ export type DependencyKind =
 /**
  * Base description of a dependency
  */
-export type BaseDependencyElement = BaseKnownElement & {
+export type BaseDependencyElement = BaseElement & {
   /** Dependency source */
   source: string;
-  /** Specifiers imported or exported from the dependency, if applicable */
-  specifiers: string[] | null;
-  /** Kind of the dependency, either type or value */
-  kind: DependencyKind;
-  /** Node kind of the dependency (e.g. "import", "dynamic-import", "export", "require", etc.) */
-  nodeKind: string;
+  /** Base module of the dependency */
+  baseSource: string;
 };
+
+/**
+ * Description of a file
+ */
+export type FileElement =
+  | LocalElementKnown
+  | IgnoredElement
+  | LocalElementUnknown;
 
 /**
  * Description of a local dependency
  */
-export type LocalDependencyElement = LocalElement & BaseDependencyElement;
+export type LocalDependencyElement = (LocalElementKnown | LocalElementUnknown) &
+  BaseDependencyElement;
 
 /**
  * Description of an external dependency
  */
 export type ExternalDependencyElement = BaseDependencyElement & {
-  /** Indicates if the dependency is a Node.js built-in module */
-  isBuiltIn: boolean;
-  /** Base module of the dependency */
-  baseModule: string;
+  /** Path of the dependency relative to the base module */
+  internalPath: string;
   /** Indicates that the dependency is external */
-  isExternal: true;
+  origin: typeof ELEMENT_ORIGINS_MAP.EXTERNAL;
+};
+
+/**
+ * Description of a core dependency
+ */
+export type CoreDependencyElement = BaseDependencyElement & {
+  /** Indicates that the dependency is core */
+  origin: typeof ELEMENT_ORIGINS_MAP.CORE;
 };
 
 /**
  * Description of a dependency
  */
 export type DependencyElement =
+  | CoreDependencyElement
   | LocalDependencyElement
   | ExternalDependencyElement;
 
@@ -164,17 +188,20 @@ export type DependencyElement =
  * Description of an element, either local or dependency
  */
 export type ElementDescription =
-  | UnknownElement
   | IgnoredElement
-  | LocalElement
+  | LocalElementUnknown
+  | LocalElementKnown
   | DependencyElement;
 
 /**
  * Map of the modes to interpret the pattern in an ElementDescriptor.
  */
 export const ELEMENT_DESCRIPTOR_MODES_MAP = {
+  /** Mode to interpret the pattern as a folder */
   FOLDER: "folder",
+  /** Mode to interpret the pattern as a file */
   FILE: "file",
+  /** Mode to interpret the pattern as a full path */
   FULL: "full",
 } as const;
 
