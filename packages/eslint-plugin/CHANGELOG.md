@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## Unreleased
+
+### Fixed
+
+- fix: Identify internalPaths correctly when mode is 'file' in elements setting and the pattern matches folders, not files. Now it returns the correct internalPaths instead of the matched folder name.
+
 ## [5.1.0] - 2025-10-14
 
 ### Added

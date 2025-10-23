@@ -304,9 +304,10 @@ export class ElementsDescriptor {
         elementResult.elementPath = elementPath;
         elementResult.capturedValues = capturedValues;
         elementResult.internalPath =
-          mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER
+          mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER ||
+          filePath !== elementPath // When using 'file' mode, but the pattern matches a folder, we need to calculate the internal path
             ? filePath.replace(`${elementPath}/`, "")
-            : elementPath.split("/").pop();
+            : filePath.split("/").pop(); // In 'file' mode, if the pattern matches the full file, internalPath is the file name
       } else {
         // It is a parent element, because we have already matched the main one
         parents.push({

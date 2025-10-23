@@ -38,8 +38,8 @@ export default [
       "boundaries/elements": [
         {
           type: "@boundaries/elements",
-          mode: "file",
-          pattern: "**/packages/elements/**/*",
+          mode: "folder",
+          pattern: "**/packages/elements/dist",
         },
         {
           type: "config-utils",

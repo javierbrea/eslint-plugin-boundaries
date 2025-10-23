@@ -16,7 +16,7 @@ import { SETTINGS } from "../constants/settings";
 import { debugFileInfo } from "../helpers/debug";
 import { getElements, getRootPath } from "../helpers/settings";
 
-import { importsCache, elementsCache } from "./cache";
+import { importsCache } from "./cache";
 
 const { IGNORE, INCLUDE } = SETTINGS;
 
@@ -120,43 +120,38 @@ export function importInfo(
     resolve(source, context),
     getRootPath(context.settings),
   );
+  // TODO: Migrate logic to determine whether it is external based on path to describeFile
   const isExternalModule = isExternal(source, path);
   // TODO: Define types for the cache storage
   const resultCache = importsCache.load(
     isExternalModule ? source : path,
     context.settings,
   );
-  let elementCache;
   let result: ImportInfo;
   let elementResult: ElementInfo;
 
   if (resultCache) {
     result = resultCache as ImportInfo;
   } else {
-    elementCache = elementsCache.load(path, context.settings);
     const baseModuleValue = isExternalModule ? baseModule(source) : null;
     const isBuiltInModule = isBuiltIn(source, path);
     const pathToUse = isExternalModule
       ? externalModulePath(source, baseModuleValue)
       : path;
-    if (elementCache) {
-      elementResult = elementCache as ElementInfo;
-    } else {
-      const elementsDescriptor = getElementsDescriptor(context);
-      //@ts-expect-error Types are not aligned
-      elementResult = elementsDescriptor.describeFile(pathToUse);
-      elementsCache.save(pathToUse, elementResult, context.settings);
-    }
+    const elementsDescriptor = getElementsDescriptor(context);
+    //@ts-expect-error Types are not aligned
+    elementResult = elementsDescriptor.describeFile(path);
 
+    // @ts-expect-error Types are not aligned
     result = {
-      source,
-      isIgnored: !isExternalModule && isIgnored(pathToUse, context.settings),
-      isLocal: !isExternalModule && !isBuiltInModule,
-      isBuiltIn: isBuiltInModule,
-      baseModule: baseModuleValue,
-      path: pathToUse,
+      source, // TODO: Migrate to describeDependency in Elements
       ...elementResult,
-      isExternal: isExternalModule,
+      isIgnored: !isExternalModule && isIgnored(pathToUse, context.settings), // External modules are never ignored, why?
+      isLocal: !isExternalModule && !isBuiltInModule, // TODO: Remove
+      isBuiltIn: isBuiltInModule, // TODO: Migrate to describeDependency in Elements. Use is-core-module as fallback for browsers, passing node version in settings
+      baseModule: baseModuleValue, // TODO: Migrate to describeDependency in Elements. Rename to sourceBase, use also for local dependencies, because it might be useful
+      internalPath: isExternalModule ? pathToUse : elementResult.internalPath,
+      isExternal: isExternalModule, //TODO: Migrate to describeFile, and override in describeDependency for external deps (just in case the source goes directly to node_modules, which might be considered local. This must be documented)
     };
 
     importsCache.save(path, result, context.settings);

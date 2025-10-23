@@ -120,7 +120,8 @@ function isMatchExternalDependency(
     : false;
   if (isMatch && options && Object.keys(options).length) {
     const isPathMatch = options.path
-      ? pathMatch(dependency.path, options.path, elementsCapturedValues)
+      ? // @ts-expect-error Types are not aligned
+        pathMatch(dependency.internalPath, options.path, elementsCapturedValues)
       : true;
     if (isPathMatch && options.specifiers) {
       const specifiersResult = specifiersMatch(
@@ -139,7 +140,8 @@ function isMatchExternalDependency(
     return {
       result: isPathMatch,
       report: {
-        path: dependency.path,
+        //@ts-expect-error Types are not aligned
+        path: dependency.internalPath,
       },
       ruleReport: null,
     };

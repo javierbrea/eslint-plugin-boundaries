@@ -72,7 +72,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            "The entry point 'components' is not allowed in elements of type 'modules' with elementName '!(module-a)'. Disallowed in rule 2",
+            "The entry point 'ComponentA.js' is not allowed in elements of type 'modules' with elementName '!(module-a)'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
