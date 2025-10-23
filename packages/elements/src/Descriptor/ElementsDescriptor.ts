@@ -243,15 +243,16 @@ export class ElementsDescriptor {
       return {
         type: null,
         category: null,
-        parents: [],
-        capturedValues: {},
         path: filePath,
         isIgnored: true,
+        isKnown: false,
       };
     }
     const parents: LocalElement["parents"] = [];
     const elementResult: Partial<LocalElement> = {
       path: filePath,
+      isExternal: false,
+      isKnown: true,
     };
 
     interface State {
@@ -354,8 +355,7 @@ export class ElementsDescriptor {
         path: filePath,
         type: null,
         category: null,
-        parents: [],
-        capturedValues: {},
+        isKnown: false,
       };
     }
 

@@ -13,10 +13,6 @@ export type BaseElement = {
   category: string | null;
   /** Absolute path of the file */
   path: string;
-  /** Parent elements */
-  parents: LocalElementParent[]; // TODO: Remove from external, unknown, and ignored elements It is only useful for local elements
-  /** Captured values from the element */ // TODO: Move to base known element?
-  capturedValues: CapturedValues;
 };
 
 /**
@@ -27,8 +23,8 @@ export type UnknownElement = BaseElement & {
   type: null;
   /** Category of the element */
   category: null;
-  /** Parent elements */
-  parents: [];
+  /** Indicates that the element is unknown */
+  isKnown: false;
 };
 
 /**
@@ -47,7 +43,6 @@ export type BaseElementWithType = BaseElement & {
   type: string;
   /** Category of the element */
   category: null;
-  // TODO: Add property for easier type checking
 };
 
 /**
@@ -73,10 +68,16 @@ export type BaseElementWithTypeAndCategory = BaseElement & {
 /**
  * Base description of an element
  */
-export type BaseKnownElement =
+export type BaseKnownElement = (
   | BaseElementWithType
   | BaseElementWithCategory
-  | BaseElementWithTypeAndCategory;
+  | BaseElementWithTypeAndCategory
+) & {
+  /** Captured values from the element */
+  capturedValues: CapturedValues;
+  /** Indicates that the element is known (not unknown or ignored) */
+  isKnown: true;
+};
 
 /**
  * Description of a local element (file)
@@ -86,6 +87,10 @@ export type LocalElement = BaseKnownElement & {
   elementPath: string;
   /** Internal path of the file relative to the elementPath */
   internalPath: string;
+  /** Parent elements */
+  parents: LocalElementParent[];
+  /** Indicates that the element is local */
+  isExternal: false;
 };
 
 export type LocalElementParent = Pick<
@@ -129,18 +134,12 @@ export type BaseDependencyElement = BaseKnownElement & {
   kind: DependencyKind;
   /** Node kind of the dependency (e.g. "import", "dynamic-import", "export", "require", etc.) */
   nodeKind: string;
-  /** Indicates if the dependency is external */
-  isExternal: boolean;
 };
 
 /**
  * Description of a local dependency
  */
-export type LocalDependencyElement = LocalElement &
-  BaseDependencyElement & {
-    /** Indicates if the dependency is external */
-    isExternal: false;
-  };
+export type LocalDependencyElement = LocalElement & BaseDependencyElement;
 
 /**
  * Description of an external dependency

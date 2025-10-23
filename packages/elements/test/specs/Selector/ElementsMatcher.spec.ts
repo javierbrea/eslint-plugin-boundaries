@@ -14,6 +14,8 @@ describe("elementsMatcher", () => {
         elementPath: "/src",
         internalPath: "test.ts",
         parents: [],
+        isKnown: true,
+        isExternal: false,
       }),
     ).toBe(true);
   });

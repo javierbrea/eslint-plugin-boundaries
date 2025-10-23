@@ -50,6 +50,8 @@ describe("elementHelpers", () => {
         path: "/src/components/Button.tsx",
         elementPath: "/src/components",
         internalPath: "Button.tsx",
+        isKnown: true,
+        isExternal: false,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -64,6 +66,8 @@ describe("elementHelpers", () => {
         path: "/src/components/Button.tsx",
         elementPath: "/src/components",
         internalPath: "Button.tsx",
+        isKnown: true,
+        isExternal: false,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -78,6 +82,8 @@ describe("elementHelpers", () => {
         path: "/src/components/Button.tsx",
         elementPath: "/src/components",
         internalPath: "Button.tsx",
+        isKnown: true,
+        isExternal: false,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -91,7 +97,7 @@ describe("elementHelpers", () => {
         source: "react",
         specifiers: ["useState", "useEffect"],
         isExternal: true,
-        parents: [],
+        isKnown: true,
         path: "foo",
         isBuiltIn: false,
         baseModule: "react",
@@ -325,6 +331,7 @@ describe("elementHelpers", () => {
         source: "./Button.component",
         specifiers: ["Button", "ButtonProps"],
         isExternal: false,
+        isKnown: true,
         kind: "type",
         nodeKind: "import",
       };
@@ -361,7 +368,6 @@ describe("elementHelpers", () => {
         isBuiltIn: false,
         baseModule: "lodash",
         path: "foo",
-        parents: [],
         kind: "type",
         nodeKind: "import",
       };
@@ -371,6 +377,7 @@ describe("elementHelpers", () => {
 
     it("should return false for non-local dependencies", () => {
       const nonLocalDependency: ExternalDependencyElement = {
+        isKnown: true,
         type: "dependency",
         category: null,
         capturedValues: {},
@@ -382,7 +389,6 @@ describe("elementHelpers", () => {
         kind: "type",
         nodeKind: "import",
         path: "foo",
-        parents: [],
       };
 
       expect(isLocalDependency(nonLocalDependency)).toBe(false);
@@ -425,6 +431,8 @@ describe("elementHelpers", () => {
         path: "/src/test.ts",
         elementPath: "/src",
         internalPath: "test.ts",
+        isKnown: true,
+        isExternal: false,
       };
 
       // LocalElement is not a dependency, so should return false
@@ -480,7 +488,7 @@ describe("elementHelpers", () => {
         kind: "type",
         nodeKind: "import",
         path: "foo",
-        parents: [],
+        isKnown: true,
       };
 
       expect(isExternalDependency(externalDependency)).toBe(true);
@@ -529,6 +537,7 @@ describe("elementHelpers", () => {
         elementPath: "/src/services",
         internalPath: "api.ts",
         isExternal: false,
+        isKnown: true,
         source: "../utils/http",
         specifiers: ["HttpClient"],
         kind: "type",
@@ -636,6 +645,8 @@ describe("elementHelpers", () => {
         path: "/src/components/Header.tsx",
         elementPath: "/src/components",
         internalPath: "Header.tsx",
+        isKnown: true,
+        isExternal: false,
       };
 
       expect(isElement(localElement)).toBe(true);
@@ -667,6 +678,8 @@ describe("elementHelpers", () => {
         path: "/src/components/Header.tsx",
         elementPath: "/src/components",
         internalPath: "Header.tsx",
+        isExternal: false,
+        isKnown: true,
       };
 
       expect(isElement(localElement)).toBe(true);
@@ -692,7 +705,6 @@ describe("elementHelpers", () => {
         category: null,
         capturedValues: {},
         path: "foo",
-        parents: [],
         source: "lodash",
         specifiers: ["map", "filter"],
         isExternal: true,
@@ -700,6 +712,7 @@ describe("elementHelpers", () => {
         baseModule: "lodash",
         kind: "type",
         nodeKind: "import",
+        isKnown: true,
       };
 
       expect(isElement(externalDependency)).toBe(true);
@@ -719,6 +732,7 @@ describe("elementHelpers", () => {
         isExternal: false,
         kind: "type",
         nodeKind: "import",
+        isKnown: true,
       };
 
       expect(isElement(localDependency)).toBe(true);

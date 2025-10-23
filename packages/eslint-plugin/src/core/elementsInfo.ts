@@ -143,6 +143,7 @@ export function importInfo(
       elementResult = elementCache as ElementInfo;
     } else {
       const elementsDescriptor = getElementsDescriptor(context);
+      //@ts-expect-error Types are not aligned
       elementResult = elementsDescriptor.describeFile(pathToUse);
       elementsCache.save(pathToUse, elementResult, context.settings);
     }
@@ -152,10 +153,10 @@ export function importInfo(
       isIgnored: !isExternalModule && isIgnored(pathToUse, context.settings),
       isLocal: !isExternalModule && !isBuiltInModule,
       isBuiltIn: isBuiltInModule,
-      isExternal: isExternalModule,
       baseModule: baseModuleValue,
-      ...elementResult,
       path: pathToUse,
+      ...elementResult,
+      isExternal: isExternalModule,
     };
 
     importsCache.save(path, result, context.settings);

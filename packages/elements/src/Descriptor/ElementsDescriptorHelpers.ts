@@ -4,7 +4,6 @@ import {
   isArray,
   isEmptyArray,
   isNull,
-  isObject,
 } from "../Support/TypeGuards";
 
 import type {
@@ -103,26 +102,33 @@ export function isBaseElement(value: unknown): value is BaseElement {
   return (
     isObjectWithProperty(value, "type") &&
     isObjectWithProperty(value, "category") &&
-    isObjectWithProperty(value, "path") &&
-    isObjectWithProperty(value, "capturedValues") &&
-    isObject(value.capturedValues)
+    isObjectWithProperty(value, "path")
   );
 }
 
 /**
- * Determines if the value is a BaseElement
+ * Determines if the value is a known Element
  * @param value The value to check
- * @returns True if the value is a valid BaseElement, false otherwise
+ * @returns True if the value is known, false otherwise
  */
-export function isBaseKnownElement(value: unknown): value is BaseKnownElement {
+export function isKnownElement(value: unknown): value is BaseKnownElement {
   return (
-    (isBaseElementWithType(value) ||
-      isBaseElementWithCategory(value) ||
-      isBaseElementWithTypeAndCategory(value)) &&
-    isObjectWithProperty(value, "path") &&
-    isString(value.path) &&
-    isObjectWithProperty(value, "capturedValues") &&
-    isObject(value.capturedValues)
+    isBaseElement(value) &&
+    isObjectWithProperty(value, "isKnown") &&
+    value.isKnown === true
+  );
+}
+
+/**
+ * Determines if the given value is an unknown element.
+ * @param value The value to check.
+ * @returns True if the element is an unknown element, false otherwise.
+ */
+export function isUnknownElement(value: unknown): value is UnknownElement {
+  return (
+    isBaseElement(value) &&
+    isObjectWithProperty(value, "isKnown") &&
+    value.isKnown === false
   );
 }
 
@@ -133,14 +139,10 @@ export function isBaseKnownElement(value: unknown): value is BaseKnownElement {
  */
 export function isIgnoredElement(value: unknown): value is IgnoredElement {
   return (
-    isBaseElement(value) &&
+    isUnknownElement(value) &&
     isObjectWithProperty(value, "isIgnored") &&
     value.isIgnored === true
   );
-}
-
-export function isUnknownElement(value: unknown): value is UnknownElement {
-  return isBaseElement(value) && isNull(value.type) && isNull(value.category);
 }
 
 /**
@@ -150,9 +152,9 @@ export function isUnknownElement(value: unknown): value is UnknownElement {
  */
 export function isLocalElement(value: unknown): value is LocalElement {
   return (
-    isBaseKnownElement(value) &&
-    isObjectWithProperty(value, "elementPath") &&
-    isString(value.elementPath)
+    isKnownElement(value) &&
+    isObjectWithProperty(value, "isExternal") &&
+    value.isExternal === false
   );
 }
 
@@ -165,7 +167,7 @@ export function isDependencyElement(
   value: unknown,
 ): value is DependencyElement {
   return (
-    isBaseKnownElement(value) &&
+    isKnownElement(value) &&
     isObjectWithProperty(value, "source") &&
     isString(value.source)
   );
@@ -179,11 +181,7 @@ export function isDependencyElement(
 export function isLocalDependency(
   value: unknown,
 ): value is LocalDependencyElement {
-  return (
-    isLocalElement(value) &&
-    isDependencyElement(value) &&
-    value.isExternal === false
-  );
+  return isLocalElement(value) && isDependencyElement(value);
 }
 
 /**
@@ -194,11 +192,7 @@ export function isLocalDependency(
 export function isExternalDependency(
   value: unknown,
 ): value is ExternalDependencyElement {
-  return (
-    isDependencyElement(value) &&
-    value.isExternal === true &&
-    isString((value as ExternalDependencyElement).baseModule)
-  );
+  return isDependencyElement(value) && value.isExternal === true;
 }
 
 /**
@@ -208,9 +202,10 @@ export function isExternalDependency(
  */
 export function isElement(value: unknown): value is ElementDescription {
   return (
-    isIgnoredElement(value as ElementDescription) ||
-    isLocalElement(value as ElementDescription) ||
-    isDependencyElement(value as ElementDescription)
+    isIgnoredElement(value) ||
+    isUnknownElement(value) ||
+    isLocalElement(value) ||
+    isDependencyElement(value)
   );
 }
 
