@@ -173,6 +173,8 @@ export function fileInfo(context: Rule.RuleContext): FileInfo {
   // TODO: Calculate project path in Elements. Rename to relativePath.
   const path = projectPath(context.filename, getRootPath(context.settings));
   const result = elementsDescriptor.describeFile(path);
+  // @ts-expect-error Types are not aligned
   debugFileInfo(result);
+  // @ts-expect-error Types are not aligned
   return result;
 }
