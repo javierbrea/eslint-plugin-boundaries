@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > - Migrate selectors functionality from eslint-plugin-boundaries to @boundaries/elements package.
 > - Align types between `@boundaries/elements` and `eslint-plugin-boundaries` packages.
 > - Full unit tests coverage in elements package.
+> - elements package documentation.
 > - Publish RFC for renaming the package to `@boundaries/eslint-plugin`.
 > - Deprecate `disallow` in favor of `deny` in rule options.
 > - Support `nodeKind` in selectors. Pass it to dependency description.
@@ -29,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > - Support `category` in `element-types` rule.
 > - Support multiple element types in `element-types` rule. Add an option to enable/disable this behavior.
 > - Support a `name` property in `additional-dependency-nodes` setting to be able to identify the custom dependency nodes in rules.
+> - Support `handlebars` templates in custom messages in all rules, or passing a function to generate the message.
+> - Support `handlebars` templates in captured values in rules options to replace "${from.X}", "${target.X}", etc.?
 > - Enable all dependencyNodes by default in `dependency-nodes` setting.
 > - Rename rules according to new naming RFC, make it backwards compatible.
 > - Publish current documentation in website, and publish new docs in next release. Remove documentation from README.md except for basic usage. Change rules docs to point to website.
@@ -36,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 >   - External can be handled by adding a new. "external" mode to element descriptors to be able to assign element types to external dependencies also.
 >   - Entry-point can be handled by adding a new "internalPath" property to element selectors, so they only match files with a specific internalPath.
 >   - No-private can be handled by adding a new "relationship" property to element selectors, so they only match dependencies with a specific relationship (parent, child, sibling, etc.). Or this maybe should be done in "dependency-selectors" (object with "from" and "to" properties) instead of element selectors. There we could add a "relationship" property to the "to" or "from" selectors. This way types would be more strict.
+> - Publish RFC for storing cache in node_modules/.cache/@boundaries/...
 > - Create project in Github. Create issues and tasks based on RFCs, assign tasks to project, and create milestones for releases. Plan each release carefully according to RFCs to avoid breaking changes and remember when to deprecate things.
 
 ## [5.1.0] - 2025-10-14
