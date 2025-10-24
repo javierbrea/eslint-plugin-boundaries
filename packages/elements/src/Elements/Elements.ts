@@ -1,7 +1,7 @@
 import { CacheManager } from "../Cache";
 import type { ConfigOptions } from "../Config";
 import { Config } from "../Config";
-import { ElementsDescriptor } from "../Descriptor";
+import { Descriptors } from "../Descriptor";
 import type { ElementDescriptors } from "../Descriptor/ElementsDescriptor.types";
 import { ElementsMatcher } from "../Selector";
 import type { ElementsSelector } from "../Selector";
@@ -18,7 +18,7 @@ export class Elements {
     {
       config: ConfigOptions;
       elementDescriptors: ElementDescriptors;
-      descriptor: ElementsDescriptor;
+      descriptors: Descriptors;
     }
   > = new CacheManager();
 
@@ -40,7 +40,7 @@ export class Elements {
     ).reduce(
       (acc, [key, descriptorCache]) => {
         acc[key] = {
-          cache: descriptorCache.descriptor.serializeCache(),
+          cache: descriptorCache.descriptors.serializeCache(),
           config: descriptorCache.config,
           elementDescriptors: descriptorCache.elementDescriptors,
         };
@@ -62,29 +62,31 @@ export class Elements {
     serializedCache: ElementsSerializedCache,
   ): void {
     for (const key in serializedCache.descriptors) {
-      const descriptor = this.getDescriptor(
+      const descriptors = this.getDescriptors(
         serializedCache.descriptors[key].elementDescriptors,
         serializedCache.descriptors[key].config,
       );
-      descriptor.setCacheFromSerialized(serializedCache.descriptors[key].cache);
+      descriptors.setCacheFromSerialized(
+        serializedCache.descriptors[key].cache,
+      );
       this._descriptorsCache.restore(key, {
         config: serializedCache.descriptors[key].config,
         elementDescriptors: serializedCache.descriptors[key].elementDescriptors,
-        descriptor,
+        descriptors,
       });
     }
   }
 
   /**
-   * Gets an ElementsDescriptor instance based on the provided configuration options.
+   * Gets Elements and Dependencies descriptor instances based on the provided configuration options.
    * If no options are provided, the global configuration options are used.
    * @param configOptions Optional configuration options to override the global ones.
    * @returns An ElementsDescriptor instance, unique for each different configuration.
    */
-  public getDescriptor(
+  public getDescriptors(
     elementDescriptors: ElementDescriptors,
     configOptions?: ConfigOptions,
-  ): ElementsDescriptor {
+  ): Descriptors {
     const optionsToUse = configOptions || this._globalConfigOptions;
     const configInstance = new Config(optionsToUse);
     const normalizedOptions = configInstance.options;
@@ -92,19 +94,16 @@ export class Elements {
     const cacheKey = { config: normalizedOptions, elementDescriptors };
 
     if (this._descriptorsCache.has(cacheKey)) {
-      return this._descriptorsCache.get(cacheKey)!.descriptor;
+      return this._descriptorsCache.get(cacheKey)!.descriptors;
     }
 
-    const descriptor = new ElementsDescriptor(
-      elementDescriptors,
-      normalizedOptions,
-    );
+    const descriptors = new Descriptors(elementDescriptors, normalizedOptions);
     this._descriptorsCache.set(cacheKey, {
       config: normalizedOptions,
       elementDescriptors,
-      descriptor,
+      descriptors,
     });
-    return descriptor;
+    return descriptors;
   }
 
   /**

@@ -1,5 +1,5 @@
 import type { ConfigOptions } from "../Config";
-import type { ElementsDescriptorSerializedCache } from "../Descriptor";
+import type { DescriptorsSerializedCache } from "../Descriptor";
 import type { ElementDescriptors } from "../Descriptor/ElementsDescriptor.types";
 
 /**
@@ -11,7 +11,7 @@ export type ElementsSerializedCache = {
     {
       config: ConfigOptions;
       elementDescriptors: ElementDescriptors;
-      cache: ElementsDescriptorSerializedCache;
+      cache: DescriptorsSerializedCache;
     }
   >;
 };

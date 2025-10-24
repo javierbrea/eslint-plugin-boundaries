@@ -13,8 +13,7 @@ import {
   SETTINGS_KEYS_MAP,
   DEPENDENCY_NODE_KEYS_MAP,
 } from "../constants/settings";
-import { dependencyInfo } from "../core/dependencyInfo";
-import { fileInfo } from "../core/elementsInfo";
+import { fileInfo, dependencyInfo } from "../core/elementsInfo";
 import { warnOnce } from "../helpers/debug";
 import { meta } from "../helpers/rules";
 import type { RuleMetaDefinition } from "../helpers/Rules.types";

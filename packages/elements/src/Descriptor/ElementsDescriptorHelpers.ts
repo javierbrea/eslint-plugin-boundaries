@@ -22,7 +22,6 @@ import type {
   ElementDescriptorWithCategory,
   ElementDescriptorWithTypeAndCategory,
   ElementDescriptor,
-  DependencyKind,
   IgnoredElement,
   LocalElementUnknown,
   BaseElement,
@@ -30,19 +29,108 @@ import type {
 } from "./ElementsDescriptor.types";
 import {
   ELEMENT_DESCRIPTOR_MODES_MAP,
-  DEPENDENCY_KINDS_MAP,
   ELEMENT_ORIGINS_MAP,
 } from "./ElementsDescriptor.types";
 
 /**
- * Determines if the value is a valid dependency kind.
- * @param value The value to check
- * @returns True if the value is a valid dependency kind, false otherwise.
+ * Determines if the given value is a valid element descriptor mode.
+ * @param value The value to check.
+ * @returns True if the value is a valid element descriptor mode, false otherwise.
  */
-export function isDependencyKind(value: unknown): value is DependencyKind {
+export function isElementDescriptorMode(
+  value: unknown,
+): value is ElementDescriptorMode {
   return (
     isString(value) &&
-    Object.values(DEPENDENCY_KINDS_MAP).includes(value as DependencyKind)
+    Object.values(ELEMENT_DESCRIPTOR_MODES_MAP).includes(
+      value as ElementDescriptorMode,
+    )
+  );
+}
+
+/**
+ * Determines if the given value is a valid element descriptor pattern.
+ * @param value The value to check.
+ * @returns True if the value is a valid element descriptor pattern, false otherwise.
+ */
+export function isElementDescriptorPattern(
+  value: unknown,
+): value is ElementDescriptorPattern {
+  return (
+    isString(value) ||
+    (isArray(value) && !isEmptyArray(value) && value.every(isString))
+  );
+}
+
+/**
+ * Determines if the given value is a base element descriptor.
+ * @param value The value to check.
+ * @returns True if the value is a base element descriptor, false otherwise.
+ */
+export function isBaseElementDescriptor(
+  value: unknown,
+): value is BaseElementDescriptor {
+  return (
+    isObjectWithProperty(value, "pattern") &&
+    isElementDescriptorPattern(value.pattern)
+  );
+}
+
+/**
+ * Determines if the given value is an element descriptor with type.
+ * @param value The value to check.
+ * @returns True if the value is an element descriptor with type, false otherwise.
+ */
+export function isElementDescriptorWithType(
+  value: unknown,
+): value is ElementDescriptorWithType {
+  return (
+    isBaseElementDescriptor(value) &&
+    isObjectWithProperty(value, "type") &&
+    isString(value.type)
+  );
+}
+
+/**
+ * Determines if the given value is an element descriptor with category.
+ * @param value The value to check.
+ * @returns True if the value is an element descriptor with category, false otherwise.
+ */
+export function isElementDescriptorWithCategory(
+  value: unknown,
+): value is ElementDescriptorWithCategory {
+  return (
+    isBaseElementDescriptor(value) &&
+    isObjectWithProperty(value, "category") &&
+    isString(value.category)
+  );
+}
+
+/**
+ * Determines if the given value is an element descriptor with both type and category.
+ * @param value The value to check.
+ * @returns True if the value is an element descriptor with both type and category, false otherwise.
+ */
+export function isElementDescriptorWithTypeAndCategory(
+  value: unknown,
+): value is ElementDescriptorWithTypeAndCategory {
+  return (
+    isElementDescriptorWithType(value) && isElementDescriptorWithCategory(value)
+  );
+}
+
+/**
+ * Determines if the given value is an element descriptor.
+ * @param value The value to check.
+ * @returns True if the value is an element descriptor, false otherwise.
+ */
+export function isElementDescriptor(
+  value: unknown,
+): value is ElementDescriptor {
+  return (
+    isElementDescriptorWithType(value) ||
+    isElementDescriptorWithCategory(value) ||
+    isElementDescriptorWithTypeAndCategory(value)
   );
 }
 
@@ -230,107 +318,5 @@ export function isElement(value: unknown): value is ElementDescription {
     isUnknownLocalElement(value) ||
     isKnownLocalElement(value) ||
     isDependencyElement(value)
-  );
-}
-
-/**
- * Determines if the given value is a valid element descriptor mode.
- * @param value The value to check.
- * @returns True if the value is a valid element descriptor mode, false otherwise.
- */
-export function isElementDescriptorMode(
-  value: unknown,
-): value is ElementDescriptorMode {
-  return (
-    isString(value) &&
-    Object.values(ELEMENT_DESCRIPTOR_MODES_MAP).includes(
-      value as ElementDescriptorMode,
-    )
-  );
-}
-
-/**
- * Determines if the given value is a valid element descriptor pattern.
- * @param value The value to check.
- * @returns True if the value is a valid element descriptor pattern, false otherwise.
- */
-export function isElementDescriptorPattern(
-  value: unknown,
-): value is ElementDescriptorPattern {
-  return (
-    isString(value) ||
-    (isArray(value) && !isEmptyArray(value) && value.every(isString))
-  );
-}
-
-/**
- * Determines if the given value is a base element descriptor.
- * @param value The value to check.
- * @returns True if the value is a base element descriptor, false otherwise.
- */
-export function isBaseElementDescriptor(
-  value: unknown,
-): value is BaseElementDescriptor {
-  return (
-    isObjectWithProperty(value, "pattern") &&
-    isElementDescriptorPattern(value.pattern)
-  );
-}
-
-/**
- * Determines if the given value is an element descriptor with type.
- * @param value The value to check.
- * @returns True if the value is an element descriptor with type, false otherwise.
- */
-export function isElementDescriptorWithType(
-  value: unknown,
-): value is ElementDescriptorWithType {
-  return (
-    isBaseElementDescriptor(value) &&
-    isObjectWithProperty(value, "type") &&
-    isString(value.type)
-  );
-}
-
-/**
- * Determines if the given value is an element descriptor with category.
- * @param value The value to check.
- * @returns True if the value is an element descriptor with category, false otherwise.
- */
-export function isElementDescriptorWithCategory(
-  value: unknown,
-): value is ElementDescriptorWithCategory {
-  return (
-    isBaseElementDescriptor(value) &&
-    isObjectWithProperty(value, "category") &&
-    isString(value.category)
-  );
-}
-
-/**
- * Determines if the given value is an element descriptor with both type and category.
- * @param value The value to check.
- * @returns True if the value is an element descriptor with both type and category, false otherwise.
- */
-export function isElementDescriptorWithTypeAndCategory(
-  value: unknown,
-): value is ElementDescriptorWithTypeAndCategory {
-  return (
-    isElementDescriptorWithType(value) && isElementDescriptorWithCategory(value)
-  );
-}
-
-/**
- * Determines if the given value is an element descriptor.
- * @param value The value to check.
- * @returns True if the value is an element descriptor, false otherwise.
- */
-export function isElementDescriptor(
-  value: unknown,
-): value is ElementDescriptor {
-  return (
-    isElementDescriptorWithType(value) ||
-    isElementDescriptorWithCategory(value) ||
-    isElementDescriptorWithTypeAndCategory(value)
   );
 }

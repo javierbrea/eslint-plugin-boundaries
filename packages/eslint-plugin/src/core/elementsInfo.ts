@@ -1,20 +1,23 @@
-import type {
-  DependencyElement,
-  ElementsDescriptor,
+import {
+  Elements,
+  ELEMENT_ORIGINS_MAP,
+  DEPENDENCY_RELATIONSHIPS_MAP,
+  isIgnoredElement,
 } from "@boundaries/elements";
-import { Elements } from "@boundaries/elements";
+import type { Descriptors, DependencyKind } from "@boundaries/elements";
 import type { Rule } from "eslint";
 import resolve from "eslint-module-utils/resolve";
 
-import type { FileInfo, ImportInfo } from "../constants/ElementsInfo.types";
+import type { DependencyInfo } from "../constants/DependencyInfo.types";
+import type { FileInfo } from "../constants/ElementsInfo.types";
 import { SETTINGS } from "../constants/settings";
-import { debugFileInfo } from "../helpers/debug";
+import { debugElementDescription } from "../helpers/debug";
 import { getElements, getRootPath } from "../helpers/settings";
 
 const elements = new Elements();
 
-function getElementsDescriptor(context: Rule.RuleContext): ElementsDescriptor {
-  const elementsDescriptor = elements.getDescriptor(
+function getElementsDescriptor(context: Rule.RuleContext): Descriptors {
+  const elementsDescriptors = elements.getDescriptors(
     getElements(context.settings),
     {
       ignorePaths: context.settings[SETTINGS.IGNORE] as string[],
@@ -22,7 +25,7 @@ function getElementsDescriptor(context: Rule.RuleContext): ElementsDescriptor {
       rootPath: getRootPath(context.settings),
     },
   );
-  return elementsDescriptor;
+  return elementsDescriptors;
 }
 
 function replacePathSlashes(absolutePath: string) {
@@ -42,42 +45,51 @@ function projectPath(
   return "";
 }
 
-export function importInfo(
-  source: string,
-  context: Rule.RuleContext,
-): ImportInfo {
-  const path = projectPath(
-    resolve(source, context),
-    getRootPath(context.settings),
-  );
-  const elementsDescriptor = getElementsDescriptor(context);
-  const elementResult = elementsDescriptor.describeElement(
-    path,
-    source,
-  ) as DependencyElement;
-
+export function fileInfo(context: Rule.RuleContext): FileInfo {
+  const elementsDescriptors = getElementsDescriptor(context);
+  const path = projectPath(context.filename, getRootPath(context.settings));
+  const result = elementsDescriptors.describeElement(path);
+  debugElementDescription(result);
   // @ts-expect-error Types are not aligned yet
-  const result: ImportInfo = {
-    ...elementResult,
-    source: elementResult.source,
-    isLocal: elementResult.origin === "local",
-    isBuiltIn: elementResult.origin === "core",
-    isExternal: elementResult.origin === "external",
-    baseModule: elementResult.baseSource,
-  };
-
-  if (result.isLocal) {
-    debugFileInfo(result);
-  }
   return result;
 }
 
-export function fileInfo(context: Rule.RuleContext): FileInfo {
-  const elementsDescriptor = getElementsDescriptor(context);
-  const path = projectPath(context.filename, getRootPath(context.settings));
-  const result = elementsDescriptor.describeElement(path);
+export function dependencyInfo(
+  source: string,
+  importKind: DependencyKind,
+  context: Rule.RuleContext,
+): DependencyInfo {
+  const elementsDescriptors = getElementsDescriptor(context);
+  const dependencyData = elementsDescriptors.describeDependency({
+    from: projectPath(context.filename, getRootPath(context.settings)),
+    to: projectPath(resolve(source, context), getRootPath(context.settings)),
+    source,
+    kind: importKind || "value",
+    nodeKind: "ESM", // TODO: Pass the real node kind
+  });
+
+  debugElementDescription(dependencyData.to);
+  debugElementDescription(dependencyData.to);
+
+  // TODO: Align types, use the data from elements package directly
   // @ts-expect-error Types are not aligned yet
-  debugFileInfo(result);
-  // @ts-expect-error Types are not aligned yet
-  return result;
+  return {
+    ...dependencyData.to,
+    isLocal: dependencyData.to.origin === ELEMENT_ORIGINS_MAP.LOCAL,
+    isBuiltIn: dependencyData.to.origin === ELEMENT_ORIGINS_MAP.CORE,
+    isExternal: dependencyData.to.origin === ELEMENT_ORIGINS_MAP.EXTERNAL,
+    isIgnored: isIgnoredElement(dependencyData.to),
+    baseModule: !isIgnoredElement(dependencyData.to)
+      ? dependencyData.to.baseSource
+      : null,
+    importKind: dependencyData.dependency.kind,
+    relationship:
+      dependencyData.dependency.relationship ===
+      DEPENDENCY_RELATIONSHIPS_MAP.SIBLING
+        ? DEPENDENCY_RELATIONSHIPS_MAP.BROTHER
+        : dependencyData.dependency.relationship,
+    isInternal:
+      dependencyData.dependency.relationship ===
+      DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL,
+  };
 }

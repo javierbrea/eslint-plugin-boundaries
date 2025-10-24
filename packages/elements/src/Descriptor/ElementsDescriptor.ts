@@ -20,6 +20,8 @@ import type {
   ExternalDependencyElement,
   LocalElementUnknown,
   CoreDependencyElement,
+  DependencyElement,
+  IgnoredElement,
 } from "./ElementsDescriptor.types";
 import {
   ELEMENT_DESCRIPTOR_MODES_MAP,
@@ -88,13 +90,7 @@ export class ElementsDescriptor {
    * @returns The serialized elements cache.
    */
   public serializeCache(): ElementsDescriptorSerializedCache {
-    return Array.from(this._elementsCache.getAll().entries()).reduce(
-      (acc, [key, value]) => {
-        acc[key] = value;
-        return acc;
-      },
-      {} as ElementsDescriptorSerializedCache,
-    );
+    return this._elementsCache.serialize();
   }
 
   /**
@@ -104,9 +100,7 @@ export class ElementsDescriptor {
   public setCacheFromSerialized(
     serializedCache: ElementsDescriptorSerializedCache,
   ): void {
-    for (const key in serializedCache) {
-      this._elementsCache.restore(key, serializedCache[key]);
-    }
+    this._elementsCache.setFromSerialized(serializedCache);
   }
 
   /**
@@ -507,12 +501,12 @@ export class ElementsDescriptor {
   }
 
   /**
-   * Describes a dependency given the file element and dependency source, by completing the file description.
+   * Describes a dependency element given the file element and dependency source, by completing the file description.
    * @param element The file element to complete the description for.
    * @param dependencySource The source of the dependency.
    * @returns The description of the dependency element.
    */
-  private _describeDependency(
+  private _describeDependencyElement(
     element: FileElement,
     dependencySource: string,
   ): ElementDescription {
@@ -570,8 +564,20 @@ export class ElementsDescriptor {
    * Describes an element given its file path and dependency source, if any.
    * @param filePath The path of the file to describe.
    * @param dependencySource The source of the dependency, if the element to describe is so. It refers to the import/export path used to reference the file or external module.
-   * @returns The description of the element.
+   * @returns The description of the element. A dependency element if dependency source is provided, otherwise a file element.
    */
+  public describeElement(): LocalElementUnknown;
+  public describeElement(
+    // eslint-disable-next-line no-unused-vars
+    filePath?: string,
+  ): FileElement;
+  public describeElement(
+    // eslint-disable-next-line no-unused-vars
+    filePath?: string,
+    // eslint-disable-next-line no-unused-vars
+    dependencySource?: string,
+  ): DependencyElement | IgnoredElement;
+
   public describeElement(
     filePath?: string,
     dependencySource?: string,
@@ -591,7 +597,7 @@ export class ElementsDescriptor {
     // First we get the file description
     const fileDescription = this._describeFile(filePath);
     const elementResult = dependencySource
-      ? this._describeDependency(fileDescription, dependencySource)
+      ? this._describeDependencyElement(fileDescription, dependencySource)
       : fileDescription;
 
     this._elementsCache.set(

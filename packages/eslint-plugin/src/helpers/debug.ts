@@ -1,10 +1,10 @@
+import type { ElementDescription } from "@boundaries/elements";
+import { isDependencyElement } from "@boundaries/elements";
 import chalk from "chalk";
 
-import type { FileInfo, ImportInfo } from "../constants/ElementsInfo.types";
 import { PLUGIN_NAME } from "../constants/plugin";
 
 import { isDebugModeEnabled } from "./settings";
-import { isDependencyInfo } from "./utils";
 
 const warns: string[] = [];
 const debuggedFiles: string[] = [];
@@ -33,16 +33,19 @@ export function warnOnce(message: string) {
   }
 }
 
-export function debugFileInfo(fileInfo: FileInfo | ImportInfo) {
+export function debugElementDescription(
+  elementDescription: ElementDescription,
+) {
   const fileInfoKey =
-    fileInfo.path || (isDependencyInfo(fileInfo) ? fileInfo.source : "");
+    elementDescription.path ||
+    (isDependencyElement(elementDescription) ? elementDescription.source : "");
   if (isDebugModeEnabled() && !debuggedFiles.includes(fileInfoKey)) {
     debuggedFiles.push(fileInfoKey);
-    if (fileInfo.type) {
-      success(`'${fileInfoKey}' is of type '${fileInfo.type}'`);
+    if (elementDescription.type) {
+      success(`'${fileInfoKey}' is of type '${elementDescription.type}'`);
     } else {
       warn(`'${fileInfoKey}' is of unknown type`);
     }
-    trace(`\n${JSON.stringify(fileInfo, null, 2)}`, "gray");
+    trace(`\n${JSON.stringify(elementDescription, null, 2)}`, "gray");
   }
 }

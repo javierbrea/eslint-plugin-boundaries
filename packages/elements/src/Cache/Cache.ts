@@ -95,4 +95,28 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
   public clear(): void {
     this._cache.clear();
   }
+
+  /**
+   * Serializes the  cache to a plain object.
+   * @returns The serialized cache.
+   */
+  public serialize(): Record<string, CachedValue> {
+    return Array.from(this.getAll().entries()).reduce(
+      (acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+      },
+      {} as Record<string, CachedValue>,
+    );
+  }
+
+  /**
+   * Sets the cache from a serialized object.
+   * @param serializedCache The serialized cache.
+   */
+  public setFromSerialized(serializedCache: Record<string, CachedValue>): void {
+    for (const key in serializedCache) {
+      this.restore(key, serializedCache[key]);
+    }
+  }
 }
