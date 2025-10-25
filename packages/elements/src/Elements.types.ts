@@ -1,6 +1,8 @@
-import type { ConfigOptions } from "../Config";
-import type { DescriptorsSerializedCache } from "../Descriptor";
-import type { ElementDescriptors } from "../Descriptor/ElementsDescriptor.types";
+import type { ConfigOptions } from "./Config";
+import type {
+  DescriptorsSerializedCache,
+  ElementDescriptors,
+} from "./Descriptor";
 
 /**
  * Serialized cache for Elements class.

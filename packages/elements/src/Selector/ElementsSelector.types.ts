@@ -1,9 +1,8 @@
 import type { MicromatchPattern } from "../Config";
 import type {
   DependencyKind,
-  // DependencyRelationship, TODO: Enable relationship filtering when migrating the "no-private" rule. This would require to add relationship both to file elements and dependency elements in dependencyData
+  DependencyRelationship,
   ElementOrigin,
-  ELEMENT_ORIGINS_MAP,
   LocalElementKnown,
   CoreDependencyElement,
   ExternalDependencyElement,
@@ -11,9 +10,19 @@ import type {
 } from "../Descriptor";
 
 /**
+ * Serialized cache of elements matcher.
+ */
+export type ElementsMatcherSerializedCache = Record<string, boolean>;
+
+/**
+ * Serialized cache of dependencies matcher.
+ */
+export type DependenciesMatcherSerializedCache = Record<string, boolean>;
+
+/**
  * Elements that can return a match when using an element selector.
  */
-export type SelectableElements =
+export type SelectableElement =
   | LocalElementKnown
   | CoreDependencyElement
   | ExternalDependencyElement
@@ -28,7 +37,7 @@ export type CapturedValuesSelector = Record<string, MicromatchPattern>;
 /**
  * Data to pass to captured patterns when they are rendered using templates before matching.
  */
-export type CapturedValuesTemplatesData = Record<string, unknown>;
+export type CapturedValuesTemplateData = Record<string, unknown>;
 
 /*
  * Simple element selector by type, represented as a string matching the element type.
@@ -74,32 +83,27 @@ export type ElementSelectorByTypeOrCategory =
   | ElementSelectorByTypeAndCategory;
 
 /**
- * Selector for file elements, including captured values for dynamic matching.
+ * Selector for base elements, including captured values for dynamic matching.
  */
 export type BaseElementSelectorData = ElementSelectorByTypeOrCategory & {
   /** Captured values selector for dynamic matching */
   captured?: CapturedValuesSelector;
-  /** Micromatch pattern(s) to match internal paths within the file */
+  /** Micromatch pattern(s) to match internal paths within the file or dependency */
   internalPath?: MicromatchPattern;
-  /** Relationship of the file element with the dependency declared in it */
-  // TODO: Enable relationship filtering when migrating the "no-private" rule. This would require to add relationship both to file elements and dependency elements in dependencyData
-  //relationship?: DependencyRelationship | DependencyRelationship[];
+  /**
+   * Relationship of the file element with the dependency declared in it
+   * It only applies when used in dependency matchers.
+   */
+  // TODO: Define relationship in from property of dependency description
+  relationship?: DependencyRelationship | DependencyRelationship[];
   /** Origin of the element */
-  origin?: typeof ELEMENT_ORIGINS_MAP.LOCAL;
+  origin?: ElementOrigin[];
 };
 
 /**
  * Selector for dependency elements, including kind, specifier, and node kind filters.
  */
-export type DependencyElementSelectorData = Omit<
-  BaseElementSelectorData,
-  "origin"
-> & {
-  /** Relationship of the dependency element with the file originating the dependency */
-  // TODO: Enable relationship filtering when migrating the "no-private" rule. This would require to add relationship both to file elements and dependency elements in dependencyData
-  // relationship?: DependencyRelationship | DependencyRelationship[];
-  /** Origin of the element */
-  origin?: ElementOrigin | ElementOrigin[];
+export type DependencyElementSelectorData = BaseElementSelectorData & {
   /** Dependency kind to filter elements */
   kind?: DependencyKind;
   // TODO: Pass specifier to DependencyData
@@ -110,7 +114,51 @@ export type DependencyElementSelectorData = Omit<
 };
 
 /**
- * Element selector data, which may be a file element selector or a dependency element selector.
+ * File Element selector with options, including captured values for dynamic matching.
+ * It is represented as a tuple where the first element is the element type (string)
+ * and the second element is an object containing a selector for captured values.
+ * @deprecated Use FileElementSelectorData defining an object with type and/or category and the rest of properties directly instead.
+ */
+export type BaseElementSelectorWithOptions =
+  | [BaseElementSelectorData, CapturedValuesSelector]
+  | [SimpleElementSelectorByType, CapturedValuesSelector];
+
+/**
+ * Dependency Element selector with options, including captured values for dynamic matching.
+ * It is represented as a tuple where the first element is the element type (string)
+ * and the second element is an object containing a selector for captured values.
+ * @deprecated Use DependencyElementSelectorData defining an object with type and/or category and the rest of properties directly instead.
+ */
+export type DependencyElementSelectorWithOptions =
+  | [DependencyElementSelectorData, CapturedValuesSelector]
+  | [SimpleElementSelectorByType, CapturedValuesSelector];
+
+/**
+ * Base Element selector, which can be a simple string, object with type and/or category, or a base element selector with options.
+ */
+export type BaseElementSelector =
+  | SimpleElementSelectorByType
+  | BaseElementSelectorData
+  | BaseElementSelectorWithOptions;
+
+/**
+ * Dependency Element selector, which can be a simple string, object with type and/or category, or a dependency element selector with options.
+ */
+export type DependencyElementSelector =
+  | SimpleElementSelectorByType
+  | DependencyElementSelectorData
+  | DependencyElementSelectorWithOptions;
+
+/** Base elements selector, which can be a single base element selector or an array of base element selectors. */
+export type BaseElementsSelector = BaseElementSelector | BaseElementSelector[];
+
+/** Dependency elements selector, which can be a single dependency element selector or an array of dependency element selectors. */
+export type DependencyElementsSelector =
+  | DependencyElementSelector
+  | DependencyElementSelector[];
+
+/**
+ * Element selector data, which may be a base element selector or a dependency element selector.
  */
 export type ElementSelectorData =
   | BaseElementSelectorData
@@ -127,26 +175,6 @@ export type ElementSelectorWithOptions =
   | [SimpleElementSelectorByType, CapturedValuesSelector];
 
 /**
- * File Element selector with options, including captured values for dynamic matching.
- * It is represented as a tuple where the first element is the element type (string)
- * and the second element is an object containing a selector for captured values.
- * @deprecated Use FileElementSelectorData defining an object with type and/or category and the rest of properties directly instead.
- */
-export type FileElementSelectorWithOptions =
-  | [BaseElementSelectorData, CapturedValuesSelector]
-  | [SimpleElementSelectorByType, CapturedValuesSelector];
-
-/**
- * Dependency Element selector with options, including captured values for dynamic matching.
- * It is represented as a tuple where the first element is the element type (string)
- * and the second element is an object containing a selector for captured values.
- * @deprecated Use DependencyElementSelectorData defining an object with type and/or category and the rest of properties directly instead.
- */
-export type DependencyElementSelectorWithOptions =
-  | [DependencyElementSelectorData, CapturedValuesSelector]
-  | [SimpleElementSelectorByType, CapturedValuesSelector];
-
-/**
  * Element selector, which can be a simple string, object with type and/or category, or an element selector with options.
  */
 export type ElementSelector =
@@ -155,34 +183,10 @@ export type ElementSelector =
   | ElementSelectorWithOptions;
 
 /**
- * File Element selector, which can be a simple string, object with type and/or category, or a file element selector with options.
- */
-export type FileElementSelector =
-  | SimpleElementSelectorByType
-  | BaseElementSelectorData
-  | FileElementSelectorWithOptions;
-
-/**
- * Dependency Element selector, which can be a simple string, object with type and/or category, or a dependency element selector with options.
- */
-export type DependencyElementSelector =
-  | SimpleElementSelectorByType
-  | DependencyElementSelectorData
-  | DependencyElementSelectorWithOptions;
-
-/** File elements selector, which can be a single file element selector or an array of file element selectors. */
-export type FileElementsSelector = FileElementSelector | FileElementSelector[];
-
-/** Dependency elements selector, which can be a single dependency element selector or an array of dependency element selectors. */
-export type DependencyElementsSelector =
-  | DependencyElementSelector
-  | DependencyElementSelector[];
-
-/**
  * Elements selector, which can be a single element selector or an array of element selectors.
  */
 export type ElementsSelector =
-  | FileElementsSelector
+  | BaseElementsSelector
   | DependencyElementsSelector;
 
 /**
@@ -196,39 +200,19 @@ export type ElementSelectors = ElementsSelector;
  */
 export type DependencySelector = {
   /** Selector for the dependant elements. The file originating the dependency */
-  from?: FileElementsSelector;
+  from?: BaseElementsSelector;
   /** Selector for the dependency elements. The element being imported/exported */
   to?: DependencyElementsSelector;
 };
 
 /**
- * Dependency selector with only origin elements selector.
+ * Normalized dependency selector, where 'from' and 'to' are always arrays or null.
  */
-export type DependencySelectorWithOrigin = DependencySelector & {
+export type DependencySelectorNormalized = {
   /** Selector for the dependant elements. The file originating the dependency */
-  from: FileElementsSelector;
+  from: BaseElementSelectorData[] | null;
   /** Selector for the dependency elements. The element being imported/exported */
-  to: never;
-};
-
-/**
- * Dependency selector with only target elements selector.
- */
-export type DependencySelectorWithTarget = DependencySelector & {
-  /** Selector for the dependant elements. The file originating the dependency */
-  from: never;
-  /** Selector for the dependency elements. The element being imported/exported */
-  to: DependencyElementsSelector;
-};
-
-/**
- * Dependency selector with both origin and target elements selectors.
- */
-export type DependencySelectorWithOriginAndTarget = DependencySelector & {
-  /** Selector for the dependant elements. The file originating the dependency */
-  from: FileElementsSelector;
-  /** Selector for the dependency elements. The element being imported/exported */
-  to: DependencyElementsSelector;
+  to: DependencyElementSelectorData[] | null;
 };
 
 /**

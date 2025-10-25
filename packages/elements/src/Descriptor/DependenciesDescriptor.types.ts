@@ -1,7 +1,6 @@
 import type {
   DependencyElement,
   FileElement,
-  IgnoredElement,
 } from "./ElementsDescriptor.types";
 
 export const DEPENDENCY_KIND_TYPE = "type" as const;
@@ -37,10 +36,29 @@ export const DEPENDENCY_RELATIONSHIPS_MAP = {
   SIBLING: "sibling",
   /** The dependency is a parent of the element */
   PARENT: "parent",
-  /** The dependency is an uncle of the element. They have the same parent */
+  /** The dependency is an uncle of the element */
   UNCLE: "uncle",
+  // TODO: Implement nephew detection
+  /** The dependency is a nephew of the element */
+  NEPHEW: "nephew",
   /** The dependency is an ancestor of the element */
   ANCESTOR: "ancestor",
+} as const;
+
+export const DEPENDENCY_RELATIONSHIPS_INVERTED_MAP = {
+  [DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL]:
+    DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL,
+  [DEPENDENCY_RELATIONSHIPS_MAP.CHILD]: DEPENDENCY_RELATIONSHIPS_MAP.PARENT,
+  [DEPENDENCY_RELATIONSHIPS_MAP.DESCENDANT]:
+    DEPENDENCY_RELATIONSHIPS_MAP.ANCESTOR,
+  /** @deprecated Use sibling instead */
+  [DEPENDENCY_RELATIONSHIPS_MAP.BROTHER]: DEPENDENCY_RELATIONSHIPS_MAP.BROTHER,
+  [DEPENDENCY_RELATIONSHIPS_MAP.SIBLING]: DEPENDENCY_RELATIONSHIPS_MAP.SIBLING,
+  [DEPENDENCY_RELATIONSHIPS_MAP.PARENT]: DEPENDENCY_RELATIONSHIPS_MAP.CHILD,
+  [DEPENDENCY_RELATIONSHIPS_MAP.UNCLE]: DEPENDENCY_RELATIONSHIPS_MAP.NEPHEW,
+  [DEPENDENCY_RELATIONSHIPS_MAP.NEPHEW]: DEPENDENCY_RELATIONSHIPS_MAP.UNCLE,
+  [DEPENDENCY_RELATIONSHIPS_MAP.ANCESTOR]:
+    DEPENDENCY_RELATIONSHIPS_MAP.DESCENDANT,
 } as const;
 
 /** Kind of relationship between elements being dependencies */
@@ -51,10 +69,17 @@ export type DependencyRelationship =
 export type ElementsDependencyInfo = {
   /** Kind of the dependency */
   kind: DependencyKind;
-  /** Relationship between the elements from the perspective of the dependency */
-  relationship: DependencyRelationship | null;
   /** Type of the node creating the dependency in the dependent element */
   nodeKind: string | null;
+  /** Specifiers imported or exported in the dependency */
+  specifiers: string[] | null;
+  /** Relationship between the elements from both perspectives */
+  relationship: {
+    /** Relationship between the elements from the perspective of the file */
+    from: DependencyRelationship | null;
+    /** Relationship between the elements from the perspective of the dependency */
+    to: DependencyRelationship | null;
+  };
 };
 
 /**
@@ -64,7 +89,7 @@ export type DependencyDescription = {
   /** Source element of the dependency */
   from: FileElement;
   /** Target element of the dependency */
-  to: IgnoredElement | DependencyElement;
+  to: DependencyElement;
   /** Information about the dependency */
   dependency: ElementsDependencyInfo;
 };
@@ -89,4 +114,6 @@ export type DescribeDependencyOptions = {
   kind: DependencyKind;
   /** Type of the node creating the dependency in the dependent element */
   nodeKind: string;
+  /** Specifiers imported or exported in the dependency */
+  specifiers: string[] | null;
 };

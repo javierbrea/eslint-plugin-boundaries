@@ -94,19 +94,20 @@ function elementMatcherMessage(
     return "";
   }
   if (isElementSelector(elementMatcher)) {
-    const matcher = new ElementsMatcher(elementMatcher);
+    const matcher = new ElementsMatcher();
+    const selector = matcher.normalize(elementMatcher);
     const parts: string[] = [];
-    if (matcher.selector[0].type) {
-      parts.push(typeMessage(matcher.selector[0].type));
+    if (selector[0].type) {
+      parts.push(typeMessage(selector[0].type));
     }
-    if (matcher.selector[0].category) {
+    if (selector[0].category) {
       parts.push(propertiesConcatenator(parts, parts.length + 1));
-      parts.push(categoryMessage(matcher.selector[0].category));
+      parts.push(categoryMessage(selector[0].category));
     }
-    if (matcher.selector[0].captured) {
+    if (selector[0].captured) {
       parts.push(
         capturedValuesMatcherMessage(
-          matcher.selector[0].captured,
+          selector[0].captured,
           elementCapturedValues,
         ),
       );

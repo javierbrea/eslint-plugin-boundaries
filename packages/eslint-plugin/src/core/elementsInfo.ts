@@ -66,13 +66,13 @@ export function dependencyInfo(
     source,
     kind: importKind || "value",
     nodeKind: "ESM", // TODO: Pass the real node kind
+    specifiers: [], // TODO: Pass specifiers
   });
 
   debugElementDescription(dependencyData.to);
   debugElementDescription(dependencyData.to);
 
   // TODO: Align types, use the data from elements package directly
-  // @ts-expect-error Types are not aligned yet
   return {
     ...dependencyData.to,
     isLocal: dependencyData.to.origin === ELEMENT_ORIGINS_MAP.LOCAL,
@@ -83,13 +83,14 @@ export function dependencyInfo(
       ? dependencyData.to.baseSource
       : null,
     importKind: dependencyData.dependency.kind,
+    // @ts-expect-error Support nephews in relationship
     relationship:
-      dependencyData.dependency.relationship ===
+      dependencyData.dependency.relationship.from ===
       DEPENDENCY_RELATIONSHIPS_MAP.SIBLING
         ? DEPENDENCY_RELATIONSHIPS_MAP.BROTHER
-        : dependencyData.dependency.relationship,
+        : dependencyData.dependency.relationship.from,
     isInternal:
-      dependencyData.dependency.relationship ===
+      dependencyData.dependency.relationship.from ===
       DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL,
   };
 }

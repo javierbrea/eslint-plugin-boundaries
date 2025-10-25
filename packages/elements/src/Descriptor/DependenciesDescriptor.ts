@@ -2,9 +2,12 @@ import { CacheManager } from "../Cache";
 
 import {
   DEPENDENCY_RELATIONSHIPS_MAP,
-  type DependenciesDescriptorSerializedCache,
-  type DependencyDescription,
-  type DescribeDependencyOptions,
+  DEPENDENCY_RELATIONSHIPS_INVERTED_MAP,
+} from "./DependenciesDescriptor.types";
+import type {
+  DependenciesDescriptorSerializedCache,
+  DependencyDescription,
+  DescribeDependencyOptions,
 } from "./DependenciesDescriptor.types";
 import type { ElementsDescriptor } from "./ElementsDescriptor";
 import type {
@@ -30,6 +33,7 @@ export class DependenciesDescriptor {
       source: string;
       kind: string;
       nodeKind: string;
+      specifiers: string[] | null;
     },
     DependencyDescription
   > = new CacheManager();
@@ -198,6 +202,20 @@ export class DependenciesDescriptor {
     return null;
   }
 
+  private _dependencyRelationships(
+    element: ElementDescription,
+    dependency: ElementDescription,
+  ) {
+    const fromRelationship = this._dependencyRelationship(element, dependency);
+    const toRelationship = fromRelationship
+      ? DEPENDENCY_RELATIONSHIPS_INVERTED_MAP[fromRelationship]
+      : null;
+    return {
+      from: fromRelationship,
+      to: toRelationship,
+    };
+  }
+
   /**
    * Describes elements in a dependency relationship, and provides additional information about the dependency itself.
    * @param options The options for describing the elements and the dependency details.
@@ -209,6 +227,7 @@ export class DependenciesDescriptor {
     source,
     kind,
     nodeKind,
+    specifiers,
   }: DescribeDependencyOptions): DependencyDescription {
     if (
       this._dependenciesCache.has({
@@ -217,6 +236,7 @@ export class DependenciesDescriptor {
         source,
         kind,
         nodeKind,
+        specifiers,
       })
     ) {
       return this._dependenciesCache.get({
@@ -225,6 +245,7 @@ export class DependenciesDescriptor {
         source,
         kind,
         nodeKind,
+        specifiers,
       })!;
     }
 
@@ -237,7 +258,8 @@ export class DependenciesDescriptor {
       dependency: {
         kind,
         nodeKind,
-        relationship: this._dependencyRelationship(fromElement, toElement),
+        relationship: this._dependencyRelationships(fromElement, toElement),
+        specifiers,
       },
     };
     this._dependenciesCache.set(
@@ -247,6 +269,7 @@ export class DependenciesDescriptor {
         source,
         kind,
         nodeKind,
+        specifiers,
       },
       result,
     );

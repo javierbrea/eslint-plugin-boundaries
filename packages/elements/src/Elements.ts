@@ -1,15 +1,13 @@
-import { CacheManager } from "../Cache";
-import type { ConfigOptions } from "../Config";
-import { Config } from "../Config";
-import { Descriptors } from "../Descriptor";
-import type { ElementDescriptors } from "../Descriptor/ElementsDescriptor.types";
-import { ElementsMatcher } from "../Selector";
-import type { ElementsSelector } from "../Selector";
-
+import { CacheManager } from "./Cache";
+import type { ConfigOptions } from "./Config";
+import { Config } from "./Config";
+import { Descriptors } from "./Descriptor";
+import type { ElementDescriptors } from "./Descriptor/ElementsDescriptor.types";
 import type { ElementsSerializedCache } from "./Elements.types";
 
 /**
  * Main class to interact with Elements functionality.
+ * It include one method to get descriptors with different caching for different configurations, methods to manage the cache, and methods to match element selectors against element descriptions.
  */
 export class Elements {
   private _globalConfigOptions: ConfigOptions;
@@ -77,6 +75,8 @@ export class Elements {
     }
   }
 
+  // TODO: Add method to clean caches
+
   /**
    * Gets Elements and Dependencies descriptor instances based on the provided configuration options.
    * If no options are provided, the global configuration options are used.
@@ -106,12 +106,7 @@ export class Elements {
     return descriptors;
   }
 
-  /**
-   * Gets a matcher for the specified selector.
-   * @param selector The selector to create a matcher for.
-   * @returns An ElementsMatcher instance for the specified selector.
-   */
-  public getMatcher(selector: ElementsSelector): ElementsMatcher {
-    return new ElementsMatcher(selector);
-  }
+  // TODO: Expose methods to match elements or dependencies. Create unique instances in the constructor, and get/set caches in cache serializer methods
+
+  // TODO: Expose method to normalize selectors
 }
