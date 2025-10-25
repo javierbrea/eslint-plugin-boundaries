@@ -1,5 +1,5 @@
 import type { ElementDescription } from "@boundaries/elements";
-import { isDependencyElement } from "@boundaries/elements";
+import { isDependencyElement, isIgnoredElement } from "@boundaries/elements";
 import chalk from "chalk";
 
 import { PLUGIN_NAME } from "../constants/plugin";
@@ -38,7 +38,10 @@ export function debugElementDescription(
 ) {
   const fileInfoKey =
     elementDescription.path ||
-    (isDependencyElement(elementDescription) ? elementDescription.source : "");
+    (isDependencyElement(elementDescription) &&
+    !isIgnoredElement(elementDescription)
+      ? elementDescription.source
+      : "");
   if (isDebugModeEnabled() && !debuggedFiles.includes(fileInfoKey)) {
     debuggedFiles.push(fileInfoKey);
     if (elementDescription.type) {

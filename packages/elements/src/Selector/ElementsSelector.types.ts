@@ -1,16 +1,34 @@
 import type { MicromatchPattern } from "../Config";
 import type {
   DependencyKind,
-  DependencyRelationship,
+  // DependencyRelationship, TODO: Enable relationship filtering when migrating the "no-private" rule. This would require to add relationship both to file elements and dependency elements in dependencyData
   ElementOrigin,
   ELEMENT_ORIGINS_MAP,
+  LocalElementKnown,
+  CoreDependencyElement,
+  ExternalDependencyElement,
+  LocalDependencyElementKnown,
 } from "../Descriptor";
+
+/**
+ * Elements that can return a match when using an element selector.
+ */
+export type SelectableElements =
+  | LocalElementKnown
+  | CoreDependencyElement
+  | ExternalDependencyElement
+  | LocalDependencyElementKnown;
 
 /**
  * Selector for matching captured values in element selectors.
  * It is a record where the keys are the names of the captured values and the values are the patterns to match on those captured values.
  */
 export type CapturedValuesSelector = Record<string, MicromatchPattern>;
+
+/**
+ * Data to pass to captured patterns when they are rendered using templates before matching.
+ */
+export type CapturedValuesTemplatesData = Record<string, unknown>;
 
 /*
  * Simple element selector by type, represented as a string matching the element type.
@@ -58,13 +76,14 @@ export type ElementSelectorByTypeOrCategory =
 /**
  * Selector for file elements, including captured values for dynamic matching.
  */
-export type FileElementSelectorData = ElementSelectorByTypeOrCategory & {
+export type BaseElementSelectorData = ElementSelectorByTypeOrCategory & {
   /** Captured values selector for dynamic matching */
   captured?: CapturedValuesSelector;
   /** Micromatch pattern(s) to match internal paths within the file */
   internalPath?: MicromatchPattern;
   /** Relationship of the file element with the dependency declared in it */
-  relationship?: DependencyRelationship;
+  // TODO: Enable relationship filtering when migrating the "no-private" rule. This would require to add relationship both to file elements and dependency elements in dependencyData
+  //relationship?: DependencyRelationship | DependencyRelationship[];
   /** Origin of the element */
   origin?: typeof ELEMENT_ORIGINS_MAP.LOCAL;
 };
@@ -72,13 +91,18 @@ export type FileElementSelectorData = ElementSelectorByTypeOrCategory & {
 /**
  * Selector for dependency elements, including kind, specifier, and node kind filters.
  */
-export type DependencyElementSelectorData = FileElementSelectorData & {
+export type DependencyElementSelectorData = Omit<
+  BaseElementSelectorData,
+  "origin"
+> & {
   /** Relationship of the dependency element with the file originating the dependency */
-  relationship?: DependencyRelationship;
+  // TODO: Enable relationship filtering when migrating the "no-private" rule. This would require to add relationship both to file elements and dependency elements in dependencyData
+  // relationship?: DependencyRelationship | DependencyRelationship[];
   /** Origin of the element */
-  origin?: ElementOrigin;
+  origin?: ElementOrigin | ElementOrigin[];
   /** Dependency kind to filter elements */
   kind?: DependencyKind;
+  // TODO: Pass specifier to DependencyData
   /** Micromatch pattern(s) to match only specific imports/exports */
   specifier?: MicromatchPattern;
   /** Node kind to filter elements */
@@ -89,7 +113,7 @@ export type DependencyElementSelectorData = FileElementSelectorData & {
  * Element selector data, which may be a file element selector or a dependency element selector.
  */
 export type ElementSelectorData =
-  | FileElementSelectorData
+  | BaseElementSelectorData
   | DependencyElementSelectorData;
 
 /**
@@ -109,7 +133,7 @@ export type ElementSelectorWithOptions =
  * @deprecated Use FileElementSelectorData defining an object with type and/or category and the rest of properties directly instead.
  */
 export type FileElementSelectorWithOptions =
-  | [FileElementSelectorData, CapturedValuesSelector]
+  | [BaseElementSelectorData, CapturedValuesSelector]
   | [SimpleElementSelectorByType, CapturedValuesSelector];
 
 /**
@@ -135,7 +159,7 @@ export type ElementSelector =
  */
 export type FileElementSelector =
   | SimpleElementSelectorByType
-  | FileElementSelectorData
+  | BaseElementSelectorData
   | FileElementSelectorWithOptions;
 
 /**

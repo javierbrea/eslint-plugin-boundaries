@@ -21,7 +21,6 @@ import type {
   LocalElementUnknown,
   CoreDependencyElement,
   DependencyElement,
-  IgnoredElement,
 } from "./ElementsDescriptor.types";
 import {
   ELEMENT_DESCRIPTOR_MODES_MAP,
@@ -509,7 +508,7 @@ export class ElementsDescriptor {
   private _describeDependencyElement(
     element: FileElement,
     dependencySource: string,
-  ): ElementDescription {
+  ): DependencyElement {
     // Ignored elements remain ignored
     if (isIgnoredElement(element)) {
       return element;
@@ -576,7 +575,7 @@ export class ElementsDescriptor {
     filePath?: string,
     // eslint-disable-next-line no-unused-vars
     dependencySource?: string,
-  ): DependencyElement | IgnoredElement;
+  ): DependencyElement;
 
   public describeElement(
     filePath?: string,

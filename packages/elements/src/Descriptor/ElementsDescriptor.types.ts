@@ -238,14 +238,19 @@ export type BaseDependencyElement = BaseElement & {
  * Description of a file
  */
 export type FileElement =
-  | LocalElementKnown
   | IgnoredElement
+  | LocalElementKnown
   | LocalElementUnknown;
 
 /**
  * Description of a local dependency
  */
-export type LocalDependencyElement = (LocalElementKnown | LocalElementUnknown) &
+export type LocalDependencyElement = FileElement & BaseDependencyElement;
+
+/**
+ * Description of a known local dependency
+ */
+export type LocalDependencyElementKnown = LocalElementKnown &
   BaseDependencyElement;
 
 /**
@@ -270,6 +275,7 @@ export type CoreDependencyElement = BaseDependencyElement & {
  * Description of a dependency
  */
 export type DependencyElement =
+  | IgnoredElement
   | CoreDependencyElement
   | LocalDependencyElement
   | ExternalDependencyElement;
@@ -277,8 +283,4 @@ export type DependencyElement =
 /**
  * Description of an element, either local or dependency
  */
-export type ElementDescription =
-  | IgnoredElement
-  | LocalElementUnknown
-  | LocalElementKnown
-  | DependencyElement;
+export type ElementDescription = FileElement | DependencyElement;
