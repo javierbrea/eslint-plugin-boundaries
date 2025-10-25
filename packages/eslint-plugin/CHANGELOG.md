@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > - Full unit tests coverage in elements package.
 > - elements package documentation.
 > - Publish RFC for renaming the package to `@boundaries/eslint-plugin`.
+> - Support multiple micromatch patterns in captured values in selectors.
 > - Deprecate `disallow` in favor of `deny` in rule options.
 > - Support `nodeKind` in selectors. Pass it to dependency description.
 > - Support defining `kind` in selectors instead of defining it at rule level. This should be extended in `dependency-selectors` too (object with `from` and `to` properties).

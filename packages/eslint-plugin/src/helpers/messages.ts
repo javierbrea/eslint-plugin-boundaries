@@ -81,7 +81,8 @@ function capturedValuesMatcherMessage(
     .reduce((message, propertyNameAndMatcher, index) => {
       return `${message}${propertiesConcatenator(capturedValuesPatternKeys, index)} ${
         propertyNameAndMatcher[0]
-      } ${micromatchPatternMessage(propertyNameAndMatcher[1], elementCapturedValues)}`;
+        // TODO: Support array patterns
+      } ${micromatchPatternMessage(propertyNameAndMatcher[1] as string, elementCapturedValues)}`;
     }, "");
 }
 
@@ -116,7 +117,8 @@ function elementMatcherMessage(
   if (isString(elementMatcher)) {
     return typeMessage(elementMatcher);
   }
-  return `${typeMessage(elementMatcher[0])}${capturedValuesMatcherMessage(
+  // TODO: Support array patterns
+  return `${typeMessage(elementMatcher[0] as string)}${capturedValuesMatcherMessage(
     elementMatcher[1] as unknown as CapturedValuesSelector,
     elementCapturedValues,
   )}`;

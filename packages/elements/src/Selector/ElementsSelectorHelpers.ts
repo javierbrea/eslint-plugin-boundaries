@@ -35,14 +35,16 @@ export function isCapturedValuesSelector(
     return false;
   }
 
-  // Ensure all values are strings
-  return Object.values(value).every(isString);
+  // Ensure all values are strings or string arrays
+  return Object.values(value).every(
+    (pattern) => isString(pattern) || isStringArray(pattern),
+  );
 }
 
 /**
- * Determines if the given selector is a simple element selector.
+ * Determines if the given value is a simple element selector.
  * @param value The value to check.
- * @returns True if the selector is a simple element selector, false otherwise.
+ * @returns True if the value is a simple element selector, false otherwise.
  */
 export function isSimpleElementSelectorByType(
   value: unknown,
@@ -51,9 +53,9 @@ export function isSimpleElementSelectorByType(
 }
 
 /**
- * Determines if the given selector is an element selector by type.
+ * Determines if the given value is an element selector by type.
  * @param value The value to check.
- * @returns True if the selector is an element selector by type, false otherwise.
+ * @returns True if the value is an element selector by type, false otherwise.
  */
 export function isElementSelectorByType(
   value: unknown,
@@ -65,9 +67,9 @@ export function isElementSelectorByType(
 }
 
 /**
- * Determines if the given selector is an element selector by category.
+ * Determines if the given value is an element selector by category.
  * @param value The value to check.
- * @returns True if the selector is an element selector by category, false otherwise.
+ * @returns True if the value is an element selector by category, false otherwise.
  */
 export function isElementSelectorByCategory(
   value: unknown,
@@ -76,9 +78,9 @@ export function isElementSelectorByCategory(
 }
 
 /**
- * Determines if the given selector is an element selector by both type and category.
+ * Determines if the given value is an element selector by both type and category.
  * @param value The value to check.
- * @returns True if the selector is an element selector by both type and category, false otherwise.
+ * @returns True if the value is an element selector by both type and category, false otherwise.
  */
 export function isElementSelectorByTypeAndCategory(
   value: unknown,

@@ -5,6 +5,12 @@ import type {
   ElementSelectorData,
   ElementsSelector,
   ElementSelector,
+  FileElementSelector,
+  FileElementSelectorData,
+  DependencyElementSelector,
+  DependencyElementSelectorData,
+  FileElementsSelector,
+  DependencyElementsSelector,
 } from "./ElementsSelector.types";
 import {
   isSimpleElementSelectorByType,
@@ -35,6 +41,15 @@ export class ElementsMatcher {
    * @returns The normalized array of selector data.
    */
   private _normalizeElementsSelector(
+    // eslint-disable-next-line no-unused-vars
+    elementsSelector: FileElementsSelector,
+  ): FileElementSelectorData[];
+  private _normalizeElementsSelector(
+    // eslint-disable-next-line no-unused-vars
+    elementsSelector: DependencyElementsSelector,
+  ): DependencyElementSelectorData[];
+
+  private _normalizeElementsSelector(
     elementsSelector: ElementsSelector,
   ): ElementSelectorData[] {
     if (isArray(elementsSelector)) {
@@ -51,6 +66,15 @@ export class ElementsMatcher {
    * @param selector The selector to normalize.
    * @returns The normalized selector data.
    */
+  private _normalizeSelector(
+    // eslint-disable-next-line no-unused-vars
+    selector: FileElementSelector,
+  ): FileElementSelectorData;
+  private _normalizeSelector(
+    // eslint-disable-next-line no-unused-vars
+    selector: DependencyElementSelector,
+  ): DependencyElementSelectorData;
+
   private _normalizeSelector(selector: ElementSelector): ElementSelectorData {
     if (isSimpleElementSelectorByType(selector)) {
       return { type: selector };
