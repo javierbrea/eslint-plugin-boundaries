@@ -21,7 +21,8 @@ export type DependencyRuleRunner<Options> = (
 ) => void;
 
 export type DependencyRuleOptions = {
+  /** Whether to validate the presence of options */
   validate?: boolean;
-
+  /** Whether to validate the rules */
   validateRules?: ValidateRulesOptions;
 };

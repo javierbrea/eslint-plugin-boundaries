@@ -76,3 +76,17 @@ export function isDependencyDescription(
     isElementsDependencyInfo(value.dependency)
   );
 }
+
+/**
+ * Determines whether the given dependency is internal.
+ * @param dependency The dependency to check
+ * @returns True if the dependency is internal, false otherwise
+ */
+export function isInternalDependency(
+  dependency: DependencyDescription,
+): boolean {
+  return (
+    dependency.dependency.relationship.from ===
+    DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL
+  );
+}

@@ -55,7 +55,6 @@ export function dependencyInfo(
   });
 
   debugElementDescription(dependencyData.to);
-  debugElementDescription(dependencyData.to);
 
   // TODO: Align types, use the data from elements package directly
   return {
@@ -77,5 +76,6 @@ export function dependencyInfo(
     isInternal:
       dependencyData.dependency.relationship.from ===
       DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL,
+    originalDescription: dependencyData,
   };
 }

@@ -1,3 +1,10 @@
+import {
+  isIgnoredElement,
+  isInternalDependency,
+  isLocalElement,
+  isUnknownLocalElement,
+} from "@boundaries/elements";
+
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { FileInfo } from "../constants/ElementsInfo.types";
 import type {
@@ -73,10 +80,10 @@ export default dependencyRule<ElementTypesRuleOptions>(
   },
   function ({ dependency, file, node, context, options }) {
     if (
-      dependency.isLocal &&
-      !dependency.isIgnored &&
-      dependency.type &&
-      !dependency.isInternal
+      isLocalElement(dependency.originalDescription.to) &&
+      !isIgnoredElement(dependency.originalDescription.to) &&
+      !isUnknownLocalElement(dependency.originalDescription.to) &&
+      !isInternalDependency(dependency.originalDescription)
     ) {
       const ruleData = elementRulesAllowDependencyType(
         file,
