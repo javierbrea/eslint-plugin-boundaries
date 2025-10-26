@@ -1,32 +1,17 @@
 import {
-  Elements,
   ELEMENT_ORIGINS_MAP,
   DEPENDENCY_RELATIONSHIPS_MAP,
   isIgnoredElement,
 } from "@boundaries/elements";
-import type { Descriptors, DependencyKind } from "@boundaries/elements";
+import type { DependencyKind } from "@boundaries/elements";
 import type { Rule } from "eslint";
 import resolve from "eslint-module-utils/resolve";
 
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { FileInfo } from "../constants/ElementsInfo.types";
-import { SETTINGS } from "../constants/settings";
+import { getElementsDescriptor } from "../elements/elements";
 import { debugElementDescription } from "../helpers/debug";
-import { getElements, getRootPath } from "../helpers/settings";
-
-const elements = new Elements();
-
-function getElementsDescriptor(context: Rule.RuleContext): Descriptors {
-  const elementsDescriptors = elements.getDescriptors(
-    getElements(context.settings),
-    {
-      ignorePaths: context.settings[SETTINGS.IGNORE] as string[],
-      includePaths: context.settings[SETTINGS.INCLUDE] as string[],
-      rootPath: getRootPath(context.settings),
-    },
-  );
-  return elementsDescriptors;
-}
+import { getRootPath } from "../helpers/settings";
 
 function replacePathSlashes(absolutePath: string) {
   return absolutePath.replace(/\\/g, "/");

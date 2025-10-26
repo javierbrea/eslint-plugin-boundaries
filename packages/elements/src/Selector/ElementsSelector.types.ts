@@ -39,6 +39,13 @@ export type CapturedValuesSelector = Record<string, MicromatchPattern>;
  */
 export type CapturedValuesTemplateData = Record<string, unknown>;
 
+/**
+ * Options for elements and dependencies matchers.
+ */
+export type MatcherOptions = {
+  capturedValuesTemplateData?: CapturedValuesTemplateData;
+};
+
 /*
  * Simple element selector by type, represented as a string matching the element type.
  */

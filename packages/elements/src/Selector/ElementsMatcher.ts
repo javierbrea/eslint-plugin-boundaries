@@ -17,6 +17,7 @@ import type {
   BaseElementsSelector,
   ElementSelector,
   ElementSelectorData,
+  MatcherOptions,
 } from "./ElementsSelector.types";
 
 /**
@@ -270,12 +271,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
   public isElementMatch(
     element: ElementDescription,
     selector: BaseElementsSelector,
-    {
-      capturedValuesTemplateData = {},
-    }: {
-      /** The data to pass to captured patterns when they are rendered using templates before matching. */
-      capturedValuesTemplateData?: CapturedValuesTemplateData;
-    } = {},
+    { capturedValuesTemplateData = {} }: MatcherOptions = {},
   ): boolean {
     if (
       this._cache.has({

@@ -2,15 +2,30 @@ import { CacheManager } from "./Cache";
 import type { ConfigOptions } from "./Config";
 import { Config } from "./Config";
 import { Descriptors } from "./Descriptor";
-import type { ElementDescriptors } from "./Descriptor/ElementsDescriptor.types";
+import type {
+  ElementDescriptors,
+  ElementDescription,
+  DependencyDescription,
+} from "./Descriptor";
 import type { ElementsSerializedCache } from "./Elements.types";
+import { DependenciesMatcher, ElementsMatcher } from "./Selector";
+import type {
+  BaseElementsSelector,
+  DependencySelector,
+  MatcherOptions,
+  ElementSelector,
+  ElementSelectorData,
+} from "./Selector";
 
 /**
  * Main class to interact with Elements functionality.
  * It include one method to get descriptors with different caching for different configurations, methods to manage the cache, and methods to match element selectors against element descriptions.
  */
 export class Elements {
+  /** The global configuration options for Elements. Can be overridden when getting a descriptor */
   private _globalConfigOptions: ConfigOptions;
+
+  /** Cache manager for Descriptors instances, unique for each different configuration */
   private _descriptorsCache: CacheManager<
     { config: ConfigOptions; elementDescriptors: ElementDescriptors },
     {
@@ -20,12 +35,20 @@ export class Elements {
     }
   > = new CacheManager();
 
+  /** Matcher for element selectors */
+  private _elementsMatcher: ElementsMatcher;
+
+  /** Matcher for dependency selectors */
+  private _dependenciesMatcher: DependenciesMatcher;
+
   /**
    * Creates a new Elements instance
    * @param configOptions The global configuration options for Elements. Can be overridden when getting a descriptor.
    */
   constructor(configOptions?: ConfigOptions) {
     this._globalConfigOptions = configOptions ? { ...configOptions } : {};
+    this._elementsMatcher = new ElementsMatcher();
+    this._dependenciesMatcher = new DependenciesMatcher(this._elementsMatcher);
   }
 
   /**
@@ -106,7 +129,46 @@ export class Elements {
     return descriptors;
   }
 
-  // TODO: Expose methods to match elements or dependencies. Create unique instances in the constructor, and get/set caches in cache serializer methods
+  /**
+   * Determines if an element matches a given elements selector.
+   * @param element The element to check
+   * @param selector The elements selector to check against
+   * @param options Additional options for matching
+   * @returns True if the element matches the selector, false otherwise
+   */
+  public isElementMatch(
+    element: ElementDescription,
+    selector: BaseElementsSelector,
+    options?: MatcherOptions,
+  ): boolean {
+    return this._elementsMatcher.isElementMatch(element, selector, options);
+  }
 
-  // TODO: Expose method to normalize selectors
+  /**
+   * Returns whether the given dependency matches the selector.
+   * @param dependency The dependency to check.
+   * @param selector The dependency selector to check against.
+   * @param options Additional options for matching
+   * @returns Whether the dependency matches the selector properties.
+   */
+  public isDependencyMatch(
+    dependency: DependencyDescription,
+    selector: DependencySelector,
+    options?: MatcherOptions,
+  ): boolean {
+    return this._dependenciesMatcher.isDependencyMatch(
+      dependency,
+      selector,
+      options,
+    );
+  }
+
+  /**
+   * Normalizes an element selector with any supported format into an array of ElementSelectorData.
+   * @param selector The element selector to normalize.
+   * @returns An array of normalized ElementSelectorData.
+   */
+  public normalizeSelector(selector: ElementSelector): ElementSelectorData[] {
+    return this._elementsMatcher.normalize(selector);
+  }
 }

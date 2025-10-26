@@ -5,10 +5,11 @@ import type {
   ElementsSelector,
   CapturedValues,
 } from "@boundaries/elements";
-import { isElementSelector, ElementsMatcher } from "@boundaries/elements";
+import { isElementSelector } from "@boundaries/elements";
 
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { ElementInfo, FileInfo } from "../constants/ElementsInfo.types";
+import { elements } from "../elements/elements";
 
 import { micromatchPatternReplacingObjectsValues } from "./rules";
 import {
@@ -94,8 +95,7 @@ function elementMatcherMessage(
     return "";
   }
   if (isElementSelector(elementMatcher)) {
-    const matcher = new ElementsMatcher();
-    const selector = matcher.normalize(elementMatcher);
+    const selector = elements.normalizeSelector(elementMatcher);
     const parts: string[] = [];
     if (selector[0].type) {
       parts.push(typeMessage(selector[0].type));

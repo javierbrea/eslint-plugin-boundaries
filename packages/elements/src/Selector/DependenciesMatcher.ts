@@ -18,6 +18,7 @@ import type {
   DependencySelectorNormalized,
   ElementSelectorData,
   BaseElementSelectorData,
+  MatcherOptions,
 } from "./ElementsSelector.types";
 
 /**
@@ -316,12 +317,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
   public isDependencyMatch(
     dependency: DependencyDescription,
     selector: DependencySelector,
-    {
-      capturedValuesTemplateData = {},
-    }: {
-      /** The data to pass to captured patterns when they are rendered using templates before matching. */
-      capturedValuesTemplateData?: CapturedValuesTemplateData;
-    } = {},
+    { capturedValuesTemplateData = {} }: MatcherOptions = {},
   ): boolean {
     if (
       this._cache.has({
