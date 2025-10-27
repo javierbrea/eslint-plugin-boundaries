@@ -6,12 +6,15 @@ import {
 import type { DependencyKind } from "@boundaries/elements";
 import type { Rule } from "eslint";
 import resolve from "eslint-module-utils/resolve";
+import type { Identifier, ImportSpecifier } from "estree";
 
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { FileInfo } from "../constants/ElementsInfo.types";
 import { getElementsDescriptor } from "../elements/elements";
 import { debugElementDescription } from "../helpers/debug";
 import { getRootPath } from "../helpers/settings";
+
+import type { EslintLiteralNode } from "./elementsInfo.types";
 
 function replacePathSlashes(absolutePath: string) {
   return absolutePath.replace(/\\/g, "/");
@@ -30,6 +33,34 @@ function projectPath(
   return "";
 }
 
+export function getSpecifiers(node: Rule.Node): string[] {
+  if (node.parent.type === "ImportDeclaration") {
+    return node.parent.specifiers
+      .filter(
+        (specifier) =>
+          specifier.type === "ImportSpecifier" &&
+          specifier.imported &&
+          (specifier.imported as Identifier).name,
+      )
+      .map(
+        (specifier) =>
+          ((specifier as ImportSpecifier).imported as Identifier).name,
+      );
+  }
+
+  if (node.parent.type === "ExportNamedDeclaration") {
+    return node.parent.specifiers
+      .filter(
+        (specifier) =>
+          specifier.type === "ExportSpecifier" &&
+          (specifier.exported as Identifier).name,
+      )
+      .map((specifier) => (specifier.exported as Identifier).name);
+  }
+
+  return [];
+}
+
 export function fileInfo(context: Rule.RuleContext): FileInfo {
   const elementsDescriptors = getElementsDescriptor(context);
   const path = projectPath(context.filename, getRootPath(context.settings));
@@ -40,18 +71,27 @@ export function fileInfo(context: Rule.RuleContext): FileInfo {
 }
 
 export function dependencyInfo(
-  source: string,
-  importKind: DependencyKind,
+  {
+    node,
+    kind,
+    nodeKind,
+  }: {
+    node: EslintLiteralNode;
+    kind: DependencyKind;
+    nodeKind?: string;
+  },
   context: Rule.RuleContext,
 ): DependencyInfo {
+  const source = String(node.value);
   const elementsDescriptors = getElementsDescriptor(context);
+
   const dependencyData = elementsDescriptors.describeDependency({
     from: projectPath(context.filename, getRootPath(context.settings)),
     to: projectPath(resolve(source, context), getRootPath(context.settings)),
     source,
-    kind: importKind || "value",
-    nodeKind: "ESM", // TODO: Pass the real node kind
-    specifiers: [], // TODO: Pass specifiers
+    kind: kind || "value", // TODO: Change by runtime in a backwards compatible way
+    nodeKind,
+    specifiers: getSpecifiers(node),
   });
 
   debugElementDescription(dependencyData.to);

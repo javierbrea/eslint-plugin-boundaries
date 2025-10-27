@@ -110,10 +110,10 @@ export function isElementSelectorWithLegacyOptions(
   return (
     isArray(value) &&
     value.length === 2 &&
-    (isSimpleElementSelectorByType(value[0]) ||
-      isElementSelectorData(value[0])) &&
-    // Avoid confusing an array of selectors with length 2, with legacy options
-    !isElementSelectorData(value[1]) &&
+    isSimpleElementSelectorByType(value[0]) &&
+    // NOTE: Arrays of length 2 with captured values selector as second element having a key "type" or "category" will be treated as legacy options instead of two different selectors. We have to live with this limitation for now.
+    // TODO: Add a note to the documentation about this limitation.
+    // !isElementSelectorData(value[1]) &&
     isCapturedValuesSelector(value[1])
   );
 }

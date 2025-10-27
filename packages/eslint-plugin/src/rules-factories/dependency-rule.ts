@@ -14,6 +14,7 @@ import {
   DEPENDENCY_NODE_KEYS_MAP,
 } from "../constants/settings";
 import { fileInfo, dependencyInfo } from "../core/elementsInfo";
+import type { EslintLiteralNode } from "../core/elementsInfo.types";
 import { warnOnce } from "../helpers/debug";
 import { meta } from "../helpers/rules";
 import type { RuleMetaDefinition } from "../helpers/Rules.types";
@@ -23,7 +24,6 @@ import { validateSettings, validateRules } from "../helpers/validations";
 import type {
   DependencyRuleRunner,
   DependencyRuleOptions,
-  EslintLiteralNode,
 } from "./DependencyRule.types";
 
 const { DEFAULT_DEPENDENCY_NODES, ADDITIONAL_DEPENDENCY_NODES } = SETTINGS;
@@ -66,8 +66,8 @@ export default function <Options extends RuleOptionsWithRules>(
         getArrayOrNull<DependencyNodeSelector>(
           settings[ADDITIONAL_DEPENDENCY_NODES],
         );
-      const dependencyNodes =
-        // TODO In next major version, make this default to all types of nodes !!!
+      const dependencyNodes: DependencyNodeSelector[] =
+        // TODO In next major version, make this default to all types of nodes !!! Support giving them names to be able to use them in selectors.
         (dependencyNodesSetting || [DEPENDENCY_NODE_KEYS_MAP.IMPORT])
           .map((dependencyNode) => DEFAULT_DEPENDENCY_NODES[dependencyNode])
           .flat()
@@ -75,7 +75,7 @@ export default function <Options extends RuleOptionsWithRules>(
       const additionalDependencyNodes = additionalDependencyNodesSetting || [];
 
       return [...dependencyNodes, ...additionalDependencyNodes].reduce(
-        (visitors, { selector, kind }) => {
+        (visitors, { selector, kind, name }) => {
           visitors[selector] = (node: EslintLiteralNode) => {
             if (!isString(node.value)) {
               warnOnce(
@@ -83,7 +83,14 @@ export default function <Options extends RuleOptionsWithRules>(
               );
               return;
             }
-            const dependency = dependencyInfo(node.value, kind, context);
+            const dependency = dependencyInfo(
+              {
+                node,
+                kind,
+                nodeKind: name,
+              },
+              context,
+            );
 
             rule({ file, dependency, options, node, context });
           };

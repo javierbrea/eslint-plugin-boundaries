@@ -2,8 +2,6 @@ import type {
   DependencyKind,
   ExternalLibrarySelectorOptions,
 } from "@boundaries/elements";
-import type { Rule } from "eslint";
-import type { Identifier, ImportSpecifier } from "estree";
 import micromatch from "micromatch";
 
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
@@ -16,6 +14,7 @@ import type {
 } from "../constants/Options.types";
 import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
 import { SETTINGS } from "../constants/settings";
+import { getSpecifiers } from "../core/elementsInfo";
 import {
   customErrorMessage,
   ruleElementMessage,
@@ -32,35 +31,6 @@ import { rulesOptionsSchema } from "../helpers/validations";
 import dependencyRule from "../rules-factories/dependency-rule";
 
 const { RULE_EXTERNAL } = SETTINGS;
-
-// TODO: Add always to all dependencies info
-function getSpecifiers(node: Rule.Node): string[] {
-  if (node.parent.type === "ImportDeclaration") {
-    return node.parent.specifiers
-      .filter(
-        (specifier) =>
-          specifier.type === "ImportSpecifier" &&
-          specifier.imported &&
-          (specifier.imported as Identifier).name,
-      )
-      .map(
-        (specifier) =>
-          ((specifier as ImportSpecifier).imported as Identifier).name,
-      );
-  }
-
-  if (node.parent.type === "ExportNamedDeclaration") {
-    return node.parent.specifiers
-      .filter(
-        (specifier) =>
-          specifier.type === "ExportSpecifier" &&
-          (specifier.exported as Identifier).name,
-      )
-      .map((specifier) => (specifier.exported as Identifier).name);
-  }
-
-  return [];
-}
 
 function specifiersMatch(
   specifiers: string[] = [],

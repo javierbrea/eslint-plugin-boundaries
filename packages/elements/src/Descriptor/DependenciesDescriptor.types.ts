@@ -113,7 +113,7 @@ export type DescribeDependencyOptions = {
   /** Kind of the dependency (type, runtime) */
   kind: DependencyKind;
   /** Type of the node creating the dependency in the dependent element */
-  nodeKind: string;
+  nodeKind?: string;
   /** Specifiers imported or exported in the dependency */
-  specifiers: string[] | null;
+  specifiers?: string[];
 };

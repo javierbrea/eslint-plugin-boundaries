@@ -24,13 +24,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > - elements package documentation.
 > - Publish RFC for renaming the package to `@boundaries/eslint-plugin`.
 > - Support multiple micromatch patterns in captured values in selectors.
+> - Add unit tests for new selectors formats in eslint-plugin-boundaries package.
 > - Deprecate `disallow` in favor of `deny` in rule options.
+> - Support a `name` property in `additional-dependency-nodes` setting to be able to identify the custom dependency nodes in rules.
+> - Support new templates formats, having all elements data in from/to objects. For example, `${from.name}`, `${to.kind}`, `${to.internalPath}`, `{{ to.captured.elementName }}` etc. Add an option to use old or new format, because old one also uses `${from.X}` and `${target.X}`, but only for captured values, so it may produce conflicts.
 > - Support `nodeKind` in selectors. Pass it to dependency description.
 > - Support defining `kind` in selectors instead of defining it at rule level. This should be extended in `dependency-selectors` too (object with `from` and `to` properties).
 > - Support `from` and `to` in `element-types` rule.
 > - Support `category` in `element-types` rule.
 > - Support multiple element types in `element-types` rule. Add an option to enable/disable this behavior.
-> - Support a `name` property in `additional-dependency-nodes` setting to be able to identify the custom dependency nodes in rules.
 > - Support `handlebars` templates in custom messages in all rules, or passing a function to generate the message.
 > - Support `handlebars` templates in captured values in rules options to replace "${from.X}", "${target.X}", etc.?
 > - Enable all dependencyNodes by default in `dependency-nodes` setting.

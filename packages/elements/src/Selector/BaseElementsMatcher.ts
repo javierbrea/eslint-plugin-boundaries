@@ -1,3 +1,4 @@
+import Handlebars from "handlebars";
 import micromatch from "micromatch";
 
 import type { MicromatchPattern } from "../Config";
@@ -7,7 +8,7 @@ import type {
   LocalDependencyElementKnown,
   ExternalDependencyElement,
 } from "../Descriptor";
-import { isArray } from "../Support";
+import { isArray, isObjectWithProperty, isString } from "../Support";
 
 import type {
   BaseElementSelector,
@@ -19,6 +20,7 @@ import type {
   ElementSelector,
   ElementSelectorData,
   DependencyElementsSelector,
+  TemplateData,
 } from "./ElementsSelector.types";
 import {
   isSimpleElementSelectorByType,
@@ -95,6 +97,48 @@ export class BaseElementsMatcher {
   }
 
   /**
+   * Converts a template with ${} to Handlebars {{}} templates for backwards compatibility.
+   * @param template The template to convert.
+   * @returns The converted template.
+   */
+  private _getBackwardsCompatibleTemplate(template: string): string {
+    return template.replace(/\$\{([^}]+)\}/g, "{{ $1 }}");
+  }
+
+  /**
+   * Returns a rendered template using the provided template data.
+   * @param template The template to render.
+   * @param extraTemplateData The data to use for replace in the template.
+   * @returns The rendered template.
+   */
+  protected getRenderedTemplate(
+    template: string,
+    templateData: TemplateData,
+  ): string {
+    return Handlebars.compile(this._getBackwardsCompatibleTemplate(template))(
+      templateData,
+    );
+  }
+
+  /**
+   * Returns rendered templates using the provided template data.
+   * @param template The templates to render.
+   * @param extraTemplateData The data to use for replace in the templates.
+   * @returns The rendered templates.
+   */
+  protected getRenderedTemplates(
+    template: MicromatchPattern,
+    templateData: TemplateData,
+  ): MicromatchPattern {
+    if (isArray(template)) {
+      return template.map((temp) => {
+        return this.getRenderedTemplate(temp, templateData);
+      });
+    }
+    return this.getRenderedTemplate(template, templateData);
+  }
+
+  /**
    * Whether the given element key matches the selector key using micromatch.
    * @param param0 The parameters object.
    * @returns Whether the element key matches the selector key.
@@ -137,9 +181,12 @@ export class BaseElementsMatcher {
       return true;
     }
     // The selector key exists in the selector, but it does not exist in the element. No match.
-    if (!(elementKey in element)) {
+    if (!isObjectWithProperty(element, elementKey)) {
       return false;
     }
-    return micromatch.isMatch(elementKey, selectorValue);
+    if (!element[elementKey] || !isString(element[elementKey])) {
+      return false;
+    }
+    return micromatch.isMatch(element[elementKey], selectorValue);
   }
 }

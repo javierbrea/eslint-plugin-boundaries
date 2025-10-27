@@ -1,8 +1,5 @@
 import type { MicromatchPattern } from "../Config";
 import type {
-  DependencyKind,
-  DependencyRelationship,
-  ElementOrigin,
   LocalElementKnown,
   CoreDependencyElement,
   ExternalDependencyElement,
@@ -35,15 +32,29 @@ export type SelectableElement =
 export type CapturedValuesSelector = Record<string, MicromatchPattern>;
 
 /**
- * Data to pass to captured patterns when they are rendered using templates before matching.
+ * Data to pass to selector templates when they are rendered before matching.
  */
-export type CapturedValuesTemplateData = Record<string, unknown>;
+export type TemplateData = Record<string, unknown>;
+
+/**
+ * Options for elements and dependencies matchers.
+ */
+export type MatcherOptionsDependencySelectorsGlobals = {
+  /** The kind of the dependency */
+  kind?: MicromatchPattern;
+};
 
 /**
  * Options for elements and dependencies matchers.
  */
 export type MatcherOptions = {
-  capturedValuesTemplateData?: CapturedValuesTemplateData;
+  /** Extra data to pass to captured values templates. By default, data from the element and dependency being matched is passed as to/from. */
+  extraTemplateData?: TemplateData;
+  /**
+   * Properties to add to all dependency selectors used in the matcher. Added for backwards compatibility, because eslint-plugin rules defined importKind at the top level of the rule options.
+   * @deprecated Use 'kind' property directly in the dependency element selectors instead.
+   **/
+  dependencySelectorsGlobals?: MatcherOptionsDependencySelectorsGlobals;
 };
 
 /*
@@ -101,10 +112,9 @@ export type BaseElementSelectorData = ElementSelectorByTypeOrCategory & {
    * Relationship of the file element with the dependency declared in it
    * It only applies when used in dependency matchers.
    */
-  // TODO: Define relationship in from property of dependency description
-  relationship?: DependencyRelationship | DependencyRelationship[];
+  relationship?: MicromatchPattern;
   /** Origin of the element */
-  origin?: ElementOrigin[];
+  origin?: MicromatchPattern;
 };
 
 /**
@@ -112,7 +122,7 @@ export type BaseElementSelectorData = ElementSelectorByTypeOrCategory & {
  */
 export type DependencyElementSelectorData = BaseElementSelectorData & {
   /** Dependency kind to filter elements */
-  kind?: DependencyKind;
+  kind?: MicromatchPattern;
   // TODO: Pass specifier to DependencyData
   /** Micromatch pattern(s) to match only specific imports/exports */
   specifier?: MicromatchPattern;

@@ -82,14 +82,12 @@ export function isDependencyNodeKey(
  * This allows for extending the default dependency nodes with project-specific patterns.
  */
 export type DependencyNodeSelector = {
-  /**
-   * A selector string to identify the dependency node in the AST.
-   */
+  /** A selector string to identify the dependency node in the AST */
   selector: string;
-  /**
-   * The kind of import, either 'type' or 'value'.
-   */
+  /** The kind of import, either 'type' or 'value' */
   kind: DependencyKind;
+  /** Name to assign to the dependency node. Useful to identify the kind of node selector in rules */
+  name?: string;
 };
 
 export const SETTINGS = {

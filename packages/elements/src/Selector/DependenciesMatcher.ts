@@ -5,13 +5,12 @@ import type {
   DependencyDescription,
   DependencyRelationship,
 } from "../Descriptor";
-import { isArray } from "../Support";
 
 import { BaseElementsMatcher } from "./BaseElementsMatcher";
 import type { ElementsMatcher } from "./ElementsMatcher";
 import type {
   BaseElementSelector,
-  CapturedValuesTemplateData,
+  TemplateData,
   DependenciesMatcherSerializedCache,
   DependencySelector,
   DependencyElementSelectorData,
@@ -19,6 +18,7 @@ import type {
   ElementSelectorData,
   BaseElementSelectorData,
   MatcherOptions,
+  MatcherOptionsDependencySelectorsGlobals,
 } from "./ElementsSelector.types";
 
 /**
@@ -32,7 +32,8 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     {
       dependency: DependencyDescription;
       selector: DependencySelector;
-      capturedValuesTemplateData: CapturedValuesTemplateData;
+      extraTemplateData: TemplateData;
+      dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals;
     },
     boolean
   >;
@@ -76,12 +77,28 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    */
   private _normalizeDependencySelector(
     selector: DependencySelector,
+    dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals,
   ): DependencySelectorNormalized {
+    let normalizedDependencySelectors = selector.to
+      ? this.normalizeElementsSelector(selector.to!)
+      : null;
+
+    if (normalizedDependencySelectors) {
+      normalizedDependencySelectors = normalizedDependencySelectors.map(
+        (depSelector) => {
+          return {
+            ...dependencySelectorsGlobals,
+            ...depSelector,
+          };
+        },
+      );
+    }
+
     return {
       from: selector.from
         ? this.normalizeElementsSelector(selector.from)
         : null,
-      to: selector.to ? this.normalizeElementsSelector(selector.to) : null,
+      to: normalizedDependencySelectors,
     };
   }
 
@@ -137,17 +154,17 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * Determines if the dependency base elements match the selectors.
    * @param dependency The dependency description.
    * @param selector The dependency selector normalized.
-   * @param capturedValuesTemplateData The captured values template data.
+   * @param extraTemplateData The extra template data for selector values.
    * @returns Whether the dependency base elements match the selectors.
    */
   private _elementsMatch(
     dependency: DependencyDescription,
     selector: DependencySelectorNormalized,
-    capturedValuesTemplateData: CapturedValuesTemplateData,
+    templateData: TemplateData,
   ): boolean {
     const fromMatches = selector.from
       ? this._elementsMatcher.isElementMatch(dependency.from, selector.from, {
-          capturedValuesTemplateData,
+          extraTemplateData: templateData,
         })
       : true;
     if (!fromMatches) {
@@ -160,7 +177,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
             selector.to,
           ),
           {
-            capturedValuesTemplateData,
+            extraTemplateData: templateData,
           },
         )
       : true;
@@ -176,6 +193,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
   private _relationshipMatches(
     selector: ElementSelectorData,
     relationship: DependencyRelationship | null,
+    templateData: TemplateData,
   ): boolean {
     if (!selector.relationship) {
       return true;
@@ -183,37 +201,44 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     if (!relationship) {
       return false;
     }
-    const relationships = isArray(selector.relationship)
-      ? selector.relationship
-      : [selector.relationship];
-    return relationships.includes(relationship);
+    return micromatch.isMatch(
+      relationship,
+      this.getRenderedTemplates(selector.relationship, templateData),
+    );
   }
 
   /**
    * Determines if the selector matches an specific kind
    * @param selector The dependency selector data
    * @param kind Kind to check
+   * @param templateData The template data for rendering selector values
    * @returns Whether the selector matches the kind
    */
   private _kindMatches(
     selector: DependencyElementSelectorData,
     kind: string,
+    templateData: TemplateData,
   ): boolean {
     if (!selector.kind) {
       return true;
     }
-    return selector.kind === kind;
+    return micromatch.isMatch(
+      kind,
+      this.getRenderedTemplates(selector.kind, templateData),
+    );
   }
 
   /**
    * Determines if the selector matches some of the specifiers
    * @param selector The dependency selector data
    * @param specifiers Specifiers to check
+   * @param templateData The template data for rendering selector values
    * @returns Whether the selector matches some of the specifiers
    */
   private _specifierMatches(
     selector: DependencyElementSelectorData,
     specifiers: string[] | null,
+    templateData: TemplateData,
   ): boolean {
     const specifierPattern = selector.specifier;
     if (!specifierPattern) {
@@ -223,7 +248,10 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       return false;
     }
     return specifiers.some((specifier) =>
-      micromatch.isMatch(specifier, specifierPattern),
+      micromatch.isMatch(
+        specifier,
+        this.getRenderedTemplates(specifierPattern, templateData),
+      ),
     );
   }
 
@@ -231,11 +259,13 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * Determines if the selector matches the nodeKind
    * @param selector The dependency selector data
    * @param nodeKind The nodeKind to check
+   * @param templateData The template data for rendering selector values
    * @returns Whether the selector matches the nodeKind
    */
   private _nodeKindMatches(
     selector: DependencyElementSelectorData,
     nodeKind: string | null,
+    templateData: TemplateData,
   ): boolean {
     const nodeKindPattern = selector.nodeKind;
     if (!nodeKindPattern) {
@@ -244,18 +274,23 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     if (!nodeKind) {
       return false;
     }
-    return micromatch.isMatch(nodeKind, nodeKindPattern);
+    return micromatch.isMatch(
+      nodeKind,
+      this.getRenderedTemplates(nodeKindPattern, templateData),
+    );
   }
 
   /**
    * Determines if the dependency description matches the selector for 'from'.
    * @param dependency The dependency description.
    * @param fromSelector The selector for 'from' elements.
+   * @param templateData The template data for rendering selector values
    * @returns Whether the dependency properties match the selector for 'from'.
    */
   private _dependencyFromPropertiesMatch(
     dependency: DependencyDescription,
     fromSelector: BaseElementSelectorData[] | null,
+    templateData: TemplateData,
   ): boolean {
     if (!fromSelector) {
       return true;
@@ -264,6 +299,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       this._relationshipMatches(
         selectorData,
         dependency.dependency.relationship.from,
+        templateData,
       ),
     );
   }
@@ -272,80 +308,120 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * Determines if the dependency description matches the selector for 'to'.
    * @param dependency The dependency description.
    * @param toSelector The selector for 'to' elements.
+   * @param templateData The template data for rendering selector values
    * @returns Whether the dependency properties match the selector for 'to'.
    */
   private _dependencyToPropertiesMatch(
     dependency: DependencyDescription,
     toSelector: DependencyElementSelectorData[] | null,
+    templateData: TemplateData,
   ): boolean {
     if (!toSelector) {
       return true;
     }
-    return toSelector.some(
-      (selectorData) =>
+    return toSelector.some((selectorData) => {
+      return (
         this._relationshipMatches(
           selectorData,
           dependency.dependency.relationship.to,
+          templateData,
         ) &&
-        this._kindMatches(selectorData, dependency.dependency.kind) &&
-        this._nodeKindMatches(selectorData, dependency.dependency.nodeKind) &&
-        this._specifierMatches(selectorData, dependency.dependency.specifiers),
-    );
+        this._kindMatches(
+          selectorData,
+          dependency.dependency.kind,
+          templateData,
+        ) &&
+        this._nodeKindMatches(
+          selectorData,
+          dependency.dependency.nodeKind,
+          templateData,
+        ) &&
+        this._specifierMatches(
+          selectorData,
+          dependency.dependency.specifiers,
+          templateData,
+        )
+      );
+    });
   }
 
   /**
    * Check whether the dependency properties match the selector.
    * @param dependency The dependency description
    * @param selector The dependency selector normalized
+   * @param templateData The template data for rendering selector values
    * @returns Whether the dependency properties match the selector
    */
   private _dependencyPropertiesMatch(
     dependency: DependencyDescription,
     selector: DependencySelectorNormalized,
+    templateData: TemplateData,
   ): boolean {
     return (
-      this._dependencyFromPropertiesMatch(dependency, selector.from) &&
-      this._dependencyToPropertiesMatch(dependency, selector.to)
+      this._dependencyFromPropertiesMatch(
+        dependency,
+        selector.from,
+        templateData,
+      ) &&
+      this._dependencyToPropertiesMatch(dependency, selector.to, templateData)
     );
   }
 
   /**
    * Returns whether the given dependency matches the selector.
    * @param dependency The dependency to check.
+   * @param selector The selector to check against.
+   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
    * @returns Whether the dependency matches the selector properties.
    */
   public isDependencyMatch(
     dependency: DependencyDescription,
     selector: DependencySelector,
-    { capturedValuesTemplateData = {} }: MatcherOptions = {},
+    {
+      extraTemplateData = {},
+      dependencySelectorsGlobals = {},
+    }: MatcherOptions = {},
   ): boolean {
     if (
       this._cache.has({
         dependency,
         selector,
-        capturedValuesTemplateData,
+        extraTemplateData,
+        dependencySelectorsGlobals,
       })
     ) {
       return this._cache.get({
         dependency,
         selector,
-        capturedValuesTemplateData,
+        extraTemplateData,
+        dependencySelectorsGlobals,
       })!;
     }
 
-    const normalizedSelector = this._normalizeDependencySelector(selector);
+    const normalizedSelector = this._normalizeDependencySelector(
+      selector,
+      dependencySelectorsGlobals,
+    );
+    // Add `to` and `from` data to the template when checking elements in dependencies
+    const templateData: TemplateData = {
+      from: dependency.from,
+      to: dependency.to,
+      ...extraTemplateData,
+    };
     const result =
-      this._elementsMatch(
+      this._elementsMatch(dependency, normalizedSelector, templateData) &&
+      this._dependencyPropertiesMatch(
         dependency,
         normalizedSelector,
-        capturedValuesTemplateData,
-      ) && this._dependencyPropertiesMatch(dependency, normalizedSelector);
+        templateData,
+      );
 
     this._cache.set(
       {
         dependency,
         selector,
-        capturedValuesTemplateData,
+        extraTemplateData,
+        dependencySelectorsGlobals,
       },
       result,
     );

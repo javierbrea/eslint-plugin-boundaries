@@ -1244,7 +1244,7 @@ testPrivate(
     7: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 7",
     8: "Importing elements of type 'modules' with domain 'domain-a' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 6",
     9: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 8",
-    10: "Importing elements of type 'modules' with domain '!domain-a' or 'domain-b' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 10",
+    10: "Importing elements of type 'modules' with domain 'pages' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 9",
     11: "Importing elements of type 'modules' with domain '!domain-a' or 'domain-b' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 10",
   },
 );

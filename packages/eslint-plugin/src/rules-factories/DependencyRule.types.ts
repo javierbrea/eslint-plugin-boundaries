@@ -1,13 +1,9 @@
 import type { Rule } from "eslint";
-import type { Literal } from "estree";
 
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { FileInfo } from "../constants/ElementsInfo.types";
+import type { EslintLiteralNode } from "../core/elementsInfo.types";
 import type { ValidateRulesOptions } from "../helpers/Helpers.types";
-
-export type EslintLiteralNode = Literal & {
-  parent: Rule.Node;
-};
 
 export type DependencyRuleRunner<Options> = (
   // eslint-disable-next-line no-unused-vars
