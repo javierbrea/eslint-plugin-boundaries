@@ -1,9 +1,9 @@
-import { ElementsDescriptor } from "../../src/index";
+import { Elements } from "../../src/index";
 
 describe("package", () => {
-  describe("elementsDescriptor", () => {
+  describe("elements", () => {
     it("should be exported as named export", () => {
-      expect(ElementsDescriptor).toBeDefined();
+      expect(Elements).toBeDefined();
     });
   });
 });

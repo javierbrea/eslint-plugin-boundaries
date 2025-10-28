@@ -25,13 +25,12 @@ import {
 
 import { warnOnce } from "./debug";
 import type { RuleMainKey, ValidateRulesOptions } from "./Helpers.types";
-import { rulesMainKey } from "./rules";
 import {
   getElementsTypeNames,
   getElementsCategoryNames,
   isValidElementAssigner,
 } from "./settings";
-import { isArray, isString, isObject } from "./utils";
+import { isArray, isString, isObject, rulesMainKey } from "./utils";
 
 const {
   TYPES,

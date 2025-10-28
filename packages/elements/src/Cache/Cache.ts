@@ -66,27 +66,11 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
   }
 
   /**
-   * Gets the number of items in the cache
-   * @returns The size of the cache
-   */
-  public get size(): number {
-    return this._cache.size;
-  }
-
-  /**
    * Retrieves all cached values
    * @returns A map of all cached values
    */
   public getAll(): Map<string, CachedValue> {
     return this._cache;
-  }
-
-  /**
-   * Sets multiple values in the cache
-   * @param cache A map of cache keys and their corresponding values
-   */
-  public setAll(cache: Map<string, CachedValue>): void {
-    this._cache = cache;
   }
 
   /**

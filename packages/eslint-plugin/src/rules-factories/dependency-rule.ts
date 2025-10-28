@@ -16,9 +16,8 @@ import {
 import { fileInfo, dependencyInfo } from "../core/elementsInfo";
 import type { EslintLiteralNode } from "../core/elementsInfo.types";
 import { warnOnce } from "../helpers/debug";
-import { meta } from "../helpers/rules";
 import type { RuleMetaDefinition } from "../helpers/Rules.types";
-import { getArrayOrNull, isString } from "../helpers/utils";
+import { getArrayOrNull, isString, meta } from "../helpers/utils";
 import { validateSettings, validateRules } from "../helpers/validations";
 
 import type {
@@ -67,7 +66,7 @@ export default function <Options extends RuleOptionsWithRules>(
           settings[ADDITIONAL_DEPENDENCY_NODES],
         );
       const dependencyNodes: DependencyNodeSelector[] =
-        // TODO In next major version, make this default to all types of nodes !!! Support giving them names to be able to use them in selectors.
+        // TODO In next major version, make this default to all types of nodes!!!
         (dependencyNodesSetting || [DEPENDENCY_NODE_KEYS_MAP.IMPORT])
           .map((dependencyNode) => DEFAULT_DEPENDENCY_NODES[dependencyNode])
           .flat()

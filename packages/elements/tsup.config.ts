@@ -14,7 +14,6 @@ export default defineConfig([
     target: "node16",
     splitting: false,
     sourcemap: true,
-    external: ["path"],
   },
   // Build for Browsers
   {
@@ -32,7 +31,7 @@ export default defineConfig([
     // Alias: replace 'path' with 'path-browserify'
     esbuildOptions(options) {
       options.alias = {
-        path: "path-browserify",
+        "node:path": "path-browserify",
       };
     },
     // Don't treat 'path-browserify' as external

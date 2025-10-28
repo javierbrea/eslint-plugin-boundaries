@@ -3,14 +3,10 @@ import {
   isObjectWithProperty,
   isArray,
   isEmptyArray,
-  isNull,
 } from "../Support/TypeGuards";
 
 import type {
   ElementDescription,
-  BaseElementWithType,
-  BaseElementWithCategory,
-  BaseElementWithTypeAndCategory,
   LocalElementKnown,
   LocalDependencyElement,
   ExternalDependencyElement,
@@ -20,7 +16,6 @@ import type {
   ElementDescriptorMode,
   ElementDescriptorWithType,
   ElementDescriptorWithCategory,
-  ElementDescriptorWithTypeAndCategory,
   ElementDescriptor,
   IgnoredElement,
   LocalElementUnknown,
@@ -107,19 +102,6 @@ export function isElementDescriptorWithCategory(
 }
 
 /**
- * Determines if the given value is an element descriptor with both type and category.
- * @param value The value to check.
- * @returns True if the value is an element descriptor with both type and category, false otherwise.
- */
-export function isElementDescriptorWithTypeAndCategory(
-  value: unknown,
-): value is ElementDescriptorWithTypeAndCategory {
-  return (
-    isElementDescriptorWithType(value) && isElementDescriptorWithCategory(value)
-  );
-}
-
-/**
  * Determines if the given value is an element descriptor.
  * @param value The value to check.
  * @returns True if the value is an element descriptor, false otherwise.
@@ -128,57 +110,7 @@ export function isElementDescriptor(
   value: unknown,
 ): value is ElementDescriptor {
   return (
-    isElementDescriptorWithType(value) ||
-    isElementDescriptorWithCategory(value) ||
-    isElementDescriptorWithTypeAndCategory(value)
-  );
-}
-
-/**
- * Determines if the value is a base element with type only
- * @param value The value to check
- * @returns True if the value is a base element with type, false otherwise.
- */
-export function isBaseElementWithType(
-  value: unknown,
-): value is BaseElementWithType {
-  return (
-    isObjectWithProperty(value, "type") &&
-    isString(value.type) &&
-    isObjectWithProperty(value, "category") &&
-    isNull(value.category)
-  );
-}
-
-/**
- * Determines if the value is a base element with category only
- * @param value The value to check
- * @returns True if the value is a base element with category, false otherwise.
- */
-export function isBaseElementWithCategory(
-  value: unknown,
-): value is BaseElementWithCategory {
-  return (
-    isObjectWithProperty(value, "category") &&
-    isString(value.category) &&
-    isObjectWithProperty(value, "type") &&
-    isNull(value.type)
-  );
-}
-
-/**
- * Determines if the value is a base element with category and type
- * @param value The value to check
- * @returns True if the value is a base element with category and type, false otherwise.
- */
-export function isBaseElementWithTypeAndCategory(
-  value: unknown,
-): value is BaseElementWithTypeAndCategory {
-  return (
-    isObjectWithProperty(value, "category") &&
-    isString(value.category) &&
-    isObjectWithProperty(value, "type") &&
-    isString(value.type)
+    isElementDescriptorWithType(value) || isElementDescriptorWithCategory(value)
   );
 }
 

@@ -1,7 +1,61 @@
+import type { Rule } from "eslint";
+
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { FileInfo, ElementInfo } from "../constants/ElementsInfo.types";
+import { PLUGIN_NAME, REPO_URL } from "../constants/plugin";
+import type { RuleName } from "../constants/rules";
+
+import type { RuleMainKey } from "./Helpers.types";
+import type { RuleMetaDefinition } from "./Rules.types";
 
 export { isString } from "../constants/settings";
+
+const FROM = "from";
+
+/**
+ * Removes the plugin namespace from a rule name.
+ * @param ruleName The name of the rule.
+ * @returns The rule name without the plugin namespace.
+ */
+function removePluginNamespace(ruleName: RuleName) {
+  return ruleName.replace(`${PLUGIN_NAME}/`, "");
+}
+
+/**
+ * Returns the documentation URL for an ESLint rule.
+ * @param ruleName The name of the rule.
+ * @returns The documentation URL for the ESLint rule.
+ */
+function docsUrl(ruleName: RuleName) {
+  return `${REPO_URL}/blob/master/docs/rules/${removePluginNamespace(ruleName)}.md`;
+}
+
+/**
+ * Returns the meta object for an ESLint rule.
+ * @param param0 The rule metadata definition.
+ * @returns The meta object for the ESLint rule.
+ */
+export function meta({
+  description,
+  schema = [],
+  ruleName,
+}: RuleMetaDefinition): Pick<Rule.RuleModule, "meta"> {
+  return {
+    meta: {
+      type: "problem",
+      docs: {
+        url: docsUrl(ruleName),
+        description,
+        category: "dependencies",
+      },
+      schema,
+    },
+  };
+}
+
+export function rulesMainKey(key: RuleMainKey = FROM) {
+  return key;
+}
 
 export function isArray(object: unknown): object is unknown[] {
   return Array.isArray(object);

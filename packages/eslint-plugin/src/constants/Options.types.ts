@@ -102,7 +102,9 @@ export type RuleMatcher<
  */
 export type ElementTypesRule = {
   /** Selectors of the source elements that the rule applies to (the elements importing) */
-  from: ElementsSelector;
+  from?: ElementsSelector;
+  /** Selectors of the target elements that are disallowed to be imported */
+  to?: ElementsSelector;
   /** Selectors of the elements that are disallowed to be imported */
   disallow?: ElementsSelector;
   /** Selectors of the elements that are allowed to be imported */

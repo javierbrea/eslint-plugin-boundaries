@@ -9,10 +9,11 @@ import { isElementSelector } from "@boundaries/elements";
 
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { ElementInfo, FileInfo } from "../constants/ElementsInfo.types";
+import type { RuleMatcherElementsCapturedValues } from "../constants/Options.types";
 import { elements } from "../elements/elements";
 
-import { micromatchPatternReplacingObjectsValues } from "./rules";
 import {
+  replaceObjectValuesInTemplates,
   isDependencyInfo,
   isString,
   isArray,
@@ -40,6 +41,34 @@ function propertiesConcatenator(properties: string[], index: number) {
     return " with";
   }
   return ",";
+}
+
+export function micromatchPatternReplacingObjectsValues(
+  pattern: string | string[] | undefined,
+  object: Partial<RuleMatcherElementsCapturedValues>,
+) {
+  let patternToReplace = pattern;
+  if (!patternToReplace) {
+    return "";
+  }
+  // Backward compatibility. Possibly unused, because the value is already replaced in the next step.
+  // For the moment, keep it to avoid unexpected issues until the oncoming refactor.
+  if (object.from) {
+    patternToReplace = replaceObjectValuesInTemplates(
+      patternToReplace,
+      object.from,
+    ) as string;
+  }
+  return Object.keys(object).reduce((replacedPattern, namespace) => {
+    if (!object[namespace as keyof typeof object]) {
+      return replacedPattern;
+    }
+    return replaceObjectValuesInTemplates(
+      replacedPattern,
+      object[namespace as keyof typeof object] || {},
+      namespace,
+    ) as string;
+  }, patternToReplace);
 }
 
 function micromatchPatternMessage(
@@ -95,7 +124,7 @@ function elementMatcherMessage(
     return "";
   }
   if (isElementSelector(elementMatcher)) {
-    const selector = elements.normalizeSelector(elementMatcher);
+    const selector = elements.normalizeElementsSelector(elementMatcher);
     const parts: string[] = [];
     if (selector[0].type) {
       parts.push(typeMessage(selector[0].type));

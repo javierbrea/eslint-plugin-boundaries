@@ -37,16 +37,16 @@ export class BaseElementsMatcher {
    * @param elementsSelector The elements selector, in any supported format.
    * @returns The normalized array of selector data.
    */
-  protected normalizeElementsSelector(
+  public normalizeElementsSelector(
     // eslint-disable-next-line no-unused-vars
     elementsSelector: BaseElementsSelector,
   ): BaseElementSelectorData[];
-  protected normalizeElementsSelector(
+  public normalizeElementsSelector(
     // eslint-disable-next-line no-unused-vars
     elementsSelector: DependencyElementsSelector,
   ): DependencyElementSelectorData[];
 
-  protected normalizeElementsSelector(
+  public normalizeElementsSelector(
     elementsSelector: ElementsSelector,
   ): ElementSelectorData[] {
     if (isArray(elementsSelector)) {

@@ -1,65 +1,26 @@
-import type {
-  DependencyKind,
-  CapturedValuesSelector,
-} from "@boundaries/elements";
-
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { FileInfo } from "../constants/ElementsInfo.types";
 import type {
   EntryPointRuleOptions,
-  RuleMatcherElementsCapturedValues,
   RuleResult,
+  EntryPointRule,
+  ElementTypesRule,
 } from "../constants/Options.types";
 import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
 import { SETTINGS } from "../constants/settings";
+import { elements } from "../elements/elements";
 import {
   customErrorMessage,
   ruleElementMessage,
   elementMessage,
   dependencyUsageKindMessage,
 } from "../helpers/messages";
-import {
-  isMatchElementKey,
-  elementRulesAllowDependency,
-  isMatchImportKind,
-} from "../helpers/rules";
 import { rulesOptionsSchema } from "../helpers/validations";
 import dependencyRule from "../rules-factories/dependency-rule";
 
+import { elementRulesAllowDependency } from "./element-types";
+
 const { RULE_ENTRY_POINT } = SETTINGS;
-
-function isMatchElementInternalPath(
-  elementInfo: FileInfo | DependencyInfo,
-  matcher: string,
-  options: CapturedValuesSelector,
-  elementsCapturedValues: RuleMatcherElementsCapturedValues,
-  importKind?: DependencyKind,
-): RuleResult {
-  if (!isMatchImportKind(elementInfo, importKind)) {
-    return { result: false, report: null, ruleReport: null };
-  }
-  return isMatchElementKey(
-    elementInfo,
-    matcher,
-    options,
-    "internalPath",
-    elementsCapturedValues,
-  );
-}
-
-function elementRulesAllowEntryPoint(
-  element: FileInfo,
-  dependency: DependencyInfo,
-  options: EntryPointRuleOptions = {},
-) {
-  return elementRulesAllowDependency({
-    element,
-    dependency,
-    options,
-    isMatch: isMatchElementInternalPath,
-    rulesMainKey: "target",
-  });
-}
 
 function errorMessage(
   ruleData: RuleResult,
@@ -80,12 +41,94 @@ function errorMessage(
     }' in dependencies ${elementMessage(dependency)}`;
   }
   return `The entry point '${dependency.internalPath}' is not allowed in ${ruleElementMessage(
-    ruleReport.element,
+    ruleReport.disallow,
     dependency.capturedValues,
   )}${dependencyUsageKindMessage(ruleReport.importKind, dependency, {
     prefix: " when importing ",
     suffix: "",
   })}. Disallowed in rule ${ruleReport.index + 1}`;
+}
+
+function modifyTemplates(
+  templates: string | string[] | undefined,
+): string[] | undefined {
+  if (!templates) {
+    return undefined;
+  }
+  const templatesArray = Array.isArray(templates) ? templates : [templates];
+  return templatesArray.map((template) =>
+    template.replace(/\${target\./g, "${to."),
+  );
+}
+
+function modifyRules(rules: EntryPointRule[]): ElementTypesRule[] {
+  const newRules: ElementTypesRule[] = [];
+
+  for (let i = 0; i < rules.length; i++) {
+    const rule = rules[i];
+    const newTargets = elements.normalizeElementsSelector(rule.target);
+
+    const ruleHasDisallow = !!rule.disallow;
+    const ruleHasAllow = !!rule.allow;
+    let internalPathPatterns: string[] | undefined = undefined;
+    let allowPattern: string[] | undefined = undefined;
+    let disallowPattern: string[] | undefined = undefined;
+
+    if (ruleHasDisallow && ruleHasAllow) {
+      // Workaround to support both allow and disallow in the same rule
+      newRules.push({
+        to: newTargets.map((target) => {
+          return {
+            ...target,
+            internalPath: modifyTemplates(rule.allow)!,
+          };
+        }),
+        allow: ["*"],
+        importKind: rule.importKind,
+        message: rule.message,
+        // @ts-expect-error Workaround to support both allow and disallow in the same entry point rule
+        originalRuleIndex: i,
+      });
+
+      newRules.push({
+        to: newTargets.map((target) => {
+          return {
+            ...target,
+            internalPath: modifyTemplates(rule.disallow)!,
+          };
+        }),
+        disallow: ["*"],
+        importKind: rule.importKind,
+        message: rule.message,
+        // @ts-expect-error Workaround to support both allow and disallow in the same entry point rule
+        originalRuleIndex: i,
+      });
+    }
+
+    if (ruleHasDisallow) {
+      internalPathPatterns = modifyTemplates(rule.disallow);
+      disallowPattern = ["*"];
+    } else if (ruleHasAllow) {
+      internalPathPatterns = modifyTemplates(rule.allow);
+      allowPattern = ["*"];
+    }
+
+    newRules.push({
+      to: newTargets.map((target) => {
+        return {
+          ...target,
+          internalPath: internalPathPatterns,
+        };
+      }),
+      allow: allowPattern,
+      disallow: disallowPattern,
+      importKind: rule.importKind,
+      message: rule.message,
+      // @ts-expect-error Workaround to support both allow and disallow in the same entry point rule
+      originalRuleIndex: i,
+    });
+  }
+  return newRules;
 }
 
 export default dependencyRule<EntryPointRuleOptions>(
@@ -98,7 +141,15 @@ export default dependencyRule<EntryPointRuleOptions>(
   },
   function ({ dependency, file, node, context, options }) {
     if (!dependency.isIgnored && dependency.type && !dependency.isInternal) {
-      const ruleData = elementRulesAllowEntryPoint(file, dependency, options);
+      const adaptedRuleOptions = {
+        ...options,
+        rules: options && options.rules ? modifyRules(options.rules) : [],
+      };
+
+      const ruleData = elementRulesAllowDependency(
+        dependency.originalDescription,
+        adaptedRuleOptions,
+      );
       if (!ruleData.result) {
         context.report({
           message: errorMessage(ruleData, file, dependency),

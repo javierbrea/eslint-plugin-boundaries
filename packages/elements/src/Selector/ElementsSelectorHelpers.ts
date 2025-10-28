@@ -5,6 +5,7 @@ import {
   isStringArray,
   isObjectWithProperty,
   isEmptyArray,
+  isObjetWithAnyOfProperties,
 } from "../Support/TypeGuards";
 
 import type {
@@ -96,7 +97,18 @@ export function isElementSelectorByTypeAndCategory(
 export function isElementSelectorData(
   value: unknown,
 ): value is ElementSelectorData {
-  return isElementSelectorByType(value) || isElementSelectorByCategory(value);
+  return isObjetWithAnyOfProperties(value, [
+    "type",
+    "category",
+    "captured",
+    "internalPath",
+    "relationship",
+    "origin",
+    "baseSource",
+    "kind",
+    "specifiers",
+    "nodeKind",
+  ]);
 }
 
 /**
@@ -113,7 +125,6 @@ export function isElementSelectorWithLegacyOptions(
     isSimpleElementSelectorByType(value[0]) &&
     // NOTE: Arrays of length 2 with captured values selector as second element having a key "type" or "category" will be treated as legacy options instead of two different selectors. We have to live with this limitation for now.
     // TODO: Add a note to the documentation about this limitation.
-    // !isElementSelectorData(value[1]) &&
     isCapturedValuesSelector(value[1])
   );
 }

@@ -17,8 +17,8 @@ type PluginFullConfig<PluginName extends string = typeof PLUGIN_NAME> = {
 } & Omit<Config<PluginName>, "plugins">;
 
 function renamePluginRules<PluginName extends string = typeof PLUGIN_NAME>(
+  pluginName: string,
   rules?: Config["rules"],
-  pluginName: string = PLUGIN_NAME,
 ): Rules<PluginName> {
   if (!rules) {
     return {};
@@ -120,7 +120,7 @@ export function createConfig<PluginName extends string = typeof PLUGIN_NAME>(
     ],
     ...config,
     plugins: pluginsRegistration,
-    rules: renamePluginRules(config.rules, name),
+    rules: renamePluginRules(name, config.rules),
   };
 }
 

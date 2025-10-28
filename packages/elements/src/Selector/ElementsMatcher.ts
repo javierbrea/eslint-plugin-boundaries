@@ -13,9 +13,8 @@ import type {
   TemplateData,
   ElementsMatcherSerializedCache,
   BaseElementsSelector,
-  ElementSelector,
-  ElementSelectorData,
   MatcherOptions,
+  ElementSelectorData,
 } from "./ElementsSelector.types";
 
 /**
@@ -31,7 +30,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
       selector: ElementsSelector;
       extraTemplateData: TemplateData;
     },
-    boolean
+    ElementSelectorData | null
   >;
 
   /**
@@ -58,6 +57,13 @@ export class ElementsMatcher extends BaseElementsMatcher {
     serializedCache: ElementsMatcherSerializedCache,
   ): void {
     this._cache.setFromSerialized(serializedCache);
+  }
+
+  /**
+   * Clears the cache.
+   */
+  public clearCache(): void {
+    this._cache.clear();
   }
 
   /**
@@ -157,6 +163,30 @@ export class ElementsMatcher extends BaseElementsMatcher {
   }
 
   /**
+   * Whether the given element baseSource matches the selector baseSource
+   * @param element The element to check.
+   * @param selector The selector to check against.
+   * @param templateData The data to use for replace in selector value
+   * @returns Whether the element baseSource matches the selector baseSource.
+   */
+  private _isBaseSourceMatch(
+    element: SelectableElement,
+    selector: BaseElementSelectorData,
+    templateData: TemplateData,
+  ): boolean {
+    const selectorValue = !isNullish(selector.baseSource)
+      ? this.getRenderedTemplates(selector.baseSource, templateData)
+      : selector.baseSource;
+    return this.isElementKeyMicromatchMatch({
+      element,
+      selector,
+      elementKey: "baseSource",
+      selectorKey: "baseSource",
+      selectorValue,
+    });
+  }
+
+  /**
    * Determines if the captured values of the element match those in the selector.
    * @param element The element to check.
    * @param selector The selector to check against
@@ -191,15 +221,17 @@ export class ElementsMatcher extends BaseElementsMatcher {
   }
 
   /**
-   * Whether a local known element or external dependency element matches the selector.
+   * Returns the selector matching result for the given local or external element.
    * @param element The local or external element to check.
-   * @returns Whether the element matches the selector.
+   * @param selector The selector to check against.
+   * @param extraTemplateData Extra template data to use for matching.
+   * @returns The selector matching result for the given element, or null if none matches.
    */
-  private _isElementMatch(
+  private _getSelectorMatching(
     element: SelectableElement,
     selector: BaseElementsSelector,
     extraTemplateData: TemplateData,
-  ): boolean {
+  ): ElementSelectorData | null {
     const selectorsData = this.normalizeElementsSelector(selector);
 
     const templateData: TemplateData = {
@@ -207,37 +239,36 @@ export class ElementsMatcher extends BaseElementsMatcher {
       ...extraTemplateData,
     };
 
-    return selectorsData.some((selectorData) => {
-      return (
+    for (const selectorData of selectorsData) {
+      const isMatch =
         this._isTypeMatch(element, selectorData, templateData) &&
         this._isCategoryMatch(element, selectorData, templateData) &&
         this._isOriginMatch(element, selectorData, templateData) &&
         this._isInternalPathMatch(element, selectorData, templateData) &&
-        this._isCapturedValuesMatch(element, selectorData, templateData)
-      );
-    });
+        this._isBaseSourceMatch(element, selectorData, templateData) &&
+        this._isCapturedValuesMatch(element, selectorData, templateData);
+
+      if (isMatch) {
+        return selectorData;
+      }
+    }
+
+    return null;
   }
 
   /**
-   * Temporal method to enable normalization of element selectors outside this class.
-   */
-  public normalize(selector: ElementSelector): ElementSelectorData[] {
-    return this.normalizeElementsSelector(selector);
-  }
-
-  /**
-   * Returns whether the given element matches the selector.
+   * Returns the selector matching result for the given element, or null if none matches.
    * It omits checks in keys applying only to dependency between elements, such as relationship.
    * @param element The element to check.
    * @param selector The selector to check against.
    * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
-   * @returns Whether the element matches the selector properties applying to elements.
+   * @returns The selector matching result for the given element, or null if none matches.
    */
-  public isElementMatch(
+  public getSelectorMatching(
     element: ElementDescription,
     selector: BaseElementsSelector,
     { extraTemplateData = {} }: MatcherOptions = {},
-  ): boolean {
+  ): ElementSelectorData | null {
     if (
       this._cache.has({
         element,
@@ -254,8 +285,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
 
     const result =
       isIgnoredElement(element) || isUnknownLocalElement(element)
-        ? false
-        : this._isElementMatch(element, selector, extraTemplateData);
+        ? null
+        : this._getSelectorMatching(element, selector, extraTemplateData);
 
     this._cache.set(
       {
@@ -266,5 +297,24 @@ export class ElementsMatcher extends BaseElementsMatcher {
       result,
     );
     return result;
+  }
+
+  /**
+   * Returns whether the given element matches the selector.
+   * It omits checks in keys applying only to dependency between elements, such as relationship.
+   * @param element The element to check.
+   * @param selector The selector to check against.
+   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
+   * @returns Whether the element matches the selector properties applying to elements.
+   */
+  public isElementMatch(
+    element: ElementDescription,
+    selector: BaseElementsSelector,
+    { extraTemplateData = {} }: MatcherOptions = {},
+  ): boolean {
+    const selectorMatching = this.getSelectorMatching(element, selector, {
+      extraTemplateData,
+    });
+    return !isNullish(selectorMatching);
   }
 }

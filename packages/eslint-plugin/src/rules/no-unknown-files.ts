@@ -2,7 +2,7 @@ import type { Rule } from "eslint";
 
 import { SETTINGS } from "../constants/settings";
 import { fileInfo } from "../core/elementsInfo";
-import { meta } from "../helpers/rules";
+import { meta } from "../helpers/utils";
 
 const { RULE_NO_UNKNOWN_FILES } = SETTINGS;
 

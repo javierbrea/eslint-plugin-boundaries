@@ -17,18 +17,13 @@ module.exports = {
   // An object that configures minimum threshold enforcement for coverage results
   coverageThreshold: {
     global: {
-      branches: 80,
+      branches: 90,
       functions: 90,
       lines: 90,
       statements: 90,
     },
     "src/index.ts": {
       branches: 50,
-    },
-    // Decrease coverage due to cache branches
-    "src/core/elementsInfo.ts": {
-      branches: 90,
-      statements: 90,
     },
   },
 

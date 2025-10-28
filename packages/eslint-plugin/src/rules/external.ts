@@ -1,146 +1,40 @@
-import type {
-  DependencyKind,
-  ExternalLibrarySelectorOptions,
+import {
+  isExternalDependency,
+  isCoreDependency,
+  ELEMENT_ORIGINS_MAP,
 } from "@boundaries/elements";
-import micromatch from "micromatch";
+import type { ExternalLibrariesSelector } from "@boundaries/elements";
 
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { FileInfo } from "../constants/ElementsInfo.types";
 import type {
   ExternalRuleOptions,
-  RuleMatcherElementsCapturedValues,
   RuleResult,
   RuleResultReport,
 } from "../constants/Options.types";
 import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
-import { SETTINGS } from "../constants/settings";
-import { getSpecifiers } from "../core/elementsInfo";
+import { isString, SETTINGS } from "../constants/settings";
 import {
   customErrorMessage,
   ruleElementMessage,
   elementMessage,
   dependencyUsageKindMessage,
 } from "../helpers/messages";
-import {
-  elementRulesAllowDependency,
-  micromatchPatternReplacingObjectsValues,
-  isMatchImportKind,
-} from "../helpers/rules";
 import { isArray } from "../helpers/utils";
 import { rulesOptionsSchema } from "../helpers/validations";
 import dependencyRule from "../rules-factories/dependency-rule";
 
+import { elementRulesAllowDependency } from "./element-types";
+
 const { RULE_EXTERNAL } = SETTINGS;
-
-function specifiersMatch(
-  specifiers: string[] = [],
-  specifierOptions: string[] = [],
-  elementsCapturedValues: RuleMatcherElementsCapturedValues,
-) {
-  let result: string[] = [];
-  return specifierOptions.reduce((found, option) => {
-    const matcherWithTemplateReplaced = micromatchPatternReplacingObjectsValues(
-      option,
-      elementsCapturedValues,
-    );
-    if (micromatch.some(specifiers, matcherWithTemplateReplaced)) {
-      found.push(option);
-    }
-    return found;
-  }, result);
-}
-
-function pathMatch(
-  path: string,
-  pathOptions: string | string[],
-  elementsCapturedValues: RuleMatcherElementsCapturedValues,
-) {
-  const pathMatchers = isArray(pathOptions) ? pathOptions : [pathOptions];
-  return pathMatchers.reduce((isMatch, option) => {
-    if (isMatch) {
-      return isMatch;
-    }
-    const matcherWithTemplateReplaced = micromatchPatternReplacingObjectsValues(
-      option,
-      elementsCapturedValues,
-    );
-    if (micromatch.some(path, matcherWithTemplateReplaced)) {
-      isMatch = true;
-    }
-    return isMatch;
-  }, false);
-}
-
-function isMatchExternalDependency(
-  dependency: DependencyInfo,
-  matcher: string,
-  options: ExternalLibrarySelectorOptions,
-  elementsCapturedValues: RuleMatcherElementsCapturedValues,
-  importKind?: DependencyKind,
-): RuleResult {
-  const matcherWithTemplatesReplaced = micromatchPatternReplacingObjectsValues(
-    matcher,
-    elementsCapturedValues,
-  );
-  if (!isMatchImportKind(dependency, importKind)) {
-    return { result: false, report: null, ruleReport: null };
-  }
-  const isMatch = dependency.baseModule
-    ? micromatch.isMatch(dependency.baseModule, matcherWithTemplatesReplaced)
-    : false;
-  if (isMatch && options && Object.keys(options).length) {
-    const isPathMatch = options.path
-      ? // @ts-expect-error Types are not aligned
-        pathMatch(dependency.internalPath, options.path, elementsCapturedValues)
-      : true;
-    if (isPathMatch && options.specifiers) {
-      const specifiersResult = specifiersMatch(
-        dependency.specifiers,
-        options.specifiers,
-        elementsCapturedValues,
-      );
-      return {
-        result: specifiersResult.length > 0,
-        report: {
-          specifiers: specifiersResult,
-        },
-        ruleReport: null,
-      };
-    }
-    return {
-      result: isPathMatch,
-      report: {
-        //@ts-expect-error Types are not aligned
-        path: dependency.internalPath,
-      },
-      ruleReport: null,
-    };
-  }
-  return {
-    result: isMatch,
-    report: null,
-    ruleReport: null,
-  };
-}
-
-function elementRulesAllowExternalDependency(
-  element: FileInfo,
-  dependency: DependencyInfo,
-  options?: ExternalRuleOptions,
-) {
-  return elementRulesAllowDependency({
-    element,
-    dependency,
-    options,
-    isMatch: isMatchExternalDependency,
-  });
-}
 
 function getErrorReportMessage(report: RuleResultReport) {
   if (report.path) {
     return report.path;
   }
-  return report.specifiers?.join(", ") || "";
+  return report.specifiers && report.specifiers.length > 0
+    ? report.specifiers.join(", ")
+    : undefined;
 }
 
 function errorMessage(
@@ -155,7 +49,10 @@ function errorMessage(
 
   if (ruleReport.message) {
     return customErrorMessage(ruleReport.message, file, dependency, {
-      specifiers: ruleData.report?.specifiers?.join(", "),
+      specifiers:
+        ruleData.report?.specifiers && ruleData.report?.specifiers.length > 0
+          ? ruleData.report?.specifiers?.join(", ")
+          : undefined,
       path: ruleData.report?.path,
     });
   }
@@ -170,7 +67,10 @@ function errorMessage(
     file.capturedValues,
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 
-  if (ruleData.report) {
+  if (
+    (ruleData.report?.specifiers && ruleData.report?.specifiers.length > 0) ||
+    ruleData.report?.path
+  ) {
     return `Usage of ${dependencyUsageKindMessage(
       ruleReport.importKind,
       dependency,
@@ -185,6 +85,35 @@ function errorMessage(
       suffix: " from ",
     },
   )}external module '${dependency.baseModule}' ${fileReport}`;
+}
+
+function modifySelectors(selectors: ExternalLibrariesSelector): {
+  baseSource?: string | string[];
+  specifiers?: string | string[];
+  internalPath?: string | string[];
+  origin: string[];
+}[] {
+  const originsToMatch = [
+    ELEMENT_ORIGINS_MAP.EXTERNAL,
+    ELEMENT_ORIGINS_MAP.CORE,
+  ];
+  if (isString(selectors)) {
+    return [{ baseSource: selectors, origin: originsToMatch }];
+  }
+  return selectors.map((selector) => {
+    if (isArray(selector)) {
+      return {
+        origin: originsToMatch,
+        baseSource: selector[0],
+        specifiers: selector[1].specifiers,
+        internalPath: selector[1].path,
+      };
+    }
+    return {
+      origin: originsToMatch,
+      baseSource: selector as string,
+    };
+  });
 }
 
 export default dependencyRule<ExternalRuleOptions>(
@@ -220,12 +149,27 @@ export default dependencyRule<ExternalRuleOptions>(
     }),
   },
   function ({ dependency, file, node, context, options }) {
-    if (dependency.isExternal || dependency.isBuiltIn) {
-      const ruleData = elementRulesAllowExternalDependency(
-        file,
-        { ...dependency, specifiers: getSpecifiers(node) },
-        options,
+    if (
+      isExternalDependency(dependency.originalDescription.to) ||
+      isCoreDependency(dependency.originalDescription.to)
+    ) {
+      const adaptedRuleOptions = {
+        ...options,
+        rules:
+          options && options.rules
+            ? options.rules.map((rule) => ({
+                ...rule,
+                allow: rule.allow && modifySelectors(rule.allow),
+                disallow: rule.disallow && modifySelectors(rule.disallow),
+              }))
+            : [],
+      };
+
+      const ruleData = elementRulesAllowDependency(
+        dependency.originalDescription,
+        adaptedRuleOptions,
       );
+
       if (!ruleData.result) {
         context.report({
           message: errorMessage(ruleData, file, dependency),

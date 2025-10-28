@@ -7,14 +7,32 @@ import type {
 } from "../Descriptor";
 
 /**
+ * Result of matching an element selector against an element.
+ */
+export type DependencyMatchResult = {
+  /** The selector matching result for the 'from' element. */
+  from: ElementSelectorData | null;
+  /** The selector matching result for the 'to' element. */
+  to: ElementSelectorData | null;
+  /** Whether the dependency matches all the selector properties provided */
+  isMatch: boolean;
+};
+
+/**
  * Serialized cache of elements matcher.
  */
-export type ElementsMatcherSerializedCache = Record<string, boolean>;
+export type ElementsMatcherSerializedCache = Record<
+  string,
+  ElementSelectorData | null
+>;
 
 /**
  * Serialized cache of dependencies matcher.
  */
-export type DependenciesMatcherSerializedCache = Record<string, boolean>;
+export type DependenciesMatcherSerializedCache = Record<
+  string,
+  DependencyMatchResult
+>;
 
 /**
  * Elements that can return a match when using an element selector.
@@ -103,7 +121,11 @@ export type ElementSelectorByTypeOrCategory =
 /**
  * Selector for base elements, including captured values for dynamic matching.
  */
-export type BaseElementSelectorData = ElementSelectorByTypeOrCategory & {
+export type BaseElementSelectorData = {
+  /** Type of the element */
+  type?: SimpleElementSelectorByType;
+  /** Category of the element */
+  category?: string;
   /** Captured values selector for dynamic matching */
   captured?: CapturedValuesSelector;
   /** Micromatch pattern(s) to match internal paths within the file or dependency */
@@ -115,6 +137,8 @@ export type BaseElementSelectorData = ElementSelectorByTypeOrCategory & {
   relationship?: MicromatchPattern;
   /** Origin of the element */
   origin?: MicromatchPattern;
+  /** Base source of the element, e.g., the import path of a dependency */
+  baseSource?: MicromatchPattern;
 };
 
 /**
@@ -125,7 +149,7 @@ export type DependencyElementSelectorData = BaseElementSelectorData & {
   kind?: MicromatchPattern;
   // TODO: Pass specifier to DependencyData
   /** Micromatch pattern(s) to match only specific imports/exports */
-  specifier?: MicromatchPattern;
+  specifiers?: MicromatchPattern;
   /** Node kind to filter elements */
   nodeKind?: MicromatchPattern;
 };

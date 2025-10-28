@@ -65,6 +65,14 @@ export class Descriptors {
   }
 
   /**
+   * Clears all internal caches.
+   */
+  public clearCache(): void {
+    this._elementsDescriptor.clearCache();
+    this._dependenciesDescriptor.clearCache();
+  }
+
+  /**
    * Describes an element given its file path and dependency source, if any.
    * @param filePath The path of the file to describe.
    * @param dependencySource The source of the dependency, if the element to describe is so. It refers to the import/export path used to reference the file or external module.

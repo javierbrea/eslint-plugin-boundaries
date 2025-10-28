@@ -114,6 +114,10 @@ export default [
               allow: ["@boundaries/elements", "elements"],
             },
             {
+              from: "rule",
+              allow: ["rule"],
+            },
+            {
               from: "elements",
               allow: ["constants", "helper"],
             },

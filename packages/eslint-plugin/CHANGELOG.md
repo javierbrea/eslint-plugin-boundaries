@@ -15,35 +15,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- fix: Identify internalPaths correctly when mode is 'file' in elements setting and the pattern matches folders, not files. Now it returns the correct internalPaths instead of the matched folder name.
+- fix: Assign internalPaths correctly when in elements setting the mode is 'file' but the pattern matches folders, not files. Now it returns the correct internalPaths instead of the matched folder name.
 
 > TODO BEFORE RELEASE 6.0.0
-> - Migrate selectors functionality from eslint-plugin-boundaries to @boundaries/elements package.
-> - Align types between `@boundaries/elements` and `eslint-plugin-boundaries` packages.
+> 
 > - Full unit tests coverage in elements package.
-> - elements package documentation.
-> - Publish RFC for renaming the package to `@boundaries/eslint-plugin`.
-> - Support multiple micromatch patterns in captured values in selectors.
-> - Add unit tests for new selectors formats in eslint-plugin-boundaries package.
-> - Deprecate `disallow` in favor of `deny` in rule options.
+> - Review exported types in elements package. (types for having type/category or both, etc.)
+> - Elements package documentation.
+>
+> - Refactor `eslint-plugin-boundaries` package to use the types from `elements` package. Expose all necessary type guards from `elements` package to be used in `eslint-plugin-boundaries` package.
+>
+> - Support new types of selectors and descriptors in eslint-plugin-boundaries package: Change schemas, validations, etc.
 > - Support a `name` property in `additional-dependency-nodes` setting to be able to identify the custom dependency nodes in rules.
+> - Deprecate `disallow` in favor of `deny` in rule options.
 > - Support new templates formats, having all elements data in from/to objects. For example, `${from.name}`, `${to.kind}`, `${to.internalPath}`, `{{ to.captured.elementName }}` etc. Add an option to use old or new format, because old one also uses `${from.X}` and `${target.X}`, but only for captured values, so it may produce conflicts.
-> - Support `nodeKind` in selectors. Pass it to dependency description.
 > - Support defining `kind` in selectors instead of defining it at rule level. This should be extended in `dependency-selectors` too (object with `from` and `to` properties).
+> - Support multiple micromatch patterns in captured values in selectors.
+> - Support `nodeKind` in selectors. Pass it to dependency description.
 > - Support `from` and `to` in `element-types` rule.
 > - Support `category` in `element-types` rule.
-> - Support multiple element types in `element-types` rule. Add an option to enable/disable this behavior.
-> - Support `handlebars` templates in custom messages in all rules, or passing a function to generate the message.
-> - Support `handlebars` templates in captured values in rules options to replace "${from.X}", "${target.X}", etc.?
-> - Enable all dependencyNodes by default in `dependency-nodes` setting.
-> - Rename rules according to new naming RFC, make it backwards compatible.
-> - Publish current documentation in website, and publish new docs in next release. Remove documentation from README.md except for basic usage. Change rules docs to point to website.
+> - Add unit tests for new selectors and descriptors formats in eslint-plugin-boundaries package.
+>
+> - Publish RFC for renaming the package to `@boundaries/eslint-plugin`.
 > - Publish RFCs for merging other rules into element-types rule.
 >   - External can be handled by adding a new. "external" mode to element descriptors to be able to assign element types to external dependencies also.
 >   - Entry-point can be handled by adding a new "internalPath" property to element selectors, so they only match files with a specific internalPath.
 >   - No-private can be handled by adding a new "relationship" property to element selectors, so they only match dependencies with a specific relationship (parent, child, sibling, etc.). Or this maybe should be done in "dependency-selectors" (object with "from" and "to" properties) instead of element selectors. There we could add a "relationship" property to the "to" or "from" selectors. This way types would be more strict.
 > - Publish RFC for storing cache in node_modules/.cache/@boundaries/...
+>
 > - Create project in Github. Create issues and tasks based on RFCs, assign tasks to project, and create milestones for releases. Plan each release carefully according to RFCs to avoid breaking changes and remember when to deprecate things.
+>
+> - Support multiple element types in `element-types` rule. Add an option to enable/disable this behavior.
+> - Enable all dependencyNodes by default in `dependency-nodes` setting.
+> - Rename rules according to new naming RFC, make it backwards compatible.
+> - Publish current documentation in website, and publish new docs in next release. Remove documentation from README.md except for basic usage. Change rules docs to point to website.
+> - Create task in backlog to migrate messages to @elements package (return human-friendly messages when matching elements and dependencies).
+
 
 ## [5.1.0] - 2025-10-14
 

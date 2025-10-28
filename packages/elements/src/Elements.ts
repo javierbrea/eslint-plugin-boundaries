@@ -13,8 +13,12 @@ import type {
   BaseElementsSelector,
   DependencySelector,
   MatcherOptions,
-  ElementSelector,
+  BaseElementSelectorData,
   ElementSelectorData,
+  DependencyMatchResult,
+  DependencyElementsSelector,
+  DependencyElementSelectorData,
+  ElementsSelector,
 } from "./Selector";
 
 /**
@@ -52,8 +56,8 @@ export class Elements {
   }
 
   /**
-   * Returns a serialized representation of the current state of Elements cache.
-   * @returns A serialized representation of the Elements cache.
+   * Returns a serialized representation of the current state of the cache.
+   * @returns A serialized representation of the cache.
    */
   public serializeCache(): ElementsSerializedCache {
     const descriptorsCache = Array.from(
@@ -72,6 +76,10 @@ export class Elements {
 
     return {
       descriptors: descriptorsCache,
+      selectors: {
+        elementsMatcherCache: this._elementsMatcher.serializeCache(),
+        dependenciesMatcherCache: this._dependenciesMatcher.serializeCache(),
+      },
     };
   }
 
@@ -96,9 +104,25 @@ export class Elements {
         descriptors,
       });
     }
+    this._elementsMatcher.setCacheFromSerialized(
+      serializedCache.selectors.elementsMatcherCache,
+    );
+    this._dependenciesMatcher.setCacheFromSerialized(
+      serializedCache.selectors.dependenciesMatcherCache,
+    );
   }
 
-  // TODO: Add method to clean caches
+  /**
+   * Clears cache
+   */
+  public clearCache(): void {
+    this._elementsMatcher.clearCache();
+    this._dependenciesMatcher.clearCache();
+    this._descriptorsCache.getAll().forEach(({ descriptors }) => {
+      descriptors.clearCache();
+    });
+    this._descriptorsCache.clear();
+  }
 
   /**
    * Gets Elements and Dependencies descriptor instances based on the provided configuration options.
@@ -130,6 +154,26 @@ export class Elements {
   }
 
   /**
+   * Returns the selector matching result for the given element, or null if none matches.
+   * It omits checks in keys applying only to dependency between elements, such as relationship.
+   * @param element The element to check.
+   * @param selector The selector to check against.
+   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
+   * @returns The selector matching result for the given element, or null if none matches.
+   */
+  public getElementSelectorMatching(
+    element: ElementDescription,
+    selector: BaseElementsSelector,
+    options?: MatcherOptions,
+  ): ElementSelectorData | null {
+    return this._elementsMatcher.getSelectorMatching(
+      element,
+      selector,
+      options,
+    );
+  }
+
+  /**
    * Determines if an element matches a given elements selector.
    * @param element The element to check
    * @param selector The elements selector to check against
@@ -142,6 +186,25 @@ export class Elements {
     options?: MatcherOptions,
   ): boolean {
     return this._elementsMatcher.isElementMatch(element, selector, options);
+  }
+
+  /**
+   * Returns the selectors matching result for the given dependency.
+   * @param dependency The dependency to check.
+   * @param selector The selector to check against.
+   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
+   * @returns The selectors matching result for the given dependency, and whether it matches or not.
+   */
+  public getDependencySelectorsMatching(
+    dependency: DependencyDescription,
+    selector: DependencySelector,
+    options: MatcherOptions,
+  ): DependencyMatchResult {
+    return this._dependenciesMatcher.getSelectorsMatching(
+      dependency,
+      selector,
+      options,
+    );
   }
 
   /**
@@ -164,11 +227,22 @@ export class Elements {
   }
 
   /**
-   * Normalizes an element selector with any supported format into an array of ElementSelectorData.
-   * @param selector The element selector to normalize.
-   * @returns An array of normalized ElementSelectorData.
+   * Normalizes an ElementsSelector into an array of ElementSelectorData.
+   * @param elementsSelector The elements selector, in any supported format.
+   * @returns The normalized array of selector data.
    */
-  public normalizeSelector(selector: ElementSelector): ElementSelectorData[] {
-    return this._elementsMatcher.normalize(selector);
+  public normalizeElementsSelector(
+    // eslint-disable-next-line no-unused-vars
+    elementsSelector: BaseElementsSelector,
+  ): BaseElementSelectorData[];
+  public normalizeElementsSelector(
+    // eslint-disable-next-line no-unused-vars
+    elementsSelector: DependencyElementsSelector,
+  ): DependencyElementSelectorData[];
+
+  public normalizeElementsSelector(
+    elementsSelector: ElementsSelector,
+  ): ElementSelectorData[] {
+    return this._elementsMatcher.normalizeElementsSelector(elementsSelector);
   }
 }

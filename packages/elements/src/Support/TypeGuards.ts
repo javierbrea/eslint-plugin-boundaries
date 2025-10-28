@@ -73,3 +73,16 @@ export function isObjectWithProperty<Key extends string>(
 ): value is Record<Key, unknown> & Record<string, unknown> {
   return isObject(value) && Object.prototype.hasOwnProperty.call(value, key);
 }
+
+/**
+ * Determines if the given value is an object with any of the specified properties.
+ * @param value The value to check
+ * @param keys The keys to check for
+ * @returns True if the value is an object with any of the specified properties, false otherwise
+ */
+export function isObjetWithAnyOfProperties<Keys extends string>(
+  value: unknown,
+  keys: Keys[],
+): value is Record<Keys, unknown> & Record<string, unknown> {
+  return isObject(value) && keys.some((key) => key in value);
+}

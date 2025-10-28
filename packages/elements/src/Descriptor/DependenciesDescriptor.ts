@@ -32,8 +32,8 @@ export class DependenciesDescriptor {
       to: string;
       source: string;
       kind: string;
-      nodeKind: string;
-      specifiers: string[] | null;
+      nodeKind?: string;
+      specifiers?: string[];
     },
     DependencyDescription
   > = new CacheManager();
@@ -67,6 +67,13 @@ export class DependenciesDescriptor {
     serializedCache: DependenciesDescriptorSerializedCache,
   ): void {
     this._dependenciesCache.setFromSerialized(serializedCache);
+  }
+
+  /**
+   * Clears the elements cache.
+   */
+  public clearCache(): void {
+    this._dependenciesCache.clear();
   }
 
   /**
@@ -257,11 +264,12 @@ export class DependenciesDescriptor {
       to: toElement,
       dependency: {
         kind,
-        nodeKind,
+        nodeKind: nodeKind || null,
         relationship: this._dependencyRelationships(fromElement, toElement),
-        specifiers,
+        specifiers: specifiers || null,
       },
     };
+
     this._dependenciesCache.set(
       {
         from,

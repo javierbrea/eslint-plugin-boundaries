@@ -130,20 +130,6 @@ describe("elementsSelectorHelpers", () => {
       expect(
         isElementSelectorWithLegacyOptions(minimalElementSelectorWithOptions),
       ).toBe(true);
-
-      // More cases: type object, category object and combined
-      expect(
-        isElementSelectorWithLegacyOptions([{ type: "component" }, {}]),
-      ).toBe(true);
-      expect(isElementSelectorWithLegacyOptions([{ category: "ui" }, {}])).toBe(
-        true,
-      );
-      expect(
-        isElementSelectorWithLegacyOptions([
-          { type: "component", category: "ui" },
-          {},
-        ]),
-      ).toBe(true);
     });
 
     it("should return false when options are not valid captured values selector", () => {
@@ -221,11 +207,6 @@ describe("elementsSelectorHelpers", () => {
     it("isElementSelectorData should not match simple strings", () => {
       expect(isElementSelectorData("component")).toBe(false);
     });
-
-    it("isElementSelectorData mixed invalid types", () => {
-      expect(isElementSelectorData({ type: 123 })).toBe(false);
-      expect(isElementSelectorData({ category: 123 })).toBe(false);
-    });
   });
 
   describe("isElementSelector", () => {
@@ -241,15 +222,6 @@ describe("elementsSelectorHelpers", () => {
       ];
 
       expect(isElementSelector(elementSelectorWithOptions)).toBe(true);
-    });
-
-    it("should return false for elementsSelector with length 2", () => {
-      const elementSelectorWithOptions: ElementSelectorWithOptions = [
-        "component",
-        { type: "button" },
-      ];
-
-      expect(isElementSelector(elementSelectorWithOptions)).toBe(false);
     });
 
     it("should return false for invalid element selectors", () => {

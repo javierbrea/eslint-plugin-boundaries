@@ -19,6 +19,7 @@ import type {
   BaseElementSelectorData,
   MatcherOptions,
   MatcherOptionsDependencySelectorsGlobals,
+  DependencyMatchResult,
 } from "./ElementsSelector.types";
 
 /**
@@ -35,7 +36,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       extraTemplateData: TemplateData;
       dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals;
     },
-    boolean
+    DependencyMatchResult
   >;
 
   /**
@@ -68,6 +69,13 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     serializedCache: DependenciesMatcherSerializedCache,
   ): void {
     this._cache.setFromSerialized(serializedCache);
+  }
+
+  /**
+   * Clears the cache.
+   */
+  public clearCache(): void {
+    this._cache.clear();
   }
 
   /**
@@ -132,56 +140,83 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       baseSelector.origin = selector.origin;
     }
 
+    if (selector.baseSource) {
+      baseSelector.baseSource = selector.baseSource;
+    }
+
     return baseSelector as BaseElementSelector;
   }
 
   /**
-   * Converts an array of dependency element selector data to an array of base element selector data.
-   * @param selector The dependency element selector data.
-   * @returns The base element selector data.
-   */
-  private _convertDependencyElementsSelectorDataToBaseElementsSelectorData(
-    selector: DependencyElementSelectorData[],
-  ): BaseElementSelector[] {
-    return selector.map((selectorData) =>
-      this._convertDependencyElementSelectorDataToBaseElementSelectorData(
-        selectorData,
-      ),
-    );
-  }
-
-  /**
-   * Determines if the dependency base elements match the selectors.
+   * Returns the selectors matching result for the given dependency.
    * @param dependency The dependency description.
    * @param selector The dependency selector normalized.
    * @param extraTemplateData The extra template data for selector values.
-   * @returns Whether the dependency base elements match the selectors.
+   * @returns The selectors matching result for the given dependency.
    */
-  private _elementsMatch(
+  private _getSelectorMatching(
     dependency: DependencyDescription,
     selector: DependencySelectorNormalized,
     templateData: TemplateData,
-  ): boolean {
-    const fromMatches = selector.from
-      ? this._elementsMatcher.isElementMatch(dependency.from, selector.from, {
-          extraTemplateData: templateData,
-        })
-      : true;
-    if (!fromMatches) {
-      return false;
-    }
-    const toMatches = selector.to
-      ? this._elementsMatcher.isElementMatch(
+  ): DependencyMatchResult {
+    const getFromSelectorMatching =
+      (): DependencyElementSelectorData | null => {
+        for (const fromSelectorData of selector.from!) {
+          const fromMatch = this._elementsMatcher.isElementMatch(
+            dependency.from,
+            fromSelectorData,
+            {
+              extraTemplateData: templateData,
+            },
+          );
+          const dependencyPropertiesMatch = this._dependencyFromPropertiesMatch(
+            dependency,
+            [fromSelectorData],
+            templateData,
+          );
+          if (fromMatch && dependencyPropertiesMatch) {
+            return fromSelectorData;
+          }
+        }
+        return null;
+      };
+
+    const getToSelectorMatching = (): DependencyElementSelectorData | null => {
+      for (const toSelectorData of selector.to!) {
+        const toMatch = this._elementsMatcher.isElementMatch(
           dependency.to,
-          this._convertDependencyElementsSelectorDataToBaseElementsSelectorData(
-            selector.to,
+          this._convertDependencyElementSelectorDataToBaseElementSelectorData(
+            toSelectorData,
           ),
           {
             extraTemplateData: templateData,
           },
-        )
-      : true;
-    return toMatches;
+        );
+        const dependencyPropertiesMatch = this._dependencyToPropertiesMatch(
+          dependency,
+          [toSelectorData],
+          templateData,
+        );
+        if (toMatch && dependencyPropertiesMatch) {
+          return toSelectorData;
+        }
+      }
+      return null;
+    };
+
+    const fromSelectorMatching = selector.from
+      ? getFromSelectorMatching()
+      : null;
+    const toSelectorMatching = selector.to ? getToSelectorMatching() : null;
+
+    return {
+      from: fromSelectorMatching,
+      to: toSelectorMatching,
+      isMatch: Boolean(
+        (selector.from ? fromSelectorMatching : true) &&
+          (selector.to ? toSelectorMatching : true),
+      ),
+    };
   }
 
   /**
@@ -240,7 +275,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     specifiers: string[] | null,
     templateData: TemplateData,
   ): boolean {
-    const specifierPattern = selector.specifier;
+    const specifierPattern = selector.specifiers;
     if (!specifierPattern) {
       return true;
     }
@@ -346,42 +381,20 @@ export class DependenciesMatcher extends BaseElementsMatcher {
   }
 
   /**
-   * Check whether the dependency properties match the selector.
-   * @param dependency The dependency description
-   * @param selector The dependency selector normalized
-   * @param templateData The template data for rendering selector values
-   * @returns Whether the dependency properties match the selector
-   */
-  private _dependencyPropertiesMatch(
-    dependency: DependencyDescription,
-    selector: DependencySelectorNormalized,
-    templateData: TemplateData,
-  ): boolean {
-    return (
-      this._dependencyFromPropertiesMatch(
-        dependency,
-        selector.from,
-        templateData,
-      ) &&
-      this._dependencyToPropertiesMatch(dependency, selector.to, templateData)
-    );
-  }
-
-  /**
-   * Returns whether the given dependency matches the selector.
+   * Returns the selectors matching result for the given dependency.
    * @param dependency The dependency to check.
    * @param selector The selector to check against.
    * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
-   * @returns Whether the dependency matches the selector properties.
+   * @returns The matching result for the dependency against the selector.
    */
-  public isDependencyMatch(
+  public getSelectorsMatching(
     dependency: DependencyDescription,
     selector: DependencySelector,
     {
       extraTemplateData = {},
       dependencySelectorsGlobals = {},
     }: MatcherOptions = {},
-  ): boolean {
+  ): DependencyMatchResult {
     if (
       this._cache.has({
         dependency,
@@ -408,13 +421,12 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       to: dependency.to,
       ...extraTemplateData,
     };
-    const result =
-      this._elementsMatch(dependency, normalizedSelector, templateData) &&
-      this._dependencyPropertiesMatch(
-        dependency,
-        normalizedSelector,
-        templateData,
-      );
+
+    const result = this._getSelectorMatching(
+      dependency,
+      normalizedSelector,
+      templateData,
+    );
 
     this._cache.set(
       {
@@ -426,5 +438,25 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       result,
     );
     return result;
+  }
+
+  /**
+   * Returns whether the given dependency matches the selector.
+   * @param dependency The dependency to check.
+   * @param selector The selector to check against.
+   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
+   * @returns Whether the dependency matches the selector properties.
+   */
+  public isDependencyMatch(
+    dependency: DependencyDescription,
+    selector: DependencySelector,
+    options?: MatcherOptions,
+  ): boolean {
+    const matchResult = this.getSelectorsMatching(
+      dependency,
+      selector,
+      options,
+    );
+    return matchResult.isMatch;
   }
 }

@@ -29,18 +29,12 @@ export class Config {
     if (!isNullish(options?.rootPath)) {
       return options.rootPath;
     }
+    // TODO: Unify node detection method in a separate utility function
     if (!isNullish(process) && !isNullish(process.cwd)) {
       return process.cwd();
     }
     // Fallback to browser environment
     return "/";
-  }
-
-  /**
-   * The root path of the project, from where ElementsDescriptor will resolve paths
-   */
-  public get rootPath(): string {
-    return this._rootPath;
   }
 
   /**

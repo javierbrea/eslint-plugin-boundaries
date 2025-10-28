@@ -40,6 +40,20 @@ const UNKNOWN_LOCAL_ELEMENT: LocalElementUnknown = {
   origin: ELEMENT_ORIGINS_MAP.LOCAL,
 };
 
+/** Options for the _fileDescriptorMatch private method */
+type FileDescriptorMatchOptions = {
+  /** The element descriptor to match. */
+  elementDescriptor: ElementDescriptor;
+  /** The file path to match against the descriptor */
+  filePath: string;
+  /** The current path segments leading to the element */
+  currentPathSegments: string[];
+  /** The last path segment that was matched */
+  lastPathSegmentMatching: number;
+  /** Whether the element matched previously */
+  alreadyMatched: boolean;
+};
+
 /**
  * Class describing elements in a project given their paths and configuration.
  */
@@ -103,9 +117,18 @@ export class ElementsDescriptor {
   }
 
   /**
+   * Clears the elements cache.
+   */
+  public clearCache(): void {
+    this._elementsCache.clear();
+    this._filesCache.clear();
+  }
+
+  /**
    * Loads the Node.js module to access built-in modules information when running in Node.js environment.
    */
   private _loadModuleInNode(): void {
+    // istanbul ignore next: Fallback for non-Node.js environments
     if (
       !this._mod &&
       !isNullish(process) &&
@@ -127,12 +150,14 @@ export class ElementsDescriptor {
     dependencySource: string,
     baseDependencySource: string,
   ): boolean {
+    // istanbul ignore next: Fallback for non-Node.js environments
     if (this._mod) {
       const baseSourceWithoutPrefix = baseDependencySource.startsWith("node:")
         ? baseDependencySource.slice(5)
         : baseDependencySource;
       return this._mod.builtinModules.includes(baseSourceWithoutPrefix);
     }
+    // istanbul ignore next: Fallback for non-Node.js environments
     return isCoreModule(dependencySource);
   }
 
@@ -198,7 +223,13 @@ export class ElementsDescriptor {
    * @param elementPath The element path to check.
    * @returns True if the path is included, false otherwise.
    */
-  private _pathIsIncluded(elementPath: string): boolean {
+  private _pathIsIncluded(
+    elementPath: string,
+    includeExternal: boolean,
+  ): boolean {
+    const isExternal = includeExternal
+      ? micromatch.isMatch(elementPath, "**/node_modules/**")
+      : false;
     if (this._config.options.includePaths && this._config.options.ignorePaths) {
       const isIncluded = micromatch.isMatch(
         elementPath,
@@ -208,9 +239,12 @@ export class ElementsDescriptor {
         elementPath,
         this._config.options.ignorePaths,
       );
-      return isIncluded && !isIgnored;
+      return (isIncluded || isExternal) && !isIgnored;
     } else if (this._config.options.includePaths) {
-      return micromatch.isMatch(elementPath, this._config.options.includePaths);
+      return (
+        micromatch.isMatch(elementPath, this._config.options.includePaths) ||
+        isExternal
+      );
     } else if (this._config.options.ignorePaths) {
       return !micromatch.isMatch(elementPath, this._config.options.ignorePaths);
     }
@@ -262,10 +296,8 @@ export class ElementsDescriptor {
         }
       }
     });
-    if (!result) {
-      return [...allPathSegments].reverse().join("/");
-    }
-    return `${[...allPathSegments].reverse().join("/").split(result)[0]}${result}`;
+    // NOTE: result should never be undefined here, as we already matched the pattern before
+    return `${[...allPathSegments].reverse().join("/").split(result!)[0]}${result}`;
   }
 
   /**
@@ -273,30 +305,28 @@ export class ElementsDescriptor {
    * @param options The options for matching the descriptor.
    * @returns The result of the match, including whether it matched and any captured values.
    */
-  private _fileDescriptorMatch = ({
+  // eslint-disable-next-line no-unused-vars
+  private _fileDescriptorMatch(options: FileDescriptorMatchOptions): {
+    matched: true;
+    capture: string[];
+    baseCapture: string[] | null;
+    useFullPathMatch: boolean;
+    patternUsed: string;
+  };
+
+  private _fileDescriptorMatch({
     elementDescriptor,
     filePath,
     currentPathSegments,
     lastPathSegmentMatching,
     alreadyMatched,
-  }: {
-    /** The element descriptor to match. */
-    elementDescriptor: ElementDescriptor;
-    /** The file path to match against the descriptor */
-    filePath: string;
-    /** The current path segments leading to the element */
-    currentPathSegments: string[];
-    /** The last path segment that was matched */
-    lastPathSegmentMatching: number;
-    /** Whether the element matched previously */
-    alreadyMatched: boolean;
-  }): {
+  }: FileDescriptorMatchOptions): {
     matched: boolean;
     capture?: string[];
     baseCapture?: string[] | null;
     useFullPathMatch?: boolean;
     patternUsed?: string;
-  } => {
+  } {
     const mode = isElementDescriptorMode(elementDescriptor.mode)
       ? elementDescriptor.mode
       : ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
@@ -346,16 +376,20 @@ export class ElementsDescriptor {
     }
 
     return { matched: false };
-  };
+  }
 
   /**
    * Retrieves the description of an element given its path.
    * It does not identify external files. Files not matching any element are considered unknown.
    * If a file in node_modules does a match, it is considered local as well.
+   * @param includeExternal Whether to include external files (inside node_modules) in the matching process.
    * @param elementPath The path of the element to describe.
    * @returns The description of the element.
    */
-  private _getFileDescription(filePath?: string): FileElement {
+  private _getFileDescription(
+    includeExternal: boolean,
+    filePath?: string,
+  ): FileElement {
     // Return unknown element if no file path is provided. Filepath couldn't be resolved.
     if (!filePath) {
       return {
@@ -364,7 +398,7 @@ export class ElementsDescriptor {
     }
 
     // Return ignored element if the path is not included in the configuration.
-    if (!this._pathIsIncluded(filePath)) {
+    if (!this._pathIsIncluded(filePath, includeExternal)) {
       return {
         ...UNKNOWN_LOCAL_ELEMENT,
         isIgnored: true,
@@ -394,12 +428,17 @@ export class ElementsDescriptor {
 
     const processElementMatch = (
       elementDescriptor: ElementDescriptor,
-      matchInfo: NonNullable<ReturnType<typeof this._fileDescriptorMatch>>,
+      matchInfo: {
+        matched: true;
+        capture: string[];
+        baseCapture: string[] | null;
+        useFullPathMatch: boolean;
+        patternUsed: string;
+      },
       currentPathSegments: string[],
       elementPaths: string[],
     ) => {
       const { capture, baseCapture, useFullPathMatch, patternUsed } = matchInfo;
-      if (!capture || !patternUsed) return;
 
       let capturedValues = this._getCapturedValues(
         capture,
@@ -487,14 +526,18 @@ export class ElementsDescriptor {
 
   /**
    * Describes a file given its path.
+   * @param includeExternal Whether to include external files (inside node_modules) in the matching process.
    * @param filePath The path of the file to describe.
    * @returns The description of the element.
    */
-  private _describeFile(filePath?: string): FileElement {
+  private _describeFile(
+    includeExternal: boolean,
+    filePath?: string,
+  ): FileElement {
     if (this._filesCache.has(String(filePath))) {
       return this._filesCache.get(String(filePath))!;
     }
-    const description = this._getFileDescription(filePath);
+    const description = this._getFileDescription(includeExternal, filePath);
     this._filesCache.set(String(filePath), description);
     return description;
   }
@@ -594,7 +637,7 @@ export class ElementsDescriptor {
     }
 
     // First we get the file description
-    const fileDescription = this._describeFile(filePath);
+    const fileDescription = this._describeFile(!!dependencySource, filePath);
     const elementResult = dependencySource
       ? this._describeDependencyElement(fileDescription, dependencySource)
       : fileDescription;
