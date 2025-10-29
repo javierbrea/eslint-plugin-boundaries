@@ -797,6 +797,19 @@ describe("descriptors", () => {
       expect(isKnownLocalElement(dependency.from)).toBe(true);
       expect(isKnownLocalElement(dependency.to)).toBe(true);
     });
+
+    // TODO: Test dependencies to external and core elements
+    // TODO: Test dependencies with relationships:
+    // - Internal
+    // - Child
+    // - Descendant
+    // - Sibling
+    // - Parent
+    // - Uncle
+    // - Ancestor
+
+    // TODO: Assign nephew relationship
+    // TODO: Remove rootPath option, because it is not used anywhere
   });
 
   describe("dependency descriptor cache", () => {

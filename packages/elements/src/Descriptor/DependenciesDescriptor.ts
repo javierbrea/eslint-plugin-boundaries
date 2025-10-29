@@ -29,7 +29,7 @@ export class DependenciesDescriptor {
   private _dependenciesCache: CacheManager<
     {
       from: string;
-      to: string;
+      to?: string;
       source: string;
       kind: string;
       nodeKind?: string;
