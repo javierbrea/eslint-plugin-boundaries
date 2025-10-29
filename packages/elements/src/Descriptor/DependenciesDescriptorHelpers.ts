@@ -41,6 +41,22 @@ export function isDependencyRelationship(
 }
 
 /**
+ * Determines if the given value is a valid dependency relationship description.
+ * @param value The value to check.
+ * @returns True if the value is a valid dependency relationship, false otherwise.
+ */
+export function isDependencyRelationshipDescription(
+  value: unknown,
+): value is DependencyRelationship {
+  return (
+    isObjectWithProperty(value, "to") &&
+    (isNull(value.to) || isDependencyRelationship(value.to)) &&
+    isObjectWithProperty(value, "from") &&
+    (isNull(value.from) || isDependencyRelationship(value.from))
+  );
+}
+
+/**
  * Returns whether the given value is a valid ElementsDependencyInfo object.
  * @param value The value to check.
  * @returns True if the value is a valid ElementsDependencyInfo object, false otherwise.
@@ -52,8 +68,7 @@ export function isElementsDependencyInfo(
     isObjectWithProperty(value, "kind") &&
     isDependencyKind(value.kind) &&
     isObjectWithProperty(value, "relationship") &&
-    (isNull(value.relationship) ||
-      isDependencyRelationship(value.relationship)) &&
+    isDependencyRelationshipDescription(value.relationship) &&
     isObjectWithProperty(value, "nodeKind") &&
     (isNull(value.nodeKind) || isString(value.nodeKind))
   );

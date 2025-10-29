@@ -10,6 +10,7 @@ import {
   isCoreDependency,
   isElement,
   isLocalDependency,
+  isDependencyDescription,
 } from "../../src/index";
 
 describe("descriptors", () => {
@@ -172,9 +173,6 @@ describe("descriptors", () => {
       expect(isElement(element)).toBe(true);
     });
   });
-
-  // TODO: Test cache serialization and restoration
-  // TODO: Test cache (not calling to micromatch again if already cached)
 
   describe("element descriptions", () => {
     it("should return unknown elements when no path is provided", () => {
@@ -470,7 +468,7 @@ describe("descriptors", () => {
     });
   });
 
-  describe("cache", () => {
+  describe("elements descriptor cache", () => {
     it("should not call micromatch multiple times for the same element", () => {
       descriptors.describeElement("/project/src/utils/math/index.ts");
 
@@ -609,9 +607,383 @@ describe("descriptors", () => {
     });
   });
 
+  describe("dependency descriptions", () => {
+    it("should return dependency to unknown elements", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+        nodeKind: "ImportDeclaration",
+      });
+
+      expect(dependency).toEqual({
+        from: {
+          capturedValues: {
+            fileName: "Button",
+          },
+          category: "react",
+          elementPath: "/project/src/components/Button.tsx",
+          internalPath: "Button.tsx",
+          origin: "local",
+          parents: [],
+          path: "/project/src/components/Button.tsx",
+          type: "component",
+        },
+        to: {
+          baseSource: "project",
+          capturedValues: null,
+          category: null,
+          origin: "local",
+          path: "/project/src/bar/Baz.ts",
+          source: "project/bar",
+          type: null,
+        },
+        dependency: {
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+          specifiers: null,
+          relationship: {
+            from: null,
+            to: null,
+          },
+        },
+      });
+
+      expect(isDependencyDescription(dependency)).toBe(true);
+      expect(isKnownLocalElement(dependency.from)).toBe(true);
+      expect(isUnknownLocalElement(dependency.to)).toBe(true);
+    });
+
+    it("should return dependency from unknown elements", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/project/src/var/Baz.ts",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+        specifiers: ["foo", "bar"],
+      });
+
+      expect(dependency).toEqual({
+        from: {
+          category: null,
+          capturedValues: null,
+          origin: "local",
+          path: "/project/src/var/Baz.ts",
+          type: null,
+        },
+        to: {
+          baseSource: "project",
+          capturedValues: null,
+          category: null,
+          origin: "local",
+          path: "/project/src/bar/Baz.ts",
+          source: "project/bar",
+          type: null,
+        },
+        dependency: {
+          kind: "type",
+          nodeKind: null,
+          specifiers: ["foo", "bar"],
+          relationship: {
+            from: null,
+            to: null,
+          },
+        },
+      });
+
+      expect(isDependencyDescription(dependency)).toBe(true);
+      expect(isUnknownLocalElement(dependency.from)).toBe(true);
+      expect(isUnknownLocalElement(dependency.to)).toBe(true);
+    });
+
+    it("should return dependency between ignored elements", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/var/var/Baz.ts",
+        to: "/var/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+        specifiers: ["foo", "bar"],
+      });
+
+      // TODO: Ignored elements should have path, source, baseSource?
+      expect(dependency).toEqual({
+        from: {
+          category: null,
+          capturedValues: null,
+          origin: "local",
+          isIgnored: true,
+          path: null,
+          type: null,
+        },
+        to: {
+          capturedValues: null,
+          category: null,
+          origin: "local",
+          isIgnored: true,
+          path: null,
+          type: null,
+        },
+        dependency: {
+          kind: "type",
+          nodeKind: null,
+          specifiers: ["foo", "bar"],
+          relationship: {
+            from: null,
+            to: null,
+          },
+        },
+      });
+
+      expect(isDependencyDescription(dependency)).toBe(true);
+      expect(isIgnoredElement(dependency.from)).toBe(true);
+      expect(isIgnoredElement(dependency.to)).toBe(true);
+    });
+
+    it("should return dependency between known elements", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/utils/math/math.test.ts",
+        source: "../utils/math/math.test.ts",
+        kind: "value",
+        nodeKind: "Import",
+        specifiers: ["calculateSum", "calculateAvg"],
+      });
+
+      // TODO: Ignored elements should have path, source, baseSource?
+      expect(dependency).toEqual({
+        from: {
+          type: "component",
+          category: "react",
+          capturedValues: {
+            fileName: "Button",
+          },
+          elementPath: "/project/src/components/Button.tsx",
+          internalPath: "Button.tsx",
+          parents: [],
+          origin: "local",
+          path: "/project/src/components/Button.tsx",
+        },
+        to: {
+          type: "test",
+          category: "business-logic",
+          capturedValues: {
+            elementName: "math",
+            testFileName: "math",
+            businessLogicArea: "utils",
+            root: "/project",
+          },
+          elementPath: "/project/src/utils/math/math.test.ts",
+          internalPath: "math.test.ts",
+          parents: [],
+          origin: "local",
+          path: "/project/src/utils/math/math.test.ts",
+          // TODO: Makes sense to have source and baseSource in local elements with relative paths?
+          baseSource: "..",
+          source: "../utils/math/math.test.ts",
+        },
+        dependency: {
+          kind: "value",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+          relationship: {
+            from: null,
+            to: null,
+          },
+        },
+      });
+
+      expect(isDependencyDescription(dependency)).toBe(true);
+      expect(isKnownLocalElement(dependency.from)).toBe(true);
+      expect(isKnownLocalElement(dependency.to)).toBe(true);
+    });
+  });
+
+  describe("dependency descriptor cache", () => {
+    it("should not call micromatch multiple times for the same element", () => {
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).toHaveBeenCalled();
+
+      jest.clearAllMocks();
+
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).not.toHaveBeenCalled();
+    });
+
+    it("should call micromatch again after clearing the cache", () => {
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).toHaveBeenCalled();
+
+      jest.clearAllMocks();
+
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).not.toHaveBeenCalled();
+
+      descriptors.clearCache();
+
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).toHaveBeenCalled();
+    });
+
+    it("should call micromatch again after clearing the cache in the elements instance", () => {
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).toHaveBeenCalled();
+
+      jest.clearAllMocks();
+
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).not.toHaveBeenCalled();
+
+      elements.clearCache();
+
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).toHaveBeenCalled();
+    });
+
+    it("should not call micromatch again after filling the cache with serialized data", () => {
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).toHaveBeenCalled();
+
+      jest.clearAllMocks();
+
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).not.toHaveBeenCalled();
+
+      const serializedCache = descriptors.serializeCache();
+
+      descriptors.clearCache();
+
+      descriptors.setCacheFromSerialized(serializedCache);
+
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).not.toHaveBeenCalled();
+    });
+
+    it("should not call micromatch again after filling the cache with serialized data in elements", () => {
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).toHaveBeenCalled();
+
+      jest.clearAllMocks();
+
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).not.toHaveBeenCalled();
+
+      const serializedCache = elements.serializeCache();
+
+      descriptors.clearCache();
+
+      elements.setCacheFromSerialized(serializedCache);
+
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).not.toHaveBeenCalled();
+    });
+
+    it("should not call micromatch more than one per same file when getting dependency elements for the same file but different sources", () => {
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/bar",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).toHaveBeenCalled();
+
+      jest.clearAllMocks();
+
+      descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/bar/Baz.ts",
+        source: "project/foo",
+        kind: "type",
+      });
+
+      expect(micromatchSpy).not.toHaveBeenCalled();
+    });
+  });
+
   // TODO: Validate that descriptors have at least type or category. Both being null has no sense
-
-  // TODO: Test dependency descriptors too
-
-  // TODO: Test type guards in every test. When finished, extra type guards for exporting reasons should be tested separately in their own spec file
 });

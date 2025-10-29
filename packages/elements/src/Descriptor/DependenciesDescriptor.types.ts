@@ -107,7 +107,7 @@ export type DescribeDependencyOptions = {
   /** Path of the element where the dependency originates */
   from: string;
   /** Path of the element where the dependency points to */
-  to: string;
+  to?: string;
   /** Source of the dependency (import/export path) */
   source: string;
   /** Kind of the dependency (type, runtime) */
