@@ -21,7 +21,7 @@ const runTest = (
   }: {
     absoluteFilePath: ReturnType<typeof pathResolvers>["absoluteFilePath"];
   },
-  errorMessages: Record<number, string> = {},
+  errorMessages: Record<number, string> = {}
 ) => {
   const ruleTester = createRuleTester(settings);
 
@@ -54,7 +54,7 @@ const runTest = (
       // molecule components can import atoms
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/MoleculeA.js",
+          "components/molecules/molecule-a/MoleculeA.js"
         ),
         code: "import HelperA from 'components/atoms/atom-a'",
         options,
@@ -62,7 +62,7 @@ const runTest = (
       // molecule components can import atoms using relative paths
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/MoleculeA.js",
+          "components/molecules/molecule-a/MoleculeA.js"
         ),
         code: "import HelperA from '../../atoms/atom-a'",
         options,
@@ -70,7 +70,7 @@ const runTest = (
       // molecule components can import molecules
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/MoleculeA.js",
+          "components/molecules/molecule-a/MoleculeA.js"
         ),
         code: "import MoleculeA from 'components/molecules/molecule-a'",
         options,
@@ -96,7 +96,7 @@ const runTest = (
       // domain-a modules subfiles can import layout components
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/subfolder-1/subfile-1",
+          "modules/domain-a/module-a/subfolder-1/subfile-1"
         ),
         code: "import LayoutA from 'components/layouts/layout-a'",
         options,
@@ -104,7 +104,7 @@ const runTest = (
       // domain-a modules subfiles can import internal files
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/subfolder-1/subfile-1",
+          "modules/domain-a/module-a/subfolder-1/subfile-1"
         ),
         code: "import LayoutA from './subfolder-2/subfile-2'",
         options,
@@ -112,7 +112,7 @@ const runTest = (
       // domain-a modules subfiles can import internal files
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/subfolder-1/subfolder-2/subfile-2",
+          "modules/domain-a/module-a/subfolder-1/subfolder-2/subfile-2"
         ),
         code: "import LayoutA from '../subfile-1'",
         options,
@@ -126,7 +126,7 @@ const runTest = (
       // domain-a module subfiles can import domain-a modules
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/subfolder-1/subfile-1.js",
+          "modules/domain-a/module-a/subfolder-1/subfile-1.js"
         ),
         code: "import ModuleB from 'modules/domain-a/module-b'",
         options,
@@ -134,7 +134,7 @@ const runTest = (
       // domain-a module subfiles can import domain-a modules
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/subfolder-1/subfolder-2/subfolder-2.js",
+          "modules/domain-a/module-a/subfolder-1/subfolder-2/subfolder-2.js"
         ),
         code: "import ModuleB from 'modules/domain-a/module-b'",
         options,
@@ -178,7 +178,7 @@ const runTest = (
       // module-a subfiles in domain-a can import atom-b atom component
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/subfolder-1/subfile-1",
+          "modules/domain-a/module-a/subfolder-1/subfile-1"
         ),
         code: "import AtomA from 'components/atoms/atom-b'",
         options,
@@ -186,7 +186,7 @@ const runTest = (
       // module-a subfiles in domain-a can import atom-b atom component subfiles
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/subfolder-1/subfile-1",
+          "modules/domain-a/module-a/subfolder-1/subfile-1"
         ),
         code: "import AtomA from 'components/atoms/atom-b/subfolder-1/subfile-1'",
         options,
@@ -194,7 +194,7 @@ const runTest = (
       // module-a subfiles in domain-a can import atom-b atom component subfiles
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/subfolder-1/subfile-1",
+          "modules/domain-a/module-a/subfolder-1/subfile-1"
         ),
         code: "import AtomA from 'components/atoms/atom-b/subfolder-1/subfolder-2/subfile-2'",
         options,
@@ -214,7 +214,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "'components' with category 'atoms' and elementName 'atom-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -233,7 +233,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
-              }),
+              })
             ),
 
             type: "Literal",
@@ -253,7 +253,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'components' with category 'atoms' and elementName 'atom-a'",
                 dep: "'components' with category 'molecules' and elementName 'molecule-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -272,7 +272,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'components' with category 'atoms' and elementName 'atom-a'",
                 dep: "'components' with category 'layouts' and elementName 'layout-a'",
-              }),
+              })
             ),
 
             type: "Literal",
@@ -292,7 +292,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'components' with category 'atoms' and elementName 'atom-a'",
                 dep: "'components' with category 'layouts' and elementName 'layout-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -311,7 +311,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'components' with category 'molecules' and elementName 'molecule-a'",
                 dep: "'components' with category 'layouts' and elementName 'layout-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -330,7 +330,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'components' with category 'molecules' and elementName 'molecule-a'",
                 dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -349,7 +349,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'components' with category 'layouts' and elementName 'layout-a'",
                 dep: "'components' with category 'atoms' and elementName 'atom-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -368,7 +368,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'components' with category 'layouts' and elementName 'layout-a'",
                 dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -387,7 +387,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'pages' and elementName 'page-a'",
                 dep: "'components' with category 'atoms' and elementName 'atom-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -406,7 +406,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'pages' and elementName 'page-a'",
                 dep: "'components' with category 'molecules' and elementName 'molecule-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -425,7 +425,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'pages' and elementName 'page-a'",
                 dep: "'modules' with domain 'pages' and elementName 'page-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -444,7 +444,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'pages' and elementName 'page-a'",
                 dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -463,7 +463,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'pages' and elementName 'page-a'",
                 dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -483,7 +483,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'domain-a' and elementName 'module-b'",
                 dep: "'components' with category 'atoms' and elementName 'atom-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -502,7 +502,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'domain-a' and elementName 'module-b'",
                 dep: "'components' with category 'atoms' and elementName 'atom-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -521,7 +521,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'domain-a' and elementName 'module-a'",
                 dep: "'components' with category 'molecules' and elementName 'molecule-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -540,7 +540,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'domain-a' and elementName 'module-a'",
                 dep: "'modules' with domain 'pages' and elementName 'page-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -559,7 +559,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'domain-a' and elementName 'module-a'",
                 dep: "'modules' with domain 'domain-b' and elementName 'module-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -578,7 +578,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'domain-a' and elementName 'module-a'",
                 dep: "'modules' with domain 'domain-b' and elementName 'module-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -597,7 +597,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'domain-b' and elementName 'module-a'",
                 dep: "'components' with category 'layouts' and elementName 'layout-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -616,7 +616,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'domain-b' and elementName 'module-a'",
                 dep: "'components' with category 'molecules' and elementName 'molecule-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -635,7 +635,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'domain-b' and elementName 'module-a'",
                 dep: "'modules' with domain 'pages' and elementName 'page-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -654,7 +654,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'domain-b' and elementName 'module-a'",
                 dep: "'components' with category 'atoms' and elementName 'atom-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -673,7 +673,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'domain-a' and elementName 'module-a'",
                 dep: "'components' with category 'atoms' and elementName 'atom-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -691,7 +691,7 @@ const testPrivate = (
   }: {
     absoluteFilePath: ReturnType<typeof pathResolvers>["absoluteFilePath"];
   },
-  errorMessages: Record<number, string> = {},
+  errorMessages: Record<number, string> = {}
 ) => {
   const ruleTester = createRuleTester(settings);
 
@@ -700,7 +700,7 @@ const testPrivate = (
       // private helpers can import helpers
       {
         filename: absoluteFilePath(
-          "helpers/helper-a/helpers/helper-c/index.js",
+          "helpers/helper-a/helpers/helper-c/index.js"
         ),
         code: "import HelperA from 'helpers/helper-b'",
         options,
@@ -714,7 +714,7 @@ const testPrivate = (
       // private molecule components can import atoms
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/MoleculeC.js",
+          "components/molecules/molecule-a/components/molecules/molecule-c/MoleculeC.js"
         ),
         code: "import HelperA from 'components/atoms/atom-a'",
         options,
@@ -722,7 +722,7 @@ const testPrivate = (
       // molecule components can import atoms using relative paths
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/MoleculeC.js",
+          "components/molecules/molecule-a/components/molecules/molecule-c/MoleculeC.js"
         ),
         code: "import HelperA from '../../../../../atoms/atom-a'",
         options,
@@ -730,7 +730,7 @@ const testPrivate = (
       // private molecule components can import molecules
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/MoleculeC.js",
+          "components/molecules/molecule-a/components/molecules/molecule-c/MoleculeC.js"
         ),
         code: "import MoleculeA from 'components/molecules/molecule-a'",
         options,
@@ -750,7 +750,7 @@ const testPrivate = (
       // domain-a private modules can import layout components
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/submodules/module-c/ModuleC.js",
+          "modules/domain-a/module-a/submodules/module-c/ModuleC.js"
         ),
         code: "import LayoutA from 'components/layouts/layout-a'",
         options,
@@ -758,7 +758,7 @@ const testPrivate = (
       // domain-a private modules subfiles can import layout components
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/submodules/module-c/submodules/module-d/subfolder-1/subfile-1",
+          "modules/domain-a/module-a/submodules/module-c/submodules/module-d/subfolder-1/subfile-1"
         ),
         code: "import LayoutA from 'components/layouts/layout-a'",
         options,
@@ -766,7 +766,7 @@ const testPrivate = (
       // domain-a private modules subfiles can import internal files
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/submodules/module-c/index",
+          "modules/domain-a/module-a/submodules/module-c/index"
         ),
         code: "import LayoutA from './subfolder-1/subfile-1'",
         options,
@@ -774,7 +774,7 @@ const testPrivate = (
       // domain-a private modules can import domain-a modules
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/submodules/module-c/ModuleC.js",
+          "modules/domain-a/module-a/submodules/module-c/ModuleC.js"
         ),
         code: "import ModuleB from 'modules/domain-a/module-b'",
         options,
@@ -782,7 +782,7 @@ const testPrivate = (
       // domain-a private modules of private modules can import domain-a modules
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/submodules/module-c/submodules/module-d/ModuleD.js",
+          "modules/domain-a/module-a/submodules/module-c/submodules/module-d/ModuleD.js"
         ),
         code: "import ModuleB from 'modules/domain-a/module-b'",
         options,
@@ -790,7 +790,7 @@ const testPrivate = (
       // private module-c in domain-a can import atom-b atom component
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/submodules/module-c/ModuleC.js",
+          "modules/domain-a/module-a/submodules/module-c/ModuleC.js"
         ),
         code: "import AtomA from 'components/atoms/atom-b'",
         options,
@@ -798,7 +798,7 @@ const testPrivate = (
       // private module-d in domain-a can import atom-b atom component
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/submodules/module-c/submodules/module-d/index.js",
+          "modules/domain-a/module-a/submodules/module-c/submodules/module-d/index.js"
         ),
         code: "import AtomA from 'components/atoms/atom-b'",
         options,
@@ -806,7 +806,7 @@ const testPrivate = (
       // private helper-c can import private module d
       {
         filename: absoluteFilePath(
-          "helpers/helper-a/helpers/helper-c/index.js",
+          "helpers/helper-a/helpers/helper-c/index.js"
         ),
         code: "import ModuleD from 'modules/domain-a/module-a/submodules/module-c/submodules/module-d'",
         options,
@@ -816,7 +816,7 @@ const testPrivate = (
       // private helpers can't import atoms
       {
         filename: absoluteFilePath(
-          "helpers/helper-a/helpers/helper-c/index.js",
+          "helpers/helper-a/helpers/helper-c/index.js"
         ),
         code: "import AtomA from 'components/atoms/atom-a'",
         options,
@@ -828,7 +828,7 @@ const testPrivate = (
               elementTypesNoRuleMessage({
                 file: "'helpers' with elementName 'helper-c'",
                 dep: "'components' with category 'atoms' and elementName 'atom-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -837,7 +837,7 @@ const testPrivate = (
       // private helpers can't import modules
       {
         filename: absoluteFilePath(
-          "helpers/helper-a/helpers/helper-c/index.js",
+          "helpers/helper-a/helpers/helper-c/index.js"
         ),
         code: "import AtomA from 'modules/domain-a/module-a'",
         options,
@@ -849,7 +849,7 @@ const testPrivate = (
               elementTypesNoRuleMessage({
                 file: "'helpers' with elementName 'helper-c'",
                 dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -868,7 +868,7 @@ const testPrivate = (
               elementTypesNoRuleMessage({
                 file: "'components' with category 'atoms' and elementName 'atom-a'",
                 dep: "'components' with category 'molecules' and elementName 'molecule-c'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -887,7 +887,7 @@ const testPrivate = (
               elementTypesNoRuleMessage({
                 file: "'components' with category 'atoms' and elementName 'atom-a'",
                 dep: "'components' with category 'molecules' and elementName 'molecule-d'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -896,7 +896,7 @@ const testPrivate = (
       // private molecule components can't import layout components
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/index.js",
+          "components/molecules/molecule-a/components/molecules/molecule-c/index.js"
         ),
         code: "import LayoutB from 'components/layouts/layout-b'",
         options,
@@ -908,7 +908,7 @@ const testPrivate = (
               elementTypesNoRuleMessage({
                 file: "'components' with category 'molecules' and elementName 'molecule-c'",
                 dep: "'components' with category 'layouts' and elementName 'layout-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -917,7 +917,7 @@ const testPrivate = (
       // private molecule components can't import modules
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/index.js",
+          "components/molecules/molecule-a/components/molecules/molecule-c/index.js"
         ),
         code: "import ModuleA from 'modules/domain-a/module-a'",
         options,
@@ -929,7 +929,7 @@ const testPrivate = (
               elementTypesNoRuleMessage({
                 file: "'components' with category 'molecules' and elementName 'molecule-c'",
                 dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -948,7 +948,7 @@ const testPrivate = (
               elementTypesNoRuleMessage({
                 file: "'components' with category 'layouts' and elementName 'layout-a'",
                 dep: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -967,7 +967,7 @@ const testPrivate = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'pages' and elementName 'page-a'",
                 dep: "'components' with category 'molecules' and elementName 'molecule-c'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -986,7 +986,7 @@ const testPrivate = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'pages' and elementName 'page-a'",
                 dep: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -995,7 +995,7 @@ const testPrivate = (
       // domain a private modules can't import private molecule components
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/submodules/module-c/index.js",
+          "modules/domain-a/module-a/submodules/module-c/index.js"
         ),
         code: "import Component from 'components/molecules/molecule-a/components/molecules/molecule-c'",
         options,
@@ -1007,7 +1007,7 @@ const testPrivate = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
                 dep: "'components' with category 'molecules' and elementName 'molecule-c'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -1016,7 +1016,7 @@ const testPrivate = (
       // private domain a modules can't import page modules
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/submodules/module-c/index.js",
+          "modules/domain-a/module-a/submodules/module-c/index.js"
         ),
         code: "import PageB from 'modules/pages/page-b'",
         options,
@@ -1028,7 +1028,7 @@ const testPrivate = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
                 dep: "'modules' with domain 'pages' and elementName 'page-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -1037,7 +1037,7 @@ const testPrivate = (
       // private domain a modules can't import domain b modules
       {
         filename: absoluteFilePath(
-          "modules/domain-a/module-a/submodules/module-c/index.js",
+          "modules/domain-a/module-a/submodules/module-c/index.js"
         ),
         code: "import PageB from 'modules/domain-b/module-a'",
         options,
@@ -1049,7 +1049,7 @@ const testPrivate = (
               elementTypesNoRuleMessage({
                 file: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
                 dep: "'modules' with domain 'domain-b' and elementName 'module-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -1113,7 +1113,7 @@ runTest(
     },
   ],
   pathResolvers("two-levels"),
-  {},
+  {}
 );
 
 testPrivate(
@@ -1180,7 +1180,7 @@ testPrivate(
     },
   ],
   pathResolvers("two-levels-with-private"),
-  {},
+  {}
 );
 
 testPrivate(
@@ -1246,5 +1246,5 @@ testPrivate(
     9: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 8",
     10: "Importing elements of type 'modules' with domain '!domain-a' or 'domain-b' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 10",
     11: "Importing elements of type 'modules' with domain '!domain-a' or 'domain-b' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 10",
-  },
+  }
 );

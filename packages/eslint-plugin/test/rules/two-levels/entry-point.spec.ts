@@ -18,7 +18,7 @@ const runTest = (
   }: {
     absoluteFilePath: ReturnType<typeof pathResolvers>["absoluteFilePath"];
   },
-  errorMessages: Record<number, string> = {},
+  errorMessages: Record<number, string> = {}
 ) => {
   const ruleTester = createRuleTester(settings);
 
@@ -87,7 +87,7 @@ const runTest = (
               entryPointNoRuleMessage({
                 entryPoint: "index.js",
                 dep: "'helpers' with elementName 'helper-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -106,7 +106,7 @@ const runTest = (
               entryPointNoRuleMessage({
                 entryPoint: "main.js",
                 dep: "'helpers' with elementName 'helper-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -125,7 +125,7 @@ const runTest = (
               entryPointNoRuleMessage({
                 entryPoint: "index.js",
                 dep: "'components' with category 'atoms' and elementName 'atom-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -144,7 +144,7 @@ const runTest = (
               entryPointNoRuleMessage({
                 entryPoint: "index.js",
                 dep: "'components' with category 'molecules' and elementName 'molecule-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -163,7 +163,7 @@ const runTest = (
               entryPointNoRuleMessage({
                 entryPoint: "index.js",
                 dep: "'components' with category 'layouts' and elementName 'layout-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -182,7 +182,7 @@ const runTest = (
               entryPointNoRuleMessage({
                 entryPoint: "index.js",
                 dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -201,7 +201,7 @@ const runTest = (
               entryPointNoRuleMessage({
                 entryPoint: "subfolder-1/subfolder-2/ModuleA.js",
                 dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -220,7 +220,7 @@ const runTest = (
               entryPointNoRuleMessage({
                 entryPoint: "ModuleA.js",
                 dep: "'modules' with domain 'pages' and elementName 'page-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -239,7 +239,7 @@ const runTest = (
               entryPointNoRuleMessage({
                 entryPoint: "index.js",
                 dep: "'modules' with domain 'pages' and elementName 'page-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -295,7 +295,7 @@ runTest(
   {
     1: "The entry point 'main.js' is not allowed in elements of type 'helpers' with elementName '*-a'. Disallowed in rule 2",
     7: "The entry point 'ModuleA.js' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 8",
-  },
+  }
 );
 
 runTest(
@@ -344,5 +344,5 @@ runTest(
   {
     1: "The entry point 'main.js' is not allowed in elements of type 'helpers' with elementName '*-a'. Disallowed in rule 2",
     7: "The entry point 'ModuleA.js' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 8",
-  },
+  }
 );

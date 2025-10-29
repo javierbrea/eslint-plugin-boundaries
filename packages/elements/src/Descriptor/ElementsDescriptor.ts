@@ -30,6 +30,7 @@ import {
   isElementDescriptorMode,
   isIgnoredElement,
   isKnownLocalElement,
+  isElementDescriptor,
 } from "./ElementsDescriptorHelpers";
 
 const UNKNOWN_LOCAL_ELEMENT: LocalElementUnknown = {
@@ -91,9 +92,10 @@ export class ElementsDescriptor {
    */
   constructor(
     elementDescriptors: ElementDescriptors,
-    configOptions?: ConfigOptions,
+    configOptions?: ConfigOptions
   ) {
     this._elementDescriptors = elementDescriptors;
+    this._validateDescriptors(elementDescriptors);
     this._config = new Config(configOptions);
     this._loadModuleInNode();
   }
@@ -111,7 +113,7 @@ export class ElementsDescriptor {
    * @param serializedCache The serialized elements cache.
    */
   public setCacheFromSerialized(
-    serializedCache: ElementsDescriptorSerializedCache,
+    serializedCache: ElementsDescriptorSerializedCache
   ): void {
     this._elementsCache.setFromSerialized(serializedCache);
   }
@@ -141,6 +143,19 @@ export class ElementsDescriptor {
   }
 
   /**
+   * Validates the element descriptors to ensure they are correctly defined.
+   */
+  private _validateDescriptors(elementDescriptors: ElementDescriptors): void {
+    elementDescriptors.forEach((descriptor, index) => {
+      if (!isElementDescriptor(descriptor)) {
+        throw new Error(
+          `Element descriptor at index ${index} must have a pattern, and either a 'type' or 'category' defined.`
+        );
+      }
+    });
+  }
+
+  /**
    * Determines if a dependency source is a core module.
    * @param dependencySource The source of the dependency to check.
    * @param baseDependencySource The base source of the dependency to check.
@@ -148,7 +163,7 @@ export class ElementsDescriptor {
    */
   private _dependencySourceIsCoreModule(
     dependencySource: string,
-    baseDependencySource: string,
+    baseDependencySource: string
   ): boolean {
     // istanbul ignore next: Fallback for non-Node.js environments
     if (this._mod) {
@@ -176,7 +191,7 @@ export class ElementsDescriptor {
    * @returns True if the dependency source is external or an alias, false otherwise.
    */
   private _dependencySourceIsExternalOrScoped(
-    dependencySource: string,
+    dependencySource: string
   ): boolean {
     return (
       /^\w/.test(dependencySource) ||
@@ -209,7 +224,7 @@ export class ElementsDescriptor {
    */
   private _isExternalDependency(
     filePath: string | null,
-    dependencySource?: string,
+    dependencySource?: string
   ): boolean {
     return (
       (!filePath || filePath.includes("node_modules")) &&
@@ -225,7 +240,7 @@ export class ElementsDescriptor {
    */
   private _pathIsIncluded(
     elementPath: string,
-    includeExternal: boolean,
+    includeExternal: boolean
   ): boolean {
     const isExternal = includeExternal
       ? micromatch.isMatch(elementPath, "**/node_modules/**")
@@ -233,11 +248,11 @@ export class ElementsDescriptor {
     if (this._config.options.includePaths && this._config.options.ignorePaths) {
       const isIncluded = micromatch.isMatch(
         elementPath,
-        this._config.options.includePaths,
+        this._config.options.includePaths
       );
       const isIgnored = micromatch.isMatch(
         elementPath,
-        this._config.options.ignorePaths,
+        this._config.options.ignorePaths
       );
       return (isIncluded || isExternal) && !isIgnored;
     } else if (this._config.options.includePaths) {
@@ -259,7 +274,7 @@ export class ElementsDescriptor {
    */
   private _getCapturedValues(
     captured: string[],
-    captureConfig?: string[],
+    captureConfig?: string[]
   ): CapturedValues | null {
     if (!captureConfig) {
       return null;
@@ -282,7 +297,7 @@ export class ElementsDescriptor {
   private _getElementPath(
     pathPattern: string,
     pathSegments: string[],
-    allPathSegments: string[],
+    allPathSegments: string[]
   ): string {
     const elementPathRegexp = micromatch.makeRe(pathPattern);
     const testedSegments: string[] = [];
@@ -330,8 +345,7 @@ export class ElementsDescriptor {
     const mode = isElementDescriptorMode(elementDescriptor.mode)
       ? elementDescriptor.mode
       : ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
-    // TODO: Filter patterns to file/folder/full when mode supports "external".
-    // Another method to match external dependencies might be needed, using source instead of filePath.
+    // TODO: Filter patterns to file/folder/full when mode supports "external". Another method to match external dependencies might be needed.
     const patterns = isArray(elementDescriptor.pattern)
       ? elementDescriptor.pattern
       : [elementDescriptor.pattern];
@@ -354,14 +368,14 @@ export class ElementsDescriptor {
           .join("/");
         baseCapture = micromatch.capture(
           [elementDescriptor.basePattern, "**", effectivePattern].join("/"),
-          baseTarget,
+          baseTarget
         );
         hasCapture = baseCapture !== null;
       }
 
       const capture = micromatch.capture(
         effectivePattern,
-        useFullPathMatch ? filePath : currentPathSegments.join("/"),
+        useFullPathMatch ? filePath : currentPathSegments.join("/")
       );
 
       if (capture && hasCapture) {
@@ -388,7 +402,7 @@ export class ElementsDescriptor {
    */
   private _getFileDescription(
     includeExternal: boolean,
-    filePath?: string,
+    filePath?: string
   ): FileElement {
     // Return unknown element if no file path is provided. Filepath couldn't be resolved.
     if (!filePath) {
@@ -401,6 +415,7 @@ export class ElementsDescriptor {
     if (!this._pathIsIncluded(filePath, includeExternal)) {
       return {
         ...UNKNOWN_LOCAL_ELEMENT,
+        path: filePath,
         isIgnored: true,
       };
     }
@@ -436,20 +451,20 @@ export class ElementsDescriptor {
         patternUsed: string;
       },
       currentPathSegments: string[],
-      elementPaths: string[],
+      elementPaths: string[]
     ) => {
       const { capture, baseCapture, useFullPathMatch, patternUsed } = matchInfo;
 
       let capturedValues = this._getCapturedValues(
         capture,
-        elementDescriptor.capture,
+        elementDescriptor.capture
       );
 
       if (elementDescriptor.basePattern && baseCapture) {
         capturedValues = {
           ...this._getCapturedValues(
             baseCapture,
-            elementDescriptor.baseCapture,
+            elementDescriptor.baseCapture
           ),
           ...capturedValues,
         };
@@ -502,7 +517,7 @@ export class ElementsDescriptor {
             elementDescriptor,
             match,
             state.pathSegmentsAccumulator,
-            pathSegments,
+            pathSegments
           );
           state.pathSegmentsAccumulator = [];
           state.lastPathSegmentMatching = i + 1;
@@ -532,7 +547,7 @@ export class ElementsDescriptor {
    */
   private _describeFile(
     includeExternal: boolean,
-    filePath?: string,
+    filePath?: string
   ): FileElement {
     if (this._filesCache.has(String(filePath))) {
       return this._filesCache.get(String(filePath))!;
@@ -550,11 +565,14 @@ export class ElementsDescriptor {
    */
   private _describeDependencyElement(
     element: FileElement,
-    dependencySource: string,
+    dependencySource: string
   ): DependencyElement {
-    // Ignored elements remain ignored
+    // Ignored elements remain ignored, but we add the source and baseSource
     if (isIgnoredElement(element)) {
-      return element;
+      return {
+        ...element,
+        source: dependencySource,
+      };
     }
 
     // Determine if the dependency source is a core module
@@ -562,7 +580,7 @@ export class ElementsDescriptor {
       this._getExternalModuleBaseSource(dependencySource);
     const isCore = this._dependencySourceIsCoreModule(
       dependencySource,
-      baseDependencySource,
+      baseDependencySource
     );
 
     // Core modules become core dependency elements
@@ -578,7 +596,7 @@ export class ElementsDescriptor {
 
     const isExternal = this._isExternalDependency(
       element.path,
-      dependencySource,
+      dependencySource
     );
 
     // Local elements become dependency elements, but only with the source and baseSource added
@@ -586,7 +604,6 @@ export class ElementsDescriptor {
       const localElement: LocalDependencyElement = {
         ...element,
         source: dependencySource,
-        baseSource: baseDependencySource,
       };
       return localElement;
     }
@@ -608,21 +625,21 @@ export class ElementsDescriptor {
    * @param dependencySource The source of the dependency, if the element to describe is so. It refers to the import/export path used to reference the file or external module.
    * @returns The description of the element. A dependency element if dependency source is provided, otherwise a file element.
    */
-  public describeElement(): LocalElementUnknown;
-  public describeElement(
+  private _describeElement(): LocalElementUnknown;
+  private _describeElement(
     // eslint-disable-next-line no-unused-vars
-    filePath?: string,
+    filePath?: string
   ): FileElement;
-  public describeElement(
+  private _describeElement(
     // eslint-disable-next-line no-unused-vars
     filePath?: string,
     // eslint-disable-next-line no-unused-vars
-    dependencySource?: string,
+    dependencySource?: string
   ): DependencyElement;
 
-  public describeElement(
+  private _describeElement(
     filePath?: string,
-    dependencySource?: string,
+    dependencySource?: string
   ): ElementDescription {
     if (
       this._elementsCache.has({
@@ -647,8 +664,30 @@ export class ElementsDescriptor {
         dependencySource,
         filePath: String(filePath),
       },
-      elementResult,
+      elementResult
     );
     return elementResult;
+  }
+
+  /**
+   * Describes an element given its file path.
+   * @param filePath The path of the file to describe.
+   * @returns The description of the element.
+   */
+  public describeElement(filePath?: string): FileElement {
+    return this._describeElement(filePath);
+  }
+
+  /**
+   * Describes a dependency element given its dependency source and file path.
+   * @param dependencySource The source of the dependency.
+   * @param filePath The path of the file being the dependency, if known.
+   * @returns The description of the dependency element.
+   */
+  public describeDependencyElement(
+    dependencySource: string,
+    filePath?: string
+  ): DependencyElement {
+    return this._describeElement(filePath, dependencySource);
   }
 }

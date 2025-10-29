@@ -35,6 +35,7 @@ export const jestConfig = {
     "jest/prefer-called-with": [0],
     "jest/require-to-throw-message": [0],
     "jest/unbound-method": [0],
+    "jest/prefer-lowercase-title": [2, { ignoreTopLevelDescribe: true }],
   },
 };
 
@@ -134,6 +135,12 @@ export const jsBaseConfig = {
       },
     ],
     "import/extensions": [2, "never"],
+    "prettier/prettier": [
+      2,
+      {
+        trailingComma: "es5",
+      },
+    ],
   },
 };
 

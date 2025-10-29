@@ -90,6 +90,7 @@ export type ElementSelectorByType = {
   category?: never;
 };
 
+// TODO: Remove these types?
 /**
  * Element selector by category.
  */
@@ -100,6 +101,7 @@ export type ElementSelectorByCategory = {
   type?: never;
 };
 
+// TODO: Remove these types?
 /**
  * Element selector by both type and category.
  */
@@ -110,6 +112,7 @@ export type ElementSelectorByTypeAndCategory = {
   category: string;
 };
 
+// TODO: Remove these types?
 /**
  * Element selector by type or category, which can be either by type, by category, or by both type and category.
  */

@@ -13,7 +13,7 @@ export type DependencyRuleRunner<Options> = (
     options?: Options;
     node: EslintLiteralNode;
     context: Rule.RuleContext;
-  },
+  }
 ) => void;
 
 export type DependencyRuleOptions = {

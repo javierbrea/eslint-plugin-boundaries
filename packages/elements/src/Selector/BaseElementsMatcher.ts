@@ -39,15 +39,15 @@ export class BaseElementsMatcher {
    */
   public normalizeElementsSelector(
     // eslint-disable-next-line no-unused-vars
-    elementsSelector: BaseElementsSelector,
+    elementsSelector: BaseElementsSelector
   ): BaseElementSelectorData[];
   public normalizeElementsSelector(
     // eslint-disable-next-line no-unused-vars
-    elementsSelector: DependencyElementsSelector,
+    elementsSelector: DependencyElementsSelector
   ): DependencyElementSelectorData[];
 
   public normalizeElementsSelector(
-    elementsSelector: ElementsSelector,
+    elementsSelector: ElementsSelector
   ): ElementSelectorData[] {
     if (isArray(elementsSelector)) {
       if (isElementSelectorWithLegacyOptions(elementsSelector)) {
@@ -65,11 +65,11 @@ export class BaseElementsMatcher {
    */
   protected normalizeSelector(
     // eslint-disable-next-line no-unused-vars
-    selector: BaseElementSelector,
+    selector: BaseElementSelector
   ): BaseElementSelectorData;
   protected normalizeSelector(
     // eslint-disable-next-line no-unused-vars
-    selector: DependencyElementSelector,
+    selector: DependencyElementSelector
   ): DependencyElementSelectorData;
 
   protected normalizeSelector(selector: ElementSelector): ElementSelectorData {
@@ -111,12 +111,12 @@ export class BaseElementsMatcher {
    * @param extraTemplateData The data to use for replace in the template.
    * @returns The rendered template.
    */
-  protected getRenderedTemplate(
+  private _getRenderedTemplate(
     template: string,
-    templateData: TemplateData,
+    templateData: TemplateData
   ): string {
     return Handlebars.compile(this._getBackwardsCompatibleTemplate(template))(
-      templateData,
+      templateData
     );
   }
 
@@ -128,14 +128,14 @@ export class BaseElementsMatcher {
    */
   protected getRenderedTemplates(
     template: MicromatchPattern,
-    templateData: TemplateData,
+    templateData: TemplateData
   ): MicromatchPattern {
     if (isArray(template)) {
       return template.map((temp) => {
-        return this.getRenderedTemplate(temp, templateData);
+        return this._getRenderedTemplate(temp, templateData);
       });
     }
-    return this.getRenderedTemplate(template, templateData);
+    return this._getRenderedTemplate(template, templateData);
   }
 
   /**
@@ -184,8 +184,9 @@ export class BaseElementsMatcher {
     if (!isObjectWithProperty(element, elementKey)) {
       return false;
     }
+    // TODO: Convert boolean values or null to strings? This would allow matching against e.g. "true" or "false" strings.
     if (!element[elementKey] || !isString(element[elementKey])) {
-      return false;
+      return micromatch.isMatch(String(element[elementKey]), selectorValue);
     }
     return micromatch.isMatch(element[elementKey], selectorValue);
   }

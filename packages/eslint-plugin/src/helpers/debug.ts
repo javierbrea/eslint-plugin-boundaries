@@ -34,7 +34,7 @@ export function warnOnce(message: string) {
 }
 
 export function debugElementDescription(
-  elementDescription: ElementDescription,
+  elementDescription: ElementDescription
 ) {
   const fileInfoKey =
     elementDescription.path ||

@@ -82,5 +82,5 @@ export const boundariesConfig = createConfig(
       [`foo/${RULE_SHORT_NAMES_MAP.NO_PRIVATE}` as const]: 2,
     },
   },
-  "foo",
+  "foo"
 );

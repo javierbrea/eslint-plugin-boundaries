@@ -2,7 +2,7 @@ const resolve = require("resolve");
 
 const getUsedAlias = (relativeFilePath, config) => {
   return Object.keys(config).find(
-    (alias) => relativeFilePath.indexOf(alias) === 0,
+    (alias) => relativeFilePath.indexOf(alias) === 0
   );
 };
 

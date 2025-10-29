@@ -22,7 +22,7 @@ const runTest = (
     absoluteFilePath,
   }: {
     absoluteFilePath: ReturnType<typeof pathResolvers>["absoluteFilePath"];
-  },
+  }
 ) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
@@ -36,7 +36,7 @@ const runTest = (
       // Private elements can use a parent elements: // TODO, add relationship rule to avoid this
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/index.js",
+          "components/molecules/molecule-a/components/molecules/molecule-c/index.js"
         ),
         code: 'import molecule from "../../../"',
         options,
@@ -44,7 +44,7 @@ const runTest = (
       // Private elements can use public elements:
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/index.js",
+          "components/molecules/molecule-a/components/molecules/molecule-c/index.js"
         ),
         code: 'import ModuleA from "components/atoms/atom-a"',
         options,
@@ -59,7 +59,7 @@ const runTest = (
     molecule-c can use atom-c, as both are children of molecule-a */
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/index.js",
+          "components/molecules/molecule-a/components/molecules/molecule-c/index.js"
         ),
         code: 'import HelperA from "components/molecules/molecule-a/components/atoms/atom-c"',
         options,
@@ -69,7 +69,7 @@ const runTest = (
     molecule-d can use atom-c as it is a direct child of common ancestor molecule-a */
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/MoleculeD.js",
+          "components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/MoleculeD.js"
         ),
         code: 'import HelperA from "components/molecules/molecule-a/components/atoms/atom-c"',
         options,
@@ -77,7 +77,7 @@ const runTest = (
       // Private elements can use an ancestor // TODO, add relationships rule to avoid this
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/MoleculeD.js",
+          "components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/MoleculeD.js"
         ),
         code: 'import HelperA from "../../../../../../"',
         options,
@@ -88,7 +88,7 @@ const runTest = (
     (and other descendants of the parent when allowUncles option is enabled) */
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-b/MoleculeB.js",
+          "components/molecules/molecule-b/MoleculeB.js"
         ),
         code: "import MoleculeD from 'components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d'",
         options,
@@ -131,7 +131,7 @@ const runTest = (
       // molecule d is private of molecule c, so molecule A can't use it (even when it is its "grandchild")
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/MoleculeA.js",
+          "components/molecules/molecule-a/MoleculeA.js"
         ),
         code: 'import moleculeD from "./components/molecules/molecule-c/components/molecules/molecule-d"',
         options,
@@ -149,7 +149,7 @@ const runTest = (
     common ancestor component A, but allowUncles option is disabled. */
       {
         filename: absoluteFilePath(
-          "components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/MoleculeD.js",
+          "components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/MoleculeD.js"
         ),
         code: 'import HelperA from "components/molecules/molecule-a/components/atoms/atom-c"',
         options: [
@@ -172,5 +172,5 @@ const runTest = (
 
 runTest(
   SETTINGS.twoLevelsWithPrivate,
-  pathResolvers("two-levels-with-private"),
+  pathResolvers("two-levels-with-private")
 );

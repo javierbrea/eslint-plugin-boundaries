@@ -75,7 +75,7 @@ ruleTester.run(RULE, rule, {
     // Components of family "molecule" can import components of family "atom"
     {
       filename: absoluteFilePath(
-        "components/molecules/molecule-a/MoleculeA.js",
+        "components/molecules/molecule-a/MoleculeA.js"
       ),
       code: "import AtomA from 'components/atoms/atoms-a'",
       options,

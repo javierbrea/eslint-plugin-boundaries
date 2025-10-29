@@ -1,6 +1,6 @@
 import {
-  isExternalDependency,
-  isCoreDependency,
+  isExternalDependencyElement,
+  isCoreDependencyElement,
   ELEMENT_ORIGINS_MAP,
 } from "@boundaries/elements";
 import type { ExternalLibrariesSelector } from "@boundaries/elements";
@@ -40,7 +40,7 @@ function getErrorReportMessage(report: RuleResultReport) {
 function errorMessage(
   ruleData: RuleResult,
   file: FileInfo,
-  dependency: DependencyInfo,
+  dependency: DependencyInfo
 ): string {
   const ruleReport = ruleData.ruleReport;
   if (!ruleReport) {
@@ -64,7 +64,7 @@ function errorMessage(
 
   const fileReport = `is not allowed in ${ruleElementMessage(
     ruleReport.element,
-    file.capturedValues,
+    file.capturedValues
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 
   if (
@@ -73,7 +73,7 @@ function errorMessage(
   ) {
     return `Usage of ${dependencyUsageKindMessage(
       ruleReport.importKind,
-      dependency,
+      dependency
     )}'${getErrorReportMessage(ruleData.report)}' from external module '${
       dependency.baseModule
     }' ${fileReport}`;
@@ -83,7 +83,7 @@ function errorMessage(
     dependency,
     {
       suffix: " from ",
-    },
+    }
   )}external module '${dependency.baseModule}' ${fileReport}`;
 }
 
@@ -150,8 +150,8 @@ export default dependencyRule<ExternalRuleOptions>(
   },
   function ({ dependency, file, node, context, options }) {
     if (
-      isExternalDependency(dependency.originalDescription.to) ||
-      isCoreDependency(dependency.originalDescription.to)
+      isExternalDependencyElement(dependency.originalDescription.to) ||
+      isCoreDependencyElement(dependency.originalDescription.to)
     ) {
       const adaptedRuleOptions = {
         ...options,
@@ -167,7 +167,7 @@ export default dependencyRule<ExternalRuleOptions>(
 
       const ruleData = elementRulesAllowDependency(
         dependency.originalDescription,
-        adaptedRuleOptions,
+        adaptedRuleOptions
       );
 
       if (!ruleData.result) {
@@ -180,5 +180,5 @@ export default dependencyRule<ExternalRuleOptions>(
   },
   {
     validateRules: { onlyMainKey: true },
-  },
+  }
 );

@@ -51,7 +51,7 @@ describe("elementsSelectorHelpers", () => {
       // Empty object is the minimal requirement for CapturedValuesSelector
 
       expect(isCapturedValuesSelector(minimalCapturedValuesSelector)).toBe(
-        true,
+        true
       );
     });
   });
@@ -80,7 +80,7 @@ describe("elementsSelectorHelpers", () => {
       // String is the minimal requirement for SimpleElementSelector
 
       expect(isSimpleElementSelectorByType(minimalSimpleElementSelector)).toBe(
-        true,
+        true
       );
     });
   });
@@ -93,14 +93,14 @@ describe("elementsSelectorHelpers", () => {
       ];
 
       expect(
-        isElementSelectorWithLegacyOptions(elementSelectorWithOptions),
+        isElementSelectorWithLegacyOptions(elementSelectorWithOptions)
       ).toBe(true);
     });
 
     it("should return false for arrays with incorrect length", () => {
       expect(isElementSelectorWithLegacyOptions(["component"])).toBe(false);
       expect(
-        isElementSelectorWithLegacyOptions(["component", {}, "extra"]),
+        isElementSelectorWithLegacyOptions(["component", {}, "extra"])
       ).toBe(false);
       expect(isElementSelectorWithLegacyOptions([])).toBe(false);
     });
@@ -108,11 +108,11 @@ describe("elementsSelectorHelpers", () => {
     it("should return false for arrays with invalid elements", () => {
       expect(isElementSelectorWithLegacyOptions([123, {}])).toBe(false);
       expect(
-        isElementSelectorWithLegacyOptions(["component", "not-object"]),
+        isElementSelectorWithLegacyOptions(["component", "not-object"])
       ).toBe(false);
       expect(isElementSelectorWithLegacyOptions([null, {}])).toBe(false);
       expect(isElementSelectorWithLegacyOptions(["component", null])).toBe(
-        false,
+        false
       );
     });
 
@@ -128,13 +128,13 @@ describe("elementsSelectorHelpers", () => {
 
       // Array with [string, object] is the minimal requirement
       expect(
-        isElementSelectorWithLegacyOptions(minimalElementSelectorWithOptions),
+        isElementSelectorWithLegacyOptions(minimalElementSelectorWithOptions)
       ).toBe(true);
     });
 
     it("should return false when options are not valid captured values selector", () => {
       expect(
-        isElementSelectorWithLegacyOptions(["component", { type: 123 }]),
+        isElementSelectorWithLegacyOptions(["component", { type: 123 }])
       ).toBe(false);
     });
   });
@@ -170,13 +170,13 @@ describe("elementsSelectorHelpers", () => {
         isElementSelectorByTypeAndCategory({
           type: "component",
           category: "ui",
-        }),
+        })
       ).toBe(true);
       expect(isElementSelectorByTypeAndCategory({ type: "component" })).toBe(
-        false,
+        false
       );
       expect(isElementSelectorByTypeAndCategory({ category: "ui" })).toBe(
-        false,
+        false
       );
     });
 
@@ -185,13 +185,13 @@ describe("elementsSelectorHelpers", () => {
         isElementSelectorByTypeAndCategory({
           type: 123,
           category: "ui",
-        }),
+        })
       ).toBe(false);
       expect(
         isElementSelectorByTypeAndCategory({
           type: "component",
           category: 123,
-        }),
+        })
       ).toBe(false);
     });
 
@@ -199,7 +199,7 @@ describe("elementsSelectorHelpers", () => {
       expect(isElementSelectorData({ type: "component" })).toBe(true);
       expect(isElementSelectorData({ category: "ui" })).toBe(true);
       expect(isElementSelectorData({ type: "component", category: "ui" })).toBe(
-        true,
+        true
       );
       expect(isElementSelectorData({})).toBe(false);
     });
@@ -313,7 +313,7 @@ describe("elementsSelectorHelpers", () => {
       };
 
       expect(
-        isExternalLibrarySelectorOptionsWithPath(optionsWithStringPath),
+        isExternalLibrarySelectorOptionsWithPath(optionsWithStringPath)
       ).toBe(true);
     });
 
@@ -323,7 +323,7 @@ describe("elementsSelectorHelpers", () => {
       };
 
       expect(
-        isExternalLibrarySelectorOptionsWithPath(optionsWithArrayPath),
+        isExternalLibrarySelectorOptionsWithPath(optionsWithArrayPath)
       ).toBe(true);
     });
 
@@ -333,21 +333,21 @@ describe("elementsSelectorHelpers", () => {
       };
 
       expect(isExternalLibrarySelectorOptionsWithPath(optionsWithoutPath)).toBe(
-        false,
+        false
       );
     });
 
     it("should return false for options with invalid path types", () => {
       expect(isExternalLibrarySelectorOptionsWithPath({ path: 123 })).toBe(
-        false,
+        false
       );
 
       expect(isExternalLibrarySelectorOptionsWithPath({ path: true })).toBe(
-        false,
+        false
       );
 
       expect(
-        isExternalLibrarySelectorOptionsWithPath({ path: [123, "string"] }),
+        isExternalLibrarySelectorOptionsWithPath({ path: [123, "string"] })
       ).toBe(false);
     });
 
@@ -364,7 +364,7 @@ describe("elementsSelectorHelpers", () => {
       };
 
       expect(
-        isExternalLibrarySelectorOptionsWithPath(minimalOptionsWithPath),
+        isExternalLibrarySelectorOptionsWithPath(minimalOptionsWithPath)
       ).toBe(true);
     });
   });
@@ -376,7 +376,7 @@ describe("elementsSelectorHelpers", () => {
       };
 
       expect(
-        isExternalLibrarySelectorOptionsWithSpecifiers(optionsWithSpecifiers),
+        isExternalLibrarySelectorOptionsWithSpecifiers(optionsWithSpecifiers)
       ).toBe(true);
     });
 
@@ -387,8 +387,8 @@ describe("elementsSelectorHelpers", () => {
 
       expect(
         isExternalLibrarySelectorOptionsWithSpecifiers(
-          optionsWithEmptySpecifiers,
-        ),
+          optionsWithEmptySpecifiers
+        )
       ).toBe(true);
     });
 
@@ -398,9 +398,7 @@ describe("elementsSelectorHelpers", () => {
       };
 
       expect(
-        isExternalLibrarySelectorOptionsWithSpecifiers(
-          optionsWithoutSpecifiers,
-        ),
+        isExternalLibrarySelectorOptionsWithSpecifiers(optionsWithoutSpecifiers)
       ).toBe(false);
     });
 
@@ -408,27 +406,27 @@ describe("elementsSelectorHelpers", () => {
       expect(
         isExternalLibrarySelectorOptionsWithSpecifiers({
           specifiers: "string",
-        }),
+        })
       ).toBe(false);
 
       expect(
         isExternalLibrarySelectorOptionsWithSpecifiers({
           specifiers: [123, "string"],
-        }),
+        })
       ).toBe(false);
 
       expect(
-        isExternalLibrarySelectorOptionsWithSpecifiers({ specifiers: null }),
+        isExternalLibrarySelectorOptionsWithSpecifiers({ specifiers: null })
       ).toBe(false);
     });
 
     it("should return false for non-object values", () => {
       expect(isExternalLibrarySelectorOptionsWithSpecifiers("string")).toBe(
-        false,
+        false
       );
       expect(isExternalLibrarySelectorOptionsWithSpecifiers(null)).toBe(false);
       expect(isExternalLibrarySelectorOptionsWithSpecifiers(undefined)).toBe(
-        false,
+        false
       );
     });
 
@@ -440,8 +438,8 @@ describe("elementsSelectorHelpers", () => {
 
       expect(
         isExternalLibrarySelectorOptionsWithSpecifiers(
-          minimalOptionsWithSpecifiers,
-        ),
+          minimalOptionsWithSpecifiers
+        )
       ).toBe(true);
     });
   });
@@ -461,7 +459,7 @@ describe("elementsSelectorHelpers", () => {
       };
 
       expect(isExternalLibrarySelectorOptions(optionsWithSpecifiers)).toBe(
-        true,
+        true
       );
     });
 
@@ -487,7 +485,7 @@ describe("elementsSelectorHelpers", () => {
         isExternalLibrarySelectorOptions({
           path: 123,
           specifiers: "string",
-        }),
+        })
       ).toBe(false);
     });
 
@@ -509,10 +507,10 @@ describe("elementsSelectorHelpers", () => {
       };
 
       expect(isExternalLibrarySelectorOptions(minimalOptionsWithPath)).toBe(
-        true,
+        true
       );
       expect(
-        isExternalLibrarySelectorOptions(minimalOptionsWithSpecifiers),
+        isExternalLibrarySelectorOptions(minimalOptionsWithSpecifiers)
       ).toBe(true);
     });
   });
@@ -525,7 +523,7 @@ describe("elementsSelectorHelpers", () => {
       ];
 
       expect(isExternalLibrarySelectorWithOptions(selectorWithOptions)).toBe(
-        true,
+        true
       );
     });
 
@@ -536,7 +534,7 @@ describe("elementsSelectorHelpers", () => {
       ];
 
       expect(
-        isExternalLibrarySelectorWithOptions(selectorWithPathOptions),
+        isExternalLibrarySelectorWithOptions(selectorWithPathOptions)
       ).toBe(true);
     });
 
@@ -547,17 +545,17 @@ describe("elementsSelectorHelpers", () => {
           "react",
           { specifiers: ["useState"] },
           "extra",
-        ]),
+        ])
       ).toBe(false);
     });
 
     it("should return false for arrays with invalid elements", () => {
       expect(
-        isExternalLibrarySelectorWithOptions([123, { specifiers: ["test"] }]),
+        isExternalLibrarySelectorWithOptions([123, { specifiers: ["test"] }])
       ).toBe(false);
 
       expect(
-        isExternalLibrarySelectorWithOptions(["react", { invalid: "options" }]),
+        isExternalLibrarySelectorWithOptions(["react", { invalid: "options" }])
       ).toBe(false);
     });
 
@@ -575,7 +573,7 @@ describe("elementsSelectorHelpers", () => {
       ];
 
       expect(
-        isExternalLibrarySelectorWithOptions(minimalSelectorWithOptions),
+        isExternalLibrarySelectorWithOptions(minimalSelectorWithOptions)
       ).toBe(true);
 
       const minimalSelectorWithSpecifiersOptions = [
@@ -585,8 +583,8 @@ describe("elementsSelectorHelpers", () => {
 
       expect(
         isExternalLibrarySelectorWithOptions(
-          minimalSelectorWithSpecifiersOptions,
-        ),
+          minimalSelectorWithSpecifiersOptions
+        )
       ).toBe(true);
     });
   });
@@ -676,10 +674,10 @@ describe("elementsSelectorHelpers", () => {
       const minimalArrayLibrariesSelector = ["react"];
 
       expect(isExternalLibrariesSelector(minimalSingleLibrarySelector)).toBe(
-        true,
+        true
       );
       expect(isExternalLibrariesSelector(minimalArrayLibrariesSelector)).toBe(
-        true,
+        true
       );
     });
   });

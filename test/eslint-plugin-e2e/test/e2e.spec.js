@@ -37,7 +37,7 @@ const tests = [
         `recommended config should detect 1 error`,
         async () => {
           return result.errorCount === 1;
-        },
+        }
       );
 
       await runner.assert(
@@ -45,7 +45,7 @@ const tests = [
         async () => {
           const fileResult = findFileResult("ignored-import", result);
           return fileResult?.errorCount === 0;
-        },
+        }
       );
 
       await runner.assert(
@@ -53,7 +53,7 @@ const tests = [
         async () => {
           const fileResult = findFileResult("unknown-import", result);
           return fileResult?.errorCount === 0;
-        },
+        }
       );
 
       await runner.assert(
@@ -68,11 +68,11 @@ const tests = [
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
                   msg.message.includes(
-                    "No rule allowing this dependency was found",
-                  ),
-              ),
+                    "No rule allowing this dependency was found"
+                  )
+              )
           );
-        },
+        }
       );
     },
   },
@@ -90,7 +90,7 @@ const tests = [
         async () => {
           const fileResult = findFileResult("ignored-import", result);
           return fileResult?.errorCount === 0;
-        },
+        }
       );
 
       await runner.assert(
@@ -98,7 +98,7 @@ const tests = [
         async () => {
           const fileResult = findFileResult("unknown-import", result);
           return fileResult?.errorCount === 0;
-        },
+        }
       );
 
       await runner.assert(
@@ -113,11 +113,11 @@ const tests = [
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
                   msg.message.includes(
-                    "No rule allowing this dependency was found",
-                  ),
-              ),
+                    "No rule allowing this dependency was found"
+                  )
+              )
           );
-        },
+        }
       );
     },
   },
@@ -130,7 +130,7 @@ const tests = [
         `created config with define should detect 1 error`,
         async () => {
           return result.errorCount === 1;
-        },
+        }
       );
 
       await runner.assert(
@@ -138,7 +138,7 @@ const tests = [
         async () => {
           const fileResult = findFileResult("ignored-import", result);
           return fileResult?.errorCount === 0;
-        },
+        }
       );
 
       await runner.assert(
@@ -146,7 +146,7 @@ const tests = [
         async () => {
           const fileResult = findFileResult("unknown-import", result);
           return fileResult?.errorCount === 0;
-        },
+        }
       );
 
       await runner.assert(
@@ -161,11 +161,11 @@ const tests = [
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
                   msg.message.includes(
-                    "No rule allowing this dependency was found",
-                  ),
-              ),
+                    "No rule allowing this dependency was found"
+                  )
+              )
           );
-        },
+        }
       );
     },
   },
@@ -178,7 +178,7 @@ const tests = [
         `recommended config in Ts should detect 1 error`,
         async () => {
           return result.errorCount === 1;
-        },
+        }
       );
 
       await runner.assert(
@@ -186,7 +186,7 @@ const tests = [
         async () => {
           const fileResult = findFileResult("ignored-import", result);
           return fileResult?.errorCount === 0;
-        },
+        }
       );
 
       await runner.assert(
@@ -194,7 +194,7 @@ const tests = [
         async () => {
           const fileResult = findFileResult("unknown-import", result);
           return fileResult?.errorCount === 0;
-        },
+        }
       );
 
       await runner.assert(
@@ -209,11 +209,11 @@ const tests = [
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
                   msg.message.includes(
-                    "No rule allowing this dependency was found",
-                  ),
-              ),
+                    "No rule allowing this dependency was found"
+                  )
+              )
           );
-        },
+        }
       );
     },
   },
@@ -231,7 +231,7 @@ const tests = [
         async () => {
           const fileResult = findFileResult("ignored-import", result);
           return fileResult?.errorCount === 0;
-        },
+        }
       );
 
       await runner.assert(
@@ -239,7 +239,7 @@ const tests = [
         async () => {
           const fileResult = findFileResult("unknown-import", result);
           return fileResult?.errorCount === 0;
-        },
+        }
       );
 
       await runner.assert(
@@ -254,11 +254,11 @@ const tests = [
                 (msg) =>
                   msg.ruleId === "customBoundaries/element-types" &&
                   msg.message.includes(
-                    "No rule allowing this dependency was found",
-                  ),
-              ),
+                    "No rule allowing this dependency was found"
+                  )
+              )
           );
-        },
+        }
       );
     },
   },
@@ -271,7 +271,7 @@ const tests = [
         `created renamed config should detect 1 error`,
         async () => {
           return result.errorCount === 1;
-        },
+        }
       );
 
       await runner.assert(
@@ -279,7 +279,7 @@ const tests = [
         async () => {
           const fileResult = findFileResult("ignored-import", result);
           return fileResult?.errorCount === 0;
-        },
+        }
       );
 
       await runner.assert(
@@ -287,7 +287,7 @@ const tests = [
         async () => {
           const fileResult = findFileResult("unknown-import", result);
           return fileResult?.errorCount === 0;
-        },
+        }
       );
 
       await runner.assert(
@@ -302,11 +302,11 @@ const tests = [
                 (msg) =>
                   msg.ruleId === "customBoundaries/element-types" &&
                   msg.message.includes(
-                    "No rule allowing this dependency was found",
-                  ),
-              ),
+                    "No rule allowing this dependency was found"
+                  )
+              )
           );
-        },
+        }
       );
     },
   },
@@ -329,11 +329,11 @@ const tests = [
               (msg) =>
                 msg.ruleId === "boundaries/no-unknown" &&
                 msg.message.includes(
-                  "Importing unknown elements is not allowed",
-                ),
+                  "Importing unknown elements is not allowed"
+                )
             )
           );
-        },
+        }
       );
 
       await runner.assert(
@@ -345,10 +345,10 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/no-unknown-files" &&
-                msg.message.includes("File is not of any known element type"),
+                msg.message.includes("File is not of any known element type")
             )
           );
-        },
+        }
       );
 
       await runner.assert(
@@ -360,10 +360,10 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/no-ignored" &&
-                msg.message.includes("Importing ignored files is not allowed"),
+                msg.message.includes("Importing ignored files is not allowed")
             )
           );
-        },
+        }
       );
 
       await runner.assert(
@@ -378,11 +378,11 @@ const tests = [
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
                   msg.message.includes(
-                    "No rule allowing this dependency was found",
-                  ),
-              ),
+                    "No rule allowing this dependency was found"
+                  )
+              )
           );
-        },
+        }
       );
     },
   },

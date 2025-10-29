@@ -64,7 +64,7 @@ export class DependenciesDescriptor {
    * @param serializedCache The serialized elements cache.
    */
   public setCacheFromSerialized(
-    serializedCache: DependenciesDescriptorSerializedCache,
+    serializedCache: DependenciesDescriptorSerializedCache
   ): void {
     this._dependenciesCache.setFromSerialized(serializedCache);
   }
@@ -93,7 +93,7 @@ export class DependenciesDescriptor {
    */
   private _getCommonAncestor(
     elementInfoA: LocalElementKnown,
-    elementInfoB: LocalElementKnown,
+    elementInfoB: LocalElementKnown
   ) {
     const commonAncestor = elementInfoA.parents.find((elementParentA) => {
       return !!elementInfoB.parents.find((elementParentB) => {
@@ -111,7 +111,7 @@ export class DependenciesDescriptor {
    */
   private _isDescendantOfParent(
     elementA: LocalElementKnown,
-    elementB: LocalElementKnown,
+    elementB: LocalElementKnown
   ) {
     const commonAncestor = this._getCommonAncestor(elementA, elementB);
     return commonAncestor && commonAncestor === this._getParent(elementA);
@@ -137,10 +137,10 @@ export class DependenciesDescriptor {
    */
   private _isDescendant(
     elementA: LocalElementKnown,
-    elementB: LocalElementKnown,
+    elementB: LocalElementKnown
   ) {
     return elementA.parents.some(
-      (parent) => parent.elementPath === elementB.elementPath,
+      (parent) => parent.elementPath === elementB.elementPath
     );
   }
 
@@ -162,7 +162,7 @@ export class DependenciesDescriptor {
    */
   private _isInternal(
     elementA: LocalElementKnown,
-    elementB: LocalElementKnown,
+    elementB: LocalElementKnown
   ) {
     return elementA.elementPath === elementB.elementPath;
   }
@@ -175,7 +175,7 @@ export class DependenciesDescriptor {
    */
   private _dependencyRelationship(
     element: ElementDescription,
-    dependency: ElementDescription,
+    dependency: ElementDescription
   ) {
     if (
       isIgnoredElement(dependency) ||
@@ -199,23 +199,25 @@ export class DependenciesDescriptor {
     if (this._isChild(element, dependency)) {
       return DEPENDENCY_RELATIONSHIPS_MAP.PARENT;
     }
+    if (this._isDescendant(element, dependency)) {
+      return DEPENDENCY_RELATIONSHIPS_MAP.ANCESTOR;
+    }
     if (this._isDescendantOfParent(dependency, element)) {
       return DEPENDENCY_RELATIONSHIPS_MAP.UNCLE;
     }
-    // TODO: Should this be prior to uncle check? Otherwise, grandparents would be considered uncles. So, ancestor is never reached.
-    if (this._isDescendant(element, dependency)) {
-      return DEPENDENCY_RELATIONSHIPS_MAP.ANCESTOR;
+    if (this._isDescendantOfParent(element, dependency)) {
+      return DEPENDENCY_RELATIONSHIPS_MAP.NEPHEW;
     }
     return null;
   }
 
   private _dependencyRelationships(
     element: ElementDescription,
-    dependency: ElementDescription,
+    dependency: ElementDescription
   ) {
-    const fromRelationship = this._dependencyRelationship(element, dependency);
-    const toRelationship = fromRelationship
-      ? DEPENDENCY_RELATIONSHIPS_INVERTED_MAP[fromRelationship]
+    const toRelationship = this._dependencyRelationship(element, dependency);
+    const fromRelationship = toRelationship
+      ? DEPENDENCY_RELATIONSHIPS_INVERTED_MAP[toRelationship]
       : null;
     return {
       from: fromRelationship,
@@ -257,7 +259,10 @@ export class DependenciesDescriptor {
     }
 
     const fromElement = this._elementsDescriptor.describeElement(from);
-    const toElement = this._elementsDescriptor.describeElement(to, source);
+    const toElement = this._elementsDescriptor.describeDependencyElement(
+      source,
+      to
+    );
 
     const result = {
       from: fromElement,
@@ -279,7 +284,7 @@ export class DependenciesDescriptor {
         nodeKind,
         specifiers,
       },
-      result,
+      result
     );
 
     return result;

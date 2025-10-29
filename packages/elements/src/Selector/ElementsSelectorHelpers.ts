@@ -30,7 +30,7 @@ import type {
  * @returns True if the value is a captured values selector, false otherwise.
  */
 export function isCapturedValuesSelector(
-  value: unknown,
+  value: unknown
 ): value is CapturedValuesSelector {
   if (!isObject(value) || isArray(value)) {
     return false;
@@ -38,7 +38,7 @@ export function isCapturedValuesSelector(
 
   // Ensure all values are strings or string arrays
   return Object.values(value).every(
-    (pattern) => isString(pattern) || isStringArray(pattern),
+    (pattern) => isString(pattern) || isStringArray(pattern)
   );
 }
 
@@ -48,7 +48,7 @@ export function isCapturedValuesSelector(
  * @returns True if the value is a simple element selector, false otherwise.
  */
 export function isSimpleElementSelectorByType(
-  value: unknown,
+  value: unknown
 ): value is SimpleElementSelectorByType {
   return isString(value);
 }
@@ -59,7 +59,7 @@ export function isSimpleElementSelectorByType(
  * @returns True if the value is an element selector by type, false otherwise.
  */
 export function isElementSelectorByType(
-  value: unknown,
+  value: unknown
 ): value is ElementSelectorByType {
   return (
     isObjectWithProperty(value, "type") &&
@@ -73,7 +73,7 @@ export function isElementSelectorByType(
  * @returns True if the value is an element selector by category, false otherwise.
  */
 export function isElementSelectorByCategory(
-  value: unknown,
+  value: unknown
 ): value is ElementSelectorByCategory {
   return isObjectWithProperty(value, "category") && isString(value.category);
 }
@@ -84,7 +84,7 @@ export function isElementSelectorByCategory(
  * @returns True if the value is an element selector by both type and category, false otherwise.
  */
 export function isElementSelectorByTypeAndCategory(
-  value: unknown,
+  value: unknown
 ): value is ElementSelectorByTypeAndCategory {
   return isElementSelectorByType(value) && isElementSelectorByCategory(value);
 }
@@ -95,7 +95,7 @@ export function isElementSelectorByTypeAndCategory(
  * @returns True if the selector is an element selector by type or category, false otherwise.
  */
 export function isElementSelectorData(
-  value: unknown,
+  value: unknown
 ): value is ElementSelectorData {
   return isObjetWithAnyOfProperties(value, [
     "type",
@@ -117,7 +117,7 @@ export function isElementSelectorData(
  * @returns True if the selector is an element selector with options, false otherwise.
  */
 export function isElementSelectorWithLegacyOptions(
-  value: unknown,
+  value: unknown
 ): value is ElementSelectorWithOptions {
   return (
     isArray(value) &&
@@ -160,7 +160,7 @@ export function isElementsSelector(value: unknown): value is ElementSelectors {
  * @returns True if the value is external library selector options with a path, false otherwise.
  */
 export function isExternalLibrarySelectorOptionsWithPath(
-  value: unknown,
+  value: unknown
 ): value is ExternalLibrarySelectorOptions & { path: string | string[] } {
   return (
     isObjectWithProperty(value, "path") &&
@@ -174,7 +174,7 @@ export function isExternalLibrarySelectorOptionsWithPath(
  * @returns True if the value is external library selector options with specifiers, false otherwise.
  */
 export function isExternalLibrarySelectorOptionsWithSpecifiers(
-  value: unknown,
+  value: unknown
 ): value is ExternalLibrarySelectorOptions & { specifiers: string[] } {
   return (
     isObjectWithProperty(value, "specifiers") && isStringArray(value.specifiers)
@@ -187,7 +187,7 @@ export function isExternalLibrarySelectorOptionsWithSpecifiers(
  * @returns True if the value is external library selector options, false otherwise.
  */
 export function isExternalLibrarySelectorOptions(
-  value: unknown,
+  value: unknown
 ): value is ExternalLibrarySelectorOptions {
   return (
     isExternalLibrarySelectorOptionsWithPath(value) ||
@@ -201,7 +201,7 @@ export function isExternalLibrarySelectorOptions(
  * @returns True if the value is an external library selector with options, false otherwise.
  */
 export function isExternalLibrarySelectorWithOptions(
-  value: unknown,
+  value: unknown
 ): value is ExternalLibrarySelectorWithOptions {
   return (
     isArray(value) &&
@@ -217,7 +217,7 @@ export function isExternalLibrarySelectorWithOptions(
  * @returns True if the value is an external library selector, false otherwise.
  */
 export function isExternalLibrarySelector(
-  value: unknown,
+  value: unknown
 ): value is ExternalLibrarySelector {
   return (
     isSimpleElementSelectorByType(value) ||
@@ -231,7 +231,7 @@ export function isExternalLibrarySelector(
  * @returns True if the value is an external libraries selector, false otherwise.
  */
 export function isExternalLibrariesSelector(
-  value: unknown,
+  value: unknown
 ): value is ExternalLibrariesSelector {
   return (
     isExternalLibrarySelector(value) ||

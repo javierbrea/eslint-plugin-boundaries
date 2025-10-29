@@ -102,7 +102,7 @@ describe("createConfig", () => {
 
       // @ts-expect-error - Testing with intentionally incorrect rule format
       expect(() => createConfig(inputConfig, customName)).toThrow(
-        'Invalid rule key "no-console". When using createConfig, all rules must belong to eslint-plugin-boundaries. You can prefix them with the original plugin name "boundaries/", or with the provided plugin name "customBoundaries/".',
+        'Invalid rule key "no-console". When using createConfig, all rules must belong to eslint-plugin-boundaries. You can prefix them with the original plugin name "boundaries/", or with the provided plugin name "customBoundaries/".'
       );
     });
 
@@ -197,7 +197,7 @@ describe("createConfig", () => {
       };
 
       expect(() => createConfig({ settings: invalidSettings })).toThrow(
-        'Invalid settings key "import/resolver". When using createConfig, all settings keys must belong to eslint-plugin-boundaries.',
+        'Invalid settings key "import/resolver". When using createConfig, all settings keys must belong to eslint-plugin-boundaries.'
       );
     });
 
@@ -209,7 +209,7 @@ describe("createConfig", () => {
       };
 
       expect(() => createConfig({ settings: invalidSettings })).toThrow(
-        'Invalid settings key "eslint-plugin-import/resolver". When using createConfig, all settings keys must belong to eslint-plugin-boundaries.',
+        'Invalid settings key "eslint-plugin-import/resolver". When using createConfig, all settings keys must belong to eslint-plugin-boundaries.'
       );
     });
 
@@ -220,7 +220,7 @@ describe("createConfig", () => {
       };
 
       expect(() =>
-        createConfig({ settings: deprecatedSettings }),
+        createConfig({ settings: deprecatedSettings })
       ).not.toThrow();
     });
 
@@ -248,7 +248,7 @@ describe("createConfig", () => {
       };
 
       expect(() => createConfig({ settings: mixedSettings })).toThrow(
-        'Invalid settings key "react/jsx-runtime". When using createConfig, all settings keys must belong to eslint-plugin-boundaries.',
+        'Invalid settings key "react/jsx-runtime". When using createConfig, all settings keys must belong to eslint-plugin-boundaries.'
       );
     });
 
@@ -259,7 +259,7 @@ describe("createConfig", () => {
       };
 
       expect(() =>
-        createConfig({ settings: validSettings }, customName),
+        createConfig({ settings: validSettings }, customName)
       ).not.toThrow();
     });
 
@@ -271,9 +271,9 @@ describe("createConfig", () => {
       };
 
       expect(() =>
-        createConfig({ settings: invalidSettings }, customName),
+        createConfig({ settings: invalidSettings }, customName)
       ).toThrow(
-        'Invalid settings key "custom/setting". When using createConfig, all settings keys must belong to eslint-plugin-boundaries.',
+        'Invalid settings key "custom/setting". When using createConfig, all settings keys must belong to eslint-plugin-boundaries.'
       );
     });
 
@@ -316,7 +316,7 @@ describe("createConfig", () => {
 
       // @ts-expect-error - Testing with intentionally incorrect rule format
       expect(() => createConfig(inputConfig)).toThrow(
-        'Invalid rule key "eslint-comments/no-unused-disable". When using createConfig, all rules must belong to eslint-plugin-boundaries. You can prefix them with the original plugin name "boundaries/", or with the provided plugin name "boundaries/".',
+        'Invalid rule key "eslint-comments/no-unused-disable". When using createConfig, all rules must belong to eslint-plugin-boundaries. You can prefix them with the original plugin name "boundaries/", or with the provided plugin name "boundaries/".'
       );
     });
 
@@ -330,7 +330,7 @@ describe("createConfig", () => {
 
       // @ts-expect-error - Testing with intentionally incorrect rule format
       expect(() => createConfig(inputConfig, "myPlugin")).toThrow(
-        'Invalid rule key "boundaries-extra/some-rule". When using createConfig, all rules must belong to eslint-plugin-boundaries. You can prefix them with the original plugin name "boundaries/", or with the provided plugin name "myPlugin/".',
+        'Invalid rule key "boundaries-extra/some-rule". When using createConfig, all rules must belong to eslint-plugin-boundaries. You can prefix them with the original plugin name "boundaries/", or with the provided plugin name "myPlugin/".'
       );
     });
 
@@ -411,7 +411,7 @@ describe("createConfig", () => {
 
       // @ts-expect-error - Testing with intentionally incorrect rule format
       expect(() => createConfig(inputConfig)).toThrow(
-        "The 'plugins' field is managed by createConfig and should not be provided in the config argument.",
+        "The 'plugins' field is managed by createConfig and should not be provided in the config argument."
       );
     });
 
@@ -443,7 +443,7 @@ describe("createConfig", () => {
 
       // @ts-expect-error - Testing with intentionally incorrect rule format
       expect(() => createConfig(inputConfig)).toThrow(
-        'Invalid rule name "non-existent-rule". When using createConfig, all rules must belong to eslint-plugin-boundaries.',
+        'Invalid rule name "non-existent-rule". When using createConfig, all rules must belong to eslint-plugin-boundaries.'
       );
     });
 
@@ -458,7 +458,7 @@ describe("createConfig", () => {
 
       // @ts-expect-error - Testing with intentionally incorrect rule format
       expect(() => createConfig(inputConfig, customName)).toThrow(
-        'Invalid rule name "invalid-rule-name". When using createConfig, all rules must belong to eslint-plugin-boundaries.',
+        'Invalid rule name "invalid-rule-name". When using createConfig, all rules must belong to eslint-plugin-boundaries.'
       );
     });
   });
@@ -508,7 +508,7 @@ describe("Constants", () => {
       expect(RULE_NAMES_MAP.NO_IGNORED).toBe("boundaries/no-ignored");
       expect(RULE_NAMES_MAP.NO_PRIVATE).toBe("boundaries/no-private");
       expect(RULE_NAMES_MAP.NO_UNKNOWN_FILES).toBe(
-        "boundaries/no-unknown-files",
+        "boundaries/no-unknown-files"
       );
       expect(RULE_NAMES_MAP.NO_UNKNOWN).toBe("boundaries/no-unknown");
     });
@@ -561,10 +561,10 @@ describe("Constants", () => {
       expect(SETTINGS_KEYS_MAP.INCLUDE).toBe("boundaries/include");
       expect(SETTINGS_KEYS_MAP.ROOT_PATH).toBe("boundaries/root-path");
       expect(SETTINGS_KEYS_MAP.DEPENDENCY_NODES).toBe(
-        "boundaries/dependency-nodes",
+        "boundaries/dependency-nodes"
       );
       expect(SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES).toBe(
-        "boundaries/additional-dependency-nodes",
+        "boundaries/additional-dependency-nodes"
       );
       expect(SETTINGS_KEYS_MAP.TYPES).toBe("boundaries/types");
       expect(SETTINGS_KEYS_MAP.ALIAS).toBe("boundaries/alias");
@@ -717,7 +717,7 @@ describe("Type Guard Functions", () => {
       expect(isSettingsKey("boundaries/root-path")).toBe(true);
       expect(isSettingsKey("boundaries/dependency-nodes")).toBe(true);
       expect(isSettingsKey("boundaries/additional-dependency-nodes")).toBe(
-        true,
+        true
       );
       expect(isSettingsKey("boundaries/types")).toBe(true);
       expect(isSettingsKey("boundaries/alias")).toBe(true);

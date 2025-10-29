@@ -18,7 +18,7 @@ const { absoluteFilePath } = pathResolvers("one-level");
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string> = {},
+  errorMessages: Record<number, string> = {}
 ) => {
   const ruleTester = createRuleTester(settings);
 
@@ -79,7 +79,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "'helpers' with elementName 'helper-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -101,7 +101,7 @@ runTest(
       default: "disallow",
     },
   ],
-  {},
+  {}
 );
 
 // no type
@@ -117,7 +117,7 @@ runTest(
     ],
   } as RuleTesterSettings,
   [],
-  {},
+  {}
 );
 
 // no valid mode
@@ -132,7 +132,7 @@ runTest(
     ],
   } as RuleTesterSettings,
   [],
-  {},
+  {}
 );
 
 // no valid capture
@@ -148,7 +148,7 @@ runTest(
     ],
   } as RuleTesterSettings,
   [],
-  {},
+  {}
 );
 
 // invalid dependency nodes
@@ -172,7 +172,7 @@ runTest(
     ],
   } as RuleTesterSettings,
   [],
-  {},
+  {}
 );
 
 // invalid dependency nodes - not an array
@@ -181,7 +181,7 @@ runTest(
     "boundaries/dependency-nodes": "invalid-value",
   } as RuleTesterSettings,
   [],
-  {},
+  {}
 );
 
 // invalid additional dependency nodes
@@ -203,7 +203,7 @@ runTest(
     ],
   } as RuleTesterSettings,
   [],
-  {},
+  {}
 );
 
 // invalid additional dependency nodes - not an array
@@ -212,5 +212,5 @@ runTest(
     "boundaries/additional-dependency-nodes": "invalid-value",
   } as RuleTesterSettings,
   [],
-  {},
+  {}
 );

@@ -15,7 +15,7 @@ const { absoluteFilePath } = pathResolvers("one-level");
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string>,
+  errorMessages: Record<number, string>
 ) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
@@ -129,7 +129,7 @@ runTest(
     1: "No rule allows the entry point 'Component.js' in dependencies of type 'components' with elementName 'component-b'",
     2: "No rule allows the entry point 'index.js' in dependencies of type 'modules' with elementName 'module-a'",
     3: "No rule allows the entry point 'index.js' in dependencies of type 'modules' with elementName 'module-a'",
-  },
+  }
 );
 
 // allow based options
@@ -173,5 +173,5 @@ runTest(
     1: "The entry point 'Component.js' is not allowed in elements of type 'components' when importing value. Disallowed in rule 4",
     2: "The entry point 'index.js' is not allowed in elements of type 'modules' when importing value. Disallowed in rule 5",
     3: "The entry point 'index.js' is not allowed in elements of type 'modules' when importing type. Disallowed in rule 5",
-  },
+  }
 );

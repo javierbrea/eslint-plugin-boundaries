@@ -90,7 +90,7 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
         acc[key] = value;
         return acc;
       },
-      {} as Record<string, CachedValue>,
+      {} as Record<string, CachedValue>
     );
   }
 

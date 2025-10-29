@@ -10,7 +10,7 @@ const { RULE_NO_PRIVATE } = SETTINGS;
 function errorMessage(
   file: FileInfo,
   dependency: DependencyInfo,
-  options?: NoPrivateOptions,
+  options?: NoPrivateOptions
 ) {
   if (options?.message) {
     return customErrorMessage(options.message, file, dependency);
@@ -56,5 +56,5 @@ export default dependencyRule<NoPrivateOptions>(
   },
   {
     validate: false,
-  },
+  }
 );

@@ -31,7 +31,7 @@ ruleTester.run(RULE, rule, {
     // `module-c` can import `module-a` because it is public
     {
       filename: absoluteFilePath(
-        "modules/module-b/modules/module-c/ModuleC.js",
+        "modules/module-b/modules/module-c/ModuleC.js"
       ),
       code: "import ModuleA from 'modules/module-a'",
       options,
@@ -39,7 +39,7 @@ ruleTester.run(RULE, rule, {
     // `module-c` can import `module-d` because it is his brother
     {
       filename: absoluteFilePath(
-        "modules/module-b/modules/module-c/ModuleC.js",
+        "modules/module-b/modules/module-c/ModuleC.js"
       ),
       code: "import ModuleD from '../module-d'",
       options,
@@ -47,7 +47,7 @@ ruleTester.run(RULE, rule, {
     // `module-e` can import `module-d` because it is his uncle
     {
       filename: absoluteFilePath(
-        "modules/module-b/modules/module-c/modules/module-e/ModuleE",
+        "modules/module-b/modules/module-c/modules/module-e/ModuleE"
       ),
       code: "import ModuleD from 'modules/module-b/modules/module-d'",
       options,
@@ -85,7 +85,7 @@ ruleTester.run(RULE, rule, {
     // `module-e` can't import `module-d` when `allowUncles` option is disabled
     {
       filename: absoluteFilePath(
-        "modules/module-b/modules/module-c/modules/module-e/ModuleE",
+        "modules/module-b/modules/module-c/modules/module-e/ModuleE"
       ),
       code: "import ModuleD from 'modules/module-b/modules/module-d'",
       options: [

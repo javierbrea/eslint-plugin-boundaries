@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - fix: Assign internalPaths correctly when in elements setting the mode is 'file' but the pattern matches folders, not files. Now it returns the correct internalPaths instead of the matched folder name.
+- fix: Assign relationships correctly in dependencies. Now ancestor and nephew relationships are assigned correctly. Previously, all ancestors with a common parent were considered uncles.
 
 > TODO BEFORE RELEASE 6.0.0
 > 
@@ -50,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > - Rename rules according to new naming RFC, make it backwards compatible.
 > - Publish current documentation in website, and publish new docs in next release. Remove documentation from README.md except for basic usage. Change rules docs to point to website.
 > - Create task in backlog to migrate messages to @elements package (return human-friendly messages when matching elements and dependencies).
+> - Create task in backlog to improve debug system: Trace file being linted, settings being used, resolved elements, dependencies being analyzed, rules failing/passing, etc. Allow to enable only to certain files using patterns. Add setting to enable/disable it.
 
 
 ## [5.1.0] - 2025-10-14

@@ -15,7 +15,7 @@ const { absoluteFilePath } = pathResolvers("one-level");
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string>,
+  errorMessages: Record<number, string>
 ) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
@@ -83,7 +83,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "react",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -102,7 +102,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'components' with elementName 'component-a'",
                 dep: "react-router-dom",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -121,7 +121,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -140,7 +140,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -162,7 +162,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "react",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -173,7 +173,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -192,7 +192,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -211,7 +211,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -230,7 +230,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -249,7 +249,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "@material-ui/core",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -268,7 +268,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "@material-ui/core",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -287,7 +287,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "react-router-dom",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -306,7 +306,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "react-router-dom",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -325,7 +325,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "@material-ui/icons",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -344,7 +344,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "@material-ui/icons",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -406,7 +406,7 @@ runTest(
     10: "Usage of type '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 3",
     11: "Usage of type from external module '@material-ui/icons' is not allowed in elements of type 'modules'. Disallowed in rule 3",
     12: "Usage of type from external module '@material-ui/icons' is not allowed in elements of type 'modules'. Disallowed in rule 3",
-  },
+  }
 );
 
 // disallow-based options
@@ -478,5 +478,5 @@ runTest(
     10: "Do not import type /var/foo from RDD in modules",
     11: "No rule allows the usage of external module '@material-ui/icons' in elements of type 'modules' with elementName 'module-a'",
     12: "No rule allows the usage of external module '@material-ui/icons' in elements of type 'modules' with elementName 'module-a'",
-  },
+  }
 );

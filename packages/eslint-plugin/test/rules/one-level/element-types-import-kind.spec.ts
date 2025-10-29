@@ -18,7 +18,7 @@ const { absoluteFilePath } = pathResolvers("one-level");
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string> = {},
+  errorMessages: Record<number, string> = {}
 ) => {
   const ruleTester = createRuleTester(settings);
 
@@ -117,7 +117,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'helpers'",
                 dep: "'helpers'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -136,7 +136,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'helpers'",
                 dep: "'helpers'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -155,7 +155,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'helpers'",
                 dep: "'components'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -174,7 +174,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'helpers'",
                 dep: "'modules'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -193,7 +193,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'components'",
                 dep: "'modules'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -212,7 +212,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'modules'",
                 dep: "'helpers'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -280,7 +280,7 @@ runTest(
     3: "Importing kind 'value' from elements of type 'modules' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     4: "Importing kind 'value' from elements of type 'modules' is not allowed in elements of type 'components'. Disallowed in rule 3",
     5: "Importing kind 'type' from elements of type 'helpers' is not allowed in elements of type 'modules'. Disallowed in rule 4",
-  },
+  }
 );
 
 // disallow-based options
@@ -319,7 +319,7 @@ runTest(
       ],
     },
   ],
-  {},
+  {}
 );
 
 // Custom messages
@@ -370,5 +370,5 @@ runTest(
     3: "Do not import value from modules in helpers",
     4: "Do not import value from modules in components",
     5: "Do not import type from helpers in modules",
-  },
+  }
 );

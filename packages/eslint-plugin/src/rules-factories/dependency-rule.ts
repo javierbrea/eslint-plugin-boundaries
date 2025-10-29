@@ -28,7 +28,7 @@ import type {
 const { DEFAULT_DEPENDENCY_NODES, ADDITIONAL_DEPENDENCY_NODES } = SETTINGS;
 
 function optionsHaveRules(
-  options?: RuleOptions,
+  options?: RuleOptions
 ): options is RuleOptionsWithRules {
   if (!options) {
     return false;
@@ -39,7 +39,7 @@ function optionsHaveRules(
 export default function <Options extends RuleOptionsWithRules>(
   ruleMeta: RuleMetaDefinition,
   rule: DependencyRuleRunner<Options>,
-  ruleOptions: DependencyRuleOptions = {},
+  ruleOptions: DependencyRuleOptions = {}
 ): Rule.RuleModule {
   return {
     ...meta(ruleMeta),
@@ -59,11 +59,11 @@ export default function <Options extends RuleOptionsWithRules>(
       }
 
       const dependencyNodesSetting = getArrayOrNull<DependencyNodeKey>(
-        settings[SETTINGS_KEYS_MAP.DEPENDENCY_NODES],
+        settings[SETTINGS_KEYS_MAP.DEPENDENCY_NODES]
       );
       const additionalDependencyNodesSetting =
         getArrayOrNull<DependencyNodeSelector>(
-          settings[ADDITIONAL_DEPENDENCY_NODES],
+          settings[ADDITIONAL_DEPENDENCY_NODES]
         );
       const dependencyNodes: DependencyNodeSelector[] =
         // TODO In next major version, make this default to all types of nodes!!!
@@ -78,7 +78,7 @@ export default function <Options extends RuleOptionsWithRules>(
           visitors[selector] = (node: EslintLiteralNode) => {
             if (!isString(node.value)) {
               warnOnce(
-                `Dependency node is not a Literal, skipping node. Please check your ${ADDITIONAL_DEPENDENCY_NODES} setting.`,
+                `Dependency node is not a Literal, skipping node. Please check your ${ADDITIONAL_DEPENDENCY_NODES} setting.`
               );
               return;
             }
@@ -88,7 +88,7 @@ export default function <Options extends RuleOptionsWithRules>(
                 kind,
                 nodeKind: name,
               },
-              context,
+              context
             );
 
             rule({ file, dependency, options, node, context });
@@ -101,9 +101,9 @@ export default function <Options extends RuleOptionsWithRules>(
           (
             // TODO: Define interface
             // eslint-disable-next-line no-unused-vars
-            node: EslintLiteralNode,
+            node: EslintLiteralNode
           ) => void
-        >,
+        >
       );
     },
   };

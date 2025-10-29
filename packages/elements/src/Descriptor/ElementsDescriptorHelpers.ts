@@ -33,12 +33,12 @@ import {
  * @returns True if the value is a valid element descriptor mode, false otherwise.
  */
 export function isElementDescriptorMode(
-  value: unknown,
+  value: unknown
 ): value is ElementDescriptorMode {
   return (
     isString(value) &&
     Object.values(ELEMENT_DESCRIPTOR_MODES_MAP).includes(
-      value as ElementDescriptorMode,
+      value as ElementDescriptorMode
     )
   );
 }
@@ -49,7 +49,7 @@ export function isElementDescriptorMode(
  * @returns True if the value is a valid element descriptor pattern, false otherwise.
  */
 export function isElementDescriptorPattern(
-  value: unknown,
+  value: unknown
 ): value is ElementDescriptorPattern {
   return (
     isString(value) ||
@@ -63,7 +63,7 @@ export function isElementDescriptorPattern(
  * @returns True if the value is a base element descriptor, false otherwise.
  */
 export function isBaseElementDescriptor(
-  value: unknown,
+  value: unknown
 ): value is BaseElementDescriptor {
   return (
     isObjectWithProperty(value, "pattern") &&
@@ -77,7 +77,7 @@ export function isBaseElementDescriptor(
  * @returns True if the value is an element descriptor with type, false otherwise.
  */
 export function isElementDescriptorWithType(
-  value: unknown,
+  value: unknown
 ): value is ElementDescriptorWithType {
   return (
     isBaseElementDescriptor(value) &&
@@ -92,7 +92,7 @@ export function isElementDescriptorWithType(
  * @returns True if the value is an element descriptor with category, false otherwise.
  */
 export function isElementDescriptorWithCategory(
-  value: unknown,
+  value: unknown
 ): value is ElementDescriptorWithCategory {
   return (
     isBaseElementDescriptor(value) &&
@@ -107,7 +107,7 @@ export function isElementDescriptorWithCategory(
  * @returns True if the value is an element descriptor, false otherwise.
  */
 export function isElementDescriptor(
-  value: unknown,
+  value: unknown
 ): value is ElementDescriptor {
   return (
     isElementDescriptorWithType(value) || isElementDescriptorWithCategory(value)
@@ -148,7 +148,7 @@ export function isIgnoredElement(value: unknown): value is IgnoredElement {
  * @returns True if the value is a local element, false otherwise.
  */
 export function isLocalElement(
-  value: unknown,
+  value: unknown
 ): value is LocalElementKnown | LocalElementUnknown {
   return isBaseElement(value) && value.origin === ELEMENT_ORIGINS_MAP.LOCAL;
 }
@@ -159,7 +159,7 @@ export function isLocalElement(
  * @returns True if the element is an unknown element, false otherwise.
  */
 export function isUnknownLocalElement(
-  value: unknown,
+  value: unknown
 ): value is LocalElementUnknown {
   return (
     isLocalElement(value) &&
@@ -175,7 +175,7 @@ export function isUnknownLocalElement(
  * @returns True if the element is an unknown element, false otherwise.
  */
 export function isKnownLocalElement(
-  value: unknown,
+  value: unknown
 ): value is LocalElementKnown {
   return (
     isLocalElement(value) &&
@@ -191,51 +191,12 @@ export function isKnownLocalElement(
  * @returns True if the element is a dependency element, false otherwise.
  */
 export function isDependencyElement(
-  value: unknown,
+  value: unknown
 ): value is DependencyElement {
   return (
     isBaseElement(value) &&
     isObjectWithProperty(value, "source") &&
-    isString(value.source) &&
-    isObjectWithProperty(value, "baseSource") &&
-    isString(value.baseSource)
-  );
-}
-
-/**
- * Determines if the given value is a local dependency.
- * @param value The value to check.
- * @returns True if the element is a local dependency, false otherwise.
- */
-export function isLocalDependency(
-  value: unknown,
-): value is LocalDependencyElement {
-  return isDependencyElement(value) && isLocalElement(value);
-}
-
-/**
- * Determines if the given value is an external element.
- * @param value The value to check.
- * @returns True if the element is an external dependency, false otherwise.
- */
-export function isExternalDependency(
-  value: unknown,
-): value is ExternalDependencyElement {
-  return (
-    isDependencyElement(value) && value.origin === ELEMENT_ORIGINS_MAP.EXTERNAL
-  );
-}
-
-/**
- * Determines if the given value is a core element.
- * @param value The value to check.
- * @returns True if the element is a core dependency, false otherwise.
- */
-export function isCoreDependency(
-  value: unknown,
-): value is CoreDependencyElement {
-  return (
-    isDependencyElement(value) && value.origin === ELEMENT_ORIGINS_MAP.CORE
+    isString(value.source)
   );
 }
 
@@ -250,5 +211,48 @@ export function isElement(value: unknown): value is ElementDescription {
     isUnknownLocalElement(value) ||
     isKnownLocalElement(value) ||
     isDependencyElement(value)
+  );
+}
+
+/**
+ * Determines if the given value is a local dependency element.
+ * @param value The value to check.
+ * @returns True if the element is a local dependency element, false otherwise.
+ */
+export function isLocalDependencyElement(
+  value: unknown
+): value is LocalDependencyElement {
+  return isDependencyElement(value) && isLocalElement(value);
+}
+
+/**
+ * Determines if the given value is an external element.
+ * @param value The value to check.
+ * @returns True if the element is an external dependency element, false otherwise.
+ */
+export function isExternalDependencyElement(
+  value: unknown
+): value is ExternalDependencyElement {
+  return (
+    isDependencyElement(value) &&
+    value.origin === ELEMENT_ORIGINS_MAP.EXTERNAL &&
+    isObjectWithProperty(value, "baseSource") &&
+    isString(value.baseSource)
+  );
+}
+
+/**
+ * Determines if the given value is a core element.
+ * @param value The value to check.
+ * @returns True if the element is a core dependency element, false otherwise.
+ */
+export function isCoreDependencyElement(
+  value: unknown
+): value is CoreDependencyElement {
+  return (
+    isDependencyElement(value) &&
+    value.origin === ELEMENT_ORIGINS_MAP.CORE &&
+    isObjectWithProperty(value, "baseSource") &&
+    isString(value.baseSource)
   );
 }

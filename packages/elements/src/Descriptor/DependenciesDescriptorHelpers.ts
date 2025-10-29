@@ -30,12 +30,12 @@ export function isDependencyKind(value: unknown): value is DependencyKind {
  * @returns True if the value is a valid dependency relationship, false otherwise.
  */
 export function isDependencyRelationship(
-  value: unknown,
+  value: unknown
 ): value is DependencyRelationship {
   return (
     isString(value) &&
     Object.values(DEPENDENCY_RELATIONSHIPS_MAP).includes(
-      value as DependencyRelationship,
+      value as DependencyRelationship
     )
   );
 }
@@ -46,7 +46,7 @@ export function isDependencyRelationship(
  * @returns True if the value is a valid dependency relationship, false otherwise.
  */
 export function isDependencyRelationshipDescription(
-  value: unknown,
+  value: unknown
 ): value is DependencyRelationship {
   return (
     isObjectWithProperty(value, "to") &&
@@ -62,7 +62,7 @@ export function isDependencyRelationshipDescription(
  * @returns True if the value is a valid ElementsDependencyInfo object, false otherwise.
  */
 export function isElementsDependencyInfo(
-  value: unknown,
+  value: unknown
 ): value is ElementsDependencyInfo {
   return (
     isObjectWithProperty(value, "kind") &&
@@ -80,7 +80,7 @@ export function isElementsDependencyInfo(
  * @returns True if the value is a valid DependencyDescription object, false otherwise.
  */
 export function isDependencyDescription(
-  value: unknown,
+  value: unknown
 ): value is DependencyDescription {
   return (
     isObjectWithProperty(value, "to") &&
@@ -93,15 +93,15 @@ export function isDependencyDescription(
 }
 
 /**
- * Determines whether the given dependency is internal.
+ * Determines whether the given dependency description is internal.
  * @param dependency The dependency to check
  * @returns True if the dependency is internal, false otherwise
  */
 export function isInternalDependency(
-  dependency: DependencyDescription,
+  dependency: DependencyDescription
 ): boolean {
   return (
-    dependency.dependency.relationship.from ===
+    dependency.dependency.relationship.to ===
     DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL
   );
 }

@@ -8,5 +8,5 @@ module.exports = Object.keys(eslintPluginBoundaries.rules).reduce(
       [`boundaries/${ruleName}`]: eslintPluginBoundaries.rules[ruleName],
     };
   },
-  {},
+  {}
 );

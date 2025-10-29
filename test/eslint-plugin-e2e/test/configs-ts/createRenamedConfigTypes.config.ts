@@ -40,7 +40,7 @@ export const boundariesConfig = createConfig(
       ],
     },
   },
-  "customBoundaries",
+  "customBoundaries"
 );
 
 export const config: Linter.Config[] = defineConfig([
@@ -80,7 +80,7 @@ export const config: Linter.Config[] = defineConfig([
         ],
       },
     },
-    "customBoundaries",
+    "customBoundaries"
   ),
 ]);
 
@@ -120,7 +120,7 @@ export const boundariesConfig2 = createConfig(
       ],
     },
   },
-  "customBoundaries",
+  "customBoundaries"
 );
 
 export const boundariesConfig3 = createConfig({

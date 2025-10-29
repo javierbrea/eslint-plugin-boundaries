@@ -92,7 +92,7 @@ export class TestRunner {
       this.failedTests++;
       console.log(`${chalk.red("✗")} ${description}`);
       console.log(
-        `  ${chalk.red(`Error: ${error instanceof Error ? error.message : String(error)}`)}`,
+        `  ${chalk.red(`Error: ${error instanceof Error ? error.message : String(error)}`)}`
       );
       this.tests.push({
         description,
@@ -146,7 +146,7 @@ async function runESLintOnFixture(fixturePath, eslintConfig) {
       errorCount: results.reduce((sum, result) => sum + result.errorCount, 0),
       warningCount: results.reduce(
         (sum, result) => sum + result.warningCount,
-        0,
+        0
       ),
       files: results.map((result) => ({
         filePath: result.filePath,
@@ -189,7 +189,7 @@ export async function runTests(tests) {
   const runner = new TestRunner();
 
   console.log(
-    `${chalk.blue.bold("Running ESLint Plugin Boundaries E2E Tests")}\n`,
+    `${chalk.blue.bold("Running ESLint Plugin Boundaries E2E Tests")}\n`
   );
 
   if (!tests || tests.length === 0) {
@@ -198,7 +198,7 @@ export async function runTests(tests) {
   }
 
   console.log(
-    `Found ${tests.length} test(s): ${tests.map((t) => t.name).join(", ")}\n`,
+    `Found ${tests.length} test(s): ${tests.map((t) => t.name).join(", ")}\n`
   );
 
   for (const test of tests) {
@@ -210,7 +210,7 @@ export async function runTests(tests) {
       `ESLint should run successfully on ${test.name}`,
       async () => {
         return result.success;
-      },
+      }
     );
 
     if (result.success) {
@@ -222,26 +222,26 @@ export async function runTests(tests) {
       // Additional information about results
       if (result.files && result.files.length > 0) {
         console.log(
-          `  ${chalk.yellow(`Files processed: ${result.files.length}`)}`,
+          `  ${chalk.yellow(`Files processed: ${result.files.length}`)}`
         );
         console.log(
-          `  ${chalk.yellow(`Total errors: ${result.errorCount || 0}`)}`,
+          `  ${chalk.yellow(`Total errors: ${result.errorCount || 0}`)}`
         );
         console.log(
-          `  ${chalk.yellow(`Total warnings: ${result.warningCount || 0}`)}`,
+          `  ${chalk.yellow(`Total warnings: ${result.warningCount || 0}`)}`
         );
 
         // Show specific errors for debugging
         result.files.forEach((file) => {
           if (file.errorCount > 0) {
             console.log(
-              `    ${chalk.red(`Errors in ${file.filePath.split("/").pop()}:`)}`,
+              `    ${chalk.red(`Errors in ${file.filePath.split("/").pop()}:`)}`
             );
             file.messages.forEach((msg) => {
               if (msg.severity === 2) {
                 // Error
                 console.log(
-                  `      Line ${msg.line}: ${msg.message} (${msg.ruleId})`,
+                  `      Line ${msg.line}: ${msg.message} (${msg.ruleId})`
                 );
               }
             });

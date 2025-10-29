@@ -45,7 +45,7 @@ function propertiesConcatenator(properties: string[], index: number) {
 
 export function micromatchPatternReplacingObjectsValues(
   pattern: string | string[] | undefined,
-  object: Partial<RuleMatcherElementsCapturedValues>,
+  object: Partial<RuleMatcherElementsCapturedValues>
 ) {
   let patternToReplace = pattern;
   if (!patternToReplace) {
@@ -56,7 +56,7 @@ export function micromatchPatternReplacingObjectsValues(
   if (object.from) {
     patternToReplace = replaceObjectValuesInTemplates(
       patternToReplace,
-      object.from,
+      object.from
     ) as string;
   }
   return Object.keys(object).reduce((replacedPattern, namespace) => {
@@ -66,18 +66,18 @@ export function micromatchPatternReplacingObjectsValues(
     return replaceObjectValuesInTemplates(
       replacedPattern,
       object[namespace as keyof typeof object] || {},
-      namespace,
+      namespace
     ) as string;
   }, patternToReplace);
 }
 
 function micromatchPatternMessage(
   micromatchPatterns: string | undefined,
-  elementCapturedValues: CapturedValues,
+  elementCapturedValues: CapturedValues
 ) {
   const micromatchPatternsWithValues = micromatchPatternReplacingObjectsValues(
     micromatchPatterns,
-    { from: elementCapturedValues },
+    { from: elementCapturedValues }
   );
   if (isArray(micromatchPatternsWithValues)) {
     if (micromatchPatternsWithValues.length === 1) {
@@ -93,7 +93,7 @@ function micromatchPatternMessage(
         }
         return `${message}, ${quote(micromatchPattern)}`;
       },
-      "",
+      ""
     );
   }
   return quote(micromatchPatternsWithValues);
@@ -101,7 +101,7 @@ function micromatchPatternMessage(
 
 function capturedValuesMatcherMessage(
   capturedValuesPattern: CapturedValuesSelector | undefined,
-  elementCapturedValues: CapturedValues,
+  elementCapturedValues: CapturedValues
 ) {
   const capturedValuesPatternKeys = Object.keys(capturedValuesPattern || {});
   return capturedValuesPatternKeys
@@ -118,7 +118,7 @@ function capturedValuesMatcherMessage(
 
 function elementMatcherMessage(
   elementMatcher: ElementSelector | CapturedValuesSelector | undefined,
-  elementCapturedValues: CapturedValues,
+  elementCapturedValues: CapturedValues
 ) {
   if (!elementMatcher) {
     return "";
@@ -137,8 +137,8 @@ function elementMatcherMessage(
       parts.push(
         capturedValuesMatcherMessage(
           selector[0].captured,
-          elementCapturedValues,
-        ),
+          elementCapturedValues
+        )
       );
     }
     return parts.map((part) => part.trim()).join(" ");
@@ -150,13 +150,13 @@ function elementMatcherMessage(
   // TODO: Support array patterns
   return `${typeMessage(elementMatcher[0] as string)}${capturedValuesMatcherMessage(
     elementMatcher[1] as unknown as CapturedValuesSelector,
-    elementCapturedValues,
+    elementCapturedValues
   )}`;
 }
 
 export function ruleElementMessage(
   elementPatterns: ElementsSelector | undefined,
-  elementCapturedValues: CapturedValues,
+  elementCapturedValues: CapturedValues
 ) {
   if (isArray(elementPatterns)) {
     if (elementPatterns.length === 1) {
@@ -173,7 +173,7 @@ export function ruleElementMessage(
 }
 
 function elementPropertiesToReplaceInTemplate(
-  element: ElementInfo | FileInfo | DependencyInfo | ElementInfo["parents"][0],
+  element: ElementInfo | FileInfo | DependencyInfo | ElementInfo["parents"][0]
 ) {
   if (isDependencyInfo(element)) {
     return {
@@ -206,48 +206,48 @@ export function customErrorMessage(
   message: string,
   file: FileInfo,
   dependency: DependencyInfo,
-  report = {},
+  report = {}
 ) {
   let replacedMessage = replaceObjectValuesInTemplate(
     replaceObjectValuesInTemplate(
       message,
       elementPropertiesToReplaceInTemplate(file),
-      "file",
+      "file"
     ),
     elementPropertiesToReplaceInTemplate(dependency),
-    "dependency",
+    "dependency"
   );
   replacedMessage = replaceObjectValuesInTemplate(
     replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(file),
-      "from",
+      "from"
     ),
     elementPropertiesToReplaceInTemplate(dependency),
-    "target",
+    "target"
   );
   if (file.parents[0]) {
     replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(file.parents[0]),
-      "file.parent",
+      "file.parent"
     );
     replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(file.parents[0]),
-      "from.parent",
+      "from.parent"
     );
   }
   if (dependency.parents?.[0]) {
     replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(dependency.parents[0]),
-      "dependency.parent",
+      "dependency.parent"
     );
     replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(dependency.parents[0]),
-      "target.parent",
+      "target.parent"
     );
   }
   return replaceObjectValuesInTemplate(replacedMessage, report, "report");
@@ -270,23 +270,23 @@ function elementCapturedValuesMessage(capturedValues: CapturedValues | null) {
 }
 
 export function elementMessage(
-  elementInfo: ElementInfo | ElementInfo["parents"][0],
+  elementInfo: ElementInfo | ElementInfo["parents"][0]
 ) {
   return `of type ${quote(elementInfo.type)}${elementCapturedValuesMessage(
-    elementInfo.capturedValues,
+    elementInfo.capturedValues
   )}`;
 }
 
 function hasToPrintKindMessage(
   ruleImportKind: DependencyKind | undefined,
-  dependencyInfo: DependencyInfo,
+  dependencyInfo: DependencyInfo
 ) {
   return ruleImportKind && dependencyInfo.importKind;
 }
 
 export function dependencyImportKindMessage(
   ruleImportKind: DependencyKind | undefined,
-  dependencyInfo: DependencyInfo,
+  dependencyInfo: DependencyInfo
 ) {
   if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
     return `kind ${quote(dependencyInfo.importKind)} from `;
@@ -303,7 +303,7 @@ export function dependencyUsageKindMessage(
   }: {
     suffix?: string;
     prefix?: string;
-  } = {},
+  } = {}
 ) {
   if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
     return `${prefix}${dependencyInfo.importKind}${suffix}`;

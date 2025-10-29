@@ -54,7 +54,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @param serializedCache The serialized cache.
    */
   public setCacheFromSerialized(
-    serializedCache: ElementsMatcherSerializedCache,
+    serializedCache: ElementsMatcherSerializedCache
   ): void {
     this._cache.setFromSerialized(serializedCache);
   }
@@ -76,10 +76,10 @@ export class ElementsMatcher extends BaseElementsMatcher {
   private _isTypeMatch(
     element: SelectableElement,
     selector: BaseElementSelectorData,
-    templateData: TemplateData,
+    templateData: TemplateData
   ): boolean {
     const selectorValue = !isNullish(selector.type)
-      ? this.getRenderedTemplate(selector.type, templateData)
+      ? this.getRenderedTemplates(selector.type, templateData)
       : selector.type;
     return this.isElementKeyMicromatchMatch({
       element,
@@ -100,10 +100,10 @@ export class ElementsMatcher extends BaseElementsMatcher {
   private _isCategoryMatch(
     element: SelectableElement,
     selector: BaseElementSelectorData,
-    templateData: TemplateData,
+    templateData: TemplateData
   ): boolean {
     const selectorValue = !isNullish(selector.category)
-      ? this.getRenderedTemplate(selector.category, templateData)
+      ? this.getRenderedTemplates(selector.category, templateData)
       : selector.category;
     return this.isElementKeyMicromatchMatch({
       element,
@@ -124,7 +124,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
   private _isInternalPathMatch(
     element: SelectableElement,
     selector: BaseElementSelectorData,
-    templateData: TemplateData,
+    templateData: TemplateData
   ): boolean {
     const selectorValue = !isNullish(selector.internalPath)
       ? this.getRenderedTemplates(selector.internalPath, templateData)
@@ -148,7 +148,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
   private _isOriginMatch(
     element: SelectableElement,
     selector: BaseElementSelectorData,
-    templateData: TemplateData,
+    templateData: TemplateData
   ): boolean {
     const selectorValue = !isNullish(selector.origin)
       ? this.getRenderedTemplates(selector.origin, templateData)
@@ -172,7 +172,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
   private _isBaseSourceMatch(
     element: SelectableElement,
     selector: BaseElementSelectorData,
-    templateData: TemplateData,
+    templateData: TemplateData
   ): boolean {
     const selectorValue = !isNullish(selector.baseSource)
       ? this.getRenderedTemplates(selector.baseSource, templateData)
@@ -196,7 +196,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
   private _isCapturedValuesMatch(
     element: SelectableElement,
     selector: BaseElementSelectorData,
-    templateData: TemplateData,
+    templateData: TemplateData
   ): boolean {
     if (!selector.captured) {
       return true;
@@ -213,7 +213,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
       }
       if (isArray(renderedPattern)) {
         return renderedPattern.some(
-          (pat) => pat && micromatch.isMatch(elementValue, pat),
+          (pat) => pat && micromatch.isMatch(elementValue, pat)
         );
       }
       return micromatch.isMatch(elementValue, renderedPattern);
@@ -230,7 +230,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
   private _getSelectorMatching(
     element: SelectableElement,
     selector: BaseElementsSelector,
-    extraTemplateData: TemplateData,
+    extraTemplateData: TemplateData
   ): ElementSelectorData | null {
     const selectorsData = this.normalizeElementsSelector(selector);
 
@@ -267,7 +267,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
   public getSelectorMatching(
     element: ElementDescription,
     selector: BaseElementsSelector,
-    { extraTemplateData = {} }: MatcherOptions = {},
+    { extraTemplateData = {} }: MatcherOptions = {}
   ): ElementSelectorData | null {
     if (
       this._cache.has({
@@ -294,7 +294,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
         selector,
         extraTemplateData,
       },
-      result,
+      result
     );
     return result;
   }
@@ -310,7 +310,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
   public isElementMatch(
     element: ElementDescription,
     selector: BaseElementsSelector,
-    { extraTemplateData = {} }: MatcherOptions = {},
+    { extraTemplateData = {} }: MatcherOptions = {}
   ): boolean {
     const selectorMatching = this.getSelectorMatching(element, selector, {
       extraTemplateData,

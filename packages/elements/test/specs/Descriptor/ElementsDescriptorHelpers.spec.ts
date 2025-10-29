@@ -10,8 +10,8 @@ import type {
 import {
   isLocalElement,
   isDependencyElement,
-  isExternalDependency,
-  isLocalDependency,
+  isExternalDependencyElement,
+  isLocalDependencyElement,
   isElement,
   isElementDescriptorMode,
   isElementDescriptorPattern,
@@ -166,7 +166,7 @@ describe("elementHelpers", () => {
           isDependencyElement({
             source: undefined,
             capturedValues: {},
-          }),
+          })
         ).toBe(false);
         expect(isDependencyElement(null)).toBe(false);
       });
@@ -255,10 +255,9 @@ describe("elementHelpers", () => {
         internalPath: "index.ts",
         source: "./Button.component",
         origin: "local",
-        baseSource: "./components/Button",
       };
 
-      expect(isLocalDependency(localDependency)).toBe(true);
+      expect(isLocalDependencyElement(localDependency)).toBe(true);
     });
 
     it("should return false for objects without category nor type", () => {
@@ -273,7 +272,7 @@ describe("elementHelpers", () => {
         baseSource: "./components/Button",
       };
 
-      expect(isLocalDependency(nonLocalDependency)).toBe(false);
+      expect(isLocalDependencyElement(nonLocalDependency)).toBe(false);
     });
 
     it("should return false for objects without capturedValues", () => {
@@ -288,7 +287,7 @@ describe("elementHelpers", () => {
         baseSource: "./components/Button",
       };
 
-      expect(isLocalDependency(nonLocalDependency)).toBe(false);
+      expect(isLocalDependencyElement(nonLocalDependency)).toBe(false);
     });
 
     it("should return false for non-local dependencies", () => {
@@ -303,19 +302,19 @@ describe("elementHelpers", () => {
         baseSource: "./components/Button",
       };
 
-      expect(isLocalDependency(nonLocalDependency)).toBe(false);
+      expect(isLocalDependencyElement(nonLocalDependency)).toBe(false);
     });
 
     it("should return false for objects that don't comply with type contract", () => {
-      expect(isLocalDependency({})).toBe(false);
-      expect(isLocalDependency({ path: undefined })).toBe(false);
-      expect(isLocalDependency(null)).toBe(false);
+      expect(isLocalDependencyElement({})).toBe(false);
+      expect(isLocalDependencyElement({ path: undefined })).toBe(false);
+      expect(isLocalDependencyElement(null)).toBe(false);
     });
 
     it("should return false for primitive values and invalid objects", () => {
-      expect(isLocalDependency(undefined)).toBe(false);
-      expect(isLocalDependency(42)).toBe(false);
-      expect(isLocalDependency({ source: "valid-source" })).toBe(false);
+      expect(isLocalDependencyElement(undefined)).toBe(false);
+      expect(isLocalDependencyElement(42)).toBe(false);
+      expect(isLocalDependencyElement({ source: "valid-source" })).toBe(false);
     });
 
     it("should validate all required properties for local dependencies", () => {
@@ -332,7 +331,7 @@ describe("elementHelpers", () => {
         baseSource: "react",
       };
 
-      expect(isLocalDependency(dependencyButNotLocal)).toBe(false);
+      expect(isLocalDependencyElement(dependencyButNotLocal)).toBe(false);
 
       // Test object that passes both but has isLocal set to false
       const localElementButNotLocalDependency: FileElement = {
@@ -347,7 +346,9 @@ describe("elementHelpers", () => {
       };
 
       // LocalElement is not a dependency, so should return false
-      expect(isLocalDependency(localElementButNotLocalDependency)).toBe(false);
+      expect(isLocalDependencyElement(localElementButNotLocalDependency)).toBe(
+        false
+      );
 
       // Test object that has all properties but isLocal is false
       const dependencyWithLocalFalse = {
@@ -363,7 +364,7 @@ describe("elementHelpers", () => {
       };
 
       // Should return false because isLocal is false
-      expect(isLocalDependency(dependencyWithLocalFalse)).toBe(false);
+      expect(isLocalDependencyElement(dependencyWithLocalFalse)).toBe(false);
     });
 
     it("should return true for objects with minimal required properties", () => {
@@ -377,7 +378,7 @@ describe("elementHelpers", () => {
         origin: "local",
       };
 
-      expect(isLocalDependency(minimalLocalDependency)).toBe(true);
+      expect(isLocalDependencyElement(minimalLocalDependency)).toBe(true);
     });
   });
 
@@ -394,7 +395,7 @@ describe("elementHelpers", () => {
         origin: "external",
       };
 
-      expect(isExternalDependency(externalDependency)).toBe(true);
+      expect(isExternalDependencyElement(externalDependency)).toBe(true);
     });
 
     it("should return true for object without capturedValues", () => {
@@ -409,7 +410,7 @@ describe("elementHelpers", () => {
         origin: "external",
       };
 
-      expect(isExternalDependency(externalDependency)).toBe(false);
+      expect(isExternalDependencyElement(externalDependency)).toBe(false);
     });
 
     it("should return false for non-external dependencies", () => {
@@ -424,19 +425,19 @@ describe("elementHelpers", () => {
         origin: "local",
       };
 
-      expect(isExternalDependency(externalDependency)).toBe(false);
+      expect(isExternalDependencyElement(externalDependency)).toBe(false);
     });
 
     it("should return false for objects that don't comply with type contract", () => {
-      expect(isExternalDependency({})).toBe(false);
-      expect(isExternalDependency({ isExternal: false })).toBe(false);
-      expect(isExternalDependency(null)).toBe(false);
+      expect(isExternalDependencyElement({})).toBe(false);
+      expect(isExternalDependencyElement({ isExternal: false })).toBe(false);
+      expect(isExternalDependencyElement(null)).toBe(false);
     });
 
     it("should return false for primitive values and malformed objects", () => {
-      expect(isExternalDependency(undefined)).toBe(false);
-      expect(isExternalDependency(false)).toBe(false);
-      expect(isExternalDependency({ isExternal: true })).toBe(false);
+      expect(isExternalDependencyElement(undefined)).toBe(false);
+      expect(isExternalDependencyElement(false)).toBe(false);
+      expect(isExternalDependencyElement({ isExternal: true })).toBe(false);
     });
 
     it("should validate baseModule property is a string", () => {
@@ -452,7 +453,9 @@ describe("elementHelpers", () => {
         isLocal: false,
       };
 
-      expect(isExternalDependency(elementWithInvalidBaseModule)).toBe(false);
+      expect(isExternalDependencyElement(elementWithInvalidBaseModule)).toBe(
+        false
+      );
     });
 
     it("should validate all required conditions for external dependencies", () => {
@@ -469,7 +472,7 @@ describe("elementHelpers", () => {
         isLocal: true,
       };
 
-      expect(isExternalDependency(dependencyButNotExternal)).toBe(false);
+      expect(isExternalDependencyElement(dependencyButNotExternal)).toBe(false);
 
       // Test object that fails isDependencyElement check
       const notADependency = {
@@ -482,7 +485,7 @@ describe("elementHelpers", () => {
         baseSource: "test",
       };
 
-      expect(isExternalDependency(notADependency)).toBe(false);
+      expect(isExternalDependencyElement(notADependency)).toBe(false);
 
       // Test object with valid isExternal but invalid baseModule type
       const externalWithInvalidBaseModule = {
@@ -497,7 +500,9 @@ describe("elementHelpers", () => {
         isLocal: false,
       };
 
-      expect(isExternalDependency(externalWithInvalidBaseModule)).toBe(false);
+      expect(isExternalDependencyElement(externalWithInvalidBaseModule)).toBe(
+        false
+      );
     });
 
     it("should return true for objects with minimal required properties", () => {
@@ -512,7 +517,7 @@ describe("elementHelpers", () => {
         // Missing other properties, but these are the minimal requirements
       };
 
-      expect(isExternalDependency(minimalExternalDependency)).toBe(true);
+      expect(isExternalDependencyElement(minimalExternalDependency)).toBe(true);
     });
   });
 
@@ -573,7 +578,6 @@ describe("elementHelpers", () => {
         internalPath: "math.ts",
         source: "./constants",
         origin: "local",
-        baseSource: "./utils",
       };
 
       expect(isElement(localDependency)).toBe(true);
@@ -658,7 +662,7 @@ describe("elementHelpers", () => {
 
       it("should return true for arrays of strings", () => {
         expect(isElementDescriptorPattern(["src/**/*.ts", "lib/**/*.ts"])).toBe(
-          true,
+          true
         );
       });
 
@@ -705,7 +709,7 @@ describe("elementHelpers", () => {
           isElementDescriptorWithType({
             pattern: [],
             type: "component",
-          }),
+          })
         ).toBe(false);
       });
     });
@@ -726,7 +730,7 @@ describe("elementHelpers", () => {
           isElementDescriptorWithCategory({
             pattern: [],
             category: "a",
-          }),
+          })
         ).toBe(false);
       });
     });

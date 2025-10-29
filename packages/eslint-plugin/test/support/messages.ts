@@ -1,7 +1,7 @@
 export function errorMessage(
   errors: Record<number, string>,
   index: number,
-  defaultMessage: string,
+  defaultMessage: string
 ) {
   return errors[index] || defaultMessage;
 }

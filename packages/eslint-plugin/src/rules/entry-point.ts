@@ -25,7 +25,7 @@ const { RULE_ENTRY_POINT } = SETTINGS;
 function errorMessage(
   ruleData: RuleResult,
   file: FileInfo,
-  dependency: DependencyInfo,
+  dependency: DependencyInfo
 ) {
   const ruleReport = ruleData.ruleReport;
   if (!ruleReport) {
@@ -42,7 +42,7 @@ function errorMessage(
   }
   return `The entry point '${dependency.internalPath}' is not allowed in ${ruleElementMessage(
     ruleReport.disallow,
-    dependency.capturedValues,
+    dependency.capturedValues
   )}${dependencyUsageKindMessage(ruleReport.importKind, dependency, {
     prefix: " when importing ",
     suffix: "",
@@ -50,14 +50,14 @@ function errorMessage(
 }
 
 function modifyTemplates(
-  templates: string | string[] | undefined,
+  templates: string | string[] | undefined
 ): string[] | undefined {
   if (!templates) {
     return undefined;
   }
   const templatesArray = Array.isArray(templates) ? templates : [templates];
   return templatesArray.map((template) =>
-    template.replace(/\${target\./g, "${to."),
+    template.replace(/\${target\./g, "${to.")
   );
 }
 
@@ -148,7 +148,7 @@ export default dependencyRule<EntryPointRuleOptions>(
 
       const ruleData = elementRulesAllowDependency(
         dependency.originalDescription,
-        adaptedRuleOptions,
+        adaptedRuleOptions
       );
       if (!ruleData.result) {
         context.report({
@@ -161,5 +161,5 @@ export default dependencyRule<EntryPointRuleOptions>(
   {
     // TODO: Define main keys in a map
     validateRules: { onlyMainKey: true, mainKey: "target" },
-  },
+  }
 );

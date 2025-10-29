@@ -9,11 +9,8 @@ import type { DescriptorsSerializedCache } from "./Descriptors.types";
 import { ElementsDescriptor } from "./ElementsDescriptor";
 import type {
   ElementDescriptors,
-  ElementDescription,
-  LocalElementUnknown,
   DependencyElement,
   FileElement,
-  IgnoredElement,
 } from "./ElementsDescriptor.types";
 
 /**
@@ -29,14 +26,14 @@ export class Descriptors {
    */
   constructor(
     elementDescriptors: ElementDescriptors,
-    configOptions?: ConfigOptions,
+    configOptions?: ConfigOptions
   ) {
     this._elementsDescriptor = new ElementsDescriptor(
       elementDescriptors,
-      configOptions,
+      configOptions
     );
     this._dependenciesDescriptor = new DependenciesDescriptor(
-      this._elementsDescriptor,
+      this._elementsDescriptor
     );
   }
 
@@ -56,11 +53,11 @@ export class Descriptors {
    * @param serializedCache The serialized elements and dependencies cache.
    */
   public setCacheFromSerialized(
-    serializedCache: DescriptorsSerializedCache,
+    serializedCache: DescriptorsSerializedCache
   ): void {
     this._elementsDescriptor.setCacheFromSerialized(serializedCache.elements);
     this._dependenciesDescriptor.setCacheFromSerialized(
-      serializedCache.dependencies,
+      serializedCache.dependencies
     );
   }
 
@@ -73,28 +70,28 @@ export class Descriptors {
   }
 
   /**
-   * Describes an element given its file path and dependency source, if any.
+   * Describes an element given its file path.
    * @param filePath The path of the file to describe.
-   * @param dependencySource The source of the dependency, if the element to describe is so. It refers to the import/export path used to reference the file or external module.
    * @returns The description of the element.
    */
-  public describeElement(): LocalElementUnknown;
-  public describeElement(
-    // eslint-disable-next-line no-unused-vars
-    filePath?: string,
-  ): FileElement;
-  public describeElement(
-    // eslint-disable-next-line no-unused-vars
-    filePath?: string,
-    // eslint-disable-next-line no-unused-vars
-    dependencySource?: string,
-  ): DependencyElement | IgnoredElement;
+  public describeElement(filePath?: string): FileElement {
+    return this._elementsDescriptor.describeElement(filePath);
+  }
 
-  public describeElement(
-    filePath?: string,
-    dependencySource?: string,
-  ): ElementDescription {
-    return this._elementsDescriptor.describeElement(filePath, dependencySource);
+  /**
+   * Describes a dependency element given its dependency source and file path.
+   * @param dependencySource The source of the dependency.
+   * @param filePath The path of the file being the dependency, if known.
+   * @returns The description of the dependency element.
+   */
+  public describeDependencyElement(
+    dependencySource: string,
+    filePath?: string
+  ): DependencyElement {
+    return this._elementsDescriptor.describeDependencyElement(
+      dependencySource,
+      filePath
+    );
   }
 
   /**
@@ -103,7 +100,7 @@ export class Descriptors {
    * @returns The description of the dependency between the elements.
    */
   public describeDependency(
-    options: DescribeDependencyOptions,
+    options: DescribeDependencyOptions
   ): DependencyDescription {
     return this._dependenciesDescriptor.describeDependency(options);
   }

@@ -2,6 +2,7 @@ import {
   ELEMENT_ORIGINS_MAP,
   DEPENDENCY_RELATIONSHIPS_MAP,
   isIgnoredElement,
+  isExternalDependencyElement,
 } from "@boundaries/elements";
 import type { DependencyKind } from "@boundaries/elements";
 import type { Rule } from "eslint";
@@ -22,12 +23,13 @@ function replacePathSlashes(absolutePath: string) {
 
 function projectPath(
   absolutePath: string | undefined | null,
-  rootPath: string,
+  rootPath: string
 ) {
   if (absolutePath) {
+    // TODO: Use path.relative when possible. With caution because this would break current external paths
     return replacePathSlashes(absolutePath).replace(
       `${replacePathSlashes(rootPath)}/`,
-      "",
+      ""
     );
   }
   return "";
@@ -40,11 +42,11 @@ export function getSpecifiers(node: Rule.Node): string[] {
         (specifier) =>
           specifier.type === "ImportSpecifier" &&
           specifier.imported &&
-          (specifier.imported as Identifier).name,
+          (specifier.imported as Identifier).name
       )
       .map(
         (specifier) =>
-          ((specifier as ImportSpecifier).imported as Identifier).name,
+          ((specifier as ImportSpecifier).imported as Identifier).name
       );
   }
 
@@ -53,7 +55,7 @@ export function getSpecifiers(node: Rule.Node): string[] {
       .filter(
         (specifier) =>
           specifier.type === "ExportSpecifier" &&
-          (specifier.exported as Identifier).name,
+          (specifier.exported as Identifier).name
       )
       .map((specifier) => (specifier.exported as Identifier).name);
   }
@@ -80,7 +82,7 @@ export function dependencyInfo(
     kind: DependencyKind;
     nodeKind?: string;
   },
-  context: Rule.RuleContext,
+  context: Rule.RuleContext
 ): DependencyInfo {
   const source = String(node.value);
   const elementsDescriptors = getElementsDescriptor(context);
@@ -103,18 +105,18 @@ export function dependencyInfo(
     isBuiltIn: dependencyData.to.origin === ELEMENT_ORIGINS_MAP.CORE,
     isExternal: dependencyData.to.origin === ELEMENT_ORIGINS_MAP.EXTERNAL,
     isIgnored: isIgnoredElement(dependencyData.to),
-    baseModule: !isIgnoredElement(dependencyData.to)
+    baseModule: isExternalDependencyElement(dependencyData.to)
       ? dependencyData.to.baseSource
       : null,
     importKind: dependencyData.dependency.kind,
     // @ts-expect-error Support nephews in relationship
     relationship:
-      dependencyData.dependency.relationship.from ===
+      dependencyData.dependency.relationship.to ===
       DEPENDENCY_RELATIONSHIPS_MAP.SIBLING
         ? DEPENDENCY_RELATIONSHIPS_MAP.BROTHER
-        : dependencyData.dependency.relationship.from,
+        : dependencyData.dependency.relationship.to,
     isInternal:
-      dependencyData.dependency.relationship.from ===
+      dependencyData.dependency.relationship.to ===
       DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL,
     originalDescription: dependencyData,
   };

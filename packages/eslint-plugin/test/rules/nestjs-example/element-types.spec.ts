@@ -14,7 +14,7 @@ const runTest = (
   options: unknown[],
   { absoluteFilePath }: ReturnType<typeof pathResolvers>,
   errorMessages: Record<number, string>,
-  base: string,
+  base: string
 ) => {
   const ruleTester = createRuleTester(settings);
 
@@ -125,7 +125,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'app'",
                 dep: "'interface' with base '', feature 'cats' and fileName 'cats'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -144,7 +144,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'app'",
                 dep: "'controller' with base '', feature 'cats' and fileName 'cats'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -163,7 +163,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'app'",
                 dep: "'service' with base '', feature 'cats' and fileName 'cats'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -182,7 +182,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'module' with base '', feature 'core' and fileName 'core'",
                 dep: "'controller' with base '', feature 'cats' and fileName 'cats'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -201,7 +201,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'module' with base '', feature 'core' and fileName 'core'",
                 dep: "'service' with base '', feature 'cats' and fileName 'cats'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -220,7 +220,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'module' with base '', feature 'cats' and fileName 'cats'",
                 dep: "'interceptor' with base '', feature 'core' and fileName 'logging'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -239,7 +239,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'module' with base '', feature 'cats' and fileName 'cats'",
                 dep: "'interceptor' with base '', feature 'core' and fileName 'transform'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -258,7 +258,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'controller' with base '', feature 'core' and fileName 'core'",
                 dep: "'service' with base '', feature 'cats' and fileName 'cats'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -277,7 +277,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'controller' with base '', feature 'core' and fileName 'core'",
                 dep: "'dto' with base '', feature 'cats' and fileName 'create-cat'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -296,7 +296,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'controller' with base '', feature 'core' and fileName 'core'",
                 dep: "'interface' with base '', feature 'cats' and fileName 'cats'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -315,7 +315,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'controller' with base '', feature 'core' and fileName 'core'",
                 dep: `'model' with base '${base}', feature 'cats' and fileName 'persian-cat'`,
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -334,7 +334,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'controller' with base '', feature 'core' and fileName 'core'",
                 dep: `'model' with base '${base}', feature 'cats' and fileName 'siamese-cat'`,
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -353,7 +353,7 @@ const runTest = (
               elementTypesNoRuleMessage({
                 file: "'controller' with base '', feature 'cats' and fileName 'cats'",
                 dep: `'model' with base '${base}', feature 'core' and fileName 'core'`,
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -464,7 +464,7 @@ runTest(
   ruleOptions,
   pathResolvers("nestjs-example"),
   {},
-  "test/fixtures/nestjs-example",
+  "test/fixtures/nestjs-example"
 );
 
 runTest(
@@ -544,7 +544,7 @@ runTest(
       dep: `'model' with base 'nestjs-example', feature 'core' and fileName 'core'`,
     }),
   },
-  "",
+  ""
 );
 
 runTest(
@@ -624,5 +624,5 @@ runTest(
       dep: `'model' with base '', feature 'core' and fileName 'core'`,
     }),
   },
-  "test/fixtures/nestjs-example",
+  "test/fixtures/nestjs-example"
 );

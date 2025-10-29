@@ -5,15 +5,16 @@ import {
   Elements,
   isIgnoredElement,
   isKnownLocalElement,
-  isExternalDependency,
+  isExternalDependencyElement,
   isUnknownLocalElement,
-  isCoreDependency,
+  isCoreDependencyElement,
   isElement,
-  isLocalDependency,
+  isLocalDependencyElement,
   isDependencyDescription,
+  isInternalDependency,
 } from "../../src/index";
 
-describe("descriptors", () => {
+describe("Descriptors", () => {
   let descriptors: Descriptors;
   let elements: Elements;
   let micromatchSpy: jest.SpyInstance;
@@ -23,7 +24,6 @@ describe("descriptors", () => {
     micromatchSpy = jest.spyOn(micromatch, "capture");
 
     elements = new Elements({
-      rootPath: "/project",
       includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],
       ignorePaths: ["**/src/**/__tests__/**"],
     });
@@ -69,7 +69,7 @@ describe("descriptors", () => {
   describe("configuration options", () => {
     it("should ignore files based on ignorePaths", () => {
       const element = descriptors.describeElement(
-        "/project/src/utils/__tests__/testUtil.ts",
+        "/project/src/utils/__tests__/testUtil.ts"
       );
 
       expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
@@ -79,7 +79,7 @@ describe("descriptors", () => {
 
     it("should not include elements not included in includePaths", () => {
       const element = descriptors.describeElement(
-        "/project/foo/utils/testUtil.ts",
+        "/project/foo/utils/testUtil.ts"
       );
 
       expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
@@ -98,18 +98,43 @@ describe("descriptors", () => {
           },
         ],
         {
-          rootPath: "/project",
           ignorePaths: ["**/src/**/*.tsx"],
-        },
+        }
       );
 
       const element = otherDescriptors.describeElement(
-        "/project/src/components/Button.tsx",
+        "/project/src/components/Button.tsx"
       );
 
       expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
       expect(isIgnoredElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
+    });
+
+    it("should throw an error for invalid descriptors", () => {
+      expect(() =>
+        elements.getDescriptors(
+          [
+            {
+              type: "component",
+              pattern: "/project/src/components/*.tsx",
+              mode: "file",
+              capture: ["fileName"],
+            },
+            // @ts-expect-error Testing invalid descriptor
+            {
+              pattern: "/project/src/components/*.tsx",
+              mode: "file",
+              capture: ["fileName"],
+            },
+          ],
+          {
+            ignorePaths: ["**/src/**/*.tsx"],
+          }
+        )
+      ).toThrow(
+        "Element descriptor at index 1 must have a pattern, and either a 'type' or 'category' defined."
+      );
     });
 
     it("should not include files when includePaths do not match", () => {
@@ -123,13 +148,12 @@ describe("descriptors", () => {
           },
         ],
         {
-          rootPath: "/project",
           includePaths: ["**/src/**/*.md"],
-        },
+        }
       );
 
       const element = otherDescriptors.describeElement(
-        "/project/src/components/Button.tsx",
+        "/project/src/components/Button.tsx"
       );
 
       expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
@@ -148,13 +172,11 @@ describe("descriptors", () => {
             capture: ["fileName"],
           },
         ],
-        {
-          rootPath: "/project",
-        },
+        {}
       );
 
       const element = otherDescriptors.describeElement(
-        "/project/src/components/Button.tsx",
+        "/project/src/components/Button.tsx"
       );
 
       expect(element).toEqual({
@@ -184,7 +206,7 @@ describe("descriptors", () => {
 
     it("should assign descriptions to local elements correctly", () => {
       const element = descriptors.describeElement(
-        "/project/src/components/Button.tsx",
+        "/project/src/components/Button.tsx"
       );
 
       expect(element).toEqual({
@@ -205,7 +227,7 @@ describe("descriptors", () => {
 
     it("should assign descriptions to local elements with basePattern correctly", () => {
       const element = descriptors.describeElement(
-        "/project/src/utils/math/math.test.ts",
+        "/project/src/utils/math/math.test.ts"
       );
 
       expect(element).toEqual({
@@ -230,7 +252,7 @@ describe("descriptors", () => {
 
     it("should assign descriptors without capture properties correctly", () => {
       const element = descriptors.describeElement(
-        "/project/src/modules/user/foo.ts",
+        "/project/src/modules/user/foo.ts"
       );
 
       expect(element).toEqual({
@@ -249,7 +271,7 @@ describe("descriptors", () => {
 
     it("should assign descriptions to local elements in full mode correctly", () => {
       const element = descriptors.describeElement(
-        "/project/src/services/payment/PaymentService.ts",
+        "/project/src/services/payment/PaymentService.ts"
       );
 
       expect(element).toEqual({
@@ -286,7 +308,7 @@ describe("descriptors", () => {
 
     it("should not assign category when not specified in the descriptor", () => {
       const element = descriptors.describeElement(
-        "/project/src/utils/math/mathUtil.ts",
+        "/project/src/utils/math/mathUtil.ts"
       );
 
       expect(element).toEqual({
@@ -305,7 +327,7 @@ describe("descriptors", () => {
 
     it("should assign descriptions to local elements using captured parent folders", () => {
       const element = descriptors.describeElement(
-        "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+        "/project/src/foo/var/modules/notification/modules/email/EmailService.ts"
       );
 
       expect(element).toEqual({
@@ -336,9 +358,9 @@ describe("descriptors", () => {
     });
 
     it("should assign descriptions to local dependency elements correctly", () => {
-      const element = descriptors.describeElement(
-        "/project/src/utils/math/index.ts",
+      const element = descriptors.describeDependencyElement(
         "math/index",
+        "/project/src/utils/math/index.ts"
       );
 
       expect(element).toEqual({
@@ -348,21 +370,19 @@ describe("descriptors", () => {
         internalPath: "index.ts",
         elementPath: "/project/src/utils/math/index.ts",
         source: "math/index",
-        baseSource: "math",
         origin: "local",
         parents: [],
         path: "/project/src/utils/math/index.ts",
       });
-      expect(isLocalDependency(element)).toBe(true);
+      expect(isLocalDependencyElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
     });
 
     // TODO: Add "external" mode to descriptors, and test known external elements too
     it("should assign descriptions to unknown external dependency elements correctly", () => {
-      // TODO: Should this be exposed as a different method? describeDependencyElement?
-      const element = descriptors.describeElement(
-        "/project/node_modules/react/index.tsx",
+      const element = descriptors.describeDependencyElement(
         "react",
+        "/project/node_modules/react/index.tsx"
       );
 
       expect(element).toEqual({
@@ -375,14 +395,14 @@ describe("descriptors", () => {
         origin: "external",
         path: "/project/node_modules/react/index.tsx",
       });
-      expect(isExternalDependency(element)).toBe(true);
+      expect(isExternalDependencyElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
     });
 
     it("should assign descriptions to unknown scoped external dependency elements correctly", () => {
-      const element = descriptors.describeElement(
-        "/project/node_modules/@mui/icons-material/index.tsx",
+      const element = descriptors.describeDependencyElement(
         "@mui/icons-material",
+        "/project/node_modules/@mui/icons-material/index.tsx"
       );
 
       expect(element).toEqual({
@@ -395,14 +415,14 @@ describe("descriptors", () => {
         origin: "external",
         path: "/project/node_modules/@mui/icons-material/index.tsx",
       });
-      expect(isExternalDependency(element)).toBe(true);
+      expect(isExternalDependencyElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
     });
 
     it("should assign descriptions to unknown scoped external dependency with path elements correctly", () => {
-      const element = descriptors.describeElement(
-        "/project/node_modules/@mui/icons-material/index.tsx",
+      const element = descriptors.describeDependencyElement(
         "@mui/icons-material/foo",
+        "/project/node_modules/@mui/icons-material/index.tsx"
       );
 
       expect(element).toEqual({
@@ -415,12 +435,12 @@ describe("descriptors", () => {
         origin: "external",
         path: "/project/node_modules/@mui/icons-material/index.tsx",
       });
-      expect(isExternalDependency(element)).toBe(true);
+      expect(isExternalDependencyElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
     });
 
     it("should assign descriptions to unknown core elements correctly", () => {
-      const element = descriptors.describeElement(undefined, "node:fs");
+      const element = descriptors.describeDependencyElement("node:fs");
 
       expect(element).toEqual({
         type: null,
@@ -431,12 +451,12 @@ describe("descriptors", () => {
         origin: "core",
         path: null,
       });
-      expect(isCoreDependency(element)).toBe(true);
+      expect(isCoreDependencyElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
     });
 
     it("should assign descriptions to unknown core elements without node prefix correctly", () => {
-      const element = descriptors.describeElement(undefined, "fs");
+      const element = descriptors.describeDependencyElement("fs");
 
       expect(element).toEqual({
         type: null,
@@ -447,19 +467,18 @@ describe("descriptors", () => {
         origin: "core",
         path: null,
       });
-      expect(isCoreDependency(element)).toBe(true);
+      expect(isCoreDependencyElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
     });
 
     it("should ignore external dependency elements based on ignorePaths", () => {
       const otherDescriptors = elements.getDescriptors([], {
-        rootPath: "/project",
         ignorePaths: ["**/node_modules/**"],
       });
 
-      const element = otherDescriptors.describeElement(
-        "/project/node_modules/react/index.tsx",
+      const element = otherDescriptors.describeDependencyElement(
         "react",
+        "/project/node_modules/react/index.tsx"
       );
 
       expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
@@ -562,45 +581,45 @@ describe("descriptors", () => {
     });
 
     it("should not call micromatch more than one per same file when getting dependency elements for the same file but different sources", () => {
-      descriptors.describeElement(
-        "/project/node_modules/@mui/icons-material/index.tsx",
+      descriptors.describeDependencyElement(
         "@mui/icons-material/foo",
+        "/project/node_modules/@mui/icons-material/index.tsx"
       );
 
       expect(micromatchSpy).toHaveBeenCalled();
 
       jest.clearAllMocks();
 
-      descriptors.describeElement(
-        "/project/node_modules/@mui/icons-material/index.tsx",
+      descriptors.describeDependencyElement(
         "@mui/icons-material/var",
+        "/project/node_modules/@mui/icons-material/index.tsx"
       );
 
       expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
     it("should call micromatch again when getting same dependency element after clearing cache", () => {
-      descriptors.describeElement(
-        "/project/node_modules/@mui/icons-material/index.tsx",
+      descriptors.describeDependencyElement(
         "@mui/icons-material/foo",
+        "/project/node_modules/@mui/icons-material/index.tsx"
       );
 
       expect(micromatchSpy).toHaveBeenCalled();
 
       jest.clearAllMocks();
 
-      descriptors.describeElement(
-        "/project/node_modules/@mui/icons-material/index.tsx",
+      descriptors.describeDependencyElement(
         "@mui/icons-material/foo",
+        "/project/node_modules/@mui/icons-material/index.tsx"
       );
 
       expect(micromatchSpy).not.toHaveBeenCalled();
 
       descriptors.clearCache();
 
-      descriptors.describeElement(
-        "/project/node_modules/@mui/icons-material/index.tsx",
+      descriptors.describeDependencyElement(
         "@mui/icons-material/foo",
+        "/project/node_modules/@mui/icons-material/index.tsx"
       );
 
       expect(micromatchSpy).toHaveBeenCalled();
@@ -631,7 +650,6 @@ describe("descriptors", () => {
           type: "component",
         },
         to: {
-          baseSource: "project",
           capturedValues: null,
           category: null,
           origin: "local",
@@ -673,7 +691,6 @@ describe("descriptors", () => {
           type: null,
         },
         to: {
-          baseSource: "project",
           capturedValues: null,
           category: null,
           origin: "local",
@@ -706,14 +723,13 @@ describe("descriptors", () => {
         specifiers: ["foo", "bar"],
       });
 
-      // TODO: Ignored elements should have path, source, baseSource?
       expect(dependency).toEqual({
         from: {
           category: null,
           capturedValues: null,
           origin: "local",
           isIgnored: true,
-          path: null,
+          path: "/var/var/Baz.ts",
           type: null,
         },
         to: {
@@ -721,7 +737,8 @@ describe("descriptors", () => {
           category: null,
           origin: "local",
           isIgnored: true,
-          path: null,
+          path: "/var/bar/Baz.ts",
+          source: "project/bar",
           type: null,
         },
         dependency: {
@@ -750,7 +767,6 @@ describe("descriptors", () => {
         specifiers: ["calculateSum", "calculateAvg"],
       });
 
-      // TODO: Ignored elements should have path, source, baseSource?
       expect(dependency).toEqual({
         from: {
           type: "component",
@@ -778,8 +794,6 @@ describe("descriptors", () => {
           parents: [],
           origin: "local",
           path: "/project/src/utils/math/math.test.ts",
-          // TODO: Makes sense to have source and baseSource in local elements with relative paths?
-          baseSource: "..",
           source: "../utils/math/math.test.ts",
         },
         dependency: {
@@ -798,18 +812,693 @@ describe("descriptors", () => {
       expect(isKnownLocalElement(dependency.to)).toBe(true);
     });
 
-    // TODO: Test dependencies to external and core elements
-    // TODO: Test dependencies with relationships:
-    // - Internal
-    // - Child
-    // - Descendant
-    // - Sibling
-    // - Parent
-    // - Uncle
-    // - Ancestor
+    it("should describe dependency to unknown external elements correctly", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/node_modules/react/index.tsx",
+        source: "react",
+        kind: "type",
+        nodeKind: "ImportDeclaration",
+      });
 
-    // TODO: Assign nephew relationship
-    // TODO: Remove rootPath option, because it is not used anywhere
+      expect(dependency).toEqual({
+        from: {
+          capturedValues: {
+            fileName: "Button",
+          },
+          category: "react",
+          elementPath: "/project/src/components/Button.tsx",
+          internalPath: "Button.tsx",
+          origin: "local",
+          parents: [],
+          path: "/project/src/components/Button.tsx",
+          type: "component",
+        },
+        to: {
+          baseSource: "react",
+          capturedValues: null,
+          category: null,
+          origin: "external",
+          path: "/project/node_modules/react/index.tsx",
+          internalPath: "",
+          source: "react",
+          type: null,
+        },
+        dependency: {
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+          specifiers: null,
+          relationship: {
+            from: null,
+            to: null,
+          },
+        },
+      });
+
+      expect(isDependencyDescription(dependency)).toBe(true);
+      expect(isKnownLocalElement(dependency.from)).toBe(true);
+      expect(isExternalDependencyElement(dependency.to)).toBe(true);
+    });
+
+    it("should describe dependency to core elements correctly", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        source: "fs",
+        kind: "type",
+        nodeKind: "ImportDeclaration",
+      });
+
+      expect(dependency).toEqual({
+        from: {
+          capturedValues: {
+            fileName: "Button",
+          },
+          category: "react",
+          elementPath: "/project/src/components/Button.tsx",
+          internalPath: "Button.tsx",
+          origin: "local",
+          parents: [],
+          path: "/project/src/components/Button.tsx",
+          type: "component",
+        },
+        to: {
+          baseSource: "fs",
+          capturedValues: null,
+          category: null,
+          origin: "core",
+          path: null,
+          source: "fs",
+          type: null,
+        },
+        dependency: {
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+          specifiers: null,
+          relationship: {
+            from: null,
+            to: null,
+          },
+        },
+      });
+
+      expect(isDependencyDescription(dependency)).toBe(true);
+      expect(isKnownLocalElement(dependency.from)).toBe(true);
+      expect(isCoreDependencyElement(dependency.to)).toBe(true);
+    });
+
+    it("should assign relationships to child elements in dependencies", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/project/src/foo/var/modules/notification/NotificationService.ts",
+        to: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+        source: "./modules/email/EmailService",
+        kind: "value",
+        nodeKind: "ImportDeclaration",
+      });
+
+      expect(dependency).toEqual({
+        from: {
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath: "/project/src/foo/var/modules/notification",
+          internalPath: "NotificationService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/NotificationService.ts",
+          parents: [
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        to: {
+          source: "./modules/email/EmailService",
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath:
+            "/project/src/foo/var/modules/notification/modules/email",
+          internalPath: "EmailService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+          parents: [
+            {
+              type: null,
+              capturedValues: null,
+              category: "business-logic",
+              elementPath: "/project/src/foo/var/modules/notification",
+            },
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        dependency: {
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+          specifiers: null,
+          relationship: {
+            from: "parent",
+            to: "child",
+          },
+        },
+      });
+
+      expect(isDependencyDescription(dependency)).toBe(true);
+      expect(isInternalDependency(dependency)).toBe(false);
+      expect(isKnownLocalElement(dependency.from)).toBe(true);
+      expect(isKnownLocalElement(dependency.to)).toBe(true);
+    });
+
+    it("should assign relationships to internal elements in dependencies", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/project/src/foo/var/modules/notification/NotificationService.ts",
+        to: "/project/src/foo/var/modules/notification/EmailService.ts",
+        source: "./EmailService",
+        kind: "value",
+        nodeKind: "ImportDeclaration",
+      });
+
+      expect(dependency).toEqual({
+        from: {
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath: "/project/src/foo/var/modules/notification",
+          internalPath: "NotificationService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/NotificationService.ts",
+          parents: [
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        to: {
+          source: "./EmailService",
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath: "/project/src/foo/var/modules/notification",
+          internalPath: "EmailService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/EmailService.ts",
+          parents: [
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        dependency: {
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+          specifiers: null,
+          relationship: {
+            from: "internal",
+            to: "internal",
+          },
+        },
+      });
+
+      expect(isDependencyDescription(dependency)).toBe(true);
+      expect(isInternalDependency(dependency)).toBe(true);
+      expect(isKnownLocalElement(dependency.from)).toBe(true);
+      expect(isKnownLocalElement(dependency.to)).toBe(true);
+    });
+
+    it("should assign relationships to descendant elements in dependencies", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/project/src/foo/var/modules/notification/NotificationService.ts",
+        to: "/project/src/foo/var/modules/notification/modules/email/modules/send/SendService.ts",
+        source: "./modules/email/modules/send/SendService",
+        kind: "value",
+        nodeKind: "ImportDeclaration",
+      });
+
+      expect(dependency).toEqual({
+        from: {
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath: "/project/src/foo/var/modules/notification",
+          internalPath: "NotificationService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/NotificationService.ts",
+          parents: [
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        to: {
+          source: "./modules/email/modules/send/SendService",
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath:
+            "/project/src/foo/var/modules/notification/modules/email/modules/send",
+          internalPath: "SendService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/modules/email/modules/send/SendService.ts",
+          parents: [
+            {
+              type: null,
+              capturedValues: null,
+              category: "business-logic",
+              elementPath:
+                "/project/src/foo/var/modules/notification/modules/email",
+            },
+            {
+              type: null,
+              capturedValues: null,
+              category: "business-logic",
+              elementPath: "/project/src/foo/var/modules/notification",
+            },
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        dependency: {
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+          specifiers: null,
+          relationship: {
+            from: "ancestor",
+            to: "descendant",
+          },
+        },
+      });
+
+      expect(isDependencyDescription(dependency)).toBe(true);
+      expect(isInternalDependency(dependency)).toBe(false);
+      expect(isKnownLocalElement(dependency.from)).toBe(true);
+      expect(isKnownLocalElement(dependency.to)).toBe(true);
+    });
+
+    it("should assign relationships to sibling elements in dependencies", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/project/src/foo/var/modules/notification/modules/phone/PhoneService.ts",
+        to: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+        source: "../email/EmailService",
+        kind: "value",
+        nodeKind: "ImportDeclaration",
+      });
+
+      expect(dependency).toEqual({
+        from: {
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath:
+            "/project/src/foo/var/modules/notification/modules/phone",
+          internalPath: "PhoneService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/modules/phone/PhoneService.ts",
+          parents: [
+            {
+              type: null,
+              capturedValues: null,
+              category: "business-logic",
+              elementPath: "/project/src/foo/var/modules/notification",
+            },
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        to: {
+          source: "../email/EmailService",
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath:
+            "/project/src/foo/var/modules/notification/modules/email",
+          internalPath: "EmailService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+          parents: [
+            {
+              type: null,
+              capturedValues: null,
+              category: "business-logic",
+              elementPath: "/project/src/foo/var/modules/notification",
+            },
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        dependency: {
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+          specifiers: null,
+          relationship: {
+            from: "sibling",
+            to: "sibling",
+          },
+        },
+      });
+
+      expect(isDependencyDescription(dependency)).toBe(true);
+      expect(isInternalDependency(dependency)).toBe(false);
+      expect(isKnownLocalElement(dependency.from)).toBe(true);
+      expect(isKnownLocalElement(dependency.to)).toBe(true);
+    });
+
+    it("should assign relationships to parent elements in dependencies", () => {
+      const dependency = descriptors.describeDependency({
+        to: "/project/src/foo/var/modules/notification/NotificationService.ts",
+        from: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+        source: "../../NotificationService",
+        kind: "value",
+        nodeKind: "ImportDeclaration",
+      });
+
+      expect(dependency).toEqual({
+        from: {
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath:
+            "/project/src/foo/var/modules/notification/modules/email",
+          internalPath: "EmailService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+          parents: [
+            {
+              type: null,
+              capturedValues: null,
+              category: "business-logic",
+              elementPath: "/project/src/foo/var/modules/notification",
+            },
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        to: {
+          source: "../../NotificationService",
+
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath: "/project/src/foo/var/modules/notification",
+          internalPath: "NotificationService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/NotificationService.ts",
+          parents: [
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        dependency: {
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+          specifiers: null,
+          relationship: {
+            from: "child",
+            to: "parent",
+          },
+        },
+      });
+
+      expect(isDependencyDescription(dependency)).toBe(true);
+      expect(isKnownLocalElement(dependency.from)).toBe(true);
+      expect(isKnownLocalElement(dependency.to)).toBe(true);
+    });
+
+    it("should assign relationships to ancestor elements in dependencies", () => {
+      const dependency = descriptors.describeDependency({
+        to: "/project/src/foo/var/modules/notification/NotificationService.ts",
+        from: "/project/src/foo/var/modules/notification/modules/email/modules/send/SendService.ts",
+        source: "./modules/email/modules/send/SendService",
+        kind: "value",
+        nodeKind: "ImportDeclaration",
+      });
+
+      expect(dependency).toEqual({
+        from: {
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath:
+            "/project/src/foo/var/modules/notification/modules/email/modules/send",
+          internalPath: "SendService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/modules/email/modules/send/SendService.ts",
+          parents: [
+            {
+              type: null,
+              capturedValues: null,
+              category: "business-logic",
+              elementPath:
+                "/project/src/foo/var/modules/notification/modules/email",
+            },
+            {
+              type: null,
+              capturedValues: null,
+              category: "business-logic",
+              elementPath: "/project/src/foo/var/modules/notification",
+            },
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        to: {
+          source: "./modules/email/modules/send/SendService",
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath: "/project/src/foo/var/modules/notification",
+          internalPath: "NotificationService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/NotificationService.ts",
+          parents: [
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        dependency: {
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+          specifiers: null,
+          relationship: {
+            from: "descendant",
+            to: "ancestor",
+          },
+        },
+      });
+
+      expect(isDependencyDescription(dependency)).toBe(true);
+      expect(isInternalDependency(dependency)).toBe(false);
+      expect(isKnownLocalElement(dependency.from)).toBe(true);
+      expect(isKnownLocalElement(dependency.to)).toBe(true);
+    });
+
+    it("should assign relationships to uncle elements in dependencies", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        to: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+        source: "../../../email/EmailService",
+        kind: "value",
+        nodeKind: "ImportDeclaration",
+      });
+
+      expect(dependency).toEqual({
+        from: {
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath:
+            "/project/src/foo/var/modules/notification/modules/phone/modules/sms",
+          internalPath: "SmsService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+          parents: [
+            {
+              capturedValues: null,
+              category: "business-logic",
+              elementPath:
+                "/project/src/foo/var/modules/notification/modules/phone",
+              type: null,
+            },
+            {
+              type: null,
+              capturedValues: null,
+              category: "business-logic",
+              elementPath: "/project/src/foo/var/modules/notification",
+            },
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        to: {
+          source: "../../../email/EmailService",
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath:
+            "/project/src/foo/var/modules/notification/modules/email",
+          internalPath: "EmailService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+          parents: [
+            {
+              type: null,
+              capturedValues: null,
+              category: "business-logic",
+              elementPath: "/project/src/foo/var/modules/notification",
+            },
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        dependency: {
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+          specifiers: null,
+          relationship: {
+            from: "nephew",
+            to: "uncle",
+          },
+        },
+      });
+
+      expect(isDependencyDescription(dependency)).toBe(true);
+      expect(isInternalDependency(dependency)).toBe(false);
+      expect(isKnownLocalElement(dependency.from)).toBe(true);
+      expect(isKnownLocalElement(dependency.to)).toBe(true);
+    });
+
+    it("should assign relationships to nephew elements in dependencies", () => {
+      const dependency = descriptors.describeDependency({
+        to: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        from: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+        source: "../../../email/EmailService",
+        kind: "value",
+        nodeKind: "ImportDeclaration",
+      });
+
+      expect(dependency).toEqual({
+        from: {
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath:
+            "/project/src/foo/var/modules/notification/modules/email",
+          internalPath: "EmailService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+          parents: [
+            {
+              type: null,
+              capturedValues: null,
+              category: "business-logic",
+              elementPath: "/project/src/foo/var/modules/notification",
+            },
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        to: {
+          source: "../../../email/EmailService",
+          type: null,
+          category: "business-logic",
+          capturedValues: null,
+          elementPath:
+            "/project/src/foo/var/modules/notification/modules/phone/modules/sms",
+          internalPath: "SmsService.ts",
+          origin: "local",
+          path: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+          parents: [
+            {
+              capturedValues: null,
+              category: "business-logic",
+              elementPath:
+                "/project/src/foo/var/modules/notification/modules/phone",
+              type: null,
+            },
+            {
+              type: null,
+              capturedValues: null,
+              category: "business-logic",
+              elementPath: "/project/src/foo/var/modules/notification",
+            },
+            {
+              type: "foo",
+              capturedValues: null,
+              category: null,
+              elementPath: "/project/src/foo/var",
+            },
+          ],
+        },
+        dependency: {
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+          specifiers: null,
+          relationship: {
+            from: "uncle",
+            to: "nephew",
+          },
+        },
+      });
+
+      expect(isDependencyDescription(dependency)).toBe(true);
+      expect(isInternalDependency(dependency)).toBe(false);
+      expect(isKnownLocalElement(dependency.from)).toBe(true);
+      expect(isKnownLocalElement(dependency.to)).toBe(true);
+    });
   });
 
   describe("dependency descriptor cache", () => {
@@ -997,6 +1686,4 @@ describe("descriptors", () => {
       expect(micromatchSpy).not.toHaveBeenCalled();
     });
   });
-
-  // TODO: Validate that descriptors have at least type or category. Both being null has no sense
 });

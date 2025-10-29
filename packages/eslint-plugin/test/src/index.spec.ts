@@ -8,7 +8,7 @@ describe("package", () => {
       "should contain rule '%s' with a defined create function",
       (ruleName) => {
         expect(eslintPluginBoundaries.rules[ruleName].create).toBeDefined();
-      },
+      }
     );
   });
 });

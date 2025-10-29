@@ -15,7 +15,7 @@ const { absoluteFilePath } = pathResolvers("one-level");
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string>,
+  errorMessages: Record<number, string>
 ) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
@@ -47,7 +47,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "@module-helpers/module-b",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -66,7 +66,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'modules' with elementName 'ModuleC'",
                 dep: "@module-helpers/all",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -97,5 +97,5 @@ runTest(
       ],
     },
   ],
-  {},
+  {}
 );

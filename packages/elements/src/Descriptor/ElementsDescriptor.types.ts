@@ -230,8 +230,6 @@ export type LocalElementParent = Pick<
 export type BaseDependencyElement = BaseElement & {
   /** Dependency source */
   source: string;
-  /** Base module of the dependency */
-  baseSource: string;
 };
 
 /**
@@ -261,6 +259,8 @@ export type ExternalDependencyElement = BaseDependencyElement & {
   internalPath: string;
   /** Indicates that the dependency is external */
   origin: typeof ELEMENT_ORIGINS_MAP.EXTERNAL;
+  /** Base module of the external dependency */
+  baseSource: string;
 };
 
 /**
@@ -269,6 +269,8 @@ export type ExternalDependencyElement = BaseDependencyElement & {
 export type CoreDependencyElement = BaseDependencyElement & {
   /** Indicates that the dependency is core */
   origin: typeof ELEMENT_ORIGINS_MAP.CORE;
+  /** Base module of the core dependency */
+  baseSource: string;
 };
 
 /**

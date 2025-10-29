@@ -34,7 +34,7 @@ const { RULE_ELEMENT_TYPES } = SETTINGS;
 
 export function getRulesResults(
   ruleOptions: ElementTypesRuleOptions,
-  dependencyDescription: DependencyDescription,
+  dependencyDescription: DependencyDescription
 ) {
   if (!ruleOptions.rules) {
     return [];
@@ -43,7 +43,7 @@ export function getRulesResults(
   const isMatch = (
     dependencySelector: DependencySelector,
     extraTemplateData: TemplateData,
-    dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals,
+    dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals
   ) => {
     // Just in case selectors are invalid, we catch errors here to avoid breaking the whole rule evaluation. It should not happen due to options schema validation.
     try {
@@ -53,7 +53,7 @@ export function getRulesResults(
         {
           extraTemplateData,
           dependencySelectorsGlobals,
-        },
+        }
       );
     } catch (error) {
       // TODO: Use debug logger instead of console.error
@@ -102,7 +102,7 @@ export function getRulesResults(
             [policyElementDirection]: rule[denyKeyToUse],
           },
           capturedValuesTemplateData,
-          dependencySelectorsGlobals,
+          dependencySelectorsGlobals
         )
       : {
           isMatch: false,
@@ -115,7 +115,7 @@ export function getRulesResults(
               [policyElementDirection]: rule.allow,
             },
             capturedValuesTemplateData,
-            dependencySelectorsGlobals,
+            dependencySelectorsGlobals
           )
         : {
             isMatch: false,
@@ -155,7 +155,7 @@ export function getRulesResults(
 
 export function elementRulesAllowDependency(
   dependency: DependencyDescription,
-  ruleOptions: ElementTypesRuleOptions = {},
+  ruleOptions: ElementTypesRuleOptions = {}
 ): RuleResult {
   let isAllowed = ruleOptions.default === "allow";
   let ruleIndexMatching: number | null = null;
@@ -190,7 +190,7 @@ export function elementRulesAllowDependency(
 
     if (isString(selectorDataSpecifiers)) {
       return dependency.dependency.specifiers?.some((specifier) =>
-        micromatch.isMatch(specifier, selectorDataSpecifiers),
+        micromatch.isMatch(specifier, selectorDataSpecifiers)
       )
         ? [selectorDataSpecifiers]
         : null;
@@ -198,7 +198,7 @@ export function elementRulesAllowDependency(
 
     return selectorDataSpecifiers.filter((pattern) => {
       return dependency.dependency.specifiers?.some((specifier) =>
-        micromatch.isMatch(specifier, pattern),
+        micromatch.isMatch(specifier, pattern)
       );
     });
   };
@@ -249,7 +249,7 @@ export function elementRulesAllowDependency(
 function errorMessage(
   ruleData: RuleResult,
   file: FileInfo,
-  dependency: DependencyInfo,
+  dependency: DependencyInfo
 ) {
   const ruleReport = ruleData.ruleReport;
 
@@ -262,18 +262,18 @@ function errorMessage(
   }
   if (ruleReport.isDefault) {
     return `No rule allowing this dependency was found. File is ${elementMessage(
-      file,
+      file
     )}. Dependency is ${elementMessage(dependency)}`;
   }
   return `Importing ${dependencyImportKindMessage(
     ruleReport.importKind,
-    dependency,
+    dependency
   )}${ruleElementMessage(
     ruleReport.disallow,
-    file.capturedValues,
+    file.capturedValues
   )} is not allowed in ${ruleElementMessage(
     ruleReport.element,
-    file.capturedValues,
+    file.capturedValues
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 }
 
@@ -292,7 +292,7 @@ export default dependencyRule<ElementTypesRuleOptions>(
     ) {
       const ruleData = elementRulesAllowDependency(
         dependency.originalDescription,
-        options,
+        options
       );
       if (!ruleData.result) {
         context.report({
@@ -301,5 +301,5 @@ export default dependencyRule<ElementTypesRuleOptions>(
         });
       }
     }
-  },
+  }
 );

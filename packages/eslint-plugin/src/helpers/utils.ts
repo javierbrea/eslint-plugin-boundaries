@@ -73,7 +73,7 @@ function replaceObjectValueInTemplate(
   template: string,
   key: string,
   value: string,
-  namespace?: string | null,
+  namespace?: string | null
 ) {
   const keyToReplace = namespace ? `${namespace}.${key}` : key;
   const regexp = new RegExp(`\\$\\{${keyToReplace}\\}`, "g");
@@ -83,7 +83,7 @@ function replaceObjectValueInTemplate(
 export function replaceObjectValuesInTemplates(
   strings: string | string[],
   object: Record<string, string>,
-  namespace?: string | null,
+  namespace?: string | null
 ): string | string[] {
   const finalResult = isArray(strings) ? [...strings] : strings;
   return Object.keys(object).reduce((result, objectKey) => {
@@ -94,7 +94,7 @@ export function replaceObjectValuesInTemplates(
           resultEntry,
           objectKey,
           object[objectKey],
-          namespace,
+          namespace
         );
       });
     }
@@ -102,7 +102,7 @@ export function replaceObjectValuesInTemplates(
       result,
       objectKey,
       object[objectKey],
-      namespace,
+      namespace
     );
   }, finalResult);
 }
@@ -110,7 +110,7 @@ export function replaceObjectValuesInTemplates(
 export function replaceObjectValuesInTemplate(
   template: string,
   object: Record<string, string>,
-  namespace?: string | null,
+  namespace?: string | null
 ): string {
   return replaceObjectValuesInTemplates(template, object, namespace) as string;
 }
@@ -120,7 +120,7 @@ export function isNotParentInfo(
     | ElementInfo
     | FileInfo
     | DependencyInfo
-    | ElementInfo["parents"][0],
+    | ElementInfo["parents"][0]
 ): elementInfo is ElementInfo | FileInfo | DependencyInfo {
   return (
     (elementInfo as ElementInfo | FileInfo | DependencyInfo).internalPath !==
@@ -133,7 +133,7 @@ export function isDependencyInfo(
     | ElementInfo
     | FileInfo
     | DependencyInfo
-    | ElementInfo["parents"][0],
+    | ElementInfo["parents"][0]
 ): elementInfo is DependencyInfo {
   return (
     (elementInfo as DependencyInfo).importKind !== undefined ||

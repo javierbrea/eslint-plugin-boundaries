@@ -49,7 +49,7 @@ const runTest = (settings: RuleTesterSettings) => {
           ...settings,
           "boundaries/ignore": [
             codeFilePath(
-              "components/component-a/components/component-c/**/*.js",
+              "components/component-a/components/component-c/**/*.js"
             ),
           ],
         },
@@ -63,7 +63,7 @@ const runTest = (settings: RuleTesterSettings) => {
       // Private elements can use a parent elements: // TODO, add relationship rule to avoid this
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/ComponentC.js",
+          "components/component-a/components/component-c/ComponentC.js"
         ),
         code: 'import ModuleA from "../../"',
         options,
@@ -71,7 +71,7 @@ const runTest = (settings: RuleTesterSettings) => {
       // Private elements can use public elements:
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/ComponentC.js",
+          "components/component-a/components/component-c/ComponentC.js"
         ),
         code: 'import ModuleA from "modules/module-a"',
         options,
@@ -86,7 +86,7 @@ const runTest = (settings: RuleTesterSettings) => {
     Component C can use helper A, as both are children of component A: */
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/ComponentC.js",
+          "components/component-a/components/component-c/ComponentC.js"
         ),
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options,
@@ -96,7 +96,7 @@ const runTest = (settings: RuleTesterSettings) => {
     Component D can use helper A as it is a direct child of common ancestor component A. */
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/components/component-d/ComponentD.js",
+          "components/component-a/components/component-c/components/component-d/ComponentD.js"
         ),
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options,
@@ -104,7 +104,7 @@ const runTest = (settings: RuleTesterSettings) => {
       // Private elements can use an ancestor // TODO, add relationships rule to avoid this
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/components/component-d/ComponentD.js",
+          "components/component-a/components/component-c/components/component-d/ComponentD.js"
         ),
         code: 'import HelperA from "../../../../"',
         options,
@@ -118,7 +118,7 @@ const runTest = (settings: RuleTesterSettings) => {
       // Not recognized dependencies are allowed
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-b/ComponentB.js",
+          "components/component-a/components/component-b/ComponentB.js"
         ),
         code: "import foo from '../../../../foo/foo2'",
         options,
@@ -157,7 +157,7 @@ const runTest = (settings: RuleTesterSettings) => {
       // Helper B is private of helper A, so component C can't use it:
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/ComponentC.js",
+          "components/component-a/components/component-c/ComponentC.js"
         ),
         code: 'import HelperB from "../../helpers/helper-a/helpers/helper-b"',
         options,
@@ -189,7 +189,7 @@ const runTest = (settings: RuleTesterSettings) => {
     common ancestor component A, but allowUncles option is disabled. */
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/components/component-d/ComponentD.js",
+          "components/component-a/components/component-c/components/component-d/ComponentD.js"
         ),
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options: [
@@ -209,7 +209,7 @@ const runTest = (settings: RuleTesterSettings) => {
       /* Custom message */
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/components/component-d/ComponentD.js",
+          "components/component-a/components/component-c/components/component-d/ComponentD.js"
         ),
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options: [
@@ -230,7 +230,7 @@ const runTest = (settings: RuleTesterSettings) => {
       /* Custom message */
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/components/component-d/ComponentD.js",
+          "components/component-a/components/component-c/components/component-d/ComponentD.js"
         ),
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options: [
@@ -251,7 +251,7 @@ const runTest = (settings: RuleTesterSettings) => {
       /* Custom message with file info*/
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/components/component-d/ComponentD.js",
+          "components/component-a/components/component-c/components/component-d/ComponentD.js"
         ),
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options: [
@@ -272,7 +272,7 @@ const runTest = (settings: RuleTesterSettings) => {
       /* Custom message with file info*/
       {
         filename: absoluteFilePath(
-          "components/component-a/components/component-c/components/component-d/ComponentD.js",
+          "components/component-a/components/component-c/components/component-d/ComponentD.js"
         ),
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options: [

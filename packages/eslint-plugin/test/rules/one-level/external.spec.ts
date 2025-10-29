@@ -15,7 +15,7 @@ const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string>,
+  errorMessages: Record<number, string>
 ) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
@@ -116,7 +116,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "react",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -135,7 +135,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'components' with elementName 'component-a'",
                 dep: "react-router-dom",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -154,7 +154,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -173,7 +173,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -195,7 +195,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "react",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -206,7 +206,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -225,7 +225,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -244,7 +244,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -263,7 +263,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -282,7 +282,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "@material-ui/core",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -301,7 +301,7 @@ const runTest = (
               externalNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "react-router-dom",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -314,7 +314,7 @@ const runTest = (
 const testCapture = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string>,
+  errorMessages: Record<number, string>
 ) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
@@ -352,7 +352,7 @@ const testCapture = (
               externalNoRuleMessage({
                 file: "'modules'",
                 dep: "react-router-dom",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -371,7 +371,7 @@ const testCapture = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-b'",
                 dep: "foo-library",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -390,7 +390,7 @@ const testCapture = (
               externalNoRuleMessage({
                 file: "'helpers' with elementName 'helper-a'",
                 dep: "foo-library",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -439,7 +439,7 @@ runTest(
     6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'modules'. Disallowed in rule 3",
     8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 3",
-  },
+  }
 );
 
 // allow-based options
@@ -486,7 +486,7 @@ runTest(
     6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'modules'. Disallowed in rule 3",
     8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 3",
-  },
+  }
 );
 
 // micromatch-based options
@@ -530,7 +530,7 @@ runTest(
     6: "Usage of 'L*, R*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
     7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'm*'. Disallowed in rule 3",
     8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'm*'. Disallowed in rule 3",
-  },
+  }
 );
 
 // disallow-based options
@@ -577,7 +577,7 @@ runTest(
     5: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     8: "Do not import /var/foo from RDD in modules",
-  },
+  }
 );
 
 // custom error messages
@@ -626,7 +626,7 @@ runTest(
     6: "Do not import Link, Router from foo-library in helpers",
     7: "Importing @material-ui/core is not allowed in modules with name module-a",
     8: "Importing react-router-dom/var/foo is not allowed in modules with name module-a",
-  },
+  }
 );
 
 // options with capture allow-based
@@ -656,5 +656,5 @@ testCapture(
     0: "Usage of external module 'react-router-dom' is not allowed in elements of type 'modules' with elementName 'module-b'. Disallowed in rule 1",
     1: "Usage of external module 'foo-library' is not allowed in elements of type 'helpers' with elementName 'helper-b'. Disallowed in rule 2",
     2: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers' with elementName 'helper-a'. Disallowed in rule 3",
-  },
+  }
 );

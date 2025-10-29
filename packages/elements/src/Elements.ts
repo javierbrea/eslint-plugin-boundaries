@@ -61,7 +61,7 @@ export class Elements {
    */
   public serializeCache(): ElementsSerializedCache {
     const descriptorsCache = Array.from(
-      this._descriptorsCache.getAll().entries(),
+      this._descriptorsCache.getAll().entries()
     ).reduce(
       (acc, [key, descriptorCache]) => {
         acc[key] = {
@@ -71,7 +71,7 @@ export class Elements {
         };
         return acc;
       },
-      {} as ElementsSerializedCache["descriptors"],
+      {} as ElementsSerializedCache["descriptors"]
     );
 
     return {
@@ -88,15 +88,15 @@ export class Elements {
    * @param serializedCache The serialized cache to set.
    */
   public setCacheFromSerialized(
-    serializedCache: ElementsSerializedCache,
+    serializedCache: ElementsSerializedCache
   ): void {
     for (const key in serializedCache.descriptors) {
       const descriptors = this.getDescriptors(
         serializedCache.descriptors[key].elementDescriptors,
-        serializedCache.descriptors[key].config,
+        serializedCache.descriptors[key].config
       );
       descriptors.setCacheFromSerialized(
-        serializedCache.descriptors[key].cache,
+        serializedCache.descriptors[key].cache
       );
       this._descriptorsCache.restore(key, {
         config: serializedCache.descriptors[key].config,
@@ -105,10 +105,10 @@ export class Elements {
       });
     }
     this._elementsMatcher.setCacheFromSerialized(
-      serializedCache.selectors.elementsMatcherCache,
+      serializedCache.selectors.elementsMatcherCache
     );
     this._dependenciesMatcher.setCacheFromSerialized(
-      serializedCache.selectors.dependenciesMatcherCache,
+      serializedCache.selectors.dependenciesMatcherCache
     );
   }
 
@@ -132,7 +132,7 @@ export class Elements {
    */
   public getDescriptors(
     elementDescriptors: ElementDescriptors,
-    configOptions?: ConfigOptions,
+    configOptions?: ConfigOptions
   ): Descriptors {
     const optionsToUse = configOptions || this._globalConfigOptions;
     const configInstance = new Config(optionsToUse);
@@ -164,12 +164,12 @@ export class Elements {
   public getElementSelectorMatching(
     element: ElementDescription,
     selector: BaseElementsSelector,
-    options?: MatcherOptions,
+    options?: MatcherOptions
   ): ElementSelectorData | null {
     return this._elementsMatcher.getSelectorMatching(
       element,
       selector,
-      options,
+      options
     );
   }
 
@@ -183,7 +183,7 @@ export class Elements {
   public isElementMatch(
     element: ElementDescription,
     selector: BaseElementsSelector,
-    options?: MatcherOptions,
+    options?: MatcherOptions
   ): boolean {
     return this._elementsMatcher.isElementMatch(element, selector, options);
   }
@@ -198,12 +198,12 @@ export class Elements {
   public getDependencySelectorsMatching(
     dependency: DependencyDescription,
     selector: DependencySelector,
-    options: MatcherOptions,
+    options: MatcherOptions
   ): DependencyMatchResult {
     return this._dependenciesMatcher.getSelectorsMatching(
       dependency,
       selector,
-      options,
+      options
     );
   }
 
@@ -217,12 +217,12 @@ export class Elements {
   public isDependencyMatch(
     dependency: DependencyDescription,
     selector: DependencySelector,
-    options?: MatcherOptions,
+    options?: MatcherOptions
   ): boolean {
     return this._dependenciesMatcher.isDependencyMatch(
       dependency,
       selector,
-      options,
+      options
     );
   }
 
@@ -233,15 +233,15 @@ export class Elements {
    */
   public normalizeElementsSelector(
     // eslint-disable-next-line no-unused-vars
-    elementsSelector: BaseElementsSelector,
+    elementsSelector: BaseElementsSelector
   ): BaseElementSelectorData[];
   public normalizeElementsSelector(
     // eslint-disable-next-line no-unused-vars
-    elementsSelector: DependencyElementsSelector,
+    elementsSelector: DependencyElementsSelector
   ): DependencyElementSelectorData[];
 
   public normalizeElementsSelector(
-    elementsSelector: ElementsSelector,
+    elementsSelector: ElementsSelector
   ): ElementSelectorData[] {
     return this._elementsMatcher.normalizeElementsSelector(elementsSelector);
   }

@@ -34,7 +34,7 @@ const boundariesConfig = createConfig(
       ],
     },
   },
-  "customBoundaries",
+  "customBoundaries"
 );
 
 export default [boundariesConfig];

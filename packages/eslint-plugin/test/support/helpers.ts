@@ -20,7 +20,7 @@ const absoluteFilePath = (basePath: string, relativePath: string) => {
 const resolverLegacyAliasPath = path.resolve(
   process.cwd(),
   "test",
-  "resolver-legacy-alias",
+  "resolver-legacy-alias"
 );
 
 export type RuleTesterSettings = Linter.Config<Linter.RulesRecord> & {
@@ -233,7 +233,7 @@ export const TYPESCRIPT_SETTINGS: Record<string, RuleTesterSettings> = {
 export const createRuleTester = (
   settings: Linter.Config<Linter.RulesRecord> & {
     parserOptions?: Linter.ParserOptions;
-  } = {},
+  } = {}
 ) => {
   const parserOptions = settings.parserOptions || {
     ecmaVersion: 2015,

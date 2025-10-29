@@ -68,7 +68,7 @@ export type DependencyNodeKey =
  * @returns True if the value is a valid DependencyNodeKey, false otherwise.
  */
 export function isDependencyNodeKey(
-  value: unknown,
+  value: unknown
 ): value is DependencyNodeKey {
   return (
     isString(value) &&

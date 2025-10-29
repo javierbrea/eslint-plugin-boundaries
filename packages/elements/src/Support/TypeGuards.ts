@@ -69,7 +69,7 @@ export function isStringArray(value: unknown): value is string[] {
  */
 export function isObjectWithProperty<Key extends string>(
   value: unknown,
-  key: Key,
+  key: Key
 ): value is Record<Key, unknown> & Record<string, unknown> {
   return isObject(value) && Object.prototype.hasOwnProperty.call(value, key);
 }
@@ -82,7 +82,7 @@ export function isObjectWithProperty<Key extends string>(
  */
 export function isObjetWithAnyOfProperties<Keys extends string>(
   value: unknown,
-  keys: Keys[],
+  keys: Keys[]
 ): value is Record<Keys, unknown> & Record<string, unknown> {
   return isObject(value) && keys.some((key) => key in value);
 }

@@ -15,7 +15,7 @@ const { absoluteFilePath } = pathResolvers("one-level");
 const testCapture = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string>,
+  errorMessages: Record<number, string>
 ) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
@@ -59,7 +59,7 @@ const testCapture = (
               entryPointNoRuleMessage({
                 entryPoint: "index.js",
                 dep: "'components' with elementName 'component-c'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -78,7 +78,7 @@ const testCapture = (
               entryPointNoRuleMessage({
                 entryPoint: "ComponentA.js",
                 dep: "'components' with elementName 'component-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -97,7 +97,7 @@ const testCapture = (
               entryPointNoRuleMessage({
                 entryPoint: "index.js",
                 dep: "'helpers' with elementName 'helper-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -116,7 +116,7 @@ const testCapture = (
               entryPointNoRuleMessage({
                 entryPoint: "main.js",
                 dep: "'helpers' with elementName 'helper-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -155,7 +155,7 @@ testCapture(
   ],
   {
     3: "The entry point 'main.js' is not allowed in elements of type 'helpers' with elementName '*-a'. Disallowed in rule 2",
-  },
+  }
 );
 
 // Custom messages
@@ -194,5 +194,5 @@ testCapture(
     1: "Importing the file ComponentA.js is not allowed in components",
     2: "Importing the file index.js is not allowed in helpers",
     3: "Do not import any type of file from helpers with name *-a (importing from component-a)",
-  },
+  }
 );

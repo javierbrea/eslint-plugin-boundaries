@@ -90,7 +90,7 @@ export type RuleMatcher<
   // eslint-disable-next-line no-unused-vars
   elementsCapturedValues: RuleMatcherElementsCapturedValues,
   // eslint-disable-next-line no-unused-vars
-  importKind?: DependencyKind,
+  importKind?: DependencyKind
 ) => RuleResult;
 
 // Specific rule options

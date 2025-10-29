@@ -20,24 +20,24 @@ export function isLegacyType(type: unknown): type is string {
 }
 
 export function isValidElementAssigner(
-  element: unknown,
+  element: unknown
 ): element is ElementDescriptor {
   if (!element || !isObject(element)) {
     warnOnce(
-      `Please provide a valid object to define element types in '${ELEMENTS}' setting`,
+      `Please provide a valid object to define element types in '${ELEMENTS}' setting`
     );
     return false;
   }
   if (isLegacyType(element)) {
     warnOnce(
-      `Defining elements as strings in settings is deprecated. Will be automatically converted, but this feature will be removed in next major versions`,
+      `Defining elements as strings in settings is deprecated. Will be automatically converted, but this feature will be removed in next major versions`
     );
     return true;
   } else {
     const isObjectElement = isObject(element);
     if (!isObjectElement) {
       warnOnce(
-        `Please provide a valid object to define element types in '${ELEMENTS}' setting`,
+        `Please provide a valid object to define element types in '${ELEMENTS}' setting`
       );
       return false;
     }
@@ -54,8 +54,8 @@ export function isValidElementAssigner(
         `Invalid mode property of type ${
           element.type
         } in '${ELEMENTS}' setting. Should be one of ${VALID_MODES.join(
-          ",",
-        )}. Default value "${VALID_MODES[0]}" will be used instead`,
+          ","
+        )}. Default value "${VALID_MODES[0]}" will be used instead`
       );
       return false;
     }
@@ -64,13 +64,13 @@ export function isValidElementAssigner(
       !(isString(element.pattern) || isArray(element.pattern))
     ) {
       warnOnce(
-        `Please provide a valid pattern to type ${element.type} in '${ELEMENTS}' setting`,
+        `Please provide a valid pattern to type ${element.type} in '${ELEMENTS}' setting`
       );
       return false;
     }
     if (element.capture && !isArray(element.capture)) {
       warnOnce(
-        `Invalid capture property of type ${element.type} in '${ELEMENTS}' setting`,
+        `Invalid capture property of type ${element.type} in '${ELEMENTS}' setting`
       );
       return false;
     }
@@ -80,7 +80,7 @@ export function isValidElementAssigner(
 
 // TODO, remove in next major version
 function transformLegacyTypes(
-  typesFromSettings?: string[] | ElementDescriptors,
+  typesFromSettings?: string[] | ElementDescriptors
 ): ElementDescriptors {
   const types = typesFromSettings || [];
   if (!isArray(types)) {

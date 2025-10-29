@@ -143,7 +143,7 @@ ruleTester.run(RULE, rule, {
     // Components of family "molecules" can't import `@material-ui/icons`
     {
       filename: absoluteFilePath(
-        "components/molecules/molecule-a/MoleculeA.js",
+        "components/molecules/molecule-a/MoleculeA.js"
       ),
       code: "import { Info } from '@material-ui/icons'",
       options,

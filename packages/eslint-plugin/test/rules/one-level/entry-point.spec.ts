@@ -27,7 +27,7 @@ const defaultOptions = [
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string> = {},
+  errorMessages: Record<number, string> = {}
 ) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
@@ -108,7 +108,7 @@ const runTest = (
               entryPointNoRuleMessage({
                 entryPoint: "ComponentB.js",
                 dep: "'components' with elementName 'component-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -127,7 +127,7 @@ const runTest = (
               entryPointNoRuleMessage({
                 entryPoint: "index.js",
                 dep: "'helpers' with elementName 'helper-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -146,7 +146,7 @@ const runTest = (
               entryPointNoRuleMessage({
                 entryPoint: "index.js",
                 dep: "'helpers' with elementName 'helper-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -165,7 +165,7 @@ const runTest = (
               entryPointNoRuleMessage({
                 entryPoint: "main.js",
                 dep: "'components' with elementName 'component-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -178,7 +178,7 @@ const runTest = (
 const testCapture = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string> = {},
+  errorMessages: Record<number, string> = {}
 ) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
@@ -210,7 +210,7 @@ const testCapture = (
               entryPointNoRuleMessage({
                 entryPoint: "index.js",
                 dep: "'helpers' with elementName 'helper-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -229,7 +229,7 @@ const testCapture = (
               entryPointNoRuleMessage({
                 entryPoint: "main.js",
                 dep: "'helpers' with elementName 'helper-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -344,7 +344,7 @@ runTest(
     1: "The entry point 'index.js' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     2: "The entry point 'index.js' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
     3: "The entry point 'main.js' is not allowed in elements of type 'components'. Disallowed in rule 3",
-  },
+  }
 );
 
 // options with capture
@@ -380,7 +380,7 @@ testCapture(
   ],
   {
     1: "The entry point 'main.js' is not allowed in elements of type 'helpers' with elementName '*-a'. Disallowed in rule 2",
-  },
+  }
 );
 
 // Custom messages
@@ -420,5 +420,5 @@ testCapture(
   {
     0: "Importing the file index.js is not allowed in helpers",
     1: "Do not import any type of file from helpers with name *-a",
-  },
+  }
 );

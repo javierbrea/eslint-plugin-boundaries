@@ -49,7 +49,7 @@ const DEFAULT_MATCHER_OPTIONS = {
 };
 
 export function elementsMatcherSchema(
-  matcherOptions: Record<string, unknown> = DEFAULT_MATCHER_OPTIONS,
+  matcherOptions: Record<string, unknown> = DEFAULT_MATCHER_OPTIONS
 ) {
   return {
     oneOf: [
@@ -83,7 +83,7 @@ export function rulesOptionsSchema(
   options: {
     rulesMainKey?: RuleMainKey;
     targetMatcherOptions?: Record<string, unknown>;
-  } = {},
+  } = {}
 ) {
   const mainKey = rulesMainKey(options.rulesMainKey);
   return [
@@ -144,7 +144,7 @@ export function rulesOptionsSchema(
 
 function isValidElementTypesMatcher(
   matcher: ElementSelector | ExternalLibrarySelector,
-  settings: Settings,
+  settings: Settings
 ) {
   const matcherToCheck = isArray(matcher) ? matcher[0] : matcher;
   const typeMatcherToCheck = isString(matcherToCheck)
@@ -160,14 +160,14 @@ function isValidElementTypesMatcher(
     (categoryMatcherToCheck &&
       micromatch.some(
         getElementsCategoryNames(settings),
-        categoryMatcherToCheck,
+        categoryMatcherToCheck
       ))
   );
 }
 
 export function validateElementTypesMatcher(
   elementsMatcher: ElementsSelector | ExternalLibrariesSelector,
-  settings: Settings,
+  settings: Settings
 ) {
   const [matcher] = isArray(elementsMatcher)
     ? elementsMatcher
@@ -178,7 +178,7 @@ export function validateElementTypesMatcher(
   ) {
     invalidMatchers.push(matcher);
     warnOnce(
-      `Option '${matcher}' does not match any element type from '${ELEMENTS}' setting`,
+      `Option '${matcher}' does not match any element type from '${ELEMENTS}' setting`
     );
   }
 }
@@ -192,7 +192,7 @@ function validateElements(elements: unknown): ElementDescriptors | undefined {
 }
 
 function validateDependencyNodes(
-  dependencyNodes: DependencyNodeKey[] | undefined | unknown,
+  dependencyNodes: DependencyNodeKey[] | undefined | unknown
 ): DependencyNodeKey[] | undefined {
   if (!dependencyNodes) {
     return;
@@ -220,7 +220,7 @@ function validateDependencyNodes(
 }
 
 function isValidDependencyNodeSelector(
-  selector: unknown,
+  selector: unknown
 ): selector is DependencyNodeSelector {
   const isValidObject =
     isObject(selector) &&
@@ -230,14 +230,14 @@ function isValidDependencyNodeSelector(
         VALID_DEPENDENCY_NODE_KINDS.includes(selector.kind as DependencyKind)));
   if (!isValidObject) {
     warnOnce(
-      `Please provide a valid object in ${ADDITIONAL_DEPENDENCY_NODES} setting. The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type" }. The invalid object will be ignored.`,
+      `Please provide a valid object in ${ADDITIONAL_DEPENDENCY_NODES} setting. The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type" }. The invalid object will be ignored.`
     );
   }
   return isValidObject;
 }
 
 function validateAdditionalDependencyNodes(
-  additionalDependencyNodes: unknown,
+  additionalDependencyNodes: unknown
 ): DependencyNodeSelector[] | undefined {
   if (!additionalDependencyNodes) {
     return;
@@ -260,7 +260,7 @@ function validateAdditionalDependencyNodes(
 function deprecateAlias(aliases: unknown) {
   if (aliases) {
     warnOnce(
-      `Defining aliases in '${ALIAS}' setting is deprecated. Please use 'import/resolver' setting`,
+      `Defining aliases in '${ALIAS}' setting is deprecated. Please use 'import/resolver' setting`
     );
   }
 }
@@ -268,7 +268,7 @@ function deprecateAlias(aliases: unknown) {
 function deprecateTypes(types: unknown) {
   if (types) {
     warnOnce(
-      `'${TYPES}' setting is deprecated. Please use '${ELEMENTS}' instead`,
+      `'${TYPES}' setting is deprecated. Please use '${ELEMENTS}' instead`
     );
   }
 }
@@ -281,7 +281,7 @@ function validateIgnore(ignore: unknown): IgnoreSetting | undefined {
     return ignore;
   }
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.IGNORE}' setting. The value should be a string or an array of strings.`,
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.IGNORE}' setting. The value should be a string or an array of strings.`
   );
   return;
 }
@@ -294,7 +294,7 @@ function validateInclude(include: unknown): IncludeSetting | undefined {
     return include;
   }
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.INCLUDE}' setting. The value should be a string or an array of strings.`,
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.INCLUDE}' setting. The value should be a string or an array of strings.`
   );
   return;
 }
@@ -307,32 +307,32 @@ function validateRootPath(rootPath: unknown): string | undefined {
     return rootPath;
   }
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.ROOT_PATH}' setting. The value should be a string.`,
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.ROOT_PATH}' setting. The value should be a string.`
   );
   return;
 }
 
 export function validateSettings(
-  settings: Rule.RuleContext["settings"],
+  settings: Rule.RuleContext["settings"]
 ): Settings {
   deprecateTypes(settings[TYPES]);
   deprecateAlias(settings[ALIAS]);
 
   return {
     [SETTINGS_KEYS_MAP.ELEMENTS]: validateElements(
-      settings[ELEMENTS] || settings[TYPES],
+      settings[ELEMENTS] || settings[TYPES]
     ),
     [SETTINGS_KEYS_MAP.IGNORE]: validateIgnore(
-      settings[SETTINGS_KEYS_MAP.IGNORE],
+      settings[SETTINGS_KEYS_MAP.IGNORE]
     ),
     [SETTINGS_KEYS_MAP.INCLUDE]: validateInclude(
-      settings[SETTINGS_KEYS_MAP.INCLUDE],
+      settings[SETTINGS_KEYS_MAP.INCLUDE]
     ),
     [SETTINGS_KEYS_MAP.ROOT_PATH]: validateRootPath(
-      settings[SETTINGS_KEYS_MAP.ROOT_PATH],
+      settings[SETTINGS_KEYS_MAP.ROOT_PATH]
     ),
     [SETTINGS_KEYS_MAP.DEPENDENCY_NODES]: validateDependencyNodes(
-      settings[DEPENDENCY_NODES],
+      settings[DEPENDENCY_NODES]
     ),
     [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES]:
       validateAdditionalDependencyNodes(settings[ADDITIONAL_DEPENDENCY_NODES]),
@@ -342,7 +342,7 @@ export function validateSettings(
 export function validateRules(
   settings: Settings,
   rules: RuleOptionsRules[] = [],
-  options: ValidateRulesOptions = {},
+  options: ValidateRulesOptions = {}
 ) {
   const mainKey = rulesMainKey(options.mainKey);
   rules.forEach((rule) => {

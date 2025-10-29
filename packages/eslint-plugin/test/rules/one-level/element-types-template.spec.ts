@@ -18,7 +18,7 @@ const { absoluteFilePath } = pathResolvers("one-level");
 const testCapture = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string>,
+  errorMessages: Record<number, string>
 ) => {
   const ruleTester = createRuleTester(settings);
 
@@ -81,7 +81,7 @@ const testCapture = (
               elementTypesNoRuleMessage({
                 file: "'components' with elementName 'component-a'",
                 dep: "'helpers' with elementName 'helper-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -100,7 +100,7 @@ const testCapture = (
               elementTypesNoRuleMessage({
                 file: "'components' with elementName 'component-a'",
                 dep: "'helpers' with elementName 'helper-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -119,7 +119,7 @@ const testCapture = (
               elementTypesNoRuleMessage({
                 file: "'components' with elementName 'component-b'",
                 dep: "'components' with elementName 'component-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -138,7 +138,7 @@ const testCapture = (
               elementTypesNoRuleMessage({
                 file: "'modules' with elementName 'module-a'",
                 dep: "'helpers' with elementName 'helper-b'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -157,7 +157,7 @@ const testCapture = (
               elementTypesNoRuleMessage({
                 file: "'modules' with elementName 'module-b'",
                 dep: "'module-a-helpers' with elementName 'helper-1'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -176,7 +176,7 @@ const testCapture = (
               elementTypesNoRuleMessage({
                 file: "'modules' with elementName 'module-b'",
                 dep: "'helpers' with elementName 'module-a'",
-              }),
+              })
             ),
             type: "Literal",
           },
@@ -250,5 +250,5 @@ testCapture(
   ],
   {
     2: "Importing elements of type 'components' with elementName 'component-a' is not allowed in elements of type 'components'. Disallowed in rule 1",
-  },
+  }
 );
