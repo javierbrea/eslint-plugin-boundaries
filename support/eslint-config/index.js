@@ -99,6 +99,7 @@ export const jsBaseConfig = {
     ...eslintConfigPrettier.rules,
     ...eslintPluginPrettierRecommended.rules,
     camelcase: [2, { properties: "never" }],
+    "no-redeclare": [2],
     "no-console": [2, { allow: ["warn", "error"] }],
     "no-shadow": [2, { builtinGlobals: true, hoist: "all" }],
     "no-undef": [2],
@@ -165,6 +166,13 @@ export const typescriptConfig = {
   },
   rules: {
     ...typescriptEslintPlugin.configs?.recommended?.rules,
+    "no-redeclare": 0,
+    "@typescript-eslint/no-redeclare": 2,
+    "no-unused-vars": 0,
+    "@typescript-eslint/no-unused-vars": [
+      2,
+      { vars: "all", args: "after-used", ignoreRestSiblings: false },
+    ],
     "@typescript-eslint/no-unused-expressions": [
       1,
       { allowShortCircuit: true, allowTernary: true },

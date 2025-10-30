@@ -320,7 +320,6 @@ export class ElementsDescriptor {
    * @param options The options for matching the descriptor.
    * @returns The result of the match, including whether it matched and any captured values.
    */
-  // eslint-disable-next-line no-unused-vars
   private _fileDescriptorMatch(options: FileDescriptorMatchOptions): {
     matched: true;
     capture: string[];
@@ -626,14 +625,9 @@ export class ElementsDescriptor {
    * @returns The description of the element. A dependency element if dependency source is provided, otherwise a file element.
    */
   private _describeElement(): LocalElementUnknown;
+  private _describeElement(filePath?: string): FileElement;
   private _describeElement(
-    // eslint-disable-next-line no-unused-vars
-    filePath?: string
-  ): FileElement;
-  private _describeElement(
-    // eslint-disable-next-line no-unused-vars
     filePath?: string,
-    // eslint-disable-next-line no-unused-vars
     dependencySource?: string
   ): DependencyElement;
 

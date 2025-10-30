@@ -130,6 +130,8 @@ export class Elements {
    * @param configOptions Optional configuration options to override the global ones.
    * @returns An ElementsDescriptor instance, unique for each different configuration.
    */
+  // TODO: Rename? Descriptor will also return matchers later.
+  // Descriptors should be singular? It will return methods: describeElement, describeDependency, describeDependencyElement, pathIsElementMatch, descriptionIsElementMatch, isElementMatch (supporting both path or descriptions?), descriptionIsDependencyMatch, pathsAreDependencyMatch, isDependencyMatch (supporting both filepaths or descriptions?).
   public getDescriptors(
     elementDescriptors: ElementDescriptors,
     configOptions?: ConfigOptions
@@ -198,7 +200,7 @@ export class Elements {
   public getDependencySelectorsMatching(
     dependency: DependencyDescription,
     selector: DependencySelector,
-    options: MatcherOptions
+    options?: MatcherOptions
   ): DependencyMatchResult {
     return this._dependenciesMatcher.getSelectorsMatching(
       dependency,
@@ -232,11 +234,9 @@ export class Elements {
    * @returns The normalized array of selector data.
    */
   public normalizeElementsSelector(
-    // eslint-disable-next-line no-unused-vars
     elementsSelector: BaseElementsSelector
   ): BaseElementSelectorData[];
   public normalizeElementsSelector(
-    // eslint-disable-next-line no-unused-vars
     elementsSelector: DependencyElementsSelector
   ): DependencyElementSelectorData[];
 

@@ -206,17 +206,21 @@ export class ElementsMatcher extends BaseElementsMatcher {
     }
     return Object.entries(selector.captured).every(([key, pattern]) => {
       const elementValue =
-        (element.capturedValues && element.capturedValues[key]) || "";
+        // TODO: Rename to captured also in element, so selectors follow same naming
+        element.capturedValues && element.capturedValues[key];
+      if (!elementValue) {
+        return false;
+      }
       const renderedPattern = this.getRenderedTemplates(pattern, templateData);
+      // Empty selector values do not match anything.
       if (!renderedPattern) {
         return false;
       }
-      if (isArray(renderedPattern)) {
-        return renderedPattern.some(
-          (pat) => pat && micromatch.isMatch(elementValue, pat)
-        );
-      }
-      return micromatch.isMatch(elementValue, renderedPattern);
+      // Clean empty strings from arrays to avoid matching them.
+      const filteredPattern = isArray(renderedPattern)
+        ? renderedPattern.filter(Boolean)
+        : renderedPattern;
+      return micromatch.isMatch(elementValue, filteredPattern);
     });
   }
 
@@ -310,11 +314,13 @@ export class ElementsMatcher extends BaseElementsMatcher {
   public isElementMatch(
     element: ElementDescription,
     selector: BaseElementsSelector,
-    { extraTemplateData = {} }: MatcherOptions = {}
+    options?: MatcherOptions
   ): boolean {
-    const selectorMatching = this.getSelectorMatching(element, selector, {
-      extraTemplateData,
-    });
+    const selectorMatching = this.getSelectorMatching(
+      element,
+      selector,
+      options
+    );
     return !isNullish(selectorMatching);
   }
 }

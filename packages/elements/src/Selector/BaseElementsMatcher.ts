@@ -38,11 +38,9 @@ export class BaseElementsMatcher {
    * @returns The normalized array of selector data.
    */
   public normalizeElementsSelector(
-    // eslint-disable-next-line no-unused-vars
     elementsSelector: BaseElementsSelector
   ): BaseElementSelectorData[];
   public normalizeElementsSelector(
-    // eslint-disable-next-line no-unused-vars
     elementsSelector: DependencyElementsSelector
   ): DependencyElementSelectorData[];
 
@@ -64,11 +62,9 @@ export class BaseElementsMatcher {
    * @returns The normalized selector data.
    */
   protected normalizeSelector(
-    // eslint-disable-next-line no-unused-vars
     selector: BaseElementSelector
   ): BaseElementSelectorData;
   protected normalizeSelector(
-    // eslint-disable-next-line no-unused-vars
     selector: DependencyElementSelector
   ): DependencyElementSelectorData;
 
@@ -88,10 +84,6 @@ export class BaseElementsMatcher {
           captured: { ...selector[1] },
         };
       }
-      return {
-        ...selector[0],
-        captured: { ...selector[1] },
-      };
     }
     throw new Error("Invalid element selector");
   }
@@ -177,17 +169,29 @@ export class BaseElementsMatcher {
     selectorValue?: MicromatchPattern;
   }): boolean {
     // The selector key does not exist in the selector, so it matches any value. We also check the value passed separately in order to improve typing inference.
-    if (!(selectorKey in selector) || !selectorValue) {
+    if (!(selectorKey in selector)) {
       return true;
+    }
+    // Empty selector values do not match anything.
+    if (!selectorValue) {
+      return false;
     }
     // The selector key exists in the selector, but it does not exist in the element. No match.
     if (!isObjectWithProperty(element, elementKey)) {
       return false;
     }
-    // TODO: Convert boolean values or null to strings? This would allow matching against e.g. "true" or "false" strings.
-    if (!element[elementKey] || !isString(element[elementKey])) {
-      return micromatch.isMatch(String(element[elementKey]), selectorValue);
-    }
-    return micromatch.isMatch(element[elementKey], selectorValue);
+
+    // Convert non-string element values to string for matching.
+    const elementValueToCheck =
+      !element[elementKey] || !isString(element[elementKey])
+        ? String(element[elementKey])
+        : element[elementKey];
+
+    // Clean empty strings from arrays to avoid matching them.
+    const selectorValueToCheck = isArray(selectorValue)
+      ? selectorValue.filter(Boolean)
+      : selectorValue;
+
+    return micromatch.isMatch(elementValueToCheck, selectorValueToCheck);
   }
 }

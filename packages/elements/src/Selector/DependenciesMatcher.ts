@@ -204,6 +204,14 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       return null;
     };
 
+    if (!selector.from && !selector.to) {
+      return {
+        from: null,
+        to: null,
+        isMatch: false,
+      };
+    }
+
     const fromSelectorMatching = selector.from
       ? getFromSelectorMatching()
       : null;
@@ -324,12 +332,9 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    */
   private _dependencyFromPropertiesMatch(
     dependency: DependencyDescription,
-    fromSelector: BaseElementSelectorData[] | null,
+    fromSelector: BaseElementSelectorData[],
     templateData: TemplateData
   ): boolean {
-    if (!fromSelector) {
-      return true;
-    }
     return fromSelector.some((selectorData) =>
       this._relationshipMatches(
         selectorData,
@@ -348,12 +353,9 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    */
   private _dependencyToPropertiesMatch(
     dependency: DependencyDescription,
-    toSelector: DependencyElementSelectorData[] | null,
+    toSelector: DependencyElementSelectorData[],
     templateData: TemplateData
   ): boolean {
-    if (!toSelector) {
-      return true;
-    }
     return toSelector.some((selectorData) => {
       return (
         this._relationshipMatches(

@@ -10,6 +10,12 @@ import {
 } from "../../support/eslint-config/index.js";
 
 export default [
+  ignores,
+  jsonConfig,
+  jsoncConfig,
+  markdownConfig,
+  jestConfig,
+  jsBaseConfig,
   {
     ...typescriptConfig,
     languageOptions: {
@@ -19,10 +25,4 @@ export default [
       },
     },
   },
-  ignores,
-  jsonConfig,
-  jsoncConfig,
-  markdownConfig,
-  jsBaseConfig,
-  jestConfig,
 ];
