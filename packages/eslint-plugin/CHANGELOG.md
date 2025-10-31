@@ -20,8 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 > TODO BEFORE RELEASE 6.0.0
 > 
-> - Full unit tests coverage in elements package.
-> - Review exported types in elements package. (types for having type/category or both, etc.)
+> - Refactor elements package to improve interface
 > - Elements package documentation.
 >
 > - Refactor `eslint-plugin-boundaries` package to use the types from `elements` package. Expose all necessary type guards from `elements` package to be used in `eslint-plugin-boundaries` package.
@@ -51,8 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > - Rename rules according to new naming RFC, make it backwards compatible.
 > - Publish current documentation in website, and publish new docs in next release. Remove documentation from README.md except for basic usage. Change rules docs to point to website.
 > - Create task in backlog to migrate messages to @elements package (return human-friendly messages when matching elements and dependencies).
-> - Create task in backlog to improve debug system: Trace file being linted, settings being used, resolved elements, dependencies being analyzed, rules failing/passing, etc. Allow to enable only to certain files using patterns. Add setting to enable/disable it.
-
+> - Create task in backlog to improve debug system: Trace file being linted, settings being used, resolved elements, dependencies being analyzed, rules failing/passing, etc. Allow to enable only to certain files using patterns. Add setting to enable/disable it. Create RFC for it.
+> - Create task in backlog to add cache limit. Create fs-cache manager. Create RFC for it.
 
 ## [5.1.0] - 2025-10-14
 

@@ -11,6 +11,7 @@ import type {
 } from "../../src/index";
 import { Elements } from "../../src/index";
 
+// TODO: Change the interface to expose selectors directly from Descriptor class
 describe("Selectors", () => {
   let descriptors: Descriptors;
   let elements: Elements;
@@ -107,7 +108,6 @@ describe("Selectors", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        // TODO: Support micromatch patterns in type and category selectors too. Fix types
         selector: { type: ["foo", "{{ element.type }}"] },
         expected: true,
       },

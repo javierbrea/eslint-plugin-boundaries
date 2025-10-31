@@ -18,9 +18,6 @@ import type {
   CapturedValuesSelector,
   ExternalLibrarySelectorOptions,
   SimpleElementSelectorByType,
-  ElementSelectorByTypeAndCategory,
-  ElementSelectorByCategory,
-  ElementSelectorByType,
   ElementSelectorData,
   DependencySelector,
 } from "./ElementsSelector.types";
@@ -52,42 +49,6 @@ export function isSimpleElementSelectorByType(
   value: unknown
 ): value is SimpleElementSelectorByType {
   return isString(value);
-}
-
-/**
- * Determines if the given value is an element selector by type.
- * @param value The value to check.
- * @returns True if the value is an element selector by type, false otherwise.
- */
-export function isElementSelectorByType(
-  value: unknown
-): value is ElementSelectorByType {
-  return (
-    isObjectWithProperty(value, "type") &&
-    isSimpleElementSelectorByType(value.type)
-  );
-}
-
-/**
- * Determines if the given value is an element selector by category.
- * @param value The value to check.
- * @returns True if the value is an element selector by category, false otherwise.
- */
-export function isElementSelectorByCategory(
-  value: unknown
-): value is ElementSelectorByCategory {
-  return isObjectWithProperty(value, "category") && isString(value.category);
-}
-
-/**
- * Determines if the given value is an element selector by both type and category.
- * @param value The value to check.
- * @returns True if the value is an element selector by both type and category, false otherwise.
- */
-export function isElementSelectorByTypeAndCategory(
-  value: unknown
-): value is ElementSelectorByTypeAndCategory {
-  return isElementSelectorByType(value) && isElementSelectorByCategory(value);
 }
 
 /**

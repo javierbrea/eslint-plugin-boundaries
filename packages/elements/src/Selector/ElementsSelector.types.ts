@@ -81,54 +81,13 @@ export type MatcherOptions = {
 export type SimpleElementSelectorByType = string;
 
 /**
- * Element selector by type.
- */
-export type ElementSelectorByType = {
-  /** Type of the element */
-  type: SimpleElementSelectorByType;
-  /** Category of the element */
-  category?: never;
-};
-
-// TODO: Remove these types?
-/**
- * Element selector by category.
- */
-export type ElementSelectorByCategory = {
-  /** Category of the element */
-  category: string;
-  /** Type of the element */
-  type?: never;
-};
-
-// TODO: Remove these types?
-/**
- * Element selector by both type and category.
- */
-export type ElementSelectorByTypeAndCategory = {
-  /** Type of the element */
-  type: SimpleElementSelectorByType;
-  /** Category of the element */
-  category: string;
-};
-
-// TODO: Remove these types?
-/**
- * Element selector by type or category, which can be either by type, by category, or by both type and category.
- */
-export type ElementSelectorByTypeOrCategory =
-  | ElementSelectorByType
-  | ElementSelectorByCategory
-  | ElementSelectorByTypeAndCategory;
-
-/**
  * Selector for base elements, including captured values for dynamic matching.
  */
 export type BaseElementSelectorData = {
   /** Type of the element */
-  type?: SimpleElementSelectorByType;
+  type?: MicromatchPattern;
   /** Category of the element */
-  category?: string;
+  category?: MicromatchPattern;
   /** Captured values selector for dynamic matching */
   captured?: CapturedValuesSelector;
   /** Micromatch pattern(s) to match internal paths within the file or dependency */

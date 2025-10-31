@@ -127,10 +127,12 @@ function elementMatcherMessage(
     const selector = elements.normalizeElementsSelector(elementMatcher);
     const parts: string[] = [];
     if (selector[0].type) {
+      // @ts-expect-error Types have to be aligned properly
       parts.push(typeMessage(selector[0].type));
     }
     if (selector[0].category) {
       parts.push(propertiesConcatenator(parts, parts.length + 1));
+      // @ts-expect-error Types have to be aligned properly
       parts.push(categoryMessage(selector[0].category));
     }
     if (selector[0].captured) {
@@ -160,12 +162,15 @@ export function ruleElementMessage(
 ) {
   if (isArray(elementPatterns)) {
     if (elementPatterns.length === 1) {
+      // @ts-expect-error Types have to be aligned properly
       return elementMatcherMessage(elementPatterns[0], elementCapturedValues);
     }
     return elementPatterns.reduce((message, elementPattern, index) => {
       if (index === 0) {
+        // @ts-expect-error Types have to be aligned properly
         return elementMatcherMessage(elementPattern, elementCapturedValues);
       }
+      // @ts-expect-error Types have to be aligned properly
       return `${message}, or ${elementMatcherMessage(elementPattern, elementCapturedValues)}`;
     }, "");
   }
