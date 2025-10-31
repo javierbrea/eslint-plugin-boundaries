@@ -1,25 +1,20 @@
 import { CacheManager } from "./Cache";
 import type { ConfigOptions } from "./Config";
 import { Config } from "./Config";
-import { Descriptors } from "./Descriptor";
 import type {
   ElementDescriptors,
   ElementDescription,
   DependencyDescription,
 } from "./Descriptor";
 import type { ElementsSerializedCache } from "./Elements.types";
-import { DependenciesMatcher, ElementsMatcher } from "./Selector";
+import { DependenciesMatcher, ElementsMatcher, Matcher } from "./Matcher";
 import type {
   BaseElementsSelector,
-  DependencySelector,
-  MatcherOptions,
-  BaseElementSelectorData,
   ElementSelectorData,
+  MatcherOptions,
+  DependencySelector,
   DependencyMatchResult,
-  DependencyElementsSelector,
-  DependencyElementSelectorData,
-  ElementsSelector,
-} from "./Selector";
+} from "./Matcher";
 
 /**
  * Main class to interact with Elements functionality.
@@ -29,13 +24,13 @@ export class Elements {
   /** The global configuration options for Elements. Can be overridden when getting a descriptor */
   private _globalConfigOptions: ConfigOptions;
 
-  /** Cache manager for Descriptors instances, unique for each different configuration */
-  private _descriptorsCache: CacheManager<
+  /** Cache manager for Matcher instances, unique for each different configuration */
+  private _matchersCache: CacheManager<
     { config: ConfigOptions; elementDescriptors: ElementDescriptors },
     {
       config: ConfigOptions;
       elementDescriptors: ElementDescriptors;
-      descriptors: Descriptors;
+      matcher: Matcher;
     }
   > = new CacheManager();
 
@@ -60,26 +55,24 @@ export class Elements {
    * @returns A serialized representation of the cache.
    */
   public serializeCache(): ElementsSerializedCache {
-    const descriptorsCache = Array.from(
-      this._descriptorsCache.getAll().entries()
+    const matchersCache = Array.from(
+      this._matchersCache.getAll().entries()
     ).reduce(
       (acc, [key, descriptorCache]) => {
         acc[key] = {
-          cache: descriptorCache.descriptors.serializeCache(),
           config: descriptorCache.config,
           elementDescriptors: descriptorCache.elementDescriptors,
+          cache: descriptorCache.matcher.serializeCache(),
         };
         return acc;
       },
-      {} as ElementsSerializedCache["descriptors"]
+      {} as ElementsSerializedCache["matchers"]
     );
 
     return {
-      descriptors: descriptorsCache,
-      selectors: {
-        elementsMatcherCache: this._elementsMatcher.serializeCache(),
-        dependenciesMatcherCache: this._dependenciesMatcher.serializeCache(),
-      },
+      matchers: matchersCache,
+      elementsMatcher: this._elementsMatcher.serializeCache(),
+      dependenciesMatcher: this._dependenciesMatcher.serializeCache(),
     };
   }
 
@@ -90,25 +83,23 @@ export class Elements {
   public setCacheFromSerialized(
     serializedCache: ElementsSerializedCache
   ): void {
-    for (const key in serializedCache.descriptors) {
-      const descriptors = this.getDescriptors(
-        serializedCache.descriptors[key].elementDescriptors,
-        serializedCache.descriptors[key].config
+    for (const key in serializedCache.matchers) {
+      const matcher = this.getMatcher(
+        serializedCache.matchers[key].elementDescriptors,
+        serializedCache.matchers[key].config
       );
-      descriptors.setCacheFromSerialized(
-        serializedCache.descriptors[key].cache
-      );
-      this._descriptorsCache.restore(key, {
-        config: serializedCache.descriptors[key].config,
-        elementDescriptors: serializedCache.descriptors[key].elementDescriptors,
-        descriptors,
+      matcher.setCacheFromSerialized(serializedCache.matchers[key].cache);
+      this._matchersCache.restore(key, {
+        config: serializedCache.matchers[key].config,
+        elementDescriptors: serializedCache.matchers[key].elementDescriptors,
+        matcher: matcher,
       });
     }
     this._elementsMatcher.setCacheFromSerialized(
-      serializedCache.selectors.elementsMatcherCache
+      serializedCache.elementsMatcher
     );
     this._dependenciesMatcher.setCacheFromSerialized(
-      serializedCache.selectors.dependenciesMatcherCache
+      serializedCache.dependenciesMatcher
     );
   }
 
@@ -118,50 +109,49 @@ export class Elements {
   public clearCache(): void {
     this._elementsMatcher.clearCache();
     this._dependenciesMatcher.clearCache();
-    this._descriptorsCache.getAll().forEach(({ descriptors }) => {
-      descriptors.clearCache();
+    this._matchersCache.getAll().forEach(({ matcher }) => {
+      matcher.clearCache();
     });
-    this._descriptorsCache.clear();
+    this._matchersCache.clear();
   }
 
   /**
-   * Gets Elements and Dependencies descriptor instances based on the provided configuration options.
-   * If no options are provided, the global configuration options are used.
+   * Gets a Matcher instance for the given configuration options.
+   * It uses caching to return the same instance for the same configuration options. If no options are provided, the global configuration options are used.
+   * @param elementDescriptors The element descriptors to use.
    * @param configOptions Optional configuration options to override the global ones.
-   * @returns An ElementsDescriptor instance, unique for each different configuration.
+   * @returns A matcher instance, unique for each different configuration.
    */
-  // TODO: Rename? Descriptor will also return matchers later.
-  // Descriptors should be singular? It will return methods: describeElement, describeDependency, describeDependencyElement, pathIsElementMatch, descriptionIsElementMatch, isElementMatch (supporting both path or descriptions?), descriptionIsDependencyMatch, pathsAreDependencyMatch, isDependencyMatch (supporting both filepaths or descriptions?).
-  public getDescriptors(
+  public getMatcher(
     elementDescriptors: ElementDescriptors,
     configOptions?: ConfigOptions
-  ): Descriptors {
+  ): Matcher {
     const optionsToUse = configOptions || this._globalConfigOptions;
     const configInstance = new Config(optionsToUse);
     const normalizedOptions = configInstance.options;
 
     const cacheKey = { config: normalizedOptions, elementDescriptors };
 
-    if (this._descriptorsCache.has(cacheKey)) {
-      return this._descriptorsCache.get(cacheKey)!.descriptors;
+    if (this._matchersCache.has(cacheKey)) {
+      return this._matchersCache.get(cacheKey)!.matcher;
     }
 
-    const descriptors = new Descriptors(elementDescriptors, normalizedOptions);
-    this._descriptorsCache.set(cacheKey, {
+    const matcher = new Matcher(elementDescriptors, normalizedOptions);
+    this._matchersCache.set(cacheKey, {
       config: normalizedOptions,
       elementDescriptors,
-      descriptors,
+      matcher,
     });
-    return descriptors;
+    return matcher;
   }
-
   /**
-   * Returns the selector matching result for the given element, or null if none matches.
+   * Returns the selector matching result for the given element description, or null if none matches.
    * It omits checks in keys applying only to dependency between elements, such as relationship.
    * @param element The element to check.
    * @param selector The selector to check against.
    * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
    * @returns The selector matching result for the given element, or null if none matches.
+   * @deprecated Use getMatcher(...).getSelectorMatching instead.
    */
   public getElementSelectorMatching(
     element: ElementDescription,
@@ -176,11 +166,12 @@ export class Elements {
   }
 
   /**
-   * Determines if an element matches a given elements selector.
+   * Determines if an element description matches a given elements selector.
    * @param element The element to check
    * @param selector The elements selector to check against
    * @param options Additional options for matching
    * @returns True if the element matches the selector, false otherwise
+   * @deprecated Use getMatcher(...).isElementMatch instead.
    */
   public isElementMatch(
     element: ElementDescription,
@@ -191,11 +182,12 @@ export class Elements {
   }
 
   /**
-   * Returns the selectors matching result for the given dependency.
+   * Returns the selectors matching result for the given dependency description.
    * @param dependency The dependency to check.
    * @param selector The selector to check against.
    * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
    * @returns The selectors matching result for the given dependency, and whether it matches or not.
+   * @deprecated Use getMatcher(...).getSelectorMatching instead.
    */
   public getDependencySelectorsMatching(
     dependency: DependencyDescription,
@@ -210,11 +202,12 @@ export class Elements {
   }
 
   /**
-   * Returns whether the given dependency matches the selector.
+   * Returns whether the given dependency description matches the selector.
    * @param dependency The dependency to check.
    * @param selector The dependency selector to check against.
    * @param options Additional options for matching
    * @returns Whether the dependency matches the selector properties.
+   * @deprecated Use getMatcher(...).isMatch instead.
    */
   public isDependencyMatch(
     dependency: DependencyDescription,
@@ -226,23 +219,5 @@ export class Elements {
       selector,
       options
     );
-  }
-
-  /**
-   * Normalizes an ElementsSelector into an array of ElementSelectorData.
-   * @param elementsSelector The elements selector, in any supported format.
-   * @returns The normalized array of selector data.
-   */
-  public normalizeElementsSelector(
-    elementsSelector: BaseElementsSelector
-  ): BaseElementSelectorData[];
-  public normalizeElementsSelector(
-    elementsSelector: DependencyElementsSelector
-  ): DependencyElementSelectorData[];
-
-  public normalizeElementsSelector(
-    elementsSelector: ElementsSelector
-  ): ElementSelectorData[] {
-    return this._elementsMatcher.normalizeElementsSelector(elementsSelector);
   }
 }

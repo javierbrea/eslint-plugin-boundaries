@@ -81,15 +81,14 @@ export type RuleMatcher<
     | CapturedValuesSelector
     | ExternalLibrarySelectorOptions = CapturedValuesSelector,
 > = (
-  // eslint-disable-next-line no-unused-vars
   elementInfo: FileOrDependencyInfo,
-  // eslint-disable-next-line no-unused-vars
+
   matcher: string,
-  // eslint-disable-next-line no-unused-vars
+
   ruleMatchers: RuleMatchers,
-  // eslint-disable-next-line no-unused-vars
+
   elementsCapturedValues: RuleMatcherElementsCapturedValues,
-  // eslint-disable-next-line no-unused-vars
+
   importKind?: DependencyKind
 ) => RuleResult;
 

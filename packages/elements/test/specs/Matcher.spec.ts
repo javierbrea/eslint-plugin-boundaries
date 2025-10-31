@@ -1,5 +1,4 @@
 /* eslint-disable jest/no-conditional-in-test */
-// TODO: Remove this tests file. It is checking only deprecated methods
 
 import micromatch from "micromatch";
 
@@ -12,7 +11,7 @@ import type {
 } from "../../src/index";
 import { Elements, normalizeElementsSelector } from "../../src/index";
 
-describe("Selectors", () => {
+describe("Matcher", () => {
   let matcher: Matcher;
   let elements: Elements;
   let micromatchSpy: jest.SpyInstance;
@@ -67,9 +66,10 @@ describe("Selectors", () => {
     elements.clearCache();
   });
 
-  describe("isElementMatch", () => {
+  describe("when matching elements", () => {
     // eslint-disable-next-line jest/prefer-ending-with-an-expect
     it.each([
+      // TODO: Add isIgnored, isUnknown properties to all descriptions. Expose in selectors too?
       {
         filePath: "/project/src/misc/other.ts",
         selector: {},
@@ -82,7 +82,7 @@ describe("Selectors", () => {
       },
       {
         filePath: "/project/src/utils/__tests__/testUtil.ts",
-        selector: { isIgnored: true },
+        selector: { isIgnored: true }, // TODO: Should this match?
         expected: false,
       },
       {
@@ -329,17 +329,15 @@ describe("Selectors", () => {
         extraTemplateData?: Record<string, unknown>;
         expectedMatch?: ElementSelectorData;
       }) => {
-        const element = matcher.describeElement(filePath);
-
         const result = extraTemplateData
-          ? elements.isElementMatch(element, selector, { extraTemplateData })
-          : elements.isElementMatch(element, selector);
+          ? matcher.isMatch(filePath, selector, { extraTemplateData })
+          : matcher.isMatch(filePath, selector);
 
         expect(result).toBe(expected);
 
         if (expected) {
-          const selectorMatchingResult = elements.getElementSelectorMatching(
-            element,
+          const selectorMatchingResult = matcher.getSelectorMatching(
+            filePath,
             selector,
             extraTemplateData ? { extraTemplateData } : undefined
           );
@@ -353,38 +351,29 @@ describe("Selectors", () => {
     );
 
     it("should throw an error when using invalid selector", () => {
-      const element = matcher.describeElement(
-        "/project/src/modules/user/foo.ts"
-      );
-
-      // @ts-expect-error: Testing invalid selector
-      expect(() => elements.isElementMatch(element, { var: "baz" })).toThrow();
+      expect(() =>
+        // @ts-expect-error: Testing invalid selector
+        matcher.isMatch("/project/src/modules/user/foo.ts", { var: "baz" })
+      ).toThrow();
     });
 
     it("should not throw an error when using invalid selector on ignored elements", () => {
-      const element = matcher.describeElement("/foo/bar/baz.ts");
-
       expect(() =>
         // @ts-expect-error: Testing invalid selector
-        elements.isElementMatch(element, { var: "baz" })
+        matcher.isMatch("/foo/bar/baz.ts", { var: "baz" })
       ).not.toThrow();
     });
 
+    // TODO: Should this throw or not? Currently it does not throw.
     it("should not throw an error when using invalid selector on unknown elements", () => {
-      const element = matcher.describeElement("/project/src/misc/other.ts");
-
       expect(() =>
         // @ts-expect-error: Testing invalid selector
-        elements.isElementMatch(element, { var: "baz" })
+        matcher.isMatch("/project/src/misc/other.ts", { var: "baz" })
       ).not.toThrow();
     });
 
     it("should not call to micromatch after matching with same options", () => {
-      const element = matcher.describeElement(
-        "/project/src/components/Button.tsx"
-      );
-
-      const result = elements.isElementMatch(element, {
+      const result = matcher.isMatch("/project/src/components/Button.tsx", {
         type: "component",
         category: "react",
         origin: "local",
@@ -395,7 +384,7 @@ describe("Selectors", () => {
 
       micromatchSpy.mockClear();
 
-      const result2 = elements.isElementMatch(element, {
+      const result2 = matcher.isMatch("/project/src/components/Button.tsx", {
         type: "component",
         category: "react",
         origin: "local",
@@ -406,11 +395,7 @@ describe("Selectors", () => {
     });
 
     it("should call again to micromatch after clearing cache", () => {
-      const element = matcher.describeElement(
-        "/project/src/components/Button.tsx"
-      );
-
-      elements.isElementMatch(element, {
+      matcher.isMatch("/project/src/components/Button.tsx", {
         type: "component",
       });
 
@@ -418,7 +403,7 @@ describe("Selectors", () => {
 
       jest.clearAllMocks();
 
-      elements.isElementMatch(element, {
+      matcher.isMatch("/project/src/components/Button.tsx", {
         type: "component",
       });
 
@@ -426,7 +411,7 @@ describe("Selectors", () => {
 
       elements.clearCache();
 
-      elements.isElementMatch(element, {
+      matcher.isMatch("/project/src/components/Button.tsx", {
         type: "component",
       });
 
@@ -434,7 +419,7 @@ describe("Selectors", () => {
     });
   });
 
-  describe("isDependencyMatch", () => {
+  describe("when matching dependencies", () => {
     // eslint-disable-next-line jest/prefer-ending-with-an-expect
     it.each([
       {
@@ -908,21 +893,18 @@ describe("Selectors", () => {
         extraTemplateData?: Record<string, unknown>;
         expectedMatch?: DependencySelector;
       }) => {
-        const element = matcher.describeDependency(dependency);
-
         const result = extraTemplateData
-          ? elements.isDependencyMatch(element, selector, { extraTemplateData })
-          : elements.isDependencyMatch(element, selector);
+          ? matcher.isMatch(dependency, selector, { extraTemplateData })
+          : matcher.isMatch(dependency, selector);
 
         expect(result).toBe(expected);
 
         if (expected) {
-          const selectorMatchingResult =
-            elements.getDependencySelectorsMatching(
-              element,
-              selector,
-              extraTemplateData ? { extraTemplateData } : undefined
-            );
+          const selectorMatchingResult = matcher.getSelectorMatching(
+            dependency,
+            selector,
+            extraTemplateData ? { extraTemplateData } : undefined
+          );
 
           const expectedSelectorMatching = expectedMatch || selector;
           const fromMatch = expectedSelectorMatching?.from || null;
@@ -941,95 +923,129 @@ describe("Selectors", () => {
     );
 
     it("should throw an error when using invalid dependency selector", () => {
-      const dependency = matcher.describeDependency({
-        from: "/project/src/components/Button.tsx",
-        to: "/project/src/utils/math/math.test.ts",
-        source: "../utils/math/math.test.ts",
-        kind: "value",
-        nodeKind: "Import",
-        specifiers: ["calculateSum", "calculateAvg"],
-      });
-
       expect(() =>
         // @ts-expect-error: Testing invalid selector
-        elements.isDependencyMatch(dependency, { var: "baz" })
+        matcher.isMatch(
+          {
+            from: "/project/src/components/Button.tsx",
+            to: "/project/src/utils/math/math.test.ts",
+            source: "../utils/math/math.test.ts",
+            kind: "value",
+            nodeKind: "Import",
+            specifiers: ["calculateSum", "calculateAvg"],
+          },
+          { var: "baz" }
+        )
       ).toThrow();
     });
 
     it("should throw an error when using invalid element selector", () => {
-      const dependency = matcher.describeDependency({
-        from: "/project/src/components/Button.tsx",
-        to: "/project/src/utils/math/math.test.ts",
-        source: "../utils/math/math.test.ts",
-        kind: "value",
-        nodeKind: "Import",
-        specifiers: ["calculateSum", "calculateAvg"],
-      });
-
       expect(() =>
         // @ts-expect-error: Testing invalid selector
-        elements.isDependencyMatch(dependency, { to: { var: "baz" } })
+        matcher.isMatch(
+          {
+            from: "/project/src/components/Button.tsx",
+            to: "/project/src/utils/math/math.test.ts",
+            source: "../utils/math/math.test.ts",
+            kind: "value",
+            nodeKind: "Import",
+            specifiers: ["calculateSum", "calculateAvg"],
+          },
+          { to: { var: "baz" } }
+        )
       ).toThrow();
     });
 
     it("should not call to micromatch after matching with same options", () => {
-      const dependency = matcher.describeDependency({
-        from: "/project/src/components/Button.tsx",
-        to: "/project/src/utils/math/math.test.ts",
-        source: "../utils/math/math.test.ts",
-        kind: "value",
-        nodeKind: "Import",
-        specifiers: ["calculateSum", "calculateAvg"],
-      });
-
-      const result = elements.isDependencyMatch(dependency, {
-        from: { type: "component" },
-      });
+      const result = matcher.isMatch(
+        {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/utils/math/math.test.ts",
+          source: "../utils/math/math.test.ts",
+          kind: "value",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        {
+          from: { type: "component" },
+        }
+      );
 
       expect(micromatchSpy).toHaveBeenCalled();
       expect(result).toBe(true);
 
       micromatchSpy.mockClear();
 
-      const result2 = elements.isDependencyMatch(dependency, {
-        from: { type: "component" },
-      });
+      const result2 = matcher.isMatch(
+        {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/utils/math/math.test.ts",
+          source: "../utils/math/math.test.ts",
+          kind: "value",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        {
+          from: { type: "component" },
+        }
+      );
 
       expect(result2).toBe(true);
       expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
     it("should call again to micromatch after clearing cache", () => {
-      const dependency = matcher.describeDependency({
-        from: "/project/src/components/Button.tsx",
-        to: "/project/src/utils/math/math.test.ts",
-        source: "../utils/math/math.test.ts",
-        kind: "value",
-        nodeKind: "Import",
-        specifiers: ["calculateSum", "calculateAvg"],
-      });
-
-      const result = elements.isDependencyMatch(dependency, {
-        from: { type: "component" },
-      });
+      const result = matcher.isMatch(
+        {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/utils/math/math.test.ts",
+          source: "../utils/math/math.test.ts",
+          kind: "value",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        {
+          from: { type: "component" },
+        }
+      );
 
       expect(micromatchSpy).toHaveBeenCalled();
       expect(result).toBe(true);
 
       micromatchSpy.mockClear();
 
-      const result2 = elements.isDependencyMatch(dependency, {
-        from: { type: "component" },
-      });
+      const result2 = matcher.isMatch(
+        {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/utils/math/math.test.ts",
+          source: "../utils/math/math.test.ts",
+          kind: "value",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        {
+          from: { type: "component" },
+        }
+      );
 
       expect(result2).toBe(true);
       expect(micromatchSpy).not.toHaveBeenCalled();
 
       elements.clearCache();
 
-      elements.isDependencyMatch(dependency, {
-        from: { type: "component" },
-      });
+      matcher.isMatch(
+        {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/utils/math/math.test.ts",
+          source: "../utils/math/math.test.ts",
+          kind: "value",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        {
+          from: { type: "component" },
+        }
+      );
 
       expect(micromatchSpy).toHaveBeenCalled();
     });

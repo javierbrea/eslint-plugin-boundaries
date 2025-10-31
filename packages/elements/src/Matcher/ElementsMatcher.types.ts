@@ -4,6 +4,7 @@ import type {
   CoreDependencyElement,
   ExternalDependencyElement,
   LocalDependencyElementKnown,
+  DescriptorsSerializedCache,
 } from "../Descriptor";
 
 /**
@@ -33,6 +34,12 @@ export type DependenciesMatcherSerializedCache = Record<
   string,
   DependencyMatchResult
 >;
+
+export type MatcherSerializedCache = {
+  descriptors: DescriptorsSerializedCache;
+  elementsMatcher: ElementsMatcherSerializedCache;
+  dependenciesMatcher: DependenciesMatcherSerializedCache;
+};
 
 /**
  * Elements that can return a match when using an element selector.
@@ -122,9 +129,10 @@ export type DependencyElementSelectorData = BaseElementSelectorData & {
  * and the second element is an object containing a selector for captured values.
  * @deprecated Use FileElementSelectorData defining an object with type and/or category and the rest of properties directly instead.
  */
-export type BaseElementSelectorWithOptions =
-  | [BaseElementSelectorData, CapturedValuesSelector]
-  | [SimpleElementSelectorByType, CapturedValuesSelector];
+export type BaseElementSelectorWithOptions = [
+  SimpleElementSelectorByType,
+  CapturedValuesSelector,
+];
 
 /**
  * Dependency Element selector with options, including captured values for dynamic matching.
@@ -132,9 +140,10 @@ export type BaseElementSelectorWithOptions =
  * and the second element is an object containing a selector for captured values.
  * @deprecated Use DependencyElementSelectorData defining an object with type and/or category and the rest of properties directly instead.
  */
-export type DependencyElementSelectorWithOptions =
-  | [DependencyElementSelectorData, CapturedValuesSelector]
-  | [SimpleElementSelectorByType, CapturedValuesSelector];
+export type DependencyElementSelectorWithOptions = [
+  SimpleElementSelectorByType,
+  CapturedValuesSelector,
+];
 
 /**
  * Base Element selector, which can be a simple string, object with type and/or category, or a base element selector with options.

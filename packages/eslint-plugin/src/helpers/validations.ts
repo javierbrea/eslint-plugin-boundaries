@@ -173,12 +173,9 @@ export function validateElementTypesMatcher(
     ? elementsMatcher
     : [elementsMatcher];
   if (
-    // @ts-expect-error Types have to be aligned properly
     !invalidMatchers.includes(matcher) &&
-    // @ts-expect-error Types have to be aligned properly
     !isValidElementTypesMatcher(matcher, settings)
   ) {
-    // @ts-expect-error Types have to be aligned properly
     invalidMatchers.push(matcher);
     warnOnce(
       `Option '${matcher}' does not match any element type from '${ELEMENTS}' setting`

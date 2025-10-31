@@ -5,7 +5,10 @@ import type { ElementDescription } from "../Descriptor";
 import { isIgnoredElement, isUnknownLocalElement } from "../Descriptor";
 import { isArray, isNullish } from "../Support";
 
-import { BaseElementsMatcher } from "./BaseElementsMatcher";
+import {
+  BaseElementsMatcher,
+  normalizeElementsSelector,
+} from "./BaseElementsMatcher";
 import type {
   ElementsSelector,
   BaseElementSelectorData,
@@ -15,7 +18,7 @@ import type {
   BaseElementsSelector,
   MatcherOptions,
   ElementSelectorData,
-} from "./ElementsSelector.types";
+} from "./ElementsMatcher.types";
 
 /**
  * Matcher class to determine if elements match a given selector.
@@ -236,7 +239,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementsSelector,
     extraTemplateData: TemplateData
   ): ElementSelectorData | null {
-    const selectorsData = this.normalizeElementsSelector(selector);
+    const selectorsData = normalizeElementsSelector(selector);
 
     const templateData: TemplateData = {
       element,

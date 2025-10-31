@@ -11,7 +11,7 @@ import type { Identifier, ImportSpecifier } from "estree";
 
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { FileInfo } from "../constants/ElementsInfo.types";
-import { getElementsDescriptor } from "../elements/elements";
+import { getElementsMatcher } from "../elements/elements";
 import { debugElementDescription } from "../helpers/debug";
 import { getRootPath } from "../helpers/settings";
 
@@ -64,7 +64,7 @@ export function getSpecifiers(node: Rule.Node): string[] {
 }
 
 export function fileInfo(context: Rule.RuleContext): FileInfo {
-  const elementsDescriptors = getElementsDescriptor(context);
+  const elementsDescriptors = getElementsMatcher(context);
   const path = projectPath(context.filename, getRootPath(context.settings));
   const result = elementsDescriptors.describeElement(path);
   debugElementDescription(result);
@@ -85,7 +85,7 @@ export function dependencyInfo(
   context: Rule.RuleContext
 ): DependencyInfo {
   const source = String(node.value);
-  const elementsDescriptors = getElementsDescriptor(context);
+  const elementsDescriptors = getElementsMatcher(context);
 
   const dependencyData = elementsDescriptors.describeDependency({
     from: projectPath(context.filename, getRootPath(context.settings)),

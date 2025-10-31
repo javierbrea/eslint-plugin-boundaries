@@ -5,12 +5,14 @@ import type {
   ElementsSelector,
   CapturedValues,
 } from "@boundaries/elements";
-import { isElementSelector } from "@boundaries/elements";
+import {
+  isElementSelector,
+  normalizeElementsSelector,
+} from "@boundaries/elements";
 
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { ElementInfo, FileInfo } from "../constants/ElementsInfo.types";
 import type { RuleMatcherElementsCapturedValues } from "../constants/Options.types";
-import { elements } from "../elements/elements";
 
 import {
   replaceObjectValuesInTemplates,
@@ -124,7 +126,7 @@ function elementMatcherMessage(
     return "";
   }
   if (isElementSelector(elementMatcher)) {
-    const selector = elements.normalizeElementsSelector(elementMatcher);
+    const selector = normalizeElementsSelector(elementMatcher);
     const parts: string[] = [];
     if (selector[0].type) {
       // @ts-expect-error Types have to be aligned properly
@@ -162,15 +164,12 @@ export function ruleElementMessage(
 ) {
   if (isArray(elementPatterns)) {
     if (elementPatterns.length === 1) {
-      // @ts-expect-error Types have to be aligned properly
       return elementMatcherMessage(elementPatterns[0], elementCapturedValues);
     }
     return elementPatterns.reduce((message, elementPattern, index) => {
       if (index === 0) {
-        // @ts-expect-error Types have to be aligned properly
         return elementMatcherMessage(elementPattern, elementCapturedValues);
       }
-      // @ts-expect-error Types have to be aligned properly
       return `${message}, or ${elementMatcherMessage(elementPattern, elementCapturedValues)}`;
     }, "");
   }

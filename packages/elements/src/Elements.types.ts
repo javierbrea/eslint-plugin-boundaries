@@ -1,31 +1,26 @@
 import type { ConfigOptions } from "./Config";
-import type {
-  DescriptorsSerializedCache,
-  ElementDescriptors,
-} from "./Descriptor";
+import type { ElementDescriptors } from "./Descriptor";
 import type {
   DependenciesMatcherSerializedCache,
   ElementsMatcherSerializedCache,
-} from "./Selector";
+  MatcherSerializedCache,
+} from "./Matcher";
 
 /**
  * Serialized cache for Elements class.
  */
 export type ElementsSerializedCache = {
-  /** Cache for Descriptors instances per configuration */
-  descriptors: Record<
+  /** Cache for Matcher instances per configuration */
+  matchers: Record<
     string,
     {
       config: ConfigOptions;
       elementDescriptors: ElementDescriptors;
-      cache: DescriptorsSerializedCache;
+      cache: MatcherSerializedCache;
     }
   >;
-  /** Caches for selectors */
-  selectors: {
-    /** Cache for element selectors */
-    elementsMatcherCache: ElementsMatcherSerializedCache;
-    /** Cache for dependency selectors */
-    dependenciesMatcherCache: DependenciesMatcherSerializedCache;
-  };
+  /** Cache for ElementsMatcher */
+  elementsMatcher: ElementsMatcherSerializedCache;
+  /** Cache for DependenciesMatcher */
+  dependenciesMatcher: DependenciesMatcherSerializedCache;
 };

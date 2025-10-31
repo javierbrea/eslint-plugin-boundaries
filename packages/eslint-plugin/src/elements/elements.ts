@@ -1,5 +1,5 @@
 import { Elements, isElementDescriptor } from "@boundaries/elements";
-import type { Descriptors } from "@boundaries/elements";
+import type { Matcher } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
 import { SETTINGS } from "../constants/settings";
@@ -8,7 +8,7 @@ import { getElements } from "../helpers/settings";
 
 export const elements = new Elements();
 
-export function getElementsDescriptor(context: Rule.RuleContext): Descriptors {
+export function getElementsMatcher(context: Rule.RuleContext): Matcher {
   // NOTE: Filter valid descriptors only to avoid a breaking change for the moment
 
   const validDescriptors = getElements(context.settings).filter(
@@ -32,9 +32,9 @@ export function getElementsDescriptor(context: Rule.RuleContext): Descriptors {
     );
   }
 
-  const elementsDescriptors = elements.getDescriptors(validDescriptors, {
+  const elementsMatcher = elements.getMatcher(validDescriptors, {
     ignorePaths: context.settings[SETTINGS.IGNORE] as string[],
     includePaths: context.settings[SETTINGS.INCLUDE] as string[],
   });
-  return elementsDescriptors;
+  return elementsMatcher;
 }

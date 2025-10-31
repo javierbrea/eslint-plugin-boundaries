@@ -62,7 +62,7 @@ export class Descriptors {
   }
 
   /**
-   * Clears all internal caches.
+   * Clears all caches.
    */
   public clearCache(): void {
     this._elementsDescriptor.clearCache();

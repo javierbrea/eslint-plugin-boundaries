@@ -12,12 +12,12 @@ import {
 } from "../../support/eslint-config/index.js";
 
 export default [
-  typescriptConfig,
   ignores,
   jsonConfig,
   jsoncConfig,
   markdownConfig,
   jsBaseConfig,
+  typescriptConfig,
   {
     files: ["**/*.ts"],
     plugins: {

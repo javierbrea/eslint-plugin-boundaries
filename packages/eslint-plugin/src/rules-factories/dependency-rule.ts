@@ -100,7 +100,7 @@ export default function <Options extends RuleOptionsWithRules>(
           string,
           (
             // TODO: Define interface
-            // eslint-disable-next-line no-unused-vars
+
             node: EslintLiteralNode
           ) => void
         >

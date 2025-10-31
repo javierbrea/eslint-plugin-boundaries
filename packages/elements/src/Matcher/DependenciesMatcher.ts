@@ -4,7 +4,10 @@ import type {
   DependencyRelationship,
 } from "../Descriptor";
 
-import { BaseElementsMatcher } from "./BaseElementsMatcher";
+import {
+  BaseElementsMatcher,
+  normalizeElementsSelector,
+} from "./BaseElementsMatcher";
 import type { ElementsMatcher } from "./ElementsMatcher";
 import type {
   BaseElementSelector,
@@ -17,11 +20,11 @@ import type {
   MatcherOptions,
   MatcherOptionsDependencySelectorsGlobals,
   DependencyMatchResult,
-} from "./ElementsSelector.types";
+} from "./ElementsMatcher.types";
 import {
   isBaseElementSelectorData,
   isDependencySelector,
-} from "./ElementsSelectorHelpers";
+} from "./ElementsMatcherHelpers";
 
 /**
  * Matcher class to determine if dependencies match a given dependencies selector.
@@ -92,7 +95,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       throw new Error("Invalid dependency selector");
     }
     let normalizedDependencySelectors = selector.to
-      ? this.normalizeElementsSelector(selector.to!)
+      ? normalizeElementsSelector(selector.to!)
       : null;
 
     if (normalizedDependencySelectors) {
@@ -107,9 +110,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     }
 
     return {
-      from: selector.from
-        ? this.normalizeElementsSelector(selector.from)
-        : null,
+      from: selector.from ? normalizeElementsSelector(selector.from) : null,
       to: normalizedDependencySelectors,
     };
   }

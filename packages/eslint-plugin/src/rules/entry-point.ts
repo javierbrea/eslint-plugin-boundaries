@@ -1,3 +1,5 @@
+import { normalizeElementsSelector } from "@boundaries/elements";
+
 import type { DependencyInfo } from "../constants/DependencyInfo.types";
 import type { FileInfo } from "../constants/ElementsInfo.types";
 import type {
@@ -8,7 +10,6 @@ import type {
 } from "../constants/Options.types";
 import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
 import { SETTINGS } from "../constants/settings";
-import { elements } from "../elements/elements";
 import {
   customErrorMessage,
   ruleElementMessage,
@@ -66,7 +67,7 @@ function modifyRules(rules: EntryPointRule[]): ElementTypesRule[] {
 
   for (let i = 0; i < rules.length; i++) {
     const rule = rules[i];
-    const newTargets = elements.normalizeElementsSelector(rule.target);
+    const newTargets = normalizeElementsSelector(rule.target);
 
     const ruleHasDisallow = !!rule.disallow;
     const ruleHasAllow = !!rule.allow;
