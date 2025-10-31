@@ -1,5 +1,3 @@
-import micromatch from "micromatch";
-
 import { CacheManager } from "../Cache";
 import type {
   DependencyDescription,
@@ -15,12 +13,15 @@ import type {
   DependencySelector,
   DependencyElementSelectorData,
   DependencySelectorNormalized,
-  ElementSelectorData,
   BaseElementSelectorData,
   MatcherOptions,
   MatcherOptionsDependencySelectorsGlobals,
   DependencyMatchResult,
 } from "./ElementsSelector.types";
+import {
+  isBaseElementSelectorData,
+  isDependencySelector,
+} from "./ElementsSelectorHelpers";
 
 /**
  * Matcher class to determine if dependencies match a given dependencies selector.
@@ -87,6 +88,9 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     selector: DependencySelector,
     dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals
   ): DependencySelectorNormalized {
+    if (!isDependencySelector(selector)) {
+      throw new Error("Invalid dependency selector");
+    }
     let normalizedDependencySelectors = selector.to
       ? this.normalizeElementsSelector(selector.to!)
       : null;
@@ -183,15 +187,17 @@ export class DependenciesMatcher extends BaseElementsMatcher {
 
     const getToSelectorMatching = (): DependencyElementSelectorData | null => {
       for (const toSelectorData of selector.to!) {
-        const toMatch = this._elementsMatcher.isElementMatch(
-          dependency.to,
-          this._convertDependencyElementSelectorDataToBaseElementSelectorData(
-            toSelectorData
-          ),
-          {
-            extraTemplateData: templateData,
-          }
-        );
+        const toMatch = isBaseElementSelectorData(toSelectorData)
+          ? this._elementsMatcher.isElementMatch(
+              dependency.to,
+              this._convertDependencyElementSelectorDataToBaseElementSelectorData(
+                toSelectorData
+              ),
+              {
+                extraTemplateData: templateData,
+              }
+            )
+          : true;
         const dependencyPropertiesMatch = this._dependencyToPropertiesMatch(
           dependency,
           [toSelectorData],
@@ -203,14 +209,6 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       }
       return null;
     };
-
-    if (!selector.from && !selector.to) {
-      return {
-        from: null,
-        to: null,
-        isMatch: false,
-      };
-    }
 
     const fromSelectorMatching = selector.from
       ? getFromSelectorMatching()
@@ -234,7 +232,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * @returns Whether the dependency relationship matches the selector.
    */
   private _relationshipMatches(
-    selector: ElementSelectorData,
+    selector: DependencyElementSelectorData,
     relationship: DependencyRelationship | null,
     templateData: TemplateData
   ): boolean {
@@ -244,7 +242,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     if (!relationship) {
       return false;
     }
-    return micromatch.isMatch(
+    return this.isMicromatchMatch(
       relationship,
       this.getRenderedTemplates(selector.relationship, templateData)
     );
@@ -265,7 +263,10 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     if (!selector.kind) {
       return true;
     }
-    return micromatch.isMatch(
+    if (!kind) {
+      return false;
+    }
+    return this.isMicromatchMatch(
       kind,
       this.getRenderedTemplates(selector.kind, templateData)
     );
@@ -291,7 +292,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       return false;
     }
     return specifiers.some((specifier) =>
-      micromatch.isMatch(
+      this.isMicromatchMatch(
         specifier,
         this.getRenderedTemplates(specifierPattern, templateData)
       )
@@ -317,7 +318,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     if (!nodeKind) {
       return false;
     }
-    return micromatch.isMatch(
+    return this.isMicromatchMatch(
       nodeKind,
       this.getRenderedTemplates(nodeKindPattern, templateData)
     );

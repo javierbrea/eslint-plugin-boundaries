@@ -5,7 +5,7 @@ import {
   isStringArray,
   isObjectWithProperty,
   isEmptyArray,
-  isObjetWithAnyOfProperties,
+  isObjectWithAnyOfProperties,
 } from "../Support/TypeGuards";
 
 import type {
@@ -22,6 +22,7 @@ import type {
   ElementSelectorByCategory,
   ElementSelectorByType,
   ElementSelectorData,
+  DependencySelector,
 } from "./ElementsSelector.types";
 
 /**
@@ -90,25 +91,40 @@ export function isElementSelectorByTypeAndCategory(
 }
 
 /**
- * Determines if the given selector is an element selector with type or category or both, and extra options.
+ * Determines if the given selector is a base element selector.
  * @param value The value to check.
- * @returns True if the selector is an element selector by type or category, false otherwise.
+ * @returns True if the selector is a base element selector
  */
-export function isElementSelectorData(
+export function isBaseElementSelectorData(
   value: unknown
 ): value is ElementSelectorData {
-  return isObjetWithAnyOfProperties(value, [
+  return isObjectWithAnyOfProperties(value, [
     "type",
     "category",
     "captured",
     "internalPath",
-    "relationship",
     "origin",
     "baseSource",
-    "kind",
-    "specifiers",
-    "nodeKind",
   ]);
+}
+
+/**
+ * Determines if the given selector is an element or dependency element selector data.
+ * @param value The value to check.
+ * @returns True if the selector is an element or dependency element selector data, false otherwise.
+ */
+export function isElementSelectorData(
+  value: unknown
+): value is ElementSelectorData {
+  return (
+    isBaseElementSelectorData(value) ||
+    isObjectWithAnyOfProperties(value, [
+      "relationship",
+      "kind",
+      "specifiers",
+      "nodeKind",
+    ])
+  );
 }
 
 /**
@@ -152,6 +168,17 @@ export function isElementsSelector(value: unknown): value is ElementSelectors {
     isElementSelector(value) ||
     (isArray(value) && !isEmptyArray(value) && value.every(isElementSelector))
   );
+}
+
+/**
+ * Determines if the given value is a dependency selector.
+ * @param value The value to check
+ * @returns True if the value is a dependency selector, false otherwise.
+ */
+export function isDependencySelector(
+  value: unknown
+): value is DependencySelector {
+  return isObjectWithAnyOfProperties(value, ["from", "to"]);
 }
 
 /**

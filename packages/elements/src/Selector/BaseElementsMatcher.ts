@@ -78,12 +78,10 @@ export class BaseElementsMatcher {
     }
 
     if (isElementSelectorWithLegacyOptions(selector)) {
-      if (isSimpleElementSelectorByType(selector[0])) {
-        return {
-          type: selector[0],
-          captured: { ...selector[1] },
-        };
-      }
+      return {
+        type: selector[0],
+        captured: { ...selector[1] },
+      };
     }
     throw new Error("Invalid element selector");
   }
@@ -128,6 +126,27 @@ export class BaseElementsMatcher {
       });
     }
     return this._getRenderedTemplate(template, templateData);
+  }
+
+  /**
+   * Returns whether the given value matches the micromatch pattern, converting non-string values to strings.
+   * @param value The value to check.
+   * @param pattern The micromatch pattern to match against.
+   * @returns Whether the value matches the pattern.
+   */
+  protected isMicromatchMatch(
+    value: unknown,
+    pattern: MicromatchPattern
+  ): boolean {
+    // Convert non-string element values to string for matching.
+    const elementValueToCheck =
+      !value || !isString(value) ? String(value) : value;
+    // Clean empty strings from arrays to avoid matching them.
+    const selectorValueToCheck = isArray(pattern)
+      ? pattern.filter(Boolean)
+      : pattern;
+
+    return micromatch.isMatch(elementValueToCheck, selectorValueToCheck);
   }
 
   /**
@@ -181,17 +200,6 @@ export class BaseElementsMatcher {
       return false;
     }
 
-    // Convert non-string element values to string for matching.
-    const elementValueToCheck =
-      !element[elementKey] || !isString(element[elementKey])
-        ? String(element[elementKey])
-        : element[elementKey];
-
-    // Clean empty strings from arrays to avoid matching them.
-    const selectorValueToCheck = isArray(selectorValue)
-      ? selectorValue.filter(Boolean)
-      : selectorValue;
-
-    return micromatch.isMatch(elementValueToCheck, selectorValueToCheck);
+    return this.isMicromatchMatch(element[elementKey], selectorValue);
   }
 }

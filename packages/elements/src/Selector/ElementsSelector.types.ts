@@ -133,11 +133,6 @@ export type BaseElementSelectorData = {
   captured?: CapturedValuesSelector;
   /** Micromatch pattern(s) to match internal paths within the file or dependency */
   internalPath?: MicromatchPattern;
-  /**
-   * Relationship of the file element with the dependency declared in it
-   * It only applies when used in dependency matchers.
-   */
-  relationship?: MicromatchPattern;
   /** Origin of the element */
   origin?: MicromatchPattern;
   /** Base source of the element, e.g., the import path of a dependency */
@@ -148,6 +143,11 @@ export type BaseElementSelectorData = {
  * Selector for dependency elements, including kind, specifier, and node kind filters.
  */
 export type DependencyElementSelectorData = BaseElementSelectorData & {
+  /**
+   * Relationship of the file element with the dependency declared in it
+   * It only applies when used in external dependencies
+   */
+  relationship?: MicromatchPattern;
   /** Dependency kind to filter elements */
   kind?: MicromatchPattern;
   // TODO: Pass specifier to DependencyData
@@ -214,9 +214,10 @@ export type ElementSelectorData =
  * and the second element is an object containing a selector for captured values.
  * @deprecated Use ElementSelector defining an object with type and/or category and the rest of properties directly instead.
  */
-export type ElementSelectorWithOptions =
-  | [ElementSelectorData, CapturedValuesSelector]
-  | [SimpleElementSelectorByType, CapturedValuesSelector];
+export type ElementSelectorWithOptions = [
+  SimpleElementSelectorByType,
+  CapturedValuesSelector,
+];
 
 /**
  * Element selector, which can be a simple string, object with type and/or category, or an element selector with options.

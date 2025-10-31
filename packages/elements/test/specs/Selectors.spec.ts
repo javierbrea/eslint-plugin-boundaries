@@ -66,7 +66,6 @@ describe("Selectors", () => {
     elements.clearCache();
   });
 
-  // TODO: Rename to "getElementDescription"/"getDependencyDescription"/"getDependencyElementDescription"?
   describe("isElementMatch", () => {
     // eslint-disable-next-line jest/prefer-ending-with-an-expect
     it.each([
@@ -83,7 +82,7 @@ describe("Selectors", () => {
       },
       {
         filePath: "/project/src/utils/__tests__/testUtil.ts",
-        selector: { isIgnored: "true" }, // TODO: Should this match?
+        selector: { isIgnored: true }, // TODO: Should this match?
         expected: false,
       },
       {
@@ -449,8 +448,10 @@ describe("Selectors", () => {
           kind: "type",
           nodeKind: "ImportDeclaration",
         },
-        selector: {},
-        expected: false,
+        selector: {
+          from: { type: "component" },
+        },
+        expected: true,
       },
       {
         dependency: {
@@ -461,9 +462,28 @@ describe("Selectors", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { type: "component" },
+          from: "{{ from.type }}",
         },
         expected: true,
+        expectedMatch: {
+          from: { type: "{{ from.type }}" },
+        },
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/bar/Baz.ts",
+          source: "project/bar",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          from: "${ from.type }",
+        },
+        expected: true,
+        expectedMatch: {
+          from: { type: "${ from.type }" },
+        },
       },
       {
         dependency: {
@@ -509,6 +529,7 @@ describe("Selectors", () => {
           to: { origin: "local" },
         },
       },
+      // Category tests
       {
         dependency: {
           from: "/project/src/components/Button.tsx",
@@ -522,6 +543,357 @@ describe("Selectors", () => {
           to: { category: "business-logic" },
         },
         expected: true,
+      },
+      // Type tests
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: "component",
+        },
+        expected: true,
+        expectedMatch: {
+          to: { type: "component" },
+        },
+      },
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: ["foo"],
+        },
+        expected: false,
+      },
+      // Captured tests
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: ["component", { fileName: "Button" }],
+        },
+        expected: true,
+        expectedMatch: {
+          to: { type: "component", captured: { fileName: "Button" } },
+        },
+      },
+      // Legacy options style
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: ["component", { fileName: "foo" }],
+        },
+        expected: false,
+      },
+      // Template tests
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: { type: "{{ to.type }}" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          from: { type: "{{ from.type }}" },
+        },
+        expected: true,
+      },
+      // InternalPath tests
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: { type: "{{ to.type }}", internalPath: "**/Button.tsx" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: { type: "{{ to.type }}", internalPath: ["foo", "**/Button.tsx"] },
+        },
+        expected: true,
+      },
+      // BaseSource tests
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { baseSource: "react", origin: ["external", "local"] },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { baseSource: "foo" },
+        },
+        expected: false,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { relationship: "foo" },
+        },
+        expected: false,
+      },
+      // NodeKind tests
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { nodeKind: "ImportDeclaration" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { nodeKind: ["Import*"] },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+        },
+        selector: {
+          to: { nodeKind: ["Import*"] },
+        },
+        expected: false,
+      },
+      // Kind tests
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { kind: "t*" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: 2,
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { kind: "t*" },
+        },
+        expected: false,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: 2,
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { kind: "2" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { kind: "t*" },
+        },
+        expected: false,
+      },
+      // Specifier tests
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+          specifiers: ["foo", "bar"],
+        },
+        selector: {
+          to: { specifiers: "foo" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+          specifiers: ["foo", "bar"],
+        },
+        selector: {
+          to: { specifiers: ["var", "b*"] },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { specifiers: "foo" },
+        },
+        expected: false,
+      },
+      // Relationship tests
+      {
+        dependency: {
+          from: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+          to: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+          source: "../../../email/EmailService",
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { relationship: "uncle" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+          to: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+          source: "../../../email/EmailService",
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          from: { relationship: "nephew" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+          to: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+          source: "../../../email/EmailService",
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { relationship: "uncle" },
+          from: { relationship: "nephew" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+          to: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+          source: "../../../email/EmailService",
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { relationship: "uncle" },
+          from: { relationship: "foo" },
+        },
+        expected: false,
       },
     ])(
       "should return $expected when checking if dependency matches the selector $selector",
@@ -571,9 +943,120 @@ describe("Selectors", () => {
       }
     );
 
-    // TODO: Test invalid selectors too
-    // TODO: Test caching behavior too
+    it("should throw an error when using invalid dependency selector", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/utils/math/math.test.ts",
+        source: "../utils/math/math.test.ts",
+        kind: "value",
+        nodeKind: "Import",
+        specifiers: ["calculateSum", "calculateAvg"],
+      });
+
+      expect(() =>
+        // @ts-expect-error: Testing invalid selector
+        elements.isDependencyMatch(dependency, { var: "baz" })
+      ).toThrow();
+    });
+
+    it("should throw an error when using invalid element selector", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/utils/math/math.test.ts",
+        source: "../utils/math/math.test.ts",
+        kind: "value",
+        nodeKind: "Import",
+        specifiers: ["calculateSum", "calculateAvg"],
+      });
+
+      expect(() =>
+        // @ts-expect-error: Testing invalid selector
+        elements.isDependencyMatch(dependency, { to: { var: "baz" } })
+      ).toThrow();
+    });
+
+    it("should not call to micromatch after matching with same options", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/utils/math/math.test.ts",
+        source: "../utils/math/math.test.ts",
+        kind: "value",
+        nodeKind: "Import",
+        specifiers: ["calculateSum", "calculateAvg"],
+      });
+
+      const result = elements.isDependencyMatch(dependency, {
+        from: { type: "component" },
+      });
+
+      expect(micromatchSpy).toHaveBeenCalled();
+      expect(result).toBe(true);
+
+      micromatchSpy.mockClear();
+
+      const result2 = elements.isDependencyMatch(dependency, {
+        from: { type: "component" },
+      });
+
+      expect(result2).toBe(true);
+      expect(micromatchSpy).not.toHaveBeenCalled();
+    });
+
+    it("should call again to micromatch after clearing cache", () => {
+      const dependency = descriptors.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/src/utils/math/math.test.ts",
+        source: "../utils/math/math.test.ts",
+        kind: "value",
+        nodeKind: "Import",
+        specifiers: ["calculateSum", "calculateAvg"],
+      });
+
+      const result = elements.isDependencyMatch(dependency, {
+        from: { type: "component" },
+      });
+
+      expect(micromatchSpy).toHaveBeenCalled();
+      expect(result).toBe(true);
+
+      micromatchSpy.mockClear();
+
+      const result2 = elements.isDependencyMatch(dependency, {
+        from: { type: "component" },
+      });
+
+      expect(result2).toBe(true);
+      expect(micromatchSpy).not.toHaveBeenCalled();
+
+      elements.clearCache();
+
+      elements.isDependencyMatch(dependency, {
+        from: { type: "component" },
+      });
+
+      expect(micromatchSpy).toHaveBeenCalled();
+    });
   });
 
-  // TODO: Test public normalizeElementsSelector
+  describe("normalizeElementsSelector", () => {
+    it.each([
+      {
+        selector: "component",
+        expected: [{ type: "component" }],
+      },
+    ])(
+      "should normalize element selector $selector to $expected",
+      ({
+        selector,
+        expected,
+      }: {
+        selector: ElementsSelector;
+        expected: ElementSelectorData[];
+      }) => {
+        const normalized = elements.normalizeElementsSelector(selector);
+
+        expect(normalized).toStrictEqual(expected);
+      }
+    );
+  });
 });

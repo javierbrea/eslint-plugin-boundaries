@@ -80,7 +80,7 @@ export function isObjectWithProperty<Key extends string>(
  * @param keys The keys to check for
  * @returns True if the value is an object with any of the specified properties, false otherwise
  */
-export function isObjetWithAnyOfProperties<Keys extends string>(
+export function isObjectWithAnyOfProperties<Keys extends string>(
   value: unknown,
   keys: Keys[]
 ): value is Record<Keys, unknown> & Record<string, unknown> {
