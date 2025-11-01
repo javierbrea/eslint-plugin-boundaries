@@ -33,6 +33,7 @@ describe("elementHelpers", () => {
         elementPath: "/src/components",
         internalPath: "Button.tsx",
         origin: "local",
+        isIgnored: false,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -48,6 +49,7 @@ describe("elementHelpers", () => {
         elementPath: "/src/components",
         internalPath: "Button.tsx",
         origin: "local",
+        isIgnored: false,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -63,6 +65,7 @@ describe("elementHelpers", () => {
         elementPath: "/src/components",
         internalPath: "Button.tsx",
         origin: "local",
+        isIgnored: false,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -78,6 +81,7 @@ describe("elementHelpers", () => {
         baseSource: "react",
         internalPath: "react/index.js",
         origin: "external",
+        isIgnored: false,
       };
 
       expect(isLocalElement(nonLocalElement)).toBe(false);
@@ -255,6 +259,7 @@ describe("elementHelpers", () => {
         internalPath: "index.ts",
         source: "./Button.component",
         origin: "local",
+        isIgnored: false,
       };
 
       expect(isLocalDependencyElement(localDependency)).toBe(true);
@@ -270,6 +275,7 @@ describe("elementHelpers", () => {
         origin: "external",
         internalPath: "lodash/index.js",
         baseSource: "./components/Button",
+        isIgnored: false,
       };
 
       expect(isLocalDependencyElement(nonLocalDependency)).toBe(false);
@@ -343,6 +349,7 @@ describe("elementHelpers", () => {
         elementPath: "/src",
         internalPath: "test.ts",
         origin: "local",
+        isIgnored: false,
       };
 
       // LocalElement is not a dependency, so should return false
@@ -393,6 +400,7 @@ describe("elementHelpers", () => {
         internalPath: "fs/index.js",
         path: "foo",
         origin: "external",
+        isIgnored: false,
       };
 
       expect(isExternalDependencyElement(externalDependency)).toBe(true);
@@ -532,6 +540,7 @@ describe("elementHelpers", () => {
         elementPath: "/src/components",
         internalPath: "Header.tsx",
         origin: "local",
+        isIgnored: false,
       };
 
       expect(isElement(localElement)).toBe(true);
@@ -562,6 +571,7 @@ describe("elementHelpers", () => {
         baseSource: "lodash",
         origin: "external",
         internalPath: "lodash/index.js",
+        isIgnored: false,
       };
 
       expect(isElement(externalDependency)).toBe(true);
@@ -578,6 +588,7 @@ describe("elementHelpers", () => {
         internalPath: "math.ts",
         source: "./constants",
         origin: "local",
+        isIgnored: false,
       };
 
       expect(isElement(localDependency)).toBe(true);

@@ -187,6 +187,7 @@ describe("Descriptors", () => {
         internalPath: "Button.tsx",
         parents: [],
         origin: "local",
+        isIgnored: false,
         path: "/project/src/components/Button.tsx",
       });
       expect(isKnownLocalElement(element)).toBe(true);
@@ -217,6 +218,7 @@ describe("Descriptors", () => {
         elementPath: "/project/src/components/Button.tsx",
         internalPath: "Button.tsx",
         parents: [],
+        isIgnored: false,
         origin: "local",
         path: "/project/src/components/Button.tsx",
       });
@@ -238,6 +240,7 @@ describe("Descriptors", () => {
           businessLogicArea: "utils",
           root: "/project",
         },
+        isIgnored: false,
         elementPath: "/project/src/utils/math/math.test.ts",
         internalPath: "math.test.ts",
         parents: [],
@@ -263,6 +266,7 @@ describe("Descriptors", () => {
         path: "/project/src/modules/user/foo.ts",
         parents: [],
         origin: "local",
+        isIgnored: false,
       });
       expect(isKnownLocalElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
@@ -285,6 +289,7 @@ describe("Descriptors", () => {
         path: "/project/src/services/payment/PaymentService.ts",
         internalPath: "PaymentService.ts",
         parents: [],
+        isIgnored: false,
         origin: "local",
       });
       expect(isKnownLocalElement(element)).toBe(true);
@@ -300,6 +305,7 @@ describe("Descriptors", () => {
         capturedValues: null,
         path: "/project/src/misc/other.ts",
         origin: "local",
+        isIgnored: false,
       });
       expect(isUnknownLocalElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
@@ -314,6 +320,7 @@ describe("Descriptors", () => {
         type: "utility",
         category: null,
         capturedValues: null,
+        isIgnored: false,
         elementPath: "/project/src/utils/math/mathUtil.ts",
         internalPath: "mathUtil.ts",
         origin: "local",
@@ -333,6 +340,7 @@ describe("Descriptors", () => {
         type: null,
         category: "business-logic",
         capturedValues: null,
+        isIgnored: false,
         elementPath: "/project/src/foo/var/modules/notification/modules/email",
         internalPath: "EmailService.ts",
         origin: "local",
@@ -365,6 +373,7 @@ describe("Descriptors", () => {
       expect(element).toEqual({
         type: "utility",
         category: null,
+        isIgnored: false,
         capturedValues: null,
         internalPath: "index.ts",
         elementPath: "/project/src/utils/math/index.ts",
@@ -391,6 +400,7 @@ describe("Descriptors", () => {
         internalPath: "",
         source: "react",
         baseSource: "react",
+        isIgnored: false,
         origin: "external",
         path: "/project/node_modules/react/index.tsx",
       });
@@ -409,6 +419,7 @@ describe("Descriptors", () => {
         category: null,
         capturedValues: null,
         internalPath: "",
+        isIgnored: false,
         source: "@mui/icons-material",
         baseSource: "@mui/icons-material",
         origin: "external",
@@ -431,6 +442,7 @@ describe("Descriptors", () => {
         internalPath: "/foo",
         source: "@mui/icons-material/foo",
         baseSource: "@mui/icons-material",
+        isIgnored: false,
         origin: "external",
         path: "/project/node_modules/@mui/icons-material/index.tsx",
       });
@@ -447,6 +459,7 @@ describe("Descriptors", () => {
         capturedValues: null,
         source: "node:fs",
         baseSource: "node:fs",
+        isIgnored: false,
         origin: "core",
         path: null,
       });
@@ -463,6 +476,7 @@ describe("Descriptors", () => {
         capturedValues: null,
         source: "fs",
         baseSource: "fs",
+        isIgnored: false,
         origin: "core",
         path: null,
       });
@@ -643,6 +657,7 @@ describe("Descriptors", () => {
           category: "react",
           elementPath: "/project/src/components/Button.tsx",
           internalPath: "Button.tsx",
+          isIgnored: false,
           origin: "local",
           parents: [],
           path: "/project/src/components/Button.tsx",
@@ -653,6 +668,7 @@ describe("Descriptors", () => {
           category: null,
           origin: "local",
           path: "/project/src/bar/Baz.ts",
+          isIgnored: false,
           source: "project/bar",
           type: null,
         },
@@ -687,6 +703,7 @@ describe("Descriptors", () => {
           capturedValues: null,
           origin: "local",
           path: "/project/src/var/Baz.ts",
+          isIgnored: false,
           type: null,
         },
         to: {
@@ -694,6 +711,7 @@ describe("Descriptors", () => {
           category: null,
           origin: "local",
           path: "/project/src/bar/Baz.ts",
+          isIgnored: false,
           source: "project/bar",
           type: null,
         },
@@ -776,12 +794,14 @@ describe("Descriptors", () => {
           elementPath: "/project/src/components/Button.tsx",
           internalPath: "Button.tsx",
           parents: [],
+          isIgnored: false,
           origin: "local",
           path: "/project/src/components/Button.tsx",
         },
         to: {
           type: "test",
           category: "business-logic",
+          isIgnored: false,
           capturedValues: {
             elementName: "math",
             testFileName: "math",
@@ -832,6 +852,7 @@ describe("Descriptors", () => {
           parents: [],
           path: "/project/src/components/Button.tsx",
           type: "component",
+          isIgnored: false,
         },
         to: {
           baseSource: "react",
@@ -842,6 +863,7 @@ describe("Descriptors", () => {
           internalPath: "",
           source: "react",
           type: null,
+          isIgnored: false,
         },
         dependency: {
           kind: "type",
@@ -879,6 +901,7 @@ describe("Descriptors", () => {
           parents: [],
           path: "/project/src/components/Button.tsx",
           type: "component",
+          isIgnored: false,
         },
         to: {
           baseSource: "fs",
@@ -888,6 +911,7 @@ describe("Descriptors", () => {
           path: null,
           source: "fs",
           type: null,
+          isIgnored: false,
         },
         dependency: {
           kind: "type",
@@ -931,6 +955,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         to: {
           source: "./modules/email/EmailService",
@@ -956,6 +981,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         dependency: {
           kind: "value",
@@ -1000,6 +1026,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         to: {
           source: "./EmailService",
@@ -1018,6 +1045,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         dependency: {
           kind: "value",
@@ -1062,6 +1090,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         to: {
           source: "./modules/email/modules/send/SendService",
@@ -1094,6 +1123,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         dependency: {
           kind: "value",
@@ -1145,6 +1175,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         to: {
           source: "../email/EmailService",
@@ -1170,6 +1201,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         dependency: {
           kind: "value",
@@ -1221,6 +1253,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         to: {
           source: "../../NotificationService",
@@ -1240,6 +1273,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         dependency: {
           kind: "value",
@@ -1297,6 +1331,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         to: {
           source: "./modules/email/modules/send/SendService",
@@ -1315,6 +1350,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         dependency: {
           kind: "value",
@@ -1373,6 +1409,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         to: {
           source: "../../../email/EmailService",
@@ -1398,6 +1435,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         dependency: {
           kind: "value",
@@ -1449,6 +1487,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         to: {
           source: "../../../email/EmailService",
@@ -1481,6 +1520,7 @@ describe("Descriptors", () => {
               elementPath: "/project/src/foo/var",
             },
           ],
+          isIgnored: false,
         },
         dependency: {
           kind: "value",

@@ -39,6 +39,7 @@ const UNKNOWN_LOCAL_ELEMENT: LocalElementUnknown = {
   category: null,
   capturedValues: null,
   origin: ELEMENT_ORIGINS_MAP.LOCAL,
+  isIgnored: false,
 };
 
 /** Options for the _fileDescriptorMatch private method */
@@ -426,6 +427,7 @@ export class ElementsDescriptor {
       category: null,
       capturedValues: null,
       origin: ELEMENT_ORIGINS_MAP.LOCAL,
+      isIgnored: false,
     };
 
     interface State {

@@ -52,7 +52,6 @@ export type BaseElementDescriptor = {
    * Then, in the rules configuration, you could use ["service", { module: "auth" }] to match only services from the auth module.
    */
   capture?: string[];
-  // TODO: Define precedence when merging with baseCapture, and document it
   /**
    * Like capture, but for the basePattern.
    * This allows to capture values from the left side of the path, which is useful when using the basePattern option.
@@ -131,6 +130,8 @@ export type BaseElement = {
   capturedValues: CapturedValues | null;
   /** Origin of the element */
   origin: ElementOrigin | null;
+  /** Indicates if the element is ignored by settings. If true, the element will be excluded from processing any other properties. */
+  isIgnored: boolean;
 };
 
 /**
@@ -139,36 +140,6 @@ export type BaseElement = {
 export type IgnoredElement = BaseElement & {
   /** Indicates if the file is ignored */
   isIgnored: true;
-};
-
-/**
- * Base Element with only type
- */
-export type BaseElementWithType = BaseElement & {
-  /** Type of the element **/
-  type: string;
-  /** Category of the element */
-  category: null;
-};
-
-/**
- * Base Element with only category
- */
-export type BaseElementWithCategory = BaseElement & {
-  /** Category of the element */
-  category: string;
-  /** Type of the element **/
-  type: null;
-};
-
-/**
- * Base Element with type and category
- */
-export type BaseElementWithTypeAndCategory = BaseElement & {
-  /** Category of the element */
-  category: string;
-  /** Type of the element **/
-  type: string;
 };
 
 /**
@@ -201,6 +172,8 @@ export type LocalElementUnknown = BaseElement & {
   capturedValues: null;
   /** Indicated that the element is local */
   origin: typeof ELEMENT_ORIGINS_MAP.LOCAL;
+  /** Indicates that the file is not ignored */
+  isIgnored: false;
 };
 
 /**
@@ -217,6 +190,8 @@ export type LocalElementKnown = BaseElement & {
   parents: LocalElementParent[];
   /** Indicates that the element is local */
   origin: typeof ELEMENT_ORIGINS_MAP.LOCAL;
+  /** Indicates that the file is not ignored */
+  isIgnored: false;
 };
 
 export type LocalElementParent = Pick<
@@ -230,6 +205,13 @@ export type LocalElementParent = Pick<
 export type BaseDependencyElement = BaseElement & {
   /** Dependency source */
   source: string;
+  /** Indicates that the dependency is not ignored */
+  isIgnored: false;
+};
+
+export type IgnoredDependencyElement = IgnoredElement & {
+  /** The source of the dependency */
+  source: string;
 };
 
 /**
@@ -237,6 +219,7 @@ export type BaseDependencyElement = BaseElement & {
  */
 export type FileElement =
   | IgnoredElement
+  | IgnoredDependencyElement
   | LocalElementKnown
   | LocalElementUnknown;
 
@@ -278,6 +261,7 @@ export type CoreDependencyElement = BaseDependencyElement & {
  */
 export type DependencyElement =
   | IgnoredElement
+  | IgnoredDependencyElement
   | CoreDependencyElement
   | LocalDependencyElement
   | ExternalDependencyElement;
