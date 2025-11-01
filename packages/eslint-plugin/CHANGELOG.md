@@ -19,11 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - fix: Assign relationships correctly in dependencies. Now ancestor and nephew relationships are assigned correctly. Previously, all ancestors with a common parent were considered uncles.
 
 > TODO BEFORE RELEASE 6.0.0
-> 
-> - Refactor `eslint-plugin-boundaries` package to use the types from `elements` package. Expose all necessary type guards from `elements` package to be used in `eslint-plugin-boundaries` package.
-> - Run Sonar analysis for `elements` package.
 
+> - Remove usage of elements at first level. Use always matcher. Remove elements methods.
+> - Add all properties to base element to avoid using too much type guards
 > - Elements package documentation.
+> - Eslint-plugin package TypeScript docs.
+>
+> - Run Sonar analysis
 >
 > - Support new types of selectors and descriptors in eslint-plugin-boundaries package: Change schemas, validations, etc.
 > - Support a `name` property in `additional-dependency-nodes` setting to be able to identify the custom dependency nodes in rules.
