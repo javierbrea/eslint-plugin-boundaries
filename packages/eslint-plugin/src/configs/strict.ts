@@ -1,6 +1,6 @@
+import type { Config } from "../constants/Config.types";
 import { SETTINGS } from "../constants/settings";
 
-import type { Config } from "./Config.types";
 import recommended from "./recommended";
 
 const { RULE_NO_IGNORED, RULE_NO_UNKNOWN_FILES, RULE_NO_UNKNOWN } = SETTINGS;

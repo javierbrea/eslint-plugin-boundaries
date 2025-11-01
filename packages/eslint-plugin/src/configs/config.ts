@@ -1,11 +1,15 @@
 import type { Linter } from "eslint";
 
+import type {
+  PluginBoundaries,
+  Config,
+  Rules,
+} from "../constants/Config.types";
 import { PLUGIN_NAME } from "../constants/plugin";
 import { isRuleShortName } from "../constants/rules";
 import { isSettingsKey } from "../constants/settings";
 import plugin from "../index";
 
-import type { PluginBoundaries, Config, Rules } from "./Config.types";
 import recommendedConfig from "./recommended";
 import strictConfig from "./strict";
 

@@ -44,7 +44,7 @@ export default [
         {
           type: "elements",
           mode: "file",
-          pattern: "src/elements/elements.ts",
+          pattern: "src/Elements/*.ts",
         },
         {
           type: "config-utils",

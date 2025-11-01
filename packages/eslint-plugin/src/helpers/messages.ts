@@ -2,25 +2,24 @@ import type {
   DependencyKind,
   CapturedValuesSelector,
   ElementSelector,
+  ElementParent,
   ElementsSelector,
   CapturedValues,
+  DependencyDescription,
+  ElementDescription,
 } from "@boundaries/elements";
 import {
   isElementSelector,
   normalizeElementsSelector,
 } from "@boundaries/elements";
 
-import type { DependencyInfo } from "../constants/DependencyInfo.types";
-import type { ElementInfo, FileInfo } from "../constants/ElementsInfo.types";
 import type { RuleMatcherElementsCapturedValues } from "../constants/Options.types";
 
 import {
   replaceObjectValuesInTemplates,
-  isDependencyInfo,
   isString,
   isArray,
   replaceObjectValuesInTemplate,
-  isNotParentInfo,
 } from "./utils";
 
 export function quote(str: string | undefined | null) {
@@ -75,11 +74,11 @@ export function micromatchPatternReplacingObjectsValues(
 
 function micromatchPatternMessage(
   micromatchPatterns: string | undefined,
-  elementCapturedValues: CapturedValues
+  elementCapturedValues: CapturedValues | null
 ) {
   const micromatchPatternsWithValues = micromatchPatternReplacingObjectsValues(
     micromatchPatterns,
-    { from: elementCapturedValues }
+    { from: elementCapturedValues || {} }
   );
   if (isArray(micromatchPatternsWithValues)) {
     if (micromatchPatternsWithValues.length === 1) {
@@ -103,7 +102,7 @@ function micromatchPatternMessage(
 
 function capturedValuesMatcherMessage(
   capturedValuesPattern: CapturedValuesSelector | undefined,
-  elementCapturedValues: CapturedValues
+  elementCapturedValues: CapturedValues | null
 ) {
   const capturedValuesPatternKeys = Object.keys(capturedValuesPattern || {});
   return capturedValuesPatternKeys
@@ -120,7 +119,7 @@ function capturedValuesMatcherMessage(
 
 function elementMatcherMessage(
   elementMatcher: ElementSelector | CapturedValuesSelector | undefined,
-  elementCapturedValues: CapturedValues
+  elementCapturedValues: CapturedValues | null
 ) {
   if (!elementMatcher) {
     return "";
@@ -160,7 +159,7 @@ function elementMatcherMessage(
 
 export function ruleElementMessage(
   elementPatterns: ElementsSelector | undefined,
-  elementCapturedValues: CapturedValues
+  elementCapturedValues: CapturedValues | null
 ) {
   if (isArray(elementPatterns)) {
     if (elementPatterns.length === 1) {
@@ -177,80 +176,94 @@ export function ruleElementMessage(
 }
 
 function elementPropertiesToReplaceInTemplate(
-  element: ElementInfo | FileInfo | DependencyInfo | ElementInfo["parents"][0]
+  element: ElementDescription | ElementParent,
+  importKind: string
 ) {
-  if (isDependencyInfo(element)) {
-    return {
-      ...element.capturedValues,
-      type: element.type || "",
-      internalPath: element.internalPath || "",
-      source: element.source || "",
-      importKind: element.importKind || "",
-    };
-  }
-  if (isNotParentInfo(element)) {
-    return {
-      ...element.capturedValues,
-      type: element.type || "",
-      internalPath: element.internalPath || "",
-      source: "",
-      importKind: "",
-    };
-  }
   return {
     ...element.capturedValues,
     type: element.type || "",
-    internalPath: "",
-    source: "",
-    importKind: "",
+    // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
+    internalPath: element.internalPath || "",
+    // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
+    source: element.source || "",
+    importKind: importKind || "",
   };
 }
 
 export function customErrorMessage(
   message: string,
-  file: FileInfo,
-  dependency: DependencyInfo,
+  dependency: DependencyDescription,
   report = {}
 ) {
   let replacedMessage = replaceObjectValuesInTemplate(
     replaceObjectValuesInTemplate(
       message,
-      elementPropertiesToReplaceInTemplate(file),
+      elementPropertiesToReplaceInTemplate(
+        dependency.from,
+        dependency.dependency.kind
+      ),
       "file"
     ),
-    elementPropertiesToReplaceInTemplate(dependency),
+    elementPropertiesToReplaceInTemplate(
+      dependency.to,
+      dependency.dependency.kind
+    ),
     "dependency"
   );
   replacedMessage = replaceObjectValuesInTemplate(
     replaceObjectValuesInTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInTemplate(file),
+      elementPropertiesToReplaceInTemplate(
+        dependency.from,
+        dependency.dependency.kind
+      ),
       "from"
     ),
-    elementPropertiesToReplaceInTemplate(dependency),
+    elementPropertiesToReplaceInTemplate(
+      dependency.to,
+      dependency.dependency.kind
+    ),
     "target"
   );
-  if (file.parents[0]) {
+  // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
+  if (dependency.from.parents?.[0]) {
     replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInTemplate(file.parents[0]),
+      elementPropertiesToReplaceInTemplate(
+        // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
+        dependency.from.parents?.[0],
+        dependency.dependency.kind
+      ),
       "file.parent"
     );
     replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInTemplate(file.parents[0]),
+      elementPropertiesToReplaceInTemplate(
+        // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
+        dependency.from.parents?.[0],
+        dependency.dependency.kind
+      ),
       "from.parent"
     );
   }
-  if (dependency.parents?.[0]) {
+  // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
+  if (dependency.to.parents?.[0]) {
     replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInTemplate(dependency.parents[0]),
+      elementPropertiesToReplaceInTemplate(
+        // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
+        dependency.to.parents?.[0],
+        dependency.dependency.kind
+      ),
       "dependency.parent"
     );
     replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInTemplate(dependency.parents[0]),
+      elementPropertiesToReplaceInTemplate(
+        // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
+        dependency.to.parents?.[0],
+        dependency.dependency.kind
+      ),
       "target.parent"
     );
   }
@@ -274,7 +287,7 @@ function elementCapturedValuesMessage(capturedValues: CapturedValues | null) {
 }
 
 export function elementMessage(
-  elementInfo: ElementInfo | ElementInfo["parents"][0]
+  elementInfo: ElementDescription | ElementParent
 ) {
   return `of type ${quote(elementInfo.type)}${elementCapturedValuesMessage(
     elementInfo.capturedValues
@@ -283,24 +296,24 @@ export function elementMessage(
 
 function hasToPrintKindMessage(
   ruleImportKind: DependencyKind | undefined,
-  dependencyInfo: DependencyInfo
+  dependency: DependencyDescription
 ) {
-  return ruleImportKind && dependencyInfo.importKind;
+  return ruleImportKind && dependency.dependency.kind;
 }
 
 export function dependencyImportKindMessage(
   ruleImportKind: DependencyKind | undefined,
-  dependencyInfo: DependencyInfo
+  dependency: DependencyDescription
 ) {
-  if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
-    return `kind ${quote(dependencyInfo.importKind)} from `;
+  if (hasToPrintKindMessage(ruleImportKind, dependency)) {
+    return `kind ${quote(dependency.dependency.kind)} from `;
   }
   return "";
 }
 
 export function dependencyUsageKindMessage(
   ruleImportKind: DependencyKind | undefined,
-  dependencyInfo: DependencyInfo,
+  dependency: DependencyDescription,
   {
     suffix = " ",
     prefix = "",
@@ -309,8 +322,8 @@ export function dependencyUsageKindMessage(
     prefix?: string;
   } = {}
 ) {
-  if (hasToPrintKindMessage(ruleImportKind, dependencyInfo)) {
-    return `${prefix}${dependencyInfo.importKind}${suffix}`;
+  if (hasToPrintKindMessage(ruleImportKind, dependency)) {
+    return `${prefix}${dependency.dependency.kind}${suffix}`;
   }
   return "";
 }

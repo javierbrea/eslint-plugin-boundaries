@@ -1,7 +1,5 @@
 import type { Rule } from "eslint";
 
-import type { DependencyInfo } from "../constants/DependencyInfo.types";
-import type { FileInfo, ElementInfo } from "../constants/ElementsInfo.types";
 import { PLUGIN_NAME, REPO_URL } from "../constants/plugin";
 import type { RuleName } from "../constants/rules";
 
@@ -113,30 +111,4 @@ export function replaceObjectValuesInTemplate(
   namespace?: string | null
 ): string {
   return replaceObjectValuesInTemplates(template, object, namespace) as string;
-}
-
-export function isNotParentInfo(
-  elementInfo:
-    | ElementInfo
-    | FileInfo
-    | DependencyInfo
-    | ElementInfo["parents"][0]
-): elementInfo is ElementInfo | FileInfo | DependencyInfo {
-  return (
-    (elementInfo as ElementInfo | FileInfo | DependencyInfo).internalPath !==
-    undefined
-  );
-}
-
-export function isDependencyInfo(
-  elementInfo:
-    | ElementInfo
-    | FileInfo
-    | DependencyInfo
-    | ElementInfo["parents"][0]
-): elementInfo is DependencyInfo {
-  return (
-    (elementInfo as DependencyInfo).importKind !== undefined ||
-    (elementInfo as DependencyInfo).source !== undefined
-  );
 }

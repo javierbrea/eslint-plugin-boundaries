@@ -1,5 +1,8 @@
-import type { ElementDescription } from "@boundaries/elements";
-import { isDependencyElement, isIgnoredElement } from "@boundaries/elements";
+import type {
+  DependencyDescription,
+  ElementDescription,
+} from "@boundaries/elements";
+import { isDependencyDescription } from "@boundaries/elements";
 import chalk from "chalk";
 
 import { PLUGIN_NAME } from "../constants/plugin";
@@ -9,21 +12,25 @@ import { isDebugModeEnabled } from "./settings";
 const warns: string[] = [];
 const debuggedFiles: string[] = [];
 
-// TODO: Create a mapping of colors to use
-type TraceColor = "gray" | "green" | "yellow";
+const COLORS_MAP = {
+  gray: "gray",
+  green: "green",
+  yellow: "yellow",
+} as const;
 
-// TODO: Define valid colors for trace
+type TraceColor = keyof typeof COLORS_MAP;
+
 function trace(message: string, color: TraceColor) {
   // eslint-disable-next-line no-console
-  console.log(chalk[color](`[${PLUGIN_NAME}]: ${message}`));
+  console.log(chalk[COLORS_MAP[color]](`[${PLUGIN_NAME}]: ${message}`));
 }
 
 export function warn(message: string) {
-  trace(message, "yellow");
+  trace(message, COLORS_MAP.yellow);
 }
 
 export function success(message: string) {
-  trace(message, "green");
+  trace(message, COLORS_MAP.green);
 }
 
 export function warnOnce(message: string) {
@@ -33,22 +40,24 @@ export function warnOnce(message: string) {
   }
 }
 
-export function debugElementDescription(
-  elementDescription: ElementDescription
+export function debugDescription(
+  elementDescription: ElementDescription | DependencyDescription
 ) {
-  const fileInfoKey =
-    elementDescription.path ||
-    (isDependencyElement(elementDescription) &&
-    !isIgnoredElement(elementDescription)
-      ? elementDescription.source
-      : "");
-  if (isDebugModeEnabled() && !debuggedFiles.includes(fileInfoKey)) {
-    debuggedFiles.push(fileInfoKey);
-    if (elementDescription.type) {
-      success(`'${fileInfoKey}' is of type '${elementDescription.type}'`);
+  const isDependency = isDependencyDescription(elementDescription);
+  const key = isDependency
+    ? elementDescription.to.source
+    : elementDescription.path || "";
+  const type = isDependency
+    ? elementDescription.to.type
+    : elementDescription.type;
+
+  if (isDebugModeEnabled() && !debuggedFiles.includes(key)) {
+    debuggedFiles.push(key);
+    if (type) {
+      success(`'${key}' is of type '${type}'`);
     } else {
-      warn(`'${fileInfoKey}' is of unknown type`);
+      warn(`'${key}' is of unknown type`);
     }
-    trace(`\n${JSON.stringify(elementDescription, null, 2)}`, "gray");
+    trace(`\n${JSON.stringify(elementDescription, null, 2)}`, COLORS_MAP.gray);
   }
 }

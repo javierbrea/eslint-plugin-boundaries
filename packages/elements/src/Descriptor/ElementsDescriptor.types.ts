@@ -157,7 +157,7 @@ export type BaseElement = {
 /**
  * Parent elements
  */
-export type LocalElementParent = {
+export type ElementParent = {
   /** Type of the parent element */
   type: string | null;
   /** Category of the parent element */
@@ -217,7 +217,7 @@ export type LocalElementKnown = BaseElement & {
   /** Internal path of the file relative to the elementPath */
   internalPath: string;
   /** Parent elements */
-  parents: LocalElementParent[];
+  parents: ElementParent[];
   /** Indicates that the element is local */
   origin: typeof ELEMENT_ORIGINS_MAP.LOCAL;
   /** Indicates that the file is not ignored */

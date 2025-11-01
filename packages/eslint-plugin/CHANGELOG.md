@@ -20,10 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 > TODO BEFORE RELEASE 6.0.0
 > 
-> - Enable selecting by source, elementPath, path in selectors.
-> - Elements package documentation.
->
 > - Refactor `eslint-plugin-boundaries` package to use the types from `elements` package. Expose all necessary type guards from `elements` package to be used in `eslint-plugin-boundaries` package.
+> - Run Sonar analysis for `elements` package.
+
+> - Elements package documentation.
 >
 > - Support new types of selectors and descriptors in eslint-plugin-boundaries package: Change schemas, validations, etc.
 > - Support a `name` property in `additional-dependency-nodes` setting to be able to identify the custom dependency nodes in rules.

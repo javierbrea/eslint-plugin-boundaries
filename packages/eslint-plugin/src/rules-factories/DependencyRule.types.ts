@@ -1,13 +1,11 @@
+import type { DependencyDescription } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
-import type { DependencyInfo } from "../constants/DependencyInfo.types";
-import type { FileInfo } from "../constants/ElementsInfo.types";
-import type { EslintLiteralNode } from "../core/elementsInfo.types";
+import type { EslintLiteralNode } from "../Elements";
 import type { ValidateRulesOptions } from "../helpers/Helpers.types";
 
 export type DependencyRuleRunner<Options> = (options: {
-  dependency: DependencyInfo;
-  file: FileInfo;
+  dependency: DependencyDescription;
   options?: Options;
   node: EslintLiteralNode;
   context: Rule.RuleContext;

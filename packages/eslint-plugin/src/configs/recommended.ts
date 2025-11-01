@@ -1,6 +1,5 @@
+import type { Config } from "../constants/Config.types";
 import { SETTINGS } from "../constants/settings";
-
-import type { Config } from "./Config.types";
 
 const {
   ELEMENTS,

@@ -3,9 +3,9 @@ import { join } from "path";
 
 import type { Rule } from "eslint";
 
-import type { PluginBoundaries } from "./configs/Config.types";
 import recommendedConfig from "./configs/recommended";
 import strictConfig from "./configs/strict";
+import type { PluginBoundaries } from "./constants/Config.types";
 import type { RuleShortName, RuleShortNames } from "./constants/rules";
 import { RULE_SHORT_NAMES } from "./constants/rules";
 import { warn } from "./helpers/debug";
@@ -42,6 +42,7 @@ function isDefaultExport<T>(obj: T | { default: T }): obj is { default: T } {
  * @param ruleNames The rule names to import
  * @returns The imported rules
  */
+// TODO: Import rules statically
 function importRules(ruleNames: RuleShortNames) {
   return ruleNames.reduce(
     (loadedRules: Record<RuleShortName, Rule.RuleModule>, ruleName) => {

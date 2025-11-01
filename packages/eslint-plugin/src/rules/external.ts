@@ -3,10 +3,11 @@ import {
   isCoreDependencyElement,
   ELEMENT_ORIGINS_MAP,
 } from "@boundaries/elements";
-import type { ExternalLibrariesSelector } from "@boundaries/elements";
+import type {
+  DependencyDescription,
+  ExternalLibrariesSelector,
+} from "@boundaries/elements";
 
-import type { DependencyInfo } from "../constants/DependencyInfo.types";
-import type { FileInfo } from "../constants/ElementsInfo.types";
 import type {
   ExternalRuleOptions,
   RuleResult,
@@ -39,8 +40,7 @@ function getErrorReportMessage(report: RuleResultReport) {
 
 function errorMessage(
   ruleData: RuleResult,
-  file: FileInfo,
-  dependency: DependencyInfo
+  dependency: DependencyDescription
 ): string {
   const ruleReport = ruleData.ruleReport;
   if (!ruleReport) {
@@ -48,7 +48,7 @@ function errorMessage(
   }
 
   if (ruleReport.message) {
-    return customErrorMessage(ruleReport.message, file, dependency, {
+    return customErrorMessage(ruleReport.message, dependency, {
       specifiers:
         ruleData.report?.specifiers && ruleData.report?.specifiers.length > 0
           ? ruleData.report?.specifiers?.join(", ")
@@ -58,13 +58,14 @@ function errorMessage(
   }
   if (ruleReport.isDefault) {
     return `No rule allows the usage of external module '${
-      dependency.baseModule
-    }' in elements ${elementMessage(file)}`;
+      // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
+      dependency.to.baseSource
+    }' in elements ${elementMessage(dependency.from)}`;
   }
 
   const fileReport = `is not allowed in ${ruleElementMessage(
     ruleReport.element,
-    file.capturedValues
+    dependency.from.capturedValues
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 
   if (
@@ -75,7 +76,8 @@ function errorMessage(
       ruleReport.importKind,
       dependency
     )}'${getErrorReportMessage(ruleData.report)}' from external module '${
-      dependency.baseModule
+      // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
+      dependency.to.baseSource
     }' ${fileReport}`;
   }
   return `Usage of ${dependencyUsageKindMessage(
@@ -84,7 +86,8 @@ function errorMessage(
     {
       suffix: " from ",
     }
-  )}external module '${dependency.baseModule}' ${fileReport}`;
+    // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
+  )}external module '${dependency.to.baseSource}' ${fileReport}`;
 }
 
 function modifySelectors(selectors: ExternalLibrariesSelector): {
@@ -148,10 +151,10 @@ export default dependencyRule<ExternalRuleOptions>(
       },
     }),
   },
-  function ({ dependency, file, node, context, options }) {
+  function ({ dependency, node, context, options }) {
     if (
-      isExternalDependencyElement(dependency.originalDescription.to) ||
-      isCoreDependencyElement(dependency.originalDescription.to)
+      isExternalDependencyElement(dependency.to) ||
+      isCoreDependencyElement(dependency.to)
     ) {
       const adaptedRuleOptions = {
         ...options,
@@ -166,13 +169,13 @@ export default dependencyRule<ExternalRuleOptions>(
       };
 
       const ruleData = elementRulesAllowDependency(
-        dependency.originalDescription,
+        dependency,
         adaptedRuleOptions
       );
 
       if (!ruleData.result) {
         context.report({
-          message: errorMessage(ruleData, file, dependency),
+          message: errorMessage(ruleData, dependency),
           node: node,
         });
       }

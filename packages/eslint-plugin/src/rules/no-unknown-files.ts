@@ -1,7 +1,7 @@
 import type { Rule } from "eslint";
 
 import { SETTINGS } from "../constants/settings";
-import { fileInfo } from "../core/elementsInfo";
+import { elementDescription } from "../Elements";
 import { meta } from "../helpers/utils";
 
 const { RULE_NO_UNKNOWN_FILES } = SETTINGS;
@@ -13,8 +13,8 @@ const noUnknownFilesRule: Rule.RuleModule = {
   }),
 
   create: function (context) {
-    const file = fileInfo(context);
-    if (file.type || file.isIgnored) {
+    const file = elementDescription(context);
+    if (file.isIgnored || !file.isUnknown) {
       return {};
     }
     return {

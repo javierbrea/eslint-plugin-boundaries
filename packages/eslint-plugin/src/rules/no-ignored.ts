@@ -9,7 +9,7 @@ export default dependencyRule(
     description: `Prevent importing ignored files from recognized elements`,
   },
   function ({ dependency, node, context }) {
-    if (dependency.isIgnored) {
+    if (dependency.to.isIgnored) {
       context.report({
         message: `Importing ignored files is not allowed`,
         node: node,

@@ -1,7 +1,9 @@
-import { normalizeElementsSelector } from "@boundaries/elements";
+import type { DependencyDescription } from "@boundaries/elements";
+import {
+  normalizeElementsSelector,
+  DEPENDENCY_RELATIONSHIPS_MAP,
+} from "@boundaries/elements";
 
-import type { DependencyInfo } from "../constants/DependencyInfo.types";
-import type { FileInfo } from "../constants/ElementsInfo.types";
 import type {
   EntryPointRuleOptions,
   RuleResult,
@@ -23,27 +25,25 @@ import { elementRulesAllowDependency } from "./element-types";
 
 const { RULE_ENTRY_POINT } = SETTINGS;
 
-function errorMessage(
-  ruleData: RuleResult,
-  file: FileInfo,
-  dependency: DependencyInfo
-) {
+function errorMessage(ruleData: RuleResult, dependency: DependencyDescription) {
   const ruleReport = ruleData.ruleReport;
   if (!ruleReport) {
     return `No detailed rule report available. This is likely a bug in ${PLUGIN_NAME}. Please report it at ${PLUGIN_ISSUES_URL}`;
   }
 
   if (ruleReport.message) {
-    return customErrorMessage(ruleReport.message, file, dependency);
+    return customErrorMessage(ruleReport.message, dependency);
   }
   if (ruleReport.isDefault) {
     return `No rule allows the entry point '${
-      dependency.internalPath
-    }' in dependencies ${elementMessage(dependency)}`;
+      // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
+      dependency.to.internalPath
+    }' in dependencies ${elementMessage(dependency.to)}`;
   }
-  return `The entry point '${dependency.internalPath}' is not allowed in ${ruleElementMessage(
+  // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
+  return `The entry point '${dependency.to.internalPath}' is not allowed in ${ruleElementMessage(
     ruleReport.disallow,
-    dependency.capturedValues
+    dependency.to.capturedValues
   )}${dependencyUsageKindMessage(ruleReport.importKind, dependency, {
     prefix: " when importing ",
     suffix: "",
@@ -140,20 +140,25 @@ export default dependencyRule<EntryPointRuleOptions>(
       rulesMainKey: "target",
     }),
   },
-  function ({ dependency, file, node, context, options }) {
-    if (!dependency.isIgnored && dependency.type && !dependency.isInternal) {
+  function ({ dependency, node, context, options }) {
+    if (
+      !dependency.to.isIgnored &&
+      dependency.to.type &&
+      dependency.dependency.relationship.to !==
+        DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL
+    ) {
       const adaptedRuleOptions = {
         ...options,
         rules: options && options.rules ? modifyRules(options.rules) : [],
       };
 
       const ruleData = elementRulesAllowDependency(
-        dependency.originalDescription,
+        dependency,
         adaptedRuleOptions
       );
       if (!ruleData.result) {
         context.report({
-          message: errorMessage(ruleData, file, dependency),
+          message: errorMessage(ruleData, dependency),
           node: node,
         });
       }

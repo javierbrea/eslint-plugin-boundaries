@@ -5,8 +5,8 @@ import type {
   EntryPointRuleOptions,
   ExternalRuleOptions,
   NoPrivateOptions,
-} from "../constants/Options.types";
-import type { PLUGIN_NAME } from "../constants/plugin";
+} from "./Options.types";
+import type { PLUGIN_NAME } from "./plugin";
 import type {
   RuleShortName,
   ELEMENT_TYPES,
@@ -16,8 +16,8 @@ import type {
   NO_PRIVATE,
   NO_UNKNOWN,
   NO_UNKNOWN_FILES,
-} from "../constants/rules";
-import type { Settings } from "../constants/settings";
+} from "./rules";
+import type { Settings } from "./settings";
 
 /**
  * Eslint boundaries plugin rules.

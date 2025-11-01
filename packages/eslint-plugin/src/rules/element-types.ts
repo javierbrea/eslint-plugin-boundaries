@@ -12,15 +12,13 @@ import type {
 } from "@boundaries/elements";
 import micromatch from "micromatch";
 
-import type { DependencyInfo } from "../constants/DependencyInfo.types";
-import type { FileInfo } from "../constants/ElementsInfo.types";
 import type {
   ElementTypesRuleOptions,
   RuleResult,
 } from "../constants/Options.types";
 import { PLUGIN_NAME, PLUGIN_ISSUES_URL } from "../constants/plugin";
 import { isString, SETTINGS } from "../constants/settings";
-import { elements } from "../elements/elements";
+import { elements } from "../Elements";
 import {
   customErrorMessage,
   ruleElementMessage,
@@ -179,10 +177,9 @@ export function elementRulesAllowDependency(
   const getSpecifiersMatching = () => {
     if (ruleIndexMatching === null) return null;
     const selectorDataSpecifiers: string | string[] | undefined =
-      // TODO: Add type guard to check whether selectorsData is dependency selectors data or base element selectors data
-      // @ts-expect-error TODO: Align types
-      // eslint-disable-next-line prettier/prettier
-      rulesResults[ruleIndexMatching].selectorsMatching?.selectorsData?.to?.specifiers;
+      // @ts-expect-error TODO: Align types. At this point, selectorsData.to must always be defined, because otherwise isMatch would be false
+      rulesResults[ruleIndexMatching].selectorsMatching?.selectorsData?.to
+        ?.specifiers;
 
     if (!selectorDataSpecifiers) {
       return null;
@@ -246,11 +243,7 @@ export function elementRulesAllowDependency(
   return result;
 }
 
-function errorMessage(
-  ruleData: RuleResult,
-  file: FileInfo,
-  dependency: DependencyInfo
-) {
+function errorMessage(ruleData: RuleResult, dependency: DependencyDescription) {
   const ruleReport = ruleData.ruleReport;
 
   if (!ruleReport) {
@@ -258,22 +251,22 @@ function errorMessage(
   }
 
   if (ruleReport.message) {
-    return customErrorMessage(ruleReport.message, file, dependency);
+    return customErrorMessage(ruleReport.message, dependency);
   }
   if (ruleReport.isDefault) {
     return `No rule allowing this dependency was found. File is ${elementMessage(
-      file
-    )}. Dependency is ${elementMessage(dependency)}`;
+      dependency.from
+    )}. Dependency is ${elementMessage(dependency.to)}`;
   }
   return `Importing ${dependencyImportKindMessage(
     ruleReport.importKind,
     dependency
   )}${ruleElementMessage(
     ruleReport.disallow,
-    file.capturedValues
+    dependency.from.capturedValues
   )} is not allowed in ${ruleElementMessage(
     ruleReport.element,
-    file.capturedValues
+    dependency.from.capturedValues
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 }
 
@@ -283,20 +276,18 @@ export default dependencyRule<ElementTypesRuleOptions>(
     description: `Check allowed dependencies between element types`,
     schema: rulesOptionsSchema(),
   },
-  function ({ dependency, file, node, context, options }) {
+  function ({ dependency, node, context, options }) {
+    // TODO: Remove these checks when allowing to use more selectors in ESLint rules
     if (
-      isLocalElement(dependency.originalDescription.to) &&
-      !isIgnoredElement(dependency.originalDescription.to) &&
-      !isUnknownLocalElement(dependency.originalDescription.to) &&
-      !isInternalDependency(dependency.originalDescription)
+      isLocalElement(dependency.to) &&
+      !isIgnoredElement(dependency.to) &&
+      !isUnknownLocalElement(dependency.to) &&
+      !isInternalDependency(dependency)
     ) {
-      const ruleData = elementRulesAllowDependency(
-        dependency.originalDescription,
-        options
-      );
+      const ruleData = elementRulesAllowDependency(dependency, options);
       if (!ruleData.result) {
         context.report({
-          message: errorMessage(ruleData, file, dependency),
+          message: errorMessage(ruleData, dependency),
           node,
         });
       }

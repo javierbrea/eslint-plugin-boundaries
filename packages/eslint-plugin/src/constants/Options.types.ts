@@ -1,14 +1,10 @@
 import type {
   DependencyKind,
-  CapturedValuesSelector,
   ElementsSelector,
   CapturedValues,
-  ExternalLibrarySelectorOptions,
   ExternalLibrariesSelector,
 } from "@boundaries/elements";
 
-import type { DependencyInfo } from "./DependencyInfo.types";
-import type { FileInfo } from "./ElementsInfo.types";
 import { isString } from "./settings";
 
 export const RULE_POLICY_ALLOW = "allow" as const;
@@ -74,25 +70,6 @@ export type RuleMatcherElementsCapturedValues = {
   from: CapturedValues;
   target: CapturedValues;
 };
-
-export type RuleMatcher<
-  FileOrDependencyInfo extends FileInfo | DependencyInfo = FileInfo,
-  RuleMatchers extends
-    | CapturedValuesSelector
-    | ExternalLibrarySelectorOptions = CapturedValuesSelector,
-> = (
-  elementInfo: FileOrDependencyInfo,
-
-  matcher: string,
-
-  ruleMatchers: RuleMatchers,
-
-  elementsCapturedValues: RuleMatcherElementsCapturedValues,
-
-  importKind?: DependencyKind
-) => RuleResult;
-
-// Specific rule options
 
 // TODO: Change the Options type to a generic one that receives the Rule type
 

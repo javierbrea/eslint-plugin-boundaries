@@ -13,8 +13,8 @@ import {
   SETTINGS_KEYS_MAP,
   DEPENDENCY_NODE_KEYS_MAP,
 } from "../constants/settings";
-import { fileInfo, dependencyInfo } from "../core/elementsInfo";
-import type { EslintLiteralNode } from "../core/elementsInfo.types";
+import { elementDescription, dependencyDescription } from "../Elements";
+import type { EslintLiteralNode } from "../Elements/Elements.types";
 import { warnOnce } from "../helpers/debug";
 import type { RuleMetaDefinition } from "../helpers/Rules.types";
 import { getArrayOrNull, isString, meta } from "../helpers/utils";
@@ -46,16 +46,19 @@ export default function <Options extends RuleOptionsWithRules>(
     create: function (context: Rule.RuleContext) {
       const options = context.options[0] as Options | undefined;
       const settings = validateSettings(context.settings);
-      const file = fileInfo(context);
-      if (
-        (ruleOptions.validate !== false && !options) ||
-        file.isIgnored ||
-        !file.type
-      ) {
+      const file = elementDescription(context);
+
+      if (ruleOptions.validate !== false && !options) {
         return {};
       }
+
       if (ruleOptions.validate !== false && optionsHaveRules(options)) {
         validateRules(settings, options.rules, ruleOptions.validateRules);
+      }
+
+      // TODO: Remove this check when allowing to select by any other property
+      if (file.isIgnored || !file.type) {
+        return {};
       }
 
       const dependencyNodesSetting = getArrayOrNull<DependencyNodeKey>(
@@ -71,6 +74,7 @@ export default function <Options extends RuleOptionsWithRules>(
           .map((dependencyNode) => DEFAULT_DEPENDENCY_NODES[dependencyNode])
           .flat()
           .filter(Boolean);
+
       const additionalDependencyNodes = additionalDependencyNodesSetting || [];
 
       return [...dependencyNodes, ...additionalDependencyNodes].reduce(
@@ -82,7 +86,7 @@ export default function <Options extends RuleOptionsWithRules>(
               );
               return;
             }
-            const dependency = dependencyInfo(
+            const dependency = dependencyDescription(
               {
                 node,
                 kind,
@@ -91,19 +95,12 @@ export default function <Options extends RuleOptionsWithRules>(
               context
             );
 
-            rule({ file, dependency, options, node, context });
+            rule({ dependency, options, node, context });
           };
 
           return visitors;
         },
-        {} as Record<
-          string,
-          (
-            // TODO: Define interface
-
-            node: EslintLiteralNode
-          ) => void
-        >
+        {} as Record<string, (node: EslintLiteralNode) => void>
       );
     },
   };

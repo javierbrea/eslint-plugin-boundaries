@@ -1,5 +1,9 @@
-import type { DependencyInfo } from "../constants/DependencyInfo.types";
-import type { FileInfo } from "../constants/ElementsInfo.types";
+import {
+  DEPENDENCY_RELATIONSHIPS_MAP,
+  isLocalDependencyElement,
+  type DependencyDescription,
+} from "@boundaries/elements";
+
 import type { NoPrivateOptions } from "../constants/Options.types";
 import { SETTINGS } from "../constants/settings";
 import { customErrorMessage, elementMessage } from "../helpers/messages";
@@ -8,14 +12,14 @@ import dependencyRule from "../rules-factories/dependency-rule";
 const { RULE_NO_PRIVATE } = SETTINGS;
 
 function errorMessage(
-  file: FileInfo,
-  dependency: DependencyInfo,
+  dependency: DependencyDescription,
   options?: NoPrivateOptions
 ) {
   if (options?.message) {
-    return customErrorMessage(options.message, file, dependency);
+    return customErrorMessage(options.message, dependency);
   }
-  return `Dependency is private of element ${elementMessage(dependency.parents[0])}`;
+  // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
+  return `Dependency is private of element ${elementMessage(dependency.to.parents?.[0])}`;
 }
 
 export default dependencyRule<NoPrivateOptions>(
@@ -37,19 +41,24 @@ export default dependencyRule<NoPrivateOptions>(
       },
     ],
   },
-  function ({ file, dependency, node, context, options }) {
+  function ({ dependency, node, context, options }) {
     if (
-      !dependency.isIgnored &&
-      dependency.isLocal &&
-      dependency.type &&
-      dependency.parents.length &&
-      dependency.relationship !== "internal" &&
-      dependency.relationship !== "child" &&
-      dependency.relationship !== "brother" &&
-      (!options?.allowUncles || dependency.relationship !== "uncle")
+      !dependency.to.isIgnored &&
+      isLocalDependencyElement(dependency.to) &&
+      dependency.to.type &&
+      dependency.to.parents.length &&
+      dependency.dependency.relationship.to !==
+        DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL &&
+      dependency.dependency.relationship.to !==
+        DEPENDENCY_RELATIONSHIPS_MAP.CHILD &&
+      dependency.dependency.relationship.to !==
+        DEPENDENCY_RELATIONSHIPS_MAP.SIBLING &&
+      (!options?.allowUncles ||
+        dependency.dependency.relationship.to !==
+          DEPENDENCY_RELATIONSHIPS_MAP.UNCLE)
     ) {
       context.report({
-        message: errorMessage(file, dependency, options),
+        message: errorMessage(dependency, options),
         node: node,
       });
     }
