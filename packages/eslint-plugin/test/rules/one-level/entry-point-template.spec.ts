@@ -1,3 +1,4 @@
+import rule from "../../../src/Rules/EntryPoint";
 import {
   SETTINGS,
   createRuleTester,
@@ -6,9 +7,7 @@ import {
 import type { RuleTesterSettings } from "../../support/helpers";
 import { errorMessage, entryPointNoRuleMessage } from "../../support/messages";
 
-const { ENTRY_POINT: RULE } = require("../../../src/constants/rules");
-
-const rule = require(`../../../src/rules/${RULE}`).default;
+const { ENTRY_POINT: RULE } = require("../../../src/Settings");
 
 const { absoluteFilePath } = pathResolvers("one-level");
 

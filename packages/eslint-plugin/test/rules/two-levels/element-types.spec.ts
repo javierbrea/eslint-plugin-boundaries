@@ -1,3 +1,4 @@
+import rule from "../../../src/Rules/ElementTypes";
 import {
   SETTINGS,
   createRuleTester,
@@ -9,9 +10,7 @@ import {
   elementTypesNoRuleMessage,
 } from "../../support/messages";
 
-const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
-
-const rule = require(`../../../src/rules/${RULE}`).default;
+const { ELEMENT_TYPES: RULE } = require("../../../src/Settings");
 
 const runTest = (
   settings: RuleTesterSettings,

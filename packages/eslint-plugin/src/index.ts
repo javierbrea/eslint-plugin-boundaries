@@ -1,16 +1,20 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 
-import type { Rule } from "eslint";
+import recommendedConfig from "./Config/Recommended";
+import strictConfig from "./Config/Strict";
+import ElementTypesRule from "./Rules/ElementTypes";
+import EntryPointRule from "./Rules/EntryPoint";
+import ExternalRule from "./Rules/External";
+import NoIgnoredRule from "./Rules/NoIgnored";
+import NoPrivateRule from "./Rules/NoPrivate";
+import NoUnknownRule from "./Rules/NoUnknown";
+import NoUnknownFilesRule from "./Rules/NoUnknownFiles";
+import { RULE_SHORT_NAMES_MAP } from "./Settings";
+import type { PluginBoundaries } from "./Settings";
+import { warn } from "./Support";
 
-import recommendedConfig from "./configs/recommended";
-import strictConfig from "./configs/strict";
-import type { PluginBoundaries } from "./constants/Config.types";
-import type { RuleShortName, RuleShortNames } from "./constants/rules";
-import { RULE_SHORT_NAMES } from "./constants/rules";
-import { warn } from "./helpers/debug";
-
-export * from "./types";
+export * from "./Config/Config";
 
 /**
  * The path to the plugin package.json file
@@ -28,38 +32,15 @@ if (packageJson.name !== "@boundaries/eslint-plugin") {
   );
 }
 
-/**
- * Type guard to check if an object is a default export
- * @param obj The object to check
- * @returns True if the object is a default export, false otherwise
- */
-function isDefaultExport<T>(obj: T | { default: T }): obj is { default: T } {
-  return typeof obj === "object" && obj !== null && "default" in obj;
-}
-
-/**
- * Returns all rules imported dynamically
- * @param ruleNames The rule names to import
- * @returns The imported rules
- */
-// TODO: Import rules statically
-function importRules(ruleNames: RuleShortNames) {
-  return ruleNames.reduce(
-    (loadedRules: Record<RuleShortName, Rule.RuleModule>, ruleName) => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const ruleModule = require(`./rules/${ruleName}`) as
-        | Rule.RuleModule
-        | {
-            default: Rule.RuleModule;
-          };
-      loadedRules[ruleName] = isDefaultExport(ruleModule)
-        ? ruleModule.default
-        : ruleModule;
-      return loadedRules;
-    },
-    {} as Record<RuleShortName, Rule.RuleModule>
-  );
-}
+const RULES = {
+  [RULE_SHORT_NAMES_MAP.ENTRY_POINT]: EntryPointRule,
+  [RULE_SHORT_NAMES_MAP.ELEMENT_TYPES]: ElementTypesRule,
+  [RULE_SHORT_NAMES_MAP.EXTERNAL]: ExternalRule,
+  [RULE_SHORT_NAMES_MAP.NO_IGNORED]: NoIgnoredRule,
+  [RULE_SHORT_NAMES_MAP.NO_PRIVATE]: NoPrivateRule,
+  [RULE_SHORT_NAMES_MAP.NO_UNKNOWN]: NoUnknownRule,
+  [RULE_SHORT_NAMES_MAP.NO_UNKNOWN_FILES]: NoUnknownFilesRule,
+};
 
 /**
  * Eslint plugin ensuring that architecture boundaries are respected by the elements in a project
@@ -70,7 +51,7 @@ const publicInterface: PluginBoundaries = {
     name: packageJson.name as string,
     version: packageJson.version as string,
   },
-  rules: importRules(RULE_SHORT_NAMES),
+  rules: RULES,
   configs: {
     recommended: recommendedConfig,
     strict: strictConfig,

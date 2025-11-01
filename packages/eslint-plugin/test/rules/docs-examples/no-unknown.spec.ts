@@ -1,12 +1,11 @@
+import rule from "../../../src/Rules/NoUnknown";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
 
-const { NO_UNKNOWN: RULE } = require("../../../src/constants/rules");
-
-const rule = require(`../../../src/rules/${RULE}`).default;
+const { NO_UNKNOWN: RULE } = require("../../../src/Settings");
 
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath } = pathResolvers("docs-examples");

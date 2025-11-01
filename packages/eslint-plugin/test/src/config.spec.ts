@@ -1,3 +1,4 @@
+import plugin from "../../src";
 import {
   createConfig,
   PLUGIN_NAME,
@@ -15,8 +16,7 @@ import {
   isElementDescriptorMode,
   RULE_POLICIES_MAP,
   isRulePolicy,
-} from "../../src/configs/config";
-import plugin from "../../src/index";
+} from "../../src/Config/Config";
 
 describe("createConfig", () => {
   describe("with default configuration", () => {

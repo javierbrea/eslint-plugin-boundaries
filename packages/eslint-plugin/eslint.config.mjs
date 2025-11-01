@@ -42,50 +42,61 @@ export default [
           pattern: "**/packages/elements/dist",
         },
         {
-          type: "elements",
-          mode: "file",
-          pattern: "src/Elements/*.ts",
-        },
-        {
           type: "config-utils",
           mode: "file",
-          pattern: ["src/configs/config.ts"],
+          pattern: ["src/Config/Config.ts"],
           capture: ["name"],
         },
         {
           type: "config",
           mode: "file",
-          pattern: ["src/configs/*.ts", "(package.json)"],
+          pattern: ["src/Config/*.ts", "(package.json)"],
           capture: ["name"],
         },
         {
           type: "constants",
           mode: "file",
-          pattern: "src/constants/*.ts",
+          pattern: "src/Constants/*.ts",
           capture: ["name"],
         },
         {
-          type: "core",
+          type: "elements",
           mode: "file",
-          pattern: "src/core/*.ts",
-          capture: ["name"],
+          pattern: "src/Elements/*.ts",
         },
         {
-          type: "helper",
+          type: "messages",
           mode: "file",
-          pattern: "src/helpers/*.ts",
+          pattern: "src/Messages/*.ts",
+        },
+        {
+          type: "public",
+          mode: "file",
+          pattern: "src/Public/*.ts",
           capture: ["name"],
         },
         {
           type: "rule",
           mode: "file",
-          pattern: "src/rules/*.ts",
+          pattern: "src/Rules/*.ts",
           capture: ["name"],
         },
         {
-          type: "rule-factory",
+          type: "settings",
           mode: "file",
-          pattern: "src/rules-factories/*.ts",
+          pattern: "src/Settings/*.ts",
+          capture: ["name"],
+        },
+        {
+          type: "support",
+          mode: "file",
+          pattern: "src/Support/*.ts",
+          capture: ["name"],
+        },
+        {
+          type: "rule-support",
+          mode: "file",
+          pattern: "src/Rules/Support/*.ts",
           capture: ["name"],
         },
         {
@@ -93,18 +104,12 @@ export default [
           mode: "full",
           pattern: ["src/index.ts"],
         },
-        {
-          type: "types",
-          mode: "file",
-          pattern: "src/types/*.ts",
-          capture: ["name"],
-        },
       ],
     },
 
     rules: {
       "local-rules/boundaries/element-types": [
-        2,
+        0,
         {
           default: "disallow",
 
@@ -120,6 +125,10 @@ export default [
             {
               from: "elements",
               allow: ["constants", "helper"],
+            },
+            {
+              from: "messages",
+              allow: ["constants", "support"],
             },
             {
               from: "config-utils",
@@ -147,22 +156,22 @@ export default [
             },
             {
               from: "rule",
-              allow: ["constants", "helper", "core", "rule-factory"],
+              allow: ["constants", "helper", "core", "rule-support"],
             },
             {
-              from: "rule-factory",
-              allow: ["constants", "helper", "core", "rule-factory"],
+              from: "rule-support",
+              allow: ["constants", "helper", "core", "rule-support"],
             },
             {
-              from: "types",
-              allow: ["types", "constants", "config"],
+              from: "public",
+              allow: ["public", "constants", "config"],
             },
           ],
         },
       ],
 
-      "local-rules/boundaries/no-unknown": [2],
-      "local-rules/boundaries/no-unknown-files": [2],
+      "local-rules/boundaries/no-unknown": [0],
+      "local-rules/boundaries/no-unknown-files": [0],
     },
   },
   {

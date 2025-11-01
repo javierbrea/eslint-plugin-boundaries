@@ -1,12 +1,11 @@
-import { ENTRY_POINT as RULE } from "../../../src/constants/rules";
+import rule from "../../../src/Rules/EntryPoint";
+import { ENTRY_POINT as RULE } from "../../../src/Settings";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
 import { errorMessage, entryPointNoRuleMessage } from "../../support/messages";
-
-const rule = require(`../../../src/rules/${RULE}`).default;
 
 const { absoluteFilePath } = pathResolvers("docs-examples");
 

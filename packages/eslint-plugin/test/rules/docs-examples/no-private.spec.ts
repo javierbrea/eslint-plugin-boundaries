@@ -1,3 +1,4 @@
+import rule from "../../../src/Rules/NoPrivate";
 import {
   SETTINGS,
   createRuleTester,
@@ -5,9 +6,7 @@ import {
 } from "../../support/helpers";
 import { noPrivateMessage } from "../../support/messages";
 
-const { NO_PRIVATE: RULE } = require("../../../src/constants/rules");
-
-const rule = require(`../../../src/rules/${RULE}`).default;
+const { NO_PRIVATE: RULE } = require("../../../src/Settings");
 
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath } = pathResolvers("docs-examples");

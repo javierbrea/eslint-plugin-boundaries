@@ -1,3 +1,4 @@
+import rule from "../../../src/Rules/NoUnknownFiles";
 import {
   SETTINGS,
   createRuleTester,
@@ -5,9 +6,7 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 
-const { NO_UNKNOWN_FILES: RULE } = require("../../../src/constants/rules");
-
-const rule = require(`../../../src/rules/${RULE}`).default;
+const { NO_UNKNOWN_FILES: RULE } = require("../../../src/Settings");
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 

@@ -1,12 +1,11 @@
-import { ELEMENT_TYPES as RULE } from "../../../src/constants/rules";
+import rule from "../../../src/Rules/ElementTypes";
+import { ELEMENT_TYPES as RULE } from "../../../src/Settings";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
 import { elementTypesNoRuleMessage } from "../../support/messages";
-
-const rule = require(`../../../src/rules/${RULE}`).default;
 
 const settings = SETTINGS.basePattern;
 

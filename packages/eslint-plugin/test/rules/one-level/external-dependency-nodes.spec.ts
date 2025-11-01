@@ -1,3 +1,4 @@
+import rule from "../../../src/Rules/External";
 import {
   SETTINGS,
   TYPESCRIPT_SETTINGS,
@@ -6,9 +7,7 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 
-const { EXTERNAL: RULE } = require("../../../src/constants/rules");
-
-const rule = require(`../../../src/rules/${RULE}`).default;
+const { EXTERNAL: RULE } = require("../../../src/Settings");
 
 const { absoluteFilePath } = pathResolvers("one-level");
 

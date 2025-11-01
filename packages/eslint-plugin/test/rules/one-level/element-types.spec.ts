@@ -1,3 +1,4 @@
+import rule from "../../../src/Rules/ElementTypes";
 import {
   SETTINGS,
   createRuleTester,
@@ -11,9 +12,7 @@ import {
 
 const { resolve } = require("path");
 
-const { ELEMENT_TYPES: RULE } = require("../../../src/constants/rules");
-
-const rule = require(`../../../src/rules/${RULE}`).default;
+const { ELEMENT_TYPES: RULE } = require("../../../src/Settings");
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
