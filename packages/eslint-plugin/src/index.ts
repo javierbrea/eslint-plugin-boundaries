@@ -14,6 +14,7 @@ import { RULE_SHORT_NAMES_MAP } from "./Settings";
 import type { PluginBoundaries } from "./Settings";
 import { warn } from "./Support";
 
+// NOTE: Config already exports the whole Public folder
 export * from "./Config/Config";
 
 /**
