@@ -117,6 +117,54 @@ export class ElementsMatcher extends BaseElementsMatcher {
   }
 
   /**
+   * Whether the given element path matches the selector path.
+   * @param element The element to check.
+   * @param selector The selector to check against.
+   * @param templateData The data to use for replace in selector value
+   * @returns Whether the element path matches the selector path.
+   */
+  private _isPathMatch(
+    element: SelectableElement,
+    selector: BaseElementSelectorData,
+    templateData: TemplateData
+  ): boolean {
+    const selectorValue = !isNullish(selector.path)
+      ? this.getRenderedTemplates(selector.path, templateData)
+      : selector.path;
+    return this.isElementKeyMicromatchMatch({
+      element,
+      selector,
+      elementKey: "path",
+      selectorKey: "path",
+      selectorValue,
+    });
+  }
+
+  /**
+   * Whether the given element path matches the selector element path.
+   * @param element The element to check.
+   * @param selector The selector to check against.
+   * @param templateData The data to use for replace in selector value
+   * @returns Whether the element path matches the selector element path.
+   */
+  private _isElementPathMatch(
+    element: SelectableElement,
+    selector: BaseElementSelectorData,
+    templateData: TemplateData
+  ): boolean {
+    const selectorValue = !isNullish(selector.elementPath)
+      ? this.getRenderedTemplates(selector.elementPath, templateData)
+      : selector.elementPath;
+    return this.isElementKeyMicromatchMatch({
+      element,
+      selector,
+      elementKey: "elementPath",
+      selectorKey: "elementPath",
+      selectorValue,
+    });
+  }
+
+  /**
    * Whether the given element internal path matches the selector internal path.
    * @param element The element to check.
    * @param selector The selector to check against.
@@ -184,6 +232,30 @@ export class ElementsMatcher extends BaseElementsMatcher {
       selector,
       elementKey: "baseSource",
       selectorKey: "baseSource",
+      selectorValue,
+    });
+  }
+
+  /**
+   * Whether the given element source matches the selector source
+   * @param element The element to check.
+   * @param selector The selector to check against.
+   * @param templateData The data to use for replace in selector value
+   * @returns Whether the element source matches the selector source.
+   */
+  private _isSourceMatch(
+    element: SelectableElement,
+    selector: BaseElementSelectorData,
+    templateData: TemplateData
+  ): boolean {
+    const selectorValue = !isNullish(selector.source)
+      ? this.getRenderedTemplates(selector.source, templateData)
+      : selector.source;
+    return this.isElementKeyMicromatchMatch({
+      element,
+      selector,
+      elementKey: "source",
+      selectorKey: "source",
       selectorValue,
     });
   }
@@ -285,10 +357,13 @@ export class ElementsMatcher extends BaseElementsMatcher {
       const isMatch =
         this._isTypeMatch(element, selectorData, templateData) &&
         this._isCategoryMatch(element, selectorData, templateData) &&
-        this._isOriginMatch(element, selectorData, templateData) &&
-        this._isInternalPathMatch(element, selectorData, templateData) &&
-        this._isBaseSourceMatch(element, selectorData, templateData) &&
         this._isCapturedValuesMatch(element, selectorData, templateData) &&
+        this._isPathMatch(element, selectorData, templateData) &&
+        this._isElementPathMatch(element, selectorData, templateData) &&
+        this._isInternalPathMatch(element, selectorData, templateData) &&
+        this._isOriginMatch(element, selectorData, templateData) &&
+        this._isSourceMatch(element, selectorData, templateData) &&
+        this._isBaseSourceMatch(element, selectorData, templateData) &&
         this._isIgnoredMatch(element, selectorData) &&
         this._isUnknownMatch(element, selectorData);
       if (isMatch) {

@@ -95,16 +95,22 @@ export type SimpleElementSelectorByType = string;
  * Selector for base elements, including captured values for dynamic matching.
  */
 export type BaseElementSelectorData = {
+  /** Micromatch pattern(s) to match the path of the element */
+  path?: MicromatchPattern;
+  /** Micromatch pattern(s) to match the path of the element containing the file */
+  elementPath?: MicromatchPattern;
+  /** Micromatch pattern(s) to match internal paths within the file or dependency, relative to the element path */
+  internalPath?: MicromatchPattern;
   /** Type of the element */
   type?: MicromatchPattern;
   /** Category of the element */
   category?: MicromatchPattern;
   /** Captured values selector for dynamic matching */
   captured?: CapturedValuesSelector;
-  /** Micromatch pattern(s) to match internal paths within the file or dependency */
-  internalPath?: MicromatchPattern;
   /** Origin of the element */
   origin?: MicromatchPattern;
+  /** Micromatch pattern(s) to match the source of the dependency */
+  source?: MicromatchPattern;
   /** Base source of the element, e.g., the import path of a dependency */
   baseSource?: MicromatchPattern;
   /** Whether the element is ignored */

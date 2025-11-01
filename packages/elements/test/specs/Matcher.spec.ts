@@ -220,6 +220,56 @@ describe("Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
+        selector: { path: "/project/src/components/Button.tsx" },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { path: "/project/src/components/**/*" },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { path: "/project/src/foo/**/*" },
+        expected: false,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { elementPath: "/project/src/components/Button.tsx" },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { elementPath: "/project/src/components/**/*" },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { elementPath: "/project/src/foo/**/*" },
+        expected: false,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { internalPath: "Button.tsx" },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { internalPath: "Button.*" },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { internalPath: ["*.*"] },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { internalPath: "Foo.*" },
+        expected: false,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
         selector: {
           type: "component",
           category: "react",
@@ -492,6 +542,84 @@ describe("Matcher", () => {
       {
         dependency: {
           from: "/project/src/components/Button.tsx",
+          to: "/project/src/bar/Baz.ts",
+          source: "project/bar",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          from: { path: "/project/src/components/Button.tsx" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/bar/Baz.ts",
+          source: "project/bar",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          from: { path: "foo" },
+        },
+        expected: false,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/bar/Baz.ts",
+          source: "project/bar",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          from: { elementPath: "**/*" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/bar/Baz.ts",
+          source: "project/bar",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          from: { elementPath: "foo" },
+        },
+        expected: false,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/bar/Baz.ts",
+          source: "project/bar",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          from: { isIgnored: false },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/bar/Baz.ts",
+          source: "project/bar",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          from: { isIgnored: true },
+        },
+        expected: false,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
           to: "/project/src/utils/math/math.test.ts",
           source: "../utils/math/math.test.ts",
           kind: "value",
@@ -629,6 +757,122 @@ describe("Matcher", () => {
         },
         expected: true,
       },
+      // Path tests
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: { path: "**/Button.tsx" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: { path: "**/Foo.tsx" },
+        },
+        expected: false,
+      },
+      // Element Path tests
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: { elementPath: "**" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: { elementPath: "foo" },
+        },
+        expected: false,
+      },
+      // IsIgnored tests
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: { isIgnored: false },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: { isIgnored: true },
+        },
+        expected: false,
+      },
+      // isUnknown tests
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: { isUnknown: false },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          to: "/project/src/components/Button.tsx",
+          from: "/project/src/utils/math/math.test.ts",
+          source: "../components/Button.tsx",
+          kind: "type",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        selector: {
+          to: { isUnknown: true },
+        },
+        expected: false,
+      },
       // InternalPath tests
       {
         dependency: {
@@ -655,6 +899,58 @@ describe("Matcher", () => {
         },
         selector: {
           to: { type: "{{ to.type }}", internalPath: ["foo", "**/Button.tsx"] },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { source: "react", origin: ["external", "local"] },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { source: "foo" },
+        },
+        expected: false,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { elementPath: "*" }, // Unknown element, so elementPath is not set
+        },
+        expected: false,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { isUnknown: true },
         },
         expected: true,
       },
@@ -905,6 +1201,14 @@ describe("Matcher", () => {
         const result = extraTemplateData
           ? matcher.isMatch(dependency, selector, { extraTemplateData })
           : matcher.isMatch(dependency, selector);
+
+        if (result !== expected)
+          console.error("Mismatch on:", {
+            dependency,
+            selector,
+            extraTemplateData,
+            expectedMatch,
+          });
 
         expect(result).toBe(expected);
 

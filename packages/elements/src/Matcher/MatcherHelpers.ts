@@ -60,11 +60,14 @@ export function isBaseElementSelectorData(
   value: unknown
 ): value is ElementSelectorData {
   return isObjectWithAnyOfProperties(value, [
+    "path",
+    "elementPath",
+    "internalPath",
     "type",
     "category",
     "captured",
-    "internalPath",
     "origin",
+    "source",
     "baseSource",
     "isIgnored",
     "isUnknown",

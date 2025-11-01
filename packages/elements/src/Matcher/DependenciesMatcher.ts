@@ -3,6 +3,7 @@ import type {
   DependencyDescription,
   DependencyRelationship,
 } from "../Descriptor";
+import { isNullish } from "../Support";
 
 import {
   BaseElementsMatcher,
@@ -133,6 +134,14 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       baseSelector.category = selector.category;
     }
 
+    if (selector.path) {
+      baseSelector.path = selector.path;
+    }
+
+    if (selector.elementPath) {
+      baseSelector.elementPath = selector.elementPath;
+    }
+
     if (selector.internalPath) {
       baseSelector.internalPath = selector.internalPath;
     }
@@ -147,6 +156,18 @@ export class DependenciesMatcher extends BaseElementsMatcher {
 
     if (selector.baseSource) {
       baseSelector.baseSource = selector.baseSource;
+    }
+
+    if (selector.source) {
+      baseSelector.source = selector.source;
+    }
+
+    if (!isNullish(selector.isIgnored)) {
+      baseSelector.isIgnored = selector.isIgnored;
+    }
+
+    if (!isNullish(selector.isUnknown)) {
+      baseSelector.isUnknown = selector.isUnknown;
     }
 
     return baseSelector as BaseElementSelector;
