@@ -71,19 +71,9 @@ describe("Selectors", () => {
     // eslint-disable-next-line jest/prefer-ending-with-an-expect
     it.each([
       {
-        filePath: "/project/src/misc/other.ts",
-        selector: {},
-        expected: false,
-      },
-      {
-        filePath: "/project/src/utils/__tests__/testUtil.ts",
-        selector: {},
-        expected: false,
-      },
-      {
         filePath: "/project/src/utils/__tests__/testUtil.ts",
         selector: { isIgnored: true },
-        expected: false,
+        expected: true,
       },
       {
         filePath: "/project/src/components/Button.tsx",
@@ -361,22 +351,30 @@ describe("Selectors", () => {
       expect(() => elements.isElementMatch(element, { var: "baz" })).toThrow();
     });
 
-    it("should not throw an error when using invalid selector on ignored elements", () => {
-      const element = matcher.describeElement("/foo/bar/baz.ts");
+    // TODO: Remove this test when removing deprecated methods
+    it("should return false when checking properties that do no exist on description because it is invalid", () => {
+      const result = elements.isElementMatch(
+        {
+          // @ts-expect-error: Testing invalid selector
+          foo: "bar",
+        },
+        { isIgnored: true }
+      );
 
-      expect(() =>
-        // @ts-expect-error: Testing invalid selector
-        elements.isElementMatch(element, { var: "baz" })
-      ).not.toThrow();
+      expect(result).toBe(false);
     });
 
-    it("should not throw an error when using invalid selector on unknown elements", () => {
-      const element = matcher.describeElement("/project/src/misc/other.ts");
+    // TODO: Remove this test when removing deprecated methods
+    it("should return false when checking properties with wrong type in description", () => {
+      const result = elements.isElementMatch(
+        {
+          // @ts-expect-error: Testing invalid selector
+          isIgnored: "not-boolean",
+        },
+        { isIgnored: true }
+      );
 
-      expect(() =>
-        // @ts-expect-error: Testing invalid selector
-        elements.isElementMatch(element, { var: "baz" })
-      ).not.toThrow();
+      expect(result).toBe(false);
     });
 
     it("should not call to micromatch after matching with same options", () => {

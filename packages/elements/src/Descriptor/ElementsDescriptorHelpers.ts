@@ -125,7 +125,9 @@ export function isBaseElement(value: unknown): value is BaseElement {
     isObjectWithProperty(value, "category") &&
     isObjectWithProperty(value, "path") &&
     isObjectWithProperty(value, "capturedValues") &&
-    isObjectWithProperty(value, "origin")
+    isObjectWithProperty(value, "origin") &&
+    isObjectWithProperty(value, "isIgnored") &&
+    isObjectWithProperty(value, "isUnknown")
   );
 }
 
@@ -161,12 +163,7 @@ export function isLocalElement(
 export function isUnknownLocalElement(
   value: unknown
 ): value is LocalElementUnknown {
-  return (
-    isLocalElement(value) &&
-    value.type === null &&
-    value.category === null &&
-    value.capturedValues === null
-  );
+  return isLocalElement(value) && value.isUnknown === true;
 }
 
 /**
@@ -177,12 +174,7 @@ export function isUnknownLocalElement(
 export function isKnownLocalElement(
   value: unknown
 ): value is LocalElementKnown {
-  return (
-    isLocalElement(value) &&
-    isObjectWithProperty(value, "parents") &&
-    isObjectWithProperty(value, "elementPath") &&
-    isObjectWithProperty(value, "internalPath")
-  );
+  return isLocalElement(value) && value.isUnknown === false;
 }
 
 /**

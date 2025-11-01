@@ -5,6 +5,8 @@ import type {
   ExternalDependencyElement,
   LocalDependencyElementKnown,
   DescriptorsSerializedCache,
+  IgnoredElement,
+  LocalElementUnknown,
 } from "../Descriptor";
 
 /**
@@ -45,7 +47,9 @@ export type MatcherSerializedCache = {
  * Elements that can return a match when using an element selector.
  */
 export type SelectableElement =
+  | IgnoredElement
   | LocalElementKnown
+  | LocalElementUnknown
   | CoreDependencyElement
   | ExternalDependencyElement
   | LocalDependencyElementKnown;
@@ -103,6 +107,10 @@ export type BaseElementSelectorData = {
   origin?: MicromatchPattern;
   /** Base source of the element, e.g., the import path of a dependency */
   baseSource?: MicromatchPattern;
+  /** Whether the element is ignored */
+  isIgnored?: boolean;
+  /** Whether the element is unknown */
+  isUnknown?: boolean;
 };
 
 /**

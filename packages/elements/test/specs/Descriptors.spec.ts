@@ -188,6 +188,7 @@ describe("Descriptors", () => {
         parents: [],
         origin: "local",
         isIgnored: false,
+        isUnknown: false,
         path: "/project/src/components/Button.tsx",
       });
       expect(isKnownLocalElement(element)).toBe(true);
@@ -219,6 +220,7 @@ describe("Descriptors", () => {
         internalPath: "Button.tsx",
         parents: [],
         isIgnored: false,
+        isUnknown: false,
         origin: "local",
         path: "/project/src/components/Button.tsx",
       });
@@ -240,6 +242,7 @@ describe("Descriptors", () => {
           businessLogicArea: "utils",
           root: "/project",
         },
+        isUnknown: false,
         isIgnored: false,
         elementPath: "/project/src/utils/math/math.test.ts",
         internalPath: "math.test.ts",
@@ -267,6 +270,7 @@ describe("Descriptors", () => {
         parents: [],
         origin: "local",
         isIgnored: false,
+        isUnknown: false,
       });
       expect(isKnownLocalElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
@@ -291,6 +295,7 @@ describe("Descriptors", () => {
         parents: [],
         isIgnored: false,
         origin: "local",
+        isUnknown: false,
       });
       expect(isKnownLocalElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
@@ -306,6 +311,7 @@ describe("Descriptors", () => {
         path: "/project/src/misc/other.ts",
         origin: "local",
         isIgnored: false,
+        isUnknown: true,
       });
       expect(isUnknownLocalElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
@@ -326,6 +332,7 @@ describe("Descriptors", () => {
         origin: "local",
         parents: [],
         path: "/project/src/utils/math/mathUtil.ts",
+        isUnknown: false,
       });
       expect(isKnownLocalElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
@@ -345,6 +352,7 @@ describe("Descriptors", () => {
         internalPath: "EmailService.ts",
         origin: "local",
         path: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+        isUnknown: false,
         parents: [
           {
             type: null,
@@ -381,6 +389,7 @@ describe("Descriptors", () => {
         origin: "local",
         parents: [],
         path: "/project/src/utils/math/index.ts",
+        isUnknown: false,
       });
       expect(isLocalDependencyElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
@@ -403,6 +412,7 @@ describe("Descriptors", () => {
         isIgnored: false,
         origin: "external",
         path: "/project/node_modules/react/index.tsx",
+        isUnknown: true,
       });
       expect(isExternalDependencyElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
@@ -424,6 +434,7 @@ describe("Descriptors", () => {
         baseSource: "@mui/icons-material",
         origin: "external",
         path: "/project/node_modules/@mui/icons-material/index.tsx",
+        isUnknown: true,
       });
       expect(isExternalDependencyElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
@@ -445,6 +456,7 @@ describe("Descriptors", () => {
         isIgnored: false,
         origin: "external",
         path: "/project/node_modules/@mui/icons-material/index.tsx",
+        isUnknown: true,
       });
       expect(isExternalDependencyElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
@@ -462,6 +474,7 @@ describe("Descriptors", () => {
         isIgnored: false,
         origin: "core",
         path: null,
+        isUnknown: true,
       });
       expect(isCoreDependencyElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
@@ -479,6 +492,7 @@ describe("Descriptors", () => {
         isIgnored: false,
         origin: "core",
         path: null,
+        isUnknown: true,
       });
       expect(isCoreDependencyElement(element)).toBe(true);
       expect(isElement(element)).toBe(true);
@@ -662,6 +676,7 @@ describe("Descriptors", () => {
           parents: [],
           path: "/project/src/components/Button.tsx",
           type: "component",
+          isUnknown: false,
         },
         to: {
           capturedValues: null,
@@ -671,6 +686,7 @@ describe("Descriptors", () => {
           isIgnored: false,
           source: "project/bar",
           type: null,
+          isUnknown: true,
         },
         dependency: {
           kind: "type",
@@ -705,6 +721,7 @@ describe("Descriptors", () => {
           path: "/project/src/var/Baz.ts",
           isIgnored: false,
           type: null,
+          isUnknown: true,
         },
         to: {
           capturedValues: null,
@@ -714,6 +731,7 @@ describe("Descriptors", () => {
           isIgnored: false,
           source: "project/bar",
           type: null,
+          isUnknown: true,
         },
         dependency: {
           kind: "type",
@@ -744,19 +762,21 @@ describe("Descriptors", () => {
         from: {
           category: null,
           capturedValues: null,
-          origin: "local",
+          origin: null,
           isIgnored: true,
           path: "/var/var/Baz.ts",
           type: null,
+          isUnknown: true,
         },
         to: {
           capturedValues: null,
           category: null,
-          origin: "local",
+          origin: null,
           isIgnored: true,
           path: "/var/bar/Baz.ts",
           source: "project/bar",
           type: null,
+          isUnknown: true,
         },
         dependency: {
           kind: "type",
@@ -797,6 +817,7 @@ describe("Descriptors", () => {
           isIgnored: false,
           origin: "local",
           path: "/project/src/components/Button.tsx",
+          isUnknown: false,
         },
         to: {
           type: "test",
@@ -814,6 +835,7 @@ describe("Descriptors", () => {
           origin: "local",
           path: "/project/src/utils/math/math.test.ts",
           source: "../utils/math/math.test.ts",
+          isUnknown: false,
         },
         dependency: {
           kind: "value",
@@ -853,6 +875,7 @@ describe("Descriptors", () => {
           path: "/project/src/components/Button.tsx",
           type: "component",
           isIgnored: false,
+          isUnknown: false,
         },
         to: {
           baseSource: "react",
@@ -864,6 +887,7 @@ describe("Descriptors", () => {
           source: "react",
           type: null,
           isIgnored: false,
+          isUnknown: true,
         },
         dependency: {
           kind: "type",
@@ -902,6 +926,7 @@ describe("Descriptors", () => {
           path: "/project/src/components/Button.tsx",
           type: "component",
           isIgnored: false,
+          isUnknown: false,
         },
         to: {
           baseSource: "fs",
@@ -912,6 +937,7 @@ describe("Descriptors", () => {
           source: "fs",
           type: null,
           isIgnored: false,
+          isUnknown: true,
         },
         dependency: {
           kind: "type",
@@ -956,6 +982,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         to: {
           source: "./modules/email/EmailService",
@@ -982,6 +1009,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         dependency: {
           kind: "value",
@@ -1027,6 +1055,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         to: {
           source: "./EmailService",
@@ -1046,6 +1075,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         dependency: {
           kind: "value",
@@ -1091,6 +1121,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         to: {
           source: "./modules/email/modules/send/SendService",
@@ -1124,6 +1155,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         dependency: {
           kind: "value",
@@ -1176,6 +1208,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         to: {
           source: "../email/EmailService",
@@ -1202,6 +1235,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         dependency: {
           kind: "value",
@@ -1254,6 +1288,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         to: {
           source: "../../NotificationService",
@@ -1274,6 +1309,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         dependency: {
           kind: "value",
@@ -1332,6 +1368,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         to: {
           source: "./modules/email/modules/send/SendService",
@@ -1351,6 +1388,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         dependency: {
           kind: "value",
@@ -1410,6 +1448,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         to: {
           source: "../../../email/EmailService",
@@ -1436,6 +1475,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         dependency: {
           kind: "value",
@@ -1488,6 +1528,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         to: {
           source: "../../../email/EmailService",
@@ -1521,6 +1562,7 @@ describe("Descriptors", () => {
             },
           ],
           isIgnored: false,
+          isUnknown: false,
         },
         dependency: {
           kind: "value",

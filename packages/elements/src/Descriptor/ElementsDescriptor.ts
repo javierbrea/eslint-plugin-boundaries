@@ -40,6 +40,7 @@ const UNKNOWN_LOCAL_ELEMENT: LocalElementUnknown = {
   capturedValues: null,
   origin: ELEMENT_ORIGINS_MAP.LOCAL,
   isIgnored: false,
+  isUnknown: true,
 };
 
 /** Options for the _fileDescriptorMatch private method */
@@ -417,6 +418,7 @@ export class ElementsDescriptor {
         ...UNKNOWN_LOCAL_ELEMENT,
         path: filePath,
         isIgnored: true,
+        origin: null,
       };
     }
 
@@ -481,6 +483,7 @@ export class ElementsDescriptor {
         // It is the main element
         elementResult.type = elementDescriptor.type || null;
         elementResult.category = elementDescriptor.category || null;
+        elementResult.isUnknown = false;
         elementResult.elementPath = elementPath;
         elementResult.capturedValues = capturedValues;
         elementResult.internalPath =

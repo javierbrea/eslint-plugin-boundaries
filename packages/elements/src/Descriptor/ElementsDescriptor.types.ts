@@ -55,7 +55,7 @@ export type BaseElementDescriptor = {
   /**
    * Like capture, but for the basePattern.
    * This allows to capture values from the left side of the path, which is useful when using the basePattern option.
-   * The captured values will be merged with the ones from the capture option.
+   * The captured values will be merged with the ones from the capture option. If the same name is used in both captures, the value from capture will take precedence.
    */
   baseCapture?: string[];
 };
@@ -117,32 +117,6 @@ export type ElementsDescriptorSerializedCache = Record<
 export type CapturedValues = Record<string, string>;
 
 /**
- * Base element properties related to captured values
- */
-export type BaseElement = {
-  /** Absolute path of the file. It might be undefined when a dependency path can't be resolved */
-  path: string | null;
-  /** Type of the element */
-  type: string | null;
-  /** Category of the element */
-  category: string | null;
-  /** Captured values from the element */
-  capturedValues: CapturedValues | null;
-  /** Origin of the element */
-  origin: ElementOrigin | null;
-  /** Indicates if the element is ignored by settings. If true, the element will be excluded from processing any other properties. */
-  isIgnored: boolean;
-};
-
-/**
- * Description of an ignored element
- */
-export type IgnoredElement = BaseElement & {
-  /** Indicates if the file is ignored */
-  isIgnored: true;
-};
-
-/**
  * Origins of an element
  */
 export const ELEMENT_ORIGINS_MAP = {
@@ -161,6 +135,58 @@ export type ElementOrigin =
   (typeof ELEMENT_ORIGINS_MAP)[keyof typeof ELEMENT_ORIGINS_MAP];
 
 /**
+ * Base element properties related to captured values
+ */
+export type BaseElement = {
+  /** Absolute path of the file. It might be undefined when a dependency path can't be resolved */
+  path: string | null;
+  /** Type of the element */
+  type: string | null;
+  /** Category of the element */
+  category: string | null;
+  /** Captured values from the element */
+  capturedValues: CapturedValues | null;
+  /** Origin of the element */
+  origin: ElementOrigin | null;
+  /** Indicates if the element is ignored by settings. If true, the element will be excluded from processing any other properties. */
+  isIgnored: boolean;
+  /** Indicates if the element is unknown, which means that it cannot be resolved to any descriptor */
+  isUnknown: boolean;
+};
+
+/**
+ * Parent elements
+ */
+export type LocalElementParent = {
+  /** Type of the parent element */
+  type: string | null;
+  /** Category of the parent element */
+  category: string | null;
+  /** Path of the element relative to the project */
+  elementPath: string;
+  /** Captured values from the parent element */
+  capturedValues: CapturedValues | null;
+};
+
+/**
+ * Description of an ignored element
+ */
+export type IgnoredElement = BaseElement & {
+  /** Type of the element */
+  type: null;
+  /** Category of the element */
+  category: null;
+  /** Ignored elements have not captured values */
+  capturedValues: null;
+  /** Origin of the element */
+  origin: null;
+  /** Indicates if the file is ignored */
+  isIgnored: true;
+  /** Indicates that the element is unknown */
+  isUnknown: true;
+};
+
+/**
  * Description of an unknown local element
  */
 export type LocalElementUnknown = BaseElement & {
@@ -170,10 +196,12 @@ export type LocalElementUnknown = BaseElement & {
   category: null;
   /** Unknown elements have not captured values */
   capturedValues: null;
-  /** Indicated that the element is local */
+  /** Indicates that the element is local */
   origin: typeof ELEMENT_ORIGINS_MAP.LOCAL;
   /** Indicates that the file is not ignored */
   isIgnored: false;
+  /** Indicates that the element is unknown */
+  isUnknown: true;
 };
 
 /**
@@ -182,6 +210,8 @@ export type LocalElementUnknown = BaseElement & {
 export type LocalElementKnown = BaseElement & {
   /** Path of the element */
   path: string;
+  /** Captured values from the parent element */
+  capturedValues: CapturedValues | null;
   /** Path of the file relative to the element */
   elementPath: string;
   /** Internal path of the file relative to the elementPath */
@@ -192,12 +222,9 @@ export type LocalElementKnown = BaseElement & {
   origin: typeof ELEMENT_ORIGINS_MAP.LOCAL;
   /** Indicates that the file is not ignored */
   isIgnored: false;
+  /** Indicates that the element is known */
+  isUnknown: false;
 };
-
-export type LocalElementParent = Pick<
-  LocalElementKnown,
-  "type" | "category" | "elementPath" | "capturedValues"
->;
 
 /**
  * Base description of a dependency
@@ -205,10 +232,54 @@ export type LocalElementParent = Pick<
 export type BaseDependencyElement = BaseElement & {
   /** Dependency source */
   source: string;
-  /** Indicates that the dependency is not ignored */
+  /** Indicates that dependencies are not ignored */
   isIgnored: false;
 };
 
+/**
+ * Description of a local dependency (known)
+ */
+export type LocalDependencyElementKnown = LocalElementKnown &
+  BaseDependencyElement;
+
+/**
+ * Description of a local dependency (unknown)
+ */
+export type LocalDependencyElementUnknown = LocalElementUnknown &
+  BaseDependencyElement;
+
+/**
+ * Description of a local dependency
+ */
+export type LocalDependencyElement =
+  | LocalDependencyElementKnown
+  | LocalDependencyElementUnknown;
+
+/**
+ * Description of an external dependency
+ */
+export type ExternalDependencyElement = BaseDependencyElement & {
+  /** Path of the dependency relative to the base module */
+  internalPath: string;
+  /** Base module of the external dependency */
+  baseSource: string;
+  /** Indicates that the dependency is external */
+  origin: typeof ELEMENT_ORIGINS_MAP.EXTERNAL;
+};
+
+/**
+ * Description of a core dependency
+ */
+export type CoreDependencyElement = BaseDependencyElement & {
+  /** Base module of the core dependency */
+  baseSource: string;
+  /** Indicates that the dependency is core */
+  origin: typeof ELEMENT_ORIGINS_MAP.CORE;
+};
+
+/**
+ * Description of an ignored dependency element
+ */
 export type IgnoredDependencyElement = IgnoredElement & {
   /** The source of the dependency */
   source: string;
@@ -219,48 +290,13 @@ export type IgnoredDependencyElement = IgnoredElement & {
  */
 export type FileElement =
   | IgnoredElement
-  | IgnoredDependencyElement
   | LocalElementKnown
   | LocalElementUnknown;
-
-/**
- * Description of a local dependency
- */
-export type LocalDependencyElement = FileElement & BaseDependencyElement;
-
-/**
- * Description of a known local dependency
- */
-export type LocalDependencyElementKnown = LocalElementKnown &
-  BaseDependencyElement;
-
-/**
- * Description of an external dependency
- */
-export type ExternalDependencyElement = BaseDependencyElement & {
-  /** Path of the dependency relative to the base module */
-  internalPath: string;
-  /** Indicates that the dependency is external */
-  origin: typeof ELEMENT_ORIGINS_MAP.EXTERNAL;
-  /** Base module of the external dependency */
-  baseSource: string;
-};
-
-/**
- * Description of a core dependency
- */
-export type CoreDependencyElement = BaseDependencyElement & {
-  /** Indicates that the dependency is core */
-  origin: typeof ELEMENT_ORIGINS_MAP.CORE;
-  /** Base module of the core dependency */
-  baseSource: string;
-};
 
 /**
  * Description of a dependency
  */
 export type DependencyElement =
-  | IgnoredElement
   | IgnoredDependencyElement
   | CoreDependencyElement
   | LocalDependencyElement

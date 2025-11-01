@@ -7,8 +7,10 @@ import type {
   CoreDependencyElement,
   LocalDependencyElementKnown,
   ExternalDependencyElement,
+  BaseElement,
+  IgnoredElement,
 } from "../Descriptor";
-import { isArray, isObjectWithProperty, isString } from "../Support";
+import { isArray, isObjectWithProperty, isString, isBoolean } from "../Support";
 
 import type {
   BaseElementSelector,
@@ -21,6 +23,7 @@ import type {
   ElementSelectorData,
   DependencyElementsSelector,
   TemplateData,
+  SelectableElement,
 } from "./Matcher.types";
 import {
   isSimpleElementSelectorByType,
@@ -148,16 +151,56 @@ export class BaseElementsMatcher {
   }
 
   /**
+   * Whether the given element key matches the selector key as booleans.
+   * @param param0 The parameters object.
+   * @returns Whether the element key matches the selector key.
+   */
+  protected isElementKeyBooleanMatch<
+    T extends BaseElement,
+    S extends BaseElementSelectorData,
+  >({
+    /** The element to check. */
+    element,
+    /** The selector to check against. */
+    selector,
+    /** The key of the element to check. */
+    elementKey,
+    /** The key of the selector to check against. */
+    selectorKey,
+  }: {
+    /** The element to check. */
+    element: T;
+    /** The selector to check against. */
+    selector: S;
+    /** The key of the element to check. */
+    elementKey: keyof T;
+    /** The key of the selector to check against. */
+    selectorKey: keyof S;
+  }): boolean {
+    // The selector key does not exist in the selector, so it matches any value.
+    if (!(selectorKey in selector)) {
+      return true;
+    }
+    // The selector key exists in the selector, but it does not exist in the element. No match.
+    if (!(elementKey in element)) {
+      return false;
+    }
+    // Both values must be booleans to match.
+    if (!isBoolean(selector[selectorKey]) || !isBoolean(element[elementKey])) {
+      return false;
+    }
+    return (
+      (selector[selectorKey] as boolean) === (element[elementKey] as boolean)
+    );
+  }
+
+  /**
    * Whether the given element key matches the selector key using micromatch.
    * @param param0 The parameters object.
    * @returns Whether the element key matches the selector key.
    */
   protected isElementKeyMicromatchMatch<
-    T extends
-      | LocalElementKnown
-      | CoreDependencyElement
-      | ExternalDependencyElement
-      | LocalDependencyElementKnown,
+    T extends SelectableElement,
     S extends BaseElementSelectorData | DependencyElementSelectorData,
   >({
     element,
@@ -177,7 +220,9 @@ export class BaseElementsMatcher {
         ? keyof CoreDependencyElement
         : T extends ExternalDependencyElement
           ? keyof ExternalDependencyElement
-          : keyof LocalDependencyElementKnown;
+          : T extends IgnoredElement
+            ? keyof IgnoredElement
+            : keyof LocalDependencyElementKnown;
     /** The key of the selector to check against. */
     selectorKey: S extends DependencyElementSelectorData
       ? keyof DependencyElementSelectorData

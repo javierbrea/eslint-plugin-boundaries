@@ -20,8 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 > TODO BEFORE RELEASE 6.0.0
 > 
-> - Enable selecting by isIgnored or isUnknown in selectors. source? elementPath? path? parents (templates)?.
-> - Rename types from ElementsMatcher to Matcher.types
+> - Enable selecting by source, elementPath, path in selectors.
 > - Elements package documentation.
 >
 > - Refactor `eslint-plugin-boundaries` package to use the types from `elements` package. Expose all necessary type guards from `elements` package to be used in `eslint-plugin-boundaries` package.

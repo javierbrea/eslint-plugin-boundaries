@@ -2,7 +2,6 @@ import micromatch from "micromatch";
 
 import { CacheManager } from "../Cache";
 import type { ElementDescription } from "../Descriptor";
-import { isIgnoredElement, isUnknownLocalElement } from "../Descriptor";
 import { isArray, isNullish } from "../Support";
 
 import {
@@ -228,6 +227,42 @@ export class ElementsMatcher extends BaseElementsMatcher {
   }
 
   /**
+   * Determines if the isIgnored property of the element matches that in the selector.
+   * @param element The element to check.
+   * @param selector The selector to check against.
+   * @returns True if the isIgnored properties match, false otherwise.
+   */
+  private _isIgnoredMatch(
+    element: SelectableElement,
+    selector: BaseElementSelectorData
+  ): boolean {
+    return this.isElementKeyBooleanMatch({
+      element,
+      selector,
+      elementKey: "isIgnored",
+      selectorKey: "isIgnored",
+    });
+  }
+
+  /**
+   * Determines if the isUnknown property of the element matches that in the selector.
+   * @param element The element to check.
+   * @param selector The selector to check against.
+   * @returns True if the isUnknown properties match, false otherwise.
+   */
+  private _isUnknownMatch(
+    element: SelectableElement,
+    selector: BaseElementSelectorData
+  ): boolean {
+    return this.isElementKeyBooleanMatch({
+      element,
+      selector,
+      elementKey: "isUnknown",
+      selectorKey: "isUnknown",
+    });
+  }
+
+  /**
    * Returns the selector matching result for the given local or external element.
    * @param element The local or external element to check.
    * @param selector The selector to check against.
@@ -253,8 +288,9 @@ export class ElementsMatcher extends BaseElementsMatcher {
         this._isOriginMatch(element, selectorData, templateData) &&
         this._isInternalPathMatch(element, selectorData, templateData) &&
         this._isBaseSourceMatch(element, selectorData, templateData) &&
-        this._isCapturedValuesMatch(element, selectorData, templateData);
-
+        this._isCapturedValuesMatch(element, selectorData, templateData) &&
+        this._isIgnoredMatch(element, selectorData) &&
+        this._isUnknownMatch(element, selectorData);
       if (isMatch) {
         return selectorData;
       }
@@ -290,10 +326,11 @@ export class ElementsMatcher extends BaseElementsMatcher {
       })!;
     }
 
-    const result =
-      isIgnoredElement(element) || isUnknownLocalElement(element)
-        ? null
-        : this._getSelectorMatching(element, selector, extraTemplateData);
+    const result = this._getSelectorMatching(
+      element,
+      selector,
+      extraTemplateData
+    );
 
     this._cache.set(
       {

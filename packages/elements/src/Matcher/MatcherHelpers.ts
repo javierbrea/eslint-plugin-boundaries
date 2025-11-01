@@ -66,6 +66,8 @@ export function isBaseElementSelectorData(
     "internalPath",
     "origin",
     "baseSource",
+    "isIgnored",
+    "isUnknown",
   ]);
 }
 

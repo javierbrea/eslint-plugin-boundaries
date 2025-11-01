@@ -69,21 +69,30 @@ describe("Matcher", () => {
   describe("when matching elements", () => {
     // eslint-disable-next-line jest/prefer-ending-with-an-expect
     it.each([
-      // TODO: Add isIgnored, isUnknown properties to all descriptions. Expose in selectors too?
+      {
+        filePath: "/project/src/utils/__tests__/testUtil.ts",
+        selector: { isIgnored: true },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/utils/__tests__/testUtil.ts",
+        selector: { isIgnored: false },
+        expected: false,
+      },
+      {
+        filePath: "/project/src/utils/__tests__/testUtil.ts",
+        selector: { isIgnored: "false" },
+        expected: false,
+      },
       {
         filePath: "/project/src/misc/other.ts",
-        selector: {},
+        selector: { isUnknown: false },
         expected: false,
       },
       {
-        filePath: "/project/src/utils/__tests__/testUtil.ts",
-        selector: {},
-        expected: false,
-      },
-      {
-        filePath: "/project/src/utils/__tests__/testUtil.ts",
-        selector: { isIgnored: true }, // TODO: Should this match?
-        expected: false,
+        filePath: "/project/src/misc/other.ts",
+        selector: { isUnknown: true },
+        expected: true,
       },
       {
         filePath: "/project/src/components/Button.tsx",
@@ -211,8 +220,23 @@ describe("Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { type: "component", category: "react", origin: "local" },
+        selector: {
+          type: "component",
+          category: "react",
+          origin: "local",
+          isIgnored: false,
+        },
         expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: {
+          type: "component",
+          category: "react",
+          origin: "local",
+          isIgnored: true,
+        },
+        expected: false,
       },
       {
         filePath: "/project/src/components/Button.tsx",
@@ -355,21 +379,6 @@ describe("Matcher", () => {
         // @ts-expect-error: Testing invalid selector
         matcher.isMatch("/project/src/modules/user/foo.ts", { var: "baz" })
       ).toThrow();
-    });
-
-    it("should not throw an error when using invalid selector on ignored elements", () => {
-      expect(() =>
-        // @ts-expect-error: Testing invalid selector
-        matcher.isMatch("/foo/bar/baz.ts", { var: "baz" })
-      ).not.toThrow();
-    });
-
-    // TODO: Should this throw or not? Currently it does not throw.
-    it("should not throw an error when using invalid selector on unknown elements", () => {
-      expect(() =>
-        // @ts-expect-error: Testing invalid selector
-        matcher.isMatch("/project/src/misc/other.ts", { var: "baz" })
-      ).not.toThrow();
     });
 
     it("should not call to micromatch after matching with same options", () => {

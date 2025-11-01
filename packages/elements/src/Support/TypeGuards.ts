@@ -26,12 +26,26 @@ export function isNull(value: unknown): value is null {
 }
 
 /**
+ * Determines if the given value is a boolean
+ * @param value The value to check
+ * @returns True if the value is a boolean, false otherwise
+ */
+export function isBoolean(value: unknown): value is boolean {
+  return typeof value === "boolean";
+}
+
+/**
  * Determines if the given value is a non-null object.
  * @param value The value to check.
  * @returns True if the value is a non-null object, false otherwise.
  */
 export function isObject(value: unknown): value is Record<string, unknown> {
-  return !isNullish(value) && typeof value === "object";
+  return (
+    !isNullish(value) &&
+    !isBoolean(value) &&
+    !isArray(value) &&
+    typeof value === "object"
+  );
 }
 
 /**
