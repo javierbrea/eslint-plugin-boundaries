@@ -20,11 +20,11 @@ import type {
   MatcherOptions,
   MatcherOptionsDependencySelectorsGlobals,
   DependencyMatchResult,
-} from "./ElementsMatcher.types";
+} from "./Matcher.types";
 import {
   isBaseElementSelectorData,
   isDependencySelector,
-} from "./ElementsMatcherHelpers";
+} from "./MatcherHelpers";
 
 /**
  * Matcher class to determine if dependencies match a given dependencies selector.

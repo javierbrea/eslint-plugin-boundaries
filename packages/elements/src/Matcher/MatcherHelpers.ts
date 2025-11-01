@@ -20,7 +20,7 @@ import type {
   SimpleElementSelectorByType,
   ElementSelectorData,
   DependencySelector,
-} from "./ElementsMatcher.types";
+} from "./Matcher.types";
 
 /**
  * Determines if the given value is a captured values selector.

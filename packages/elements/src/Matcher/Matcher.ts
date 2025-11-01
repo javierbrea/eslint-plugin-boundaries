@@ -15,7 +15,7 @@ import type {
   ElementSelectorData,
   DependencyMatchResult,
   MatcherSerializedCache,
-} from "./ElementsMatcher.types";
+} from "./Matcher.types";
 
 /**
  * Matcher class to evaluate if elements or dependencies match given selectors.

@@ -18,7 +18,7 @@ import type {
   BaseElementsSelector,
   MatcherOptions,
   ElementSelectorData,
-} from "./ElementsMatcher.types";
+} from "./Matcher.types";
 
 /**
  * Matcher class to determine if elements match a given selector.

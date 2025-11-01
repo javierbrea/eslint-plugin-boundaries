@@ -4,7 +4,7 @@ import type {
   ExternalLibrarySelectorWithOptions,
   ExternalLibrariesSelector,
   CapturedValuesSelector,
-} from "../../../src/Matcher/ElementsMatcher.types";
+} from "../../../src/Matcher/Matcher.types";
 import {
   isCapturedValuesSelector,
   isSimpleElementSelectorByType,
@@ -18,7 +18,7 @@ import {
   isExternalLibrarySelectorWithOptions,
   isExternalLibrarySelector,
   isExternalLibrariesSelector,
-} from "../../../src/Matcher/ElementsMatcherHelpers";
+} from "../../../src/Matcher/MatcherHelpers";
 
 describe("elementsSelectorHelpers", () => {
   describe("isCapturedValuesSelector", () => {

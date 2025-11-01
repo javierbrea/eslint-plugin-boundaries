@@ -21,12 +21,12 @@ import type {
   ElementSelectorData,
   DependencyElementsSelector,
   TemplateData,
-} from "./ElementsMatcher.types";
+} from "./Matcher.types";
 import {
   isSimpleElementSelectorByType,
   isElementSelectorWithLegacyOptions,
   isElementSelectorData,
-} from "./ElementsMatcherHelpers";
+} from "./MatcherHelpers";
 
 /**
  * Normalizes a selector into ElementSelectorData format.
