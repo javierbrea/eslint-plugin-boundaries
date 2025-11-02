@@ -96,13 +96,12 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           base-path: packages/eslint-plugin
       - name: SonarCloud Scan - Elements
-        if: env.SONAR_TOKEN_ELEMENTS != ''
         uses: sonarsource/sonarcloud-github-action@v5
         with:
           projectBaseDir: packages/elements
         env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_ELEMENTS }}
       - name: SonarCloud Scan - Eslint Plugin
         if: env.SONAR_TOKEN != ''
         uses: sonarsource/sonarcloud-github-action@v5
