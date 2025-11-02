@@ -35,6 +35,8 @@ describe("elementHelpers", () => {
         origin: "local",
         isIgnored: false,
         isUnknown: false,
+        source: null,
+        baseSource: null,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -52,6 +54,8 @@ describe("elementHelpers", () => {
         origin: "local",
         isIgnored: false,
         isUnknown: false,
+        source: null,
+        baseSource: null,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -69,6 +73,8 @@ describe("elementHelpers", () => {
         origin: "local",
         isIgnored: false,
         isUnknown: false,
+        source: null,
+        baseSource: null,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -86,6 +92,8 @@ describe("elementHelpers", () => {
         origin: "external",
         isIgnored: false,
         isUnknown: true,
+        parents: null,
+        elementPath: null,
       };
 
       expect(isLocalElement(nonLocalElement)).toBe(false);
@@ -292,6 +300,7 @@ describe("elementHelpers", () => {
         origin: "local",
         isIgnored: false,
         isUnknown: false,
+        baseSource: null,
       };
 
       expect(isLocalDependencyElement(localDependency)).toBe(true);
@@ -309,6 +318,8 @@ describe("elementHelpers", () => {
         baseSource: "./components/Button",
         isIgnored: false,
         isUnknown: true,
+        parents: null,
+        elementPath: null,
       };
 
       expect(isLocalDependencyElement(nonLocalDependency)).toBe(false);
@@ -326,6 +337,8 @@ describe("elementHelpers", () => {
         capturedValues: null,
         isUnknown: true,
         isIgnored: false,
+        parents: null,
+        elementPath: null,
       };
 
       expect(isLocalDependencyElement(nonLocalDependency)).toBe(false);
@@ -390,6 +403,8 @@ describe("elementHelpers", () => {
         origin: "local",
         isIgnored: false,
         isUnknown: false,
+        source: null,
+        baseSource: null,
       };
 
       // LocalElement is not a dependency, so should return false
@@ -446,6 +461,8 @@ describe("elementHelpers", () => {
         origin: "external",
         isIgnored: false,
         isUnknown: true,
+        parents: null,
+        elementPath: null,
       };
 
       expect(isExternalDependencyElement(externalDependency)).toBe(true);
@@ -575,6 +592,8 @@ describe("elementHelpers", () => {
         origin: "local",
         isIgnored: false,
         isUnknown: false,
+        source: null,
+        baseSource: null,
       };
 
       expect(isElementDescription(localElement)).toBe(true);
@@ -607,6 +626,8 @@ describe("elementHelpers", () => {
         internalPath: "lodash/index.js",
         isIgnored: false,
         isUnknown: false,
+        parents: null,
+        elementPath: null,
       };
 
       expect(isElementDescription(externalDependency)).toBe(true);
@@ -625,6 +646,7 @@ describe("elementHelpers", () => {
         origin: "local",
         isIgnored: false,
         isUnknown: false,
+        baseSource: null,
       };
 
       expect(isElementDescription(localDependency)).toBe(true);

@@ -411,7 +411,7 @@ export type RuleReport = {
 };
 
 export type RuleResultReport = {
-  path?: string;
+  path: string | null;
   specifiers?: string[];
 };
 

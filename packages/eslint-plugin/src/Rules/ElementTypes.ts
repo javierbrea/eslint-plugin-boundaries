@@ -242,9 +242,8 @@ export function elementRulesAllowDependency(
         // @ts-expect-error TODO: Align types. At this point, selectorsData should always be defined
         rulesResults[ruleIndexMatching].selectorsMatching?.selectorsData?.to
           ?.internalPath
-          ? // @ts-expect-error TODO: Align types. Ignored elements never reach this point
-            dependency.to.internalPath
-          : undefined,
+          ? dependency.to.internalPath
+          : null,
     },
   };
   return result;

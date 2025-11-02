@@ -39,11 +39,9 @@ function errorMessage(ruleData: RuleResult, dependency: DependencyDescription) {
   }
   if (ruleReport.isDefault) {
     return `No rule allows the entry point '${
-      // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
       dependency.to.internalPath
     }' in dependencies ${elementMessage(dependency.to)}`;
   }
-  // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
   return `The entry point '${dependency.to.internalPath}' is not allowed in ${ruleElementMessage(
     ruleReport.disallow,
     dependency.to.capturedValues

@@ -4,7 +4,7 @@ on:
     branches:
       - master
       - release
-      - refactor/monorepo
+      - refactor/modularization
   pull_request:
 concurrency:  
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -41,11 +41,17 @@ jobs:
       - name: Test Unit
         if: ${{ matrix.node != '22.14.0' }}
         run: pnpm nx run-many --target=test:unit --all
-      - name: Upload test results
+      - name: Upload elements test results
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.node }}
-          path: packages/eslint-plugin-boundaries/coverage
+          path: packages/elements/coverage
+          retention-days: 1
+      - name: Upload eslint-plugin test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.node }}
+          path: packages/eslint-plugin/coverage
           retention-days: 1
   build-windows:
     runs-on: windows-2022
@@ -73,20 +79,33 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Download test results
+      - name: Download elements test results
         uses: actions/download-artifact@v4
         with:
           name: coverage-22.14.0
-          path: packages/eslint-plugin-boundaries/coverage
+          path: packages/elements/coverage
+      - name: Download eslint-plugin test results
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-22.14.0
+          path: packages/eslint-plugin/coverage
+      # TODO: Configure coveralls for monorepo properly
       - name: Coveralls
         uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          base-path: packages/eslint-plugin-boundaries
-      # TODO: Configure sonarcloud for monorepo
-      - name: SonarCloud Scan
+          base-path: packages/eslint-plugin
+      - name: SonarCloud Scan - Elements
+        if: env.SONAR_TOKEN_ELEMENTS != ''
+        uses: sonarsource/sonarcloud-github-action@v5
+        with:
+          projectBaseDir: packages/elements
+        env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: SonarCloud Scan - Eslint Plugin
         if: env.SONAR_TOKEN != ''
-        uses: sonarsource/sonarcloud-github-action@master
+        uses: sonarsource/sonarcloud-github-action@v5
         with:
           projectBaseDir: packages/eslint-plugin-boundaries
         env:

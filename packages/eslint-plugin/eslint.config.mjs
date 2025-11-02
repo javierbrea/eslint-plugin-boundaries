@@ -1,23 +1,9 @@
 import localRules from "eslint-plugin-local-rules";
 
-import {
-  ignores,
-  jsonConfig,
-  jsoncConfig,
-  markdownConfig,
-  jsBaseConfig,
-  jestConfig,
-  typescriptConfig,
-  // eslint-disable-next-line import/extensions
-} from "../../support/eslint-config/index.js";
+import config, { jestConfig } from "../../support/eslint-config/index.js";
 
 export default [
-  ignores,
-  jsonConfig,
-  jsoncConfig,
-  markdownConfig,
-  jsBaseConfig,
-  typescriptConfig,
+  ...config,
   {
     files: ["**/*.ts"],
     plugins: {
@@ -54,12 +40,6 @@ export default [
           capture: ["name"],
         },
         {
-          type: "constants",
-          mode: "file",
-          pattern: "src/Constants/*.ts",
-          capture: ["name"],
-        },
-        {
           type: "elements",
           mode: "file",
           pattern: "src/Elements/*.ts",
@@ -82,6 +62,12 @@ export default [
           capture: ["name"],
         },
         {
+          type: "rule-support",
+          mode: "file",
+          pattern: "src/Rules/Support/*.ts",
+          capture: ["name"],
+        },
+        {
           type: "settings",
           mode: "file",
           pattern: "src/Settings/*.ts",
@@ -94,12 +80,6 @@ export default [
           capture: ["name"],
         },
         {
-          type: "rule-support",
-          mode: "file",
-          pattern: "src/Rules/Support/*.ts",
-          capture: ["name"],
-        },
-        {
           type: "plugin",
           mode: "full",
           pattern: ["src/index.ts"],
@@ -109,7 +89,7 @@ export default [
 
     rules: {
       "local-rules/boundaries/element-types": [
-        0,
+        2,
         {
           default: "disallow",
 
@@ -120,51 +100,52 @@ export default [
             },
             {
               from: "rule",
-              allow: ["rule"],
+              allow: ["rule", "rule-support", "settings", "support"],
             },
             {
               from: "elements",
-              allow: ["constants", "helper"],
+              allow: ["elements", "settings", "support"],
             },
             {
               from: "messages",
-              allow: ["constants", "support"],
+              allow: ["messages", "settings", "support"],
             },
             {
               from: "config-utils",
-              allow: ["plugin", "config", "constants", "types"],
+              allow: ["config-utils", "settings", "config", "public", "plugin"],
             },
             {
               from: "plugin",
-              allow: ["constants", "config", "rule", "types", "helper"],
+              allow: ["settings", "support", "config", "rule"],
             },
             {
               from: "config",
-              allow: ["constants", "config"],
-            },
-            {
-              from: "constants",
-              allow: ["constants"],
-            },
-            {
-              from: "core",
-              allow: ["constants", "helper", "core"],
-            },
-            {
-              from: "helper",
-              allow: ["constants", "helper"],
+              allow: ["config", "settings", "support"],
             },
             {
               from: "rule",
-              allow: ["constants", "helper", "core", "rule-support"],
+              allow: ["rule", "messages", "settings", "support"],
             },
             {
               from: "rule-support",
-              allow: ["constants", "helper", "core", "rule-support"],
+              allow: ["rule-support", "settings", "support"],
+            },
+            {
+              from: "settings",
+              allow: ["settings", "support"],
+            },
+            {
+              from: "support",
+              // TODO: Cyclic dependency detected between settings and support. Fix it.
+              allow: ["support", "settings"],
             },
             {
               from: "public",
-              allow: ["public", "constants", "config"],
+              allow: ["public", "settings", "config"],
+            },
+            {
+              from: "plugin",
+              allow: ["settings", "support", "config", "rule", "public"],
             },
           ],
         },

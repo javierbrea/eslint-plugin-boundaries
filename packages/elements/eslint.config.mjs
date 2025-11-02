@@ -1,21 +1,12 @@
 import {
-  ignores,
-  jsonConfig,
-  jsoncConfig,
-  markdownConfig,
-  jsBaseConfig,
-  jestConfig,
+  defaultConfigWithoutTypescript,
   typescriptConfig,
-  // eslint-disable-next-line import/extensions
+  jestConfig,
 } from "../../support/eslint-config/index.js";
 
 export default [
-  ignores,
-  jsonConfig,
-  jsoncConfig,
-  markdownConfig,
+  ...defaultConfigWithoutTypescript,
   jestConfig,
-  jsBaseConfig,
   {
     ...typescriptConfig,
     languageOptions: {

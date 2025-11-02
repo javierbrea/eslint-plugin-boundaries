@@ -61,7 +61,6 @@ function errorMessage(
   }
   if (ruleReport.isDefault) {
     return `No rule allows the usage of external module '${
-      // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
       dependency.to.baseSource
     }' in elements ${elementMessage(dependency.from)}`;
   }
@@ -79,7 +78,6 @@ function errorMessage(
       ruleReport.importKind,
       dependency
     )}'${getErrorReportMessage(ruleData.report)}' from external module '${
-      // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
       dependency.to.baseSource
     }' ${fileReport}`;
   }
@@ -89,7 +87,6 @@ function errorMessage(
     {
       suffix: " from ",
     }
-    // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
   )}external module '${dependency.to.baseSource}' ${fileReport}`;
 }
 

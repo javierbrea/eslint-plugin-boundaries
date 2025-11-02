@@ -14,7 +14,7 @@ import { warnOnce, debugDescription } from "../Support";
 
 import type { EslintLiteralNode } from "./Elements.types";
 
-export const elements = new Elements();
+const elements = new Elements();
 
 /**
  * Returns the elements matcher based on the ESLint rule context, filtering out invalid descriptors

@@ -10,7 +10,13 @@ import type {
   BaseElement,
   IgnoredElement,
 } from "../Descriptor";
-import { isArray, isObjectWithProperty, isString, isBoolean } from "../Support";
+import {
+  isArray,
+  isObjectWithProperty,
+  isString,
+  isBoolean,
+  isNullish,
+} from "../Support";
 
 import type {
   BaseElementSelector,
@@ -182,6 +188,7 @@ export class BaseElementsMatcher {
       return true;
     }
     // The selector key exists in the selector, but it does not exist in the element. No match.
+    // istanbul ignore next - This case should not happen due to element validations, but we guard against it anyway.
     if (!(elementKey in element)) {
       return false;
     }
@@ -240,6 +247,11 @@ export class BaseElementsMatcher {
     }
     // The selector key exists in the selector, but it does not exist in the element. No match.
     if (!isObjectWithProperty(element, elementKey)) {
+      return false;
+    }
+
+    // The element key value is nullish, so it cannot match anything.
+    if (isNullish(element[elementKey])) {
       return false;
     }
 

@@ -265,12 +265,10 @@ export function customErrorMessage(
     ),
     "target"
   );
-  // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
   if (dependency.from.parents?.[0]) {
     replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(
-        // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
         dependency.from.parents?.[0],
         dependency.dependency.kind
       ),
@@ -279,19 +277,16 @@ export function customErrorMessage(
     replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(
-        // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
         dependency.from.parents?.[0],
         dependency.dependency.kind
       ),
       "from.parent"
     );
   }
-  // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
   if (dependency.to.parents?.[0]) {
     replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(
-        // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
         dependency.to.parents?.[0],
         dependency.dependency.kind
       ),
@@ -300,7 +295,6 @@ export function customErrorMessage(
     replacedMessage = replaceObjectValuesInTemplate(
       replacedMessage,
       elementPropertiesToReplaceInTemplate(
-        // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
         dependency.to.parents?.[0],
         dependency.dependency.kind
       ),

@@ -1,20 +1,9 @@
 import { CacheManager } from "./Cache";
 import type { ConfigOptions } from "./Config";
 import { Config } from "./Config";
-import type {
-  ElementDescriptors,
-  ElementDescription,
-  DependencyDescription,
-} from "./Descriptor";
+import type { ElementDescriptors } from "./Descriptor";
 import type { ElementsSerializedCache } from "./Elements.types";
 import { DependenciesMatcher, ElementsMatcher, Matcher } from "./Matcher";
-import type {
-  BaseElementsSelector,
-  ElementSelectorData,
-  MatcherOptions,
-  DependencySelector,
-  DependencyMatchResult,
-} from "./Matcher";
 
 /**
  * Main class to interact with Elements functionality.
@@ -143,81 +132,5 @@ export class Elements {
       matcher,
     });
     return matcher;
-  }
-  /**
-   * Returns the selector matching result for the given element description, or null if none matches.
-   * It omits checks in keys applying only to dependency between elements, such as relationship.
-   * @param element The element to check.
-   * @param selector The selector to check against.
-   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
-   * @returns The selector matching result for the given element, or null if none matches.
-   * @deprecated Use getMatcher(...).getSelectorMatching instead.
-   */
-  public getElementSelectorMatching(
-    element: ElementDescription,
-    selector: BaseElementsSelector,
-    options?: MatcherOptions
-  ): ElementSelectorData | null {
-    return this._elementsMatcher.getSelectorMatching(
-      element,
-      selector,
-      options
-    );
-  }
-
-  /**
-   * Determines if an element description matches a given elements selector.
-   * @param element The element to check
-   * @param selector The elements selector to check against
-   * @param options Additional options for matching
-   * @returns True if the element matches the selector, false otherwise
-   * @deprecated Use getMatcher(...).isElementMatch instead.
-   */
-  public isElementMatch(
-    element: ElementDescription,
-    selector: BaseElementsSelector,
-    options?: MatcherOptions
-  ): boolean {
-    return this._elementsMatcher.isElementMatch(element, selector, options);
-  }
-
-  /**
-   * Returns the selectors matching result for the given dependency description.
-   * @param dependency The dependency to check.
-   * @param selector The selector to check against.
-   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
-   * @returns The selectors matching result for the given dependency, and whether it matches or not.
-   * @deprecated Use getMatcher(...).getSelectorMatching instead.
-   */
-  public getDependencySelectorsMatching(
-    dependency: DependencyDescription,
-    selector: DependencySelector,
-    options?: MatcherOptions
-  ): DependencyMatchResult {
-    return this._dependenciesMatcher.getSelectorsMatching(
-      dependency,
-      selector,
-      options
-    );
-  }
-
-  /**
-   * Returns whether the given dependency description matches the selector.
-   * @param dependency The dependency to check.
-   * @param selector The dependency selector to check against.
-   * @param options Additional options for matching
-   * @returns Whether the dependency matches the selector properties.
-   * @deprecated Use getMatcher(...).isMatch instead.
-   */
-  public isDependencyMatch(
-    dependency: DependencyDescription,
-    selector: DependencySelector,
-    options?: MatcherOptions
-  ): boolean {
-    return this._dependenciesMatcher.isDependencyMatch(
-      dependency,
-      selector,
-      options
-    );
   }
 }

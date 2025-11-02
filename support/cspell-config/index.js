@@ -51,7 +51,7 @@ function createConfig(config = {}) {
       // cspell:disable-next-line FlagWords - list of words to be always considered incorrect. This is useful for offensive words and common spelling errors. For example "hte" should be "the"
       flagWords: ["hte"],
     },
-    config,
+    config
   );
 }
 

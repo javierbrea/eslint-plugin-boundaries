@@ -35,6 +35,11 @@ import {
 
 const UNKNOWN_LOCAL_ELEMENT: LocalElementUnknown = {
   path: null,
+  elementPath: null,
+  internalPath: null,
+  source: null,
+  baseSource: null,
+  parents: null,
   type: null,
   category: null,
   capturedValues: null,

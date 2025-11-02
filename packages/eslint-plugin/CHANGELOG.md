@@ -19,13 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - fix: Assign relationships correctly in dependencies. Now ancestor and nephew relationships are assigned correctly. Previously, all ancestors with a common parent were considered uncles.
 
 > TODO BEFORE RELEASE 6.0.0
-
-> - Remove usage of elements at first level. Use always matcher. Remove elements methods.
-> - Add all properties to base element to avoid using too much type guards
+>
+> - Refactor element rules function in eslint-plugin to improve code quality and maintainability.
+> - Run Sonar analysis
+>
 > - Elements package documentation.
 > - Eslint-plugin package TypeScript docs.
 >
-> - Run Sonar analysis
 >
 > - Support new types of selectors and descriptors in eslint-plugin-boundaries package: Change schemas, validations, etc.
 > - Support a `name` property in `additional-dependency-nodes` setting to be able to identify the custom dependency nodes in rules.
@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > - Support multiple micromatch patterns in captured values in selectors.
 > - Support `nodeKind` in selectors. Pass it to dependency description.
 > - Support `from` and `to` in `element-types` rule.
-> - Support `category` in `element-types` rule.
+> - Support `category` in `element-types` rule and in element descriptors.
 > - Add unit tests for new selectors and descriptors formats in eslint-plugin-boundaries package.
 >
 > - Publish RFC for renaming the package to `@boundaries/eslint-plugin`.
@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > - Create task in backlog to migrate messages to @elements package (return human-friendly messages when matching elements and dependencies).
 > - Create task in backlog to improve debug system: Trace file being linted, settings being used, resolved elements, dependencies being analyzed, rules failing/passing, etc. Allow to enable only to certain files using patterns. Add setting to enable/disable it. Create RFC for it.
 > - Create task in backlog to add cache limit. Create fs-cache manager. Create RFC for it.
+> - Publish RFC for creating a helper to generate different eslint rules for each element rule, to be able to configure them separately. For example: { "my-rule": [1, {}]}. This will enable to have different severity levels and the possibility to disable certain rules. Create task in backlog for it.
 
 ## [5.1.0] - 2025-10-14
 

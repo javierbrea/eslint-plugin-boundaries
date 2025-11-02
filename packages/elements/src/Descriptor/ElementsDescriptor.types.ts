@@ -138,15 +138,25 @@ export type ElementOrigin =
  * Base element properties related to captured values
  */
 export type BaseElement = {
-  /** Absolute path of the file. It might be undefined when a dependency path can't be resolved */
+  /** Absolute path of the file. It might be null when a dependency path can't be resolved */
   path: string | null;
-  /** Type of the element */
+  /** Path of the file relative to the element, or null if the element is ignored or unknown */
+  elementPath: string | null;
+  /** Internal path of the file relative to the elementPath, or null if the element is ignored or unknown */
+  internalPath: string | null;
+  /** Source of the element when it is a dependency, or null if the element is not a dependency, or it is ignored or unknown */
+  source: string | null;
+  /** Base source of the element when it is an external or core dependency, null otherwise */
+  baseSource: string | null;
+  /** Type of the element, or null if the element is ignored or unknown */
   type: string | null;
-  /** Category of the element */
+  /** Category of the element, or null if the element is ignored or unknown */
   category: string | null;
-  /** Captured values from the element */
+  /** Captured values from the element, or null if the element descriptor has no capture or the element is ignored or unknown */
   capturedValues: CapturedValues | null;
-  /** Origin of the element */
+  /** Parent elements, or null if the element is ignored, unknown, or it is not a local element */
+  parents: ElementParent[] | null;
+  /** Origin of the element, or null if the element is ignored */
   origin: ElementOrigin | null;
   /** Indicates if the element is ignored by settings. If true, the element will be excluded from processing any other properties. */
   isIgnored: boolean;

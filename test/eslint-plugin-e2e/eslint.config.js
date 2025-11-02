@@ -1,18 +1,11 @@
-import {
-  ignores,
-  jsonConfig,
-  jsoncConfig,
-  markdownConfig,
+import config, {
   jsBaseConfig,
   typescriptConfig,
 } from "../../support/eslint-config/index.js";
 
 export default [
+  ...config,
   typescriptConfig,
-  ignores,
-  jsonConfig,
-  jsoncConfig,
-  markdownConfig,
   {
     ...jsBaseConfig,
     rules: {

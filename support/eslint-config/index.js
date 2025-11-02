@@ -197,6 +197,13 @@ export const typescriptConfig = {
   },
 };
 
+export const disableExtensionsInEslintConfig = {
+  files: ["eslint.config.js", "eslint.config.cjs", "eslint.config.mjs"],
+  rules: {
+    "import/extensions": [0],
+  },
+};
+
 export const defaultConfigWithoutTypescript = [
   ignores,
   jsonConfig,
@@ -204,6 +211,7 @@ export const defaultConfigWithoutTypescript = [
   markdownConfig,
   jsBaseConfig,
   commonJsConfig,
+  disableExtensionsInEslintConfig,
 ];
 
 export default [...defaultConfigWithoutTypescript, typescriptConfig];
