@@ -44,13 +44,13 @@ jobs:
       - name: Upload elements test results
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.node }}
+          name: coverage-${{ matrix.node }}-elements
           path: packages/elements/coverage
           retention-days: 1
       - name: Upload eslint-plugin test results
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.node }}
+          name: coverage-${{ matrix.node }}-eslint-plugin
           path: packages/eslint-plugin/coverage
           retention-days: 1
   build-windows:
@@ -82,12 +82,12 @@ jobs:
       - name: Download elements test results
         uses: actions/download-artifact@v4
         with:
-          name: coverage-22.14.0
+          name: coverage-22.14.0-elements
           path: packages/elements/coverage
       - name: Download eslint-plugin test results
         uses: actions/download-artifact@v4
         with:
-          name: coverage-22.14.0
+          name: coverage-22.14.0-eslint-plugin
           path: packages/eslint-plugin/coverage
       # TODO: Configure coveralls for monorepo properly
       - name: Coveralls
