@@ -107,7 +107,7 @@ jobs:
         if: env.SONAR_TOKEN != ''
         uses: sonarsource/sonarcloud-github-action@v5
         with:
-          projectBaseDir: packages/eslint-plugin-boundaries
+          projectBaseDir: packages/eslint-plugin
         env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
