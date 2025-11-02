@@ -10,7 +10,7 @@ import {
   DEPENDENCY_KINDS_MAP,
   DEPENDENCY_RELATIONSHIPS_MAP,
 } from "./DependenciesDescriptor.types";
-import { isElement } from "./ElementsDescriptorHelpers";
+import { isElementDescription } from "./ElementsDescriptorHelpers";
 
 /**
  * Determines if the value is a valid dependency kind.
@@ -84,9 +84,9 @@ export function isDependencyDescription(
 ): value is DependencyDescription {
   return (
     isObjectWithProperty(value, "to") &&
-    isElement(value.to) &&
+    isElementDescription(value.to) &&
     isObjectWithProperty(value, "from") &&
-    isElement(value.from) &&
+    isElementDescription(value.from) &&
     isObjectWithProperty(value, "dependency") &&
     isElementsDependencyInfo(value.dependency)
   );

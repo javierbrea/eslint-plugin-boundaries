@@ -296,7 +296,7 @@ export type FileElement =
 /**
  * Description of a dependency
  */
-export type DependencyElement =
+export type DependencyElementDescription =
   | IgnoredDependencyElement
   | CoreDependencyElement
   | LocalDependencyElement
@@ -305,4 +305,4 @@ export type DependencyElement =
 /**
  * Description of an element, either local or dependency
  */
-export type ElementDescription = FileElement | DependencyElement;
+export type ElementDescription = FileElement | DependencyElementDescription;

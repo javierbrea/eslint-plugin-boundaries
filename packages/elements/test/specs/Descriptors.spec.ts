@@ -8,7 +8,7 @@ import {
   isExternalDependencyElement,
   isUnknownLocalElement,
   isCoreDependencyElement,
-  isElement,
+  isElementDescription,
   isLocalDependencyElement,
   isDependencyDescription,
   isInternalDependency,
@@ -74,7 +74,7 @@ describe("Descriptors", () => {
 
       expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
       expect(isIgnoredElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should not include elements not included in includePaths", () => {
@@ -82,7 +82,7 @@ describe("Descriptors", () => {
 
       expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
       expect(isIgnoredElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should exclude files when only ignorePaths is provided", () => {
@@ -106,7 +106,7 @@ describe("Descriptors", () => {
 
       expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
       expect(isIgnoredElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should throw an error for invalid descriptors", () => {
@@ -156,7 +156,7 @@ describe("Descriptors", () => {
 
       expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
       expect(isIgnoredElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should include every file by default", () => {
@@ -192,7 +192,7 @@ describe("Descriptors", () => {
         path: "/project/src/components/Button.tsx",
       });
       expect(isKnownLocalElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
   });
 
@@ -202,7 +202,7 @@ describe("Descriptors", () => {
       const element = matcher.describeElement();
 
       expect(isUnknownLocalElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should assign descriptions to local elements correctly", () => {
@@ -225,7 +225,7 @@ describe("Descriptors", () => {
         path: "/project/src/components/Button.tsx",
       });
       expect(isKnownLocalElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should assign descriptions to local elements with basePattern correctly", () => {
@@ -252,7 +252,7 @@ describe("Descriptors", () => {
       });
 
       expect(isKnownLocalElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should assign descriptors without capture properties correctly", () => {
@@ -273,7 +273,7 @@ describe("Descriptors", () => {
         isUnknown: false,
       });
       expect(isKnownLocalElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should assign descriptions to local elements in full mode correctly", () => {
@@ -298,7 +298,7 @@ describe("Descriptors", () => {
         isUnknown: false,
       });
       expect(isKnownLocalElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should assign unknown local element description when no descriptor matches", () => {
@@ -314,7 +314,7 @@ describe("Descriptors", () => {
         isUnknown: true,
       });
       expect(isUnknownLocalElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should not assign category when not specified in the descriptor", () => {
@@ -335,7 +335,7 @@ describe("Descriptors", () => {
         isUnknown: false,
       });
       expect(isKnownLocalElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should assign descriptions to local elements using captured parent folders", () => {
@@ -369,7 +369,7 @@ describe("Descriptors", () => {
         ],
       });
       expect(isKnownLocalElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should assign descriptions to local dependency elements correctly", () => {
@@ -392,7 +392,7 @@ describe("Descriptors", () => {
         isUnknown: false,
       });
       expect(isLocalDependencyElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     // TODO: Add "external" mode to descriptors, and test known external elements too
@@ -415,7 +415,7 @@ describe("Descriptors", () => {
         isUnknown: true,
       });
       expect(isExternalDependencyElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should assign descriptions to unknown scoped external dependency elements correctly", () => {
@@ -437,7 +437,7 @@ describe("Descriptors", () => {
         isUnknown: true,
       });
       expect(isExternalDependencyElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should assign descriptions to unknown scoped external dependency with path elements correctly", () => {
@@ -459,7 +459,7 @@ describe("Descriptors", () => {
         isUnknown: true,
       });
       expect(isExternalDependencyElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should assign descriptions to unknown core elements correctly", () => {
@@ -477,7 +477,7 @@ describe("Descriptors", () => {
         isUnknown: true,
       });
       expect(isCoreDependencyElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should assign descriptions to unknown core elements without node prefix correctly", () => {
@@ -495,7 +495,7 @@ describe("Descriptors", () => {
         isUnknown: true,
       });
       expect(isCoreDependencyElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
 
     it("should ignore external dependency elements based on ignorePaths", () => {
@@ -510,7 +510,7 @@ describe("Descriptors", () => {
 
       expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
       expect(isIgnoredElement(element)).toBe(true);
-      expect(isElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
     });
   });
 

@@ -9,7 +9,7 @@ import type { DescriptorsSerializedCache } from "./Descriptors.types";
 import { ElementsDescriptor } from "./ElementsDescriptor";
 import type {
   ElementDescriptors,
-  DependencyElement,
+  DependencyElementDescription,
   FileElement,
 } from "./ElementsDescriptor.types";
 
@@ -87,7 +87,7 @@ export class Descriptors {
   public describeDependencyElement(
     dependencySource: string,
     filePath?: string
-  ): DependencyElement {
+  ): DependencyElementDescription {
     return this._elementsDescriptor.describeDependencyElement(
       dependencySource,
       filePath

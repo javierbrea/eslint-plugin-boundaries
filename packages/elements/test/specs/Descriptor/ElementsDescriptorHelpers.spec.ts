@@ -9,10 +9,10 @@ import type {
 } from "../../../src/Descriptor/ElementsDescriptor.types";
 import {
   isLocalElement,
-  isDependencyElement,
+  isDependencyElementDescription,
   isExternalDependencyElement,
   isLocalDependencyElement,
-  isElement,
+  isElementDescription,
   isElementDescriptorMode,
   isElementDescriptorPattern,
   isBaseElementDescriptor,
@@ -121,7 +121,7 @@ describe("elementHelpers", () => {
           isUnknown: false,
         };
 
-        expect(isDependencyElement(dependencyElement)).toBe(true);
+        expect(isDependencyElementDescription(dependencyElement)).toBe(true);
       });
 
       it("should return false for non-dependency elements", () => {
@@ -137,7 +137,9 @@ describe("elementHelpers", () => {
           isUnknown: false,
         };
 
-        expect(isDependencyElement(nonDependencyElement)).toBe(false);
+        expect(isDependencyElementDescription(nonDependencyElement)).toBe(
+          false
+        );
       });
 
       it("should return false for elements without category nor type", () => {
@@ -153,7 +155,9 @@ describe("elementHelpers", () => {
           isUnknown: false,
         };
 
-        expect(isDependencyElement(nonDependencyElement)).toBe(false);
+        expect(isDependencyElementDescription(nonDependencyElement)).toBe(
+          false
+        );
       });
 
       it("should return false for elements without capturedValues", () => {
@@ -169,25 +173,27 @@ describe("elementHelpers", () => {
           isUnknown: false,
         };
 
-        expect(isDependencyElement(nonDependencyElement)).toBe(false);
+        expect(isDependencyElementDescription(nonDependencyElement)).toBe(
+          false
+        );
       });
 
       it("should return false for objects that don't comply with type contract", () => {
-        expect(isDependencyElement({})).toBe(false);
+        expect(isDependencyElementDescription({})).toBe(false);
 
         expect(
-          isDependencyElement({
+          isDependencyElementDescription({
             source: undefined,
             capturedValues: {},
           })
         ).toBe(false);
-        expect(isDependencyElement(null)).toBe(false);
+        expect(isDependencyElementDescription(null)).toBe(false);
       });
 
       it("should return false for primitive values and edge cases", () => {
-        expect(isDependencyElement(undefined)).toBe(false);
-        expect(isDependencyElement("not-an-object")).toBe(false);
-        expect(isDependencyElement([])).toBe(false);
+        expect(isDependencyElementDescription(undefined)).toBe(false);
+        expect(isDependencyElementDescription("not-an-object")).toBe(false);
+        expect(isDependencyElementDescription([])).toBe(false);
       });
 
       it("should validate source property for dependency elements", () => {
@@ -206,7 +212,9 @@ describe("elementHelpers", () => {
           isUnknown: false,
         };
 
-        expect(isDependencyElement(elementWithNullSource)).toBe(false);
+        expect(isDependencyElementDescription(elementWithNullSource)).toBe(
+          false
+        );
 
         const elementWithEmptyStringSource = {
           type: "component",
@@ -223,7 +231,9 @@ describe("elementHelpers", () => {
           isUnknown: false,
         };
 
-        expect(isDependencyElement(elementWithEmptyStringSource)).toBe(true);
+        expect(
+          isDependencyElementDescription(elementWithEmptyStringSource)
+        ).toBe(true);
 
         const elementWithUndefinedSource = {
           type: "component",
@@ -240,7 +250,9 @@ describe("elementHelpers", () => {
           isUnknown: false,
         };
 
-        expect(isDependencyElement(elementWithUndefinedSource)).toBe(false);
+        expect(isDependencyElementDescription(elementWithUndefinedSource)).toBe(
+          false
+        );
       });
 
       it("should return true for objects with minimal required properties", () => {
@@ -259,7 +271,9 @@ describe("elementHelpers", () => {
           isIgnored: false,
         };
 
-        expect(isDependencyElement(minimalDependencyElement)).toBe(true);
+        expect(isDependencyElementDescription(minimalDependencyElement)).toBe(
+          true
+        );
       });
     });
   });
@@ -563,7 +577,7 @@ describe("elementHelpers", () => {
         isUnknown: false,
       };
 
-      expect(isElement(localElement)).toBe(true);
+      expect(isElementDescription(localElement)).toBe(true);
     });
 
     it("should return false for objects without capturedValues", () => {
@@ -578,7 +592,7 @@ describe("elementHelpers", () => {
         origin: "local",
       };
 
-      expect(isElement(localElement)).toBe(false);
+      expect(isElementDescription(localElement)).toBe(false);
     });
 
     it("should return true for external dependency elements", () => {
@@ -595,7 +609,7 @@ describe("elementHelpers", () => {
         isUnknown: false,
       };
 
-      expect(isElement(externalDependency)).toBe(true);
+      expect(isElementDescription(externalDependency)).toBe(true);
     });
 
     it("should return true for local dependency elements", () => {
@@ -613,21 +627,21 @@ describe("elementHelpers", () => {
         isUnknown: false,
       };
 
-      expect(isElement(localDependency)).toBe(true);
+      expect(isElementDescription(localDependency)).toBe(true);
     });
 
     it("should return false for objects that are neither local nor dependency elements", () => {
-      expect(isElement({})).toBe(false);
-      expect(isElement({ randomProperty: "value" })).toBe(false);
-      expect(isElement(null)).toBe(false);
-      expect(isElement(undefined)).toBe(false);
+      expect(isElementDescription({})).toBe(false);
+      expect(isElementDescription({ randomProperty: "value" })).toBe(false);
+      expect(isElementDescription(null)).toBe(false);
+      expect(isElementDescription(undefined)).toBe(false);
     });
 
     it("should return false for primitive values", () => {
-      expect(isElement("string")).toBe(false);
-      expect(isElement(123)).toBe(false);
-      expect(isElement(true)).toBe(false);
-      expect(isElement([])).toBe(false);
+      expect(isElementDescription("string")).toBe(false);
+      expect(isElementDescription(123)).toBe(false);
+      expect(isElementDescription(true)).toBe(false);
+      expect(isElementDescription([])).toBe(false);
     });
 
     it("should return true for dependency elements", () => {
@@ -643,7 +657,7 @@ describe("elementHelpers", () => {
         isIgnored: false,
       };
 
-      expect(isElement(minimalLocalElement)).toBe(true);
+      expect(isElementDescription(minimalLocalElement)).toBe(true);
     });
 
     it("should return true for unknown elements", () => {
@@ -657,7 +671,7 @@ describe("elementHelpers", () => {
         isIgnored: false,
       };
 
-      expect(isElement(minimalLocalElement)).toBe(true);
+      expect(isElementDescription(minimalLocalElement)).toBe(true);
     });
 
     it("should return true for ignored elements", () => {
@@ -671,7 +685,7 @@ describe("elementHelpers", () => {
         isUnknown: false,
       };
 
-      expect(isElement(minimalLocalElement)).toBe(true); // Has path, so it's a local element
+      expect(isElementDescription(minimalLocalElement)).toBe(true); // Has path, so it's a local element
     });
   });
 

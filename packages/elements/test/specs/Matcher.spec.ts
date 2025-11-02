@@ -403,11 +403,11 @@ describe("Matcher", () => {
         extraTemplateData?: Record<string, unknown>;
         expectedMatch?: ElementSelectorData;
       }) => {
-        const result = extraTemplateData
+        const matchResult = extraTemplateData
           ? matcher.isMatch(filePath, selector, { extraTemplateData })
           : matcher.isMatch(filePath, selector);
 
-        expect(result).toBe(expected);
+        expect(matchResult).toBe(expected);
 
         if (expected) {
           const selectorMatchingResult = matcher.getSelectorMatching(
@@ -420,6 +420,20 @@ describe("Matcher", () => {
           expect(selectorMatchingResult).toStrictEqual(
             expectedMatch || selector
           );
+
+          const description = matcher.describeElement(filePath);
+
+          const selectorMatchingFromDescription =
+            matcher.getSelectorMatchingDescription(
+              description,
+              selector,
+              extraTemplateData ? { extraTemplateData } : undefined
+            );
+
+          // eslint-disable-next-line jest/no-conditional-expect
+          expect(selectorMatchingFromDescription).toStrictEqual(
+            expectedMatch || selector
+          );
         }
       }
     );
@@ -428,6 +442,13 @@ describe("Matcher", () => {
       expect(() =>
         // @ts-expect-error: Testing invalid selector
         matcher.isMatch("/project/src/modules/user/foo.ts", { var: "baz" })
+      ).toThrow();
+    });
+
+    it("should throw an error when using invalid selector in getSelectorMatchingDescription", () => {
+      expect(() =>
+        // @ts-expect-error: Testing invalid selector
+        matcher.getSelectorMatchingDescription({}, { var: "baz" })
       ).toThrow();
     });
 
@@ -1231,6 +1252,23 @@ describe("Matcher", () => {
 
           // eslint-disable-next-line jest/no-conditional-expect
           expect(selectorMatchingResult).toStrictEqual(expectedMatchResult);
+
+          const description = matcher.describeDependency(dependency);
+          try {
+            const selectorMatchingFromDescription =
+              matcher.getSelectorMatchingDescription(
+                description,
+                selector,
+                extraTemplateData ? { extraTemplateData } : undefined
+              );
+
+            // eslint-disable-next-line jest/no-conditional-expect
+            expect(selectorMatchingFromDescription).toStrictEqual(
+              expectedMatchResult
+            );
+          } catch {
+            // Some selectors are not valid intentionally to test results in such cases
+          }
         }
       }
     );
@@ -1248,6 +1286,19 @@ describe("Matcher", () => {
             specifiers: ["calculateSum", "calculateAvg"],
           },
           { var: "baz" }
+        )
+      ).toThrow();
+    });
+
+    it("should throw an error when using invalid dependency description in getSelectorMatchingDescription", () => {
+      expect(() =>
+        matcher.getSelectorMatchingDescription(
+          // @ts-expect-error: Testing invalid description
+          {},
+          {
+            from: { type: "component" },
+            to: { var: "baz" },
+          }
         )
       ).toThrow();
     });

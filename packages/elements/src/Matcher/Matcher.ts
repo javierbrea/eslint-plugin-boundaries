@@ -2,8 +2,14 @@ import type { ConfigOptions } from "../Config";
 import type {
   ElementDescriptors,
   DescribeDependencyOptions,
+  ElementDescription,
+  DependencyDescription,
 } from "../Descriptor";
-import { Descriptors } from "../Descriptor";
+import {
+  Descriptors,
+  isElementDescription,
+  isDependencyDescription,
+} from "../Descriptor";
 import { isString } from "../Support";
 
 import { DependenciesMatcher } from "./DependenciesMatcher";
@@ -16,6 +22,7 @@ import type {
   DependencyMatchResult,
   MatcherSerializedCache,
 } from "./Matcher.types";
+import { isDependencySelector, isElementsSelector } from "./MatcherHelpers";
 
 /**
  * Matcher class to evaluate if elements or dependencies match given selectors.
@@ -180,6 +187,49 @@ export class Matcher {
       descriptorOptions,
       selector as DependencySelector,
       options
+    );
+  }
+
+  /**
+   * Returns the selectors matching result for the given element or dependency description.
+   * @param description The element or dependency  description to check.
+   * @param selector The selector to check against.
+   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
+   * @returns The selectors matching result for the given description, and whether it matches or not.
+   */
+  public getSelectorMatchingDescription(
+    description: DependencyDescription,
+    selector: DependencySelector,
+    options?: MatcherOptions
+  ): DependencyMatchResult;
+  public getSelectorMatchingDescription(
+    description: ElementDescription,
+    selector: ElementsSelector,
+    options?: MatcherOptions
+  ): ElementSelectorData;
+  public getSelectorMatchingDescription(
+    description: DependencyDescription | ElementDescription,
+    selector: DependencySelector | ElementsSelector,
+    options?: MatcherOptions
+  ): DependencyMatchResult | ElementSelectorData | null {
+    if (isElementsSelector(selector) && isElementDescription(description)) {
+      return this._elementsMatcher.getSelectorMatching(
+        description,
+        selector,
+        options
+      );
+    } else if (
+      isDependencySelector(selector) &&
+      isDependencyDescription(description)
+    ) {
+      return this._dependenciesMatcher.getSelectorsMatching(
+        description,
+        selector,
+        options
+      );
+    }
+    throw new Error(
+      "Invalid arguments: Please provide a valid description and selector"
     );
   }
 

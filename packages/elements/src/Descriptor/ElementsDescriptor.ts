@@ -20,7 +20,7 @@ import type {
   ExternalDependencyElement,
   LocalElementUnknown,
   CoreDependencyElement,
-  DependencyElement,
+  DependencyElementDescription,
 } from "./ElementsDescriptor.types";
 import {
   ELEMENT_DESCRIPTOR_MODES_MAP,
@@ -570,7 +570,7 @@ export class ElementsDescriptor {
   private _describeDependencyElement(
     element: FileElement,
     dependencySource: string
-  ): DependencyElement {
+  ): DependencyElementDescription {
     // Ignored elements remain ignored, but we add the source and baseSource
     if (isIgnoredElement(element)) {
       return {
@@ -634,7 +634,7 @@ export class ElementsDescriptor {
   private _describeElement(
     filePath?: string,
     dependencySource?: string
-  ): DependencyElement;
+  ): DependencyElementDescription;
 
   private _describeElement(
     filePath?: string,
@@ -686,7 +686,7 @@ export class ElementsDescriptor {
   public describeDependencyElement(
     dependencySource: string,
     filePath?: string
-  ): DependencyElement {
+  ): DependencyElementDescription {
     return this._describeElement(filePath, dependencySource);
   }
 }

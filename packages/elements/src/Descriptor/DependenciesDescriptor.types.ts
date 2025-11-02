@@ -1,5 +1,5 @@
 import type {
-  DependencyElement,
+  DependencyElementDescription,
   FileElement,
 } from "./ElementsDescriptor.types";
 
@@ -89,7 +89,7 @@ export type DependencyDescription = {
   /** Source element of the dependency */
   from: FileElement;
   /** Target element of the dependency */
-  to: DependencyElement;
+  to: DependencyElementDescription;
   /** Information about the dependency */
   dependency: ElementsDependencyInfo;
 };

@@ -173,7 +173,8 @@ export default dependencyRule<ExternalRuleOptions>(
 
       const ruleData = elementRulesAllowDependency(
         dependency,
-        adaptedRuleOptions
+        adaptedRuleOptions,
+        context
       );
 
       if (!ruleData.result) {

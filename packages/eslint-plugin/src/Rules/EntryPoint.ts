@@ -157,7 +157,8 @@ export default dependencyRule<EntryPointRuleOptions>(
 
       const ruleData = elementRulesAllowDependency(
         dependency,
-        adaptedRuleOptions
+        adaptedRuleOptions,
+        context
       );
       if (!ruleData.result) {
         context.report({

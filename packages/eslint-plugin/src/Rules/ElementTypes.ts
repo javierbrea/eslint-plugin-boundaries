@@ -9,10 +9,12 @@ import type {
   DependencySelector,
   TemplateData,
   MatcherOptionsDependencySelectorsGlobals,
+  Matcher,
 } from "@boundaries/elements";
+import type { Rule } from "eslint";
 import micromatch from "micromatch";
 
-import { elements } from "../Elements";
+import { getElementsMatcher } from "../Elements";
 import {
   customErrorMessage,
   ruleElementMessage,
@@ -34,7 +36,8 @@ const { RULE_ELEMENT_TYPES } = SETTINGS;
 
 export function getRulesResults(
   ruleOptions: ElementTypesRuleOptions,
-  dependencyDescription: DependencyDescription
+  dependencyDescription: DependencyDescription,
+  matcher: Matcher
 ) {
   if (!ruleOptions.rules) {
     return [];
@@ -47,7 +50,7 @@ export function getRulesResults(
   ) => {
     // Just in case selectors are invalid, we catch errors here to avoid breaking the whole rule evaluation. It should not happen due to options schema validation.
     try {
-      return elements.getDependencySelectorsMatching(
+      return matcher.getSelectorMatchingDescription(
         dependencyDescription,
         dependencySelector,
         {
@@ -155,11 +158,13 @@ export function getRulesResults(
 
 export function elementRulesAllowDependency(
   dependency: DependencyDescription,
-  ruleOptions: ElementTypesRuleOptions = {}
+  ruleOptions: ElementTypesRuleOptions = {},
+  context: Rule.RuleContext
 ): RuleResult {
   let isAllowed = ruleOptions.default === "allow";
   let ruleIndexMatching: number | null = null;
-  const rulesResults = getRulesResults(ruleOptions, dependency);
+  const matcher = getElementsMatcher(context);
+  const rulesResults = getRulesResults(ruleOptions, dependency, matcher);
 
   for (const ruleResult of rulesResults) {
     if (ruleResult.denyPolicyMatches.isMatch) {
@@ -286,7 +291,11 @@ export default dependencyRule<ElementTypesRuleOptions>(
       !isUnknownLocalElement(dependency.to) &&
       !isInternalDependency(dependency)
     ) {
-      const ruleData = elementRulesAllowDependency(dependency, options);
+      const ruleData = elementRulesAllowDependency(
+        dependency,
+        options,
+        context
+      );
       if (!ruleData.result) {
         context.report({
           message: errorMessage(ruleData, dependency),

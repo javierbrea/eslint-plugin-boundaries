@@ -10,7 +10,7 @@ import type {
   LocalElementKnown,
   LocalDependencyElement,
   ExternalDependencyElement,
-  DependencyElement,
+  DependencyElementDescription,
   BaseElementDescriptor,
   ElementDescriptorPattern,
   ElementDescriptorMode,
@@ -182,9 +182,9 @@ export function isKnownLocalElement(
  * @param value The element to check.
  * @returns True if the element is a dependency element, false otherwise.
  */
-export function isDependencyElement(
+export function isDependencyElementDescription(
   value: unknown
-): value is DependencyElement {
+): value is DependencyElementDescription {
   return (
     isBaseElement(value) &&
     isObjectWithProperty(value, "source") &&
@@ -197,12 +197,14 @@ export function isDependencyElement(
  * @param value The value to check.
  * @returns True if the value is an element, false otherwise.
  */
-export function isElement(value: unknown): value is ElementDescription {
+export function isElementDescription(
+  value: unknown
+): value is ElementDescription {
   return (
     isIgnoredElement(value) ||
     isUnknownLocalElement(value) ||
     isKnownLocalElement(value) ||
-    isDependencyElement(value)
+    isDependencyElementDescription(value)
   );
 }
 
@@ -214,7 +216,7 @@ export function isElement(value: unknown): value is ElementDescription {
 export function isLocalDependencyElement(
   value: unknown
 ): value is LocalDependencyElement {
-  return isDependencyElement(value) && isLocalElement(value);
+  return isDependencyElementDescription(value) && isLocalElement(value);
 }
 
 /**
@@ -226,7 +228,7 @@ export function isExternalDependencyElement(
   value: unknown
 ): value is ExternalDependencyElement {
   return (
-    isDependencyElement(value) &&
+    isDependencyElementDescription(value) &&
     value.origin === ELEMENT_ORIGINS_MAP.EXTERNAL &&
     isObjectWithProperty(value, "baseSource") &&
     isString(value.baseSource)
@@ -242,7 +244,7 @@ export function isCoreDependencyElement(
   value: unknown
 ): value is CoreDependencyElement {
   return (
-    isDependencyElement(value) &&
+    isDependencyElementDescription(value) &&
     value.origin === ELEMENT_ORIGINS_MAP.CORE &&
     isObjectWithProperty(value, "baseSource") &&
     isString(value.baseSource)
