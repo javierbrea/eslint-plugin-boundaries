@@ -20,12 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 > TODO BEFORE RELEASE 6.0.0
 >
+> - Fix Sonar issues
 > - Refactor element rules function in eslint-plugin to improve code quality and maintainability.
-> - Run Sonar analysis
 >
 > - Elements package documentation.
 > - Eslint-plugin package TypeScript docs.
->
 >
 > - Support new types of selectors and descriptors in eslint-plugin-boundaries package: Change schemas, validations, etc.
 > - Support a `name` property in `additional-dependency-nodes` setting to be able to identify the custom dependency nodes in rules.

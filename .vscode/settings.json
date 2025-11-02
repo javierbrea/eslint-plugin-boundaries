@@ -5,6 +5,6 @@
   },
   "sonarlint.connectedMode.project": {
     "connectionId": "javierbrea",
-    "projectKey": "javierbrea_eslint-plugin-boundaries"
+    "projectKey": "javierbrea_eslint-plugin-boundaries_elements"
   }
 }
