@@ -74,6 +74,9 @@ jobs:
   reports:
     runs-on: ubuntu-latest
     needs: build
+    env:
+      SONAR_TOKEN_ELEMENTS: ${{ secrets.SONAR_TOKEN_ELEMENTS }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -95,7 +98,9 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           base-path: packages/eslint-plugin
+      # TODO: Upgrade SonarCloud action. Run it conditionally only if SONAR_TOKEN_ELEMENTS is defined
       - name: SonarCloud Scan - Elements
+        if: env.SONAR_TOKEN_ELEMENTS != ''
         uses: sonarsource/sonarcloud-github-action@v5
         with:
           projectBaseDir: packages/elements
