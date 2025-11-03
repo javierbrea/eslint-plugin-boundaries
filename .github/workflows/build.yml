@@ -64,12 +64,8 @@ jobs:
       - uses: ./.github/actions/install
         with:
           node-version: ${{ matrix.node }}
-      - name: Check all
-        if: ${{ matrix.node == '22.14.0' }}
-        run: pnpm nx run-many --target=check:all --all
-      # NOTE: In other Node versions, we only run unit tests to save time in the CI and to avoid dev tools Node incompatibilities
+      # NOTE: In Windows, we only run unit tests to save time in the CI and to avoid dev tools Node incompatibilities
       - name: Test Unit
-        if: ${{ matrix.node != '22.14.0' }}
         run: pnpm nx run-many --target=test:unit --all
   reports:
     runs-on: ubuntu-latest
