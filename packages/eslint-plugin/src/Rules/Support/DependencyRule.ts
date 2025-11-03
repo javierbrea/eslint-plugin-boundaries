@@ -70,8 +70,9 @@ export function dependencyRule<Options extends RuleOptionsWithRules>(
       const dependencyNodes: DependencyNodeSelector[] =
         // TODO In next major version, make this default to all types of nodes!!!
         (dependencyNodesSetting || [DEPENDENCY_NODE_KEYS_MAP.IMPORT])
-          .map((dependencyNode) => DEFAULT_DEPENDENCY_NODES[dependencyNode])
-          .flat()
+          .flatMap((dependencyNode) => [
+            ...DEFAULT_DEPENDENCY_NODES[dependencyNode],
+          ])
           .filter(Boolean);
 
       const additionalDependencyNodes = additionalDependencyNodesSetting || [];

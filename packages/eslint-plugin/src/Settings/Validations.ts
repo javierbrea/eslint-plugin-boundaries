@@ -189,7 +189,7 @@ function validateElements(elements: unknown): ElementDescriptors | undefined {
 }
 
 function validateDependencyNodes(
-  dependencyNodes: DependencyNodeKey[] | undefined | unknown
+  dependencyNodes: DependencyNodeKey[] | undefined
 ): DependencyNodeKey[] | undefined {
   if (!dependencyNodes) {
     return;
@@ -207,11 +207,11 @@ function validateDependencyNodes(
     return;
   }
 
-  dependencyNodes.forEach((dependencyNode) => {
+  for (const dependencyNode of dependencyNodes) {
     if (!isDependencyNodeKey(dependencyNode)) {
       warnOnce(invalidFormatMessage);
     }
-  });
+  }
 
   return dependencyNodes.filter(isDependencyNodeKey);
 }
@@ -280,7 +280,6 @@ function validateIgnore(ignore: unknown): IgnoreSetting | undefined {
   warnOnce(
     `Please provide a valid value in '${SETTINGS_KEYS_MAP.IGNORE}' setting. The value should be a string or an array of strings.`
   );
-  return;
 }
 
 function validateInclude(include: unknown): IncludeSetting | undefined {
@@ -293,7 +292,6 @@ function validateInclude(include: unknown): IncludeSetting | undefined {
   warnOnce(
     `Please provide a valid value in '${SETTINGS_KEYS_MAP.INCLUDE}' setting. The value should be a string or an array of strings.`
   );
-  return;
 }
 
 function validateRootPath(rootPath: unknown): string | undefined {
@@ -306,7 +304,6 @@ function validateRootPath(rootPath: unknown): string | undefined {
   warnOnce(
     `Please provide a valid value in '${SETTINGS_KEYS_MAP.ROOT_PATH}' setting. The value should be a string.`
   );
-  return;
 }
 
 export function validateSettings(
@@ -329,7 +326,7 @@ export function validateSettings(
       settings[SETTINGS_KEYS_MAP.ROOT_PATH]
     ),
     [SETTINGS_KEYS_MAP.DEPENDENCY_NODES]: validateDependencyNodes(
-      settings[DEPENDENCY_NODES]
+      settings[DEPENDENCY_NODES] as DependencyNodeKey[] | undefined
     ),
     [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES]:
       validateAdditionalDependencyNodes(settings[ADDITIONAL_DEPENDENCY_NODES]),
@@ -342,7 +339,7 @@ export function validateRules(
   options: ValidateRulesOptions = {}
 ) {
   const mainKey = rulesMainKey(options.mainKey);
-  rules.forEach((rule) => {
+  for (const rule of rules) {
     //@ts-expect-error TODO: Add a different schema validation for each rule type, so keys are properly validated
     validateElementTypesMatcher([rule[mainKey]], settings);
     if (!options.onlyMainKey) {
@@ -353,7 +350,7 @@ export function validateRules(
         validateElementTypesMatcher(rule.disallow, settings);
       }
     }
-  });
+  }
 }
 
 export function isValidElementAssigner(

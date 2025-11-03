@@ -21,7 +21,7 @@ function renamePluginRules<PluginName extends string = typeof PLUGIN_NAME>(
   if (!rules) {
     return {};
   }
-  const allowedPrefixes = [PLUGIN_NAME, pluginName];
+  const allowedPrefixes = new Set([PLUGIN_NAME, pluginName]);
   // Return the same rules objects, but converting plugin default rule keys with provided plugin name
   return Object.entries(rules).reduce((acc, [key, value]) => {
     if (!key.includes("/")) {
@@ -32,7 +32,7 @@ function renamePluginRules<PluginName extends string = typeof PLUGIN_NAME>(
     const splittedRuleKey = key.split("/");
     const rulePrefix = splittedRuleKey[0];
     const ruleName = splittedRuleKey[1];
-    if (!allowedPrefixes.includes(rulePrefix)) {
+    if (!allowedPrefixes.has(rulePrefix)) {
       throw new Error(
         `Invalid rule key "${key}". When using createConfig, all rules must belong to eslint-plugin-boundaries. You can prefix them with the original plugin name "${PLUGIN_NAME}/", or with the provided plugin name "${pluginName}/".`
       );
@@ -42,10 +42,13 @@ function renamePluginRules<PluginName extends string = typeof PLUGIN_NAME>(
         `Invalid rule name "${ruleName}". When using createConfig, all rules must belong to eslint-plugin-boundaries.`
       );
     }
-    const newKey =
-      rulePrefix === PLUGIN_NAME
-        ? (`${pluginName}/${key.slice(`${PLUGIN_NAME}/`.length)}` as keyof Rules<PluginName>)
-        : (key as keyof Rules<PluginName>);
+    let newKey: keyof Rules<PluginName>;
+    if (rulePrefix === PLUGIN_NAME) {
+      const suffix = key.slice(PLUGIN_NAME.length + 1);
+      newKey = `${pluginName}/${suffix}` as keyof Rules<PluginName>;
+    } else {
+      newKey = key as keyof Rules<PluginName>;
+    }
     acc[newKey] = value as Rules<PluginName>[typeof newKey];
     return acc;
   }, {} as Rules<PluginName>);
@@ -85,16 +88,16 @@ export function createConfig<PluginName extends string = typeof PLUGIN_NAME>(
   name: PluginName = PLUGIN_NAME as PluginName
 ): PluginFullConfig<PluginName> {
   const pluginsRegistration = {
-    [name]: plugin as PluginBoundaries,
+    [name]: plugin,
   } as Record<PluginName, PluginBoundaries>;
 
-  if (Object.prototype.hasOwnProperty.call(config, "plugins")) {
+  if (Object.hasOwn(config, "plugins")) {
     throw new Error(
       "The 'plugins' field is managed by createConfig and should not be provided in the config argument."
     );
   }
 
-  if (Object.prototype.hasOwnProperty.call(config, "settings")) {
+  if (Object.hasOwn(config, "settings")) {
     const settings = (config as Config).settings;
     if (settings) {
       for (const key of Object.keys(settings)) {

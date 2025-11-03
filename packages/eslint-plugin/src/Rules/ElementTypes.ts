@@ -124,6 +124,8 @@ export function getRulesResults(
             isMatch: false,
           };
 
+    const allowPolicyMatchesIsMatch = allowPolicyMatches.isMatch;
+    const disallowPolicyMatchesIsMatch = disallowPolicyMatches.isMatch;
     const result = {
       index,
       // @ts-expect-error Workaround to support both allow and disallow in the same entry point rule
@@ -131,19 +133,19 @@ export function getRulesResults(
       selectorsMatching: {
         selectors: {
           [targetElementDirection]:
-            disallowPolicyMatches.isMatch || allowPolicyMatches.isMatch
+            disallowPolicyMatchesIsMatch || allowPolicyMatchesIsMatch
               ? targetElementSelector
               : null,
-          [policyElementDirection]: disallowPolicyMatches.isMatch
+          [policyElementDirection]: disallowPolicyMatchesIsMatch
             ? // @ts-expect-error TODO: Support "deny" in rules
               rule[denyKeyToUse]
-            : allowPolicyMatches.isMatch
+            : allowPolicyMatchesIsMatch
               ? rule.allow
               : null,
         },
-        selectorsData: disallowPolicyMatches.isMatch
+        selectorsData: disallowPolicyMatchesIsMatch
           ? disallowPolicyMatches
-          : allowPolicyMatches.isMatch
+          : allowPolicyMatchesIsMatch
             ? allowPolicyMatches
             : null,
       },
@@ -158,8 +160,8 @@ export function getRulesResults(
 
 export function elementRulesAllowDependency(
   dependency: DependencyDescription,
-  ruleOptions: ElementTypesRuleOptions = {},
-  context: Rule.RuleContext
+  context: Rule.RuleContext,
+  ruleOptions: ElementTypesRuleOptions = {}
 ): RuleResult {
   let isAllowed = ruleOptions.default === "allow";
   let ruleIndexMatching: number | null = null;
@@ -177,9 +179,9 @@ export function elementRulesAllowDependency(
   }
 
   const message =
-    (ruleIndexMatching !== null
-      ? ruleOptions.rules?.[ruleIndexMatching]?.message
-      : ruleOptions.message) || ruleOptions.message;
+    (ruleIndexMatching === null
+      ? ruleOptions.message
+      : ruleOptions.rules?.[ruleIndexMatching]?.message) || ruleOptions.message;
 
   const getSpecifiersMatching = () => {
     if (ruleIndexMatching === null) return null;
@@ -210,8 +212,16 @@ export function elementRulesAllowDependency(
   const result: RuleResult = {
     result: isAllowed,
     ruleReport:
-      ruleIndexMatching !== null
+      ruleIndexMatching === null
         ? {
+            message,
+            isDefault: true,
+            importKind: undefined,
+            disallow: dependency.to,
+            element: dependency.from,
+            index: -1,
+          }
+        : {
             message,
             isDefault: ruleIndexMatching === null,
             importKind: rulesResults[ruleIndexMatching].ruleHasImportKind
@@ -224,14 +234,6 @@ export function elementRulesAllowDependency(
             index:
               rulesResults[ruleIndexMatching].originalRuleIndex ??
               ruleIndexMatching,
-          }
-        : {
-            message,
-            isDefault: true,
-            importKind: undefined,
-            disallow: dependency.to,
-            element: dependency.from,
-            index: -1,
           },
     // TODO: Improve report data. This was added to support custom error messages in external rule only. It returns data about specifiers and path that matched the rule, for printing in the error message.
     report: {
@@ -292,8 +294,8 @@ export default dependencyRule<ElementTypesRuleOptions>(
     ) {
       const ruleData = elementRulesAllowDependency(
         dependency,
-        options,
-        context
+        context,
+        options
       );
       if (!ruleData.result) {
         context.report({

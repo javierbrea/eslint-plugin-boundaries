@@ -59,7 +59,7 @@ function modifyTemplates(
   }
   const templatesArray = Array.isArray(templates) ? templates : [templates];
   return templatesArray.map((template) =>
-    template.replace(/\${target\./g, "${to.")
+    template.replaceAll(/\${target\./g, "${to.")
   );
 }
 
@@ -78,33 +78,33 @@ function modifyRules(rules: EntryPointRule[]): ElementTypesRule[] {
 
     if (ruleHasDisallow && ruleHasAllow) {
       // Workaround to support both allow and disallow in the same rule
-      newRules.push({
-        to: newTargets.map((target) => {
-          return {
-            ...target,
-            internalPath: modifyTemplates(rule.allow)!,
-          };
-        }),
-        allow: ["*"],
-        importKind: rule.importKind,
-        message: rule.message,
-        // @ts-expect-error Workaround to support both allow and disallow in the same entry point rule
-        originalRuleIndex: i,
-      });
-
-      newRules.push({
-        to: newTargets.map((target) => {
-          return {
-            ...target,
-            internalPath: modifyTemplates(rule.disallow)!,
-          };
-        }),
-        disallow: ["*"],
-        importKind: rule.importKind,
-        message: rule.message,
-        // @ts-expect-error Workaround to support both allow and disallow in the same entry point rule
-        originalRuleIndex: i,
-      });
+      const toAdd = [
+        {
+          to: newTargets.map((target) => {
+            return {
+              ...target,
+              internalPath: modifyTemplates(rule.allow)!,
+            };
+          }),
+          allow: ["*"],
+          importKind: rule.importKind,
+          message: rule.message,
+          originalRuleIndex: i,
+        },
+        {
+          to: newTargets.map((target) => {
+            return {
+              ...target,
+              internalPath: modifyTemplates(rule.disallow)!,
+            };
+          }),
+          disallow: ["*"],
+          importKind: rule.importKind,
+          message: rule.message,
+          originalRuleIndex: i,
+        },
+      ];
+      newRules.push(...toAdd);
     }
 
     if (ruleHasDisallow) {
@@ -155,8 +155,8 @@ export default dependencyRule<EntryPointRuleOptions>(
 
       const ruleData = elementRulesAllowDependency(
         dependency,
-        adaptedRuleOptions,
-        context
+        context,
+        adaptedRuleOptions
       );
       if (!ruleData.result) {
         context.report({

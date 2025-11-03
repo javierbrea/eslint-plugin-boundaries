@@ -31,13 +31,15 @@ export function getElementsMatcher(context: Rule.RuleContext): Matcher {
     (desc) => !isElementDescriptor(desc)
   );
   if (invalidDescriptors.length > 0) {
-    // TODO: Report invalid descriptors in ESLint context as a warning in a separate rule
-    /* context.report({
-      message: `Some element descriptors are invalid and will be ignored: ${JSON.stringify(
-        invalidDescriptors,
-      )}`,
-      loc: { line: 1, column: 0 },
-    });*/
+    /*
+     * TODO: Report invalid descriptors in ESLint context as a warning in a separate rule:
+     * context.report({
+     * message: `Some element descriptors are invalid and will be ignored: ${JSON.stringify(
+     *   invalidDescriptors,
+     * )}`,
+     * loc: { line: 1, column: 0 },
+     * });
+     */
     warnOnce(
       `Some element descriptors are invalid and will be ignored: ${JSON.stringify(
         invalidDescriptors
@@ -58,7 +60,7 @@ export function getElementsMatcher(context: Rule.RuleContext): Matcher {
  * @returns The modified file path with forward slashes
  */
 function replacePathSlashes(filePath: string) {
-  return filePath.replace(/\\/g, "/");
+  return filePath.replaceAll(/\\/g, "/");
 }
 
 /**

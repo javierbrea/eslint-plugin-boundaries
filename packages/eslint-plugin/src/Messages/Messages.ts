@@ -167,23 +167,27 @@ function elementMatcherMessage(
   if (isElementSelector(elementMatcher)) {
     const selector = normalizeElementsSelector(elementMatcher);
     const parts: string[] = [];
+    const toAdd: string[] = [];
     if (selector[0].type) {
       // @ts-expect-error Types have to be aligned properly
-      parts.push(typeMessage(selector[0].type));
+      toAdd.push(typeMessage(selector[0].type));
     }
     if (selector[0].category) {
-      parts.push(propertiesConcatenator(parts, parts.length + 1));
+      toAdd.push(
+        propertiesConcatenator(parts, parts.length + toAdd.length + 1)
+      );
       // @ts-expect-error Types have to be aligned properly
-      parts.push(categoryMessage(selector[0].category));
+      toAdd.push(categoryMessage(selector[0].category));
     }
     if (selector[0].captured) {
-      parts.push(
+      toAdd.push(
         capturedValuesMatcherMessage(
           selector[0].captured,
           elementCapturedValues
         )
       );
     }
+    parts.push(...toAdd);
     return parts.map((part) => part.trim()).join(" ");
   }
   // Backward compatibility. Code should not reach here normally.
