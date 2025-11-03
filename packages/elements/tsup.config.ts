@@ -11,7 +11,7 @@ export default defineConfig([
     clean: true,
     outDir: "dist",
     platform: "node",
-    target: "node16",
+    target: "node18",
     splitting: false,
     sourcemap: true,
   },
@@ -25,7 +25,7 @@ export default defineConfig([
     clean: false,
     outDir: "dist",
     platform: "browser",
-    target: "es2020",
+    target: "es2022",
     splitting: false,
     sourcemap: true,
     // Alias: replace 'path' with 'path-browserify'
