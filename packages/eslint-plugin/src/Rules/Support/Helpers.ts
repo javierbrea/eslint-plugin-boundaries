@@ -12,7 +12,6 @@ function removePluginNamespace(ruleName: RuleName) {
   return ruleName.replace(`${PLUGIN_NAME}/`, "");
 }
 
-// TODO: Move to rules support
 /**
  * Returns the documentation URL for an ESLint rule.
  * @param ruleName The name of the rule.
@@ -22,7 +21,6 @@ function docsUrl(ruleName: RuleName) {
   return `${REPO_URL}/blob/master/docs/rules/${removePluginNamespace(ruleName)}.md`;
 }
 
-// TODO: Move to rules support
 /**
  * Returns the meta object for an ESLint rule.
  * @param param0 The rule metadata definition.

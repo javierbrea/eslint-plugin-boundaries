@@ -59,7 +59,7 @@ function modifyTemplates(
   }
   const templatesArray = Array.isArray(templates) ? templates : [templates];
   return templatesArray.map((template) =>
-    template.replaceAll(/\${target\./g, "${to.")
+    template.replaceAll("${target.", "${to.")
   );
 }
 
@@ -167,7 +167,6 @@ export default dependencyRule<EntryPointRuleOptions>(
     }
   },
   {
-    // TODO: Define main keys in a map
     validateRules: { onlyMainKey: true, mainKey: "target" },
   }
 );

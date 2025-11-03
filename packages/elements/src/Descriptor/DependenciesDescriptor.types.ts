@@ -27,18 +27,12 @@ export const DEPENDENCY_RELATIONSHIPS_MAP = {
   CHILD: "child",
   /** The dependency is a descendant of the element */
   DESCENDANT: "descendant",
-  /**
-   * The dependency is a brother of the element
-   * @deprecated Use SIBLING instead
-   **/
-  BROTHER: "brother",
   /** The dependency is a sibling of the element (both have the same parent) */
   SIBLING: "sibling",
   /** The dependency is a parent of the element */
   PARENT: "parent",
   /** The dependency is an uncle of the element */
   UNCLE: "uncle",
-  // TODO: Implement nephew detection
   /** The dependency is a nephew of the element */
   NEPHEW: "nephew",
   /** The dependency is an ancestor of the element */
@@ -51,8 +45,6 @@ export const DEPENDENCY_RELATIONSHIPS_INVERTED_MAP = {
   [DEPENDENCY_RELATIONSHIPS_MAP.CHILD]: DEPENDENCY_RELATIONSHIPS_MAP.PARENT,
   [DEPENDENCY_RELATIONSHIPS_MAP.DESCENDANT]:
     DEPENDENCY_RELATIONSHIPS_MAP.ANCESTOR,
-  /** @deprecated Use sibling instead */
-  [DEPENDENCY_RELATIONSHIPS_MAP.BROTHER]: DEPENDENCY_RELATIONSHIPS_MAP.BROTHER,
   [DEPENDENCY_RELATIONSHIPS_MAP.SIBLING]: DEPENDENCY_RELATIONSHIPS_MAP.SIBLING,
   [DEPENDENCY_RELATIONSHIPS_MAP.PARENT]: DEPENDENCY_RELATIONSHIPS_MAP.CHILD,
   [DEPENDENCY_RELATIONSHIPS_MAP.UNCLE]: DEPENDENCY_RELATIONSHIPS_MAP.NEPHEW,

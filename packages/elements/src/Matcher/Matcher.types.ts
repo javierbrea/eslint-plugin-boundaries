@@ -124,14 +124,10 @@ export type BaseElementSelectorData = {
  * Selector for dependency elements, including kind, specifier, and node kind filters.
  */
 export type DependencyElementSelectorData = BaseElementSelectorData & {
-  /**
-   * Relationship of the file element with the dependency declared in it
-   * It only applies when used in external dependencies
-   */
+  /** Relationship of the file element with the dependency declared in it */
   relationship?: MicromatchPattern;
   /** Dependency kind to filter elements */
   kind?: MicromatchPattern;
-  // TODO: Pass specifier to DependencyData
   /** Micromatch pattern(s) to match only specific imports/exports */
   specifiers?: MicromatchPattern;
   /** Node kind to filter elements */

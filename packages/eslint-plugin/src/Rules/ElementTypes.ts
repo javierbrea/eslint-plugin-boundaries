@@ -10,6 +10,7 @@ import type {
   TemplateData,
   MatcherOptionsDependencySelectorsGlobals,
   Matcher,
+  ElementsSelector,
 } from "@boundaries/elements";
 import type { Rule } from "eslint";
 import micromatch from "micromatch";
@@ -28,27 +29,40 @@ import {
   SETTINGS,
   rulesOptionsSchema,
 } from "../Settings";
-import { isString } from "../Support";
+import { warnOnce, isString } from "../Support";
 
 import { dependencyRule } from "./Support";
 
 const { RULE_ELEMENT_TYPES } = SETTINGS;
 
-export function getRulesResults(
-  ruleOptions: ElementTypesRuleOptions,
+type PolicyMatch = {
+  isMatch: boolean;
+  specifiers?: string | string[];
+  internalPath?: string;
+};
+
+type RuleMatchContext = {
+  targetElementDirection: "from" | "to";
+  policyElementDirection: "from" | "to";
+  denyKeyToUse: "deny" | "disallow";
+  capturedValuesTemplateData: TemplateData;
+  dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals;
+  targetElementSelector: ElementsSelector;
+};
+
+/**
+ * Safely matches a dependency selector, catching and logging any errors
+ */
+function createSafeMatcherFunction(
   dependencyDescription: DependencyDescription,
   matcher: Matcher
 ) {
-  if (!ruleOptions.rules) {
-    return [];
-  }
-
-  const isMatch = (
+  return (
     dependencySelector: DependencySelector,
     extraTemplateData: TemplateData,
     dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals
-  ) => {
-    // Just in case selectors are invalid, we catch errors here to avoid breaking the whole rule evaluation. It should not happen due to options schema validation.
+  ): PolicyMatch => {
+    // Just in case selectors are invalid, we catch errors here to avoid breaking the whole rule evaluation
     try {
       return matcher.getSelectorMatchingDescription(
         dependencyDescription,
@@ -59,114 +73,186 @@ export function getRulesResults(
         }
       );
     } catch (error) {
-      // TODO: Use debug logger instead of console.error
-      console.error("Error occurred while matching dependency:", error);
-      return {
-        isMatch: false,
-      };
+      warnOnce(`Error occurred while matching dependency: ${String(error)}`);
+      return { isMatch: false };
     }
   };
+}
 
-  return ruleOptions.rules.map((rule, index) => {
-    const targetElementDirection = rule.from ? "from" : "to"; // Set priority when both from and to are defined, which should not happen due to schema validation
-    const policyElementDirection = rule.from ? "to" : "from";
-    // @ts-expect-error TODO: Support "deny" in rules
-    const denyKeyToUse = rule.deny ? "deny" : "disallow"; // Support new key "deny" and also deprecated "disallow" for backward compatibility
+/**
+ * Determines the rule matching context (directions, template data, etc.)
+ */
+function createRuleMatchContext(
+  rule: Record<string, unknown>,
+  dependencyDescription: DependencyDescription
+): RuleMatchContext {
+  const targetElementDirection = rule.from ? "from" : "to";
+  const policyElementDirection = rule.from ? "to" : "from";
+  const denyKeyToUse = rule.deny ? "deny" : "disallow";
 
-    const capturedValuesTemplateData =
-      targetElementDirection === "from"
-        ? {
-            ...dependencyDescription.from.capturedValues,
-            from: dependencyDescription.from.capturedValues,
-            to: dependencyDescription.to.capturedValues,
-          }
-        : {
-            ...dependencyDescription.to.capturedValues,
-            from: dependencyDescription.from.capturedValues, // TODO: Add an option to use new templates instead of old ones. In that case, we shouldn't pass any value here. Only default properties passed in Elements should be used.
-            to: dependencyDescription.to.capturedValues,
-          };
+  const capturedValuesTemplateData =
+    targetElementDirection === "from"
+      ? {
+          ...dependencyDescription.from.capturedValues,
+          from: dependencyDescription.from.capturedValues,
+          to: dependencyDescription.to.capturedValues,
+        }
+      : {
+          ...dependencyDescription.to.capturedValues,
+          from: dependencyDescription.from.capturedValues,
+          to: dependencyDescription.to.capturedValues,
+        };
 
-    // TODO: Deprecate importKind at first level of rule and only support it inside selectors
-    const dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals =
-      rule.importKind
-        ? {
-            kind: rule.importKind,
-          }
-        : {};
+  const dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals =
+    rule.importKind ? { kind: rule.importKind as string } : {};
 
-    const targetElementSelector = rule[targetElementDirection];
+  const targetElementSelector = rule[
+    targetElementDirection
+  ] as ElementsSelector;
 
-    // @ts-expect-error TODO: Support "deny" in rules
-    const disallowPolicyMatches = rule[denyKeyToUse]
+  return {
+    targetElementDirection,
+    policyElementDirection,
+    denyKeyToUse,
+    capturedValuesTemplateData,
+    dependencySelectorsGlobals,
+    targetElementSelector,
+  };
+}
+
+/**
+ * Evaluates both deny and allow policy matches for a rule
+ */
+function evaluatePolicyMatches(
+  rule: Record<string, unknown>,
+  context: RuleMatchContext,
+  isMatch: ReturnType<typeof createSafeMatcherFunction>
+): { disallowPolicyMatches: PolicyMatch; allowPolicyMatches: PolicyMatch } {
+  const {
+    targetElementDirection,
+    policyElementDirection,
+    denyKeyToUse,
+    capturedValuesTemplateData,
+    dependencySelectorsGlobals,
+    targetElementSelector,
+  } = context;
+
+  const disallowPolicyMatches = (rule as Record<string, unknown>)[denyKeyToUse]
+    ? isMatch(
+        {
+          [targetElementDirection]: targetElementSelector,
+          [policyElementDirection]: (rule as Record<string, unknown>)[
+            denyKeyToUse
+          ],
+        },
+        capturedValuesTemplateData,
+        dependencySelectorsGlobals
+      )
+    : { isMatch: false };
+
+  const allowPolicyMatches =
+    !disallowPolicyMatches.isMatch && rule.allow
       ? isMatch(
           {
             [targetElementDirection]: targetElementSelector,
-            // @ts-expect-error TODO: Support "deny" in rules
-            [policyElementDirection]: rule[denyKeyToUse],
+            [policyElementDirection]: rule.allow,
           },
           capturedValuesTemplateData,
           dependencySelectorsGlobals
         )
-      : {
-          isMatch: false,
-        };
-    const allowPolicyMatches =
-      !disallowPolicyMatches.isMatch && rule.allow
-        ? isMatch(
-            {
-              [targetElementDirection]: targetElementSelector,
-              [policyElementDirection]: rule.allow,
-            },
-            capturedValuesTemplateData,
-            dependencySelectorsGlobals
-          )
-        : {
-            isMatch: false,
-          };
+      : { isMatch: false };
 
-    const allowPolicyMatchesIsMatch = allowPolicyMatches.isMatch;
-    const disallowPolicyMatchesIsMatch = disallowPolicyMatches.isMatch;
-    const result = {
+  return { disallowPolicyMatches, allowPolicyMatches };
+}
+
+/**
+ * Creates rule selectors data based on policy matches
+ */
+function createRuleSelectorsData(
+  rule: Record<string, unknown>,
+  context: RuleMatchContext,
+  disallowPolicyMatches: PolicyMatch,
+  allowPolicyMatches: PolicyMatch
+) {
+  const { targetElementDirection, policyElementDirection, denyKeyToUse } =
+    context;
+
+  const allowPolicyMatchesIsMatch = allowPolicyMatches.isMatch;
+  const disallowPolicyMatchesIsMatch = disallowPolicyMatches.isMatch;
+
+  const targetSelector =
+    disallowPolicyMatchesIsMatch || allowPolicyMatchesIsMatch
+      ? context.targetElementSelector
+      : null;
+
+  let policySelector: ElementsSelector | null = null;
+  if (disallowPolicyMatchesIsMatch) {
+    policySelector = (rule as Record<string, unknown>)[
+      denyKeyToUse
+    ] as ElementsSelector;
+  } else if (allowPolicyMatchesIsMatch) {
+    policySelector = rule.allow as ElementsSelector;
+  }
+
+  let selectorsData: { isMatch: boolean } | null = null;
+  if (disallowPolicyMatchesIsMatch) {
+    selectorsData = disallowPolicyMatches;
+  } else if (allowPolicyMatchesIsMatch) {
+    selectorsData = allowPolicyMatches;
+  }
+
+  return {
+    selectors: {
+      [targetElementDirection]: targetSelector,
+      [policyElementDirection]: policySelector,
+    },
+    selectorsData,
+  };
+}
+
+export function getRulesResults(
+  ruleOptions: ElementTypesRuleOptions,
+  dependencyDescription: DependencyDescription,
+  matcher: Matcher
+) {
+  if (!ruleOptions.rules) {
+    return [];
+  }
+
+  const isMatch = createSafeMatcherFunction(dependencyDescription, matcher);
+
+  return ruleOptions.rules.map((rule, index) => {
+    const context = createRuleMatchContext(rule, dependencyDescription);
+    const { disallowPolicyMatches, allowPolicyMatches } = evaluatePolicyMatches(
+      rule,
+      context,
+      isMatch
+    );
+    const selectorsMatching = createRuleSelectorsData(
+      rule,
+      context,
+      disallowPolicyMatches,
+      allowPolicyMatches
+    );
+
+    return {
       index,
       // @ts-expect-error Workaround to support both allow and disallow in the same entry point rule
       originalRuleIndex: rule.originalRuleIndex,
-      selectorsMatching: {
-        selectors: {
-          [targetElementDirection]:
-            disallowPolicyMatchesIsMatch || allowPolicyMatchesIsMatch
-              ? targetElementSelector
-              : null,
-          [policyElementDirection]: disallowPolicyMatchesIsMatch
-            ? // @ts-expect-error TODO: Support "deny" in rules
-              rule[denyKeyToUse]
-            : allowPolicyMatchesIsMatch
-              ? rule.allow
-              : null,
-        },
-        selectorsData: disallowPolicyMatchesIsMatch
-          ? disallowPolicyMatches
-          : allowPolicyMatchesIsMatch
-            ? allowPolicyMatches
-            : null,
-      },
+      selectorsMatching,
       ruleHasImportKind: !!rule.importKind,
-      allowPolicyMatches: allowPolicyMatches,
+      allowPolicyMatches,
       denyPolicyMatches: disallowPolicyMatches,
     };
-
-    return result;
   });
 }
 
-export function elementRulesAllowDependency(
-  dependency: DependencyDescription,
-  context: Rule.RuleContext,
-  ruleOptions: ElementTypesRuleOptions = {}
-): RuleResult {
-  let isAllowed = ruleOptions.default === "allow";
+/**
+ * Determines the rule result based on policy matches
+ */
+function determineRuleResult(rulesResults: ReturnType<typeof getRulesResults>) {
+  let isAllowed = false;
   let ruleIndexMatching: number | null = null;
-  const matcher = getElementsMatcher(context);
-  const rulesResults = getRulesResults(ruleOptions, dependency, matcher);
 
   for (const ruleResult of rulesResults) {
     if (ruleResult.denyPolicyMatches.isMatch) {
@@ -178,76 +264,139 @@ export function elementRulesAllowDependency(
     }
   }
 
-  const message =
+  return { isAllowed, ruleIndexMatching };
+}
+
+/**
+ * Gets the message for the rule, prioritizing rule-specific messages
+ */
+function getRuleMessage(
+  ruleIndexMatching: number | null,
+  ruleOptions: ElementTypesRuleOptions
+): string | undefined {
+  return (
     (ruleIndexMatching === null
       ? ruleOptions.message
-      : ruleOptions.rules?.[ruleIndexMatching]?.message) || ruleOptions.message;
+      : ruleOptions.rules?.[ruleIndexMatching]?.message) || ruleOptions.message
+  );
+}
 
-  const getSpecifiersMatching = () => {
-    if (ruleIndexMatching === null) return null;
-    const selectorDataSpecifiers: string | string[] | undefined =
-      // @ts-expect-error TODO: Align types. At this point, selectorsData.to must always be defined, because otherwise isMatch would be false
-      rulesResults[ruleIndexMatching].selectorsMatching?.selectorsData?.to
-        ?.specifiers;
+/**
+ * Gets specifiers that match the rule for error reporting
+ */
+function getMatchingSpecifiers(
+  ruleIndexMatching: number | null,
+  rulesResults: ReturnType<typeof getRulesResults>,
+  dependency: DependencyDescription
+): string[] | null {
+  if (ruleIndexMatching === null) return null;
 
-    if (!selectorDataSpecifiers) {
-      return null;
-    }
+  const selectorDataSpecifiers: string | string[] | undefined =
+    // @ts-expect-error TODO: Align types. At this point, selectorsData.to must always be defined, because otherwise isMatch would be false
+    rulesResults[ruleIndexMatching].selectorsMatching?.selectorsData?.to
+      ?.specifiers;
 
-    if (isString(selectorDataSpecifiers)) {
-      return dependency.dependency.specifiers?.some((specifier) =>
-        micromatch.isMatch(specifier, selectorDataSpecifiers)
-      )
-        ? [selectorDataSpecifiers]
-        : null;
-    }
+  if (!selectorDataSpecifiers) {
+    return null;
+  }
 
-    return selectorDataSpecifiers.filter((pattern) => {
-      return dependency.dependency.specifiers?.some((specifier) =>
-        micromatch.isMatch(specifier, pattern)
-      );
-    });
+  if (isString(selectorDataSpecifiers)) {
+    const hasMatchingSpecifier = dependency.dependency.specifiers?.some(
+      (specifier) => micromatch.isMatch(specifier, selectorDataSpecifiers)
+    );
+    return hasMatchingSpecifier ? [selectorDataSpecifiers] : null;
+  }
+
+  return selectorDataSpecifiers.filter((pattern) => {
+    return dependency.dependency.specifiers?.some((specifier) =>
+      micromatch.isMatch(specifier, pattern)
+    );
+  });
+}
+
+/**
+ * Creates the rule report object
+ */
+function createRuleReport(
+  ruleIndexMatching: number | null,
+  message: string | undefined,
+  dependency: DependencyDescription,
+  rulesResults: ReturnType<typeof getRulesResults>
+) {
+  if (ruleIndexMatching === null) {
+    return {
+      message,
+      isDefault: true,
+      importKind: undefined,
+      disallow: dependency.to,
+      element: dependency.from,
+      index: -1,
+    };
+  }
+
+  return {
+    message,
+    isDefault: false,
+    importKind: rulesResults[ruleIndexMatching].ruleHasImportKind
+      ? dependency.dependency.kind
+      : undefined,
+    disallow: rulesResults[ruleIndexMatching].selectorsMatching?.selectors.to,
+    element: rulesResults[ruleIndexMatching].selectorsMatching?.selectors.from,
+    index:
+      rulesResults[ruleIndexMatching].originalRuleIndex ?? ruleIndexMatching,
   };
+}
+
+/**
+ * Determines the report path for error reporting
+ */
+function getReportPath(
+  ruleIndexMatching: number | null,
+  rulesResults: ReturnType<typeof getRulesResults>,
+  dependency: DependencyDescription
+): string | null {
+  return ruleIndexMatching !== null &&
+    // @ts-expect-error TODO: Align types. At this point, selectorsData should always be defined
+    rulesResults[ruleIndexMatching].selectorsMatching?.selectorsData?.to
+      ?.internalPath
+    ? dependency.to.internalPath
+    : null;
+}
+
+export function elementRulesAllowDependency(
+  dependency: DependencyDescription,
+  context: Rule.RuleContext,
+  ruleOptions: ElementTypesRuleOptions = {}
+): RuleResult {
+  const defaultIsAllowed = ruleOptions.default === "allow";
+  const matcher = getElementsMatcher(context);
+  const rulesResults = getRulesResults(ruleOptions, dependency, matcher);
+
+  const { isAllowed, ruleIndexMatching } = determineRuleResult(rulesResults);
+  const finalIsAllowed =
+    ruleIndexMatching !== null ? isAllowed : defaultIsAllowed;
+
+  const message = getRuleMessage(ruleIndexMatching, ruleOptions);
+  const ruleReport = createRuleReport(
+    ruleIndexMatching,
+    message,
+    dependency,
+    rulesResults
+  );
+  const reportPath = getReportPath(ruleIndexMatching, rulesResults, dependency);
 
   const result: RuleResult = {
-    result: isAllowed,
-    ruleReport:
-      ruleIndexMatching === null
-        ? {
-            message,
-            isDefault: true,
-            importKind: undefined,
-            disallow: dependency.to,
-            element: dependency.from,
-            index: -1,
-          }
-        : {
-            message,
-            isDefault: ruleIndexMatching === null,
-            importKind: rulesResults[ruleIndexMatching].ruleHasImportKind
-              ? dependency.dependency.kind
-              : undefined,
-            disallow:
-              rulesResults[ruleIndexMatching].selectorsMatching?.selectors.to,
-            element:
-              rulesResults[ruleIndexMatching].selectorsMatching?.selectors.from,
-            index:
-              rulesResults[ruleIndexMatching].originalRuleIndex ??
-              ruleIndexMatching,
-          },
-    // TODO: Improve report data. This was added to support custom error messages in external rule only. It returns data about specifiers and path that matched the rule, for printing in the error message.
+    result: finalIsAllowed,
+    // @ts-expect-error Temporary workaround for RuleResult type until types are aligned
+    ruleReport,
     report: {
-      // GET specifiers matching the rule, not all specifiers, because message is printing only those in the dependency that matched the rule
-      specifiers: getSpecifiersMatching() || undefined,
-      path:
-        ruleIndexMatching !== null &&
-        // @ts-expect-error TODO: Align types. At this point, selectorsData should always be defined
-        rulesResults[ruleIndexMatching].selectorsMatching?.selectorsData?.to
-          ?.internalPath
-          ? dependency.to.internalPath
-          : null,
+      specifiers:
+        getMatchingSpecifiers(ruleIndexMatching, rulesResults, dependency) ||
+        undefined,
+      path: reportPath,
     },
   };
+
   return result;
 }
 

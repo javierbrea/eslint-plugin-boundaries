@@ -20,7 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 > TODO BEFORE RELEASE 6.0.0
 >
-> - Fix Sonar issues
 > - Refactor element rules function in eslint-plugin to improve code quality and maintainability.
 >
 > - Elements package documentation.

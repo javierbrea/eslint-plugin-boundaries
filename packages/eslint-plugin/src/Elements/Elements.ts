@@ -60,7 +60,7 @@ export function getElementsMatcher(context: Rule.RuleContext): Matcher {
  * @returns The modified file path with forward slashes
  */
 function replacePathSlashes(filePath: string) {
-  return filePath.replaceAll(/\\/g, "/");
+  return filePath.replaceAll("\\", "/");
 }
 
 /**
@@ -122,7 +122,6 @@ export function getSpecifiers(node: Rule.Node): string[] {
  * @returns The description of the current file being linted
  */
 export function elementDescription(
-  // TODO: Pass matcher instead of context
   context: Rule.RuleContext
 ): ElementDescription {
   const matcher = getElementsMatcher(context);
@@ -152,7 +151,6 @@ export function dependencyDescription(
     nodeKind?: string;
   },
   /** The ESLint rule context */
-  // TODO: Pass matcher instead of context
   context: Rule.RuleContext
 ): DependencyDescription {
   const source = String(node.value);

@@ -9,6 +9,7 @@ import type {
   ElementDescription,
 } from "@boundaries/elements";
 import {
+  isElementDescription,
   isElementSelector,
   normalizeElementsSelector,
 } from "@boundaries/elements";
@@ -174,10 +175,10 @@ function elementMatcherMessage(
     }
     if (selector[0].category) {
       toAdd.push(
-        propertiesConcatenator(parts, parts.length + toAdd.length + 1)
+        propertiesConcatenator(parts, parts.length + toAdd.length + 1),
+        // @ts-expect-error Types have to be aligned properly
+        categoryMessage(selector[0].category)
       );
-      // @ts-expect-error Types have to be aligned properly
-      toAdd.push(categoryMessage(selector[0].category));
     }
     if (selector[0].captured) {
       toAdd.push(
@@ -223,13 +224,20 @@ function elementPropertiesToReplaceInTemplate(
   element: ElementDescription | ElementParent,
   importKind: string
 ) {
+  if (isElementDescription(element)) {
+    return {
+      ...element.capturedValues,
+      type: element.type || "",
+      internalPath: element.internalPath || "",
+      source: element.source || "",
+      importKind: importKind || "",
+    };
+  }
   return {
     ...element.capturedValues,
     type: element.type || "",
-    // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
-    internalPath: element.internalPath || "",
-    // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
-    source: element.source || "",
+    internalPath: "",
+    source: "",
     importKind: importKind || "",
   };
 }

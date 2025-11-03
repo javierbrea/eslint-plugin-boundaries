@@ -452,8 +452,6 @@ export type ElementTypesRuleOptions = Omit<RuleBaseOptions, "rules"> & {
   rules?: ElementTypesRule[];
 };
 
-// TODO: Support element selectors in the disallow and allow options.
-
 /**
  * Rule that defines entry points for specific element types, controlling which files can be imported.
  */

@@ -215,6 +215,7 @@ export class BaseElementsMatcher {
     elementKey,
     selectorKey,
     selectorValue,
+    templateData,
   }: {
     /** The element to check. */
     element: T;
@@ -236,6 +237,8 @@ export class BaseElementsMatcher {
       : keyof BaseElementSelectorData;
     /** The value of the selector key to check against. */
     selectorValue?: MicromatchPattern;
+    /** Data to pass when the selector value is rendered as a template */
+    templateData: TemplateData;
   }): boolean {
     // The selector key does not exist in the selector, so it matches any value. We also check the value passed separately in order to improve typing inference.
     if (!(selectorKey in selector)) {
@@ -245,6 +248,17 @@ export class BaseElementsMatcher {
     if (!selectorValue) {
       return false;
     }
+
+    const selectorValueRendered = this.getRenderedTemplates(
+      selectorValue,
+      templateData
+    );
+
+    // Empty rendered selector values do not match anything. (It may happen due to templates rendering to empty strings.)
+    if (!selectorValueRendered) {
+      return false;
+    }
+
     // The selector key exists in the selector, but it does not exist in the element. No match.
     if (!isObjectWithProperty(element, elementKey)) {
       return false;
@@ -255,6 +269,6 @@ export class BaseElementsMatcher {
       return false;
     }
 
-    return this.isMicromatchMatch(element[elementKey], selectorValue);
+    return this.isMicromatchMatch(element[elementKey], selectorValueRendered);
   }
 }

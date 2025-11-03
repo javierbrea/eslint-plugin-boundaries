@@ -80,15 +80,13 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementSelectorData,
     templateData: TemplateData
   ): boolean {
-    const selectorValue = isNullish(selector.type)
-      ? selector.type
-      : this.getRenderedTemplates(selector.type, templateData);
     return this.isElementKeyMicromatchMatch({
       element,
       selector,
       elementKey: "type",
       selectorKey: "type",
-      selectorValue,
+      selectorValue: selector.type,
+      templateData,
     });
   }
 
@@ -104,15 +102,13 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementSelectorData,
     templateData: TemplateData
   ): boolean {
-    const selectorValue = isNullish(selector.category)
-      ? selector.category
-      : this.getRenderedTemplates(selector.category, templateData);
     return this.isElementKeyMicromatchMatch({
       element,
       selector,
       elementKey: "category",
       selectorKey: "category",
-      selectorValue,
+      selectorValue: selector.category,
+      templateData,
     });
   }
 
@@ -128,15 +124,13 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementSelectorData,
     templateData: TemplateData
   ): boolean {
-    const selectorValue = !isNullish(selector.path)
-      ? this.getRenderedTemplates(selector.path, templateData)
-      : selector.path;
     return this.isElementKeyMicromatchMatch({
       element,
       selector,
       elementKey: "path",
       selectorKey: "path",
-      selectorValue,
+      selectorValue: selector.path,
+      templateData,
     });
   }
 
@@ -152,15 +146,13 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementSelectorData,
     templateData: TemplateData
   ): boolean {
-    const selectorValue = !isNullish(selector.elementPath)
-      ? this.getRenderedTemplates(selector.elementPath, templateData)
-      : selector.elementPath;
     return this.isElementKeyMicromatchMatch({
       element,
       selector,
       elementKey: "elementPath",
       selectorKey: "elementPath",
-      selectorValue,
+      selectorValue: selector.elementPath,
+      templateData,
     });
   }
 
@@ -176,15 +168,13 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementSelectorData,
     templateData: TemplateData
   ): boolean {
-    const selectorValue = !isNullish(selector.internalPath)
-      ? this.getRenderedTemplates(selector.internalPath, templateData)
-      : selector.internalPath;
     return this.isElementKeyMicromatchMatch({
       element,
       selector,
       elementKey: "internalPath",
       selectorKey: "internalPath",
-      selectorValue,
+      selectorValue: selector.internalPath,
+      templateData,
     });
   }
 
@@ -200,15 +190,13 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementSelectorData,
     templateData: TemplateData
   ): boolean {
-    const selectorValue = !isNullish(selector.origin)
-      ? this.getRenderedTemplates(selector.origin, templateData)
-      : selector.origin;
     return this.isElementKeyMicromatchMatch({
       element,
       selector,
       elementKey: "origin",
       selectorKey: "origin",
-      selectorValue,
+      selectorValue: selector.origin,
+      templateData,
     });
   }
 
@@ -224,15 +212,13 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementSelectorData,
     templateData: TemplateData
   ): boolean {
-    const selectorValue = !isNullish(selector.baseSource)
-      ? this.getRenderedTemplates(selector.baseSource, templateData)
-      : selector.baseSource;
     return this.isElementKeyMicromatchMatch({
       element,
       selector,
       elementKey: "baseSource",
       selectorKey: "baseSource",
-      selectorValue,
+      selectorValue: selector.baseSource,
+      templateData,
     });
   }
 
@@ -248,15 +234,13 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementSelectorData,
     templateData: TemplateData
   ): boolean {
-    const selectorValue = !isNullish(selector.source)
-      ? this.getRenderedTemplates(selector.source, templateData)
-      : selector.source;
     return this.isElementKeyMicromatchMatch({
       element,
       selector,
       elementKey: "source",
       selectorKey: "source",
-      selectorValue,
+      selectorValue: selector.source,
+      templateData,
     });
   }
 
