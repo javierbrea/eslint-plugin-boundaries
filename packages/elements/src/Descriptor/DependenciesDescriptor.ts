@@ -26,7 +26,7 @@ export class DependenciesDescriptor {
   /**
    * Cache to store previously described dependencies.
    */
-  private _dependenciesCache: CacheManager<
+  private readonly _dependenciesCache: CacheManager<
     {
       from: string;
       to?: string;
@@ -41,7 +41,7 @@ export class DependenciesDescriptor {
   /**
    * Elements descriptor instance.
    */
-  private _elementsDescriptor: ElementsDescriptor;
+  private readonly _elementsDescriptor: ElementsDescriptor;
 
   /**
    * Creates a new DependenciesDescriptor instance.
@@ -96,7 +96,7 @@ export class DependenciesDescriptor {
     elementInfoB: LocalElementKnown
   ) {
     const commonAncestor = elementInfoA.parents.find((elementParentA) => {
-      return !!elementInfoB.parents.find((elementParentB) => {
+      return elementInfoB.parents.some((elementParentB) => {
         return elementParentA.elementPath === elementParentB.elementPath;
       });
     });

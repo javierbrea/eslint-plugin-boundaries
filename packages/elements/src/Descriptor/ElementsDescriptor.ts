@@ -1,4 +1,4 @@
-import type Mod from "module";
+import type Mod from "node:module";
 
 import isCoreModule from "is-core-module";
 import micromatch from "micromatch";
@@ -70,7 +70,7 @@ export class ElementsDescriptor {
   /**
    * Cache to store previously described elements.
    */
-  private _elementsCache: CacheManager<
+  private readonly _elementsCache: CacheManager<
     {
       dependencySource?: string;
       filePath: string;
@@ -81,16 +81,17 @@ export class ElementsDescriptor {
   /**
    * Cache to store previously described files.
    */
-  private _filesCache: CacheManager<string, FileElement> = new CacheManager();
+  private readonly _filesCache: CacheManager<string, FileElement> =
+    new CacheManager();
   /**
    * Configuration instance for this descriptor.
    */
-  private _config: Config;
+  private readonly _config: Config;
 
   /**
    * Element descriptors used by this descriptor.
    */
-  private _elementDescriptors: ElementDescriptors;
+  private readonly _elementDescriptors: ElementDescriptors;
 
   /**
    * The configuration options for this descriptor.
@@ -153,13 +154,15 @@ export class ElementsDescriptor {
    * Validates the element descriptors to ensure they are correctly defined.
    */
   private _validateDescriptors(elementDescriptors: ElementDescriptors): void {
-    elementDescriptors.forEach((descriptor, index) => {
+    let index = 0;
+    for (const descriptor of elementDescriptors) {
       if (!isElementDescriptor(descriptor)) {
         throw new Error(
           `Element descriptor at index ${index} must have a pattern, and either a 'type' or 'category' defined.`
         );
       }
-    });
+      index++;
+    }
   }
 
   /**
@@ -309,7 +312,7 @@ export class ElementsDescriptor {
     const elementPathRegexp = micromatch.makeRe(pathPattern);
     const testedSegments: string[] = [];
     let result: string | undefined;
-    pathSegments.forEach((pathSegment) => {
+    for (const pathSegment of pathSegments) {
       if (!result) {
         testedSegments.push(pathSegment);
         const joinedSegments = testedSegments.join("/");
@@ -317,7 +320,7 @@ export class ElementsDescriptor {
           result = joinedSegments;
         }
       }
-    });
+    }
     // NOTE: result should never be undefined here, as we already matched the pattern before
     return `${[...allPathSegments].reverse().join("/").split(result!)[0]}${result}`;
   }

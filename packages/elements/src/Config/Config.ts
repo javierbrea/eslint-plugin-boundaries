@@ -1,12 +1,10 @@
 import type { ConfigOptions, MicromatchPattern } from "./Config.types";
 
 export class Config {
-  /** The root path of the project */
-  private _rootPath: string;
   /** The ignore paths */
-  private _ignorePaths?: MicromatchPattern;
+  private readonly _ignorePaths?: MicromatchPattern;
   /** The include paths */
-  private _includePaths?: MicromatchPattern;
+  private readonly _includePaths?: MicromatchPattern;
 
   /**
    * Creates a new Config instance

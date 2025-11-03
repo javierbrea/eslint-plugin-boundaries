@@ -34,7 +34,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
   /**
    * Cache to store previously described dependencies.
    */
-  private _cache: CacheManager<
+  private readonly _cache: CacheManager<
     {
       dependency: DependencyDescription;
       selector: DependencySelector;
@@ -47,7 +47,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
   /**
    * Elements matcher to use for matching elements within dependencies.
    */
-  private _elementsMatcher: ElementsMatcher;
+  private readonly _elementsMatcher: ElementsMatcher;
 
   /**
    * Creates a new DependenciesMatcher.
@@ -96,7 +96,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       throw new Error("Invalid dependency selector");
     }
     let normalizedDependencySelectors = selector.to
-      ? normalizeElementsSelector(selector.to!)
+      ? normalizeElementsSelector(selector.to)
       : null;
 
     if (normalizedDependencySelectors) {

@@ -26,7 +26,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
   /**
    * Cache to store previously described elements.
    */
-  private _cache: CacheManager<
+  private readonly _cache: CacheManager<
     {
       element: ElementDescription;
       selector: ElementsSelector;
@@ -80,9 +80,9 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementSelectorData,
     templateData: TemplateData
   ): boolean {
-    const selectorValue = !isNullish(selector.type)
-      ? this.getRenderedTemplates(selector.type, templateData)
-      : selector.type;
+    const selectorValue = isNullish(selector.type)
+      ? selector.type
+      : this.getRenderedTemplates(selector.type, templateData);
     return this.isElementKeyMicromatchMatch({
       element,
       selector,
@@ -104,9 +104,9 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementSelectorData,
     templateData: TemplateData
   ): boolean {
-    const selectorValue = !isNullish(selector.category)
-      ? this.getRenderedTemplates(selector.category, templateData)
-      : selector.category;
+    const selectorValue = isNullish(selector.category)
+      ? selector.category
+      : this.getRenderedTemplates(selector.category, templateData);
     return this.isElementKeyMicromatchMatch({
       element,
       selector,
@@ -279,9 +279,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
       return false;
     }
     return Object.entries(selector.captured).every(([key, pattern]) => {
-      const elementValue =
-        // TODO: Rename to captured also in element, so selectors follow same naming
-        element.capturedValues && element.capturedValues[key];
+      const elementValue = element.capturedValues?.[key];
       if (!elementValue) {
         return false;
       }

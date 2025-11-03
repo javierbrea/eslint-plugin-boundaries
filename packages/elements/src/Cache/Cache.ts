@@ -8,7 +8,7 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
   /**
    * Internal cache map
    */
-  private _cache: Map<string, CachedValue>;
+  private readonly _cache: Map<string, CachedValue>;
 
   /**
    * Creates a new CacheManager instance

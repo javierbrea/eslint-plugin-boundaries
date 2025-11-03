@@ -85,7 +85,7 @@ export function isObjectWithProperty<Key extends string>(
   value: unknown,
   key: Key
 ): value is Record<Key, unknown> & Record<string, unknown> {
-  return isObject(value) && Object.prototype.hasOwnProperty.call(value, key);
+  return isObject(value) && Object.hasOwn(value, key);
 }
 
 /**

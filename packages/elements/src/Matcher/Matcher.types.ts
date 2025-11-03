@@ -86,8 +86,9 @@ export type MatcherOptions = {
   dependencySelectorsGlobals?: MatcherOptionsDependencySelectorsGlobals;
 };
 
-/*
+/**
  * Simple element selector by type, represented as a string matching the element type.
+ * @deprecated Use BaseElementSelectorData or DependencyElementSelectorData instead.
  */
 export type SimpleElementSelectorByType = string;
 

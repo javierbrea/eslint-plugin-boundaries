@@ -17,8 +17,8 @@ import type {
  * Class with methods to describe elements and dependencies between them.
  */
 export class Descriptors {
-  private _elementsDescriptor: ElementsDescriptor;
-  private _dependenciesDescriptor: DependenciesDescriptor;
+  private readonly _elementsDescriptor: ElementsDescriptor;
+  private readonly _dependenciesDescriptor: DependenciesDescriptor;
 
   /** Creates a new DescriptorsManager instance
    * @param elementDescriptors The element descriptors.

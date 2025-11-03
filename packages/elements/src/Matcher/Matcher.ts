@@ -28,9 +28,9 @@ import { isDependencySelector, isElementsSelector } from "./MatcherHelpers";
  * Matcher class to evaluate if elements or dependencies match given selectors.
  */
 export class Matcher {
-  private _descriptors: Descriptors;
-  private _elementsMatcher: ElementsMatcher;
-  private _dependenciesMatcher: DependenciesMatcher;
+  private readonly _descriptors: Descriptors;
+  private readonly _elementsMatcher: ElementsMatcher;
+  private readonly _dependenciesMatcher: DependenciesMatcher;
 
   /**
    * Constructor for the Matcher class.

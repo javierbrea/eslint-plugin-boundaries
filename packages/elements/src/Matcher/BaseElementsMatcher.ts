@@ -99,7 +99,7 @@ export class BaseElementsMatcher {
    * @returns The converted template.
    */
   private _getBackwardsCompatibleTemplate(template: string): string {
-    return template.replace(/\$\{([^}]+)\}/g, "{{ $1 }}");
+    return template.replaceAll(/\$\{([^}]+)\}/g, "{{ $1 }}");
   }
 
   /**

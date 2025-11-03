@@ -11,10 +11,10 @@ import { DependenciesMatcher, ElementsMatcher, Matcher } from "./Matcher";
  */
 export class Elements {
   /** The global configuration options for Elements. Can be overridden when getting a descriptor */
-  private _globalConfigOptions: ConfigOptions;
+  private readonly _globalConfigOptions: ConfigOptions;
 
   /** Cache manager for Matcher instances, unique for each different configuration */
-  private _matchersCache: CacheManager<
+  private readonly _matchersCache: CacheManager<
     { config: ConfigOptions; elementDescriptors: ElementDescriptors },
     {
       config: ConfigOptions;
@@ -24,10 +24,10 @@ export class Elements {
   > = new CacheManager();
 
   /** Matcher for element selectors */
-  private _elementsMatcher: ElementsMatcher;
+  private readonly _elementsMatcher: ElementsMatcher;
 
   /** Matcher for dependency selectors */
-  private _dependenciesMatcher: DependenciesMatcher;
+  private readonly _dependenciesMatcher: DependenciesMatcher;
 
   /**
    * Creates a new Elements instance
@@ -98,9 +98,9 @@ export class Elements {
   public clearCache(): void {
     this._elementsMatcher.clearCache();
     this._dependenciesMatcher.clearCache();
-    this._matchersCache.getAll().forEach(({ matcher }) => {
+    for (const { matcher } of this._matchersCache.getAll().values()) {
       matcher.clearCache();
-    });
+    }
     this._matchersCache.clear();
   }
 
