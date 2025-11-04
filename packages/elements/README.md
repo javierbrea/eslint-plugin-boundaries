@@ -6,43 +6,69 @@
 
 # @boundaries/elements
 
+> Element descriptors and matchers for enforcing architectural boundaries in JavaScript/TypeScript projects
+
 ## Table of Contents
 
 - [Introduction](#introduction)
+- [Features](#features)
 - [Installation](#installation)
+- [Quick Start](#quick-start)
 - [Usage](#usage)
-  - [Options](#options)
+  - [Configuration Options](#configuration-options)
   - [Creating a matcher](#creating-a-matcher)
     - [Element Descriptors](#element-descriptors)
   - [Selectors](#selectors)
     - [Template Variables](#template-variables)
-  - [Using the matcher](#using-the-matcher)
-    - [Elements matcher](#elements-matcher)
-    - [Dependency matcher](#dependency-matcher)
+  - [Using Matchers](#using-matchers)
+    - [Element Matching](#element-matching)
+    - [Dependency Matching](#dependency-matching)
 - [API Reference](#api-reference)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## Introduction
 
-This package provides element descriptors and matchers for the `@boundaries` ecosystem. These basically means:
+`@boundaries/elements` provides a powerful and flexible system for defining and enforcing architectural boundaries in your JavaScript and TypeScript projects. It allows you to:
 
-- You provide a set of "element descriptors" that define how to identify files in a project (e.g., by looking at file path patterns, you assign certain properties to those elements, such as type, category, etc.).
-- Then you can use:
- - "Element matchers": Check if a given path corresponds to an element with specific properties.
- - "Dependency matchers": Check if a given dependency between two paths matches certain criteria based on the properties of the source and target elements.
+- **Define element types** based on file path patterns (e.g., components, services, helpers)
+- **Match elements** against specific criteria
+- **Validate dependencies** between different parts of your codebase
+- **Enforce architectural rules** by checking if dependencies between elements are allowed
 
-You can use [Micromatch patterns](https://github.com/micromatch/micromatch) to define flexible matching rules for both dependency and element matchers.
+This package is part of the [@boundaries ecosystem](https://github.com/javierbrea/eslint-plugin-boundaries) and uses [Micromatch patterns](https://github.com/micromatch/micromatch) for flexible and powerful pattern matching.
 
-Example:
+>[!NOTE]
+> This package does not read or analyze your codebase directly. It provides the core logic for defining and matching elements and dependencies, which can be integrated into other tools such as linters or build systems.
 
-```ts
+## Features
+
+- ✨ **Flexible pattern matching** using Micromatch syntax
+- 🎯 **Element type and category identification** based on file paths
+- 📝 **Template variables** for dynamic selector matching
+- ⚡ **Built-in caching** for optimal performance
+- 🔄 **Support for multiple file matching modes** (file, folder, full path)
+- 🎨 **Capture path fragments** for advanced matching scenarios
+
+## Installation
+
+Install the package via npm:
+
+```bash
+npm install @boundaries/elements
+```
+
+## Quick Start
+
+Here's a quick example to get you started:
+
+```typescript
 import { Elements } from '@boundaries/elements';
 
+// Create an Elements instance
 const elements = new Elements();
 
-// Define your matcher using element descriptors.
-// It will create a unique cache instance for these specific descriptors to improve performance when matching.
+// Define element descriptors
 const matcher = elements.getMatcher([
   {
     type: "component",
@@ -60,140 +86,140 @@ const matcher = elements.getMatcher([
   },
 ]);
 
-// Using element matcher
-const isComponent = matcher.isMatch("src/components/Button.tsx", { type: "component" }); // true
+// Match an element
+const isComponent = matcher.isMatch("src/components/Button.tsx", { 
+  type: "component" 
+}); // true
 
-// Using dependency matcher
-const isReactToServiceImportDependency = matcher.isMatch(
+// Match a dependency
+const isValidDependency = matcher.isMatch(
   {
     from: "src/components/Button.tsx",
     to: "src/services/Api.ts",
     source: "../services/Api",
-    kind: "type",
+    kind: "value",
     nodeKind: "ImportDeclaration",
   },
   {
     from: { category: "react" },
-    to: { type: "service", nodeKind: "Import*" },
+    to: { type: "service" },
   }
 ); // true
-
-```
-
-## Installation
-
-You can install the package via npm:
-
-```bash
-npm install @boundaries/elements
 ```
 
 ## Usage
 
-Create an instance of `Elements`.
+### Configuration Options
 
-```ts
-import { Elements } from '@boundaries/elements';
+When creating an `Elements` instance, you can provide configuration options that will be used as defaults for all matchers:
 
-const elements = new Elements();
-```
-
-You can pass configuration options to the constructor. If done, these options will be used as defaults when creating matchers.
-
-### Options
-
-- `ignorePaths`: Micromatch pattern/s to ignore certain paths when describing elements. If not defined, no paths are ignored by default.
-- `includePaths`: Micromatch pattern/s to include only certain paths when describing elements. If not defined, all paths are included by default.
-
-```ts
+```typescript
 const elements = new Elements({
-  ignorePaths: ["**/dist/**", "**/build/**"],
+  ignorePaths: ["**/dist/**", "**/build/**", "**/node_modules/**"],
   includePaths: ["src/**/*"],
 });
 ```
 
-### Creating a matcher
+**Available options:**
 
-You can create a matcher using the `getMatcher` method, providing an array of element descriptors. This will create a unique cache instance for these specific descriptors to improve performance when matching.
+- **`ignorePaths`**: Micromatch pattern(s) to exclude certain paths from element matching (default: none)
+- **`includePaths`**: Micromatch pattern(s) to include only specific paths (default: all paths)
 
-> [!NOTE]
-> If you create multiple matchers with the same descriptors, they will share the same cache instance.
+### Creating a Matcher
 
-```ts
+Use the `getMatcher` method to create a matcher with element descriptors:
+
+```typescript
 const matcher = elements.getMatcher([
-  // Your element descriptors here
   {
     type: "component",
-    category: "react",
-    pattern: "src/components/*.tsx",
+    pattern: "src/components/*",
+    mode: "folder",
+  },
+  {
+    type: "helper",
+    pattern: "src/helpers/*.js",
     mode: "file",
-    capture: ["fileName"],
   }
 ]);
 ```
 
->[!TIP]
-> You can also provide options to the `getMatcher` method as a second argument. These options will override the default options set in the `Elements` instance. Different options will create different cache instances.
+> **💡 Tip:** Matchers with identical descriptors and options share the same cache instance for improved performance.
+
+You can override the default options when creating a matcher:
+
+```typescript
+const matcher = elements.getMatcher(
+  [/* descriptors */],
+  {
+    ignorePaths: ["**/*.test.ts"],
+  }
+);
+```
 
 ### Element Descriptors
 
-Element descriptors define how to identify files in a project and assign properties to them. They are used when creating matchers. Each descriptor is an object with the following properties:
+Element descriptors define how files are identified and categorized. Each descriptor is an object with the following properties:
 
-* __`type`__: `string` Type to be assigned to files matching the given pattern.
-* __`category`__: `string` Optional. Category to be assigned to files matching the given pattern.
-* __`pattern`__: `string|array<string>` [`micromatch` pattern](https://github.com/micromatch/micromatch). __By default the library will try to match this pattern progressively starting from the right side of each file path.__ This means that you don't have to define patterns matching from the base project path, but only the last part of the path that you want to be matched. <br/>For example, given a path `src/helpers/awesome-helper/index.js`, it will try to assign the element to a pattern matching `index.js`, then `awesome-helper/index.js`, then `helpers/awesome-helper/index.js`, etc. Once a pattern matches, it assign the correspondent element type, and continues searching for parents elements with the same logic until the full path has been analyzed. __This behavior can be disabled setting the `mode` option to `full`__, then the provided pattern will try to match the full path.
-* __`basePattern`__: `string` Optional [`micromatch` pattern](https://github.com/micromatch/micromatch). If provided, the left side of the element path must match also with this pattern from the root of the project (like if pattern is `[basePattern]/**/[pattern]`). This option is useful when using the option `mode` with `file` or `folder` values, but capturing fragments from the rest of the full path is also needed (see `baseCapture` option below).
-* __`mode`__: `file|folder|full` Optional.
-  * When it is set to `folder` (default value), the element type will be assigned to the first file's parent folder matching the pattern. In the practice, it is like adding `**/*` to the given pattern, but the library makes it by itself because it needs to know exactly which parent folder has to be considered the element.
-  * If it is set to `file`, the given pattern will not be modified, but the library will still try to match the last part of the path. So, a pattern like `*.model.js` would match with paths `src/foo.model.js`, `src/modules/foo/foo.model.js`, `src/modules/foo/models/foo.model.js`, etc.
-  * If it is set to `full`, the given pattern will only match with patterns matching the full path. This means that you will have to provide patterns matching from the base project path. So, in order to match `src/modules/foo/foo.model.js` you'll have to provide patterns like `**/*.model.js`, `**/*/*.model.js`, `src/*/*/*.model.js`, etc. _(the chosen pattern will depend on what do you want to capture from the path)_
-* __`capture`__: `array<string>` Optional. It allows to capture values of some fragments in the matching path. This information will be available when using matchers. It uses [`micromatch` capture feature](https://github.com/micromatch/micromatch#capture) under the hood, and stores each value in an object with the given `capture` key being in the same index of the captured array.<br/>For example, given `pattern: "helpers/*/*.js"`, `capture: ["category", "elementName"]`, and a path `helpers/data/parsers.js`, it will result in `captured: { category: "data", elementName: "parsers" }`.
-* __`baseCapture`__: `array` Optional. [`micromatch` pattern](https://github.com/micromatch/micromatch). It allows capturing values from `basePattern` as `capture` does with `pattern`. If the same key is defined in both `capture` and `baseCapture`, the value from `capture` will take precedence.
+- **`pattern`** (`string | string[]`): Micromatch pattern(s) to match file paths
+- **`type`** (`string`): The element type to assign to matching files
+- **`category`** (`string`): Additional categorization for the element, providing another layer of classification
+- **`mode`** (`"file" | "folder" | "full"`): Matching mode (default: `"folder"`)
+  - `"folder"`: Matches the first folder matching the pattern. The library will add `**/*` to the given pattern for matching files, because it needs to know exactly which folder has to be considered the element. So, you have to provide patterns matching the folder being the element, not the files directly.
+  - `"file"`: Matches files directly, but still matches progressively from the right. The provided pattern will not be modified.
+  - `"full"`: Matches the complete path.
+- **`basePattern`** (`string`): Additional pattern that must match from the project root. Use it when using `file` or `folder` modes and you want to capture fragments from the rest of the path.
+- **`capture`** (`string[]`): Array of keys to capture path fragments
+- **`baseCapture`** (`string[]`): Array of keys to capture fragments from `basePattern`. If the same key is defined in both `capture` and `baseCapture`, the value from `capture` takes precedence.
 
 ### Selectors
 
-When using the matcher to check if a given path corresponds to an element, you can provide a `selector` object to specify the properties that the element must have. A selector is an object where each key corresponds to a property of the element or dependency (like `type`, `category`, etc.), and the value is usually a string or a micromatch pattern to match against that property.
+Selectors are used to match elements and dependencies against specific criteria. They are objects where each property represents a matching condition.
 
-Properties that can be used in all element selectors (both for element matchers and dependency matchers):
+#### Element Properties
 
-* __`type`__: `string|array<string>` Optional. Type of the element.
-* __`category`__: `string|array<string>` Optional. Category of the element.
-* __`captured`__: `object` Optional. Object with keys and values to match against the captured values from the element descriptor. Each key in this object can be a string or an array of strings representing micromatch patterns.
-* __`origin`__: `string|array<string>` Optional. Origin of the element. It can be either:
-  * `local` - The element is a file within the project.
-  * `external` - The element is an external dependency (e.g., from `node_modules`).
-  * `core` - The element is a core module (e.g., `fs`, `path`, etc. in Node.js).
-* __`path`__: `string|array<string>` Optional. Micromatch pattern(s) to match the full path of the file.
-* __`elementPath`__: `string|array<string>` Optional. Micromatch pattern(s) to match the full path of the element to which the file belongs. For file elements, it would be the same as `path`, but for folder elements, it would be the path of the folder matching the element descriptor.
-* __`internalPath`__: `string|array<string>` Optional. Micromatch pattern(s) to match the internal path of the file withing the element (e.g. for a file element, it would be the same as `elementPath`, but for a folder element, it would be the path relative to the folder).
-* __`isIgnored`__: `boolean` Optional. Whether the element is ignored.
-* __`isUnknown`__: `boolean` Optional. Whether the element is unknown (i.e., it doesn't match any element descriptor).
+All element selectors support the following properties:
 
-When using selectors in the `to` property of a dependency matcher, you can also use the following additional properties. In this case, we name it as "dependency selector":
+- **`type`** (`string | string[]`): Micromatch pattern(s) for the element type/s
+- **`category`** (`string | string[]`): Micromatch pattern(s) for the element category/categories
+- **`captured`** (`object`): Object with keys matching captured values. Each key can be a string or an array of strings representing micromatch patterns.
+- **`origin`** (`"local" | "external" | "core"`): Element origin
+  - `local`: Files within the project
+  - `external`: External dependencies (e.g., `node_modules`)
+  - `core`: Core modules (e.g., Node.js built-ins)
+- **`path`** (`string | string[]`): Micromatch pattern(s) for the file path
+- **`elementPath`** (`string | string[]`): Pattern(s) for the element path
+- **`internalPath`** (`string | string[]`): Pattern(s) for the path within the element. For file elements, it's the same as `elementPath`; for folder elements, it's relative to the folder.
+- **`isIgnored`** (`boolean`): Whether the element is ignored
+- **`isUnknown`** (`boolean`): Whether the element type is unknown (i.e., doesn't match any descriptor)
 
-* __`kind`__: `string|array<string>` Optional. Micromatch pattern(s) to match the kind of dependency ( `type` when it is imported using `import type`, `value` when it is imported using `import`, etc.).
-* __`relationship`__: `string|array<string>` Optional. Micromatch pattern(s) to match the relationship of the dependency, which can be either:
-  * `internal` - Both source and target files belongs to the same element.
-  * `child` - The target element is a child of the source element.
-  * `parent` - The target element is a parent of the source element.
-  * `sibling` - Both source and target elements share the same parent element.
-  * `uncle` - The target element is a sibling of an ancestor of the source element.
-  * `nephew` - The target element is a child of a sibling of the source element.
-  * `descendant` - The target element is a descendant of the source element (child, grandchild, etc.).
-  * `ancestor` - The target element is an ancestor of the source element (parent, grandparent, etc.).
-* __`specifiers`__: `string|array<string>` Optional. Micromatch patterns to match the specifiers of the dependency (e.g., the imported names).
-* __`nodeKind`__: `string|array<string>` Optional. Micromatch pattern(s) to match the AST node kind of the dependency (e.g., `Import`, `CallExpression`, etc.).
-* __`source`__: `string|array<string>` Optional. Micromatch pattern(s) to match the source of the dependency. (e.g., the import path).
-* __`baseSource`__: `string|array<string>` Optional. Micromatch pattern(s) to match the base source of the dependency (e.g., when importing an specific path from an external module, it would be the module name).
+#### Dependency Properties
 
-> [!IMPORTANT]
-> All properties in selectors are optional. You can provide only the properties you want to match against. But, all provided properties must match for the selector to be considered a match.
+When matching dependencies, the `to` selector can additionally use:
+
+- **`kind`** (`string | string[]`): Micromatch pattern(s) for the dependency kind
+- **`relationship`** (`string | string[]`): Element relationship. Micromatch pattern(s) for the relationship between source and target elements:
+  - `internal`: Both files belong to the same element
+  - `child`: Target is a child of source
+  - `parent`: Target is a parent of source
+  - `sibling`: Elements share the same parent
+  - `uncle`: Target is a sibling of a source ancestor
+  - `nephew`: Target is a child of a source sibling
+  - `descendant`: Target is a descendant of source
+  - `ancestor`: Target is an ancestor of source
+- **`specifiers`** (`string | string[]`): Pattern(s) for import/export specifiers (e.g., named imports)
+- **`nodeKind`** (`string | string[]`): Pattern(s) for the AST node type causing the dependency (e.g., `"ImportDeclaration"`)
+- **`source`** (`string | string[]`): Pattern(s) to match the source of the dependency. (e.g., the import path).
+- **`baseSource`** (`string | string[]`): Pattern(s) for the base module name for external imports.
+
+> **⚠️ Important:** All properties in a selector must match for the selector to be considered a match (AND logic). Use multiple selectors for OR logic.
 
 #### Template Variables
 
-You can use template variables in selectors to create dynamic matching patterns. Template variables are resolved at match time using data from the element or dependency being matched, plus any extra data provided via `MatcherOptions`.
+Selectors support template variables using [Handlebars syntax](https://handlebarsjs.com/) (`{{ variableName }}`). Templates are resolved at match time using:
 
-Templates are defined using **[Handlebars syntax](https://github.com/handlebars-lang/handlebars.js)**: `{{ variableName }}`
+- **Element properties** (`type`, `category`, `captured`, etc.)
+- **Dependency properties** (`from`, `to`)
 
 #### Available Template Data
 
@@ -260,42 +286,42 @@ const isMatch = matcher.isMatch(
 );
 ```
 
-### Using the matcher
+### Using Matchers
 
 You can use element selectors with a created matcher to check if a given path corresponds to an element with specific properties, or if a dependency between two paths matches certain criteria.
 
-#### Elements matcher
+#### Element Matching
 
-To match an element, use the `isMatch` method of the matcher, providing the path and an element selector.
+To match an element, use the `isMatch` method of the matcher, providing the file path and an element selector.
 
 ```ts
 const isElementMatch = matcher.isMatch("src/components/Button.tsx", { type: "component" });
 ```
 
 > [!TIP]
-> You can also provide an array of selectors to the `isMatch` method. In this case, the method will return `true` if the element matches any of the provided selectors.
+> You can also provide an array of selectors to the `isMatch` method. In this case, the method will return `true` if the element matches any of the provided selectors (OR logic).
 
-#### Dependency matcher
+#### Dependency Matching
 
-To match a dependency, use the `isMatch` method of the matcher, providing a the properties of the dependency and a dependency selector.
+To match a dependency, use the `isMatch` method of the matcher, providing the properties of the dependency and a dependency selector.
 
-The __dependency properties__ should be an object with:
+**Dependency object properties:**
 
-* __`from`__: `string` Path of the source file.
-* __`to`__: `string` Path of the target file.
-* __`source`__: `string` Source of the dependency (e.g the import path).
-* __`kind`__: `string` Kind of the dependency ( `type` when it is imported using `import type`, `value` when it is imported using `import`, etc.).
-* __`nodeKind`__: `string` Id to identify the AST node kind of the dependency (e.g., `ImportDeclaration`, `CallExpression`, etc.).
-* __`specifiers`__: `array<string>` Specifiers of the dependency (e.g., the imported names `import { X, Y } from 'module'` would have specifiers `['X', 'Y']`).
+- **`from`** (`string`): Source file path
+- **`to`** (`string`): Target file path
+- **`source`** (`string`): Import/export source as written in code
+- **`kind`** (`string`): Import kind (`"type"`, `"value"`, etc.)
+- **`nodeKind`** (`string`): AST node kind
+- **`specifiers`** (`string[]`): Imported/exported names
 
-The dependency selector should have __at least one of the following properties, or both__:
+**Dependency selector:**
 
-* __`from`__: `ElementSelector | array<ElementSelector>` Selector or array of selectors to match the source element of the dependency.
-* __`to`__: `ElementSelector | array<ElementSelector>` Selector or array of selectors to match the target element of the dependency.
+- **`from`**: Element selector(s) for the source file
+- **`to`**: Dependency selector(s) for the target file
 
 ```ts
 const isDependencyMatch = matcher.isMatch(
-  {
+  { // Dependency properties
     from: "src/components/Button.tsx",
     to: "src/services/Api.ts",
     source: "../services/Api",
@@ -310,16 +336,7 @@ const isDependencyMatch = matcher.isMatch(
 ```
 
 > [!TIP]
-> You can also provide an array of selectors both to the `from` and `to` properties of the dependency selector. In this case, the method will return `true` if the dependency matches any combination of the provided selectors.
-
-#### Selector patterns
-
-When using selectors, you can provide either a single selector with multiple patterns for each property, or an array of selectors with single patterns for each property. Both approaches are valid and will yield the same result, but note that:
-
-__Each selector must match completely__: All properties defined in a selector must match for the selector to be considered a match. If any property does not match, the entire selector is considered not matching. So, you can consider each selector as an __AND condition__ between its properties, and an __OR condition__ between multiple selectors.
-
-> [!TIP]
-> When using micromatch patterns in selectors, you can use wildcards (`*`, `**`, `?`, etc.) to create flexible matching rules. For example, a pattern like `service-*` would match any type that starts with `service-`.
+> You can also provide an array of selectors both to the `from` and `to` properties of the dependency selector. In this case, the method will return `true` if the dependency matches any combination of the provided selectors (OR logic).
 
 ## API Reference
 
@@ -327,13 +344,10 @@ __Each selector must match completely__: All properties defined in a selector mu
 
 #### Constructor
 
-Creates a new instance of `Elements`
-
-- __Parameters__:
-  - `options`: `ElementsOptions` Optional. [Configuration options](#options) for the matcher. These options will be used as defaults when creating matchers.
+Creates a new `Elements` instance with optional default configuration.
 
 ```ts
-new Elements(options?: ElementsOptions)
+new Elements(options?: ConfigurationOptions);
 ```
 
 #### Methods
@@ -344,11 +358,22 @@ Creates a new matcher instance.
 
 - __Parameters__:
   - `descriptors`: `array<ElementDescriptor>` Array of [element descriptors](#element-descriptors) to be used by the matcher.
-  - `options`: `ElementsOptions` Optional. [Configuration options](#options) for the matcher. These options will override the default options set in the `Elements` instance.
+  - `options`: `ElementsOptions` Optional. [Configuration options](#configuration-options) for the matcher. These options will override the default options set in the `Elements` instance.
 - __Returns__: `Matcher` A new matcher instance.
 
 ```ts
-const matcher = elements.getMatcher();
+const matcher = elements.getMatcher([
+  {
+    type: "component",
+    pattern: "src/components/*",
+    mode: "folder",
+  },
+  {
+    type: "helper",
+    pattern: "src/helpers/*.js",
+    mode: "file",
+  }
+]);
 ```
 
 ##### `clearCache`
@@ -361,7 +386,7 @@ elements.clearCache();
 
 ##### `serializeCache`
 
-Serializes all cached matcher instances to a serializable object.
+Serializes all cached matcher instances to a plain object.
 
 ```ts
 const cache = elements.serializeCache();
@@ -375,27 +400,14 @@ const cache = elements.serializeCache();
 elements.setCacheFromSerialized(cache);
 ```
 
-### Matcher instance methods
+### Matcher Instance Methods
 
 #### `isMatch`
 
 Checks if a given path matches the specified element or dependency selector.
 
-- __Parameters__:
-  - `path`:
-    - `string` The path to check when using an [element selector](#selectors).
-    - `DependencyProperties` The [properties of the dependency](#dependency-matcher) to check when using a [dependency selector](#selectors).
-  - `selector`: `ElementSelector | DependencySelector` The [selector](#selectors) to match against. It can be either an element selector (for path matching) or a dependency selector (for dependency matching).
-    - If `path` is a string, `selector` should be an [`ElementSelector`](#selectors) or an array of `ElementSelector`.
-    - If `path` are dependency properties, `selector` should be a [`DependencySelector`](#selectors) or an array of `DependencySelector`.
-  - `options`: `MatcherOptions` Optional. Additional options for matching:
-    - `extraTemplateData`: `object` Optional. Extra data to pass to selector templates. When using [template variables](#template-variables) in selectors, this data will be available for rendering.
-    - `dependencySelectorsGlobals`: `object` Optional. _(Deprecated)_ Properties to add to all dependency selectors.
-- __Returns__: `boolean` `true` if the path or dependency matches the selector, `false` otherwise.
-
 ```ts
 const isElementMatch = matcher.isMatch("src/components/Button.tsx", [{ type: "component" }]);
-
 
 const isDependencyMatch = matcher.isMatch(
   {
@@ -412,35 +424,40 @@ const isDependencyMatch = matcher.isMatch(
 );
 ```
 
+- __Parameters__:
+  - `path`:
+    - `string` The path to check when using an [element selector](#selectors).
+    - `DependencyProperties` The [properties of the dependency](#dependency-matching) to check when using a [dependency selector](#selectors).
+  - `selector`: `ElementSelector | DependencySelector` The [selector](#selectors) to match against. It can be either an element selector (for path matching) or a dependency selector (for dependency matching).
+    - If `path` is a string, `selector` should be an [`ElementSelector`](#selectors) or an array of `ElementSelector`.
+    - If `path` are dependency properties, `selector` should be a [`DependencySelector`](#selectors) or an array of `DependencySelector`.
+  - `options`: `MatcherOptions` Optional. Additional options for matching:
+    - `extraTemplateData`: `object` Optional. Extra data to pass to selector templates. When using [template variables](#template-variables) in selectors, this data will be available for rendering.
+
 #### `getSelectorMatching`
 
-Gets the first selector that matches the given path or dependency.
-
-Parameters are the same as `isMatch`, but instead of returning a boolean, it returns the first matching selector or `null` if none match.
+Returns the first matching selector or `null`.
 
 ```ts
 const matchingSelector = matcher.getSelectorMatching("src/components/Button.tsx", [{ type: "component" }]);
 ```
 
+Parameters are the same as `isMatch`, but instead of returning a boolean, it returns the first matching selector or `null` if none match.
+
 #### `describeElement`
 
-Describes an element given its path.
-
-- __Parameters__:
-  - `path`: `string` The path of the element to describe.
-- __Returns__: `ElementDescription` The description of the element, including its properties and captured values.
+Returns a detailed description of an element.
 
 ```ts
 const elementDescription = matcher.describeElement("src/components/Button.tsx");
 ```
 
+- __Parameters__:
+  - `path`: `string` The path of the element to describe.
+
 #### `describeDependency`
 
-Describes a dependency given its origin, target paths, source, kind, nodeKind, and specifiers.
-
-- __Parameters__:
-  - `dependency`: The [properties of the dependency to describe](#dependency-matcher).
-- __Returns__: `DependencyDescription` The description of the dependency, including its properties and captured values.
+Returns a detailed description of a dependency.
 
 ```ts
 const dependencyDescription = matcher.describeDependency({
@@ -452,13 +469,12 @@ const dependencyDescription = matcher.describeDependency({
 });
 ```
 
+- __Parameters__:
+  - `dependency`: The [properties of the dependency to describe](#dependency-matching).
+
 #### `getSelectorMatchingDescription`
 
-Gets the first selector that matches the description of the given path or dependency.
-
-Parameters are the same as `isMatch`, but instead of returning a boolean, it returns the first matching selector or `null` if none match.
-
-As first argument, it receives the result of `describeElement` or `describeDependency`.
+Matches a description against selectors. As first argument, it should receive the result of `describeElement` or `describeDependency`.
 
 ```ts
 const elementDescription = matcher.describeElement("src/components/Button.tsx");
@@ -467,7 +483,7 @@ const matchingSelector = matcher.getSelectorMatchingDescription(elementDescripti
 
 #### `clearCache`
 
-Clears the internal cache of the matcher.
+Clears the matcher's internal cache.
 
 ```ts
 matcher.clearCache();
@@ -475,7 +491,7 @@ matcher.clearCache();
 
 #### `serializeCache`
 
-Serializes the internal cache of the matcher to a serializable object.
+Serializes the matcher's cache.
 
 ```ts
 const cache = matcher.serializeCache();
@@ -483,7 +499,7 @@ const cache = matcher.serializeCache();
 
 #### `setCacheFromSerialized`
 
-Sets the internal cache of the matcher from a serialized object.
+Restores the matcher's cache from a serialized object.
 
 ```ts
 // Serialize cache to a serializable object
