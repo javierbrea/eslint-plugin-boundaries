@@ -448,6 +448,42 @@ describe("Matcher", () => {
       }
     );
 
+    it("should match using legacy string selector", () => {
+      const result = matcher.isMatch(
+        "/project/src/components/Button.tsx",
+        "component"
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it("should match using legacy string selectors", () => {
+      const result = matcher.isMatch("/project/src/components/Button.tsx", [
+        "component",
+        "foo",
+      ]);
+
+      expect(result).toBe(true);
+    });
+
+    it("should match using legacy string selector with options", () => {
+      const result = matcher.isMatch("/project/src/components/Button.tsx", [
+        "component",
+        { fileName: "Button" },
+      ]);
+
+      expect(result).toBe(true);
+    });
+
+    it("should match using legacy string selectors with options", () => {
+      const result = matcher.isMatch("/project/src/components/Button.tsx", [
+        ["component", { fileName: "Button" }],
+        ["foo", { fileName: "Foo" }],
+      ]);
+
+      expect(result).toBe(true);
+    });
+
     it("should throw an error when using invalid selector", () => {
       expect(() =>
         // @ts-expect-error: Testing invalid selector
@@ -1441,6 +1477,43 @@ describe("Matcher", () => {
         }
       }
     );
+
+    it("should match using legacy string selector", () => {
+      const result = matcher.isMatch(
+        {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/services/api/api.ts",
+          source: "../utils/math/math.test.ts",
+          kind: "value",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        {
+          from: "component",
+          to: "service",
+        }
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it("should match using legacy string selector with options", () => {
+      const result = matcher.isMatch(
+        {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/utils/math/math.test.ts",
+          source: "../utils/math/math.test.ts",
+          kind: "value",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        {
+          from: ["component", { fileName: "Button" }],
+        }
+      );
+
+      expect(result).toBe(true);
+    });
 
     it("should throw an error when using invalid dependency selector", () => {
       expect(() =>

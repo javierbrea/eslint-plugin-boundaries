@@ -20,8 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 > TODO BEFORE RELEASE 6.0.0
 >
-> - Merge documentation improvements
-> - Add selectors legacy support to documentation
+> - Add unit tests for legacy syntax in selectors
 > - Fix Sonar issues in eslint-plugin package
 > - Coveralls for monorepo
 > - Mutation testing for elements package (stryker)
@@ -36,28 +35,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 >
 > - Create project in Github. Create issues and tasks based on RFCs, assign tasks to project, and create milestones for releases. Plan each release carefully according to RFCs to avoid breaking changes and remember when to deprecate things.
 >
-> - Publish beta version 5.2.0-beta.1 with all the changes above
->
-> - Support new types of selectors and descriptors in eslint-plugin-boundaries package: Change schemas, validations, etc.
 > - Support a `name` property in `additional-dependency-nodes` setting to be able to identify the custom dependency nodes in rules.
 > - Deprecate `disallow` in favor of `deny` in rule options.
-> - Support new templates formats, having all elements data in from/to objects. For example, `${from.name}`, `${to.kind}`, `${to.internalPath}`, `{{ to.captured.elementName }}` etc. Add an option to use old or new format, because old one also uses `${from.X}` and `${target.X}`, but only for captured values, so it may produce conflicts.
-> - Support defining `kind` in selectors instead of defining it at rule level. This should be extended in `dependency-selectors` too (object with `from` and `to` properties).
-> - Support multiple micromatch patterns in captured values in selectors.
-> - Support `nodeKind` in selectors. Pass it to dependency description.
+> - Support new types of selectors and descriptors in eslint-plugin-boundaries package: Change schemas, validations, etc.
+> - Add an option to use old or new templates format, because old one also uses `${from.X}` and `${target.X}`, but only for captured values, so it may produce conflicts. (disable passing extra template data to elements package when new format is used)
+> - Deprecate usage of `importKind` at rule level in favor of using it in selectors.
 > - Support `from` and `to` in `element-types` rule.
-> - Support `category` in `element-types` rule and in element descriptors.
-> - Add unit tests for new selectors and descriptors formats in eslint-plugin-boundaries package.
-> - Eslint-plugin package TypeScript docs.
+> - Eslint-plugin package TypeScript docs comments.
 >
-> - Support multiple element types in `element-types` rule. Add an option to enable/disable this behavior.
+> - Publish beta version 6.0.0-beta.1 with all the changes above
+>
+> - Support assigning multiple element types/categories to the same element. Add an option to enable/disable this behavior.
 > - Enable all dependencyNodes by default in `dependency-nodes` setting.
 > - Rename rules according to new naming RFC, make it backwards compatible.
+>
+> - Publish version 6.0.0-beta.2 with all the changes above
+>
 > - Publish current documentation in website, and publish new docs in next release. Remove documentation from README.md except for basic usage. Change rules docs to point to website.
+>
+> - Publish version 6.0.0 with all the changes above
+>
 > - Create task in backlog to migrate messages to @elements package (return human-friendly messages when matching elements and dependencies).
 > - Create task in backlog to improve debug system: Trace file being linted, settings being used, resolved elements, dependencies being analyzed, rules failing/passing, etc. Allow to enable only to certain files using patterns. Add setting to enable/disable it. Create RFC for it.
 > - Create task in backlog to add cache limit. Create fs-cache manager. Create RFC for it.
-> - Publish RFC for creating a helper to generate different eslint rules for each element rule, to be able to configure them separately. For example: { "my-rule": [1, {}]}. This will enable to have different severity levels and the possibility to disable certain rules. Create task in backlog for it.
+> - Publish RFC for creating a helper to generate different eslint rules for each element rule, to be able to configure them separately. For example: { "my-rule": [1, {}]}. This will enable to have different severity levels and the possibility to disable certain rules. Create task in backlog for it. It would require to create different plugin instances with different rule configs, but same settings.
 
 ## [5.1.0] - 2025-10-14
 
