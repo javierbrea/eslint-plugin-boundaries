@@ -137,13 +137,11 @@ function evaluatePolicyMatches(
     targetElementSelector,
   } = context;
 
-  const disallowPolicyMatches = (rule as Record<string, unknown>)[denyKeyToUse]
+  const disallowPolicyMatches = rule[denyKeyToUse]
     ? isMatch(
         {
           [targetElementDirection]: targetElementSelector,
-          [policyElementDirection]: (rule as Record<string, unknown>)[
-            denyKeyToUse
-          ],
+          [policyElementDirection]: rule[denyKeyToUse],
         },
         capturedValuesTemplateData,
         dependencySelectorsGlobals
@@ -187,9 +185,7 @@ function createRuleSelectorsData(
 
   let policySelector: ElementsSelector | null = null;
   if (disallowPolicyMatchesIsMatch) {
-    policySelector = (rule as Record<string, unknown>)[
-      denyKeyToUse
-    ] as ElementsSelector;
+    policySelector = rule[denyKeyToUse] as ElementsSelector;
   } else if (allowPolicyMatchesIsMatch) {
     policySelector = rule.allow as ElementsSelector;
   }
@@ -355,12 +351,12 @@ function getReportPath(
   rulesResults: ReturnType<typeof getRulesResults>,
   dependency: DependencyDescription
 ): string | null {
-  return ruleIndexMatching !== null &&
+  return ruleIndexMatching === null ||
     // @ts-expect-error TODO: Align types. At this point, selectorsData should always be defined
-    rulesResults[ruleIndexMatching].selectorsMatching?.selectorsData?.to
+    !rulesResults[ruleIndexMatching].selectorsMatching?.selectorsData?.to
       ?.internalPath
-    ? dependency.to.internalPath
-    : null;
+    ? null
+    : dependency.to.internalPath;
 }
 
 export function elementRulesAllowDependency(
@@ -374,7 +370,7 @@ export function elementRulesAllowDependency(
 
   const { isAllowed, ruleIndexMatching } = determineRuleResult(rulesResults);
   const finalIsAllowed =
-    ruleIndexMatching !== null ? isAllowed : defaultIsAllowed;
+    ruleIndexMatching === null ? defaultIsAllowed : isAllowed;
 
   const message = getRuleMessage(ruleIndexMatching, ruleOptions);
   const ruleReport = createRuleReport(
