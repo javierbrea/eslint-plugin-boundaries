@@ -180,7 +180,7 @@ describe("Descriptors", () => {
       expect(element).toEqual({
         type: "component",
         category: "react",
-        capturedValues: {
+        captured: {
           fileName: "Button",
         },
         elementPath: "/project/src/components/Button.tsx",
@@ -213,7 +213,7 @@ describe("Descriptors", () => {
       expect(element).toEqual({
         type: "component",
         category: "react",
-        capturedValues: {
+        captured: {
           fileName: "Button",
         },
         elementPath: "/project/src/components/Button.tsx",
@@ -236,7 +236,7 @@ describe("Descriptors", () => {
       expect(element).toEqual({
         type: "test",
         category: "business-logic",
-        capturedValues: {
+        captured: {
           elementName: "math",
           testFileName: "math",
           businessLogicArea: "utils",
@@ -263,7 +263,7 @@ describe("Descriptors", () => {
       expect(element).toEqual({
         type: null,
         category: "business-logic",
-        capturedValues: null,
+        captured: null,
         elementPath: "/project/src/modules/user",
         internalPath: "foo.ts",
         path: "/project/src/modules/user/foo.ts",
@@ -284,7 +284,7 @@ describe("Descriptors", () => {
       expect(element).toEqual({
         type: "service",
         category: null,
-        capturedValues: {
+        captured: {
           baseFolder: "/project",
           serviceName: "payment",
           serviceFileName: "PaymentService",
@@ -307,7 +307,7 @@ describe("Descriptors", () => {
       expect(element).toEqual({
         type: null,
         category: null,
-        capturedValues: null,
+        captured: null,
         baseSource: null,
         elementPath: null,
         internalPath: null,
@@ -330,7 +330,7 @@ describe("Descriptors", () => {
       expect(element).toEqual({
         type: "utility",
         category: null,
-        capturedValues: null,
+        captured: null,
         isIgnored: false,
         elementPath: "/project/src/utils/math/mathUtil.ts",
         internalPath: "mathUtil.ts",
@@ -351,7 +351,7 @@ describe("Descriptors", () => {
       expect(element).toEqual({
         type: null,
         category: "business-logic",
-        capturedValues: null,
+        captured: null,
         isIgnored: false,
         elementPath: "/project/src/foo/var/modules/notification/modules/email",
         internalPath: "EmailService.ts",
@@ -361,13 +361,13 @@ describe("Descriptors", () => {
         parents: [
           {
             type: null,
-            capturedValues: null,
+            captured: null,
             category: "business-logic",
             elementPath: "/project/src/foo/var/modules/notification",
           },
           {
             type: "foo",
-            capturedValues: null,
+            captured: null,
             category: null,
             elementPath: "/project/src/foo/var",
           },
@@ -387,7 +387,7 @@ describe("Descriptors", () => {
         type: "utility",
         category: null,
         isIgnored: false,
-        capturedValues: null,
+        captured: null,
         internalPath: "index.ts",
         elementPath: "/project/src/utils/math/index.ts",
         source: "math/index",
@@ -410,7 +410,7 @@ describe("Descriptors", () => {
       expect(element).toEqual({
         type: null,
         category: null,
-        capturedValues: null,
+        captured: null,
         elementPath: null,
         parents: null,
         internalPath: "",
@@ -434,7 +434,7 @@ describe("Descriptors", () => {
       expect(element).toEqual({
         type: null,
         category: null,
-        capturedValues: null,
+        captured: null,
         elementPath: null,
         internalPath: "",
         isIgnored: false,
@@ -458,7 +458,7 @@ describe("Descriptors", () => {
       expect(element).toEqual({
         type: null,
         category: null,
-        capturedValues: null,
+        captured: null,
         elementPath: null,
         parents: null,
         internalPath: "/foo",
@@ -479,7 +479,7 @@ describe("Descriptors", () => {
       expect(element).toEqual({
         type: null,
         category: null,
-        capturedValues: null,
+        captured: null,
         elementPath: null,
         internalPath: null,
         parents: null,
@@ -500,7 +500,7 @@ describe("Descriptors", () => {
       expect(element).toEqual({
         type: null,
         category: null,
-        capturedValues: null,
+        captured: null,
         elementPath: null,
         internalPath: null,
         parents: null,
@@ -682,7 +682,7 @@ describe("Descriptors", () => {
 
       expect(dependency).toEqual({
         from: {
-          capturedValues: {
+          captured: {
             fileName: "Button",
           },
           category: "react",
@@ -696,7 +696,7 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         to: {
-          capturedValues: null,
+          captured: null,
           baseSource: null,
           elementPath: null,
           internalPath: null,
@@ -742,7 +742,7 @@ describe("Descriptors", () => {
           internalPath: null,
           parents: null,
           source: null,
-          capturedValues: null,
+          captured: null,
           origin: "local",
           path: "/project/src/var/Baz.ts",
           isIgnored: false,
@@ -750,7 +750,7 @@ describe("Descriptors", () => {
           isUnknown: true,
         },
         to: {
-          capturedValues: null,
+          captured: null,
           category: null,
           origin: "local",
           path: "/project/src/bar/Baz.ts",
@@ -796,7 +796,7 @@ describe("Descriptors", () => {
           parents: null,
           source: null,
           category: null,
-          capturedValues: null,
+          captured: null,
           origin: null,
           isIgnored: true,
           path: "/var/var/Baz.ts",
@@ -808,7 +808,7 @@ describe("Descriptors", () => {
           elementPath: null,
           internalPath: null,
           parents: null,
-          capturedValues: null,
+          captured: null,
           category: null,
           origin: null,
           isIgnored: true,
@@ -847,7 +847,7 @@ describe("Descriptors", () => {
         from: {
           type: "component",
           category: "react",
-          capturedValues: {
+          captured: {
             fileName: "Button",
           },
           elementPath: "/project/src/components/Button.tsx",
@@ -862,7 +862,7 @@ describe("Descriptors", () => {
           type: "test",
           category: "business-logic",
           isIgnored: false,
-          capturedValues: {
+          captured: {
             elementName: "math",
             testFileName: "math",
             businessLogicArea: "utils",
@@ -903,7 +903,7 @@ describe("Descriptors", () => {
 
       expect(dependency).toEqual({
         from: {
-          capturedValues: {
+          captured: {
             fileName: "Button",
           },
           category: "react",
@@ -918,7 +918,7 @@ describe("Descriptors", () => {
         },
         to: {
           baseSource: "react",
-          capturedValues: null,
+          captured: null,
           elementPath: null,
           parents: null,
           category: null,
@@ -956,7 +956,7 @@ describe("Descriptors", () => {
 
       expect(dependency).toEqual({
         from: {
-          capturedValues: {
+          captured: {
             fileName: "Button",
           },
           category: "react",
@@ -971,7 +971,7 @@ describe("Descriptors", () => {
         },
         to: {
           baseSource: "fs",
-          capturedValues: null,
+          captured: null,
           elementPath: null,
           internalPath: null,
           parents: null,
@@ -1012,7 +1012,7 @@ describe("Descriptors", () => {
         from: {
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath: "/project/src/foo/var/modules/notification",
           internalPath: "NotificationService.ts",
           origin: "local",
@@ -1020,7 +1020,7 @@ describe("Descriptors", () => {
           parents: [
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1032,7 +1032,7 @@ describe("Descriptors", () => {
           source: "./modules/email/EmailService",
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath:
             "/project/src/foo/var/modules/notification/modules/email",
           internalPath: "EmailService.ts",
@@ -1041,13 +1041,13 @@ describe("Descriptors", () => {
           parents: [
             {
               type: null,
-              capturedValues: null,
+              captured: null,
               category: "business-logic",
               elementPath: "/project/src/foo/var/modules/notification",
             },
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1085,7 +1085,7 @@ describe("Descriptors", () => {
         from: {
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath: "/project/src/foo/var/modules/notification",
           internalPath: "NotificationService.ts",
           origin: "local",
@@ -1093,7 +1093,7 @@ describe("Descriptors", () => {
           parents: [
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1105,7 +1105,7 @@ describe("Descriptors", () => {
           source: "./EmailService",
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath: "/project/src/foo/var/modules/notification",
           internalPath: "EmailService.ts",
           origin: "local",
@@ -1113,7 +1113,7 @@ describe("Descriptors", () => {
           parents: [
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1151,7 +1151,7 @@ describe("Descriptors", () => {
         from: {
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath: "/project/src/foo/var/modules/notification",
           internalPath: "NotificationService.ts",
           origin: "local",
@@ -1159,7 +1159,7 @@ describe("Descriptors", () => {
           parents: [
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1171,7 +1171,7 @@ describe("Descriptors", () => {
           source: "./modules/email/modules/send/SendService",
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath:
             "/project/src/foo/var/modules/notification/modules/email/modules/send",
           internalPath: "SendService.ts",
@@ -1180,20 +1180,20 @@ describe("Descriptors", () => {
           parents: [
             {
               type: null,
-              capturedValues: null,
+              captured: null,
               category: "business-logic",
               elementPath:
                 "/project/src/foo/var/modules/notification/modules/email",
             },
             {
               type: null,
-              capturedValues: null,
+              captured: null,
               category: "business-logic",
               elementPath: "/project/src/foo/var/modules/notification",
             },
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1231,7 +1231,7 @@ describe("Descriptors", () => {
         from: {
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath:
             "/project/src/foo/var/modules/notification/modules/phone",
           internalPath: "PhoneService.ts",
@@ -1240,13 +1240,13 @@ describe("Descriptors", () => {
           parents: [
             {
               type: null,
-              capturedValues: null,
+              captured: null,
               category: "business-logic",
               elementPath: "/project/src/foo/var/modules/notification",
             },
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1258,7 +1258,7 @@ describe("Descriptors", () => {
           source: "../email/EmailService",
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath:
             "/project/src/foo/var/modules/notification/modules/email",
           internalPath: "EmailService.ts",
@@ -1267,13 +1267,13 @@ describe("Descriptors", () => {
           parents: [
             {
               type: null,
-              capturedValues: null,
+              captured: null,
               category: "business-logic",
               elementPath: "/project/src/foo/var/modules/notification",
             },
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1311,7 +1311,7 @@ describe("Descriptors", () => {
         from: {
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath:
             "/project/src/foo/var/modules/notification/modules/email",
           internalPath: "EmailService.ts",
@@ -1320,13 +1320,13 @@ describe("Descriptors", () => {
           parents: [
             {
               type: null,
-              capturedValues: null,
+              captured: null,
               category: "business-logic",
               elementPath: "/project/src/foo/var/modules/notification",
             },
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1339,7 +1339,7 @@ describe("Descriptors", () => {
 
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath: "/project/src/foo/var/modules/notification",
           internalPath: "NotificationService.ts",
           origin: "local",
@@ -1347,7 +1347,7 @@ describe("Descriptors", () => {
           parents: [
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1384,7 +1384,7 @@ describe("Descriptors", () => {
         from: {
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath:
             "/project/src/foo/var/modules/notification/modules/email/modules/send",
           internalPath: "SendService.ts",
@@ -1393,20 +1393,20 @@ describe("Descriptors", () => {
           parents: [
             {
               type: null,
-              capturedValues: null,
+              captured: null,
               category: "business-logic",
               elementPath:
                 "/project/src/foo/var/modules/notification/modules/email",
             },
             {
               type: null,
-              capturedValues: null,
+              captured: null,
               category: "business-logic",
               elementPath: "/project/src/foo/var/modules/notification",
             },
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1418,7 +1418,7 @@ describe("Descriptors", () => {
           source: "./modules/email/modules/send/SendService",
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath: "/project/src/foo/var/modules/notification",
           internalPath: "NotificationService.ts",
           origin: "local",
@@ -1426,7 +1426,7 @@ describe("Descriptors", () => {
           parents: [
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1464,7 +1464,7 @@ describe("Descriptors", () => {
         from: {
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath:
             "/project/src/foo/var/modules/notification/modules/phone/modules/sms",
           internalPath: "SmsService.ts",
@@ -1472,7 +1472,7 @@ describe("Descriptors", () => {
           path: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
           parents: [
             {
-              capturedValues: null,
+              captured: null,
               category: "business-logic",
               elementPath:
                 "/project/src/foo/var/modules/notification/modules/phone",
@@ -1480,13 +1480,13 @@ describe("Descriptors", () => {
             },
             {
               type: null,
-              capturedValues: null,
+              captured: null,
               category: "business-logic",
               elementPath: "/project/src/foo/var/modules/notification",
             },
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1498,7 +1498,7 @@ describe("Descriptors", () => {
           source: "../../../email/EmailService",
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath:
             "/project/src/foo/var/modules/notification/modules/email",
           internalPath: "EmailService.ts",
@@ -1507,13 +1507,13 @@ describe("Descriptors", () => {
           parents: [
             {
               type: null,
-              capturedValues: null,
+              captured: null,
               category: "business-logic",
               elementPath: "/project/src/foo/var/modules/notification",
             },
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1551,7 +1551,7 @@ describe("Descriptors", () => {
         from: {
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath:
             "/project/src/foo/var/modules/notification/modules/email",
           internalPath: "EmailService.ts",
@@ -1560,13 +1560,13 @@ describe("Descriptors", () => {
           parents: [
             {
               type: null,
-              capturedValues: null,
+              captured: null,
               category: "business-logic",
               elementPath: "/project/src/foo/var/modules/notification",
             },
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },
@@ -1578,7 +1578,7 @@ describe("Descriptors", () => {
           source: "../../../email/EmailService",
           type: null,
           category: "business-logic",
-          capturedValues: null,
+          captured: null,
           elementPath:
             "/project/src/foo/var/modules/notification/modules/phone/modules/sms",
           internalPath: "SmsService.ts",
@@ -1586,7 +1586,7 @@ describe("Descriptors", () => {
           path: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
           parents: [
             {
-              capturedValues: null,
+              captured: null,
               category: "business-logic",
               elementPath:
                 "/project/src/foo/var/modules/notification/modules/phone",
@@ -1594,13 +1594,13 @@ describe("Descriptors", () => {
             },
             {
               type: null,
-              capturedValues: null,
+              captured: null,
               category: "business-logic",
               elementPath: "/project/src/foo/var/modules/notification",
             },
             {
               type: "foo",
-              capturedValues: null,
+              captured: null,
               category: null,
               elementPath: "/project/src/foo/var",
             },

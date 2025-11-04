@@ -27,7 +27,7 @@ describe("elementHelpers", () => {
       const localElement: FileElement = {
         category: null,
         type: "component",
-        capturedValues: {},
+        captured: {},
         parents: [],
         path: "/src/components/Button.tsx",
         elementPath: "/src/components",
@@ -46,7 +46,7 @@ describe("elementHelpers", () => {
       const localElement: FileElement = {
         category: "react",
         type: null,
-        capturedValues: {},
+        captured: {},
         parents: [],
         path: "/src/components/Button.tsx",
         elementPath: "/src/components",
@@ -65,7 +65,7 @@ describe("elementHelpers", () => {
       const localElement: FileElement = {
         category: "react",
         type: "component",
-        capturedValues: {},
+        captured: {},
         parents: [],
         path: "/src/components/Button.tsx",
         elementPath: "/src/components",
@@ -84,7 +84,7 @@ describe("elementHelpers", () => {
       const nonLocalElement: ExternalDependencyElement = {
         category: null,
         type: "dependency",
-        capturedValues: {},
+        captured: {},
         source: "react",
         path: "foo",
         baseSource: "react",
@@ -117,7 +117,7 @@ describe("elementHelpers", () => {
         const dependencyElement = {
           type: "dependency",
           category: null,
-          capturedValues: {},
+          captured: {},
           source: "react",
           baseSource: "react",
           parents: [],
@@ -136,7 +136,7 @@ describe("elementHelpers", () => {
         const nonDependencyElement = {
           type: "utils",
           category: null,
-          capturedValues: {},
+          captured: {},
           parents: [],
           path: "/src/utils/helpers.ts",
           elementPath: "/src/utils",
@@ -154,7 +154,7 @@ describe("elementHelpers", () => {
         const nonDependencyElement = {
           type: null,
           category: "other",
-          capturedValues: {},
+          captured: {},
           parents: [],
           path: "/src/utils/helpers.ts",
           elementPath: "/src/utils",
@@ -168,11 +168,11 @@ describe("elementHelpers", () => {
         );
       });
 
-      it("should return false for elements without capturedValues", () => {
+      it("should return false for elements without captured", () => {
         const nonDependencyElement = {
           type: null,
           category: "category",
-          capturedValues: {},
+          captured: {},
           parents: [],
           path: "/src/utils/helpers.ts",
           elementPath: "/src/utils",
@@ -192,7 +192,7 @@ describe("elementHelpers", () => {
         expect(
           isDependencyElementDescription({
             source: undefined,
-            capturedValues: {},
+            captured: {},
           })
         ).toBe(false);
         expect(isDependencyElementDescription(null)).toBe(false);
@@ -208,7 +208,7 @@ describe("elementHelpers", () => {
         const elementWithNullSource = {
           type: "component",
           category: null,
-          capturedValues: {},
+          captured: {},
           source: null,
           baseSource: "test",
           parents: [],
@@ -227,7 +227,7 @@ describe("elementHelpers", () => {
         const elementWithEmptyStringSource = {
           type: "component",
           category: null,
-          capturedValues: {},
+          captured: {},
           source: "",
           baseSource: "test",
           parents: [],
@@ -246,7 +246,7 @@ describe("elementHelpers", () => {
         const elementWithUndefinedSource = {
           type: "component",
           category: null,
-          capturedValues: {},
+          captured: {},
           source: undefined,
           baseSource: "test",
           parents: [],
@@ -267,7 +267,7 @@ describe("elementHelpers", () => {
         const minimalDependencyElement = {
           type: "component",
           category: null,
-          capturedValues: {},
+          captured: {},
           source: "react",
           baseSource: "react",
           parents: [],
@@ -291,7 +291,7 @@ describe("elementHelpers", () => {
       const localDependency: LocalDependencyElement = {
         type: "component",
         category: null,
-        capturedValues: {},
+        captured: {},
         parents: [],
         path: "/src/components/Button/index.ts",
         elementPath: "/src/components/Button",
@@ -310,7 +310,7 @@ describe("elementHelpers", () => {
       const nonLocalDependency: ExternalDependencyElement = {
         type: null,
         category: null,
-        capturedValues: {},
+        captured: {},
         source: "lodash",
         path: "foo",
         origin: "external",
@@ -325,7 +325,7 @@ describe("elementHelpers", () => {
       expect(isLocalDependencyElement(nonLocalDependency)).toBe(false);
     });
 
-    it("should return false for objects without capturedValues", () => {
+    it("should return false for objects without captured", () => {
       const nonLocalDependency: ExternalDependencyElement = {
         type: null,
         category: null,
@@ -334,7 +334,7 @@ describe("elementHelpers", () => {
         origin: "external",
         internalPath: "lodash/index.js",
         baseSource: "./components/Button",
-        capturedValues: null,
+        captured: null,
         isUnknown: true,
         isIgnored: false,
         parents: null,
@@ -378,7 +378,7 @@ describe("elementHelpers", () => {
       const dependencyButNotLocal = {
         type: "component",
         category: null,
-        capturedValues: {},
+        captured: {},
         source: "react",
         specifiers: ["useState"],
         isExternal: true,
@@ -395,7 +395,7 @@ describe("elementHelpers", () => {
       const localElementButNotLocalDependency: FileElement = {
         type: "test",
         category: null,
-        capturedValues: {},
+        captured: {},
         parents: [],
         path: "/src/test.ts",
         elementPath: "/src",
@@ -416,7 +416,7 @@ describe("elementHelpers", () => {
       const dependencyWithLocalFalse = {
         type: "utils",
         category: null,
-        capturedValues: {},
+        captured: {},
         parents: [],
         path: "/src/utils/helper.ts",
         elementPath: "/src/utils",
@@ -435,7 +435,7 @@ describe("elementHelpers", () => {
       const minimalLocalDependency = {
         type: "component",
         category: null,
-        capturedValues: {},
+        captured: {},
         path: "/src/utils/helper.ts", // Required for isLocalElement
         source: "../constants", // Required for isDependencyElement
         baseSource: "../utils", // Required for isDependencyElement
@@ -453,7 +453,7 @@ describe("elementHelpers", () => {
       const externalDependency: ExternalDependencyElement = {
         type: "dependency",
         category: null,
-        capturedValues: {},
+        captured: {},
         source: "fs",
         baseSource: "fs",
         internalPath: "fs/index.js",
@@ -500,7 +500,7 @@ describe("elementHelpers", () => {
       const elementWithInvalidBaseModule = {
         type: "component",
         category: null,
-        capturedValues: {},
+        captured: {},
         source: "react",
         specifiers: ["useState"],
         isExternal: true,
@@ -519,7 +519,7 @@ describe("elementHelpers", () => {
       const dependencyButNotExternal = {
         type: "component",
         category: null,
-        capturedValues: {},
+        captured: {},
         source: "../utils/helper",
         specifiers: ["helper"],
         isExternal: false, // This should make it fail
@@ -534,7 +534,7 @@ describe("elementHelpers", () => {
       const notADependency = {
         type: "component",
         category: null,
-        capturedValues: {},
+        captured: {},
         source: null,
         isExternal: true,
         isBuiltIn: false,
@@ -547,7 +547,7 @@ describe("elementHelpers", () => {
       const externalWithInvalidBaseModule = {
         type: "component",
         category: null,
-        capturedValues: {},
+        captured: {},
         source: "lodash",
         specifiers: ["map"],
         isExternal: true,
@@ -568,7 +568,7 @@ describe("elementHelpers", () => {
         type: "component",
         path: "foo",
         category: null,
-        capturedValues: {},
+        captured: {},
         source: "lodash", // Required for isDependencyElement
         origin: "external",
         baseSource: "lodash", // Required for isExternalDependency (must be string)
@@ -584,7 +584,7 @@ describe("elementHelpers", () => {
       const localElement: FileElement = {
         type: "component",
         category: null,
-        capturedValues: {},
+        captured: {},
         parents: [],
         path: "/src/components/Header.tsx",
         elementPath: "/src/components",
@@ -599,7 +599,7 @@ describe("elementHelpers", () => {
       expect(isElementDescription(localElement)).toBe(true);
     });
 
-    it("should return false for objects without capturedValues", () => {
+    it("should return false for objects without captured", () => {
       // @ts-expect-error Check type guard
       const localElement: FileElement = {
         type: null,
@@ -618,7 +618,7 @@ describe("elementHelpers", () => {
       const externalDependency: ExternalDependencyElement = {
         type: "dependency",
         category: null,
-        capturedValues: {},
+        captured: {},
         path: "foo",
         source: "lodash",
         baseSource: "lodash",
@@ -637,7 +637,7 @@ describe("elementHelpers", () => {
       const localDependency: LocalDependencyElement = {
         type: "utils",
         category: null,
-        capturedValues: {},
+        captured: {},
         parents: [],
         path: "/src/utils/math.ts",
         elementPath: "/src/utils",
@@ -670,7 +670,7 @@ describe("elementHelpers", () => {
       const minimalLocalElement = {
         type: "component",
         category: null,
-        capturedValues: {},
+        captured: {},
         path: "/src/test.ts",
         origin: "local",
         source: "./test",
@@ -686,7 +686,7 @@ describe("elementHelpers", () => {
       const minimalLocalElement = {
         type: null,
         category: null,
-        capturedValues: null,
+        captured: null,
         path: "/src/test.ts",
         origin: "local",
         isUnknown: true,
@@ -700,7 +700,7 @@ describe("elementHelpers", () => {
       const minimalLocalElement = {
         type: null,
         category: null,
-        capturedValues: {},
+        captured: {},
         path: "/src/test.ts",
         origin: "local",
         isIgnored: true,

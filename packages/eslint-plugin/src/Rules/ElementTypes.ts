@@ -93,14 +93,14 @@ function createRuleMatchContext(
   const capturedValuesTemplateData =
     targetElementDirection === "from"
       ? {
-          ...dependencyDescription.from.capturedValues,
-          from: dependencyDescription.from.capturedValues,
-          to: dependencyDescription.to.capturedValues,
+          ...dependencyDescription.from.captured,
+          from: dependencyDescription.from.captured,
+          to: dependencyDescription.to.captured,
         }
       : {
-          ...dependencyDescription.to.capturedValues,
-          from: dependencyDescription.from.capturedValues,
-          to: dependencyDescription.to.capturedValues,
+          ...dependencyDescription.to.captured,
+          from: dependencyDescription.from.captured,
+          to: dependencyDescription.to.captured,
         };
 
   const dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals =
@@ -420,10 +420,10 @@ function errorMessage(ruleData: RuleResult, dependency: DependencyDescription) {
     dependency
   )}${ruleElementMessage(
     ruleReport.disallow,
-    dependency.from.capturedValues
+    dependency.from.captured
   )} is not allowed in ${ruleElementMessage(
     ruleReport.element,
-    dependency.from.capturedValues
+    dependency.from.captured
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 }
 

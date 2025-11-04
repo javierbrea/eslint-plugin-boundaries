@@ -44,7 +44,7 @@ function errorMessage(ruleData: RuleResult, dependency: DependencyDescription) {
   }
   return `The entry point '${dependency.to.internalPath}' is not allowed in ${ruleElementMessage(
     ruleReport.disallow,
-    dependency.to.capturedValues
+    dependency.to.captured
   )}${dependencyUsageKindMessage(ruleReport.importKind, dependency, {
     prefix: " when importing ",
     suffix: "",

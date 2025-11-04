@@ -15,6 +15,7 @@
   - [Creating a matcher](#creating-a-matcher)
     - [Element Descriptors](#element-descriptors)
   - [Selectors](#selectors)
+    - [Template Variables](#template-variables)
   - [Using the matcher](#using-the-matcher)
     - [Elements matcher](#elements-matcher)
     - [Dependency matcher](#dependency-matcher)
@@ -188,6 +189,62 @@ When using selectors in the `to` property of a dependency matcher, you can also 
 > [!IMPORTANT]
 > All properties in selectors are optional. You can provide only the properties you want to match against. But, all provided properties must match for the selector to be considered a match.
 
+#### Template Variables
+
+You can use template variables in selectors to create dynamic matching patterns. Template variables are resolved at match time using data from the element or dependency being matched, plus any extra data provided via `MatcherOptions`.
+
+Templates are defined using **[Handlebars syntax](https://github.com/handlebars-lang/handlebars.js)**: `{{ variableName }}`
+
+#### Available Template Data
+
+When matching, the following data is automatically available:
+
+**For element matching:**
+- Element properties (`type`, `category`, `captured`, etc.)
+
+**For dependency matching:**
+- `from`: Properties of the source element
+- `to`: Properties of the target element  
+- `dependency`: Properties of the dependency itself (kind, nodeKind, specifiers, etc.)
+
+#### Template Examples
+
+```ts
+// Using captured values in templates
+const matcher = elements.getMatcher([
+  {
+    type: "component",
+    pattern: "src/modules/(*)/**/*.component.tsx",
+    capture: ["module"],
+    mode: "file"
+  }
+]);
+
+// Match components from specific module using template
+const isAuthComponent = matcher.isMatch(
+  "src/modules/auth/LoginForm.component.tsx",
+  { 
+    type: "component",
+    captured: { module: "{{ captured.module }}" } // This will always match
+  },
+);
+```
+
+#### Using Extra Template Data
+
+You can provide additional template data using the `extraTemplateData` option in `MatcherOptions`:
+
+```ts
+// Using templates in selectors
+const isMatch = matcher.isMatch(
+  "src/components/UserProfile.tsx",
+  { type: "{{ componentType }}" },
+  {
+    extraTemplateData: { componentType: "component" }
+  }
+);
+```
+
 ### Using the matcher
 
 You can use element selectors with a created matcher to check if a given path corresponds to an element with specific properties, or if a dependency between two paths matches certain criteria.
@@ -247,7 +304,7 @@ When using selectors, you can provide either a single selector with multiple pat
 __Each selector must match completely__: All properties defined in a selector must match for the selector to be considered a match. If any property does not match, the entire selector is considered not matching. So, you can consider each selector as an __AND condition__ between its properties, and an __OR condition__ between multiple selectors.
 
 > [!TIP]
-> When using micromatch patterns in selectors, you can use wildcards (`*`, `**`, `?`, etc.) to create flexible matching rules. For example, a pattern like `service-*` would match any type that starts with `service-`.]
+> When using micromatch patterns in selectors, you can use wildcards (`*`, `**`, `?`, etc.) to create flexible matching rules. For example, a pattern like `service-*` would match any type that starts with `service-`.
 
 ## API Reference
 
@@ -316,6 +373,9 @@ Checks if a given path matches the specified element or dependency selector.
   - `selector`: `ElementSelector | DependencySelector` The [selector](#selectors) to match against. It can be either an element selector (for path matching) or a dependency selector (for dependency matching).
     - If `path` is a string, `selector` should be an [`ElementSelector`](#selectors) or an array of `ElementSelector`.
     - If `path` are dependency properties, `selector` should be a [`DependencySelector`](#selectors) or an array of `DependencySelector`.
+  - `options`: `MatcherOptions` Optional. Additional options for matching:
+    - `extraTemplateData`: `object` Optional. Extra data to pass to selector templates. When using [template variables](#template-variables) in selectors, this data will be available for rendering.
+    - `dependencySelectorsGlobals`: `object` Optional. _(Deprecated)_ Properties to add to all dependency selectors.
 - __Returns__: `boolean` `true` if the path or dependency matches the selector, `false` otherwise.
 
 ```ts

@@ -153,7 +153,7 @@ export type BaseElement = {
   /** Category of the element, or null if the element is ignored or unknown */
   category: string | null;
   /** Captured values from the element, or null if the element descriptor has no capture or the element is ignored or unknown */
-  capturedValues: CapturedValues | null;
+  captured: CapturedValues | null;
   /** Parent elements, or null if the element is ignored, unknown, or it is not a local element */
   parents: ElementParent[] | null;
   /** Origin of the element, or null if the element is ignored */
@@ -175,7 +175,7 @@ export type ElementParent = {
   /** Path of the element relative to the project */
   elementPath: string;
   /** Captured values from the parent element */
-  capturedValues: CapturedValues | null;
+  captured: CapturedValues | null;
 };
 
 /**
@@ -187,7 +187,7 @@ export type IgnoredElement = BaseElement & {
   /** Category of the element */
   category: null;
   /** Ignored elements have not captured values */
-  capturedValues: null;
+  captured: null;
   /** Origin of the element */
   origin: null;
   /** Indicates if the file is ignored */
@@ -205,7 +205,7 @@ export type LocalElementUnknown = BaseElement & {
   /** Category of the element */
   category: null;
   /** Unknown elements have not captured values */
-  capturedValues: null;
+  captured: null;
   /** Indicates that the element is local */
   origin: typeof ELEMENT_ORIGINS_MAP.LOCAL;
   /** Indicates that the file is not ignored */
@@ -221,7 +221,7 @@ export type LocalElementKnown = BaseElement & {
   /** Path of the element */
   path: string;
   /** Captured values from the parent element */
-  capturedValues: CapturedValues | null;
+  captured: CapturedValues | null;
   /** Path of the file relative to the element */
   elementPath: string;
   /** Internal path of the file relative to the elementPath */

@@ -23,12 +23,12 @@ import {
 describe("elementsSelectorHelpers", () => {
   describe("isCapturedValuesSelector", () => {
     it("should return true for valid captured values selectors", () => {
-      const capturedValuesSelector: CapturedValuesSelector = {
+      const capturedSelector: CapturedValuesSelector = {
         type: "component",
         name: "Button",
       };
 
-      expect(isCapturedValuesSelector(capturedValuesSelector)).toBe(true);
+      expect(isCapturedValuesSelector(capturedSelector)).toBe(true);
     });
 
     it("should return true for empty objects", () => {

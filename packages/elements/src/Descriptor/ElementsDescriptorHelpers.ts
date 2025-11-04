@@ -124,7 +124,7 @@ export function isBaseElement(value: unknown): value is BaseElement {
     isObjectWithProperty(value, "type") &&
     isObjectWithProperty(value, "category") &&
     isObjectWithProperty(value, "path") &&
-    isObjectWithProperty(value, "capturedValues") &&
+    isObjectWithProperty(value, "captured") &&
     isObjectWithProperty(value, "origin") &&
     isObjectWithProperty(value, "isIgnored") &&
     isObjectWithProperty(value, "isUnknown")

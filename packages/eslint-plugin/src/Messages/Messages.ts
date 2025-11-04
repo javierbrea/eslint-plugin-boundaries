@@ -226,7 +226,7 @@ function elementPropertiesToReplaceInTemplate(
 ) {
   if (isElementDescription(element)) {
     return {
-      ...element.capturedValues,
+      ...element.captured,
       type: element.type || "",
       internalPath: element.internalPath || "",
       source: element.source || "",
@@ -234,7 +234,7 @@ function elementPropertiesToReplaceInTemplate(
     };
   }
   return {
-    ...element.capturedValues,
+    ...element.captured,
     type: element.type || "",
     internalPath: "",
     source: "",
@@ -336,7 +336,7 @@ export function elementMessage(
   elementInfo: ElementDescription | ElementParent
 ) {
   return `of type ${quote(elementInfo.type)}${elementCapturedValuesMessage(
-    elementInfo.capturedValues
+    elementInfo.captured
   )}`;
 }
 

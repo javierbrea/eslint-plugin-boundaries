@@ -444,6 +444,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     const templateData: TemplateData = {
       from: dependency.from,
       to: dependency.to,
+      dependency: dependency.dependency,
       ...extraTemplateData,
     };
 

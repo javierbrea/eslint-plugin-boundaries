@@ -259,11 +259,11 @@ export class ElementsMatcher extends BaseElementsMatcher {
     if (!selector.captured) {
       return true;
     }
-    if (!element.capturedValues) {
+    if (!element.captured) {
       return false;
     }
     return Object.entries(selector.captured).every(([key, pattern]) => {
-      const elementValue = element.capturedValues?.[key];
+      const elementValue = element.captured?.[key];
       if (!elementValue) {
         return false;
       }

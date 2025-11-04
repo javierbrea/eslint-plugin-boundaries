@@ -20,10 +20,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 > TODO BEFORE RELEASE 6.0.0
 >
-> - Refactor element rules function in eslint-plugin to improve code quality and maintainability.
+> - Add tests for captured values in templates as in {{ captured.X }}, {{ from.captured.X }} and {{ to.captured.X }}
+> - Add tests for using dependency in templates as in {{ dependency.X }}, {{ from.X }} and {{ to.X }}
+> - Merge documentation improvements
+> - Add selectors legacy support to documentation
+> - Fix Sonar issues in eslint-plugin package
+> - Coveralls for monorepo
+> - Mutation testing for elements package (stryker)
+> - Publish beta version 5.2.0-beta.1 with all the changes above
 >
-> - Elements package documentation.
-> - Eslint-plugin package TypeScript docs.
+> - Publish RFC for renaming the package to `@boundaries/eslint-plugin`.
+> - Publish RFCs for merging other rules into element-types rule.
+>   - External can be handled by adding a new. "external" mode to element descriptors to be able to assign element types to external dependencies also.
+>   - Entry-point can be handled by adding a new "internalPath" property to element selectors, so they only match files with a specific internalPath.
+>   - No-private can be handled by adding a new "relationship" property to element selectors, so they only match dependencies with a specific relationship (parent, child, sibling, etc.). Or this maybe should be done in "dependency-selectors" (object with "from" and "to" properties) instead of element selectors. There we could add a "relationship" property to the "to" or "from" selectors. This way types would be more strict.
+> - Publish RFC for storing cache in node_modules/.cache/@boundaries/...
+>
+> - Create project in Github. Create issues and tasks based on RFCs, assign tasks to project, and create milestones for releases. Plan each release carefully according to RFCs to avoid breaking changes and remember when to deprecate things.
 >
 > - Support new types of selectors and descriptors in eslint-plugin-boundaries package: Change schemas, validations, etc.
 > - Support a `name` property in `additional-dependency-nodes` setting to be able to identify the custom dependency nodes in rules.
@@ -35,15 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > - Support `from` and `to` in `element-types` rule.
 > - Support `category` in `element-types` rule and in element descriptors.
 > - Add unit tests for new selectors and descriptors formats in eslint-plugin-boundaries package.
->
-> - Publish RFC for renaming the package to `@boundaries/eslint-plugin`.
-> - Publish RFCs for merging other rules into element-types rule.
->   - External can be handled by adding a new. "external" mode to element descriptors to be able to assign element types to external dependencies also.
->   - Entry-point can be handled by adding a new "internalPath" property to element selectors, so they only match files with a specific internalPath.
->   - No-private can be handled by adding a new "relationship" property to element selectors, so they only match dependencies with a specific relationship (parent, child, sibling, etc.). Or this maybe should be done in "dependency-selectors" (object with "from" and "to" properties) instead of element selectors. There we could add a "relationship" property to the "to" or "from" selectors. This way types would be more strict.
-> - Publish RFC for storing cache in node_modules/.cache/@boundaries/...
->
-> - Create project in Github. Create issues and tasks based on RFCs, assign tasks to project, and create milestones for releases. Plan each release carefully according to RFCs to avoid breaking changes and remember when to deprecate things.
+> - Eslint-plugin package TypeScript docs.
 >
 > - Support multiple element types in `element-types` rule. Add an option to enable/disable this behavior.
 > - Enable all dependencyNodes by default in `dependency-nodes` setting.

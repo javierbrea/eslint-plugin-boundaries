@@ -67,7 +67,7 @@ function errorMessage(
 
   const fileReport = `is not allowed in ${ruleElementMessage(
     ruleReport.element,
-    dependency.from.capturedValues
+    dependency.from.captured
   )}. Disallowed in rule ${ruleReport.index + 1}`;
 
   if (

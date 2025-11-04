@@ -42,7 +42,7 @@ const UNKNOWN_LOCAL_ELEMENT: LocalElementUnknown = {
   parents: null,
   type: null,
   category: null,
-  capturedValues: null,
+  captured: null,
   origin: ELEMENT_ORIGINS_MAP.LOCAL,
   isIgnored: false,
   isUnknown: true,
@@ -435,7 +435,7 @@ export class ElementsDescriptor {
       path: filePath,
       type: null,
       category: null,
-      capturedValues: null,
+      captured: null,
       origin: ELEMENT_ORIGINS_MAP.LOCAL,
       isIgnored: false,
     };
@@ -493,7 +493,7 @@ export class ElementsDescriptor {
         elementResult.category = elementDescriptor.category || null;
         elementResult.isUnknown = false;
         elementResult.elementPath = elementPath;
-        elementResult.capturedValues = capturedValues;
+        elementResult.captured = capturedValues;
         elementResult.internalPath =
           mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER ||
           filePath !== elementPath // When using 'file' mode, but the pattern matches a folder, we need to calculate the internal path
@@ -505,7 +505,7 @@ export class ElementsDescriptor {
           type: elementDescriptor.type || null,
           category: elementDescriptor.category || null,
           elementPath,
-          capturedValues,
+          captured: capturedValues,
         });
       }
     };
