@@ -24,6 +24,7 @@
     - [Element Matching](#element-matching)
     - [Dependency Matching](#dependency-matching)
 - [API Reference](#api-reference)
+- [Legacy Selectors](#legacy-selectors)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -213,6 +214,8 @@ When matching dependencies, the `to` selector can additionally use:
 - **`baseSource`** (`string | string[]`): Pattern(s) for the base module name for external imports.
 
 > **⚠️ Important:** All properties in a selector must match for the selector to be considered a match (AND logic). Use multiple selectors for OR logic.
+
+> **Note:** You can also use the legacy selector syntax, but it’s deprecated and will be removed in a future release. See the [Legacy Selectors section](#legacy-selectors) for more details.
 
 #### Template Variables
 
@@ -511,6 +514,31 @@ matcher.clearCache();
 // Restore cache from serialized object
 matcher.setCacheFromSerialized(cache);
 ```
+
+## Legacy Selectors
+
+Legacy selectors are defined using a different syntax and are provided for backward compatibility. However, this syntax is deprecated and will be removed in a future release. It is recommended to migrate to the new selector syntax.
+
+Selectors can be defined as either a string or an array of strings representing the element type(s):
+
+```ts
+// Legacy selector using a string
+const isElementMatch = matcher.isMatch("src/components/Button.tsx", "component");
+// Legacy selector using an array of strings
+const isElementMatch = matcher.isMatch("src/components/Button.tsx", ["component", "service"]);
+```
+
+They can also be defined as an array where the first element is the type and the second element is an object containing captured values:
+
+```ts
+// Legacy selector with captured values
+const isElementMatch = matcher.isMatch(
+  "src/modules/auth/LoginForm.component.tsx",
+  ["component", { module: "auth" }]
+);
+```
+
+> **⚠️ Warning:** Avoid mixing legacy selectors with the new selector syntax in the same project, as this can lead to ambiguity. In particular, if you define a top-level array selector with two elements and the second one is an object containing a `type` or `category` key, it will be interpreted as legacy options rather than two separate selectors.
 
 ## Contributing
 
