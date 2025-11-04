@@ -325,6 +325,16 @@ describe("Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
+        selector: { captured: { fileName: "{{ element.captured.fileName }}" } },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { captured: { fileName: "{{ element.captured.foo }}" } },
+        expected: false,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
         selector: ["component", { fileName: "Button" }],
         expected: true,
         expectedMatch: {
@@ -789,7 +799,11 @@ describe("Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { path: "**/Button.tsx" },
+          from: {
+            type: "{{ from.type }}",
+            captured: { root: "{{ from.captured.root }}" },
+          },
+          to: { path: "{{ to.path }}" },
         },
         expected: true,
       },
@@ -1048,6 +1062,32 @@ describe("Matcher", () => {
           to: "/project/node_modules/react/index.tsx",
           source: "react",
           kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { nodeKind: "{{ to.nodeKind }}" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { nodeKind: "{{ to.foo }}" },
+        },
+        expected: false,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
         },
         selector: {
           to: { nodeKind: ["Import*"] },
@@ -1067,6 +1107,32 @@ describe("Matcher", () => {
           to: { kind: "t*" },
         },
         expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { kind: "{{ to.kind }}" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { kind: "{{ to.foo }}" },
+        },
+        expected: false,
       },
       {
         dependency: {
@@ -1142,6 +1208,34 @@ describe("Matcher", () => {
           source: "react",
           kind: "type",
           nodeKind: "ImportDeclaration",
+          specifiers: ["foo", "bar"],
+        },
+        selector: {
+          to: { specifiers: "{{ lookup to.specifiers 0 }}" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+          specifiers: ["foo", "bar"],
+        },
+        selector: {
+          to: { specifiers: "{{ to.specifiers.foo }}" },
+        },
+        expected: false,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
         },
         selector: {
           to: { specifiers: "foo" },
@@ -1171,6 +1265,32 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
+          to: { relationship: "{{ to.relationship }}" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+          to: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+          source: "../../../email/EmailService",
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { relationship: "{{ to.foo }}" },
+        },
+        expected: false,
+      },
+      {
+        dependency: {
+          from: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+          to: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+          source: "../../../email/EmailService",
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
           from: { relationship: "nephew" },
         },
         expected: true,
@@ -1184,8 +1304,48 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
+          from: { relationship: "{{ from.relationship }}" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+          to: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+          source: "../../../email/EmailService",
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          from: { relationship: "{{ from.foo }}" },
+        },
+        expected: false,
+      },
+      {
+        dependency: {
+          from: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+          to: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+          source: "../../../email/EmailService",
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
           to: { relationship: "uncle" },
           from: { relationship: "nephew" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+          to: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+          source: "../../../email/EmailService",
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          to: { relationship: "{{ to.relationship }}" },
+          from: { relationship: "{{ from.relationship }}" },
         },
         expected: true,
       },
@@ -1223,13 +1383,22 @@ describe("Matcher", () => {
           ? matcher.isMatch(dependency, selector, { extraTemplateData })
           : matcher.isMatch(dependency, selector);
 
-        if (result !== expected)
-          console.error("Mismatch on:", {
-            dependency,
-            selector,
-            extraTemplateData,
-            expectedMatch,
-          });
+        if (result !== expected) {
+          console.error(
+            "Mismatch on:",
+            JSON.stringify(
+              {
+                dependency,
+                selector,
+                extraTemplateData,
+                expectedMatch,
+                description: matcher.describeDependency(dependency),
+              },
+              null,
+              2
+            )
+          );
+        }
 
         expect(result).toBe(expected);
 

@@ -200,12 +200,11 @@ Templates are defined using **[Handlebars syntax](https://github.com/handlebars-
 When matching, the following data is automatically available:
 
 **For element matching:**
-- Element properties (`type`, `category`, `captured`, etc.)
+- Properties of the element under match are available in the `element` object (type, category, captured, origin, path, etc.)
 
 **For dependency matching:**
-- `from`: Properties of the source element
-- `to`: Properties of the target element  
-- `dependency`: Properties of the dependency itself (kind, nodeKind, specifiers, etc.)
+- `from`: Properties of the dependency source element
+- `to`: Properties of the dependency target element, and properties of the dependency itself (source, kind, nodeKind, specifiers, etc.)
 
 #### Template Examples
 
@@ -215,7 +214,7 @@ const matcher = elements.getMatcher([
   {
     type: "component",
     pattern: "src/modules/(*)/**/*.component.tsx",
-    capture: ["module"],
+    capture: ["module", "elementName", "fileName"],
     mode: "file"
   }
 ]);
@@ -225,8 +224,24 @@ const isAuthComponent = matcher.isMatch(
   "src/modules/auth/LoginForm.component.tsx",
   { 
     type: "component",
-    captured: { module: "{{ captured.module }}" } // This will always match
+    captured: { module: "{{ element.captured.module }}" } // This will always match
   },
+);
+
+// Using templates in dependency selectors
+const isDependencyMatch = matcher.isMatch(
+  {
+    from: "src/components/Button.tsx",
+    to: "src/services/Api.ts",
+    source: "../services/Api",
+    kind: "type",
+    nodeKind: "ImportDeclaration",
+    specifiers: ["calculateSum", "calculateAvg"],
+  },
+  {
+    from: { type: "{{ from.type }}", captured: { fileName: "{{ from.captured.fileName }}" } },
+    to: { path: "{{ to.path }}", specifiers: "{{ lookup to.specifiers 0 }}", kind: "{{ to.kind }}" },
+  }
 );
 ```
 

@@ -261,13 +261,17 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     if (!selector.relationship) {
       return true;
     }
+    const renderedPattern = this.getRenderedTemplates(
+      selector.relationship,
+      templateData
+    );
+    if (!renderedPattern) {
+      return false;
+    }
     if (!relationship) {
       return false;
     }
-    return this.isMicromatchMatch(
-      relationship,
-      this.getRenderedTemplates(selector.relationship, templateData)
-    );
+    return this.isMicromatchMatch(relationship, renderedPattern);
   }
 
   /**
@@ -285,13 +289,17 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     if (!selector.kind) {
       return true;
     }
+    const renderedPattern = this.getRenderedTemplates(
+      selector.kind,
+      templateData
+    );
+    if (!renderedPattern) {
+      return false;
+    }
     if (!kind) {
       return false;
     }
-    return this.isMicromatchMatch(
-      kind,
-      this.getRenderedTemplates(selector.kind, templateData)
-    );
+    return this.isMicromatchMatch(kind, renderedPattern);
   }
 
   /**
@@ -310,14 +318,18 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     if (!specifierPattern) {
       return true;
     }
+    const renderedPattern = this.getRenderedTemplates(
+      specifierPattern,
+      templateData
+    );
+    if (!renderedPattern) {
+      return false;
+    }
     if (!specifiers) {
       return false;
     }
     return specifiers.some((specifier) =>
-      this.isMicromatchMatch(
-        specifier,
-        this.getRenderedTemplates(specifierPattern, templateData)
-      )
+      this.isMicromatchMatch(specifier, renderedPattern)
     );
   }
 
@@ -337,13 +349,17 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     if (!nodeKindPattern) {
       return true;
     }
+    const renderedPattern = this.getRenderedTemplates(
+      nodeKindPattern,
+      templateData
+    );
+    if (!renderedPattern) {
+      return false;
+    }
     if (!nodeKind) {
       return false;
     }
-    return this.isMicromatchMatch(
-      nodeKind,
-      this.getRenderedTemplates(nodeKindPattern, templateData)
-    );
+    return this.isMicromatchMatch(nodeKind, renderedPattern);
   }
 
   /**
@@ -442,9 +458,17 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     );
     // Add `to` and `from` data to the template when checking elements in dependencies
     const templateData: TemplateData = {
-      from: dependency.from,
-      to: dependency.to,
-      dependency: dependency.dependency,
+      from: {
+        ...dependency.from,
+        relationship: dependency.dependency.relationship.from,
+      },
+      to: {
+        ...dependency.to,
+        relationship: dependency.dependency.relationship.to,
+        kind: dependency.dependency.kind,
+        nodeKind: dependency.dependency.nodeKind,
+        specifiers: dependency.dependency.specifiers,
+      },
       ...extraTemplateData,
     };
 

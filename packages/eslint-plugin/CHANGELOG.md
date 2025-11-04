@@ -20,14 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 > TODO BEFORE RELEASE 6.0.0
 >
-> - Add tests for captured values in templates as in {{ captured.X }}, {{ from.captured.X }} and {{ to.captured.X }}
-> - Add tests for using dependency in templates as in {{ dependency.X }}, {{ from.X }} and {{ to.X }}
 > - Merge documentation improvements
 > - Add selectors legacy support to documentation
 > - Fix Sonar issues in eslint-plugin package
 > - Coveralls for monorepo
 > - Mutation testing for elements package (stryker)
-> - Publish beta version 5.2.0-beta.1 with all the changes above
+> - Lint eslint-plugin package using plugin-linter
 >
 > - Publish RFC for renaming the package to `@boundaries/eslint-plugin`.
 > - Publish RFCs for merging other rules into element-types rule.
@@ -37,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > - Publish RFC for storing cache in node_modules/.cache/@boundaries/...
 >
 > - Create project in Github. Create issues and tasks based on RFCs, assign tasks to project, and create milestones for releases. Plan each release carefully according to RFCs to avoid breaking changes and remember when to deprecate things.
+>
+> - Publish beta version 5.2.0-beta.1 with all the changes above
 >
 > - Support new types of selectors and descriptors in eslint-plugin-boundaries package: Change schemas, validations, etc.
 > - Support a `name` property in `additional-dependency-nodes` setting to be able to identify the custom dependency nodes in rules.
