@@ -20,9 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 > TODO BEFORE RELEASE 6.0.0
 >
-> - Add unit tests for legacy syntax in selectors
-> - Fix Sonar issues in eslint-plugin package
 > - Coveralls for monorepo
+> - Fix Sonar issues in eslint-plugin package
 > - Mutation testing for elements package (stryker)
 > - Lint eslint-plugin package using plugin-linter
 >

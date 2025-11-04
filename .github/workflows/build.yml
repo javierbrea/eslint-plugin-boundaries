@@ -88,12 +88,18 @@ jobs:
         with:
           name: coverage-22.14.0-eslint-plugin
           path: packages/eslint-plugin/coverage
-      # TODO: Configure coveralls for monorepo properly
-      - name: Coveralls
+      - name: Coveralls for Elements
         uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          base-path: packages/eslint-plugin
+          path-to-lcov: ./packages/elements/coverage/lcov.info
+          flag-name: elements
+      - name: Coveralls for Eslint Plugin
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ./packages/eslint-plugin/coverage/lcov.info
+          flag-name: eslint-plugin
       # TODO: Upgrade SonarCloud action. Run it conditionally only if SONAR_TOKEN_ELEMENTS is defined
       - name: SonarCloud Scan - Elements
         if: env.SONAR_TOKEN_ELEMENTS != ''
