@@ -100,10 +100,9 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ./packages/eslint-plugin/coverage/lcov.info
           flag-name: eslint-plugin
-      # TODO: Upgrade SonarCloud action. Run it conditionally only if SONAR_TOKEN_ELEMENTS is defined
       - name: SonarCloud Scan - Elements
         if: env.SONAR_TOKEN_ELEMENTS != ''
-        uses: sonarsource/sonarcloud-github-action@v5
+        uses: SonarSource/sonarqube-scan-action@v6
         with:
           projectBaseDir: packages/elements
         env:
@@ -111,7 +110,7 @@ jobs:
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_ELEMENTS }}
       - name: SonarCloud Scan - Eslint Plugin
         if: env.SONAR_TOKEN != ''
-        uses: sonarsource/sonarcloud-github-action@v5
+        uses: SonarSource/sonarqube-scan-action@v6
         with:
           projectBaseDir: packages/eslint-plugin
         env:
