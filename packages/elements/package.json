@@ -53,7 +53,10 @@
     "check:types:test": "tsc --noEmit --project ./test/tsconfig.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test:unit": "jest"
+    "test:unit": "jest",
+    "serve:unit:report": "serve --config ./serve.test-unit-report.json",
+    "test:mutation": "stryker run",
+    "serve:mutation:report": "serve --config ./serve.test-mutation-report.json"
   },
   "dependencies": {
     "eslint-import-resolver-node": "0.3.9",

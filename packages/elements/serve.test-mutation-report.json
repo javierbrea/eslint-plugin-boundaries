@@ -1,0 +1,6 @@
+{
+  "public": "reports/mutation",
+  "redirects": [
+    { "source": "/", "destination": "/mutation.html" }
+  ]
+}

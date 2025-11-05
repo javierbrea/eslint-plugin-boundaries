@@ -20,6 +20,9 @@
     "@babel/core": "7.26.0",
     "@babel/preset-env": "7.26.0",
     "@babel/preset-typescript": "7.26.0",
+    "@stryker-mutator/api": "9.3.0",
+    "@stryker-mutator/core": "9.3.0",
+    "@stryker-mutator/jest-runner": "9.3.0",
     "@types/jest": "29.5.14",
     "@types/node": "22.9.0",
     "cross-env": "10.1.0",
@@ -38,5 +41,8 @@
   "engines": {
     "node": ">=20",
     "pnpm": ">=9"
+  },
+  "dependencies": {
+    "serve": "^14.2.5"
   }
 }
