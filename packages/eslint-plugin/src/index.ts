@@ -28,7 +28,7 @@ const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
 
 if (packageJson.name !== "@boundaries/eslint-plugin") {
   warn(
-    `⚠️  The "eslint-plugin-boundaries" package has been renamed to "@boundaries/eslint-plugin". Please install the new package as this one will no longer receive updates soon.`
+    `⚠️  The "eslint-plugin-boundaries" package has been renamed to "@boundaries/eslint-plugin". Please install the new package, as this one will soon no longer receive updates`
   );
 }
 

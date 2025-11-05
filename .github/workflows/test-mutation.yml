@@ -6,9 +6,11 @@ on:
       - release
       - refactor/modularization
   pull_request:
+
 concurrency:  
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
   test-mutation:
     runs-on: ubuntu-latest
@@ -18,8 +20,10 @@ jobs:
       - uses: ./.github/actions/install
         with:
           node-version: 22.14.0
-      - name: Test Mutation
-        run: pnpm nx run-many --target=test:mutation --all
+      - name: Test Mutation Elements
+        run: pnpm nx test:mutation elements
+        env:
+          STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
       - name: Upload test mutation report for elements
         uses: actions/upload-artifact@v4
         with:

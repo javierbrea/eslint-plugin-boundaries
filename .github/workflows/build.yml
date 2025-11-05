@@ -6,9 +6,11 @@ on:
       - release
       - refactor/modularization
   pull_request:
+
 concurrency:  
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
   check-root:
     runs-on: ubuntu-latest
