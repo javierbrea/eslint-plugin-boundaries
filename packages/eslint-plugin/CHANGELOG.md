@@ -24,9 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 > TODO BEFORE RELEASE 6.0.0
 >
-> - Send mutation testing report to stryker dashboard.
->
-> - Publish RFC for renaming the package to `@boundaries/eslint-plugin`.
 > - Publish RFC for storing cache in node_modules/.cache/@boundaries/...
 > - Publish RFC for changing disallow in favor of deny in rule options.
 > Improve Contributing docs. Explain repository structure, how to create new packages, how to run tests, mutation tests, etc.
