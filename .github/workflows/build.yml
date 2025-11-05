@@ -67,8 +67,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       # NOTE: In Windows, we only run unit tests to save time in the CI and to avoid dev tools Node incompatibilities
-      - name: Test Unit
-        run: pnpm nx run-many --target=test:unit --all
+      - name: Test Unit Elements
+        run: pnpm nx run-many --target=test:unit --all --parallel=1
   reports:
     runs-on: ubuntu-latest
     needs: build
