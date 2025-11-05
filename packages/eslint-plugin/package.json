@@ -54,6 +54,7 @@
     "check:types:test": "tsc --noEmit --project ./test/tsconfig.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "serve:unit:report": "serve --config ./serve.test-unit-report.json",
     "test": "jest",
     "test:unit": "cross-env ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 pnpm test"
   },
