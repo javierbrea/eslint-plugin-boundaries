@@ -366,6 +366,7 @@ export interface PluginBoundaries extends ESLint.Plugin {
 }
 
 export type RuleMetaDefinition = {
+  type?: Rule.RuleMetaData["type"];
   /** The description of the rule */
   description: string;
   /** The name of the rule */

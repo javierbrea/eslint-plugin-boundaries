@@ -7,6 +7,7 @@ const { RULE_NO_UNKNOWN } = SETTINGS;
 
 export default dependencyRule(
   {
+    schema: [],
     ruleName: RULE_NO_UNKNOWN,
     description: `Prevent importing unknown elements from the known ones`,
   },

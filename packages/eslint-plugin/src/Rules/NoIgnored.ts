@@ -6,6 +6,7 @@ const { RULE_NO_IGNORED } = SETTINGS;
 
 export default dependencyRule(
   {
+    schema: [],
     ruleName: RULE_NO_IGNORED,
     description: `Prevent importing ignored files from recognized elements`,
   },

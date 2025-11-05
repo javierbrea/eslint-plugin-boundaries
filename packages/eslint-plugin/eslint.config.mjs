@@ -1,3 +1,4 @@
+import eslintPluginEslintPlugin from "eslint-plugin-eslint-plugin";
 import localRules from "eslint-plugin-local-rules";
 
 import config, { jestConfig } from "../../support/eslint-config/index.js";
@@ -160,6 +161,18 @@ export default [
     files: ["test/**/*.js", "test/**/*.ts"],
     rules: {
       "@typescript-eslint/no-require-imports": [0],
+    },
+  },
+  {
+    files: ["src/**/*.ts", "test/**/*.spec.ts"],
+    plugins: {
+      "eslint-plugin": eslintPluginEslintPlugin,
+    },
+    rules: {
+      ...eslintPluginEslintPlugin.configs["rules-recommended"].rules,
+      "eslint-plugin/prefer-message-ids": [0], // NOTE: Messages are not static, they depend on runtime data and configuration.
+      "eslint-plugin/require-meta-type": [0], // NOTE: Handled by custom rule meta helper.
+      "eslint-plugin/require-meta-schema": [0],
     },
   },
 ];

@@ -10,6 +10,7 @@ const { RULE_NO_UNKNOWN_FILES } = SETTINGS;
 const noUnknownFilesRule: Rule.RuleModule = {
   ...meta({
     ruleName: RULE_NO_UNKNOWN_FILES,
+    schema: [],
     description: `Prevent creating files not recognized as any of the element types`,
   }),
 

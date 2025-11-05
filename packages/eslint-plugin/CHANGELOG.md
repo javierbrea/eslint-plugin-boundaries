@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## Unreleased
 
+### Changed
+
+- feat: Add empty schema to rules without options to validate them correctly.
+
 ### Fixed
 
 - fix: Assign internalPaths correctly when in elements setting the mode is 'file' but the pattern matches folders, not files. Now it returns the correct internalPaths instead of the matched folder name.
@@ -20,9 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 > TODO BEFORE RELEASE 6.0.0
 >
-> - Fix Sonar issues in eslint-plugin package
 > - Mutation testing for elements package (stryker)
-> - Lint eslint-plugin package using plugin-linter
 >
 > - Publish RFC for renaming the package to `@boundaries/eslint-plugin`.
 > - Publish RFCs for merging other rules into element-types rule.
