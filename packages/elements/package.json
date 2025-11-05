@@ -45,7 +45,7 @@
   },
   "scripts": {
     "eslint": "eslint",
-    "build": "tsup",
+    "build": "tsup --config tsup.config.js",
     "check:all": "echo 'All checks passed'",
     "check:spell": "cspell --quiet .",
     "check:types": "pnpm check:types:code && pnpm check:types:test",

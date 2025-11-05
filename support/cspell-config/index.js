@@ -18,6 +18,7 @@ function createConfig(config = {}) {
         "**/.gitignore",
         "**/coverage/**",
         "**/dist/**",
+        "**/reports/**",
       ],
       caseSensitive: false,
       // Language - current active spelling language
