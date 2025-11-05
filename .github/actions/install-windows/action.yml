@@ -24,7 +24,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: node_modules
-        key: pnpm-windows-${{ hashFiles('pnpm-lock.yaml') }}
+        key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
 
     - name: Install Node.js dependencies
       shell: bash

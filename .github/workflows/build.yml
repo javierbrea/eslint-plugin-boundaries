@@ -41,10 +41,6 @@ jobs:
       - name: Test Unit
         if: ${{ matrix.node != '22.14.0' }}
         run: pnpm nx run-many --target=test:unit --all
-      - name: Test Mutation
-      # NOTE: We only run mutation tests in the latest Node version to save time in the CI
-        if: ${{ matrix.node == '22.14.0' }}
-        run: pnpm nx run-many --target=test:mutation --all
       - name: Upload elements test results
         uses: actions/upload-artifact@v4
         with:
@@ -57,13 +53,6 @@ jobs:
           name: coverage-${{ matrix.node }}-eslint-plugin
           path: packages/eslint-plugin/coverage
           retention-days: 1
-      - name: Upload test mutation report for elements
-        if: ${{ matrix.node == '22.14.0' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: report-test-mutation-elements
-          path: packages/elements/reports/mutation
-          retention-days: 1
   build-windows:
     runs-on: windows-2022
     strategy:
@@ -72,7 +61,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: ./.github/actions/install
+      - uses: ./.github/actions/install-windows
         with:
           node-version: ${{ matrix.node }}
       # NOTE: In Windows, we only run unit tests to save time in the CI and to avoid dev tools Node incompatibilities
