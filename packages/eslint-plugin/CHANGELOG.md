@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > TODO BEFORE RELEASE 6.0.0
 >
 > - Send mutation testing report to stryker dashboard.
+> - Add serve command to eslint-plugin
 >
 > - Publish RFC for renaming the package to `@boundaries/eslint-plugin`.
 > - Publish RFCs for merging other rules into element-types rule.
@@ -33,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 >   - No-private can be handled by adding a new "relationship" property to element selectors, so they only match dependencies with a specific relationship (parent, child, sibling, etc.). Or this maybe should be done in "dependency-selectors" (object with "from" and "to" properties) instead of element selectors. There we could add a "relationship" property to the "to" or "from" selectors. This way types would be more strict.
 > - Publish RFC for storing cache in node_modules/.cache/@boundaries/...
 - Publish RFC for changing disallow in favor of deny in rule options.
+> Improve Contributing docs. Explain repository structure, how to create new packages, how to run tests, mutation tests, etc.
 >
 > - Create project in Github. Create issues and tasks based on RFCs, assign tasks to project, and create milestones for releases. Plan each release carefully according to RFCs to avoid breaking changes and remember when to deprecate things.
 >
