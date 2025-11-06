@@ -26,6 +26,10 @@ runs:
         path: node_modules
         key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
 
+    - name: Fix PNPM symlinks on Windows
+      run: |
+        pnpm config set node-linker hoisted
+
     - name: Install Node.js dependencies
       shell: bash
       run: pnpm install
