@@ -27,6 +27,7 @@ runs:
         key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
 
     - name: Fix PNPM symlinks on Windows
+      shell: bash
       run: |
         pnpm config set node-linker hoisted
 
