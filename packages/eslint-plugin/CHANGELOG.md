@@ -26,10 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 >
 > - Publish RFC for storing cache in node_modules/.cache/@boundaries/...
 > - Publish RFC for changing disallow in favor of deny in rule options.
-> Improve Contributing docs. Explain repository structure, how to create new packages, how to run tests, mutation tests, etc.
->
+
 > - Create project in Github. Create issues and tasks based on RFCs, assign tasks to project, and create milestones for releases. Plan each release carefully according to RFCs to avoid breaking changes and remember when to deprecate things.
->
+
+> - Improve Contributing docs. Explain repository structure, how to create new packages, how to run tests, mutation tests, etc.
 > - Support a `name` property in `additional-dependency-nodes` setting to be able to identify the custom dependency nodes in rules.
 > - Deprecate `disallow` in favor of `deny` in rule options.
 > - Support new types of selectors and descriptors in eslint-plugin-boundaries package: Change schemas, validations, etc.

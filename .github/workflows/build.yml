@@ -35,40 +35,53 @@ jobs:
       - uses: ./.github/actions/install
         with:
           node-version: ${{ matrix.node }}
-      # NOTE: For the moment, we run the check:all target in all packages instead of running affected check in affected packages only
-      - name: Check all
-        if: ${{ matrix.node == '22.14.0' }}
-        run: pnpm nx run-many --target=check:all --all --output-style=stream --parallel=1
       # NOTE: In other Node versions, we only run unit tests to save time in the CI and to avoid dev tools Node incompatibilities
       - name: Test Unit
         if: ${{ matrix.node != '22.14.0' }}
         run: pnpm nx run-many --target=test:unit --all
-      - name: Upload elements test results
+      # NOTE: For the moment, we run the check:all target in all packages instead of running affected check in affected packages only
+      - name: Check all
+        if: ${{ matrix.node == '22.14.0' }}
+        run: pnpm nx run-many --target=check:all --all --output-style=stream --parallel=1
+      - name: Upload elements build
+        if: ${{ matrix.node == '22.14.0' }}
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.node }}-elements
+          name: elements-build
+          path: packages/elements/dist
+          retention-days: 1
+      - name: Upload elements test results
+        if: ${{ matrix.node == '22.14.0' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: elements-coverage
           path: packages/elements/coverage
           retention-days: 1
       - name: Upload eslint-plugin test results
+        if: ${{ matrix.node == '22.14.0' }}
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.node }}-eslint-plugin
+          name: eslint-plugin-coverage
           path: packages/eslint-plugin/coverage
           retention-days: 1
   build-windows:
     runs-on: windows-2022
-    strategy:
-      matrix:
-        node: ["22.14.0"]
+    needs: build
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - uses: ./.github/actions/install-windows
         with:
-          node-version: ${{ matrix.node }}
-      # NOTE: In Windows, we only run unit tests to save time in the CI and to avoid dev tools Node incompatibilities
-      - name: Test Unit Elements
-        run: pnpm nx run-many --target=test:unit --all --parallel=1
+          node-version: "22.14.0"
+      - name: Download elements build
+        uses: actions/download-artifact@v4
+        with:
+          name: elements-build
+          path: packages/elements/dist
+      # NOTE: In Windows, we only run eslint-plugin unit tests. Elements build is downloaded to avoid Windows-specific build issues.
+      - name: Test Unit Eslint Plugin
+        working-directory: ./packages/eslint-plugin
+        run: pnpm test:unit
   reports:
     runs-on: ubuntu-latest
     needs: build
@@ -83,12 +96,12 @@ jobs:
       - name: Download elements test results
         uses: actions/download-artifact@v4
         with:
-          name: coverage-22.14.0-elements
+          name: elements-coverage
           path: packages/elements/coverage
       - name: Download eslint-plugin test results
         uses: actions/download-artifact@v4
         with:
-          name: coverage-22.14.0-eslint-plugin
+          name: eslint-plugin-coverage
           path: packages/eslint-plugin/coverage
       - name: Coveralls for Elements
         uses: coverallsapp/github-action@v2
