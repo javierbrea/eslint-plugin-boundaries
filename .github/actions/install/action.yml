@@ -5,6 +5,10 @@ inputs:
   node-version:
     description: The Node.js version to use
     required: true
+  windows-fix-symlinks:
+    description: Whether to apply Windows-specific PNPM symlink fixes
+    required: false
+    default: 'false'
 
 runs:
   using: composite
@@ -25,6 +29,12 @@ runs:
       with:
         path: node_modules
         key: pnpm-windows-${{ hashFiles('pnpm-lock.yaml') }}
+
+    - name: Fix PNPM symlinks on Windows
+      if: ${{ inputs.windows-fix-symlinks == 'true' }}
+      shell: bash
+      run: |
+        pnpm config set node-linker hoisted
 
     - name: Install Node.js dependencies
       shell: bash
