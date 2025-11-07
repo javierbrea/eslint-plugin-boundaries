@@ -22,43 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - fix: Assign internalPaths correctly when in elements setting the mode is 'file' but the pattern matches folders, not files. Now it returns the correct internalPaths instead of the matched folder name.
 - fix: Assign relationships correctly in dependencies. Now ancestor and nephew relationships are assigned correctly. Previously, all ancestors with a common parent were considered uncles.
 
-> TODO BEFORE RELEASE 6.0.0
->
-> - Publish RFC for storing cache in node_modules/.cache/@boundaries/...
-> - Publish RFC for changing disallow in favor of deny in rule options.
-
-> - Create project in Github. Create issues and tasks based on RFCs, assign tasks to project, and create milestones for releases. Plan each release carefully according to RFCs to avoid breaking changes and remember when to deprecate things.
-
-> - Improve Contributing docs. Explain repository structure, how to create new packages, how to run tests, mutation tests, etc.
-> - Support a `name` property in `additional-dependency-nodes` setting to be able to identify the custom dependency nodes in rules.
-> - Deprecate `disallow` in favor of `deny` in rule options.
-> - Support new types of selectors and descriptors in eslint-plugin-boundaries package: Change schemas, validations, etc.
-> - Add an option to use old or new templates format, because old one also uses `${from.X}` and `${target.X}`, but only for captured values, so it may produce conflicts. (disable passing extra template data to elements package when new format is used)
-> - Deprecate usage of `importKind` at rule level in favor of using it in selectors.
-> - Support `from` and `to` in `element-types` rule.
-> - Eslint-plugin package TypeScript docs comments.
->
-> - Publish beta version 6.0.0-beta.1 with all the changes above
->
-> - Support assigning multiple element types/categories to the same element. Add an option to enable/disable this behavior.
-> - Enable all dependencyNodes by default in `dependency-nodes` setting.
-> - Rename rules according to new naming RFC, make it backwards compatible.
->
-> - Publish version 6.0.0-beta.2 with all the changes above
->
-> - Publish current documentation in website, and publish new docs in next release. Remove documentation from README.md except for basic usage. Change rules docs to point to website.
->
-> - Publish version 6.0.0 with all the changes above
->
-> - Publish RFCs for merging other rules into element-types rule.
->   - External can be handled by adding a new. "external" mode to element descriptors to be able to assign element types to external dependencies also.
->   - Entry-point can be handled by adding a new "internalPath" property to element selectors, so they only match files with a specific internalPath.
->   - No-private can be handled by adding a new "relationship" property to element selectors, so they only match dependencies with a specific relationship (parent, child, sibling, etc.). Or this maybe should be done in "dependency-selectors" (object with "from" and "to" properties) instead of element selectors. There we could add a "relationship" property to the "to" or "from" selectors. This way types would be more strict.
-> - Publish RFC to improve debug system: Trace file being linted, settings being used, resolved elements, dependencies being analyzed, rules failing/passing, etc. Allow to enable only to certain files using patterns. Add setting to enable/disable it. Create RFC for it.
-> - Create task in backlog to add cache limit. Create fs-cache manager. Create RFC for it.
-> - Create task in backlog to migrate messages to @elements package (return human-friendly messages when matching elements and dependencies).
-> - Publish RFC for creating a helper to generate different eslint rules for each element rule, to be able to configure them separately. For example: { "my-rule": [1, {}]}. This will enable to have different severity levels and the possibility to disable certain rules. Create task in backlog for it. It would require to create different plugin instances with different rule configs, but same settings.
-
 ## [5.1.0] - 2025-10-14
 
 ### Added
