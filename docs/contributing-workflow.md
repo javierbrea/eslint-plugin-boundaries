@@ -23,7 +23,9 @@ This guide outlines how we organize work using GitHub Discussions (RFCs), Issues
 Edits or changes to an accepted RFC should be documented in an "Amendment" section within the original RFC discussion. Use the following template for clarity:
 
 ```markdown
-## Amendment [incremental number] (date)
+## Amendments
+
+### Amendment [incremental number] (date)
 
 **What changed:**
 - Old approach: [old description]
@@ -42,7 +44,7 @@ Edits or changes to an accepted RFC should be documented in an "Amendment" secti
 A reference link to the original RFC discussion should be included in the issue body:
 
 ```markdown
-[Link to Discussion](https://github.com/org/repo/discussions/123)
+[From RFC #x](https://github.com/org/repo/discussions/123)
 ```
 
 ---
@@ -54,7 +56,7 @@ A reference link to the original RFC discussion should be included in the issue 
 - Different people could work on different parts
 - Work spans 2+ days total
 
-**How to create:** First create the issue, then click on "relationships" on the right sidebar, and select "Add parent" to link it to the main issue.
+**How to create:** First create the issue, then click on "Create sub-issue" in the issue body. You can also use the  `relationships` sidebar to link issues as parent/child.
 
 ---
 

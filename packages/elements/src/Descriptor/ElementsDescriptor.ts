@@ -238,6 +238,7 @@ export class ElementsDescriptor {
   ): boolean {
     return (
       (!filePath || filePath.includes("node_modules")) &&
+      // Not having a source, and being in node_modules only could happen if user is analyzing a file directly from there, not as a dependency. Should this be considered external then?
       (!dependencySource ||
         this._dependencySourceIsExternalOrScoped(dependencySource))
     );
