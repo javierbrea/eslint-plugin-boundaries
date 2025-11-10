@@ -151,7 +151,7 @@ export default dependencyRule<ExternalRuleOptions>(
       },
     }),
   },
-  function ({ dependency, node, context, options }) {
+  function ({ dependency, node, context, settings, options }) {
     if (
       isExternalDependencyElement(dependency.to) ||
       isCoreDependencyElement(dependency.to)
@@ -170,7 +170,7 @@ export default dependencyRule<ExternalRuleOptions>(
 
       const ruleData = elementRulesAllowDependency(
         dependency,
-        context,
+        settings,
         adaptedRuleOptions
       );
 

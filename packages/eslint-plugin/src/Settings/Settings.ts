@@ -8,11 +8,10 @@ import { isLegacyType } from "./Helpers";
 import { SETTINGS } from "./Settings.types";
 import type { Settings } from "./Settings.types";
 
-const { TYPES, ELEMENTS, VALID_MODES, ROOT_PATH, ENV_ROOT_PATH, DEBUG } =
-  SETTINGS;
+const { VALID_MODES, ROOT_PATH, ENV_ROOT_PATH, DEBUG } = SETTINGS;
 
 // TODO, remove in next major version
-function transformLegacyTypes(
+export function transformLegacyTypes(
   typesFromSettings?: string[] | ElementDescriptors
 ): ElementDescriptors {
   const types = typesFromSettings || [];
@@ -37,20 +36,10 @@ function transformLegacyTypes(
   });
 }
 
-export function getElements(settings: Settings): ElementDescriptors {
-  return transformLegacyTypes(settings[ELEMENTS] || settings[TYPES]);
-}
-
-export function getElementsTypeNames(settings: Settings): string[] {
-  return getElements(settings)
-    .map((element) => element.type)
-    .filter(Boolean) as string[];
-}
-
-export function getElementsCategoryNames(settings: Settings): string[] {
-  return getElements(settings)
-    .map((element) => element.category)
-    .filter(Boolean) as string[];
+export function getElementsTypeNames(
+  descriptors: ElementDescriptors
+): string[] {
+  return descriptors.map((element) => element.type).filter(Boolean) as string[];
 }
 
 export function getRootPath(settings: Settings): string {

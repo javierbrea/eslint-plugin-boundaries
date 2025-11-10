@@ -1,4 +1,4 @@
-import { Elements, isElementDescriptor } from "@boundaries/elements";
+import { Elements } from "@boundaries/elements";
 import type {
   Matcher,
   DependencyDescription,
@@ -9,8 +9,8 @@ import type { Rule } from "eslint";
 import resolve from "eslint-module-utils/resolve";
 import type { Identifier, ImportSpecifier } from "estree";
 
-import { SETTINGS, getElements, getRootPath } from "../Settings";
-import { warnOnce, debugDescription } from "../Support";
+import type { SettingsNormalized } from "../Settings";
+import { debugDescription } from "../Support";
 
 import type { EslintLiteralNode } from "./Elements.types";
 
@@ -21,35 +21,11 @@ const elements = new Elements();
  * @param context The ESLint rule context
  * @returns The elements matcher
  */
-export function getElementsMatcher(context: Rule.RuleContext): Matcher {
-  // NOTE: Filter valid descriptors only to avoid a breaking change for the moment
-
-  const validDescriptors = getElements(context.settings).filter(
-    isElementDescriptor
-  );
-  const invalidDescriptors = getElements(context.settings).filter(
-    (desc) => !isElementDescriptor(desc)
-  );
-  if (invalidDescriptors.length > 0) {
-    /*
-     * TODO: Report invalid descriptors in ESLint context as a warning in a separate rule:
-     * context.report({
-     * message: `Some element descriptors are invalid and will be ignored: ${JSON.stringify(
-     *   invalidDescriptors,
-     * )}`,
-     * loc: { line: 1, column: 0 },
-     * });
-     */
-    warnOnce(
-      `Some element descriptors are invalid and will be ignored: ${JSON.stringify(
-        invalidDescriptors
-      )}`
-    );
-  }
-
-  const elementsMatcher = elements.getMatcher(validDescriptors, {
-    ignorePaths: context.settings[SETTINGS.IGNORE] as string[],
-    includePaths: context.settings[SETTINGS.INCLUDE] as string[],
+export function getElementsMatcher(settings: SettingsNormalized): Matcher {
+  const elementsMatcher = elements.getMatcher(settings.elementDescriptors, {
+    ignorePaths: settings.ignorePaths,
+    includePaths: settings.includePaths,
+    legacyTemplates: settings.legacyTemplates,
   });
   return elementsMatcher;
 }
@@ -118,14 +94,16 @@ export function getSpecifiers(node: Rule.Node): string[] {
 
 /**
  * Returns the description of the current file being linted
- * @param context The ESLint rule context
+ * @param fileName The file name
+ * @param settings The ESLint rule context settings normalized
  * @returns The description of the current file being linted
  */
 export function elementDescription(
-  context: Rule.RuleContext
+  fileName: string,
+  settings: SettingsNormalized
 ): ElementDescription {
-  const matcher = getElementsMatcher(context);
-  const path = projectPath(context.filename, getRootPath(context.settings));
+  const matcher = getElementsMatcher(settings);
+  const path = projectPath(fileName, settings.rootPath);
   const result = matcher.describeElement(path);
   debugDescription(result);
   return result;
@@ -150,15 +128,19 @@ export function dependencyDescription(
     /** The kind of the node generating the dependency */
     nodeKind?: string;
   },
+  /** The file name */
+  fileName: string,
+  /** The ESLint rule context settings normalized */
+  settings: SettingsNormalized,
   /** The ESLint rule context */
   context: Rule.RuleContext
 ): DependencyDescription {
   const source = String(node.value);
-  const matcher = getElementsMatcher(context);
+  const matcher = getElementsMatcher(settings);
 
   const description = matcher.describeDependency({
-    from: projectPath(context.filename, getRootPath(context.settings)),
-    to: projectPath(resolve(source, context), getRootPath(context.settings)),
+    from: projectPath(fileName, settings.rootPath),
+    to: projectPath(resolve(source, context), settings.rootPath),
     source,
     kind: kind || "value", // TODO: Change by runtime in a backwards compatible way
     nodeKind,

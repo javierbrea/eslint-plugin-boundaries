@@ -150,6 +150,7 @@ export const SETTINGS = {
   ROOT_PATH: `${PLUGIN_NAME}/root-path`,
   DEPENDENCY_NODES: `${PLUGIN_NAME}/dependency-nodes`,
   ADDITIONAL_DEPENDENCY_NODES: `${PLUGIN_NAME}/additional-dependency-nodes`,
+  LEGACY_TEMPLATES: `${PLUGIN_NAME}/legacy-templates`,
 
   // env vars
   DEBUG: `${PLUGIN_ENV_VARS_PREFIX}_DEBUG`,
@@ -231,11 +232,17 @@ export const SETTINGS_KEYS_MAP = {
   ROOT_PATH: SETTINGS.ROOT_PATH,
   DEPENDENCY_NODES: SETTINGS.DEPENDENCY_NODES,
   ADDITIONAL_DEPENDENCY_NODES: SETTINGS.ADDITIONAL_DEPENDENCY_NODES,
+  LEGACY_TEMPLATES: SETTINGS.LEGACY_TEMPLATES,
   /** @deprecated Use 'ELEMENTS' instead */
   TYPES: SETTINGS.TYPES,
   /** @deprecated Use import/resolver settings instead */
   ALIAS: SETTINGS.ALIAS,
 } as const;
+
+/**
+ * Default value for the legacy templates setting.
+ */
+export const LEGACY_TEMPLATES_DEFAULT = true as const;
 
 /**
  * Valid keys for the plugin settings.
@@ -304,10 +311,38 @@ export type Settings = {
    * This allows for extending the default dependency nodes with project-specific patterns.
    */
   [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES]?: DependencyNodeSelector[];
+  /**
+   * Whether to enable legacy template syntax support (default: `true`, but it will be `false` in future major releases).
+   * This enables:
+   * - Using `${variable}` syntax in templates for backward compatibility
+   * - Passing captured values from elements to template data at first object level. This might override existing keys in the elements data objects.
+   */
+  [SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]?: boolean;
   /** @deprecated Use "boundaries/elements" setting instead */
   [SETTINGS_KEYS_MAP.TYPES]?: ElementDescriptors;
   /** @deprecated Use "import/resolver" setting instead */
   [SETTINGS_KEYS_MAP.ALIAS]?: AliasSetting;
+};
+
+/**
+ * Normalized settings for the eslint-plugin-boundaries plugin.
+ * All settings have default values applied.
+ */
+export type SettingsNormalized = {
+  /** Element descriptors */
+  elementDescriptors: ElementDescriptors;
+  /** Element type names extracted from the descriptors. Used to validate selectors defined as strings in rules */
+  elementTypeNames: string[];
+  /** List of glob patterns to ignore when analyzing dependencies */
+  ignorePaths: string[] | undefined;
+  /** List of glob patterns to include when analyzing dependencies */
+  includePaths: string[] | undefined;
+  /** Root path of the project */
+  rootPath: string;
+  /** Dependency nodes to consider when analyzing dependencies */
+  dependencyNodes: DependencyNodeSelector[];
+  /** Whether legacy template syntax support is enabled */
+  legacyTemplates: boolean;
 };
 
 /**

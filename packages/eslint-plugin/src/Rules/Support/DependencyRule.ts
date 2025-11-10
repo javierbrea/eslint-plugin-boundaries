@@ -5,18 +5,10 @@ import type { EslintLiteralNode } from "../../Elements";
 import type {
   RuleOptionsWithRules,
   RuleOptions,
-  DependencyNodeKey,
-  DependencyNodeSelector,
   RuleMetaDefinition,
 } from "../../Settings";
-import {
-  SETTINGS,
-  SETTINGS_KEYS_MAP,
-  DEPENDENCY_NODE_KEYS_MAP,
-  validateSettings,
-  validateRules,
-} from "../../Settings";
-import { warnOnce, getArrayOrNull, isString } from "../../Support";
+import { SETTINGS, validateRules, getSettings } from "../../Settings";
+import { warnOnce, isString } from "../../Support";
 
 import type {
   DependencyRuleRunner,
@@ -24,7 +16,7 @@ import type {
 } from "./DependencyRule.types";
 import { meta } from "./Helpers";
 
-const { DEFAULT_DEPENDENCY_NODES, ADDITIONAL_DEPENDENCY_NODES } = SETTINGS;
+const { ADDITIONAL_DEPENDENCY_NODES } = SETTINGS;
 
 function optionsHaveRules(
   options?: RuleOptions
@@ -44,8 +36,8 @@ export function dependencyRule<Options extends RuleOptionsWithRules>(
     ...meta(ruleMeta),
     create: function (context: Rule.RuleContext) {
       const options = context.options[0] as Options | undefined;
-      const settings = validateSettings(context.settings);
-      const file = elementDescription(context);
+      const settings = getSettings(context);
+      const file = elementDescription(context.filename, settings);
 
       if (ruleOptions.validate !== false && !options) {
         return {};
@@ -60,24 +52,7 @@ export function dependencyRule<Options extends RuleOptionsWithRules>(
         return {};
       }
 
-      const dependencyNodesSetting = getArrayOrNull<DependencyNodeKey>(
-        settings[SETTINGS_KEYS_MAP.DEPENDENCY_NODES]
-      );
-      const additionalDependencyNodesSetting =
-        getArrayOrNull<DependencyNodeSelector>(
-          settings[ADDITIONAL_DEPENDENCY_NODES]
-        );
-      const dependencyNodes: DependencyNodeSelector[] =
-        // TODO In next major version, make this default to all types of nodes!!!
-        (dependencyNodesSetting || [DEPENDENCY_NODE_KEYS_MAP.IMPORT])
-          .flatMap((dependencyNode) => [
-            ...DEFAULT_DEPENDENCY_NODES[dependencyNode],
-          ])
-          .filter(Boolean);
-
-      const additionalDependencyNodes = additionalDependencyNodesSetting || [];
-
-      return [...dependencyNodes, ...additionalDependencyNodes].reduce(
+      return settings.dependencyNodes.reduce(
         (visitors, { selector, kind, name }) => {
           visitors[selector] = (node: EslintLiteralNode) => {
             if (!isString(node.value)) {
@@ -92,10 +67,12 @@ export function dependencyRule<Options extends RuleOptionsWithRules>(
                 kind,
                 nodeKind: name,
               },
+              context.filename,
+              settings,
               context
             );
 
-            rule({ dependency, options, node, context });
+            rule({ dependency, options, node, context, settings });
           };
 
           return visitors;

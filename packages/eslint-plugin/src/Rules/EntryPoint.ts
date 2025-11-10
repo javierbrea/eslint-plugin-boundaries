@@ -141,7 +141,7 @@ export default dependencyRule<EntryPointRuleOptions>(
       rulesMainKey: "target",
     }),
   },
-  function ({ dependency, node, context, options }) {
+  function ({ dependency, node, context, settings, options }) {
     if (
       !dependency.to.isIgnored &&
       dependency.to.type &&
@@ -155,7 +155,7 @@ export default dependencyRule<EntryPointRuleOptions>(
 
       const ruleData = elementRulesAllowDependency(
         dependency,
-        context,
+        settings,
         adaptedRuleOptions
       );
       if (!ruleData.result) {

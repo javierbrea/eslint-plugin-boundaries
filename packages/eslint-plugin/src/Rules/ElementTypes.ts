@@ -12,7 +12,6 @@ import type {
   Matcher,
   ElementsSelector,
 } from "@boundaries/elements";
-import type { Rule } from "eslint";
 import micromatch from "micromatch";
 
 import { getElementsMatcher } from "../Elements";
@@ -22,7 +21,11 @@ import {
   elementMessage,
   dependencyImportKindMessage,
 } from "../Messages";
-import type { ElementTypesRuleOptions, RuleResult } from "../Settings";
+import type {
+  ElementTypesRuleOptions,
+  RuleResult,
+  SettingsNormalized,
+} from "../Settings";
 import {
   PLUGIN_NAME,
   PLUGIN_ISSUES_URL,
@@ -361,11 +364,11 @@ function getReportPath(
 
 export function elementRulesAllowDependency(
   dependency: DependencyDescription,
-  context: Rule.RuleContext,
+  settings: SettingsNormalized,
   ruleOptions: ElementTypesRuleOptions = {}
 ): RuleResult {
   const defaultIsAllowed = ruleOptions.default === "allow";
-  const matcher = getElementsMatcher(context);
+  const matcher = getElementsMatcher(settings);
   const rulesResults = getRulesResults(ruleOptions, dependency, matcher);
 
   const { isAllowed, ruleIndexMatching } = determineRuleResult(rulesResults);
@@ -429,7 +432,7 @@ export default dependencyRule<ElementTypesRuleOptions>(
     description: `Check allowed dependencies between element types`,
     schema: rulesOptionsSchema(),
   },
-  function ({ dependency, node, context, options }) {
+  function ({ dependency, node, context, settings, options }) {
     // TODO: Remove these checks when allowing to use more selectors in ESLint rules
     if (
       isLocalElement(dependency.to) &&
@@ -439,7 +442,7 @@ export default dependencyRule<ElementTypesRuleOptions>(
     ) {
       const ruleData = elementRulesAllowDependency(
         dependency,
-        context,
+        settings,
         options
       );
       if (!ruleData.result) {

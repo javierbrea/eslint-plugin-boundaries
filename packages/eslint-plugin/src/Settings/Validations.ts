@@ -8,15 +8,31 @@ import type {
   ElementDescriptor,
   ElementDescriptorMode,
 } from "@boundaries/elements";
+import { isElementDescriptor } from "@boundaries/elements";
 import type { Rule } from "eslint";
 import micromatch from "micromatch";
 
-import { isArray, isString, isObject } from "../Support/Common";
+import {
+  isArray,
+  isString,
+  isObject,
+  isBoolean,
+  getArrayOrNull,
+} from "../Support/Common";
 import { warnOnce } from "../Support/Debug";
 
 import { isDependencyNodeKey, isLegacyType, rulesMainKey } from "./Helpers";
-import { getElementsTypeNames, getElementsCategoryNames } from "./Settings";
-import { SETTINGS, SETTINGS_KEYS_MAP } from "./Settings.types";
+import {
+  getElementsTypeNames,
+  getRootPath,
+  transformLegacyTypes,
+} from "./Settings";
+import {
+  SETTINGS,
+  SETTINGS_KEYS_MAP,
+  LEGACY_TEMPLATES_DEFAULT,
+  DEPENDENCY_NODE_KEYS_MAP,
+} from "./Settings.types";
 import type {
   DependencyNodeKey,
   DependencyNodeSelector,
@@ -26,6 +42,7 @@ import type {
   RuleMainKey,
   ValidateRulesOptions,
   RuleOptionsRules,
+  SettingsNormalized,
 } from "./Settings.types";
 
 const {
@@ -141,30 +158,23 @@ export function rulesOptionsSchema(
 
 function isValidElementTypesMatcher(
   matcher: ElementSelector | ExternalLibrarySelector,
-  settings: Settings
+  settings: SettingsNormalized
 ) {
   const matcherToCheck = isArray(matcher) ? matcher[0] : matcher;
   const typeMatcherToCheck = isString(matcherToCheck)
     ? matcherToCheck
     : matcherToCheck.type;
-  const categoryMatcherToCheck = isString(matcherToCheck)
-    ? null
-    : matcherToCheck.category;
   return (
     !matcher ||
     (typeMatcherToCheck &&
-      micromatch.some(getElementsTypeNames(settings), typeMatcherToCheck)) ||
-    (categoryMatcherToCheck &&
-      micromatch.some(
-        getElementsCategoryNames(settings),
-        categoryMatcherToCheck
-      ))
+      micromatch.some(settings.elementTypeNames, typeMatcherToCheck))
   );
 }
 
+// TODO: Remove this validation. Selectors should not be limited to element types defined in settings when using selector objects
 export function validateElementTypesMatcher(
   elementsMatcher: ElementsSelector | ExternalLibrariesSelector,
-  settings: Settings
+  settings: SettingsNormalized
 ) {
   const [matcher] = isArray(elementsMatcher)
     ? elementsMatcher
@@ -214,6 +224,28 @@ function validateDependencyNodes(
   }
 
   return dependencyNodes.filter(isDependencyNodeKey);
+}
+
+/**
+ * Validates the legacyTemplates setting.
+ * @param legacyTemplates The legacyTemplates setting value
+ * @returns The validated legacyTemplates value or undefined
+ */
+function validateLegacyTemplates(
+  /** The legacyTemplates setting value */
+  legacyTemplates: unknown
+): boolean | undefined {
+  if (legacyTemplates === undefined) {
+    return;
+  }
+  if (isBoolean(legacyTemplates)) {
+    return legacyTemplates;
+  }
+  warnOnce(
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting. The value should be a boolean.`
+  );
+  // Value is invalid, return undefined
+  return;
 }
 
 function isValidDependencyNodeSelector(
@@ -328,13 +360,85 @@ export function validateSettings(
     [SETTINGS_KEYS_MAP.DEPENDENCY_NODES]: validateDependencyNodes(
       settings[DEPENDENCY_NODES] as DependencyNodeKey[] | undefined
     ),
+    [SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]: validateLegacyTemplates(
+      settings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]
+    ),
     [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES]:
       validateAdditionalDependencyNodes(settings[ADDITIONAL_DEPENDENCY_NODES]),
   };
 }
+/**
+ * Returns the normalized settings from the ESLint rule context
+ * @param context The ESLint rule context
+ * @returns The normalized settings
+ */
+export function getSettings(context: Rule.RuleContext): SettingsNormalized {
+  const validatedSettings = validateSettings(context.settings);
+
+  const dependencyNodesSetting = getArrayOrNull<DependencyNodeKey>(
+    validatedSettings[SETTINGS_KEYS_MAP.DEPENDENCY_NODES]
+  );
+  const additionalDependencyNodesSetting =
+    getArrayOrNull<DependencyNodeSelector>(
+      validatedSettings[ADDITIONAL_DEPENDENCY_NODES]
+    );
+  const dependencyNodes: DependencyNodeSelector[] =
+    // TODO In next major version, make this default to all types of nodes!!!
+    (dependencyNodesSetting || [DEPENDENCY_NODE_KEYS_MAP.IMPORT])
+      .flatMap((dependencyNode) => [
+        ...DEFAULT_DEPENDENCY_NODES[dependencyNode],
+      ])
+      .filter(Boolean);
+
+  const additionalDependencyNodes = additionalDependencyNodesSetting || [];
+
+  const ignoreSetting = validatedSettings[SETTINGS_KEYS_MAP.IGNORE];
+  const ignorePaths = isString(ignoreSetting) ? [ignoreSetting] : ignoreSetting;
+
+  const includeSetting = validatedSettings[SETTINGS_KEYS_MAP.INCLUDE];
+  const includePaths = isString(includeSetting)
+    ? [includeSetting]
+    : includeSetting;
+
+  const descriptors = transformLegacyTypes(validatedSettings[ELEMENTS]);
+
+  // NOTE: Filter valid descriptors only to avoid a breaking change for the moment
+  const validDescriptors = descriptors.filter(isElementDescriptor);
+  const invalidDescriptors = descriptors.filter(
+    (desc) => !isElementDescriptor(desc)
+  );
+  if (invalidDescriptors.length > 0) {
+    /*
+     * TODO: Report invalid descriptors in ESLint context as a warning in a separate rule:
+     * context.report({
+     * message: `Some element descriptors are invalid and will be ignored: ${JSON.stringify(
+     *   invalidDescriptors,
+     * )}`,
+     * loc: { line: 1, column: 0 },
+     * });
+     */
+    warnOnce(
+      `Some element descriptors are invalid and will be ignored: ${JSON.stringify(
+        invalidDescriptors
+      )}`
+    );
+  }
+
+  return {
+    elementDescriptors: validDescriptors,
+    elementTypeNames: getElementsTypeNames(validDescriptors),
+    ignorePaths,
+    includePaths,
+    rootPath: getRootPath(validatedSettings),
+    dependencyNodes: [...dependencyNodes, ...additionalDependencyNodes],
+    legacyTemplates:
+      validatedSettings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES] ??
+      LEGACY_TEMPLATES_DEFAULT,
+  };
+}
 
 export function validateRules(
-  settings: Settings,
+  settings: SettingsNormalized,
   rules: RuleOptionsRules[] = [],
   options: ValidateRulesOptions = {}
 ) {
@@ -356,7 +460,7 @@ export function validateRules(
 export function isValidElementAssigner(
   element: unknown
 ): element is ElementDescriptor {
-  if (!element || !isObject(element)) {
+  if (!element) {
     warnOnce(
       `Please provide a valid object to define element types in '${ELEMENTS}' setting`
     );
