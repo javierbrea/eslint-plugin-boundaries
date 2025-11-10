@@ -12,7 +12,7 @@ import NoUnknownRule from "./Rules/NoUnknown";
 import NoUnknownFilesRule from "./Rules/NoUnknownFiles";
 import { RULE_SHORT_NAMES_MAP } from "./Settings";
 import type { PluginBoundaries } from "./Settings";
-import { warn } from "./Support";
+// import { warn } from "./Support";
 
 export * from "./Public";
 
@@ -26,11 +26,12 @@ const packageJsonPath = join(__dirname, "..", "package.json");
  */
 const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
 
-if (packageJson.name !== "@boundaries/eslint-plugin") {
+// TODO: Enable this warning in the next major release
+/* if (packageJson.name !== "@boundaries/eslint-plugin") {
   warn(
     `⚠️  The "eslint-plugin-boundaries" package has been renamed to "@boundaries/eslint-plugin". Please install the new package, as this one will soon no longer receive updates`
   );
-}
+} */
 
 const RULES = {
   [RULE_SHORT_NAMES_MAP.ENTRY_POINT]: EntryPointRule,
