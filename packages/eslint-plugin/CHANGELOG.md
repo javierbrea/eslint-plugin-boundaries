@@ -11,11 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
-## Unreleased
+## [5.2.0] - 2025-11-10
+
+### Added
+
+- feat: Start supporting new template data and syntax, as described in [#370](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/370). Not added to the documentation yet, as it is still in beta.
+- feat: Add setting `legacy-templates` to enable/disable the old template data and syntax. By default, it is enabled for backward compatibility. Not added to the documentation yet, as the new template data and syntax is still in beta.
+- feat: Avoid validating and processing settings in every file or node analysis. Implemented cache to improve performance.
+- feat([#371](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/371)): Publish eslint-plugin both to @boundaries/eslint-plugin and eslint-plugin-boundaries package names.
 
 ### Changed
 
 - feat: Add empty schema to rules without options to validate them correctly.
+- refactor([#371](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/371)): Extract element descriptors and matching logic to a separate module to improve code organization, readability and reusability.
 
 ### Fixed
 
