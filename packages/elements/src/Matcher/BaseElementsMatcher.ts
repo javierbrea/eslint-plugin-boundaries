@@ -1,7 +1,7 @@
 import Handlebars from "handlebars";
 import micromatch from "micromatch";
 
-import type { MicromatchPattern } from "../Config";
+import type { MicromatchPattern, ConfigOptionsNormalized } from "../Config";
 import type {
   LocalElementKnown,
   CoreDependencyElement,
@@ -93,6 +93,16 @@ export function normalizeElementsSelector(
  * Base matcher class to determine if elements or dependencies match a given selector.
  */
 export class BaseElementsMatcher {
+  protected readonly _legacyTemplates: boolean;
+
+  /**
+   * Creates a new BaseElementsMatcher.
+   * @param config Configuration options for the matcher.
+   */
+  constructor(config: ConfigOptionsNormalized) {
+    this._legacyTemplates = config.legacyTemplates;
+  }
+
   /**
    * Converts a template with ${} to Handlebars {{}} templates for backwards compatibility.
    * @param template The template to convert.
@@ -112,9 +122,10 @@ export class BaseElementsMatcher {
     template: string,
     templateData: TemplateData
   ): string {
-    return Handlebars.compile(this._getBackwardsCompatibleTemplate(template))(
-      templateData
-    );
+    const templateToUse = this._legacyTemplates
+      ? this._getBackwardsCompatibleTemplate(template)
+      : template;
+    return Handlebars.compile(templateToUse)(templateData);
   }
 
   /**

@@ -127,6 +127,7 @@ const elements = new Elements({
 
 - **`ignorePaths`**: Micromatch pattern(s) to exclude certain paths from element matching (default: none)
 - **`includePaths`**: Micromatch pattern(s) to include only specific paths (default: all paths)
+- **`legacyTemplates`**: Whether to enable legacy template syntax support (default: `true`, but it will be `false` in future releases). This allows using `${variable}` syntax in templates for backward compatibility.
 
 ### Creating a Matcher
 

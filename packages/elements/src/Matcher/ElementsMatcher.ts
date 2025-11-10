@@ -1,6 +1,7 @@
 import micromatch from "micromatch";
 
 import { CacheManager } from "../Cache";
+import type { ConfigOptionsNormalized } from "../Config";
 import type { ElementDescription } from "../Descriptor";
 import { isArray, isNullish } from "../Support";
 
@@ -38,8 +39,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
   /**
    * Creates a new ElementsSelectorMatcher.
    */
-  constructor() {
-    super();
+  constructor(config: ConfigOptionsNormalized) {
+    super(config);
     this._cache = new CacheManager();
   }
 

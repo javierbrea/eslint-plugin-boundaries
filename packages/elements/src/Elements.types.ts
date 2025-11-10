@@ -1,4 +1,4 @@
-import type { ConfigOptions } from "./Config";
+import type { ConfigOptionsNormalized } from "./Config";
 import type { ElementDescriptors } from "./Descriptor";
 import type {
   DependenciesMatcherSerializedCache,
@@ -14,7 +14,7 @@ export type ElementsSerializedCache = {
   matchers: Record<
     string,
     {
-      config: ConfigOptions;
+      config: ConfigOptionsNormalized;
       elementDescriptors: ElementDescriptors;
       cache: MatcherSerializedCache;
     }

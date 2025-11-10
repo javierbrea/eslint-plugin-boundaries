@@ -1,4 +1,4 @@
-import type { ConfigOptions } from "../Config";
+import type { ConfigOptionsNormalized } from "../Config";
 import type {
   ElementDescriptors,
   DescribeDependencyOptions,
@@ -35,12 +35,18 @@ export class Matcher {
   /**
    * Constructor for the Matcher class.
    * @param descriptors Element descriptors to use for matching.
-   * @param config Optional configuration options.
+   * @param config Configuration options.
    */
-  constructor(descriptors: ElementDescriptors, config?: ConfigOptions) {
+  constructor(
+    descriptors: ElementDescriptors,
+    config: ConfigOptionsNormalized
+  ) {
     this._descriptors = new Descriptors(descriptors, config);
-    this._elementsMatcher = new ElementsMatcher();
-    this._dependenciesMatcher = new DependenciesMatcher(this._elementsMatcher);
+    this._elementsMatcher = new ElementsMatcher(config);
+    this._dependenciesMatcher = new DependenciesMatcher(
+      this._elementsMatcher,
+      config
+    );
   }
 
   /**

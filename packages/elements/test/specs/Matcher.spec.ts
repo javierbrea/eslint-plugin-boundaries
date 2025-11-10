@@ -457,6 +457,57 @@ describe("Matcher", () => {
       expect(result).toBe(true);
     });
 
+    it("should match using legacy string selector with template", () => {
+      const result = matcher.isMatch(
+        "/project/src/components/Button.tsx",
+        "{{ element.type }}"
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it("should match using legacy string selector with legacy template", () => {
+      const result = matcher.isMatch(
+        "/project/src/components/Button.tsx",
+        "${ element.type }"
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it("should not match using legacy template with legacyTemplates disabled", () => {
+      matcher = elements.getMatcher(
+        [
+          {
+            type: "component",
+            category: "react",
+            pattern: "src/components/*.tsx",
+            mode: "file",
+            capture: ["fileName"],
+          },
+        ],
+        {
+          includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],
+          ignorePaths: ["**/src/**/__tests__/**"],
+          legacyTemplates: false,
+        }
+      );
+
+      const result = matcher.isMatch(
+        "/project/src/components/Button.tsx",
+        "${ element.type }"
+      );
+
+      expect(result).toBe(false);
+
+      const newTemplateResult = matcher.isMatch(
+        "/project/src/components/Button.tsx",
+        "{{ element.type }}"
+      );
+
+      expect(newTemplateResult).toBe(true);
+    });
+
     it("should match using legacy string selectors", () => {
       const result = matcher.isMatch("/project/src/components/Button.tsx", [
         "component",

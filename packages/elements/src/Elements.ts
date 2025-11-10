@@ -1,5 +1,5 @@
 import { CacheManager } from "./Cache";
-import type { ConfigOptions } from "./Config";
+import type { ConfigOptions, ConfigOptionsNormalized } from "./Config";
 import { Config } from "./Config";
 import type { ElementDescriptors } from "./Descriptor";
 import type { ElementsSerializedCache } from "./Elements.types";
@@ -11,13 +11,13 @@ import { DependenciesMatcher, ElementsMatcher, Matcher } from "./Matcher";
  */
 export class Elements {
   /** The global configuration options for Elements. Can be overridden when getting a descriptor */
-  private readonly _globalConfigOptions: ConfigOptions;
+  private readonly _globalConfigOptions: ConfigOptionsNormalized;
 
   /** Cache manager for Matcher instances, unique for each different configuration */
   private readonly _matchersCache: CacheManager<
-    { config: ConfigOptions; elementDescriptors: ElementDescriptors },
+    { config: ConfigOptionsNormalized; elementDescriptors: ElementDescriptors },
     {
-      config: ConfigOptions;
+      config: ConfigOptionsNormalized;
       elementDescriptors: ElementDescriptors;
       matcher: Matcher;
     }
@@ -34,9 +34,13 @@ export class Elements {
    * @param configOptions The global configuration options for Elements. Can be overridden when getting a descriptor.
    */
   constructor(configOptions?: ConfigOptions) {
-    this._globalConfigOptions = configOptions ? { ...configOptions } : {};
-    this._elementsMatcher = new ElementsMatcher();
-    this._dependenciesMatcher = new DependenciesMatcher(this._elementsMatcher);
+    const globalConfig = new Config(configOptions);
+    this._globalConfigOptions = globalConfig.options;
+    this._elementsMatcher = new ElementsMatcher(this._globalConfigOptions);
+    this._dependenciesMatcher = new DependenciesMatcher(
+      this._elementsMatcher,
+      this._globalConfigOptions
+    );
   }
 
   /**

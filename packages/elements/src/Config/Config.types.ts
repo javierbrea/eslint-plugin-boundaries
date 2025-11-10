@@ -9,4 +9,14 @@ export type ConfigOptions = {
   includePaths?: MicromatchPattern;
   /** An array of path patterns to ignore when resolving elements */
   ignorePaths?: MicromatchPattern;
+  /**
+   * Whether to enable legacy template support (default: true)
+   * When enabled, it supports using "${...}" syntax in templates.
+   **/
+  legacyTemplates?: boolean;
+};
+
+export type ConfigOptionsNormalized = Omit<ConfigOptions, "legacyTemplates"> & {
+  /** Whether to enable legacy template support */
+  legacyTemplates: boolean;
 };

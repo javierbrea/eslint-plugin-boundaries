@@ -1,4 +1,5 @@
 import { CacheManager } from "../Cache";
+import type { ConfigOptionsNormalized } from "../Config";
 import type {
   DependencyDescription,
   DependencyRelationship,
@@ -52,8 +53,11 @@ export class DependenciesMatcher extends BaseElementsMatcher {
   /**
    * Creates a new DependenciesMatcher.
    */
-  constructor(elementsMatcher: ElementsMatcher) {
-    super();
+  constructor(
+    elementsMatcher: ElementsMatcher,
+    config: ConfigOptionsNormalized
+  ) {
+    super(config);
     this._cache = new CacheManager();
     this._elementsMatcher = elementsMatcher;
   }
