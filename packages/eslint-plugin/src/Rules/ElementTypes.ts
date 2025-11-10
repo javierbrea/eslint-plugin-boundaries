@@ -129,7 +129,8 @@ function createRuleMatchContext(
 function evaluatePolicyMatches(
   rule: Record<string, unknown>,
   context: RuleMatchContext,
-  isMatch: ReturnType<typeof createSafeMatcherFunction>
+  isMatch: ReturnType<typeof createSafeMatcherFunction>,
+  settings: SettingsNormalized
 ): { disallowPolicyMatches: PolicyMatch; allowPolicyMatches: PolicyMatch } {
   const {
     targetElementDirection,
@@ -146,7 +147,7 @@ function evaluatePolicyMatches(
           [targetElementDirection]: targetElementSelector,
           [policyElementDirection]: rule[denyKeyToUse],
         },
-        capturedValuesTemplateData,
+        settings.legacyTemplates ? capturedValuesTemplateData : {},
         dependencySelectorsGlobals
       )
     : { isMatch: false };
@@ -158,7 +159,7 @@ function evaluatePolicyMatches(
             [targetElementDirection]: targetElementSelector,
             [policyElementDirection]: rule.allow,
           },
-          capturedValuesTemplateData,
+          settings.legacyTemplates ? capturedValuesTemplateData : {},
           dependencySelectorsGlobals
         )
       : { isMatch: false };
@@ -212,7 +213,8 @@ function createRuleSelectorsData(
 export function getRulesResults(
   ruleOptions: ElementTypesRuleOptions,
   dependencyDescription: DependencyDescription,
-  matcher: Matcher
+  matcher: Matcher,
+  settings: SettingsNormalized
 ) {
   if (!ruleOptions.rules) {
     return [];
@@ -225,7 +227,8 @@ export function getRulesResults(
     const { disallowPolicyMatches, allowPolicyMatches } = evaluatePolicyMatches(
       rule,
       context,
-      isMatch
+      isMatch,
+      settings
     );
     const selectorsMatching = createRuleSelectorsData(
       rule,
@@ -369,7 +372,12 @@ export function elementRulesAllowDependency(
 ): RuleResult {
   const defaultIsAllowed = ruleOptions.default === "allow";
   const matcher = getElementsMatcher(settings);
-  const rulesResults = getRulesResults(ruleOptions, dependency, matcher);
+  const rulesResults = getRulesResults(
+    ruleOptions,
+    dependency,
+    matcher,
+    settings
+  );
 
   const { isAllowed, ruleIndexMatching } = determineRuleResult(rulesResults);
   const finalIsAllowed =

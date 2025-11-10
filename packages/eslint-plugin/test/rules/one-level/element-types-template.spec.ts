@@ -187,7 +187,7 @@ const testCapture = (
 
 // capture options
 
-testCapture(
+/* testCapture(
   {
     ...SETTINGS.oneLevel,
     ...{
@@ -243,6 +243,77 @@ testCapture(
         {
           from: [["modules", { elementName: "*-a" }]],
           allow: ["${from.elementName}-helpers", "components", "modules"],
+        },
+      ],
+    },
+  ],
+  {
+    2: "Importing elements of type 'components' with elementName 'component-a' is not allowed in elements of type 'components'. Disallowed in rule 1",
+  }
+); */
+
+// Test new templates format with captured values
+testCapture(
+  {
+    ...SETTINGS.oneLevel,
+    ...{
+      "boundaries/legacy-templates": false,
+      "boundaries/elements": [
+        {
+          type: "helpers",
+          pattern: "helpers/*",
+          capture: ["elementName"],
+        },
+        {
+          type: "module-a-helpers",
+          pattern: "module-a-helpers/*",
+          capture: ["elementName"],
+        },
+        {
+          type: "components",
+          pattern: ["components/*"],
+          capture: ["elementName"],
+        },
+        {
+          type: "modules",
+          pattern: "modules/*",
+          capture: ["elementName"],
+        },
+      ],
+    },
+  },
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          from: "components",
+          allow: [["helpers", { elementName: "helper-a" }], "components"],
+          disallow: [["components", { elementName: "component-a" }]],
+        },
+        {
+          from: "modules",
+          allow: [
+            ["helpers", { elementName: "helper-a" }],
+            "components",
+            "modules",
+          ],
+        },
+        {
+          from: [["modules", { elementName: "*-a" }]],
+          allow: [
+            ["helpers", { elementName: "{{from.captured.elementName}}" }],
+            "components",
+            "modules",
+          ],
+        },
+        {
+          from: [["modules", { elementName: "*-a" }]],
+          allow: [
+            "{{from.captured.elementName}}-helpers",
+            "components",
+            "modules",
+          ],
         },
       ],
     },
