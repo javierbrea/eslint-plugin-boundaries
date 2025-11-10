@@ -40,7 +40,7 @@ In short, the contributing workflow is as follows:
 4. Add to Project & Assign to Milestone
 5. Contributors Pick Up Tasks
 
-Read the full details in the [contributing workflow guide](../docs/contributing-workflow.md)
+Read the full details in the [contributing workflow guide](../docs/contributing-workflow.md).
 
 # Package Tasks
 
