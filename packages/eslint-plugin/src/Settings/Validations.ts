@@ -8,7 +8,7 @@ import type {
   ElementDescriptor,
   ElementDescriptorMode,
 } from "@boundaries/elements";
-import { isElementDescriptor } from "@boundaries/elements";
+import { isElementDescriptor, CacheManager } from "@boundaries/elements";
 import type { Rule } from "eslint";
 import micromatch from "micromatch";
 
@@ -55,6 +55,11 @@ const {
   DEFAULT_DEPENDENCY_NODES,
   VALID_MODES,
 } = SETTINGS;
+
+const settingsCache = new CacheManager<
+  Rule.RuleContext["settings"],
+  SettingsNormalized
+>();
 
 const invalidMatchers: (ElementSelector | ExternalLibrarySelector)[] = [];
 
@@ -373,6 +378,9 @@ export function validateSettings(
  * @returns The normalized settings
  */
 export function getSettings(context: Rule.RuleContext): SettingsNormalized {
+  if (settingsCache.has(context.settings)) {
+    return settingsCache.get(context.settings)!;
+  }
   const validatedSettings = validateSettings(context.settings);
 
   const dependencyNodesSetting = getArrayOrNull<DependencyNodeKey>(
@@ -424,7 +432,7 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
     );
   }
 
-  return {
+  const result: SettingsNormalized = {
     elementDescriptors: validDescriptors,
     elementTypeNames: getElementsTypeNames(validDescriptors),
     ignorePaths,
@@ -435,6 +443,9 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
       validatedSettings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES] ??
       LEGACY_TEMPLATES_DEFAULT,
   };
+
+  settingsCache.set(context.settings, result);
+  return result;
 }
 
 export function validateRules(
