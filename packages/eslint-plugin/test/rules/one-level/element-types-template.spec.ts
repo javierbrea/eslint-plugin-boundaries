@@ -187,7 +187,7 @@ const testCapture = (
 
 // capture options
 
-/* testCapture(
+testCapture(
   {
     ...SETTINGS.oneLevel,
     ...{
@@ -250,7 +250,7 @@ const testCapture = (
   {
     2: "Importing elements of type 'components' with elementName 'component-a' is not allowed in elements of type 'components'. Disallowed in rule 1",
   }
-); */
+);
 
 // Test new templates format with captured values
 testCapture(
@@ -303,6 +303,15 @@ testCapture(
           from: [["modules", { elementName: "*-a" }]],
           allow: [
             ["helpers", { elementName: "{{from.captured.elementName}}" }],
+            "components",
+            "modules",
+          ],
+        },
+        // Now disallow, but using legacy format. As it is disabled, this should no affect the results
+        {
+          from: [["modules", { elementName: "*-a" }]],
+          disallow: [
+            ["helpers", { elementName: "${from.captured.elementName}" }],
             "components",
             "modules",
           ],

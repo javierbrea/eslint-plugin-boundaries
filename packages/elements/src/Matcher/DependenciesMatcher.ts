@@ -462,9 +462,11 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     );
     // Add `to` and `from` data to the template when checking elements in dependencies
     const templateData: TemplateData = {
+      ...extraTemplateData,
       from: {
         ...dependency.from,
         relationship: dependency.dependency.relationship.from,
+        ...(extraTemplateData.from || {}),
       },
       to: {
         ...dependency.to,
@@ -472,8 +474,8 @@ export class DependenciesMatcher extends BaseElementsMatcher {
         kind: dependency.dependency.kind,
         nodeKind: dependency.dependency.nodeKind,
         specifiers: dependency.dependency.specifiers,
+        ...(extraTemplateData.to || {}),
       },
-      ...extraTemplateData,
     };
 
     const result = this._getSelectorMatching(
