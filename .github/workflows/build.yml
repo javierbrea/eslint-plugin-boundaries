@@ -4,7 +4,7 @@ on:
     branches:
       - master
       - release
-      - refactor/modularization
+      - release-v5.2.0
   pull_request:
 
 concurrency:  
