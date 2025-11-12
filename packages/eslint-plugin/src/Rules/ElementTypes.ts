@@ -11,6 +11,7 @@ import type {
   MatcherOptionsDependencySelectorsGlobals,
   Matcher,
   ElementsSelector,
+  DependencyMatchResult,
 } from "@boundaries/elements";
 import micromatch from "micromatch";
 
@@ -64,7 +65,7 @@ function createSafeMatcherFunction(
     dependencySelector: DependencySelector,
     extraTemplateData: TemplateData,
     dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals
-  ): PolicyMatch => {
+  ): DependencyMatchResult => {
     // Just in case selectors are invalid, we catch errors here to avoid breaking the whole rule evaluation
     try {
       return matcher.getSelectorMatchingDescription(
@@ -76,8 +77,10 @@ function createSafeMatcherFunction(
         }
       );
     } catch (error) {
-      warnOnce(`Error occurred while matching dependency: ${String(error)}`);
-      return { isMatch: false };
+      warnOnce(
+        `Error occurred while matching dependency with selector ${JSON.stringify(dependencySelector)}: ${String(error)}`
+      );
+      return { isMatch: false, from: null, to: null };
     }
   };
 }
@@ -382,6 +385,14 @@ export function elementRulesAllowDependency(
   const { isAllowed, ruleIndexMatching } = determineRuleResult(rulesResults);
   const finalIsAllowed =
     ruleIndexMatching === null ? defaultIsAllowed : isAllowed;
+
+  if (finalIsAllowed) {
+    return {
+      result: finalIsAllowed,
+      ruleReport: null,
+      report: null,
+    };
+  }
 
   const message = getRuleMessage(ruleIndexMatching, ruleOptions);
   const ruleReport = createRuleReport(

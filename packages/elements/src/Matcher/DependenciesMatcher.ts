@@ -399,30 +399,30 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     toSelector: DependencyElementSelectorData[],
     templateData: TemplateData
   ): boolean {
-    return toSelector.some((selectorData) => {
-      return (
-        this._relationshipMatches(
-          selectorData,
-          dependency.dependency.relationship.to,
-          templateData
-        ) &&
-        this._kindMatches(
-          selectorData,
-          dependency.dependency.kind,
-          templateData
-        ) &&
-        this._nodeKindMatches(
-          selectorData,
-          dependency.dependency.nodeKind,
-          templateData
-        ) &&
-        this._specifierMatches(
-          selectorData,
-          dependency.dependency.specifiers,
-          templateData
-        )
-      );
-    });
+    // Extract dependency properties once to avoid repeated property access
+    const dependencyInfo = dependency.dependency;
+    const relationshipTo = dependencyInfo.relationship.to;
+    const kind = dependencyInfo.kind;
+    const nodeKind = dependencyInfo.nodeKind;
+    const specifiers = dependencyInfo.specifiers;
+
+    // Use a traditional for loop for better performance and early exit
+    for (let i = 0; i < toSelector.length; i++) {
+      const selectorData = toSelector[i];
+
+      // Order checks by likelihood of failure (most restrictive first)
+      // and use short-circuit evaluation for performance
+      if (
+        this._kindMatches(selectorData, kind, templateData) &&
+        this._nodeKindMatches(selectorData, nodeKind, templateData) &&
+        this._relationshipMatches(selectorData, relationshipTo, templateData) &&
+        this._specifierMatches(selectorData, specifiers, templateData)
+      ) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -440,26 +440,21 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       dependencySelectorsGlobals = {},
     }: MatcherOptions = {}
   ): DependencyMatchResult {
-    if (
-      this._cache.has({
-        dependency,
-        selector,
-        extraTemplateData,
-        dependencySelectorsGlobals,
-      })
-    ) {
-      return this._cache.get({
-        dependency,
-        selector,
-        extraTemplateData,
-        dependencySelectorsGlobals,
-      })!;
+    const cacheKey = this._cache.getHashedKey({
+      dependency,
+      selector,
+      extraTemplateData,
+      dependencySelectorsGlobals,
+    });
+    if (this._cache.hasByKey(cacheKey)) {
+      return this._cache.getByKey(cacheKey)!;
     }
 
     const normalizedSelector = this._normalizeDependencySelector(
       selector,
       dependencySelectorsGlobals
     );
+
     // Add `to` and `from` data to the template when checking elements in dependencies
     const templateData: TemplateData = {
       ...extraTemplateData,
@@ -484,15 +479,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       templateData
     );
 
-    this._cache.set(
-      {
-        dependency,
-        selector,
-        extraTemplateData,
-        dependencySelectorsGlobals,
-      },
-      result
-    );
+    this._cache.setByKey(cacheKey, result);
     return result;
   }
 

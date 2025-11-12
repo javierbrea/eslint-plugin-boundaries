@@ -2,6 +2,7 @@ import {
   isExternalDependencyElement,
   isCoreDependencyElement,
   ELEMENT_ORIGINS_MAP,
+  CacheManager,
 } from "@boundaries/elements";
 import type {
   DependencyDescription,
@@ -31,6 +32,11 @@ import { elementRulesAllowDependency } from "./ElementTypes";
 import { dependencyRule } from "./Support";
 
 const { RULE_EXTERNAL } = SETTINGS;
+
+const modifiedRuleOptionsCache = new CacheManager<
+  ExternalRuleOptions,
+  ExternalRuleOptions
+>();
 
 function getErrorReportMessage(report: RuleResultReport) {
   if (report.path) {
@@ -156,17 +162,25 @@ export default dependencyRule<ExternalRuleOptions>(
       isExternalDependencyElement(dependency.to) ||
       isCoreDependencyElement(dependency.to)
     ) {
-      const adaptedRuleOptions = {
-        ...options,
-        rules:
-          options && options.rules
-            ? options.rules.map((rule) => ({
-                ...rule,
-                allow: rule.allow && modifySelectors(rule.allow),
-                disallow: rule.disallow && modifySelectors(rule.disallow),
-              }))
-            : [],
-      };
+      let adaptedRuleOptions: ExternalRuleOptions;
+      const cacheKey = modifiedRuleOptionsCache.getHashedKey(options || {});
+      if (modifiedRuleOptionsCache.hasByKey(cacheKey)) {
+        adaptedRuleOptions = modifiedRuleOptionsCache.getByKey(cacheKey)!;
+      } else {
+        adaptedRuleOptions = {
+          ...options,
+          // @ts-expect-error TODO: Fix type
+          rules:
+            options && options.rules
+              ? options.rules.map((rule) => ({
+                  ...rule,
+                  allow: rule.allow && modifySelectors(rule.allow),
+                  disallow: rule.disallow && modifySelectors(rule.disallow),
+                }))
+              : [],
+        };
+        modifiedRuleOptionsCache.setByKey(cacheKey, adaptedRuleOptions);
+      }
 
       const ruleData = elementRulesAllowDependency(
         dependency,

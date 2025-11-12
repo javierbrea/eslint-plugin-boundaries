@@ -95,7 +95,6 @@ describe("elementsSelectorHelpers", () => {
     });
 
     it("should return false for arrays with incorrect length", () => {
-      expect(isElementSelectorWithLegacyOptions(["component"])).toBe(false);
       expect(
         isElementSelectorWithLegacyOptions(["component", {}, "extra"])
       ).toBe(false);
@@ -166,10 +165,13 @@ describe("elementsSelectorHelpers", () => {
       expect(isElementSelector(elementSelectorWithOptions)).toBe(true);
     });
 
+    it("should return true for element selectors without options", () => {
+      expect(isElementSelector(["component"])).toBe(true);
+    });
+
     it("should return false for invalid element selectors", () => {
       expect(isElementSelector(123)).toBe(false);
       expect(isElementSelector({})).toBe(false);
-      expect(isElementSelector(["component"])).toBe(false);
       expect(isElementSelector(null)).toBe(false);
       expect(isElementSelector(undefined)).toBe(false);
     });

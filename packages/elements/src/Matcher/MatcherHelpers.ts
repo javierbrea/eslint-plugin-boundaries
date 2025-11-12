@@ -103,10 +103,12 @@ export function isElementSelectorWithLegacyOptions(
 ): value is ElementSelectorWithOptions {
   return (
     isArray(value) &&
-    value.length === 2 &&
-    isSimpleElementSelectorByType(value[0]) &&
-    // NOTE: Arrays of length 2 with captured values selector as second element having a key "type" or "category" will be treated as legacy options instead of two different selectors. We have to live with this limitation for now.
-    isCapturedValuesSelector(value[1])
+    ((value.length === 2 &&
+      isSimpleElementSelectorByType(value[0]) &&
+      // NOTE: Arrays of length 2 with captured values selector as second element having a key "type" or "category" will be treated as legacy options instead of two different selectors. We have to live with this limitation for now.
+      isCapturedValuesSelector(value[1])) ||
+      // NOTE: Backwards compatibility: Allow arrays of length 1 with simple element selector. Some users might defined arrays without options.
+      (value.length === 1 && isSimpleElementSelectorByType(value[0])))
   );
 }
 

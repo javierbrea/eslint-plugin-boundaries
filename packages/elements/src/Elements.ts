@@ -123,14 +123,17 @@ export class Elements {
     const configInstance = new Config(optionsToUse);
     const normalizedOptions = configInstance.options;
 
-    const cacheKey = { config: normalizedOptions, elementDescriptors };
+    const cacheKey = this._matchersCache.getHashedKey({
+      config: normalizedOptions,
+      elementDescriptors,
+    });
 
-    if (this._matchersCache.has(cacheKey)) {
-      return this._matchersCache.get(cacheKey)!.matcher;
+    if (this._matchersCache.hasByKey(cacheKey)) {
+      return this._matchersCache.getByKey(cacheKey)!.matcher;
     }
 
     const matcher = new Matcher(elementDescriptors, normalizedOptions);
-    this._matchersCache.set(cacheKey, {
+    this._matchersCache.setByKey(cacheKey, {
       config: normalizedOptions,
       elementDescriptors,
       matcher,

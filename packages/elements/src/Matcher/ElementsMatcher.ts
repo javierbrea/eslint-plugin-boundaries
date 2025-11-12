@@ -3,14 +3,13 @@ import micromatch from "micromatch";
 import { CacheManager } from "../Cache";
 import type { ConfigOptionsNormalized } from "../Config";
 import type { ElementDescription } from "../Descriptor";
-import { isArray, isNullish } from "../Support";
+import { isArray, isNullish, isEmptyObject } from "../Support";
 
 import {
   BaseElementsMatcher,
   normalizeElementsSelector,
 } from "./BaseElementsMatcher";
 import type {
-  ElementsSelector,
   BaseElementSelectorData,
   SelectableElement,
   TemplateData,
@@ -30,11 +29,24 @@ export class ElementsMatcher extends BaseElementsMatcher {
   private readonly _cache: CacheManager<
     {
       element: ElementDescription;
-      selector: ElementsSelector;
+      selector: BaseElementSelectorData[];
       extraTemplateData: TemplateData;
     },
     ElementSelectorData | null
   >;
+
+  /**
+   * Cache for rendered templates to avoid repeated Handlebars compilation.
+   */
+  private readonly _templateCache: Map<string, string> = new Map();
+
+  /**
+   * Cache for normalized selectors to avoid repeated normalizations.
+   */
+  private readonly _normalizedSelectorCache: Map<
+    BaseElementsSelector,
+    BaseElementSelectorData[]
+  > = new Map();
 
   /**
    * Creates a new ElementsSelectorMatcher.
@@ -67,6 +79,26 @@ export class ElementsMatcher extends BaseElementsMatcher {
    */
   public clearCache(): void {
     this._cache.clear();
+    this._templateCache.clear();
+    this._normalizedSelectorCache.clear();
+    this.clearBaseCaches(); // Clear base class caches too
+  }
+
+  /**
+   * Optimized selector normalization with caching.
+   * @param selector The selector to normalize.
+   * @returns The normalized selector data array.
+   */
+  private _cachedNormalizeElementsSelector(
+    selector: BaseElementsSelector
+  ): BaseElementSelectorData[] {
+    if (this._normalizedSelectorCache.has(selector)) {
+      return this._normalizedSelectorCache.get(selector)!;
+    }
+
+    const result = normalizeElementsSelector(selector);
+    this._normalizedSelectorCache.set(selector, result);
+    return result;
   }
 
   /**
@@ -257,28 +289,39 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementSelectorData,
     templateData: TemplateData
   ): boolean {
-    if (!selector.captured) {
+    if (!selector.captured || isEmptyObject(selector.captured)) {
       return true;
     }
     if (!element.captured) {
       return false;
     }
-    return Object.entries(selector.captured).every(([key, pattern]) => {
+
+    // Use for...of with early return for better performance than every()
+    for (const [key, pattern] of Object.entries(selector.captured)) {
       const elementValue = element.captured?.[key];
       if (!elementValue) {
         return false;
       }
+
       const renderedPattern = this.getRenderedTemplates(pattern, templateData);
       // Empty selector values do not match anything.
       if (!renderedPattern) {
         return false;
       }
+
       // Clean empty strings from arrays to avoid matching them.
       const filteredPattern = isArray(renderedPattern)
         ? renderedPattern.filter(Boolean)
         : renderedPattern;
-      return micromatch.isMatch(elementValue, filteredPattern);
-    });
+
+      const isMatch = micromatch.isMatch(elementValue, filteredPattern);
+
+      if (!isMatch) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -326,32 +369,35 @@ export class ElementsMatcher extends BaseElementsMatcher {
    */
   private _getSelectorMatching(
     element: SelectableElement,
-    selector: BaseElementsSelector,
+    selectorsData: BaseElementSelectorData[],
     extraTemplateData: TemplateData
   ): ElementSelectorData | null {
-    const selectorsData = normalizeElementsSelector(selector);
-
     const templateData: TemplateData = {
       element,
       ...extraTemplateData,
     };
-
+    // Optimized loop with early exits for better performance
     for (const selectorData of selectorsData) {
-      const isMatch =
-        this._isTypeMatch(element, selectorData, templateData) &&
-        this._isCategoryMatch(element, selectorData, templateData) &&
-        this._isCapturedValuesMatch(element, selectorData, templateData) &&
-        this._isPathMatch(element, selectorData, templateData) &&
-        this._isElementPathMatch(element, selectorData, templateData) &&
-        this._isInternalPathMatch(element, selectorData, templateData) &&
-        this._isOriginMatch(element, selectorData, templateData) &&
-        this._isSourceMatch(element, selectorData, templateData) &&
-        this._isBaseSourceMatch(element, selectorData, templateData) &&
-        this._isIgnoredMatch(element, selectorData) &&
-        this._isUnknownMatch(element, selectorData);
-      if (isMatch) {
-        return selectorData;
+      // Order checks by likelihood of failing for better short-circuiting
+      // Most restrictive checks first to fail fast
+      if (
+        !this._isTypeMatch(element, selectorData, templateData) ||
+        !this._isCategoryMatch(element, selectorData, templateData) ||
+        !this._isOriginMatch(element, selectorData, templateData) ||
+        !this._isIgnoredMatch(element, selectorData) ||
+        !this._isUnknownMatch(element, selectorData) ||
+        !this._isPathMatch(element, selectorData, templateData) ||
+        !this._isElementPathMatch(element, selectorData, templateData) ||
+        !this._isInternalPathMatch(element, selectorData, templateData) ||
+        !this._isSourceMatch(element, selectorData, templateData) ||
+        !this._isBaseSourceMatch(element, selectorData, templateData) ||
+        !this._isCapturedValuesMatch(element, selectorData, templateData)
+      ) {
+        continue; // Early exit on first failed condition
       }
+
+      // All conditions passed, return the matching selector
+      return selectorData;
     }
 
     return null;
@@ -370,34 +416,23 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementsSelector,
     { extraTemplateData = {} }: MatcherOptions = {}
   ): ElementSelectorData | null {
-    if (
-      this._cache.has({
-        element,
-        selector,
-        extraTemplateData,
-      })
-    ) {
-      return this._cache.get({
-        element,
-        selector,
-        extraTemplateData,
-      })!;
+    const selectorsData = this._cachedNormalizeElementsSelector(selector);
+    const cacheKey = this._cache.getHashedKey({
+      element,
+      selector: selectorsData,
+      extraTemplateData,
+    });
+    if (this._cache.hasByKey(cacheKey)) {
+      return this._cache.getByKey(cacheKey)!;
     }
 
     const result = this._getSelectorMatching(
       element,
-      selector,
+      selectorsData,
       extraTemplateData
     );
 
-    this._cache.set(
-      {
-        element,
-        selector,
-        extraTemplateData,
-      },
-      result
-    );
+    this._cache.setByKey(cacheKey, result);
     return result;
   }
 

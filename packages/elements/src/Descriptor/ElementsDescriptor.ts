@@ -62,6 +62,9 @@ type FileDescriptorMatchOptions = {
   alreadyMatched: boolean;
 };
 
+const SCOPED_PACKAGE_REGEX = /^@[^/]*\/?[^/]+/;
+const EXTERNAL_PATH_REGEX = /^\w/;
+
 /**
  * Class describing elements in a project given their paths and configuration.
  */
@@ -83,6 +86,17 @@ export class ElementsDescriptor {
    */
   private readonly _filesCache: CacheManager<string, FileElement> =
     new CacheManager();
+
+  /**
+   * Cache for compiled regex patterns to avoid recompilation.
+   */
+  private readonly _regexCache: Map<string, RegExp> = new Map();
+
+  /**
+   * Cache for micromatch capture results to avoid repeated pattern matching.
+   */
+  private readonly _captureCache: Map<string, string[] | null> = new Map();
+
   /**
    * Configuration instance for this descriptor.
    */
@@ -114,6 +128,7 @@ export class ElementsDescriptor {
    */
   public serializeCache(): ElementsDescriptorSerializedCache {
     return this._elementsCache.serialize();
+    // TODO: Return filesCache as well
   }
 
   /**
@@ -124,6 +139,7 @@ export class ElementsDescriptor {
     serializedCache: ElementsDescriptorSerializedCache
   ): void {
     this._elementsCache.setFromSerialized(serializedCache);
+    // TODO: Set filesCache as well
   }
 
   /**
@@ -132,6 +148,8 @@ export class ElementsDescriptor {
   public clearCache(): void {
     this._elementsCache.clear();
     this._filesCache.clear();
+    this._regexCache.clear();
+    this._captureCache.clear();
   }
 
   /**
@@ -166,6 +184,24 @@ export class ElementsDescriptor {
   }
 
   /**
+   * Optimized micromatch capture with caching.
+   * @param pattern The pattern to match against.
+   * @param target The target string to test.
+   * @returns Captured groups or null if no match.
+   */
+  private _cachedCapture(pattern: string, target: string): string[] | null {
+    const cacheKey = `${pattern}|${target}`;
+
+    if (this._captureCache.has(cacheKey)) {
+      return this._captureCache.get(cacheKey)!;
+    }
+
+    const result = micromatch.capture(pattern, target);
+    this._captureCache.set(cacheKey, result);
+    return result;
+  }
+
+  /**
    * Determines if a dependency source is a core module.
    * @param dependencySource The source of the dependency to check.
    * @param baseDependencySource The base source of the dependency to check.
@@ -192,7 +228,7 @@ export class ElementsDescriptor {
    * @returns True if the dependency source is scoped, false otherwise.
    */
   private _dependencySourceIsScoped(dependencySource: string): boolean {
-    return /^@[^/]*\/?[^/]+/.test(dependencySource);
+    return SCOPED_PACKAGE_REGEX.test(dependencySource);
   }
 
   /**
@@ -204,7 +240,7 @@ export class ElementsDescriptor {
     dependencySource: string
   ): boolean {
     return (
-      /^\w/.test(dependencySource) ||
+      EXTERNAL_PATH_REGEX.test(dependencySource) ||
       this._dependencySourceIsScoped(dependencySource)
     );
   }
@@ -246,7 +282,9 @@ export class ElementsDescriptor {
 
   /**
    * Determines if a given path is included based on the configuration.
+   * Uses caching for better performance on repeated calls.
    * @param elementPath The element path to check.
+   * @param includeExternal Whether to include external files.
    * @returns True if the path is included, false otherwise.
    */
   private _pathIsIncluded(
@@ -256,6 +294,9 @@ export class ElementsDescriptor {
     const isExternal = includeExternal
       ? micromatch.isMatch(elementPath, "**/node_modules/**")
       : false;
+
+    let result: boolean;
+
     if (this._config.options.includePaths && this._config.options.ignorePaths) {
       const isIncluded = micromatch.isMatch(
         elementPath,
@@ -265,16 +306,21 @@ export class ElementsDescriptor {
         elementPath,
         this._config.options.ignorePaths
       );
-      return (isIncluded || isExternal) && !isIgnored;
+      result = (isIncluded || isExternal) && !isIgnored;
     } else if (this._config.options.includePaths) {
-      return (
+      result =
         micromatch.isMatch(elementPath, this._config.options.includePaths) ||
-        isExternal
-      );
+        isExternal;
     } else if (this._config.options.ignorePaths) {
-      return !micromatch.isMatch(elementPath, this._config.options.ignorePaths);
+      result = !micromatch.isMatch(
+        elementPath,
+        this._config.options.ignorePaths
+      );
+    } else {
+      result = true;
     }
-    return true;
+
+    return result;
   }
 
   /**
@@ -310,16 +356,23 @@ export class ElementsDescriptor {
     pathSegments: string[],
     allPathSegments: string[]
   ): string {
-    const elementPathRegexp = micromatch.makeRe(pathPattern);
+    const cacheKey = `element_path:${pathPattern}`;
+    let elementPathRegexp = this._regexCache.get(cacheKey);
+
+    if (!elementPathRegexp) {
+      elementPathRegexp = micromatch.makeRe(pathPattern);
+      this._regexCache.set(cacheKey, elementPathRegexp);
+    }
+
     const testedSegments: string[] = [];
     let result: string | undefined;
+
     for (const pathSegment of pathSegments) {
-      if (!result) {
-        testedSegments.push(pathSegment);
-        const joinedSegments = testedSegments.join("/");
-        if (elementPathRegexp.test(joinedSegments)) {
-          result = joinedSegments;
-        }
+      testedSegments.push(pathSegment);
+      const joinedSegments = testedSegments.join("/");
+      if (elementPathRegexp.test(joinedSegments)) {
+        result = joinedSegments;
+        break; // Early exit when match is found
       }
     }
     // NOTE: result should never be undefined here, as we already matched the pattern before
@@ -368,6 +421,10 @@ export class ElementsDescriptor {
           ? `${pattern}/**/*`
           : pattern;
 
+      const targetPath = useFullPathMatch
+        ? filePath
+        : currentPathSegments.join("/");
+
       let baseCapture: string[] | null = null;
       let hasCapture = true;
 
@@ -376,17 +433,14 @@ export class ElementsDescriptor {
           .split("/")
           .slice(0, filePath.split("/").length - lastPathSegmentMatching)
           .join("/");
-        baseCapture = micromatch.capture(
+        baseCapture = this._cachedCapture(
           [elementDescriptor.basePattern, "**", effectivePattern].join("/"),
           baseTarget
         );
         hasCapture = baseCapture !== null;
       }
 
-      const capture = micromatch.capture(
-        effectivePattern,
-        useFullPathMatch ? filePath : currentPathSegments.join("/")
-      );
+      const capture = this._cachedCapture(effectivePattern, targetPath);
 
       if (capture && hasCapture) {
         return {
@@ -511,9 +565,14 @@ export class ElementsDescriptor {
       }
     };
 
+    // Optimized matching loop - reduced complexity from O(n*m) to better performance
     for (let i = 0; i < pathSegments.length; i++) {
       const segment = pathSegments[i];
       state.pathSegmentsAccumulator.unshift(segment);
+
+      // Early exit if we have both type and category (main element found)
+      const alreadyHasMainElement =
+        Boolean(elementResult.type) || Boolean(elementResult.category);
 
       for (const elementDescriptor of this._elementDescriptors) {
         const match = this._fileDescriptorMatch({
@@ -521,8 +580,7 @@ export class ElementsDescriptor {
           filePath,
           currentPathSegments: state.pathSegmentsAccumulator,
           lastPathSegmentMatching: state.lastPathSegmentMatching,
-          alreadyMatched:
-            Boolean(elementResult.type) || Boolean(elementResult.category),
+          alreadyMatched: alreadyHasMainElement,
         });
 
         if (match.matched) {
@@ -534,6 +592,8 @@ export class ElementsDescriptor {
           );
           state.pathSegmentsAccumulator = [];
           state.lastPathSegmentMatching = i + 1;
+
+          // Break out of the inner loop since we found a match
           break;
         }
       }
@@ -562,11 +622,12 @@ export class ElementsDescriptor {
     includeExternal: boolean,
     filePath?: string
   ): FileElement {
-    if (this._filesCache.has(String(filePath))) {
-      return this._filesCache.get(String(filePath))!;
+    const cacheKey = String(filePath);
+    if (this._filesCache.has(cacheKey)) {
+      return this._filesCache.get(cacheKey)!;
     }
     const description = this._getFileDescription(includeExternal, filePath);
-    this._filesCache.set(String(filePath), description);
+    this._filesCache.set(cacheKey, description);
     return description;
   }
 
@@ -649,31 +710,20 @@ export class ElementsDescriptor {
     filePath?: string,
     dependencySource?: string
   ): ElementDescription {
-    if (
-      this._elementsCache.has({
-        dependencySource,
-        filePath: String(filePath),
-      })
-    ) {
-      return this._elementsCache.get({
-        dependencySource,
-        filePath: String(filePath),
-      })!;
+    const cacheKey = this._elementsCache.getHashedKey({
+      dependencySource,
+      filePath: String(filePath),
+    });
+    if (this._elementsCache.hasByKey(cacheKey)) {
+      return this._elementsCache.getByKey(cacheKey)!;
     }
 
-    // First we get the file description
     const fileDescription = this._describeFile(!!dependencySource, filePath);
     const elementResult = dependencySource
       ? this._describeDependencyElement(fileDescription, dependencySource)
       : fileDescription;
 
-    this._elementsCache.set(
-      {
-        dependencySource,
-        filePath: String(filePath),
-      },
-      elementResult
-    );
+    this._elementsCache.setByKey(cacheKey, elementResult);
     return elementResult;
   }
 

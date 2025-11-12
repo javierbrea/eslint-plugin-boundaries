@@ -60,7 +60,7 @@ function normalizeSelector(selector: ElementSelector): ElementSelectorData {
   if (isElementSelectorWithLegacyOptions(selector)) {
     return {
       type: selector[0],
-      captured: { ...selector[1] },
+      captured: selector[1] ? { ...selector[1] } : undefined,
     };
   }
   throw new Error("Invalid element selector");
@@ -96,11 +96,32 @@ export class BaseElementsMatcher {
   protected readonly _legacyTemplates: boolean;
 
   /**
+   * Cache for compiled Handlebars templates to avoid recompilation.
+   */
+  private readonly _compiledTemplateCache: Map<
+    string,
+    (data: TemplateData) => string
+  > = new Map();
+
+  /**
+   * Cache for micromatch.isMatch results to improve performance.
+   */
+  private readonly _micromatchMatchCache: Map<string, boolean> = new Map();
+
+  /**
    * Creates a new BaseElementsMatcher.
    * @param config Configuration options for the matcher.
    */
   constructor(config: ConfigOptionsNormalized) {
     this._legacyTemplates = config.legacyTemplates;
+  }
+
+  /**
+   * Clears all internal caches.
+   */
+  protected clearBaseCaches(): void {
+    this._compiledTemplateCache.clear();
+    this._micromatchMatchCache.clear();
   }
 
   /**
@@ -114,8 +135,9 @@ export class BaseElementsMatcher {
 
   /**
    * Returns a rendered template using the provided template data.
+   * Optimized version with template caching for better performance.
    * @param template The template to render.
-   * @param extraTemplateData The data to use for replace in the template.
+   * @param templateData The data to use for replace in the template.
    * @returns The rendered template.
    */
   private _getRenderedTemplate(
@@ -125,7 +147,14 @@ export class BaseElementsMatcher {
     const templateToUse = this._legacyTemplates
       ? this._getBackwardsCompatibleTemplate(template)
       : template;
-    return Handlebars.compile(templateToUse)(templateData);
+
+    let compiledTemplate = this._compiledTemplateCache.get(templateToUse);
+    if (!compiledTemplate) {
+      compiledTemplate = Handlebars.compile(templateToUse);
+      this._compiledTemplateCache.set(templateToUse, compiledTemplate);
+    }
+
+    return compiledTemplate(templateData);
   }
 
   /**
@@ -148,6 +177,7 @@ export class BaseElementsMatcher {
 
   /**
    * Returns whether the given value matches the micromatch pattern, converting non-string values to strings.
+   * Optimized version with caching for better performance.
    * @param value The value to check.
    * @param pattern The micromatch pattern to match against.
    * @returns Whether the value matches the pattern.

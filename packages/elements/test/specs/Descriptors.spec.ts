@@ -85,6 +85,21 @@ describe("Descriptors", () => {
       expect(isElementDescription(element)).toBe(true);
     });
 
+    it("should return same result for same path in describeElement and describeDependencyElement except for source", () => {
+      const element1 = matcher.describeElement(
+        "/project/foo/utils/testUtil.ts"
+      );
+      const element2 = matcher.describeDependencyElement(
+        "foo",
+        "/project/foo/utils/testUtil.ts"
+      );
+
+      expect({ ...element1, source: undefined }).toEqual({
+        ...element2,
+        source: undefined,
+      });
+    });
+
     it("should exclude files when only ignorePaths is provided", () => {
       const otherDescriptors = elements.getMatcher(
         [

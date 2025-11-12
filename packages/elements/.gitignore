@@ -32,3 +32,6 @@ stryker.conf.local.js
 
 # build output
 dist
+
+# Performance testing
+link.sh

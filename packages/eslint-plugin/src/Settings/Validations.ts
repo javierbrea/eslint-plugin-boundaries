@@ -60,6 +60,14 @@ const settingsCache = new CacheManager<
   Rule.RuleContext["settings"],
   SettingsNormalized
 >();
+const ruleValidationsCache = new CacheManager<
+  {
+    settings: SettingsNormalized;
+    rules: RuleOptionsRules[];
+    options: ValidateRulesOptions;
+  },
+  void
+>();
 
 const invalidMatchers: (ElementSelector | ExternalLibrarySelector)[] = [];
 
@@ -170,7 +178,7 @@ function isValidElementTypesMatcher(
     ? matcherToCheck
     : matcherToCheck.type;
   return (
-    !matcher ||
+    !typeMatcherToCheck ||
     (typeMatcherToCheck &&
       micromatch.some(settings.elementTypeNames, typeMatcherToCheck))
   );
@@ -192,6 +200,65 @@ export function validateElementTypesMatcher(
     warnOnce(
       `Option '${matcher}' does not match any element type from '${ELEMENTS}' setting`
     );
+  }
+}
+
+export function isValidElementAssigner(
+  element: unknown
+): element is ElementDescriptor {
+  if (!element) {
+    warnOnce(
+      `Please provide a valid object to define element types in '${ELEMENTS}' setting`
+    );
+    return false;
+  }
+  if (isLegacyType(element)) {
+    warnOnce(
+      `Defining elements as strings in settings is deprecated. Will be automatically converted, but this feature will be removed in next major versions`
+    );
+    return true;
+  } else {
+    const isObjectElement = isObject(element);
+    if (!isObjectElement) {
+      warnOnce(
+        `Please provide a valid object to define element types in '${ELEMENTS}' setting`
+      );
+      return false;
+    }
+    if (!element.type || !isString(element.type)) {
+      warnOnce(`Please provide type in '${ELEMENTS}' setting`);
+      return false;
+    }
+    if (
+      element.mode &&
+      isString(element.mode) &&
+      !VALID_MODES.includes(element.mode as ElementDescriptorMode)
+    ) {
+      warnOnce(
+        `Invalid mode property of type ${
+          element.type
+        } in '${ELEMENTS}' setting. Should be one of ${VALID_MODES.join(
+          ","
+        )}. Default value "${VALID_MODES[0]}" will be used instead`
+      );
+      return false;
+    }
+    if (
+      !element.pattern ||
+      !(isString(element.pattern) || isArray(element.pattern))
+    ) {
+      warnOnce(
+        `Please provide a valid pattern to type ${element.type} in '${ELEMENTS}' setting`
+      );
+      return false;
+    }
+    if (element.capture && !isArray(element.capture)) {
+      warnOnce(
+        `Invalid capture property of type ${element.type} in '${ELEMENTS}' setting`
+      );
+      return false;
+    }
+    return true;
   }
 }
 
@@ -378,8 +445,9 @@ export function validateSettings(
  * @returns The normalized settings
  */
 export function getSettings(context: Rule.RuleContext): SettingsNormalized {
-  if (settingsCache.has(context.settings)) {
-    return settingsCache.get(context.settings)!;
+  const cacheKey = settingsCache.getHashedKey(context.settings);
+  if (settingsCache.hasByKey(cacheKey)) {
+    return settingsCache.getByKey(cacheKey)!;
   }
   const validatedSettings = validateSettings(context.settings);
 
@@ -444,7 +512,7 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
       LEGACY_TEMPLATES_DEFAULT,
   };
 
-  settingsCache.set(context.settings, result);
+  settingsCache.setByKey(cacheKey, result);
   return result;
 }
 
@@ -453,6 +521,15 @@ export function validateRules(
   rules: RuleOptionsRules[] = [],
   options: ValidateRulesOptions = {}
 ) {
+  const cacheKey = ruleValidationsCache.getHashedKey({
+    settings,
+    rules,
+    options,
+  });
+  if (ruleValidationsCache.hasByKey(cacheKey)) {
+    return;
+  }
+  ruleValidationsCache.setByKey(cacheKey, undefined);
   const mainKey = rulesMainKey(options.mainKey);
   for (const rule of rules) {
     //@ts-expect-error TODO: Add a different schema validation for each rule type, so keys are properly validated
@@ -465,64 +542,5 @@ export function validateRules(
         validateElementTypesMatcher(rule.disallow, settings);
       }
     }
-  }
-}
-
-export function isValidElementAssigner(
-  element: unknown
-): element is ElementDescriptor {
-  if (!element) {
-    warnOnce(
-      `Please provide a valid object to define element types in '${ELEMENTS}' setting`
-    );
-    return false;
-  }
-  if (isLegacyType(element)) {
-    warnOnce(
-      `Defining elements as strings in settings is deprecated. Will be automatically converted, but this feature will be removed in next major versions`
-    );
-    return true;
-  } else {
-    const isObjectElement = isObject(element);
-    if (!isObjectElement) {
-      warnOnce(
-        `Please provide a valid object to define element types in '${ELEMENTS}' setting`
-      );
-      return false;
-    }
-    if (!element.type || !isString(element.type)) {
-      warnOnce(`Please provide type in '${ELEMENTS}' setting`);
-      return false;
-    }
-    if (
-      element.mode &&
-      isString(element.mode) &&
-      !VALID_MODES.includes(element.mode as ElementDescriptorMode)
-    ) {
-      warnOnce(
-        `Invalid mode property of type ${
-          element.type
-        } in '${ELEMENTS}' setting. Should be one of ${VALID_MODES.join(
-          ","
-        )}. Default value "${VALID_MODES[0]}" will be used instead`
-      );
-      return false;
-    }
-    if (
-      !element.pattern ||
-      !(isString(element.pattern) || isArray(element.pattern))
-    ) {
-      warnOnce(
-        `Please provide a valid pattern to type ${element.type} in '${ELEMENTS}' setting`
-      );
-      return false;
-    }
-    if (element.capture && !isArray(element.capture)) {
-      warnOnce(
-        `Invalid capture property of type ${element.type} in '${ELEMENTS}' setting`
-      );
-      return false;
-    }
-    return true;
   }
 }
