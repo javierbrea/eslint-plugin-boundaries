@@ -7,10 +7,7 @@ import type {
 } from "../Descriptor";
 import { isNullish } from "../Support";
 
-import {
-  BaseElementsMatcher,
-  normalizeElementsSelector,
-} from "./BaseElementsMatcher";
+import { BaseElementsMatcher } from "./BaseElementsMatcher";
 import type { ElementsMatcher } from "./ElementsMatcher";
 import type {
   BaseElementSelector,
@@ -28,6 +25,7 @@ import {
   isBaseElementSelectorData,
   isDependencySelector,
 } from "./MatcherHelpers";
+import type { Micromatch } from "./Micromatch";
 
 /**
  * Matcher class to determine if dependencies match a given dependencies selector.
@@ -55,14 +53,16 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * Creates a new DependenciesMatcher.
    * @param elementsMatcher Elements matcher to use for matching elements within dependencies.
    * @param config Configuration options for the matcher.
+   * @param micromatch Micromatch instance for matching.
    * @param globalCache Global cache instance.
    */
   constructor(
     elementsMatcher: ElementsMatcher,
     config: MatchersOptionsNormalized,
+    micromatch: Micromatch,
     globalCache: GlobalCache
   ) {
-    super(config, globalCache);
+    super(config, micromatch, globalCache);
     this._cache = new CacheManager();
     this._elementsMatcher = elementsMatcher;
   }
@@ -101,12 +101,11 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     selector: DependencySelector,
     dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals
   ): DependencySelectorNormalized {
-    // TODO: Implement caching
     if (!isDependencySelector(selector)) {
       throw new Error("Invalid dependency selector");
     }
     let normalizedDependencySelectors = selector.to
-      ? normalizeElementsSelector(selector.to)
+      ? this.normalizeElementsSelector(selector.to)
       : null;
 
     if (normalizedDependencySelectors) {
@@ -121,7 +120,9 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     }
 
     return {
-      from: selector.from ? normalizeElementsSelector(selector.from) : null,
+      from: selector.from
+        ? this.normalizeElementsSelector(selector.from)
+        : null,
       to: normalizedDependencySelectors,
     };
   }
@@ -446,14 +447,14 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       dependencySelectorsGlobals = {},
     }: MatcherOptions = {}
   ): DependencyMatchResult {
-    const cacheKey = this._cache.getHashedKey({
+    const cacheKey = this._cache.getKey({
       dependency,
       selector,
       extraTemplateData,
       dependencySelectorsGlobals,
     });
-    if (this._cache.hasByKey(cacheKey)) {
-      return this._cache.getByKey(cacheKey)!;
+    if (this._cache.has(cacheKey)) {
+      return this._cache.get(cacheKey)!;
     }
 
     const normalizedSelector = this._normalizeDependencySelector(
@@ -485,7 +486,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       templateData
     );
 
-    this._cache.setByKey(cacheKey, result);
+    this._cache.set(cacheKey, result);
     return result;
   }
 

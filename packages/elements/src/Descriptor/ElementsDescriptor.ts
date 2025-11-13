@@ -1,18 +1,16 @@
 import type Mod from "node:module";
 
 import isCoreModule from "is-core-module";
-import micromatch from "micromatch";
 
-import type { GlobalCache } from "../Cache";
 import { CacheManager } from "../Cache";
 import type { DescriptorOptionsNormalized } from "../Config";
+import type { Micromatch } from "../Matcher";
 import { isArray, isNullish } from "../Support";
 
 import type {
   ElementDescription,
   ElementDescriptor,
   ElementDescriptors,
-  ElementsDescriptorSerializedCache,
   LocalElementKnown,
   CapturedValues,
   LocalDependencyElement,
@@ -21,6 +19,7 @@ import type {
   LocalElementUnknown,
   CoreDependencyElement,
   DependencyElementDescription,
+  ElementsDescriptorSerializedCache,
 } from "./ElementsDescriptor.types";
 import {
   ELEMENT_DESCRIPTOR_MODES_MAP,
@@ -73,7 +72,7 @@ export class ElementsDescriptor {
   /**
    * Cache to store previously described elements.
    */
-  private readonly _elementsCache: CacheManager<
+  private readonly _descriptionsCache: CacheManager<
     {
       dependencySource?: string;
       filePath: string;
@@ -97,21 +96,22 @@ export class ElementsDescriptor {
    */
   private readonly _elementDescriptors: ElementDescriptors;
 
-  /** Global cache for various caching needs */
-  private _globalCache: GlobalCache;
+  /** Micromatch instance for path matching */
+  private _micromatch: Micromatch;
 
   /**
    * The configuration options for this descriptor.
    * @param elementDescriptors The element descriptors.
    * @param configOptions The configuration options.
    * @param globalCache The global cache for various caching needs.
+   * @param micromatch The micromatch instance for path matching.
    */
   constructor(
     elementDescriptors: ElementDescriptors,
     configOptions: DescriptorOptionsNormalized,
-    globalCache: GlobalCache
+    micromatch: Micromatch
   ) {
-    this._globalCache = globalCache;
+    this._micromatch = micromatch;
     this._elementDescriptors = elementDescriptors;
     this._validateDescriptors(elementDescriptors);
     this._config = configOptions;
@@ -123,8 +123,10 @@ export class ElementsDescriptor {
    * @returns The serialized elements cache.
    */
   public serializeCache(): ElementsDescriptorSerializedCache {
-    return this._elementsCache.serialize();
-    // TODO: Return filesCache as well
+    return {
+      descriptions: this._descriptionsCache.serialize(),
+      files: this._filesCache.serialize(),
+    };
   }
 
   /**
@@ -134,15 +136,15 @@ export class ElementsDescriptor {
   public setCacheFromSerialized(
     serializedCache: ElementsDescriptorSerializedCache
   ): void {
-    this._elementsCache.setFromSerialized(serializedCache);
-    // TODO: Set filesCache as well
+    this._descriptionsCache.setFromSerialized(serializedCache.descriptions);
+    this._filesCache.setFromSerialized(serializedCache.files);
   }
 
   /**
    * Clears the elements cache.
    */
   public clearCache(): void {
-    this._elementsCache.clear();
+    this._descriptionsCache.clear();
     this._filesCache.clear();
   }
 
@@ -175,24 +177,6 @@ export class ElementsDescriptor {
       }
       index++;
     }
-  }
-
-  /**
-   * Optimized micromatch capture with caching.
-   * @param pattern The pattern to match against.
-   * @param target The target string to test.
-   * @returns Captured groups or null if no match.
-   */
-  private _cachedCapture(pattern: string, target: string): string[] | null {
-    const cacheKey = `${pattern}|${target}`;
-
-    if (this._globalCache.micromatchCaptures.has(cacheKey)) {
-      return this._globalCache.micromatchCaptures.get(cacheKey)!;
-    }
-
-    const result = micromatch.capture(pattern, target);
-    this._globalCache.micromatchCaptures.set(cacheKey, result);
-    return result;
   }
 
   /**
@@ -286,27 +270,27 @@ export class ElementsDescriptor {
     includeExternal: boolean
   ): boolean {
     const isExternal = includeExternal
-      ? micromatch.isMatch(elementPath, "**/node_modules/**")
+      ? this._micromatch.isMatch(elementPath, "**/node_modules/**")
       : false;
 
     let result: boolean;
 
     if (this._config.includePaths && this._config.ignorePaths) {
-      const isIncluded = micromatch.isMatch(
+      const isIncluded = this._micromatch.isMatch(
         elementPath,
         this._config.includePaths
       );
-      const isIgnored = micromatch.isMatch(
+      const isIgnored = this._micromatch.isMatch(
         elementPath,
         this._config.ignorePaths
       );
       result = (isIncluded || isExternal) && !isIgnored;
     } else if (this._config.includePaths) {
       result =
-        micromatch.isMatch(elementPath, this._config.includePaths) ||
+        this._micromatch.isMatch(elementPath, this._config.includePaths) ||
         isExternal;
     } else if (this._config.ignorePaths) {
-      result = !micromatch.isMatch(elementPath, this._config.ignorePaths);
+      result = !this._micromatch.isMatch(elementPath, this._config.ignorePaths);
     } else {
       result = true;
     }
@@ -347,16 +331,7 @@ export class ElementsDescriptor {
     pathSegments: string[],
     allPathSegments: string[]
   ): string {
-    let elementPathRegexp =
-      this._globalCache.micromatchPathRegexps.get(pathPattern);
-
-    if (!elementPathRegexp) {
-      elementPathRegexp = micromatch.makeRe(pathPattern);
-      this._globalCache.micromatchPathRegexps.set(
-        pathPattern,
-        elementPathRegexp
-      );
-    }
+    const elementPathRegexp = this._micromatch.makeRe(pathPattern);
 
     const testedSegments: string[] = [];
     let result: string | undefined;
@@ -427,14 +402,14 @@ export class ElementsDescriptor {
           .split("/")
           .slice(0, filePath.split("/").length - lastPathSegmentMatching)
           .join("/");
-        baseCapture = this._cachedCapture(
+        baseCapture = this._micromatch.capture(
           [elementDescriptor.basePattern, "**", effectivePattern].join("/"),
           baseTarget
         );
         hasCapture = baseCapture !== null;
       }
 
-      const capture = this._cachedCapture(effectivePattern, targetPath);
+      const capture = this._micromatch.capture(effectivePattern, targetPath);
 
       if (capture && hasCapture) {
         return {
@@ -704,12 +679,12 @@ export class ElementsDescriptor {
     filePath?: string,
     dependencySource?: string
   ): ElementDescription {
-    const cacheKey = this._elementsCache.getHashedKey({
+    const cacheKey = this._descriptionsCache.getKey({
       dependencySource,
       filePath: String(filePath),
     });
-    if (this._elementsCache.hasByKey(cacheKey)) {
-      return this._elementsCache.getByKey(cacheKey)!;
+    if (this._descriptionsCache.has(cacheKey)) {
+      return this._descriptionsCache.get(cacheKey)!;
     }
 
     const fileDescription = this._describeFile(!!dependencySource, filePath);
@@ -717,7 +692,7 @@ export class ElementsDescriptor {
       ? this._describeDependencyElement(fileDescription, dependencySource)
       : fileDescription;
 
-    this._elementsCache.setByKey(cacheKey, elementResult);
+    this._descriptionsCache.set(cacheKey, elementResult);
     return elementResult;
   }
 

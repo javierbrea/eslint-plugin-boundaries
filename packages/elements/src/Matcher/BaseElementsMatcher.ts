@@ -1,5 +1,4 @@
 import Handlebars from "handlebars";
-import micromatch from "micromatch";
 
 import type { GlobalCache } from "../Cache";
 import type { MicromatchPattern, MatchersOptionsNormalized } from "../Config";
@@ -37,6 +36,7 @@ import {
   isElementSelectorWithLegacyOptions,
   isElementSelectorData,
 } from "./MatcherHelpers";
+import type { Micromatch } from "./Micromatch";
 
 /**
  * Normalizes a selector into ElementSelectorData format.
@@ -105,12 +105,22 @@ export class BaseElementsMatcher {
   protected readonly globalCache: GlobalCache;
 
   /**
+   * Micromatch instance for matching.
+   */
+  protected micromatch: Micromatch;
+
+  /**
    * Creates a new BaseElementsMatcher.
    * @param config Configuration options for the matcher.
    * @param globalCache Global cache instance.
    */
-  constructor(config: MatchersOptionsNormalized, globalCache: GlobalCache) {
+  constructor(
+    config: MatchersOptionsNormalized,
+    micromatch: Micromatch,
+    globalCache: GlobalCache
+  ) {
     this.globalCache = globalCache;
+    this.micromatch = micromatch;
     this._legacyTemplates = config.legacyTemplates;
   }
 
@@ -146,6 +156,65 @@ export class BaseElementsMatcher {
     }
 
     return compiledTemplate(templateData);
+  }
+
+  /**
+   * Normalizes a selector into ElementSelectorData format.
+   * @param selector The selector to normalize.
+   * @returns The normalized selector data.
+   */
+  protected normalizeSelector(
+    selector: BaseElementSelector
+  ): BaseElementSelectorData;
+  protected normalizeSelector(
+    selector: DependencyElementSelector
+  ): DependencyElementSelectorData;
+  protected normalizeSelector(selector: ElementSelector): ElementSelectorData {
+    const cacheKey =
+      this.globalCache.normalizedElementsSelector.getKey(selector);
+
+    if (this.globalCache.normalizedElementsSelector.has(cacheKey)) {
+      return this.globalCache.normalizedElementsSelector.get(cacheKey)!;
+    }
+
+    const result = normalizeSelector(selector);
+    this.globalCache.normalizedElementsSelector.set(cacheKey, result);
+    return result;
+  }
+
+  /**
+   * Normalizes an ElementsSelector into an array of ElementSelectorData.
+   * @param elementsSelector The elements selector, in any supported format.
+   * @returns The normalized array of selector data.
+   */
+  protected normalizeElementsSelector(
+    elementsSelector: BaseElementsSelector
+  ): BaseElementSelectorData[];
+  protected normalizeElementsSelector(
+    elementsSelector: DependencyElementsSelector
+  ): DependencyElementSelectorData[];
+  protected normalizeElementsSelector(
+    elementsSelector: ElementsSelector
+  ): ElementSelectorData[] {
+    const cacheKey =
+      this.globalCache.normalizedElementsSelectors.getKey(elementsSelector);
+    if (this.globalCache.normalizedElementsSelectors.has(cacheKey)) {
+      return this.globalCache.normalizedElementsSelectors.get(cacheKey)!;
+    }
+    let result: ElementSelectorData[];
+    if (isArray(elementsSelector)) {
+      if (isElementSelectorWithLegacyOptions(elementsSelector)) {
+        result = [this.normalizeSelector(elementsSelector)];
+        this.globalCache.normalizedElementsSelectors.set(cacheKey, result);
+        return result;
+      }
+      result = elementsSelector.map((sel) => this.normalizeSelector(sel));
+      this.globalCache.normalizedElementsSelectors.set(cacheKey, result);
+      return result;
+    }
+    result = [this.normalizeSelector(elementsSelector)];
+    this.globalCache.normalizedElementsSelectors.set(cacheKey, result);
+    return result;
   }
 
   /**
@@ -185,7 +254,7 @@ export class BaseElementsMatcher {
       ? pattern.filter(Boolean)
       : pattern;
 
-    return micromatch.isMatch(elementValueToCheck, selectorValueToCheck);
+    return this.micromatch.isMatch(elementValueToCheck, selectorValueToCheck);
   }
 
   /**

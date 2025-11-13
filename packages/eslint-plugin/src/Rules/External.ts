@@ -163,9 +163,9 @@ export default dependencyRule<ExternalRuleOptions>(
       isCoreDependencyElement(dependency.to)
     ) {
       let adaptedRuleOptions: ExternalRuleOptions;
-      const cacheKey = modifiedRuleOptionsCache.getHashedKey(options || {});
-      if (modifiedRuleOptionsCache.hasByKey(cacheKey)) {
-        adaptedRuleOptions = modifiedRuleOptionsCache.getByKey(cacheKey)!;
+      const cacheKey = modifiedRuleOptionsCache.getKey(options || {});
+      if (modifiedRuleOptionsCache.has(cacheKey)) {
+        adaptedRuleOptions = modifiedRuleOptionsCache.get(cacheKey)!;
       } else {
         adaptedRuleOptions = {
           ...options,
@@ -179,7 +179,7 @@ export default dependencyRule<ExternalRuleOptions>(
                 }))
               : [],
         };
-        modifiedRuleOptionsCache.setByKey(cacheKey, adaptedRuleOptions);
+        modifiedRuleOptionsCache.set(cacheKey, adaptedRuleOptions);
       }
 
       const ruleData = elementRulesAllowDependency(

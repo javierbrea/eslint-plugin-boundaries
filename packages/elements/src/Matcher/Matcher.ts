@@ -1,4 +1,3 @@
-import type { GlobalCache } from "../Cache";
 import type { DescriptorOptionsNormalized } from "../Config";
 import type {
   ElementDescriptors,
@@ -24,6 +23,7 @@ import type {
   MatcherSerializedCache,
 } from "./Matcher.types";
 import { isDependencySelector, isElementsSelector } from "./MatcherHelpers";
+import type { Micromatch } from "./Micromatch";
 
 /**
  * Matcher class to evaluate if elements or dependencies match given selectors.
@@ -46,9 +46,9 @@ export class Matcher {
     elementsMatcher: ElementsMatcher,
     dependenciesMatcher: DependenciesMatcher,
     config: DescriptorOptionsNormalized,
-    globalCache: GlobalCache
+    micromatch: Micromatch
   ) {
-    this._descriptors = new Descriptors(descriptors, config, globalCache);
+    this._descriptors = new Descriptors(descriptors, config, micromatch);
     this._elementsMatcher = elementsMatcher;
     this._dependenciesMatcher = dependenciesMatcher;
   }

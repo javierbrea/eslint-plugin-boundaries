@@ -7,7 +7,12 @@ import type {
 import { Config } from "./Config";
 import type { ElementDescriptors } from "./Descriptor";
 import type { ElementsSerializedCache } from "./Elements.types";
-import { DependenciesMatcher, ElementsMatcher, Matcher } from "./Matcher";
+import {
+  DependenciesMatcher,
+  ElementsMatcher,
+  Matcher,
+  Micromatch,
+} from "./Matcher";
 
 /**
  * Main class to interact with Elements functionality.
@@ -49,7 +54,10 @@ export class Elements {
   > = new CacheManager();
 
   /** Global cache for various caching needs */
-  private _globalCache: GlobalCache = new GlobalCache();
+  private _globalCache: GlobalCache;
+
+  /** Micromatch instance for path matching */
+  private _micromatch: Micromatch;
 
   /**
    * Creates a new Elements instance
@@ -58,6 +66,8 @@ export class Elements {
   constructor(configOptions?: ConfigOptions) {
     const globalConfig = new Config(configOptions);
     this._globalConfigOptions = globalConfig.options;
+    this._globalCache = new GlobalCache();
+    this._micromatch = new Micromatch(this._globalCache);
   }
 
   /**
@@ -190,19 +200,20 @@ export class Elements {
   private _getElementsMatcher(
     configOptions: MatchersOptionsNormalized
   ): ElementsMatcher {
-    const cacheKey = this._elementsMatcherCache.getHashedKey({
+    const cacheKey = this._elementsMatcherCache.getKey({
       config: configOptions,
     });
 
-    if (this._elementsMatcherCache.hasByKey(cacheKey)) {
-      return this._elementsMatcherCache.getByKey(cacheKey)!.elementsMatcher;
+    if (this._elementsMatcherCache.has(cacheKey)) {
+      return this._elementsMatcherCache.get(cacheKey)!.elementsMatcher;
     }
 
     const elementsMatcher = new ElementsMatcher(
       configOptions,
+      this._micromatch,
       this._globalCache
     );
-    this._elementsMatcherCache.setByKey(cacheKey, {
+    this._elementsMatcherCache.set(cacheKey, {
       config: configOptions,
       elementsMatcher,
     });
@@ -217,22 +228,22 @@ export class Elements {
   private _getDependenciesMatcher(
     configOptions: MatchersOptionsNormalized
   ): DependenciesMatcher {
-    const cacheKey = this._dependenciesMatcherCache.getHashedKey({
+    const cacheKey = this._dependenciesMatcherCache.getKey({
       config: configOptions,
     });
 
-    if (this._dependenciesMatcherCache.hasByKey(cacheKey)) {
-      return this._dependenciesMatcherCache.getByKey(cacheKey)!
-        .dependenciesMatcher;
+    if (this._dependenciesMatcherCache.has(cacheKey)) {
+      return this._dependenciesMatcherCache.get(cacheKey)!.dependenciesMatcher;
     }
 
     const elementsMatcher = this._getElementsMatcher(configOptions);
     const dependenciesMatcher = new DependenciesMatcher(
       elementsMatcher,
       configOptions,
+      this._micromatch,
       this._globalCache
     );
-    this._dependenciesMatcherCache.setByKey(cacheKey, {
+    this._dependenciesMatcherCache.set(cacheKey, {
       config: configOptions,
       dependenciesMatcher,
     });
@@ -256,13 +267,13 @@ export class Elements {
     const descriptorNormalizedOptions = configInstance.descriptorOptions;
     const matchersNormalizedOptions = configInstance.matchersOptions;
 
-    const cacheKey = this._matchersCache.getHashedKey({
+    const cacheKey = this._matchersCache.getKey({
       config: configOptionsNormalized,
       elementDescriptors,
     });
 
-    if (this._matchersCache.hasByKey(cacheKey)) {
-      return this._matchersCache.getByKey(cacheKey)!.matcher;
+    if (this._matchersCache.has(cacheKey)) {
+      return this._matchersCache.get(cacheKey)!.matcher;
     }
 
     const elementsMatcher = this._getElementsMatcher(matchersNormalizedOptions);
@@ -275,10 +286,10 @@ export class Elements {
       elementsMatcher,
       dependenciesMatcher,
       descriptorNormalizedOptions,
-      this._globalCache
+      this._micromatch
     );
 
-    this._matchersCache.setByKey(cacheKey, {
+    this._matchersCache.set(cacheKey, {
       config: configOptionsNormalized,
       elementDescriptors,
       matcher,

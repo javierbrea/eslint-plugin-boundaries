@@ -445,9 +445,9 @@ export function validateSettings(
  * @returns The normalized settings
  */
 export function getSettings(context: Rule.RuleContext): SettingsNormalized {
-  const cacheKey = settingsCache.getHashedKey(context.settings);
-  if (settingsCache.hasByKey(cacheKey)) {
-    return settingsCache.getByKey(cacheKey)!;
+  const cacheKey = settingsCache.getKey(context.settings);
+  if (settingsCache.has(cacheKey)) {
+    return settingsCache.get(cacheKey)!;
   }
   const validatedSettings = validateSettings(context.settings);
 
@@ -512,7 +512,7 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
       LEGACY_TEMPLATES_DEFAULT,
   };
 
-  settingsCache.setByKey(cacheKey, result);
+  settingsCache.set(cacheKey, result);
   return result;
 }
 
@@ -521,15 +521,15 @@ export function validateRules(
   rules: RuleOptionsRules[] = [],
   options: ValidateRulesOptions = {}
 ) {
-  const cacheKey = ruleValidationsCache.getHashedKey({
+  const cacheKey = ruleValidationsCache.getKey({
     settings,
     rules,
     options,
   });
-  if (ruleValidationsCache.hasByKey(cacheKey)) {
+  if (ruleValidationsCache.has(cacheKey)) {
     return;
   }
-  ruleValidationsCache.setByKey(cacheKey, undefined);
+  ruleValidationsCache.set(cacheKey, undefined);
   const mainKey = rulesMainKey(options.mainKey);
   for (const rule of rules) {
     //@ts-expect-error TODO: Add a different schema validation for each rule type, so keys are properly validated

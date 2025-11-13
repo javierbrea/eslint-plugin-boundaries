@@ -1,5 +1,5 @@
-import type { GlobalCache } from "../Cache";
 import type { DescriptorOptionsNormalized } from "../Config";
+import type { Micromatch } from "../Matcher";
 
 import { DependenciesDescriptor } from "./DependenciesDescriptor";
 import type {
@@ -29,12 +29,12 @@ export class Descriptors {
   constructor(
     elementDescriptors: ElementDescriptors,
     configOptions: DescriptorOptionsNormalized,
-    globalCache: GlobalCache
+    micromatch: Micromatch
   ) {
     this._elementsDescriptor = new ElementsDescriptor(
       elementDescriptors,
       configOptions,
-      globalCache
+      micromatch
     );
     this._dependenciesDescriptor = new DependenciesDescriptor(
       this._elementsDescriptor

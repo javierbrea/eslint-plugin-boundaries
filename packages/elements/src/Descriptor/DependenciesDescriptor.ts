@@ -238,24 +238,16 @@ export class DependenciesDescriptor {
     nodeKind,
     specifiers,
   }: DescribeDependencyOptions): DependencyDescription {
-    if (
-      this._dependenciesCache.has({
-        from,
-        to,
-        source,
-        kind,
-        nodeKind,
-        specifiers,
-      })
-    ) {
-      return this._dependenciesCache.get({
-        from,
-        to,
-        source,
-        kind,
-        nodeKind,
-        specifiers,
-      })!;
+    const cacheKey = this._dependenciesCache.getKey({
+      from,
+      to,
+      source,
+      kind,
+      nodeKind,
+      specifiers,
+    });
+    if (this._dependenciesCache.has(cacheKey)) {
+      return this._dependenciesCache.get(cacheKey)!;
     }
 
     const fromElement = this._elementsDescriptor.describeElement(from);
@@ -275,17 +267,7 @@ export class DependenciesDescriptor {
       },
     };
 
-    this._dependenciesCache.set(
-      {
-        from,
-        to,
-        source,
-        kind,
-        nodeKind,
-        specifiers,
-      },
-      result
-    );
+    this._dependenciesCache.set(cacheKey, result);
 
     return result;
   }

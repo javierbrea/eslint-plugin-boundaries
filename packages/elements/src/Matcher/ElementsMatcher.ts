@@ -1,15 +1,10 @@
-import micromatch from "micromatch";
-
 import { CacheManager } from "../Cache";
 import type { GlobalCache } from "../Cache";
 import type { MatchersOptionsNormalized } from "../Config";
 import type { ElementDescription } from "../Descriptor";
 import { isArray, isNullish, isEmptyObject } from "../Support";
 
-import {
-  BaseElementsMatcher,
-  normalizeElementsSelector,
-} from "./BaseElementsMatcher";
+import { BaseElementsMatcher } from "./BaseElementsMatcher";
 import type {
   BaseElementSelectorData,
   SelectableElement,
@@ -19,6 +14,7 @@ import type {
   MatcherOptions,
   ElementSelectorData,
 } from "./Matcher.types";
+import type { Micromatch } from "./Micromatch";
 
 /**
  * Matcher class to determine if elements match a given selector.
@@ -39,10 +35,15 @@ export class ElementsMatcher extends BaseElementsMatcher {
   /**
    * Creates a new ElementsSelectorMatcher.
    * @param config Configuration options for the matcher.
+   * @param micromatch Micromatch instance for matching.
    * @param globalCache Global cache instance.
    */
-  constructor(config: MatchersOptionsNormalized, globalCache: GlobalCache) {
-    super(config, globalCache);
+  constructor(
+    config: MatchersOptionsNormalized,
+    micromatch: Micromatch,
+    globalCache: GlobalCache
+  ) {
+    super(config, micromatch, globalCache);
     this._cache = new CacheManager();
   }
 
@@ -79,12 +80,14 @@ export class ElementsMatcher extends BaseElementsMatcher {
   private _cachedNormalizeElementsSelector(
     selector: BaseElementsSelector
   ): BaseElementSelectorData[] {
-    if (this.globalCache.normalizedSelectors.has(selector)) {
-      return this.globalCache.normalizedSelectors.get(selector)!;
+    const cacheKey =
+      this.globalCache.normalizedElementsSelectors.getKey(selector);
+    if (this.globalCache.normalizedElementsSelectors.has(cacheKey)) {
+      return this.globalCache.normalizedElementsSelectors.get(cacheKey)!;
     }
 
-    const result = normalizeElementsSelector(selector);
-    this.globalCache.normalizedSelectors.set(selector, result);
+    const result = this.normalizeElementsSelector(selector);
+    this.globalCache.normalizedElementsSelectors.set(cacheKey, result);
     return result;
   }
 
@@ -301,7 +304,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
         ? renderedPattern.filter(Boolean)
         : renderedPattern;
 
-      const isMatch = micromatch.isMatch(elementValue, filteredPattern);
+      const isMatch = this.micromatch.isMatch(elementValue, filteredPattern);
 
       if (!isMatch) {
         return false;
@@ -404,13 +407,13 @@ export class ElementsMatcher extends BaseElementsMatcher {
     { extraTemplateData = {} }: MatcherOptions = {}
   ): ElementSelectorData | null {
     const selectorsData = this._cachedNormalizeElementsSelector(selector);
-    const cacheKey = this._cache.getHashedKey({
+    const cacheKey = this._cache.getKey({
       element,
       selector: selectorsData,
       extraTemplateData,
     });
-    if (this._cache.hasByKey(cacheKey)) {
-      return this._cache.getByKey(cacheKey)!;
+    if (this._cache.has(cacheKey)) {
+      return this._cache.get(cacheKey)!;
     }
 
     const result = this._getSelectorMatching(
@@ -419,7 +422,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
       extraTemplateData
     );
 
-    this._cache.setByKey(cacheKey, result);
+    this._cache.set(cacheKey, result);
     return result;
   }
 

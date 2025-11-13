@@ -160,15 +160,15 @@ export default dependencyRule<EntryPointRuleOptions>(
     ) {
       let adaptedRuleOptions: AdaptedRuleOptions;
 
-      const cacheKey = adaptedRuleOptionsCache.getHashedKey(options || {});
-      if (adaptedRuleOptionsCache.hasByKey(cacheKey)) {
-        adaptedRuleOptions = adaptedRuleOptionsCache.getByKey(cacheKey)!;
+      const cacheKey = adaptedRuleOptionsCache.getKey(options || {});
+      if (adaptedRuleOptionsCache.has(cacheKey)) {
+        adaptedRuleOptions = adaptedRuleOptionsCache.get(cacheKey)!;
       } else {
         adaptedRuleOptions = {
           ...options,
           rules: options && options.rules ? modifyRules(options.rules) : [],
         };
-        adaptedRuleOptionsCache.setByKey(cacheKey, adaptedRuleOptions);
+        adaptedRuleOptionsCache.set(cacheKey, adaptedRuleOptions);
       }
 
       const ruleData = elementRulesAllowDependency(

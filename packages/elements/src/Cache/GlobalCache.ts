@@ -6,7 +6,8 @@ import type {
   MicromatchPathRegexpsCache,
   MicromatchMatchingResultsCache,
   SerializedGlobalCache,
-  NormalizedSelectorsCache,
+  NormalizedElementsSelectorsCache,
+  NormalizedElementsSelectorCache,
   HandleBarsTemplatesCache,
 } from "./GlobalCache.types";
 
@@ -24,7 +25,10 @@ export class GlobalCache {
   private _micromatchMatchingResults: MicromatchMatchingResultsCache;
 
   /** Cache for normalized selectors */
-  private _normalizedSelectors: NormalizedSelectorsCache;
+  private _normalizedElementsSelectors: NormalizedElementsSelectorsCache;
+
+  /** Cache for normalized selector */
+  private _normalizedElementsSelector: NormalizedElementsSelectorCache;
 
   /** Cache for Handlebars templates */
   private _handleBarsTemplates: HandleBarsTemplatesCache;
@@ -36,9 +40,13 @@ export class GlobalCache {
     this._micromatchPathRegexps = new CacheManager<string, RegExp>();
     this._micromatchCaptures = new CacheManager<string, string[] | null>();
     this._micromatchMatchingResults = new CacheManager<string, boolean>();
-    this._normalizedSelectors = new CacheManager<
+    this._normalizedElementsSelectors = new CacheManager<
       BaseElementsSelector,
       BaseElementSelectorData[]
+    >();
+    this._normalizedElementsSelector = new CacheManager<
+      BaseElementsSelector,
+      BaseElementSelectorData
     >();
     this._handleBarsTemplates = new CacheManager<
       string,
@@ -62,19 +70,23 @@ export class GlobalCache {
 
   /**
    * Cache for micromatch matching results
-   * TODO: Use this cache in the matcher, and test performance improvements
    */
-  // istanbul ignore next: currently not used
   public get micromatchMatchingResults(): MicromatchMatchingResultsCache {
-    // istanbul ignore next: currently not used
     return this._micromatchMatchingResults;
   }
 
   /**
-   * Cache for normalized selectors
+   * Cache for normalized elements selectors
    */
-  public get normalizedSelectors(): NormalizedSelectorsCache {
-    return this._normalizedSelectors;
+  public get normalizedElementsSelectors(): NormalizedElementsSelectorsCache {
+    return this._normalizedElementsSelectors;
+  }
+
+  /**
+   * Cache for normalized elements selector
+   */
+  public get normalizedElementsSelector(): NormalizedElementsSelectorCache {
+    return this._normalizedElementsSelector;
   }
 
   /**
@@ -91,7 +103,8 @@ export class GlobalCache {
     this._micromatchPathRegexps.clear();
     this._micromatchCaptures.clear();
     this._micromatchMatchingResults.clear();
-    this._normalizedSelectors.clear();
+    this._normalizedElementsSelectors.clear();
+    this._normalizedElementsSelector.clear();
     this._handleBarsTemplates.clear();
   }
 
@@ -103,7 +116,9 @@ export class GlobalCache {
     return {
       micromatchCaptures: this._micromatchCaptures.serialize(),
       micromatchMatchingResults: this._micromatchMatchingResults.serialize(),
-      normalizedSelectors: this._normalizedSelectors.serialize(),
+      normalizedElementsSelectors:
+        this._normalizedElementsSelectors.serialize(),
+      normalizedElementsSelector: this._normalizedElementsSelector.serialize(),
     };
   }
 
@@ -118,8 +133,11 @@ export class GlobalCache {
     this._micromatchMatchingResults.setFromSerialized(
       serializedCache.micromatchMatchingResults
     );
-    this._normalizedSelectors.setFromSerialized(
-      serializedCache.normalizedSelectors
+    this._normalizedElementsSelectors.setFromSerialized(
+      serializedCache.normalizedElementsSelectors
+    );
+    this._normalizedElementsSelector.setFromSerialized(
+      serializedCache.normalizedElementsSelector
     );
   }
 }
