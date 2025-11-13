@@ -2,6 +2,8 @@ import type {
   ConfigOptions,
   MicromatchPattern,
   ConfigOptionsNormalized,
+  DescriptorOptionsNormalized,
+  MatchersOptionsNormalized,
 } from "./Config.types";
 
 export class Config {
@@ -29,6 +31,25 @@ export class Config {
     return {
       ignorePaths: this._ignorePaths,
       includePaths: this._includePaths,
+      legacyTemplates: this._legacyTemplates,
+    };
+  }
+
+  /**
+   * Normalized options for descriptors
+   */
+  public get descriptorOptions(): DescriptorOptionsNormalized {
+    return {
+      ignorePaths: this._ignorePaths,
+      includePaths: this._includePaths,
+    };
+  }
+
+  /**
+   * Normalized options for element matchers
+   */
+  public get matchersOptions(): MatchersOptionsNormalized {
+    return {
       legacyTemplates: this._legacyTemplates,
     };
   }

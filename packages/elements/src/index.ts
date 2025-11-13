@@ -5,4 +5,4 @@ export * from "./Matcher/Public";
 export * from "./Descriptor/Public";
 export * from "./Config/Public";
 
-export * from "./Cache";
+export * from "./Cache/Public";

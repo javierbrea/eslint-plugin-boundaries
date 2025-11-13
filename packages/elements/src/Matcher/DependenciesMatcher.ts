@@ -1,5 +1,6 @@
 import { CacheManager } from "../Cache";
-import type { ConfigOptionsNormalized } from "../Config";
+import type { GlobalCache } from "../Cache";
+import type { MatchersOptionsNormalized } from "../Config";
 import type {
   DependencyDescription,
   DependencyRelationship,
@@ -52,12 +53,16 @@ export class DependenciesMatcher extends BaseElementsMatcher {
 
   /**
    * Creates a new DependenciesMatcher.
+   * @param elementsMatcher Elements matcher to use for matching elements within dependencies.
+   * @param config Configuration options for the matcher.
+   * @param globalCache Global cache instance.
    */
   constructor(
     elementsMatcher: ElementsMatcher,
-    config: ConfigOptionsNormalized
+    config: MatchersOptionsNormalized,
+    globalCache: GlobalCache
   ) {
-    super(config);
+    super(config, globalCache);
     this._cache = new CacheManager();
     this._elementsMatcher = elementsMatcher;
   }
@@ -96,6 +101,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     selector: DependencySelector,
     dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals
   ): DependencySelectorNormalized {
+    // TODO: Implement caching
     if (!isDependencySelector(selector)) {
       throw new Error("Invalid dependency selector");
     }

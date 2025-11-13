@@ -1,4 +1,5 @@
-import type { ConfigOptions } from "../Config";
+import type { GlobalCache } from "../Cache";
+import type { DescriptorOptionsNormalized } from "../Config";
 
 import { DependenciesDescriptor } from "./DependenciesDescriptor";
 import type {
@@ -23,14 +24,17 @@ export class Descriptors {
   /** Creates a new DescriptorsManager instance
    * @param elementDescriptors The element descriptors.
    * @param configOptions The configuration options.
+   * @param globalCache The global cache instance.
    */
   constructor(
     elementDescriptors: ElementDescriptors,
-    configOptions?: ConfigOptions
+    configOptions: DescriptorOptionsNormalized,
+    globalCache: GlobalCache
   ) {
     this._elementsDescriptor = new ElementsDescriptor(
       elementDescriptors,
-      configOptions
+      configOptions,
+      globalCache
     );
     this._dependenciesDescriptor = new DependenciesDescriptor(
       this._elementsDescriptor

@@ -20,3 +20,15 @@ export type ConfigOptionsNormalized = Omit<ConfigOptions, "legacyTemplates"> & {
   /** Whether to enable legacy template support */
   legacyTemplates: boolean;
 };
+
+/** Options for descriptors */
+export type DescriptorOptionsNormalized = Pick<
+  ConfigOptionsNormalized,
+  "includePaths" | "ignorePaths"
+>;
+
+/** Options for element matchers */
+export type MatchersOptionsNormalized = Pick<
+  ConfigOptionsNormalized,
+  "legacyTemplates"
+>;

@@ -3,9 +3,9 @@ import type Mod from "node:module";
 import isCoreModule from "is-core-module";
 import micromatch from "micromatch";
 
+import type { GlobalCache } from "../Cache";
 import { CacheManager } from "../Cache";
-import type { ConfigOptions } from "../Config";
-import { Config } from "../Config";
+import type { DescriptorOptionsNormalized } from "../Config";
 import { isArray, isNullish } from "../Support";
 
 import type {
@@ -88,37 +88,33 @@ export class ElementsDescriptor {
     new CacheManager();
 
   /**
-   * Cache for compiled regex patterns to avoid recompilation.
-   */
-  private readonly _regexCache: Map<string, RegExp> = new Map();
-
-  /**
-   * Cache for micromatch capture results to avoid repeated pattern matching.
-   */
-  private readonly _captureCache: Map<string, string[] | null> = new Map();
-
-  /**
    * Configuration instance for this descriptor.
    */
-  private readonly _config: Config;
+  private readonly _config: DescriptorOptionsNormalized;
 
   /**
    * Element descriptors used by this descriptor.
    */
   private readonly _elementDescriptors: ElementDescriptors;
 
+  /** Global cache for various caching needs */
+  private _globalCache: GlobalCache;
+
   /**
    * The configuration options for this descriptor.
    * @param elementDescriptors The element descriptors.
    * @param configOptions The configuration options.
+   * @param globalCache The global cache for various caching needs.
    */
   constructor(
     elementDescriptors: ElementDescriptors,
-    configOptions?: ConfigOptions
+    configOptions: DescriptorOptionsNormalized,
+    globalCache: GlobalCache
   ) {
+    this._globalCache = globalCache;
     this._elementDescriptors = elementDescriptors;
     this._validateDescriptors(elementDescriptors);
-    this._config = new Config(configOptions);
+    this._config = configOptions;
     this._loadModuleInNode();
   }
 
@@ -148,8 +144,6 @@ export class ElementsDescriptor {
   public clearCache(): void {
     this._elementsCache.clear();
     this._filesCache.clear();
-    this._regexCache.clear();
-    this._captureCache.clear();
   }
 
   /**
@@ -192,12 +186,12 @@ export class ElementsDescriptor {
   private _cachedCapture(pattern: string, target: string): string[] | null {
     const cacheKey = `${pattern}|${target}`;
 
-    if (this._captureCache.has(cacheKey)) {
-      return this._captureCache.get(cacheKey)!;
+    if (this._globalCache.micromatchCaptures.has(cacheKey)) {
+      return this._globalCache.micromatchCaptures.get(cacheKey)!;
     }
 
     const result = micromatch.capture(pattern, target);
-    this._captureCache.set(cacheKey, result);
+    this._globalCache.micromatchCaptures.set(cacheKey, result);
     return result;
   }
 
@@ -297,25 +291,22 @@ export class ElementsDescriptor {
 
     let result: boolean;
 
-    if (this._config.options.includePaths && this._config.options.ignorePaths) {
+    if (this._config.includePaths && this._config.ignorePaths) {
       const isIncluded = micromatch.isMatch(
         elementPath,
-        this._config.options.includePaths
+        this._config.includePaths
       );
       const isIgnored = micromatch.isMatch(
         elementPath,
-        this._config.options.ignorePaths
+        this._config.ignorePaths
       );
       result = (isIncluded || isExternal) && !isIgnored;
-    } else if (this._config.options.includePaths) {
+    } else if (this._config.includePaths) {
       result =
-        micromatch.isMatch(elementPath, this._config.options.includePaths) ||
+        micromatch.isMatch(elementPath, this._config.includePaths) ||
         isExternal;
-    } else if (this._config.options.ignorePaths) {
-      result = !micromatch.isMatch(
-        elementPath,
-        this._config.options.ignorePaths
-      );
+    } else if (this._config.ignorePaths) {
+      result = !micromatch.isMatch(elementPath, this._config.ignorePaths);
     } else {
       result = true;
     }
@@ -356,12 +347,15 @@ export class ElementsDescriptor {
     pathSegments: string[],
     allPathSegments: string[]
   ): string {
-    const cacheKey = `element_path:${pathPattern}`;
-    let elementPathRegexp = this._regexCache.get(cacheKey);
+    let elementPathRegexp =
+      this._globalCache.micromatchPathRegexps.get(pathPattern);
 
     if (!elementPathRegexp) {
       elementPathRegexp = micromatch.makeRe(pathPattern);
-      this._regexCache.set(cacheKey, elementPathRegexp);
+      this._globalCache.micromatchPathRegexps.set(
+        pathPattern,
+        elementPathRegexp
+      );
     }
 
     const testedSegments: string[] = [];

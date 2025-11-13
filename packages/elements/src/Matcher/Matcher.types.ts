@@ -39,8 +39,6 @@ export type DependenciesMatcherSerializedCache = Record<
 
 export type MatcherSerializedCache = {
   descriptors: DescriptorsSerializedCache;
-  elementsMatcher: ElementsMatcherSerializedCache;
-  dependenciesMatcher: DependenciesMatcherSerializedCache;
 };
 
 /**

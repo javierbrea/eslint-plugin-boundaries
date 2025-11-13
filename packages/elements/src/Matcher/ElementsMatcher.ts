@@ -1,7 +1,8 @@
 import micromatch from "micromatch";
 
 import { CacheManager } from "../Cache";
-import type { ConfigOptionsNormalized } from "../Config";
+import type { GlobalCache } from "../Cache";
+import type { MatchersOptionsNormalized } from "../Config";
 import type { ElementDescription } from "../Descriptor";
 import { isArray, isNullish, isEmptyObject } from "../Support";
 
@@ -36,23 +37,12 @@ export class ElementsMatcher extends BaseElementsMatcher {
   >;
 
   /**
-   * Cache for rendered templates to avoid repeated Handlebars compilation.
-   */
-  private readonly _templateCache: Map<string, string> = new Map();
-
-  /**
-   * Cache for normalized selectors to avoid repeated normalizations.
-   */
-  private readonly _normalizedSelectorCache: Map<
-    BaseElementsSelector,
-    BaseElementSelectorData[]
-  > = new Map();
-
-  /**
    * Creates a new ElementsSelectorMatcher.
+   * @param config Configuration options for the matcher.
+   * @param globalCache Global cache instance.
    */
-  constructor(config: ConfigOptionsNormalized) {
-    super(config);
+  constructor(config: MatchersOptionsNormalized, globalCache: GlobalCache) {
+    super(config, globalCache);
     this._cache = new CacheManager();
   }
 
@@ -79,9 +69,6 @@ export class ElementsMatcher extends BaseElementsMatcher {
    */
   public clearCache(): void {
     this._cache.clear();
-    this._templateCache.clear();
-    this._normalizedSelectorCache.clear();
-    this.clearBaseCaches(); // Clear base class caches too
   }
 
   /**
@@ -92,12 +79,12 @@ export class ElementsMatcher extends BaseElementsMatcher {
   private _cachedNormalizeElementsSelector(
     selector: BaseElementsSelector
   ): BaseElementSelectorData[] {
-    if (this._normalizedSelectorCache.has(selector)) {
-      return this._normalizedSelectorCache.get(selector)!;
+    if (this.globalCache.normalizedSelectors.has(selector)) {
+      return this.globalCache.normalizedSelectors.get(selector)!;
     }
 
     const result = normalizeElementsSelector(selector);
-    this._normalizedSelectorCache.set(selector, result);
+    this.globalCache.normalizedSelectors.set(selector, result);
     return result;
   }
 

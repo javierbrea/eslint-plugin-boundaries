@@ -1,7 +1,8 @@
 import Handlebars from "handlebars";
 import micromatch from "micromatch";
 
-import type { MicromatchPattern, ConfigOptionsNormalized } from "../Config";
+import type { GlobalCache } from "../Cache";
+import type { MicromatchPattern, MatchersOptionsNormalized } from "../Config";
 import type {
   LocalElementKnown,
   CoreDependencyElement,
@@ -93,35 +94,24 @@ export function normalizeElementsSelector(
  * Base matcher class to determine if elements or dependencies match a given selector.
  */
 export class BaseElementsMatcher {
+  /**
+   * Option to use legacy templates with ${} syntax.
+   */
   protected readonly _legacyTemplates: boolean;
 
   /**
-   * Cache for compiled Handlebars templates to avoid recompilation.
+   * Global cache instance.
    */
-  private readonly _compiledTemplateCache: Map<
-    string,
-    (data: TemplateData) => string
-  > = new Map();
-
-  /**
-   * Cache for micromatch.isMatch results to improve performance.
-   */
-  private readonly _micromatchMatchCache: Map<string, boolean> = new Map();
+  protected readonly globalCache: GlobalCache;
 
   /**
    * Creates a new BaseElementsMatcher.
    * @param config Configuration options for the matcher.
+   * @param globalCache Global cache instance.
    */
-  constructor(config: ConfigOptionsNormalized) {
+  constructor(config: MatchersOptionsNormalized, globalCache: GlobalCache) {
+    this.globalCache = globalCache;
     this._legacyTemplates = config.legacyTemplates;
-  }
-
-  /**
-   * Clears all internal caches.
-   */
-  protected clearBaseCaches(): void {
-    this._compiledTemplateCache.clear();
-    this._micromatchMatchCache.clear();
   }
 
   /**
@@ -148,10 +138,11 @@ export class BaseElementsMatcher {
       ? this._getBackwardsCompatibleTemplate(template)
       : template;
 
-    let compiledTemplate = this._compiledTemplateCache.get(templateToUse);
+    let compiledTemplate =
+      this.globalCache.handleBarsTemplates.get(templateToUse);
     if (!compiledTemplate) {
       compiledTemplate = Handlebars.compile(templateToUse);
-      this._compiledTemplateCache.set(templateToUse, compiledTemplate);
+      this.globalCache.handleBarsTemplates.set(templateToUse, compiledTemplate);
     }
 
     return compiledTemplate(templateData);

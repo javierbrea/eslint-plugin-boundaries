@@ -559,7 +559,7 @@ describe("Descriptors", () => {
       expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
-    it("should call micromatch again after clearing the cache", () => {
+    it("should not call micromatch again after clearing the matcher cache, because the global cache is still populated", () => {
       matcher.describeElement("/project/src/utils/math/index.ts");
 
       expect(micromatchSpy).toHaveBeenCalled();
@@ -574,7 +574,7 @@ describe("Descriptors", () => {
 
       matcher.describeElement("/project/src/utils/math/index.ts");
 
-      expect(micromatchSpy).toHaveBeenCalled();
+      expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
     it("should call micromatch again after clearing the cache in the elements instance", () => {
@@ -657,7 +657,7 @@ describe("Descriptors", () => {
       expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
-    it("should call micromatch again when getting same dependency element after clearing cache", () => {
+    it("should not call micromatch again when getting same dependency element after clearing cache, because the global cache is still populated", () => {
       matcher.describeDependencyElement(
         "@mui/icons-material/foo",
         "/project/node_modules/@mui/icons-material/index.tsx"
@@ -675,6 +675,33 @@ describe("Descriptors", () => {
       expect(micromatchSpy).not.toHaveBeenCalled();
 
       matcher.clearCache();
+
+      matcher.describeDependencyElement(
+        "@mui/icons-material/foo",
+        "/project/node_modules/@mui/icons-material/index.tsx"
+      );
+
+      expect(micromatchSpy).not.toHaveBeenCalled();
+    });
+
+    it("should not call micromatch again when getting same dependency element after clearing elements cache", () => {
+      matcher.describeDependencyElement(
+        "@mui/icons-material/foo",
+        "/project/node_modules/@mui/icons-material/index.tsx"
+      );
+
+      expect(micromatchSpy).toHaveBeenCalled();
+
+      jest.clearAllMocks();
+
+      matcher.describeDependencyElement(
+        "@mui/icons-material/foo",
+        "/project/node_modules/@mui/icons-material/index.tsx"
+      );
+
+      expect(micromatchSpy).not.toHaveBeenCalled();
+
+      elements.clearCache();
 
       matcher.describeDependencyElement(
         "@mui/icons-material/foo",
@@ -1664,7 +1691,7 @@ describe("Descriptors", () => {
       expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
-    it("should call micromatch again after clearing the cache", () => {
+    it("should not call micromatch again after clearing the cache, because the global cache is still populated", () => {
       matcher.describeDependency({
         from: "/project/src/components/Button.tsx",
         to: "/project/src/bar/Baz.ts",
@@ -1694,7 +1721,7 @@ describe("Descriptors", () => {
         kind: "type",
       });
 
-      expect(micromatchSpy).toHaveBeenCalled();
+      expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
     it("should call micromatch again after clearing the cache in the elements instance", () => {

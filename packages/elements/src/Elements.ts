@@ -1,5 +1,9 @@
-import { CacheManager } from "./Cache";
-import type { ConfigOptions, ConfigOptionsNormalized } from "./Config";
+import { CacheManager, GlobalCache } from "./Cache";
+import type {
+  ConfigOptions,
+  ConfigOptionsNormalized,
+  MatchersOptionsNormalized,
+} from "./Config";
 import { Config } from "./Config";
 import type { ElementDescriptors } from "./Descriptor";
 import type { ElementsSerializedCache } from "./Elements.types";
@@ -15,7 +19,10 @@ export class Elements {
 
   /** Cache manager for Matcher instances, unique for each different configuration */
   private readonly _matchersCache: CacheManager<
-    { config: ConfigOptionsNormalized; elementDescriptors: ElementDescriptors },
+    {
+      config: ConfigOptionsNormalized;
+      elementDescriptors: ElementDescriptors;
+    },
     {
       config: ConfigOptionsNormalized;
       elementDescriptors: ElementDescriptors;
@@ -23,11 +30,26 @@ export class Elements {
     }
   > = new CacheManager();
 
-  /** Matcher for element selectors */
-  private readonly _elementsMatcher: ElementsMatcher;
+  /** Cache manager for ElementsMatcher instances, unique for each different configuration */
+  private readonly _elementsMatcherCache: CacheManager<
+    { config: MatchersOptionsNormalized },
+    {
+      config: MatchersOptionsNormalized;
+      elementsMatcher: ElementsMatcher;
+    }
+  > = new CacheManager();
 
-  /** Matcher for dependency selectors */
-  private readonly _dependenciesMatcher: DependenciesMatcher;
+  /** Cache manager for DependenciesMatcher instances, unique for each different configuration */
+  private readonly _dependenciesMatcherCache: CacheManager<
+    { config: MatchersOptionsNormalized },
+    {
+      config: MatchersOptionsNormalized;
+      dependenciesMatcher: DependenciesMatcher;
+    }
+  > = new CacheManager();
+
+  /** Global cache for various caching needs */
+  private _globalCache: GlobalCache = new GlobalCache();
 
   /**
    * Creates a new Elements instance
@@ -36,11 +58,6 @@ export class Elements {
   constructor(configOptions?: ConfigOptions) {
     const globalConfig = new Config(configOptions);
     this._globalConfigOptions = globalConfig.options;
-    this._elementsMatcher = new ElementsMatcher(this._globalConfigOptions);
-    this._dependenciesMatcher = new DependenciesMatcher(
-      this._elementsMatcher,
-      this._globalConfigOptions
-    );
   }
 
   /**
@@ -51,21 +68,48 @@ export class Elements {
     const matchersCache = Array.from(
       this._matchersCache.getAll().entries()
     ).reduce(
-      (acc, [key, descriptorCache]) => {
+      (acc, [key, cache]) => {
         acc[key] = {
-          config: descriptorCache.config,
-          elementDescriptors: descriptorCache.elementDescriptors,
-          cache: descriptorCache.matcher.serializeCache(),
+          config: cache.config,
+          elementDescriptors: cache.elementDescriptors,
+          cache: cache.matcher.serializeCache(),
         };
         return acc;
       },
       {} as ElementsSerializedCache["matchers"]
     );
 
+    const elementsMatchersCache = Array.from(
+      this._elementsMatcherCache.getAll().entries()
+    ).reduce(
+      (acc, [key, cache]) => {
+        acc[key] = {
+          config: cache.config,
+          cache: cache.elementsMatcher.serializeCache(),
+        };
+        return acc;
+      },
+      {} as ElementsSerializedCache["elementsMatchers"]
+    );
+
+    const dependenciesMatchersCache = Array.from(
+      this._dependenciesMatcherCache.getAll().entries()
+    ).reduce(
+      (acc, [key, cache]) => {
+        acc[key] = {
+          config: cache.config,
+          cache: cache.dependenciesMatcher.serializeCache(),
+        };
+        return acc;
+      },
+      {} as ElementsSerializedCache["dependenciesMatchers"]
+    );
+
     return {
       matchers: matchersCache,
-      elementsMatcher: this._elementsMatcher.serializeCache(),
-      dependenciesMatcher: this._dependenciesMatcher.serializeCache(),
+      elementsMatchers: elementsMatchersCache,
+      dependenciesMatchers: dependenciesMatchersCache,
+      global: this._globalCache.serialize(),
     };
   }
 
@@ -76,6 +120,7 @@ export class Elements {
   public setCacheFromSerialized(
     serializedCache: ElementsSerializedCache
   ): void {
+    this._globalCache.setFromSerialized(serializedCache.global);
     for (const key in serializedCache.matchers) {
       const matcher = this.getMatcher(
         serializedCache.matchers[key].elementDescriptors,
@@ -88,24 +133,110 @@ export class Elements {
         matcher: matcher,
       });
     }
-    this._elementsMatcher.setCacheFromSerialized(
-      serializedCache.elementsMatcher
-    );
-    this._dependenciesMatcher.setCacheFromSerialized(
-      serializedCache.dependenciesMatcher
-    );
+    for (const key in serializedCache.elementsMatchers) {
+      const elementsMatcher = this._getElementsMatcher(
+        serializedCache.elementsMatchers[key].config
+      );
+      elementsMatcher.setCacheFromSerialized(
+        serializedCache.elementsMatchers[key].cache
+      );
+      this._elementsMatcherCache.restore(key, {
+        config: serializedCache.elementsMatchers[key].config,
+        elementsMatcher: elementsMatcher,
+      });
+    }
+    for (const key in serializedCache.dependenciesMatchers) {
+      const dependenciesMatcher = this._getDependenciesMatcher(
+        serializedCache.dependenciesMatchers[key].config
+      );
+      dependenciesMatcher.setCacheFromSerialized(
+        serializedCache.dependenciesMatchers[key].cache
+      );
+      this._dependenciesMatcherCache.restore(key, {
+        config: serializedCache.dependenciesMatchers[key].config,
+        dependenciesMatcher: dependenciesMatcher,
+      });
+    }
   }
 
   /**
    * Clears cache
    */
   public clearCache(): void {
-    this._elementsMatcher.clearCache();
-    this._dependenciesMatcher.clearCache();
+    this._globalCache.clear();
     for (const { matcher } of this._matchersCache.getAll().values()) {
       matcher.clearCache();
     }
     this._matchersCache.clear();
+    for (const { elementsMatcher } of this._elementsMatcherCache
+      .getAll()
+      .values()) {
+      elementsMatcher.clearCache();
+    }
+    this._elementsMatcherCache.clear();
+    for (const { dependenciesMatcher } of this._dependenciesMatcherCache
+      .getAll()
+      .values()) {
+      dependenciesMatcher.clearCache();
+    }
+    this._dependenciesMatcherCache.clear();
+  }
+
+  /**
+   * Creates or retrieves an ElementsMatcher instance for the given configuration options.
+   * @param configOptions The configuration options.
+   * @returns An ElementsMatcher instance. Unique for each different configuration.
+   */
+  private _getElementsMatcher(
+    configOptions: MatchersOptionsNormalized
+  ): ElementsMatcher {
+    const cacheKey = this._elementsMatcherCache.getHashedKey({
+      config: configOptions,
+    });
+
+    if (this._elementsMatcherCache.hasByKey(cacheKey)) {
+      return this._elementsMatcherCache.getByKey(cacheKey)!.elementsMatcher;
+    }
+
+    const elementsMatcher = new ElementsMatcher(
+      configOptions,
+      this._globalCache
+    );
+    this._elementsMatcherCache.setByKey(cacheKey, {
+      config: configOptions,
+      elementsMatcher,
+    });
+    return elementsMatcher;
+  }
+
+  /**
+   * Creates or retrieves a DependenciesMatcher instance for the given configuration options.
+   * @param configOptions The configuration options.
+   * @returns A DependenciesMatcher instance. Unique for each different configuration.
+   */
+  private _getDependenciesMatcher(
+    configOptions: MatchersOptionsNormalized
+  ): DependenciesMatcher {
+    const cacheKey = this._dependenciesMatcherCache.getHashedKey({
+      config: configOptions,
+    });
+
+    if (this._dependenciesMatcherCache.hasByKey(cacheKey)) {
+      return this._dependenciesMatcherCache.getByKey(cacheKey)!
+        .dependenciesMatcher;
+    }
+
+    const elementsMatcher = this._getElementsMatcher(configOptions);
+    const dependenciesMatcher = new DependenciesMatcher(
+      elementsMatcher,
+      configOptions,
+      this._globalCache
+    );
+    this._dependenciesMatcherCache.setByKey(cacheKey, {
+      config: configOptions,
+      dependenciesMatcher,
+    });
+    return dependenciesMatcher;
   }
 
   /**
@@ -121,10 +252,12 @@ export class Elements {
   ): Matcher {
     const optionsToUse = configOptions || this._globalConfigOptions;
     const configInstance = new Config(optionsToUse);
-    const normalizedOptions = configInstance.options;
+    const configOptionsNormalized = configInstance.options;
+    const descriptorNormalizedOptions = configInstance.descriptorOptions;
+    const matchersNormalizedOptions = configInstance.matchersOptions;
 
     const cacheKey = this._matchersCache.getHashedKey({
-      config: normalizedOptions,
+      config: configOptionsNormalized,
       elementDescriptors,
     });
 
@@ -132,9 +265,21 @@ export class Elements {
       return this._matchersCache.getByKey(cacheKey)!.matcher;
     }
 
-    const matcher = new Matcher(elementDescriptors, normalizedOptions);
+    const elementsMatcher = this._getElementsMatcher(matchersNormalizedOptions);
+    const dependenciesMatcher = this._getDependenciesMatcher(
+      matchersNormalizedOptions
+    );
+
+    const matcher = new Matcher(
+      elementDescriptors,
+      elementsMatcher,
+      dependenciesMatcher,
+      descriptorNormalizedOptions,
+      this._globalCache
+    );
+
     this._matchersCache.setByKey(cacheKey, {
-      config: normalizedOptions,
+      config: configOptionsNormalized,
       elementDescriptors,
       matcher,
     });
