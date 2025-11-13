@@ -488,7 +488,28 @@ describe("Descriptors", () => {
       expect(isElementDescription(element)).toBe(true);
     });
 
-    it("should assign descriptions to unknown core elements correctly", () => {
+    it("should assign descriptions to external elements correctly", () => {
+      const element = matcher.describeDependencyElement("react");
+
+      expect(element).toEqual({
+        type: null,
+        category: null,
+        captured: null,
+        elementPath: null,
+        internalPath: "",
+        parents: null,
+        source: "react",
+        baseSource: "react",
+        isIgnored: false,
+        origin: "external",
+        path: null,
+        isUnknown: true,
+      });
+      expect(isExternalDependencyElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
+    });
+
+    it("should assign descriptions to core elements correctly", () => {
       const element = matcher.describeDependencyElement("node:fs");
 
       expect(element).toEqual({
@@ -509,7 +530,7 @@ describe("Descriptors", () => {
       expect(isElementDescription(element)).toBe(true);
     });
 
-    it("should assign descriptions to unknown core elements without node prefix correctly", () => {
+    it("should assign descriptions to core elements without node prefix correctly", () => {
       const element = matcher.describeDependencyElement("fs");
 
       expect(element).toEqual({
@@ -527,21 +548,6 @@ describe("Descriptors", () => {
         isUnknown: true,
       });
       expect(isCoreDependencyElement(element)).toBe(true);
-      expect(isElementDescription(element)).toBe(true);
-    });
-
-    it("should ignore external dependency elements based on ignorePaths", () => {
-      const otherDescriptors = elements.getMatcher([], {
-        ignorePaths: ["**/node_modules/**"],
-      });
-
-      const element = otherDescriptors.describeDependencyElement(
-        "react",
-        "/project/node_modules/react/index.tsx"
-      );
-
-      expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
-      expect(isIgnoredElement(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
   });
@@ -639,76 +645,13 @@ describe("Descriptors", () => {
       expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
-    it("should not call micromatch more than one per same file when getting dependency elements for the same file but different sources", () => {
-      matcher.describeDependencyElement(
-        "@mui/icons-material/foo",
-        "/project/node_modules/@mui/icons-material/index.tsx"
-      );
-
-      expect(micromatchSpy).toHaveBeenCalled();
-
-      jest.clearAllMocks();
-
-      matcher.describeDependencyElement(
-        "@mui/icons-material/var",
-        "/project/node_modules/@mui/icons-material/index.tsx"
-      );
-
-      expect(micromatchSpy).not.toHaveBeenCalled();
-    });
-
-    it("should not call micromatch again when getting same dependency element after clearing cache, because the global cache is still populated", () => {
-      matcher.describeDependencyElement(
-        "@mui/icons-material/foo",
-        "/project/node_modules/@mui/icons-material/index.tsx"
-      );
-
-      expect(micromatchSpy).toHaveBeenCalled();
-
-      jest.clearAllMocks();
-
+    it("should not call micromatch more when describing external elements", () => {
       matcher.describeDependencyElement(
         "@mui/icons-material/foo",
         "/project/node_modules/@mui/icons-material/index.tsx"
       );
 
       expect(micromatchSpy).not.toHaveBeenCalled();
-
-      matcher.clearCache();
-
-      matcher.describeDependencyElement(
-        "@mui/icons-material/foo",
-        "/project/node_modules/@mui/icons-material/index.tsx"
-      );
-
-      expect(micromatchSpy).not.toHaveBeenCalled();
-    });
-
-    it("should not call micromatch again when getting same dependency element after clearing elements cache", () => {
-      matcher.describeDependencyElement(
-        "@mui/icons-material/foo",
-        "/project/node_modules/@mui/icons-material/index.tsx"
-      );
-
-      expect(micromatchSpy).toHaveBeenCalled();
-
-      jest.clearAllMocks();
-
-      matcher.describeDependencyElement(
-        "@mui/icons-material/foo",
-        "/project/node_modules/@mui/icons-material/index.tsx"
-      );
-
-      expect(micromatchSpy).not.toHaveBeenCalled();
-
-      elements.clearCache();
-
-      matcher.describeDependencyElement(
-        "@mui/icons-material/foo",
-        "/project/node_modules/@mui/icons-material/index.tsx"
-      );
-
-      expect(micromatchSpy).toHaveBeenCalled();
     });
   });
 
