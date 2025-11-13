@@ -272,17 +272,11 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     if (!selector.relationship) {
       return true;
     }
-    const renderedPattern = this.getRenderedTemplates(
+    return this.isTemplateMicromatchMatch(
       selector.relationship,
-      templateData
+      templateData,
+      relationship
     );
-    if (!renderedPattern) {
-      return false;
-    }
-    if (!relationship) {
-      return false;
-    }
-    return this.isMicromatchMatch(relationship, renderedPattern);
   }
 
   /**
@@ -300,17 +294,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     if (!selector.kind) {
       return true;
     }
-    const renderedPattern = this.getRenderedTemplates(
-      selector.kind,
-      templateData
-    );
-    if (!renderedPattern) {
-      return false;
-    }
-    if (!kind) {
-      return false;
-    }
-    return this.isMicromatchMatch(kind, renderedPattern);
+    return this.isTemplateMicromatchMatch(selector.kind, templateData, kind);
   }
 
   /**
@@ -325,22 +309,13 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     specifiers: string[] | null,
     templateData: TemplateData
   ): boolean {
-    const specifierPattern = selector.specifiers;
-    if (!specifierPattern) {
+    if (!selector.specifiers) {
       return true;
     }
-    const renderedPattern = this.getRenderedTemplates(
-      specifierPattern,
-      templateData
-    );
-    if (!renderedPattern) {
-      return false;
-    }
-    if (!specifiers) {
-      return false;
-    }
-    return specifiers.some((specifier) =>
-      this.isMicromatchMatch(specifier, renderedPattern)
+    return this.isTemplateMicromatchMatch(
+      selector.specifiers,
+      templateData,
+      specifiers
     );
   }
 
@@ -356,21 +331,14 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     nodeKind: string | null,
     templateData: TemplateData
   ): boolean {
-    const nodeKindPattern = selector.nodeKind;
-    if (!nodeKindPattern) {
+    if (!selector.nodeKind) {
       return true;
     }
-    const renderedPattern = this.getRenderedTemplates(
-      nodeKindPattern,
-      templateData
+    return this.isTemplateMicromatchMatch(
+      selector.nodeKind,
+      templateData,
+      nodeKind
     );
-    if (!renderedPattern) {
-      return false;
-    }
-    if (!nodeKind) {
-      return false;
-    }
-    return this.isMicromatchMatch(nodeKind, renderedPattern);
   }
 
   /**

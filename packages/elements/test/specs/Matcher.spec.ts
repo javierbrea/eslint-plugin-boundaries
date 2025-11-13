@@ -122,6 +122,13 @@ describe("Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
+        selector: {
+          type: ["foo", "{{ element.type }}", "{{ element.type }}", ""],
+        },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
         selector: [
           { type: ["foo", "{{ foo.type }}"] },
           { type: ["foo", "{{ element.type }}"] },

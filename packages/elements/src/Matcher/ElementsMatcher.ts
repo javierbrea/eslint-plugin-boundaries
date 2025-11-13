@@ -407,6 +407,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
     { extraTemplateData = {} }: MatcherOptions = {}
   ): ElementSelectorData | null {
     const selectorsData = this._cachedNormalizeElementsSelector(selector);
+    // TODO: Possible optimization: If selector does not contain any templated values, we could omit extraTemplateData from cache key
     const cacheKey = this._cache.getKey({
       element,
       selector: selectorsData,
