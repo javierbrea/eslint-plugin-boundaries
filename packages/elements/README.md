@@ -8,7 +8,7 @@
 
 # @boundaries/elements
 
-> Element descriptors and matchers for enforcing architectural boundaries in JavaScript/TypeScript projects
+> Element descriptors and matchers for `@boundaries` ecosystem
 
 ## Table of Contents
 

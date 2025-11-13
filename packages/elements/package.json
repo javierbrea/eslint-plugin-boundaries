@@ -1,7 +1,7 @@
 {
   "name": "@boundaries/elements",
   "version": "1.0.0",
-  "description": "Descriptor to define elements for @boundaries ecosystem",
+  "description": "Element descriptors and matchers for @boundaries ecosystem",
   "keywords": [
     "boundaries",
     "elements",
