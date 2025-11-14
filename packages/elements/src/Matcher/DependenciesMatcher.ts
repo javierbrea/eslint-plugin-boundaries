@@ -27,6 +27,48 @@ import {
 } from "./MatcherHelpers";
 import type { Micromatch } from "./Micromatch";
 
+function serializeObject(obj: unknown): string {
+  const keys = (k: unknown): string => {
+    if (typeof k === "object" && k !== null) {
+      if (Array.isArray(k)) {
+        return "[" + k.map(serializeObject).join(",") + "]";
+      }
+      const sorted = Object.keys(k as Record<string, unknown>).sort();
+      return (
+        "{" +
+        sorted
+          .map(
+            (x) =>
+              `"${x}":${serializeObject((k as Record<string, unknown>)[x])}`
+          )
+          .join(",") +
+        "}"
+      );
+    }
+    return String(k);
+  };
+  return keys(obj);
+}
+
+class DependenciesMatcherCache extends CacheManager<
+  {
+    dependency: DependencyDescription;
+    selector: DependencySelector;
+    extraTemplateData: TemplateData;
+    dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals;
+  },
+  DependencyMatchResult
+> {
+  protected generateKey(options: {
+    dependency: DependencyDescription;
+    selector: DependencySelector;
+    extraTemplateData: TemplateData;
+    dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals;
+  }): string {
+    return serializeObject(options);
+  }
+}
+
 /**
  * Matcher class to determine if dependencies match a given dependencies selector.
  */
@@ -34,15 +76,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
   /**
    * Cache to store previously described dependencies.
    */
-  private readonly _cache: CacheManager<
-    {
-      dependency: DependencyDescription;
-      selector: DependencySelector;
-      extraTemplateData: TemplateData;
-      dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals;
-    },
-    DependencyMatchResult
-  >;
+  private readonly _cache = new DependenciesMatcherCache();
 
   /** Whether the cache is enabled or not */
   private readonly _cacheIsEnabled: boolean;
@@ -66,7 +100,6 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     globalCache: GlobalCache
   ) {
     super(config, micromatch, globalCache);
-    this._cache = new CacheManager();
     this._cacheIsEnabled = config.cache.dependencies;
     this._elementsMatcher = elementsMatcher;
   }

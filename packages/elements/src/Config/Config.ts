@@ -34,8 +34,6 @@ export class Config {
     this._legacyTemplates = options?.legacyTemplates ?? true;
     this._cacheIsEnabled = options?.cache?.enabled !== false;
 
-    this._cacheIsEnabled = false;
-
     this._globalCacheOptions = {
       micromatchPathRegexps: this._getCacheOptionIsEnabled(
         options?.cache?.global?.micromatchPathRegexps
@@ -74,11 +72,16 @@ export class Config {
     };
 
     // Testing: Enable string caches by default
-    this._cacheIsEnabled = false;
-    this._globalCacheOptions.handlebarsTemplates = true;
-    this._globalCacheOptions.micromatchMatchingResults = true;
-    this._globalCacheOptions.micromatchCaptures = true;
-    this._globalCacheOptions.micromatchPathRegexps = true;
+    this._cacheIsEnabled = true;
+    this._globalCacheOptions.handlebarsTemplates = false;
+    this._globalCacheOptions.micromatchMatchingResults = false;
+    this._globalCacheOptions.micromatchCaptures = false;
+    this._globalCacheOptions.micromatchPathRegexps = false;
+    this._descriptorsCacheOptions.elements = true; // OK
+    this._descriptorsCacheOptions.files = true; // OK
+    this._descriptorsCacheOptions.dependencies = true; // OK
+    this._matcherCacheOptions.elements = false; // OK
+    this._matcherCacheOptions.dependencies = false; // OK
   }
 
   /**
@@ -88,7 +91,7 @@ export class Config {
    */
   private _getCacheOptionIsEnabled(value?: boolean) {
     // Testing: Disable all by default
-    return !this._cacheIsEnabled ? false : value !== true;
+    return !this._cacheIsEnabled ? false : value === true;
   }
 
   /**
@@ -141,6 +144,6 @@ export class Config {
    * Cache is globally enabled
    */
   public get cacheIsEnabled(): boolean {
-    return !this._cacheIsEnabled;
+    return this._cacheIsEnabled;
   }
 }

@@ -526,7 +526,7 @@ export function validateRules(
     settings,
     rules,
     options,
-  });
+  }, false);
   if (ruleValidationsCache.has(cacheKey)) {
     return;
   }

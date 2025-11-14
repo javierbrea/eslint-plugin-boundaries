@@ -122,7 +122,10 @@ export type ConfigOptions = {
   cache?: CacheOptions;
 };
 
-export type ConfigOptionsNormalized = Omit<ConfigOptions, "legacyTemplates"> & {
+export type ConfigOptionsNormalized = Omit<
+  ConfigOptions,
+  "legacyTemplates" | "cache"
+> & {
   /** Whether to enable legacy template support */
   legacyTemplates: boolean;
   /** Cache configuration options */

@@ -2,15 +2,6 @@ import { isNull, isString } from "../Support";
 
 import type { NotUndefined } from "./Cache.types";
 
-function stringifyObject(value: unknown): string {
-  if (isString(value)) {
-    return value;
-  }
-  // NOTE: Using JSON.stringify for efficiency. Other mechanisms (like hashing with node-object-hash) were tested but had worse performance.
-  // Object keys are not ordered for performance reasons. It is better to skip some edge cases that are unlikely to happen in cache keys than to pay the cost of ordering keys.
-  return JSON.stringify(value);
-}
-
 /**
  * Generic cache manager class. Enables caching of values based on complex keys.
  */
@@ -28,6 +19,20 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
   }
 
   /**
+   * Generates a string key from the given cache key. Has to be implemented for non-string keys.
+   * @param key The cache key to generate from
+   * @returns The generated string key
+   */
+  protected generateKey(key: CacheKey): string {
+    if (isString(key)) {
+      return key;
+    }
+    throw new Error(
+      "Cache key generation for non-string keys is not implemented."
+    );
+  }
+
+  /**
    * Generates a hashed key for the given cache key
    * @param key The cache key to hash
    * @param cacheIsEnabled Whether the cache is enabled or not
@@ -40,7 +45,7 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
     if (cacheIsEnabled === false) {
       return null as T extends false ? null : string;
     }
-    return stringifyObject(key) as T extends false ? null : string;
+    return this.generateKey(key) as T extends false ? null : string;
   }
 
   /**

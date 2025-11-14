@@ -20,6 +20,31 @@ import {
   isKnownLocalElement,
 } from "./ElementsDescriptorHelpers";
 
+class DependenciesCache extends CacheManager<
+  {
+    from: string;
+    to?: string;
+    source: string;
+    kind: string;
+    nodeKind?: string;
+    specifiers?: string[];
+  },
+  DependencyDescription
+> {
+  protected generateKey(options: {
+    from: string;
+    to?: string;
+    source: string;
+    kind: string;
+    nodeKind?: string;
+    specifiers?: string[];
+  }): string {
+    return `${options.from}|${options.to}|${options.source}|${options.kind}|${
+      options.nodeKind
+    }|${options.specifiers ? options.specifiers.join(",") : ""}`;
+  }
+}
+
 /**
  * Class describing dependencies between elements.
  */
@@ -27,17 +52,7 @@ export class DependenciesDescriptor {
   /**
    * Cache to store previously described dependencies.
    */
-  private readonly _dependenciesCache: CacheManager<
-    {
-      from: string;
-      to?: string;
-      source: string;
-      kind: string;
-      nodeKind?: string;
-      specifiers?: string[];
-    },
-    DependencyDescription
-  > = new CacheManager();
+  private readonly _dependenciesCache = new DependenciesCache();
 
   /**
    * Elements descriptor instance.

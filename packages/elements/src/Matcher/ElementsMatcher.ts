@@ -16,6 +16,54 @@ import type {
 } from "./Matcher.types";
 import type { Micromatch } from "./Micromatch";
 
+function serializeObject(obj: unknown): string {
+  const keys = (k: unknown): string => {
+    if (typeof k === "object" && k !== null) {
+      if (Array.isArray(k)) {
+        return "[" + k.map(serializeObject).join(",") + "]";
+      }
+      const sorted = Object.keys(k as Record<string, unknown>).sort();
+      return (
+        "{" +
+        sorted
+          .map(
+            (x) =>
+              `"${x}":${serializeObject((k as Record<string, unknown>)[x])}`
+          )
+          .join(",") +
+        "}"
+      );
+    }
+    return String(k);
+  };
+  return keys(obj);
+}
+
+class ElementsMatcherCache extends CacheManager<
+  {
+    element: ElementDescription;
+    selector: BaseElementSelectorData[];
+    extraTemplateData: TemplateData;
+  },
+  ElementSelectorData | null
+> {
+  protected generateKey({
+    element,
+    selector,
+    extraTemplateData,
+  }: {
+    element: ElementDescription;
+    selector: BaseElementSelectorData[];
+    extraTemplateData: TemplateData;
+  }): string {
+    return serializeObject({
+      element,
+      selector,
+      extraTemplateData,
+    });
+  }
+}
+
 /**
  * Matcher class to determine if elements match a given selector.
  */
@@ -23,14 +71,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
   /**
    * Cache to store previously described elements.
    */
-  private readonly _cache: CacheManager<
-    {
-      element: ElementDescription;
-      selector: BaseElementSelectorData[];
-      extraTemplateData: TemplateData;
-    },
-    ElementSelectorData | null
-  >;
+  private readonly _cache = new ElementsMatcherCache();
 
   /** Whether the cache is enabled or not */
   private readonly _cacheIsEnabled: boolean;
@@ -47,7 +88,6 @@ export class ElementsMatcher extends BaseElementsMatcher {
     globalCache: GlobalCache
   ) {
     super(config, micromatch, globalCache);
-    this._cache = new CacheManager();
     this._cacheIsEnabled = config.cache.elements;
   }
 

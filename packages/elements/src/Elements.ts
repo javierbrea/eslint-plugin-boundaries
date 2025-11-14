@@ -15,6 +15,80 @@ import {
   Matcher,
 } from "./Matcher";
 
+class MatchersCache extends CacheManager<
+  {
+    config: ConfigOptionsNormalized;
+    elementDescriptors: ElementDescriptors;
+  },
+  {
+    config: ConfigOptionsNormalized;
+    elementDescriptors: ElementDescriptors;
+    matcher: Matcher;
+  }
+> {
+  protected generateKey({
+    config,
+    elementDescriptors,
+  }: {
+    config: ConfigOptionsNormalized;
+    elementDescriptors: ElementDescriptors;
+  }): string {
+    const configHash = `${config.legacyTemplates}|${config.includePaths}|${config.ignorePaths}|${
+      config.cache.global.micromatchPathRegexps
+    }|${config.cache.global.micromatchCaptures}|${
+      config.cache.global.micromatchMatchingResults
+    }|${config.cache.global.elementSelectorsNormalization}|${
+      config.cache.global.handlebarsTemplates
+    }|${config.cache.descriptor.files}|${config.cache.descriptor.elements}|${
+      config.cache.descriptor.dependencies
+    }|${config.cache.matcher.dependencies}|${config.cache.matcher.elements}`;
+
+    const elementDescriptorsHash = elementDescriptors
+      .map(
+        (descriptor) =>
+          `${descriptor.type}|${descriptor.category}|${descriptor.pattern}|${descriptor.basePattern}|${descriptor.mode}|${descriptor.capture}|${descriptor.baseCapture}`
+      )
+      .join(",");
+    return `${configHash}|:|${elementDescriptorsHash}`;
+  }
+}
+
+class ElementsMatcherCache extends CacheManager<
+  MatchersOptionsNormalized,
+  {
+    config: MatchersOptionsNormalized;
+    elementsMatcher: ElementsMatcher;
+  }
+> {
+  protected generateKey(config: MatchersOptionsNormalized): string {
+    return `${config.legacyTemplates}|${config.cache.dependencies}|${config.cache.elements}|${config.cacheGlobal.micromatchCaptures}|${config.cacheGlobal.micromatchMatchingResults}|${config.cacheGlobal.micromatchPathRegexps}|${config.cacheGlobal.elementSelectorsNormalization}|${config.cacheGlobal.handlebarsTemplates}`;
+  }
+}
+
+class DependenciesMatcherCache extends CacheManager<
+  MatchersOptionsNormalized,
+  {
+    config: MatchersOptionsNormalized;
+    dependenciesMatcher: DependenciesMatcher;
+  }
+> {
+  protected generateKey(config: MatchersOptionsNormalized): string {
+    return `${config.legacyTemplates}|${config.cache.dependencies}|${config.cache.elements}|${config.cacheGlobal.micromatchCaptures}|${config.cacheGlobal.micromatchMatchingResults}|${config.cacheGlobal.micromatchPathRegexps}|${config.cacheGlobal.elementSelectorsNormalization}|${config.cacheGlobal.handlebarsTemplates}`;
+  }
+}
+
+class MicromatchCache extends CacheManager<
+  GlobalCacheOptionsNormalized,
+  {
+    config: GlobalCacheOptionsNormalized;
+    micromatch: Micromatch;
+  }
+> {
+  protected generateKey(config: GlobalCacheOptionsNormalized): string {
+    return `${config.micromatchPathRegexps}|${config.micromatchCaptures}|${config.micromatchMatchingResults}|${config.elementSelectorsNormalization}|${config.handlebarsTemplates}`;
+  }
+}
+
 /**
  * Main class to interact with Elements functionality.
  * It include one method to get descriptors with different caching for different configurations, methods to manage the cache, and methods to match element selectors against element descriptions.
@@ -24,44 +98,14 @@ export class Elements {
   private readonly _globalConfigOptions: ConfigOptionsNormalized;
 
   /** Cache manager for Matcher instances, unique for each different configuration */
-  private readonly _matchersCache: CacheManager<
-    {
-      config: ConfigOptionsNormalized;
-      elementDescriptors: ElementDescriptors;
-    },
-    {
-      config: ConfigOptionsNormalized;
-      elementDescriptors: ElementDescriptors;
-      matcher: Matcher;
-    }
-  > = new CacheManager();
-
+  private readonly _matchersCache = new MatchersCache();
   /** Cache manager for ElementsMatcher instances, unique for each different configuration */
-  private readonly _elementsMatcherCache: CacheManager<
-    MatchersOptionsNormalized,
-    {
-      config: MatchersOptionsNormalized;
-      elementsMatcher: ElementsMatcher;
-    }
-  > = new CacheManager();
-
+  private readonly _elementsMatcherCache = new ElementsMatcherCache();
   /** Cache manager for DependenciesMatcher instances, unique for each different configuration */
-  private readonly _dependenciesMatcherCache: CacheManager<
-    MatchersOptionsNormalized,
-    {
-      config: MatchersOptionsNormalized;
-      dependenciesMatcher: DependenciesMatcher;
-    }
-  > = new CacheManager();
+  private readonly _dependenciesMatcherCache = new DependenciesMatcherCache();
 
   /** Cache manager for different micromatch instances, unique for each different global cache configuration */
-  private readonly _micromatchCache: CacheManager<
-    GlobalCacheOptionsNormalized,
-    {
-      config: GlobalCacheOptionsNormalized;
-      micromatch: Micromatch;
-    }
-  > = new CacheManager();
+  private readonly _micromatchCache = new MicromatchCache();
 
   /** Global cache for various caching needs */
   private _globalCache: GlobalCache;
