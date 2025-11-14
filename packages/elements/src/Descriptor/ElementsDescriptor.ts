@@ -569,11 +569,13 @@ export class ElementsDescriptor {
    */
   private _describeFile(filePath?: string): FileElement {
     const cacheKey = String(filePath);
-    if (this._filesCache.has(cacheKey)) {
+    if (this._config.cache.files && this._filesCache.has(cacheKey)) {
       return this._filesCache.get(cacheKey)!;
     }
     const description = this._getFileDescription(filePath);
-    this._filesCache.set(cacheKey, description);
+    if (this._config.cache.files) {
+      this._filesCache.set(cacheKey, description);
+    }
     return description;
   }
 
@@ -643,7 +645,7 @@ export class ElementsDescriptor {
     dependencySource?: string
   ): ElementDescription {
     const cacheKey = `${String(dependencySource)}::${String(filePath)}`;
-    if (this._descriptionsCache.has(cacheKey)) {
+    if (this._config.cache.elements && this._descriptionsCache.has(cacheKey)) {
       return this._descriptionsCache.get(cacheKey)!;
     }
 
@@ -664,7 +666,9 @@ export class ElementsDescriptor {
         }
       : fileDescription;
 
-    this._descriptionsCache.set(cacheKey, elementResult);
+    if (this._config.cache.elements) {
+      this._descriptionsCache.set(cacheKey, elementResult);
+    }
     return elementResult;
   }
 

@@ -1,9 +1,3 @@
 export type ObjectCacheKey = Record<string, unknown>;
 
-export type NotUndefined =
-  | object
-  | string
-  | number
-  | boolean
-  | null
-  | NotUndefined[];
+export type NotUndefined = object | string | number | boolean | NotUndefined[];

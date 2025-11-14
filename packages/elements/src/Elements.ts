@@ -3,15 +3,16 @@ import type {
   ConfigOptions,
   ConfigOptionsNormalized,
   MatchersOptionsNormalized,
+  GlobalCacheOptionsNormalized,
 } from "./Config";
 import { Config } from "./Config";
 import type { ElementDescriptors } from "./Descriptor";
 import type { ElementsSerializedCache } from "./Elements.types";
 import {
+  Micromatch,
   DependenciesMatcher,
   ElementsMatcher,
   Matcher,
-  Micromatch,
 } from "./Matcher";
 
 /**
@@ -37,7 +38,7 @@ export class Elements {
 
   /** Cache manager for ElementsMatcher instances, unique for each different configuration */
   private readonly _elementsMatcherCache: CacheManager<
-    { config: MatchersOptionsNormalized },
+    MatchersOptionsNormalized,
     {
       config: MatchersOptionsNormalized;
       elementsMatcher: ElementsMatcher;
@@ -46,18 +47,24 @@ export class Elements {
 
   /** Cache manager for DependenciesMatcher instances, unique for each different configuration */
   private readonly _dependenciesMatcherCache: CacheManager<
-    { config: MatchersOptionsNormalized },
+    MatchersOptionsNormalized,
     {
       config: MatchersOptionsNormalized;
       dependenciesMatcher: DependenciesMatcher;
     }
   > = new CacheManager();
 
+  /** Cache manager for different micromatch instances, unique for each different global cache configuration */
+  private readonly _micromatchCache: CacheManager<
+    GlobalCacheOptionsNormalized,
+    {
+      config: GlobalCacheOptionsNormalized;
+      micromatch: Micromatch;
+    }
+  > = new CacheManager();
+
   /** Global cache for various caching needs */
   private _globalCache: GlobalCache;
-
-  /** Micromatch instance for path matching */
-  private _micromatch: Micromatch;
 
   /**
    * Creates a new Elements instance
@@ -67,7 +74,6 @@ export class Elements {
     const globalConfig = new Config(configOptions);
     this._globalConfigOptions = globalConfig.options;
     this._globalCache = new GlobalCache();
-    this._micromatch = new Micromatch(this._globalCache);
   }
 
   /**
@@ -193,28 +199,56 @@ export class Elements {
   }
 
   /**
+   * Retrieves or creates a Micromatch instance for the given global cache configuration.
+   * @param globalCacheOptions The global cache configuration options.
+   * @param cacheIsEnabled Whether the cache is enabled.
+   * @returns A Micromatch instance. Unique for each different global cache configuration.
+   */
+  private _getMicromatch(
+    config: GlobalCacheOptionsNormalized,
+    cacheIsEnabled?: boolean
+  ): Micromatch {
+    const cacheKey = this._micromatchCache.getKey(config, cacheIsEnabled);
+    if (this._micromatchCache.has(cacheKey)) {
+      return this._micromatchCache.get(cacheKey)!.micromatch;
+    }
+
+    const micromatch = new Micromatch(this._globalCache);
+
+    this._micromatchCache.set(cacheKey, {
+      config,
+      micromatch,
+    });
+    return micromatch;
+  }
+
+  /**
    * Creates or retrieves an ElementsMatcher instance for the given configuration options.
-   * @param configOptions The configuration options.
+   * @param config The configuration options.
+   * @param cacheIsEnabled Whether the cache is disabled or not.
    * @returns An ElementsMatcher instance. Unique for each different configuration.
    */
   private _getElementsMatcher(
-    configOptions: MatchersOptionsNormalized
+    config: MatchersOptionsNormalized,
+    micromatch?: Micromatch,
+    cacheIsEnabled?: boolean
   ): ElementsMatcher {
-    const cacheKey = this._elementsMatcherCache.getKey({
-      config: configOptions,
-    });
-
+    const cacheKey = this._elementsMatcherCache.getKey(config, cacheIsEnabled);
     if (this._elementsMatcherCache.has(cacheKey)) {
       return this._elementsMatcherCache.get(cacheKey)!.elementsMatcher;
     }
 
+    const micromatchToUse =
+      micromatch || this._getMicromatch(config.cacheGlobal, cacheIsEnabled);
+
     const elementsMatcher = new ElementsMatcher(
-      configOptions,
-      this._micromatch,
+      config,
+      micromatchToUse,
       this._globalCache
     );
+
     this._elementsMatcherCache.set(cacheKey, {
-      config: configOptions,
+      config,
       elementsMatcher,
     });
     return elementsMatcher;
@@ -222,29 +256,38 @@ export class Elements {
 
   /**
    * Creates or retrieves a DependenciesMatcher instance for the given configuration options.
-   * @param configOptions The configuration options.
+   * @param config The configuration options.
+   * @param cacheIsEnabled Whether the cache is disabled.
    * @returns A DependenciesMatcher instance. Unique for each different configuration.
    */
   private _getDependenciesMatcher(
-    configOptions: MatchersOptionsNormalized
+    config: MatchersOptionsNormalized,
+    micromatch?: Micromatch,
+    cacheIsEnabled?: boolean
   ): DependenciesMatcher {
-    const cacheKey = this._dependenciesMatcherCache.getKey({
-      config: configOptions,
-    });
-
+    const cacheKey = this._dependenciesMatcherCache.getKey(
+      config,
+      cacheIsEnabled
+    );
     if (this._dependenciesMatcherCache.has(cacheKey)) {
       return this._dependenciesMatcherCache.get(cacheKey)!.dependenciesMatcher;
     }
 
-    const elementsMatcher = this._getElementsMatcher(configOptions);
+    const micromatchToUse =
+      micromatch || this._getMicromatch(config.cacheGlobal, cacheIsEnabled);
+    const elementsMatcher = this._getElementsMatcher(
+      config,
+      micromatchToUse,
+      cacheIsEnabled
+    );
     const dependenciesMatcher = new DependenciesMatcher(
       elementsMatcher,
-      configOptions,
-      this._micromatch,
+      config,
+      micromatchToUse,
       this._globalCache
     );
-    this._dependenciesMatcherCache.set(cacheKey, {
-      config: configOptions,
+    this._dependenciesMatcherCache.set(cacheKey!, {
+      config,
       dependenciesMatcher,
     });
     return dependenciesMatcher;
@@ -254,31 +297,43 @@ export class Elements {
    * Gets a Matcher instance for the given configuration options.
    * It uses caching to return the same instance for the same configuration options. If no options are provided, the global configuration options are used.
    * @param elementDescriptors The element descriptors to use.
-   * @param configOptions Optional configuration options to override the global ones.
+   * @param config Optional configuration options to override the global ones.
    * @returns A matcher instance, unique for each different configuration.
    */
   public getMatcher(
     elementDescriptors: ElementDescriptors,
-    configOptions?: ConfigOptions
+    config?: ConfigOptions
   ): Matcher {
-    const optionsToUse = configOptions || this._globalConfigOptions;
+    const optionsToUse = config || this._globalConfigOptions;
     const configInstance = new Config(optionsToUse);
     const configOptionsNormalized = configInstance.options;
     const descriptorNormalizedOptions = configInstance.descriptorOptions;
     const matchersNormalizedOptions = configInstance.matchersOptions;
+    const cacheIsEnabled = configInstance.cacheIsEnabled;
+    const globalCacheOptions = configInstance.globalCacheOptions;
 
-    const cacheKey = this._matchersCache.getKey({
-      config: configOptionsNormalized,
-      elementDescriptors,
-    });
+    const cacheKey = this._matchersCache.getKey(
+      {
+        config: configOptionsNormalized,
+        elementDescriptors,
+      },
+      cacheIsEnabled
+    );
 
     if (this._matchersCache.has(cacheKey)) {
       return this._matchersCache.get(cacheKey)!.matcher;
     }
 
-    const elementsMatcher = this._getElementsMatcher(matchersNormalizedOptions);
+    const micromatch = this._getMicromatch(globalCacheOptions, cacheIsEnabled);
+    const elementsMatcher = this._getElementsMatcher(
+      matchersNormalizedOptions,
+      micromatch,
+      cacheIsEnabled
+    );
     const dependenciesMatcher = this._getDependenciesMatcher(
-      matchersNormalizedOptions
+      matchersNormalizedOptions,
+      micromatch,
+      cacheIsEnabled
     );
 
     const matcher = new Matcher(
@@ -286,7 +341,7 @@ export class Elements {
       elementsMatcher,
       dependenciesMatcher,
       descriptorNormalizedOptions,
-      this._micromatch
+      micromatch
     );
 
     this._matchersCache.set(cacheKey, {
@@ -294,6 +349,7 @@ export class Elements {
       elementDescriptors,
       matcher,
     });
+
     return matcher;
   }
 }

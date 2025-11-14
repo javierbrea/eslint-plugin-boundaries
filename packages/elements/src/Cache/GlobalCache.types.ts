@@ -18,17 +18,9 @@ export type MicromatchCapturesCache = CacheManager<string, string[] | null>;
 export type MicromatchMatchingResultsCache = CacheManager<string, boolean>;
 
 /**
- * Cache for normalized selectors
+ * Cache for selectors normalization
  */
-export type NormalizedElementsSelectorsCache = CacheManager<
-  BaseElementsSelector,
-  BaseElementSelectorData[]
->;
-
-/**
- * Cache for normalized selector
- */
-export type NormalizedElementsSelectorCache = CacheManager<
+export type ElementSelectorsNormalizationCache = CacheManager<
   BaseElementsSelector,
   BaseElementSelectorData
 >;
@@ -52,8 +44,6 @@ export type SerializedGlobalCache = {
   micromatchCaptures: Record<string, string[] | null>;
   /** Cache for Micromatch matching results */
   micromatchMatchingResults: Record<string, boolean>;
-  /** Cache for normalized elements selectors */
-  normalizedElementsSelectors: Record<string, BaseElementSelectorData[]>;
-  /** Cache for normalized elements selector */
-  normalizedElementsSelector: Record<string, BaseElementSelectorData>;
+  /** Cache for normalized element selectors */
+  elementSelectorsNormalization: Record<string, BaseElementSelectorData>;
 };

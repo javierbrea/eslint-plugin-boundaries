@@ -1,7 +1,11 @@
 import Handlebars from "handlebars";
 
 import type { GlobalCache } from "../Cache";
-import type { MicromatchPattern, MatchersOptionsNormalized } from "../Config";
+import type {
+  MicromatchPattern,
+  MatchersOptionsNormalized,
+  GlobalCacheOptionsNormalized,
+} from "../Config";
 import type {
   LocalElementKnown,
   CoreDependencyElement,
@@ -98,6 +102,10 @@ export function normalizeElementsSelector(
  */
 export class BaseElementsMatcher {
   /**
+   * Options of the global cache
+   */
+  private _globalCacheConfig: GlobalCacheOptionsNormalized;
+  /**
    * Option to use legacy templates with ${} syntax.
    */
   protected readonly _legacyTemplates: boolean;
@@ -125,6 +133,7 @@ export class BaseElementsMatcher {
     this.globalCache = globalCache;
     this.micromatch = micromatch;
     this._legacyTemplates = config.legacyTemplates;
+    this._globalCacheConfig = config.cacheGlobal;
   }
 
   /**
@@ -166,10 +175,16 @@ export class BaseElementsMatcher {
     }
 
     let compiledTemplate =
+      this._globalCacheConfig.handlebarsTemplates &&
       this.globalCache.handleBarsTemplates.get(templateToUse);
     if (!compiledTemplate) {
       compiledTemplate = Handlebars.compile(templateToUse);
-      this.globalCache.handleBarsTemplates.set(templateToUse, compiledTemplate);
+      if (this._globalCacheConfig.handlebarsTemplates) {
+        this.globalCache.handleBarsTemplates.set(
+          templateToUse,
+          compiledTemplate
+        );
+      }
     }
 
     return compiledTemplate(templateData);
@@ -187,15 +202,17 @@ export class BaseElementsMatcher {
     selector: DependencyElementSelector
   ): DependencyElementSelectorData;
   protected normalizeSelector(selector: ElementSelector): ElementSelectorData {
-    const cacheKey =
-      this.globalCache.normalizedElementsSelector.getKey(selector);
+    const cacheKey = this.globalCache.elementSelectorsNormalization.getKey(
+      selector,
+      this._globalCacheConfig.elementSelectorsNormalization
+    );
 
-    if (this.globalCache.normalizedElementsSelector.has(cacheKey)) {
-      return this.globalCache.normalizedElementsSelector.get(cacheKey)!;
+    if (this.globalCache.elementSelectorsNormalization.has(cacheKey)) {
+      return this.globalCache.elementSelectorsNormalization.get(cacheKey)!;
     }
 
     const result = normalizeSelector(selector);
-    this.globalCache.normalizedElementsSelector.set(cacheKey, result);
+    this.globalCache.elementSelectorsNormalization.set(cacheKey, result);
     return result;
   }
 
@@ -213,25 +230,13 @@ export class BaseElementsMatcher {
   protected normalizeElementsSelector(
     elementsSelector: ElementsSelector
   ): ElementSelectorData[] {
-    const cacheKey =
-      this.globalCache.normalizedElementsSelectors.getKey(elementsSelector);
-    if (this.globalCache.normalizedElementsSelectors.has(cacheKey)) {
-      return this.globalCache.normalizedElementsSelectors.get(cacheKey)!;
-    }
-    let result: ElementSelectorData[];
     if (isArray(elementsSelector)) {
       if (isElementSelectorWithLegacyOptions(elementsSelector)) {
-        result = [this.normalizeSelector(elementsSelector)];
-        this.globalCache.normalizedElementsSelectors.set(cacheKey, result);
-        return result;
+        return [this.normalizeSelector(elementsSelector)];
       }
-      result = elementsSelector.map((sel) => this.normalizeSelector(sel));
-      this.globalCache.normalizedElementsSelectors.set(cacheKey, result);
-      return result;
+      return elementsSelector.map((sel) => this.normalizeSelector(sel));
     }
-    result = [this.normalizeSelector(elementsSelector)];
-    this.globalCache.normalizedElementsSelectors.set(cacheKey, result);
-    return result;
+    return [this.normalizeSelector(elementsSelector)];
   }
 
   /**

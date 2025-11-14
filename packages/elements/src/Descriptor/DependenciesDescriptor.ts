@@ -1,4 +1,5 @@
 import { CacheManager } from "../Cache";
+import type { DescriptorOptionsNormalized } from "../Config";
 
 import {
   DEPENDENCY_RELATIONSHIPS_MAP,
@@ -44,11 +45,20 @@ export class DependenciesDescriptor {
   private readonly _elementsDescriptor: ElementsDescriptor;
 
   /**
+   * Configuration options.
+   */
+  private readonly _config: DescriptorOptionsNormalized;
+
+  /**
    * Creates a new DependenciesDescriptor instance.
    * @param elementsDescriptor The elements descriptor instance.
    */
-  constructor(elementsDescriptor: ElementsDescriptor) {
+  constructor(
+    elementsDescriptor: ElementsDescriptor,
+    config: DescriptorOptionsNormalized
+  ) {
     this._elementsDescriptor = elementsDescriptor;
+    this._config = config;
   }
 
   /**
@@ -238,14 +248,17 @@ export class DependenciesDescriptor {
     nodeKind,
     specifiers,
   }: DescribeDependencyOptions): DependencyDescription {
-    const cacheKey = this._dependenciesCache.getKey({
-      from,
-      to,
-      source,
-      kind,
-      nodeKind,
-      specifiers,
-    });
+    const cacheKey = this._dependenciesCache.getKey(
+      {
+        from,
+        to,
+        source,
+        kind,
+        nodeKind,
+        specifiers,
+      },
+      this._config.cache.dependencies
+    );
     if (this._dependenciesCache.has(cacheKey)) {
       return this._dependenciesCache.get(cacheKey)!;
     }

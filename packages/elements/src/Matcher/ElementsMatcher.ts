@@ -32,6 +32,9 @@ export class ElementsMatcher extends BaseElementsMatcher {
     ElementSelectorData | null
   >;
 
+  /** Whether the cache is enabled or not */
+  private readonly _cacheIsEnabled: boolean;
+
   /**
    * Creates a new ElementsSelectorMatcher.
    * @param config Configuration options for the matcher.
@@ -45,6 +48,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
   ) {
     super(config, micromatch, globalCache);
     this._cache = new CacheManager();
+    this._cacheIsEnabled = config.cache.elements;
   }
 
   /**
@@ -70,25 +74,6 @@ export class ElementsMatcher extends BaseElementsMatcher {
    */
   public clearCache(): void {
     this._cache.clear();
-  }
-
-  /**
-   * Optimized selector normalization with caching.
-   * @param selector The selector to normalize.
-   * @returns The normalized selector data array.
-   */
-  private _cachedNormalizeElementsSelector(
-    selector: BaseElementsSelector
-  ): BaseElementSelectorData[] {
-    const cacheKey =
-      this.globalCache.normalizedElementsSelectors.getKey(selector);
-    if (this.globalCache.normalizedElementsSelectors.has(cacheKey)) {
-      return this.globalCache.normalizedElementsSelectors.get(cacheKey)!;
-    }
-
-    const result = this.normalizeElementsSelector(selector);
-    this.globalCache.normalizedElementsSelectors.set(cacheKey, result);
-    return result;
   }
 
   /**
@@ -406,13 +391,15 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementsSelector,
     { extraTemplateData = {} }: MatcherOptions = {}
   ): ElementSelectorData | null {
-    const selectorsData = this._cachedNormalizeElementsSelector(selector);
-    // TODO: Possible optimization: If selector does not contain any templated values, we could omit extraTemplateData from cache key
-    const cacheKey = this._cache.getKey({
-      element,
-      selector: selectorsData,
-      extraTemplateData,
-    });
+    const selectorsData = this.normalizeElementsSelector(selector);
+    const cacheKey = this._cache.getKey(
+      {
+        element,
+        selector: selectorsData,
+        extraTemplateData,
+      },
+      this._cacheIsEnabled
+    );
     if (this._cache.has(cacheKey)) {
       return this._cache.get(cacheKey)!;
     }

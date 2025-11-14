@@ -44,6 +44,9 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     DependencyMatchResult
   >;
 
+  /** Whether the cache is enabled or not */
+  private readonly _cacheIsEnabled: boolean;
+
   /**
    * Elements matcher to use for matching elements within dependencies.
    */
@@ -64,6 +67,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
   ) {
     super(config, micromatch, globalCache);
     this._cache = new CacheManager();
+    this._cacheIsEnabled = config.cache.dependencies;
     this._elementsMatcher = elementsMatcher;
   }
 
@@ -415,12 +419,15 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       dependencySelectorsGlobals = {},
     }: MatcherOptions = {}
   ): DependencyMatchResult {
-    const cacheKey = this._cache.getKey({
-      dependency,
-      selector,
-      extraTemplateData,
-      dependencySelectorsGlobals,
-    });
+    const cacheKey = this._cache.getKey(
+      {
+        dependency,
+        selector,
+        extraTemplateData,
+        dependencySelectorsGlobals,
+      },
+      this._cacheIsEnabled
+    );
     if (this._cache.has(cacheKey)) {
       return this._cache.get(cacheKey)!;
     }

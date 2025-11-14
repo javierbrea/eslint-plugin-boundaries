@@ -410,6 +410,7 @@ function validateRootPath(rootPath: unknown): string | undefined {
   );
 }
 
+// TODO: Remove settings validation in next major version. It should be done by schema validation only
 export function validateSettings(
   settings: Rule.RuleContext["settings"]
 ): Settings {
@@ -445,7 +446,7 @@ export function validateSettings(
  * @returns The normalized settings
  */
 export function getSettings(context: Rule.RuleContext): SettingsNormalized {
-  const cacheKey = settingsCache.getKey(context.settings);
+  const cacheKey = settingsCache.getKey(context.settings, false);
   if (settingsCache.has(cacheKey)) {
     return settingsCache.get(cacheKey)!;
   }

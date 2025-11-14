@@ -163,7 +163,7 @@ export default dependencyRule<ExternalRuleOptions>(
       isCoreDependencyElement(dependency.to)
     ) {
       let adaptedRuleOptions: ExternalRuleOptions;
-      const cacheKey = modifiedRuleOptionsCache.getKey(options || {});
+      const cacheKey = modifiedRuleOptionsCache.getKey(options || {}, false);
       if (modifiedRuleOptionsCache.has(cacheKey)) {
         adaptedRuleOptions = modifiedRuleOptionsCache.get(cacheKey)!;
       } else {

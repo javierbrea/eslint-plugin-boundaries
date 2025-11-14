@@ -28,16 +28,17 @@ export class Descriptors {
    */
   constructor(
     elementDescriptors: ElementDescriptors,
-    configOptions: DescriptorOptionsNormalized,
+    config: DescriptorOptionsNormalized,
     micromatch: Micromatch
   ) {
     this._elementsDescriptor = new ElementsDescriptor(
       elementDescriptors,
-      configOptions,
+      config,
       micromatch
     );
     this._dependenciesDescriptor = new DependenciesDescriptor(
-      this._elementsDescriptor
+      this._elementsDescriptor,
+      config
     );
   }
 

@@ -6,8 +6,7 @@ import type {
   MicromatchPathRegexpsCache,
   MicromatchMatchingResultsCache,
   SerializedGlobalCache,
-  NormalizedElementsSelectorsCache,
-  NormalizedElementsSelectorCache,
+  ElementSelectorsNormalizationCache,
   HandleBarsTemplatesCache,
 } from "./GlobalCache.types";
 
@@ -24,11 +23,8 @@ export class GlobalCache {
   /** Cache for micromatch matching results */
   private _micromatchMatchingResults: MicromatchMatchingResultsCache;
 
-  /** Cache for normalized selectors */
-  private _normalizedElementsSelectors: NormalizedElementsSelectorsCache;
-
   /** Cache for normalized selector */
-  private _normalizedElementsSelector: NormalizedElementsSelectorCache;
+  private _elementSelectorsNormalization: ElementSelectorsNormalizationCache;
 
   /** Cache for Handlebars templates */
   private _handleBarsTemplates: HandleBarsTemplatesCache;
@@ -40,11 +36,7 @@ export class GlobalCache {
     this._micromatchPathRegexps = new CacheManager<string, RegExp>();
     this._micromatchCaptures = new CacheManager<string, string[] | null>();
     this._micromatchMatchingResults = new CacheManager<string, boolean>();
-    this._normalizedElementsSelectors = new CacheManager<
-      BaseElementsSelector,
-      BaseElementSelectorData[]
-    >();
-    this._normalizedElementsSelector = new CacheManager<
+    this._elementSelectorsNormalization = new CacheManager<
       BaseElementsSelector,
       BaseElementSelectorData
     >();
@@ -76,17 +68,10 @@ export class GlobalCache {
   }
 
   /**
-   * Cache for normalized elements selectors
-   */
-  public get normalizedElementsSelectors(): NormalizedElementsSelectorsCache {
-    return this._normalizedElementsSelectors;
-  }
-
-  /**
    * Cache for normalized elements selector
    */
-  public get normalizedElementsSelector(): NormalizedElementsSelectorCache {
-    return this._normalizedElementsSelector;
+  public get elementSelectorsNormalization(): ElementSelectorsNormalizationCache {
+    return this._elementSelectorsNormalization;
   }
 
   /**
@@ -103,8 +88,7 @@ export class GlobalCache {
     this._micromatchPathRegexps.clear();
     this._micromatchCaptures.clear();
     this._micromatchMatchingResults.clear();
-    this._normalizedElementsSelectors.clear();
-    this._normalizedElementsSelector.clear();
+    this._elementSelectorsNormalization.clear();
     this._handleBarsTemplates.clear();
   }
 
@@ -116,9 +100,8 @@ export class GlobalCache {
     return {
       micromatchCaptures: this._micromatchCaptures.serialize(),
       micromatchMatchingResults: this._micromatchMatchingResults.serialize(),
-      normalizedElementsSelectors:
-        this._normalizedElementsSelectors.serialize(),
-      normalizedElementsSelector: this._normalizedElementsSelector.serialize(),
+      elementSelectorsNormalization:
+        this._elementSelectorsNormalization.serialize(),
     };
   }
 
@@ -133,11 +116,8 @@ export class GlobalCache {
     this._micromatchMatchingResults.setFromSerialized(
       serializedCache.micromatchMatchingResults
     );
-    this._normalizedElementsSelectors.setFromSerialized(
-      serializedCache.normalizedElementsSelectors
-    );
-    this._normalizedElementsSelector.setFromSerialized(
-      serializedCache.normalizedElementsSelector
+    this._elementSelectorsNormalization.setFromSerialized(
+      serializedCache.elementSelectorsNormalization
     );
   }
 }

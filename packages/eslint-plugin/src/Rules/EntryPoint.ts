@@ -160,7 +160,7 @@ export default dependencyRule<EntryPointRuleOptions>(
     ) {
       let adaptedRuleOptions: AdaptedRuleOptions;
 
-      const cacheKey = adaptedRuleOptionsCache.getKey(options || {});
+      const cacheKey = adaptedRuleOptionsCache.getKey(options || {}, false);
       if (adaptedRuleOptionsCache.has(cacheKey)) {
         adaptedRuleOptions = adaptedRuleOptionsCache.get(cacheKey)!;
       } else {

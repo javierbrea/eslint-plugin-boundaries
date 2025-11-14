@@ -1,4 +1,4 @@
-import { isString } from "../Support";
+import { isNull, isString } from "../Support";
 
 import type { NotUndefined } from "./Cache.types";
 
@@ -30,27 +30,40 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
   /**
    * Generates a hashed key for the given cache key
    * @param key The cache key to hash
-   * @returns The hashed key as a string
+   * @param cacheIsEnabled Whether the cache is enabled or not
+   * @returns The hashed key as a string, or null if cache is disabled
    */
-  public getKey(key: CacheKey): string {
-    return stringifyObject(key);
+  public getKey<T extends boolean | undefined = undefined>(
+    key: CacheKey,
+    cacheIsEnabled?: T
+  ): T extends false ? null : string {
+    if (cacheIsEnabled === false) {
+      return null as T extends false ? null : string;
+    }
+    return stringifyObject(key) as T extends false ? null : string;
   }
 
   /**
    * Retrieves a value from the cache based on the given hashed key
-   * @param hashedKey The hashed key to retrieve
+   * @param hashedKey The hashed key to retrieve. If null, no value will be returned
    * @returns The cached value or undefined if not found
    */
-  public get(hashedKey: string): CachedValue | undefined {
+  public get(hashedKey: string | null): CachedValue | undefined {
+    if (isNull(hashedKey)) {
+      return;
+    }
     return this._cache.get(hashedKey);
   }
 
   /**
    * Stores a value in the cache with a given hashed key
-   * @param hashedKey The hashed key to store
+   * @param hashedKey The hashed key to store, or null. If null, item won't be stored
    * @param value The value to cache
    */
-  public set(hashedKey: string, value: CachedValue): void {
+  public set(hashedKey: string | null, value: CachedValue): void {
+    if (isNull(hashedKey)) {
+      return;
+    }
     this._cache.set(hashedKey, value);
   }
 
@@ -65,10 +78,13 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
 
   /**
    * Checks if a value exists in the cache based on the given hashed key
-   * @param hashedKey The hashed key to check
+   * @param hashedKey The hashed key to check. If null, it will always return false
    * @returns True if the value exists, false otherwise
    */
-  public has(hashedKey: string): boolean {
+  public has(hashedKey: string | null): boolean {
+    if (isNull(hashedKey)) {
+      return false;
+    }
     return this._cache.has(hashedKey);
   }
 
