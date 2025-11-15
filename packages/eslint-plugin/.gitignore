@@ -34,5 +34,5 @@ stryker.conf.local.js
 README.md
 dist
 
-# Performance testing
+# Script to create symlinks for local performance testing on other repositories
 link.sh

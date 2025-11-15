@@ -36,7 +36,6 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
   /**
    * Generates a hashed key for the given cache key
    * @param key The cache key to hash
-   * @param cacheIsEnabled Whether the cache is enabled or not
    * @returns The hashed key as a string
    */
   public getKey(key: CacheKey): string {

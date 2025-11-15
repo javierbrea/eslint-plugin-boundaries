@@ -11,7 +11,6 @@ export class CacheManagerDisabled<
   /**
    * Generates a fake cache key as caching is disabled
    * @param key The cache key to hash
-   * @param cacheIsEnabled Whether the cache is enabled or not
    * @returns An empty string
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

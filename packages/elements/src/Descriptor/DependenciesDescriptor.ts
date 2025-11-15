@@ -45,6 +45,7 @@ export class DependenciesDescriptor {
   /**
    * Creates a new DependenciesDescriptor instance.
    * @param elementsDescriptor The elements descriptor instance.
+   * @param config The configuration options.
    */
   constructor(
     elementsDescriptor: ElementsDescriptor,
