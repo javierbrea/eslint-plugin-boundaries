@@ -1,11 +1,6 @@
 import Handlebars from "handlebars";
 
-import type { GlobalCache } from "../Cache";
-import type {
-  MicromatchPattern,
-  MatchersOptionsNormalized,
-  GlobalCacheOptionsNormalized,
-} from "../Config";
+import type { MicromatchPattern, MatchersOptionsNormalized } from "../Config";
 import type {
   LocalElementKnown,
   CoreDependencyElement,
@@ -102,18 +97,9 @@ export function normalizeElementsSelector(
  */
 export class BaseElementsMatcher {
   /**
-   * Options of the global cache
-   */
-  private _globalCacheConfig: GlobalCacheOptionsNormalized;
-  /**
    * Option to use legacy templates with ${} syntax.
    */
   protected readonly _legacyTemplates: boolean;
-
-  /**
-   * Global cache instance.
-   */
-  protected readonly globalCache: GlobalCache;
 
   /**
    * Micromatch instance for matching.
@@ -125,15 +111,9 @@ export class BaseElementsMatcher {
    * @param config Configuration options for the matcher.
    * @param globalCache Global cache instance.
    */
-  constructor(
-    config: MatchersOptionsNormalized,
-    micromatch: Micromatch,
-    globalCache: GlobalCache
-  ) {
-    this.globalCache = globalCache;
+  constructor(config: MatchersOptionsNormalized, micromatch: Micromatch) {
     this.micromatch = micromatch;
     this._legacyTemplates = config.legacyTemplates;
-    this._globalCacheConfig = config.cacheGlobal;
   }
 
   /**
@@ -170,22 +150,10 @@ export class BaseElementsMatcher {
       : template;
     if (!this._isHandlebarsTemplate(templateToUse)) {
       // If the template does not contain any Handlebars syntax, return it as is.
-      // TODO: Check if this improves or harms performance compared to passing all to Handlebars.compile
       return template;
     }
 
-    let compiledTemplate =
-      this._globalCacheConfig.handlebarsTemplates &&
-      this.globalCache.handleBarsTemplates.get(templateToUse);
-    if (!compiledTemplate) {
-      compiledTemplate = Handlebars.compile(templateToUse);
-      if (this._globalCacheConfig.handlebarsTemplates) {
-        this.globalCache.handleBarsTemplates.set(
-          templateToUse,
-          compiledTemplate
-        );
-      }
-    }
+    const compiledTemplate = Handlebars.compile(templateToUse);
 
     return compiledTemplate(templateData);
   }
@@ -202,18 +170,7 @@ export class BaseElementsMatcher {
     selector: DependencyElementSelector
   ): DependencyElementSelectorData;
   protected normalizeSelector(selector: ElementSelector): ElementSelectorData {
-    const cacheKey = this.globalCache.elementSelectorsNormalization.getKey(
-      selector,
-      this._globalCacheConfig.elementSelectorsNormalization
-    );
-
-    if (this.globalCache.elementSelectorsNormalization.has(cacheKey)) {
-      return this.globalCache.elementSelectorsNormalization.get(cacheKey)!;
-    }
-
-    const result = normalizeSelector(selector);
-    this.globalCache.elementSelectorsNormalization.set(cacheKey, result);
-    return result;
+    return normalizeSelector(selector);
   }
 
   /**

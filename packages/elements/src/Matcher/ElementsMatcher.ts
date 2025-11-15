@@ -1,5 +1,3 @@
-import { CacheManager } from "../Cache";
-import type { GlobalCache } from "../Cache";
 import type { MatchersOptionsNormalized } from "../Config";
 import type { ElementDescription } from "../Descriptor";
 import { isArray, isNullish, isEmptyObject } from "../Support";
@@ -9,70 +7,16 @@ import type {
   BaseElementSelectorData,
   SelectableElement,
   TemplateData,
-  ElementsMatcherSerializedCache,
   BaseElementsSelector,
   MatcherOptions,
   ElementSelectorData,
 } from "./Matcher.types";
 import type { Micromatch } from "./Micromatch";
 
-function serializeObject(obj: unknown): string {
-  const keys = (k: unknown): string => {
-    if (typeof k === "object" && k !== null) {
-      if (Array.isArray(k)) {
-        return "[" + k.map(serializeObject).join(",") + "]";
-      }
-      const sorted = Object.keys(k as Record<string, unknown>).sort();
-      return (
-        "{" +
-        sorted
-          .map(
-            (x) =>
-              `"${x}":${serializeObject((k as Record<string, unknown>)[x])}`
-          )
-          .join(",") +
-        "}"
-      );
-    }
-    return String(k);
-  };
-  return keys(obj);
-}
-
-class ElementsMatcherCache extends CacheManager<
-  {
-    element: ElementDescription;
-    selector: BaseElementSelectorData[];
-    extraTemplateData: TemplateData;
-  },
-  ElementSelectorData | null
-> {
-  protected generateKey({
-    element,
-    selector,
-    extraTemplateData,
-  }: {
-    element: ElementDescription;
-    selector: BaseElementSelectorData[];
-    extraTemplateData: TemplateData;
-  }): string {
-    return serializeObject({
-      element,
-      selector,
-      extraTemplateData,
-    });
-  }
-}
-
 /**
  * Matcher class to determine if elements match a given selector.
  */
 export class ElementsMatcher extends BaseElementsMatcher {
-  /**
-   * Cache to store previously described elements.
-   */
-  private readonly _cache = new ElementsMatcherCache();
-
   /** Whether the cache is enabled or not */
   private readonly _cacheIsEnabled: boolean;
 
@@ -82,38 +26,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @param micromatch Micromatch instance for matching.
    * @param globalCache Global cache instance.
    */
-  constructor(
-    config: MatchersOptionsNormalized,
-    micromatch: Micromatch,
-    globalCache: GlobalCache
-  ) {
-    super(config, micromatch, globalCache);
-    this._cacheIsEnabled = config.cache.elements;
-  }
-
-  /**
-   * Serializes the cache to a plain object.
-   * @returns The serialized cache.
-   */
-  public serializeCache(): ElementsMatcherSerializedCache {
-    return this._cache.serialize();
-  }
-
-  /**
-   * Sets the cache from a serialized object.
-   * @param serializedCache The serialized cache.
-   */
-  public setCacheFromSerialized(
-    serializedCache: ElementsMatcherSerializedCache
-  ): void {
-    this._cache.setFromSerialized(serializedCache);
-  }
-
-  /**
-   * Clears the cache.
-   */
-  public clearCache(): void {
-    this._cache.clear();
+  constructor(config: MatchersOptionsNormalized, micromatch: Micromatch) {
+    super(config, micromatch);
   }
 
   /**
@@ -432,26 +346,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
     { extraTemplateData = {} }: MatcherOptions = {}
   ): ElementSelectorData | null {
     const selectorsData = this.normalizeElementsSelector(selector);
-    const cacheKey = this._cache.getKey(
-      {
-        element,
-        selector: selectorsData,
-        extraTemplateData,
-      },
-      this._cacheIsEnabled
-    );
-    if (this._cache.has(cacheKey)) {
-      return this._cache.get(cacheKey)!;
-    }
-
-    const result = this._getSelectorMatching(
-      element,
-      selectorsData,
-      extraTemplateData
-    );
-
-    this._cache.set(cacheKey, result);
-    return result;
+    return this._getSelectorMatching(element, selectorsData, extraTemplateData);
   }
 
   /**

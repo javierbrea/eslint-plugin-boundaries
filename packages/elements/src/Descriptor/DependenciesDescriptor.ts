@@ -1,6 +1,7 @@
-import { CacheManager } from "../Cache";
+import { CacheManagerDisabled } from "../Cache";
 import type { DescriptorOptionsNormalized } from "../Config";
 
+import { DependenciesDescriptionsCache } from "./DependenciesDescriptionsCache";
 import {
   DEPENDENCY_RELATIONSHIPS_MAP,
   DEPENDENCY_RELATIONSHIPS_INVERTED_MAP,
@@ -20,31 +21,6 @@ import {
   isKnownLocalElement,
 } from "./ElementsDescriptorHelpers";
 
-class DependenciesCache extends CacheManager<
-  {
-    from: string;
-    to?: string;
-    source: string;
-    kind: string;
-    nodeKind?: string;
-    specifiers?: string[];
-  },
-  DependencyDescription
-> {
-  protected generateKey(options: {
-    from: string;
-    to?: string;
-    source: string;
-    kind: string;
-    nodeKind?: string;
-    specifiers?: string[];
-  }): string {
-    return `${options.from}|${options.to}|${options.source}|${options.kind}|${
-      options.nodeKind
-    }|${options.specifiers ? options.specifiers.join(",") : ""}`;
-  }
-}
-
 /**
  * Class describing dependencies between elements.
  */
@@ -52,7 +28,9 @@ export class DependenciesDescriptor {
   /**
    * Cache to store previously described dependencies.
    */
-  private readonly _dependenciesCache = new DependenciesCache();
+  private readonly _dependenciesCache:
+    | DependenciesDescriptionsCache
+    | CacheManagerDisabled<DescribeDependencyOptions, DependencyDescription>;
 
   /**
    * Elements descriptor instance.
@@ -74,6 +52,12 @@ export class DependenciesDescriptor {
   ) {
     this._elementsDescriptor = elementsDescriptor;
     this._config = config;
+    this._dependenciesCache = this._config.cache
+      ? new DependenciesDescriptionsCache()
+      : new CacheManagerDisabled<
+          DescribeDependencyOptions,
+          DependencyDescription
+        >();
   }
 
   /**
@@ -263,17 +247,14 @@ export class DependenciesDescriptor {
     nodeKind,
     specifiers,
   }: DescribeDependencyOptions): DependencyDescription {
-    const cacheKey = this._dependenciesCache.getKey(
-      {
-        from,
-        to,
-        source,
-        kind,
-        nodeKind,
-        specifiers,
-      },
-      this._config.cache.dependencies
-    );
+    const cacheKey = this._dependenciesCache.getKey({
+      from,
+      to,
+      source,
+      kind,
+      nodeKind,
+      specifiers,
+    });
     if (this._dependenciesCache.has(cacheKey)) {
       return this._dependenciesCache.get(cacheKey)!;
     }

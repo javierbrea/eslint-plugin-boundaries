@@ -8,7 +8,7 @@ import type {
   ElementDescriptor,
   ElementDescriptorMode,
 } from "@boundaries/elements";
-import { isElementDescriptor, CacheManager } from "@boundaries/elements";
+import { isElementDescriptor } from "@boundaries/elements";
 import type { Rule } from "eslint";
 import micromatch from "micromatch";
 
@@ -55,19 +55,6 @@ const {
   DEFAULT_DEPENDENCY_NODES,
   VALID_MODES,
 } = SETTINGS;
-
-const settingsCache = new CacheManager<
-  Rule.RuleContext["settings"],
-  SettingsNormalized
->();
-const ruleValidationsCache = new CacheManager<
-  {
-    settings: SettingsNormalized;
-    rules: RuleOptionsRules[];
-    options: ValidateRulesOptions;
-  },
-  void
->();
 
 const invalidMatchers: (ElementSelector | ExternalLibrarySelector)[] = [];
 
@@ -446,10 +433,6 @@ export function validateSettings(
  * @returns The normalized settings
  */
 export function getSettings(context: Rule.RuleContext): SettingsNormalized {
-  const cacheKey = settingsCache.getKey(context.settings, false);
-  if (settingsCache.has(cacheKey)) {
-    return settingsCache.get(cacheKey)!;
-  }
   const validatedSettings = validateSettings(context.settings);
 
   const dependencyNodesSetting = getArrayOrNull<DependencyNodeKey>(
@@ -512,8 +495,6 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
       validatedSettings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES] ??
       LEGACY_TEMPLATES_DEFAULT,
   };
-
-  settingsCache.set(cacheKey, result);
   return result;
 }
 
@@ -522,15 +503,6 @@ export function validateRules(
   rules: RuleOptionsRules[] = [],
   options: ValidateRulesOptions = {}
 ) {
-  const cacheKey = ruleValidationsCache.getKey({
-    settings,
-    rules,
-    options,
-  }, false);
-  if (ruleValidationsCache.has(cacheKey)) {
-    return;
-  }
-  ruleValidationsCache.set(cacheKey, undefined);
   const mainKey = rulesMainKey(options.mainKey);
   for (const rule of rules) {
     //@ts-expect-error TODO: Add a different schema validation for each rule type, so keys are properly validated

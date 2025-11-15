@@ -1,4 +1,4 @@
-import { isNull, isString } from "../Support";
+import { isString } from "../Support";
 
 import type { NotUndefined } from "./Cache.types";
 
@@ -27,48 +27,38 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
     if (isString(key)) {
       return key;
     }
-    throw new Error(
-      "Cache key generation for non-string keys is not implemented."
-    );
+    const errorMessage =
+      "Cache key generation for non-string keys is not implemented because it causes performance issues: " +
+      JSON.stringify(key);
+    console.error(errorMessage);
+    throw new Error(errorMessage);
   }
 
   /**
    * Generates a hashed key for the given cache key
    * @param key The cache key to hash
    * @param cacheIsEnabled Whether the cache is enabled or not
-   * @returns The hashed key as a string, or null if cache is disabled
+   * @returns The hashed key as a string
    */
-  public getKey<T extends boolean | undefined = undefined>(
-    key: CacheKey,
-    cacheIsEnabled?: T
-  ): T extends false ? null : string {
-    if (cacheIsEnabled === false) {
-      return null as T extends false ? null : string;
-    }
-    return this.generateKey(key) as T extends false ? null : string;
+  public getKey(key: CacheKey): string {
+    return this.generateKey(key);
   }
 
   /**
    * Retrieves a value from the cache based on the given hashed key
-   * @param hashedKey The hashed key to retrieve. If null, no value will be returned
+   * @param hashedKey The hashed key to retrieve
    * @returns The cached value or undefined if not found
    */
-  public get(hashedKey: string | null): CachedValue | undefined {
-    if (isNull(hashedKey)) {
-      return;
-    }
+  public get(hashedKey: string): CachedValue | undefined {
     return this._cache.get(hashedKey);
   }
 
   /**
    * Stores a value in the cache with a given hashed key
-   * @param hashedKey The hashed key to store, or null. If null, item won't be stored
+   * @param hashedKey The hashed key to store
    * @param value The value to cache
    */
-  public set(hashedKey: string | null, value: CachedValue): void {
-    if (isNull(hashedKey)) {
-      return;
-    }
+  public set(hashedKey: string, value: CachedValue): void {
     this._cache.set(hashedKey, value);
   }
 
@@ -83,13 +73,10 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
 
   /**
    * Checks if a value exists in the cache based on the given hashed key
-   * @param hashedKey The hashed key to check. If null, it will always return false
+   * @param hashedKey The hashed key to check
    * @returns True if the value exists, false otherwise
    */
-  public has(hashedKey: string | null): boolean {
-    if (isNull(hashedKey)) {
-      return false;
-    }
+  public has(hashedKey: string): boolean {
     return this._cache.has(hashedKey);
   }
 

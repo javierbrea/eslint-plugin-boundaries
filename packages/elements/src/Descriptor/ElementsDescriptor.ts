@@ -2,7 +2,7 @@ import type Mod from "node:module";
 
 import isCoreModule from "is-core-module";
 
-import { CacheManager } from "../Cache";
+import { CacheManager, CacheManagerDisabled } from "../Cache";
 import type { DescriptorOptionsNormalized } from "../Config";
 import type { Micromatch } from "../Matcher";
 import { isArray, isNullish } from "../Support";
@@ -70,16 +70,16 @@ export class ElementsDescriptor {
   /**
    * Cache to store previously described elements.
    */
-  private readonly _descriptionsCache: CacheManager<
-    string,
-    ElementDescription
-  > = new CacheManager();
+  private readonly _descriptionsCache:
+    | CacheManager<string, ElementDescription>
+    | CacheManagerDisabled<string, ElementDescription>;
 
   /**
    * Cache to store previously described files.
    */
-  private readonly _filesCache: CacheManager<string, FileElement> =
-    new CacheManager();
+  private readonly _filesCache:
+    | CacheManager<string, FileElement>
+    | CacheManagerDisabled<string, FileElement>;
 
   /**
    * Configuration instance for this descriptor.
@@ -110,6 +110,12 @@ export class ElementsDescriptor {
     this._elementDescriptors = elementDescriptors;
     this._validateDescriptors(elementDescriptors);
     this._config = configOptions;
+    this._filesCache = this._config.cache
+      ? new CacheManager<string, FileElement>()
+      : new CacheManagerDisabled<string, FileElement>();
+    this._descriptionsCache = this._config.cache
+      ? new CacheManager<string, ElementDescription>()
+      : new CacheManagerDisabled<string, ElementDescription>();
     this._loadModuleInNode();
   }
 
@@ -568,14 +574,12 @@ export class ElementsDescriptor {
    * @returns The description of the element.
    */
   private _describeFile(filePath?: string): FileElement {
-    const cacheKey = String(filePath);
-    if (this._config.cache.files && this._filesCache.has(cacheKey)) {
+    const cacheKey = this._filesCache.getKey(String(filePath));
+    if (this._filesCache.has(cacheKey)) {
       return this._filesCache.get(cacheKey)!;
     }
     const description = this._getFileDescription(filePath);
-    if (this._config.cache.files) {
-      this._filesCache.set(cacheKey, description);
-    }
+    this._filesCache.set(cacheKey, description);
     return description;
   }
 
@@ -645,7 +649,7 @@ export class ElementsDescriptor {
     dependencySource?: string
   ): ElementDescription {
     const cacheKey = `${String(dependencySource)}::${String(filePath)}`;
-    if (this._config.cache.elements && this._descriptionsCache.has(cacheKey)) {
+    if (this._descriptionsCache.has(cacheKey)) {
       return this._descriptionsCache.get(cacheKey)!;
     }
 
@@ -666,9 +670,7 @@ export class ElementsDescriptor {
         }
       : fileDescription;
 
-    if (this._config.cache.elements) {
-      this._descriptionsCache.set(cacheKey, elementResult);
-    }
+    this._descriptionsCache.set(cacheKey, elementResult);
     return elementResult;
   }
 

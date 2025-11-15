@@ -2,7 +2,6 @@ import type { DependencyDescription } from "@boundaries/elements";
 import {
   normalizeElementsSelector,
   DEPENDENCY_RELATIONSHIPS_MAP,
-  CacheManager,
 } from "@boundaries/elements";
 
 import {
@@ -32,11 +31,6 @@ const { RULE_ENTRY_POINT } = SETTINGS;
 type AdaptedRuleOptions = Omit<EntryPointRuleOptions, "rules"> & {
   rules: ElementTypesRule[];
 };
-
-const adaptedRuleOptionsCache = new CacheManager<
-  EntryPointRuleOptions,
-  AdaptedRuleOptions
->();
 
 function errorMessage(ruleData: RuleResult, dependency: DependencyDescription) {
   const ruleReport = ruleData.ruleReport;
@@ -158,18 +152,10 @@ export default dependencyRule<EntryPointRuleOptions>(
       dependency.dependency.relationship.to !==
         DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL
     ) {
-      let adaptedRuleOptions: AdaptedRuleOptions;
-
-      const cacheKey = adaptedRuleOptionsCache.getKey(options || {}, false);
-      if (adaptedRuleOptionsCache.has(cacheKey)) {
-        adaptedRuleOptions = adaptedRuleOptionsCache.get(cacheKey)!;
-      } else {
-        adaptedRuleOptions = {
-          ...options,
-          rules: options && options.rules ? modifyRules(options.rules) : [],
-        };
-        adaptedRuleOptionsCache.set(cacheKey, adaptedRuleOptions);
-      }
+      const adaptedRuleOptions: AdaptedRuleOptions = {
+        ...options,
+        rules: options && options.rules ? modifyRules(options.rules) : [],
+      };
 
       const ruleData = elementRulesAllowDependency(
         dependency,

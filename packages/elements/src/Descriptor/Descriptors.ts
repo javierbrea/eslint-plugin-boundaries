@@ -24,7 +24,7 @@ export class Descriptors {
   /** Creates a new DescriptorsManager instance
    * @param elementDescriptors The element descriptors.
    * @param configOptions The configuration options.
-   * @param globalCache The global cache instance.
+   * @param micromatch The Micromatch instance.
    */
   constructor(
     elementDescriptors: ElementDescriptors,

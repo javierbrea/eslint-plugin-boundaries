@@ -1,5 +1,3 @@
-import { CacheManager } from "../Cache";
-import type { GlobalCache } from "../Cache";
 import type { MatchersOptionsNormalized } from "../Config";
 import type {
   DependencyDescription,
@@ -12,7 +10,6 @@ import type { ElementsMatcher } from "./ElementsMatcher";
 import type {
   BaseElementSelector,
   TemplateData,
-  DependenciesMatcherSerializedCache,
   DependencySelector,
   DependencyElementSelectorData,
   DependencySelectorNormalized,
@@ -27,60 +24,10 @@ import {
 } from "./MatcherHelpers";
 import type { Micromatch } from "./Micromatch";
 
-function serializeObject(obj: unknown): string {
-  const keys = (k: unknown): string => {
-    if (typeof k === "object" && k !== null) {
-      if (Array.isArray(k)) {
-        return "[" + k.map(serializeObject).join(",") + "]";
-      }
-      const sorted = Object.keys(k as Record<string, unknown>).sort();
-      return (
-        "{" +
-        sorted
-          .map(
-            (x) =>
-              `"${x}":${serializeObject((k as Record<string, unknown>)[x])}`
-          )
-          .join(",") +
-        "}"
-      );
-    }
-    return String(k);
-  };
-  return keys(obj);
-}
-
-class DependenciesMatcherCache extends CacheManager<
-  {
-    dependency: DependencyDescription;
-    selector: DependencySelector;
-    extraTemplateData: TemplateData;
-    dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals;
-  },
-  DependencyMatchResult
-> {
-  protected generateKey(options: {
-    dependency: DependencyDescription;
-    selector: DependencySelector;
-    extraTemplateData: TemplateData;
-    dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals;
-  }): string {
-    return serializeObject(options);
-  }
-}
-
 /**
  * Matcher class to determine if dependencies match a given dependencies selector.
  */
 export class DependenciesMatcher extends BaseElementsMatcher {
-  /**
-   * Cache to store previously described dependencies.
-   */
-  private readonly _cache = new DependenciesMatcherCache();
-
-  /** Whether the cache is enabled or not */
-  private readonly _cacheIsEnabled: boolean;
-
   /**
    * Elements matcher to use for matching elements within dependencies.
    */
@@ -96,37 +43,10 @@ export class DependenciesMatcher extends BaseElementsMatcher {
   constructor(
     elementsMatcher: ElementsMatcher,
     config: MatchersOptionsNormalized,
-    micromatch: Micromatch,
-    globalCache: GlobalCache
+    micromatch: Micromatch
   ) {
-    super(config, micromatch, globalCache);
-    this._cacheIsEnabled = config.cache.dependencies;
+    super(config, micromatch);
     this._elementsMatcher = elementsMatcher;
-  }
-
-  /**
-   * Serializes the cache to a plain object.
-   * @returns The serialized cache.
-   */
-  public serializeCache(): DependenciesMatcherSerializedCache {
-    return this._cache.serialize();
-  }
-
-  /**
-   * Sets the cache from a serialized object.
-   * @param serializedCache The serialized cache.
-   */
-  public setCacheFromSerialized(
-    serializedCache: DependenciesMatcherSerializedCache
-  ): void {
-    this._cache.setFromSerialized(serializedCache);
-  }
-
-  /**
-   * Clears the cache.
-   */
-  public clearCache(): void {
-    this._cache.clear();
   }
 
   /**
@@ -452,19 +372,6 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       dependencySelectorsGlobals = {},
     }: MatcherOptions = {}
   ): DependencyMatchResult {
-    const cacheKey = this._cache.getKey(
-      {
-        dependency,
-        selector,
-        extraTemplateData,
-        dependencySelectorsGlobals,
-      },
-      this._cacheIsEnabled
-    );
-    if (this._cache.has(cacheKey)) {
-      return this._cache.get(cacheKey)!;
-    }
-
     const normalizedSelector = this._normalizeDependencySelector(
       selector,
       dependencySelectorsGlobals
@@ -493,8 +400,6 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       normalizedSelector,
       templateData
     );
-
-    this._cache.set(cacheKey, result);
     return result;
   }
 
