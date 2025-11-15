@@ -2,6 +2,11 @@ name: publish-to-npm
 on:
   release:
     types: [created]
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -9,8 +14,37 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/install
-    - run: pnpm nx run-many -t check:all --all
+    - run: pnpm check:all
     - run: pnpm -r publish --no-git-checks
+      env:
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    - uses: MerthinTechnologies/edit-json-action@v1
+      with:
+        filename: './packages/eslint-plugin/package.json'
+        key: 'name'
+        value: 'eslint-plugin-boundaries'
+    - run: pnpm -r publish --no-git-checks
+      env:
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  publish-beta:
+    runs-on: ubuntu-latest
+    if: contains(github.event.release.target_commitish, 'release-') && contains(github.event.release.target_commitish, '-beta.')
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./.github/actions/install
+    - run: pnpm check:all
+    - run: pnpm -r publish --no-git-checks --tag beta
+      env:
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    - uses: MerthinTechnologies/edit-json-action@v1
+      with:
+        filename: './packages/eslint-plugin/package.json'
+        key: 'name'
+        value: 'eslint-plugin-boundaries'
+    - run: pnpm -r publish --no-git-checks --tag beta
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

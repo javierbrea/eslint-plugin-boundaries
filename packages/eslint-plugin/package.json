@@ -1,0 +1,81 @@
+{
+  "name": "@boundaries/eslint-plugin",
+  "version": "5.2.0",
+  "description": "Eslint plugin checking architecture boundaries between elements",
+  "keywords": [
+    "eslint",
+    "eslint-plugin",
+    "eslintplugin",
+    "plugin",
+    "architecture",
+    "boundaries",
+    "dependencies",
+    "elements",
+    "hierarchy",
+    "import",
+    "dependency"
+  ],
+  "author": "Javier Brea",
+  "license": "MIT",
+  "repository": "https://github.com/javierbrea/eslint-plugin-boundaries",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./config": "./dist/Config/Config.js",
+    "./recommended": "./dist/Config/Recommended.js",
+    "./strict": "./dist/Config/Strict.js"
+  },
+  "typesVersions": {
+    "*": {
+      "config": [
+        "dist/Config/Config.d.ts"
+      ],
+      "recommended": [
+        "dist/Config/Recommended.d.ts"
+      ],
+      "strict": [
+        "dist/Config/Strict.d.ts"
+      ]
+    }
+  },
+  "scripts": {
+    "eslint": "eslint",
+    "build": "pnpm build:tsc && pnpm copy:readme",
+    "build:tsc": "tsc",
+    "copy:readme": "cross-env node ./scripts/copy-readme.js",
+    "check:all": "echo 'All checks passed'",
+    "check:spell": "cspell --quiet .",
+    "check:types": "pnpm check:types:code && pnpm check:types:test",
+    "check:types:code": "tsc --noEmit",
+    "check:types:test": "tsc --noEmit --project ./test/tsconfig.json",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "serve:unit:report": "serve --config ./serve.test-unit-report.json",
+    "test": "jest",
+    "test:unit": "cross-env ESLINT_PLUGIN_BOUNDARIES_DEBUG=false pnpm test"
+  },
+  "peerDependencies": {
+    "eslint": ">=6.0.0"
+  },
+  "dependencies": {
+    "@boundaries/elements": "workspace:*",
+    "chalk": "4.1.2",
+    "eslint-import-resolver-node": "0.3.9",
+    "eslint-module-utils": "2.12.1",
+    "micromatch": "4.0.8"
+  },
+  "engines": {
+    "node": ">=18.18"
+  },
+  "devDependencies": {
+    "@types/estree": "1.0.8",
+    "@types/micromatch": "4.0.9"
+  }
+}

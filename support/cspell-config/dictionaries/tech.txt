@@ -1,0 +1,7 @@
+coverallsapp
+nrwl
+sonarcloud
+sonarlint
+sonarqube
+sonarsource
+subfolders

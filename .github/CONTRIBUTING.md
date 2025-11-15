@@ -3,7 +3,8 @@
 # Table of Contents
 
 - [Getting started](#getting-started)
-- [package tasks](#package-tasks)
+- [Contributing workflow](#contributing-workflow)
+- [Package Tasks](#package-tasks)
 - [Branching model](#branching-model)
 - [Pull Request](#pull-request)
 - [Release process](#release-process)
@@ -29,7 +30,19 @@ To get started, clone the repository and install the dependencies:
 pnpm install
 ```
 
-# Package tasks
+# Contributing workflow
+
+In short, the contributing workflow is as follows:
+
+1. Create an RFC (if needed)
+2. Create Issue(s) from RFC
+3. Break Down into Sub-Issues (if needed)
+4. Add to Project & Assign to Milestone
+5. Contributors Pick Up Tasks
+
+Read the full details in the [contributing workflow guide](../docs/contributing-workflow.md).
+
+# Package Tasks
 
 Package task names are standardized across the repository. This enables to define common dependencies and files impacting them in the root `nx.json` file. The following are the most common tasks:
 
@@ -38,20 +51,21 @@ Package task names are standardized across the repository. This enables to defin
 * `check:spell`: Checks the spelling in the package.
 * `build`: Builds the package.
 * `test:unit`: Runs the unit tests.
+* `test:mutation`: Runs the mutation tests.
 * `test:e2e`: Runs the end-to-end tests.
 * `check:all`: Run all the checks and build the package.
 
-You can also rewrite the tasks to fit the package's needs. For example, if a package has special requirements for unit tests, you can define a `test:unit` task in the package's `project.json` file, redefining the Nx inputs, outputs, and dependencies in order to fit the package's needs and optimize the cache accordingly. _(See how the `eslint-plugin-boundaries` package does this for an example)_
+You can also rewrite the tasks to fit the package's needs. For example, if a package has special requirements for unit tests, you can define a `test:unit` task in the package's `project.json` file, redefining the Nx inputs, outputs, and dependencies in order to fit the package's needs and optimize the cache accordingly. _(See how the `eslint-plugin` package does this for an example)_
 
 > [!WARNING]
 > It is crucial to configure properly the tasks dependencies, input, and output files, so __Nx can keep or clean the cache correctly, avoiding running unnecessary tasks__, both locally or in the pipeline.
 
 ## Running tasks in packages
 
-Nx provides a way to run commands in a specific package, taking care of the task dependencies. To run a command in a package, use the following syntax: `pnpm nx run <task> <package>`. For example, to run the unit tests in the `eslint-plugin-boundaries` package, use the following command:
+Nx provides a way to run commands in a specific package, taking care of the task dependencies. To run a command in a package, use the following syntax: `pnpm nx run <task> <package>`. For example, to run the unit tests in the `eslint-plugin` package, use the following command:
 
 ```bash
-pnpm nx test:unit eslint-plugin-boundaries
+pnpm nx test:unit eslint-plugin
 ```
 
 > ![TIP]
@@ -86,7 +100,7 @@ Some important points to consider:
    * It is long-lived because we also have bots that will open PRs. So, they can be configured to open PRs to the "release" branch, and their changes will also enter in the process of preparing the release, such as changes from any other contributor.
 * __The "release" branch is the default branch for PRs.__ Only a project maintainer should open a PR to the "main" branch, and only when the release is ready to be published.
 * Usually, feature branches should be short-lived, and they should be merged into the "release" branch as soon as possible. This way, the changes will be included in the next release, and the feature branch can be deleted.
-* When necessary, a medium-lived branch can be created from the "release" branch to group changes that will be released together and require more time to be prepared. Once the changes are ready, the branch can be merged into the "release" branch.
+* When necessary, a medium-lived branch can be created from the "release" branch to group changes that will be released together and require more time to be prepared, such as `release-<version>`. Once the changes are ready, the branch can be merged into the "release" branch.
 * For publishing beta versions or fix versions of precedent releases, medium-lived branches should be also created from the "release" branch. A branch naming convention should be followed in order to identify these branches easily. For example:
    * `release-X.Y.Z-beta.N`: For beta versions of the next release.
 
@@ -99,7 +113,7 @@ We use the __squash and merge strategy for merging PRs to the release branch__. 
 
 But we use the __merge commit strategy for merging PRs to the main branch from the release branch__. The reasons are:
 
-* To keep in the history the information about the features that were merged separately into the release branch. This is very important, because we may have changes from different packages in the release branch. Squashing all the changes into a single commit would make it difficult to understand or revert the changes for a specific package.
+* To keep in the history the information about the features that were merged separately into the release branch. This is very important, because we may have changes from different packages in the release branch, or from features that are not related. Squashing all the changes into a single commit would make it difficult to understand or revert the changes for a specific package or feature.
 * To avoid having to rebase the release branch every time a PR is merged to the main branch.
 
 # Pull Request
