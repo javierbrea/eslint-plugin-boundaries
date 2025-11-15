@@ -53,8 +53,11 @@ export class Elements {
       {} as ElementsSerializedCache["matchers"]
     );
 
+    const micromatchCache = this._micromatchWithCache.serializeCache();
+
     return {
       matchers: matchersCache,
+      micromatch: micromatchCache,
     };
   }
 
@@ -65,13 +68,14 @@ export class Elements {
   public setCacheFromSerialized(
     serializedCache: ElementsSerializedCache
   ): void {
+    this._micromatchWithCache.setFromSerialized(serializedCache.micromatch);
     for (const key in serializedCache.matchers) {
       const matcher = this.getMatcher(
         serializedCache.matchers[key].elementDescriptors,
         serializedCache.matchers[key].config
       );
       matcher.setCacheFromSerialized(serializedCache.matchers[key].cache);
-      this._matchersCache.restore(key, {
+      this._matchersCache.set(key, {
         config: serializedCache.matchers[key].config,
         elementDescriptors: serializedCache.matchers[key].elementDescriptors,
         matcher: matcher,
@@ -87,6 +91,7 @@ export class Elements {
       matcher.clearCache();
     }
     this._matchersCache.clear();
+    this._micromatchWithCache.clearCache();
   }
 
   /**
@@ -102,6 +107,7 @@ export class Elements {
   ): Matcher {
     const optionsToUse = config || this._globalConfigOptions;
     const configInstance = new Config(optionsToUse);
+    const cacheIsEnabled = configInstance.cache;
     const configOptionsNormalized = configInstance.options;
     const descriptorNormalizedOptions = configInstance.descriptorOptions;
     const matchersNormalizedOptions = configInstance.matchersOptions;
@@ -115,7 +121,7 @@ export class Elements {
       return this._matchersCache.get(cacheKey)!.matcher;
     }
 
-    const micromatch = configOptionsNormalized.cache
+    const micromatch = cacheIsEnabled
       ? this._micromatchWithCache
       : this._micromatchWithoutCache;
 

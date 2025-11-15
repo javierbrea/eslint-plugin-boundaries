@@ -565,6 +565,24 @@ describe("Descriptors", () => {
       expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
+    it("should call micromatch multiple times for the same element if cache is disabled", () => {
+      matcher = elements.getMatcher(
+        [{ type: "utility", pattern: "src/utils/**/*.ts", mode: "file" }],
+        {
+          cache: false,
+        }
+      );
+      matcher.describeElement("/project/src/utils/math/index.ts");
+
+      expect(micromatchSpy).toHaveBeenCalled();
+
+      jest.clearAllMocks();
+
+      matcher.describeElement("/project/src/utils/math/index.ts");
+
+      expect(micromatchSpy).toHaveBeenCalled();
+    });
+
     it("should not call micromatch again after clearing the matcher cache, because the global cache is still populated", () => {
       matcher.describeElement("/project/src/utils/math/index.ts");
 

@@ -1,6 +1,9 @@
 import type { ConfigOptionsNormalized } from "./Config";
 import type { ElementDescriptors } from "./Descriptor";
-import type { MatcherSerializedCache } from "./Matcher";
+import type {
+  MatcherSerializedCache,
+  MicromatchSerializedCache,
+} from "./Matcher";
 
 /**
  * Serialized cache for Elements class.
@@ -15,4 +18,5 @@ export type ElementsSerializedCache = {
       cache: MatcherSerializedCache;
     }
   >;
+  micromatch: MicromatchSerializedCache;
 };

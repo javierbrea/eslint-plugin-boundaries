@@ -26,6 +26,7 @@ export function getElementsMatcher(settings: SettingsNormalized): Matcher {
     ignorePaths: settings.ignorePaths,
     includePaths: settings.includePaths,
     legacyTemplates: settings.legacyTemplates,
+    cache: settings.cache,
   });
   return elementsMatcher;
 }

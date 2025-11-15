@@ -3,6 +3,8 @@ import micromatch from "micromatch";
 import { CacheManager, CacheManagerDisabled } from "../Cache";
 import { isArray } from "../Support";
 
+import type { MicromatchSerializedCache } from "./Matcher.types";
+
 /**
  * Cache key type for micromatch matching results
  */
@@ -93,6 +95,37 @@ export class Micromatch {
     this._makeReCache = cache
       ? new CacheManager<string, RegExp>()
       : new CacheManagerDisabled<string, RegExp>();
+  }
+
+  /**
+   * Clears all caches.
+   */
+  public clearCache(): void {
+    this._matchingResultsCache.clear();
+    this._capturesCache.clear();
+    this._makeReCache.clear();
+  }
+
+  /**
+   * Serializes the current cache state.
+   * @returns The serialized cache data.
+   */
+  public serializeCache(): MicromatchSerializedCache {
+    return {
+      matchingResults: this._matchingResultsCache.serialize(),
+      captures: this._capturesCache.serialize(),
+    };
+  }
+
+  /**
+   * Restores the cache state from serialized data.
+   * @param serializedCache The serialized cache data.
+   */
+  public setFromSerialized(serializedCache: MicromatchSerializedCache): void {
+    this._matchingResultsCache.setFromSerialized(
+      serializedCache.matchingResults
+    );
+    this._capturesCache.setFromSerialized(serializedCache.captures);
   }
 
   /**

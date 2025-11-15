@@ -320,6 +320,18 @@ You can also provide an absolute path in the environment variable, but it may be
 
 </details>
 
+#### __`boundaries/cache`__
+
+Enable or disable the cache mechanism used to boost performance. By default, it is enabled. We recommend to keep it enabled unless you experience issues. In such case, please, open an issue describing the problem.
+
+```js
+export default [{
+  settings: {
+    "boundaries/cache": true // or false to disable the cache
+  }
+}]
+```
+
 ### Predefined configurations
 
 The plugin is distributed with two different predefined configurations: "recommended" and "strict".

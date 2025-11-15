@@ -31,6 +31,7 @@ import {
   SETTINGS,
   SETTINGS_KEYS_MAP,
   LEGACY_TEMPLATES_DEFAULT,
+  CACHE_DEFAULT,
   DEPENDENCY_NODE_KEYS_MAP,
 } from "./Settings.types";
 import type {
@@ -425,6 +426,9 @@ export function validateSettings(
     ),
     [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES]:
       validateAdditionalDependencyNodes(settings[ADDITIONAL_DEPENDENCY_NODES]),
+    [SETTINGS_KEYS_MAP.CACHE]: settings[SETTINGS_KEYS_MAP.CACHE] as
+      | boolean
+      | undefined,
   };
 }
 /**
@@ -494,6 +498,7 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
     legacyTemplates:
       validatedSettings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES] ??
       LEGACY_TEMPLATES_DEFAULT,
+    cache: validatedSettings[SETTINGS_KEYS_MAP.CACHE] ?? CACHE_DEFAULT,
   };
   return result;
 }

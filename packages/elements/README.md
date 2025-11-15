@@ -8,7 +8,7 @@
 
 # @boundaries/elements
 
-> Element descriptors and matchers for `@boundaries` ecosystem
+> Element descriptors and matchers for `@boundaries` tools, such as `@boundaries/eslint-plugin`.
 
 ## Table of Contents
 
@@ -128,6 +128,7 @@ const elements = new Elements({
 - **`ignorePaths`**: Micromatch pattern(s) to exclude certain paths from element matching (default: none)
 - **`includePaths`**: Micromatch pattern(s) to include only specific paths (default: all paths)
 - **`legacyTemplates`**: Whether to enable legacy template syntax support (default: `true`, but it will be `false` in future releases). This allows using `${variable}` syntax in templates for backward compatibility.
+- **`cache`**: Whether to enable internal caching to improve performance (default: `true`)
 
 ### Creating a Matcher
 
@@ -384,7 +385,7 @@ const matcher = elements.getMatcher([
 
 ##### `clearCache`
 
-Clears all cached matcher instances.
+Clears all cached matcher instances and shared caches.
 
 ```ts
 elements.clearCache();
@@ -392,14 +393,14 @@ elements.clearCache();
 
 ##### `serializeCache`
 
-Serializes all cached matcher instances to a plain object.
+Serializes all cached matcher instances and shared caches to a plain object.
 
 ```ts
 const cache = elements.serializeCache();
 ```
 
 ##### `setCacheFromSerialized`
-Sets the cached matcher instances from a serialized object.
+Sets the cached matcher instances and shared caches from a serialized object.
 
 ```ts
 const cache = elements.serializeCache();
@@ -494,6 +495,9 @@ Clears the matcher's internal cache.
 ```ts
 matcher.clearCache();
 ```
+
+> [!WARNING]
+> This only clears the internal cache for this matcher instance. Shared cache for micromatch results, regex and captures is not affected. You can clear all caches using `Elements.clearCache()`.
 
 #### `serializeCache`
 

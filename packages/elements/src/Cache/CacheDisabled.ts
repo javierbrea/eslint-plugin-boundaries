@@ -41,16 +41,6 @@ export class CacheManagerDisabled<
 
   /**
    * Does nothing as caching is disabled
-   * @param key The hashed key to restore
-   * @param value The value to restore
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public restore(_hashedKey: string, _value: CachedValue): void {
-    return;
-  }
-
-  /**
-   * Does nothing as caching is disabled
    * @param hashedKey The hashed key to check
    * @returns False as caching is disabled
    */

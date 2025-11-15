@@ -30,7 +30,6 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
     const errorMessage =
       "Cache key generation for non-string keys is not implemented because it causes performance issues: " +
       JSON.stringify(key);
-    console.error(errorMessage);
     throw new Error(errorMessage);
   }
 
@@ -59,15 +58,6 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
    * @param value The value to cache
    */
   public set(hashedKey: string, value: CachedValue): void {
-    this._cache.set(hashedKey, value);
-  }
-
-  /**
-   * Restores a value in the cache from a given already hashed key
-   * @param key The hashed key to restore
-   * @param value The value to restore
-   */
-  public restore(hashedKey: string, value: CachedValue): void {
     this._cache.set(hashedKey, value);
   }
 
@@ -115,7 +105,7 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
    */
   public setFromSerialized(serializedCache: Record<string, CachedValue>): void {
     for (const key in serializedCache) {
-      this.restore(key, serializedCache[key]);
+      this.set(key, serializedCache[key]);
     }
   }
 }
