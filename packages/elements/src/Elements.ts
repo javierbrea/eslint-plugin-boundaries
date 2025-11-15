@@ -1,9 +1,14 @@
-import { CacheManager } from "./Cache";
 import type { ConfigOptions, ConfigOptionsNormalized } from "./Config";
 import { Config } from "./Config";
 import type { ElementDescriptors } from "./Descriptor";
 import type { ElementsSerializedCache } from "./Elements.types";
-import { DependenciesMatcher, ElementsMatcher, Matcher } from "./Matcher";
+import {
+  Micromatch,
+  DependenciesMatcher,
+  ElementsMatcher,
+  Matcher,
+} from "./Matcher";
+import { MatchersCache } from "./MatchersCache";
 
 /**
  * Main class to interact with Elements functionality.
@@ -14,20 +19,11 @@ export class Elements {
   private readonly _globalConfigOptions: ConfigOptionsNormalized;
 
   /** Cache manager for Matcher instances, unique for each different configuration */
-  private readonly _matchersCache: CacheManager<
-    { config: ConfigOptionsNormalized; elementDescriptors: ElementDescriptors },
-    {
-      config: ConfigOptionsNormalized;
-      elementDescriptors: ElementDescriptors;
-      matcher: Matcher;
-    }
-  > = new CacheManager();
+  private readonly _matchersCache = new MatchersCache();
 
-  /** Matcher for element selectors */
-  private readonly _elementsMatcher: ElementsMatcher;
-
-  /** Matcher for dependency selectors */
-  private readonly _dependenciesMatcher: DependenciesMatcher;
+  /** Micromatch instances for pattern matching */
+  private readonly _micromatchWithCache = new Micromatch(true);
+  private readonly _micromatchWithoutCache = new Micromatch(false);
 
   /**
    * Creates a new Elements instance
@@ -36,11 +32,6 @@ export class Elements {
   constructor(configOptions?: ConfigOptions) {
     const globalConfig = new Config(configOptions);
     this._globalConfigOptions = globalConfig.options;
-    this._elementsMatcher = new ElementsMatcher(this._globalConfigOptions);
-    this._dependenciesMatcher = new DependenciesMatcher(
-      this._elementsMatcher,
-      this._globalConfigOptions
-    );
   }
 
   /**
@@ -51,21 +42,22 @@ export class Elements {
     const matchersCache = Array.from(
       this._matchersCache.getAll().entries()
     ).reduce(
-      (acc, [key, descriptorCache]) => {
+      (acc, [key, cache]) => {
         acc[key] = {
-          config: descriptorCache.config,
-          elementDescriptors: descriptorCache.elementDescriptors,
-          cache: descriptorCache.matcher.serializeCache(),
+          config: cache.config,
+          elementDescriptors: cache.elementDescriptors,
+          cache: cache.matcher.serializeCache(),
         };
         return acc;
       },
       {} as ElementsSerializedCache["matchers"]
     );
 
+    const micromatchCache = this._micromatchWithCache.serializeCache();
+
     return {
       matchers: matchersCache,
-      elementsMatcher: this._elementsMatcher.serializeCache(),
-      dependenciesMatcher: this._dependenciesMatcher.serializeCache(),
+      micromatch: micromatchCache,
     };
   }
 
@@ -76,62 +68,83 @@ export class Elements {
   public setCacheFromSerialized(
     serializedCache: ElementsSerializedCache
   ): void {
+    this._micromatchWithCache.setFromSerialized(serializedCache.micromatch);
     for (const key in serializedCache.matchers) {
       const matcher = this.getMatcher(
         serializedCache.matchers[key].elementDescriptors,
         serializedCache.matchers[key].config
       );
       matcher.setCacheFromSerialized(serializedCache.matchers[key].cache);
-      this._matchersCache.restore(key, {
+      this._matchersCache.set(key, {
         config: serializedCache.matchers[key].config,
         elementDescriptors: serializedCache.matchers[key].elementDescriptors,
         matcher: matcher,
       });
     }
-    this._elementsMatcher.setCacheFromSerialized(
-      serializedCache.elementsMatcher
-    );
-    this._dependenciesMatcher.setCacheFromSerialized(
-      serializedCache.dependenciesMatcher
-    );
   }
 
   /**
    * Clears cache
    */
   public clearCache(): void {
-    this._elementsMatcher.clearCache();
-    this._dependenciesMatcher.clearCache();
     for (const { matcher } of this._matchersCache.getAll().values()) {
       matcher.clearCache();
     }
     this._matchersCache.clear();
+    this._micromatchWithCache.clearCache();
   }
 
   /**
    * Gets a Matcher instance for the given configuration options.
    * It uses caching to return the same instance for the same configuration options. If no options are provided, the global configuration options are used.
    * @param elementDescriptors The element descriptors to use.
-   * @param configOptions Optional configuration options to override the global ones.
+   * @param config Optional configuration options to override the global ones.
    * @returns A matcher instance, unique for each different configuration.
    */
   public getMatcher(
     elementDescriptors: ElementDescriptors,
-    configOptions?: ConfigOptions
+    config?: ConfigOptions
   ): Matcher {
-    const optionsToUse = configOptions || this._globalConfigOptions;
+    const optionsToUse = config || this._globalConfigOptions;
     const configInstance = new Config(optionsToUse);
-    const normalizedOptions = configInstance.options;
+    const cacheIsEnabled = configInstance.cache;
+    const configOptionsNormalized = configInstance.options;
+    const descriptorNormalizedOptions = configInstance.descriptorOptions;
+    const matchersNormalizedOptions = configInstance.matchersOptions;
 
-    const cacheKey = { config: normalizedOptions, elementDescriptors };
+    const cacheKey = this._matchersCache.getKey({
+      config: configOptionsNormalized,
+      elementDescriptors,
+    });
 
     if (this._matchersCache.has(cacheKey)) {
       return this._matchersCache.get(cacheKey)!.matcher;
     }
 
-    const matcher = new Matcher(elementDescriptors, normalizedOptions);
+    const micromatch = cacheIsEnabled
+      ? this._micromatchWithCache
+      : this._micromatchWithoutCache;
+
+    const elementsMatcher = new ElementsMatcher(
+      matchersNormalizedOptions,
+      micromatch
+    );
+    const dependenciesMatcher = new DependenciesMatcher(
+      elementsMatcher,
+      matchersNormalizedOptions,
+      micromatch
+    );
+
+    const matcher = new Matcher(
+      elementDescriptors,
+      elementsMatcher,
+      dependenciesMatcher,
+      descriptorNormalizedOptions,
+      micromatch
+    );
+
     this._matchersCache.set(cacheKey, {
-      config: normalizedOptions,
+      config: configOptionsNormalized,
       elementDescriptors,
       matcher,
     });

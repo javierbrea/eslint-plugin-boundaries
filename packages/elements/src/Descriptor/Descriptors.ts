@@ -1,4 +1,5 @@
-import type { ConfigOptions } from "../Config";
+import type { DescriptorOptionsNormalized } from "../Config";
+import type { Micromatch } from "../Matcher";
 
 import { DependenciesDescriptor } from "./DependenciesDescriptor";
 import type {
@@ -23,17 +24,21 @@ export class Descriptors {
   /** Creates a new DescriptorsManager instance
    * @param elementDescriptors The element descriptors.
    * @param configOptions The configuration options.
+   * @param micromatch The Micromatch instance.
    */
   constructor(
     elementDescriptors: ElementDescriptors,
-    configOptions?: ConfigOptions
+    config: DescriptorOptionsNormalized,
+    micromatch: Micromatch
   ) {
     this._elementsDescriptor = new ElementsDescriptor(
       elementDescriptors,
-      configOptions
+      config,
+      micromatch
     );
     this._dependenciesDescriptor = new DependenciesDescriptor(
-      this._elementsDescriptor
+      this._elementsDescriptor,
+      config
     );
   }
 

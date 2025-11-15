@@ -1,5 +1,7 @@
-import { CacheManager } from "../Cache";
+import { CacheManagerDisabled } from "../Cache";
+import type { DescriptorOptionsNormalized } from "../Config";
 
+import { DependenciesDescriptionsCache } from "./DependenciesDescriptionsCache";
 import {
   DEPENDENCY_RELATIONSHIPS_MAP,
   DEPENDENCY_RELATIONSHIPS_INVERTED_MAP,
@@ -26,17 +28,9 @@ export class DependenciesDescriptor {
   /**
    * Cache to store previously described dependencies.
    */
-  private readonly _dependenciesCache: CacheManager<
-    {
-      from: string;
-      to?: string;
-      source: string;
-      kind: string;
-      nodeKind?: string;
-      specifiers?: string[];
-    },
-    DependencyDescription
-  > = new CacheManager();
+  private readonly _dependenciesCache:
+    | DependenciesDescriptionsCache
+    | CacheManagerDisabled<DescribeDependencyOptions, DependencyDescription>;
 
   /**
    * Elements descriptor instance.
@@ -44,11 +38,27 @@ export class DependenciesDescriptor {
   private readonly _elementsDescriptor: ElementsDescriptor;
 
   /**
+   * Configuration options.
+   */
+  private readonly _config: DescriptorOptionsNormalized;
+
+  /**
    * Creates a new DependenciesDescriptor instance.
    * @param elementsDescriptor The elements descriptor instance.
+   * @param config The configuration options.
    */
-  constructor(elementsDescriptor: ElementsDescriptor) {
+  constructor(
+    elementsDescriptor: ElementsDescriptor,
+    config: DescriptorOptionsNormalized
+  ) {
     this._elementsDescriptor = elementsDescriptor;
+    this._config = config;
+    this._dependenciesCache = this._config.cache
+      ? new DependenciesDescriptionsCache()
+      : new CacheManagerDisabled<
+          DescribeDependencyOptions,
+          DependencyDescription
+        >();
   }
 
   /**
@@ -238,24 +248,16 @@ export class DependenciesDescriptor {
     nodeKind,
     specifiers,
   }: DescribeDependencyOptions): DependencyDescription {
-    if (
-      this._dependenciesCache.has({
-        from,
-        to,
-        source,
-        kind,
-        nodeKind,
-        specifiers,
-      })
-    ) {
-      return this._dependenciesCache.get({
-        from,
-        to,
-        source,
-        kind,
-        nodeKind,
-        specifiers,
-      })!;
+    const cacheKey = this._dependenciesCache.getKey({
+      from,
+      to,
+      source,
+      kind,
+      nodeKind,
+      specifiers,
+    });
+    if (this._dependenciesCache.has(cacheKey)) {
+      return this._dependenciesCache.get(cacheKey)!;
     }
 
     const fromElement = this._elementsDescriptor.describeElement(from);
@@ -275,17 +277,7 @@ export class DependenciesDescriptor {
       },
     };
 
-    this._dependenciesCache.set(
-      {
-        from,
-        to,
-        source,
-        kind,
-        nodeKind,
-        specifiers,
-      },
-      result
-    );
+    this._dependenciesCache.set(cacheKey, result);
 
     return result;
   }

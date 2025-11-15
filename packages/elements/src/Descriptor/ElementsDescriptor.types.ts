@@ -106,10 +106,22 @@ export type ElementDescriptors = ElementDescriptor[];
 /**
  * Serialized cache of element descriptions.
  */
-export type ElementsDescriptorSerializedCache = Record<
-  string,
-  ElementDescription
->;
+export type DescriptionsSerializedCache = Record<string, ElementDescription>;
+
+/**
+ * Serialized cache of file elements.
+ */
+export type FileElementsSerializedCache = Record<string, FileElement>;
+
+/**
+ * Serialized cache for ElementsDescriptor class.
+ */
+export type ElementsDescriptorSerializedCache = {
+  /** Serialized descriptions cache */
+  descriptions: DescriptionsSerializedCache;
+  /** Serialized files cache */
+  files: FileElementsSerializedCache;
+};
 
 /**
  * Captured values from an element path.

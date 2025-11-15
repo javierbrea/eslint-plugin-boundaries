@@ -11,19 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
-## [5.2.0] - 2025-11-10
+## [5.2.0] - 2025-11-15
 
 ### Added
 
-- feat: Start supporting new template data and syntax, as described in [#370](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/370). Not added to the documentation yet, as it is still in beta.
-- feat: Add setting `legacy-templates` to enable/disable the old template data and syntax. By default, it is enabled for backward compatibility. Not added to the documentation yet, as the new template data and syntax is still in beta.
-- feat: Avoid validating and processing settings in every file or node analysis. Implemented cache to improve performance.
+- feat: Start supporting new template data and syntax, as described in [#370](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/370). Not added to the documentation yet, as it is still in beta testing phase.
+- feat: Add setting `legacy-templates` to enable/disable the old template data and syntax. By default, it is enabled for backward compatibility. Not added to the documentation yet, as the new template data and syntax is still in beta testing phase.
 - feat([#371](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/371)): Publish eslint-plugin both to @boundaries/eslint-plugin and eslint-plugin-boundaries package names.
+- feat: Add `cache` setting to enable/disable the new cache mechanism used to boost performance. By default, it is enabled. We recommend to keep it enabled unless you experience issues. In such case, please, open an issue describing the problem.
 
 ### Changed
 
-- feat: Add empty schema to rules without options to validate them correctly.
+- feat: Boost performance to approximately 2x in large codebases by optimizing cache usage and reducing redundant computations when resolving elements and matching rules.
 - refactor([#371](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/371)): Extract element descriptors and matching logic to a separate module to improve code organization, readability and reusability.
+- refactor: Overall performance improvements and code optimizations.
+- feat: Add empty schema to rules without options to validate them correctly.
 
 ### Fixed
 

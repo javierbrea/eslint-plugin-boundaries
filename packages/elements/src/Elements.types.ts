@@ -1,9 +1,8 @@
 import type { ConfigOptionsNormalized } from "./Config";
 import type { ElementDescriptors } from "./Descriptor";
 import type {
-  DependenciesMatcherSerializedCache,
-  ElementsMatcherSerializedCache,
   MatcherSerializedCache,
+  MicromatchSerializedCache,
 } from "./Matcher";
 
 /**
@@ -19,8 +18,5 @@ export type ElementsSerializedCache = {
       cache: MatcherSerializedCache;
     }
   >;
-  /** Cache for ElementsMatcher */
-  elementsMatcher: ElementsMatcherSerializedCache;
-  /** Cache for DependenciesMatcher */
-  dependenciesMatcher: DependenciesMatcherSerializedCache;
+  micromatch: MicromatchSerializedCache;
 };

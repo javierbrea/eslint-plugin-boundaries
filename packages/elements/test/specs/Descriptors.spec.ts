@@ -85,6 +85,21 @@ describe("Descriptors", () => {
       expect(isElementDescription(element)).toBe(true);
     });
 
+    it("should return same result for same path in describeElement and describeDependencyElement except for source", () => {
+      const element1 = matcher.describeElement(
+        "/project/foo/utils/testUtil.ts"
+      );
+      const element2 = matcher.describeDependencyElement(
+        "foo",
+        "/project/foo/utils/testUtil.ts"
+      );
+
+      expect({ ...element1, source: undefined }).toEqual({
+        ...element2,
+        source: undefined,
+      });
+    });
+
     it("should exclude files when only ignorePaths is provided", () => {
       const otherDescriptors = elements.getMatcher(
         [
@@ -473,7 +488,28 @@ describe("Descriptors", () => {
       expect(isElementDescription(element)).toBe(true);
     });
 
-    it("should assign descriptions to unknown core elements correctly", () => {
+    it("should assign descriptions to external elements correctly", () => {
+      const element = matcher.describeDependencyElement("react");
+
+      expect(element).toEqual({
+        type: null,
+        category: null,
+        captured: null,
+        elementPath: null,
+        internalPath: "",
+        parents: null,
+        source: "react",
+        baseSource: "react",
+        isIgnored: false,
+        origin: "external",
+        path: null,
+        isUnknown: true,
+      });
+      expect(isExternalDependencyElement(element)).toBe(true);
+      expect(isElementDescription(element)).toBe(true);
+    });
+
+    it("should assign descriptions to core elements correctly", () => {
       const element = matcher.describeDependencyElement("node:fs");
 
       expect(element).toEqual({
@@ -494,7 +530,7 @@ describe("Descriptors", () => {
       expect(isElementDescription(element)).toBe(true);
     });
 
-    it("should assign descriptions to unknown core elements without node prefix correctly", () => {
+    it("should assign descriptions to core elements without node prefix correctly", () => {
       const element = matcher.describeDependencyElement("fs");
 
       expect(element).toEqual({
@@ -514,21 +550,6 @@ describe("Descriptors", () => {
       expect(isCoreDependencyElement(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
-
-    it("should ignore external dependency elements based on ignorePaths", () => {
-      const otherDescriptors = elements.getMatcher([], {
-        ignorePaths: ["**/node_modules/**"],
-      });
-
-      const element = otherDescriptors.describeDependencyElement(
-        "react",
-        "/project/node_modules/react/index.tsx"
-      );
-
-      expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
-      expect(isIgnoredElement(element)).toBe(true);
-      expect(isElementDescription(element)).toBe(true);
-    });
   });
 
   describe("elements descriptor cache", () => {
@@ -544,7 +565,25 @@ describe("Descriptors", () => {
       expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
-    it("should call micromatch again after clearing the cache", () => {
+    it("should call micromatch multiple times for the same element if cache is disabled", () => {
+      matcher = elements.getMatcher(
+        [{ type: "utility", pattern: "src/utils/**/*.ts", mode: "file" }],
+        {
+          cache: false,
+        }
+      );
+      matcher.describeElement("/project/src/utils/math/index.ts");
+
+      expect(micromatchSpy).toHaveBeenCalled();
+
+      jest.clearAllMocks();
+
+      matcher.describeElement("/project/src/utils/math/index.ts");
+
+      expect(micromatchSpy).toHaveBeenCalled();
+    });
+
+    it("should not call micromatch again after clearing the matcher cache, because the global cache is still populated", () => {
       matcher.describeElement("/project/src/utils/math/index.ts");
 
       expect(micromatchSpy).toHaveBeenCalled();
@@ -559,7 +598,7 @@ describe("Descriptors", () => {
 
       matcher.describeElement("/project/src/utils/math/index.ts");
 
-      expect(micromatchSpy).toHaveBeenCalled();
+      expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
     it("should call micromatch again after clearing the cache in the elements instance", () => {
@@ -624,49 +663,13 @@ describe("Descriptors", () => {
       expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
-    it("should not call micromatch more than one per same file when getting dependency elements for the same file but different sources", () => {
-      matcher.describeDependencyElement(
-        "@mui/icons-material/foo",
-        "/project/node_modules/@mui/icons-material/index.tsx"
-      );
-
-      expect(micromatchSpy).toHaveBeenCalled();
-
-      jest.clearAllMocks();
-
-      matcher.describeDependencyElement(
-        "@mui/icons-material/var",
-        "/project/node_modules/@mui/icons-material/index.tsx"
-      );
-
-      expect(micromatchSpy).not.toHaveBeenCalled();
-    });
-
-    it("should call micromatch again when getting same dependency element after clearing cache", () => {
-      matcher.describeDependencyElement(
-        "@mui/icons-material/foo",
-        "/project/node_modules/@mui/icons-material/index.tsx"
-      );
-
-      expect(micromatchSpy).toHaveBeenCalled();
-
-      jest.clearAllMocks();
-
+    it("should not call micromatch more when describing external elements", () => {
       matcher.describeDependencyElement(
         "@mui/icons-material/foo",
         "/project/node_modules/@mui/icons-material/index.tsx"
       );
 
       expect(micromatchSpy).not.toHaveBeenCalled();
-
-      matcher.clearCache();
-
-      matcher.describeDependencyElement(
-        "@mui/icons-material/foo",
-        "/project/node_modules/@mui/icons-material/index.tsx"
-      );
-
-      expect(micromatchSpy).toHaveBeenCalled();
     });
   });
 
@@ -1649,7 +1652,7 @@ describe("Descriptors", () => {
       expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
-    it("should call micromatch again after clearing the cache", () => {
+    it("should not call micromatch again after clearing the cache, because the global cache is still populated", () => {
       matcher.describeDependency({
         from: "/project/src/components/Button.tsx",
         to: "/project/src/bar/Baz.ts",
@@ -1679,7 +1682,7 @@ describe("Descriptors", () => {
         kind: "type",
       });
 
-      expect(micromatchSpy).toHaveBeenCalled();
+      expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
     it("should call micromatch again after clearing the cache in the elements instance", () => {

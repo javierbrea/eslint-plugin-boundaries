@@ -1,4 +1,4 @@
-import type { ConfigOptionsNormalized } from "../Config";
+import type { DescriptorOptionsNormalized } from "../Config";
 import type {
   ElementDescriptors,
   DescribeDependencyOptions,
@@ -12,8 +12,8 @@ import {
 } from "../Descriptor";
 import { isString } from "../Support";
 
-import { DependenciesMatcher } from "./DependenciesMatcher";
-import { ElementsMatcher } from "./ElementsMatcher";
+import type { DependenciesMatcher } from "./DependenciesMatcher";
+import type { ElementsMatcher } from "./ElementsMatcher";
 import type {
   DependencySelector,
   MatcherOptions,
@@ -23,6 +23,7 @@ import type {
   MatcherSerializedCache,
 } from "./Matcher.types";
 import { isDependencySelector, isElementsSelector } from "./MatcherHelpers";
+import type { Micromatch } from "./Micromatch";
 
 /**
  * Matcher class to evaluate if elements or dependencies match given selectors.
@@ -35,18 +36,21 @@ export class Matcher {
   /**
    * Constructor for the Matcher class.
    * @param descriptors Element descriptors to use for matching.
+   * @param elementsMatcher Elements matcher instance.
+   * @param dependenciesMatcher Dependencies matcher instance.
    * @param config Configuration options.
+   * @param globalCache Global cache instance.
    */
   constructor(
     descriptors: ElementDescriptors,
-    config: ConfigOptionsNormalized
+    elementsMatcher: ElementsMatcher,
+    dependenciesMatcher: DependenciesMatcher,
+    config: DescriptorOptionsNormalized,
+    micromatch: Micromatch
   ) {
-    this._descriptors = new Descriptors(descriptors, config);
-    this._elementsMatcher = new ElementsMatcher(config);
-    this._dependenciesMatcher = new DependenciesMatcher(
-      this._elementsMatcher,
-      config
-    );
+    this._descriptors = new Descriptors(descriptors, config, micromatch);
+    this._elementsMatcher = elementsMatcher;
+    this._dependenciesMatcher = dependenciesMatcher;
   }
 
   /**
@@ -147,7 +151,7 @@ export class Matcher {
    * @param options Extra options for matching
    * @returns The matching dependency result or null if no match is found
    */
-  private _isDependencySelectorMatching(
+  private _getDependencySelectorMatching(
     dependencyData: DescribeDependencyOptions,
     selector: DependencySelector,
     options?: MatcherOptions
@@ -189,7 +193,7 @@ export class Matcher {
         options
       );
     }
-    return this._isDependencySelectorMatching(
+    return this._getDependencySelectorMatching(
       descriptorOptions,
       selector as DependencySelector,
       options
@@ -278,37 +282,25 @@ export class Matcher {
    */
   public clearCache() {
     this._descriptors.clearCache();
-    this._elementsMatcher.clearCache();
-    this._dependenciesMatcher.clearCache();
   }
 
   /**
-   * Serializes the descriptors and elements matchers cache to a plain object.
+   * Serializes the descriptors matchers cache to a plain object.
    * @returns The serialized cache
    */
   public serializeCache(): MatcherSerializedCache {
     return {
       descriptors: this._descriptors.serializeCache(),
-      elementsMatcher: this._elementsMatcher.serializeCache(),
-      dependenciesMatcher: this._dependenciesMatcher.serializeCache(),
     };
   }
 
   /**
-   * Sets the descriptors and elements matchers cache from a serialized object.
+   * Sets the descriptors matchers cache from a serialized object.
    * @param serializedCache The serialized cache
    */
   public setCacheFromSerialized(serializedCache: {
     descriptors: ReturnType<Descriptors["serializeCache"]>;
-    elementsMatcher: ReturnType<ElementsMatcher["serializeCache"]>;
-    dependenciesMatcher: ReturnType<DependenciesMatcher["serializeCache"]>;
   }) {
     this._descriptors.setCacheFromSerialized(serializedCache.descriptors);
-    this._elementsMatcher.setCacheFromSerialized(
-      serializedCache.elementsMatcher
-    );
-    this._dependenciesMatcher.setCacheFromSerialized(
-      serializedCache.dependenciesMatcher
-    );
   }
 }

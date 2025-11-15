@@ -28,6 +28,10 @@ import { dependencyRule } from "./Support";
 
 const { RULE_ENTRY_POINT } = SETTINGS;
 
+type AdaptedRuleOptions = Omit<EntryPointRuleOptions, "rules"> & {
+  rules: ElementTypesRule[];
+};
+
 function errorMessage(ruleData: RuleResult, dependency: DependencyDescription) {
   const ruleReport = ruleData.ruleReport;
   if (!ruleReport) {
@@ -148,7 +152,7 @@ export default dependencyRule<EntryPointRuleOptions>(
       dependency.dependency.relationship.to !==
         DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL
     ) {
-      const adaptedRuleOptions = {
+      const adaptedRuleOptions: AdaptedRuleOptions = {
         ...options,
         rules: options && options.rules ? modifyRules(options.rules) : [],
       };

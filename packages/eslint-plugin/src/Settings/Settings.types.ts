@@ -151,6 +151,7 @@ export const SETTINGS = {
   DEPENDENCY_NODES: `${PLUGIN_NAME}/dependency-nodes`,
   ADDITIONAL_DEPENDENCY_NODES: `${PLUGIN_NAME}/additional-dependency-nodes`,
   LEGACY_TEMPLATES: `${PLUGIN_NAME}/legacy-templates`,
+  CACHE: `${PLUGIN_NAME}/cache`,
 
   // env vars
   DEBUG: `${PLUGIN_ENV_VARS_PREFIX}_DEBUG`,
@@ -237,12 +238,18 @@ export const SETTINGS_KEYS_MAP = {
   TYPES: SETTINGS.TYPES,
   /** @deprecated Use import/resolver settings instead */
   ALIAS: SETTINGS.ALIAS,
+  CACHE: SETTINGS.CACHE,
 } as const;
 
 /**
  * Default value for the legacy templates setting.
  */
 export const LEGACY_TEMPLATES_DEFAULT = true as const;
+
+/**
+ * Default value for the cache setting.
+ */
+export const CACHE_DEFAULT = true as const;
 
 /**
  * Valid keys for the plugin settings.
@@ -322,6 +329,8 @@ export type Settings = {
   [SETTINGS_KEYS_MAP.TYPES]?: ElementDescriptors;
   /** @deprecated Use "import/resolver" setting instead */
   [SETTINGS_KEYS_MAP.ALIAS]?: AliasSetting;
+  /** Whether to enable caching for the plugin analysis */
+  [SETTINGS_KEYS_MAP.CACHE]?: boolean;
 };
 
 /**
@@ -343,6 +352,8 @@ export type SettingsNormalized = {
   dependencyNodes: DependencyNodeSelector[];
   /** Whether legacy template syntax support is enabled */
   legacyTemplates: boolean;
+  /** Whether caching is enabled */
+  cache: boolean;
 };
 
 /**

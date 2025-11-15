@@ -37,10 +37,19 @@ export type DependenciesMatcherSerializedCache = Record<
   DependencyMatchResult
 >;
 
+/**
+ * Serialized cache of matcher descriptors.
+ */
 export type MatcherSerializedCache = {
   descriptors: DescriptorsSerializedCache;
-  elementsMatcher: ElementsMatcherSerializedCache;
-  dependenciesMatcher: DependenciesMatcherSerializedCache;
+};
+
+/**
+ * Serialized cache of micromatch matcher.
+ */
+export type MicromatchSerializedCache = {
+  matchingResults: Record<string, boolean>;
+  captures: Record<string, string[] | null>;
 };
 
 /**

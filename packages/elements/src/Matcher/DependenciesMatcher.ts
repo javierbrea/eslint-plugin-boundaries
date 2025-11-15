@@ -1,5 +1,4 @@
-import { CacheManager } from "../Cache";
-import type { ConfigOptionsNormalized } from "../Config";
+import type { MatchersOptionsNormalized } from "../Config";
 import type {
   DependencyDescription,
   DependencyRelationship,
@@ -14,7 +13,6 @@ import type { ElementsMatcher } from "./ElementsMatcher";
 import type {
   BaseElementSelector,
   TemplateData,
-  DependenciesMatcherSerializedCache,
   DependencySelector,
   DependencyElementSelectorData,
   DependencySelectorNormalized,
@@ -27,24 +25,12 @@ import {
   isBaseElementSelectorData,
   isDependencySelector,
 } from "./MatcherHelpers";
+import type { Micromatch } from "./Micromatch";
 
 /**
  * Matcher class to determine if dependencies match a given dependencies selector.
  */
 export class DependenciesMatcher extends BaseElementsMatcher {
-  /**
-   * Cache to store previously described dependencies.
-   */
-  private readonly _cache: CacheManager<
-    {
-      dependency: DependencyDescription;
-      selector: DependencySelector;
-      extraTemplateData: TemplateData;
-      dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals;
-    },
-    DependencyMatchResult
-  >;
-
   /**
    * Elements matcher to use for matching elements within dependencies.
    */
@@ -52,39 +38,18 @@ export class DependenciesMatcher extends BaseElementsMatcher {
 
   /**
    * Creates a new DependenciesMatcher.
+   * @param elementsMatcher Elements matcher to use for matching elements within dependencies.
+   * @param config Configuration options for the matcher.
+   * @param micromatch Micromatch instance for matching.
+   * @param globalCache Global cache instance.
    */
   constructor(
     elementsMatcher: ElementsMatcher,
-    config: ConfigOptionsNormalized
+    config: MatchersOptionsNormalized,
+    micromatch: Micromatch
   ) {
-    super(config);
-    this._cache = new CacheManager();
+    super(config, micromatch);
     this._elementsMatcher = elementsMatcher;
-  }
-
-  /**
-   * Serializes the cache to a plain object.
-   * @returns The serialized cache.
-   */
-  public serializeCache(): DependenciesMatcherSerializedCache {
-    return this._cache.serialize();
-  }
-
-  /**
-   * Sets the cache from a serialized object.
-   * @param serializedCache The serialized cache.
-   */
-  public setCacheFromSerialized(
-    serializedCache: DependenciesMatcherSerializedCache
-  ): void {
-    this._cache.setFromSerialized(serializedCache);
-  }
-
-  /**
-   * Clears the cache.
-   */
-  public clearCache(): void {
-    this._cache.clear();
   }
 
   /**
@@ -265,17 +230,11 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     if (!selector.relationship) {
       return true;
     }
-    const renderedPattern = this.getRenderedTemplates(
+    return this.isTemplateMicromatchMatch(
       selector.relationship,
-      templateData
+      templateData,
+      relationship
     );
-    if (!renderedPattern) {
-      return false;
-    }
-    if (!relationship) {
-      return false;
-    }
-    return this.isMicromatchMatch(relationship, renderedPattern);
   }
 
   /**
@@ -293,17 +252,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     if (!selector.kind) {
       return true;
     }
-    const renderedPattern = this.getRenderedTemplates(
-      selector.kind,
-      templateData
-    );
-    if (!renderedPattern) {
-      return false;
-    }
-    if (!kind) {
-      return false;
-    }
-    return this.isMicromatchMatch(kind, renderedPattern);
+    return this.isTemplateMicromatchMatch(selector.kind, templateData, kind);
   }
 
   /**
@@ -318,22 +267,13 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     specifiers: string[] | null,
     templateData: TemplateData
   ): boolean {
-    const specifierPattern = selector.specifiers;
-    if (!specifierPattern) {
+    if (!selector.specifiers) {
       return true;
     }
-    const renderedPattern = this.getRenderedTemplates(
-      specifierPattern,
-      templateData
-    );
-    if (!renderedPattern) {
-      return false;
-    }
-    if (!specifiers) {
-      return false;
-    }
-    return specifiers.some((specifier) =>
-      this.isMicromatchMatch(specifier, renderedPattern)
+    return this.isTemplateMicromatchMatch(
+      selector.specifiers,
+      templateData,
+      specifiers
     );
   }
 
@@ -349,21 +289,14 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     nodeKind: string | null,
     templateData: TemplateData
   ): boolean {
-    const nodeKindPattern = selector.nodeKind;
-    if (!nodeKindPattern) {
+    if (!selector.nodeKind) {
       return true;
     }
-    const renderedPattern = this.getRenderedTemplates(
-      nodeKindPattern,
-      templateData
+    return this.isTemplateMicromatchMatch(
+      selector.nodeKind,
+      templateData,
+      nodeKind
     );
-    if (!renderedPattern) {
-      return false;
-    }
-    if (!nodeKind) {
-      return false;
-    }
-    return this.isMicromatchMatch(nodeKind, renderedPattern);
   }
 
   /**
@@ -399,30 +332,30 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     toSelector: DependencyElementSelectorData[],
     templateData: TemplateData
   ): boolean {
-    return toSelector.some((selectorData) => {
-      return (
-        this._relationshipMatches(
-          selectorData,
-          dependency.dependency.relationship.to,
-          templateData
-        ) &&
-        this._kindMatches(
-          selectorData,
-          dependency.dependency.kind,
-          templateData
-        ) &&
-        this._nodeKindMatches(
-          selectorData,
-          dependency.dependency.nodeKind,
-          templateData
-        ) &&
-        this._specifierMatches(
-          selectorData,
-          dependency.dependency.specifiers,
-          templateData
-        )
-      );
-    });
+    // Extract dependency properties once to avoid repeated property access
+    const dependencyInfo = dependency.dependency;
+    const relationshipTo = dependencyInfo.relationship.to;
+    const kind = dependencyInfo.kind;
+    const nodeKind = dependencyInfo.nodeKind;
+    const specifiers = dependencyInfo.specifiers;
+
+    // Use a traditional for loop for better performance and early exit
+    for (let i = 0; i < toSelector.length; i++) {
+      const selectorData = toSelector[i];
+
+      // Order checks by likelihood of failure (most restrictive first)
+      // and use short-circuit evaluation for performance
+      if (
+        this._kindMatches(selectorData, kind, templateData) &&
+        this._nodeKindMatches(selectorData, nodeKind, templateData) &&
+        this._relationshipMatches(selectorData, relationshipTo, templateData) &&
+        this._specifierMatches(selectorData, specifiers, templateData)
+      ) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -440,26 +373,11 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       dependencySelectorsGlobals = {},
     }: MatcherOptions = {}
   ): DependencyMatchResult {
-    if (
-      this._cache.has({
-        dependency,
-        selector,
-        extraTemplateData,
-        dependencySelectorsGlobals,
-      })
-    ) {
-      return this._cache.get({
-        dependency,
-        selector,
-        extraTemplateData,
-        dependencySelectorsGlobals,
-      })!;
-    }
-
     const normalizedSelector = this._normalizeDependencySelector(
       selector,
       dependencySelectorsGlobals
     );
+
     // Add `to` and `from` data to the template when checking elements in dependencies
     const templateData: TemplateData = {
       ...extraTemplateData,
@@ -482,16 +400,6 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       dependency,
       normalizedSelector,
       templateData
-    );
-
-    this._cache.set(
-      {
-        dependency,
-        selector,
-        extraTemplateData,
-        dependencySelectorsGlobals,
-      },
-      result
     );
     return result;
   }

@@ -49,6 +49,15 @@ export function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 /**
+ * Determines if the given object is an empty object.
+ * @param obj The object to check.
+ * @returns True if the object is empty, false otherwise.
+ */
+export function isEmptyObject(obj: unknown): boolean {
+  return isObject(obj) && Object.keys(obj).length === 0;
+}
+
+/**
  * Determines if the given value is an array.
  * @param value The value to check.
  * @returns True if the value is an array, false otherwise.

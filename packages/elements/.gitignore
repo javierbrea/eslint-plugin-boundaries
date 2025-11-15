@@ -32,3 +32,6 @@ stryker.conf.local.js
 
 # build output
 dist
+
+# Script to create symlinks for local performance testing on other repositories
+link.sh

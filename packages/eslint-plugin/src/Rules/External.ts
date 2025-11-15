@@ -156,8 +156,9 @@ export default dependencyRule<ExternalRuleOptions>(
       isExternalDependencyElement(dependency.to) ||
       isCoreDependencyElement(dependency.to)
     ) {
-      const adaptedRuleOptions = {
+      const adaptedRuleOptions: ExternalRuleOptions = {
         ...options,
+        // @ts-expect-error TODO: Fix type
         rules:
           options && options.rules
             ? options.rules.map((rule) => ({

@@ -8,6 +8,7 @@ import type {
   DescribeDependencyOptions,
   DependencySelector,
   Matcher,
+  BaseElementSelectorWithOptions,
 } from "../../src/index";
 import { Elements, normalizeElementsSelector } from "../../src/index";
 
@@ -117,6 +118,13 @@ describe("Matcher", () => {
       {
         filePath: "/project/src/components/Button.tsx",
         selector: { type: ["foo", "{{ element.type }}"] },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: {
+          type: ["foo", "{{ element.type }}", "{{ element.type }}", ""],
+        },
         expected: true,
       },
       {
@@ -1706,13 +1714,88 @@ describe("Matcher", () => {
 
       expect(micromatchSpy).toHaveBeenCalled();
     });
+
+    it("should not call when using same selector", () => {
+      const result = matcher.isMatch(
+        {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/components/Button.tsx",
+          source: "../utils/math/math.test.ts",
+          kind: "value",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        {
+          from: { type: "component" },
+        }
+      );
+
+      expect(micromatchSpy).toHaveBeenCalled();
+      expect(result).toBe(true);
+
+      micromatchSpy.mockClear();
+
+      const result2 = matcher.isMatch(
+        {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/components/Button.tsx",
+          source: "../utils/math/math.test.ts",
+          kind: "value",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        {
+          from: { type: "component" },
+          to: { type: "component" }, // Same as from, it should not normalize again
+        }
+      );
+
+      expect(result2).toBe(true);
+      expect(micromatchSpy).not.toHaveBeenCalled();
+
+      elements.clearCache();
+
+      matcher.isMatch(
+        {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/components/Button.tsx",
+          source: "../utils/math/math.test.ts",
+          kind: "value",
+          nodeKind: "Import",
+          specifiers: ["calculateSum", "calculateAvg"],
+        },
+        {
+          from: { type: "component" },
+          to: { type: "component" },
+        }
+      );
+
+      expect(micromatchSpy).toHaveBeenCalled();
+    });
   });
 
-  describe("normalizeElementsSelector", () => {
+  describe("normalizeElementsSelector public method", () => {
     it.each([
       {
         selector: "component",
         expected: [{ type: "component" }],
+      },
+      {
+        selector: [
+          "component",
+          { fileName: "Button" },
+        ] as BaseElementSelectorWithOptions,
+        expected: [{ type: "component", captured: { fileName: "Button" } }],
+      },
+      {
+        selector: [
+          "component",
+          ["foo", { bar: "baz" }] as BaseElementSelectorWithOptions,
+        ],
+        expected: [
+          { type: "component" },
+          { type: "foo", captured: { bar: "baz" } },
+        ],
       },
     ])(
       "should normalize element selector $selector to $expected",

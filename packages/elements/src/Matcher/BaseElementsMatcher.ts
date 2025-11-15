@@ -1,7 +1,6 @@
 import Handlebars from "handlebars";
-import micromatch from "micromatch";
 
-import type { MicromatchPattern, ConfigOptionsNormalized } from "../Config";
+import type { MicromatchPattern, MatchersOptionsNormalized } from "../Config";
 import type {
   LocalElementKnown,
   CoreDependencyElement,
@@ -36,6 +35,10 @@ import {
   isElementSelectorWithLegacyOptions,
   isElementSelectorData,
 } from "./MatcherHelpers";
+import type { Micromatch } from "./Micromatch";
+
+const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^}]+\s*}}/;
+const LEGACY_TEMPLATE_REGEX = /\$\{([^}]+)\}/g;
 
 /**
  * Normalizes a selector into ElementSelectorData format.
@@ -60,7 +63,7 @@ function normalizeSelector(selector: ElementSelector): ElementSelectorData {
   if (isElementSelectorWithLegacyOptions(selector)) {
     return {
       type: selector[0],
-      captured: { ...selector[1] },
+      captured: selector[1] ? { ...selector[1] } : undefined,
     };
   }
   throw new Error("Invalid element selector");
@@ -93,13 +96,23 @@ export function normalizeElementsSelector(
  * Base matcher class to determine if elements or dependencies match a given selector.
  */
 export class BaseElementsMatcher {
+  /**
+   * Option to use legacy templates with ${} syntax.
+   */
   protected readonly _legacyTemplates: boolean;
+
+  /**
+   * Micromatch instance for matching.
+   */
+  protected micromatch: Micromatch;
 
   /**
    * Creates a new BaseElementsMatcher.
    * @param config Configuration options for the matcher.
+   * @param globalCache Global cache instance.
    */
-  constructor(config: ConfigOptionsNormalized) {
+  constructor(config: MatchersOptionsNormalized, micromatch: Micromatch) {
+    this.micromatch = micromatch;
     this._legacyTemplates = config.legacyTemplates;
   }
 
@@ -109,13 +122,23 @@ export class BaseElementsMatcher {
    * @returns The converted template.
    */
   private _getBackwardsCompatibleTemplate(template: string): string {
-    return template.replaceAll(/\$\{([^}]+)\}/g, "{{ $1 }}");
+    return template.replaceAll(LEGACY_TEMPLATE_REGEX, "{{ $1 }}");
+  }
+
+  /**
+   * Determines if a template contains Handlebars syntax.
+   * @param template The template to check.
+   * @returns True if the template contains Handlebars syntax, false otherwise.
+   */
+  private _isHandlebarsTemplate(template: string): boolean {
+    return HANDLEBARS_TEMPLATE_REGEX.test(template);
   }
 
   /**
    * Returns a rendered template using the provided template data.
+   * Optimized version with template caching for better performance.
    * @param template The template to render.
-   * @param extraTemplateData The data to use for replace in the template.
+   * @param templateData The data to use for replace in the template.
    * @returns The rendered template.
    */
   private _getRenderedTemplate(
@@ -125,7 +148,14 @@ export class BaseElementsMatcher {
     const templateToUse = this._legacyTemplates
       ? this._getBackwardsCompatibleTemplate(template)
       : template;
-    return Handlebars.compile(templateToUse)(templateData);
+    if (!this._isHandlebarsTemplate(templateToUse)) {
+      // If the template does not contain any Handlebars syntax, return it as is.
+      return template;
+    }
+
+    const compiledTemplate = Handlebars.compile(templateToUse);
+
+    return compiledTemplate(templateData);
   }
 
   /**
@@ -148,6 +178,7 @@ export class BaseElementsMatcher {
 
   /**
    * Returns whether the given value matches the micromatch pattern, converting non-string values to strings.
+   * Optimized version with caching for better performance.
    * @param value The value to check.
    * @param pattern The micromatch pattern to match against.
    * @returns Whether the value matches the pattern.
@@ -164,7 +195,43 @@ export class BaseElementsMatcher {
       ? pattern.filter(Boolean)
       : pattern;
 
-    return micromatch.isMatch(elementValueToCheck, selectorValueToCheck);
+    return this.micromatch.isMatch(elementValueToCheck, selectorValueToCheck);
+  }
+
+  /**
+   * Returns whether the given value matches the micromatch pattern after rendering it as a template.
+   * @param pattern The micromatch pattern to render and match against.
+   * @param templateData The data to use for rendering the pattern as a template.
+   * @param value The value to check.
+   * @returns Whether the value matches the rendered pattern.
+   */
+  protected isTemplateMicromatchMatch(
+    pattern: MicromatchPattern,
+    templateData: TemplateData,
+    value?: unknown
+  ): boolean {
+    // If the element value is nullish, it cannot match anything.
+    if (isNullish(value)) {
+      return false;
+    }
+
+    const patternRendered = this.getRenderedTemplates(pattern, templateData);
+
+    // Empty rendered selector values do not match anything. (It may happen due to templates rendering to empty strings.)
+    if (!patternRendered) {
+      return false;
+    }
+
+    // Clean empty strings from arrays to avoid matching them.
+    const filteredPattern = isArray(patternRendered)
+      ? patternRendered.filter(Boolean)
+      : patternRendered;
+
+    if (isArray(value)) {
+      // If the value is an array, we check if any of its items match the pattern.
+      return value.some((val) => this.isMicromatchMatch(val, filteredPattern));
+    }
+    return this.isMicromatchMatch(value, filteredPattern);
   }
 
   /**
@@ -260,26 +327,15 @@ export class BaseElementsMatcher {
       return false;
     }
 
-    const selectorValueRendered = this.getRenderedTemplates(
-      selectorValue,
-      templateData
-    );
-
-    // Empty rendered selector values do not match anything. (It may happen due to templates rendering to empty strings.)
-    if (!selectorValueRendered) {
-      return false;
-    }
-
     // The selector key exists in the selector, but it does not exist in the element. No match.
     if (!isObjectWithProperty(element, elementKey)) {
       return false;
     }
 
-    // The element key value is nullish, so it cannot match anything.
-    if (isNullish(element[elementKey])) {
-      return false;
-    }
-
-    return this.isMicromatchMatch(element[elementKey], selectorValueRendered);
+    return this.isTemplateMicromatchMatch(
+      selectorValue,
+      templateData,
+      element[elementKey]
+    );
   }
 }

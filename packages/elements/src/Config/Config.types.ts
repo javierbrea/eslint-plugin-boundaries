@@ -14,9 +14,28 @@ export type ConfigOptions = {
    * When enabled, it supports using "${...}" syntax in templates.
    **/
   legacyTemplates?: boolean;
+  /** Whether to enable caching */
+  cache?: boolean;
 };
 
-export type ConfigOptionsNormalized = Omit<ConfigOptions, "legacyTemplates"> & {
+export type ConfigOptionsNormalized = Omit<
+  ConfigOptions,
+  "legacyTemplates" | "cache"
+> & {
   /** Whether to enable legacy template support */
   legacyTemplates: boolean;
+  /** Cache configuration options */
+  cache: boolean;
 };
+
+/** Options for descriptors */
+export type DescriptorOptionsNormalized = Pick<
+  ConfigOptionsNormalized,
+  "includePaths" | "ignorePaths" | "cache"
+>;
+
+/** Options for element matchers */
+export type MatchersOptionsNormalized = Pick<
+  ConfigOptionsNormalized,
+  "legacyTemplates"
+>;

@@ -1,5 +1,6 @@
-import type { NotUndefined } from "object-hash";
-import objectHash from "object-hash";
+import { isString } from "../Support";
+
+import type { NotUndefined } from "./Cache.types";
 
 /**
  * Generic cache manager class. Enables caching of values based on complex keys.
@@ -18,50 +19,53 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
   }
 
   /**
+   * Generates a string key from the given cache key. Has to be implemented for non-string keys.
+   * @param key The cache key to generate from
+   * @returns The generated string key
+   */
+  protected generateKey(key: CacheKey): string {
+    if (isString(key)) {
+      return key;
+    }
+    const errorMessage =
+      "Cache key generation for non-string keys is not implemented because it causes performance issues: " +
+      JSON.stringify(key);
+    throw new Error(errorMessage);
+  }
+
+  /**
    * Generates a hashed key for the given cache key
    * @param key The cache key to hash
    * @returns The hashed key as a string
    */
-  private _getHashedKey(key: CacheKey): string {
-    return objectHash(key);
+  public getKey(key: CacheKey): string {
+    return this.generateKey(key);
   }
 
   /**
-   * Retrieves a value from the cache based on the given key
-   * @param key The cache key to retrieve
+   * Retrieves a value from the cache based on the given hashed key
+   * @param hashedKey The hashed key to retrieve
    * @returns The cached value or undefined if not found
    */
-  public get(key: CacheKey): CachedValue | undefined {
-    const hashedKey = this._getHashedKey(key);
+  public get(hashedKey: string): CachedValue | undefined {
     return this._cache.get(hashedKey);
   }
 
   /**
-   * Stores a value in the cache
-   * @param key The cache key to store
+   * Stores a value in the cache with a given hashed key
+   * @param hashedKey The hashed key to store
    * @param value The value to cache
    */
-  public set(key: CacheKey, value: CachedValue): void {
-    const hashedKey = this._getHashedKey(key);
+  public set(hashedKey: string, value: CachedValue): void {
     this._cache.set(hashedKey, value);
   }
 
   /**
-   * Restores a value in the cache from a given already hashed key
-   * @param key The hashed key to restore
-   * @param value The value to restore
-   */
-  public restore(key: string, value: CachedValue): void {
-    this._cache.set(key, value);
-  }
-
-  /**
-   * Checks if a value exists in the cache
-   * @param key The cache key to check
+   * Checks if a value exists in the cache based on the given hashed key
+   * @param hashedKey The hashed key to check
    * @returns True if the value exists, false otherwise
    */
-  public has(key: CacheKey): boolean {
-    const hashedKey = this._getHashedKey(key);
+  public has(hashedKey: string): boolean {
     return this._cache.has(hashedKey);
   }
 
@@ -100,7 +104,7 @@ export class CacheManager<CacheKey extends NotUndefined, CachedValue> {
    */
   public setFromSerialized(serializedCache: Record<string, CachedValue>): void {
     for (const key in serializedCache) {
-      this.restore(key, serializedCache[key]);
+      this.set(key, serializedCache[key]);
     }
   }
 }
