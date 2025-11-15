@@ -2,6 +2,9 @@ name: publish-to-npm
 on:
   release:
     types: [created]
+  push:
+    branches:
+      - release-v5.2.0-beta.2
 
 permissions:
   id-token: write  # Required for OIDC
@@ -14,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/install
-    - run: pnpm check:all
+    - run: pnpm nx run-many -t check:all --all
     - run: pnpm -r publish --no-git-checks
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -34,11 +37,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/install
-    - run: pnpm check:all
+    - run: pnpm nx run-many -t check:all --all
     - run: pnpm -r publish --no-git-checks --tag beta
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     - uses: MerthinTechnologies/edit-json-action@v1
       with:
         filename: './packages/eslint-plugin/package.json'
         key: 'name'
         value: 'eslint-plugin-boundaries'
     - run: pnpm -r publish --no-git-checks --tag beta
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
