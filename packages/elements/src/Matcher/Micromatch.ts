@@ -3,19 +3,75 @@ import micromatch from "micromatch";
 import { CacheManager, CacheManagerDisabled } from "../Cache";
 import { isArray } from "../Support";
 
+/**
+ * Cache key type for micromatch matching results
+ */
+type MatchingResultsCacheKey = {
+  value: string;
+  pattern: string | string[];
+};
+
+/**
+ * Cache for micromatch matching results
+ */
+class MatchingResultsCache extends CacheManager<
+  MatchingResultsCacheKey,
+  boolean
+> {
+  /**
+   * Generates a unique cache key based on the value and pattern
+   * @param param0 The cache key components
+   * @returns The generated cache key
+   */
+  protected generateKey({ value, pattern }: MatchingResultsCacheKey): string {
+    return `${value}::${isArray(pattern) ? pattern.join("|") : pattern}`;
+  }
+}
+
+/**
+ * Cache key type for micromatch captured values
+ */
+type CapturedValueCacheKey = {
+  pattern: string;
+  target: string;
+};
+
+/**
+ * Cache for micromatch captured values
+ */
+class CapturedValueCache extends CacheManager<
+  CapturedValueCacheKey,
+  string[] | null
+> {
+  /**
+   * Generates a unique cache key based on the pattern and target
+   * @param param0 The cache key components
+   * @returns The generated cache key
+   */
+  protected generateKey({ pattern, target }: CapturedValueCacheKey): string {
+    return `${pattern}|${target}`;
+  }
+}
+
+/**
+ * Micromatch wrapper class with caching capabilities.
+ */
+
 export class Micromatch {
   /**
    * Cache for micromatch matching results
    */
   private _matchingResultsCache:
-    | CacheManager<string, boolean>
-    | CacheManagerDisabled<string, boolean>;
+    | MatchingResultsCache
+    | CacheManagerDisabled<MatchingResultsCacheKey, boolean>;
 
   /**
    * Cache for micromatch captures
    */
-  private _capturesCache: CacheManagerDisabled<string, string[] | null> =
-    new CacheManagerDisabled<string, string[] | null>();
+  private _capturesCache:
+    | CapturedValueCache
+    | CacheManagerDisabled<CapturedValueCacheKey, string[] | null> =
+    new CacheManagerDisabled<CapturedValueCacheKey, string[] | null>();
 
   /**
    * Cache for micromatch makeRe results
@@ -29,11 +85,11 @@ export class Micromatch {
    */
   constructor(cache: boolean) {
     this._matchingResultsCache = cache
-      ? new CacheManager<string, boolean>()
-      : new CacheManagerDisabled<string, boolean>();
+      ? new MatchingResultsCache()
+      : new CacheManagerDisabled<MatchingResultsCacheKey, boolean>();
     this._capturesCache = cache
-      ? new CacheManager<string, string[] | null>()
-      : new CacheManagerDisabled<string, string[] | null>();
+      ? new CapturedValueCache()
+      : new CacheManagerDisabled<CapturedValueCacheKey, string[] | null>();
     this._makeReCache = cache
       ? new CacheManager<string, RegExp>()
       : new CacheManagerDisabled<string, RegExp>();
@@ -46,9 +102,10 @@ export class Micromatch {
    * @returns True if the value matches the pattern, false otherwise.
    */
   public isMatch(value: string, pattern: string | string[]): boolean {
-    const cacheKey = this._matchingResultsCache.getKey(
-      `${value}::${isArray(pattern) ? pattern.join("|") : pattern}`
-    );
+    const cacheKey = this._matchingResultsCache.getKey({
+      value,
+      pattern,
+    });
 
     if (this._matchingResultsCache.has(cacheKey)) {
       return this._matchingResultsCache.get(cacheKey)!;
@@ -66,7 +123,7 @@ export class Micromatch {
    * @returns Captured groups or null if no match.
    */
   public capture(pattern: string, target: string): string[] | null {
-    const cacheKey = this._capturesCache.getKey(`${pattern}|${target}`);
+    const cacheKey = this._capturesCache.getKey({ pattern, target });
 
     if (this._capturesCache.has(cacheKey)) {
       return this._capturesCache.get(cacheKey)!;
@@ -83,12 +140,11 @@ export class Micromatch {
    * @returns The RegExp instance.
    */
   public makeRe(pattern: string): RegExp {
-    const cacheKey = this._makeReCache.getKey(pattern);
-    if (this._makeReCache.has(cacheKey)) {
-      return this._makeReCache.get(cacheKey)!;
+    if (this._makeReCache.has(pattern)) {
+      return this._makeReCache.get(pattern)!;
     }
     const regexp = micromatch.makeRe(pattern);
-    this._makeReCache.set(cacheKey, regexp);
+    this._makeReCache.set(pattern, regexp);
     return regexp;
   }
 }
