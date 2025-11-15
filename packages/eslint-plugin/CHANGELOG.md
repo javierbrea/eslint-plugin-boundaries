@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- feat: Boost performance to approximately 2x in large codebases by optimizing cache usage and reducing redundant computations when resolving elements and matching rules.
+- feat: Improve performance in approximately 30% in large codebases by optimizing cache usage and reducing redundant computations when resolving elements and matching rules.
 - refactor([#371](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/371)): Extract element descriptors and matching logic to a separate module to improve code organization, readability and reusability.
 - refactor: Overall performance improvements and code optimizations.
 - feat: Add empty schema to rules without options to validate them correctly.
