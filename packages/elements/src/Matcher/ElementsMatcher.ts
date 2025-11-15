@@ -2,7 +2,10 @@ import type { MatchersOptionsNormalized } from "../Config";
 import type { ElementDescription } from "../Descriptor";
 import { isArray, isNullish, isEmptyObject } from "../Support";
 
-import { BaseElementsMatcher } from "./BaseElementsMatcher";
+import {
+  BaseElementsMatcher,
+  normalizeElementsSelector,
+} from "./BaseElementsMatcher";
 import type {
   BaseElementSelectorData,
   SelectableElement,
@@ -345,7 +348,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BaseElementsSelector,
     { extraTemplateData = {} }: MatcherOptions = {}
   ): ElementSelectorData | null {
-    const selectorsData = this.normalizeElementsSelector(selector);
+    const selectorsData = normalizeElementsSelector(selector);
     return this._getSelectorMatching(element, selectorsData, extraTemplateData);
   }
 

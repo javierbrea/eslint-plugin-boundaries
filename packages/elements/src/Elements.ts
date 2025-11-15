@@ -148,7 +148,6 @@ export class Elements {
       elementDescriptors,
       matcher,
     });
-
     return matcher;
   }
 }

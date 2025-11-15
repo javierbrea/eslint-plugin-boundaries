@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - feat: Implement cache for micromatch results, regex and captures to improve performance.
 - feat: Add `cache` option to allow disabling the cache.
 
+### Changed
+
+- refactor: Overall performance improvements and code optimizations.
+
 ### Fixed
 
 - fix: Fix cache performance issues by implementing custom string generation for well-known objects, and removing caching for keys based on complex objects to avoid performance degradation.

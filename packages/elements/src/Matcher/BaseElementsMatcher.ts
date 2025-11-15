@@ -159,44 +159,6 @@ export class BaseElementsMatcher {
   }
 
   /**
-   * Normalizes a selector into ElementSelectorData format.
-   * @param selector The selector to normalize.
-   * @returns The normalized selector data.
-   */
-  protected normalizeSelector(
-    selector: BaseElementSelector
-  ): BaseElementSelectorData;
-  protected normalizeSelector(
-    selector: DependencyElementSelector
-  ): DependencyElementSelectorData;
-  protected normalizeSelector(selector: ElementSelector): ElementSelectorData {
-    return normalizeSelector(selector);
-  }
-
-  /**
-   * Normalizes an ElementsSelector into an array of ElementSelectorData.
-   * @param elementsSelector The elements selector, in any supported format.
-   * @returns The normalized array of selector data.
-   */
-  protected normalizeElementsSelector(
-    elementsSelector: BaseElementsSelector
-  ): BaseElementSelectorData[];
-  protected normalizeElementsSelector(
-    elementsSelector: DependencyElementsSelector
-  ): DependencyElementSelectorData[];
-  protected normalizeElementsSelector(
-    elementsSelector: ElementsSelector
-  ): ElementSelectorData[] {
-    if (isArray(elementsSelector)) {
-      if (isElementSelectorWithLegacyOptions(elementsSelector)) {
-        return [this.normalizeSelector(elementsSelector)];
-      }
-      return elementsSelector.map((sel) => this.normalizeSelector(sel));
-    }
-    return [this.normalizeSelector(elementsSelector)];
-  }
-
-  /**
    * Returns rendered templates using the provided template data.
    * @param template The templates to render.
    * @param extraTemplateData The data to use for replace in the templates.
