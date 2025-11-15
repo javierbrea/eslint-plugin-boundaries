@@ -33,11 +33,11 @@ jobs:
       env:
         HUSKY_SKIP_INSTALL: 1
 
-    - run: pnpm nx run-many -t check:all --all
+    - run: pnpm check:all
 
     - uses: MerthinTechnologies/edit-json-action@v1
       with:
-        filename: './packages/eslint-plugin-boundaries/package.json'
+        filename: './packages/eslint-plugin/package.json'
         key: 'name'
         value: '@javierbrea/eslint-plugin-boundaries'
 
