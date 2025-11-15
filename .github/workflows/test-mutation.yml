@@ -1,0 +1,33 @@
+name: Test Mutation
+on:
+  push:
+    branches:
+      - master
+      - release
+  pull_request:
+    branches:
+      - master
+
+concurrency:  
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-mutation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/install
+        with:
+          node-version: 22.14.0
+      - name: Test Mutation Elements
+        run: pnpm nx test:mutation elements
+        env:
+          STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+      - name: Upload test mutation report for elements
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-test-mutation-elements
+          path: packages/elements/reports/mutation
+          retention-days: 1

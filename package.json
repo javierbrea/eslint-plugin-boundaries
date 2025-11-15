@@ -1,9 +1,9 @@
 {
-  "name": "js-boundaries-monorepo",
+  "name": "@boundaries/workspace",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Monorepo for js-boundaries packages",
+  "description": "Monorepo for @boundaries packages",
   "author": "Javier Brea",
   "packageManager": "pnpm@9.4.0",
   "license": "MIT",
@@ -13,12 +13,16 @@
     "lint": "eslint *.* .vscode scripts --no-warn-ignored",
     "lint:staged": "lint-staged",
     "prepare": "husky",
+    "check:all": "nx run-many -t check:all --all",
     "check:spell": "cspell --quiet *.* .vscode/*.* .husky/*.* .github/**/*.* docs/**/*.* scripts/**/*.*"
   },
   "devDependencies": {
     "@babel/core": "7.26.0",
     "@babel/preset-env": "7.26.0",
     "@babel/preset-typescript": "7.26.0",
+    "@stryker-mutator/api": "9.3.0",
+    "@stryker-mutator/core": "9.3.0",
+    "@stryker-mutator/jest-runner": "9.3.0",
     "@types/jest": "29.5.14",
     "@types/node": "22.9.0",
     "cross-env": "10.1.0",
@@ -35,7 +39,10 @@
     "*.*": "cspell --no-must-find-files"
   },
   "engines": {
-    "node": ">=18",
+    "node": ">=20",
     "pnpm": ">=9"
+  },
+  "dependencies": {
+    "serve": "^14.2.5"
   }
 }

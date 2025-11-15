@@ -4,11 +4,13 @@ on:
     branches:
       - master
       - release
-      - refactor/monorepo
+      - release-v*
   pull_request:
+
 concurrency:  
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
   check-root:
     runs-on: ubuntu-latest
@@ -33,62 +35,99 @@ jobs:
       - uses: ./.github/actions/install
         with:
           node-version: ${{ matrix.node }}
-      # NOTE: For the moment, we run the check:all target in all packages instead of running affected check in affected packages only
-      - name: Check all
-        if: ${{ matrix.node == '22.14.0' }}
-        run: pnpm nx run-many --target=check:all --all --output-style=stream --parallel=1
       # NOTE: In other Node versions, we only run unit tests to save time in the CI and to avoid dev tools Node incompatibilities
       - name: Test Unit
         if: ${{ matrix.node != '22.14.0' }}
         run: pnpm nx run-many --target=test:unit --all
-      - name: Upload test results
+      # NOTE: For the moment, we run the check:all target in all packages instead of running affected check in affected packages only
+      - name: Check all
+        if: ${{ matrix.node == '22.14.0' }}
+        run: pnpm nx run-many --target=check:all --all --output-style=stream --parallel=1
+      - name: Upload elements test results
+        if: ${{ matrix.node == '22.14.0' }}
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.node }}
-          path: packages/eslint-plugin-boundaries/coverage
+          name: elements-coverage
+          path: packages/elements/coverage
+          retention-days: 1
+      - name: Upload eslint-plugin test results
+        if: ${{ matrix.node == '22.14.0' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-plugin-coverage
+          path: packages/eslint-plugin/coverage
+          retention-days: 1
+      - name: Upload elements build
+        if: ${{ matrix.node == '22.14.0' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: elements-build
+          path: packages/elements/dist
           retention-days: 1
   build-windows:
     runs-on: windows-2022
-    strategy:
-      matrix:
-        node: ["18.20.3", "20.13.1", "22.14.0"]
+    needs: build
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - uses: ./.github/actions/install
         with:
-          node-version: ${{ matrix.node }}
-      - name: Check all
-        if: ${{ matrix.node == '22.14.0' }}
-        run: pnpm nx run-many --target=check:all --all
-      # NOTE: In other Node versions, we only run unit tests to save time in the CI and to avoid dev tools Node incompatibilities
-      - name: Test Unit
-        if: ${{ matrix.node != '22.14.0' }}
-        run: pnpm nx run-many --target=test:unit --all
+          node-version: "22.14.0"
+          windows-fix-symlinks: "true"
+      - name: Download elements build
+        uses: actions/download-artifact@v4
+        with:
+          name: elements-build
+          path: packages/elements/dist
+      - name: Test Unit ESLint Plugin
+        working-directory: ./packages/eslint-plugin
+        run: pnpm test:unit
   reports:
     runs-on: ubuntu-latest
     needs: build
+    env:
+      SONAR_TOKEN_ELEMENTS: ${{ secrets.SONAR_TOKEN_ELEMENTS }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Download test results
+      - name: Download elements test results
         uses: actions/download-artifact@v4
         with:
-          name: coverage-22.14.0
-          path: packages/eslint-plugin-boundaries/coverage
-      - name: Coveralls
+          name: elements-coverage
+          path: packages/elements/coverage
+      - name: Download eslint-plugin test results
+        uses: actions/download-artifact@v4
+        with:
+          name: eslint-plugin-coverage
+          path: packages/eslint-plugin/coverage
+      - name: Coveralls for Elements
         uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          base-path: packages/eslint-plugin-boundaries
-      # TODO: Configure sonarcloud for monorepo
-      - name: SonarCloud Scan
-        if: env.SONAR_TOKEN != ''
-        uses: sonarsource/sonarcloud-github-action@master
+          path-to-lcov: ./packages/elements/coverage/lcov.info
+          flag-name: elements
+      - name: Coveralls for Eslint Plugin
+        uses: coverallsapp/github-action@v2
         with:
-          projectBaseDir: packages/eslint-plugin-boundaries
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ./packages/eslint-plugin/coverage/lcov.info
+          flag-name: eslint-plugin
+      - name: SonarCloud Scan - Elements
+        if: env.SONAR_TOKEN_ELEMENTS != ''
+        uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          projectBaseDir: packages/elements
+        env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_ELEMENTS }}
+      - name: SonarCloud Scan - Eslint Plugin
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          projectBaseDir: packages/eslint-plugin
         env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
