@@ -63,14 +63,14 @@ export class Micromatch {
   /**
    * Cache for micromatch matching results
    */
-  private _matchingResultsCache:
+  private readonly _matchingResultsCache:
     | MatchingResultsCache
     | CacheManagerDisabled<MatchingResultsCacheKey, boolean>;
 
   /**
    * Cache for micromatch captures
    */
-  private _capturesCache:
+  private readonly _capturesCache:
     | CapturedValueCache
     | CacheManagerDisabled<CapturedValueCacheKey, string[] | null> =
     new CacheManagerDisabled<CapturedValueCacheKey, string[] | null>();
@@ -78,7 +78,7 @@ export class Micromatch {
   /**
    * Cache for micromatch makeRe results
    */
-  private _makeReCache: CacheManagerDisabled<string, RegExp> =
+  private readonly _makeReCache: CacheManagerDisabled<string, RegExp> =
     new CacheManagerDisabled<string, RegExp>();
 
   /**

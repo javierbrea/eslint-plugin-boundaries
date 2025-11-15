@@ -340,9 +340,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     const specifiers = dependencyInfo.specifiers;
 
     // Use a traditional for loop for better performance and early exit
-    for (let i = 0; i < toSelector.length; i++) {
-      const selectorData = toSelector[i];
-
+    for (const selectorData of toSelector) {
       // Order checks by likelihood of failure (most restrictive first)
       // and use short-circuit evaluation for performance
       if (
@@ -378,13 +376,16 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       dependencySelectorsGlobals
     );
 
+    const fromExtraData = extraTemplateData.from || {};
+    const toExtraData = extraTemplateData.to || {};
+
     // Add `to` and `from` data to the template when checking elements in dependencies
     const templateData: TemplateData = {
       ...extraTemplateData,
       from: {
         ...dependency.from,
         relationship: dependency.dependency.relationship.from,
-        ...(extraTemplateData.from || {}),
+        ...fromExtraData,
       },
       to: {
         ...dependency.to,
@@ -392,7 +393,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
         kind: dependency.dependency.kind,
         nodeKind: dependency.dependency.nodeKind,
         specifiers: dependency.dependency.specifiers,
-        ...(extraTemplateData.to || {}),
+        ...toExtraData,
       },
     };
 

@@ -190,31 +190,29 @@ const testCapture = (
 testCapture(
   {
     ...SETTINGS.oneLevel,
-    ...{
-      "boundaries/elements": [
-        {
-          type: "helpers",
-          pattern: "helpers/*",
-          capture: ["elementName"],
-        },
-        {
-          type: "module-a-helpers",
-          pattern: "module-a-helpers/*",
-          capture: ["elementName"],
-        },
-        {
-          type: "components",
-          pattern: ["components/*"],
-          capture: ["elementName"],
-        },
-        {
-          type: "modules",
-          pattern: "modules/*",
-          capture: ["elementName"],
-        },
-      ],
-    },
-  },
+    "boundaries/elements": [
+      {
+        type: "helpers",
+        pattern: "helpers/*",
+        capture: ["elementName"],
+      },
+      {
+        type: "module-a-helpers",
+        pattern: "module-a-helpers/*",
+        capture: ["elementName"],
+      },
+      {
+        type: "components",
+        pattern: ["components/*"],
+        capture: ["elementName"],
+      },
+      {
+        type: "modules",
+        pattern: "modules/*",
+        capture: ["elementName"],
+      },
+    ],
+  } as RuleTesterSettings,
   [
     {
       default: "disallow",
@@ -256,32 +254,30 @@ testCapture(
 testCapture(
   {
     ...SETTINGS.oneLevel,
-    ...{
-      "boundaries/legacy-templates": false,
-      "boundaries/elements": [
-        {
-          type: "helpers",
-          pattern: "helpers/*",
-          capture: ["elementName"],
-        },
-        {
-          type: "module-a-helpers",
-          pattern: "module-a-helpers/*",
-          capture: ["elementName"],
-        },
-        {
-          type: "components",
-          pattern: ["components/*"],
-          capture: ["elementName"],
-        },
-        {
-          type: "modules",
-          pattern: "modules/*",
-          capture: ["elementName"],
-        },
-      ],
-    },
-  },
+    "boundaries/legacy-templates": false,
+    "boundaries/elements": [
+      {
+        type: "helpers",
+        pattern: "helpers/*",
+        capture: ["elementName"],
+      },
+      {
+        type: "module-a-helpers",
+        pattern: "module-a-helpers/*",
+        capture: ["elementName"],
+      },
+      {
+        type: "components",
+        pattern: ["components/*"],
+        capture: ["elementName"],
+      },
+      {
+        type: "modules",
+        pattern: "modules/*",
+        capture: ["elementName"],
+      },
+    ],
+  } as RuleTesterSettings,
   [
     {
       default: "disallow",

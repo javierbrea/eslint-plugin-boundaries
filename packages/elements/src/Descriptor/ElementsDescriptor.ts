@@ -92,7 +92,7 @@ export class ElementsDescriptor {
   private readonly _elementDescriptors: ElementDescriptors;
 
   /** Micromatch instance for path matching */
-  private _micromatch: Micromatch;
+  private readonly _micromatch: Micromatch;
 
   /**
    * The configuration options for this descriptor.

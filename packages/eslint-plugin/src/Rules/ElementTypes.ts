@@ -144,13 +144,16 @@ function evaluatePolicyMatches(
     targetElementSelector,
   } = context;
 
+  const templateData = settings.legacyTemplates
+    ? capturedValuesTemplateData
+    : {};
   const disallowPolicyMatches = rule[denyKeyToUse]
     ? isMatch(
         {
           [targetElementDirection]: targetElementSelector,
           [policyElementDirection]: rule[denyKeyToUse],
         },
-        settings.legacyTemplates ? capturedValuesTemplateData : {},
+        templateData,
         dependencySelectorsGlobals
       )
     : { isMatch: false };
@@ -162,7 +165,7 @@ function evaluatePolicyMatches(
             [targetElementDirection]: targetElementSelector,
             [policyElementDirection]: rule.allow,
           },
-          settings.legacyTemplates ? capturedValuesTemplateData : {},
+          templateData,
           dependencySelectorsGlobals
         )
       : { isMatch: false };

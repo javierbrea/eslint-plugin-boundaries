@@ -304,8 +304,6 @@ function validateLegacyTemplates(
   warnOnce(
     `Please provide a valid value in '${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting. The value should be a boolean.`
   );
-  // Value is invalid, return undefined
-  return;
 }
 
 function isValidDependencyNodeSelector(
