@@ -1,4 +1,5 @@
 coverallsapp
+Infima
 nrwl
 sonarcloud
 sonarlint
