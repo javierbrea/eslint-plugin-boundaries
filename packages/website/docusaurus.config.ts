@@ -6,8 +6,8 @@ import { themes as prismThemes } from "prism-react-renderer";
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: "My Site",
-  tagline: "Dinosaurs are cool",
+  title: "JS Boundaries",
+  tagline: "Draw boundaries, build quality software",
   favicon: "img/favicon.ico",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -16,17 +16,27 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: "https://your-docusaurus-site.example.com",
+  url: "https://jsboundaries.org",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/",
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: "facebook", // Usually your GitHub org/user name.
-  projectName: "docusaurus", // Usually your repo name.
+  organizationName: "javierbrea", // Usually your GitHub org/user name.
+  projectName: "eslint-plugin-boundaries", // Usually your repo name.
 
   onBrokenLinks: "throw",
+
+  headTags: [
+    {
+      tagName: "link",
+      attributes: {
+        rel: "manifest",
+        href: "/site.webmanifest",
+      },
+    },
+  ],
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -61,9 +71,9 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: "My Site",
+      title: "JS Boundaries",
       logo: {
-        alt: "My Site Logo",
+        alt: "Boundaries Logo",
         src: "img/logo.svg",
       },
       items: [
@@ -74,7 +84,7 @@ const config: Config = {
           label: "Tutorial",
         },
         {
-          href: "https://github.com/facebook/docusaurus",
+          href: "https://github.com/javierbrea/eslint-plugin-boundaries",
           label: "GitHub",
           position: "right",
         },
@@ -96,16 +106,12 @@ const config: Config = {
           title: "Community",
           items: [
             {
-              label: "Stack Overflow",
-              href: "https://stackoverflow.com/questions/tagged/docusaurus",
+              label: "Code of Conduct",
+              href: "https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/.github/CODE_OF_CONDUCT.md",
             },
             {
-              label: "Discord",
-              href: "https://discordapp.com/invite/docusaurus",
-            },
-            {
-              label: "X",
-              href: "https://x.com/docusaurus",
+              label: "Contribute",
+              href: "https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/.github/CONTRIBUTING.md",
             },
           ],
         },
@@ -119,7 +125,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Javier Brea`,
     },
     prism: {
       theme: prismThemes.github,

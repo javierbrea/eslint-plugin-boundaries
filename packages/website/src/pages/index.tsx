@@ -9,11 +9,14 @@ import HomepageFeatures from "@site/src/components/HomepageFeatures";
 
 import styles from "./index.module.css";
 
+const Logo = require("@site/static/img/logo.svg").default;
+
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
   return (
     <header className={clsx("hero hero--primary", styles.heroBanner)}>
       <div className="container">
+        <Logo width={120} height={120} />
         <Heading as="h1" className="hero__title">
           {siteConfig.title}
         </Heading>
@@ -23,7 +26,7 @@ function HomepageHeader() {
             className="button button--secondary button--lg"
             to="/docs/intro"
           >
-            Docusaurus Tutorial - 5min ⏱️
+            Quick Start
           </Link>
         </div>
       </div>

@@ -13,32 +13,32 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: "Easy to Use",
-    Svg: require("@site/static/img/undraw_docusaurus_mountain.svg").default,
+    title: "Define Your Elements",
+    Svg: require("@site/static/img/undraw_software-engineer_xv60.svg").default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Define your own element types using file patterns. Components, services,
+        layers, domains, or whatever fits your architecture.
       </>
     ),
   },
   {
-    title: "Focus on What Matters",
-    Svg: require("@site/static/img/undraw_docusaurus_tree.svg").default,
+    title: "Set Boundaries",
+    Svg: require("@site/static/img/undraw_adjust-settings_6pis.svg").default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Define rules for dependencies between elements. Prevent unwanted
+        coupling and enforce your architectural patterns automatically.
       </>
     ),
   },
   {
-    title: "Powered by React",
-    Svg: require("@site/static/img/undraw_docusaurus_react.svg").default,
+    title: "Get instant feedback",
+    Svg: require("@site/static/img/undraw_in-the-zone_07y7.svg").default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Distributed as an ESLint plugin. See architectural issues in your IDE
+        and CI/CD pipelines. More tools coming soon.
       </>
     ),
   },
