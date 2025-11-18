@@ -16,7 +16,7 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: "https://jsboundaries.org",
+  url: "https://www.jsboundaries.org",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/",
@@ -27,6 +27,12 @@ const config: Config = {
   projectName: "eslint-plugin-boundaries", // Usually your repo name.
 
   onBrokenLinks: "throw",
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: "throw",
+    },
+  },
+  trailingSlash: true,
 
   headTags: [
     {
@@ -55,7 +61,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/",
+            "https://github.com/javierbrea/eslint-plugin-boundaries/edit/master/packages/website/",
         },
         theme: {
           customCss: "./src/css/custom.css",
@@ -66,27 +72,37 @@ const config: Config = {
 
   themeConfig: {
     // Replace with your project's social card
-    image: "img/docusaurus-social-card.jpg",
     colorMode: {
       respectPrefersColorScheme: true,
     },
     navbar: {
       title: "JS Boundaries",
+      hideOnScroll: true,
+      style: "dark",
       logo: {
         alt: "Boundaries Logo",
         src: "img/logo.svg",
       },
       items: [
         {
-          type: "docSidebar",
-          sidebarId: "tutorialSidebar",
+          to: "docs/overview/",
           position: "left",
-          label: "Tutorial",
+          label: "Getting Started",
+        },
+        {
+          to: "docs/setup/",
+          position: "left",
+          label: "Setup",
+        },
+        {
+          to: "docs/rules/overview/",
+          position: "left",
+          label: "Rules",
         },
         {
           href: "https://github.com/javierbrea/eslint-plugin-boundaries",
-          label: "GitHub",
           position: "right",
+          className: "navbar-github-link",
         },
       ],
     },
@@ -97,8 +113,20 @@ const config: Config = {
           title: "Docs",
           items: [
             {
-              label: "Tutorial",
-              to: "/docs/intro",
+              label: "Getting Started",
+              to: "/docs/overview/",
+            },
+            {
+              label: "Setup",
+              to: "/docs/setup/",
+            },
+            {
+              label: "Rules",
+              to: "/docs/rules/overview/",
+            },
+            {
+              label: "TypeScript",
+              to: "/docs/guides/typescript-support/",
             },
           ],
         },
@@ -107,25 +135,73 @@ const config: Config = {
           items: [
             {
               label: "Code of Conduct",
-              href: "https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/.github/CODE_OF_CONDUCT.md",
+              to: "https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/.github/CODE_OF_CONDUCT.md",
+            },
+            {
+              label: "Discussions",
+              to: "https://github.com/javierbrea/eslint-plugin-boundaries/discussions",
+            },
+            {
+              label: "Project Backlog",
+              to: "https://github.com/users/javierbrea/projects/7",
             },
             {
               label: "Contribute",
-              href: "https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/.github/CONTRIBUTING.md",
+              to: "https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/.github/CONTRIBUTING.md",
             },
           ],
         },
         {
-          title: "More",
+          title: "Acknowledgements",
           items: [
             {
-              label: "GitHub",
-              href: "https://github.com/facebook/docusaurus",
+              label: "Project",
+              to: "/docs/misc/acknowledgments/",
+            },
+            {
+              label: "Eslint Plugin Import",
+              to: "https://github.com/import-js/eslint-plugin-import",
+              className: "footer-acknowledgement",
+            },
+            {
+              label: "Website",
+              to: "/docs/misc/acknowledgments/",
+            },
+            {
+              label: "Built with Docusaurus",
+              to: "https://docusaurus.io/",
+              className: "footer-acknowledgement",
+            },
+            {
+              label: "Hosted by Netlify",
+              to: "https://www.netlify.com/",
+              className: "footer-acknowledgement",
+            },
+            {
+              label: "Search by Algolia",
+              to: "https://www.algolia.com/",
+              className: "footer-acknowledgement",
+            },
+            {
+              label: "Illustrations by unDraw",
+              to: "https://undraw.co/",
+              className: "footer-acknowledgement",
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Javier Brea`,
+      copyright: `
+        <div class="footer-contents">
+          <span>Copyright © 2020-${new Date().getFullYear()} Javier Brea</span>
+          <span class="disclaimer">Trademarks, logos and brand names are the property of their respective owners. All company, product and service names used in this website are for identification purposes only. Use of these names,trademarks and brands does not imply endorsement.</span>
+        </div>
+      `,
+      logo: {
+        alt: "Boundaries logo",
+        src: "img/logo.svg",
+        width: 50,
+        href: "https://www.jsboundaries.org",
+      },
     },
     prism: {
       theme: prismThemes.github,
