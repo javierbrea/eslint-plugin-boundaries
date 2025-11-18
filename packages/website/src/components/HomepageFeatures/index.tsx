@@ -33,7 +33,7 @@ const FeatureList: FeatureItem[] = [
     ),
   },
   {
-    title: "Get instant feedback",
+    title: "Get Instant Feedback",
     Svg: require("@site/static/img/undraw_in-the-zone_07y7.svg").default,
     description: (
       <>
