@@ -51,7 +51,6 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"],
   },
-
   presets: [
     [
       "classic",
@@ -98,6 +97,10 @@ const config: Config = {
           to: "docs/rules/overview/",
           position: "left",
           label: "Rules",
+        },
+        {
+          type: "custom-githubStarsButton",
+          position: "right",
         },
         {
           href: "https://github.com/javierbrea/eslint-plugin-boundaries",

@@ -64,3 +64,8 @@
     opacity: 0.5;
   }
 }
+
+.navbar__items--right > span:first-of-type {
+  margin-top: 10px;
+  margin-right: 5px;
+}

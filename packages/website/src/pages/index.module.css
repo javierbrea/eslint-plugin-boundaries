@@ -22,3 +22,7 @@
   align-items: center;
   justify-content: center;
 }
+
+.heroBannerButton:hover {
+  background-color: var(--ifm-color-primary-light);
+}

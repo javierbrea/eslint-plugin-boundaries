@@ -6,6 +6,9 @@ import clsx from "clsx";
 import type { ReactNode } from "react";
 
 import HomepageFeatures from "@site/src/components/HomepageFeatures";
+import HomepageQuote from "@site/src/components/HomePageQuote";
+import HomeSponsors from "@site/src/components/HomeSponsors";
+import HomeStats from "@site/src/components/HomeStats";
 
 import styles from "./index.module.css";
 
@@ -23,7 +26,10 @@ function HomepageHeader() {
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
           <Link
-            className="button button--secondary button--lg"
+            className={clsx(
+              "button button--secondary button--lg",
+              styles.heroBannerButton
+            )}
             to="/docs/overview/"
           >
             Quick Start
@@ -44,6 +50,9 @@ export default function Home(): ReactNode {
       <HomepageHeader />
       <main>
         <HomepageFeatures />
+        <HomepageQuote />
+        <HomeStats />
+        <HomeSponsors />
       </main>
     </Layout>
   );
