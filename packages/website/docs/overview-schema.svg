@@ -1,0 +1,120 @@
+<svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#7a839d" />
+    </marker>
+    <marker id="arrowhead-3" markerWidth="10" markerHeight="10" refX="6" refY="2" orient="120">
+      <polygon points="0 0, 10 3, 0 6" fill="#7a839d" />
+    </marker>
+    <marker id="arrowhead-error" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#e74c3c" />
+    </marker>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <rect x="50" y="50" width="200" height="120" rx="8" 
+        fill="#dfedef" 
+        stroke="#4e546a" 
+        stroke-width="2" 
+        filter="url(#shadow)"/>
+  <text x="150" y="95" text-anchor="middle" 
+        fill="#2b2e39" 
+        font-size="20" font-weight="600" font-family="sans-serif">Controllers</text>
+  <text x="150" y="125" text-anchor="middle" 
+        fill="#4e546a" 
+        font-size="14" font-family="sans-serif">src/controllers/</text>
+  
+  <rect x="300" y="230" width="200" height="120" rx="8" 
+        fill="#dfedef" 
+        stroke="#4e546a" 
+        stroke-width="2" 
+        filter="url(#shadow)"/>
+  <text x="400" y="275" text-anchor="middle" 
+        fill="#2b2e39" 
+        font-size="20" font-weight="600" font-family="sans-serif">Models</text>
+  <text x="400" y="305" text-anchor="middle" 
+        fill="#4e546a" 
+        font-size="14" font-family="sans-serif">src/models/</text>
+  
+  <rect x="550" y="50" width="200" height="120" rx="8" 
+        fill="#dfedef" 
+        stroke="#4e546a" 
+        stroke-width="2" 
+        filter="url(#shadow)"/>
+  <text x="650" y="95" text-anchor="middle" 
+        fill="#2b2e39" 
+        font-size="20" font-weight="600" font-family="sans-serif">Views</text>
+  <text x="650" y="125" text-anchor="middle" 
+        fill="#4e546a" 
+        font-size="14" font-family="sans-serif">src/views/</text>
+  
+  <path d="M 200 150 Q 250 190 295 245" 
+        stroke="#7a839d" 
+        stroke-width="2.5" 
+        fill="none" 
+        marker-end="url(#arrowhead)"/>
+  <text x="220" y="220" 
+        fill="#63ad81" 
+        font-size="30" font-family="sans-serif">✓</text>
+  
+  <path d="M 600 170 Q 500 200 500 230" 
+        stroke="#7a839d" 
+        stroke-width="2.5" 
+        fill="none" 
+        marker-end="url(#arrowhead-3)"/>
+  <text x="510" y="185" 
+        fill="#63ad81" 
+        font-size="30" font-family="sans-serif">✓</text>
+  
+  <path d="M 250 90 Q 400 75 545 95" 
+        stroke="#7a839d" 
+        stroke-width="2.5" 
+        fill="none" 
+        marker-end="url(#arrowhead)"/>
+  <text x="400" y="110" 
+        fill="#63ad81" 
+        font-size="30" font-family="sans-serif">✓</text>
+  
+  <path d="M 350 230 Q 300 150 250 130" 
+        stroke="#e74c3c" 
+        stroke-width="2.5" 
+        fill="none" 
+        marker-end="url(#arrowhead-error)"
+        stroke-dasharray="5,5"/>
+  <line x1="285" y1="165" x2="315" y2="195" 
+        stroke="#e74c3c" stroke-width="3"/>
+  <line x1="315" y1="165" x2="285" y2="195" 
+        stroke="#e74c3c" stroke-width="3"/>
+  
+  <path d="M 500 280 Q 575 220 600 170" 
+        stroke="#e74c3c" 
+        stroke-width="2.5" 
+        fill="none" 
+        marker-end="url(#arrowhead-error)"
+        stroke-dasharray="5,5"/>
+  <line x1="545" y1="215" x2="575" y2="245" 
+        stroke="#e74c3c" stroke-width="3"/>
+  <line x1="575" y1="215" x2="545" y2="245" 
+        stroke="#e74c3c" stroke-width="3"/>
+  
+  <path d="M 600 50 Q 400 20 250 50" 
+        stroke="#e74c3c" 
+        stroke-width="2.5" 
+        fill="none" 
+        marker-end="url(#arrowhead-error)"
+        stroke-dasharray="5,5"/>
+  <line x1="385" y1="20" x2="415" y2="50" 
+        stroke="#e74c3c" stroke-width="3"/>
+  <line x1="415" y1="20" x2="385" y2="50" 
+        stroke="#e74c3c" stroke-width="3"/>
+</svg>

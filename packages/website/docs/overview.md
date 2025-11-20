@@ -20,6 +20,22 @@ At the moment, it consists of an ESLint plugin: [eslint-plugin-boundaries](https
 
 By default, it analyzes `import` statements, but it can also evaluate `require`, `exports` and dynamic imports. You can also configure it to inspect any other AST nodes. See the [configuration guide for more details](./setup/settings.md).
 
+<div style={{textAlign: 'center', margin: '2rem 0'}}>
+  ![Architecture Boundaries Diagram](./overview-schema.svg)
+</div>
+
+```javascript
+const rules = [
+  {
+    from: "controllers",
+    allow: ["models", "views"]
+  },
+  {
+    from: "views",
+    allow: ["models"]
+  }
+];
+```
 
 :::note
 This plugin is not a replacement for [eslint-plugin-import](https://www.npmjs.com/package/eslint-plugin-import). In fact, using both together is recommended.
