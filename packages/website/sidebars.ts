@@ -29,7 +29,7 @@ const sidebars: SidebarsConfig = {
         id: "setup/setup",
       },
       collapsed: true,
-      items: ["setup/elements", "setup/selectors", "setup/eslint-config"],
+      items: ["setup/elements", "setup/selectors", "setup/settings"],
     },
     {
       type: "category",
