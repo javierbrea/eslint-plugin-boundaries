@@ -58,7 +58,7 @@
         fill="#4e546a" 
         font-size="14" font-family="sans-serif">src/views/</text>
   
-  <path d="M 200 150 Q 250 190 295 245" 
+  <path d="M 150 170 Q 225 225 300 290" 
         stroke="#7a839d" 
         stroke-width="2.5" 
         fill="none" 
@@ -67,54 +67,42 @@
         fill="#63ad81" 
         font-size="30" font-family="sans-serif">✓</text>
   
-  <path d="M 600 170 Q 500 200 500 230" 
-        stroke="#7a839d" 
-        stroke-width="2.5" 
-        fill="none" 
-        marker-end="url(#arrowhead-3)"/>
-  <text x="510" y="185" 
-        fill="#63ad81" 
-        font-size="30" font-family="sans-serif">✓</text>
-  
-  <path d="M 250 90 Q 400 75 545 95" 
+  <path d="M 620 170 Q 575 215 500 280" 
         stroke="#7a839d" 
         stroke-width="2.5" 
         fill="none" 
         marker-end="url(#arrowhead)"/>
-  <text x="400" y="110" 
+  <text x="540" y="220" 
         fill="#63ad81" 
         font-size="30" font-family="sans-serif">✓</text>
   
-  <path d="M 350 230 Q 300 150 250 130" 
-        stroke="#e74c3c" 
+  <path d="M 250 110 Q 400 110 550 110" 
+        stroke="#7a839d" 
         stroke-width="2.5" 
         fill="none" 
-        marker-end="url(#arrowhead-error)"
-        stroke-dasharray="5,5"/>
-  <line x1="285" y1="165" x2="315" y2="195" 
-        stroke="#e74c3c" stroke-width="3"/>
-  <line x1="315" y1="165" x2="285" y2="195" 
-        stroke="#e74c3c" stroke-width="3"/>
+        marker-end="url(#arrowhead)"/>
+  <text x="400" y="140" 
+        fill="#63ad81" 
+        font-size="30" font-family="sans-serif">✓</text>
   
-  <path d="M 500 280 Q 575 220 600 170" 
+  <path d="M 300 320 Q 275 300 100 170" 
         stroke="#e74c3c" 
         stroke-width="2.5" 
         fill="none" 
         marker-end="url(#arrowhead-error)"
         stroke-dasharray="5,5"/>
-  <line x1="545" y1="215" x2="575" y2="245" 
-        stroke="#e74c3c" stroke-width="3"/>
-  <line x1="575" y1="215" x2="545" y2="245" 
-        stroke="#e74c3c" stroke-width="3"/>
   
-  <path d="M 600 50 Q 400 20 250 50" 
+  <path d="M 500 320 Q 575 250 670 170" 
         stroke="#e74c3c" 
         stroke-width="2.5" 
         fill="none" 
         marker-end="url(#arrowhead-error)"
         stroke-dasharray="5,5"/>
-  <line x1="385" y1="20" x2="415" y2="50" 
-        stroke="#e74c3c" stroke-width="3"/>
-  <line x1="415" y1="20" x2="385" y2="50" 
-        stroke="#e74c3c" stroke-width="3"/>
+  
+  <path d="M 550 80 Q 400 80 250 80" 
+        stroke="#e74c3c" 
+        stroke-width="2.5" 
+        fill="none" 
+        marker-end="url(#arrowhead-error)"
+        stroke-dasharray="5,5"/>
 </svg>
