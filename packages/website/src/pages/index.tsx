@@ -1,3 +1,4 @@
+import Head from "@docusaurus/Head";
 import Link from "@docusaurus/Link";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Heading from "@theme/Heading";
@@ -47,6 +48,16 @@ export default function Home(): ReactNode {
       title={`${siteConfig.title} | Build Quality Software`}
       description={`${siteConfig.tagline}`}
     >
+      <Head>
+        <meta
+          name="description"
+          content="Eslint Plugin Boundaries is a powerful tool to help you enforce architectural boundaries in your JavaScript and TypeScript projects."
+        />
+        <meta
+          name="keywords"
+          content="ESLint, Plugin, Boundaries, JavaScript, TypeScript, architectural boundaries, code quality, linting, static analysis, dependency management, imports rules, dependencies, external modules, layers, zones"
+        />
+      </Head>
       <HomepageHeader />
       <main>
         <HomepageFeatures />

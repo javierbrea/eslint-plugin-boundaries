@@ -34,6 +34,10 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Rules",
+      link: {
+        type: "doc",
+        id: "rules/overview/overview",
+      },
       collapsed: true,
       items: [
         {

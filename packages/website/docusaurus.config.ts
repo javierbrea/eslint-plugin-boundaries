@@ -16,7 +16,7 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: "https://www.jsboundaries.org",
+  url: "https://www.jsboundaries.dev",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/",
@@ -40,6 +40,20 @@ const config: Config = {
       attributes: {
         rel: "manifest",
         href: "/site.webmanifest",
+      },
+    },
+    {
+      tagName: "meta",
+      attributes: {
+        property: "og:image",
+        content: "https://www.jsboundaries.dev/img/og-image.png",
+      },
+    },
+    {
+      tagName: "meta",
+      attributes: {
+        name: "twitter:image",
+        content: "https://www.jsboundaries.dev/img/og-image.png",
       },
     },
   ],
@@ -203,7 +217,7 @@ const config: Config = {
         alt: "Boundaries logo",
         src: "img/logo.svg",
         width: 50,
-        href: "https://www.jsboundaries.org",
+        href: "https://www.jsboundaries.dev",
       },
     },
     prism: {
