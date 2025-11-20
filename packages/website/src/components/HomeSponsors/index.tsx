@@ -26,7 +26,7 @@ export default function HomeSponsors(): ReactNode {
             src="https://github.com/sponsors/javierbrea/button"
             title="Sponsor javierbrea"
             height="32"
-            width="114"
+            width="200"
             style={{ border: 0, borderRadius: "6px" }}
           ></iframe>
         </div>
