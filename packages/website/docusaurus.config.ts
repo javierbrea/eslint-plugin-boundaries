@@ -221,6 +221,8 @@ const config: Config = {
       },
     },
     prism: {
+      defaultLanguage: "javascript",
+      additionalLanguages: ["typescript", "json", "bash", "js-extras"],
       theme: prismThemes.github,
       darkTheme: prismThemes.vsDark,
     },

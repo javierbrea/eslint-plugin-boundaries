@@ -1,0 +1,75 @@
+---
+id: installation
+title: Installation
+description: Learn how to install ESLint Plugin Boundaries and integrate it into your JavaScript and TypeScript projects.
+tags:
+  - eslint
+keywords:
+  - ESLint plugin
+  - boundaries
+  - javaScript
+  - typeScript
+  - installation
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Installation
+
+ESLint Plugin Boundaries is distributed via npm which is bundled with node. It should be added to your project's `devDependencies`:
+
+```bash
+npm install --save-dev eslint eslint-plugin-boundaries
+```
+
+:::note
+`eslint-plugin-boundaries` does **not** install `eslint` automatically. You must install it yourself.
+:::
+
+Once installed, enable the plugin and apply one of the [predefined configs](./setup/setup.md) in your `eslint.config.js` file:
+
+<Tabs>
+<TabItem value="JavaScript">
+
+```javascript
+import boundaries from "eslint-plugin-boundaries";
+
+export default [
+  {
+    plugins: {
+      boundaries,
+    },
+    rules: {
+      ...boundaries.configs.recommended.rules,
+    }
+  }
+];
+```
+
+</TabItem>
+<TabItem value="TypeScript">
+
+```typescript
+import boundaries, { Config } from "eslint-plugin-boundaries";
+
+export default [
+  {
+    plugins: {
+      boundaries,
+    },
+    rules: {
+      ...boundaries.configs.recommended.rules,
+    },
+  } satisfies Config
+];
+```
+
+</TabItem>
+</Tabs>
+
+:::warning Eslint Version Compatibility
+Starting from version `5.0.0`, this plugin is compatible with ESLint **v9 and above**.
+While it may still work with earlier versions of ESLint, refer to the
+[documentation for version `4.2.2`](https://github.com/javierbrea/eslint-plugin-boundaries/tree/v4.2.2) if you need to configure it using the legacy format.
+:::

@@ -15,6 +15,9 @@ import styles from "./index.module.css";
 
 const Logo = require("@site/static/img/logo.svg").default;
 
+const DESCRIPTION =
+  "Eslint Plugin Boundaries is a powerful tool to help you enforce architectural boundaries in your JavaScript and TypeScript projects.";
+
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
   return (
@@ -42,20 +45,13 @@ function HomepageHeader() {
 }
 
 export default function Home(): ReactNode {
-  const { siteConfig } = useDocusaurusContext();
   return (
-    <Layout
-      title={`${siteConfig.title} | Build Quality Software`}
-      description={`${siteConfig.tagline}`}
-    >
+    <Layout title="Build Quality Software" description={DESCRIPTION}>
       <Head>
-        <meta
-          name="description"
-          content="Eslint Plugin Boundaries is a powerful tool to help you enforce architectural boundaries in your JavaScript and TypeScript projects."
-        />
+        <meta name="description" content={DESCRIPTION} />
         <meta
           name="keywords"
-          content="ESLint, Plugin, Boundaries, JavaScript, TypeScript, architectural boundaries, code quality, linting, static analysis, dependency management, imports rules, dependencies, external modules, layers, zones"
+          content="ESLint plugin,boundaries,javaScript,typeScript,architectural layers,software architecture,module dependencies,project structure,code quality,linting,static analysis,dependencies,architecture,clean code"
         />
       </Head>
       <HomepageHeader />

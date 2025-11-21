@@ -69,3 +69,47 @@
   margin-top: 10px;
   margin-right: 5px;
 }
+
+/* Custom styles for code diffs */
+
+.diff-addition {
+  background-color: rgba(76, 175, 80, 0.1); /* soft green */
+  display: block;
+}
+
+.diff-deletion {
+  background-color: rgba(244, 67, 54, 0.1); /* soft red */
+  display: block;
+}
+
+.diff-context {
+  display: block; /* unchanged lines */
+}
+
+/* Added lines */
+.diff-addition::before {
+  content: "+";
+  display: inline-block;
+  width: 1ch;      /* same width as the symbol */
+  margin-right: 0.5ch;
+  color: green;
+  font-weight: bold;
+}
+
+/* Deleted lines */
+.diff-deletion::before {
+  content: "-";
+  display: inline-block;
+  width: 1ch;
+  margin-right: 0.5ch;
+  color: red;
+  font-weight: bold;
+}
+
+/* Neutral lines / unchanged */
+.diff-context::before {
+  content: "\00A0";    /* empty space */
+  display: inline-block;
+}
+
+
