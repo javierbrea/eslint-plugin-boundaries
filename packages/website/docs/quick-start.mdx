@@ -27,7 +27,7 @@ Follow these steps to quickly set up ESLint Plugin Boundaries in your project. T
 
 ## 1. Installation
 
-If you [haven't already](./installation.mdx), install ESLint and ESLint Plugin Boundaries:
+If you [have not installed them yet](./installation.mdx), install ESLint and ESLint Plugin Boundaries:
 
 ```bash
 npm install eslint eslint-plugin-boundaries --save-dev
@@ -72,9 +72,9 @@ export default [
 
 ## 3. Define your Element Types
 
-The plugin needs to be able to identify the elements in the project, so, first of all you have to define your project element types by using the `boundaries/elements` setting.
+The plugin needs to identify the elements in your project. To do so, define your element types using the `boundaries/elements` setting.
 
-It will use the provided patterns to identify each file or dependency as one of the element types.
+These patterns determine how each file or dependency is classified.
 
 :::tip
 Read the [Elements](./setup/elements.md) section for guidance on how to define the patterns for the elements in your project.
@@ -133,7 +133,7 @@ This is only a basic example of configuration. The plugin can be configured to i
 
 ## 4. Apply Predefined Rules
 
-Apply one of the [predefined rules configuration](./setup/setup.md) as a starting point by extending it in the `rules` section.
+Apply one of the [predefined rule configurations](./setup/setup.md) as a starting point by extending it in your `rules` section.
 
 :::tip
 You should use `recommended` config in already existing projects to gradually introduce the rules without too many errors at once, because it does not require all files in the project to belong to an element type. For new projects, you can use `strict` config to ensure all files belong to an element type from the beginning.
@@ -291,10 +291,8 @@ Read the [Element Types Rule](./rules/dependencies.md) docs for guidance on how 
 
 You are all set! Now you can start enforcing architectural boundaries in your project 🎉
 
-But this was only the beginning, now you can:
+From here you can:
 
-- Explore the **[Setup section](./setup/setup.md)** to learn more about **assigning Element Types and using Element Selectors to match them in rules**.
-- Check the **[Rules section](./rules/overview/overview.md)** to learn about **all the available rules and how to configure them**.
-- Read the **[Error Messages section](./rules/overview/error-messages.md)** to understand **the meaning of each error message**, or customize them to your needs.
-
-
+* Explore the **[Setup section](./setup/setup.md)** to learn more about **assigning Element Types and using Element Selectors**.
+* Review the **[Rules section](./rules/overview/overview.md)** to understand **all available rules and how to configure them**.
+* Visit the **[Error Messages section](./rules/overview/error-messages.md)** to learn **what each error means and how to customize the messages**.
