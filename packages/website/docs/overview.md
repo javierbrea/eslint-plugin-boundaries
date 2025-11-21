@@ -56,7 +56,7 @@ const elementDescriptors = [
 </div>
 
 ```javascript
-const rules = [
+const dependencyRules = [
   {
     from: "controllers",
     allow: ["models", "views"]
