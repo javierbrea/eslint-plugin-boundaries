@@ -29,32 +29,22 @@ const sidebars: SidebarsConfig = {
         id: "setup/setup",
       },
       collapsed: true,
-      items: ["setup/elements", "setup/selectors", "setup/settings"],
+      items: [
+        "setup/elements",
+        "setup/selectors",
+        "setup/rules",
+        "setup/settings",
+      ],
     },
     {
       type: "category",
       label: "Rules",
       link: {
         type: "doc",
-        id: "rules/overview/overview",
+        id: "rules/rules",
       },
       collapsed: true,
       items: [
-        {
-          type: "category",
-          label: "Overview",
-          link: {
-            type: "doc",
-            id: "rules/overview/overview",
-          },
-          collapsed: true,
-          items: [
-            "rules/overview/configuration",
-            "rules/overview/using-selectors",
-            "rules/overview/error-messages",
-            "rules/overview/advanced-examples",
-          ],
-        },
         "rules/dependencies",
         "rules/entry-point",
         "rules/external",

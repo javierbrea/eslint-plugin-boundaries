@@ -1,6 +1,6 @@
 ---
 id: dependencies
-title: Dependencies
+title: Element Types
 description: Learn how to manage and enforce dependencies in ESLint Plugin Boundaries rules.
 tags:
   - concepts

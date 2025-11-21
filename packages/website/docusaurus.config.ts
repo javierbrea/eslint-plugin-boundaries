@@ -108,7 +108,7 @@ const config: Config = {
           label: "Setup",
         },
         {
-          to: "docs/rules/overview/",
+          to: "docs/rules/",
           position: "left",
           label: "Rules",
         },
@@ -139,7 +139,7 @@ const config: Config = {
             },
             {
               label: "Rules",
-              to: "/docs/rules/overview/",
+              to: "/docs/rules/",
             },
             {
               label: "TypeScript",
