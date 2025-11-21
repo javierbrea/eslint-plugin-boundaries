@@ -72,6 +72,23 @@
 
 /* Custom styles for code diffs */
 
+/* Theme-specific visibility for CodeDiff component */
+.diff-theme-dark, [data-theme='light'] .diff-theme-dark {
+  display: none;
+}
+
+[data-theme='dark'] .diff-theme-light {
+  display: none;
+}
+
+[data-theme='dark'] .diff-theme-dark {
+  display: block;
+}
+
+.diff-theme-dark div pre {
+  background-color: #1E1E1E;
+}
+
 .diff-addition {
   background-color: rgba(76, 175, 80, 0.1); /* soft green */
   display: block;

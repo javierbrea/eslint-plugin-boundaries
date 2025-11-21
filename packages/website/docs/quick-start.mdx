@@ -203,86 +203,86 @@ Read the [Element Types Rule](./rules/dependencies.md) docs for guidance on how 
 <Tabs>
 <TabItem value="JavaScript">
 
-```javascript
-import boundaries from "eslint-plugin-boundaries";
+<CodeDiff language="javascript">{`
+. import boundaries from "eslint-plugin-boundaries";
 
-export default [
-  {
-    plugins: {
-      boundaries,
-    },
-    settings: {
-      "boundaries/elements": [
-        { type: "controllers", pattern: "controllers/*" },
-        { type: "models", pattern: "models/*" },
-        { type: "views", pattern: "views/*" }
-      ],
-    },
-    rules: {
-      ...boundaries.configs.recommended.rules,
-      "boundaries/element-types": [2, {
-        default: "disallow",
-        rules: [
-          {
-            from: "controllers",
-            allow: ["models", "views"]
-          },
-          {
-            from: "views",
-            allow: ["models"]
-          },
-          {
-            from: "models",
-            disallow: ["*"]
-          }
-        ]
-      }]
-    },
-  },
-];
-```
+. export default [
+.  {
+.    plugins: {
+.      boundaries,
+.    },
+.    settings: {
+.      "boundaries/elements": [
+.        { type: "controllers", pattern: "controllers/*" },
+.        { type: "models", pattern: "models/*" },
+.        { type: "views", pattern: "views/*" }
+.      ],
+.    },
+.    rules: {
+.      ...boundaries.configs.recommended.rules,
++      "boundaries/element-types": [2, {
++        default: "disallow",
++        rules: [
++          {
++            from: "controllers",
++            allow: ["models", "views"]
++          },
++          {
++            from: "views",
++            allow: ["models"]
++          },
++          {
++            from: "models",
++            disallow: ["*"]
++          }
++        ]
++      }]
+.    },
+.  },
+. ];
+`}</CodeDiff>
 
 </TabItem>
 <TabItem value="TypeScript">
 
-```typescript
-import boundaries, { Config, Settings, Rules } from "eslint-plugin-boundaries";
+<CodeDiff language="typescript">{`
+. import boundaries, { Config, Settings, Rules } from "eslint-plugin-boundaries";
 
-export default [
-  {
-    plugins: {
-      boundaries,
-    },
-    settings: {
-      "boundaries/elements": [
-        { type: "controllers", pattern: "controllers/*" },
-        { type: "models", pattern: "models/*" },
-        { type: "views", pattern: "views/*" }
-      ],
-    } satisfies Settings,
-    rules: {
-      ...boundaries.configs.recommended.rules,
-      "boundaries/element-types": [2, {
-        default: "disallow",
-        rules: [
-          {
-            from: "controllers",
-            allow: ["models", "views"]
-          },
-          {
-            from: "views",
-            allow: ["models"]
-          },
-          {
-            from: "models",
-            disallow: ["*"]
-          }
-        ]
-      }]
-    } satisfies Rules,
-  } satisfies Config
-];
-```
+. export default [
+.  {
+.    plugins: {
+.      boundaries,
+.    },
+.    settings: {
+.      "boundaries/elements": [
+.        { type: "controllers", pattern: "controllers/*" },
+.        { type: "models", pattern: "models/*" },
+.        { type: "views", pattern: "views/*" }
+.      ],
+.    } satisfies Settings,
+.    rules: {
+.      ...boundaries.configs.recommended.rules,
++      "boundaries/element-types": [2, {
++        default: "disallow",
++        rules: [
++          {
++            from: "controllers",
++            allow: ["models", "views"]
++          },
++          {
++            from: "views",
++            allow: ["models"]
++          },
++          {
++            from: "models",
++            disallow: ["*"]
++          }
++        ]
++      }]
+.    } satisfies Rules,
+.  } satisfies Config
+. ];
+`}</CodeDiff>
 
 </TabItem>
 </Tabs>

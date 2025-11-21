@@ -1,10 +1,12 @@
 import clsx from "clsx";
-import { Highlight as PrismHighlight } from "prism-react-renderer";
+import { Highlight as PrismHighlight, themes } from "prism-react-renderer";
+import type { PrismTheme } from "prism-react-renderer";
 import React, { useState } from "react";
 
 import styles from "./styles.module.css";
 
 type CodeDiffProps = { children: React.ReactNode; language?: string };
+type CodeDiffBaseProps = CodeDiffProps & { theme: PrismTheme };
 
 // Icon to copy code
 function CopyIcon() {
@@ -30,10 +32,11 @@ function SuccessIcon() {
   );
 }
 
-export default function CodeDiff({
+function CodeDiffBase({
   children,
   language = "typescript",
-}: CodeDiffProps) {
+  theme,
+}: CodeDiffBaseProps) {
   // Convert children to string
   const codeString = React.Children.toArray(children)
     .map((child) => (typeof child === "string" ? child : ""))
@@ -87,32 +90,39 @@ export default function CodeDiff({
         </span>
       </button>
 
-      <PrismHighlight code={cleanCode} language={language}>
+      <PrismHighlight code={cleanCode} language={language} theme={theme}>
         {({ tokens, getLineProps, getTokenProps }) => (
           <pre style={{ overflowX: "auto", padding: "1em" }}>
             {tokens.map((lineTokens, i) => {
               const line = trimmedOriginalLines[i] || "";
-              const lineProps = getLineProps({ line: lineTokens, key: i });
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { key: _, ...linePropsRest } = getLineProps({
+                line: lineTokens,
+                key: i,
+              });
 
               // Diff classes based on the first character
               const marker = line.length > 0 ? line[0] : "";
               if (marker === "+")
-                lineProps.className = clsx(
-                  lineProps.className,
+                linePropsRest.className = clsx(
+                  linePropsRest.className,
                   "diff-addition"
                 );
               else if (marker === "-")
-                lineProps.className = clsx(
-                  lineProps.className,
+                linePropsRest.className = clsx(
+                  linePropsRest.className,
                   "diff-deletion"
                 );
               else
-                lineProps.className = clsx(lineProps.className, "diff-context");
+                linePropsRest.className = clsx(
+                  linePropsRest.className,
+                  "diff-context"
+                );
 
               return (
-                <div key={i} {...lineProps}>
-                  {lineTokens.map((token, key) => (
-                    <span key={key} {...getTokenProps({ token })} />
+                <div key={i} {...linePropsRest}>
+                  {lineTokens.map((token, tokenKey) => (
+                    <span key={tokenKey} {...getTokenProps({ token })} />
                   ))}
                 </div>
               );
@@ -121,5 +131,18 @@ export default function CodeDiff({
         )}
       </PrismHighlight>
     </div>
+  );
+}
+
+export default function CodeDiff(props: CodeDiffProps) {
+  return (
+    <>
+      <div className="diff-theme-light">
+        <CodeDiffBase {...props} theme={themes.github} />
+      </div>
+      <div className="diff-theme-dark" aria-hidden="true">
+        <CodeDiffBase {...props} theme={themes.vsDark} />
+      </div>
+    </>
   );
 }

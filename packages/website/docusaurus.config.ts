@@ -223,6 +223,7 @@ const config: Config = {
     prism: {
       defaultLanguage: "javascript",
       additionalLanguages: ["typescript", "json", "bash", "js-extras"],
+      // WARNING: In case of modifying these themes, make sure to keep the CodeDiff component updated as well (also in custom.css)
       theme: prismThemes.github,
       darkTheme: prismThemes.vsDark,
     },
