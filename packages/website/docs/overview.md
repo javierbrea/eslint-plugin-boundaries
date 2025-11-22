@@ -24,7 +24,7 @@ keywords:
 
 # Overview
 
-JSBoundaries is a project that provides a set of tools to help you enforce architectural boundaries in your JavaScript and TypeScript projects.
+JS Boundaries is a project that provides a set of tools to help you enforce architectural boundaries in your JavaScript and TypeScript projects.
 
 ---
 
