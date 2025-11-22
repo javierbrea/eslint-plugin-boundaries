@@ -30,8 +30,6 @@ This section provides a complete reference of all available global settings for 
 
 Defines **[element descriptors](./elements.md)** to recognize each file in the project as one of the defined element types. All rules need this setting to be configured properly.
 
-See the [Elements](#elements) section for detailed documentation on element descriptors.
-
 ```js
 export default [{
   settings: {
