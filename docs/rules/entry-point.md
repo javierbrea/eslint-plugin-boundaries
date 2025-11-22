@@ -110,9 +110,6 @@ src/
         "capture": ["elementName"]
       }
     ],
-    "import/resolver": {
-      "babel-module": {}
-    }
   }
 }
 ```

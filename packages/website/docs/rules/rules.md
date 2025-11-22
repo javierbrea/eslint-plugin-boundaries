@@ -21,7 +21,7 @@ Here are the key rules provided by the plugin:
 
 ### Element types
 
-This rule ensures that dependencies between the various element types in your project follow the constraints you have defined.
+This rule ensures that dependencies between the [elements](../setup/elements.md) in your project follow the constraints you have defined.
 
 Examples:
 
@@ -30,9 +30,15 @@ Examples:
 
 See the [documentation for the `boundaries/element-types` rule](./dependencies.md) for more details.
 
+### Entry point
+
+This rule ensures that elements cannot import files from another element except through the defined entry point for that type.
+
+See the [documentation for the `boundaries/entry-point` rule](./entry-point.md) for more details.
+
 ### Allowed external modules
 
-This rule checks which external dependencies can be used by each element type. For example, you can configure that “helpers” cannot import `react`, that “components” cannot import `react-router-dom`, or that modules cannot import `{ Link }` from `react-router-dom`.
+This rule checks which external dependencies can be used by each element type. It helps maintain consistent dependency management across different architectural layers. For example, you can configure that “helpers” cannot import `react`, that “components” cannot import `react-router-dom`, or that modules cannot import `{ Link }` from `react-router-dom`.
 
 See the [documentation for the `boundaries/external` rule](./external.md) for more details.
 
@@ -42,9 +48,10 @@ This rule ensures that elements cannot import the children of another element. W
 
 See the [documentation for the `boundaries/no-private` rule](./no-private.md) for more details.
 
-### Entry point
+### Rules about unknown or ignored files
 
-This rule ensures that elements cannot import files from another element except through the defined entry point for that type (`index.js` by default).
+Next rules help you manage files or dependencies with files that do not belong to any known element type, or files that are explicitly ignored in the plugin settings:
 
-See the [documentation for the `boundaries/entry-point` rule](./entry-point.md) for more details.
-
+- [**No Unknown**](./no-unknown.md): This rule ensures that files cannot import unknown files (files that do not belong to any known element type). It helps maintain clear boundaries by preventing dependencies on unclassified files.
+- [**No Unknown Files**](./no-unknown-files.md): This rule ensures that all files in your project belong to a known element type. It helps maintain a well-defined architecture by preventing stray files from being even created.
+- [**No Ignored**](./no-ignored.md): This rule ensures that all known files can only import non-ignored files. It helps maintain the integrity of your architecture by preventing dependencies on files that are intentionally excluded from the architectural boundaries.

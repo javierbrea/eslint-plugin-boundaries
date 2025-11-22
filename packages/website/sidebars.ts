@@ -49,8 +49,10 @@ const sidebars: SidebarsConfig = {
         "rules/dependencies",
         "rules/entry-point",
         "rules/external",
-        "rules/no-unknown",
         "rules/no-private",
+        "rules/no-unknown",
+        "rules/no-unknown-files",
+        "rules/no-ignored",
       ],
     },
     {
