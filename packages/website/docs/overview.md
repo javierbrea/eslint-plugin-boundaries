@@ -92,6 +92,9 @@ This plugin focuses on enforcing architectural boundaries by analyzing the relat
 This plugin is not a replacement for [eslint-plugin-import](https://www.npmjs.com/package/eslint-plugin-import). In fact, using both together is recommended.
 :::
 
+## Quick Start
 
-
+:::tip
+Read the [Quick Start Guide](./quick-start.mdx) for step-by-step instructions on setting up the plugin in your project.
+:::
 
