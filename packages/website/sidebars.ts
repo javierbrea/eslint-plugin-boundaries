@@ -34,6 +34,7 @@ const sidebars: SidebarsConfig = {
         "setup/selectors",
         "setup/rules",
         "setup/settings",
+        "setup/eslint-integration",
       ],
     },
     {

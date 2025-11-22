@@ -151,8 +151,8 @@ const config: Config = {
           title: "Community",
           items: [
             {
-              label: "Code of Conduct",
-              to: "https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/.github/CODE_OF_CONDUCT.md",
+              label: "Acknowledgements",
+              to: "/docs/misc/acknowledgments/",
             },
             {
               label: "Discussions",
@@ -171,15 +171,6 @@ const config: Config = {
         {
           title: "Acknowledgements",
           items: [
-            {
-              label: "Project",
-              to: "/docs/misc/acknowledgments/",
-            },
-            {
-              label: "Eslint Plugin Import",
-              to: "https://github.com/import-js/eslint-plugin-import",
-              className: "footer-acknowledgement",
-            },
             {
               label: "Website",
               to: "/docs/misc/acknowledgments/",

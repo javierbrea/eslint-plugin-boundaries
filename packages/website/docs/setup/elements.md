@@ -6,6 +6,7 @@ tags:
   - concepts
   - configuration
 keywords:
+  - JS Boundaries
   - ESLint plugin
   - boundaries
   - javaScript
@@ -22,7 +23,7 @@ keywords:
 
 Element descriptors are the foundation of the plugin. **They define how to recognize and classify files in your project as specific element types.**
 
-### Defining Element Descriptors
+## Defining Element Descriptors
 
 Element descriptors are configured in the `boundaries/elements` setting as an array of objects. Each descriptor defines:
 

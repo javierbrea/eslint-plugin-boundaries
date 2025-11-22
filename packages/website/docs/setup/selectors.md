@@ -6,6 +6,7 @@ tags:
   - concepts
   - configuration
 keywords:
+  - JS Boundaries
   - ESLint plugin
   - boundaries
   - javaScript

@@ -5,6 +5,7 @@ description: Learn what ESLint Plugin Boundaries is and how it can help you enfo
 tags:
   - concepts
 keywords:
+  - JS Boundaries
   - ESLint plugin
   - boundaries
   - javaScript
@@ -79,7 +80,7 @@ When a file violates a dependencies rule, ESLint will report an error:
 ```javascript
 // In src/models/model-a.js
 
-import View  from '../views/view-a'; /* Error: Importing elements of type
+import View  from '../views/view-a'; /* ❌ Error: Importing elements of type
 'views' is not allowed in elements of type 'models'. Disallowed in rule 3 */
 ```
 

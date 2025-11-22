@@ -6,6 +6,7 @@ tags:
   - concepts
   - configuration
 keywords:
+  - JS Boundaries
   - ESLint plugin
   - boundaries
   - javaScript
@@ -184,7 +185,7 @@ Custom error messages enable you to inject dynamic information related to the cu
 
 **Example:**
 
-```jsonc
+```js
 {
   "message": "${file.type}s of category ${file.category} are not allowed to import ${dependency.category}s"
   // If the error is produced by a file with type "component" and captured property "category" as "atom"
@@ -209,7 +210,7 @@ Both `file` and `dependency` provide these properties:
 
 Some rules also allow extra info about the violation, which may be exposed in the error message using `${report.PROPERTY}`. For example, the [rule `external`](../rules/external.md) provides details about forbidden specifiers:
 
-```jsonc
+```js
 {
   "message": "Do not import ${report.specifiers} from ${dependency.source} in helpers"
 }
