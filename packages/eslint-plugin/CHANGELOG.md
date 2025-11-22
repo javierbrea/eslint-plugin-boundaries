@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [5.3.0] - 2025-11-23
+
+### Changed
+
+- docs: Update rule documentation URLs to point to the new [JS Boundaries website](https://www.jsboundaries.dev) instead of the GitHub repository. This change improves accessibility and user experience by directing users to a more user-friendly platform for documentation.
+
 ## [5.2.0] - 2025-11-15
 
 ### Added
