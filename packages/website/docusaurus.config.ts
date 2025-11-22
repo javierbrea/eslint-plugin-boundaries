@@ -58,6 +58,13 @@ const config: Config = {
         content: "https://www.jsboundaries.dev/img/og-image.png",
       },
     },
+    {
+      tagName: "meta",
+      attributes: {
+        name: "algolia-site-verification",
+        content: "2D6AA38EA51AD492",
+      },
+    },
   ],
 
   // Even if you don't use internationalization, you can use this field to set
