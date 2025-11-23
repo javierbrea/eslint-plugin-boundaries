@@ -231,6 +231,12 @@ const config: Config = {
       theme: prismThemes.github,
       darkTheme: prismThemes.vsDark,
     },
+    algolia: {
+      appId: "Q6XU3R4537",
+      apiKey: "d14f7fcd8be1ab30c98d7a250a3b8d2d",
+      indexName: "jsboundaries",
+      contextualSearch: true,
+    },
   } satisfies Preset.ThemeConfig,
 };
 

@@ -1,5 +1,6 @@
 coverallsapp
 Infima
+jsboundaries
 nrwl
 sonarcloud
 sonarlint

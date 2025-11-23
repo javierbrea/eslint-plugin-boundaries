@@ -129,4 +129,16 @@
   display: inline-block;
 }
 
+/* Search bar */
 
+[data-theme='light'] .DocSearch-Button {
+  background-color: #cfd4e5
+}
+
+[data-theme='light'] .DocSearch-Button-Container svg {
+  color: var(--ifm-color-primary-darkest);
+}
+
+[data-theme='light'] .DocSearch-Button-Placeholder {
+  color: var(--ifm-color-primary-darkest);
+}

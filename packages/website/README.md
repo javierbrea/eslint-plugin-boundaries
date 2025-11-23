@@ -1,41 +1,49 @@
-# Website
+# JS Boundaries Website
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+This project contains the source code for the [JS Boundaries website]().
 
-## Installation
+## How to Contribute
 
-```bash
-yarn
+Contributors are welcome. First of all, please read:
+
+* [Contributing guidelines](../../.github/CONTRIBUTING.md)
+* [Code of conduct](../../.github/CODE_OF_CONDUCT.md).
+
+### Overview
+
+The web is built with [Docusaurus](https://docusaurus.io/)
+
+### Installation
+
+Install the monorepo dependencies
+
+```sh
+pnpm i
 ```
 
-## Local Development
+### Start the Website
 
-```bash
-yarn start
+```sh
+pnpm start
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+Note that examples in this document should be executed in the same folder of this package, but, as described in the [Contributing Guideline](../../.github/CONTRIBUTING.md), you can also use Nx commands to run them from the repository root, as in:
 
-## Build
-
-```bash
-yarn build
+```sh
+pnpm nx start website
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+## Tags
 
-## Deployment
+To keep tags useful for users,  they should be limited to the ones in this list:
 
-Using SSH:
+- concepts
+- configuration
+- rules
+- examples
+- eslint
+- typescript
+- advanced
+- troubleshooting
+- integration
 
-```bash
-USE_SSH=true yarn deploy
-```
-
-Not using SSH:
-
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
