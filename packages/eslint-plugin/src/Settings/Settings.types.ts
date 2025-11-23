@@ -174,7 +174,7 @@ export const SETTINGS = {
   // elements settings properties,
   VALID_MODES: ["folder", "file", "full"],
 
-  VALID_DEPENDENCY_NODE_KINDS: ["value", "type"],
+  VALID_DEPENDENCY_NODE_KINDS: ["value", "type", "typeof"],
   DEFAULT_DEPENDENCY_NODES: {
     [DEPENDENCY_NODE_KEYS_MAP.REQUIRE]: [
       // Note: detects "require('source')"
