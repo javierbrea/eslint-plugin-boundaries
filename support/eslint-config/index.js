@@ -10,6 +10,8 @@ import importPlugin from "eslint-plugin-import";
 import pluginJest from "eslint-plugin-jest";
 import prettier from "eslint-plugin-prettier";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import reactPlugin from "eslint-plugin-react";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
 import globals from "globals";
 
 export const jestConfig = {
@@ -45,6 +47,7 @@ export const ignores = {
     ".husky/**",
     "pnpm-lock.yaml",
     "**/dist/**",
+    "build/**",
     "reports/**",
     ".stryker-tmp/**",
   ],
@@ -161,7 +164,7 @@ export const commonJsConfig = {
 };
 
 export const typescriptConfig = {
-  files: ["**/*.ts"],
+  files: ["**/*.ts", "**/*.tsx"],
   languageOptions: {
     parser: typescriptParser,
     parserOptions: {
@@ -209,6 +212,31 @@ export const disableExtensionsInEslintConfig = {
   rules: {
     "import/extensions": [0],
   },
+};
+
+export const reactConfig = {
+  files: ["**/*.{jsx,mjsx,ts,tsx,mtsx}"],
+  ...reactPlugin.configs.flat.recommended,
+  languageOptions: {
+    ...reactPlugin.configs.flat.recommended.languageOptions,
+    globals: {
+      ...globals.browser,
+    },
+  },
+  settings: {
+    react: {
+      version: "detect",
+    },
+  },
+  rules: {
+    ...reactPlugin.configs.flat.recommended.rules,
+    "react/react-in-jsx-scope": [0],
+  },
+};
+
+export const reactHooksConfig = {
+  files: ["**/*.{jsx,mjsx,ts,tsx,mtsx}"],
+  ...reactHooksPlugin.configs.flat.recommended,
 };
 
 export const defaultConfigWithoutTypescript = [

@@ -1,0 +1,144 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #7a839d;
+  --ifm-color-primary-dark: #4e546a;
+  --ifm-color-primary-darker: #393d4d;
+  --ifm-color-primary-darkest: #2b2e39;
+  --ifm-color-primary-light: #a8b3d8;
+  --ifm-color-primary-lighter: #dfedef;
+  --ifm-color-primary-lightest: #e9f7f9;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme='dark'] {
+  --ifm-color-primary: #96a5be;
+  --ifm-color-primary-dark: #778398;
+  --ifm-color-primary-darker: #6a7280;
+  --ifm-color-primary-darkest: #616671;
+  --ifm-color-primary-light: #b5c8eb;
+  --ifm-color-primary-lighter: #e5f6f5;
+  --ifm-color-primary-lightest: #ebfdfe;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+.footer-contents {
+  span {
+    display: block;
+  }
+  .disclaimer {
+    margin-top:1rem;
+    font-size: 12px;
+    padding-left: 4rem;
+    padding-right: 4rem;
+    margin-bottom: 20px;
+    color: var(--ifm-color-gray-600);
+  }
+}
+
+.footer-acknowledgement {
+  font-size: 12px;
+}
+
+.navbar-github-link {
+  &:after {
+    transition: opacity 0.2s;
+    content: "";
+    width: 24px;
+    height: 24px;
+    display: flex;
+    /* cspell: disable-next-line */
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23fff' d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  &:hover:after {
+    opacity: 0.5;
+  }
+}
+
+.navbar__items--right > span:first-of-type {
+  margin-top: 10px;
+  margin-right: 5px;
+}
+
+/* Custom styles for code diffs */
+
+/* Theme-specific visibility for CodeDiff component */
+.diff-theme-dark, [data-theme='light'] .diff-theme-dark {
+  display: none;
+}
+
+[data-theme='dark'] .diff-theme-light {
+  display: none;
+}
+
+[data-theme='dark'] .diff-theme-dark {
+  display: block;
+}
+
+.diff-theme-dark div pre {
+  background-color: #1E1E1E;
+}
+
+.diff-addition {
+  background-color: rgba(76, 175, 80, 0.1); /* soft green */
+  display: block;
+}
+
+.diff-deletion {
+  background-color: rgba(244, 67, 54, 0.1); /* soft red */
+  display: block;
+}
+
+.diff-context {
+  display: block; /* unchanged lines */
+}
+
+/* Added lines */
+.diff-addition::before {
+  content: "+";
+  display: inline-block;
+  width: 1ch;      /* same width as the symbol */
+  margin-right: 0.5ch;
+  color: green;
+  font-weight: bold;
+}
+
+/* Deleted lines */
+.diff-deletion::before {
+  content: "-";
+  display: inline-block;
+  width: 1ch;
+  margin-right: 0.5ch;
+  color: red;
+  font-weight: bold;
+}
+
+/* Neutral lines / unchanged */
+.diff-context::before {
+  content: "\00A0";    /* empty space */
+  display: inline-block;
+}
+
+/* Search bar */
+
+[data-theme='light'] .DocSearch-Button {
+  background-color: #cfd4e5
+}
+
+[data-theme='light'] .DocSearch-Button-Container svg {
+  color: var(--ifm-color-primary-darkest);
+}
+
+[data-theme='light'] .DocSearch-Button-Placeholder {
+  color: var(--ifm-color-primary-darkest);
+}

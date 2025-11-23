@@ -12,6 +12,7 @@ export const PLUGIN_NAME = "boundaries" as const;
 export const PLUGIN_ENV_VARS_PREFIX = "ESLINT_PLUGIN_BOUNDARIES" as const;
 export const REPO_URL =
   "https://github.com/javierbrea/eslint-plugin-boundaries" as const;
+export const WEBSITE_URL = "https://www.jsboundaries.dev" as const;
 export const PLUGIN_ISSUES_URL = `${REPO_URL}/issues` as const;
 
 export const DEPENDENCY_NODE_REQUIRE = "require" as const;
@@ -173,7 +174,7 @@ export const SETTINGS = {
   // elements settings properties,
   VALID_MODES: ["folder", "file", "full"],
 
-  VALID_DEPENDENCY_NODE_KINDS: ["value", "type"],
+  VALID_DEPENDENCY_NODE_KINDS: ["value", "type", "typeof"],
   DEFAULT_DEPENDENCY_NODES: {
     [DEPENDENCY_NODE_KEYS_MAP.REQUIRE]: [
       // Note: detects "require('source')"

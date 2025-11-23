@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" fill="none">
+  <!-- Background grid -->
+  <g opacity="0.1">
+    <line x1="0" y1="40" x2="800" y2="40" stroke="currentColor" stroke-width="1"/>
+    <line x1="0" y1="80" x2="800" y2="80" stroke="currentColor" stroke-width="1"/>
+    <line x1="0" y1="120" x2="800" y2="120" stroke="currentColor" stroke-width="1"/>
+    <line x1="0" y1="160" x2="800" y2="160" stroke="currentColor" stroke-width="1"/>
+    <line x1="100" y1="0" x2="100" y2="200" stroke="currentColor" stroke-width="1"/>
+    <line x1="200" y1="0" x2="200" y2="200" stroke="currentColor" stroke-width="1"/>
+    <line x1="300" y1="0" x2="300" y2="200" stroke="currentColor" stroke-width="1"/>
+    <line x1="400" y1="0" x2="400" y2="200" stroke="currentColor" stroke-width="1"/>
+    <line x1="500" y1="0" x2="500" y2="200" stroke="currentColor" stroke-width="1"/>
+    <line x1="600" y1="0" x2="600" y2="200" stroke="currentColor" stroke-width="1"/>
+    <line x1="700" y1="0" x2="700" y2="200" stroke="currentColor" stroke-width="1"/>
+  </g>
+  
+  <!-- Chart line -->
+  <defs>
+    <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:rgb(37, 99, 235);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgb(59, 130, 246);stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgb(59, 130, 246);stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:rgb(59, 130, 246);stop-opacity:0" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Area under curve -->
+  <path d="M 50 170 L 120 160 L 190 145 L 260 135 L 330 120 L 400 100 L 470 85 L 540 65 L 610 50 L 680 35 L 750 25 L 750 200 L 50 200 Z" 
+        fill="url(#areaGradient)"/>
+  
+  <!-- Main line -->
+  <path d="M 50 170 L 120 160 L 190 145 L 260 135 L 330 120 L 400 100 L 470 85 L 540 65 L 610 50 L 680 35 L 750 25" 
+        stroke="url(#chartGradient)" 
+        stroke-width="3" 
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+  
+  <!-- Data points -->
+  <circle cx="50" cy="170" r="4" fill="#2563eb"/>
+  <circle cx="120" cy="160" r="4" fill="#2563eb"/>
+  <circle cx="190" cy="145" r="4" fill="#2563eb"/>
+  <circle cx="260" cy="135" r="4" fill="#2563eb"/>
+  <circle cx="330" cy="120" r="4" fill="#2563eb"/>
+  <circle cx="400" cy="100" r="4" fill="#2563eb"/>
+  <circle cx="470" cy="85" r="4" fill="#2563eb"/>
+  <circle cx="540" cy="65" r="4" fill="#2563eb"/>
+  <circle cx="610" cy="50" r="4" fill="#2563eb"/>
+  <circle cx="680" cy="35" r="4" fill="#2563eb"/>
+  <circle cx="750" cy="25" r="5" fill="#3b82f6">
+    <animate attributeName="r" values="5;7;5" dur="2s" repeatCount="indefinite"/>
+  </circle>
+</svg>

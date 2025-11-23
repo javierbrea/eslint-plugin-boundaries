@@ -5,6 +5,7 @@ import type {
 
 export const DEPENDENCY_KIND_TYPE = "type" as const;
 export const DEPENDENCY_KIND_VALUE = "value" as const;
+export const DEPENDENCY_KIND_TYPEOF = "typeof" as const;
 
 /** Map of the kinds of dependency, either a type dependency or a value dependency */
 export const DEPENDENCY_KINDS_MAP = {
@@ -13,6 +14,9 @@ export const DEPENDENCY_KINDS_MAP = {
 
   /** Value import, e.g., `import { X } from 'module'` */
   VALUE: DEPENDENCY_KIND_VALUE,
+
+  /** typeof import, e.g. `type ModuleType = typeof import("./my_module");` */
+  TYPE_OF: DEPENDENCY_KIND_TYPEOF,
 } as const;
 
 /** Kind of dependency, either a type dependency or a value dependency */
