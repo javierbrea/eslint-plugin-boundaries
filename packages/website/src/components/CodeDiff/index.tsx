@@ -90,8 +90,13 @@ function CodeDiffBase({
         </span>
       </button>
 
-      <PrismHighlight code={cleanCode} language={language} theme={theme}>
-        {({ tokens, getLineProps, getTokenProps }) => (
+      {/* children prop is required by HighlightProps type definition */}
+      <PrismHighlight
+        code={cleanCode}
+        language={language}
+        theme={theme}
+        // eslint-disable-next-line
+        children={({ tokens, getLineProps, getTokenProps }) => (
           <pre style={{ overflowX: "auto", padding: "1em" }}>
             {tokens.map((lineTokens, i) => {
               const line = trimmedOriginalLines[i] || "";
@@ -129,7 +134,7 @@ function CodeDiffBase({
             })}
           </pre>
         )}
-      </PrismHighlight>
+      />
     </div>
   );
 }
