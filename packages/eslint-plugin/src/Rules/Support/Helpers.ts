@@ -1,6 +1,6 @@
 import type { Rule } from "eslint";
 
-import { PLUGIN_NAME, REPO_URL } from "../../Settings";
+import { PLUGIN_NAME, WEBSITE_URL } from "../../Settings";
 import type { RuleName, RuleMetaDefinition } from "../../Settings";
 
 /**
@@ -11,6 +11,18 @@ import type { RuleName, RuleMetaDefinition } from "../../Settings";
 function removePluginNamespace(ruleName: RuleName) {
   return ruleName.replace(`${PLUGIN_NAME}/`, "");
 }
+/**
+ * Adapts the rule name to be used in a URL.
+ * @param ruleName The name of the rule.
+ * @returns The adapted rule name for URL usage.
+ */
+function adaptRuleNameToUrl(ruleName: string): string {
+  // NOTE: Urls are already prepared for the next major release where "element-types" rule will be renamed to "dependencies", so no 301 redirect will be needed then.
+  if (ruleName === "element-types") {
+    return "dependencies";
+  }
+  return ruleName;
+}
 
 /**
  * Returns the documentation URL for an ESLint rule.
@@ -18,7 +30,7 @@ function removePluginNamespace(ruleName: RuleName) {
  * @returns The documentation URL for the ESLint rule.
  */
 function docsUrl(ruleName: RuleName) {
-  return `${REPO_URL}/blob/master/docs/rules/${removePluginNamespace(ruleName)}.md`;
+  return `${WEBSITE_URL}/docs/rules/${adaptRuleNameToUrl(removePluginNamespace(ruleName))}/`;
 }
 
 /**

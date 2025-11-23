@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [1.1.1] - 2024-11-23
+
+### Fixed
+
+- fix: Add missing `typeof` dependency kind
+
 ## [1.1.0] - 2024-11-10
 
 ### Added

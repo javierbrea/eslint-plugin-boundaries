@@ -1,0 +1,6 @@
+# Block old versions to avoid duplications
+User-agent: *
+Disallow: /docs/next/
+# Disallow: /docs/5*/
+
+Sitemap: https://www.jsboundaries.dev/sitemap.xml

@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 260">
+  <defs>
+    <!-- Colores (RGB → HEX) -->
+    <!-- c1: #E5DDEE; c2: #7274AA; c3: #393A55 -->
+    <!-- inter12: #D9DDDF; inter13: #B2B8BC; inter23: #595C5E -->
+    <!-- triple: #595C5E -->
+
+    <!-- Clip paths individuales -->
+    <clipPath id="clip-c1"><circle cx="150" cy="80"  r="80"/></clipPath>
+    <clipPath id="clip-c2"><circle cx="98"  cy="170" r="80"/></clipPath>
+    <clipPath id="clip-c3"><circle cx="202" cy="170" r="80"/></clipPath>
+
+    <!-- Clip doble (c1 ∩ c2) -->
+    <clipPath id="clip-c1c2">
+      <circle cx="150" cy="80" r="80"/>
+    </clipPath>
+
+    <!-- Clip doble (c1 ∩ c3) -->
+    <clipPath id="clip-c1c3">
+      <circle cx="150" cy="80" r="80"/>
+    </clipPath>
+
+    <!-- Clip doble (c2 ∩ c3) -->
+    <clipPath id="clip-c2c3">
+      <circle cx="98" cy="170" r="80"/>
+    </clipPath>
+
+    <!-- Clip triple (c1 ∩ c2 ∩ c3): c1 recortado por c2 y luego por c3 -->
+    <clipPath id="clip-c1c2c3">
+      <g clip-path="url(#clip-c2)">
+        <circle cx="150" cy="80" r="80"/>
+      </g>
+    </clipPath>
+  </defs>
+
+  <!-- BORDES BLANCOS -->
+  <circle cx="150" cy="80"  r="80" fill="none" stroke="white" stroke-width="30"/>
+  <circle cx="98"  cy="170" r="80" fill="none" stroke="white" stroke-width="30"/>
+  <circle cx="202" cy="170" r="80" fill="none" stroke="white" stroke-width="30"/>
+
+  <!-- CÍRCULOS BASE -->
+  <circle cx="150" cy="80"  r="80" fill="#a8b3d8"/>
+  <circle cx="98"  cy="170" r="80" fill="#7a829d"/>
+  <circle cx="202" cy="170" r="80" fill="#393A55"/>
+
+  <!-- INTERSECCIONES DOBLES -->
+  <!-- c1 ∩ c2 -->
+  <g clip-path="url(#clip-c2)">
+    <circle cx="150" cy="80" r="80" fill="#ecf0f8"/>
+  </g>
+
+  <!-- c1 ∩ c3 -->
+  <g clip-path="url(#clip-c3)">
+    <circle cx="150" cy="80" r="80" fill="#ecf0f8"/>
+  </g>
+
+  <!-- c2 ∩ c3 -->
+  <g clip-path="url(#clip-c3)">
+    <circle cx="98" cy="170" r="80" fill="#ecf0f8"/>
+  </g>
+
+  <!-- INTERSECCIÓN TRIPLE -->
+  <g clip-path="url(#clip-c3)">
+    <g clip-path="url(#clip-c2)">
+      <circle cx="150" cy="80" r="80" fill="#ecf0f8"/>
+    </g>
+  </g>
+
+</svg>

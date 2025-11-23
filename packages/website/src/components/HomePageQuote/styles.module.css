@@ -1,0 +1,20 @@
+.quoteSection {
+  background-color: var(--docusaurus-highlighted-code-line-bg);
+  padding: 3rem 0;
+}
+
+.quote {
+  border: 0;
+  margin: 2rem 0;
+}
+
+.quoteText {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.quoteFooter {
+  font-size: 0.95rem;
+  margin-top: 1rem;
+}

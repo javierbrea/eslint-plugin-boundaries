@@ -1,0 +1,5 @@
+# Redirect default Netlify subdomain to primary domain
+https://jsboundaries.netlify.app/* https://www.jsboundaries.dev/:splat 301!
+
+# Redirects. Add specific rules when url changes are needed.
+# Format: /<from> /<to> <status>

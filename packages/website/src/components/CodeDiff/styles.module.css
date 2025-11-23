@@ -1,0 +1,87 @@
+/* Code block container */
+.codeBlock {
+  position: relative;
+}
+
+/* Copy button styles */
+.copyButton {
+  align-items: center;
+  background: var(--prism-background-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  color: var(--ifm-color-emphasis-700);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.8rem;
+  height: 2rem;
+  justify-content: center;
+  line-height: 0;
+  opacity: 0;
+  padding: 0.4rem;
+  position: absolute;
+  right: calc(var(--ifm-pre-padding) / 2);
+  top: calc(var(--ifm-pre-padding) / 2);
+  transition: opacity var(--ifm-transition-fast) ease-in-out;
+  width: 2rem;
+  z-index: 10;
+}
+
+.codeBlock:hover .copyButton {
+  opacity: 1;
+}
+
+.copyButton:hover {
+  background: var(--ifm-color-emphasis-200);
+}
+
+.copyButton:active {
+  background: var(--ifm-color-emphasis-300);
+}
+
+.copyButton:focus {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+/* Copy button icons */
+.copyButtonIcons {
+  height: 1.125rem;
+  position: relative;
+  width: 1.125rem;
+}
+
+.copyIcon,
+.successIcon {
+  fill: currentColor;
+  height: inherit;
+  left: 0;
+  opacity: inherit;
+  position: absolute;
+  top: 0;
+  transition: all var(--ifm-transition-fast) ease;
+  width: inherit;
+}
+
+.successIcon {
+  color: #00d600;
+  left: 50%;
+  opacity: 0;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.33);
+}
+
+/* Copied state */
+.copyButtonCopied {
+  opacity: 1 !important;
+}
+
+.copyButtonCopied .copyIcon {
+  opacity: 0;
+  transform: scale(0.33);
+}
+
+.copyButtonCopied .successIcon {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  transition-delay: 75ms;
+}

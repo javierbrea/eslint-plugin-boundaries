@@ -41,6 +41,7 @@ jobs:
         key: 'name'
         value: '@javierbrea/eslint-plugin-boundaries'
 
-    - run: pnpm -r publish --no-git-checks
+    - run: pnpm publish --no-git-checks
+      working-directory: ./packages/eslint-plugin
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

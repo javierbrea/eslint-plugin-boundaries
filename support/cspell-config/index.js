@@ -19,6 +19,8 @@ function createConfig(config = {}) {
         "**/coverage/**",
         "**/dist/**",
         "**/reports/**",
+        "**/build/**",
+        "**/*.svg",
       ],
       caseSensitive: false,
       // Language - current active spelling language

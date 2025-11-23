@@ -317,7 +317,7 @@ To match a dependency, use the `isMatch` method of the matcher, providing the pr
 - **`from`** (`string`): Source file path
 - **`to`** (`string`): Target file path
 - **`source`** (`string`): Import/export source as written in code
-- **`kind`** (`string`): Import kind (`"type"`, `"value"`, etc.)
+- **`kind`** (`string`): Import kind (`"type"`, `"value"`, `"typeof"`)
 - **`nodeKind`** (`string`): AST node kind
 - **`specifiers`** (`string[]`): Imported/exported names
 

@@ -35,10 +35,12 @@ jobs:
       - uses: ./.github/actions/install
         with:
           node-version: ${{ matrix.node }}
-      # NOTE: In other Node versions, we only run unit tests to save time in the CI and to avoid dev tools Node incompatibilities
+      # NOTE: In other Node versions, we only run unit eslint plugin unit tests to save time in the CI and to avoid dev tools Node incompatibilities
       - name: Test Unit
         if: ${{ matrix.node != '22.14.0' }}
-        run: pnpm nx run-many --target=test:unit --all
+        run: |
+          pnpm nx test:unit elements --output-style=stream --parallel=1
+          pnpm nx test:unit eslint-plugin --output-style=stream --parallel=1
       # NOTE: For the moment, we run the check:all target in all packages instead of running affected check in affected packages only
       - name: Check all
         if: ${{ matrix.node == '22.14.0' }}

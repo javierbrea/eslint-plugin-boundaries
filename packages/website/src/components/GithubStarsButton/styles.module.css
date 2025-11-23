@@ -1,0 +1,10 @@
+.githubButtonContainer {
+  margin-top: 10px;
+  margin-right: 5px;
+}
+
+@media (max-width: 991px) {
+  .githubButtonContainer {
+    display: none;
+  }
+}
