@@ -7,7 +7,7 @@
     "build": "docusaurus build",
     "check:all": "echo 'All checks passed'",
     "check:spell": "cspell --quiet .",
-    "check:types": "pnpm tsc --noEmit",
+    "check:types": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "docusaurus": "docusaurus",
@@ -30,7 +30,8 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.9.2",
     "@docusaurus/tsconfig": "3.9.2",
-    "@docusaurus/types": "3.9.2"
+    "@docusaurus/types": "3.9.2",
+    "typescript": "5.6.3"
   },
   "browserslist": {
     "production": [

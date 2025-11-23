@@ -63,8 +63,9 @@ export default function HomepageFeatures(): ReactNode {
     <section className={styles.features}>
       <div className="container">
         <div className="row">
-          {FeatureList.map((props) => (
-            <Feature key={props.title} {...props} />
+          {FeatureList.map((item, idx) => (
+            // @ts-expect-error Bug in React types? It complains that key prop is not allowed here
+            <Feature key={idx} {...(item as FeatureItem)} />
           ))}
         </div>
       </div>
