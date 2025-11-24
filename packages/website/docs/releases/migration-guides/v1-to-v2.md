@@ -1,7 +1,8 @@
 ---
 id: v1-to-v2
-title: v1 to v2
-description: Guide to migrating from ESLint Plugin Boundaries version 1 to version 2.
+title: Migration Guide from v1 to v2
+sidebar_label: v1 to v2
+description: Guide to migrating from ESLint Plugin Boundaries from version 1 to version 2.
 tags:
   - configuration
 keywords:

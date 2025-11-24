@@ -1,6 +1,7 @@
 ---
 id: rules
-title: Rules
+title: Rules Configuration
+sidebar_label: Rules
 description: Define and configure architectural rules in ESLint Plugin Boundaries to enforce boundaries between elements.
 tags:
   - concepts

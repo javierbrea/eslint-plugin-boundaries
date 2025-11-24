@@ -1,7 +1,8 @@
 ---
 id: elements
-title: Elements
-description: Describe the different elements that can be used to define architectural boundaries in ESLint Plugin Boundaries.
+title: Element Descriptors
+sidebar_label: Elements
+description: Learn how to use element descriptors to classify files in your project for ESLint Plugin Boundaries.
 tags:
   - concepts
   - configuration

@@ -1,7 +1,8 @@
 ---
 id: external
-title: External
-description: Learn how to manage external dependencies in ESLint Plugin Boundaries rules.
+title: Rule external
+sidebar_label: External
+description: Documentation for the external rule in ESLint Plugin Boundaries.
 tags:
   - rules
   - configuration

@@ -1,6 +1,7 @@
 ---
 id: settings
-title: Settings
+title: Settings Reference
+sidebar_label: Settings
 description: Settings to configure ESLint Plugin Boundaries behavior.
 tags:
   - eslint
