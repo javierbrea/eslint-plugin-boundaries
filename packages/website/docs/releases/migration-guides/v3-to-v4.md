@@ -1,7 +1,8 @@
 ---
 id: v3-to-v4
-title: v3 to v4
-description: Guide to migrating from ESLint Plugin Boundaries version 3 to version 4.
+title: Migration Guide from v3 to v4
+sidebar_label: v3 to v4
+description: Guide to migrating from ESLint Plugin Boundaries from version 3 to version 4.
 tags:
   - configuration
 keywords:

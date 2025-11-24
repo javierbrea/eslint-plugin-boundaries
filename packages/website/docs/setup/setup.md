@@ -1,6 +1,7 @@
 ---
 id: setup
-title: Setup
+label: Setup
+title: Setup Overview
 description: Setup instructions for ESLint Plugin Boundaries.
 tags:
   - configuration
