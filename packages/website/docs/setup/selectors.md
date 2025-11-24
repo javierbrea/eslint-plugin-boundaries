@@ -1,7 +1,8 @@
 ---
 id: selectors
-title: Selectors
-description: Use selectors to match elements when defining architectural boundaries in ESLint Plugin Boundaries.
+title: Element Selectors
+sidebar_label: Selectors
+description: Use element selectors to match elements when defining architectural boundaries in ESLint Plugin Boundaries.
 tags:
   - concepts
   - configuration

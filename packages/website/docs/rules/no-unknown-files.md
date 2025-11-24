@@ -1,7 +1,8 @@
 ---
 id: no-unknown-files
-title: No Unknown Files
-description: Learn how to enforce that all files in your project belong to a known element type using ESLint Plugin Boundaries.
+title: Rule no-unknown-files
+sidebar_label: No Unknown Files
+description: Documentation for the no-unknown-files rule in ESLint Plugin Boundaries.
 tags:
   - rules
   - configuration

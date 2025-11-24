@@ -1,7 +1,8 @@
 ---
 id: no-ignored
-title: No Ignored
-description: Learn how to enforce that all known files can only import non-ignored files using ESLint Plugin Boundaries.
+title: Rule no-ignored
+sidebar_label: No Ignored
+description: Documentation for the no-ignored rule in ESLint Plugin Boundaries.
 tags:
   - rules
   - configuration

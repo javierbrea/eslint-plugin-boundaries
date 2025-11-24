@@ -1,7 +1,8 @@
 ---
 id: no-private
-title: No Private
-description: Learn how to manage dependencies on private elements in ESLint Plugin Boundaries rules.
+title: Rule no-private
+sidebar_label: No Private
+description: Documentation for the no-private rule in ESLint Plugin Boundaries.
 tags:
   - rules
   - configuration

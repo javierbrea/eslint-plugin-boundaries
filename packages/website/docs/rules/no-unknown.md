@@ -1,7 +1,8 @@
 ---
 id: no-unknown
-title: No Unknown
-description: Learn how to manage dependencies on unknown elements in ESLint Plugin Boundaries rules.
+title: Rule no-unknown
+sidebar_label: No Unknown
+description: Documentation for the no-unknown rule in ESLint Plugin Boundaries.
 tags:
   - rules
   - configuration

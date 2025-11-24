@@ -1,7 +1,8 @@
 ---
 id: entry-point
-title: Entry Point
-description: Learn how to manage and enforce entry points of your elements in ESLint Plugin Boundaries rules.
+title: Rule entry-point
+sidebar_label: Entry Point
+description: Documentation for the entry-point rule in ESLint Plugin Boundaries.
 tags:
   - rules
   - configuration

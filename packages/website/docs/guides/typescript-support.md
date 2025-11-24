@@ -1,7 +1,7 @@
 ---
 id: typescript-support
 title: TypeScript Support
-description: Learn how to enable and configure TypeScript support in ESLint Plugin Boundaries.
+description: Learn how to enable and configure ESLint Plugin Boundaries for TypeScript projects.
 tags:
   - configuration
   - troubleshooting
