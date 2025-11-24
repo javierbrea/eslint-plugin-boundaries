@@ -29,5 +29,5 @@ The core elements package that powers the plugin.
 
 For breaking changes, we provide detailed migration guides to help you upgrade:
 
-- [Migrating from v3 to v4](/guides/how-to-migrate-from-v3-to-v4)
-- [Migrating from v1 to v2](/guides/how-to-migrate-from-v1-to-v2)
+- [Migrating from v3 to v4](./migration-guides/v3-to-v4.md)
+- [Migrating from v1 to v2](./migration-guides/v1-to-v2.md)
