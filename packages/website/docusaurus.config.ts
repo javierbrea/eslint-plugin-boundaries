@@ -199,8 +199,8 @@ const config: Config = {
               className: "footer-acknowledgement",
             },
             {
-              label: "Search by Algolia",
-              to: "https://www.algolia.com/",
+              label: "Search powered by Algolia",
+              to: "https://www.algolia.com/ref/docsearch/?utm_source=www.jsboundaries.dev&utm_medium=referral&utm_content=powered_by&utm_campaign=docsearch",
               className: "footer-acknowledgement",
             },
             {
