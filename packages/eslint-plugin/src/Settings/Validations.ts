@@ -172,22 +172,55 @@ function isValidElementTypesMatcher(
   );
 }
 
+/**
+ * Checks if the value is a single matcher with options (tuple of [string, object])
+ */
+function isSingleMatcherWithOptions(
+  value: unknown
+): value is [string, Record<string, unknown>] {
+  return (
+    isArray(value) &&
+    value.length === 2 &&
+    isString(value[0]) &&
+    isObject(value[1])
+  );
+}
+
 // TODO: Remove this validation. Selectors should not be limited to element types defined in settings when using selector objects
 export function validateElementTypesMatcher(
   elementsMatcher: ElementsSelector | ExternalLibrariesSelector,
   settings: SettingsNormalized
 ) {
-  const [matcher] = isArray(elementsMatcher)
-    ? elementsMatcher
-    : [elementsMatcher];
-  if (
-    !invalidMatchers.includes(matcher) &&
-    !isValidElementTypesMatcher(matcher, settings)
-  ) {
-    invalidMatchers.push(matcher);
-    warnOnce(
-      `Option '${matcher}' does not match any element type from '${ELEMENTS}' setting`
-    );
+  // Handle empty array case
+  if (isArray(elementsMatcher) && elementsMatcher.length === 0) {
+    return;
+  }
+
+  // Determine if it's a single matcher or an array of matchers
+  let matchers: (ElementSelector | ExternalLibrarySelector)[];
+
+  if (isSingleMatcherWithOptions(elementsMatcher)) {
+    // It's a single matcher with options: ["type", { option: value }]
+    matchers = [elementsMatcher];
+  } else if (isArray(elementsMatcher)) {
+    // It's an array of matchers: ["helpers", "components"] or [["helpers", {...}], "components"]
+    matchers = elementsMatcher;
+  } else {
+    // It's a single matcher: "helpers"
+    matchers = [elementsMatcher];
+  }
+
+  // Validate each matcher
+  for (const matcher of matchers) {
+    if (
+      !invalidMatchers.includes(matcher) &&
+      !isValidElementTypesMatcher(matcher, settings)
+    ) {
+      invalidMatchers.push(matcher);
+      warnOnce(
+        `Option '${JSON.stringify(matcher)}' does not match any element type from '${ELEMENTS}' setting`
+      );
+    }
   }
 }
 
