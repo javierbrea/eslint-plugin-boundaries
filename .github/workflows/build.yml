@@ -24,6 +24,18 @@ jobs:
         run: pnpm lint
       - name: Spell check repo root
         run: pnpm check:spell
+  check-vulnerabilities:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/install
+        with:
+          node-version: 22.14.0
+      - uses: gensecaihq/Shai-Hulud-2.0-Detector@v2
+        with:
+          fail-on-critical: true
+          fail-on-high: true
   build:
     runs-on: ubuntu-latest
     strategy:
@@ -35,10 +47,6 @@ jobs:
       - uses: ./.github/actions/install
         with:
           node-version: ${{ matrix.node }}
-      - uses: gensecaihq/Shai-Hulud-2.0-Detector@v2
-        with:
-          fail-on-critical: true
-          fail-on-high: true
       # NOTE: In other Node versions, we only run unit eslint plugin unit tests to save time in the CI and to avoid dev tools Node incompatibilities
       - name: Test Unit
         if: ${{ matrix.node != '22.14.0' }}
@@ -142,12 +150,13 @@ jobs:
   # Configure only this job as required status check in GitHub
   all-checks:
     runs-on: ubuntu-latest
-    needs: [check-root, build, build-windows, reports]
+    needs: [check-root, check-vulnerabilities, build, build-windows, reports]
     if: always()
     steps:
       - name: Check all jobs status
         run: |
           echo "check-root: ${{ needs.check-root.result }}"
+          echo "check-vulnerabilities: ${{ needs.check-vulnerabilities.result }}"
           echo "build: ${{ needs.build.result }}"
           echo "build-windows: ${{ needs.build-windows.result }}"
           echo "reports: ${{ needs.reports.result }}"
