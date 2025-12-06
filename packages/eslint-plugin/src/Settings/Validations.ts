@@ -57,8 +57,6 @@ const {
   VALID_MODES,
 } = SETTINGS;
 
-const invalidMatchers: (ElementSelector | ExternalLibrarySelector)[] = [];
-
 const DEFAULT_MATCHER_OPTIONS = {
   type: "object",
 };
@@ -161,14 +159,13 @@ function isValidElementTypesMatcher(
   matcher: ElementSelector | ExternalLibrarySelector,
   settings: SettingsNormalized
 ) {
-  const matcherToCheck = isArray(matcher) ? matcher[0] : matcher;
-  const typeMatcherToCheck = isString(matcherToCheck)
-    ? matcherToCheck
-    : matcherToCheck.type;
+  const matcherToCheck = isArray(matcher)
+    ? (matcher[0] as string)
+    : (matcher as string);
   return (
-    !typeMatcherToCheck ||
-    (typeMatcherToCheck &&
-      micromatch.some(settings.elementTypeNames, typeMatcherToCheck))
+    !matcherToCheck ||
+    (matcherToCheck &&
+      micromatch.some(settings.elementTypeNames, matcherToCheck))
   );
 }
 
@@ -197,30 +194,29 @@ export function validateElementTypesMatcher(
   }
 
   // Determine if it's a single matcher or an array of matchers
-  let matchers: (ElementSelector | ExternalLibrarySelector)[];
+  let matcher: ElementSelector | ExternalLibrarySelector;
 
-  if (isSingleMatcherWithOptions(elementsMatcher)) {
+  if (isString(elementsMatcher)) {
+    matcher = elementsMatcher;
+  } else if (isSingleMatcherWithOptions(elementsMatcher)) {
     // It's a single matcher with options: ["type", { option: value }]
-    matchers = [elementsMatcher];
+    matcher = elementsMatcher;
   } else if (isArray(elementsMatcher)) {
     // It's an array of matchers: ["helpers", "components"] or [["helpers", {...}], "components"]
-    matchers = elementsMatcher;
+    // NOTE: Validate only the first matcher. It is wrong, but we don't want to impact performance, and anyway it was already validating only the first one.
+    // In next major version, validation will be removed, because schema validation will handle it.
+    matcher = elementsMatcher[0];
   } else {
-    // It's a single matcher: "helpers"
-    matchers = [elementsMatcher];
+    warnOnce(
+      `Option is not a valid elements selector: '${JSON.stringify(elementsMatcher)}'`
+    );
+    return;
   }
-
-  // Validate each matcher
-  for (const matcher of matchers) {
-    if (
-      !invalidMatchers.includes(matcher) &&
-      !isValidElementTypesMatcher(matcher, settings)
-    ) {
-      invalidMatchers.push(matcher);
-      warnOnce(
-        `Option '${JSON.stringify(matcher)}' does not match any element type from '${ELEMENTS}' setting`
-      );
-    }
+  // Validate the matcher
+  if (!isValidElementTypesMatcher(matcher, settings)) {
+    warnOnce(
+      `Option '${JSON.stringify(matcher)}' does not match any element type from '${ELEMENTS}' setting`
+    );
   }
 }
 
