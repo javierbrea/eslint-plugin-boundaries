@@ -57,8 +57,6 @@ const {
   VALID_MODES,
 } = SETTINGS;
 
-const invalidMatchers: (ElementSelector | ExternalLibrarySelector)[] = [];
-
 const DEFAULT_MATCHER_OPTIONS = {
   type: "object",
 };
@@ -161,14 +159,27 @@ function isValidElementTypesMatcher(
   matcher: ElementSelector | ExternalLibrarySelector,
   settings: SettingsNormalized
 ) {
-  const matcherToCheck = isArray(matcher) ? matcher[0] : matcher;
-  const typeMatcherToCheck = isString(matcherToCheck)
-    ? matcherToCheck
-    : matcherToCheck.type;
+  const matcherToCheck = isArray(matcher)
+    ? (matcher[0] as string)
+    : (matcher as string);
   return (
-    !typeMatcherToCheck ||
-    (typeMatcherToCheck &&
-      micromatch.some(settings.elementTypeNames, typeMatcherToCheck))
+    !matcherToCheck ||
+    (matcherToCheck &&
+      micromatch.some(settings.elementTypeNames, matcherToCheck))
+  );
+}
+
+/**
+ * Checks if the value is a single matcher with options (tuple of [string, object])
+ */
+function isSingleMatcherWithOptions(
+  value: unknown
+): value is [string, Record<string, unknown>] {
+  return (
+    isArray(value) &&
+    value.length === 2 &&
+    isString(value[0]) &&
+    isObject(value[1])
   );
 }
 
@@ -177,16 +188,34 @@ export function validateElementTypesMatcher(
   elementsMatcher: ElementsSelector | ExternalLibrariesSelector,
   settings: SettingsNormalized
 ) {
-  const [matcher] = isArray(elementsMatcher)
-    ? elementsMatcher
-    : [elementsMatcher];
-  if (
-    !invalidMatchers.includes(matcher) &&
-    !isValidElementTypesMatcher(matcher, settings)
-  ) {
-    invalidMatchers.push(matcher);
+  // Handle empty array case
+  if (isArray(elementsMatcher) && elementsMatcher.length === 0) {
+    return;
+  }
+
+  // Determine if it's a single matcher or an array of matchers
+  let matcher: ElementSelector | ExternalLibrarySelector;
+
+  if (isString(elementsMatcher)) {
+    matcher = elementsMatcher;
+  } else if (isSingleMatcherWithOptions(elementsMatcher)) {
+    // It's a single matcher with options: ["type", { option: value }]
+    matcher = elementsMatcher;
+  } else if (isArray(elementsMatcher)) {
+    // It's an array of matchers: ["helpers", "components"] or [["helpers", {...}], "components"]
+    // NOTE: Validate only the first matcher. It is wrong, but we don't want to impact performance, and anyway it was already validating only the first one.
+    // In next major version, validation will be removed, because schema validation will handle it.
+    matcher = elementsMatcher[0];
+  } else {
     warnOnce(
-      `Option '${matcher}' does not match any element type from '${ELEMENTS}' setting`
+      `Option is not a valid elements selector: '${JSON.stringify(elementsMatcher)}'`
+    );
+    return;
+  }
+  // Validate the matcher
+  if (!isValidElementTypesMatcher(matcher, settings)) {
+    warnOnce(
+      `Option '${JSON.stringify(matcher)}' does not match any element type from '${ELEMENTS}' setting`
     );
   }
 }
