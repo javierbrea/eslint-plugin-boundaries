@@ -35,6 +35,10 @@ jobs:
       - uses: ./.github/actions/install
         with:
           node-version: ${{ matrix.node }}
+      - uses: gensecaihq/Shai-Hulud-2.0-Detector@v2
+        with:
+          fail-on-critical: true
+          fail-on-high: true
       # NOTE: In other Node versions, we only run unit eslint plugin unit tests to save time in the CI and to avoid dev tools Node incompatibilities
       - name: Test Unit
         if: ${{ matrix.node != '22.14.0' }}

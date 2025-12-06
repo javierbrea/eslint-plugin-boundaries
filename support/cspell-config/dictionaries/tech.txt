@@ -1,7 +1,9 @@
 coverallsapp
 Infima
 jsboundaries
+lockfiles
 nrwl
+Shai-Hulud
 sonarcloud
 sonarlint
 sonarqube

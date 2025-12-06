@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Monorepo for @boundaries packages",
   "author": "Javier Brea",
-  "packageManager": "pnpm@9.4.0",
+  "packageManager": "pnpm@10.24.0",
   "license": "MIT",
   "scripts": {
     "nx": "nx",
