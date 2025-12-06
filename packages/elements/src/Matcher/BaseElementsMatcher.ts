@@ -37,7 +37,7 @@ import {
 } from "./MatcherHelpers";
 import type { Micromatch } from "./Micromatch";
 
-const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^}]+\s*}}/;
+const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^}\s]+(?:\s+[^}\s]+)*\s*}}/;
 const LEGACY_TEMPLATE_REGEX = /\$\{([^}]+)\}/g;
 
 /**
