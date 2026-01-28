@@ -199,6 +199,85 @@ export default [{
 **Recommendation:** Keep cache enabled unless you experience issues. If you encounter problems, please [open a github issue describing them](https://github.com/javierbrea/eslint-plugin-boundaries/issues).
 :::
 
+## `boundaries/flag-as-external`
+
+**Type:** `<object>`
+
+**Default:**
+
+```js
+{
+  unresolvableAlias: true,
+  inNodeModules: true,
+  outsideRootPath: false,
+  customSourcePatterns: []
+}
+```
+
+Defines custom rules for categorizing dependencies as external or local. By default, the plugin categorizes dependencies in `node_modules` and unresolvable imports as external. Use this setting to customize this behavior.
+
+:::tip
+This setting is especially useful in monorepo environments.
+:::
+
+**Object properties:**
+
+- **`unresolvableAlias`** `<boolean>` - If `true`, non-relative imports that cannot be resolved are categorized as external. **Default:** `true`
+- **`inNodeModules`** `<boolean>` - If `true`, imports resolved to paths containing `node_modules` are categorized as external. **Default:** `true`
+- **`outsideRootPath`** `<boolean>` - If `true`, imports resolved to paths outside the configured `root-path` are categorized as external. **Default:** `false`
+- **`customSourcePatterns`** `<array of strings>` - Import sources matching any of these [micromatch patterns](https://github.com/micromatch/micromatch) are categorized as external. **Default:** `[]`
+
+:::info
+All conditions are evaluated with **OR** logic: a dependency is categorized as external if **any** of the enabled conditions is met.
+:::
+
+**Example - Treat inter-package imports as external in a monorepo:**
+
+```js
+export default [{
+  files: ["packages/app/**/*.js"],
+  settings: {
+    "boundaries/root-path": resolve(import.meta.dirname, "packages/app"),
+    "boundaries/flag-as-external": {
+      outsideRootPath: true  // Imports outside packages/app are external
+    }
+  }
+}]
+```
+
+**Example - Treat specific import patterns as external:**
+
+```js
+export default [{
+  files: ["packages/**/*.js"],
+  settings: {
+    "boundaries/flag-as-external": {
+      customSourcePatterns: ["@myorg/*", "~/**"]  // Organization packages are external
+    }
+  }
+}]
+```
+
+**Example - Treat all resolved imports as local (for granular boundary rules between packages):**
+
+```js
+export default [{
+  files: ["packages/**/*.js"],
+  settings: {
+    "boundaries/flag-as-external": {
+      unresolvableAlias: true,   // Still treat unresolvable as external
+      inNodeModules: true,        // npm packages remain external
+      outsideRootPath: false,     // Inter-package imports are local
+      customSourcePatterns: []    // No custom patterns
+    }
+  }
+}]
+```
+
+:::tip
+See the [Monorepo Setup Guide](../guides/monorepo-setup.md) for detailed examples of different monorepo configurations.
+:::
+
 ## `import/resolver`
 
 **Type:** `<object>`

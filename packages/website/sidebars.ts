@@ -61,6 +61,7 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       items: [
         "guides/typescript-support",
+        "guides/monorepo-setup",
         "guides/custom-resolvers",
         "guides/debugging",
       ],
