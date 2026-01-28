@@ -34,6 +34,7 @@
     "jest": "30.2.0",
     "lint-staged": "16.2.3",
     "nx": "21.6.3",
+    "serve": "14.2.5",
     "typescript": "5.6.3"
   },
   "lint-staged": {
@@ -43,8 +44,5 @@
   "engines": {
     "node": ">=20",
     "pnpm": ">=9"
-  },
-  "dependencies": {
-    "serve": "^14.2.5"
   }
 }
