@@ -121,6 +121,28 @@ For every pull request opened against the `master` branch, Netlify automatically
 > [!WARNING]
 > Always check the preview deployment link in your pull request before merging to ensure everything works as expected. The preview URL will be posted as a comment by the Netlify bot on your PR.
 
+## Versioning
+
+The website follows the same versioning strategy as the main JS Boundaries project. Each release of the JS Boundaries library corresponds to a specific version of the documentation.
+
+Read the Docusaurus [versioning documentation](https://docusaurus.io/docs/versioning) for more details.
+
+To create a new version of the documentation, use the following command:
+
+```sh
+pnpm nx version website <current-version>
+```
+
+This command will create a new versioned documentation set based on the current content. Then you can update the content of the `docs/` folder to reflect changes in the new version, which will be accessible at `/docs/next/` until the next release.
+
+When the new version is ready to be released, create a new versioned docs set by running the command above with the appropriate version number.
+
+> [!INFO]
+> We only create new documentation versions when releasing a new version of the `eslint-plugin` package, following the same version number.
+
+> [!CAUTION]
+> Patch releases do not require new documentation versions. In such cases, you should modify both the next version and the corresponding versioned docs as needed.
+
 ## Useful Commands
 
 | Command | Description |
@@ -129,6 +151,7 @@ For every pull request opened against the `master` branch, Netlify automatically
 | `pnpm build` | Build the website for production |
 | `pnpm serve` | Serve the production build locally for preview |
 | `pnpm swizzle` | Customize Docusaurus components |
+| `pnpm version` | Bump the version of the website. Read the documentation for details. |
 
 ## Additional Resources
 
