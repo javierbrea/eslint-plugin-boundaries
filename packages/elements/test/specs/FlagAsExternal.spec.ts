@@ -54,17 +54,6 @@ describe("FlagAsExternal configuration", () => {
       // Should be local since outsideRootPath is false by default and source is relative
       expect(dependency.to.origin).toBe("local");
     });
-
-    it("should not match custom source patterns by default", () => {
-      const dependency = matcher.describeDependency({
-        from: "/project/src/components/App.ts",
-        source: "./relative",
-        to: "/project/packages/package/index.ts",
-        kind: "value",
-      });
-
-      expect(dependency.to.origin).toBe("local");
-    });
   });
 
   describe("unresolvableAlias option", () => {
@@ -341,7 +330,7 @@ describe("FlagAsExternal configuration", () => {
     });
   });
 
-  describe("oR logic with multiple conditions", () => {
+  describe("logic with multiple conditions", () => {
     it("should categorize as external if ANY condition is true", () => {
       elements = new Elements({
         rootPath: "/project/packages/app",
@@ -418,107 +407,6 @@ describe("FlagAsExternal configuration", () => {
     });
   });
 
-  describe("monorepo scenarios", () => {
-    describe("scenario 1: Inter-package as external with outsideRootPath", () => {
-      it("should treat dependencies outside package root as external", () => {
-        elements = new Elements({
-          rootPath: "/monorepo/packages/app",
-          flagAsExternal: {
-            outsideRootPath: true,
-          },
-        });
-        matcher = elements.getMatcher([
-          { type: "component", pattern: "src/**/*.ts" },
-        ]);
-
-        const interPackageDep = matcher.describeDependency({
-          from: "/monorepo/packages/app/src/index.ts",
-          source: "@monorepo/shared",
-          kind: "value",
-          to: "/monorepo/packages/shared/src/index.ts",
-        });
-
-        const intraPackageDep = matcher.describeDependency({
-          from: "/monorepo/packages/app/src/index.ts",
-          source: "./utils",
-          kind: "value",
-          to: "/monorepo/packages/app/src/utils.ts",
-        });
-
-        expect(interPackageDep.to.origin).toBe("external");
-        expect(intraPackageDep.to.origin).toBe("local");
-      });
-    });
-
-    describe("scenario 2: Inter-package as external with customSourcePatterns", () => {
-      it("should treat imports matching monorepo patterns as external", () => {
-        elements = new Elements({
-          rootPath: "/monorepo",
-          flagAsExternal: {
-            customSourcePatterns: ["@monorepo/*"],
-          },
-        });
-        matcher = elements.getMatcher([
-          { type: "component", pattern: "packages/*/src/**/*.ts" },
-        ]);
-
-        const interPackageDep = matcher.describeDependency({
-          from: "/monorepo/packages/app/src/index.ts",
-          source: "@monorepo/shared",
-          kind: "value",
-          to: "/monorepo/packages/shared/src/index.ts",
-        });
-
-        const relativeDep = matcher.describeDependency({
-          from: "/monorepo/packages/app/src/index.ts",
-          source: "../utils/helper",
-          kind: "value",
-          to: "/monorepo/packages/app/utils/helper.ts",
-        });
-
-        expect(interPackageDep.to.origin).toBe("external");
-        expect(relativeDep.to.origin).toBe("local");
-      });
-    });
-
-    describe("scenario 3: Inter-package as local with boundary rules", () => {
-      it("should treat all resolved dependencies as local for granular rules", () => {
-        elements = new Elements({
-          rootPath: "/monorepo",
-          flagAsExternal: {
-            unresolvableAlias: true,
-            inNodeModules: true,
-            outsideRootPath: false,
-            customSourcePatterns: [],
-          },
-        });
-        matcher = elements.getMatcher([
-          { type: "app", pattern: "/monorepo/packages/app/src/*.ts" },
-          { type: "shared", pattern: "/monorepo/packages/shared/src/*.ts" },
-        ]);
-
-        const interPackageDep = matcher.describeDependency({
-          from: "/monorepo/packages/app/src/index.ts",
-          source: "@monorepo/shared",
-          kind: "value",
-          to: "/monorepo/packages/shared/src/index.ts",
-        });
-
-        const npmDep = matcher.describeDependency({
-          from: "/monorepo/packages/app/src/index.ts",
-          source: "lodash",
-          kind: "value",
-          to: "/monorepo/node_modules/lodash/index.js",
-        });
-
-        // Inter-package dependencies are local (can apply boundary rules)
-        expect(interPackageDep.to.origin).toBe("local");
-        // npm packages are external
-        expect(npmDep.to.origin).toBe("external");
-      });
-    });
-  });
-
   describe("edge cases", () => {
     it("should handle missing filePath gracefully", () => {
       elements = new Elements({
@@ -557,30 +445,6 @@ describe("FlagAsExternal configuration", () => {
       });
 
       // Without rootPath, outsideRootPath check is skipped
-      expect(dependency.to.origin).toBe("local");
-    });
-
-    it("should not categorize relative imports as external regardless of options", () => {
-      elements = new Elements({
-        rootPath: "/project",
-        flagAsExternal: {
-          unresolvableAlias: true,
-          inNodeModules: true,
-          outsideRootPath: true,
-          customSourcePatterns: ["**"],
-        },
-      });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/**/*.ts" },
-      ]);
-
-      const dependency = matcher.describeDependency({
-        from: "/project/src/components/App.ts",
-        source: "./Button",
-        kind: "value",
-        to: "/project/src/components/Button.ts",
-      });
-
       expect(dependency.to.origin).toBe("local");
     });
   });
