@@ -7,6 +7,7 @@ import type {
   ExternalLibrariesSelector,
   ElementDescriptor,
   ElementDescriptorMode,
+  FlagAsExternalOptions,
 } from "@boundaries/elements";
 import { isElementDescriptor } from "@boundaries/elements";
 import type { Rule } from "eslint";
@@ -425,6 +426,68 @@ function validateRootPath(rootPath: unknown): string | undefined {
   );
 }
 
+function validateFlagAsExternal(
+  flagAsExternal: unknown
+): FlagAsExternalOptions | undefined {
+  if (!flagAsExternal) {
+    return;
+  }
+
+  if (!isObject(flagAsExternal)) {
+    warnOnce(
+      `Please provide a valid value in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting. The value should be an object.`
+    );
+    return;
+  }
+
+  const validated: FlagAsExternalOptions = {};
+
+  if (flagAsExternal.unresolvableAlias !== undefined) {
+    if (isBoolean(flagAsExternal.unresolvableAlias)) {
+      validated.unresolvableAlias = flagAsExternal.unresolvableAlias;
+    } else {
+      warnOnce(
+        `Please provide a valid boolean for 'unresolvableAlias' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`
+      );
+    }
+  }
+
+  if (flagAsExternal.inNodeModules !== undefined) {
+    if (isBoolean(flagAsExternal.inNodeModules)) {
+      validated.inNodeModules = flagAsExternal.inNodeModules;
+    } else {
+      warnOnce(
+        `Please provide a valid boolean for 'inNodeModules' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`
+      );
+    }
+  }
+
+  if (flagAsExternal.outsideRootPath !== undefined) {
+    if (isBoolean(flagAsExternal.outsideRootPath)) {
+      validated.outsideRootPath = flagAsExternal.outsideRootPath;
+    } else {
+      warnOnce(
+        `Please provide a valid boolean for 'outsideRootPath' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`
+      );
+    }
+  }
+
+  if (flagAsExternal.customSourcePatterns !== undefined) {
+    if (
+      isArray(flagAsExternal.customSourcePatterns) &&
+      flagAsExternal.customSourcePatterns.every(isString)
+    ) {
+      validated.customSourcePatterns = flagAsExternal.customSourcePatterns;
+    } else {
+      warnOnce(
+        `Please provide a valid array of strings for 'customSourcePatterns' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`
+      );
+    }
+  }
+
+  return validated;
+}
+
 // TODO: Remove settings validation in next major version. It should be done by schema validation only
 export function validateSettings(
   settings: Rule.RuleContext["settings"]
@@ -456,6 +519,9 @@ export function validateSettings(
     [SETTINGS_KEYS_MAP.CACHE]: settings[SETTINGS_KEYS_MAP.CACHE] as
       | boolean
       | undefined,
+    [SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]: validateFlagAsExternal(
+      settings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]
+    ),
   };
 }
 /**
@@ -526,6 +592,20 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
       validatedSettings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES] ??
       LEGACY_TEMPLATES_DEFAULT,
     cache: validatedSettings[SETTINGS_KEYS_MAP.CACHE] ?? CACHE_DEFAULT,
+    flagAsExternal: {
+      unresolvableAlias:
+        validatedSettings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]
+          ?.unresolvableAlias ?? true,
+      inNodeModules:
+        validatedSettings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]?.inNodeModules ??
+        true,
+      outsideRootPath:
+        validatedSettings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]
+          ?.outsideRootPath ?? false,
+      customSourcePatterns:
+        validatedSettings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]
+          ?.customSourcePatterns ?? [],
+    },
   };
   return result;
 }
