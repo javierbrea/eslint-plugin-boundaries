@@ -61,6 +61,16 @@ All examples in this page **assume eslint is executed from the monorepo root**, 
   - `settings: { "boundaries/root-path": resolve(import.meta.dirname) }`
 :::
 
+### Pattern matching and `rootPath`
+
+Element descriptor patterns are **relative to [`rootPath` setting](../setup/settings.md#boundariesroot-path)**. The matching behavior varies by mode:
+
+- **`file` and `folder` modes**: Patterns are evaluated **right-to-left** (from the end of the path). This means patterns like `*.model.ts` or `services/*` will match files regardless of their location within `rootPath`, making the relativity less critical.
+
+- **`full` mode**: Patterns must match the **complete path** relative to `rootPath`. For files outside `rootPath`, patterns must match absolute paths since those files retain their absolute path for matching.
+
+For detailed examples of how each mode works, see the [Elements documentation](../setup/elements.md#mode-optional).
+
 
 ## Scenario 1: Inter-package Dependencies as External (Package Isolation)
 

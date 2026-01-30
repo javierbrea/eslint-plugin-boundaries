@@ -78,7 +78,7 @@ The element type to be assigned to files or imports matching the pattern. This t
 A [micromatch pattern](https://github.com/micromatch/micromatch) to match against file paths.
 
 :::warning
-By default, the plugin matches patterns progressively from the right side of each file path. This means you only need to define the last part of the path you want to match, not the full path from the project root.
+By default, the plugin matches patterns progressively from the right side of each file path. This means you only need to define the last part of the path you want to match, not the full path from the project root (unless using `mode: "full"`).
 :::
 
 **Example:** Given a path `src/helpers/awesome-helper/index.js`:
@@ -122,13 +122,53 @@ Controls how the pattern matching works:
   - `**/*/*.model.js`
   - `src/*/*/*.model.js`
 
+:::note Pattern Matching Modes and rootPath
+
+Patterns in element descriptors are **relative to [`rootPath`](./settings.md#boundariesroot-path)** (which defaults to the current working directory).
+
+The pattern matching behavior differs significantly across modes:
+
+**Example:** Consider a file at `packages/app/src/models/user.model.ts`
+
+With `rootPath` set to `packages/app`:
+
 ```js
+// file mode - matches right-to-left from end of path
 {
-  type: "models",
-  pattern: "*.model.js",
+  type: "model",
+  pattern: "*.model.ts",
   mode: "file"
 }
+// ✅ Matches! Pattern matches the filename ending
+
+// folder mode - matches folder, adds **/* internally  
+{
+  type: "model",
+  pattern: "models/*",
+  mode: "folder"
+}
+// ✅ Matches! Right-to-left finds "models/user" folder
+
+// full mode - requires complete path match from rootPath
+{
+  type: "model",
+  pattern: "src/models/*.model.ts",
+  mode: "full"
+}
+// ✅ Matches! Full relative path from rootPath matches
+
+// full mode with incomplete pattern
+{
+  type: "model",
+  pattern: "models/*.model.ts",
+  mode: "full"
+}
+// ❌ Doesn't match - missing "src/" prefix in pattern
 ```
+
+**Key takeaway:** In `file` and `folder` modes, right-to-left evaluation makes patterns more flexible. In `full` mode, you must specify the complete path relative to `rootPath` (unless the file is outside `rootPath`, in which case absolute paths are used, read [monorepo setup](../guides/monorepo-setup.md) for more details).
+
+:::
 
 ### `capture` (optional)
 

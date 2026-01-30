@@ -140,9 +140,12 @@ const elements = new Elements({
 - **`rootPath`**: Absolute path to the project root. When configured, file paths should be provided as absolute paths to allow the package to determine which files are outside the project root (default: `undefined`)
 - **`flagAsExternal`**: Configuration for categorizing dependencies as external or local. Multiple conditions can be specified, and dependencies will be categorized as external if ANY condition is met (OR logic). See [Flagging Dependencies as External](#flagging-dependencies-as-external) for details.
 
-> **⚠️ Important:** When using `rootPath`:
-> - All **file paths** passed to the API (`describeElement`, `describeDependency`, etc.) must be **absolute paths**. Paths within the `rootPath` should include it as a prefix so the package can correctly identify files outside the project root.
-> - However, **matching patterns** in element descriptors remain **relative to the `rootPath`**. The package automatically converts absolute paths to relative paths internally for pattern matching.
+> [!NOTE]
+> **Pattern Matching with `rootPath`:**
+> When `rootPath` **is configured**:
+> - **Matching patterns** in element descriptors are **relative to the `rootPath`**. The package automatically converts absolute paths to relative paths internally for pattern matching.
+> - In **`file` and `folder` modes**, patterns are evaluated **right-to-left** (from the end of the path), so the relativity to `rootPath` is typically less important. For example, a pattern like `*.model.ts` will match any file ending with `.model.ts` regardless of its location within `rootPath`.
+> - In **`full` mode**, patterns must match the complete relative path from `rootPath`. Files outside `rootPath` maintain their absolute paths and require absolute patterns to match.
 
 ### Creating a Matcher
 

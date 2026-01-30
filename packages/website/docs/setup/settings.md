@@ -171,6 +171,16 @@ export default [{
 The path should be absolute and resolved before passing it to the plugin. Otherwise, it will be resolved using the current working directory.
 :::
 
+:::note Pattern Matching with rootPath
+
+Matching patterns in element descriptors must be **relative to the `rootPath`**. The plugin automatically converts absolute file paths to relative paths internally for pattern matching.
+
+However, in **`file` and `folder` modes**, patterns are evaluated **right-to-left** (from the end of the path), which makes the relativity to `rootPath` less critical for most use cases. For example, a pattern like `*.model.ts` will match any file ending with `.model.ts` regardless of its location within `rootPath`.
+
+In **`full` mode**, patterns must match the complete relative path from `rootPath`. Files outside `rootPath` maintain their absolute paths and require absolute patterns to match. For more details about monorepo configurations, see the [Monorepo Setup guide](../guides/monorepo-setup.md).
+
+:::
+
 **Using environment variable:**
 
 ```bash
