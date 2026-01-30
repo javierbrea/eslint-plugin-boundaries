@@ -125,8 +125,8 @@ const testOutsideRootPath = () => {
         code: "import HelperB from 'package-b/helpers/helper-b'",
         options: [
           {
-            default: "allow",
-            rules: [{ from: ["components"], disallow: ["micromatch"] }],
+            default: "disallow",
+            rules: [{ from: ["components"], allow: ["package-b"] }],
           },
         ],
       },
@@ -149,7 +149,26 @@ const testOutsideRootPath = () => {
           },
         ],
       },
-      // Disallowed node_modules dependency
+      {
+        filename: absoluteFilePath(
+          "package-a/components/component-a/ComponentA.js"
+        ),
+        code: "import HelperB from 'package-b/helpers/helper-b'",
+        options: [
+          {
+            default: "allow",
+            rules: [{ from: ["components"], disallow: ["package-b"] }],
+          },
+        ],
+        errors: [
+          {
+            message:
+              "Usage of external module 'package-b' is not allowed in elements of type 'components'. Disallowed in rule 1",
+            type: "Literal",
+          },
+        ],
+      },
+      // Disallowed all external dependency from node_modules
       {
         filename: absoluteFilePath("package-a/helpers/helper-a/HelperA.js"),
         code: "import micromatch from 'micromatch'",
@@ -205,6 +224,19 @@ const testCustomSourcePatterns = () => {
           },
         ],
       },
+      // Allowed external dependency matching custom pattern
+      {
+        filename: absoluteFilePath(
+          "package-a/components/component-a/ComponentA.js"
+        ),
+        code: "import HelperB from 'package-b/helpers/helper-b'",
+        options: [
+          {
+            default: "disallow",
+            rules: [{ from: ["components"], allow: ["package-b"] }],
+          },
+        ],
+      },
     ],
     invalid: [
       // Disallowed external dependency matching custom pattern
@@ -220,6 +252,25 @@ const testCustomSourcePatterns = () => {
               file: "'components' with package 'a' and elementName 'component-a'",
               dep: "package-b",
             }),
+            type: "Literal",
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath(
+          "package-a/components/component-a/ComponentA.js"
+        ),
+        code: "import HelperB from 'package-b/helpers/helper-b'",
+        options: [
+          {
+            default: "allow",
+            rules: [{ from: ["components"], disallow: ["package-b"] }],
+          },
+        ],
+        errors: [
+          {
+            message:
+              "Usage of external module 'package-b' is not allowed in elements of type 'components'. Disallowed in rule 1",
             type: "Literal",
           },
         ],
