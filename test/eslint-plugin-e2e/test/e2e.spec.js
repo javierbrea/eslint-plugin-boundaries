@@ -5,6 +5,7 @@ import chalk from "chalk";
 
 import createdConfigWithDefine from "./configs/createAndDefineConfig.config.js";
 import createdConfig from "./configs/createConfig.config.js";
+import monorepoConfig from "./configs/monorepo.config.js";
 import recommendedConfig from "./configs/recommended.config.js";
 import strictConfig from "./configs/strict.config.js";
 import createRenamedConfig from "./configs-ts/createRenamedConfig.config.js";
@@ -384,6 +385,113 @@ const tests = [
           );
         }
       );
+    },
+  },
+  {
+    name: "monorepo-external-config",
+    config: [
+      {
+        ...monorepoConfig[0],
+        settings: {
+          ...monorepoConfig[0].settings,
+          "boundaries/root-path": join(
+            ___dirname,
+            "fixtures",
+            "monorepo",
+            "package-a"
+          ),
+          "boundaries/flag-as-external": {
+            outsideRootPath: true,
+          },
+        },
+      },
+    ],
+    fixture: join(___dirname, "fixtures", "monorepo"),
+    runOnFiles: ["**/*.js"],
+    assert: async (runner, result) => {
+      await runner.assert(`config should detect 3 errors`, async () => {
+        return result.errorCount === 3;
+      });
+      await runner.assert(
+        `component-a should not be able to import helper c (external)`,
+        async () => {
+          const fileResult = findFileResult(
+            "package-a/components/component-a",
+            result
+          );
+          return (
+            fileResult?.errorCount === 1 &&
+            fileResult?.messages.some(
+              (msg) =>
+                msg.ruleId === "boundaries/external" &&
+                msg.message.includes("type 'component' with name 'component-a'")
+            )
+          );
+        }
+      );
+
+      await runner.assert(
+        `helper-a should not be able to import helper b (external)`,
+        async () => {
+          const fileResult = findFileResult(
+            "package-a/helpers/helper-a",
+            result
+          );
+          return (
+            fileResult?.errorCount === 1 &&
+            fileResult?.messages.some(
+              (msg) =>
+                msg.ruleId === "boundaries/external" &&
+                msg.message.includes("type 'helper' with name 'helper-a'")
+            )
+          );
+        }
+      );
+
+      await runner.assert(
+        `helper-a (external) should not be able to import helper b (external)`,
+        async () => {
+          const fileResult = findFileResult(
+            "package-b/helpers/helper-a",
+            result
+          );
+          return (
+            fileResult?.errorCount === 1 &&
+            fileResult?.messages.some(
+              (msg) =>
+                msg.ruleId === "boundaries/external" &&
+                msg.message.includes("type 'helper' with name 'helper-a'")
+            )
+          );
+        }
+      );
+    },
+  },
+  {
+    name: "monorepo-config-no-external",
+    config: [
+      {
+        ...monorepoConfig[0],
+        settings: {
+          ...monorepoConfig[0].settings,
+          "boundaries/root-path": join(
+            ___dirname,
+            "fixtures",
+            "monorepo",
+            "package-a"
+          ),
+          "boundaries/flag-as-external": {
+            outsideRootPath: false,
+          },
+        },
+      },
+    ],
+    fixture: join(___dirname, "fixtures", "monorepo"),
+    runOnFiles: ["**/*.js"],
+    assert: async (runner, result) => {
+      await runner.assert(`config should detect no errors`, async () => {
+        return result.errorCount === 0;
+      });
     },
   },
 ];
