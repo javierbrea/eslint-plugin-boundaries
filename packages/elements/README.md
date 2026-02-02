@@ -428,7 +428,7 @@ The `flagAsExternal` configuration allows you to control how dependencies are ca
 
 #### Path Requirements with `rootPath`
 
-When `rootPath` is configured, the package needs absolute paths to correctly determine which files are outside the project root, but matching patterns remain relative to `rootPath`.
+When `rootPath` is configured, the package needs absolute paths to correctly determine which files are outside the project root, but matching patterns must remain relative to `rootPath`, especially in `full` mode (because `file` and `folder` modes match progressively from the right, so they may be less affected by relativity).
 
 ```typescript
 const elements = new Elements({
@@ -440,7 +440,7 @@ const elements = new Elements({
 
 // Matching patterns are relative to rootPath
 const matcher = elements.getMatcher([
-  { type: 'component', pattern: 'src/**/*.ts' }, // Relative to /project/packages/app
+  { type: 'component', pattern: 'src/**/*.ts', mode: 'full' }, // Relative to /project/packages/app
 ]);
 
 // ✅ Correct: Using absolute file paths with relative patterns

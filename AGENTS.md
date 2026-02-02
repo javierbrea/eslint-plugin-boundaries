@@ -1,4 +1,4 @@
-# Agent Guidelines for gvp-orch-auth-server
+# Agent Guidelines
 
 ## Language Policy
 
