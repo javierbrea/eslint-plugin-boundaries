@@ -15,7 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- feat: Add `boundaries/flag-as-external` setting to allow better control over external module identification
+- feat(#349): Add `boundaries/flag-as-external` setting to allow better control over external module identification
+
+### Removed
+
+- feat(#423): Remove rules validation during linting runtime to improve performance. Validation is performed at configuration load time using eslint schema validation.
 
 ### Changed
 
