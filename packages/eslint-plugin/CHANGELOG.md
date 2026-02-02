@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Removed
 
-- feat(#423): Remove rules validation during linting runtime to improve performance. Validation is performed at configuration load time using eslint schema validation.
+- feat(#420): Remove rules validation during linting runtime to improve performance. Validation is performed at configuration load time using eslint schema validation.
 
 ### Changed
 
@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- fix(#420): Fix elements selector validation error when selector is an empty array
+- fix(#415): Fix elements selector validation error when selector is an empty array
 
 ## [5.3.0] - 2025-11-23
 
