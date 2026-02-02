@@ -136,7 +136,7 @@ pnpm nx version website <current-version>
 Or, if you're in the `website` package directory:
 
 ```sh
-pnpm nx version website <current-version>
+pnpm run version <current-version>
 ```
 
 This command will create a new versioned documentation set based on the current content. Then you can update the content of the `docs/` folder to reflect changes in the new version, which will be accessible at `/docs/next/` until the next release.
