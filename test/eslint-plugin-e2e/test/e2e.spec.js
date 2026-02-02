@@ -13,8 +13,8 @@ import recommendedConfigTs from "./configs-ts/recommended.config.js";
 import renamedConfigTs from "./configs-ts/renamed.config.js";
 import { runTests } from "./runner.js";
 
-const ___filename = fileURLToPath(import.meta.url);
-const ___dirname = dirname(___filename);
+const currentFile = fileURLToPath(import.meta.url);
+const currentDir = dirname(currentFile);
 
 /**
  * Find the results of a file given a portion of the file name
@@ -32,7 +32,7 @@ const tests = [
   {
     name: "recommended-config",
     config: recommendedConfig,
-    fixture: join(___dirname, "fixtures", "basic"),
+    fixture: join(currentDir, "fixtures", "basic"),
     assert: async (runner, result) => {
       await runner.assert(
         `recommended config should detect 1 error`,
@@ -80,7 +80,7 @@ const tests = [
   {
     name: "created-config",
     config: createdConfig,
-    fixture: join(___dirname, "fixtures", "basic"),
+    fixture: join(currentDir, "fixtures", "basic"),
     assert: async (runner, result) => {
       await runner.assert(`created config should detect 1 error`, async () => {
         return result.errorCount === 1;
@@ -125,7 +125,7 @@ const tests = [
   {
     name: "created-config-with-define",
     config: createdConfigWithDefine,
-    fixture: join(___dirname, "fixtures", "basic"),
+    fixture: join(currentDir, "fixtures", "basic"),
     assert: async (runner, result) => {
       await runner.assert(
         `created config with define should detect 1 error`,
@@ -173,7 +173,7 @@ const tests = [
   {
     name: "recommended-config-ts",
     config: recommendedConfigTs,
-    fixture: join(___dirname, "fixtures", "basic"),
+    fixture: join(currentDir, "fixtures", "basic"),
     assert: async (runner, result) => {
       await runner.assert(
         `recommended config in Ts should detect 1 error`,
@@ -221,7 +221,7 @@ const tests = [
   {
     name: "renamed-config-ts",
     config: renamedConfigTs,
-    fixture: join(___dirname, "fixtures", "basic"),
+    fixture: join(currentDir, "fixtures", "basic"),
     assert: async (runner, result) => {
       await runner.assert(`renamed config should detect 1 error`, async () => {
         return result.errorCount === 1;
@@ -266,7 +266,7 @@ const tests = [
   {
     name: "created-renamed-config-ts",
     config: createRenamedConfig,
-    fixture: join(___dirname, "fixtures", "basic"),
+    fixture: join(currentDir, "fixtures", "basic"),
     assert: async (runner, result) => {
       await runner.assert(
         `created renamed config should detect 1 error`,
@@ -314,7 +314,7 @@ const tests = [
   {
     name: "strict-config",
     config: strictConfig,
-    fixture: join(___dirname, "fixtures", "basic"),
+    fixture: join(currentDir, "fixtures", "basic"),
     assert: async (runner, result) => {
       await runner.assert(`strict config should detect 4 errors`, async () => {
         return result.errorCount === 4;
@@ -395,7 +395,7 @@ const tests = [
         settings: {
           ...monorepoConfig[0].settings,
           "boundaries/root-path": join(
-            ___dirname,
+            currentDir,
             "fixtures",
             "monorepo",
             "package-a"
@@ -406,7 +406,7 @@ const tests = [
         },
       },
     ],
-    fixture: join(___dirname, "fixtures", "monorepo"),
+    fixture: join(currentDir, "fixtures", "monorepo"),
     runOnFiles: ["**/*.js"],
     assert: async (runner, result) => {
       await runner.assert(`config should detect 3 errors`, async () => {
@@ -475,7 +475,7 @@ const tests = [
         settings: {
           ...monorepoConfig[0].settings,
           "boundaries/root-path": join(
-            ___dirname,
+            currentDir,
             "fixtures",
             "monorepo",
             "package-a"
@@ -486,7 +486,7 @@ const tests = [
         },
       },
     ],
-    fixture: join(___dirname, "fixtures", "monorepo"),
+    fixture: join(currentDir, "fixtures", "monorepo"),
     runOnFiles: ["**/*.js"],
     assert: async (runner, result) => {
       await runner.assert(`config should detect no errors`, async () => {
