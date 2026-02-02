@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- fix(#415): Fix elements selector validation error when selector is an empty array
+- fix(#420): Fix elements selector validation error when selector is an empty array
 
 ## [5.3.0] - 2025-11-23
 
