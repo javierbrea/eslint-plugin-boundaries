@@ -149,7 +149,7 @@ Please, follow these rules to update the version number:
    * You make backwards-compatible bug fixes.
    * You bump the version of a dependency which doesn't affect the API of the package. __This includes internal dependencies.__
 
-> ![WARNING]
+> [!WARNING]
 > Remember to modify the version of the packages affected by the change in another package. For example, if you modify a package that is used by another one, you should update the version of the dependent package.
   You can use the `pnpm nx graph` command to see the dependencies between the packages. In the future we will try to implement a workflow check to ensure that versions are updated correctly, but for the moment you should do it manually.
 
@@ -171,6 +171,9 @@ The release process is as follows:
       * Description: Copy the changes from the corresponding `CHANGELOG.md` file for the version you are releasing.
    * Once the release is created, the packages will be published to the npm registry automatically. __For the moment, creating any release will trigger the publication of all the packages__. If you have to release more than one package there is no problem, next executions will do nothing if the package is already published.
       NOTE: Publishing all packages when the first release is created has been done to avoid having packages without dependencies published due to possible errors when creating releases for each package manually. In the future, we could only release the target package based on the release tag, but some extra checks should be implemented in order to ensure that the dependencies are published before the dependent packages.
+
+> [!CAUTION]
+> The website package version should always match the `eslint-plugin` package version. So, if you modify the `eslint-plugin` package version, you should also update the `website` package version accordingly during the release process. Read the [website README](./packages/website/README.md) for more information about versioning.
 
 > [!WARNING]
 > For publishing beta versions, please create a branch from the `release` branch named `release-X.Y.Z-beta.N` (Replace `X.Y.Z` with the version number of the next release and `N` with the beta version number, starting from 1). Then, you can open PRs to this branch, and when you merge them. When the release is ready, you can create a release in Github from that branch, following the same instructions as for a normal release. The only difference is that the version number should be `X.Y.Z-beta.N`. This way, the beta versions will be published to npm with the `beta` tag, and they will not affect the latest stable version of the packages. Once the beta testing is done, you can merge the `release-X.Y.Z-beta.N` branch into the `release` branch, and then create a normal release from there.

@@ -31,7 +31,9 @@ export class MatchersCache extends CacheManager<
   }): string {
     const configHash = `${config.legacyTemplates}|${config.includePaths}|${config.ignorePaths}|${
       config.cache
-    }`;
+    }|${config.rootPath}|${config.flagAsExternal.inNodeModules}|${config.flagAsExternal.unresolvableAlias}|${
+      config.flagAsExternal.outsideRootPath
+    }|${config.flagAsExternal.customSourcePatterns.join(",")}`;
 
     const elementDescriptorsHash = elementDescriptors
       .map(

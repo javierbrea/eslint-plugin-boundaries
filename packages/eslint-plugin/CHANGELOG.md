@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [5.4.0] - 2026-02-02
+
+### Added
+
+- feat(#349): Add `boundaries/flag-as-external` setting to allow better control over external module identification
+
+### Removed
+
+- feat(#420): Remove rules validation during linting runtime to improve performance. Validation is performed at configuration load time using eslint schema validation.
+
+### Changed
+
+- chore: bump @boundaries/elements to 1.2.0
+
 ## [5.3.1] - 2025-12-06
 
 ### Fixed

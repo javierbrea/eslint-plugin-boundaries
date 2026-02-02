@@ -111,6 +111,9 @@ const config: Config = {
       },
       items: [
         {
+          type: "docsVersionDropdown",
+        },
+        {
           to: "docs/overview/",
           position: "left",
           label: "Getting Started",

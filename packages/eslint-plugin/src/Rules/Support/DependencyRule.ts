@@ -2,12 +2,8 @@ import type { Rule } from "eslint";
 
 import { elementDescription, dependencyDescription } from "../../Elements";
 import type { EslintLiteralNode } from "../../Elements";
-import type {
-  RuleOptionsWithRules,
-  RuleOptions,
-  RuleMetaDefinition,
-} from "../../Settings";
-import { SETTINGS, validateRules, getSettings } from "../../Settings";
+import type { RuleOptionsWithRules, RuleMetaDefinition } from "../../Settings";
+import { SETTINGS, getSettings } from "../../Settings";
 import { warnOnce, isString } from "../../Support";
 
 import type {
@@ -17,15 +13,6 @@ import type {
 import { meta } from "./Helpers";
 
 const { ADDITIONAL_DEPENDENCY_NODES } = SETTINGS;
-
-function optionsHaveRules(
-  options?: RuleOptions
-): options is RuleOptionsWithRules {
-  if (!options) {
-    return false;
-  }
-  return Boolean((options as RuleOptionsWithRules).rules);
-}
 
 export function dependencyRule<Options extends RuleOptionsWithRules>(
   ruleMeta: RuleMetaDefinition,
@@ -41,10 +28,6 @@ export function dependencyRule<Options extends RuleOptionsWithRules>(
 
       if (ruleOptions.validate !== false && !options) {
         return {};
-      }
-
-      if (ruleOptions.validate !== false && optionsHaveRules(options)) {
-        validateRules(settings, options.rules, ruleOptions.validateRules);
       }
 
       // TODO: Remove this check when allowing to select by any other property

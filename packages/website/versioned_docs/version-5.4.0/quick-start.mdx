@@ -1,0 +1,302 @@
+---
+id: quick-start
+title: Quick Start
+description: Learn how to quickly get started with ESLint Plugin Boundaries.
+tags:
+  - configuration
+  - examples
+  - eslint
+keywords:
+  - JS Boundaries
+  - ESLint plugin
+  - boundaries
+  - javaScript
+  - typeScript
+  - tutorial
+  - quick start
+  - basic setup
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CodeDiff from "@site/src/components/CodeDiff";
+
+# Quick Start
+
+Follow these steps to quickly set up ESLint Plugin Boundaries in your project. Then you can explore more advanced configurations to fit your project's needs in the [Setup section](./setup/setup.md).
+
+
+## 1. Installation
+
+If you [have not installed them yet](./installation.mdx), install ESLint and ESLint Plugin Boundaries:
+
+```bash
+npm install eslint eslint-plugin-boundaries --save-dev
+```
+
+## 2. Register the Plugin
+
+Once installed, enable the plugin in your `eslint.config.js` file:
+
+<Tabs>
+<TabItem value="JavaScript">
+
+```javascript
+import boundaries from "eslint-plugin-boundaries";
+
+export default [
+  {
+    plugins: {
+      boundaries,
+    },
+  }
+];
+```
+
+</TabItem>
+<TabItem value="TypeScript">
+
+```typescript
+import boundaries, { Config } from "eslint-plugin-boundaries";
+
+export default [
+  {
+    plugins: {
+      boundaries,
+    },
+  } satisfies Config
+];
+```
+
+</TabItem>
+</Tabs>
+
+## 3. Define your Element Types
+
+The plugin needs to identify the elements in your project. To do so, define your element types using the `boundaries/elements` setting.
+
+These patterns determine how each file or dependency is classified.
+
+:::tip
+Read the **[Elements](./setup/elements.md)** section for guidance on how to define the patterns for the elements in your project.
+:::
+
+<Tabs>
+<TabItem value="JavaScript">
+
+<CodeDiff language="javascript">{`
+. import boundaries from "eslint-plugin-boundaries";
+
+. export default [
+.   {
+.     plugins: {
+.       boundaries,
+.     },
++     settings: {
++       "boundaries/elements": [
++         { type: "controllers", pattern: "controllers/*" },
++         { type: "models", pattern: "models/*" },
++         { type: "views", pattern: "views/*" }
++       ],
++     },
+.   }
+. ];
+`}</CodeDiff>
+
+</TabItem>
+<TabItem value="TypeScript">
+
+<CodeDiff language="typescript">{`
+. import boundaries, { Config, Settings } from "eslint-plugin-boundaries";
+
+. export default [
+.   {
+.     plugins: {
+.       boundaries,
+.     },
++     settings: {
++       "boundaries/elements": [
++         { type: "controllers", pattern: "controllers/*" },
++         { type: "models", pattern: "models/*" },
++         { type: "views", pattern: "views/*" }
++       ],
++     } satisfies Settings,
+.   } satisfies Config
+. ];
+`}</CodeDiff>
+
+</TabItem>
+</Tabs>
+
+:::info
+This is only a basic example of configuration. The plugin can be configured to identify elements being a file, or elements being a folder containing files. It also supports capturing path fragments to be used afterwards on each rule, etc.
+:::
+
+## 4. Apply Predefined Rules
+
+Apply one of the [predefined rule configurations](./setup/eslint-integration.md) as a starting point by extending it in your `rules` section.
+
+:::tip
+You should use `recommended` config in already existing projects to gradually introduce the rules without too many errors at once, because it does not require all files in the project to belong to an element type. For new projects, you can use `strict` config to ensure all files belong to an element type from the beginning.
+:::
+
+<Tabs>
+<TabItem value="JavaScript">
+
+<CodeDiff language="javascript">{`
+. import boundaries from "eslint-plugin-boundaries";
+
+. export default [
+.   {
+.     plugins: {
+.       boundaries,
+.     },
+.     settings: {
+.       "boundaries/elements": [
+.         { type: "controllers", pattern: "controllers/*" },
+.         { type: "models", pattern: "models/*" },
+.         { type: "views", pattern: "views/*" }
+.       ],
+.     },
++     rules: {
++       ...boundaries.configs.recommended.rules,
++     },
+.   },
+. ];
+`}</CodeDiff>
+
+</TabItem>
+<TabItem value="TypeScript">
+
+<CodeDiff language="typescript">{`
+. import boundaries, { Config, Settings, Rules } from "eslint-plugin-boundaries";
+
+. export default [
+.   {
+.     plugins: {
+.       boundaries,
+.     },
+.     settings: {
+.       "boundaries/elements": [
+.         { type: "controllers", pattern: "controllers/*" },
+.         { type: "models", pattern: "models/*" },
+.         { type: "views", pattern: "views/*" }
+.       ],
+.     } satisfies Settings,
++     rules: {
++       ...boundaries.configs.recommended.rules,
++     } satisfies Rules,
+.   } satisfies Config
+. ];
+`}</CodeDiff>
+
+</TabItem>
+</Tabs>
+
+## 5. Set Dependency Rules
+
+Now you can define your own dependency rules by using the `boundaries/element-types` rule.
+
+:::tip
+Read how to use **[Element Selectors](./setup/selectors.md)** to configure your rules in more detail.
+:::
+
+<Tabs>
+<TabItem value="JavaScript">
+
+<CodeDiff language="javascript">{`
+. import boundaries from "eslint-plugin-boundaries";
+
+. export default [
+.  {
+.    plugins: {
+.      boundaries,
+.    },
+.    settings: {
+.      "boundaries/elements": [
+.        { type: "controllers", pattern: "controllers/*" },
+.        { type: "models", pattern: "models/*" },
+.        { type: "views", pattern: "views/*" }
+.      ],
+.    },
+.    rules: {
+.      ...boundaries.configs.recommended.rules,
++      "boundaries/element-types": [2, {
++        default: "disallow",
++        rules: [
++          {
++            from: "controllers",
++            allow: ["models", "views"]
++          },
++          {
++            from: "views",
++            allow: ["models"]
++          },
++          {
++            from: "models",
++            disallow: ["*"]
++          }
++        ]
++      }]
+.    },
+.  },
+. ];
+`}</CodeDiff>
+
+</TabItem>
+<TabItem value="TypeScript">
+
+<CodeDiff language="typescript">{`
+. import boundaries, { Config, Settings, Rules } from "eslint-plugin-boundaries";
+
+. export default [
+.  {
+.    plugins: {
+.      boundaries,
+.    },
+.    settings: {
+.      "boundaries/elements": [
+.        { type: "controllers", pattern: "controllers/*" },
+.        { type: "models", pattern: "models/*" },
+.        { type: "views", pattern: "views/*" }
+.      ],
+.    } satisfies Settings,
+.    rules: {
+.      ...boundaries.configs.recommended.rules,
++      "boundaries/element-types": [2, {
++        default: "disallow",
++        rules: [
++          {
++            from: "controllers",
++            allow: ["models", "views"]
++          },
++          {
++            from: "views",
++            allow: ["models"]
++          },
++          {
++            from: "models",
++            disallow: ["*"]
++          }
++        ]
++      }]
+.    } satisfies Rules,
+.  } satisfies Config
+. ];
+`}</CodeDiff>
+
+</TabItem>
+</Tabs>
+
+## 6. Next Steps
+
+You are all set! Now you can start enforcing architectural boundaries in your project 🎉
+
+From here you can:
+
+* Explore the **[Setup section](./setup/setup.md)** to learn:
+  * How to **[assign Element Types](./setup/elements.md)**.
+  * How to **[use Element Selectors](./setup/selectors.md)**.
+  * How to **[define Dependency Rules](./setup/rules.md)**.
+  * How to **[customize Global Settings](./setup/settings.md)**.
+* Review the **[Rules section](./rules/rules.md)** to understand **all available rules and how to configure them**.

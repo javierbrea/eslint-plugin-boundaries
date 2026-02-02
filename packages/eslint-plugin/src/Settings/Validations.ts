@@ -1,16 +1,12 @@
 import type {
   DependencyKind,
   ElementDescriptors,
-  ElementSelector,
-  ExternalLibrarySelector,
-  ElementsSelector,
-  ExternalLibrariesSelector,
   ElementDescriptor,
   ElementDescriptorMode,
+  FlagAsExternalOptions,
 } from "@boundaries/elements";
 import { isElementDescriptor } from "@boundaries/elements";
 import type { Rule } from "eslint";
-import micromatch from "micromatch";
 
 import {
   isArray,
@@ -41,8 +37,6 @@ import type {
   IgnoreSetting,
   IncludeSetting,
   RuleMainKey,
-  ValidateRulesOptions,
-  RuleOptionsRules,
   SettingsNormalized,
 } from "./Settings.types";
 
@@ -153,71 +147,6 @@ export function rulesOptionsSchema(
       additionalProperties: false,
     },
   ];
-}
-
-function isValidElementTypesMatcher(
-  matcher: ElementSelector | ExternalLibrarySelector,
-  settings: SettingsNormalized
-) {
-  const matcherToCheck = isArray(matcher)
-    ? (matcher[0] as string)
-    : (matcher as string);
-  return (
-    !matcherToCheck ||
-    (matcherToCheck &&
-      micromatch.some(settings.elementTypeNames, matcherToCheck))
-  );
-}
-
-/**
- * Checks if the value is a single matcher with options (tuple of [string, object])
- */
-function isSingleMatcherWithOptions(
-  value: unknown
-): value is [string, Record<string, unknown>] {
-  return (
-    isArray(value) &&
-    value.length === 2 &&
-    isString(value[0]) &&
-    isObject(value[1])
-  );
-}
-
-// TODO: Remove this validation. Selectors should not be limited to element types defined in settings when using selector objects
-export function validateElementTypesMatcher(
-  elementsMatcher: ElementsSelector | ExternalLibrariesSelector,
-  settings: SettingsNormalized
-) {
-  // Handle empty array case
-  if (isArray(elementsMatcher) && elementsMatcher.length === 0) {
-    return;
-  }
-
-  // Determine if it's a single matcher or an array of matchers
-  let matcher: ElementSelector | ExternalLibrarySelector;
-
-  if (isString(elementsMatcher)) {
-    matcher = elementsMatcher;
-  } else if (isSingleMatcherWithOptions(elementsMatcher)) {
-    // It's a single matcher with options: ["type", { option: value }]
-    matcher = elementsMatcher;
-  } else if (isArray(elementsMatcher)) {
-    // It's an array of matchers: ["helpers", "components"] or [["helpers", {...}], "components"]
-    // NOTE: Validate only the first matcher. It is wrong, but we don't want to impact performance, and anyway it was already validating only the first one.
-    // In next major version, validation will be removed, because schema validation will handle it.
-    matcher = elementsMatcher[0];
-  } else {
-    warnOnce(
-      `Option is not a valid elements selector: '${JSON.stringify(elementsMatcher)}'`
-    );
-    return;
-  }
-  // Validate the matcher
-  if (!isValidElementTypesMatcher(matcher, settings)) {
-    warnOnce(
-      `Option '${JSON.stringify(matcher)}' does not match any element type from '${ELEMENTS}' setting`
-    );
-  }
 }
 
 export function isValidElementAssigner(
@@ -425,6 +354,68 @@ function validateRootPath(rootPath: unknown): string | undefined {
   );
 }
 
+function validateFlagAsExternal(
+  flagAsExternal: unknown
+): FlagAsExternalOptions | undefined {
+  if (!flagAsExternal) {
+    return;
+  }
+
+  if (!isObject(flagAsExternal)) {
+    warnOnce(
+      `Please provide a valid value in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting. The value should be an object.`
+    );
+    return;
+  }
+
+  const validated: FlagAsExternalOptions = {};
+
+  if (flagAsExternal.unresolvableAlias !== undefined) {
+    if (isBoolean(flagAsExternal.unresolvableAlias)) {
+      validated.unresolvableAlias = flagAsExternal.unresolvableAlias;
+    } else {
+      warnOnce(
+        `Please provide a valid boolean for 'unresolvableAlias' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`
+      );
+    }
+  }
+
+  if (flagAsExternal.inNodeModules !== undefined) {
+    if (isBoolean(flagAsExternal.inNodeModules)) {
+      validated.inNodeModules = flagAsExternal.inNodeModules;
+    } else {
+      warnOnce(
+        `Please provide a valid boolean for 'inNodeModules' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`
+      );
+    }
+  }
+
+  if (flagAsExternal.outsideRootPath !== undefined) {
+    if (isBoolean(flagAsExternal.outsideRootPath)) {
+      validated.outsideRootPath = flagAsExternal.outsideRootPath;
+    } else {
+      warnOnce(
+        `Please provide a valid boolean for 'outsideRootPath' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`
+      );
+    }
+  }
+
+  if (flagAsExternal.customSourcePatterns !== undefined) {
+    if (
+      isArray(flagAsExternal.customSourcePatterns) &&
+      flagAsExternal.customSourcePatterns.every(isString)
+    ) {
+      validated.customSourcePatterns = flagAsExternal.customSourcePatterns;
+    } else {
+      warnOnce(
+        `Please provide a valid array of strings for 'customSourcePatterns' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`
+      );
+    }
+  }
+
+  return validated;
+}
+
 // TODO: Remove settings validation in next major version. It should be done by schema validation only
 export function validateSettings(
   settings: Rule.RuleContext["settings"]
@@ -456,6 +447,9 @@ export function validateSettings(
     [SETTINGS_KEYS_MAP.CACHE]: settings[SETTINGS_KEYS_MAP.CACHE] as
       | boolean
       | undefined,
+    [SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]: validateFlagAsExternal(
+      settings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]
+    ),
   };
 }
 /**
@@ -526,26 +520,20 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
       validatedSettings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES] ??
       LEGACY_TEMPLATES_DEFAULT,
     cache: validatedSettings[SETTINGS_KEYS_MAP.CACHE] ?? CACHE_DEFAULT,
+    flagAsExternal: {
+      unresolvableAlias:
+        validatedSettings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]
+          ?.unresolvableAlias ?? true,
+      inNodeModules:
+        validatedSettings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]?.inNodeModules ??
+        true,
+      outsideRootPath:
+        validatedSettings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]
+          ?.outsideRootPath ?? false,
+      customSourcePatterns:
+        validatedSettings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]
+          ?.customSourcePatterns ?? [],
+    },
   };
   return result;
-}
-
-export function validateRules(
-  settings: SettingsNormalized,
-  rules: RuleOptionsRules[] = [],
-  options: ValidateRulesOptions = {}
-) {
-  const mainKey = rulesMainKey(options.mainKey);
-  for (const rule of rules) {
-    //@ts-expect-error TODO: Add a different schema validation for each rule type, so keys are properly validated
-    validateElementTypesMatcher([rule[mainKey]], settings);
-    if (!options.onlyMainKey) {
-      if (rule.allow) {
-        validateElementTypesMatcher(rule.allow, settings);
-      }
-      if (rule.disallow) {
-        validateElementTypesMatcher(rule.disallow, settings);
-      }
-    }
-  }
 }

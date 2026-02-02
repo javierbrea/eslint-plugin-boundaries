@@ -19,6 +19,7 @@ import {
   isElementDescriptorMode,
   RULE_POLICIES_MAP,
   isRulePolicy,
+  FlagAsExternalOptions,
   isElementSelector,
   isElementsSelector,
   isExternalLibrarySelector,
@@ -35,6 +36,8 @@ import { Rule } from "eslint";
 const settingKey: SettingsKey = SETTINGS_KEYS_MAP.ELEMENTS;
 
 const anotherSettingKey = SETTINGS_KEYS_MAP.ROOT_PATH;
+
+const flagAsExternalKey = SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL;
 
 if (!isSettingsKey(anotherSettingKey)) {
   throw new Error(`This should not happen: ${anotherSettingKey}`);
@@ -64,6 +67,12 @@ export const boundariesConfig = createConfig(
       ],
       [anotherSettingKey]: "some-value",
       [SETTINGS_KEYS_MAP.DEPENDENCY_NODES]: ["import", dependencyNodeKey],
+      [SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]: {
+        inNodeModules: true,
+        outsideRootPath: false,
+        unresolvableAlias: true,
+        customSourcePatterns: ["custom/**"],
+      },
     },
     rules: {
       [RULE_NAMES_MAP.ELEMENT_TYPES]: [

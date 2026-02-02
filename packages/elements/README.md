@@ -25,6 +25,7 @@
   - [Using Matchers](#using-matchers)
     - [Element Matching](#element-matching)
     - [Dependency Matching](#dependency-matching)
+  - [Flagging Dependencies as External](#flagging-dependencies-as-external)
 - [API Reference](#api-reference)
 - [Legacy Selectors](#legacy-selectors)
 - [Contributing](#contributing)
@@ -120,6 +121,13 @@ When creating an `Elements` instance, you can provide configuration options that
 const elements = new Elements({
   ignorePaths: ["**/dist/**", "**/build/**", "**/node_modules/**"],
   includePaths: ["src/**/*"],
+  rootPath: "/absolute/path/to/project",
+  flagAsExternal: {
+    unresolvableAlias: true,
+    inNodeModules: true,
+    outsideRootPath: true,
+    customSourcePatterns: ["@myorg/*"],
+  },
 });
 ```
 
@@ -129,6 +137,15 @@ const elements = new Elements({
 - **`includePaths`**: Micromatch pattern(s) to include only specific paths (default: all paths)
 - **`legacyTemplates`**: Whether to enable legacy template syntax support (default: `true`, but it will be `false` in future releases). This allows using `${variable}` syntax in templates for backward compatibility.
 - **`cache`**: Whether to enable internal caching to improve performance (default: `true`)
+- **`rootPath`**: Absolute path to the project root. When configured, file paths should be provided as absolute paths to allow the package to determine which files are outside the project root (default: `undefined`)
+- **`flagAsExternal`**: Configuration for categorizing dependencies as external or local. Multiple conditions can be specified, and dependencies will be categorized as external if ANY condition is met (OR logic). See [Flagging Dependencies as External](#flagging-dependencies-as-external) for details.
+
+> [!NOTE]
+> **Pattern Matching with `rootPath`:**
+> When `rootPath` **is configured**:
+> - **Matching patterns** in element descriptors are **relative to the `rootPath`**. The package automatically converts absolute paths to relative paths internally for pattern matching.
+> - In **`file` and `folder` modes**, patterns are evaluated **right-to-left** (from the end of the path), so the relativity to `rootPath` is typically less important. For example, a pattern like `*.model.ts` will match any file ending with `.model.ts` regardless of its location within `rootPath`.
+> - In **`full` mode**, patterns must match the complete relative path from `rootPath`. Files outside `rootPath` maintain their absolute paths and require absolute patterns to match.
 
 ### Creating a Matcher
 
@@ -344,6 +361,114 @@ const isDependencyMatch = matcher.isMatch(
 
 > [!TIP]
 > You can also provide an array of selectors both to the `from` and `to` properties of the dependency selector. In this case, the method will return `true` if the dependency matches any combination of the provided selectors (OR logic).
+
+### Flagging Dependencies as External
+
+The `flagAsExternal` configuration allows you to control how dependencies are categorized as external or local. This is especially useful in monorepo setups where you may want to treat inter-package dependencies as external even though they're within the same repository.
+
+**Multiple conditions can be specified, and dependencies will be flagged as external if ANY condition is met (OR logic).**
+
+#### Available Options
+
+- **`unresolvableAlias`** (boolean, default: `true`): Non-relative imports whose path cannot be resolved are categorized as external
+  
+  ```typescript
+  const elements = new Elements({
+    flagAsExternal: { unresolvableAlias: true },
+  });
+  const matcher = elements.getMatcher([/* descriptors */]);
+  
+  // describeDependency({ from, to, source, kind }):
+  // to: null, source: 'unresolved-module' -> origin: 'external'
+  // to: '/project/src/Button.ts', source: './Button' -> origin: 'local'
+  ```
+
+- **`inNodeModules`** (boolean, default: `true`): Non-relative paths that include `node_modules` in the resolved path are categorized as external
+  
+  ```typescript
+  const elements = new Elements({
+    flagAsExternal: { inNodeModules: true },
+  });
+  const matcher = elements.getMatcher([/* descriptors */]);
+  
+  // describeDependency({ from, to, source, kind }):
+  // to: '/project/node_modules/react/index.js', source: 'react' -> origin: 'external'
+  // to: '/project/src/utils.ts', source: './utils' -> origin: 'local'
+  ```
+
+- **`outsideRootPath`** (boolean, default: `false`): Dependencies whose resolved path is outside the configured `rootPath` are categorized as external. This is particularly useful in monorepo setups.
+  
+  > **⚠️ Important:** This option requires `rootPath` to be configured. When using this option, all file paths must be absolute and include the `rootPath` prefix for files within the project.
+  
+  ```typescript
+  const elements = new Elements({
+    rootPath: '/monorepo/packages/app',
+    flagAsExternal: { outsideRootPath: true },
+  });
+  const matcher = elements.getMatcher([/* descriptors */]);
+  
+  // describeDependency({ from, to, source, kind }):
+  // to: '/monorepo/packages/shared/index.ts', source: '@myorg/shared' -> origin: 'external'
+  // to: '/monorepo/packages/app/src/utils/helper.ts', source: './utils/helper' -> origin: 'local'
+  ```
+
+- **`customSourcePatterns`** (string[], default: `[]`): Array of micromatch patterns that, when matching the import/export source string, categorize the dependency as external
+  
+  ```typescript
+  const elements = new Elements({
+    flagAsExternal: { customSourcePatterns: ['@myorg/*', '~/**'] },
+  });
+  const matcher = elements.getMatcher([/* descriptors */]);
+  
+  // describeDependency({ from, to, source, kind }):
+  // source: '@myorg/shared' -> origin: 'external' (matches '@myorg/*')
+  // source: '~/utils/helper' -> origin: 'external' (matches '~/**')
+  // source: '@other/package' -> origin: 'local' (no match, unless inNodeModules is true or other conditions met)
+  ```
+
+#### Path Requirements with `rootPath`
+
+When `rootPath` is configured, the package needs absolute paths to correctly determine which files are outside the project root, but matching patterns must remain relative to `rootPath`, especially in `full` mode (because `file` and `folder` modes match progressively from the right, so they may be less affected by relativity).
+
+```typescript
+const elements = new Elements({
+  rootPath: '/project/packages/app',
+  flagAsExternal: {
+    outsideRootPath: true,
+  },
+});
+
+// Matching patterns are relative to rootPath
+const matcher = elements.getMatcher([
+  { type: 'component', pattern: 'src/**/*.ts', mode: 'full' }, // Relative to /project/packages/app
+]);
+
+// ✅ Correct: Using absolute file paths with relative patterns
+const dep = matcher.describeDependency({
+  from: '/project/packages/app/src/index.ts',      // absolute file path
+  to: '/project/packages/shared/index.ts',         // absolute file path
+  source: '@myorg/shared',
+  kind: 'value',
+});
+// Result: dep.to.origin === 'external' (outside rootPath)
+// Note: Pattern 'src/**/*.ts' matches because the package converts
+// absolute paths to relative internally for pattern matching
+
+// ❌ Incorrect: Using relative file paths (won't detect outsideRootPath correctly)
+const dep2 = matcher.describeDependency({
+  from: 'src/index.ts',                            // relative file path
+  to: '../shared/index.ts',                        // relative file path
+  source: '@myorg/shared',
+  kind: 'value',
+});
+// Result: Won't correctly detect if outside rootPath
+```
+
+> **💡 Key Points:**
+> - **File paths** in API calls (`from`, `to`, `filePath`) must be **absolute** when using `rootPath`
+> - **Matching patterns** in element descriptors stay **relative** to `rootPath`
+> - The package handles the conversion internally
+> - When not using `rootPath`, the package continues to work with relative paths as before, maintaining backward compatibility.
 
 ## API Reference
 

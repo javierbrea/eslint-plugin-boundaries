@@ -11,6 +11,7 @@ export type {
   ExternalLibrarySelectors,
   ExternalLibrariesSelector,
   ElementSelectorWithOptions,
+  FlagAsExternalOptions,
 } from "@boundaries/elements";
 
 export {
