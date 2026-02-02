@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [1.2.0] - 2026-02-02
+
+### Added
+
+- feat: Add `rootPath` and `flagAsExternal` options to allow better control over external module identification.
+
 ## [1.1.2] - 2025-12-06
 
 ### Fixed

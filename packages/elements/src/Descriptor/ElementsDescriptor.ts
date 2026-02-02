@@ -3,9 +3,9 @@ import type Mod from "node:module";
 import isCoreModule from "is-core-module";
 
 import { CacheManager, CacheManagerDisabled } from "../Cache";
-import type { DescriptorOptionsNormalized } from "../Config";
+import type { DescriptorOptionsNormalized, MicromatchPattern } from "../Config";
 import type { Micromatch } from "../Matcher";
-import { isArray, isNullish } from "../Support";
+import { isArray, isNullish, normalizePath } from "../Support";
 
 import type {
   ElementDescription,
@@ -239,24 +239,96 @@ export class ElementsDescriptor {
   }
 
   /**
+   * Determines if a file path is outside the configured root path.
+   * @param filePath The file path to check.
+   * @returns True if the file path is outside the root path, false otherwise.
+   */
+  private _isOutsideRootPath(filePath: string): boolean {
+    if (!this._config.rootPath) {
+      return false;
+    }
+    return !filePath.startsWith(this._config.rootPath);
+  }
+
+  /**
+   * Converts an absolute file path to a relative path if rootPath is configured.
+   * If rootPath is not configured, returns the path as-is (maintains backward compatibility).
+   * @param filePath The file path to convert (can be absolute or relative)
+   * @returns The relative path if rootPath is configured and path is absolute, otherwise the original path
+   */
+  private _toRelativePath(filePath: string): string {
+    if (!this._config.rootPath || this._isOutsideRootPath(filePath)) {
+      return filePath;
+    }
+    return filePath.replace(this._config.rootPath, "");
+  }
+
+  /**
+   * Checks if a source string matches any of the provided patterns using micromatch.
+   * @param patterns - Array of micromatch patterns
+   * @param source - The source string to match against patterns
+   * @returns True if the source matches any pattern, false otherwise
+   */
+  private _matchesAnyPattern(
+    patterns: MicromatchPattern,
+    source?: string
+  ): boolean {
+    if (!source || patterns.length === 0) {
+      return false;
+    }
+    return this._micromatch.isMatch(source, patterns);
+  }
+
+  /**
    * Determines if an element is external based on its file path and dependency source.
-   * Files inside "node_modules" are considered external.
-   * If the dependency source is not provided, only the file path is considered.
-   * If the dependency source is provided, it must not be a local path (i.e, it should start by "./", "../", or "/").
-   * @param filePath
-   * @param dependencySource
-   * @returns
+   * Uses the flagAsExternal configuration to evaluate multiple conditions with OR logic:
+   * - unresolvableAlias: Files whose path cannot be resolved (filePath is null)
+   * - inNodeModules: Non-relative paths that include "node_modules"
+   * - outsideRootPath: Resolved path is outside the configured root path (only if rootPath is configured)
+   * - customSourcePatterns: Source matches any of the configured patterns
+   * @param filePath The resolved file path (null if unresolved). Can be absolute if rootPath is configured, or relative if rootPath is not configured.
+   * @param isOutsideRootPath Whether the file path is outside the configured root path.
+   * @param dependencySource The import/export source string
+   * @returns True if any of the configured conditions is met, false otherwise
    */
   private _isExternalDependency(
     filePath: string | null,
+    isOutsideRootPath: boolean,
     dependencySource?: string
   ): boolean {
-    return (
-      (!filePath || filePath.includes("node_modules")) &&
-      // Not having a source, and being in node_modules only could happen if user is analyzing a file directly from there, not as a dependency. Should this be considered external then?
-      (!dependencySource ||
-        this._dependencySourceIsExternalOrScoped(dependencySource))
-    );
+    const {
+      unresolvableAlias,
+      inNodeModules,
+      outsideRootPath,
+      customSourcePatterns,
+    } = this._config.flagAsExternal;
+
+    // Check outsideRootPath: resolved path is outside configured root path
+    if (outsideRootPath && isOutsideRootPath) {
+      return true;
+    }
+
+    // Check inNodeModules: path includes node_modules
+    if (inNodeModules && filePath?.includes("node_modules")) {
+      return true;
+    }
+
+    // Check unresolvableAlias: dependency whose path cannot be resolved
+    if (
+      unresolvableAlias &&
+      !filePath &&
+      dependencySource &&
+      this._dependencySourceIsExternalOrScoped(dependencySource)
+    ) {
+      return true;
+    }
+
+    // Check customSourcePatterns: source matches configured patterns
+    if (this._matchesAnyPattern(customSourcePatterns, dependencySource)) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -353,6 +425,16 @@ export class ElementsDescriptor {
     patternUsed: string;
   };
 
+  /**
+   * Determines if an element descriptor matches the given parameters in the provided path.
+   * @param options The options for matching the descriptor.
+   * @param options.elementDescriptor The element descriptor to match.
+   * @param options.filePath The file path to match against the descriptor.
+   * @param options.currentPathSegments The current path segments leading to the element.
+   * @param options.lastPathSegmentMatching The last path segment that was matched.
+   * @param options.alreadyMatched Whether the element matched previously.
+   * @returns The result of the match, including whether it matched.
+   */
   private _fileDescriptorMatch({
     elementDescriptor,
     filePath,
@@ -586,11 +668,13 @@ export class ElementsDescriptor {
   /**
    * Returns an external or core dependency element given its dependency source and file path.
    * @param dependencySource The source of the dependency.
-   * @param filePath The resolved file path of the dependency, if known.
+   * @param isOutsideRootPath Whether the file path is outside the configured root path.
+   * @param filePath The resolved file path of the dependency, if known. Can be absolute if rootPath is configured.
    * @returns The external or core dependency element, or null if it is a local dependency.
    */
   private _getExternalOrCoreDependencyElement(
     dependencySource: string,
+    isOutsideRootPath: boolean,
     filePath?: string
   ): ExternalDependencyElement | CoreDependencyElement | null {
     const baseDependencySource =
@@ -614,6 +698,7 @@ export class ElementsDescriptor {
 
     const isExternal = this._isExternalDependency(
       filePath || null,
+      isOutsideRootPath,
       dependencySource
     );
 
@@ -633,7 +718,7 @@ export class ElementsDescriptor {
 
   /**
    * Describes an element given its file path and dependency source, if any.
-   * @param filePath The path of the file to describe.
+   * @param filePath The path of the file to describe. Can be absolute if rootPath is configured, or relative if not.
    * @param dependencySource The source of the dependency, if the element to describe is so. It refers to the import/export path used to reference the file or external module.
    * @returns The description of the element. A dependency element if dependency source is provided, otherwise a file element.
    */
@@ -653,8 +738,21 @@ export class ElementsDescriptor {
       return this._descriptionsCache.get(cacheKey)!;
     }
 
+    const normalizedFilePath = filePath ? normalizePath(filePath) : filePath;
+    const isOutsideRootPath = normalizedFilePath
+      ? this._isOutsideRootPath(normalizedFilePath)
+      : false;
+    const relativePath =
+      normalizedFilePath && this._config.rootPath
+        ? this._toRelativePath(normalizedFilePath)
+        : normalizedFilePath;
+
     const externalOrCoreDependencyElement = dependencySource
-      ? this._getExternalOrCoreDependencyElement(dependencySource, filePath)
+      ? this._getExternalOrCoreDependencyElement(
+          dependencySource,
+          isOutsideRootPath,
+          relativePath
+        )
       : null;
 
     if (externalOrCoreDependencyElement) {
@@ -662,7 +760,7 @@ export class ElementsDescriptor {
       return externalOrCoreDependencyElement;
     }
 
-    const fileDescription = this._describeFile(filePath);
+    const fileDescription = this._describeFile(relativePath);
     const elementResult = dependencySource
       ? {
           ...fileDescription,
@@ -676,7 +774,7 @@ export class ElementsDescriptor {
 
   /**
    * Describes an element given its file path.
-   * @param filePath The path of the file to describe.
+   * @param filePath The path of the file to describe. Can be absolute if rootPath is configured, or relative if not.
    * @returns The description of the element.
    */
   public describeElement(filePath?: string): FileElement {
@@ -686,7 +784,7 @@ export class ElementsDescriptor {
   /**
    * Describes a dependency element given its dependency source and file path.
    * @param dependencySource The source of the dependency.
-   * @param filePath The path of the file being the dependency, if known.
+   * @param filePath The path of the file being the dependency, if known. Can be absolute if rootPath is configured, or relative if not.
    * @returns The description of the dependency element.
    */
   public describeDependencyElement(

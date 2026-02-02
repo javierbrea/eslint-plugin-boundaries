@@ -27,37 +27,10 @@ export function getElementsMatcher(settings: SettingsNormalized): Matcher {
     includePaths: settings.includePaths,
     legacyTemplates: settings.legacyTemplates,
     cache: settings.cache,
+    flagAsExternal: settings.flagAsExternal,
+    rootPath: settings.rootPath,
   });
   return elementsMatcher;
-}
-
-/**
- * Replaces backslashes with forward slashes in a given path
- * @param filePath The file path to modify
- * @returns The modified file path with forward slashes
- */
-function replacePathSlashes(filePath: string) {
-  return filePath.replaceAll("\\", "/");
-}
-
-/**
- * Transforms an absolute path into a project-relative path
- * @param absolutePath The absolute path to transform
- * @param rootPath The root path of the project
- * @returns The relative path from the project root
- */
-function projectPath(
-  absolutePath: string | undefined | null,
-  rootPath: string
-) {
-  if (absolutePath) {
-    // TODO: Use path.relative when possible. With caution because this would break current external paths
-    return replacePathSlashes(absolutePath).replace(
-      `${replacePathSlashes(rootPath)}/`,
-      ""
-    );
-  }
-  return "";
 }
 
 /**
@@ -95,7 +68,7 @@ export function getSpecifiers(node: Rule.Node): string[] {
 
 /**
  * Returns the description of the current file being linted
- * @param fileName The file name
+ * @param fileName The file name (absolute path)
  * @param settings The ESLint rule context settings normalized
  * @returns The description of the current file being linted
  */
@@ -104,8 +77,7 @@ export function elementDescription(
   settings: SettingsNormalized
 ): ElementDescription {
   const matcher = getElementsMatcher(settings);
-  const path = projectPath(fileName, settings.rootPath);
-  const result = matcher.describeElement(path);
+  const result = matcher.describeElement(fileName);
   debugDescription(result);
   return result;
 }
@@ -129,7 +101,7 @@ export function dependencyDescription(
     /** The kind of the node generating the dependency */
     nodeKind?: string;
   },
-  /** The file name */
+  /** The file name (absolute path) */
   fileName: string,
   /** The ESLint rule context settings normalized */
   settings: SettingsNormalized,
@@ -138,10 +110,11 @@ export function dependencyDescription(
 ): DependencyDescription {
   const source = String(node.value);
   const matcher = getElementsMatcher(settings);
+  const resolvedPath = resolve(source, context);
 
   const description = matcher.describeDependency({
-    from: projectPath(fileName, settings.rootPath),
-    to: projectPath(resolve(source, context), settings.rootPath),
+    from: fileName,
+    to: resolvedPath || undefined,
     source,
     kind: kind || "value", // TODO: Change by runtime in a backwards compatible way
     nodeKind,

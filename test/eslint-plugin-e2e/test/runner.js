@@ -47,6 +47,7 @@ import { ESLint } from "eslint";
  * @property {string} name - Test name/identifier
  * @property {Object} config - ESLint configuration object
  * @property {string} fixture - Path to the fixture directory
+ * @property {Array<string>} [runOnFiles] - Glob patterns of files to lint
  * @property {AssertFunction} assert - Function that runs test assertions
  */
 
@@ -128,9 +129,14 @@ export class TestRunner {
  * Runs ESLint on a specific fixture with the provided configuration
  * @param {string} fixturePath - Absolute path to the fixture directory
  * @param {Object} eslintConfig - ESLint configuration object
+ * @param {Array<string>} [runOnFiles=["src/** /*.js"]] - Glob patterns of files to lint
  * @returns {Promise<ESLintResult>} Promise that resolves to the ESLint result
  */
-async function runESLintOnFixture(fixturePath, eslintConfig) {
+async function runESLintOnFixture(
+  fixturePath,
+  eslintConfig,
+  runOnFiles = ["src/**/*.js"]
+) {
   try {
     const eslint = new ESLint({
       overrideConfig: eslintConfig,
@@ -138,7 +144,7 @@ async function runESLintOnFixture(fixturePath, eslintConfig) {
     });
 
     // Get all .js files in the src folder
-    const results = await eslint.lintFiles(["src/**/*.js"]);
+    const results = await eslint.lintFiles(runOnFiles);
 
     return {
       success: true,
@@ -204,7 +210,11 @@ export async function runTests(tests) {
   for (const test of tests) {
     console.log(`${chalk.blue(`Running tests for: ${test.name}`)}`);
 
-    const result = await runESLintOnFixture(test.fixture, test.config);
+    const result = await runESLintOnFixture(
+      test.fixture,
+      test.config,
+      test.runOnFiles
+    );
 
     await runner.assert(
       `ESLint should run successfully on ${test.name}`,

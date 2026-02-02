@@ -216,6 +216,33 @@ export const SETTINGS: Record<string, RuleTesterSettings> = {
       },
     },
   },
+  flagAsExternal: {
+    "boundaries/elements": [
+      {
+        type: "helpers",
+        pattern: "package-*/helpers/*",
+        capture: ["package", "elementName"],
+      },
+      {
+        type: "components",
+        pattern: "package-*/components/*",
+        capture: ["package", "elementName"],
+      },
+    ],
+    "boundaries/flag-as-external": {
+      unresolvableAlias: true,
+      inNodeModules: true,
+      outsideRootPath: false,
+      customSourcePatterns: [],
+    },
+    "import/resolver": {
+      "eslint-import-resolver-node": {},
+      [resolverLegacyAliasPath]: {
+        "package-a": `./${codeFilePath("flag-as-external", "package-a")}`,
+        "package-b": `./${codeFilePath("flag-as-external", "package-b")}`,
+      },
+    },
+  },
 } as Record<string, RuleTesterSettings>;
 
 export const TYPESCRIPT_SETTINGS: Record<string, RuleTesterSettings> = {

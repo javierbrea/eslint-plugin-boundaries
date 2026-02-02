@@ -1,6 +1,6 @@
 {
   "name": "website",
-  "version": "1.0.0",
+  "version": "5.4.0",
   "private": true,
   "scripts": {
     "eslint": "eslint",
@@ -15,7 +15,8 @@
     "serve": "docusaurus serve",
     "swizzle": "docusaurus swizzle",
     "clear": "docusaurus clear",
-    "test:unit": "jest --passWithNoTests"
+    "test:unit": "jest --passWithNoTests",
+    "version": "docusaurus docs:version"
   },
   "dependencies": {
     "@docusaurus/core": "3.9.2",

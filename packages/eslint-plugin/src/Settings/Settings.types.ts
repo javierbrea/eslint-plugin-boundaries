@@ -4,6 +4,7 @@ import type {
   ElementsSelector,
   CapturedValues,
   ExternalLibrariesSelector,
+  FlagAsExternalOptions,
 } from "@boundaries/elements";
 import type { ESLint, Linter, Rule } from "eslint";
 
@@ -153,6 +154,7 @@ export const SETTINGS = {
   ADDITIONAL_DEPENDENCY_NODES: `${PLUGIN_NAME}/additional-dependency-nodes`,
   LEGACY_TEMPLATES: `${PLUGIN_NAME}/legacy-templates`,
   CACHE: `${PLUGIN_NAME}/cache`,
+  FLAG_AS_EXTERNAL: `${PLUGIN_NAME}/flag-as-external`,
 
   // env vars
   DEBUG: `${PLUGIN_ENV_VARS_PREFIX}_DEBUG`,
@@ -240,6 +242,7 @@ export const SETTINGS_KEYS_MAP = {
   /** @deprecated Use import/resolver settings instead */
   ALIAS: SETTINGS.ALIAS,
   CACHE: SETTINGS.CACHE,
+  FLAG_AS_EXTERNAL: SETTINGS.FLAG_AS_EXTERNAL,
 } as const;
 
 /**
@@ -332,6 +335,8 @@ export type Settings = {
   [SETTINGS_KEYS_MAP.ALIAS]?: AliasSetting;
   /** Whether to enable caching for the plugin analysis */
   [SETTINGS_KEYS_MAP.CACHE]?: boolean;
+  /** Configuration for categorizing dependencies as external or local */
+  [SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]?: FlagAsExternalOptions;
 };
 
 /**
@@ -355,6 +360,8 @@ export type SettingsNormalized = {
   legacyTemplates: boolean;
   /** Whether caching is enabled */
   cache: boolean;
+  /** Configuration for categorizing dependencies as external or local */
+  flagAsExternal: FlagAsExternalOptions;
 };
 
 /**
