@@ -4,8 +4,8 @@ title: Monorepo Setup
 sidebar_label: Monorepo Setup
 description: Configuring ESLint Plugin Boundaries for monorepo environments
 tags:
-  - eslint
-  - monorepo
+  - configuration
+  - advanced
 keywords:
   - JS Boundaries
   - ESLint plugin
