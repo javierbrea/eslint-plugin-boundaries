@@ -71,7 +71,7 @@
   "devDependencies": {
     "@types/estree": "1.0.8",
     "@types/is-core-module": "2.2.2",
-    "@types/micromatch": "4.0.9",
+    "@types/micromatch": "4.0.10",
     "@types/object-hash": "3.0.6",
     "path-browserify": "1.0.1",
     "tsup": "8.5.0"
