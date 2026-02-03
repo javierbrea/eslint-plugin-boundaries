@@ -1,0 +1,30 @@
+# cspell:disable
+name: Update Website Search Index
+
+on:
+  repository_dispatch:
+    types: [netlify-deploy-success]
+
+  workflow_dispatch:
+
+jobs:
+  web-search-scraper:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get Algolia config
+        working-directory: ./packages/website
+        id: algolia_config
+        
+        run: |
+          echo "config=$(cat algolia-config.json | jq -r tostring)" >> $GITHUB_OUTPUT
+
+      - name: Run Algolia DocSearch Scraper
+        uses: signcl/docsearch-scraper-action@v1.0.1
+        env:
+          APPLICATION_ID: ${{ secrets.ALGOLIA_APP_ID }}
+          API_KEY: ${{ secrets.ALGOLIA_WRITE_API_KEY }}
+          CONFIG: ${{ steps.algolia_config.outputs.config }}
