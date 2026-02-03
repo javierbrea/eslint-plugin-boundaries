@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.event.release.target_commitish, '-beta.') == false
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: ./.github/actions/install
     - run: pnpm check:all
     - run: pnpm -r publish --no-git-checks
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.event.release.target_commitish, 'release-') && contains(github.event.release.target_commitish, '-beta.')
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: ./.github/actions/install
     - run: pnpm check:all
     - run: pnpm -r publish --no-git-checks --tag beta
