@@ -192,7 +192,7 @@ describe("FlagAsExternal configuration", () => {
 
     it("should handle Windows paths correctly", () => {
       elements = new Elements({
-        rootPath: "C:\\project\\packages\\app",
+        rootPath: String.raw`C:\project\packages\app`,
         flagAsExternal: { outsideRootPath: true },
       });
       matcher = elements.getMatcher([
@@ -200,10 +200,10 @@ describe("FlagAsExternal configuration", () => {
       ]);
 
       const dependency = matcher.describeDependency({
-        from: "C:\\project\\packages\\app\\src\\components\\App.ts",
+        from: String.raw`C:\project\packages\app\src\components\App.ts`,
         source: "@myorg/shared",
         kind: "value",
-        to: "C:\\project\\packages\\shared\\index.ts",
+        to: String.raw`C:\project\packages\shared\index.ts`,
       });
 
       expect(dependency.to.origin).toBe("external");
