@@ -7,6 +7,10 @@ on:
 
   workflow_dispatch:
 
+  push:
+    branches:
+      - feat/web-search-scraper
+
 jobs:
   web-search-scraper:
     runs-on: ubuntu-latest
