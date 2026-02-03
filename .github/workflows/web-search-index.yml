@@ -2,20 +2,24 @@
 name: Update Website Search Index
 
 on:
-  repository_dispatch:
-    types: [netlify-deploy-success]
-
-  workflow_dispatch:
-
   push:
     branches:
-      - feat/web-search-scraper
+      - master
+    paths:
+      - 'packages/website/**'
+  workflow_dispatch:
 
 jobs:
   web-search-scraper:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Wait for Netlify Deploy
+        if: github.event_name == 'push'
+        run: |
+          echo "Waiting 5 minutes for Netlify deploy to finish..."
+          sleep 300
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
