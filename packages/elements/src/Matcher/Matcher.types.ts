@@ -66,8 +66,11 @@ export type SelectableElement =
 /**
  * Selector for matching captured values in element selectors.
  * It is a record where the keys are the names of the captured values and the values are the patterns to match on those captured values.
+ * When provided as an array, each element in the array represents an alternative (OR logic) - the selector matches if any of the array elements matches.
  */
-export type CapturedValuesSelector = Record<string, MicromatchPattern>;
+export type CapturedValuesSelector =
+  | Record<string, MicromatchPattern>
+  | Array<Record<string, MicromatchPattern>>;
 
 /**
  * Data to pass to selector templates when they are rendered before matching.

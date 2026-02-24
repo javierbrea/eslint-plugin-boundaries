@@ -183,6 +183,7 @@ export const SETTINGS = {
       {
         selector: "CallExpression[callee.name=require] > Literal",
         kind: "value",
+        name: DEPENDENCY_NODE_KEYS_MAP.REQUIRE,
       },
     ],
     [DEPENDENCY_NODE_KEYS_MAP.IMPORT]: [
@@ -190,37 +191,47 @@ export const SETTINGS = {
       {
         selector: "ImportDeclaration:not([importKind=type]) > Literal",
         kind: "value",
+        name: DEPENDENCY_NODE_KEYS_MAP.IMPORT,
       },
       // Note: detects "import type x from 'source'"
       {
         selector: "ImportDeclaration[importKind=type] > Literal",
         kind: "type",
+        name: DEPENDENCY_NODE_KEYS_MAP.IMPORT,
       },
     ],
     [DEPENDENCY_NODE_KEYS_MAP.DYNAMIC_IMPORT]: [
       // Note: detects "import('source')"
-      { selector: "ImportExpression > Literal", kind: "value" },
+      {
+        selector: "ImportExpression > Literal",
+        kind: "value",
+        name: DEPENDENCY_NODE_KEYS_MAP.DYNAMIC_IMPORT,
+      },
     ],
     [DEPENDENCY_NODE_KEYS_MAP.EXPORT]: [
       // Note: detects "export * from 'source'";
       {
         selector: "ExportAllDeclaration:not([exportKind=type]) > Literal",
         kind: "value",
+        name: DEPENDENCY_NODE_KEYS_MAP.EXPORT,
       },
       // Note: detects "export type * from 'source'";
       {
         selector: "ExportAllDeclaration[exportKind=type] > Literal",
         kind: "type",
+        name: DEPENDENCY_NODE_KEYS_MAP.EXPORT,
       },
       // Note: detects "export { x } from 'source'";
       {
         selector: "ExportNamedDeclaration:not([exportKind=type]) > Literal",
         kind: "value",
+        name: DEPENDENCY_NODE_KEYS_MAP.EXPORT,
       },
       // Note: detects "export type { x } from 'source'";
       {
         selector: "ExportNamedDeclaration[exportKind=type] > Literal",
         kind: "type",
+        name: DEPENDENCY_NODE_KEYS_MAP.EXPORT,
       },
     ],
   },

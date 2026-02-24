@@ -51,6 +51,25 @@ describe("elementsSelectorHelpers", () => {
         true
       );
     });
+
+    it("should return true for arrays of valid captured values selectors", () => {
+      expect(
+        isCapturedValuesSelector([{ type: "component" }, { name: "Button" }])
+      ).toBe(true);
+      expect(isCapturedValuesSelector([{}])).toBe(true);
+    });
+
+    it("should return false for arrays with invalid elements", () => {
+      expect(isCapturedValuesSelector(["string", {}])).toBe(false);
+      expect(isCapturedValuesSelector([123, {}])).toBe(false);
+      expect(isCapturedValuesSelector([[], {}])).toBe(false);
+      expect(isCapturedValuesSelector([{ type: "component" }, "invalid"])).toBe(
+        false
+      );
+      expect(
+        isCapturedValuesSelector([{ type: "component" }, { invalid: 123 }])
+      ).toBe(false);
+    });
   });
 
   describe("isSimpleElementSelectorByType", () => {

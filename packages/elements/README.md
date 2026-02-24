@@ -204,7 +204,7 @@ All element selectors support the following properties:
 
 - **`type`** (`string | string[]`): Micromatch pattern(s) for the element type/s
 - **`category`** (`string | string[]`): Micromatch pattern(s) for the element category/categories
-- **`captured`** (`object`): Object with keys matching captured values. Each key can be a string or an array of strings representing micromatch patterns.
+- **`captured`** (`object | object[]`): Captured values selector. When provided as an object, all keys must match (AND logic). When provided as an array of objects, the element matches if any of the objects matches all keys (OR logic). Each key in the objects can be a string or an array of strings representing micromatch patterns.
 - **`origin`** (`"local" | "external" | "core"`): Element origin
   - `local`: Files within the project
   - `external`: External dependencies (e.g., `node_modules`)
@@ -275,6 +275,18 @@ const isAuthComponent = matcher.isMatch(
   { 
     type: "component",
     captured: { module: "{{ element.captured.module }}" } // This will always match
+  },
+);
+
+// Using captured array for OR logic
+const isAuthOrUserComponent = matcher.isMatch(
+  "src/modules/auth/LoginForm.component.tsx",
+  { 
+    type: "component",
+    captured: [
+      { module: "auth" },      // Matches if module is "auth"
+      { module: "user", fileName: "UserProfile" }       // OR if module is "user" and fileName is "UserProfile"
+    ]
   },
 );
 

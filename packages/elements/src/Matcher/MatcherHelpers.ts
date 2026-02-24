@@ -23,6 +23,23 @@ import type {
 } from "./Matcher.types";
 
 /**
+ * Determines if the given value is a captured values object selector (single object with pattern properties).
+ * @param value The value to check.
+ * @returns True if the value is a captured values object selector, false otherwise.
+ */
+function isCapturedValuesObjectSelector(
+  value: unknown
+): value is Record<string, string | string[]> {
+  if (!isObject(value) || isArray(value)) {
+    return false;
+  }
+  // Ensure all values are strings or string arrays
+  return Object.values(value).every(
+    (pattern) => isString(pattern) || isStringArray(pattern)
+  );
+}
+
+/**
  * Determines if the given value is a captured values selector.
  * @param value The value to check.
  * @returns True if the value is a captured values selector, false otherwise.
@@ -30,14 +47,13 @@ import type {
 export function isCapturedValuesSelector(
   value: unknown
 ): value is CapturedValuesSelector {
-  if (!isObject(value) || isArray(value)) {
-    return false;
+  // Handle array of captured values selectors
+  if (isArray(value)) {
+    return value.every((item) => isCapturedValuesObjectSelector(item));
   }
 
-  // Ensure all values are strings or string arrays
-  return Object.values(value).every(
-    (pattern) => isString(pattern) || isStringArray(pattern)
-  );
+  // Handle single captured values selector
+  return isCapturedValuesObjectSelector(value);
 }
 
 /**

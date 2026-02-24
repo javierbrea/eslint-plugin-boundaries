@@ -61,23 +61,195 @@ export function elementsMatcherSchema(
   return {
     oneOf: [
       {
-        type: "string", // single matcher
+        type: "string", // single matcher (legacy)
+      },
+      {
+        type: "object", // single object-based selector (new format)
+        properties: {
+          type: {
+            oneOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } },
+            ],
+          },
+          category: {
+            oneOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } },
+            ],
+          },
+          captured: {
+            oneOf: [
+              { type: "object" },
+              { type: "array", items: { type: "object" } },
+            ],
+          },
+          origin: {
+            oneOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } },
+            ],
+          },
+          path: {
+            oneOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } },
+            ],
+          },
+          elementPath: {
+            oneOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } },
+            ],
+          },
+          internalPath: {
+            oneOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } },
+            ],
+          },
+          source: {
+            oneOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } },
+            ],
+          },
+          baseSource: {
+            oneOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } },
+            ],
+          },
+          isIgnored: { type: "boolean" },
+          isUnknown: { type: "boolean" },
+          kind: {
+            oneOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } },
+            ],
+          },
+          specifiers: {
+            oneOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } },
+            ],
+          },
+          nodeKind: {
+            oneOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } },
+            ],
+          },
+          relationship: {
+            oneOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } },
+            ],
+          },
+        },
+        additionalProperties: false,
       },
       {
         type: "array", // multiple matchers
         items: {
           oneOf: [
             {
-              type: "string", // matcher with options
+              type: "string", // matcher (legacy)
             },
             {
-              type: "array",
+              type: "array", // matcher with captured values (legacy)
               items: [
                 {
                   type: "string", // matcher
                 },
-                matcherOptions, // options
+                matcherOptions, // captured values
               ],
+            },
+            {
+              type: "object", // object-based selector (new format)
+              properties: {
+                type: {
+                  oneOf: [
+                    { type: "string" },
+                    { type: "array", items: { type: "string" } },
+                  ],
+                },
+                category: {
+                  oneOf: [
+                    { type: "string" },
+                    { type: "array", items: { type: "string" } },
+                  ],
+                },
+                captured: {
+                  oneOf: [
+                    { type: "object" },
+                    { type: "array", items: { type: "object" } },
+                  ],
+                },
+                origin: {
+                  oneOf: [
+                    { type: "string" },
+                    { type: "array", items: { type: "string" } },
+                  ],
+                },
+                path: {
+                  oneOf: [
+                    { type: "string" },
+                    { type: "array", items: { type: "string" } },
+                  ],
+                },
+                elementPath: {
+                  oneOf: [
+                    { type: "string" },
+                    { type: "array", items: { type: "string" } },
+                  ],
+                },
+                internalPath: {
+                  oneOf: [
+                    { type: "string" },
+                    { type: "array", items: { type: "string" } },
+                  ],
+                },
+                source: {
+                  oneOf: [
+                    { type: "string" },
+                    { type: "array", items: { type: "string" } },
+                  ],
+                },
+                baseSource: {
+                  oneOf: [
+                    { type: "string" },
+                    { type: "array", items: { type: "string" } },
+                  ],
+                },
+                isIgnored: { type: "boolean" },
+                isUnknown: { type: "boolean" },
+                kind: {
+                  oneOf: [
+                    { type: "string" },
+                    { type: "array", items: { type: "string" } },
+                  ],
+                },
+                specifiers: {
+                  oneOf: [
+                    { type: "string" },
+                    { type: "array", items: { type: "string" } },
+                  ],
+                },
+                nodeKind: {
+                  oneOf: [
+                    { type: "string" },
+                    { type: "array", items: { type: "string" } },
+                  ],
+                },
+                relationship: {
+                  oneOf: [
+                    { type: "string" },
+                    { type: "array", items: { type: "string" } },
+                  ],
+                },
+              },
+              additionalProperties: false,
             },
           ],
         },
@@ -272,10 +444,13 @@ function isValidDependencyNodeSelector(
     isString(selector.selector) &&
     (!selector.kind ||
       (isString(selector.kind) &&
-        VALID_DEPENDENCY_NODE_KINDS.includes(selector.kind as DependencyKind)));
+        VALID_DEPENDENCY_NODE_KINDS.includes(
+          selector.kind as DependencyKind
+        ))) &&
+    (!selector.name || isString(selector.name));
   if (!isValidObject) {
     warnOnce(
-      `Please provide a valid object in ${ADDITIONAL_DEPENDENCY_NODES} setting. The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type" }. The invalid object will be ignored.`
+      `Please provide a valid object in ${ADDITIONAL_DEPENDENCY_NODES} setting. The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }. The invalid object will be ignored.`
     );
   }
   return isValidObject;
@@ -291,7 +466,7 @@ function validateAdditionalDependencyNodes(
   const invalidFormatMessage = [
     `Please provide a valid value in ${ADDITIONAL_DEPENDENCY_NODES} setting.`,
     "The value should be an array composed of the following objects:",
-    '{ selector: "<esquery selector>", kind: "value" | "type" }.',
+    '{ selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }.',
   ].join(" ");
 
   if (!isArray(additionalDependencyNodes)) {

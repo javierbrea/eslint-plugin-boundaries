@@ -1,4 +1,4 @@
-import type { MatchersOptionsNormalized } from "../Config";
+import type { MatchersOptionsNormalized, MicromatchPattern } from "../Config";
 import type { ElementDescription } from "../Descriptor";
 import { isArray, isNullish, isEmptyObject } from "../Support";
 
@@ -210,26 +210,23 @@ export class ElementsMatcher extends BaseElementsMatcher {
   }
 
   /**
-   * Determines if the captured values of the element match those in the selector.
+   * Checks if a single captured values object matches the element.
    * @param element The element to check.
-   * @param selector The selector to check against
+   * @param capturedSelector The captured values selector object to check against
    * @param templateData The data to use for replace in selector values
-   * @returns True if the captured values match, false otherwise.
+   * @returns True if all captured values in the selector match those in the element, false otherwise.
    */
-  private _isCapturedValuesMatch(
+  private _checkCapturedValuesObject(
     element: SelectableElement,
-    selector: BaseElementSelectorData,
+    capturedSelector: Record<string, MicromatchPattern>,
     templateData: TemplateData
   ): boolean {
-    if (!selector.captured || isEmptyObject(selector.captured)) {
-      return true;
-    }
     if (!element.captured) {
       return false;
     }
 
     // Use for...of with early return for better performance than every()
-    for (const [key, pattern] of Object.entries(selector.captured)) {
+    for (const [key, pattern] of Object.entries(capturedSelector)) {
       const elementValue = element.captured?.[key];
       if (!elementValue) {
         return false;
@@ -254,6 +251,43 @@ export class ElementsMatcher extends BaseElementsMatcher {
     }
 
     return true;
+  }
+
+  /**
+   * Determines if the captured values of the element match those in the selector.
+   * When the selector is an array, the element matches if it matches any of the array elements (OR logic).
+   * @param element The element to check.
+   * @param selector The selector to check against
+   * @param templateData The data to use for replace in selector values
+   * @returns True if the captured values match, false otherwise.
+   */
+  private _isCapturedValuesMatch(
+    element: SelectableElement,
+    selector: BaseElementSelectorData,
+    templateData: TemplateData
+  ): boolean {
+    if (!selector.captured || isEmptyObject(selector.captured)) {
+      return true;
+    }
+
+    // Handle array of captured values selectors (OR logic)
+    if (isArray(selector.captured)) {
+      // Empty array doesn't match anything
+      if (selector.captured.length === 0) {
+        return false;
+      }
+      // Match if any of the array elements matches
+      return selector.captured.some((capturedSelector) =>
+        this._checkCapturedValuesObject(element, capturedSelector, templateData)
+      );
+    }
+
+    // Handle single captured values selector object
+    return this._checkCapturedValuesObject(
+      element,
+      selector.captured,
+      templateData
+    );
   }
 
   /**

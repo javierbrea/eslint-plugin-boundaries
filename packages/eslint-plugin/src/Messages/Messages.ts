@@ -144,11 +144,29 @@ function micromatchPatternMessage(
 function capturedValuesMatcherMessage(
   capturedValuesPattern: CapturedValuesSelector | undefined,
   elementCapturedValues: CapturedValues | null
-) {
-  const capturedValuesPatternKeys = Object.keys(capturedValuesPattern || {});
+): string {
+  if (!capturedValuesPattern) {
+    return "";
+  }
+
+  // Handle array of captured values patterns (OR logic)
+  if (isArray(capturedValuesPattern)) {
+    if (capturedValuesPattern.length === 0) {
+      return "";
+    }
+    return capturedValuesPattern
+      .map((pattern) =>
+        capturedValuesMatcherMessage(pattern, elementCapturedValues)
+      )
+      .filter((msg) => msg.length > 0)
+      .join(" OR ");
+  }
+
+  // Handle single captured values pattern object
+  const capturedValuesPatternKeys = Object.keys(capturedValuesPattern);
   return capturedValuesPatternKeys
     .map((key) => {
-      return [key, capturedValuesPattern?.[key]];
+      return [key, capturedValuesPattern[key]];
     })
     .reduce((message, propertyNameAndMatcher, index) => {
       return `${message}${propertiesConcatenator(capturedValuesPatternKeys, index)} ${
@@ -195,11 +213,19 @@ function elementMatcherMessage(
   if (isString(elementMatcher)) {
     return typeMessage(elementMatcher);
   }
-  // TODO: Support array patterns
-  return `${typeMessage(elementMatcher[0] as string)}${capturedValuesMatcherMessage(
-    elementMatcher[1] as unknown as CapturedValuesSelector,
+  // Handle backward compatibility format: [type, capturedOptions]
+  // This should have been caught by isElementSelector, but handling for safety
+  if (isArray(elementMatcher) && elementMatcher.length === 2) {
+    return `${typeMessage(elementMatcher[0] as unknown as string)}${capturedValuesMatcherMessage(
+      elementMatcher[1] as unknown as CapturedValuesSelector,
+      elementCapturedValues
+    )}`;
+  }
+  // Handle captured values selector (object or array format)
+  return capturedValuesMatcherMessage(
+    elementMatcher as CapturedValuesSelector,
     elementCapturedValues
-  )}`;
+  );
 }
 
 export function ruleElementMessage(

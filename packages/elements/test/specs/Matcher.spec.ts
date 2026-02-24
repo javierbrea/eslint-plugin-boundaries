@@ -85,6 +85,14 @@ describe("Matcher", () => {
         selector: { isIgnored: "false" },
         expected: false,
       },
+      // Test captured array with ignored element (captured: null)
+      {
+        filePath: "/project/src/utils/__tests__/testUtil.ts",
+        selector: {
+          captured: [{ type: "test" }],
+        },
+        expected: false,
+      },
       {
         filePath: "/project/src/misc/other.ts",
         selector: { isUnknown: false },
@@ -94,6 +102,14 @@ describe("Matcher", () => {
         filePath: "/project/src/misc/other.ts",
         selector: { isUnknown: true },
         expected: true,
+      },
+      // Test captured array with unknown element (captured: null)
+      {
+        filePath: "/project/src/misc/other.ts",
+        selector: {
+          captured: [{ type: "foo" }],
+        },
+        expected: false,
       },
       {
         filePath: "/project/src/components/Button.tsx",
@@ -358,6 +374,57 @@ describe("Matcher", () => {
       {
         filePath: "/project/src/components/Button.tsx",
         selector: { captured: { fileName: "Button", foo: "bar" } },
+        expected: false,
+      },
+      // Array of captured values (OR logic)
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: {
+          captured: [{ fileName: "Button" }, { fileName: "Icon" }],
+        },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: {
+          captured: [{ fileName: "Icon" }, { fileName: "Button" }],
+        },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: {
+          captured: [{ fileName: "Icon" }, { fileName: "Card" }],
+        },
+        expected: false,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: {
+          captured: [{ fileName: "Button", foo: "bar" }, { fileName: "Icon" }],
+        },
+        expected: false,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: {
+          captured: [{ fileName: "Icon" }, { fileName: "Button" }],
+        },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: {
+          captured: [],
+        },
+        expected: false,
+      },
+      // Test with array captured when element has no captured values
+      {
+        filePath: "/project/src/utils/helpers/string.ts",
+        selector: {
+          captured: [{ type: "utility" }],
+        },
         expected: false,
       },
       {
