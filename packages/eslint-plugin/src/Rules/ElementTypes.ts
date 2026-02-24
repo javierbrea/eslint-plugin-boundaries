@@ -31,7 +31,9 @@ import {
   PLUGIN_NAME,
   PLUGIN_ISSUES_URL,
   SETTINGS,
+  RULE_NAMES_MAP,
   rulesOptionsSchema,
+  validateAndWarnRuleOptions,
 } from "../Settings";
 import { warnOnce, isString } from "../Support";
 
@@ -455,6 +457,14 @@ export default dependencyRule<ElementTypesRuleOptions>(
     schema: rulesOptionsSchema(),
   },
   function ({ dependency, node, context, settings, options }) {
+    // Validate and warn about legacy selector syntax
+    validateAndWarnRuleOptions(
+      options,
+      "from",
+      settings.checkConfig,
+      RULE_NAMES_MAP.ELEMENT_TYPES
+    );
+
     // TODO: Remove these checks when allowing to use more selectors in ESLint rules
     if (
       isLocalElement(dependency.to) &&

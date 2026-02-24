@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 ### Added
+- feat: Support defining element selectors as objects with any of the element properties as keys, and the corresponding values as micromatch patterns matching the value of that property in the element description.
+- feat: Warn about usage of legacy string and tuple selector formats in the configuration.
 ### Changed
 ### Fixed
 ### Removed

@@ -56,13 +56,16 @@ This rule validates `import` statements (or any other **[dependency-creating syn
       "rules": [
         {
           // when importing helpers
-          "target": ["helpers"],
+          "target": { "type": "helpers" },
           // allow any file (helpers are single files)
           "allow": "*"
         },
         {
           // when importing components or modules
-          "target": ["components", "modules"],
+          "target": [
+            { "type": "components" },
+            { "type": "modules" }
+          ],
           // only allow index.js
           "allow": "index.js",
           // allow only importing values, not types (TypeScript only)

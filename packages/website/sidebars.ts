@@ -31,7 +31,15 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       items: [
         "setup/elements",
-        "setup/selectors",
+        {
+          type: "category",
+          label: "Selectors",
+          link: {
+            type: "doc",
+            id: "setup/selectors",
+          },
+          items: ["setup/selectors/legacy-selectors"],
+        },
         "setup/rules",
         "setup/settings",
         "setup/eslint-integration",
@@ -81,6 +89,7 @@ const sidebars: SidebarsConfig = {
           items: [
             "releases/migration-guides/v1-to-v2",
             "releases/migration-guides/v3-to-v4",
+            "releases/migration-guides/v5-to-v6",
           ],
         },
       ],

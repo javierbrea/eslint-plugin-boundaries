@@ -52,8 +52,8 @@ The `allow` and `disallow` properties support one or multiple patterns to match 
 
 - **`<string>`** - A [micromatch pattern](https://github.com/micromatch/micromatch) to match the module name
 - **`[<string>, <object>]`** - An array containing a [micromatch pattern](https://github.com/micromatch/micromatch) as the first element and an options object with the following properties:
-  - `specifiers`: `<array>` - Array of import specifiers to match. Each specifier can be expressed as a [micromatch pattern](https://github.com/micromatch/micromatch). Matching specifiers are available as `${report.specifiers}` in custom error messages
-  - `path`: `<string>` or `<array<string>>` - Micromatch patterns to match the imported subpath from the module. If an array is provided, the module matches if any pattern matches. **Note that paths must start with a `/` character**. The path is available as `${report.path}` in custom error messages
+  - `specifiers`: `<array>` - Array of import specifiers to match. Each specifier can be expressed as a [micromatch pattern](https://github.com/micromatch/micromatch). Matching specifiers are available as `{{report.specifiers}}` in custom error messages
+  - `path`: `<string>` or `<array<string>>` - Micromatch patterns to match the imported subpath from the module. If an array is provided, the module matches if any pattern matches. **Note that paths must start with a `/` character**. The path is available as `{{report.path}}` in custom error messages
 
 
 :::info
@@ -72,20 +72,20 @@ When using options:
 | `"foo-library"` | `import { Link } from "foo-library"` | ✅ |
 | `"foo-library"` | `import { Link, Foo } from "foo-library"` | ✅ |
 | `"foo-library"` | `import "another-library"` | ❌ |
-| `["foo-library", { specifiers: ["Link"] }]` | `import { Link } from "foo-library"` | ✅ |
-| `["foo-library", { specifiers: ["Link"] }]` | `import { Link, Foo } from "foo-library"` | ✅ |
-| `["foo-library", { specifiers: ["Link"] }]` | `import "foo-library"` | ❌ |
-| `["foo-library", { specifiers: ["Link"] }]` | `import { Foo } from "foo-library"` | ❌ |
-| `["foo-library", { specifiers: ["Link"] }]` | `import "another-library"` | ❌ |
-| `["foo-*", { specifiers: ["L*", "F*"] }]` | `import { Link } from "foo-library"` | ✅ |
-| `["foo-*", { specifiers: ["L*", "F*"] }]` | `import { Foo } from "foo-another-library"` | ✅ |
-| `["foo-*", { specifiers: ["L*", "F*"] }]` | `import { Var, Foo } from "foo-library"` | ✅ |
-| `["foo-*", { specifiers: ["L*", "F*"] }]` | `import "foo-library"` | ❌ |
-| `["foo-*", { specifiers: ["L*", "F*"] }]` | `import "another-library"` | ❌ |
-| `["foo-library", { path: "/subpath" }]` | `import "foo-library/subpath"` | ✅ |
-| `["foo-library", { path: "/utils/*" }]` | `import "foo-library/utils/helper"` | ✅ |
-| `["foo-library", { path: "/utils/*" }]` | `import "foo-library/utils"` | ❌ |
-| `["foo-library", { path: ["/subpath", "/utils/*"] }]` | `import "foo-library/another"` | ❌ |
+| `{ module: "foo-library", specifiers: ["Link"] }` | `import { Link } from "foo-library"` | ✅ |
+| `{ module: "foo-library", specifiers: ["Link"] }` | `import { Link, Foo } from "foo-library"` | ✅ |
+| `{ module: "foo-library", specifiers: ["Link"] }` | `import "foo-library"` | ❌ |
+| `{ module: "foo-library", specifiers: ["Link"] }` | `import { Foo } from "foo-library"` | ❌ |
+| `{ module: "foo-library", specifiers: ["Link"] }` | `import "another-library"` | ❌ |
+| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import { Link } from "foo-library"` | ✅ |
+| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import { Foo } from "foo-another-library"` | ✅ |
+| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import { Var, Foo } from "foo-library"` | ✅ |
+| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import "foo-library"` | ❌ |
+| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import "another-library"` | ❌ |
+| `{ module: "foo-library", path: "/subpath" }` | `import "foo-library/subpath"` | ✅ |
+| `{ module: "foo-library", path: "/utils/*" }` | `import "foo-library/utils/helper"` | ✅ |
+| `{ module: "foo-library", path: "/utils/*" }` | `import "foo-library/utils"` | ❌ |
+| `{ module: "foo-library", path: ["/subpath", "/utils/*"] }` | `import "foo-library/another"` | ❌ |
 
 
 ### Configuration Example
@@ -100,7 +100,7 @@ When using options:
       "rules": [
         {
           // from helper elements
-          "from": ["helpers"],
+          "from": { "type": "helpers" },
           // allow importing moment
           "allow": ["moment"],
           // allow only importing types, not values (TypeScript only)
@@ -108,7 +108,7 @@ When using options:
         },
         {
           // from component elements
-          "from": ["components"],
+          "from": { "type": "components" },
           "allow": [
             // allow importing react
             "react",
@@ -118,7 +118,7 @@ When using options:
         },
         {
           // from components of family "molecules"
-          "from": [["components", { "family": "molecules" }]],
+          "from": { "type": "components", "captured": { "family": "molecules" } },
           "disallow": [
             // disallow importing @material-ui/icons
             "@material-ui/icons"
@@ -126,14 +126,14 @@ When using options:
         },
         {
           // from modules
-          "from": ["modules"],
+          "from": { "type": "modules" },
           "allow": [
             // allow importing react
             "react",
             // allow importing useHistory, Switch and Route from react-router-dom
-            ["react-router-dom", { "specifiers": ["useHistory", "Switch", "Route"] }],
+            { "module": "react-router-dom", "specifiers": ["useHistory", "Switch", "Route"] },
             // allow importing Menu icon and any icon starting with "Log" from @mui/icons-material
-            ["@mui/icons-material", { "path": ["/Menu", "/Log*"] }]
+            { "module": "@mui/icons-material", "path": ["/Menu", "/Log*"] }
           ]
         }
       ]

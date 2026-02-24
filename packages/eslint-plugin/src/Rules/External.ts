@@ -21,7 +21,9 @@ import type {
 } from "../Settings";
 import {
   rulesOptionsSchema,
+  validateAndWarnRuleOptions,
   SETTINGS,
+  RULE_NAMES_MAP,
   PLUGIN_NAME,
   PLUGIN_ISSUES_URL,
 } from "../Settings";
@@ -152,6 +154,14 @@ export default dependencyRule<ExternalRuleOptions>(
     }),
   },
   function ({ dependency, node, context, settings, options }) {
+    // Validate and warn about legacy selector syntax
+    validateAndWarnRuleOptions(
+      options,
+      "from",
+      settings.checkConfig,
+      RULE_NAMES_MAP.EXTERNAL
+    );
+
     if (
       isExternalDependencyElement(dependency.to) ||
       isCoreDependencyElement(dependency.to)

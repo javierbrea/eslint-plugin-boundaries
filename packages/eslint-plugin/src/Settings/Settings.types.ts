@@ -154,6 +154,7 @@ export const SETTINGS = {
   ADDITIONAL_DEPENDENCY_NODES: `${PLUGIN_NAME}/additional-dependency-nodes`,
   LEGACY_TEMPLATES: `${PLUGIN_NAME}/legacy-templates`,
   CACHE: `${PLUGIN_NAME}/cache`,
+  CHECK_CONFIG: `${PLUGIN_NAME}/check-config`,
   FLAG_AS_EXTERNAL: `${PLUGIN_NAME}/flag-as-external`,
 
   // env vars
@@ -253,6 +254,7 @@ export const SETTINGS_KEYS_MAP = {
   /** @deprecated Use import/resolver settings instead */
   ALIAS: SETTINGS.ALIAS,
   CACHE: SETTINGS.CACHE,
+  CHECK_CONFIG: SETTINGS.CHECK_CONFIG,
   FLAG_AS_EXTERNAL: SETTINGS.FLAG_AS_EXTERNAL,
 } as const;
 
@@ -265,6 +267,11 @@ export const LEGACY_TEMPLATES_DEFAULT = true as const;
  * Default value for the cache setting.
  */
 export const CACHE_DEFAULT = true as const;
+
+/**
+ * Default value for the check-config setting.
+ */
+export const CHECK_CONFIG_DEFAULT = false as const;
 
 /**
  * Valid keys for the plugin settings.
@@ -346,6 +353,8 @@ export type Settings = {
   [SETTINGS_KEYS_MAP.ALIAS]?: AliasSetting;
   /** Whether to enable caching for the plugin analysis */
   [SETTINGS_KEYS_MAP.CACHE]?: boolean;
+  /** Whether to enable configuration checking and warnings for legacy syntax */
+  [SETTINGS_KEYS_MAP.CHECK_CONFIG]?: boolean;
   /** Configuration for categorizing dependencies as external or local */
   [SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]?: FlagAsExternalOptions;
 };
@@ -371,6 +380,8 @@ export type SettingsNormalized = {
   legacyTemplates: boolean;
   /** Whether caching is enabled */
   cache: boolean;
+  /** Whether configuration checking and warnings for legacy syntax are enabled */
+  checkConfig: boolean;
   /** Configuration for categorizing dependencies as external or local */
   flagAsExternal: FlagAsExternalOptions;
 };

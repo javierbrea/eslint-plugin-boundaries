@@ -197,7 +197,7 @@ For a path `helpers/data/parsers.js`, this captures:
 ```
 
 :::tip
-These captured values can then be used in [element selectors](./selectors.md#type-with-captured-properties) to create more specific and dynamic rules.
+These captured values can then be used in [element selectors](./selectors.md#captured-values-matching) to create more specific and dynamic rules.
 :::
 
 ### `basePattern` (optional)

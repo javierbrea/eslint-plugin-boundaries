@@ -43,9 +43,9 @@ This rule validates `import` statements (or any other **[dependency-creating syn
 This rule uses **[element selectors](../setup/selectors.md)** to define which elements can import which other elements. Element selectors support capturing properties from **[element definitions](../setup/elements.md)**, allowing for more dynamic and flexible rules.
 :::
 
-For example: You can use element selector options to ensure components of one `family` can only import helpers of the same `family`, using the special pattern `${capturedKey}` in the `allow` selector. This will be replaced with the corresponding captured value from the `from` element before matching.
+For example: You can use element selector properties to ensure components of one `family` can only import helpers of the same `family`, using the template pattern `{{ capturedKey }}` in the `allow` selector. This will be replaced with the corresponding captured value from the `from` element before matching.
 
-**Example:** If the `from` element has captured values `{ family: "atom", elementName: "component-a" }`, the selector `["components", { "family": "!${family}-${elementName}" }]` will match helpers with a `family` value matching `"!atom-component-a"`.
+**Example:** If the `from` element has captured values `{ family: "atom", elementName: "component-a" }`, the selector `{ type: "components", captured: { family: "!{{ family }}-{{ elementName }}" } }` will match components with a `family` value matching `"!atom-component-a"`.
 
 :::tip
 Enable [debug mode](../guides/debugging.md) in the plugin configuration to inspect the assigned types and captured values for each file in your project.
@@ -62,35 +62,39 @@ Enable [debug mode](../guides/debugging.md) in the plugin configuration to inspe
       "rules": [
         {
           // from helper elements
-          "from": ["helpers"],
+          "from": { "type": "helpers" },
           // allow importing helper elements
-          "allow": ["helpers"],
+          "allow": [{ "type": "helpers" }],
           // allow only importing value, not type (TypeScript only)
           "importKind": "value"
         },
         {
           // from component elements
-          "from": ["components"],
+          "from": { "type": "components" },
           "allow": [
             // allow importing components of the same family
-            ["components", { "family": "${family}" }],
+            { "type": "components", "captured": { "family": "{{ family }}" } },
             // allow importing helpers with category "data"
-            ["helpers", { "category": "data" }]
+            { "type": "helpers", "captured": { "category": "data" } }
           ]
         },
         {
           // from components with captured family "molecule"
-          "from": [["components", { "family": "molecule" }]],
+          "from": { "type": "components", "captured": { "family": "molecule" } },
           "allow": [
             // allow importing components with captured family "atom"
-            ["components", { "family": "atom" }]
+            { "type": "components", "captured": { "family": "atom" } }
           ]
         },
         {
           // from modules
-          "from": ["modules"],
+          "from": { "type": "modules" },
           // allow importing helpers, components, and modules
-          "allow": ["helpers", "components", "modules"]
+          "allow": [
+            { "type": "helpers" },
+            { "type": "components" },
+            { "type": "modules" }
+          ]
         }
       ]
     }]

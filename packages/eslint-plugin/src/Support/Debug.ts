@@ -10,6 +10,10 @@ import { PLUGIN_NAME, isDebugModeEnabled } from "../Settings";
 const warns: string[] = [];
 const debuggedFiles: string[] = [];
 
+// WeakSet tracking for configuration validation
+const trackedRuleOptions = new WeakSet<object>();
+const trackedSettingsRaw = new WeakSet<object>();
+
 const COLORS_MAP = {
   gray: "gray",
   green: "green",
@@ -31,11 +35,29 @@ export function success(message: string) {
   trace(message, COLORS_MAP.green);
 }
 
-export function warnOnce(message: string) {
+export function warnOnce(message: string): boolean {
   if (!warns.includes(message)) {
     warns.push(message);
     warn(message);
+    return true;
   }
+  return false;
+}
+
+export function shouldWarnLegacyRuleOptions(options: object): boolean {
+  if (trackedRuleOptions.has(options)) {
+    return false;
+  }
+  trackedRuleOptions.add(options);
+  return true;
+}
+
+export function shouldWarnLegacySettings(contextSettings: object): boolean {
+  if (trackedSettingsRaw.has(contextSettings)) {
+    return false;
+  }
+  trackedSettingsRaw.add(contextSettings);
+  return true;
 }
 
 export function debugDescription(

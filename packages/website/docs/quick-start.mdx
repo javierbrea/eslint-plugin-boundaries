@@ -225,16 +225,16 @@ Read how to use **[Element Selectors](./setup/selectors.md)** to configure your 
 +        default: "disallow",
 +        rules: [
 +          {
-+            from: "controllers",
-+            allow: ["models", "views"]
++            from: { type: "controllers" },
++            allow: [{ type: "models" }, { type: "views" }]
 +          },
 +          {
-+            from: "views",
-+            allow: ["models"]
++            from: { type: "views" },
++            allow: [{ type: "models" }]
 +          },
 +          {
-+            from: "models",
-+            disallow: ["*"]
++            from: { type: "models" },
++            disallow: [{ type: "*" }]
 +          }
 +        ]
 +      }]
@@ -267,16 +267,16 @@ Read how to use **[Element Selectors](./setup/selectors.md)** to configure your 
 +        default: "disallow",
 +        rules: [
 +          {
-+            from: "controllers",
-+            allow: ["models", "views"]
++            from: { type: "controllers" },
++            allow: [{ type: "models" }, { type: "views" }]
 +          },
 +          {
-+            from: "views",
-+            allow: ["models"]
++            from: { type: "views" },
++            allow: [{ type: "models" }]
 +          },
 +          {
-+            from: "models",
-+            disallow: ["*"]
++            from: { type: "models" },
++            disallow: [{ type: "*" }]
 +          }
 +        ]
 +      }]

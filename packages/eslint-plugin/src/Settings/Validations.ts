@@ -15,9 +15,19 @@ import {
   isBoolean,
   getArrayOrNull,
 } from "../Support/Common";
-import { warnOnce } from "../Support/Debug";
+import {
+  warnOnce,
+  shouldWarnLegacyRuleOptions,
+  shouldWarnLegacySettings,
+} from "../Support/Debug";
 
-import { isDependencyNodeKey, isLegacyType, rulesMainKey } from "./Helpers";
+import {
+  isDependencyNodeKey,
+  isLegacyType,
+  rulesMainKey,
+  detectLegacyElementSelector,
+  detectLegacyTemplateSyntax,
+} from "./Helpers";
 import {
   getElementsTypeNames,
   getRootPath,
@@ -28,6 +38,7 @@ import {
   SETTINGS_KEYS_MAP,
   LEGACY_TEMPLATES_DEFAULT,
   CACHE_DEFAULT,
+  CHECK_CONFIG_DEFAULT,
   DEPENDENCY_NODE_KEYS_MAP,
 } from "./Settings.types";
 import type {
@@ -321,6 +332,85 @@ export function rulesOptionsSchema(
   ];
 }
 
+/**
+ * Validates rule options and warns about legacy element selector syntax.
+ * @param options The rule options to validate
+ * @param mainKey The main key used in rules (from/to/target)
+ * @param checkConfig Whether to perform configuration checking
+ * @param ruleName The name of the rule for warning messages
+ */
+export function validateAndWarnRuleOptions<
+  T extends { rules?: Array<Record<string, unknown>> },
+>(
+  options: T | undefined,
+  mainKey: RuleMainKey = "from",
+  checkConfig = false,
+  ruleName = "boundaries/unknown"
+): void {
+  if (!checkConfig) {
+    return;
+  }
+
+  if (!options || !options.rules || !isArray(options.rules)) {
+    return;
+  }
+
+  // Check if we've already warned for this options object
+  if (!shouldWarnLegacyRuleOptions(options)) {
+    return;
+  }
+
+  // Collect ALL rules with legacy syntax
+  const rulesWithLegacySelector: number[] = [];
+  const rulesWithLegacyTemplate: number[] = [];
+
+  for (const [index, rule] of options.rules.entries()) {
+    const ruleMainKey = rulesMainKey(mainKey);
+    let hasLegacySelector = false;
+    let hasLegacyTemplate = false;
+
+    // Check all selector properties
+    for (const key of [ruleMainKey, "allow", "disallow"]) {
+      if (rule[key]) {
+        if (detectLegacyElementSelector(rule[key])) {
+          hasLegacySelector = true;
+        }
+        if (detectLegacyTemplateSyntax(rule[key])) {
+          hasLegacyTemplate = true;
+        }
+      }
+    }
+
+    if (hasLegacySelector) {
+      rulesWithLegacySelector.push(index);
+    }
+    if (hasLegacyTemplate) {
+      rulesWithLegacyTemplate.push(index);
+    }
+  }
+
+  // Show warnings if needed
+  if (rulesWithLegacySelector.length > 0) {
+    warnOnce(
+      `[${ruleName}] Detected legacy selector syntax in ${
+        rulesWithLegacySelector.length
+      } rule(s) at indices: ${rulesWithLegacySelector.join(
+        ", "
+      )}. Consider migrating to object-based selectors. See documentation for migration guide.`
+    );
+  }
+
+  if (rulesWithLegacyTemplate.length > 0) {
+    warnOnce(
+      `[${ruleName}] Detected legacy template syntax \${...} in ${
+        rulesWithLegacyTemplate.length
+      } rule(s) at indices: ${rulesWithLegacyTemplate.join(
+        ", "
+      )}. Consider migrating to {{...}} syntax. See documentation for details.`
+    );
+  }
+}
+
 export function isValidElementAssigner(
   element: unknown
 ): element is ElementDescriptor {
@@ -433,6 +523,26 @@ function validateLegacyTemplates(
   }
   warnOnce(
     `Please provide a valid value in '${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting. The value should be a boolean.`
+  );
+}
+
+/**
+ * Validates the checkConfig setting.
+ * @param checkConfig The checkConfig setting value
+ * @returns The validated checkConfig value or undefined
+ */
+function validateCheckConfig(
+  /** The checkConfig setting value */
+  checkConfig: unknown
+): boolean | undefined {
+  if (checkConfig === undefined) {
+    return;
+  }
+  if (isBoolean(checkConfig)) {
+    return checkConfig;
+  }
+  warnOnce(
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.CHECK_CONFIG}' setting. The value should be a boolean.`
   );
 }
 
@@ -593,10 +703,18 @@ function validateFlagAsExternal(
 
 // TODO: Remove settings validation in next major version. It should be done by schema validation only
 export function validateSettings(
-  settings: Rule.RuleContext["settings"]
+  settings: Rule.RuleContext["settings"],
+  rawSettings: object
 ): Settings {
-  deprecateTypes(settings[TYPES]);
-  deprecateAlias(settings[ALIAS]);
+  const checkConfig =
+    validateCheckConfig(settings[SETTINGS_KEYS_MAP.CHECK_CONFIG]) ??
+    CHECK_CONFIG_DEFAULT;
+
+  // Only check for deprecated settings if checkConfig is enabled and we haven't already warned
+  if (checkConfig && shouldWarnLegacySettings(rawSettings)) {
+    deprecateTypes(settings[TYPES]);
+    deprecateAlias(settings[ALIAS]);
+  }
 
   return {
     [SETTINGS_KEYS_MAP.ELEMENTS]: validateElements(
@@ -617,6 +735,9 @@ export function validateSettings(
     [SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]: validateLegacyTemplates(
       settings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]
     ),
+    [SETTINGS_KEYS_MAP.CHECK_CONFIG]: validateCheckConfig(
+      settings[SETTINGS_KEYS_MAP.CHECK_CONFIG]
+    ),
     [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES]:
       validateAdditionalDependencyNodes(settings[ADDITIONAL_DEPENDENCY_NODES]),
     [SETTINGS_KEYS_MAP.CACHE]: settings[SETTINGS_KEYS_MAP.CACHE] as
@@ -633,7 +754,10 @@ export function validateSettings(
  * @returns The normalized settings
  */
 export function getSettings(context: Rule.RuleContext): SettingsNormalized {
-  const validatedSettings = validateSettings(context.settings);
+  const validatedSettings = validateSettings(
+    context.settings,
+    context.settings
+  );
 
   const dependencyNodesSetting = getArrayOrNull<DependencyNodeKey>(
     validatedSettings[SETTINGS_KEYS_MAP.DEPENDENCY_NODES]
@@ -695,6 +819,8 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
       validatedSettings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES] ??
       LEGACY_TEMPLATES_DEFAULT,
     cache: validatedSettings[SETTINGS_KEYS_MAP.CACHE] ?? CACHE_DEFAULT,
+    checkConfig:
+      validatedSettings[SETTINGS_KEYS_MAP.CHECK_CONFIG] ?? CHECK_CONFIG_DEFAULT,
     flagAsExternal: {
       unresolvableAlias:
         validatedSettings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]

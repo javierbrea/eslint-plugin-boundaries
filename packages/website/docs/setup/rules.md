@@ -37,7 +37,7 @@ export default [{
       default: "allow",
       
       // Optional custom message
-      message: "${file.type} is not allowed to import ${dependency.type}",
+      message: "{{file.type}} is not allowed to import {{dependency.type}}",
       
       // Array of rules
       rules: [
@@ -182,13 +182,13 @@ The plugin provides a default message for each rule. For details on each default
 
 #### Message Templating
 
-Custom error messages enable you to inject dynamic information related to the current file and the dependency being checked. Use `${file.PROPERTY}` or `${dependency.PROPERTY}` for variables that will be replaced with the corresponding property from the file or dependency.
+Custom error messages enable you to inject dynamic information related to the current file and the dependency being checked. Use `{{file.PROPERTY}}` or `{{dependency.PROPERTY}}` for variables that will be replaced with the corresponding property from the file or dependency.
 
 **Example:**
 
 ```js
 {
-  "message": "${file.type}s of category ${file.category} are not allowed to import ${dependency.category}s"
+  "message": "{{file.type}}s of category {{file.category}} are not allowed to import {{dependency.category}}s"
   // If the error is produced by a file with type "component" and captured property "category" as "atom"
   // importing a dependency with category "molecule", the message becomes:
   // "components of category atom are not allowed to import molecules"
@@ -209,11 +209,11 @@ Both `file` and `dependency` provide these properties:
 
 #### Additional Error Report Properties
 
-Some rules also allow extra info about the violation, which may be exposed in the error message using `${report.PROPERTY}`. For example, the [rule `external`](../rules/external.md) provides details about forbidden specifiers:
+Some rules also allow extra info about the violation, which may be exposed in the error message using `{{report.PROPERTY}}`. For example, the [rule `external`](../rules/external.md) provides details about forbidden specifiers:
 
 ```js
 {
-  "message": "Do not import ${report.specifiers} from ${dependency.source} in helpers"
+  "message": "Do not import {{report.specifiers}} from {{dependency.source}} in helpers"
 }
 ```
 
@@ -276,7 +276,7 @@ export default [{
           from: ["components"],
           allow: [
             // allow importing components of the same family
-            ["components", { family: "${from.family}" }],
+            ["components", { family: "{{from.family}}" }],
             // allow importing helpers with category "data"
             ["helpers", { category: "data" }],
           ]
@@ -318,8 +318,8 @@ export default [{
           // Custom message only for this specific error
           message: `
             Modules with name starting by 'page-' only can import layout components.
-            You tried to import a component of family ${target.family}
-            from a module with name ${from.elementName}
+            You tried to import a component of family {{target.family}}
+            from a module with name {{from.elementName}}
           `
         }
       ]

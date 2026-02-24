@@ -20,7 +20,9 @@ import {
   PLUGIN_NAME,
   PLUGIN_ISSUES_URL,
   SETTINGS,
+  RULE_NAMES_MAP,
   rulesOptionsSchema,
+  validateAndWarnRuleOptions,
 } from "../Settings";
 
 import { elementRulesAllowDependency } from "./ElementTypes";
@@ -146,6 +148,14 @@ export default dependencyRule<EntryPointRuleOptions>(
     }),
   },
   function ({ dependency, node, context, settings, options }) {
+    // Validate and warn about legacy selector syntax
+    validateAndWarnRuleOptions(
+      options,
+      "target",
+      settings.checkConfig,
+      RULE_NAMES_MAP.ENTRY_POINT
+    );
+
     if (
       !dependency.to.isIgnored &&
       dependency.to.type &&
