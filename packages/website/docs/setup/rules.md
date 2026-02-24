@@ -125,7 +125,7 @@ Specifies what is allowed or disallowed when the rule matches.
 If both `allow` and `disallow` are present and match, `disallow` takes precedence.
 :::
 
-### `importKind`
+### `importKind` (deprecated)
 
 **Type:** `<string>` or `<array of strings>` or `<micromatch pattern>`
 
@@ -134,6 +134,18 @@ If both `allow` and `disallow` are present and match, `disallow` takes precedenc
 **Optional**
 
 Specifies whether the rule applies based on how the dependency is imported.
+
+:::warning Deprecated in v6
+Rule-level `importKind` is kept for backward compatibility but is deprecated.
+
+Prefer using selector-level `kind` in object-based selectors instead:
+
+- `element-types`: use `kind` in `allow` / `disallow` selectors
+- `entry-point`: use `kind` in `target` selectors
+- `external`: use `kind` in `from` selectors
+
+When both rule-level `importKind` and selector-level `kind` are defined, selector-level `kind` takes precedence.
+:::
 
 **Possible values:**
 - `"value"` - Importing as a value

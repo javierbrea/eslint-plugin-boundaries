@@ -40,7 +40,7 @@ This rule validates `import` statements (or any other **[dependency-creating syn
   - `target`: **[`<element selectors>`](../setup/selectors.md)** - If the imported element matches this selector, the rule will be evaluated. Otherwise, it is skipped
   - `disallow`: `<string>` - A [micromatch pattern](https://github.com/micromatch/micromatch). If the imported file path matches this pattern, the import is disallowed (can be overridden by a subsequent rule returning `"allow"`)
   - `allow`: `<string>` - A [micromatch pattern](https://github.com/micromatch/micromatch). If the imported file path matches this pattern, the import is allowed (can be overridden by a subsequent rule returning `"disallow"`)
-  - `importKind`: `<string>` - Optional. [TypeScript](../guides/typescript-support.md) only. Specifies whether the rule applies to value or type imports. Can be a string, array of strings, or micromatch pattern. Possible values: `"value"`, `"type"`, or `"typeof"`
+  - `importKind`: `<string>` - Optional. [TypeScript](../guides/typescript-support.md) only. **Deprecated in v6** (kept for backward compatibility). Use selector-level `kind` in `target` selectors instead. If both are defined, selector-level `kind` takes precedence. Possible values: `"value"`, `"type"`, or `"typeof"`
   - `message`: `<string>` - Custom error message for this specific rule. See [error messages](#error-messages) for more information
 
 

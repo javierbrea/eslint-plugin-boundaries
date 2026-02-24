@@ -363,6 +363,7 @@ export function validateAndWarnRuleOptions<
   // Collect ALL rules with legacy syntax
   const rulesWithLegacySelector: number[] = [];
   const rulesWithLegacyTemplate: number[] = [];
+  const rulesWithDeprecatedImportKind: number[] = [];
 
   for (const [index, rule] of options.rules.entries()) {
     const ruleMainKey = rulesMainKey(mainKey);
@@ -387,6 +388,10 @@ export function validateAndWarnRuleOptions<
     if (hasLegacyTemplate) {
       rulesWithLegacyTemplate.push(index);
     }
+
+    if (rule.importKind !== undefined) {
+      rulesWithDeprecatedImportKind.push(index);
+    }
   }
 
   // Show warnings if needed
@@ -407,6 +412,16 @@ export function validateAndWarnRuleOptions<
       } rule(s) at indices: ${rulesWithLegacyTemplate.join(
         ", "
       )}. Consider migrating to {{...}} syntax. See documentation for details.`
+    );
+  }
+
+  if (rulesWithDeprecatedImportKind.length > 0) {
+    warnOnce(
+      `[${ruleName}] Detected deprecated rule-level "importKind" in ${
+        rulesWithDeprecatedImportKind.length
+      } rule(s) at indices: ${rulesWithDeprecatedImportKind.join(
+        ", "
+      )}. Use selector-level "kind" instead. When both are defined, selector-level "kind" takes precedence.`
     );
   }
 }

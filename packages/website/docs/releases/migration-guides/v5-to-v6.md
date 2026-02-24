@@ -104,6 +104,24 @@ Version 6.0.0 introduces the `boundaries/check-config` setting (disabled by defa
 
 The warning shows all affected rules with their array indices, allowing you to migrate incrementally. This setting is designed for migration only and should be disabled once complete for optimal performance.
 
+### Deprecation of Rule-Level `importKind`
+
+Rule-level `importKind` in `element-types`, `entry-point`, and `external` is still supported in v6.x for backward compatibility, but it is deprecated.
+
+When `boundaries/check-config` is enabled, you'll also see warnings like:
+
+```
+[boundaries/element-types] Detected deprecated rule-level "importKind" in 2 rule(s) at indices: 1, 3. Use selector-level "kind" instead. When both are defined, selector-level "kind" takes precedence.
+```
+
+Use selector-level `kind` in object-based selectors:
+
+- `element-types`: `allow` / `disallow` selectors
+- `entry-point`: `target` selectors
+- `external`: `from` selectors
+
+If both are present in the same rule, selector-level `kind` has priority over rule-level `importKind`.
+
 ## Why Migrate?
 
 ### Enhanced Readability

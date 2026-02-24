@@ -19,9 +19,9 @@ const runTest = (
   options: unknown[],
   errorMessages: Record<number, string> = {}
 ) => {
-  const ruleTester = createRuleTester(settings);
+  const localRuleTester = createRuleTester(settings);
 
-  ruleTester.run(RULE, rule, {
+  localRuleTester.run(RULE, rule, {
     valid: [
       // Helpers cant import type from components
       {
@@ -371,3 +371,53 @@ runTest(
     5: "Do not import type from helpers in modules",
   }
 );
+
+const precedenceRuleTester = createRuleTester(settingsOneLevelTypeScript);
+
+precedenceRuleTester.run(`${RULE} selector kind precedence`, rule, {
+  valid: [
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import HelperA from 'helpers/helper-a'",
+      options: [
+        {
+          default: "disallow",
+          rules: [
+            {
+              from: "components",
+              allow: [{ type: "helpers", kind: "value" }],
+              importKind: "type",
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  invalid: [
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import type { HelperA } from 'helpers/helper-a'",
+      options: [
+        {
+          default: "disallow",
+          rules: [
+            {
+              from: "components",
+              allow: [{ type: "helpers", kind: "value" }],
+              importKind: "type",
+            },
+          ],
+        },
+      ],
+      errors: [
+        {
+          message: elementTypesNoRuleMessage({
+            file: "'components'",
+            dep: "'helpers'",
+          }),
+          type: "Literal",
+        },
+      ],
+    },
+  ],
+});
