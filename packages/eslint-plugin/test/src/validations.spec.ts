@@ -1,4 +1,6 @@
-import { validateAndWarnRuleOptions } from "../../src/Settings";
+import type { Rule } from "eslint";
+
+import { getSettings, validateAndWarnRuleOptions } from "../../src/Settings";
 
 describe("validateAndWarnRuleOptions", () => {
   const getWarnSpy = () => {
@@ -209,5 +211,60 @@ describe("validateAndWarnRuleOptions", () => {
     );
 
     expect(warnSpy).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("getSettings debug options", () => {
+  const createContext = (settings: Rule.RuleContext["settings"]) => {
+    return {
+      settings,
+    } as Rule.RuleContext;
+  };
+
+  it("should enable debug from settings and keep provided filters", () => {
+    const normalized = getSettings(
+      createContext({
+        "boundaries/elements": [
+          {
+            type: "helpers",
+            pattern: "src/helpers/*",
+            mode: "folder",
+            capture: ["name"],
+          },
+        ],
+        "boundaries/debug": {
+          enabled: true,
+          filter: {
+            files: [{ type: "helpers" }],
+            dependencies: [{ to: [{ source: "./*" }] }],
+          },
+        },
+      })
+    );
+
+    expect(normalized.debug.enabled).toBe(true);
+    expect(normalized.debug.filter.files).toEqual([{ type: "helpers" }]);
+    expect(normalized.debug.filter.dependencies).toEqual([
+      { to: [{ source: "./*" }] },
+    ]);
+  });
+
+  it("should keep debug disabled by default", () => {
+    const normalized = getSettings(
+      createContext({
+        "boundaries/elements": [
+          {
+            type: "helpers",
+            pattern: "src/helpers/*",
+            mode: "folder",
+            capture: ["name"],
+          },
+        ],
+      })
+    );
+
+    expect(normalized.debug.enabled).toBe(false);
+    expect(normalized.debug.filter.files).toBeUndefined();
+    expect(normalized.debug.filter.dependencies).toBeUndefined();
   });
 });

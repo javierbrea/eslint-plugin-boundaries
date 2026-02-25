@@ -566,6 +566,7 @@ describe("Constants", () => {
       expect(SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES).toBe(
         "boundaries/additional-dependency-nodes"
       );
+      expect(SETTINGS_KEYS_MAP.DEBUG).toBe("boundaries/debug");
       expect(SETTINGS_KEYS_MAP.TYPES).toBe("boundaries/types");
       expect(SETTINGS_KEYS_MAP.ALIAS).toBe("boundaries/alias");
     });
@@ -719,6 +720,7 @@ describe("Type Guard Functions", () => {
       expect(isSettingsKey("boundaries/additional-dependency-nodes")).toBe(
         true
       );
+      expect(isSettingsKey("boundaries/debug")).toBe(true);
       expect(isSettingsKey("boundaries/types")).toBe(true);
       expect(isSettingsKey("boundaries/alias")).toBe(true);
     });

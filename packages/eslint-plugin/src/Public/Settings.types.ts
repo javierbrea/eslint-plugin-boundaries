@@ -15,6 +15,8 @@ export type {
   IgnoreSetting,
   IncludeSetting,
   RootPathSetting,
+  DebugSetting,
+  DebugFilterSetting,
   SettingsKey,
   DependencyNodeKey,
   DependencyNodeSelector,

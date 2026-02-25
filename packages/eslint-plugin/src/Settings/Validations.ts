@@ -1,8 +1,10 @@
 import type {
   DependencyKind,
+  DependencySelector,
   ElementDescriptors,
   ElementDescriptor,
   ElementDescriptorMode,
+  ElementsSelector,
   FlagAsExternalOptions,
 } from "@boundaries/elements";
 import { isElementDescriptor } from "@boundaries/elements";
@@ -44,6 +46,7 @@ import {
 import type {
   DependencyNodeKey,
   DependencyNodeSelector,
+  DebugSetting,
   Settings,
   IgnoreSetting,
   IncludeSetting,
@@ -716,6 +719,83 @@ function validateFlagAsExternal(
   return validated;
 }
 
+function validateDebugFilterSelectors(
+  value: unknown,
+  filterName: "files" | "dependencies"
+) {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (isArray(value)) {
+    return value;
+  }
+  warnOnce(
+    `Please provide a valid array for '${filterName}' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`
+  );
+  return undefined;
+}
+
+function validateDebugFilesFilter(
+  value: unknown
+): ElementsSelector[] | undefined {
+  return validateDebugFilterSelectors(value, "files") as
+    | ElementsSelector[]
+    | undefined;
+}
+
+function validateDebugDependenciesFilter(
+  value: unknown
+): DependencySelector[] | undefined {
+  return validateDebugFilterSelectors(value, "dependencies") as
+    | DependencySelector[]
+    | undefined;
+}
+
+function validateDebug(debug: unknown): DebugSetting | undefined {
+  if (!debug) {
+    return;
+  }
+
+  if (!isObject(debug)) {
+    warnOnce(
+      `Please provide a valid value in '${SETTINGS_KEYS_MAP.DEBUG}' setting. The value should be an object.`
+    );
+    return;
+  }
+
+  const validated: DebugSetting = {};
+
+  if (debug.enabled !== undefined) {
+    if (isBoolean(debug.enabled)) {
+      validated.enabled = debug.enabled;
+    } else {
+      warnOnce(
+        `Please provide a valid boolean for 'enabled' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`
+      );
+    }
+  }
+
+  if (debug.filter !== undefined) {
+    if (isObject(debug.filter)) {
+      const files = validateDebugFilesFilter(debug.filter.files);
+      const dependencies = validateDebugDependenciesFilter(
+        debug.filter.dependencies
+      );
+
+      validated.filter = {
+        ...(files !== undefined ? { files } : {}),
+        ...(dependencies !== undefined ? { dependencies } : {}),
+      };
+    } else {
+      warnOnce(
+        `Please provide a valid object for 'filter' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`
+      );
+    }
+  }
+
+  return validated;
+}
+
 // TODO: Remove settings validation in next major version. It should be done by schema validation only
 export function validateSettings(
   settings: Rule.RuleContext["settings"],
@@ -761,6 +841,7 @@ export function validateSettings(
     [SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]: validateFlagAsExternal(
       settings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]
     ),
+    [SETTINGS_KEYS_MAP.DEBUG]: validateDebug(settings[SETTINGS_KEYS_MAP.DEBUG]),
   };
 }
 /**
@@ -849,6 +930,14 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
       customSourcePatterns:
         validatedSettings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]
           ?.customSourcePatterns ?? [],
+    },
+    debug: {
+      enabled: validatedSettings[SETTINGS_KEYS_MAP.DEBUG]?.enabled ?? false,
+      filter: {
+        files: validatedSettings[SETTINGS_KEYS_MAP.DEBUG]?.filter?.files,
+        dependencies:
+          validatedSettings[SETTINGS_KEYS_MAP.DEBUG]?.filter?.dependencies,
+      },
     },
   };
   return result;

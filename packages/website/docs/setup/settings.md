@@ -240,6 +240,32 @@ export default [{
 [boundaries/element-types] Detected legacy selector syntax in 3 rule(s) at indices: 0, 2, 5.
 ```
 
+## `boundaries/debug`
+
+**Type:** `<object>`
+
+**Default:**
+
+```js
+{
+  enabled: false,
+  filter: {
+    files: undefined,
+    dependencies: undefined,
+  }
+}
+```
+
+Enables debug traces and optionally filters them with [selectors](../setup/selectors.md).
+
+- **`enabled`** `<boolean>` - Enables debug output when `true`.
+- **`filter.files`** `<array of element selectors>` - Filters file traces.
+- **`filter.dependencies`** `<array of dependency selectors>` - Filters dependency traces.
+
+:::tip
+You can filter debug traces using selectors. See the [Debugging guide](../guides/debugging.md) for complete filtering examples.
+:::
+
 ## `boundaries/flag-as-external`
 
 **Type:** `<object>`

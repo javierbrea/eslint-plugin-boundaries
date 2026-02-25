@@ -30,79 +30,125 @@ This can help you troubleshoot configuration issues and ensure your element defi
 
 ## Enabling Debug Mode
 
-Enable debugging by setting the `ESLINT_PLUGIN_BOUNDARIES_DEBUG` environment variable to `1`:
+You can enable debugging in two ways:
+
+1. Using settings:
+
+```js
+export default [{
+  settings: {
+    "boundaries/debug": {
+      enabled: true,
+    },
+  },
+}];
+```
+
+2. Using the `ESLINT_PLUGIN_BOUNDARIES_DEBUG` environment variable:
 
 ```bash
 ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 npm run lint
 ```
 
-This will output detailed trace information to your console during linting.
+The environment variable is equivalent to enabling `boundaries/debug.enabled`.
+
+When debug mode is enabled, you will see detailed output in the console for each file and dependency analyzed by the plugin. This includes all the information of **[element and dependency descriptions](../setup/elements.md#runtime-description-properties).**
+
+## Filtering Debug Output
+
+You can filter traces using [selectors](../setup/selectors.md) in the `boundaries/debug.filter` setting. This allows you to focus on specific files or dependencies that are relevant to your debugging session.
+
+```js
+export default [{
+  settings: {
+    "boundaries/debug": {
+      enabled: true,
+      filter: {
+        files: [{ type: "components" }],
+        dependencies: [
+          {
+            from: [{ type: "components" }],
+            to: [{ source: "@/shared/**" }],
+          },
+        ],
+      },
+    },
+  },
+}];
+```
+
+Filter behavior:
+
+- The `files` filter applies both to file traces and to the dependencies found within those files. If a file doesn't match the `files` filter, none of its dependencies will be printed, even if they match the `dependencies` filter.
+- If `files` is `undefined`, all file traces are eligible.
+- If `files` is an empty array, no file traces are printed.
+- If `dependencies` is `undefined`, all dependency traces are eligible.
+- If `dependencies` is an empty array, no dependency traces are printed.
 
 ## Example Output
 
-When debug mode is enabled, for each dependency analyzed, you'll see output like:
+When debug mode is enabled, you'll see output like:
 
 ```
-[boundaries]: 
+[boundaries] [debug]: Description of file "src/Config/Strict.ts":
+
+{
+  "path": "src/Config/Strict.ts",
+  "type": "config",
+  "category": null,
+  "captured": {
+    "name": "Strict"
+  },
+  "origin": "local",
+  "isIgnored": false,
+  "isUnknown": false,
+  "elementPath": "src/Config/Strict.ts",
+  "internalPath": "Strict.ts",
+  "parents": []
+}
+
+[boundaries] [debug]: Description of dependency "../Settings" in file "src/Config/Strict.ts":
+
 {
   "from": {
-    "path": "src/components/molecules/molecule-a/MoleculeA.js",
-    "type": "components",
+    "path": "src/Config/Strict.ts",
+    "type": "config",
     "category": null,
     "captured": {
-      "category": "molecules",
-      "elementName": "molecule-a"
+      "name": "Strict"
     },
     "origin": "local",
     "isIgnored": false,
     "isUnknown": false,
-    "elementPath": "src/components/molecules/molecule-a",
-    "internalPath": "MoleculeA.js",
+    "elementPath": "src/Config/Strict.ts",
+    "internalPath": "Strict.ts",
     "parents": []
   },
   "to": {
-    "path": "src/components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/index.js",
-    "type": "components",
+    "path": "src/Settings/index.ts",
+    "type": "settings",
     "category": null,
     "captured": {
-      "category": "molecules",
-      "elementName": "molecule-d"
+      "name": "index"
     },
     "origin": "local",
     "isIgnored": false,
     "isUnknown": false,
-    "elementPath": "src/components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d",
-    "internalPath": "index.js",
-    "parents": [
-      {
-        "type": "components",
-        "category": null,
-        "elementPath": "src/components/molecules/molecule-a/components/molecules/molecule-c",
-        "captured": {
-          "category": "molecules",
-          "elementName": "molecule-c"
-        }
-      },
-      {
-        "type": "components",
-        "category": null,
-        "elementPath": "src/components/molecules/molecule-a",
-        "captured": {
-          "category": "molecules",
-          "elementName": "molecule-a"
-        }
-      }
-    ],
-    "source": "./components/molecules/molecule-c/components/molecules/molecule-d"
+    "elementPath": "src/Settings/index.ts",
+    "internalPath": "index.ts",
+    "parents": [],
+    "source": "../Settings"
   },
   "dependency": {
-    "kind": "value",
-    "nodeKind": null,
+    "kind": "type",
+    "nodeKind": "import",
     "relationship": {
-      "from": "ancestor",
-      "to": "descendant"
+      "from": null,
+      "to": null
     },
-    "specifiers": []
+    "specifiers": [
+      "Config"
+    ]
   }
 }
 ```
@@ -111,7 +157,7 @@ When debug mode is enabled, for each dependency analyzed, you'll see output like
 
 ### Limit the files being linted
 
-When debugging, it's recommended to limit the number of files being linted to avoid overwhelming your console with traces. This makes it easier to find the information you're looking for.
+When debugging, it's recommended to limit the number of files being linted to avoid overwhelming your console with traces. This makes it easier to find the information you're looking for. Apart from using the `boundaries/debug.filter` settings, you can also limit files by specifying paths in your lint command:
 
 Lint a single file:
 
@@ -132,6 +178,14 @@ For projects with many files, you can save debug output to a file for later anal
 ```bash
 ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 npm run lint > debug.log 2>&1
 ```
+
+By default, color codes are automatically disabled when output is redirected to a file. However, if you want to explicitly disable colors, you can use the `FORCE_COLOR` environment variable:
+
+```bash
+FORCE_COLOR=0 ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 npm run lint > debug.log 2>&1
+```
+
+This ensures a clean output without ANSI color codes, making it easier to read in text editors or process with other tools.
 
 ## Troubleshooting Common Issues
 

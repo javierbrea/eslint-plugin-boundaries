@@ -53,5 +53,9 @@ export function getRootPath(settings: Settings): string {
 }
 
 export function isDebugModeEnabled() {
-  return process.env[DEBUG];
+  return Boolean(process.env[DEBUG]);
+}
+
+export function isDebugEnabled(settingEnabled = false) {
+  return settingEnabled || isDebugModeEnabled();
 }

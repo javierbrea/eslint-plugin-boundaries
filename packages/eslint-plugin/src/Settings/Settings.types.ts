@@ -1,5 +1,6 @@
 import type {
   DependencyKind,
+  DependencySelector,
   ElementDescriptors,
   ElementsSelector,
   CapturedValues,
@@ -156,6 +157,7 @@ export const SETTINGS = {
   CACHE: `${PLUGIN_NAME}/cache`,
   CHECK_CONFIG: `${PLUGIN_NAME}/check-config`,
   FLAG_AS_EXTERNAL: `${PLUGIN_NAME}/flag-as-external`,
+  DEBUG_SETTING: `${PLUGIN_NAME}/debug`,
 
   // env vars
   DEBUG: `${PLUGIN_ENV_VARS_PREFIX}_DEBUG`,
@@ -256,6 +258,7 @@ export const SETTINGS_KEYS_MAP = {
   CACHE: SETTINGS.CACHE,
   CHECK_CONFIG: SETTINGS.CHECK_CONFIG,
   FLAG_AS_EXTERNAL: SETTINGS.FLAG_AS_EXTERNAL,
+  DEBUG: SETTINGS.DEBUG_SETTING,
 } as const;
 
 /**
@@ -303,6 +306,20 @@ export type RootPathSetting = string;
  * @deprecated Use "import/resolver" settings instead
  */
 export type AliasSetting = Record<string, string>;
+
+export type DebugFilterSetting = {
+  /** File selectors used to filter file debug messages */
+  files?: ElementsSelector[];
+  /** Dependency selectors used to filter dependency debug messages */
+  dependencies?: DependencySelector[];
+};
+
+export type DebugSetting = {
+  /** Enables debug output when true */
+  enabled?: boolean;
+  /** Optional filters for file and dependency debug messages */
+  filter?: DebugFilterSetting;
+};
 
 /**
  * Settings for the eslint-plugin-boundaries plugin.
@@ -357,6 +374,8 @@ export type Settings = {
   [SETTINGS_KEYS_MAP.CHECK_CONFIG]?: boolean;
   /** Configuration for categorizing dependencies as external or local */
   [SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]?: FlagAsExternalOptions;
+  /** Debug configuration for tracing files and dependencies */
+  [SETTINGS_KEYS_MAP.DEBUG]?: DebugSetting;
 };
 
 /**
@@ -384,6 +403,14 @@ export type SettingsNormalized = {
   checkConfig: boolean;
   /** Configuration for categorizing dependencies as external or local */
   flagAsExternal: FlagAsExternalOptions;
+  /** Debug configuration */
+  debug: {
+    enabled: boolean;
+    filter: {
+      files?: ElementsSelector[];
+      dependencies?: DependencySelector[];
+    };
+  };
 };
 
 /**

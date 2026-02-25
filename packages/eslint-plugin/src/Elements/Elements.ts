@@ -78,7 +78,7 @@ export function elementDescription(
 ): ElementDescription {
   const matcher = getElementsMatcher(settings);
   const result = matcher.describeElement(fileName);
-  debugDescription(result);
+  debugDescription(result, settings, matcher);
   return result;
 }
 
@@ -121,7 +121,7 @@ export function dependencyDescription(
     specifiers: getSpecifiers(node),
   });
 
-  debugDescription(description);
+  debugDescription(description, settings, matcher);
 
   return description;
 }
