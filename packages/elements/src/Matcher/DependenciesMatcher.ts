@@ -65,7 +65,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       throw new Error("Invalid dependency selector");
     }
     let normalizedDependencySelectors = selector.to
-      ? normalizeElementsSelector(selector.to)
+      ? normalizeElementsSelector(selector.to, true)
       : null;
 
     if (normalizedDependencySelectors) {

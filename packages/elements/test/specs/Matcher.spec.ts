@@ -1251,9 +1251,12 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { kind: "2" },
+          to: { importKind: "2" },
         },
         expected: true,
+        expectedMatch: {
+          to: { kind: "2" },
+        },
       },
       {
         dependency: {

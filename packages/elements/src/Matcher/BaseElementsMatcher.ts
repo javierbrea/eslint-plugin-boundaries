@@ -43,43 +43,54 @@ const LEGACY_TEMPLATE_REGEX = /\$\{([^}]+)\}/g;
 /**
  * Normalizes a selector into ElementSelectorData format.
  * @param selector The selector to normalize.
+ * @param isDependencySelector Whether the selector is for dependencies.
  * @returns The normalized selector data.
  */
 function normalizeSelector(
-  selector: BaseElementSelector
+  selector: BaseElementSelector,
+  isDependencySelector?: boolean
 ): BaseElementSelectorData;
 function normalizeSelector(
-  selector: DependencyElementSelector
+  selector: DependencyElementSelector,
+  isDependencySelector?: boolean
 ): DependencyElementSelectorData;
-function normalizeSelector(selector: ElementSelector): ElementSelectorData {
+function normalizeSelector(
+  selector: ElementSelector,
+  isDependencySelector?: boolean
+): ElementSelectorData {
   if (isSimpleElementSelectorByType(selector)) {
     // eslint-disable-next-line no-console
     console.warn(
-      `[boundaries] Deprecation warning: String selector "${selector}" is deprecated. Use object syntax instead: { kind: "${selector}" }`
+      `[boundaries] Deprecation warning: String selector "${selector}" is deprecated. Use object syntax instead: { type: "${selector}" }`
     );
     return { type: selector };
   }
 
   if (isElementSelectorData(selector)) {
+    // Cast to any to access properties that might not exist on all selector types during migration
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const selectorAny = selector as any;
     const newSelector = { ...selector } as DependencyElementSelectorData;
+
     // New syntax: kind -> type
-    if ("kind" in selector && selector.kind && !selector.type) {
-      newSelector.type = selector.kind;
+    // If it is a dependency selector, kind means dependency kind, so we keep it.
+    if (!isDependencySelector && selectorAny.kind && !selectorAny.type) {
+      newSelector.type = selectorAny.kind;
       // Remove kind from the new selector to avoid conflicts with dependency kind
       delete newSelector.kind;
     }
 
     // New syntax: importKind -> kind
-    if ("importKind" in selector && selector.importKind) {
-      newSelector.kind = selector.importKind;
-      delete newSelector.importKind;
+    if (selectorAny.importKind) {
+      newSelector.kind = selectorAny.importKind;
+      delete (newSelector as any).importKind;
     }
 
     // New syntax: capture -> captured
     // We check !isArray(selector.capture) to avoid conflict with ElementDescriptor 'capture' property which is string[]
-    if (selector.capture && !isArray(selector.capture)) {
-      newSelector.captured = selector.capture;
-      delete newSelector.capture;
+    if (selectorAny.capture && !isArray(selectorAny.capture)) {
+      newSelector.captured = selectorAny.capture;
+      delete (newSelector as any).capture;
     }
 
     return newSelector;
@@ -90,9 +101,9 @@ function normalizeSelector(selector: ElementSelector): ElementSelectorData {
     console.warn(
       `[boundaries] Deprecation warning: Tuple selector ${JSON.stringify(
         selector
-      )} is deprecated. Use object syntax instead: { kind: "${
+      )} is deprecated. Use object syntax instead: { type: "${
         selector[0]
-      }", capture: ${JSON.stringify(selector[1])} }`
+      }", captured: ${JSON.stringify(selector[1])} }`
     );
     return {
       type: selector[0],
@@ -105,24 +116,30 @@ function normalizeSelector(selector: ElementSelector): ElementSelectorData {
 /**
  * Normalizes an ElementsSelector into an array of ElementSelectorData.
  * @param elementsSelector The elements selector, in any supported format.
+ * @param isDependencySelector Whether the selector is for dependencies.
  * @returns The normalized array of selector data.
  */
 export function normalizeElementsSelector(
-  elementsSelector: BaseElementsSelector
+  elementsSelector: BaseElementsSelector,
+  isDependencySelector?: boolean
 ): BaseElementSelectorData[];
 export function normalizeElementsSelector(
-  elementsSelector: DependencyElementsSelector
+  elementsSelector: DependencyElementsSelector,
+  isDependencySelector?: boolean
 ): DependencyElementSelectorData[];
 export function normalizeElementsSelector(
-  elementsSelector: ElementsSelector
+  elementsSelector: ElementsSelector,
+  isDependencySelector?: boolean
 ): ElementSelectorData[] {
   if (isArray(elementsSelector)) {
     if (isElementSelectorWithLegacyOptions(elementsSelector)) {
-      return [normalizeSelector(elementsSelector)];
+      return [normalizeSelector(elementsSelector, isDependencySelector)];
     }
-    return elementsSelector.map((sel) => normalizeSelector(sel));
+    return elementsSelector.map((sel) =>
+      normalizeSelector(sel, isDependencySelector)
+    );
   }
-  return [normalizeSelector(elementsSelector)];
+  return [normalizeSelector(elementsSelector, isDependencySelector)];
 }
 
 /**

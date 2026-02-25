@@ -79,7 +79,7 @@ const testObjectSyntax = (
   });
 };
 
-// Test 1: Object syntax for 'from' and 'allow' using 'kind' and 'capture'
+// Test 1: Object syntax for 'from' and 'allow' using 'type' and 'capture'
 testObjectSyntax(
   SETTINGS.oneLevel,
   [
@@ -87,10 +87,10 @@ testObjectSyntax(
       default: "disallow",
       rules: [
         {
-          from: { kind: "components" },
+          from: { type: "components" },
           allow: [
-            { kind: "helpers", capture: { elementName: "helper-a" } },
-            { kind: "components", capture: { elementName: "!component-a" } },
+            { type: "helpers", capture: { elementName: "helper-a" } },
+            { type: "components", capture: { elementName: "!component-a" } },
           ],
         },
       ],
@@ -132,9 +132,9 @@ testNodeKind(
         default: "disallow",
         rules: [
           {
-            from: { kind: "components" },
+            from: { type: "components" },
             allow: [
-              { kind: "helpers", nodeKind: "import" },
+              { type: "helpers", nodeKind: "import" },
             ],
           },
         ],
@@ -154,7 +154,7 @@ testObjectSyntax(
             from: "components",
             allow: [
               ["helpers", { elementName: "helper-a" }],
-              { kind: "components", capture: { elementName: "!component-a" } },
+              { type: "components", capture: { elementName: "!component-a" } },
             ],
           },
         ],
@@ -213,9 +213,9 @@ const testSpecifiers = (
         default: "disallow",
         rules: [
           {
-            from: { kind: "components" },
+            from: { type: "components" },
             allow: [
-              { kind: "helpers", specifiers: ["Helper*"] },
+              { type: "helpers", specifiers: ["Helper*"] },
             ],
           },
         ],

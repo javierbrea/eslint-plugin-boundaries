@@ -66,8 +66,18 @@ export function elementsMatcherSchema(
           kind: {
             type: "string",
           },
+          type: {
+            type: "string",
+          },
         },
-        required: ["kind"],
+        anyOf: [
+          {
+            required: ["kind"],
+          },
+          {
+            required: ["type"],
+          },
+        ],
         additionalProperties: true,
       },
       matcherOptions,
