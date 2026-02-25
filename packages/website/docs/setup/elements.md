@@ -57,6 +57,26 @@ export default [{
 }]
 ```
 
+## From Descriptors to Runtime Descriptions
+
+Element descriptors are configuration inputs. During analysis, the plugin transforms them into **runtime element descriptions**.
+
+- These descriptions include resolved properties such as `type`, `category`, `captured`, `parents`, `origin`, etc.
+- When a dependency is analyzed, the plugin builds a **dependency description** with:
+  - `from`: description of the file being analyzed
+  - `to`: description of the imported target
+  - `dependency`: dependency metadata (`kind`, `relationship`, `specifiers`, etc.)
+
+:::info
+Read the [Runtime Descriptions](#runtime-description-properties) for a detailed breakdown of all available properties in runtime descriptions.
+:::
+
+These runtime descriptions are used in two key places:
+
+- [Selectors](./selectors.md): to match elements/dependencies in plugin rules.
+- [Rule custom messages](./rules.md#message): to render dynamic error messages.
+
+
 ## Element Descriptor Properties
 
 ### `type` (required)
@@ -298,3 +318,60 @@ When analyzing a path, it continues searching for parent elements after finding 
 For path `src/modules/auth/components/LoginForm/index.js`:
 1. First matches `component` type (LoginForm)
 2. Continues and matches `module` type (auth) as parent
+
+## Runtime Description Properties
+
+Based on the element descriptors, the plugin builds runtime descriptions for each file and dependency. These descriptions include:
+
+```txt
+{
+  from: ElementDescription of the file being analyzed,
+  to: ElementDescription of the imported target,
+  dependency: DependencyDescription with metadata about the dependency
+}
+```
+
+### Element Description (`from` / `to`)
+
+Both element descriptions may include:
+
+- `path`: absolute file path (or `null`)
+- `elementPath`: path of the element, relative to the project root path (see [Settings](../setup/settings.md#boundariesroot-path)), or `null` if the file doesn't match any element descriptor
+- `internalPath`: path of the file relative to the element path (or `null` if the file doesn't match any element descriptor)
+- `source`: import source for dependencies (or `null` for non-dependency file elements)
+- `baseSource`: base module name for external/core dependencies (or `null`)
+- `type`: element type according to the matched descriptor (or `null` if no match)
+- `category`: element category according to the matched descriptor (or `null` if no match)
+- `captured`: object with captured values from descriptors (or `null`)
+- `parents`: array of parent elements (or `null`)
+- `origin`: `"local"`, `"external"`, `"core"`, or `null` when the dependency source can't be resolved to any file.
+- `isIgnored`: `boolean`. True when the file is ignored due to ignore patterns in the [settings](../setup/settings.md#boundariesignore).
+- `isUnknown`: `boolean`. True when the file or dependency doesn't match any element descriptor.
+
+Each entry in `parents` contains:
+
+- `type`
+- `category`
+- `elementPath`
+- `captured`
+
+### Dependency Description (`dependency`)
+
+- `kind`: `"value"`, `"type"`, or `"typeof"`
+- `nodeKind`: AST node kind creating the dependency (or `null`)
+- `specifiers`: imported/exported specifiers array (or `null`)
+- `relationship.from`: relation from importer perspective (or `null`). Possible values:
+  - `"internal"` - The dependency is internal to the element
+  - `"child"` - The dependency is a child of the element
+  - `"descendant"` - The dependency is a descendant of the element
+  - `"sibling"` - The dependency is a sibling of the element (both have the same parent)
+  - `"parent"` - The dependency is a parent of the element
+  - `"uncle"` - The dependency is an uncle of the element
+  - `"nephew"` - The dependency is a nephew of the element
+  - `"ancestor"` - The dependency is an ancestor of the element
+- `relationship.to`: relation from imported element perspective (or `null`). Possible values are the inverse of `relationship.from`:
+  - `"internal"` ↔ `"internal"`
+  - `"child"` ↔ `"parent"`
+  - `"descendant"` ↔ `"ancestor"`
+  - `"sibling"` ↔ `"sibling"`
+  - `"uncle"` ↔ `"nephew"`

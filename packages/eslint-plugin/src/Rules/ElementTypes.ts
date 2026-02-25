@@ -218,6 +218,13 @@ function createRuleSelectorsData(
   };
 }
 
+function ruleHasKindConstraint(
+  rule: Record<string, unknown>,
+  selectorsData: { to?: { kind?: unknown } | null } | null
+): boolean {
+  return !!rule.importKind || selectorsData?.to?.kind !== undefined;
+}
+
 export function getRulesResults(
   ruleOptions: ElementTypesRuleOptions,
   dependencyDescription: DependencyDescription,
@@ -250,7 +257,12 @@ export function getRulesResults(
       // @ts-expect-error Workaround to support both allow and disallow in the same entry point rule
       originalRuleIndex: rule.originalRuleIndex,
       selectorsMatching,
-      ruleHasImportKind: !!rule.importKind,
+      ruleHasImportKind: ruleHasKindConstraint(
+        rule,
+        selectorsMatching.selectorsData as {
+          to?: { kind?: unknown } | null;
+        } | null
+      ),
       allowPolicyMatches,
       denyPolicyMatches: disallowPolicyMatches,
     };

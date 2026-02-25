@@ -37,7 +37,7 @@ export default [{
       default: "allow",
       
       // Optional custom message
-      message: "{{file.type}} is not allowed to import {{dependency.type}}",
+      message: "{{from.type}} is not allowed to import {{to.type}}",
       
       // Array of rules
       rules: [
@@ -194,38 +194,76 @@ The plugin provides a default message for each rule. For details on each default
 
 #### Message Templating
 
-Custom error messages enable you to inject dynamic information related to the current file and the dependency being checked. Use `{{file.PROPERTY}}` or `{{dependency.PROPERTY}}` for variables that will be replaced with the corresponding property from the file or dependency.
+Custom error messages use Handlebars templates to dynamically insert information about the dependency violation.
 
 **Example:**
 
 ```js
 {
-  "message": "{{file.type}}s of category {{file.category}} are not allowed to import {{dependency.category}}s"
+  "message": "{{from.type}}s of category {{from.category}} are not allowed to import {{to.category}}s"
   // If the error is produced by a file with type "component" and captured property "category" as "atom"
   // importing a dependency with category "molecule", the message becomes:
   // "components of category atom are not allowed to import molecules"
 }
 ```
 
-##### Available Properties
+##### Template Context
 
-Both `file` and `dependency` provide these properties:
+Handlebars templates receive this context:
 
-- `type`: Element's type
-- `internalPath`: File path being analyzed or imported (relative to the element's root path)
-- `source`: Only available for `dependency`. The import source as written in code.
-- `parent`: If the element is a child of another element, this property is also available and contains `type`, `internalPath`, and captured properties for the parent.
-- `importKind`: Only for `dependency` when using TypeScript. The kind of import being analyzed: `"value"`, `"type"`, or `"typeof"`
-- *All captured properties*: Any custom properties you define in the [element descriptor's `capture` and `baseCapture`](./elements.md#capture-optional) will also be available here.
+```ts
+{
+  from: ElementDescription,
+  to: ElementDescription,
+  dependency: DependencyInfo,
+  report: Record<string, unknown>
+}
+```
 
+- `from`: The element importing/analyzing the dependency
+- `to`: The element being imported
+- `dependency`: Information about the dependency itself (kind, specifiers, relationship)
+- `report`: Rule-specific metadata (when provided by the rule)
 
-#### Additional Error Report Properties
+:::tip
+For the complete API reference of all available properties in `from`, `to`, and `dependency`, see [Elements → Runtime Description Properties](./elements.md#runtime-description-properties).
+:::
 
-Some rules also allow extra info about the violation, which may be exposed in the error message using `{{report.PROPERTY}}`. For example, the [rule `external`](../rules/external.md) provides details about forbidden specifiers:
+**Usage in templates:**
 
 ```js
 {
-  "message": "Do not import {{report.specifiers}} from {{dependency.source}} in helpers"
+  // Access element properties
+  "message": "{{from.type}} cannot import {{to.type}}",
+  
+  // Access captured values
+  "message": "Module {{from.captured.elementName}} cannot import {{to.captured.family}} components",
+  
+  // Access dependency information
+  "message": "Cannot import {{dependency.kind}} from {{to.type}}",
+  
+  // Access rule-specific report data
+  "message": "Cannot import {{report.specifiers}} from {{to.source}}"
+}
+```
+
+:::note
+Missing properties in Handlebars templates resolve to an empty string.
+:::
+
+##### Legacy Message Templates
+
+:::info Backwards Compatibility
+Legacy message templates using `${...}` syntax are still supported but deprecated. For migration guidance, see [Legacy Message Templates](#legacy-message-templates) and the [v5 to v6 migration guide](../releases/migration-guides/v5-to-v6.md#migrating-custom-messages).
+:::
+
+#### Rule-specific `report` Properties
+
+Some rules provide extra metadata in the `report` object for custom messages. For example, the [`external`](../rules/external.md) rule provides details about forbidden specifiers:
+
+```js
+{
+  "message": "Do not import {{report.specifiers}} from {{to.source}} in helpers"
 }
 ```
 
@@ -330,8 +368,8 @@ export default [{
           // Custom message only for this specific error
           message: `
             Modules with name starting by 'page-' only can import layout components.
-            You tried to import a component of family {{target.family}}
-            from a module with name {{from.elementName}}
+            You tried to import a component of family {{to.captured.family}}
+            from a module with name {{from.captured.elementName}}
           `
         }
       ]
@@ -339,3 +377,79 @@ export default [{
   }
 }]
 ```
+
+## Legacy Message Templates
+
+:::warning Deprecated
+Legacy message template syntax using `${...}` is deprecated and will be removed in a future major version. It is strongly recommended to migrate to Handlebars templates using `{{...}}` syntax.
+:::
+
+### Backward Compatibility
+
+For backward compatibility, message rendering runs in two phases:
+
+1. **Legacy replacement** (`${...}`): Processes legacy template syntax with flattened property access
+2. **Handlebars rendering** (`{{...}}`): Processes modern template syntax with nested object access
+
+This allows existing templates to continue working while you migrate to the new format.
+
+### Legacy Syntax
+
+Legacy templates use `${...}` syntax with flattened property access and additional legacy aliases:
+
+**Available properties:**
+
+- `${file.*}` and `${dependency.*}` - Legacy aliases for the importing/imported elements
+- `${from.*}` and `${target.*}` - Alternative legacy aliases
+- `${file.parent.*}`, `${from.parent.*}`, `${dependency.parent.*}`, `${target.parent.*}` - Parent element properties
+- `${report.*}` - Rule-specific metadata
+
+**Flattened properties include:**
+
+- `type` - Element type
+- `internalPath` - Path inside the element
+- `source` - Import source
+- `importKind` - Import kind (value, type, typeof)
+- All captured values from the element pattern
+
+**Example:**
+
+```js
+{
+  "message": "${file.type} cannot import ${dependency.type}"
+}
+```
+
+### Migration to Handlebars
+
+To migrate from legacy templates to Handlebars:
+
+1. **Replace `${...}` with `{{...}}`**: Change the delimiter syntax
+2. **Update property paths**: Use the nested structure (`from`, `to`, `dependency`) instead of flattened aliases
+3. **Remove legacy aliases**: Use official property names instead of deprecated aliases
+
+**Migration examples:**
+
+```js
+// Legacy
+"${file.type} cannot import ${dependency.type}"
+
+// Handlebars
+"{{from.type}} cannot import {{to.type}}"
+
+// Legacy with captured values
+"${file.type} with name ${file.elementName} cannot import ${dependency.category}"
+
+// Handlebars with captured values
+"{{from.type}} with name {{from.captured.elementName}} cannot import {{to.captured.category}}"
+
+// Legacy with parent
+"${file.type} in ${file.parent.type} cannot import ${dependency.type}"
+
+// Handlebars with parent (using helper or conditional)
+"{{from.type}} in {{from.parents.0.type}} cannot import {{to.type}}"
+```
+
+:::tip Migration Guide
+For detailed migration steps and examples, see the [v5 to v6 migration guide](../releases/migration-guides/v5-to-v6.md#migrating-custom-messages).
+:::

@@ -289,9 +289,16 @@ This rule provides detailed error messages to help you understand and resolve vi
 
   `Importing kind "value" from elements of type 'components' with category 'atoms' and elementName '*-a' as 'value' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1`
 
+### Custom Messages with Templates
+
 :::tip
 You can customize error messages globally or for specific rules. See [Rules Configuration](../setup/rules.md) for details.
 :::
+
+#### `report` in Custom Messages
+
+This rule does not populate the `report` object with rule-specific metadata to handlebars templates.
+
 
 ## Further Reading
 

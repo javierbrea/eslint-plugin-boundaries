@@ -40,17 +40,50 @@ At the moment, it consists of an ESLint plugin: [eslint-plugin-boundaries](https
 
 By default, it analyzes `import` statements, but it can also evaluate `require`, `exports` and dynamic imports (`import()`). You can further customize it to inspect any other AST node that creates a dependency, such as `jest.mock()`. See the [configuration guide for more details](./setup/settings.md).
 
-## 1. Define your Element Types
+## 1. Define the Elements in Your Project through Configuration
 
 ```javascript
 const elementDescriptors = [
   { type: "controllers", pattern: "controllers/*" },
   { type: "models", pattern: "models/*" },
-  { type: "views", pattern: "views/*" }
+  { type: "views", pattern: "views/*" },
+  { type: "shared", pattern: "shared/*" },
 ];
 ```
 
-## 2. Define your Rules
+## 2. The Plugin Provides Descriptions for Each Dependency
+
+Given this configuration, the plugin will analyze your project in runtime and classify dependencies, providing lots of useful metadata about the elements and their relationships. For example:
+
+```javascript
+// When analyzing src/controllers/controller-a.js
+{
+  from: {
+    path: "src/controllers/controller-a.js",
+    type: "controllers",
+    category: null,
+    captured: { elementName: "controller-a" },
+    origin: "local",
+  },
+  to: {
+    path: "src/views/view-a.js",
+    type: "views",
+    category: null,
+    captured: { elementName: "view-a" },
+    origin: "local",
+    source: "@views/view-a.js",
+  },
+  dependency: {
+    kind: "value",
+    relationship: null,
+    specifiers: ["ViewA"],
+  }
+}
+```
+
+## 3. Define your Rules Based on These Descriptions
+
+Based on these descriptions, you can define rules to allow or disallow dependencies between elements. For example:
 
 <div style={{textAlign: 'center', margin: '2rem 0'}}>
   ![Architecture Boundaries Diagram](./overview-schema.svg)
@@ -59,17 +92,45 @@ const elementDescriptors = [
 ```javascript
 const dependencyRules = [
   {
-    from: "controllers",
-    allow: ["models", "views"]
+    from: {
+      type: "controllers",
+    },
+    allow: [{
+      type: ["models", "views"],
+      kind: "value",
+    }],
   },
   {
-    from: "views",
-    allow: ["models"]
+    from: {
+      type: "views",
+    },
+    allow: [{
+      type: "models",
+    }]
   },
   {
-    from: "models",
-    disallow: ["*"]
-  }
+    from: {
+      type: "models",
+    },
+    disallow: [{
+      type: "!models",
+    }],
+  },
+  {
+    from: {
+      type: "*",
+    },
+    allow: [
+      {
+        type: "*",
+        relationship: "internal",
+      },
+      {
+        type: "shared",
+        kind: "type",
+      },
+    ],
+  },
 ];
 ```
 

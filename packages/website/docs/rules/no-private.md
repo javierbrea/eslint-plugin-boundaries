@@ -179,9 +179,15 @@ This rule provides detailed error messages indicating which element owns the pri
 
 `Dependency is private of element of type 'modules' with elementName 'module-b'`
 
+### Custom Messages with Templates
+
 :::tip
 You can customize error messages globally or for specific rules. See [Rules Configuration](../setup/rules.md) for details.
 :::
+
+#### `report` in Custom Messages
+
+This rule does not populate the `report` object with rule-specific metadata to handlebars templates.
 
 ## Further Reading
 

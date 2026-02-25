@@ -254,10 +254,15 @@ This rule provides detailed error messages to help you understand and resolve vi
 
   `The entry point 'fooFile.js' is not allowed in elements of type 'helpers' with elementName 'helper-c' when importing type. Disallowed in rule 2`
 
+### Custom Messages with Templates
 
 :::tip
 You can customize error messages globally or for specific rules. See [Rules Configuration](../setup/rules.md) for details.
 :::
+
+#### `report` in Custom Messages
+
+This rule does not populate the `report` object with rule-specific metadata to handlebars templates.
 
 
 ## Further Reading

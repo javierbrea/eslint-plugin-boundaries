@@ -36,6 +36,13 @@ Object-based selectors provide the most powerful and flexible way to match eleme
 
 ### Available Properties
 
+Selectors match against runtime element/dependency descriptions generated from your element descriptors.
+
+- Conceptual flow:
+  1. You define [element descriptors](./elements.md) in your configuration.
+  2. During analysis, the plugin generates [runtime descriptions](./elements.md#runtime-description-properties) for each element and dependency, resolving all properties and relationships.
+  3. Selectors in your rules match against these runtime descriptions to determine if a rule applies.
+
 #### Element Properties
 
 Match elements based on their type, category, origin, and other characteristics:

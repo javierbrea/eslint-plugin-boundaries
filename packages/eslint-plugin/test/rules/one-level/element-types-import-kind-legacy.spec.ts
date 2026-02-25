@@ -247,31 +247,24 @@ runTest(
       default: "allow",
       rules: [
         {
-          from: {
-            type: "helpers",
-          },
-          disallow: [{ type: "modules", kind: "*" }],
+          from: "helpers",
+          disallow: ["modules"],
+          importKind: "*",
         },
         {
-          from: {
-            type: "helpers",
-          },
-          disallow: [
-            { type: "components", kind: "value" },
-            { type: "helpers", kind: "value" },
-          ],
+          from: "helpers",
+          disallow: ["components", "helpers"],
+          importKind: "value",
         },
         {
-          from: {
-            type: "components",
-          },
-          disallow: [{ type: "modules", kind: "value" }],
+          from: "components",
+          disallow: ["modules"],
+          importKind: "value",
         },
         {
-          from: {
-            type: "modules",
-          },
-          disallow: [{ type: "helpers", kind: "type" }],
+          from: "modules",
+          disallow: ["helpers"],
+          importKind: "type",
         },
       ],
     },
@@ -298,33 +291,29 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: { type: "modules" },
-          allow: [
-            { type: "modules", kind: "*" },
-            { type: "components", kind: "*" },
-          ],
+          from: "modules",
+          allow: ["modules", "components"],
+          importKind: ["*"],
         },
         {
-          from: { type: "modules" },
-          allow: [{ type: "helpers", kind: "value" }],
+          from: "modules",
+          allow: ["helpers"],
+          importKind: ["value"],
         },
         {
-          from: { type: "components" },
-          allow: [
-            { type: "components", kind: "*" },
-            { type: "helpers", kind: "*" },
-          ],
+          from: "components",
+          allow: ["components", "helpers"],
+          importKind: ["*"],
         },
         {
-          from: { type: "components" },
-          allow: [{ type: "modules", kind: "type" }],
+          from: "components",
+          allow: ["modules"],
+          importKind: "type",
         },
         {
-          from: { type: "helpers" },
-          allow: [
-            { type: "helpers", kind: "type" },
-            { type: "components", kind: "type" },
-          ],
+          from: "helpers",
+          allow: ["helpers", "components"],
+          importKind: "type",
         },
       ],
     },
@@ -341,31 +330,31 @@ runTest(
       default: "allow",
       rules: [
         {
-          from: { type: "helpers" },
-          disallow: [{ type: "modules", kind: "*" }],
+          from: "helpers",
+          disallow: ["modules"],
+          importKind: "*",
           message:
-            "Do not import {{ dependency.kind }} from {{ to.type }} in {{ from.type }}",
+            "Do not import ${dependency.importKind} from modules in helpers",
         },
         {
-          from: { type: "helpers" },
-          disallow: [
-            { type: "components", kind: "value" },
-            { type: "helpers", kind: "value" },
-          ],
-          message:
-            "Do not import {{ dependency.kind }} from {{ to.type }} in {{ from.type }}",
+          from: "helpers",
+          disallow: ["components", "helpers"],
+          importKind: "value",
+          message: "Do not import value from ${dependency.type} in helpers",
         },
         {
-          from: { type: "components" },
-          disallow: [{ type: "modules", kind: "value" }],
+          from: "components",
+          disallow: ["modules"],
+          importKind: "value",
           message:
-            "Do not import {{ dependency.kind }} from {{ to.type }} in {{ from.type }}",
+            "Do not import ${dependency.importKind} from ${dependency.type} in ${file.type}",
         },
         {
-          from: { type: "modules" },
-          disallow: [{ type: "helpers", kind: "type" }],
+          from: "modules",
+          disallow: ["helpers"],
+          importKind: "type",
           message:
-            "Do not import {{ dependency.kind }} from {{ to.type }} in {{ from.type }}",
+            "Do not import ${dependency.importKind} from ${dependency.type} in ${file.type}",
         },
       ],
     },
@@ -395,7 +384,7 @@ precedenceRuleTester.run(`${RULE} selector kind precedence`, rule, {
           default: "disallow",
           rules: [
             {
-              from: { type: "components" },
+              from: "components",
               allow: [{ type: "helpers", kind: "value" }],
               importKind: "type",
             },
@@ -413,7 +402,7 @@ precedenceRuleTester.run(`${RULE} selector kind precedence`, rule, {
           default: "disallow",
           rules: [
             {
-              from: { type: "components" },
+              from: "components",
               allow: [{ type: "helpers", kind: "value" }],
               importKind: "type",
             },

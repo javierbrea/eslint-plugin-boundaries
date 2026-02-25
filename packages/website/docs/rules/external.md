@@ -377,10 +377,20 @@ This rule provides detailed error messages to help you understand and resolve vi
 
   `Usage of type 'useMemo, useEffect' from external module 'react' is not allowed in elements of type 'helper' with elementName 'helper-a'. Disallowed in rule 2`
 
+### Custom Messages with Templates
 
 :::tip
 You can customize error messages globally or for specific rules. See [Rules Configuration](../setup/rules.md) for details.
 :::
+
+### `report` in Custom Messages
+
+This rule populates the `report` object with rule-specific metadata:
+
+- `report.specifiers`: Comma-separated matching import/export specifiers, when the violation is about specifiers.
+- `report.path`: Matching internal import path, when the violation is about a path rule.
+
+When neither condition applies, `report` contains no properties.
 
 
 ## Further Reading

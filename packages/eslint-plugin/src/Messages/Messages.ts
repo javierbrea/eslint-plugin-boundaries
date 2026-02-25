@@ -13,9 +13,12 @@ import {
   isElementSelector,
   normalizeElementsSelector,
 } from "@boundaries/elements";
+import Handlebars from "handlebars";
 
 import type { RuleMatcherElementsCapturedValues } from "../Settings";
 import { isString, isArray } from "../Support";
+
+const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^}\s]+(?:\s+[^}\s]+)*\s*}}/;
 
 function replaceObjectValueInTemplate(
   template: string,
@@ -268,6 +271,27 @@ function elementPropertiesToReplaceInTemplate(
   };
 }
 
+function hasHandlebarsTemplate(template: string) {
+  return HANDLEBARS_TEMPLATE_REGEX.test(template);
+}
+
+function renderCustomMessageHandlebarsTemplate(
+  template: string,
+  dependency: DependencyDescription,
+  report: Record<string, unknown>
+) {
+  if (!hasHandlebarsTemplate(template)) {
+    return template;
+  }
+  const compiledTemplate = Handlebars.compile(template, { noEscape: true });
+  return compiledTemplate({
+    from: dependency.from,
+    to: dependency.to,
+    dependency: dependency.dependency,
+    report,
+  });
+}
+
 export function customErrorMessage(
   message: string,
   dependency: DependencyDescription,
@@ -339,7 +363,16 @@ export function customErrorMessage(
       "target.parent"
     );
   }
-  return replaceObjectValuesInTemplate(replacedMessage, report, "report");
+  const replacedLegacyMessage = replaceObjectValuesInTemplate(
+    replacedMessage,
+    report,
+    "report"
+  );
+  return renderCustomMessageHandlebarsTemplate(
+    replacedLegacyMessage,
+    dependency,
+    report as Record<string, unknown>
+  );
 }
 
 function elementCapturedValuesMessage(capturedValues: CapturedValues | null) {

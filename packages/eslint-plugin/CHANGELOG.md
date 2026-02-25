@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 - feat: Warn when deprecated rule-level `importKind` is used in dependency rules while `boundaries/check-config` is enabled. Prefer selector-level `kind`.
 - feat: Prioritize selector-level `kind` over rule-level `importKind` when both are defined.
+- feat: Support all element description properties in custom messages templates by using handlebars syntax.
 ### Fixed
 ### Removed
 ### BREAKING CHANGES

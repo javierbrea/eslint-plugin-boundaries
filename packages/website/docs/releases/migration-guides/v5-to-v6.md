@@ -511,6 +511,184 @@ npm run lint 2>&1 | grep "legacy selector"
 
 If this returns nothing, your migration is complete! 🎉
 
+## Migrating Custom Messages
+
+Version 6.1.0 introduces **Handlebars templates** for custom error messages as the recommended approach, while keeping backward compatibility with legacy `${...}` templates.
+
+:::info Backwards Compatibility
+Legacy message templates using `${...}` syntax continue to work in v6.x but are deprecated. They will be removed in a future major version.
+:::
+
+### What Changed in Messages
+
+The new Handlebars template system provides:
+
+- **Clearer syntax**: Uses `{{...}}` instead of `${...}`
+- **Structured access**: Direct access to `from`, `to`, `dependency`, and `report` objects
+- **Nested properties**: Access nested data like `{{from.captured.elementName}}`
+- **Better readability**: Self-documenting template syntax
+
+### Migration Steps
+
+#### Step 1: Identify Legacy Templates
+
+Find all custom message definitions in your rules:
+
+```bash
+grep -r "message:" eslint.config.js
+```
+
+Look for templates using `${...}` syntax.
+
+#### Step 2: Update Template Syntax
+
+Replace `${...}` with `{{...}}` and update property paths:
+
+**Legacy templates used flattened properties:**
+- `${file.*}` - The importing file
+- `${dependency.*}` - The imported dependency
+- `${from.*}` - Legacy alias for file
+- `${target.*}` - Legacy alias for dependency
+- `${*.parent.*}` - Parent element properties
+- `${report.*}` - Rule-specific metadata
+
+**Handlebars templates use structured objects:**
+- `{{from.*}}` - The importing element
+- `{{to.*}}` - The imported element
+- `{{dependency.*}}` - Dependency information (kind, specifiers, relationship)
+- `{{report.*}}` - Rule-specific metadata
+
+#### Step 3: Convert Common Patterns
+
+**Basic type access:**
+
+```js
+// Legacy
+"${file.type} cannot import ${dependency.type}"
+
+// Handlebars
+"{{from.type}} cannot import {{to.type}}"
+```
+
+**Captured values:**
+
+```js
+// Legacy (flattened)
+"${file.type} with name ${file.elementName} cannot import ${dependency.category}"
+
+// Handlebars (nested)
+"{{from.type}} with name {{from.captured.elementName}} cannot import {{to.captured.category}}"
+```
+
+**Parent elements:**
+
+```js
+// Legacy
+"${file.type} in ${file.parent.type} cannot import ${dependency.type}"
+
+// Handlebars
+"{{from.type}} in {{from.parents.0.type}} cannot import {{to.type}}"
+```
+
+**Import source:**
+
+```js
+// Legacy
+"Do not import from ${dependency.source}"
+
+// Handlebars
+"Do not import from {{to.source}}"
+```
+
+**Dependency kind (TypeScript):**
+
+```js
+// Legacy
+"Cannot import ${file.importKind} from ${dependency.type}"
+
+// Handlebars
+"Cannot import {{dependency.kind}} from {{to.type}}"
+```
+
+**Rule-specific report data:**
+
+```js
+// Legacy
+"Do not import ${report.specifiers} from ${dependency.source}"
+
+// Handlebars
+"Do not import {{report.specifiers}} from {{to.source}}"
+```
+
+### Complete Example
+
+**Before (Legacy):**
+
+```js
+export default [{
+  rules: {
+    "boundaries/element-types": [2, {
+      default: "allow",
+      message: "${file.type} cannot import ${dependency.type}",
+      rules: [
+        {
+          from: { type: "helpers" },
+          disallow: [{ type: "modules" }],
+          message: "Helper ${file.elementName} cannot import module ${dependency.elementName}"
+        }
+      ]
+    }]
+  }
+}]
+```
+
+**After (Handlebars):**
+
+```js
+export default [{
+  rules: {
+    "boundaries/element-types": [2, {
+      default: "allow",
+      message: "{{from.type}} cannot import {{to.type}}",
+      rules: [
+        {
+          from: { type: "helpers" },
+          disallow: [{ type: "modules" }],
+          message: "Helper {{from.captured.elementName}} cannot import module {{to.captured.elementName}}"
+        }
+      ]
+    }]
+  }
+}]
+```
+
+### Property Reference
+
+For a complete reference of all available properties in `from`, `to`, and `dependency`, see:
+
+- [Elements → Runtime Description Properties](../../setup/elements.md#runtime-description-properties)
+- [Rules Configuration → Message Templating](../../setup/rules.md#message-templating)
+- [Rules Configuration → Legacy Message Templates](../../setup/rules.md#legacy-message-templates)
+
+### Testing Your Migration
+
+After updating your messages:
+
+1. Run your linter to see the new messages in action
+2. Intentionally create violations to test message rendering
+3. Verify that all dynamic values are correctly interpolated
+
+```bash
+npm run lint
+```
+
+### Timeline
+
+- **v6.1.0+**: Handlebars templates introduced, legacy templates deprecated
+- **Future major version**: Legacy `${...}` templates will be removed
+
+**Recommendation**: Migrate to Handlebars templates now to future-proof your configuration.
+
 ## Timeline
 
 - **v6.x**: Legacy selectors deprecated with warnings

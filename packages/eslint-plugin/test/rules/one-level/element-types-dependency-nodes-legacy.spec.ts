@@ -43,32 +43,24 @@ const options = [
     default: "allow",
     rules: [
       {
-        from: {
-          type: "helpers",
-        },
-        disallow: [
-          {
-            type: "modules",
-            kind: "*",
-          },
-        ],
+        from: "helpers",
+        disallow: ["modules"],
+        importKind: "*",
       },
       {
-        from: {
-          type: "helpers",
-        },
-        disallow: [
-          { type: ["components"], kind: "value" },
-          { type: ["helpers"], kind: "value" },
-        ],
+        from: "helpers",
+        disallow: ["components", "helpers"],
+        importKind: "value",
       },
       {
-        from: { type: "components" },
-        disallow: [{ type: "modules", kind: "value" }],
+        from: "components",
+        disallow: ["modules"],
+        importKind: "value",
       },
       {
-        from: { type: "modules" },
-        disallow: [{ type: "helpers", kind: "type" }],
+        from: "modules",
+        disallow: ["helpers"],
+        importKind: "type",
       },
     ],
   },
