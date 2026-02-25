@@ -26,56 +26,77 @@ Element selectors are used in rules configuration to match **[specific elements]
 
 ## Element Selector Formats
 
-Element selectors can be defined in a pair of formats, simple type matching or type with captured properties matching.
+### Object Selector (Recommended)
 
-### Simple Type Selector
+**Format:** `{ kind: <string>, capture: <object>, ... }`
+
+The new object-based syntax provides a clear and extensible way to define selectors.
+
+- **`kind`** (`string`): A [micromatch pattern](https://github.com/micromatch/micromatch) that matches against the element type.
+- **`capture`** (`object`): An object where keys are property names from the element's `capture` or `baseCapture` configuration, and values are [micromatch patterns](https://github.com/micromatch/micromatch) to match against captured values.
+
+```js
+// Matches all helpers
+{ kind: "helpers" }
+
+// Matches helpers and components
+{ kind: "helpers|components" }
+
+// Matches only helpers with category "data" and elementName "parsers"
+{
+  kind: "helpers",
+  capture: {
+    category: "data",
+    elementName: "parsers"
+  }
+}
+```
+
+### Dependency Properties (Dependency Selectors Only)
+
+When selecting dependencies (e.g., in `allow` or `disallow` lists), you can also filter by properties of the import statement itself:
+
+- **`specifiers`** (`string[]`): Array of [micromatch patterns](https://github.com/micromatch/micromatch) to match against the imported names (specifiers).
+- **`nodeKind`** (`string`): Matches the kind of the dependency node (e.g., "import", "require", "export").
+
+```js
+// Matches import of "HelperA" from helpers
+{
+  kind: "helpers",
+  specifiers: ["HelperA"]
+}
+
+// Matches only "import" statements (excludes "require", "export", etc.)
+{
+  kind: "helpers",
+  nodeKind: "import"
+}
+```
+
+### Simple Type Selector (Deprecated)
 
 **Format:** `<string>`
+
+> **Warning:** This syntax is deprecated. Use `{ kind: "type" }` instead.
 
 A [micromatch pattern](https://github.com/micromatch/micromatch) that matches against the element type.
 
 ```js
 // Matches all helpers
 "helpers"
-
-// Matches helpers and components
-"helpers|components"
-
-// Matches any element type ending in "component"
-"*-component"
 ```
 
-### Type with Captured Properties
+### Type with Captured Properties (Deprecated)
 
 **Format:** `[<string>, <capturedValuesObject>]`
 
+> **Warning:** This syntax is deprecated. Use `{ kind: "type", capture: { ... } }` instead.
+
 Matches when both the element type matches AND all specified captured properties match.
 
-The `<capturedValuesObject>` contains:
-- **Keys:** Property names from the element's `capture` or `baseCapture` configuration
-- **Values:** [micromatch patterns](https://github.com/micromatch/micromatch) to match against captured values
-
 ```js
-// Element descriptor
-{
-  type: "helpers",
-  pattern: "helpers/*/*.js",
-  capture: ["category", "elementName"]
-}
-
-// Selectors using captured properties
-
-// Matches only helpers with category "data" and elementName "parsers"
-["helpers", { category: "data", elementName: "parsers" }]
-
-// Matches all helpers with category "data"
+// Matches only helpers with category "data"
 ["helpers", { category: "data" }]
-
-// Matches helpers in "data" or "api" categories
-["helpers", { category: "data|api" }]
-
-// Matches helpers where elementName starts with "parse"
-["helpers", { elementName: "parse*" }]
 ```
 
 ### Array of Selectors
@@ -86,12 +107,9 @@ When an array of selectors is provided, it matches if ANY selector in the array 
 
 ```js
 // Matches helpers OR components
-["helpers", "components"]
-
-// Matches data helpers OR all components
 [
-  ["helpers", { category: "data" }],
-  "components"
+  { kind: "helpers" },
+  { kind: "components" }
 ]
 ```
 
@@ -106,6 +124,7 @@ Selectors support templating to create dynamic rules based on **[captured proper
 
 **Available properties:**
 - `${from.capturedProperty}` / `${target.capturedProperty}` - Any captured property.
+
 ### Template Examples
 
 ```js
@@ -118,10 +137,13 @@ Selectors support templating to create dynamic rules based on **[captured proper
 
 // Rule using templates
 {
-  from: ["helpers"],
+  from: { kind: "helpers" },
   disallow: [
     // Disallow importing helpers from different categories
-    ["helpers", { category: "!${from.category}" }]
+    {
+      kind: "helpers",
+      capture: { category: "!${from.category}" }
+    }
   ]
 }
 ```
@@ -131,7 +153,7 @@ Selectors support templating to create dynamic rules based on **[captured proper
 If a file `helpers/data/parser.js` (category: "data") tries to import from `helpers/api/fetcher.js` (category: "api"):
 
 1. Template `${from.category}` resolves to `"data"`
-2. Pattern becomes `["helpers", { category: "!data" }]`
+2. Pattern becomes `{ kind: "helpers", capture: { category: "!data" } }`
 3. The target helper has category "api" → matches `"!data"`
 4. Rule disallows the import
 
@@ -140,20 +162,13 @@ If a file `helpers/data/parser.js` (category: "data") tries to import from `help
 ```js
 // Only allow importing helpers with the same elementName
 {
-  from: ["helpers"],
-  allow: [["helpers", { elementName: "${from.elementName}" }]]
-}
-
-// Only allow importing from elements with matching prefix
-{
-  from: ["components", { family: "*" }],
-  allow: [["helpers", { category: "${from.family}-*" }]]
-}
-
-// Type-level templating
-{
-  from: ["helpers"],
-  allow: ["${from.category}-*"]  // Allow importing element types like "data-provider", "api-client"
+  from: { kind: "helpers" },
+  allow: [
+    {
+      kind: "helpers",
+      capture: { elementName: "${from.elementName}" }
+    }
+  ]
 }
 ```
 

@@ -66,6 +66,7 @@ export function isBaseElementSelectorData(
     "type",
     "category",
     "captured",
+    "capture",
     "origin",
     "source",
     "baseSource",
@@ -87,6 +88,7 @@ export function isElementSelectorData(
     isObjectWithAnyOfProperties(value, [
       "relationship",
       "kind",
+      "importKind",
       "specifiers",
       "nodeKind",
     ])

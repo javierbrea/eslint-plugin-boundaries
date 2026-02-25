@@ -80,9 +80,25 @@ Define your dependency rules:
     "boundaries/element-types": [2, {
       default: "disallow",
       rules: [
-        { from: "controllers", allow: ["models", "views"] },
-        { from: "views", allow: ["models"] },
-        { from: "models", disallow: ["*"] }
+        {
+          from: { kind: "controllers" },
+          allow: [
+            { kind: "models" },
+            { kind: "views" },
+          ]
+        },
+        {
+          from: { kind: "views" },
+          allow: [
+            { kind: "models" },
+          ]
+        },
+        {
+          from: { kind: "models" },
+          disallow: [
+            { kind: "*" },
+          ]
+        }
       ]
     }]
   }

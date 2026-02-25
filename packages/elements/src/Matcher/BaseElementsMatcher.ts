@@ -53,14 +53,47 @@ function normalizeSelector(
 ): DependencyElementSelectorData;
 function normalizeSelector(selector: ElementSelector): ElementSelectorData {
   if (isSimpleElementSelectorByType(selector)) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[boundaries] Deprecation warning: String selector "${selector}" is deprecated. Use object syntax instead: { kind: "${selector}" }`
+    );
     return { type: selector };
   }
 
   if (isElementSelectorData(selector)) {
-    return { ...selector };
+    const newSelector = { ...selector } as DependencyElementSelectorData;
+    // New syntax: kind -> type
+    if ("kind" in selector && selector.kind && !selector.type) {
+      newSelector.type = selector.kind;
+      // Remove kind from the new selector to avoid conflicts with dependency kind
+      delete newSelector.kind;
+    }
+
+    // New syntax: importKind -> kind
+    if ("importKind" in selector && selector.importKind) {
+      newSelector.kind = selector.importKind;
+      delete newSelector.importKind;
+    }
+
+    // New syntax: capture -> captured
+    // We check !isArray(selector.capture) to avoid conflict with ElementDescriptor 'capture' property which is string[]
+    if (selector.capture && !isArray(selector.capture)) {
+      newSelector.captured = selector.capture;
+      delete newSelector.capture;
+    }
+
+    return newSelector;
   }
 
   if (isElementSelectorWithLegacyOptions(selector)) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[boundaries] Deprecation warning: Tuple selector ${JSON.stringify(
+        selector
+      )} is deprecated. Use object syntax instead: { kind: "${
+        selector[0]
+      }", capture: ${JSON.stringify(selector[1])} }`
+    );
     return {
       type: selector[0],
       captured: selector[1] ? { ...selector[1] } : undefined,

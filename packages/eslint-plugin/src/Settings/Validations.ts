@@ -58,11 +58,28 @@ const DEFAULT_MATCHER_OPTIONS = {
 export function elementsMatcherSchema(
   matcherOptions: Record<string, unknown> = DEFAULT_MATCHER_OPTIONS
 ) {
+  const objectMatcherSchema = {
+    allOf: [
+      {
+        type: "object",
+        properties: {
+          kind: {
+            type: "string",
+          },
+        },
+        required: ["kind"],
+        additionalProperties: true,
+      },
+      matcherOptions,
+    ],
+  };
+
   return {
     oneOf: [
       {
         type: "string", // single matcher
       },
+      objectMatcherSchema, // single matcher (object)
       {
         type: "array", // multiple matchers
         items: {
@@ -70,6 +87,7 @@ export function elementsMatcherSchema(
             {
               type: "string", // matcher with options
             },
+            objectMatcherSchema, // matcher with options (object)
             {
               type: "array",
               items: [

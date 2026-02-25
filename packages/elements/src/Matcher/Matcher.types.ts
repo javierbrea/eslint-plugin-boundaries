@@ -117,6 +117,8 @@ export type BaseElementSelectorData = {
   category?: MicromatchPattern;
   /** Captured values selector for dynamic matching */
   captured?: CapturedValuesSelector;
+  /** Captured values selector for dynamic matching. Alias for 'captured' */
+  capture?: CapturedValuesSelector;
   /** Origin of the element */
   origin?: MicromatchPattern;
   /** Micromatch pattern(s) to match the source of the dependency */
@@ -137,6 +139,11 @@ export type DependencyElementSelectorData = BaseElementSelectorData & {
   relationship?: MicromatchPattern;
   /** Dependency kind to filter elements */
   kind?: MicromatchPattern;
+  /**
+   * Dependency kind to filter elements. Alias for 'kind'.
+   * @deprecated Use 'kind' for element type and 'importKind' for dependency kind (value, type).
+   */
+  importKind?: MicromatchPattern;
   /** Micromatch pattern(s) to match only specific imports/exports */
   specifiers?: MicromatchPattern;
   /** Node kind to filter elements */
