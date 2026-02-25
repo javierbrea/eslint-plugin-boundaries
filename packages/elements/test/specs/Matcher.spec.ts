@@ -1800,6 +1800,18 @@ describe("Matcher", () => {
           { type: "foo", captured: { bar: "baz" } },
         ],
       },
+      {
+        selector: { kind: "component" },
+        expected: [{ type: "component" }],
+      },
+      {
+        selector: { type: "component", capture: { fileName: "Button" } },
+        expected: [{ type: "component", captured: { fileName: "Button" } }],
+      },
+      {
+        selector: { kind: "component", capture: { fileName: "Button" } },
+        expected: [{ type: "component", captured: { fileName: "Button" } }],
+      },
     ])(
       "should normalize element selector $selector to $expected",
       ({
