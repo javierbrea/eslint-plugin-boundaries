@@ -155,12 +155,7 @@ export default dependencyRule<ExternalRuleOptions>(
   },
   function ({ dependency, node, context, settings, options }) {
     // Validate and warn about legacy selector syntax
-    validateAndWarnRuleOptions(
-      options,
-      "from",
-      settings.checkConfig,
-      RULE_NAMES_MAP.EXTERNAL
-    );
+    validateAndWarnRuleOptions(options, "from", RULE_NAMES_MAP.EXTERNAL);
 
     if (
       isExternalDependencyElement(dependency.to) ||

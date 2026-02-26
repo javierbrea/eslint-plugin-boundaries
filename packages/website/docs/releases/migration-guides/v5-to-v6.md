@@ -30,21 +30,7 @@ Legacy selector formats (strings and tuples) are still supported in v6.x but are
 
 ## Migration Steps
 
-### Step 1: Enable Configuration Checking
-
-Add the `boundaries/check-config` setting to identify all legacy syntax usage:
-
-```js
-export default [{
-  settings: {
-    "boundaries/check-config": true,
-    "boundaries/elements": [/* your elements */]
-  },
-  rules: { /* your rules */ }
-}]
-```
-
-### Step 2: Run ESLint
+### Step 1: Run ESLint
 
 Run ESLint to see warnings for rules using legacy syntax:
 
@@ -58,11 +44,11 @@ You'll see output like:
 [boundaries/element-types] Detected legacy template syntax ${...} in 1 rule(s) at indices: 4.
 ```
 
-### Step 3: Migrate Each Rule
+### Step 2: Migrate Each Rule
 
 Use the conversion guide below to update each flagged rule. The warning shows which rules need updating by their index in the `rules` array.
 
-### Step 4: Verify and Disable
+### Step 3: Verify and Disable
 
 Once all warnings are resolved:
 

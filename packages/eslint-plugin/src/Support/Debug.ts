@@ -13,9 +13,6 @@ const warns: string[] = [];
 const debuggedFiles: string[] = [];
 const debuggedDependencies: string[] = [];
 
-// WeakSet tracking for configuration validation
-const trackedRuleOptions = new WeakSet<object>();
-const trackedSettingsRaw = new WeakSet<object>();
 const PREFIX_COLOR = "#A8B3D8" as const;
 
 const COLORS_MAP = {
@@ -71,22 +68,6 @@ export function warnOnce(message: string): boolean {
     return true;
   }
   return false;
-}
-
-export function shouldWarnLegacyRuleOptions(options: object): boolean {
-  if (trackedRuleOptions.has(options)) {
-    return false;
-  }
-  trackedRuleOptions.add(options);
-  return true;
-}
-
-export function shouldWarnLegacySettings(contextSettings: object): boolean {
-  if (trackedSettingsRaw.has(contextSettings)) {
-    return false;
-  }
-  trackedSettingsRaw.add(contextSettings);
-  return true;
 }
 
 export function debugDescription(

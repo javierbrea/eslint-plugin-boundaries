@@ -8,16 +8,14 @@ import type {
   Matcher,
 } from "@boundaries/elements";
 
-import type { SettingsNormalized } from "../../../src/Settings";
-import { SETTINGS } from "../../../src/Settings";
+import type { SettingsNormalized } from "../../src/Settings";
+import { SETTINGS } from "../../src/Settings";
 import type {
   debugDescription,
-  shouldWarnLegacyRuleOptions,
-  shouldWarnLegacySettings,
   success,
   warn,
   warnOnce,
-} from "../../../src/Support/Debug";
+} from "../../src/Support/Debug";
 
 jest.mock("chalk", () => ({
   __esModule: true,
@@ -42,7 +40,6 @@ const createSettings = (
     dependencyNodes: [],
     legacyTemplates: true,
     cache: true,
-    checkConfig: false,
     flagAsExternal: {},
     debug: {
       enabled: true,
@@ -118,8 +115,6 @@ const createDependencyDescription = (): DependencyDescription => {
 
 type DebugModule = {
   debugDescription: typeof debugDescription;
-  shouldWarnLegacyRuleOptions: typeof shouldWarnLegacyRuleOptions;
-  shouldWarnLegacySettings: typeof shouldWarnLegacySettings;
   success: typeof success;
   warn: typeof warn;
   warnOnce: typeof warnOnce;
@@ -127,7 +122,7 @@ type DebugModule = {
 
 const loadDebugModule = (): DebugModule => {
   jest.resetModules();
-  return require("../../../src/Support/Debug") as DebugModule;
+  return require("../../src/Support/Debug") as DebugModule;
 };
 
 describe("Debug", () => {
@@ -169,17 +164,6 @@ describe("Debug", () => {
 
     expect(consoleSpy).toHaveBeenCalledTimes(1);
     expect(consoleSpy).toHaveBeenCalledWith("Only once");
-  });
-
-  it("should track legacy rule options and settings once", () => {
-    const debugModule = loadDebugModule();
-    const options = { rules: [] };
-    const settings = { "boundaries/elements": [] };
-
-    expect(debugModule.shouldWarnLegacyRuleOptions(options)).toBe(true);
-    expect(debugModule.shouldWarnLegacyRuleOptions(options)).toBe(false);
-    expect(debugModule.shouldWarnLegacySettings(settings)).toBe(true);
-    expect(debugModule.shouldWarnLegacySettings(settings)).toBe(false);
   });
 
   it("should not log when debug is disabled", () => {

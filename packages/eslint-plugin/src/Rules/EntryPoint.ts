@@ -149,12 +149,7 @@ export default dependencyRule<EntryPointRuleOptions>(
   },
   function ({ dependency, node, context, settings, options }) {
     // Validate and warn about legacy selector syntax
-    validateAndWarnRuleOptions(
-      options,
-      "target",
-      settings.checkConfig,
-      RULE_NAMES_MAP.ENTRY_POINT
-    );
+    validateAndWarnRuleOptions(options, "target", RULE_NAMES_MAP.ENTRY_POINT);
 
     if (
       !dependency.to.isIgnored &&

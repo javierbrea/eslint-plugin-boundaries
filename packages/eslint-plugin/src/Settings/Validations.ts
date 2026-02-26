@@ -17,11 +17,7 @@ import {
   isBoolean,
   getArrayOrNull,
 } from "../Support/Common";
-import {
-  warnOnce,
-  shouldWarnLegacyRuleOptions,
-  shouldWarnLegacySettings,
-} from "../Support/Debug";
+import { warnOnce } from "../Support/Debug";
 
 import {
   isDependencyNodeKey,
@@ -40,7 +36,6 @@ import {
   SETTINGS_KEYS_MAP,
   LEGACY_TEMPLATES_DEFAULT,
   CACHE_DEFAULT,
-  CHECK_CONFIG_DEFAULT,
   DEPENDENCY_NODE_KEYS_MAP,
 } from "./Settings.types";
 import type {
@@ -64,6 +59,9 @@ const {
   DEFAULT_DEPENDENCY_NODES,
   VALID_MODES,
 } = SETTINGS;
+
+const trackedValidatedSettings = new WeakMap<object, SettingsNormalized>();
+const trackedWarnedOptions = new WeakSet<object>();
 
 const DEFAULT_MATCHER_OPTIONS = {
   type: "object",
@@ -347,21 +345,17 @@ export function validateAndWarnRuleOptions<
 >(
   options: T | undefined,
   mainKey: RuleMainKey = "from",
-  checkConfig = false,
   ruleName = "boundaries/unknown"
 ): void {
-  if (!checkConfig) {
+  if (
+    !options ||
+    !options.rules ||
+    !isArray(options.rules) ||
+    trackedWarnedOptions.has(options)
+  ) {
     return;
   }
-
-  if (!options || !options.rules || !isArray(options.rules)) {
-    return;
-  }
-
-  // Check if we've already warned for this options object
-  if (!shouldWarnLegacyRuleOptions(options)) {
-    return;
-  }
+  trackedWarnedOptions.add(options);
 
   // Collect ALL rules with legacy syntax
   const rulesWithLegacySelector: number[] = [];
@@ -541,26 +535,6 @@ function validateLegacyTemplates(
   }
   warnOnce(
     `Please provide a valid value in '${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting. The value should be a boolean.`
-  );
-}
-
-/**
- * Validates the checkConfig setting.
- * @param checkConfig The checkConfig setting value
- * @returns The validated checkConfig value or undefined
- */
-function validateCheckConfig(
-  /** The checkConfig setting value */
-  checkConfig: unknown
-): boolean | undefined {
-  if (checkConfig === undefined) {
-    return;
-  }
-  if (isBoolean(checkConfig)) {
-    return checkConfig;
-  }
-  warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.CHECK_CONFIG}' setting. The value should be a boolean.`
   );
 }
 
@@ -798,18 +772,10 @@ function validateDebug(debug: unknown): DebugSetting | undefined {
 
 // TODO: Remove settings validation in next major version. It should be done by schema validation only
 export function validateSettings(
-  settings: Rule.RuleContext["settings"],
-  rawSettings: object
+  settings: Rule.RuleContext["settings"]
 ): Settings {
-  const checkConfig =
-    validateCheckConfig(settings[SETTINGS_KEYS_MAP.CHECK_CONFIG]) ??
-    CHECK_CONFIG_DEFAULT;
-
-  // Only check for deprecated settings if checkConfig is enabled and we haven't already warned
-  if (checkConfig && shouldWarnLegacySettings(rawSettings)) {
-    deprecateTypes(settings[TYPES]);
-    deprecateAlias(settings[ALIAS]);
-  }
+  deprecateTypes(settings[TYPES]);
+  deprecateAlias(settings[ALIAS]);
 
   return {
     [SETTINGS_KEYS_MAP.ELEMENTS]: validateElements(
@@ -830,9 +796,6 @@ export function validateSettings(
     [SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]: validateLegacyTemplates(
       settings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]
     ),
-    [SETTINGS_KEYS_MAP.CHECK_CONFIG]: validateCheckConfig(
-      settings[SETTINGS_KEYS_MAP.CHECK_CONFIG]
-    ),
     [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES]:
       validateAdditionalDependencyNodes(settings[ADDITIONAL_DEPENDENCY_NODES]),
     [SETTINGS_KEYS_MAP.CACHE]: settings[SETTINGS_KEYS_MAP.CACHE] as
@@ -850,10 +813,13 @@ export function validateSettings(
  * @returns The normalized settings
  */
 export function getSettings(context: Rule.RuleContext): SettingsNormalized {
-  const validatedSettings = validateSettings(
-    context.settings,
+  const alreadyValidatedSettings = trackedValidatedSettings.get(
     context.settings
   );
+  if (alreadyValidatedSettings) {
+    return alreadyValidatedSettings;
+  }
+  const validatedSettings = validateSettings(context.settings);
 
   const dependencyNodesSetting = getArrayOrNull<DependencyNodeKey>(
     validatedSettings[SETTINGS_KEYS_MAP.DEPENDENCY_NODES]
@@ -915,8 +881,6 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
       validatedSettings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES] ??
       LEGACY_TEMPLATES_DEFAULT,
     cache: validatedSettings[SETTINGS_KEYS_MAP.CACHE] ?? CACHE_DEFAULT,
-    checkConfig:
-      validatedSettings[SETTINGS_KEYS_MAP.CHECK_CONFIG] ?? CHECK_CONFIG_DEFAULT,
     flagAsExternal: {
       unresolvableAlias:
         validatedSettings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]
@@ -940,5 +904,6 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
       },
     },
   };
+  trackedValidatedSettings.set(context.settings, result);
   return result;
 }

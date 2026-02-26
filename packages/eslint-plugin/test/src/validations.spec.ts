@@ -17,12 +17,7 @@ describe("validateAndWarnRuleOptions", () => {
   it("should not warn when options are undefined", () => {
     const warnSpy = getWarnSpy();
 
-    validateAndWarnRuleOptions(
-      undefined,
-      "from",
-      true,
-      "boundaries/element-types"
-    );
+    validateAndWarnRuleOptions(undefined, "from", "boundaries/element-types");
 
     expect(warnSpy).not.toHaveBeenCalled();
   });
@@ -36,28 +31,6 @@ describe("validateAndWarnRuleOptions", () => {
         rules: "invalid-rules",
       },
       "from",
-      true,
-      "boundaries/element-types"
-    );
-
-    expect(warnSpy).not.toHaveBeenCalled();
-  });
-
-  it("should not warn when checkConfig is disabled", () => {
-    const warnSpy = getWarnSpy();
-
-    validateAndWarnRuleOptions(
-      {
-        rules: [
-          {
-            from: "components",
-            allow: [{ type: "helpers" }],
-            importKind: "type",
-          },
-        ],
-      },
-      "from",
-      false,
       "boundaries/element-types"
     );
 
@@ -85,7 +58,6 @@ describe("validateAndWarnRuleOptions", () => {
         ],
       },
       "from",
-      true,
       "boundaries/element-types"
     );
 
@@ -114,7 +86,6 @@ describe("validateAndWarnRuleOptions", () => {
         ],
       },
       "from",
-      true,
       "boundaries/element-types"
     );
 
@@ -137,7 +108,6 @@ describe("validateAndWarnRuleOptions", () => {
         ],
       },
       "from",
-      true,
       "boundaries/element-types"
     );
 
@@ -167,7 +137,6 @@ describe("validateAndWarnRuleOptions", () => {
         ],
       },
       "from",
-      true,
       "boundaries/element-types"
     );
 
@@ -197,18 +166,8 @@ describe("validateAndWarnRuleOptions", () => {
       ],
     };
 
-    validateAndWarnRuleOptions(
-      options,
-      "from",
-      true,
-      "boundaries/element-types"
-    );
-    validateAndWarnRuleOptions(
-      options,
-      "from",
-      true,
-      "boundaries/element-types"
-    );
+    validateAndWarnRuleOptions(options, "from", "boundaries/element-types");
+    validateAndWarnRuleOptions(options, "from", "boundaries/element-types");
 
     expect(warnSpy).toHaveBeenCalledTimes(2);
   });

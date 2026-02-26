@@ -209,37 +209,6 @@ export default [{
 **Recommendation:** Keep cache enabled unless you experience issues. If you encounter problems, please [open a github issue describing them](https://github.com/javierbrea/eslint-plugin-boundaries/issues).
 :::
 
-## `boundaries/check-config`
-
-**Type:** `<boolean>`
-
-**Default:** `false`
-
-Enables validation and warnings for legacy configuration syntax. When enabled, the plugin warns once per unique configuration if legacy selector syntax or template syntax is detected, showing all affected rule indices.
-
-```js
-export default [{
-  settings: {
-    "boundaries/check-config": true
-  }
-}]
-```
-
-:::tip Recommended Usage
-- **New projects:** Keep disabled (default) for best performance
-- **Migrating from v5:** Enable temporarily to identify legacy syntax
-- **After migration:** Disable for optimal performance
-:::
-
-**What it checks:**
-- Legacy selector syntax: `"type"` or `["type", { captured }]`
-- Legacy template syntax: `${variable}`
-
-**Warning format:**
-```
-[boundaries/element-types] Detected legacy selector syntax in 3 rule(s) at indices: 0, 2, 5.
-```
-
 ## `boundaries/debug`
 
 **Type:** `<object>`

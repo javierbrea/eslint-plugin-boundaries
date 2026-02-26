@@ -470,12 +470,7 @@ export default dependencyRule<ElementTypesRuleOptions>(
   },
   function ({ dependency, node, context, settings, options }) {
     // Validate and warn about legacy selector syntax
-    validateAndWarnRuleOptions(
-      options,
-      "from",
-      settings.checkConfig,
-      RULE_NAMES_MAP.ELEMENT_TYPES
-    );
+    validateAndWarnRuleOptions(options, "from", RULE_NAMES_MAP.ELEMENT_TYPES);
 
     // TODO: Remove these checks when allowing to use more selectors in ESLint rules
     if (

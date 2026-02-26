@@ -155,7 +155,6 @@ export const SETTINGS = {
   ADDITIONAL_DEPENDENCY_NODES: `${PLUGIN_NAME}/additional-dependency-nodes`,
   LEGACY_TEMPLATES: `${PLUGIN_NAME}/legacy-templates`,
   CACHE: `${PLUGIN_NAME}/cache`,
-  CHECK_CONFIG: `${PLUGIN_NAME}/check-config`,
   FLAG_AS_EXTERNAL: `${PLUGIN_NAME}/flag-as-external`,
   DEBUG_SETTING: `${PLUGIN_NAME}/debug`,
 
@@ -256,7 +255,6 @@ export const SETTINGS_KEYS_MAP = {
   /** @deprecated Use import/resolver settings instead */
   ALIAS: SETTINGS.ALIAS,
   CACHE: SETTINGS.CACHE,
-  CHECK_CONFIG: SETTINGS.CHECK_CONFIG,
   FLAG_AS_EXTERNAL: SETTINGS.FLAG_AS_EXTERNAL,
   DEBUG: SETTINGS.DEBUG_SETTING,
 } as const;
@@ -370,8 +368,6 @@ export type Settings = {
   [SETTINGS_KEYS_MAP.ALIAS]?: AliasSetting;
   /** Whether to enable caching for the plugin analysis */
   [SETTINGS_KEYS_MAP.CACHE]?: boolean;
-  /** Whether to enable configuration checking and warnings for legacy syntax */
-  [SETTINGS_KEYS_MAP.CHECK_CONFIG]?: boolean;
   /** Configuration for categorizing dependencies as external or local */
   [SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]?: FlagAsExternalOptions;
   /** Debug configuration for tracing files and dependencies */
@@ -399,8 +395,6 @@ export type SettingsNormalized = {
   legacyTemplates: boolean;
   /** Whether caching is enabled */
   cache: boolean;
-  /** Whether configuration checking and warnings for legacy syntax are enabled */
-  checkConfig: boolean;
   /** Configuration for categorizing dependencies as external or local */
   flagAsExternal: FlagAsExternalOptions;
   /** Debug configuration */

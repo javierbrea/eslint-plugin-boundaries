@@ -29,6 +29,7 @@ import type {
   RulePolicy,
   SettingsKey,
   DependencyNodeKey,
+  DebugSetting,
 } from "@boundaries/eslint-plugin/config";
 import recommendedBoundariesConfig from "@boundaries/eslint-plugin/recommended";
 import { Rule } from "eslint";
@@ -49,6 +50,13 @@ const allowRulePolicy: RulePolicy = RULE_POLICIES_MAP.ALLOW;
 const wrongRulePolicy: RulePolicy = "deny"; // This should show a type error
 
 const dependencyNodeKey: DependencyNodeKey = DEPENDENCY_NODE_KEYS_MAP.EXPORT;
+
+const debugOptions: DebugSetting = {
+  enabled: true,
+  filter: {
+    files: [{ type: "components" }],
+  },
+};
 
 if (!isRulePolicy(wrongRulePolicy)) {
   throw new Error();
@@ -73,6 +81,7 @@ export const boundariesConfig = createConfig(
         unresolvableAlias: true,
         customSourcePatterns: ["custom/**"],
       },
+      [SETTINGS_KEYS_MAP.DEBUG]: debugOptions,
     },
     rules: {
       [RULE_NAMES_MAP.ELEMENT_TYPES]: [

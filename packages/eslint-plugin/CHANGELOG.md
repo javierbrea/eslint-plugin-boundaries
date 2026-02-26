@@ -7,10 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [unreleased]
 ### Added
 - feat: Support defining element selectors as objects with any of the element properties as keys, and the corresponding values as micromatch patterns matching the value of that property in the element description.
-- feat: Add `boundaries/check-config` setting to enable configuration validation and show warnings when the configuration is not correct. It is recommended to enable it to avoid configuration issues, but it is disabled by default to avoid performance issues during linting runtime. When it is enabled, it shows warnings in the console when the configuration is not correct, with detailed information about the issue and how to fix it.
 - feat: Warn about usage of legacy string and tuple selector formats in the configuration.
-- feat: Warn when deprecated rule-level `importKind` is used in dependency rules while `boundaries/check-config` is enabled. Prefer selector-level `kind`.
-- feat: Prioritize selector-level `kind` over rule-level `importKind` when both are defined.
+- feat: Warn when deprecated rule-level `importKind` is used in dependency rules. Prefer selector-level `kind`. Prioritize selector-level `kind` over rule-level `importKind` when both are defined.
+- feat: Validate and transform different settings and rules only once per different configuration object, and not per rule execution, to improve performance.
 - feat: Support all element description properties in custom messages templates by using handlebars syntax.
 - feat: Improve debug output, and add `boundaries/debug` setting to allow enabling/disabling it and filtering the traces that are printed.
 ### Changed
