@@ -209,32 +209,6 @@ export default [{
 **Recommendation:** Keep cache enabled unless you experience issues. If you encounter problems, please [open a github issue describing them](https://github.com/javierbrea/eslint-plugin-boundaries/issues).
 :::
 
-## `boundaries/debug`
-
-**Type:** `<object>`
-
-**Default:**
-
-```js
-{
-  enabled: false,
-  filter: {
-    files: undefined,
-    dependencies: undefined,
-  }
-}
-```
-
-Enables debug traces and optionally filters them with [selectors](../setup/selectors.md).
-
-- **`enabled`** `<boolean>` - Enables debug output when `true`.
-- **`filter.files`** `<array of element selectors>` - Filters file traces.
-- **`filter.dependencies`** `<array of dependency selectors>` - Filters dependency traces.
-
-:::tip
-You can filter debug traces using selectors. See the [Debugging guide](../guides/debugging.md) for complete filtering examples.
-:::
-
 ## `boundaries/flag-as-external`
 
 **Type:** `<object>`
@@ -335,3 +309,42 @@ export default [{
   }
 }];
 ```
+
+## `boundaries/debug`
+
+**Type:** `<object>`
+
+**Default:**
+
+```js
+{
+  enabled: false,
+  filter: {
+    files: undefined,
+    dependencies: undefined,
+  }
+}
+```
+
+Enables debug traces and optionally filters them with [selectors](../setup/selectors.md).
+
+- **`enabled`** `<boolean>` - Enables debug output when `true`.
+- **`filter.files`** `<array of element selectors>` - Filters file traces.
+- **`filter.dependencies`** `<array of dependency selectors>` - Filters dependency traces.
+
+:::tip
+You can filter debug traces using selectors. See the [Debugging guide](../guides/debugging.md) for complete filtering examples.
+:::
+
+## `boundaries/legacy-templates`
+
+**Type:** `<boolean>`
+**Default:** `true`
+
+Whether to prioritize legacy `${}` templates syntax in selectors over the new Handlebars syntax. When `true`, captured values in selectors will take precedence over Handlebars variables, so there is risk of conflicts between them if you are naming your captured values with any of the properties available in the [Elements Descriptions at runtime](./elements.md#runtime-description-properties) (like `path`, `category`, `origin`, etc.). Set it to `false` if that is not the case, to use the more powerful and flexible Handlebars syntax in all your templates without worrying about conflicts with captured values. Old templates will continue working as they are, without any change, regardless of this setting.
+
+This does not affect the syntax supported in custom messages templates, because old syntax does not have available the new Handlebars variables, so it will continue working as it is, while new templates will support the more powerful and flexible Handlebars syntax without any conflict with captured values.
+
+:::tip Read more
+Read more about using templates in selectors in the [Selectors documentation](../setup/selectors.md#templating-in-selectors), and about using custom messages templates in the [Rules documentation](../setup/rules.md#message-templating).
+:::

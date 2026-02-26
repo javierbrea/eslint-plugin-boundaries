@@ -425,7 +425,7 @@ Legacy templates use `${...}` syntax with flattened property access and addition
 To migrate from legacy templates to Handlebars:
 
 1. **Replace `${...}` with `{{...}}`**: Change the delimiter syntax
-2. **Update property paths**: Use the nested structure (`from`, `to`, `dependency`) instead of flattened aliases
+2. **Update property paths**: Use the nested structure (`from`, `to`, `dependency`, `report`) instead of flattened aliases
 3. **Remove legacy aliases**: Use official property names instead of deprecated aliases
 
 **Migration examples:**

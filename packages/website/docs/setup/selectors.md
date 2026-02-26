@@ -211,17 +211,20 @@ Selectors support templating to create dynamic rules based on **[captured proper
 
 ### Modern Template Syntax
 
-**Format:** `{{ from.property }}` or `{{ target.property }}`
-
 The modern template syntax uses Handlebars-style double curly braces:
 
 - `{{ from.* }}` - References properties from the file being analyzed (the importer)
-- `{{ target.* }}` - References properties from the dependency being imported
+- `{{ to.* }}` - References properties from the dependency being imported
+- `{{ dependency.* }}` - References properties from the dependency itself, such as the kind of import, the relationship between both elements, etc.
 
-**Available template properties:**
-- `{{ from.capturedProperty }}` / `{{ target.capturedProperty }}` - Any captured property from element configuration
-- `{{ from.type }}` / `{{ target.type }}` - Element type
-- `{{ from.category }}` / `{{ target.category }}` - Element category
+:::tip
+In short, the template can access any property from the dependency description, including captured properties. Read more about the available properties in the [Runtime Description Properties](./elements.md#runtime-description-properties) documentation.
+:::
+
+:::caution
+When the [`boundaries/legacy-templates` setting](./settings.md#boundarieslegacy-templates) is enabled (default for the moment), if you are capturing properties with names equal to any of the [Runtime Element Description Properties](./elements.md#runtime-description-properties) in your [Element Descriptors](./elements.md) (e.g., `path`, `category`, `origin`, etc.) they will overwrite the corresponding template variables and cause unexpected behavior in your templates. To avoid this, it is recommended to set `boundaries/legacy-templates` to `false` and use the new template syntax with explicit `from`, `to`, and `dependency` namespaces, which will prevent any conflicts between captured properties and template variables. Read more about this in the [Settings documentation](./settings.md#boundarieslegacy-templates) and in the [Migration Guides](../releases/migration-guides/v5-to-v6.md).
+:::
+
 
 ### Template Examples
 
@@ -303,9 +306,15 @@ If a file `helpers/data/parser.js` (category: "data") tries to import from `help
 
 ### Legacy Template Syntax
 
-:::note
+:::warning
 The legacy template syntax `${property}` is still supported for backwards compatibility but will be deprecated in the future. Use the modern `{{ property }}` syntax for new code.
 :::
+
+In legacy templates, you can also use `${target.*}` instead of `{{ to.* }}` to reference properties from the dependency.
+
+When the [`boundaries/legacy-templates`](./settings.md#boundarieslegacy-templates)  `boundaries/legacy-templates` is enabled, you can also access:
+
+- `${from.capturedProperty}` / `${target.capturedProperty}` / `${to.capturedProperty}` - Any captured property from the importer or dependency elements, respectively, but this is something you should migrate to the new syntax as soon as possible (`{{ from.captured.capturedProperty }}` / `{{ to.captured.capturedProperty }}`).
 
 ## Selector Context
 

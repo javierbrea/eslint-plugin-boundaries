@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - feat: Warn about usage of legacy string and tuple selector formats in the configuration.
 - feat: Warn when deprecated rule-level `importKind` is used in dependency rules. Prefer selector-level `kind`. Prioritize selector-level `kind` over rule-level `importKind` when both are defined.
 - feat: Validate and transform different settings and rules only once per different configuration object, and not per rule execution, to improve performance.
-- feat: Support all element description properties in custom messages templates by using handlebars syntax.
+- feat: Support all element description properties in custom messages templates by using handlebars syntax. Old message templates will continue working as they are, without any change.
 - feat: Improve debug output, and add `boundaries/debug` setting to allow enabling/disabling it and filtering the traces that are printed.
 ### Changed
 ### Fixed
