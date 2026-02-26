@@ -129,8 +129,8 @@ const runTest = (
           {
             rules: [
               {
-                from: { type: "foo" },
-                allow: [{ type: "components" }],
+                from: "foo",
+                allow: ["components"],
               },
             ],
           },
@@ -144,8 +144,8 @@ const runTest = (
           {
             rules: [
               {
-                from: { type: "components" },
-                disallow: [{ type: "foo" }],
+                from: "components",
+                disallow: ["foo"],
               },
             ],
           },
@@ -426,16 +426,12 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: { type: "components" },
-          allow: [{ type: "helpers" }, { type: "components" }],
+          from: "components",
+          allow: ["helpers", "components"],
         },
         {
-          from: { type: "modules" },
-          allow: [
-            { type: "helpers" },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          from: "modules",
+          allow: ["helpers", "components", "modules"],
         },
       ],
     },
@@ -467,23 +463,16 @@ runTest(
       default: "allow",
       rules: [
         {
-          from: { type: "helpers" },
-          disallow: [
-            { type: "modules" },
-            { type: "components" },
-            { type: "helpers" },
-          ],
+          from: "helpers",
+          disallow: ["modules", "components", "helpers"],
         },
         {
-          from: { type: "components" },
-          disallow: [{ type: "modules" }],
+          from: "components",
+          disallow: ["modules"],
         },
         {
-          from: {
-            type: "components",
-            captured: { elementName: "component-a" },
-          },
-          allow: [{ type: "modules", captured: { elementName: "module-b" } }],
+          from: [["components", { elementName: "component-a" }]],
+          allow: [["modules", { elementName: "module-b" }]],
         },
       ],
     },
@@ -509,16 +498,12 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: { type: "components" },
-          allow: [{ type: "helpers" }, { type: "components" }],
+          from: "components",
+          allow: ["helpers", "components"],
         },
         {
-          from: { type: "modules" },
-          allow: [
-            { type: "helpers" },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          from: "modules",
+          allow: ["helpers", "components", "modules"],
         },
       ],
     },
@@ -538,16 +523,12 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: { type: "components" },
-          allow: [{ type: "helpers" }, { type: "components" }],
+          from: "components",
+          allow: ["helpers", "components"],
         },
         {
-          from: { type: "modules" },
-          allow: [
-            { type: "helpers" },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          from: "modules",
+          allow: ["helpers", "components", "modules"],
         },
       ],
     },
@@ -564,16 +545,12 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: { type: "components" },
-          allow: [{ type: "helpers" }, { type: "components" }],
+          from: "components",
+          allow: ["helpers", "components"],
         },
         {
-          from: { type: "modules" },
-          allow: [
-            { type: "helpers" },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          from: "modules",
+          allow: ["helpers", "components", "modules"],
         },
       ],
     },
@@ -590,12 +567,12 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: { type: "c*" },
-          allow: [{ type: "h*" }, { type: "c*" }],
+          from: "c*",
+          allow: ["h*", "c*"],
         },
         {
-          from: { type: "m*" },
-          allow: [{ type: "h*" }, { type: "c*" }, { type: "m*" }],
+          from: "m*",
+          allow: ["h*", "c*", "m*"],
         },
       ],
     },
@@ -611,16 +588,12 @@ runTest(
       default: "allow",
       rules: [
         {
-          from: { type: "helpers" },
-          disallow: [
-            { type: "modules" },
-            { type: "components" },
-            { type: "helpers" },
-          ],
+          from: "helpers",
+          disallow: ["modules", "components", "helpers"],
         },
         {
-          from: { type: "components" },
-          disallow: [{ type: "modules" }],
+          from: "components",
+          disallow: ["modules"],
         },
       ],
     },
@@ -642,21 +615,16 @@ testCapture(
       default: "disallow",
       rules: [
         {
-          from: { type: "components" },
-          allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components" },
-          ],
-          disallow: [
-            { type: "components", captured: { elementName: "component-a" } },
-          ],
+          from: "components",
+          allow: [["helpers", { elementName: "helper-a" }], "components"],
+          disallow: [["components", { elementName: "component-a" }]],
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components" },
-            { type: "modules" },
+            ["helpers", { elementName: "helper-a" }],
+            "components",
+            "modules",
           ],
         },
       ],
@@ -676,18 +644,18 @@ testCapture(
       default: "disallow",
       rules: [
         {
-          from: { type: "components" },
+          from: "components",
           allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components", captured: { elementName: "!component-a" } },
+            ["helpers", { elementName: "helper-a" }],
+            ["components", { elementName: "!component-a" }],
           ],
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components" },
-            { type: "modules" },
+            ["helpers", { elementName: "helper-a" }],
+            "components",
+            "modules",
           ],
         },
       ],
@@ -705,20 +673,13 @@ testCapture(
       default: "disallow",
       rules: [
         {
-          from: { type: "c*" },
-          allow: [
-            { type: "helpers", captured: { elementName: "*-a" } },
-            { type: "c*" },
-          ],
-          disallow: [{ type: "c*", captured: { elementName: "*-a" } }],
+          from: "c*",
+          allow: [["helpers", { elementName: "*-a" }], "c*"],
+          disallow: [["c*", { elementName: "*-a" }]],
         },
         {
-          from: { type: "modules" },
-          allow: [
-            { type: "h*", captured: { elementName: "*-a" } },
-            { type: "c*" },
-            { type: "m*" },
-          ],
+          from: "modules",
+          allow: [["h*", { elementName: "*-a" }], "c*", "m*"],
         },
       ],
     },
@@ -736,25 +697,18 @@ testCapture(
     {
       default: "disallow",
       message:
-        "Importing {{to.type}} with name {{to.captured.elementName}} is not allowed in {{from.type}} with name {{from.captured.elementName}}",
+        "Importing ${dependency.type} with name ${dependency.elementName} is not allowed in ${file.type} with name ${file.elementName}",
       rules: [
         {
-          from: { type: "c*" },
-          allow: [
-            { type: "helpers", captured: { elementName: "*-a" } },
-            { type: "c*" },
-          ],
-          disallow: [{ type: "c*", captured: { elementName: "*-a" } }],
+          from: "c*",
+          allow: [["helpers", { elementName: "*-a" }], "c*"],
+          disallow: [["c*", { elementName: "*-a" }]],
           message:
-            "Do not import {{to.type}} named {{to.captured.elementName}} from {{from.type}} named {{from.captured.elementName}}. Repeat: Do not import {{to.type}} named {{to.captured.elementName}} from {{from.type}} named {{from.captured.elementName}}.",
+            "Do not import ${dependency.type} named ${dependency.elementName} from ${file.type} named ${file.elementName}. Repeat: Do not import ${dependency.type} named ${dependency.elementName} from ${file.type} named ${file.elementName}.",
         },
         {
-          from: { type: "modules" },
-          allow: [
-            { type: "h*", captured: { elementName: "*-a" } },
-            { type: "c*" },
-            { type: "m*" },
-          ],
+          from: "modules",
+          allow: [["h*", { elementName: "*-a" }], "c*", "m*"],
         },
       ],
     },
@@ -775,23 +729,16 @@ testCapture(
     {
       default: "disallow",
       message:
-        "Importing {{to.type}} with name {{to.captured.elementName}} is not allowed in {{from.type}} with name {{from.captured.elementName}}",
+        "Importing ${dependency.type} with name ${dependency.elementName} is not allowed in ${file.type} with name ${file.elementName}",
       rules: [
         {
-          from: { type: "c*" },
-          allow: [
-            { type: "helpers", captured: { elementName: "*-a" } },
-            { type: "c*" },
-          ],
-          disallow: [{ type: "c*", captured: { elementName: "*-a" } }],
+          from: "c*",
+          allow: [["helpers", { elementName: "*-a" }], "c*"],
+          disallow: [["c*", { elementName: "*-a" }]],
         },
         {
-          from: { type: "modules" },
-          allow: [
-            { type: "h*", captured: { elementName: "*-a" } },
-            { type: "c*" },
-            { type: "m*" },
-          ],
+          from: "modules",
+          allow: [["h*", { elementName: "*-a" }], "c*", "m*"],
         },
       ],
     },
@@ -811,25 +758,13 @@ testCapture(
       default: "disallow",
       rules: [
         {
-          from: { type: "c*" },
-          allow: [
-            { type: "helpers", captured: { elementName: "*-a" } },
-            { type: "c*" },
-          ],
-          disallow: [
-            {
-              type: "c*",
-              captured: { elementName: ["*-a", "component-a", "*t-a"] },
-            },
-          ],
+          from: "c*",
+          allow: [["helpers", { elementName: "*-a" }], "c*"],
+          disallow: [["c*", { elementName: ["*-a", "component-a", "*t-a"] }]],
         },
         {
-          from: { type: "modules" },
-          allow: [
-            { type: "h*", captured: { elementName: "*-a" } },
-            { type: "c*" },
-            { type: "m*" },
-          ],
+          from: "modules",
+          allow: [["h*", { elementName: "*-a" }], "c*", "m*"],
         },
       ],
     },
@@ -846,323 +781,22 @@ testCapture(
       default: "disallow",
       rules: [
         {
-          from: [{ type: "c*" }],
-          allow: [
-            { type: "helpers", captured: { elementName: "*-a" } },
-            { type: "c*" },
-          ],
-          disallow: [{ type: "c*", captured: { elementName: ["*-a"] } }],
+          from: ["c*"],
+          allow: [["helpers", { elementName: "*-a" }], "c*"],
+          disallow: [["c*", { elementName: ["*-a"] }]],
         },
         {
-          from: { type: "modules" },
-          allow: [
-            { type: "h*", captured: { elementName: "*-a" } },
-            { type: "c*" },
-            { type: "m*" },
-          ],
+          from: "modules",
+          allow: [["h*", { elementName: "*-a" }], "c*", "m*"],
         },
         {
-          from: { type: "modules" },
-          disallow: [
-            { type: "h*", captured: { foo: "*-a" } },
-            { type: "c*" },
-            { type: "m*" },
-          ],
+          from: "modules",
+          disallow: [["h*", { foo: "*-a" }], "c*", "m*"],
         },
       ],
     },
   ],
   {
     2: "Importing elements of type 'c*' with elementName '*-a' is not allowed in elements of type 'c*'. Disallowed in rule 1",
-  }
-);
-
-const objectSelectorPropertiesSettings = {
-  ...SETTINGS.oneLevel,
-  "boundaries/elements": [
-    {
-      type: "helpers",
-      category: "shared",
-      pattern: "helpers/*",
-      capture: ["elementName"],
-    },
-    {
-      type: "components",
-      category: "ui",
-      pattern: ["components/*"],
-      capture: ["elementName"],
-    },
-    {
-      type: "modules",
-      category: "domain",
-      pattern: "modules/*",
-      capture: ["elementName"],
-    },
-  ],
-} as RuleTesterSettings;
-
-createRuleTester(objectSelectorPropertiesSettings).run(
-  `${RULE} object selector properties`,
-  rule,
-  {
-    valid: [
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import HelperB from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [{ type: "helpers", baseSource: "*" }],
-              },
-            ],
-          },
-        ],
-      },
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import { HelperB } from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [{ type: "helpers", relationship: "*" }],
-              },
-            ],
-          },
-        ],
-      },
-    ],
-    invalid: [
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import HelperB from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [{ type: "helpers" }],
-                message: "blocked-type",
-              },
-            ],
-          },
-        ],
-        errors: [{ message: "blocked-type", type: "Literal" }],
-      },
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import HelperB from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [{ category: "shared" }],
-                message: "blocked-category",
-              },
-            ],
-          },
-        ],
-        errors: [{ message: "blocked-category", type: "Literal" }],
-      },
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import HelperB from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [
-                  {
-                    captured: { elementName: "helper-b" },
-                  },
-                ],
-                message: "blocked-captured",
-              },
-            ],
-          },
-        ],
-        errors: [{ message: "blocked-captured", type: "Literal" }],
-      },
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import HelperB from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [{ origin: "local" }],
-                message: "blocked-origin",
-              },
-            ],
-          },
-        ],
-        errors: [{ message: "blocked-origin", type: "Literal" }],
-      },
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import HelperB from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [{ path: "**/helpers/helper-b/**" }],
-                message: "blocked-path",
-              },
-            ],
-          },
-        ],
-        errors: [{ message: "blocked-path", type: "Literal" }],
-      },
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import HelperB from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [{ elementPath: "**/helpers/helper-b" }],
-                message: "blocked-element-path",
-              },
-            ],
-          },
-        ],
-        errors: [{ message: "blocked-element-path", type: "Literal" }],
-      },
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import HelperB from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [{ internalPath: "index.js" }],
-                message: "blocked-internal-path",
-              },
-            ],
-          },
-        ],
-        errors: [{ message: "blocked-internal-path", type: "Literal" }],
-      },
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import HelperB from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [{ isIgnored: false }],
-                message: "blocked-is-ignored",
-              },
-            ],
-          },
-        ],
-        errors: [{ message: "blocked-is-ignored", type: "Literal" }],
-      },
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import HelperB from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [{ isUnknown: false }],
-                message: "blocked-is-unknown",
-              },
-            ],
-          },
-        ],
-        errors: [{ message: "blocked-is-unknown", type: "Literal" }],
-      },
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import HelperB from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [{ source: "helpers/helper-b" }],
-                message: "blocked-source",
-              },
-            ],
-          },
-        ],
-        errors: [{ message: "blocked-source", type: "Literal" }],
-      },
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import HelperB from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [{ kind: "value" }],
-                message: "blocked-kind",
-              },
-            ],
-          },
-        ],
-        errors: [{ message: "blocked-kind", type: "Literal" }],
-      },
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import { HelperB } from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [{ specifiers: "HelperB" }],
-                message: "blocked-specifiers",
-              },
-            ],
-          },
-        ],
-        errors: [{ message: "blocked-specifiers", type: "Literal" }],
-      },
-      {
-        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import { HelperB } from 'helpers/helper-b'",
-        options: [
-          {
-            default: "allow",
-            rules: [
-              {
-                from: { type: "helpers" },
-                disallow: [{ nodeKind: "import" }],
-                message: "blocked-node-kind",
-              },
-            ],
-          },
-        ],
-        errors: [{ message: "blocked-node-kind", type: "Literal" }],
-      },
-    ],
   }
 );

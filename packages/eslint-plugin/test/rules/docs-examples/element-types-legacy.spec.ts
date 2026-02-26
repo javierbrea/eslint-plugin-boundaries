@@ -18,36 +18,32 @@ const options = [
     rules: [
       {
         // from helper elements
-        from: { type: "helpers" },
+        from: ["helpers"],
         // allow importing helper elements
-        allow: { type: "helpers" },
+        allow: ["helpers"],
       },
       {
         // from component elements
-        from: { type: "components" },
+        from: ["components"],
         allow: [
           // allow importing components of the same family
-          { type: "components", captured: { family: "{{ family }}" } },
+          ["components", { family: "${family}" }],
           // allow importing helpers with captured category "data"
-          { type: "helpers", captured: { category: "data" } },
+          ["helpers", { category: "data" }],
         ],
       },
       {
         // from components with captured family "molecule"
-        from: { type: "components", captured: { family: "molecule" } },
+        from: [["components", { family: "molecule" }]],
         allow: [
           // allow importing components with captured family "atom"
-          { type: "components", captured: { family: "atom" } },
+          ["components", { family: "atom" }],
         ],
       },
       {
         // from modules
-        from: { type: "modules" },
-        allow: [
-          { type: "helpers" },
-          { type: "components" },
-          { type: "modules" },
-        ],
+        from: ["modules"],
+        allow: ["helpers", "components", "modules"],
       },
     ],
   },

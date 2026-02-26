@@ -16,7 +16,7 @@ const defaultOptions = [
     default: "disallow",
     rules: [
       {
-        target: { type: "*" },
+        target: "*",
         allow: "index.js",
       },
     ],
@@ -245,15 +245,15 @@ runTest(SETTINGS.deprecated, [
     default: "disallow",
     rules: [
       {
-        target: { type: "helpers" },
+        target: "helpers",
         allow: "main.js",
       },
       {
-        target: { type: "components" },
+        target: "components",
         allow: "Component.js",
       },
       {
-        target: { type: "modules" },
+        target: "modules",
         allow: "Module.js",
       },
     ],
@@ -267,15 +267,15 @@ runTest(SETTINGS.oneLevel, [
     default: "disallow",
     rules: [
       {
-        target: { type: "helpers" },
+        target: "helpers",
         allow: "main.js",
       },
       {
-        target: { type: "components" },
+        target: "components",
         allow: "Component.js",
       },
       {
-        target: { type: "modules" },
+        target: "modules",
         allow: "Module.js",
       },
     ],
@@ -289,15 +289,15 @@ runTest(SETTINGS.oneLevel, [
     default: "disallow",
     rules: [
       {
-        target: { type: "h*" },
+        target: "h*",
         allow: "main.*",
       },
       {
-        target: { type: "c*" },
+        target: "c*",
         allow: "C*.*",
       },
       {
-        target: { type: "m*" },
+        target: "m*",
         allow: "M*.*",
       },
     ],
@@ -313,27 +313,27 @@ runTest(
       default: "allow",
       rules: [
         {
-          target: { type: "helpers" },
+          target: "helpers",
           disallow: "*.js",
         },
         {
-          target: { type: "helpers" },
+          target: "helpers",
           allow: "main.js",
         },
         {
-          target: { type: "components" },
+          target: "components",
           disallow: "*.js",
         },
         {
-          target: { type: "components" },
+          target: "components",
           allow: "Component.js",
         },
         {
-          target: { type: "modules" },
+          target: "modules",
           disallow: "*",
         },
         {
-          target: { type: "modules" },
+          target: "modules",
           allow: "Module.js",
         },
       ],
@@ -355,23 +355,23 @@ testCapture(
       default: "disallow",
       rules: [
         {
-          target: { type: "helpers" },
+          target: "helpers",
           allow: "main.js",
         },
         {
-          target: { type: "helpers", captured: { elementName: "*-a" } },
+          target: [["helpers", { elementName: "*-a" }]],
           disallow: "*",
         },
         {
-          target: { type: "helpers", captured: { elementName: "*-a" } },
+          target: [["helpers", { elementName: "*-a" }]],
           allow: "index.*",
         },
         {
-          target: { type: "components" },
+          target: "components",
           allow: "Component.js",
         },
         {
-          target: { type: "modules" },
+          target: "modules",
           allow: "Module.js",
         },
       ],
@@ -393,24 +393,24 @@ testCapture(
         "Importing the file ${dependency.internalPath} is not allowed in ${dependency.type}",
       rules: [
         {
-          target: { type: "helpers" },
+          target: "helpers",
           allow: "main.js",
         },
         {
-          target: { type: "helpers", captured: { elementName: "*-a" } },
+          target: [["helpers", { elementName: "*-a" }]],
           disallow: "*",
           message: "Do not import any type of file from helpers with name *-a",
         },
         {
-          target: { type: "helpers", captured: { elementName: "*-a" } },
+          target: [["helpers", { elementName: "*-a" }]],
           allow: "index.*",
         },
         {
-          target: { type: "components" },
+          target: "components",
           allow: "Component.js",
         },
         {
-          target: { type: "modules" },
+          target: "modules",
           allow: "Module.js",
         },
       ],

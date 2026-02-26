@@ -30,8 +30,8 @@ const testDefaultSettings = () => {
             default: "disallow",
             rules: [
               {
-                from: { type: "components", captured: { package: "a" } },
-                allow: { type: "helpers", captured: { package: "a" } },
+                from: [["components", { package: "a" }]],
+                allow: [["helpers", { package: "a" }]],
               },
             ],
           },
@@ -77,14 +77,8 @@ const testDefaultSettings = () => {
             default: "disallow",
             rules: [
               {
-                from: {
-                  type: "components",
-                  captured: { package: "package-a" },
-                },
-                allow: {
-                  type: "helpers",
-                  captured: { package: "package-a" },
-                },
+                from: [["components", { package: "package-a" }]],
+                allow: [["helpers", { package: "package-a" }]],
               },
             ],
           },
@@ -194,8 +188,8 @@ const testCustomSourcePatterns = () => {
             default: "disallow",
             rules: [
               {
-                from: { type: "components", captured: { package: "a" } },
-                allow: { type: "helpers", captured: { package: "a" } },
+                from: [["components", { package: "a" }]],
+                allow: [["helpers", { package: "a" }]],
               },
             ],
           },
@@ -257,10 +251,7 @@ const testInNodeModulesDisabled = () => {
         filename: absoluteFilePath("package-a/helpers/helper-a/HelperA.js"),
         code: "import eslint from 'eslint'",
         options: [
-          {
-            default: "disallow",
-            rules: [{ from: { type: "any" }, allow: { type: "any" } }],
-          },
+          { default: "disallow", rules: [{ from: ["any"], allow: ["any"] }] },
         ],
       },
     ],
@@ -343,8 +334,8 @@ const testInvalidSettings = () => {
             default: "disallow",
             rules: [
               {
-                from: { type: "components", captured: { package: "a" } },
-                allow: { type: "helpers", captured: { package: "a" } },
+                from: [["components", { package: "a" }]],
+                allow: [["helpers", { package: "a" }]],
               },
             ],
           },

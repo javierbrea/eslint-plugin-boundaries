@@ -218,41 +218,29 @@ testCapture(
       default: "disallow",
       rules: [
         {
-          from: { type: "components" },
+          from: "components",
+          allow: [["helpers", { elementName: "helper-a" }], "components"],
+          disallow: [["components", { elementName: "component-a" }]],
+        },
+        {
+          from: "modules",
           allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components" },
-          ],
-          disallow: [
-            { type: "components", captured: { elementName: "component-a" } },
+            ["helpers", { elementName: "helper-a" }],
+            "components",
+            "modules",
           ],
         },
         {
-          from: { type: "modules" },
+          from: [["modules", { elementName: "*-a" }]],
           allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components" },
-            { type: "modules" },
+            ["helpers", { elementName: "${from.elementName}" }],
+            "components",
+            "modules",
           ],
         },
         {
-          from: { type: "modules", captured: { elementName: "*-a" } },
-          allow: [
-            {
-              type: "helpers",
-              captured: { elementName: "{{ from.captured.elementName }}" },
-            },
-            { type: "components" },
-            { type: "modules" },
-          ],
-        },
-        {
-          from: { type: "modules", captured: { elementName: "*-a" } },
-          allow: [
-            { type: "{{ from.captured.elementName }}-helpers" },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          from: [["modules", { elementName: "*-a" }]],
+          allow: ["${from.elementName}-helpers", "components", "modules"],
         },
       ],
     },
@@ -295,40 +283,41 @@ testCapture(
       default: "disallow",
       rules: [
         {
-          from: { type: "components" },
+          from: "components",
+          allow: [["helpers", { elementName: "helper-a" }], "components"],
+          disallow: [["components", { elementName: "component-a" }]],
+        },
+        {
+          from: "modules",
           allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components" },
+            ["helpers", { elementName: "helper-a" }],
+            "components",
+            "modules",
           ],
+        },
+        {
+          from: [["modules", { elementName: "*-a" }]],
+          allow: [
+            ["helpers", { elementName: "{{from.captured.elementName}}" }],
+            "components",
+            "modules",
+          ],
+        },
+        // Now disallow, but using legacy format. As it is disabled, this should no affect the results
+        {
+          from: [["modules", { elementName: "*-a" }]],
           disallow: [
-            { type: "components", captured: { elementName: "component-a" } },
+            ["helpers", { elementName: "${from.captured.elementName}" }],
+            "components",
+            "modules",
           ],
         },
         {
-          from: { type: "modules" },
+          from: [["modules", { elementName: "*-a" }]],
           allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components" },
-            { type: "modules" },
-          ],
-        },
-        {
-          from: { type: "modules", captured: { elementName: "*-a" } },
-          allow: [
-            {
-              type: "helpers",
-              captured: { elementName: "{{ from.captured.elementName }}" },
-            },
-            { type: "components" },
-            { type: "modules" },
-          ],
-        },
-        {
-          from: { type: "modules", captured: { elementName: "*-a" } },
-          allow: [
-            { type: "{{ from.captured.elementName }}-helpers" },
-            { type: "components" },
-            { type: "modules" },
+            "{{from.captured.elementName}}-helpers",
+            "components",
+            "modules",
           ],
         },
       ],

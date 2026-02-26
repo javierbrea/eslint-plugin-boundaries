@@ -407,18 +407,18 @@ runTest(
       default: "allow",
       rules: [
         {
-          from: { type: "helpers" },
+          from: "helpers",
           disallow: [
             "react",
             ["foo-library", { specifiers: ["Link", "Router"] }],
           ],
         },
         {
-          from: { type: "components" },
+          from: "components",
           disallow: ["react-router-dom"],
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           disallow: [
             "@material-ui/core",
             ["react-router-dom", { specifiers: ["Link"] }],
@@ -450,18 +450,18 @@ runTest(
       default: "allow",
       rules: [
         {
-          from: { type: "helpers" },
+          from: "helpers",
           disallow: [
             "react",
             ["foo-library", { specifiers: ["Link", "Router"] }],
           ],
         },
         {
-          from: { type: "components" },
+          from: "components",
           disallow: ["react-router-dom"],
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           disallow: [
             "@material-ui/*",
             ["react-router-dom", { specifiers: ["Link"] }],
@@ -469,7 +469,7 @@ runTest(
           ],
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           allow: ["@material-ui/icons"],
         },
       ],
@@ -497,15 +497,15 @@ runTest(
       default: "allow",
       rules: [
         {
-          from: { type: "h*" },
+          from: "h*",
           disallow: ["react", ["foo-*", { specifiers: ["L*", "R*"] }]],
         },
         {
-          from: { type: "c*" },
+          from: "c*",
           disallow: ["react-router-*"],
         },
         {
-          from: { type: "m*" },
+          from: "m*",
           disallow: [
             "@material-ui/*",
             ["react-router-*", { specifiers: ["L*"] }],
@@ -513,7 +513,7 @@ runTest(
           ],
         },
         {
-          from: { type: "m*" },
+          from: "m*",
           allow: ["@material-ui/i*"],
         },
       ],
@@ -541,29 +541,29 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: { type: "helpers" },
+          from: "helpers",
           allow: ["foo-library"],
           disallow: [["foo-library", { specifiers: ["Link", "Router"] }]],
         },
         {
-          from: { type: "components" },
+          from: "components",
           allow: ["react"],
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           allow: ["react", "react-router-dom"],
           disallow: [
             ["react-router-dom", { specifiers: ["Link"], path: ["*"] }],
           ],
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           allow: ["react", "react-router-dom"],
           disallow: [["react-router-dom", { path: ["/var/foo", "fake"] }]],
-          message: "Do not import {{ report.path }} from RDD in modules",
+          message: "Do not import ${report.path} from RDD in modules",
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           allow: ["@material-ui/icons"],
         },
       ],
@@ -587,21 +587,21 @@ runTest(
     {
       default: "disallow",
       message:
-        "Importing {{ to.source }} is not allowed in {{ from.type }} with name {{ from.captured.elementName }}",
+        "Importing ${dependency.source} is not allowed in ${file.type} with name ${file.elementName}",
       rules: [
         {
-          from: { type: "helpers" },
+          from: "helpers",
           allow: ["foo-library"],
           disallow: [["foo-library", { specifiers: ["Link", "Router"] }]],
           message:
-            "Do not import {{ report.specifiers }} from {{ to.source }} in helpers",
+            "Do not import ${report.specifiers} from ${dependency.source} in helpers",
         },
         {
-          from: { type: "components" },
+          from: "components",
           allow: ["react"],
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           allow: ["react", "react-router-dom"],
           disallow: [
             ["react-router-dom", { specifiers: ["Link"] }],
@@ -609,7 +609,7 @@ runTest(
           ],
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           allow: ["@material-ui/icons"],
         },
       ],
@@ -637,15 +637,15 @@ testCapture(
       default: "allow",
       rules: [
         {
-          from: { type: "modules", captured: { elementName: "module-b" } },
+          from: [["modules", { elementName: "module-b" }]],
           disallow: ["react-router-dom"],
         },
         {
-          from: { type: "helpers", captured: { elementName: "helper-b" } },
+          from: [["helpers", { elementName: "helper-b" }]],
           disallow: ["foo-library"],
         },
         {
-          from: { type: "helpers", captured: { elementName: "helper-a" } },
+          from: [["helpers", { elementName: "helper-a" }]],
           disallow: [["foo-library", { specifiers: ["Link"] }]],
         },
       ],

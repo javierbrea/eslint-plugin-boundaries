@@ -18,17 +18,14 @@ const options = [
     default: "disallow",
     rules: [
       {
-        target: { type: "modules" },
+        target: ["modules"],
         allow: "**",
       },
       {
-        target: {
-          type: "modules",
-          captured: {
-            // Any element, except the same as target
-            elementName: "!({{ from.elementName }})",
-          },
-        },
+        target: [
+          // Any element, except the same as target
+          ["modules", { elementName: "!(${from.elementName})" }],
+        ],
         // Any file, except index.js
         disallow: "!(index.js)",
       },
@@ -62,7 +59,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            "The entry point 'helpers.js' is not allowed in elements of type 'modules' with elementName '!({{ from.elementName }})'. Disallowed in rule 2",
+            "The entry point 'helpers.js' is not allowed in elements of type 'modules' with elementName '!(module-a)'. Disallowed in rule 2",
           type: "Literal",
         },
       ],
@@ -74,7 +71,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            "The entry point 'ComponentA.js' is not allowed in elements of type 'modules' with elementName '!({{ from.elementName }})'. Disallowed in rule 2",
+            "The entry point 'ComponentA.js' is not allowed in elements of type 'modules' with elementName '!(module-a)'. Disallowed in rule 2",
           type: "Literal",
         },
       ],

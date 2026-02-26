@@ -40,7 +40,7 @@ const testDefaultSettings = () => {
         options: [
           {
             default: "allow",
-            rules: [{ from: { type: "components" }, disallow: ["micromatch"] }],
+            rules: [{ from: ["components"], disallow: ["micromatch"] }],
           },
         ],
       },
@@ -126,7 +126,7 @@ const testOutsideRootPath = () => {
         options: [
           {
             default: "disallow",
-            rules: [{ from: { type: "components" }, allow: ["package-b"] }],
+            rules: [{ from: ["components"], allow: ["package-b"] }],
           },
         ],
       },
@@ -157,7 +157,7 @@ const testOutsideRootPath = () => {
         options: [
           {
             default: "allow",
-            rules: [{ from: { type: "components" }, disallow: ["package-b"] }],
+            rules: [{ from: ["components"], disallow: ["package-b"] }],
           },
         ],
         errors: [
@@ -220,7 +220,7 @@ const testCustomSourcePatterns = () => {
         options: [
           {
             default: "allow",
-            rules: [{ from: { type: "components" }, disallow: ["eslint"] }],
+            rules: [{ from: ["components"], disallow: ["eslint"] }],
           },
         ],
       },
@@ -233,7 +233,7 @@ const testCustomSourcePatterns = () => {
         options: [
           {
             default: "disallow",
-            rules: [{ from: { type: "components" }, allow: ["package-b"] }],
+            rules: [{ from: ["components"], allow: ["package-b"] }],
           },
         ],
       },
@@ -264,7 +264,7 @@ const testCustomSourcePatterns = () => {
         options: [
           {
             default: "allow",
-            rules: [{ from: { type: "components" }, disallow: ["package-b"] }],
+            rules: [{ from: ["components"], disallow: ["package-b"] }],
           },
         ],
         errors: [

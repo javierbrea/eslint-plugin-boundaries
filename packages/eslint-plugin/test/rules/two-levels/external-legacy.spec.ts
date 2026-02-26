@@ -225,23 +225,23 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: { type: "helpers" },
+          from: "helpers",
           allow: ["foo-library"],
         },
         {
-          from: { type: "components", captured: { elementName: "*-b" } },
+          from: [["components", { elementName: "*-b" }]],
           allow: ["@material-ui/*"],
         },
         {
-          from: { type: "modules", captured: { domain: "!pages" } },
+          from: [["modules", { domain: "!pages" }]],
           allow: ["react-router-dom"],
         },
         {
-          from: { type: "modules", captured: { domain: "*-a" } },
+          from: [["modules", { domain: "*-a" }]],
           allow: ["react"],
         },
         {
-          from: { type: "modules", captured: { domain: "pages" } },
+          from: [["modules", { domain: "pages" }]],
           allow: ["react"],
         },
       ],
@@ -258,23 +258,23 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: { type: "helpers" },
+          from: "helpers",
           allow: ["foo-library"],
         },
         {
-          from: { type: "components", captured: { elementName: "*-b" } },
+          from: [["components", { elementName: "*-b" }]],
           allow: ["@material-ui/*"],
         },
         {
-          from: { type: "modules", captured: { domain: "!pages" } },
+          from: [["modules", { domain: "!pages" }]],
           allow: ["react-router-dom"],
         },
         {
-          from: { type: "modules", captured: { domain: "*-a" } },
+          from: [["modules", { domain: "*-a" }]],
           allow: ["react"],
         },
         {
-          from: { type: "modules", captured: { domain: "pages" } },
+          from: [["modules", { domain: "pages" }]],
           allow: ["react"],
         },
       ],

@@ -1065,62 +1065,48 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: { type: "helpers" },
-          allow: { type: "helpers" },
+          from: "helpers",
+          allow: "helpers",
         },
         {
-          from: { type: "components", captured: { category: "atoms" } },
+          from: [["components", { category: "atoms" }]],
+          allow: ["helpers", ["components", { category: "atoms" }]],
+        },
+        {
+          from: [["components", { category: "molecules" }]],
           allow: [
-            { type: "helpers" },
-            { type: "components", captured: { category: "atoms" } },
+            ["components", { category: "atoms" }],
+            ["components", { category: "molecules" }],
           ],
         },
         {
-          from: { type: "components", captured: { category: "molecules" } },
-          allow: [
-            { type: "components", captured: { category: "atoms" } },
-            { type: "components", captured: { category: "molecules" } },
-          ],
-        },
-        {
-          from: { type: "components", captured: { category: "layouts" } },
-          allow: [{ type: "components", captured: { category: "molecules" } }],
+          from: [["components", { category: "layouts" }]],
+          allow: [["components", { category: "molecules" }]],
         },
         {
           from: [
-            { type: "modules", captured: { domain: "pages" } },
-            { type: "modules", captured: { domain: "domain-a" } },
+            ["modules", { domain: "pages" }],
+            ["modules", { domain: "domain-a" }],
           ],
-          allow: [{ type: "components", captured: { category: "layouts" } }],
+          allow: [["components", { category: "layouts" }]],
         },
         {
-          from: { type: "modules", captured: { domain: "domain-a" } },
-          allow: [{ type: "modules", captured: { domain: "domain-a" } }],
+          from: [["modules", { domain: "domain-a" }]],
+          allow: [["modules", { domain: "domain-a" }]],
         },
         {
-          from: { type: "modules", captured: { domain: "domain-b" } },
-          allow: [{ type: "modules", captured: { domain: "domain-*" } }],
+          from: [["modules", { domain: "domain-b" }]],
+          allow: [["modules", { domain: "domain-*" }]],
         },
         // module b in domain b can import even atoms!
         {
-          from: {
-            type: "modules",
-            captured: { domain: "domain-b", elementName: "module-b" },
-          },
-          allow: [{ type: "components", captured: { category: "atoms" } }],
+          from: [["modules", { domain: "domain-b", elementName: "module-b" }]],
+          allow: [["components", { category: "atoms" }]],
         },
         // module a in domain a can import any atom *-b!
         {
-          from: {
-            type: "modules",
-            captured: { domain: "*-a", elementName: "module-a" },
-          },
-          allow: [
-            {
-              type: "components",
-              captured: { category: "atoms", elementName: "*-b" },
-            },
-          ],
+          from: [["modules", { domain: "*-a", elementName: "module-a" }]],
+          allow: [["components", { category: "atoms", elementName: "*-b" }]],
         },
       ],
     },
@@ -1136,80 +1122,58 @@ testPrivate(
       default: "disallow",
       rules: [
         {
-          from: { type: "helpers" },
-          allow: { type: "helpers" },
+          from: "helpers",
+          allow: "helpers",
         },
         {
-          from: { type: "components", captured: { category: "atoms" } },
+          from: [["components", { category: "atoms" }]],
+          allow: ["helpers", ["components", { category: "atoms" }]],
+        },
+        {
+          from: [["components", { category: "molecules" }]],
           allow: [
-            { type: "helpers" },
-            { type: "components", captured: { category: "atoms" } },
+            ["components", { category: "atoms" }],
+            ["components", { category: "molecules" }],
           ],
         },
         {
-          from: { type: "components", captured: { category: "molecules" } },
-          allow: [
-            { type: "components", captured: { category: "atoms" } },
-            { type: "components", captured: { category: "molecules" } },
-          ],
-        },
-        {
-          from: { type: "components", captured: { category: "layouts" } },
-          allow: [{ type: "components", captured: { category: "molecules" } }],
+          from: [["components", { category: "layouts" }]],
+          allow: [["components", { category: "molecules" }]],
         },
         {
           from: [
-            { type: "modules", captured: { domain: "pages" } },
-            { type: "modules", captured: { domain: "domain-a" } },
+            ["modules", { domain: "pages" }],
+            ["modules", { domain: "domain-a" }],
           ],
-          allow: [{ type: "components", captured: { category: "layouts" } }],
+          allow: [["components", { category: "layouts" }]],
         },
         {
-          from: { type: "modules", captured: { domain: "domain-a" } },
-          allow: [{ type: "modules", captured: { domain: "domain-a" } }],
+          from: [["modules", { domain: "domain-a" }]],
+          allow: [["modules", { domain: "domain-a" }]],
         },
         {
-          from: { type: "modules", captured: { domain: "domain-b" } },
-          allow: [{ type: "modules", captured: { domain: "domain-*" } }],
+          from: [["modules", { domain: "domain-b" }]],
+          allow: [["modules", { domain: "domain-*" }]],
         },
         // module b in domain b can import even atoms!
         {
-          from: {
-            type: "modules",
-            captured: { domain: "domain-b", elementName: "module-b" },
-          },
-          allow: [{ type: "components", captured: { category: "atoms" } }],
+          from: [["modules", { domain: "domain-b", elementName: "module-b" }]],
+          allow: [["components", { category: "atoms" }]],
         },
         // module a in domain a can import any atom *-b!
         {
-          from: {
-            type: "modules",
-            captured: { domain: "*-a", elementName: "module-a" },
-          },
-          allow: [
-            {
-              type: "components",
-              captured: { category: "atoms", elementName: "*-b" },
-            },
-          ],
+          from: [["modules", { domain: "*-a", elementName: "module-a" }]],
+          allow: [["components", { category: "atoms", elementName: "*-b" }]],
         },
         // private module d in domain a can import any atom *-b!
         {
-          from: {
-            type: "modules",
-            captured: { domain: "*-a", elementName: "module-(d|c)" },
-          },
-          allow: [
-            {
-              type: "components",
-              captured: { category: "atoms", elementName: "*-b" },
-            },
-          ],
+          from: [["modules", { domain: "*-a", elementName: "module-(d|c)" }]],
+          allow: [["components", { category: "atoms", elementName: "*-b" }]],
         },
         // private helper d can import private module d!
         {
-          from: { type: "helpers", captured: { elementName: "helper-c" } },
-          allow: [{ type: "modules", captured: { elementName: "*-d" } }],
+          from: [["helpers", { elementName: "helper-c" }]],
+          allow: [["modules", { elementName: "*-d" }]],
         },
       ],
     },
@@ -1225,65 +1189,44 @@ testPrivate(
       default: "allow",
       rules: [
         {
-          from: { type: "helpers", captured: { elementName: "helper-c" } },
-          disallow: [
-            {
-              type: "components",
-              captured: { category: "atoms", elementName: "*-a" },
-            },
-          ],
+          from: [["helpers", { elementName: "helper-c" }]],
+          disallow: [["components", { category: "atoms", elementName: "*-a" }]],
         },
         {
-          from: { type: "helpers", captured: { elementName: "helper-c" } },
-          disallow: [
-            {
-              type: "modules",
-              captured: { domain: "domain-a", elementName: "*-a" },
-            },
-          ],
+          from: [["helpers", { elementName: "helper-c" }]],
+          disallow: [["modules", { domain: "domain-a", elementName: "*-a" }]],
         },
         {
-          from: { type: "components", captured: { category: "atoms" } },
-          disallow: [
-            { type: "components", captured: { category: "molecules" } },
-          ],
+          from: [["components", { category: "atoms" }]],
+          disallow: [["components", { category: "molecules" }]],
         },
         {
-          from: { type: "components", captured: { category: "molecules" } },
-          disallow: [{ type: "components", captured: { category: "layouts" } }],
+          from: [["components", { category: "molecules" }]],
+          disallow: [["components", { category: "layouts" }]],
         },
         {
-          from: { type: "components", captured: { category: "*" } },
-          disallow: [{ type: "modules" }],
+          from: [["components", { category: "*" }]],
+          disallow: ["modules"],
         },
         {
-          from: { type: "modules", captured: { domain: "pages" } },
-          disallow: [{ type: "modules", captured: { domain: "domain-a" } }],
+          from: [["modules", { domain: "pages" }]],
+          disallow: [["modules", { domain: "domain-a" }]],
         },
         {
-          from: { type: "modules", captured: { domain: "pages" } },
-          disallow: [
-            { type: "components", captured: { category: "molecules" } },
-          ],
+          from: [["modules", { domain: "pages" }]],
+          disallow: [["components", { category: "molecules" }]],
         },
         {
-          from: { type: "modules", captured: { domain: "domain-a" } },
-          disallow: [
-            { type: "components", captured: { category: "molecules" } },
-          ],
+          from: [["modules", { domain: "domain-a" }]],
+          disallow: [["components", { category: "molecules" }]],
         },
         {
-          from: { type: "modules", captured: { domain: "domain-a" } },
-          disallow: [{ type: "modules", captured: { domain: "pages" } }],
+          from: [["modules", { domain: "domain-a" }]],
+          disallow: [["modules", { domain: "pages" }]],
         },
         {
-          from: { type: "modules", captured: { domain: "domain-a" } },
-          disallow: [
-            {
-              type: "modules",
-              captured: { domain: ["!{{ domain }}", "domain-b"] },
-            },
-          ],
+          from: [["modules", { domain: "domain-a" }]],
+          disallow: [["modules", { domain: ["!${domain}", "domain-b"] }]],
         },
       ],
     },
@@ -1300,7 +1243,7 @@ testPrivate(
     7: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 7",
     8: "Importing elements of type 'modules' with domain 'domain-a' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 6",
     9: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 8",
-    10: "Importing elements of type 'modules' with domain '!{{ domain }}' or 'domain-b' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 10",
-    11: "Importing elements of type 'modules' with domain '!{{ domain }}' or 'domain-b' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 10",
+    10: "Importing elements of type 'modules' with domain '!domain-a' or 'domain-b' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 10",
+    11: "Importing elements of type 'modules' with domain '!domain-a' or 'domain-b' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 10",
   }
 );

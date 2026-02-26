@@ -18,13 +18,13 @@ const options = [
     rules: [
       {
         // when importing helpers
-        target: { type: "helpers" },
+        target: ["helpers"],
         // allow everything (helpers are single files)
         allow: "*",
       },
       {
         // when importing components or modules
-        target: [{ type: "components" }, { type: "modules" }],
+        target: ["components", "modules"],
         // only allow index.js
         allow: "index.js",
       },

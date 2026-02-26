@@ -255,35 +255,35 @@ runTest(
       default: "disallow",
       rules: [
         {
-          target: { type: "helpers" },
+          target: "helpers",
           allow: "main.js",
         },
         {
-          target: { type: "helpers", captured: { elementName: "*-a" } },
+          target: [["helpers", { elementName: "*-a" }]],
           disallow: "*",
         },
         {
-          target: { type: "helpers", captured: { elementName: "*-a" } },
+          target: [["helpers", { elementName: "*-a" }]],
           allow: "index.*",
         },
         {
-          target: { type: "components", captured: { category: "atoms" } },
+          target: [["components", { category: "atoms" }]],
           allow: "Atom*.js",
         },
         {
-          target: { type: "components", captured: { category: "molecules" } },
+          target: [["components", { category: "molecules" }]],
           allow: "Molecule*.js",
         },
         {
-          target: { type: "components", captured: { category: "layouts" } },
+          target: [["components", { category: "layouts" }]],
           allow: "Layout*.js",
         },
         {
-          target: { type: "modules" },
+          target: "modules",
           allow: "Module*.js",
         },
         {
-          target: { type: "modules", captured: { domain: "pages" } },
+          target: [["modules", { domain: "pages" }]],
           disallow: "Module*.js",
           allow: "Page*.js",
         },
@@ -304,35 +304,35 @@ runTest(
       default: "disallow",
       rules: [
         {
-          target: { type: "helpers" },
+          target: "helpers",
           allow: "main.js",
         },
         {
-          target: { type: "helpers", captured: { elementName: "*-a" } },
+          target: [["helpers", { elementName: "*-a" }]],
           disallow: "*",
         },
         {
-          target: { type: "helpers", captured: { elementName: "*-a" } },
+          target: [["helpers", { elementName: "*-a" }]],
           allow: "index.*",
         },
         {
-          target: { type: "components", captured: { category: "atoms" } },
+          target: [["components", { category: "atoms" }]],
           allow: "Atom*.js",
         },
         {
-          target: { type: "components", captured: { category: "molecules" } },
+          target: [["components", { category: "molecules" }]],
           allow: "Molecule*.js",
         },
         {
-          target: { type: "components", captured: { category: "layouts" } },
+          target: [["components", { category: "layouts" }]],
           allow: "Layout*.js",
         },
         {
-          target: { type: "modules" },
+          target: "modules",
           allow: "Module*.js",
         },
         {
-          target: { type: "modules", captured: { domain: "pages" } },
+          target: [["modules", { domain: "pages" }]],
           disallow: "Module*.js",
           allow: "Page*.js",
         },

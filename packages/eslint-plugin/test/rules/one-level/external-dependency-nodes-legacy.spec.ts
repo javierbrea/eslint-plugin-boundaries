@@ -40,19 +40,19 @@ const options = [
     rules: [
       // Components can't import Link type from react-router-dom
       {
-        from: { type: "components" },
+        from: "components",
         disallow: [["react-router-dom", { specifiers: ["Link"] }]],
         importKind: "type",
       },
       // Modules can't import Link value from react-router-dom
       {
-        from: { type: "modules" },
+        from: "modules",
         disallow: [["react-router-dom", { specifiers: ["Link"] }]],
         importKind: "value",
       },
       // Modules can't import react
       {
-        from: { type: "modules" },
+        from: "modules",
         disallow: ["react"],
         importKind: "*",
       },

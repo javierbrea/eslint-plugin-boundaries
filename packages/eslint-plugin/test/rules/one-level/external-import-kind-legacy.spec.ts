@@ -362,7 +362,7 @@ runTest(
       default: "allow",
       rules: [
         {
-          from: { type: "helpers" },
+          from: "helpers",
           disallow: [
             "react",
             ["foo-library", { specifiers: ["Link", "Router"] }],
@@ -370,12 +370,12 @@ runTest(
           importKind: "value",
         },
         {
-          from: { type: "components" },
+          from: "components",
           disallow: ["react-router-dom"],
           importKind: "type",
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           disallow: [
             "@material-ui/*",
             ["react-router-dom", { specifiers: ["Link"] }],
@@ -384,7 +384,7 @@ runTest(
           importKind: "*",
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           allow: ["@material-ui/icons"],
           importKind: "value",
         },
@@ -417,46 +417,46 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: { type: "helpers" },
+          from: "helpers",
           allow: ["foo-library"],
           importKind: "*",
         },
         {
-          from: { type: "helpers" },
+          from: "helpers",
           disallow: [["foo-library", { specifiers: ["Link", "Router"] }]],
           importKind: "value",
         },
         {
-          from: { type: "components" },
+          from: "components",
           allow: ["react"],
           importKind: "*",
         },
         {
-          from: { type: "components" },
+          from: "components",
           allow: ["react-router-dom"],
           importKind: "value",
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           allow: ["react", "react-router-dom"],
           importKind: "*",
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           disallow: [
             ["react-router-dom", { specifiers: ["Link"], path: ["*"] }],
           ],
           importKind: "*",
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           disallow: [["react-router-dom", { path: ["/var/foo", "fake"] }]],
           message:
-            "Do not import {{ dependency.kind }} {{ report.path }} from RDD in modules",
+            "Do not import ${dependency.importKind} ${report.path} from RDD in modules",
           importKind: "*",
         },
         {
-          from: { type: "modules" },
+          from: "modules",
           allow: ["@material-ui/icons"],
           importKind: "value",
         },

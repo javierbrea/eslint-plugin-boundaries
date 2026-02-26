@@ -16,23 +16,23 @@ const options = [
     default: "disallow",
     rules: [
       {
-        from: { type: "modules", captured: { domain: "domain-a" } },
+        from: [["modules", { domain: "domain-a" }]],
         allow: [
-          { type: "modules", captured: { domain: "{{ domain }}" } },
-          { type: "components", captured: { domain: "{{ domain }}" } },
+          ["modules", { domain: "${domain}" }],
+          ["components", { domain: "${domain}" }],
         ],
       },
       {
-        from: { type: "modules", captured: { domain: "domain-b" } },
-        allow: [{ type: "modules" }, { type: "components" }],
+        from: [["modules", { domain: "domain-b" }]],
+        allow: ["modules", "components"],
       },
       {
-        from: { type: "components", captured: { domain: "domain-a" } },
-        allow: { type: "components", captured: { domain: "domain-a" } },
+        from: [["components", { domain: "domain-a" }]],
+        allow: [["components", { domain: "domain-a" }]],
       },
       {
-        from: { type: "components", captured: { domain: "domain-b" } },
-        allow: { type: "components" },
+        from: [["components", { domain: "domain-b" }]],
+        allow: ["components"],
       },
     ],
   },

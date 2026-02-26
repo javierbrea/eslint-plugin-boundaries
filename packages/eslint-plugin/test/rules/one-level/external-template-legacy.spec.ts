@@ -84,13 +84,13 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: { type: "modules", captured: { elementName: "module-a" } },
-          allow: ["@module-helpers/{{ from.elementName }}"],
+          from: [["modules", { elementName: "module-a" }]],
+          allow: ["@module-helpers/${from.elementName}"],
         },
         {
-          from: { type: "modules", captured: { elementName: "ModuleC" } },
+          from: [["modules", { elementName: "ModuleC" }]],
           allow: [
-            ["@module-helpers/all", { specifiers: ["{{ from.elementName }}"] }],
+            ["@module-helpers/all", { specifiers: ["${from.elementName}"] }],
           ],
         },
       ],

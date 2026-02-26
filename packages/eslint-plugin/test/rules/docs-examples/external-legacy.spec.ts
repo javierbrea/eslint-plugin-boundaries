@@ -19,13 +19,13 @@ const options = [
     rules: [
       {
         // from helper elements
-        from: { type: "helpers" },
+        from: ["helpers"],
         // allow importing moment
         allow: ["moment"],
       },
       {
         // from component elements
-        from: { type: "components" },
+        from: ["components"],
         allow: [
           // allow importing react
           "react",
@@ -35,7 +35,7 @@ const options = [
       },
       {
         // from components of family "molecules"
-        from: { type: "components", captured: { family: "molecules" } },
+        from: [["components", { family: "molecules" }]],
         disallow: [
           // disallow importing  @material-ui/icons
           "@material-ui/icons",
@@ -43,7 +43,7 @@ const options = [
       },
       {
         // from modules
-        from: { type: "modules" },
+        from: ["modules"],
         allow: [
           // allow importing react
           "react",

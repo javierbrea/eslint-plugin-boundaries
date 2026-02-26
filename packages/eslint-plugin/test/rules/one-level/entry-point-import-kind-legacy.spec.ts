@@ -106,17 +106,17 @@ runTest(
       default: "disallow",
       rules: [
         {
-          target: { type: "helpers" },
+          target: "helpers",
           allow: "main.js",
           importKind: "value",
         },
         {
-          target: { type: "components" },
+          target: "components",
           allow: "Component.js",
           importKind: "type",
         },
         {
-          target: { type: "modules" },
+          target: "modules",
           allow: "Module.js",
           importKind: "*",
         },
@@ -140,27 +140,27 @@ runTest(
       default: "allow",
       rules: [
         {
-          target: { type: "helpers" },
+          target: "helpers",
           disallow: "!main.js",
           importKind: "*",
         },
         {
-          target: { type: "helpers" },
+          target: "helpers",
           disallow: "main.js",
           importKind: "type",
         },
         {
-          target: { type: "components" },
+          target: "components",
           disallow: "!Component.js",
           importKind: "*",
         },
         {
-          target: { type: "components" },
+          target: "components",
           disallow: "Component.js",
           importKind: "value",
         },
         {
-          target: { type: "modules" },
+          target: "modules",
           disallow: "!Module.js",
           importKind: "*",
         },
