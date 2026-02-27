@@ -116,6 +116,7 @@ function modifySelectors(selectors: ExternalLibrariesSelector): {
       },
     };
   }
+  // @ts-expect-error TODO: Align types.
   return selectors.map((selector) => {
     if (isArray(selector)) {
       return {

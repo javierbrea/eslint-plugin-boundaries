@@ -283,11 +283,9 @@ function createRuleSelectorsData(
 
 function ruleHasKindConstraint(
   rule: Record<string, unknown>,
-  selectorsData: {
-    to?: { dependency?: { kind?: unknown } | null } | null;
-  } | null
+  selectorsData: { dependency?: { kind?: unknown } | null } | null
 ): boolean {
-  return !!rule.importKind || selectorsData?.to?.dependency?.kind !== undefined;
+  return !!rule.importKind || selectorsData?.dependency?.kind !== undefined;
 }
 
 export function getRulesResults(
@@ -325,7 +323,7 @@ export function getRulesResults(
       ruleHasImportKind: ruleHasKindConstraint(
         rule,
         selectorsMatching.selectorsData as {
-          to?: { dependency?: { kind?: unknown } | null } | null;
+          dependency?: { kind?: unknown } | null;
         } | null
       ),
       allowPolicyMatches,
@@ -421,16 +419,26 @@ function createRuleReport(
     };
   }
 
+  let disallow =
+    // @ts-expect-error TODO: Align types. At this point, selectorsMatching.selectors.to should always be defined, because otherwise isMatch would be false
+    rulesResults[ruleIndexMatching].selectorsMatching?.selectors?.to;
+
+  // Workaround: Support array of selectors in the "to" field.
+  // @ts-expect-error TODO: Align types. At this point, selectorsMatching.selectors.to should always be defined, because otherwise isMatch would be false
+  if (isArray(disallow) && disallow[0]?.to) {
+    // @ts-expect-error TODO: Align types
+    disallow = disallow.map((item) => item.to);
+  }
+
   return {
     message,
     isDefault: false,
     importKind: rulesResults[ruleIndexMatching].ruleHasImportKind
       ? dependency.dependency.kind
       : undefined,
-    // @ts-expect-error TODO: Align types. At this point, selectorsMatching.selectors.to should always be defined, because otherwise isMatch would be false
-    disallow: rulesResults[ruleIndexMatching].selectorsMatching?.selectors.to,
+    disallow,
     // @ts-expect-error TODO: Align types. At this point, selectorsMatching.selectors.from should always be defined, because otherwise isMatch would be false
-    element: rulesResults[ruleIndexMatching].selectorsMatching?.selectors.from,
+    element: rulesResults[ruleIndexMatching].selectorsMatching?.selectors?.from,
     index:
       rulesResults[ruleIndexMatching].originalRuleIndex ?? ruleIndexMatching,
   };
