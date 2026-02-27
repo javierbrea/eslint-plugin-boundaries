@@ -40,7 +40,7 @@ export default [{
         type: "helpers",
         pattern: "helpers/*/*.js",
         mode: "file",
-        capture: ["category", "elementName"]
+        capture: ["domain", "elementName"]
       },
       {
         type: "components",
@@ -62,7 +62,7 @@ export default [{
 Element descriptors are configuration inputs. During analysis, the plugin transforms them into **runtime element descriptions**.
 
 - These descriptions include resolved properties such as `type`, `category`, `captured`, `parents`, `origin`, etc.
-- When a dependency is analyzed, the plugin builds a **dependency description** with:
+- When a dependency is analyzed, the plugin builds a **dependency description** containing:
   - `from`: description of the file being analyzed
   - `to`: description of the imported target
   - `dependency`: dependency metadata (`kind`, `relationship`, `specifiers`, etc.)
@@ -74,7 +74,7 @@ Read the [Runtime Descriptions](#runtime-description-properties) for a detailed 
 These runtime descriptions are used in two key places:
 
 - [Selectors](./selectors.md): to match elements/dependencies in plugin rules.
-- [Rule custom messages](./rules.md#message): to render dynamic error messages.
+- [Rule custom messages](./rules.mdx#message): to render dynamic error messages.
 
 
 ## Element Descriptor Properties
@@ -203,15 +203,15 @@ Each captured value is stored in an object with the key from the `capture` array
 ```js
 {
   type: "helpers",
-  pattern: "helpers/*/*.js",
-  capture: ["category", "elementName"]
+  pattern: "*/helpers/*.js",
+  capture: ["domain", "elementName"]
 }
 ```
 
-For a path `helpers/data/parsers.js`, this captures:
+For a path `users/helpers/parsers.js`, this captures:
 ```js
 {
-  category: "data",
+  domain: "users",
   elementName: "parsers"
 }
 ```
@@ -321,46 +321,39 @@ For path `src/modules/auth/components/LoginForm/index.js`:
 
 ## Runtime Description Properties
 
-Based on the element descriptors, the plugin builds runtime descriptions for each file and dependency. These descriptions include:
+Based on the element descriptors, the plugin builds runtime descriptions for each file and dependency. These descriptions contains:
 
-```txt
-{
-  from: ElementDescription of the file being analyzed,
-  to: ElementDescription of the imported target,
-  dependency: DependencyDescription with metadata about the dependency
-}
-```
+* `from`: description of the file being analyzed
+* `to`: description of the imported target
+* `dependency`: dependency metadata (`kind`, `relationship`, `specifiers`, etc.)
 
 ### Element Description (`from` / `to`)
 
-Both element descriptions may include:
+Element descriptions contain the following properties:
 
-- `path`: absolute file path (or `null`)
-- `elementPath`: path of the element, relative to the project root path (see [Settings](../setup/settings.md#boundariesroot-path)), or `null` if the file doesn't match any element descriptor
-- `internalPath`: path of the file relative to the element path (or `null` if the file doesn't match any element descriptor)
-- `source`: import source for dependencies (or `null` for non-dependency file elements)
-- `baseSource`: base module name for external/core dependencies (or `null`)
-- `type`: element type according to the matched descriptor (or `null` if no match)
-- `category`: element category according to the matched descriptor (or `null` if no match)
-- `captured`: object with captured values from descriptors (or `null`)
-- `parents`: array of parent elements (or `null`)
-- `origin`: `"local"`, `"external"`, `"core"`, or `null` when the dependency source can't be resolved to any file.
-- `isIgnored`: `boolean`. True when the file is ignored due to ignore patterns in the [settings](../setup/settings.md#boundariesignore).
-- `isUnknown`: `boolean`. True when the file or dependency doesn't match any element descriptor.
-
-Each entry in `parents` contains:
-
-- `type`
-- `category`
-- `elementPath`
-- `captured`
+- **`path`**: <small>`<string | null>`</small> - Absolute file path (or `null`, when the dependency source can't be resolved to any file)
+- **`elementPath`**: <small>`<string | null>`</small> - Path of the element, relative to the project root path (see [Settings](../setup/settings.md#boundariesroot-path)), or `null` if the file doesn't match any element descriptor
+- **`internalPath`**: <small>`<string | null>`</small> - Path of the file relative to the element path (or `null` if the file doesn't match any element descriptor)
+- **`type`**: <small>`<string | null>`</small> - Element type according to the matched descriptor (or `null` if the descriptor doesn't define a type or there's no match)
+- **`category`**: <small>`<string | null>`</small> - Element category according to the matched descriptor (or `null` if the descriptor doesn't define a category or there's no match)
+- **`captured`**: <small>`<object | null>`</small> - Object with captured values from descriptors (or `null` if there are no captures or no match)
+- **`parents`**: <small>`<array | null>`</small> - Array of parent elements (or `null`). Each parent contains:
+  - **`type`**: <small>`<string | null>`</small> - Parent element type. `null` if the descriptor doesn't define a type.
+  - **`category`**: <small>`<string | null>`</small> - Parent element category. `null` if the descriptor doesn't define a category.
+  - **`elementPath`**: <small>`<string>`</small> - Parent element path
+  - **`captured`**: <small>`<object>`</small> - Captured values for the parent element
+- **`origin`**: <small>`<"local" | "external" | "core" | null>`</small> - Origin of the element, or `null` when the dependency source can't be resolved to any file.
+- **`isIgnored`**: <small>`<boolean>`</small> - True when the file is ignored due to ignore patterns in the [settings](../setup/settings.md#boundariesignore).
+- **`isUnknown`**: <small>`<boolean>`</small> - True when the file or dependency doesn't match any element descriptor.
 
 ### Dependency Description (`dependency`)
 
-- `kind`: `"value"`, `"type"`, or `"typeof"`
-- `nodeKind`: AST node kind creating the dependency (or `null`)
-- `specifiers`: imported/exported specifiers array (or `null`)
-- `relationship.from`: relation from importer perspective (or `null`). Possible values:
+- **`source`**: <small>`<string>`</small> - The source string of the dependency as it appears in the code (e.g. import source)
+- **`baseSource`**: <small>`<string | null>`</small> - The base source without any path modifiers when the dependency is external or a Node.js core dependency (e.g. package name in `node_modules`), or `null` for local dependencies
+- **`kind`**: <small>`"value" | "type" | "typeof"`</small>
+- **`nodeKind`**: <small>`<string | null>`</small> - AST node kind creating the dependency (or `null`)
+- **`specifiers`**: <small>`<array | null>`</small> - imported/exported specifiers array (or `null`)
+- **`relationship.from`**: <small>`<string | null>`</small> - relation from importer perspective (or `null`). Possible values:
   - `"internal"` - The dependency is internal to the element
   - `"child"` - The dependency is a child of the element
   - `"descendant"` - The dependency is a descendant of the element
@@ -369,7 +362,7 @@ Each entry in `parents` contains:
   - `"uncle"` - The dependency is an uncle of the element
   - `"nephew"` - The dependency is a nephew of the element
   - `"ancestor"` - The dependency is an ancestor of the element
-- `relationship.to`: relation from imported element perspective (or `null`). Possible values are the inverse of `relationship.from`:
+- **`relationship.to`**: relation from imported element perspective (or `null`). Possible values are the inverse of `relationship.from`:
   - `"internal"` ↔ `"internal"`
   - `"child"` ↔ `"parent"`
   - `"descendant"` ↔ `"ancestor"`

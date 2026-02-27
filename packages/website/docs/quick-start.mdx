@@ -73,7 +73,7 @@ export default [
 
 ## 3. Define your Element Types
 
-The plugin needs to identify the elements in your project. To do so, define your element types using the `boundaries/elements` setting.
+The plugin needs to identify the elements in your project. To do so, define your element types using the [`boundaries/elements` setting](./setup/elements.md).
 
 These patterns determine how each file or dependency is classified.
 
@@ -195,7 +195,7 @@ You should use `recommended` config in already existing projects to gradually in
 
 ## 5. Set Dependency Rules
 
-Now you can define your own dependency rules by using the `boundaries/element-types` rule.
+Now you can define your own dependency rules by using the [`boundaries/element-types` rule](./setup/rules.mdx).
 
 :::tip
 Read how to use **[Element Selectors](./setup/selectors.md)** to configure your rules in more detail.
@@ -226,15 +226,15 @@ Read how to use **[Element Selectors](./setup/selectors.md)** to configure your 
 +        rules: [
 +          {
 +            from: { type: "controllers" },
-+            allow: [{ type: "models" }, { type: "views" }]
++            allow: { to: { type: ["models", "views"] } }
 +          },
 +          {
 +            from: { type: "views" },
-+            allow: [{ type: "models" }]
++            allow: { to: { type: "models" } }
 +          },
 +          {
 +            from: { type: "models" },
-+            disallow: [{ type: "*" }]
++            disallow: { to: { type: "*" } }
 +          }
 +        ]
 +      }]
@@ -297,6 +297,6 @@ From here you can:
 * Explore the **[Setup section](./setup/setup.md)** to learn:
   * How to **[assign Element Types](./setup/elements.md)**.
   * How to **[use Element Selectors](./setup/selectors.md)**.
-  * How to **[define Dependency Rules](./setup/rules.md)**.
+  * How to **[define Dependency Rules](./setup/rules.mdx)**.
   * How to **[customize Global Settings](./setup/settings.md)**.
 * Review the **[Rules section](./rules/rules.md)** to understand **all available rules and how to configure them**.

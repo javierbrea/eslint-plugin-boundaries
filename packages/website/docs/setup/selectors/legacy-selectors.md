@@ -65,11 +65,11 @@ A simple [micromatch pattern](https://github.com/micromatch/micromatch) that mat
 Matches when both the element type matches AND all specified captured properties match.
 
 ```js
-// Match helpers with category "data"
-["helpers", { category: "data" }]
+// Match helpers with domain "users"
+["helpers", { domain: "users" }]
 
-// Match helpers with category "data" or "api"
-["helpers", { category: "data|api" }]
+// Match helpers with domain "users" or "admin"
+["helpers", { domain: "users|admin" }]
 
 // Match helpers where elementName starts with "parse"
 ["helpers", { elementName: "parse*" }]
@@ -79,10 +79,10 @@ Matches when both the element type matches AND all specified captured properties
 
 ```js
 // Single captured property
-{ type: "helpers", captured: { category: "data" } }
+{ type: "helpers", captured: { domain: "users" } }
 
 // Pattern in captured values
-{ type: "helpers", captured: { category: "data|api" } }
+{ type: "helpers", captured: { domain: "users|admin" } }
 
 // Multiple captured conditions
 { type: "helpers", captured: { elementName: "parse*" } }
@@ -100,7 +100,7 @@ When an array of selectors is provided, it matches if ANY selector in the array 
 
 // Matches data helpers OR all components
 [
-  ["helpers", { category: "data" }],
+  ["helpers", { domain: "users" }],
   "components"
 ]
 ```
@@ -108,15 +108,12 @@ When an array of selectors is provided, it matches if ANY selector in the array 
 **Modern equivalent:**
 
 ```js
-// Array of object-based selectors
-[
-  { type: "helpers" },
-  { type: "components" }
-]
+// Object-based selectors with OR logic in a property
+{ type: ["helpers", "components" ] }
 
-// Mixed conditions
+// Array of object-based selectors with OR logic
 [
-  { type: "helpers", captured: { category: "data" } },
+  { type: "helpers", captured: { domain: "users" } },
   { type: "components" }
 ]
 ```
@@ -126,7 +123,7 @@ When an array of selectors is provided, it matches if ANY selector in the array 
 The modern object-based selector syntax provides:
 
 - ✅ **Better readability** - Object properties are self-documenting
-- ✅ **Advanced features** - Access to properties like `origin`, `path`, `relationship`, `nodeKind`, and more
+- ✅ **Advanced features** - Access to properties like `origin`, `path`, `internalPath`, and more
 - ✅ **OR logic for captured values** - Use arrays to match multiple captured value combinations
 - ✅ **Type safety** - Better TypeScript support and IDE autocompletion
 - ✅ **Future-proof** - New features will only be added to object-based syntax

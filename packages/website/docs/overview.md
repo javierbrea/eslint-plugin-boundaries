@@ -36,11 +36,17 @@ JS Boundaries is a project that provides a set of tools to help you enforce arch
 
 ---
 
-At the moment, it consists of an ESLint plugin: [eslint-plugin-boundaries](https://www.npmjs.com/package/eslint-plugin-boundaries): It ensures that __your architectural boundaries are respected by the elements in your project__ by checking the folder and file structure and the dependencies between them.
+## Purpose
+
+It ensures that __your architectural boundaries are respected by the elements in your project__ by checking the folder and file structure and the dependencies between them. At the moment, it consists of an **ESLint plugin: [eslint-plugin-boundaries](https://www.npmjs.com/package/eslint-plugin-boundaries).**
+
+## How It Works
 
 By default, it analyzes `import` statements, but it can also evaluate `require`, `exports` and dynamic imports (`import()`). You can further customize it to inspect any other AST node that creates a dependency, such as `jest.mock()`. See the [configuration guide for more details](./setup/settings.md).
 
-## 1. Define the Elements in Your Project through Configuration
+## Usage
+
+### 1. Define the Elements in Your Project through Configuration
 
 ```javascript
 const elementDescriptors = [
@@ -51,12 +57,12 @@ const elementDescriptors = [
 ];
 ```
 
-## 2. The Plugin Provides Descriptions for Each Dependency
+### 2. The Plugin Provides Descriptions for Each Dependency
 
-Given this configuration, the plugin will analyze your project in runtime and classify dependencies, providing lots of useful metadata about the elements and their relationships. For example:
+Given this configuration, the plugin will analyze your project in runtime and classify dependencies, providing lots of useful metadata about the files and their relationships. For example:
 
 ```javascript
-// When analyzing src/controllers/controller-a.js
+// When analyzing a dependency in src/controllers/controller-a.js
 {
   from: {
     path: "src/controllers/controller-a.js",
@@ -71,7 +77,6 @@ Given this configuration, the plugin will analyze your project in runtime and cl
     category: null,
     captured: { elementName: "view-a" },
     origin: "local",
-    source: "@views/view-a.js",
   },
   dependency: {
     kind: "value",
@@ -81,7 +86,7 @@ Given this configuration, the plugin will analyze your project in runtime and cl
 }
 ```
 
-## 3. Define your Rules Based on These Descriptions
+### 3. Define your Rules Based on These Descriptions
 
 Based on these descriptions, you can define rules to allow or disallow dependencies between elements. For example:
 
@@ -91,73 +96,74 @@ Based on these descriptions, you can define rules to allow or disallow dependenc
 
 ```javascript
 const dependencyRules = [
+  // Allow controllers to depend on models and views
   {
     from: {
       type: "controllers",
     },
-    dependency: {
-      kind: "value",
+    allow: {
+      to: { type: ["models", "views"] },
     },
-    allow: [{
-      type: ["models", "views"],
-    }],
   },
+  // Allow views to depend on models
   {
     from: {
       type: "views",
     },
-    allow: [{
-      type: "models",
-    }]
+    allow: {
+      to: { type: "models" },
+    },
   },
+  // Disallow models to depend on anything other than other models
   {
     from: {
       type: "models",
     },
-    disallow: [{
-      type: "!models",
-    }],
+    disallow: {
+      to: { type: "!models" },
+    },
   },
+  // Allow any file to depend on other files of the same element
   {
     from: {
       type: "*",
     },
-    allow: [
-      {
-        type: "*",
-      },
-    ],
-    dependency: {
-      relationship: {
-        to: "internal",
-      },
+    allow: {
+      dependency: {
+        relationship: {
+          to: "internal",
+        },
+      }
     },
   },
+  // Allow any file to depend on shared files,
+  // but only if it's a type dependency (e.g. TypeScript type imports)
   {
     from: {
       type: "*",
     },
-    allow: [
-      {
-        type: "shared",
+    allow: {
+      to: { type: "shared" },
+      dependency: {
+        kind: "type",
       },
-    ],
-    dependency: {
-      kind: "type",
     },
   },
 ];
 ```
 
-## 3. Get Instant Feedback
+### 4. Get Instant Feedback
 
 When a file violates a dependencies rule, ESLint will report an error:
 
 ```javascript
 // In src/models/model-a.js
 
-import View  from '../views/view-a'; /* ❌ Error: Importing elements of type
-'views' is not allowed in elements of type 'models'. Disallowed in rule 3 */
+import View  from '../views/view-a';
+
+/* ❌ Error: Importing elements of type 'views'
+is not allowed in elements of type 'models'.
+Disallowed in rule 3 */
 ```
 
 ## Scope

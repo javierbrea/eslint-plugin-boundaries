@@ -23,9 +23,6 @@ import type { Micromatch } from "./Micromatch";
  * Matcher class to determine if elements match a given selector.
  */
 export class ElementsMatcher extends BaseElementsMatcher {
-  /** Whether the cache is enabled or not */
-  private readonly _cacheIsEnabled: boolean;
-
   /**
    * Creates a new ElementsSelectorMatcher.
    * @param config Configuration options for the matcher.

@@ -653,8 +653,8 @@ export default [{
 For a complete reference of all available properties in `from`, `to`, and `dependency`, see:
 
 - [Elements → Runtime Description Properties](../../setup/elements.md#runtime-description-properties)
-- [Rules Configuration → Message Templating](../../setup/rules.md#message-templating)
-- [Rules Configuration → Legacy Message Templates](../../setup/rules.md#legacy-message-templates)
+- [Rules Configuration → Message Templating](../../setup/rules.mdx#message-templating)
+- [Rules Configuration → Legacy Message Templates](../../setup/rules.mdx#legacy-message-templates)
 
 ### Testing Your Migration
 

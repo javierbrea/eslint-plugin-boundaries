@@ -257,7 +257,7 @@ This rule provides detailed error messages to help you understand and resolve vi
 ### Custom Messages with Templates
 
 :::tip
-You can customize error messages globally or for specific rules. See [Rules Configuration](../setup/rules.md) for details.
+You can customize error messages globally or for specific rules. See [Rules Configuration](../setup/rules.mdx) for details.
 :::
 
 #### `report` in Custom Messages
@@ -273,5 +273,5 @@ Read next sections to learn more about related topics:
 
 * [Defining Elements](../setup/elements.md) - Learn how to define architectural elements in your project
 * [Element Selectors](../setup/selectors.md) - Learn how to define and use element selectors in your rules
-* [Rules Configuration](../setup/rules.md) - Learn how to configure common rule options
+* [Rules Configuration](../setup/rules.mdx) - Learn how to configure common rule options
 * [Global Settings](../setup/settings.md) - Learn about global settings that affect all rules

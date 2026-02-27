@@ -22,63 +22,75 @@ keywords:
 
 # Selectors
 
-Element selectors are used in rules configuration to match **[specific elements](./elements.md)** based on their type and captured properties. They provide a flexible way to define which elements a rule should apply to.
+Element selectors are used in rules configuration to **match [specific elements or dependencies](./elements.md) based on their description**. They provide a flexible way to define which elements a rule should apply to.
 
-:::info Legacy Selector Formats
-This documentation covers the modern **object-based selector syntax**. If you're using older selector formats (strings or tuples), please refer to the [Legacy Selectors](./selectors/legacy-selectors.md) documentation and consider migrating to the object-based syntax for better functionality and future compatibility.
-:::
-
-## Object-Based Selector Format
-
-**Format:** `{ property: value, ... }`
-
-Object-based selectors provide the most powerful and flexible way to match elements. Properties can be combined, and all specified properties must match (AND logic).
-
-### Available Properties
-
-Selectors match against runtime element/dependency descriptions generated from your element descriptors.
+Selectors match against [runtime element/dependency descriptions](./elements.md#runtime-description-properties) generated from your element descriptors.
 
 - Conceptual flow:
   1. You define [element descriptors](./elements.md) in your configuration.
   2. During analysis, the plugin generates [runtime descriptions](./elements.md#runtime-description-properties) for each element and dependency, resolving all properties and relationships.
   3. Selectors in your rules match against these runtime descriptions to determine if a rule applies.
 
-#### Element Properties
+Example selector matching a controller element:
 
-Match elements based on their type, category, origin, and other characteristics:
+```js
+{ type: "controller" }
+```
 
-- **`type`** (`string | string[]`) - [Micromatch pattern(s)](https://github.com/micromatch/micromatch) matching element type(s)
-- **`category`** (`string | string[]`) - Micromatch pattern(s) matching element category/categories
-- **`captured`** (`object | object[]`) - Match captured values (see [Captured Values Matching](#captured-values-matching))
-- **`origin`** (`"local" | "external" | "core"`) - Element origin (local files, node_modules, or Node.js core)
-- **`path`** (`string | string[]`) - Micromatch pattern(s) matching file path
-- **`elementPath`** (`string | string[]`) - Micromatch pattern(s) matching element path 
-- **`internalPath`** (`string | string[]`) - Micromatch pattern(s) matching path within element
-- **`isIgnored`** (`boolean`) - Whether element is marked as ignored
-- **`isUnknown`** (`boolean`) - Whether element type is unknown
-
-#### Dependency Metadata Selectors
-
-When matching dependencies, you can also match based on metadata about the dependency itself:
-
-- **`kind`** (`string | string[]`) - Micromatch pattern(s) matching dependency kind (e.g., "value", "type", "typeof")
-- **`relationship`** (`object`) - Relationship selectors from both perspectives:
-  - **`from`** (`string | string[]`) - Relationship from the `from` perspective
-  - **`to`** (`string | string[]`) - Relationship from the `to` perspective (`"internal"`, `"child"`, `"parent"`, `"sibling"`, `"uncle"`, `"nephew"`, `"descendant"`, `"ancestor"`)
-- **`specifiers`** (`string | string[]`) - Micromatch pattern(s) matching import/export specifiers
-- **`nodeKind`** (`string | string[]`) - Micromatch pattern(s) matching the dependency node type (e.g., `import`, `require`, etc. See [dependency nodes](../setup/settings.md#boundariesdependency-nodes) for further information)
-- **`source`** (`string | string[]`) - Micromatch pattern(s) matching dependency source
-- **`baseSource`** (`string | string[]`) - Micromatch pattern(s) matching base module name for external or core dependencies
+Example selector matching a runtime dependency to a service:
 
 ```js
 {
-  from: { type: "feature" },
   to: { type: "service" },
-  dependency: { kind: "value", nodeKind: "require" }
+  dependency: { kind: "value" },
 }
 ```
 
+:::info Legacy Selector Formats
+This page covers the modern **object-based selector syntax**. If you're using older selector formats (strings or tuples), please refer to the [Legacy Selectors](./selectors/legacy-selectors.md) page and consider migrating to the object-based syntax for better functionality and future compatibility.
+:::
+
+## Object-Based Selectors
+
+Object-based selectors provide the most powerful and flexible way to match elements. Properties can be combined, and all specified properties must match (AND logic).
+
+### Element Selectors
+
+Match elements based on their type, category, origin, and any other property from their [runtime description](./elements.md#runtime-description-properties):
+
+- **`type`**  - [Micromatch pattern(s)](https://github.com/micromatch/micromatch) matching element type(s). <small>(`<string | string[] | null>`)</small>
+- **`category`**  - Micromatch pattern(s) matching element category/categories. <small>(`<string | string[] | null>`)</small>
+- **`captured`**  - Match captured values (see [Captured Values Matching](#captured-values-matching)). <small>(`<object | object[]>`)</small>
+- **`origin`**  - Element origin (local files, node_modules, or Node.js core). <small>(`<"local" | "external" | "core">`)</small>
+- **`path`**  - Micromatch pattern(s) matching file path. <small>(`<string | string[] | null>`)</small>
+- **`elementPath`**  - Micromatch pattern(s) matching element path. <small>(`<string | string[] | null>`)</small>
+- **`internalPath`**  - Micromatch pattern(s) matching path within element. <small>(`<string | string[] | null>`)</small>
+- **`isIgnored`**  - Whether element is marked as ignored. <small>(`<boolean>`)</small>
+- **`isUnknown`**  - Whether the file doesn't match any element descriptor. <small>(`<boolean>`)</small>
+
+### Dependency Selectors
+
+Match dependencies using element selector properties for the `from` and `to` elements, as well as properties from the dependency description:
+
+- **`from`**  - Element selector matching the importer element
+- **`to`**  - Element selector matching the imported element
+- **`dependency`**  - Match based on dependency properties (see list below)
+  - **`kind`**  - Micromatch pattern(s) matching dependency kind (e.g., "value", "type", "typeof"). <small>(`<string | string[]>`)</small>
+  - **`relationship`**  - Relationship selectors from both perspectives. <small>(`<object>`)</small>
+    - **`from`**  - Relationship from the `from` perspective. <small>(`<string | string[]>`)</small>
+    - **`to`**  - Relationship from the `to` perspective. <small>(`<string | string[]>`)</small>
+  - **`specifiers`**  - Micromatch pattern(s) matching import/export specifiers. <small>(`<string | string[]>`)</small>
+  - **`nodeKind`**  - Micromatch pattern(s) matching the dependency node type (e.g., `import`, `require`, etc. See [dependency nodes](../setup/settings.md#boundariesdependency-nodes) for further information). <small>(`<string | string[]>`)</small>
+  - **`source`**  - Micromatch pattern(s) matching dependency source. <small>(`<string | string[]>`)</small>
+  - **`baseSource`**  - Micromatch pattern(s) matching base module name for external or core dependencies. <small>(`<string | string[]>`)</small>
+
+:::tip
+**All properties are optional.** You can only use one of the properties above to match dependencies or elements, but you can combine them to select more specific cases. Remember that all specified properties must match (AND logic).
+:::
+
 ### Basic Examples
+
+Selecting elements:
 
 ```js
 // Match all helper elements
@@ -97,9 +109,31 @@ When matching dependencies, you can also match based on metadata about the depen
 { isUnknown: true }
 ```
 
-### Combining Properties
+Selecting dependencies:
 
-All properties in a selector object use AND logic - all must match:
+```js
+// Match dependencies of kind "type" to services
+{
+  to: { type: "service" },
+  dependency: { kind: "type" }
+}
+
+// Match any runtime dependency with source matching "lodash/*"
+{
+  dependency: { kind: "value", source: "lodash/*" }
+}
+
+// Match dependencies from controllers
+{
+  from: { type: "controller" },
+}
+```
+
+## Combining Properties
+
+### AND Logic
+
+When multiple properties are specified in a selector object, **all** conditions must match for the selector to match an element (AND logic):
 
 ```js
 // Match local helpers with category "data"
@@ -115,75 +149,19 @@ All properties in a selector object use AND logic - all must match:
   category: "react",
   path: "**/features/auth/**"
 }
-
-// Match service elements
-{ type: "service" }
 ```
 
-## Captured Values Matching
+### OR Logic
 
-The `captured` property allows matching elements based on values extracted from their file paths using the `capture` configuration.
-
-### Object Format (AND Logic)
-
-When `captured` is an object, **all** properties must match:
+Arrays of values for a selector property use **OR logic** - any value in the array can match:
 
 ```js
-// Element configuration
+// Match helpers with category "data" OR "api"
 {
   type: "helpers",
-  pattern: "helpers/*/*.js",
-  capture: ["category", "elementName"]
-}
-
-// Selector - matches helpers where category is "data" AND elementName is "parser"
-{
-  type: "helpers",
-  captured: { category: "data", elementName: "parser" }
-}
-
-// Using micromatch patterns
-{
-  type: "helpers",
-  captured: { category: "data|api", elementName: "parse*" }
+  category: ["data", "api"]
 }
 ```
-
-### Array Format (OR Logic)
-
-When `captured` is an **array of objects**, the element matches if **any** object in the array matches:
-
-```js
-// Matches helpers where:
-// - category is "auth" OR
-// - category is "user" AND feature is "profile"
-{
-  type: "helpers",
-  captured: [
-    { category: "auth" },
-    { category: "user", feature: "profile" }
-  ]
-}
-
-// Matches components from either the auth or payment modules
-{
-  type: "component",
-  captured: [
-    { module: "auth" },
-    { module: "payment" }
-  ]
-}
-```
-
-**Use cases for captured arrays:**
-
-- Match elements from multiple related features/modules
-- Create exception rules for specific combinations
-- Group related elements without creating separate rules
-
-## Array of Selectors
-
-**Format:** `[<selector>, <selector>, ...]`
 
 When an array of selectors is provided, it matches if **any** selector in the array matches (OR logic).
 
@@ -196,7 +174,7 @@ When an array of selectors is provided, it matches if **any** selector in the ar
 
 // Matches data helpers OR all services
 [
-  { type: "helpers", captured: { category: "data" } },
+  { type: "helpers", captured: { domain: "users" } },
   { type: "services" }
 ]
 
@@ -208,13 +186,64 @@ When an array of selectors is provided, it matches if **any** selector in the ar
 ]
 ```
 
-:::tip
-Use an array of selectors for OR logic at the selector level, and use captured arrays for OR logic within captured values.
-:::
+## Captured Values Matching
+
+The `captured` property in selectors allows matching elements based on values extracted from their file paths using the `capture` configuration.
+
+### Object Format (AND Logic)
+
+When `captured` is an object, **all** properties must match:
+
+```js
+// Element configuration
+{
+  type: "helpers",
+  pattern: "helpers/*/*.js",
+  capture: ["domain", "elementName"]
+}
+
+// Selector - matches helpers where domain is "users" AND elementName is "parser"
+{
+  type: "helpers",
+  captured: { domain: "users", elementName: "parser" }
+}
+
+// Using micromatch patterns
+{
+  type: "helpers",
+  captured: { domain: "users|admin", elementName: "parse*" }
+}
+```
+
+### Array Format (OR Logic)
+
+When `captured` is an **array of objects**, the element matches if **any** object in the array matches:
+
+```js
+// Matches helpers where:
+// - domain is "auth" OR
+// - domain is "users" AND elementName is "profile"
+{
+  type: "helpers",
+  captured: [
+    { domain: "auth" },
+    { domain: "users", elementName: "profile" }
+  ]
+}
+
+// Matches components from either the auth or billing domains
+{
+  type: "component",
+  captured: [
+    { domain: "auth" },
+    { domain: "billing" }
+  ]
+}
+```
 
 ## Templating in Selectors
 
-Selectors support templating to create dynamic rules based on **[captured properties from other elements](./elements.md#capture-optional)**.
+Selectors support templating to create dynamic rules based on values of the elements and dependencies being analyzed. This allows you to define rules that adapt to the specific context of the dependency.
 
 ### Modern Template Syntax
 
@@ -225,91 +254,83 @@ The modern template syntax uses Handlebars-style double curly braces:
 - `{{ dependency.* }}` - References properties from the dependency itself, such as the kind of import, the relationship between both elements, etc.
 
 :::tip
-In short, the template can access any property from the dependency description, including captured properties. Read more about the available properties in the [Runtime Description Properties](./elements.md#runtime-description-properties) documentation.
+In short, the template can access any property from the dependency description. Read more about the available properties in the [Runtime Description Properties](./elements.md#runtime-description-properties) documentation.
 :::
-
-:::caution
-When the [`boundaries/legacy-templates` setting](./settings.md#boundarieslegacy-templates) is enabled (default for the moment), if you are capturing properties with names equal to any of the [Runtime Element Description Properties](./elements.md#runtime-description-properties) in your [Element Descriptors](./elements.md) (e.g., `path`, `category`, `origin`, etc.) they will overwrite the corresponding template variables and cause unexpected behavior in your templates. To avoid this, it is recommended to set `boundaries/legacy-templates` to `false` and use the new template syntax with explicit `from`, `to`, and `dependency` namespaces, which will prevent any conflicts between captured properties and template variables. Read more about this in the [Settings documentation](./settings.md#boundarieslegacy-templates) and in the [Migration Guides](../releases/migration-guides/v5-to-v6.md).
-:::
-
 
 ### Template Examples
 
-```js
-// Element configuration
-{
-  type: "helpers",
-  pattern: "helpers/*/*.js",
-  capture: ["category", "elementName"]
-}
+Example rule disallowing runtime dependencies between elements of the same type but different domains:
 
-// Disallow importing helpers from different categories
+```js
 {
-  from: { type: "helpers" },
-  disallow: [
-    {
-      type: "helpers",
-      captured: { category: "!{{ from.category }}" }
-    }
-  ]
+  from: { type: "*" },
+  disallow: {
+    to: {
+      type: "{{ from.type }}" // Match the same element type as the importer
+      captured: { domain: "!{{ from.domain }}" }
+    },
+    dependency: { kind: "value" }
+  }
 }
 ```
 
+:::info
+You can see here the `disallow` property, which is not a selector property but a rule configuration property. The selectors in this case are the content of the `from` and `disallow` properties.
+
+For further info about rules syntax, read the [Rules documentation](./rules.mdx).
+:::
+
 **How it works:**
 
-If a file `helpers/data/parser.js` (category: "data") tries to import from `helpers/api/fetcher.js` (category: "api"):
+If a file `users/helpers/parser.js` (domain: "users") tries to import from `auth/helpers/fetcher.js` (domain: "auth"):
 
-1. Template `{{ from.category }}` resolves to `"data"`
-2. Pattern becomes `{ type: "helpers", captured: { category: "!data" } }`
-3. The target helper has category "api" → matches `"!data"`
+1. Template `{{ from.domain }}` resolves to `"users"`
+2. Template `{{ from.type }}` resolves to `"helpers"`
+2. Pattern becomes `{ type: "helpers", captured: { domain: "!users" } }`
+3. The target helper has domain "auth" → matches `"!users"`
 4. Rule disallows the import
 
 **More template examples:**
 
 ```js
-// Only allow importing helpers with the same elementName
+// Allow importing any file from other files of the same element
 {
-  from: { type: "helpers" },
-  allow: [
-    {
-      type: "helpers",
-      captured: { elementName: "{{ from.elementName }}" }
+  from: {
+    type: "*",
+  },
+  allow: {
+    dependency: {
+      relationship: {
+        to: "internal",
+      },
     }
-  ]
+  },
 }
 
-// Only allow importing from elements with matching prefix
+// Only allow importing from helpers with the same base domain
 {
-  from: { type: "component", captured: { family: "*" } },
+  from: { type: "component", captured: { domain: "*" } },
   allow: [
     {
       type: "helpers",
-      captured: { category: "{{ from.family }}-*" }
+      captured: { domain: "{{ from.domain }}-*" }
     }
   ]
 }
 
 // Type-level templating
 {
-  from: { type: "helpers" },
-  // Allow importing element types like "data-provider", "api-client"
-  allow: [{ type: "{{ from.category }}-*" }]
-}
-
-// Complex template with multiple properties
-{
-  from: { type: "component", captured: { module: "*", feature: "*" } },
-  allow: [
-    {
-      type: "service",
-      captured: {
-        module: "{{ from.module }}",
-        feature: "{{ from.feature }}"
-      }
-    }
-  ]
+  from: { type: "*" },
+  // Allow importing element types that share the same base type (e.g. "component" can import "component-*" but not "service")
+  allow: [{ type: "{{ from.type }}-*" }]
 }
 ```
+
+:::caution
+When the [`boundaries/legacy-templates` setting](./settings.md#boundarieslegacy-templates) is enabled (default until next major version), if you are capturing properties with names equal to any of the [Runtime Element Description Properties](./elements.md#runtime-description-properties) in your [Element Descriptors](./elements.md) (e.g., `path`, `category`, `origin`, etc.) they will overwrite the corresponding template variables and cause unexpected behavior in your templates.
+
+To avoid this, it is recommended to set `boundaries/legacy-templates` to `false` and use the new template syntax with explicit `from`, `to`, and `dependency` namespaces, which will prevent any conflicts between captured properties and template variables. Read more about this in the [Settings documentation](./settings.md#boundarieslegacy-templates) and in the [Migration Guides](../releases/migration-guides/v5-to-v6.md).
+:::
 
 ### Legacy Template Syntax
 
@@ -319,15 +340,10 @@ The legacy template syntax `${property}` is still supported for backwards compat
 
 In legacy templates, you can also use `${target.*}` instead of `{{ to.* }}` to reference properties from the dependency.
 
-When the [`boundaries/legacy-templates`](./settings.md#boundarieslegacy-templates)  `boundaries/legacy-templates` is enabled, you can also access:
+When the [`boundaries/legacy-templates`](./settings.md#boundarieslegacy-templates)  `boundaries/legacy-templates` is enabled, you can also access to any captured property from the importer or dependency elements, respectively, by using:
 
-- `${from.capturedProperty}` / `${target.capturedProperty}` / `${to.capturedProperty}` - Any captured property from the importer or dependency elements, respectively, but this is something you should migrate to the new syntax as soon as possible (`{{ from.captured.capturedProperty }}` / `{{ to.captured.capturedProperty }}`).
+- `${from.capturedProperty}`
+- `${target.capturedProperty}`
+- `${to.capturedProperty}`
 
-## Selector Context
-
-Selectors are used in different contexts within rules configuration:
-
-- **`from` / `target`** - Specifies which element the rule applies to
-- **`allow` / `disallow`** - Specifies which elements are allowed or disallowed
-
-The exact usage depends on the specific rule. See [Rules Configuration](./rules.md) for details.
+This is something you should migrate to the new syntax as soon as possible (<small>`{{ from.captured.capturedProperty }}` / `{{ to.captured.capturedProperty }}`</small>).
