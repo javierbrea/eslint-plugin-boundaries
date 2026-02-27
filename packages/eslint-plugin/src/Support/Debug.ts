@@ -113,7 +113,7 @@ function printDependencyDebug(
   if (!shouldPrintFile(description.from, settings, matcher)) {
     return;
   }
-  const dependencyIdentifier = `${description.to.source || "<unknown-source>"}-${description.from.path || "<unknown-file>"}`;
+  const dependencyIdentifier = `${description.dependency.source || "<unknown-source>"}-${description.from.path || "<unknown-file>"}`;
   if (debuggedDependencies.includes(dependencyIdentifier)) {
     return;
   }
@@ -130,7 +130,7 @@ function printDependencyDebug(
     printDebugBlock(fileTitle, description.from);
   }
 
-  const dependencySource = description.to.source || "<unknown-source>";
+  const dependencySource = description.dependency.source || "<unknown-source>";
   const title = `Description of dependency "${chalk.green(dependencySource)}" in file "${chalk.green(filePath)}":`;
   printDebugBlock(title, description);
 }

@@ -35,7 +35,7 @@ import {
   rulesOptionsSchema,
   validateAndWarnRuleOptions,
 } from "../Settings";
-import { warnOnce, isString } from "../Support";
+import { warnOnce, isString, isObject, isArray } from "../Support";
 
 import { dependencyRule } from "./Support";
 
@@ -82,7 +82,7 @@ function createSafeMatcherFunction(
       warnOnce(
         `Error occurred while matching dependency with selector ${JSON.stringify(dependencySelector)}: ${String(error)}`
       );
-      return { isMatch: false, from: null, to: null };
+      return { isMatch: false, from: null, to: null, dependency: null };
     }
   };
 }
@@ -128,6 +128,64 @@ function createRuleMatchContext(
   };
 }
 
+function matchSupportingMultipleSelectors(
+  isMatch: ReturnType<typeof createSafeMatcherFunction>,
+  targetElementSelector: ElementsSelector,
+  targetElementDirection: "from" | "to",
+  policyElementDirection: "from" | "to",
+  ruleSelector: unknown,
+  templateData: TemplateData,
+  dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals
+): DependencyMatchResult | { isMatch: false } {
+  if (isObject(ruleSelector)) {
+    return isMatch(
+      {
+        [targetElementDirection]: targetElementSelector,
+        ...ruleSelector,
+      },
+      templateData,
+      dependencySelectorsGlobals
+    );
+  }
+  const hasObjectsInSelector = isArray(ruleSelector)
+    ? ruleSelector.some((selector) => isObject(selector))
+    : false;
+  // Support arrays of new object selectors in allow/deny
+  if (hasObjectsInSelector) {
+    for (const selector of ruleSelector as unknown[]) {
+      const matchResult = isObject(selector)
+        ? isMatch(
+            {
+              [targetElementDirection]: targetElementSelector,
+              ...selector,
+            },
+            templateData,
+            dependencySelectorsGlobals
+          )
+        : isMatch(
+            {
+              [targetElementDirection]: targetElementSelector,
+              [policyElementDirection]: ruleSelector,
+            },
+            templateData,
+            dependencySelectorsGlobals
+          );
+      if (matchResult.isMatch) {
+        return matchResult;
+      }
+    }
+    return { isMatch: false };
+  }
+  return isMatch(
+    {
+      [targetElementDirection]: targetElementSelector,
+      [policyElementDirection]: ruleSelector,
+    },
+    templateData,
+    dependencySelectorsGlobals
+  );
+}
+
 /**
  * Evaluates both deny and allow policy matches for a rule
  */
@@ -149,12 +207,14 @@ function evaluatePolicyMatches(
   const templateData = settings.legacyTemplates
     ? capturedValuesTemplateData
     : {};
+
   const disallowPolicyMatches = rule[denyKeyToUse]
-    ? isMatch(
-        {
-          [targetElementDirection]: targetElementSelector,
-          [policyElementDirection]: rule[denyKeyToUse],
-        },
+    ? matchSupportingMultipleSelectors(
+        isMatch,
+        targetElementSelector,
+        targetElementDirection,
+        policyElementDirection,
+        rule[denyKeyToUse],
         templateData,
         dependencySelectorsGlobals
       )
@@ -162,11 +222,12 @@ function evaluatePolicyMatches(
 
   const allowPolicyMatches =
     !disallowPolicyMatches.isMatch && rule.allow
-      ? isMatch(
-          {
-            [targetElementDirection]: targetElementSelector,
-            [policyElementDirection]: rule.allow,
-          },
+      ? matchSupportingMultipleSelectors(
+          isMatch,
+          targetElementSelector,
+          targetElementDirection,
+          policyElementDirection,
+          rule.allow,
           templateData,
           dependencySelectorsGlobals
         )
@@ -212,7 +273,9 @@ function createRuleSelectorsData(
   return {
     selectors: {
       [targetElementDirection]: targetSelector,
-      [policyElementDirection]: policySelector,
+      ...(isObject(policySelector)
+        ? { ...policySelector }
+        : { [policyElementDirection]: policySelector }),
     },
     selectorsData,
   };
@@ -220,9 +283,11 @@ function createRuleSelectorsData(
 
 function ruleHasKindConstraint(
   rule: Record<string, unknown>,
-  selectorsData: { to?: { kind?: unknown } | null } | null
+  selectorsData: {
+    to?: { dependency?: { kind?: unknown } | null } | null;
+  } | null
 ): boolean {
-  return !!rule.importKind || selectorsData?.to?.kind !== undefined;
+  return !!rule.importKind || selectorsData?.to?.dependency?.kind !== undefined;
 }
 
 export function getRulesResults(
@@ -260,7 +325,7 @@ export function getRulesResults(
       ruleHasImportKind: ruleHasKindConstraint(
         rule,
         selectorsMatching.selectorsData as {
-          to?: { kind?: unknown } | null;
+          to?: { dependency?: { kind?: unknown } | null } | null;
         } | null
       ),
       allowPolicyMatches,
@@ -315,7 +380,7 @@ function getMatchingSpecifiers(
 
   const selectorDataSpecifiers: string | string[] | undefined =
     // @ts-expect-error TODO: Align types. At this point, selectorsData.to must always be defined, because otherwise isMatch would be false
-    rulesResults[ruleIndexMatching].selectorsMatching?.selectorsData?.to
+    rulesResults[ruleIndexMatching].selectorsMatching?.selectorsData?.dependency
       ?.specifiers;
 
   if (!selectorDataSpecifiers) {
@@ -362,7 +427,9 @@ function createRuleReport(
     importKind: rulesResults[ruleIndexMatching].ruleHasImportKind
       ? dependency.dependency.kind
       : undefined,
+    // @ts-expect-error TODO: Align types. At this point, selectorsMatching.selectors.to should always be defined, because otherwise isMatch would be false
     disallow: rulesResults[ruleIndexMatching].selectorsMatching?.selectors.to,
+    // @ts-expect-error TODO: Align types. At this point, selectorsMatching.selectors.from should always be defined, because otherwise isMatch would be false
     element: rulesResults[ruleIndexMatching].selectorsMatching?.selectors.from,
     index:
       rulesResults[ruleIndexMatching].originalRuleIndex ?? ruleIndexMatching,
@@ -422,7 +489,6 @@ export function elementRulesAllowDependency(
 
   const result: RuleResult = {
     result: finalIsAllowed,
-    // @ts-expect-error Temporary workaround for RuleResult type until types are aligned
     ruleReport,
     report: {
       specifiers:

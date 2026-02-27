@@ -1,4 +1,7 @@
-import type { MatchersOptionsNormalized, MicromatchPattern } from "../Config";
+import type {
+  MatchersOptionsNormalized,
+  MicromatchPatternNullable,
+} from "../Config";
 import type { ElementDescription } from "../Descriptor";
 import { isArray, isNullish, isEmptyObject } from "../Support";
 
@@ -166,50 +169,6 @@ export class ElementsMatcher extends BaseElementsMatcher {
   }
 
   /**
-   * Whether the given element baseSource matches the selector baseSource
-   * @param element The element to check.
-   * @param selector The selector to check against.
-   * @param templateData The data to use for replace in selector value
-   * @returns Whether the element baseSource matches the selector baseSource.
-   */
-  private _isBaseSourceMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
-    templateData: TemplateData
-  ): boolean {
-    return this.isElementKeyMicromatchMatch({
-      element,
-      selector,
-      elementKey: "baseSource",
-      selectorKey: "baseSource",
-      selectorValue: selector.baseSource,
-      templateData,
-    });
-  }
-
-  /**
-   * Whether the given element source matches the selector source
-   * @param element The element to check.
-   * @param selector The selector to check against.
-   * @param templateData The data to use for replace in selector value
-   * @returns Whether the element source matches the selector source.
-   */
-  private _isSourceMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
-    templateData: TemplateData
-  ): boolean {
-    return this.isElementKeyMicromatchMatch({
-      element,
-      selector,
-      elementKey: "source",
-      selectorKey: "source",
-      selectorValue: selector.source,
-      templateData,
-    });
-  }
-
-  /**
    * Checks if a single captured values object matches the element.
    * @param element The element to check.
    * @param capturedSelector The captured values selector object to check against
@@ -218,13 +177,12 @@ export class ElementsMatcher extends BaseElementsMatcher {
    */
   private _checkCapturedValuesObject(
     element: SelectableElement,
-    capturedSelector: Record<string, MicromatchPattern>,
+    capturedSelector: Record<string, MicromatchPatternNullable>,
     templateData: TemplateData
   ): boolean {
     if (!element.captured) {
       return false;
     }
-
     // Use for...of with early return for better performance than every()
     for (const [key, pattern] of Object.entries(capturedSelector)) {
       const elementValue = element.captured?.[key];
@@ -233,18 +191,14 @@ export class ElementsMatcher extends BaseElementsMatcher {
       }
 
       const renderedPattern = this.getRenderedTemplates(pattern, templateData);
-      // Empty selector values do not match anything.
-      if (!renderedPattern) {
+
+      const filteredPattern = this.cleanMicromatchPattern(renderedPattern);
+
+      if (!filteredPattern) {
         return false;
       }
 
-      // Clean empty strings from arrays to avoid matching them.
-      const filteredPattern = isArray(renderedPattern)
-        ? renderedPattern.filter(Boolean)
-        : renderedPattern;
-
       const isMatch = this.micromatch.isMatch(elementValue, filteredPattern);
-
       if (!isMatch) {
         return false;
       }
@@ -355,8 +309,6 @@ export class ElementsMatcher extends BaseElementsMatcher {
         !this._isPathMatch(element, selectorData, templateData) ||
         !this._isElementPathMatch(element, selectorData, templateData) ||
         !this._isInternalPathMatch(element, selectorData, templateData) ||
-        !this._isSourceMatch(element, selectorData, templateData) ||
-        !this._isBaseSourceMatch(element, selectorData, templateData) ||
         !this._isCapturedValuesMatch(element, selectorData, templateData)
       ) {
         continue; // Early exit on first failed condition

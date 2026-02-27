@@ -112,7 +112,7 @@ describe("validateAndWarnRuleOptions", () => {
     );
 
     expect(warnSpy).toHaveBeenCalledWith(
-      '[boundaries/element-types] Detected deprecated rule-level "importKind" in 1 rule(s) at indices: 0. Use selector-level "kind" instead. When both are defined, selector-level "kind" takes precedence.'
+      '[boundaries/element-types] Detected deprecated rule-level "importKind" in 1 rule(s) at indices: 0. Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence.'
     );
   });
 
@@ -150,7 +150,7 @@ describe("validateAndWarnRuleOptions", () => {
     );
     expect(warnSpy).toHaveBeenNthCalledWith(
       3,
-      '[boundaries/element-types] Detected deprecated rule-level "importKind" in 1 rule(s) at indices: 0. Use selector-level "kind" instead. When both are defined, selector-level "kind" takes precedence.'
+      '[boundaries/element-types] Detected deprecated rule-level "importKind" in 1 rule(s) at indices: 0. Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence.'
     );
   });
 

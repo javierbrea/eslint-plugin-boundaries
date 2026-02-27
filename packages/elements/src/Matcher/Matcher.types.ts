@@ -1,12 +1,7 @@
-import type { MicromatchPattern } from "../Config";
+import type { MicromatchPatternNullable } from "../Config";
 import type {
-  LocalElementKnown,
-  CoreDependencyElement,
-  ExternalDependencyElement,
-  LocalDependencyElementKnown,
+  ElementDescription,
   DescriptorsSerializedCache,
-  IgnoredElement,
-  LocalElementUnknown,
 } from "../Descriptor";
 
 /**
@@ -14,9 +9,11 @@ import type {
  */
 export type DependencyMatchResult = {
   /** The selector matching result for the 'from' element. */
-  from: ElementSelectorData | null;
+  from: BaseElementSelectorData | null;
   /** The selector matching result for the 'to' element. */
-  to: ElementSelectorData | null;
+  to: BaseElementSelectorData | null;
+  /** The selector matching result for the dependency metadata. */
+  dependency: DependencyDataSelectorData | null;
   /** Whether the dependency matches all the selector properties provided */
   isMatch: boolean;
 };
@@ -55,13 +52,7 @@ export type MicromatchSerializedCache = {
 /**
  * Elements that can return a match when using an element selector.
  */
-export type SelectableElement =
-  | IgnoredElement
-  | LocalElementKnown
-  | LocalElementUnknown
-  | CoreDependencyElement
-  | ExternalDependencyElement
-  | LocalDependencyElementKnown;
+export type SelectableElement = ElementDescription;
 
 /**
  * Selector for matching captured values in element selectors.
@@ -69,8 +60,8 @@ export type SelectableElement =
  * When provided as an array, each element in the array represents an alternative (OR logic) - the selector matches if any of the array elements matches.
  */
 export type CapturedValuesSelector =
-  | Record<string, MicromatchPattern>
-  | Array<Record<string, MicromatchPattern>>;
+  | Record<string, MicromatchPatternNullable>
+  | Array<Record<string, MicromatchPatternNullable>>;
 
 /**
  * Data to pass to selector templates when they are rendered before matching.
@@ -82,7 +73,7 @@ export type TemplateData = Record<string, unknown>;
  */
 export type MatcherOptionsDependencySelectorsGlobals = {
   /** The kind of the dependency */
-  kind?: MicromatchPattern;
+  kind?: MicromatchPatternNullable;
 };
 
 /**
@@ -109,23 +100,23 @@ export type SimpleElementSelectorByType = string;
  */
 export type BaseElementSelectorData = {
   /** Micromatch pattern(s) to match the path of the element */
-  path?: MicromatchPattern;
+  path?: MicromatchPatternNullable;
   /** Micromatch pattern(s) to match the path of the element containing the file */
-  elementPath?: MicromatchPattern;
+  elementPath?: MicromatchPatternNullable;
   /** Micromatch pattern(s) to match internal paths within the file or dependency, relative to the element path */
-  internalPath?: MicromatchPattern;
+  internalPath?: MicromatchPatternNullable;
   /** Type of the element */
-  type?: MicromatchPattern;
+  type?: MicromatchPatternNullable;
   /** Category of the element */
-  category?: MicromatchPattern;
+  category?: MicromatchPatternNullable;
   /** Captured values selector for dynamic matching */
   captured?: CapturedValuesSelector;
   /** Origin of the element */
-  origin?: MicromatchPattern;
+  origin?: MicromatchPatternNullable;
   /** Micromatch pattern(s) to match the source of the dependency */
-  source?: MicromatchPattern;
+  source?: MicromatchPatternNullable;
   /** Base source of the element, e.g., the import path of a dependency */
-  baseSource?: MicromatchPattern;
+  baseSource?: MicromatchPatternNullable;
   /** Whether the element is ignored */
   isIgnored?: boolean;
   /** Whether the element is unknown */
@@ -133,17 +124,26 @@ export type BaseElementSelectorData = {
 };
 
 /**
- * Selector for dependency elements, including kind, specifier, and node kind filters.
+ * Selector for dependency metadata.
  */
-export type DependencyElementSelectorData = BaseElementSelectorData & {
-  /** Relationship of the file element with the dependency declared in it */
-  relationship?: MicromatchPattern;
+export type DependencyDataSelectorData = {
+  /** Relationship between both elements, from both perspectives */
+  relationship?: {
+    /** Relationship from dependant element perspective */
+    from?: MicromatchPatternNullable;
+    /** Relationship from dependency element perspective */
+    to?: MicromatchPatternNullable;
+  };
   /** Dependency kind to filter elements */
-  kind?: MicromatchPattern;
+  kind?: MicromatchPatternNullable;
   /** Micromatch pattern(s) to match only specific imports/exports */
-  specifiers?: MicromatchPattern;
+  specifiers?: MicromatchPatternNullable;
   /** Node kind to filter elements */
-  nodeKind?: MicromatchPattern;
+  nodeKind?: MicromatchPatternNullable;
+  /** Dependency source used in import/export statements */
+  source?: MicromatchPatternNullable;
+  /** Base source of the dependency for external/core modules */
+  baseSource?: MicromatchPatternNullable;
 };
 
 /**
@@ -158,17 +158,6 @@ export type BaseElementSelectorWithOptions = [
 ];
 
 /**
- * Dependency Element selector with options, including captured values for dynamic matching.
- * It is represented as a tuple where the first element is the element type (string)
- * and the second element is an object containing a selector for captured values.
- * @deprecated Use DependencyElementSelectorData defining an object with type and/or category and the rest of properties directly instead.
- */
-export type DependencyElementSelectorWithOptions = [
-  SimpleElementSelectorByType,
-  CapturedValuesSelector,
-];
-
-/**
  * Base Element selector, which can be a simple string, object with type and/or category, or a base element selector with options.
  */
 export type BaseElementSelector =
@@ -177,27 +166,21 @@ export type BaseElementSelector =
   | BaseElementSelectorWithOptions;
 
 /**
- * Dependency Element selector, which can be a simple string, object with type and/or category, or a dependency element selector with options.
+ * Base elements selector, which can be a single base element selector or an array of base element selectors.
  */
-export type DependencyElementSelector =
-  | SimpleElementSelectorByType
-  | DependencyElementSelectorData
-  | DependencyElementSelectorWithOptions;
-
-/** Base elements selector, which can be a single base element selector or an array of base element selectors. */
 export type BaseElementsSelector = BaseElementSelector | BaseElementSelector[];
 
-/** Dependency elements selector, which can be a single dependency element selector or an array of dependency element selectors. */
-export type DependencyElementsSelector =
-  | DependencyElementSelector
-  | DependencyElementSelector[];
+/** Dependency metadata selector, which can be a single selector or an array of selectors. */
+export type DependencyDataSelector =
+  | DependencyDataSelectorData
+  | DependencyDataSelectorData[];
 
 /**
  * Element selector data, which may be a base element selector or a dependency element selector.
  */
 export type ElementSelectorData =
   | BaseElementSelectorData
-  | DependencyElementSelectorData;
+  | DependencyDataSelectorData;
 
 /**
  * Generic Element selector with options, including captured values for dynamic matching.
@@ -221,9 +204,7 @@ export type ElementSelector =
 /**
  * Elements selector, which can be a single element selector or an array of element selectors.
  */
-export type ElementsSelector =
-  | BaseElementsSelector
-  | DependencyElementsSelector;
+export type ElementsSelector = BaseElementsSelector;
 
 /**
  * Element selectors, which can be a single element selector or an array of element selectors.
@@ -238,7 +219,9 @@ export type DependencySelector = {
   /** Selector for the dependant elements. The file originating the dependency */
   from?: BaseElementsSelector;
   /** Selector for the dependency elements. The element being imported/exported */
-  to?: DependencyElementsSelector;
+  to?: BaseElementsSelector;
+  /** Selector for dependency metadata */
+  dependency?: DependencyDataSelector;
 };
 
 /**
@@ -248,8 +231,15 @@ export type DependencySelectorNormalized = {
   /** Selector for the dependant elements. The file originating the dependency */
   from: BaseElementSelectorData[] | null;
   /** Selector for the dependency elements. The element being imported/exported */
-  to: DependencyElementSelectorData[] | null;
+  to: BaseElementSelectorData[] | null;
+  /** Selector for dependency metadata */
+  dependency: DependencyDataSelectorData[] | null;
 };
+
+/**
+ * @deprecated Use DependencySelectorDependencyData instead.
+ */
+export type DependencyElementSelectorData = DependencyDataSelectorData;
 
 /**
  * Options for selecting external libraries, including path patterns and optional specifiers.
@@ -259,7 +249,7 @@ export type ExternalLibrarySelectorOptions = {
   /**
    * Micromatch pattern(s) to match only one or more specific subpaths of the external library.
    */
-  path?: MicromatchPattern;
+  path?: MicromatchPatternNullable;
   /** Micromatch pattern(s) to match only specific imports/exports */
   specifiers?: string[];
 };

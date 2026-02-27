@@ -1,6 +1,6 @@
 import {
   DEPENDENCY_RELATIONSHIPS_MAP,
-  isLocalDependencyElement,
+  isLocalElement,
   type DependencyDescription,
 } from "@boundaries/elements";
 
@@ -45,7 +45,7 @@ export default dependencyRule<NoPrivateOptions>(
   function ({ dependency, node, context, options }) {
     if (
       !dependency.to.isIgnored &&
-      isLocalDependencyElement(dependency.to) &&
+      isLocalElement(dependency.to) &&
       dependency.to.type &&
       dependency.to.parents.length &&
       dependency.dependency.relationship.to !==

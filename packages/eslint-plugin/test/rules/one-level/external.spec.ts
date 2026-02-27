@@ -587,14 +587,14 @@ runTest(
     {
       default: "disallow",
       message:
-        "Importing {{ to.source }} is not allowed in {{ from.type }} with name {{ from.captured.elementName }}",
+        "Importing {{ dependency.source }} is not allowed in {{ from.type }} with name {{ from.captured.elementName }}",
       rules: [
         {
           from: { type: "helpers" },
           allow: ["foo-library"],
           disallow: [["foo-library", { specifiers: ["Link", "Router"] }]],
           message:
-            "Do not import {{ report.specifiers }} from {{ to.source }} in helpers",
+            "Do not import {{ report.specifiers }} from {{ dependency.source }} in helpers",
         },
         {
           from: { type: "components" },

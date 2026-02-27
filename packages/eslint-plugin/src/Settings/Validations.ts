@@ -67,99 +67,132 @@ const DEFAULT_MATCHER_OPTIONS = {
   type: "object",
 };
 
-export function elementsMatcherSchema(
+const dependencyRelationshipSchema = {
+  type: "object",
+  properties: {
+    from: {
+      oneOf: [
+        { type: ["string", "null"] },
+        { type: "array", items: { type: ["string", "null"] } },
+      ],
+    },
+    to: {
+      oneOf: [
+        { type: ["string", "null"] },
+        { type: "array", items: { type: ["string", "null"] } },
+      ],
+    },
+  },
+  additionalProperties: false,
+};
+
+const dependencyMatcherItemSchema = {
+  type: "object",
+  properties: {
+    kind: {
+      oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+    },
+    specifiers: {
+      oneOf: [
+        { type: ["string", "null"] },
+        { type: "array", items: { type: ["string", "null"] } },
+      ],
+    },
+    nodeKind: {
+      oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+    },
+    relationship: dependencyRelationshipSchema,
+    source: {
+      oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+    },
+    baseSource: {
+      oneOf: [
+        { type: ["string", "null"] },
+        { type: "array", items: { type: ["string", "null"] } },
+      ],
+    },
+  },
+  additionalProperties: false,
+};
+
+const dependencyMatcherSchema = {
+  oneOf: [
+    dependencyMatcherItemSchema,
+    {
+      type: "array",
+      items: dependencyMatcherItemSchema,
+    },
+  ],
+};
+
+const objectElementMatcherSchemaItem = {
+  type: "object", // single object-based selector (new format)
+  properties: {
+    type: {
+      oneOf: [
+        { type: ["string", "null"] },
+        { type: "array", items: { type: ["string", "null"] } },
+      ],
+    },
+    category: {
+      oneOf: [
+        { type: ["string", "null"] },
+        { type: "array", items: { type: ["string", "null"] } },
+      ],
+    },
+    captured: {
+      oneOf: [
+        { type: ["object", "null"] },
+        { type: "array", items: { type: ["object", "null"] } },
+      ],
+    },
+    origin: {
+      oneOf: [
+        { type: ["string", "null"] },
+        { type: "array", items: { type: ["string", "null"] } },
+      ],
+    },
+    path: {
+      oneOf: [
+        { type: ["string", "null"] },
+        { type: "array", items: { type: ["string", "null"] } },
+      ],
+    },
+    elementPath: {
+      oneOf: [
+        { type: ["string", "null"] },
+        { type: "array", items: { type: ["string", "null"] } },
+      ],
+    },
+    internalPath: {
+      oneOf: [
+        { type: ["string", "null"] },
+        { type: "array", items: { type: ["string", "null"] } },
+      ],
+    },
+    isIgnored: { type: "boolean" },
+    isUnknown: { type: "boolean" },
+  },
+  additionalProperties: false,
+};
+
+const objectElementMatcherSchema = {
+  oneOf: [
+    objectElementMatcherSchemaItem,
+    {
+      type: "array",
+      items: objectElementMatcherSchemaItem,
+    },
+  ],
+};
+
+export function legacyPoliciesSchema(
   matcherOptions: Record<string, unknown> = DEFAULT_MATCHER_OPTIONS
 ) {
   return {
-    oneOf: [
+    anyOf: [
       {
         type: "string", // single matcher (legacy)
-      },
-      {
-        type: "object", // single object-based selector (new format)
-        properties: {
-          type: {
-            oneOf: [
-              { type: "string" },
-              { type: "array", items: { type: "string" } },
-            ],
-          },
-          category: {
-            oneOf: [
-              { type: "string" },
-              { type: "array", items: { type: "string" } },
-            ],
-          },
-          captured: {
-            oneOf: [
-              { type: "object" },
-              { type: "array", items: { type: "object" } },
-            ],
-          },
-          origin: {
-            oneOf: [
-              { type: "string" },
-              { type: "array", items: { type: "string" } },
-            ],
-          },
-          path: {
-            oneOf: [
-              { type: "string" },
-              { type: "array", items: { type: "string" } },
-            ],
-          },
-          elementPath: {
-            oneOf: [
-              { type: "string" },
-              { type: "array", items: { type: "string" } },
-            ],
-          },
-          internalPath: {
-            oneOf: [
-              { type: "string" },
-              { type: "array", items: { type: "string" } },
-            ],
-          },
-          source: {
-            oneOf: [
-              { type: "string" },
-              { type: "array", items: { type: "string" } },
-            ],
-          },
-          baseSource: {
-            oneOf: [
-              { type: "string" },
-              { type: "array", items: { type: "string" } },
-            ],
-          },
-          isIgnored: { type: "boolean" },
-          isUnknown: { type: "boolean" },
-          kind: {
-            oneOf: [
-              { type: "string" },
-              { type: "array", items: { type: "string" } },
-            ],
-          },
-          specifiers: {
-            oneOf: [
-              { type: "string" },
-              { type: "array", items: { type: "string" } },
-            ],
-          },
-          nodeKind: {
-            oneOf: [
-              { type: "string" },
-              { type: "array", items: { type: "string" } },
-            ],
-          },
-          relationship: {
-            oneOf: [
-              { type: "string" },
-              { type: "array", items: { type: "string" } },
-            ],
-          },
-        },
-        additionalProperties: false,
       },
       {
         type: "array", // multiple matchers
@@ -174,94 +207,8 @@ export function elementsMatcherSchema(
                 {
                   type: "string", // matcher
                 },
-                matcherOptions, // captured values
+                matcherOptions, // Extra options for legacy rules with custom syntax
               ],
-            },
-            {
-              type: "object", // object-based selector (new format)
-              properties: {
-                type: {
-                  oneOf: [
-                    { type: "string" },
-                    { type: "array", items: { type: "string" } },
-                  ],
-                },
-                category: {
-                  oneOf: [
-                    { type: "string" },
-                    { type: "array", items: { type: "string" } },
-                  ],
-                },
-                captured: {
-                  oneOf: [
-                    { type: "object" },
-                    { type: "array", items: { type: "object" } },
-                  ],
-                },
-                origin: {
-                  oneOf: [
-                    { type: "string" },
-                    { type: "array", items: { type: "string" } },
-                  ],
-                },
-                path: {
-                  oneOf: [
-                    { type: "string" },
-                    { type: "array", items: { type: "string" } },
-                  ],
-                },
-                elementPath: {
-                  oneOf: [
-                    { type: "string" },
-                    { type: "array", items: { type: "string" } },
-                  ],
-                },
-                internalPath: {
-                  oneOf: [
-                    { type: "string" },
-                    { type: "array", items: { type: "string" } },
-                  ],
-                },
-                source: {
-                  oneOf: [
-                    { type: "string" },
-                    { type: "array", items: { type: "string" } },
-                  ],
-                },
-                baseSource: {
-                  oneOf: [
-                    { type: "string" },
-                    { type: "array", items: { type: "string" } },
-                  ],
-                },
-                isIgnored: { type: "boolean" },
-                isUnknown: { type: "boolean" },
-                kind: {
-                  oneOf: [
-                    { type: "string" },
-                    { type: "array", items: { type: "string" } },
-                  ],
-                },
-                specifiers: {
-                  oneOf: [
-                    { type: "string" },
-                    { type: "array", items: { type: "string" } },
-                  ],
-                },
-                nodeKind: {
-                  oneOf: [
-                    { type: "string" },
-                    { type: "array", items: { type: "string" } },
-                  ],
-                },
-                relationship: {
-                  oneOf: [
-                    { type: "string" },
-                    { type: "array", items: { type: "string" } },
-                  ],
-                },
-              },
-              additionalProperties: false,
             },
           ],
         },
@@ -270,6 +217,33 @@ export function elementsMatcherSchema(
   };
 }
 
+const legacyElementsSelectorItemSchema = {
+  anyOf: [
+    {
+      type: "string", // single matcher (legacy)
+    },
+    {
+      type: "array", // matcher with captured values (legacy)
+      items: [
+        {
+          type: "string", // matcher
+        },
+        DEFAULT_MATCHER_OPTIONS, // Extra options for legacy rules with custom syntax
+      ],
+    },
+  ],
+};
+
+const legacyElementsSelectorSchema = {
+  anyOf: [
+    legacyElementsSelectorItemSchema,
+    {
+      type: "array",
+      items: legacyElementsSelectorItemSchema,
+    },
+  ],
+};
+
 export function rulesOptionsSchema(
   options: {
     rulesMainKey?: RuleMainKey;
@@ -277,7 +251,41 @@ export function rulesOptionsSchema(
   } = {}
 ) {
   const mainKey = rulesMainKey(options.rulesMainKey);
-  return [
+
+  const policySchema = {
+    anyOf: [
+      legacyPoliciesSchema(options.targetMatcherOptions),
+      {
+        type: "object",
+        properties: {
+          from: objectElementMatcherSchema,
+          to: objectElementMatcherSchema,
+          dependency: dependencyMatcherSchema,
+        },
+        additionalProperties: false,
+      },
+    ],
+  };
+
+  const policiesSchema = {
+    anyOf: [
+      policySchema,
+      {
+        type: "array",
+        items: policySchema,
+      },
+    ],
+  };
+
+  const elementSelectorSchema = {
+    anyOf: [legacyElementsSelectorSchema, objectElementMatcherSchema],
+  };
+
+  const fromElementSelectorSchema = {
+    from: elementSelectorSchema,
+  };
+
+  const schema = [
     {
       type: "object",
       properties: {
@@ -293,11 +301,14 @@ export function rulesOptionsSchema(
           items: {
             type: "object",
             properties: {
-              [mainKey]: elementsMatcherSchema(),
-              allow: elementsMatcherSchema(options.targetMatcherOptions),
-              disallow: elementsMatcherSchema(options.targetMatcherOptions),
+              ...fromElementSelectorSchema,
+              [mainKey]: elementSelectorSchema,
+              to: elementSelectorSchema,
+              dependency: dependencyMatcherSchema,
+              allow: policiesSchema,
+              disallow: policiesSchema,
               importKind: {
-                oneOf: [
+                anyOf: [
                   {
                     type: "string",
                   },
@@ -316,13 +327,28 @@ export function rulesOptionsSchema(
             additionalProperties: false,
             anyOf: [
               {
-                required: [mainKey, "allow", "disallow"],
-              },
-              {
                 required: [mainKey, "allow"],
               },
               {
                 required: [mainKey, "disallow"],
+              },
+              {
+                required: ["from", "allow"],
+              },
+              {
+                required: ["from", "disallow"],
+              },
+              {
+                required: ["to", "allow"],
+              },
+              {
+                required: ["to", "disallow"],
+              },
+              {
+                required: ["dependency", "allow"],
+              },
+              {
+                required: ["dependency", "disallow"],
               },
             ],
           },
@@ -331,6 +357,8 @@ export function rulesOptionsSchema(
       additionalProperties: false,
     },
   ];
+
+  return schema;
 }
 
 /**
@@ -418,7 +446,7 @@ export function validateAndWarnRuleOptions<
         rulesWithDeprecatedImportKind.length
       } rule(s) at indices: ${rulesWithDeprecatedImportKind.join(
         ", "
-      )}. Use selector-level "kind" instead. When both are defined, selector-level "kind" takes precedence.`
+      )}. Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence.`
     );
   }
 }

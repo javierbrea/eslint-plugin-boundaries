@@ -98,15 +98,7 @@ export function isBaseElementSelectorData(
 export function isElementSelectorData(
   value: unknown
 ): value is ElementSelectorData {
-  return (
-    isBaseElementSelectorData(value) ||
-    isObjectWithAnyOfProperties(value, [
-      "relationship",
-      "kind",
-      "specifiers",
-      "nodeKind",
-    ])
-  );
+  return isBaseElementSelectorData(value);
 }
 
 /**
@@ -161,7 +153,7 @@ export function isElementsSelector(value: unknown): value is ElementSelectors {
 export function isDependencySelector(
   value: unknown
 ): value is DependencySelector {
-  return isObjectWithAnyOfProperties(value, ["from", "to"]);
+  return isObjectWithAnyOfProperties(value, ["from", "to", "dependency"]);
 }
 
 /**

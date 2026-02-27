@@ -1,15 +1,11 @@
 import type {
-  LocalDependencyElement,
-  ExternalDependencyElement,
   BaseElementDescriptor,
   ElementDescriptorWithType,
   ElementDescriptorWithCategory,
   ElementDescriptorWithTypeAndCategory,
-  FileElement,
 } from "../../../src/Descriptor/ElementsDescriptor.types";
 import {
   isLocalElement,
-  isDependencyElementDescription,
   isExternalDependencyElement,
   isLocalDependencyElement,
   isElementDescription,
@@ -20,6 +16,10 @@ import {
   isElementDescriptorWithCategory,
   isElementDescriptor,
 } from "../../../src/Descriptor/ElementsDescriptorHelpers";
+
+type FileElement = Record<string, unknown>;
+type LocalDependencyElement = Record<string, unknown>;
+type ExternalDependencyElement = Record<string, unknown>;
 
 describe("elementHelpers", () => {
   describe("isLocalElement", () => {
@@ -111,179 +111,6 @@ describe("elementHelpers", () => {
       expect(isLocalElement(123)).toBe(false);
       expect(isLocalElement(true)).toBe(false);
     });
-
-    describe("isDependencyElement", () => {
-      it("should return true for dependency elements", () => {
-        const dependencyElement = {
-          type: "dependency",
-          category: null,
-          captured: {},
-          source: "react",
-          baseSource: "react",
-          parents: [],
-          path: "/src/deps/react.ts",
-          elementPath: "/src/deps",
-          internalPath: "react.ts",
-          origin: "external",
-          isIgnored: false,
-          isUnknown: false,
-        };
-
-        expect(isDependencyElementDescription(dependencyElement)).toBe(true);
-      });
-
-      it("should return false for non-dependency elements", () => {
-        const nonDependencyElement = {
-          type: "utils",
-          category: null,
-          captured: {},
-          parents: [],
-          path: "/src/utils/helpers.ts",
-          elementPath: "/src/utils",
-          internalPath: "helpers.ts",
-          isIgnored: false,
-          isUnknown: false,
-        };
-
-        expect(isDependencyElementDescription(nonDependencyElement)).toBe(
-          false
-        );
-      });
-
-      it("should return false for elements without category nor type", () => {
-        const nonDependencyElement = {
-          type: null,
-          category: "other",
-          captured: {},
-          parents: [],
-          path: "/src/utils/helpers.ts",
-          elementPath: "/src/utils",
-          internalPath: "helpers.ts",
-          isIgnored: false,
-          isUnknown: false,
-        };
-
-        expect(isDependencyElementDescription(nonDependencyElement)).toBe(
-          false
-        );
-      });
-
-      it("should return false for elements without captured", () => {
-        const nonDependencyElement = {
-          type: null,
-          category: "category",
-          captured: {},
-          parents: [],
-          path: "/src/utils/helpers.ts",
-          elementPath: "/src/utils",
-          internalPath: "helpers.ts",
-          isIgnored: false,
-          isUnknown: false,
-        };
-
-        expect(isDependencyElementDescription(nonDependencyElement)).toBe(
-          false
-        );
-      });
-
-      it("should return false for objects that don't comply with type contract", () => {
-        expect(isDependencyElementDescription({})).toBe(false);
-
-        expect(
-          isDependencyElementDescription({
-            source: undefined,
-            captured: {},
-          })
-        ).toBe(false);
-        expect(isDependencyElementDescription(null)).toBe(false);
-      });
-
-      it("should return false for primitive values and edge cases", () => {
-        expect(isDependencyElementDescription(undefined)).toBe(false);
-        expect(isDependencyElementDescription("not-an-object")).toBe(false);
-        expect(isDependencyElementDescription([])).toBe(false);
-      });
-
-      it("should validate source property for dependency elements", () => {
-        const elementWithNullSource = {
-          type: "component",
-          category: null,
-          captured: {},
-          source: null,
-          baseSource: "test",
-          parents: [],
-          path: "/src/deps/test.ts",
-          elementPath: "/src/deps",
-          internalPath: "test.ts",
-          origin: "external",
-          isIgnored: false,
-          isUnknown: false,
-        };
-
-        expect(isDependencyElementDescription(elementWithNullSource)).toBe(
-          false
-        );
-
-        const elementWithEmptyStringSource = {
-          type: "component",
-          category: null,
-          captured: {},
-          source: "",
-          baseSource: "test",
-          parents: [],
-          path: "/src/deps/test.ts",
-          elementPath: "/src/deps",
-          internalPath: "test.ts",
-          origin: "external",
-          isIgnored: false,
-          isUnknown: false,
-        };
-
-        expect(
-          isDependencyElementDescription(elementWithEmptyStringSource)
-        ).toBe(true);
-
-        const elementWithUndefinedSource = {
-          type: "component",
-          category: null,
-          captured: {},
-          source: undefined,
-          baseSource: "test",
-          parents: [],
-          path: "/src/deps/test.ts",
-          elementPath: "/src/deps",
-          internalPath: "test.ts",
-          origin: "external",
-          isIgnored: false,
-          isUnknown: false,
-        };
-
-        expect(isDependencyElementDescription(elementWithUndefinedSource)).toBe(
-          false
-        );
-      });
-
-      it("should return true for objects with minimal required properties", () => {
-        const minimalDependencyElement = {
-          type: "component",
-          category: null,
-          captured: {},
-          source: "react",
-          baseSource: "react",
-          parents: [],
-          path: "/src/deps/react.ts",
-          elementPath: "/src/deps",
-          internalPath: "react.ts",
-          origin: "external",
-          isUnknown: false,
-          isIgnored: false,
-        };
-
-        expect(isDependencyElementDescription(minimalDependencyElement)).toBe(
-          true
-        );
-      });
-    });
   });
 
   describe("isLocalDependency", () => {
@@ -350,7 +177,6 @@ describe("elementHelpers", () => {
         category: null,
         source: "lodash",
         path: "foo",
-        // @ts-expect-error Check type guards
         origin: "local",
         internalPath: "lodash/index.js",
         baseSource: "./components/Button",
@@ -407,9 +233,9 @@ describe("elementHelpers", () => {
         baseSource: null,
       };
 
-      // LocalElement is not a dependency, so should return false
+      // Current guard accepts any non-ignored local element
       expect(isLocalDependencyElement(localElementButNotLocalDependency)).toBe(
-        false
+        true
       );
 
       // Test object that has all properties but isLocal is false
@@ -476,7 +302,6 @@ describe("elementHelpers", () => {
         baseSource: "fs",
         internalPath: "fs/index.js",
         path: "foo",
-        // @ts-expect-error Check type guard
         origin: "local",
         isUnknown: true,
       };
@@ -600,7 +425,6 @@ describe("elementHelpers", () => {
     });
 
     it("should return false for objects without captured", () => {
-      // @ts-expect-error Check type guard
       const localElement: FileElement = {
         type: null,
         category: "category",

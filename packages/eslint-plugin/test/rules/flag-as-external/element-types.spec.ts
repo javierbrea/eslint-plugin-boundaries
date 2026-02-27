@@ -31,7 +31,7 @@ const testDefaultSettings = () => {
             rules: [
               {
                 from: { type: "components", captured: { package: "a" } },
-                allow: { type: "helpers", captured: { package: "a" } },
+                allow: { to: { type: "helpers", captured: { package: "a" } } },
               },
             ],
           },
@@ -82,8 +82,10 @@ const testDefaultSettings = () => {
                   captured: { package: "package-a" },
                 },
                 allow: {
-                  type: "helpers",
-                  captured: { package: "package-a" },
+                  to: {
+                    type: "helpers",
+                    captured: { package: "package-a" },
+                  },
                 },
               },
             ],
@@ -195,7 +197,7 @@ const testCustomSourcePatterns = () => {
             rules: [
               {
                 from: { type: "components", captured: { package: "a" } },
-                allow: { type: "helpers", captured: { package: "a" } },
+                allow: { to: { type: "helpers", captured: { package: "a" } } },
               },
             ],
           },
@@ -259,7 +261,7 @@ const testInNodeModulesDisabled = () => {
         options: [
           {
             default: "disallow",
-            rules: [{ from: { type: "any" }, allow: { type: "any" } }],
+            rules: [{ from: { type: "any" }, allow: { to: { type: "any" } } }],
           },
         ],
       },
@@ -344,7 +346,7 @@ const testInvalidSettings = () => {
             rules: [
               {
                 from: { type: "components", captured: { package: "a" } },
-                allow: { type: "helpers", captured: { package: "a" } },
+                allow: { to: { type: "helpers", captured: { package: "a" } } },
               },
             ],
           },

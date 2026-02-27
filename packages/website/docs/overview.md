@@ -75,7 +75,7 @@ Given this configuration, the plugin will analyze your project in runtime and cl
   },
   dependency: {
     kind: "value",
-    relationship: null,
+    source: "@views/view-a.js",
     specifiers: ["ViewA"],
   }
 }
@@ -95,9 +95,11 @@ const dependencyRules = [
     from: {
       type: "controllers",
     },
+    dependency: {
+      kind: "value",
+    },
     allow: [{
       type: ["models", "views"],
-      kind: "value",
     }],
   },
   {
@@ -123,13 +125,26 @@ const dependencyRules = [
     allow: [
       {
         type: "*",
-        relationship: "internal",
-      },
-      {
-        type: "shared",
-        kind: "type",
       },
     ],
+    dependency: {
+      relationship: {
+        to: "internal",
+      },
+    },
+  },
+  {
+    from: {
+      type: "*",
+    },
+    allow: [
+      {
+        type: "shared",
+      },
+    ],
+    dependency: {
+      kind: "type",
+    },
   },
 ];
 ```

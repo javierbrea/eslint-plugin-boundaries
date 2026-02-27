@@ -103,15 +103,23 @@ export type ElementDescriptor =
  */
 export type ElementDescriptors = ElementDescriptor[];
 
+export type ElementDescriptionWithSource = ElementDescription & {
+  baseSource?: string | null;
+  source: string;
+};
+
 /**
  * Serialized cache of element descriptions.
  */
-export type DescriptionsSerializedCache = Record<string, ElementDescription>;
+export type DescriptionsSerializedCache = Record<
+  string,
+  ElementDescription | ElementDescriptionWithSource
+>;
 
 /**
  * Serialized cache of file elements.
  */
-export type FileElementsSerializedCache = Record<string, FileElement>;
+export type FileElementsSerializedCache = Record<string, ElementDescription>;
 
 /**
  * Serialized cache for ElementsDescriptor class.
@@ -149,17 +157,13 @@ export type ElementOrigin =
 /**
  * Base element properties related to captured values
  */
-export type BaseElement = {
+export type BaseElementDescription = {
   /** Absolute path of the file. It might be null when a dependency path can't be resolved */
   path: string | null;
   /** Path of the file relative to the element, or null if the element is ignored or unknown */
   elementPath: string | null;
   /** Internal path of the file relative to the elementPath, or null if the element is ignored or unknown */
   internalPath: string | null;
-  /** Source of the element when it is a dependency, or null if the element is not a dependency, or it is ignored or unknown */
-  source: string | null;
-  /** Base source of the element when it is an external or core dependency, null otherwise */
-  baseSource: string | null;
   /** Type of the element, or null if the element is ignored or unknown */
   type: string | null;
   /** Category of the element, or null if the element is ignored or unknown */
@@ -193,7 +197,7 @@ export type ElementParent = {
 /**
  * Description of an ignored element
  */
-export type IgnoredElement = BaseElement & {
+export type IgnoredElement = BaseElementDescription & {
   /** Type of the element */
   type: null;
   /** Category of the element */
@@ -211,7 +215,7 @@ export type IgnoredElement = BaseElement & {
 /**
  * Description of an unknown local element
  */
-export type LocalElementUnknown = BaseElement & {
+export type LocalElementUnknown = BaseElementDescription & {
   /** Type of the element */
   type: null;
   /** Category of the element */
@@ -229,7 +233,7 @@ export type LocalElementUnknown = BaseElement & {
 /**
  * Description of a local element (file)
  */
-export type LocalElementKnown = BaseElement & {
+export type LocalElementKnown = BaseElementDescription & {
   /** Path of the element */
   path: string;
   /** Captured values from the parent element */
@@ -249,82 +253,27 @@ export type LocalElementKnown = BaseElement & {
 };
 
 /**
- * Base description of a dependency
+ * Description of an unknown external element.
  */
-export type BaseDependencyElement = BaseElement & {
-  /** Dependency source */
-  source: string;
-  /** Indicates that dependencies are not ignored */
+export type ExternalElementDescription = BaseElementDescription & {
+  origin: typeof ELEMENT_ORIGINS_MAP.EXTERNAL;
   isIgnored: false;
 };
 
 /**
- * Description of a local dependency (known)
+ * Description of an unknown core element.
  */
-export type LocalDependencyElementKnown = LocalElementKnown &
-  BaseDependencyElement;
-
-/**
- * Description of a local dependency (unknown)
- */
-export type LocalDependencyElementUnknown = LocalElementUnknown &
-  BaseDependencyElement;
-
-/**
- * Description of a local dependency
- */
-export type LocalDependencyElement =
-  | LocalDependencyElementKnown
-  | LocalDependencyElementUnknown;
-
-/**
- * Description of an external dependency
- */
-export type ExternalDependencyElement = BaseDependencyElement & {
-  /** Path of the dependency relative to the base module */
-  internalPath: string;
-  /** Base module of the external dependency */
-  baseSource: string;
-  /** Indicates that the dependency is external */
-  origin: typeof ELEMENT_ORIGINS_MAP.EXTERNAL;
-};
-
-/**
- * Description of a core dependency
- */
-export type CoreDependencyElement = BaseDependencyElement & {
-  /** Base module of the core dependency */
-  baseSource: string;
-  /** Indicates that the dependency is core */
+export type CoreElementDescription = BaseElementDescription & {
   origin: typeof ELEMENT_ORIGINS_MAP.CORE;
+  isIgnored: false;
 };
-
-/**
- * Description of an ignored dependency element
- */
-export type IgnoredDependencyElement = IgnoredElement & {
-  /** The source of the dependency */
-  source: string;
-};
-
-/**
- * Description of a file
- */
-export type FileElement =
-  | IgnoredElement
-  | LocalElementKnown
-  | LocalElementUnknown;
-
-/**
- * Description of a dependency
- */
-export type DependencyElementDescription =
-  | IgnoredDependencyElement
-  | CoreDependencyElement
-  | LocalDependencyElement
-  | ExternalDependencyElement;
 
 /**
  * Description of an element, either local or dependency
  */
-export type ElementDescription = FileElement | DependencyElementDescription;
+export type ElementDescription =
+  | LocalElementKnown
+  | LocalElementUnknown
+  | IgnoredElement
+  | ExternalElementDescription
+  | CoreElementDescription;

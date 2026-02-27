@@ -8,16 +8,13 @@ import type { Micromatch } from "../Matcher";
 import { isArray, isNullish, normalizePath } from "../Support";
 
 import type {
+  ElementDescriptionWithSource,
   ElementDescription,
   ElementDescriptor,
   ElementDescriptors,
   LocalElementKnown,
   CapturedValues,
-  FileElement,
-  ExternalDependencyElement,
   LocalElementUnknown,
-  CoreDependencyElement,
-  DependencyElementDescription,
   ElementsDescriptorSerializedCache,
 } from "./ElementsDescriptor.types";
 import {
@@ -34,8 +31,6 @@ const UNKNOWN_ELEMENT: LocalElementUnknown = {
   path: null,
   elementPath: null,
   internalPath: null,
-  source: null,
-  baseSource: null,
   parents: null,
   type: null,
   category: null,
@@ -71,15 +66,18 @@ export class ElementsDescriptor {
    * Cache to store previously described elements.
    */
   private readonly _descriptionsCache:
-    | CacheManager<string, ElementDescription>
-    | CacheManagerDisabled<string, ElementDescription>;
+    | CacheManager<string, ElementDescription | ElementDescriptionWithSource>
+    | CacheManagerDisabled<
+        string,
+        ElementDescription | ElementDescriptionWithSource
+      >;
 
   /**
    * Cache to store previously described files.
    */
   private readonly _filesCache:
-    | CacheManager<string, FileElement>
-    | CacheManagerDisabled<string, FileElement>;
+    | CacheManager<string, ElementDescription>
+    | CacheManagerDisabled<string, ElementDescription>;
 
   /**
    * Configuration instance for this descriptor.
@@ -111,8 +109,8 @@ export class ElementsDescriptor {
     this._validateDescriptors(elementDescriptors);
     this._config = configOptions;
     this._filesCache = this._config.cache
-      ? new CacheManager<string, FileElement>()
-      : new CacheManagerDisabled<string, FileElement>();
+      ? new CacheManager<string, ElementDescription>()
+      : new CacheManagerDisabled<string, ElementDescription>();
     this._descriptionsCache = this._config.cache
       ? new CacheManager<string, ElementDescription>()
       : new CacheManagerDisabled<string, ElementDescription>();
@@ -504,7 +502,7 @@ export class ElementsDescriptor {
    * @param elementPath The path of the element to describe.
    * @returns The description of the element.
    */
-  private _getFileDescription(filePath?: string): FileElement {
+  private _getFileDescription(filePath?: string): ElementDescription {
     // Return unknown element if no file path is provided. Filepath couldn't be resolved.
     if (!filePath) {
       return {
@@ -655,7 +653,7 @@ export class ElementsDescriptor {
    * @param filePath The path of the file to describe.
    * @returns The description of the element.
    */
-  private _describeFile(filePath?: string): FileElement {
+  private _describeFile(filePath?: string): ElementDescription {
     const cacheKey = this._filesCache.getKey(String(filePath));
     if (this._filesCache.has(cacheKey)) {
       return this._filesCache.get(cacheKey)!;
@@ -676,7 +674,7 @@ export class ElementsDescriptor {
     dependencySource: string,
     isOutsideRootPath: boolean,
     filePath?: string
-  ): ExternalDependencyElement | CoreDependencyElement | null {
+  ): ElementDescriptionWithSource | null {
     const baseDependencySource =
       this._getExternalOrCoreModuleBaseSource(dependencySource);
 
@@ -687,7 +685,7 @@ export class ElementsDescriptor {
     );
 
     if (isCore) {
-      const coreElement: CoreDependencyElement = {
+      const coreElement: ElementDescriptionWithSource = {
         ...UNKNOWN_ELEMENT,
         source: dependencySource,
         baseSource: baseDependencySource,
@@ -703,7 +701,7 @@ export class ElementsDescriptor {
     );
 
     if (isExternal) {
-      const externalElement: ExternalDependencyElement = {
+      const externalElement: ElementDescriptionWithSource = {
         ...UNKNOWN_ELEMENT,
         path: filePath || null,
         internalPath: dependencySource.replace(baseDependencySource, ""),
@@ -723,16 +721,16 @@ export class ElementsDescriptor {
    * @returns The description of the element. A dependency element if dependency source is provided, otherwise a file element.
    */
   private _describeElement(): LocalElementUnknown;
-  private _describeElement(filePath?: string): FileElement;
+  private _describeElement(filePath?: string): ElementDescription;
   private _describeElement(
     filePath?: string,
     dependencySource?: string
-  ): DependencyElementDescription;
+  ): ElementDescriptionWithSource;
 
   private _describeElement(
     filePath?: string,
     dependencySource?: string
-  ): ElementDescription {
+  ): ElementDescription | ElementDescriptionWithSource {
     const cacheKey = `${String(dependencySource)}::${String(filePath)}`;
     if (this._descriptionsCache.has(cacheKey)) {
       return this._descriptionsCache.get(cacheKey)!;
@@ -761,15 +759,9 @@ export class ElementsDescriptor {
     }
 
     const fileDescription = this._describeFile(relativePath);
-    const elementResult = dependencySource
-      ? {
-          ...fileDescription,
-          source: dependencySource,
-        }
-      : fileDescription;
 
-    this._descriptionsCache.set(cacheKey, elementResult);
-    return elementResult;
+    this._descriptionsCache.set(cacheKey, fileDescription);
+    return fileDescription;
   }
 
   /**
@@ -777,20 +769,21 @@ export class ElementsDescriptor {
    * @param filePath The path of the file to describe. Can be absolute if rootPath is configured, or relative if not.
    * @returns The description of the element.
    */
-  public describeElement(filePath?: string): FileElement {
-    return this._describeElement(filePath);
-  }
-
+  public describeElement(filePath?: string): ElementDescription;
   /**
-   * Describes a dependency element given its dependency source and file path.
+   * Describes a dependency target element given dependency source and target file path.
+   * @param filePath The path of the dependency target file, if known. Can be absolute if rootPath is configured, or relative if not.
    * @param dependencySource The source of the dependency.
-   * @param filePath The path of the file being the dependency, if known. Can be absolute if rootPath is configured, or relative if not.
    * @returns The description of the dependency element.
    */
-  public describeDependencyElement(
-    dependencySource: string,
-    filePath?: string
-  ): DependencyElementDescription {
+  public describeElement(
+    filePath: string | undefined,
+    dependencySource: string
+  ): ElementDescriptionWithSource;
+  public describeElement(
+    filePath?: string,
+    dependencySource?: string
+  ): ElementDescription | ElementDescriptionWithSource {
     return this._describeElement(filePath, dependencySource);
   }
 }

@@ -4,6 +4,11 @@
 export type MicromatchPattern = string | string[];
 
 /**
+ * Type representing a micromatch pattern supporting null values
+ */
+export type MicromatchPatternNullable = string | null | (string | null)[];
+
+/**
  * Configuration options for categorizing dependencies as external or local.
  */
 export type FlagAsExternalOptions = {

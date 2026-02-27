@@ -219,40 +219,50 @@ testCapture(
       rules: [
         {
           from: { type: "components" },
-          allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components" },
-          ],
-          disallow: [
-            { type: "components", captured: { elementName: "component-a" } },
-          ],
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "helper-a" } },
+              { type: "components" },
+            ],
+          },
+          disallow: {
+            to: [
+              { type: "components", captured: { elementName: "component-a" } },
+            ],
+          },
         },
         {
           from: { type: "modules" },
-          allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "helper-a" } },
+              { type: "components" },
+              { type: "modules" },
+            ],
+          },
         },
         {
           from: { type: "modules", captured: { elementName: "*-a" } },
-          allow: [
-            {
-              type: "helpers",
-              captured: { elementName: "{{ from.captured.elementName }}" },
-            },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          allow: {
+            to: [
+              {
+                type: "helpers",
+                captured: { elementName: "{{ from.captured.elementName }}" },
+              },
+              { type: "components" },
+              { type: "modules" },
+            ],
+          },
         },
         {
           from: { type: "modules", captured: { elementName: "*-a" } },
-          allow: [
-            { type: "{{ from.captured.elementName }}-helpers" },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          allow: {
+            to: [
+              { type: "{{ from.captured.elementName }}-helpers" },
+              { type: "components" },
+              { type: "modules" },
+            ],
+          },
         },
       ],
     },
@@ -296,39 +306,48 @@ testCapture(
       rules: [
         {
           from: { type: "components" },
-          allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components" },
-          ],
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "helper-a" } },
+              { type: "components" },
+            ],
+          },
           disallow: [
-            { type: "components", captured: { elementName: "component-a" } },
+            {
+              to: {
+                type: "components",
+                captured: { elementName: "component-a" },
+              },
+            },
           ],
         },
         {
           from: { type: "modules" },
           allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components" },
-            { type: "modules" },
+            { to: { type: "helpers", captured: { elementName: "helper-a" } } },
+            { to: { type: "components" } },
+            { to: { type: "modules" } },
           ],
         },
         {
           from: { type: "modules", captured: { elementName: "*-a" } },
-          allow: [
-            {
-              type: "helpers",
-              captured: { elementName: "{{ from.captured.elementName }}" },
-            },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          allow: {
+            to: [
+              {
+                type: "helpers",
+                captured: { elementName: "{{ from.captured.elementName }}" },
+              },
+              { type: "components" },
+              { type: "modules" },
+            ],
+          },
         },
         {
           from: { type: "modules", captured: { elementName: "*-a" } },
           allow: [
-            { type: "{{ from.captured.elementName }}-helpers" },
-            { type: "components" },
-            { type: "modules" },
+            { to: { type: "{{ from.captured.elementName }}-helpers" } },
+            { to: { type: "components" } },
+            { to: { type: "modules" } },
           ],
         },
       ],

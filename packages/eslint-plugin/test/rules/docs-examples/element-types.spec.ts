@@ -20,34 +20,40 @@ const options = [
         // from helper elements
         from: { type: "helpers" },
         // allow importing helper elements
-        allow: { type: "helpers" },
+        allow: { to: { type: "helpers" } },
       },
       {
         // from component elements
         from: { type: "components" },
-        allow: [
-          // allow importing components of the same family
-          { type: "components", captured: { family: "{{ family }}" } },
-          // allow importing helpers with captured category "data"
-          { type: "helpers", captured: { category: "data" } },
-        ],
+        allow: {
+          to: [
+            // allow importing components of the same family
+            { type: "components", captured: { family: "{{ family }}" } },
+            // allow importing helpers with captured category "data"
+            { type: "helpers", captured: { category: "data" } },
+          ],
+        },
       },
       {
         // from components with captured family "molecule"
         from: { type: "components", captured: { family: "molecule" } },
-        allow: [
-          // allow importing components with captured family "atom"
-          { type: "components", captured: { family: "atom" } },
-        ],
+        allow: {
+          to: [
+            // allow importing components with captured family "atom"
+            { type: "components", captured: { family: "atom" } },
+          ],
+        },
       },
       {
         // from modules
         from: { type: "modules" },
-        allow: [
-          { type: "helpers" },
-          { type: "components" },
-          { type: "modules" },
-        ],
+        allow: {
+          to: [
+            { type: "helpers" },
+            { type: "components" },
+            { type: "modules" },
+          ],
+        },
       },
     ],
   },

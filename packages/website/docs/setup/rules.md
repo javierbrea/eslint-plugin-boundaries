@@ -138,13 +138,9 @@ Specifies whether the rule applies based on how the dependency is imported.
 :::warning Deprecated in v6
 Rule-level `importKind` is kept for backward compatibility but is deprecated.
 
-Prefer using selector-level `kind` in object-based selectors instead:
+Prefer using dependency metadata selectors instead:`dependency.kind`
 
-- `element-types`: use `kind` in `allow` / `disallow` selectors
-- `entry-point`: use `kind` in `target` selectors
-- `external`: use `kind` in `from` selectors
-
-When both rule-level `importKind` and selector-level `kind` are defined, selector-level `kind` takes precedence.
+When both rule-level `importKind` and dependency-level `kind` are defined, dependency-level `kind` takes precedence.
 :::
 
 **Possible values:**
@@ -243,7 +239,7 @@ For the complete API reference of all available properties in `from`, `to`, and 
   "message": "Cannot import {{dependency.kind}} from {{to.type}}",
   
   // Access rule-specific report data
-  "message": "Cannot import {{report.specifiers}} from {{to.source}}"
+  "message": "Cannot import {{report.specifiers}} from {{dependency.source}}"
 }
 ```
 
@@ -263,7 +259,7 @@ Some rules provide extra metadata in the `report` object for custom messages. Fo
 
 ```js
 {
-  "message": "Do not import {{report.specifiers}} from {{to.source}} in helpers"
+  "message": "Do not import {{report.specifiers}} from {{dependency.source}} in helpers"
 }
 ```
 

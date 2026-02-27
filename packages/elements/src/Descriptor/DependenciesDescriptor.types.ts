@@ -1,7 +1,4 @@
-import type {
-  DependencyElementDescription,
-  FileElement,
-} from "./ElementsDescriptor.types";
+import type { ElementDescription } from "./ElementsDescriptor.types";
 
 export const DEPENDENCY_KIND_TYPE = "type" as const;
 export const DEPENDENCY_KIND_VALUE = "value" as const;
@@ -63,6 +60,10 @@ export type DependencyRelationship =
 
 /** Information about a dependency between two elements */
 export type ElementsDependencyInfo = {
+  /** Source of the dependency (import/export path) */
+  source: string;
+  /** Base source of the dependency for external/core modules */
+  baseSource: string | null;
   /** Kind of the dependency */
   kind: DependencyKind;
   /** Type of the node creating the dependency in the dependent element */
@@ -83,9 +84,9 @@ export type ElementsDependencyInfo = {
  */
 export type DependencyDescription = {
   /** Source element of the dependency */
-  from: FileElement;
+  from: ElementDescription;
   /** Target element of the dependency */
-  to: DependencyElementDescription;
+  to: ElementDescription;
   /** Information about the dependency */
   dependency: ElementsDependencyInfo;
 };

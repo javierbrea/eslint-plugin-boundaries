@@ -250,28 +250,30 @@ runTest(
           from: {
             type: "helpers",
           },
-          disallow: [{ type: "modules", kind: "*" }],
+          disallow: [{ to: { type: "modules" }, dependency: { kind: "*" } }],
         },
         {
           from: {
             type: "helpers",
           },
           disallow: [
-            { type: "components", kind: "value" },
-            { type: "helpers", kind: "value" },
+            { to: { type: "components" }, dependency: { kind: "value" } },
+            { to: { type: "helpers" }, dependency: { kind: "value" } },
           ],
         },
         {
           from: {
             type: "components",
           },
-          disallow: [{ type: "modules", kind: "value" }],
+          disallow: [
+            { to: { type: "modules" }, dependency: { kind: "value" } },
+          ],
         },
         {
           from: {
             type: "modules",
           },
-          disallow: [{ type: "helpers", kind: "type" }],
+          disallow: [{ to: { type: "helpers" }, dependency: { kind: "type" } }],
         },
       ],
     },
@@ -300,30 +302,30 @@ runTest(
         {
           from: { type: "modules" },
           allow: [
-            { type: "modules", kind: "*" },
-            { type: "components", kind: "*" },
+            { to: { type: "modules" }, dependency: { kind: "*" } },
+            { to: { type: "components" }, dependency: { kind: "*" } },
           ],
         },
         {
           from: { type: "modules" },
-          allow: [{ type: "helpers", kind: "value" }],
+          allow: [{ to: { type: "helpers" }, dependency: { kind: "value" } }],
         },
         {
           from: { type: "components" },
           allow: [
-            { type: "components", kind: "*" },
-            { type: "helpers", kind: "*" },
+            { to: { type: "components" }, dependency: { kind: "*" } },
+            { to: { type: "helpers" }, dependency: { kind: "*" } },
           ],
         },
         {
           from: { type: "components" },
-          allow: [{ type: "modules", kind: "type" }],
+          allow: [{ to: { type: "modules" }, dependency: { kind: "type" } }],
         },
         {
           from: { type: "helpers" },
           allow: [
-            { type: "helpers", kind: "type" },
-            { type: "components", kind: "type" },
+            { to: { type: "helpers" }, dependency: { kind: "type" } },
+            { to: { type: "components" }, dependency: { kind: "type" } },
           ],
         },
       ],
@@ -342,28 +344,30 @@ runTest(
       rules: [
         {
           from: { type: "helpers" },
-          disallow: [{ type: "modules", kind: "*" }],
+          disallow: [{ to: { type: "modules" }, dependency: { kind: "*" } }],
           message:
             "Do not import {{ dependency.kind }} from {{ to.type }} in {{ from.type }}",
         },
         {
           from: { type: "helpers" },
           disallow: [
-            { type: "components", kind: "value" },
-            { type: "helpers", kind: "value" },
+            { to: { type: "components" }, dependency: { kind: "value" } },
+            { to: { type: "helpers" }, dependency: { kind: "value" } },
           ],
           message:
             "Do not import {{ dependency.kind }} from {{ to.type }} in {{ from.type }}",
         },
         {
           from: { type: "components" },
-          disallow: [{ type: "modules", kind: "value" }],
+          disallow: [
+            { to: { type: "modules" }, dependency: { kind: "value" } },
+          ],
           message:
             "Do not import {{ dependency.kind }} from {{ to.type }} in {{ from.type }}",
         },
         {
           from: { type: "modules" },
-          disallow: [{ type: "helpers", kind: "type" }],
+          disallow: [{ to: { type: "helpers" }, dependency: { kind: "type" } }],
           message:
             "Do not import {{ dependency.kind }} from {{ to.type }} in {{ from.type }}",
         },
@@ -396,7 +400,9 @@ precedenceRuleTester.run(`${RULE} selector kind precedence`, rule, {
           rules: [
             {
               from: { type: "components" },
-              allow: [{ type: "helpers", kind: "value" }],
+              allow: [
+                { to: { type: "helpers" }, dependency: { kind: "value" } },
+              ],
               importKind: "type",
             },
           ],
@@ -414,7 +420,9 @@ precedenceRuleTester.run(`${RULE} selector kind precedence`, rule, {
           rules: [
             {
               from: { type: "components" },
-              allow: [{ type: "helpers", kind: "value" }],
+              allow: [
+                { to: { type: "helpers" }, dependency: { kind: "value" } },
+              ],
               importKind: "type",
             },
           ],

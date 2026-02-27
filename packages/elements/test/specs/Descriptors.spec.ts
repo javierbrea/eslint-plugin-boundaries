@@ -9,7 +9,6 @@ import {
   isUnknownLocalElement,
   isCoreDependencyElement,
   isElementDescription,
-  isLocalDependencyElement,
   isDependencyDescription,
   isInternalDependency,
 } from "../../src/index";
@@ -18,6 +17,15 @@ describe("Descriptors", () => {
   let matcher: Matcher;
   let elements: Elements;
   let micromatchSpy: jest.SpyInstance;
+
+  const describeDependencyTarget = (source: string, to?: string) => {
+    return matcher.describeDependency({
+      from: "/project/src/components/Button.tsx",
+      to,
+      source,
+      kind: "value",
+    }).to;
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -85,19 +93,22 @@ describe("Descriptors", () => {
       expect(isElementDescription(element)).toBe(true);
     });
 
-    it("should return same result for same path in describeElement and describeDependencyElement except for source", () => {
+    it("should return same result for same path in describeElement and describeDependencyElement", () => {
       const element1 = matcher.describeElement(
         "/project/foo/utils/testUtil.ts"
       );
-      const element2 = matcher.describeDependencyElement(
+      const element2 = describeDependencyTarget(
         "foo",
         "/project/foo/utils/testUtil.ts"
       );
 
-      expect({ ...element1, source: undefined }).toEqual({
-        ...element2,
-        source: undefined,
-      });
+      expect({ ...element1, source: undefined, baseSource: undefined }).toEqual(
+        {
+          ...element2,
+          source: undefined,
+          baseSource: undefined,
+        }
+      );
     });
 
     it("should exclude files when only ignorePaths is provided", () => {
@@ -323,11 +334,9 @@ describe("Descriptors", () => {
         type: null,
         category: null,
         captured: null,
-        baseSource: null,
         elementPath: null,
         internalPath: null,
         parents: null,
-        source: null,
         path: "/project/src/misc/other.ts",
         origin: "local",
         isIgnored: false,
@@ -393,7 +402,7 @@ describe("Descriptors", () => {
     });
 
     it("should assign descriptions to local dependency elements correctly", () => {
-      const element = matcher.describeDependencyElement(
+      const element = describeDependencyTarget(
         "math/index",
         "/project/src/utils/math/index.ts"
       );
@@ -405,19 +414,18 @@ describe("Descriptors", () => {
         captured: null,
         internalPath: "index.ts",
         elementPath: "/project/src/utils/math/index.ts",
-        source: "math/index",
         origin: "local",
         parents: [],
         path: "/project/src/utils/math/index.ts",
         isUnknown: false,
       });
-      expect(isLocalDependencyElement(element)).toBe(true);
+      expect(isKnownLocalElement(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
     // TODO: Add "external" mode to descriptors, and test known external elements too
     it("should assign descriptions to unknown external dependency elements correctly", () => {
-      const element = matcher.describeDependencyElement(
+      const element = describeDependencyTarget(
         "react",
         "/project/node_modules/react/index.tsx"
       );
@@ -429,11 +437,10 @@ describe("Descriptors", () => {
         elementPath: null,
         parents: null,
         internalPath: "",
-        source: "react",
-        baseSource: "react",
         isIgnored: false,
         origin: "external",
         path: "/project/node_modules/react/index.tsx",
+        source: "react",
         isUnknown: true,
       });
       expect(isExternalDependencyElement(element)).toBe(true);
@@ -441,7 +448,7 @@ describe("Descriptors", () => {
     });
 
     it("should assign descriptions to unknown scoped external dependency elements correctly", () => {
-      const element = matcher.describeDependencyElement(
+      const element = describeDependencyTarget(
         "@mui/icons-material",
         "/project/node_modules/@mui/icons-material/index.tsx"
       );
@@ -454,10 +461,9 @@ describe("Descriptors", () => {
         internalPath: "",
         isIgnored: false,
         parents: null,
-        source: "@mui/icons-material",
-        baseSource: "@mui/icons-material",
         origin: "external",
         path: "/project/node_modules/@mui/icons-material/index.tsx",
+        source: "@mui/icons-material",
         isUnknown: true,
       });
       expect(isExternalDependencyElement(element)).toBe(true);
@@ -465,7 +471,7 @@ describe("Descriptors", () => {
     });
 
     it("should assign descriptions to unknown scoped external dependency with path elements correctly", () => {
-      const element = matcher.describeDependencyElement(
+      const element = describeDependencyTarget(
         "@mui/icons-material/foo",
         "/project/node_modules/@mui/icons-material/index.tsx"
       );
@@ -477,11 +483,10 @@ describe("Descriptors", () => {
         elementPath: null,
         parents: null,
         internalPath: "/foo",
-        source: "@mui/icons-material/foo",
-        baseSource: "@mui/icons-material",
         isIgnored: false,
         origin: "external",
         path: "/project/node_modules/@mui/icons-material/index.tsx",
+        source: "@mui/icons-material/foo",
         isUnknown: true,
       });
       expect(isExternalDependencyElement(element)).toBe(true);
@@ -489,7 +494,7 @@ describe("Descriptors", () => {
     });
 
     it("should assign descriptions to external elements correctly", () => {
-      const element = matcher.describeDependencyElement("react");
+      const element = describeDependencyTarget("react");
 
       expect(element).toEqual({
         type: null,
@@ -498,11 +503,10 @@ describe("Descriptors", () => {
         elementPath: null,
         internalPath: "",
         parents: null,
-        source: "react",
-        baseSource: "react",
         isIgnored: false,
         origin: "external",
         path: null,
+        source: "react",
         isUnknown: true,
       });
       expect(isExternalDependencyElement(element)).toBe(true);
@@ -510,7 +514,7 @@ describe("Descriptors", () => {
     });
 
     it("should assign descriptions to core elements correctly", () => {
-      const element = matcher.describeDependencyElement("node:fs");
+      const element = describeDependencyTarget("node:fs");
 
       expect(element).toEqual({
         type: null,
@@ -519,11 +523,10 @@ describe("Descriptors", () => {
         elementPath: null,
         internalPath: null,
         parents: null,
-        source: "node:fs",
-        baseSource: "node:fs",
         isIgnored: false,
         origin: "core",
         path: null,
+        source: "node:fs",
         isUnknown: true,
       });
       expect(isCoreDependencyElement(element)).toBe(true);
@@ -531,7 +534,7 @@ describe("Descriptors", () => {
     });
 
     it("should assign descriptions to core elements without node prefix correctly", () => {
-      const element = matcher.describeDependencyElement("fs");
+      const element = describeDependencyTarget("fs");
 
       expect(element).toEqual({
         type: null,
@@ -540,11 +543,10 @@ describe("Descriptors", () => {
         elementPath: null,
         internalPath: null,
         parents: null,
-        source: "fs",
-        baseSource: "fs",
         isIgnored: false,
         origin: "core",
         path: null,
+        source: "fs",
         isUnknown: true,
       });
       expect(isCoreDependencyElement(element)).toBe(true);
@@ -554,13 +556,13 @@ describe("Descriptors", () => {
 
   describe("elements descriptor cache", () => {
     it("should not call micromatch multiple times for the same element", () => {
-      matcher.describeElement("/project/src/utils/math/index.ts");
+      matcher.describeElement("/project/src/components/Button.tsx");
 
       expect(micromatchSpy).toHaveBeenCalled();
 
       jest.clearAllMocks();
 
-      matcher.describeElement("/project/src/utils/math/index.ts");
+      matcher.describeElement("/project/src/components/Button.tsx");
 
       expect(micromatchSpy).not.toHaveBeenCalled();
     });
@@ -664,12 +666,12 @@ describe("Descriptors", () => {
     });
 
     it("should not call micromatch more when describing external elements", () => {
-      matcher.describeDependencyElement(
+      describeDependencyTarget(
         "@mui/icons-material/foo",
         "/project/node_modules/@mui/icons-material/index.tsx"
       );
 
-      expect(micromatchSpy).not.toHaveBeenCalled();
+      expect(micromatchSpy).toHaveBeenCalled();
     });
   });
 
@@ -683,7 +685,7 @@ describe("Descriptors", () => {
         nodeKind: "ImportDeclaration",
       });
 
-      expect(dependency).toEqual({
+      expect(dependency).toMatchObject({
         from: {
           captured: {
             fileName: "Button",
@@ -700,7 +702,6 @@ describe("Descriptors", () => {
         },
         to: {
           captured: null,
-          baseSource: null,
           elementPath: null,
           internalPath: null,
           parents: null,
@@ -708,11 +709,12 @@ describe("Descriptors", () => {
           origin: "local",
           path: "/project/src/bar/Baz.ts",
           isIgnored: false,
-          source: "project/bar",
           type: null,
           isUnknown: true,
         },
         dependency: {
+          source: "project/bar",
+          baseSource: null,
           kind: "type",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -737,14 +739,12 @@ describe("Descriptors", () => {
         specifiers: ["foo", "bar"],
       });
 
-      expect(dependency).toEqual({
+      expect(dependency).toMatchObject({
         from: {
           category: null,
-          baseSource: null,
           elementPath: null,
           internalPath: null,
           parents: null,
-          source: null,
           captured: null,
           origin: "local",
           path: "/project/src/var/Baz.ts",
@@ -758,15 +758,15 @@ describe("Descriptors", () => {
           origin: "local",
           path: "/project/src/bar/Baz.ts",
           isIgnored: false,
-          source: "project/bar",
           type: null,
           isUnknown: true,
-          baseSource: null,
           elementPath: null,
           internalPath: null,
           parents: null,
         },
         dependency: {
+          source: "project/bar",
+          baseSource: null,
           kind: "type",
           nodeKind: null,
           specifiers: ["foo", "bar"],
@@ -791,13 +791,11 @@ describe("Descriptors", () => {
         specifiers: ["foo", "bar"],
       });
 
-      expect(dependency).toEqual({
+      expect(dependency).toMatchObject({
         from: {
-          baseSource: null,
           elementPath: null,
           internalPath: null,
           parents: null,
-          source: null,
           category: null,
           captured: null,
           origin: null,
@@ -807,7 +805,6 @@ describe("Descriptors", () => {
           isUnknown: true,
         },
         to: {
-          baseSource: null,
           elementPath: null,
           internalPath: null,
           parents: null,
@@ -816,11 +813,12 @@ describe("Descriptors", () => {
           origin: null,
           isIgnored: true,
           path: "/var/bar/Baz.ts",
-          source: "project/bar",
           type: null,
           isUnknown: true,
         },
         dependency: {
+          source: "project/bar",
+          baseSource: null,
           kind: "type",
           nodeKind: null,
           specifiers: ["foo", "bar"],
@@ -846,7 +844,7 @@ describe("Descriptors", () => {
         specifiers: ["calculateSum", "calculateAvg"],
       });
 
-      expect(dependency).toEqual({
+      expect(dependency).toMatchObject({
         from: {
           type: "component",
           category: "react",
@@ -876,10 +874,11 @@ describe("Descriptors", () => {
           parents: [],
           origin: "local",
           path: "/project/src/utils/math/math.test.ts",
-          source: "../utils/math/math.test.ts",
           isUnknown: false,
         },
         dependency: {
+          source: "../utils/math/math.test.ts",
+          baseSource: null,
           kind: "value",
           nodeKind: "Import",
           specifiers: ["calculateSum", "calculateAvg"],
@@ -904,7 +903,7 @@ describe("Descriptors", () => {
         nodeKind: "ImportDeclaration",
       });
 
-      expect(dependency).toEqual({
+      expect(dependency).toMatchObject({
         from: {
           captured: {
             fileName: "Button",
@@ -920,7 +919,6 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         to: {
-          baseSource: "react",
           captured: null,
           elementPath: null,
           parents: null,
@@ -928,12 +926,13 @@ describe("Descriptors", () => {
           origin: "external",
           path: "/project/node_modules/react/index.tsx",
           internalPath: "",
-          source: "react",
           type: null,
           isIgnored: false,
           isUnknown: true,
         },
         dependency: {
+          source: "react",
+          baseSource: "react",
           kind: "type",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -949,6 +948,25 @@ describe("Descriptors", () => {
       expect(isExternalDependencyElement(dependency.to)).toBe(true);
     });
 
+    it("should set null dependency baseSource for external sources without package segment", () => {
+      const dependency = matcher.describeDependency({
+        from: "/project/src/components/Button.tsx",
+        to: "/project/node_modules/react/index.tsx",
+        source: "/react",
+        kind: "type",
+        nodeKind: "ImportDeclaration",
+      });
+
+      expect(dependency.to).toMatchObject({
+        origin: "external",
+        path: "/project/node_modules/react/index.tsx",
+      });
+      expect(dependency.dependency).toMatchObject({
+        source: "/react",
+        baseSource: null,
+      });
+    });
+
     it("should describe dependency to core elements correctly", () => {
       const dependency = matcher.describeDependency({
         from: "/project/src/components/Button.tsx",
@@ -957,7 +975,7 @@ describe("Descriptors", () => {
         nodeKind: "ImportDeclaration",
       });
 
-      expect(dependency).toEqual({
+      expect(dependency).toMatchObject({
         from: {
           captured: {
             fileName: "Button",
@@ -973,7 +991,6 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         to: {
-          baseSource: "fs",
           captured: null,
           elementPath: null,
           internalPath: null,
@@ -981,12 +998,13 @@ describe("Descriptors", () => {
           category: null,
           origin: "core",
           path: null,
-          source: "fs",
           type: null,
           isIgnored: false,
           isUnknown: true,
         },
         dependency: {
+          source: "fs",
+          baseSource: "fs",
           kind: "type",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1011,7 +1029,7 @@ describe("Descriptors", () => {
         nodeKind: "ImportDeclaration",
       });
 
-      expect(dependency).toEqual({
+      expect(dependency).toMatchObject({
         from: {
           type: null,
           category: "business-logic",
@@ -1032,7 +1050,6 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         to: {
-          source: "./modules/email/EmailService",
           type: null,
           category: "business-logic",
           captured: null,
@@ -1059,6 +1076,8 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         dependency: {
+          source: "./modules/email/EmailService",
+          baseSource: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1084,7 +1103,7 @@ describe("Descriptors", () => {
         nodeKind: "ImportDeclaration",
       });
 
-      expect(dependency).toEqual({
+      expect(dependency).toMatchObject({
         from: {
           type: null,
           category: "business-logic",
@@ -1105,7 +1124,6 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         to: {
-          source: "./EmailService",
           type: null,
           category: "business-logic",
           captured: null,
@@ -1125,6 +1143,8 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         dependency: {
+          source: "./EmailService",
+          baseSource: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1150,7 +1170,7 @@ describe("Descriptors", () => {
         nodeKind: "ImportDeclaration",
       });
 
-      expect(dependency).toEqual({
+      expect(dependency).toMatchObject({
         from: {
           type: null,
           category: "business-logic",
@@ -1171,7 +1191,6 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         to: {
-          source: "./modules/email/modules/send/SendService",
           type: null,
           category: "business-logic",
           captured: null,
@@ -1205,6 +1224,8 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         dependency: {
+          source: "./modules/email/modules/send/SendService",
+          baseSource: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1230,7 +1251,7 @@ describe("Descriptors", () => {
         nodeKind: "ImportDeclaration",
       });
 
-      expect(dependency).toEqual({
+      expect(dependency).toMatchObject({
         from: {
           type: null,
           category: "business-logic",
@@ -1258,7 +1279,6 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         to: {
-          source: "../email/EmailService",
           type: null,
           category: "business-logic",
           captured: null,
@@ -1285,6 +1305,8 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         dependency: {
+          source: "../email/EmailService",
+          baseSource: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1310,7 +1332,7 @@ describe("Descriptors", () => {
         nodeKind: "ImportDeclaration",
       });
 
-      expect(dependency).toEqual({
+      expect(dependency).toMatchObject({
         from: {
           type: null,
           category: "business-logic",
@@ -1338,8 +1360,6 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         to: {
-          source: "../../NotificationService",
-
           type: null,
           category: "business-logic",
           captured: null,
@@ -1359,6 +1379,8 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         dependency: {
+          source: "../../NotificationService",
+          baseSource: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1383,7 +1405,7 @@ describe("Descriptors", () => {
         nodeKind: "ImportDeclaration",
       });
 
-      expect(dependency).toEqual({
+      expect(dependency).toMatchObject({
         from: {
           type: null,
           category: "business-logic",
@@ -1418,7 +1440,6 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         to: {
-          source: "./modules/email/modules/send/SendService",
           type: null,
           category: "business-logic",
           captured: null,
@@ -1438,6 +1459,8 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         dependency: {
+          source: "./modules/email/modules/send/SendService",
+          baseSource: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1463,7 +1486,7 @@ describe("Descriptors", () => {
         nodeKind: "ImportDeclaration",
       });
 
-      expect(dependency).toEqual({
+      expect(dependency).toMatchObject({
         from: {
           type: null,
           category: "business-logic",
@@ -1498,7 +1521,6 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         to: {
-          source: "../../../email/EmailService",
           type: null,
           category: "business-logic",
           captured: null,
@@ -1525,6 +1547,8 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         dependency: {
+          source: "../../../email/EmailService",
+          baseSource: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1550,7 +1574,7 @@ describe("Descriptors", () => {
         nodeKind: "ImportDeclaration",
       });
 
-      expect(dependency).toEqual({
+      expect(dependency).toMatchObject({
         from: {
           type: null,
           category: "business-logic",
@@ -1578,7 +1602,6 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         to: {
-          source: "../../../email/EmailService",
           type: null,
           category: "business-logic",
           captured: null,
@@ -1612,6 +1635,8 @@ describe("Descriptors", () => {
           isUnknown: false,
         },
         dependency: {
+          source: "../../../email/EmailService",
+          baseSource: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,

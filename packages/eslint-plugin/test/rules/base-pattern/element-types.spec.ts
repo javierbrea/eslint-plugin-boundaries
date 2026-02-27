@@ -17,22 +17,24 @@ const options = [
     rules: [
       {
         from: { type: "modules", captured: { domain: "domain-a" } },
-        allow: [
-          { type: "modules", captured: { domain: "{{ domain }}" } },
-          { type: "components", captured: { domain: "{{ domain }}" } },
-        ],
+        allow: {
+          to: [
+            { type: "modules", captured: { domain: "{{ domain }}" } },
+            { type: "components", captured: { domain: "{{ domain }}" } },
+          ],
+        },
       },
       {
         from: { type: "modules", captured: { domain: "domain-b" } },
-        allow: [{ type: "modules" }, { type: "components" }],
+        allow: { to: [{ type: "modules" }, { type: "components" }] },
       },
       {
         from: { type: "components", captured: { domain: "domain-a" } },
-        allow: { type: "components", captured: { domain: "domain-a" } },
+        allow: { to: { type: "components", captured: { domain: "domain-a" } } },
       },
       {
         from: { type: "components", captured: { domain: "domain-b" } },
-        allow: { type: "components" },
+        allow: { to: { type: "components" } },
       },
     ],
   },

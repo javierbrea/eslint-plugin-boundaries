@@ -60,7 +60,7 @@ export class Matcher {
    * @param options Extra matcher options
    * @returns True if the element matches the selector, false otherwise
    */
-  private _isElementMatch(
+  public isElementMatch(
     filePath: string,
     selector: ElementsSelector,
     options?: MatcherOptions
@@ -76,7 +76,7 @@ export class Matcher {
    * @param options Extra matcher options
    * @returns True if the dependency matches the selector, false otherwise
    */
-  private _isDependencyMatch(
+  public isDependencyMatch(
     dependencyData: DescribeDependencyOptions,
     selector: DependencySelector,
     options?: MatcherOptions
@@ -90,48 +90,13 @@ export class Matcher {
   }
 
   /**
-   * Determines if the given element or dependency matches the provided selector.
-   * @param descriptorOptions The file path or dependency options to describe the element or dependency
-   * @param selector The selector to match against
-   * @param options Extra matcher options
-   */
-  public isMatch(
-    descriptorOptions: string,
-    selector: ElementsSelector,
-    options?: MatcherOptions
-  ): boolean;
-  public isMatch(
-    descriptorOptions: DescribeDependencyOptions,
-    selector: DependencySelector,
-    options?: MatcherOptions
-  ): boolean;
-  public isMatch(
-    descriptorOptions: string | DescribeDependencyOptions,
-    selector: ElementsSelector | DependencySelector,
-    options?: MatcherOptions
-  ): boolean {
-    if (isString(descriptorOptions)) {
-      return this._isElementMatch(
-        descriptorOptions,
-        selector as ElementsSelector,
-        options
-      );
-    }
-    return this._isDependencyMatch(
-      descriptorOptions,
-      selector as DependencySelector,
-      options
-    );
-  }
-
-  /**
    * Determines the selector matching for an element.
    * @param filePath The file path of the element
    * @param selector The selectors to match against
    * @param options Extra options for matching
    * @returns The matching selector data or null if no match is found
    */
-  private _getElementSelectorMatching(
+  public getElementSelectorMatching(
     filePath: string,
     selector: ElementsSelector,
     options?: MatcherOptions
@@ -187,13 +152,13 @@ export class Matcher {
     options?: MatcherOptions
   ): ElementSelectorData | DependencyMatchResult | null {
     if (isString(descriptorOptions)) {
-      return this._getElementSelectorMatching(
+      return this.getElementSelectorMatching(
         descriptorOptions,
         selector as ElementsSelector,
         options
       );
     }
-    return this._getDependencySelectorMatching(
+    return this.getDependencySelectorMatching(
       descriptorOptions,
       selector as DependencySelector,
       options
@@ -244,28 +209,32 @@ export class Matcher {
   }
 
   /**
+   * Determines the selector matching for a dependency.
+   * @param dependencyData The data describing the dependency
+   * @param selector The selectors to match against
+   * @param options Extra options for matching
+   * @returns The matching dependency result or null if no match is found
+   */
+  public getDependencySelectorMatching(
+    dependencyData: DescribeDependencyOptions,
+    selector: DependencySelector,
+    options?: MatcherOptions
+  ) {
+    const description = this._descriptors.describeDependency(dependencyData);
+    return this._dependenciesMatcher.getSelectorsMatching(
+      description,
+      selector,
+      options
+    );
+  }
+
+  /**
    * Describes an element given its file path.
    * @param filePath The path of the file to describe.
    * @returns The description of the element.
    */
   public describeElement(filePath: string) {
     return this._descriptors.describeElement(filePath);
-  }
-
-  /**
-   * Describes a dependency element given its dependency source and file path.
-   * @param dependencySource The source of the dependency.
-   * @param filePath The path of the file being the dependency, if known.
-   * @returns The description of the dependency element.
-   */
-  public describeDependencyElement(
-    dependencySource: string,
-    filePath?: string
-  ) {
-    return this._descriptors.describeDependencyElement(
-      dependencySource,
-      filePath
-    );
   }
 
   /**

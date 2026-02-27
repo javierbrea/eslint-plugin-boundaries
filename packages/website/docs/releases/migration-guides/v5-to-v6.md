@@ -97,16 +97,16 @@ Rule-level `importKind` in `element-types`, `entry-point`, and `external` is sti
 When `boundaries/check-config` is enabled, you'll also see warnings like:
 
 ```
-[boundaries/element-types] Detected deprecated rule-level "importKind" in 2 rule(s) at indices: 1, 3. Use selector-level "kind" instead. When both are defined, selector-level "kind" takes precedence.
+[boundaries/element-types] Detected deprecated rule-level "importKind" in 2 rule(s) at indices: 1, 3. Use "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence.
 ```
 
-Use selector-level `kind` in object-based selectors:
+Use selector-level `dependency.kind` in object-based selectors:
 
 - `element-types`: `allow` / `disallow` selectors
 - `entry-point`: `target` selectors
 - `external`: `from` selectors
 
-If both are present in the same rule, selector-level `kind` has priority over rule-level `importKind`.
+If both are present in the same rule, selector-level `dependency.kind` has priority over rule-level `importKind`.
 
 ## Why Migrate?
 
@@ -152,20 +152,20 @@ Object-based selectors unlock powerful new matching capabilities:
 
 ```js
 // Allow importing only from child elements
-{ type: "service", relationship: "child" }
+{ type: "service", dependency: { relationship: { to: "child" } } }
 
 // Allow importing from descendants
-{ type: "helper", relationship: "descendant" }
+{ type: "helper", dependency: { relationship: { to: "descendant" } } }
 ```
 
 #### Match by AST Node Kind
 
 ```js
 // Only match dynamic imports
-{ type: "component", nodeKind: "ImportExpression" }
+{ type: "component", dependency: { nodeKind: "ImportExpression" } }
 
 // Match static imports only
-{ type: "helper", nodeKind: "ImportDeclaration" }
+{ type: "helper", dependency: { nodeKind: "ImportDeclaration" } }
 ```
 
 #### Combine Multiple Properties
@@ -583,7 +583,7 @@ Replace `${...}` with `{{...}}` and update property paths:
 "Do not import from ${dependency.source}"
 
 // Handlebars
-"Do not import from {{to.source}}"
+"Do not import from {{dependency.source}}"
 ```
 
 **Dependency kind (TypeScript):**
@@ -603,7 +603,7 @@ Replace `${...}` with `{{...}}` and update property paths:
 "Do not import ${report.specifiers} from ${dependency.source}"
 
 // Handlebars
-"Do not import {{report.specifiers}} from {{to.source}}"
+"Do not import {{report.specifiers}} from {{dependency.source}}"
 ```
 
 ### Complete Example

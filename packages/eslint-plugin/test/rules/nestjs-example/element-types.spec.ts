@@ -368,30 +368,36 @@ const ruleOptions = [
     rules: [
       {
         from: { type: "app" },
-        allow: { type: "module" },
+        allow: { to: { type: "module" } },
       },
       {
         from: { type: "module" },
-        allow: [
-          { type: "module" },
-          { type: "controller", captured: { feature: "{{ feature }}" } },
-          { type: "service", captured: { feature: "{{ feature }}" } },
-          { type: "interceptor", captured: { feature: "{{ feature }}" } },
-        ],
+        allow: {
+          to: [
+            { type: "module" },
+            { type: "controller", captured: { feature: "{{ feature }}" } },
+            { type: "service", captured: { feature: "{{ feature }}" } },
+            { type: "interceptor", captured: { feature: "{{ feature }}" } },
+          ],
+        },
       },
       {
         from: { type: "controller" },
-        allow: [
-          { type: "common" },
-          { type: "service", captured: { feature: "{{ feature }}" } },
-          { type: "interface", captured: { feature: "{{ feature }}" } },
-          { type: "dto", captured: { feature: "{{ feature }}" } },
-          { type: "model", captured: { feature: "{{ feature }}" } },
-        ],
+        allow: {
+          to: [
+            { type: "common" },
+            { type: "service", captured: { feature: "{{ feature }}" } },
+            { type: "interface", captured: { feature: "{{ feature }}" } },
+            { type: "dto", captured: { feature: "{{ feature }}" } },
+            { type: "model", captured: { feature: "{{ feature }}" } },
+          ],
+        },
       },
       {
         from: { type: "service" },
-        allow: [{ type: "interface", captured: { feature: "{{ feature }}" } }],
+        allow: {
+          to: [{ type: "interface", captured: { feature: "{{ feature }}" } }],
+        },
       },
     ],
   },

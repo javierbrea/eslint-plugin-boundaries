@@ -130,7 +130,7 @@ const runTest = (
             rules: [
               {
                 from: { type: "foo" },
-                allow: [{ type: "components" }],
+                allow: { to: { type: "components" } },
               },
             ],
           },
@@ -145,7 +145,7 @@ const runTest = (
             rules: [
               {
                 from: { type: "components" },
-                disallow: [{ type: "foo" }],
+                disallow: { to: { type: "foo" } },
               },
             ],
           },
@@ -418,7 +418,6 @@ const testCapture = (
 };
 
 // deprecated settings
-
 runTest(
   SETTINGS.deprecated,
   [
@@ -427,15 +426,17 @@ runTest(
       rules: [
         {
           from: { type: "components" },
-          allow: [{ type: "helpers" }, { type: "components" }],
+          allow: { to: [{ type: "helpers" }, { type: "components" }] },
         },
         {
           from: { type: "modules" },
-          allow: [
-            { type: "helpers" },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          allow: {
+            to: [
+              { type: "helpers" },
+              { type: "components" },
+              { type: "modules" },
+            ],
+          },
         },
       ],
     },
@@ -468,22 +469,26 @@ runTest(
       rules: [
         {
           from: { type: "helpers" },
-          disallow: [
-            { type: "modules" },
-            { type: "components" },
-            { type: "helpers" },
-          ],
+          disallow: {
+            to: [
+              { type: "modules" },
+              { type: "components" },
+              { type: "helpers" },
+            ],
+          },
         },
         {
           from: { type: "components" },
-          disallow: [{ type: "modules" }],
+          disallow: { to: { type: "modules" } },
         },
         {
           from: {
             type: "components",
             captured: { elementName: "component-a" },
           },
-          allow: [{ type: "modules", captured: { elementName: "module-b" } }],
+          allow: {
+            to: { type: "modules", captured: { elementName: "module-b" } },
+          },
         },
       ],
     },
@@ -510,15 +515,17 @@ runTest(
       rules: [
         {
           from: { type: "components" },
-          allow: [{ type: "helpers" }, { type: "components" }],
+          allow: { to: [{ type: "helpers" }, { type: "components" }] },
         },
         {
           from: { type: "modules" },
-          allow: [
-            { type: "helpers" },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          allow: {
+            to: [
+              { type: "helpers" },
+              { type: "components" },
+              { type: "modules" },
+            ],
+          },
         },
       ],
     },
@@ -539,15 +546,17 @@ runTest(
       rules: [
         {
           from: { type: "components" },
-          allow: [{ type: "helpers" }, { type: "components" }],
+          allow: { to: [{ type: "helpers" }, { type: "components" }] },
         },
         {
           from: { type: "modules" },
-          allow: [
-            { type: "helpers" },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          allow: {
+            to: [
+              { type: "helpers" },
+              { type: "components" },
+              { type: "modules" },
+            ],
+          },
         },
       ],
     },
@@ -565,15 +574,17 @@ runTest(
       rules: [
         {
           from: { type: "components" },
-          allow: [{ type: "helpers" }, { type: "components" }],
+          allow: { to: [{ type: "helpers" }, { type: "components" }] },
         },
         {
           from: { type: "modules" },
-          allow: [
-            { type: "helpers" },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          allow: {
+            to: [
+              { type: "helpers" },
+              { type: "components" },
+              { type: "modules" },
+            ],
+          },
         },
       ],
     },
@@ -591,11 +602,11 @@ runTest(
       rules: [
         {
           from: { type: "c*" },
-          allow: [{ type: "h*" }, { type: "c*" }],
+          allow: { to: [{ type: "h*" }, { type: "c*" }] },
         },
         {
           from: { type: "m*" },
-          allow: [{ type: "h*" }, { type: "c*" }, { type: "m*" }],
+          allow: { to: [{ type: "h*" }, { type: "c*" }, { type: "m*" }] },
         },
       ],
     },
@@ -612,15 +623,17 @@ runTest(
       rules: [
         {
           from: { type: "helpers" },
-          disallow: [
-            { type: "modules" },
-            { type: "components" },
-            { type: "helpers" },
-          ],
+          disallow: {
+            to: [
+              { type: "modules" },
+              { type: "components" },
+              { type: "helpers" },
+            ],
+          },
         },
         {
           from: { type: "components" },
-          disallow: [{ type: "modules" }],
+          disallow: { to: [{ type: "modules" }] },
         },
       ],
     },
@@ -643,21 +656,27 @@ testCapture(
       rules: [
         {
           from: { type: "components" },
-          allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components" },
-          ],
-          disallow: [
-            { type: "components", captured: { elementName: "component-a" } },
-          ],
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "helper-a" } },
+              { type: "components" },
+            ],
+          },
+          disallow: {
+            to: [
+              { type: "components", captured: { elementName: "component-a" } },
+            ],
+          },
         },
         {
           from: { type: "modules" },
-          allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "helper-a" } },
+              { type: "components" },
+              { type: "modules" },
+            ],
+          },
         },
       ],
     },
@@ -677,18 +696,22 @@ testCapture(
       rules: [
         {
           from: { type: "components" },
-          allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components", captured: { elementName: "!component-a" } },
-          ],
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "helper-a" } },
+              { type: "components", captured: { elementName: "!component-a" } },
+            ],
+          },
         },
         {
           from: { type: "modules" },
-          allow: [
-            { type: "helpers", captured: { elementName: "helper-a" } },
-            { type: "components" },
-            { type: "modules" },
-          ],
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "helper-a" } },
+              { type: "components" },
+              { type: "modules" },
+            ],
+          },
         },
       ],
     },
@@ -706,19 +729,23 @@ testCapture(
       rules: [
         {
           from: { type: "c*" },
-          allow: [
-            { type: "helpers", captured: { elementName: "*-a" } },
-            { type: "c*" },
-          ],
-          disallow: [{ type: "c*", captured: { elementName: "*-a" } }],
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "*-a" } },
+              { type: "c*" },
+            ],
+          },
+          disallow: { to: [{ type: "c*", captured: { elementName: "*-a" } }] },
         },
         {
           from: { type: "modules" },
-          allow: [
-            { type: "h*", captured: { elementName: "*-a" } },
-            { type: "c*" },
-            { type: "m*" },
-          ],
+          allow: {
+            to: [
+              { type: "h*", captured: { elementName: "*-a" } },
+              { type: "c*" },
+              { type: "m*" },
+            ],
+          },
         },
       ],
     },
@@ -740,21 +767,25 @@ testCapture(
       rules: [
         {
           from: { type: "c*" },
-          allow: [
-            { type: "helpers", captured: { elementName: "*-a" } },
-            { type: "c*" },
-          ],
-          disallow: [{ type: "c*", captured: { elementName: "*-a" } }],
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "*-a" } },
+              { type: "c*" },
+            ],
+          },
+          disallow: { to: [{ type: "c*", captured: { elementName: "*-a" } }] },
           message:
             "Do not import {{to.type}} named {{to.captured.elementName}} from {{from.type}} named {{from.captured.elementName}}. Repeat: Do not import {{to.type}} named {{to.captured.elementName}} from {{from.type}} named {{from.captured.elementName}}.",
         },
         {
           from: { type: "modules" },
-          allow: [
-            { type: "h*", captured: { elementName: "*-a" } },
-            { type: "c*" },
-            { type: "m*" },
-          ],
+          allow: {
+            to: [
+              { type: "h*", captured: { elementName: "*-a" } },
+              { type: "c*" },
+              { type: "m*" },
+            ],
+          },
         },
       ],
     },
@@ -779,19 +810,23 @@ testCapture(
       rules: [
         {
           from: { type: "c*" },
-          allow: [
-            { type: "helpers", captured: { elementName: "*-a" } },
-            { type: "c*" },
-          ],
-          disallow: [{ type: "c*", captured: { elementName: "*-a" } }],
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "*-a" } },
+              { type: "c*" },
+            ],
+          },
+          disallow: { to: { type: "c*", captured: { elementName: "*-a" } } },
         },
         {
           from: { type: "modules" },
-          allow: [
-            { type: "h*", captured: { elementName: "*-a" } },
-            { type: "c*" },
-            { type: "m*" },
-          ],
+          allow: {
+            to: [
+              { type: "h*", captured: { elementName: "*-a" } },
+              { type: "c*" },
+              { type: "m*" },
+            ],
+          },
         },
       ],
     },
@@ -812,24 +847,28 @@ testCapture(
       rules: [
         {
           from: { type: "c*" },
-          allow: [
-            { type: "helpers", captured: { elementName: "*-a" } },
-            { type: "c*" },
-          ],
-          disallow: [
-            {
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "*-a" } },
+              { type: "c*" },
+            ],
+          },
+          disallow: {
+            to: {
               type: "c*",
               captured: { elementName: ["*-a", "component-a", "*t-a"] },
             },
-          ],
+          },
         },
         {
           from: { type: "modules" },
-          allow: [
-            { type: "h*", captured: { elementName: "*-a" } },
-            { type: "c*" },
-            { type: "m*" },
-          ],
+          allow: {
+            to: [
+              { type: "h*", captured: { elementName: "*-a" } },
+              { type: "c*" },
+              { type: "m*" },
+            ],
+          },
         },
       ],
     },
@@ -847,27 +886,35 @@ testCapture(
       rules: [
         {
           from: [{ type: "c*" }],
-          allow: [
-            { type: "helpers", captured: { elementName: "*-a" } },
-            { type: "c*" },
-          ],
-          disallow: [{ type: "c*", captured: { elementName: ["*-a"] } }],
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "*-a" } },
+              { type: "c*" },
+            ],
+          },
+          disallow: {
+            to: [{ type: "c*", captured: { elementName: ["*-a"] } }],
+          },
         },
         {
           from: { type: "modules" },
-          allow: [
-            { type: "h*", captured: { elementName: "*-a" } },
-            { type: "c*" },
-            { type: "m*" },
-          ],
+          allow: {
+            to: [
+              { type: "h*", captured: { elementName: "*-a" } },
+              { type: "c*" },
+              { type: "m*" },
+            ],
+          },
         },
         {
           from: { type: "modules" },
-          disallow: [
-            { type: "h*", captured: { foo: "*-a" } },
-            { type: "c*" },
-            { type: "m*" },
-          ],
+          disallow: {
+            to: [
+              { type: "h*", captured: { foo: "*-a" } },
+              { type: "c*" },
+              { type: "m*" },
+            ],
+          },
         },
       ],
     },
@@ -911,11 +958,14 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         code: "import HelperB from 'helpers/helper-b'",
         options: [
           {
-            default: "allow",
+            default: "disallow",
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [{ type: "helpers", baseSource: "*" }],
+                allow: {
+                  to: [{ type: "helpers" }],
+                  dependency: { baseSource: null },
+                },
               },
             ],
           },
@@ -930,7 +980,10 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [{ type: "helpers", relationship: "*" }],
+                disallow: {
+                  to: [{ type: "helpers" }],
+                  dependency: { relationship: { to: "foo" } },
+                },
               },
             ],
           },
@@ -947,7 +1000,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [{ type: "helpers" }],
+                disallow: { to: [{ type: "helpers" }] },
                 message: "blocked-type",
               },
             ],
@@ -964,7 +1017,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [{ category: "shared" }],
+                disallow: { to: [{ category: "shared" }] },
                 message: "blocked-category",
               },
             ],
@@ -981,11 +1034,9 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [
-                  {
-                    captured: { elementName: "helper-b" },
-                  },
-                ],
+                disallow: {
+                  to: [{ captured: { elementName: "helper-b" } }],
+                },
                 message: "blocked-captured",
               },
             ],
@@ -1002,7 +1053,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [{ origin: "local" }],
+                disallow: { to: [{ origin: "local" }] },
                 message: "blocked-origin",
               },
             ],
@@ -1019,7 +1070,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [{ path: "**/helpers/helper-b/**" }],
+                disallow: { to: [{ path: "**/helpers/helper-b/**" }] },
                 message: "blocked-path",
               },
             ],
@@ -1036,7 +1087,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [{ elementPath: "**/helpers/helper-b" }],
+                disallow: { to: [{ elementPath: "**/helpers/helper-b" }] },
                 message: "blocked-element-path",
               },
             ],
@@ -1053,7 +1104,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [{ internalPath: "index.js" }],
+                disallow: { to: [{ internalPath: "index.js" }] },
                 message: "blocked-internal-path",
               },
             ],
@@ -1070,7 +1121,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [{ isIgnored: false }],
+                disallow: { to: [{ isIgnored: false }] },
                 message: "blocked-is-ignored",
               },
             ],
@@ -1087,7 +1138,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [{ isUnknown: false }],
+                disallow: { to: [{ isUnknown: false }] },
                 message: "blocked-is-unknown",
               },
             ],
@@ -1104,7 +1155,10 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [{ source: "helpers/helper-b" }],
+                disallow: {
+                  to: [{ type: "helpers" }],
+                  dependency: { source: "helpers/helper-b" },
+                },
                 message: "blocked-source",
               },
             ],
@@ -1121,7 +1175,10 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [{ kind: "value" }],
+                disallow: {
+                  to: [{ type: "helpers" }],
+                  dependency: { kind: "value" },
+                },
                 message: "blocked-kind",
               },
             ],
@@ -1138,7 +1195,10 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [{ specifiers: "HelperB" }],
+                disallow: {
+                  to: [{ type: "helpers" }],
+                  dependency: { specifiers: "HelperB" },
+                },
                 message: "blocked-specifiers",
               },
             ],
@@ -1155,7 +1215,10 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             rules: [
               {
                 from: { type: "helpers" },
-                disallow: [{ nodeKind: "import" }],
+                disallow: {
+                  to: [{ type: "helpers" }],
+                  dependency: { nodeKind: "import" },
+                },
                 message: "blocked-node-kind",
               },
             ],

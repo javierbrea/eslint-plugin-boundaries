@@ -63,7 +63,7 @@ function errorMessage(
   }
   if (ruleReport.isDefault) {
     return `No rule allows the usage of external module '${
-      dependency.to.baseSource
+      dependency.dependency.baseSource
     }' in elements ${elementMessage(dependency.from)}`;
   }
 
@@ -80,7 +80,7 @@ function errorMessage(
       ruleReport.importKind,
       dependency
     )}'${getErrorReportMessage(ruleData.report)}' from external module '${
-      dependency.to.baseSource
+      dependency.dependency.baseSource
     }' ${fileReport}`;
   }
   return `Usage of ${dependencyUsageKindMessage(
@@ -89,34 +89,55 @@ function errorMessage(
     {
       suffix: " from ",
     }
-  )}external module '${dependency.to.baseSource}' ${fileReport}`;
+  )}external module '${dependency.dependency.baseSource}' ${fileReport}`;
 }
 
 function modifySelectors(selectors: ExternalLibrariesSelector): {
-  baseSource?: string | string[];
-  specifiers?: string | string[];
   internalPath?: string | string[];
-  origin: string[];
-}[] {
+  dependency?: {
+    baseSource?: string | string[];
+    specifiers?: string | string[];
+  };
+  to: {
+    origin: string | string[];
+  };
+} {
   const originsToMatch = [
     ELEMENT_ORIGINS_MAP.EXTERNAL,
     ELEMENT_ORIGINS_MAP.CORE,
   ];
   if (isString(selectors)) {
-    return [{ baseSource: selectors, origin: originsToMatch }];
+    return {
+      to: {
+        origin: originsToMatch,
+      },
+      dependency: {
+        baseSource: selectors,
+      },
+    };
   }
   return selectors.map((selector) => {
     if (isArray(selector)) {
       return {
-        origin: originsToMatch,
-        baseSource: selector[0],
-        specifiers: selector[1].specifiers,
-        internalPath: selector[1].path,
+        to: {
+          origin: originsToMatch,
+          internalPath: selector[1].path,
+        },
+        dependency: {
+          baseSource: selector[0],
+          ...(selector[1].specifiers
+            ? {
+                specifiers: selector[1].specifiers,
+              }
+            : {}),
+        },
       };
     }
     return {
-      origin: originsToMatch,
-      baseSource: selector as string,
+      to: { origin: originsToMatch },
+      dependency: {
+        baseSource: selector as string,
+      },
     };
   });
 }

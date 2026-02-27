@@ -1,10 +1,9 @@
 import type {
   DependencyDescription,
-  DependencyElementDescription,
+  ElementDescription,
   DependencyMatchResult,
   DependencySelector,
   ElementsSelector,
-  FileElement,
   Matcher,
 } from "@boundaries/elements";
 
@@ -66,7 +65,7 @@ const createMatcher = (result: unknown): Matcher =>
     getSelectorMatchingDescription: jest.fn().mockReturnValue(result),
   }) as unknown as Matcher;
 
-const createFileDescription = (path: string): FileElement => ({
+const createFileDescription = (path: string): ElementDescription => ({
   path,
   type: "components",
   category: null,
@@ -77,13 +76,11 @@ const createFileDescription = (path: string): FileElement => ({
   origin: "local",
   isIgnored: false,
   isUnknown: false,
-  source: null,
-  baseSource: null,
 });
 
 const createDependencyDescription = (): DependencyDescription => {
   const fileDescription = createFileDescription("src/components/Component.ts");
-  const dependencyElement: DependencyElementDescription = {
+  const dependencyElement: ElementDescription = {
     path: "src/helpers/Helper.ts",
     type: "helpers",
     category: null,
@@ -94,14 +91,14 @@ const createDependencyDescription = (): DependencyDescription => {
     origin: "local",
     isIgnored: false,
     isUnknown: false,
-    source: "../helpers/Helper",
-    baseSource: null,
   };
 
   return {
     from: fileDescription,
     to: dependencyElement,
     dependency: {
+      source: "../helpers/Helper",
+      baseSource: null,
       kind: "type",
       nodeKind: "import",
       relationship: {

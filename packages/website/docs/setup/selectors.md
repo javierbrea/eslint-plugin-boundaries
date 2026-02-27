@@ -57,16 +57,26 @@ Match elements based on their type, category, origin, and other characteristics:
 - **`isIgnored`** (`boolean`) - Whether element is marked as ignored
 - **`isUnknown`** (`boolean`) - Whether element type is unknown
 
-#### Dependency Properties
+#### Dependency Metadata Selectors
 
-Additional properties available when matching dependencies (in `allow`/`disallow` rules):
+When matching dependencies, you can also match based on metadata about the dependency itself:
 
-- **`kind`** (`string | string[]`) - Micromatch pattern(s) matching dependency kind
-- **`relationship`** (`string | string[]`) - Element relationship: `"internal"`, `"child"`, `"parent"`, `"sibling"`, `"uncle"`, `"nephew"`, `"descendant"`, `"ancestor"`
+- **`kind`** (`string | string[]`) - Micromatch pattern(s) matching dependency kind (e.g., "value", "type", "typeof")
+- **`relationship`** (`object`) - Relationship selectors from both perspectives:
+  - **`from`** (`string | string[]`) - Relationship from the `from` perspective
+  - **`to`** (`string | string[]`) - Relationship from the `to` perspective (`"internal"`, `"child"`, `"parent"`, `"sibling"`, `"uncle"`, `"nephew"`, `"descendant"`, `"ancestor"`)
 - **`specifiers`** (`string | string[]`) - Micromatch pattern(s) matching import/export specifiers
-- **`nodeKind`** (`string | string[]`) - Micromatch pattern(s) matching AST node type
+- **`nodeKind`** (`string | string[]`) - Micromatch pattern(s) matching the dependency node type (e.g., `import`, `require`, etc. See [dependency nodes](../setup/settings.md#boundariesdependency-nodes) for further information)
 - **`source`** (`string | string[]`) - Micromatch pattern(s) matching dependency source
-- **`baseSource`** (`string | string[]`) - Micromatch pattern(s) matching base module name
+- **`baseSource`** (`string | string[]`) - Micromatch pattern(s) matching base module name for external or core dependencies
+
+```js
+{
+  from: { type: "feature" },
+  to: { type: "service" },
+  dependency: { kind: "value", nodeKind: "require" }
+}
+```
 
 ### Basic Examples
 
@@ -106,11 +116,8 @@ All properties in a selector object use AND logic - all must match:
   path: "**/features/auth/**"
 }
 
-// Match child elements that are services
-{
-  type: "service",
-  relationship: "child"
-}
+// Match service elements
+{ type: "service" }
 ```
 
 ## Captured Values Matching

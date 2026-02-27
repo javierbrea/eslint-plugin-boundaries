@@ -251,14 +251,18 @@ export function ruleElementMessage(
 
 function elementPropertiesToReplaceInTemplate(
   element: ElementDescription | ElementParent,
-  importKind: string
+  importKind: string,
+  dependencyMetadata?: DependencyDescription["dependency"]
 ) {
   if (isElementDescription(element)) {
+    const source = dependencyMetadata?.source || "";
+    const baseSource = dependencyMetadata?.baseSource || "";
     return {
       ...element.captured,
       type: element.type || "",
       internalPath: element.internalPath || "",
-      source: element.source || "",
+      source,
+      baseSource,
       importKind: importKind || "",
     };
   }
@@ -267,6 +271,7 @@ function elementPropertiesToReplaceInTemplate(
     type: element.type || "",
     internalPath: "",
     source: "",
+    baseSource: "",
     importKind: importKind || "",
   };
 }
@@ -308,7 +313,8 @@ export function customErrorMessage(
     ),
     elementPropertiesToReplaceInTemplate(
       dependency.to,
-      dependency.dependency.kind
+      dependency.dependency.kind,
+      dependency.dependency
     ),
     "dependency"
   );
@@ -323,7 +329,8 @@ export function customErrorMessage(
     ),
     elementPropertiesToReplaceInTemplate(
       dependency.to,
-      dependency.dependency.kind
+      dependency.dependency.kind,
+      dependency.dependency
     ),
     "target"
   );

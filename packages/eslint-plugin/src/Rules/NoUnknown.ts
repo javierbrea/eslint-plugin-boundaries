@@ -1,4 +1,4 @@
-import { isLocalDependencyElement } from "@boundaries/elements";
+import { isLocalElement } from "@boundaries/elements";
 
 import { SETTINGS } from "../Settings";
 
@@ -14,7 +14,7 @@ export default dependencyRule(
   function ({ dependency, node, context }) {
     if (
       !dependency.to.isIgnored &&
-      isLocalDependencyElement(dependency.to) &&
+      isLocalElement(dependency.to) &&
       dependency.to.isUnknown
     ) {
       context.report({

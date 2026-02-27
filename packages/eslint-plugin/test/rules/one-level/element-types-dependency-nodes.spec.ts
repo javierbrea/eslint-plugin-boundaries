@@ -48,8 +48,10 @@ const options = [
         },
         disallow: [
           {
-            type: "modules",
-            kind: "*",
+            to: { type: "modules" },
+            dependency: {
+              kind: "*",
+            },
           },
         ],
       },
@@ -58,17 +60,33 @@ const options = [
           type: "helpers",
         },
         disallow: [
-          { type: ["components"], kind: "value" },
-          { type: ["helpers"], kind: "value" },
+          {
+            to: { type: ["components"] },
+            dependency: { kind: "value" },
+          },
+          {
+            to: { type: ["helpers"] },
+            dependency: { kind: "value" },
+          },
         ],
       },
       {
         from: { type: "components" },
-        disallow: [{ type: "modules", kind: "value" }],
+        disallow: [
+          {
+            to: { type: "modules" },
+            dependency: { kind: "value" },
+          },
+        ],
       },
       {
         from: { type: "modules" },
-        disallow: [{ type: "helpers", kind: "type" }],
+        disallow: [
+          {
+            to: { type: "helpers" },
+            dependency: { kind: "type" },
+          },
+        ],
       },
     ],
   },

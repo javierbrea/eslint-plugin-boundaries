@@ -40,7 +40,7 @@ This rule validates `import` statements (or any other **[dependency-creating syn
   - `from`: **[`<element selectors>`](../setup/selectors.md)** - If the file being analyzed matches this selector, the rule will be evaluated. Otherwise, it is skipped
   - `disallow`: **`<external module selectors>`** - If the imported external module matches this selector, the import is disallowed (can be overridden by a subsequent rule returning `"allow"`)
   - `allow`: **`<external module selectors>`** - If the imported external module matches this selector, the import is allowed (can be overridden by a subsequent rule returning `"disallow"`)
-  - `importKind`: `<string>` - Optional. [TypeScript](../guides/typescript-support.md) only. **Deprecated in v6** (kept for backward compatibility). Use selector-level `kind` in `from` selectors instead. If both are defined, selector-level `kind` takes precedence. Possible values: `"value"`, `"type"`, or `"typeof"`
+  - `importKind`: `<string>` - Optional. [TypeScript](../guides/typescript-support.md) only. **Deprecated in v6** (kept for backward compatibility). Use `dependency.kind` in `from` selectors instead. If both are defined, `dependency.kind` takes precedence. Possible values: `"value"`, `"type"`, or `"typeof"`
   - `message`: `<string>` - Custom error message for this specific rule. See [error messages](#error-messages) for more information
 
 

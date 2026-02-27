@@ -113,16 +113,6 @@ describe("Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { baseSource: "bar" },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { baseSource: "" },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
         selector: { type: "component" },
         expected: true,
       },
@@ -489,13 +479,30 @@ describe("Matcher", () => {
         expectedMatch?: ElementSelectorData;
       }) => {
         const matchResult = extraTemplateData
-          ? matcher.isMatch(filePath, selector, { extraTemplateData })
-          : matcher.isMatch(filePath, selector);
+          ? matcher.isElementMatch(filePath, selector, { extraTemplateData })
+          : matcher.isElementMatch(filePath, selector);
+
+        if (matchResult !== expected) {
+          console.error(
+            "Mismatch on:",
+            JSON.stringify(
+              {
+                filePath,
+                selector,
+                extraTemplateData,
+                expectedMatch,
+                description: matcher.describeElement(filePath),
+              },
+              null,
+              2
+            )
+          );
+        }
 
         expect(matchResult).toBe(expected);
 
         if (expected) {
-          const selectorMatchingResult = matcher.getSelectorMatching(
+          const selectorMatchingResult = matcher.getElementSelectorMatching(
             filePath,
             selector,
             extraTemplateData ? { extraTemplateData } : undefined
@@ -524,7 +531,7 @@ describe("Matcher", () => {
     );
 
     it("should match using legacy string selector", () => {
-      const result = matcher.isMatch(
+      const result = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
         "component"
       );
@@ -533,7 +540,7 @@ describe("Matcher", () => {
     });
 
     it("should match using legacy string selector with template", () => {
-      const result = matcher.isMatch(
+      const result = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
         "{{ element.type }}"
       );
@@ -542,7 +549,7 @@ describe("Matcher", () => {
     });
 
     it("should match using legacy string selector with legacy template", () => {
-      const result = matcher.isMatch(
+      const result = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
         "${ element.type }"
       );
@@ -568,14 +575,14 @@ describe("Matcher", () => {
         }
       );
 
-      const result = matcher.isMatch(
+      const result = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
         "${ element.type }"
       );
 
       expect(result).toBe(false);
 
-      const newTemplateResult = matcher.isMatch(
+      const newTemplateResult = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
         "{{ element.type }}"
       );
@@ -584,36 +591,45 @@ describe("Matcher", () => {
     });
 
     it("should match using legacy string selectors", () => {
-      const result = matcher.isMatch("/project/src/components/Button.tsx", [
-        "component",
-        "foo",
-      ]);
+      const result = matcher.isElementMatch(
+        "/project/src/components/Button.tsx",
+        ["component", "foo"]
+      );
 
       expect(result).toBe(true);
     });
 
     it("should match using legacy string selector with options", () => {
-      const result = matcher.isMatch("/project/src/components/Button.tsx", [
-        "component",
-        { fileName: "Button" },
-      ]);
+      const result = matcher.isElementMatch(
+        "/project/src/components/Button.tsx",
+        ["component", { fileName: "Button" }]
+      );
 
       expect(result).toBe(true);
     });
 
     it("should match using legacy string selectors with options", () => {
-      const result = matcher.isMatch("/project/src/components/Button.tsx", [
-        ["component", { fileName: "Button" }],
-        ["foo", { fileName: "Foo" }],
-      ]);
+      const result = matcher.isElementMatch(
+        "/project/src/components/Button.tsx",
+        [
+          ["component", { fileName: "Button" }],
+          ["foo", { fileName: "Foo" }],
+        ]
+      );
 
       expect(result).toBe(true);
     });
 
     it("should throw an error when using invalid selector", () => {
+      const invalidSelector = {
+        var: "baz",
+      } as unknown as ElementsSelector;
+
       expect(() =>
-        // @ts-expect-error: Testing invalid selector
-        matcher.isMatch("/project/src/modules/user/foo.ts", { var: "baz" })
+        matcher.isElementMatch(
+          "/project/src/modules/user/foo.ts",
+          invalidSelector
+        )
       ).toThrow();
     });
 
@@ -625,29 +641,35 @@ describe("Matcher", () => {
     });
 
     it("should not call to micromatch after matching with same options", () => {
-      const result = matcher.isMatch("/project/src/components/Button.tsx", {
-        type: "component",
-        category: "react",
-        origin: "local",
-      });
+      const result = matcher.isElementMatch(
+        "/project/src/components/Button.tsx",
+        {
+          type: "component",
+          category: "react",
+          origin: "local",
+        }
+      );
 
       expect(micromatchSpy).toHaveBeenCalled();
       expect(result).toBe(true);
 
       micromatchSpy.mockClear();
 
-      const result2 = matcher.isMatch("/project/src/components/Button.tsx", {
-        type: "component",
-        category: "react",
-        origin: "local",
-      });
+      const result2 = matcher.isElementMatch(
+        "/project/src/components/Button.tsx",
+        {
+          type: "component",
+          category: "react",
+          origin: "local",
+        }
+      );
 
       expect(result2).toBe(true);
       expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
     it("should call again to micromatch after clearing cache", () => {
-      matcher.isMatch("/project/src/components/Button.tsx", {
+      matcher.isElementMatch("/project/src/components/Button.tsx", {
         type: "component",
       });
 
@@ -655,7 +677,7 @@ describe("Matcher", () => {
 
       jest.clearAllMocks();
 
-      matcher.isMatch("/project/src/components/Button.tsx", {
+      matcher.isElementMatch("/project/src/components/Button.tsx", {
         type: "component",
       });
 
@@ -663,7 +685,7 @@ describe("Matcher", () => {
 
       elements.clearCache();
 
-      matcher.isMatch("/project/src/components/Button.tsx", {
+      matcher.isElementMatch("/project/src/components/Button.tsx", {
         type: "component",
       });
 
@@ -1108,7 +1130,8 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { source: "react", origin: ["external", "local"] },
+          to: { origin: ["external", "local"] },
+          dependency: { source: "react" },
         },
         expected: true,
       },
@@ -1121,7 +1144,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { source: "foo" },
+          dependency: { source: "foo" },
         },
         expected: false,
       },
@@ -1161,7 +1184,8 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { baseSource: "react", origin: ["external", "local"] },
+          to: { origin: ["external", "local"] },
+          dependency: { baseSource: "react" },
         },
         expected: true,
       },
@@ -1174,7 +1198,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { baseSource: "foo" },
+          dependency: { baseSource: "foo" },
         },
         expected: false,
       },
@@ -1187,9 +1211,52 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { relationship: "foo" },
+          to: {
+            origin: ["external", "local"],
+          },
+          dependency: { baseSource: "react", source: "react" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          dependency: { relationship: { to: "foo" } },
         },
         expected: false,
+      },
+      // Dependency metadata source/baseSource tests
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          dependency: { source: "react" },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          dependency: { baseSource: "react" },
+        },
+        expected: true,
       },
       // NodeKind tests
       {
@@ -1201,7 +1268,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { nodeKind: "ImportDeclaration" },
+          dependency: { nodeKind: "ImportDeclaration" },
         },
         expected: true,
       },
@@ -1214,7 +1281,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { nodeKind: ["Import*"] },
+          dependency: { nodeKind: ["Import*"] },
         },
         expected: true,
       },
@@ -1227,7 +1294,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { nodeKind: "{{ to.nodeKind }}" },
+          dependency: { nodeKind: "{{ dependency.nodeKind }}" },
         },
         expected: true,
       },
@@ -1240,7 +1307,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { nodeKind: "{{ to.foo }}" },
+          dependency: { nodeKind: "{{ to.foo }}" },
         },
         expected: false,
       },
@@ -1252,7 +1319,7 @@ describe("Matcher", () => {
           kind: "type",
         },
         selector: {
-          to: { nodeKind: ["Import*"] },
+          dependency: { nodeKind: ["Import*"] },
         },
         expected: false,
       },
@@ -1266,7 +1333,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { kind: "t*" },
+          dependency: { kind: "t*" },
         },
         expected: true,
       },
@@ -1279,7 +1346,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { kind: "{{ to.kind }}" },
+          dependency: { kind: "{{ dependency.kind }}" },
         },
         expected: true,
       },
@@ -1292,7 +1359,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { kind: "{{ to.foo }}" },
+          dependency: { kind: "{{ to.foo }}" },
         },
         expected: false,
       },
@@ -1305,7 +1372,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { kind: "t*" },
+          dependency: { kind: "t*" },
         },
         expected: false,
       },
@@ -1318,7 +1385,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { kind: "2" },
+          dependency: { kind: "2" },
         },
         expected: true,
       },
@@ -1330,7 +1397,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { kind: "t*" },
+          dependency: { kind: "t*" },
         },
         expected: false,
       },
@@ -1345,7 +1412,7 @@ describe("Matcher", () => {
           specifiers: ["foo", "bar"],
         },
         selector: {
-          to: { specifiers: "foo" },
+          dependency: { specifiers: "foo" },
         },
         expected: true,
       },
@@ -1359,7 +1426,7 @@ describe("Matcher", () => {
           specifiers: ["foo", "bar"],
         },
         selector: {
-          to: { specifiers: ["var", "b*"] },
+          dependency: { specifiers: ["var", "b*"] },
         },
         expected: true,
       },
@@ -1373,7 +1440,7 @@ describe("Matcher", () => {
           specifiers: ["foo", "bar"],
         },
         selector: {
-          to: { specifiers: "{{ lookup to.specifiers 0 }}" },
+          dependency: { specifiers: "{{ lookup dependency.specifiers 0 }}" },
         },
         expected: true,
       },
@@ -1387,7 +1454,7 @@ describe("Matcher", () => {
           specifiers: ["foo", "bar"],
         },
         selector: {
-          to: { specifiers: "{{ to.specifiers.foo }}" },
+          dependency: { specifiers: "{{ dependency.specifiers.foo }}" },
         },
         expected: false,
       },
@@ -1400,7 +1467,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { specifiers: "foo" },
+          dependency: { specifiers: "foo" },
         },
         expected: false,
       },
@@ -1414,7 +1481,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { relationship: "uncle" },
+          dependency: { relationship: { to: "uncle" } },
         },
         expected: true,
       },
@@ -1427,7 +1494,9 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { relationship: "{{ to.relationship }}" },
+          dependency: {
+            relationship: { to: "{{ dependency.relationship.to }}" },
+          },
         },
         expected: true,
       },
@@ -1440,7 +1509,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { relationship: "{{ to.foo }}" },
+          dependency: { relationship: { to: "{{ to.foo }}" } },
         },
         expected: false,
       },
@@ -1453,7 +1522,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { relationship: "nephew" },
+          dependency: { relationship: { from: "nephew" } },
         },
         expected: true,
       },
@@ -1466,7 +1535,9 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { relationship: "{{ from.relationship }}" },
+          dependency: {
+            relationship: { from: "{{ dependency.relationship.from }}" },
+          },
         },
         expected: true,
       },
@@ -1479,7 +1550,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { relationship: "{{ from.foo }}" },
+          dependency: { relationship: { from: "{{ from.foo }}" } },
         },
         expected: false,
       },
@@ -1492,8 +1563,12 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { relationship: "uncle" },
-          from: { relationship: "nephew" },
+          dependency: {
+            relationship: {
+              to: "uncle",
+              from: "nephew",
+            },
+          },
         },
         expected: true,
       },
@@ -1506,8 +1581,12 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { relationship: "{{ to.relationship }}" },
-          from: { relationship: "{{ from.relationship }}" },
+          dependency: {
+            relationship: {
+              to: "{{ dependency.relationship.to }}",
+              from: "{{ dependency.relationship.from }}",
+            },
+          },
         },
         expected: true,
       },
@@ -1520,8 +1599,12 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { relationship: "uncle" },
-          from: { relationship: "foo" },
+          dependency: {
+            relationship: {
+              to: "uncle",
+              from: "foo",
+            },
+          },
         },
         expected: false,
       },
@@ -1542,8 +1625,10 @@ describe("Matcher", () => {
         expectedMatch?: DependencySelector;
       }) => {
         const result = extraTemplateData
-          ? matcher.isMatch(dependency, selector, { extraTemplateData })
-          : matcher.isMatch(dependency, selector);
+          ? matcher.isDependencyMatch(dependency, selector, {
+              extraTemplateData,
+            })
+          : matcher.isDependencyMatch(dependency, selector);
 
         if (result !== expected) {
           console.error(
@@ -1565,7 +1650,7 @@ describe("Matcher", () => {
         expect(result).toBe(expected);
 
         if (expected) {
-          const selectorMatchingResult = matcher.getSelectorMatching(
+          const selectorMatchingResult = matcher.getDependencySelectorMatching(
             dependency,
             selector,
             extraTemplateData ? { extraTemplateData } : undefined
@@ -1574,10 +1659,12 @@ describe("Matcher", () => {
           const expectedSelectorMatching = expectedMatch || selector;
           const fromMatch = expectedSelectorMatching?.from || null;
           const toMatch = expectedSelectorMatching?.to || null;
+          const dependencyMatch = expectedSelectorMatching?.dependency || null;
 
           const expectedMatchResult = {
             from: fromMatch,
             to: toMatch,
+            dependency: dependencyMatch,
             isMatch: true,
           };
 
@@ -1605,7 +1692,7 @@ describe("Matcher", () => {
     );
 
     it("should match using legacy string selector", () => {
-      const result = matcher.isMatch(
+      const result = matcher.isDependencyMatch(
         {
           from: "/project/src/components/Button.tsx",
           to: "/project/src/services/api/api.ts",
@@ -1624,7 +1711,7 @@ describe("Matcher", () => {
     });
 
     it("should match using legacy string selector with options", () => {
-      const result = matcher.isMatch(
+      const result = matcher.isDependencyMatch(
         {
           from: "/project/src/components/Button.tsx",
           to: "/project/src/utils/math/math.test.ts",
@@ -1641,10 +1728,54 @@ describe("Matcher", () => {
       expect(result).toBe(true);
     });
 
+    it("should support dependency selector arrays and dependency selector globals", () => {
+      const dependency = {
+        from: "/project/src/components/Button.tsx",
+        to: "/project/node_modules/react/index.tsx",
+        source: "react",
+        kind: "value" as const,
+        nodeKind: "ImportDeclaration",
+      };
+
+      expect(
+        matcher.isDependencyMatch(dependency, {
+          dependency: [{ kind: "value" }],
+        })
+      ).toBe(true);
+
+      expect(
+        matcher.isDependencyMatch(
+          dependency,
+          {
+            from: { type: "component" },
+          },
+          {
+            dependencySelectorsGlobals: { kind: "value" },
+          }
+        )
+      ).toBe(true);
+
+      expect(
+        matcher.isDependencyMatch(
+          {
+            ...dependency,
+            kind: "type",
+          },
+          {
+            from: { type: "component" },
+          },
+          {
+            dependencySelectorsGlobals: { kind: "value" },
+          }
+        )
+      ).toBe(false);
+    });
+
     it("should throw an error when using invalid dependency selector", () => {
+      const invalidSelector = { var: "baz" } as unknown as DependencySelector;
+
       expect(() =>
-        // @ts-expect-error: Testing invalid selector
-        matcher.isMatch(
+        matcher.isDependencyMatch(
           {
             from: "/project/src/components/Button.tsx",
             to: "/project/src/utils/math/math.test.ts",
@@ -1653,7 +1784,7 @@ describe("Matcher", () => {
             nodeKind: "Import",
             specifiers: ["calculateSum", "calculateAvg"],
           },
-          { var: "baz" }
+          invalidSelector
         )
       ).toThrow();
     });
@@ -1672,9 +1803,12 @@ describe("Matcher", () => {
     });
 
     it("should throw an error when using invalid element selector", () => {
+      const invalidSelector = {
+        to: { var: "baz" },
+      } as unknown as DependencySelector;
+
       expect(() =>
-        // @ts-expect-error: Testing invalid selector
-        matcher.isMatch(
+        matcher.isDependencyMatch(
           {
             from: "/project/src/components/Button.tsx",
             to: "/project/src/utils/math/math.test.ts",
@@ -1683,13 +1817,13 @@ describe("Matcher", () => {
             nodeKind: "Import",
             specifiers: ["calculateSum", "calculateAvg"],
           },
-          { to: { var: "baz" } }
+          invalidSelector
         )
       ).toThrow();
     });
 
     it("should not call to micromatch after matching with same options", () => {
-      const result = matcher.isMatch(
+      const result = matcher.isDependencyMatch(
         {
           from: "/project/src/components/Button.tsx",
           to: "/project/src/utils/math/math.test.ts",
@@ -1708,7 +1842,7 @@ describe("Matcher", () => {
 
       micromatchSpy.mockClear();
 
-      const result2 = matcher.isMatch(
+      const result2 = matcher.isDependencyMatch(
         {
           from: "/project/src/components/Button.tsx",
           to: "/project/src/utils/math/math.test.ts",
@@ -1727,7 +1861,7 @@ describe("Matcher", () => {
     });
 
     it("should call again to micromatch after clearing cache", () => {
-      const result = matcher.isMatch(
+      const result = matcher.isDependencyMatch(
         {
           from: "/project/src/components/Button.tsx",
           to: "/project/src/utils/math/math.test.ts",
@@ -1746,7 +1880,7 @@ describe("Matcher", () => {
 
       micromatchSpy.mockClear();
 
-      const result2 = matcher.isMatch(
+      const result2 = matcher.isDependencyMatch(
         {
           from: "/project/src/components/Button.tsx",
           to: "/project/src/utils/math/math.test.ts",
@@ -1765,7 +1899,7 @@ describe("Matcher", () => {
 
       elements.clearCache();
 
-      matcher.isMatch(
+      matcher.isDependencyMatch(
         {
           from: "/project/src/components/Button.tsx",
           to: "/project/src/utils/math/math.test.ts",
@@ -1783,7 +1917,7 @@ describe("Matcher", () => {
     });
 
     it("should not call when using same selector", () => {
-      const result = matcher.isMatch(
+      const result = matcher.isDependencyMatch(
         {
           from: "/project/src/components/Button.tsx",
           to: "/project/src/components/Button.tsx",
@@ -1802,7 +1936,7 @@ describe("Matcher", () => {
 
       micromatchSpy.mockClear();
 
-      const result2 = matcher.isMatch(
+      const result2 = matcher.isDependencyMatch(
         {
           from: "/project/src/components/Button.tsx",
           to: "/project/src/components/Button.tsx",
@@ -1822,7 +1956,7 @@ describe("Matcher", () => {
 
       elements.clearCache();
 
-      matcher.isMatch(
+      matcher.isDependencyMatch(
         {
           from: "/project/src/components/Button.tsx",
           to: "/project/src/components/Button.tsx",
