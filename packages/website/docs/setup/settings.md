@@ -25,7 +25,7 @@ This section provides a complete reference of all available global settings for 
 
 ## `boundaries/elements`
 
-**Type:** `<array of element descriptors>`
+**Type:** `<array of element descriptors>` - see **[Element Descriptors documentation](./elements.md)**
 
 **Required:** Yes (for rules to work)
 
@@ -39,7 +39,7 @@ export default [{
         type: "helpers",
         pattern: "helpers/*/*.js",
         mode: "file",
-        capture: ["category", "elementName"]
+        capture: ["family", "elementName"]
       }
     ]
   }
@@ -52,7 +52,7 @@ export default [{
 
 **Default:** All files included
 
-Files or dependencies not matching these [micromatch patterns](https://github.com/micromatch/micromatch) will be ignored by the plugin.
+Files not matching these [micromatch patterns](https://github.com/micromatch/micromatch) will be ignored by the plugin.
 
 ```js
 export default [{
@@ -68,7 +68,7 @@ export default [{
 
 **Default:** No files ignored
 
-Files or dependencies matching these [micromatch patterns](https://github.com/micromatch/micromatch) will be ignored by the plugin.
+Files matching these [micromatch patterns](https://github.com/micromatch/micromatch) will be ignored by the plugin.
 
 ```js
 export default [{
@@ -78,7 +78,7 @@ export default [{
 }]
 ```
 
-:::info
+:::tip
 The `boundaries/ignore` option has precedence over `boundaries/include`. If you define `boundaries/include`, use `boundaries/ignore` to ignore subsets of included files.
 :::
 
@@ -88,7 +88,7 @@ The `boundaries/ignore` option has precedence over `boundaries/include`. If you 
 
 **Default:** `["import"]`
 
-Modifies which built-in dependency nodes are analyzed. By default, only `import` statements are analyzed.
+Modifies which built-in dependency nodes are analyzed. By default, all next nodes are analyzed:
 
 **Available values:**
 
@@ -97,7 +97,7 @@ Modifies which built-in dependency nodes are analyzed. By default, only `import`
 - `'export'` - Analyze `export` statements
 - `'dynamic-import'` - Analyze [dynamic import](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) statements (`import()`)
 
-All plugin rules will be applied to the nodes defined in this setting.
+All plugin rules will be applied to the nodes defined in this setting. **Modify the default value only if you want to exclude some of the built-in dependency nodes from analysis.**
 
 ```js
 export default [{
@@ -122,7 +122,8 @@ Defines custom dependency nodes to analyze beyond the built-in ones. All plugin 
 **Object structure:**
 
 - **`selector`** - The [esquery selector](https://github.com/estools/esquery) for the `Literal` node where the dependency source is defined
-- **`kind`** - The dependency kind: `"value"` or `"type"` (available only with TypeScript)
+- **`kind`** - The dependency kind: `"value"` or `"type"` (makes sense only for TypeScript projects, where you can have type-only dependencies)
+- **`name`** (optional) - A name for the custom node, so you can use it in rules configuration (e.g., to forbid or allow this kind of dependency in some rules or to use it in custom messages templates variables)
 
 **Example:**
 
@@ -134,11 +135,13 @@ export default [{
       {
         selector: "CallExpression[callee.object.name=jest][callee.property.name=requireActual] > Literal",
         kind: "value",
+        name: "jest-require-actual"
       },
       // jest.mock('source', ...)
       {
         selector: "CallExpression[callee.object.name=jest][callee.property.name=mock] > Literal:first-child",
         kind: "value",
+        name: "jest-mock"
       },
     ],
   }
@@ -167,20 +170,6 @@ export default [{
 }]
 ```
 
-:::warning
-The path should be absolute and resolved before passing it to the plugin. Otherwise, it will be resolved using the current working directory.
-:::
-
-:::note Pattern Matching with rootPath
-
-Matching patterns in element descriptors must be **relative to the `rootPath`**. The plugin automatically converts absolute file paths to relative paths internally for pattern matching.
-
-However, in **`file` and `folder` modes**, patterns are evaluated **right-to-left** (from the end of the path), which makes the relativity to `rootPath` less critical for most use cases. For example, a pattern like `*.model.ts` will match any file ending with `.model.ts` regardless of its location within `rootPath`.
-
-In **`full` mode**, patterns must match the complete relative path from `rootPath`. Files outside `rootPath` maintain their absolute paths and require absolute patterns to match. For more details about monorepo configurations, see the [Monorepo Setup guide](../guides/monorepo-setup.md).
-
-:::
-
 **Using environment variable:**
 
 ```bash
@@ -188,6 +177,20 @@ ESLINT_PLUGIN_BOUNDARIES_ROOT_PATH=../../project-root npm run lint
 ```
 
 You can provide either an absolute path or a relative path to the project root in the environment variable. Relative paths will be resolved from where the lint command is executed.
+
+:::warning
+The path should be absolute and resolved before passing it to the plugin. Otherwise, it will be resolved using the current working directory.
+:::
+
+:::note Pattern Matching with rootPath
+
+Matching patterns in [element descriptors](./elements.md) must be **relative to the `rootPath`**. The plugin automatically converts absolute file paths to relative paths internally for pattern matching.
+
+However, in **`file` and `folder` modes**, patterns are evaluated **right-to-left** (from the end of the path), which makes the relativity to `rootPath` less critical for most use cases. For example, a pattern like `*.model.ts` will match any file ending with `.model.ts` regardless of its location within `rootPath`.
+
+In **`full` mode**, patterns must match the complete relative path from `rootPath`. Files outside `rootPath` maintain their absolute paths and require absolute patterns to match. For more details about monorepo configurations, see the [Monorepo Setup guide](../guides/monorepo-setup.md).
+
+:::
 
 ## `boundaries/cache`
 
@@ -227,7 +230,7 @@ export default [{
 Defines custom rules for categorizing dependencies as external or local. By default, the plugin categorizes dependencies in `node_modules` and unresolvable imports as external. Use this setting to customize this behavior.
 
 :::tip
-This setting is especially useful in monorepo environments.
+This setting is especially useful in monorepo environments. Read the [Monorepo Setup guide](../guides/monorepo-setup.md) for detailed examples of different monorepo configurations using this setting.
 :::
 
 **Object properties:**
@@ -262,13 +265,14 @@ export default [{
   files: ["packages/**/*.js"],
   settings: {
     "boundaries/flag-as-external": {
-      customSourcePatterns: ["@myorg/*", "~/**"]  // Organization packages are external
+      customSourcePatterns: ["@myorg/*", "~/**"] 
+      // Organization packages are considered external
     }
   }
 }]
 ```
 
-**Example - Treat all resolved imports as local (for granular boundary rules between packages):**
+**Example - Treat all resolved imports as local, even if outside rootPath (for granular boundary rules between packages):**
 
 ```js
 export default [{
@@ -277,7 +281,7 @@ export default [{
     "boundaries/flag-as-external": {
       unresolvableAlias: true,   // Still treat unresolvable as external
       inNodeModules: true,        // npm packages remain external
-      outsideRootPath: false,     // Inter-package imports are local
+      outsideRootPath: false,     // Inter-package imports are local, even if outside rootPath
       customSourcePatterns: []    // No custom patterns
     }
   }
@@ -326,11 +330,11 @@ export default [{
 }
 ```
 
-Enables debug traces and optionally filters them with [selectors](../setup/selectors.md).
+Enables debug traces and optionally filters them with **[Element or Dependency Selectors](../setup/selectors.md).**
 
 - **`enabled`** `<boolean>` - Enables debug output when `true`.
-- **`filter.files`** `<array of element selectors>` - Filters file traces.
-- **`filter.dependencies`** `<array of dependency selectors>` - Filters dependency traces.
+- **`filter.files`** [`<array of element selectors>`](../setup/selectors.md#element-selectors) - Filters file traces.
+- **`filter.dependencies`** [`<array of dependency selectors>`](../setup/selectors.md#dependency-selectors) - Filters dependency traces.
 
 :::tip
 You can filter debug traces using selectors. See the [Debugging guide](../guides/debugging.md) for complete filtering examples.
@@ -339,7 +343,7 @@ You can filter debug traces using selectors. See the [Debugging guide](../guides
 ## `boundaries/legacy-templates`
 
 **Type:** `<boolean>`
-**Default:** `true`
+**Default:** `true` <small>(will be `false` in next major version)</small>
 
 Whether to prioritize legacy `${}` templates syntax in selectors over the new Handlebars syntax. When `true`, captured values in selectors will take precedence over Handlebars variables, so there is risk of conflicts between them if you are naming your captured values with any of the properties available in the [Elements Descriptions at runtime](./elements.md#runtime-description-properties) (like `path`, `category`, `origin`, etc.). Set it to `false` if that is not the case, to use the more powerful and flexible Handlebars syntax in all your templates without worrying about conflicts with captured values. Old templates will continue working as they are, without any change, regardless of this setting.
 

@@ -114,8 +114,8 @@ export default [{
       default: "disallow",
       rules: [
         {
-          from: "component",
-          allow: ["component", "service"]
+          from:  { type: "component" },
+          allow: { to: { type: ["component","service"] } }
         }
       ]
     }]
@@ -211,7 +211,7 @@ import { map } from 'lodash';
 ```
 
 :::tip Use external rules to enforce constraints across packages
-You can still use the [`boundaries/external`](../rules/dependencies.md) rule to enforce constraints on inter-package dependencies treated as external. For example, you can prevent certain packages from importing others by defining rules based on the external import patterns.
+You can still use the [`boundaries/external`](../rules/external.md) rule to enforce constraints on inter-package dependencies treated as external. For example, you can prevent certain packages from importing others by defining rules based on the external import patterns.
 :::
 
 ## Scenario 3: Inter-package Dependencies as Local (Monorepo-wide Rules)
@@ -251,8 +251,8 @@ export default [{
       default: "disallow",
       rules: [
         {
-          from: "component",
-          allow: ["component", "service"]
+          from: { type: "component" },
+          allow: { to: { type: ["component","service"] } }
         }
       ]
     }]
@@ -312,52 +312,6 @@ export default [{
     }
   }
 }];
-```
-
-### Pattern: Different Rules for Tests
-
-Apply different boundary rules to test files:
-
-```js
-export default [
-  // Production code: strict boundaries
-  {
-    files: ["packages/*/src/**/*.ts"],
-    
-    settings: {
-      "boundaries/elements": [
-        { type: "component", pattern: "packages/*/src/components/**/*.ts" },
-        { type: "service", pattern: "packages/*/src/services/**/*.ts" }
-      ]
-    },
-    
-    rules: {
-      "boundaries/element-types": ["error", {
-        default: "disallow",
-        rules: [
-          { from: "component", allow: ["component", "service"] }
-        ]
-      }]
-    }
-  },
-  
-  // Test files: relaxed boundaries
-  {
-    files: ["packages/*/test/**/*.ts", "packages/**/*.spec.ts"],
-    
-    settings: {
-      "boundaries/elements": [
-        { type: "test", pattern: "**/*.ts" }
-      ]
-    },
-    
-    rules: {
-      "boundaries/element-types": ["error", {
-        default: "allow"  // Tests can import anything
-      }]
-    }
-  }
-];
 ```
 
 ## Troubleshooting

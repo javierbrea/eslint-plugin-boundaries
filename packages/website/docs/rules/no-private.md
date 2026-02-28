@@ -27,6 +27,12 @@ This rule enforces privacy boundaries between nested elements based on the follo
 This rule helps maintain encapsulation by preventing external elements from directly accessing the internal structure of other elements.
 :::
 
+:::warning
+The boundaries set by this rule can also be achieved with the **[`boundaries/element-types` rule](./dependencies.md)**, which allows you to specify allowed entry points directly in the rules by using the [`relationship` selector property](../setup/selectors.md). This legacy rule will continue working for now to give you more time to migrate your configuration, but it is recommended to migrate to `boundaries/element-types` as soon as possible, as this rule will eventually be removed in oncoming major versions.
+
+Read the **[migration guide below](#migration-to-boundarieselement-types)** for more details and examples on how to migrate your configuration.
+:::
+
 ## Options
 
 ```
@@ -42,10 +48,10 @@ This rule helps maintain encapsulation by preventing external elements from dire
 
 ### Configuration Example
 
-```json
+```js
 {
-  "rules": {
-    "boundaries/no-private": [2, { "allowUncles": true }]
+  rules: {
+    "boundaries/no-private": [2, { allowUncles: true }]
   }
 }
 ```
@@ -81,14 +87,14 @@ src/
 
 **Settings configuration:**
 
-```json
+```js
 {
-  "settings": {
+  settings: {
     "boundaries/elements": [
       {
-        "type": "modules",
-        "pattern": "modules/*",
-        "mode": "folder"
+        type: "modules",
+        pattern: "modules/*",
+        mode: "folder"
       }
     ],
   }
@@ -188,6 +194,54 @@ You can customize error messages globally or for specific rules. See [Rules Conf
 #### `report` in Custom Messages
 
 This rule does not populate the `report` object with rule-specific metadata to handlebars templates.
+
+## Migration to `boundaries/element-types`
+
+The restrictions enforced by this rule can also be achieved with the more flexible and powerful `boundaries/element-types` rule, which allows you to specify allowed relationships directly in the rules by using the `relationship` selector property. It is recommended to migrate your configuration to `boundaries/element-types` as soon as possible, as this legacy rule will eventually be removed in oncoming major versions.
+
+Here you have an example of how to migrate a configuration from `boundaries/no-private` to `boundaries/element-types`:
+
+```js
+// Original configuration with boundaries/no-private
+{
+  rules: {
+    "boundaries/no-private": [2, { allowUncles: true }]
+  }
+}
+
+// Migrated configuration with boundaries/element-types
+{
+  rules: {
+    "boundaries/element-types": [2, {
+      default: "allow",
+      rules: [
+        // Disallow all elements importing children elements of other elements
+        {
+          from: { type: "*" },
+          disallow: {
+            dependency: {
+              relationship: {
+                to: ["child"],
+              }
+            },
+          }
+        },
+        // Allow all elements importing their own children, siblings, and uncles     
+        {
+          from: { type: "*" },
+          allow: {
+            dependency: {
+              relationship: {
+                to: ["child", "sibling", "uncle"],
+              }
+            },
+          }
+        }
+      ]
+    }]
+  }
+}
+```
 
 ## Further Reading
 

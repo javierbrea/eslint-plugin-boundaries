@@ -56,7 +56,7 @@ When debug mode is enabled, you will see detailed output in the console for each
 
 ## Filtering Debug Output
 
-You can filter traces using [selectors](../setup/selectors.md) in the `boundaries/debug.filter` setting. This allows you to focus on specific files or dependencies that are relevant to your debugging session.
+You can **[filter traces using selectors](../setup/selectors.md)** in the `boundaries/debug.filter` setting. This allows you to focus on specific files or dependencies that are relevant to your debugging session.
 
 ```js
 export default [{
@@ -87,7 +87,7 @@ Filter behavior:
 
 ## Example Output
 
-When debug mode is enabled, you'll see output like:
+When debug mode is enabled, you'll see **[descriptions of files and dependencies](../setup/elements.md#runtime-description-properties)** in the console. This information is based on the properties defined in the **[element descriptors](../setup/elements.md)** in your configuration. For example:
 
 ```
 [boundaries] [debug]: Description of file "src/Config/Strict.ts":
@@ -136,10 +136,11 @@ When debug mode is enabled, you'll see output like:
     "isUnknown": false,
     "elementPath": "src/Settings/index.ts",
     "internalPath": "index.ts",
-    "parents": [],
-    "source": "../Settings"
+    "parents": []
   },
   "dependency": {
+    "source": "../Settings",
+    "baseSource": null,
     "kind": "type",
     "nodeKind": "import",
     "relationship": {
@@ -191,7 +192,8 @@ This ensures a clean output without ANSI color codes, making it easier to read i
 
 ### No debug output appearing
 
-- Verify the environment variable is set correctly
+- Verify the setting or environment variable is correctly set to enable debug mode
+- Ensure your lint command is running and targeting files that match your configuration
 - Some shells may require `export ESLINT_PLUGIN_BOUNDARIES_DEBUG=1` before the command
 
 ### Too much output
@@ -200,14 +202,13 @@ This ensures a clean output without ANSI color codes, making it easier to read i
 - Filter output with `grep` or pipe to a file
 - Consider temporarily disabling other rules to reduce output
 
-### Unexpected element types
+### Unexpected element properties or missing captures
 
 - Check your element patterns in the [`boundaries/elements`](../setup/elements.md) setting
 - Verify pattern is correct in the element descriptor
-- Ensure patterns are listed in the correct order (first match wins)
+- Ensure descriptor patterns are listed in the correct order (first match wins)
 
 ### Imports not resolving
 
 - Check [resolver configuration in `import/resolver`](./custom-resolvers.md)
 - Try limiting to a single file to isolate the issue
-

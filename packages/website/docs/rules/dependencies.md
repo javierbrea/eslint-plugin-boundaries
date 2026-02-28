@@ -16,7 +16,7 @@ tags:
 
 ## Rule Details
 
-This rule validates `import` statements (or any other **[dependency-creating syntax](../setup/settings.md#boundariesdependency-nodes)**) between element types in your project based on the provided configuration. It ensures that dependencies adhere to the defined architectural boundaries.
+This rule validates dependencies between elements in your project based on the provided configuration. It ensures that dependencies adhere to the defined architectural boundaries.
 
 ## Options
 
@@ -30,72 +30,80 @@ This rule validates `import` statements (or any other **[dependency-creating syn
 - `enabled`: Enables the rule. `0` = off, `1` = warning, `2` = error
 - `default`: `"allow"` or `"disallow"`. Determines the default behavior for imports that don't match any rule
 - `message`: Custom error message for rule violations. Note that **the default message provides detailed information about why the error occurred**, so only define a custom message if necessary. See [error messages](#error-messages) for more information
-- `rules`: An array of rule objects processed in order to determine whether an import should be allowed. Each rule object contains:
-  - `from`: **[`<element selectors>`](../setup/selectors.md)** - If the file being analyzed matches this selector, the rule will be evaluated. Otherwise, it is skipped
-  - `disallow`: **[`<element selectors>`](../setup/selectors.md)** - If the imported element matches this selector, the import is disallowed (can be overridden by a subsequent rule returning `"allow"`)
-  - `allow`: **[`<element selectors>`](../setup/selectors.md)** - If the imported element matches this selector, the import is allowed (can be overridden by a subsequent rule returning `"disallow"`)
-  - `dependency`: **[`<dependency metadata selector>`](../setup/selectors.md#dependency-metadata-selectors)** - Optional. Matches metadata such as `kind`, `nodeKind`, `specifiers`, `relationship`, `source`, etc.
-  - _`importKind`_: `<string>` - Optional. [TypeScript](../guides/typescript-support.md) only. **Deprecated in v6** (kept for backward compatibility). Use `dependency.kind` instead. If both are defined, `dependency.kind` takes precedence. Possible values: `"value"`, `"type"`, or `"typeof"`
+- `rules`: An array of rule objects processed in order to determine whether an import should be allowed. Each rule object can contain the following properties:
+  - `from`: **[`<element selector/s>`](../setup/selectors.md)** - If the file being analyzed matches this selector, the rule will be evaluated. Otherwise, it is skipped
+  - `to`: **[`<element selector/s>`](../setup/selectors.md)** - If the dependency target matches this selector, the rule will be evaluated. Otherwise, it is skipped
+  - `disallow`: **[`<dependency selector/s>`](../setup/selectors.md)** - If the dependency matches this selector, it is disallowed (can be overridden by a subsequent rule returning `"allow"`)
+  - `allow`: **[`<element selector/s>`](../setup/selectors.md)** - If the dependency matches this selector, it is allowed (can be overridden by a subsequent rule returning `"disallow"`)
   - `message`: `<string>` - Custom error message for this specific rule. See [error messages](#error-messages) for more information
+  - _`importKind`_: `<string>` - Optional. **Deprecated in v6** (kept for backward compatibility). Makes sense only for [TypeScript](../guides/typescript-support.md) projects. Use `dependency.kind` instead. If both are defined, `dependency.kind` takes precedence. Possible values: `"value"`, `"type"`, or `"typeof"`. If defined, the rule will only be evaluated for dependencies of the specified kind.
 
-### Comparing Captured Values
-
-:::info
-This rule uses **[element selectors](../setup/selectors.md)** to define which elements can import which other elements. Element selectors support capturing properties from **[element definitions](../setup/elements.md)**, allowing for more dynamic and flexible rules.
+:::warning
+You must provide at least one of `allow` or `disallow`, and one of `to` or `from` for each rule.
 :::
 
-For example: You can use element selector properties to ensure components of one `family` can only import helpers of the same `family`, using the template pattern `{{ capturedKey }}` in the `allow` selector. This will be replaced with the corresponding captured value from the `from` element before matching.
+### Using selectors in this rule
 
-**Example:** If the `from` element has captured values `{ family: "atom", elementName: "component-a" }`, the selector `{ type: "components", captured: { family: "!{{ family }}-{{ elementName }}" } }` will match components with a `family` value matching `"!atom-component-a"`.
+This rule uses **[element and dependency selectors](../setup/selectors.md)** to define which elements can depend on other elements.
+
+For example: You can use element selector properties to ensure components of one `type` can only import helpers of the same `type` in the `allow` selector.
+
+:::info
+Read the **[rules configuration](../setup/rules.mdx)** documentation to learn about how to use common rule options, use [selectors](../setup/selectors.md) in rule options, and customize error messages with templates.
+:::
 
 :::tip
-Enable [debug mode](../guides/debugging.md) in the plugin configuration to inspect the assigned types and captured values for each file in your project.
+Enable [debug mode](../guides/debugging.md) in the plugin configuration to inspect the descriptions assigned to each file and dependency. This can help you understand how selectors are matching and how to configure your rules effectively.
 :::
 
 ### Configuration Example
 
-```json
+```js
 {
-  "rules": {
+  rules: {
     "boundaries/element-types": [2, {
       // disallow all local imports by default
-      "default": "disallow",
-      "rules": [
+      default: "disallow",
+      rules: [
         {
           // from helper elements
-          "from": { "type": "helpers" },
+          from: { type: "helpers" },
           // allow importing helper elements
-          "allow": [{ "type": "helpers" }],
-          // allow only importing value, not type (TypeScript only)
-          "importKind": "value"
+          allow: {
+            to: { type: "helpers" },
+            // allow only importing value, not type (TypeScript only)
+            dependency: { kind: "value" }
+          },
         },
         {
           // from component elements
-          "from": { "type": "components" },
-          "allow": [
-            // allow importing components of the same family
-            { "type": "components", "captured": { "family": "{{ family }}" } },
-            // allow importing helpers with category "data"
-            { "type": "helpers", "captured": { "category": "data" } }
-          ]
+          from: { type: "components" },
+          allow: {
+            to: [
+              // allow importing components of the same family
+              { type: "components", captured: { family: "{{ family }}" } },
+              // allow importing helpers with fileName "sort"
+              { type: "helpers", captured: { fileName: "sort" } }
+            ]
+          }
         },
         {
           // from components with captured family "molecule"
-          "from": { "type": "components", "captured": { "family": "molecule" } },
-          "allow": [
+          from: { type: "components", captured: { family: "molecule" } },
+          allow: {
             // allow importing components with captured family "atom"
-            { "type": "components", "captured": { "family": "atom" } }
-          ]
+            to: { type: "components", captured: { family: "atom" } }
+          }
         },
         {
           // from modules
-          "from": { "type": "modules" },
+          from: { type: "modules" },
           // allow importing helpers, components, and modules
-          "allow": [
-            { "type": "helpers" },
-            { "type": "components" },
-            { "type": "modules" }
-          ]
+          allow: {
+            to: {
+               type: ["helpers", "components", "modules"]
+            }
+          }
         }
       ]
     }]
@@ -143,27 +151,27 @@ src/
 
 **Settings configuration:**
 
-```json
+```js
 {
-  "settings": {
+  settings: {
     "boundaries/elements": [
       {
-        "type": "helpers",
-        "pattern": "helpers/*/*.js",
-        "mode": "file",
-        "capture": ["category", "elementName"]
+        type: "helpers",
+        pattern: "helpers/*/*.js",
+        mode: "file",
+        capture: ["family", "elementName"]
       },
       {
-        "type": "components",
-        "pattern": "components/*/*",
-        "mode": "folder",
-        "capture": ["family", "elementName"]
+        type: "components",
+        pattern: "components/*/*",
+        mode: "folder",
+        capture: ["family", "elementName"]
       },
       {
-        "type": "modules",
-        "pattern": "modules/*",
-        "mode": "folder",
-        "capture": ["elementName"]
+        type: "modules",
+        pattern: "modules/*",
+        mode: "folder",
+        capture: ["elementName"]
       }
     ],
     "import/resolver": {
@@ -209,7 +217,7 @@ Components importing components from a different family:
 import MoleculeA from 'components/molecules/molecule-a'
 ```
 
-Components importing helpers from a category other than "data":
+Components importing helpers with a fileName different than "sort":
 
 ```js
 // src/components/atoms/atom-a/AtomA.js
@@ -239,11 +247,11 @@ Components importing components of the same family:
 import AtomB from 'components/atoms/atom-b'
 ```
 
-Components importing helpers from the "data" category:
+Components importing helpers with fileName "sort":
 
 ```js
 // src/components/atoms/atom-a/AtomA.js
-import { someParser } from 'helpers/data/parse'
+import { someSorter } from 'helpers/data/sort'
 ```
 
 Molecule components importing atom components:
@@ -280,15 +288,15 @@ This rule provides detailed error messages to help you understand and resolve vi
 
 - **Default disallow message:** When an import is disallowed because it doesn't match any rule and the default is `"disallow"`, the message includes the file type with captured values and the dependency type with captured values:
 
-  `No rule allowing this dependency was found. File is of type 'components' with category 'molecules' and elementName 'molecule-c'. Dependency is of type 'modules' with domain 'domain-a' and elementName 'module-a'`
+  `No rule allowing this dependency was found. File is of type 'components' with family 'molecules' and elementName 'molecule-c'. Dependency is of type 'modules' with domain 'domain-a' and elementName 'module-a'`
 
 - **Rule violation message:** When a specific rule disallows an import, the message includes which rule triggered it:
 
-  `Importing elements of type 'components' with category 'atoms' and elementName '*-a' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1`
+  `Importing elements of type 'components' with family 'atoms' and elementName '*-a' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1`
 
-- **Import kind message:** For TypeScript imports, the message also includes the import kind:
+- **Dependency kind message:** For TypeScript imports, the message also includes the dependency kind:
 
-  `Importing kind "value" from elements of type 'components' with category 'atoms' and elementName '*-a' as 'value' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1`
+  `Importing kind "value" from elements of type 'components' with family 'atoms' and elementName '*-a' as 'value' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1`
 
 ### Custom Messages with Templates
 
@@ -299,7 +307,6 @@ You can customize error messages globally or for specific rules. See [Rules Conf
 #### `report` in Custom Messages
 
 This rule does not populate the `report` object with rule-specific metadata to handlebars templates.
-
 
 ## Further Reading
 

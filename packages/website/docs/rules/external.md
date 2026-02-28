@@ -18,7 +18,13 @@ tags:
 ## Rule Details
 
 
-This rule validates `import` statements (or any other **[dependency-creating syntax](../setup/settings.md#boundariesdependency-nodes)**) to external modules and allows or disallows them based on the element importing the module and the provided configuration. It helps maintain consistent dependency management across different architectural layers.
+This rule validates dependencies to external modules and allows or disallows them based on the element importing the module and the provided configuration. It helps maintain consistent dependency management across different architectural layers.
+
+:::warning
+The boundaries set by this rule can also be achieved with the **[`boundaries/element-types` rule](./dependencies.md)**, which allows you to specify allowed entry points directly in the rules by using the [`origin` and `source` selector properties](../setup/selectors.md). This legacy rule will continue working for now to give you more time to migrate your configuration, but it is recommended to migrate to `boundaries/element-types` as soon as possible, as this rule will eventually be removed in oncoming major versions.
+
+Read the **[migration guide below](#migration-to-boundarieselement-types)** for more details and examples on how to migrate your configuration.
+:::
 
 
 ## Options
@@ -40,8 +46,12 @@ This rule validates `import` statements (or any other **[dependency-creating syn
   - `from`: **[`<element selectors>`](../setup/selectors.md)** - If the file being analyzed matches this selector, the rule will be evaluated. Otherwise, it is skipped
   - `disallow`: **`<external module selectors>`** - If the imported external module matches this selector, the import is disallowed (can be overridden by a subsequent rule returning `"allow"`)
   - `allow`: **`<external module selectors>`** - If the imported external module matches this selector, the import is allowed (can be overridden by a subsequent rule returning `"disallow"`)
-  - `importKind`: `<string>` - Optional. [TypeScript](../guides/typescript-support.md) only. **Deprecated in v6** (kept for backward compatibility). Use `dependency.kind` in `from` selectors instead. If both are defined, `dependency.kind` takes precedence. Possible values: `"value"`, `"type"`, or `"typeof"`
+  - `importKind`: `<string>` - Optional. Makes sense when using [TypeScript](../guides/typescript-support.md) only. If defined, the rule will only be evaluated for dependencies of the specified kind. Possible values: `"value"`, `"type"`, or `"typeof"`. If defined, the rule will only be evaluated for dependencies of the specified kind.
   - `message`: `<string>` - Custom error message for this specific rule. See [error messages](#error-messages) for more information
+
+  :::warning
+You must provide at least one of `allow` or `disallow`, and `from` for each rule.
+:::
 
 
 ### External Module Selectors
@@ -91,25 +101,25 @@ When using options:
 ### Configuration Example
 
 
-```json
+```js
 {
-  "rules": {
+  rules: {
     "boundaries/external": [2, {
       // disallow all external imports by default
-      "default": "disallow",
-      "rules": [
+      default: "disallow",
+      rules: [
         {
           // from helper elements
-          "from": { "type": "helpers" },
+          from: { type: "helpers" },
           // allow importing moment
-          "allow": ["moment"],
+          allow: ["moment"],
           // allow only importing types, not values (TypeScript only)
-          "importKind": "type"
+          importKind: "type"
         },
         {
           // from component elements
-          "from": { "type": "components" },
-          "allow": [
+          from: { type: "components" },
+          allow: [
             // allow importing react
             "react",
             // allow importing any @material-ui module
@@ -118,22 +128,22 @@ When using options:
         },
         {
           // from components of family "molecules"
-          "from": { "type": "components", "captured": { "family": "molecules" } },
-          "disallow": [
+          from: { type: "components", captured: { family: "molecules" } },
+          disallow: [
             // disallow importing @material-ui/icons
             "@material-ui/icons"
           ]
         },
         {
           // from modules
-          "from": { "type": "modules" },
-          "allow": [
+          from: { type: "modules" },
+          allow: [
             // allow importing react
             "react",
             // allow importing useHistory, Switch and Route from react-router-dom
-            { "module": "react-router-dom", "specifiers": ["useHistory", "Switch", "Route"] },
+            { module: "react-router-dom", specifiers: ["useHistory", "Switch", "Route"] },
             // allow importing Menu icon and any icon starting with "Log" from @mui/icons-material
-            { "module": "@mui/icons-material", "path": ["/Menu", "/Log*"] }
+            { module: "@mui/icons-material", path: ["/Menu", "/Log*"] }
           ]
         }
       ]
@@ -188,27 +198,27 @@ src/
 **Settings configuration:**
 
 
-```json
+```js
 {
-  "settings": {
+  settings: {
     "boundaries/elements": [
       {
-        "type": "helpers",
-        "pattern": "helpers/*/*.js",
-        "mode": "file",
-        "capture": ["category", "elementName"]
+        type: "helpers",
+        pattern: "helpers/*/*.js",
+        mode: "file",
+        capture: ["family", "elementName"]
       },
       {
-        "type": "components",
-        "pattern": "components/*/*",
-        "mode": "folder",
-        "capture": ["family", "elementName"]
+        type: "components",
+        pattern: "components/*/*",
+        mode: "folder",
+        capture: ["family", "elementName"]
       },
       {
-        "type": "modules",
-        "pattern": "modules/*",
-        "mode": "folder",
-        "capture": ["elementName"]
+        type: "modules",
+        pattern: "modules/*",
+        mode: "folder",
+        capture: ["elementName"]
       }
     ]
   }
@@ -392,6 +402,52 @@ This rule populates the `report` object with rule-specific metadata:
 
 When neither condition applies, `report` contains no properties.
 
+## Migration to `boundaries/element-types`
+
+The restrictions enforced by this rule can also be achieved with the more flexible and powerful `boundaries/element-types` rule, which allows you to specify allowed relationships directly in the rules by using the `internalPath` selector property. It is recommended to migrate your configuration to `boundaries/element-types` as soon as possible, as this legacy rule will eventually be removed in oncoming major versions.
+
+Here you have an example of how to migrate a configuration from `boundaries/external` to `boundaries/element-types`:
+
+```js
+// Original configuration with boundaries/external
+{
+  rules: {
+    "boundaries/external": [2, {
+      default: "disallow",
+      rules: [
+        {
+          from: { type: "helpers" },
+          allow: ["moment"],
+          importKind: "type"
+        }
+      ]
+    }]
+  }
+}
+
+// Migrated configuration with boundaries/element-types
+{
+  rules: {
+    "boundaries/element-types": [2, {
+      default: "disallow",
+      rules: [
+        {
+          from: { type: "helpers" },
+          allow: {
+            to: {
+              origin: "external",
+            },
+            dependency: {
+              baseSource: "moment",
+              kind: "type"
+            },
+          }
+        }
+      ]
+    }]
+  }
+}
+```
 
 ## Further Reading
 

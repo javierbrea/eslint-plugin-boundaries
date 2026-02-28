@@ -67,7 +67,7 @@ export default [{
 The following selector formats are now deprecated:
 
 1. **String format**: `"helpers"`
-2. **Tuple format**: `["helpers", { category: "data" }]`
+2. **Tuple format**: `["helpers", { family: "data" }]`
 3. **Array of legacy selectors**: `["helpers", "components"]`
 
 ### Introduction of Object-Based Selectors
@@ -114,12 +114,12 @@ If both are present in the same rule, selector-level `dependency.kind` has prior
 
 **Before (v5):**
 ```js
-["helpers", { category: "data" }]
+["helpers", { family: "data" }]
 ```
 
 **After (v6):**
 ```js
-{ type: "helpers", captured: { category: "data" } }
+{ type: "helpers", captured: { family: "data" } }
 ```
 
 The object-based format makes it immediately clear what each property represents.
@@ -188,7 +188,7 @@ The new syntax supports arrays of captured value objects for OR logic:
 **Before (v5):** Had to use micromatch patterns or multiple rules
 ```js
 {
-  from: ["helpers", { category: "data|api" }],
+  from: ["helpers", { family: "data|api" }],
   allow: ["helpers"]
 }
 ```
@@ -199,8 +199,8 @@ The new syntax supports arrays of captured value objects for OR logic:
   from: {
     type: "helpers",
     captured: [
-      { category: "data" },
-      { category: "api" }
+      { family: "data" },
+      { family: "api" }
     ]
   },
   allow: [{ type: "helpers" }]
@@ -213,9 +213,9 @@ This is especially powerful for complex conditions:
 {
   type: "component",
   captured: [
-    { module: "auth" },
-    { module: "user", feature: "profile" },
-    { module: "admin", feature: "users", scope: "management" }
+    { family: "auth" },
+    { family: "user", feature: "profile" },
+    { family: "admin", feature: "users", scope: "management" }
   ]
 }
 ```
@@ -265,10 +265,10 @@ const selector: ElementSelector = {
 
 ```js
 // Before
-["helpers", { category: "data" }]
+["helpers", { family: "data" }]
 
 // After
-{ type: "helpers", captured: { category: "data" } }
+{ type: "helpers", captured: { family: "data" } }
 ```
 
 **With multiple captured properties:**
@@ -290,13 +290,13 @@ const selector: ElementSelector = {
 
 ```js
 // Before
-["helpers", "components", ["modules", { category: "core" }]]
+["helpers", "components", ["modules", { family: "core" }]]
 
 // After
 [
   { type: "helpers" },
   { type: "components" },
-  { type: "modules", captured: { category: "core" } }
+  { type: "modules", captured: { family: "core" } }
 ]
 ```
 
@@ -317,7 +317,7 @@ const selector: ElementSelector = {
         "from": ["components"],
         "allow": [
           ["components", { "family": "${family}" }],
-          ["helpers", { "category": "data" }]
+          ["helpers", { "family": "data" }]
         ]
       },
       {
@@ -344,7 +344,7 @@ const selector: ElementSelector = {
         "from": { "type": "components" },
         "allow": [
           { "type": "components", "captured": { "family": "{{ family }}" } },
-          { "type": "helpers", "captured": { "category": "data" } }
+          { "type": "helpers", "captured": { "family": "data" } }
         ]
       },
       {
@@ -372,12 +372,12 @@ Version 6 introduces Handlebars-style template syntax:
 
 **Before (v5):**
 ```js
-["helpers", { category: "!${from.category}" }]
+["helpers", { family: "!${from.family}" }]
 ```
 
 **After (v6):**
 ```js
-{ type: "helpers", captured: { category: "!{{ from.category }}" } }
+{ type: "helpers", captured: { family: "!{{ from.family }}" } }
 ```
 
 :::note Legacy Template Support
@@ -392,12 +392,12 @@ The old `${property}` syntax is still supported for backwards compatibility but 
 // Reference properties from the source file
 {{ from.type }}
 {{ from.category }}
-{{ from.capturedProperty }}
+{{ from.captured.property }}
 
 // Reference properties from the target dependency
-{{ target.type }}
-{{ target.category }}
-{{ target.capturedProperty }}
+{{ to.type }}
+{{ to.category }}
+{{ to.captured.property }}
 ```
 
 ## Advanced Examples
@@ -560,10 +560,10 @@ Replace `${...}` with `{{...}}` and update property paths:
 
 ```js
 // Legacy (flattened)
-"${file.type} with name ${file.elementName} cannot import ${dependency.category}"
+"${file.type} with name ${file.elementName} cannot import ${dependency.family}"
 
 // Handlebars (nested)
-"{{from.type}} with name {{from.captured.elementName}} cannot import {{to.captured.category}}"
+"{{from.type}} with name {{from.captured.elementName}} cannot import {{to.captured.family}}"
 ```
 
 **Parent elements:**
