@@ -71,7 +71,7 @@ Enable [debug mode](../guides/debugging.md) in the plugin configuration to inspe
       rules: [
         {
           // when importing helpers
-          to: { type: "helpers" },
+          to: { type: "helper" },
           // allow any file (helpers are single files)
           allow: "*"
         },
@@ -79,8 +79,8 @@ Enable [debug mode](../guides/debugging.md) in the plugin configuration to inspe
           // when importing components or modules
           to: {
             type: [
-              "components",
-              "modules"
+              "component",
+              "module"
             ]
           },
           // only allow index.js
@@ -145,19 +145,19 @@ src/
   settings: {
     "boundaries/elements": [
       {
-        type: "helpers",
+        type: "helper",
         pattern: "helpers/*/*.js",
         mode: "file",
         capture: ["family", "elementName"]
       },
       {
-        type: "components",
+        type: "component",
         pattern: "components/*/*",
         mode: "folder",
         capture: ["family", "elementName"]
       },
       {
-        type: "modules",
+        type: "module",
         pattern: "modules/*",
         mode: "folder",
         capture: ["elementName"]
@@ -257,19 +257,19 @@ This rule provides detailed error messages to help you understand and resolve vi
 - **Default disallow message:** When an entry point is disallowed because it doesn't match any rule and the default is `"disallow"`, the message includes the entry point and dependency information:
 
 
-  `No rule allows the entry point 'fooFile.js' in dependencies of type 'components' with family 'molecules' and elementName 'molecule-c'`
+  `No rule allows the entry point 'fooFile.js' in dependencies of type 'component' with family 'molecules' and elementName 'molecule-c'`
 
 
 - **Rule violation message:** When a specific rule disallows an entry point, the message includes which rule triggered it:
 
 
-  `The entry point 'fooFile.js' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 2`
+  `The entry point 'fooFile.js' is not allowed in elements of type 'helper' with elementName 'helper-c'. Disallowed in rule 2`
 
 
 - **Import kind message:** For TypeScript imports, the message also includes the import kind:
 
 
-  `The entry point 'fooFile.js' is not allowed in elements of type 'helpers' with elementName 'helper-c' when importing type. Disallowed in rule 2`
+  `The entry point 'fooFile.js' is not allowed in elements of type 'helper' with elementName 'helper-c' when importing type. Disallowed in rule 2`
 
 ### Custom Messages with Templates
 
@@ -296,7 +296,7 @@ Here you have an example of how to migrate a configuration from `boundaries/entr
       default: "disallow",
       rules: [
         {
-          to: { type: ["components", "modules"] },
+          to: { type: ["component", "module"] },
           allow: "index.js",
           importKind: "value"
         }
@@ -313,7 +313,7 @@ Here you have an example of how to migrate a configuration from `boundaries/entr
         {
           // only allow importing index.js files from components and modules
           to: {
-            type: ["components", "modules"],
+            type: ["component", "module"],
             elementPath: "!index.js" 
           },
           disallow: {

@@ -36,10 +36,10 @@ A simple [micromatch pattern](https://github.com/micromatch/micromatch) that mat
 
 ```js
 // Matches all helpers
-"helpers"
+"helper"
 
 // Matches helpers and components
-"helpers|components"
+"helper|component"
 
 // Matches any element type ending in "-component"
 "*-component"
@@ -49,10 +49,10 @@ A simple [micromatch pattern](https://github.com/micromatch/micromatch) that mat
 
 ```js
 // Single type
-{ type: "helpers" }
+{ type: "helper" }
 
 // Multiple types (using array of selectors)
-[{ type: "helpers" }, { type: "components" }]
+[{ type: "helper" }, { type: "component" }]
 
 // Pattern matching
 { type: "*-component" }
@@ -66,26 +66,26 @@ Matches when both the element type matches AND all specified captured properties
 
 ```js
 // Match helpers with domain "users"
-["helpers", { domain: "users" }]
+["helper", { domain: "users" }]
 
 // Match helpers with domain "users" or "admin"
-["helpers", { domain: "users|admin" }]
+["helper", { domain: "users|admin" }]
 
 // Match helpers where elementName starts with "parse"
-["helpers", { elementName: "parse*" }]
+["helper", { elementName: "parse*" }]
 ```
 
 **Modern equivalent:**
 
 ```js
 // Single captured property
-{ type: "helpers", captured: { domain: "users" } }
+{ type: "helper", captured: { domain: "users" } }
 
 // Pattern in captured values
-{ type: "helpers", captured: { domain: "users|admin" } }
+{ type: "helper", captured: { domain: "users|admin" } }
 
 // Multiple captured conditions
-{ type: "helpers", captured: { elementName: "parse*" } }
+{ type: "helper", captured: { elementName: "parse*" } }
 ```
 
 ## Array of Legacy Selectors
@@ -95,13 +95,13 @@ Matches when both the element type matches AND all specified captured properties
 When an array of selectors is provided, it matches if ANY selector in the array matches (OR logic).
 
 ```js
-// Matches helpers OR components
-["helpers", "components"]
+// Matches helper OR component
+["helper", "component"]
 
-// Matches data helpers OR all components
+// Matches data helper OR all component
 [
-  ["helpers", { domain: "users" }],
-  "components"
+  ["helper", { domain: "users" }],
+  "component"
 ]
 ```
 
@@ -109,12 +109,12 @@ When an array of selectors is provided, it matches if ANY selector in the array 
 
 ```js
 // Object-based selectors with OR logic in a property
-{ type: ["helpers", "components" ] }
+{ type: ["helper", "component" ] }
 
 // Array of object-based selectors with OR logic
 [
-  { type: "helpers", captured: { domain: "users" } },
-  { type: "components" }
+  { type: "helper", captured: { domain: "users" } },
+  { type: "component" }
 ]
 ```
 

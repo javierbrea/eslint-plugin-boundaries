@@ -81,13 +81,13 @@ src/
   settings: {
     "boundaries/elements": [
       {
-        type: "helpers",
+        type: "helper",
         pattern: "helpers/*/*.js",
         mode: "file",
         capture: ["family", "elementName"]
       },
       {
-        type: "components",
+        type: "component",
         pattern: "components/*/*",
         mode: "folder",
         capture: ["family", "elementName"]
@@ -151,7 +151,7 @@ You can achieve the same result by using the [`boundaries/element-types` rule](.
           // Or use more granular rules to allow some specific dependencies
           // to unknown files, for example:
           {
-            from: { type: "helpers" },
+            from: { type: "helper" },
             allow: {
               to: { isUnknown: true }
             }

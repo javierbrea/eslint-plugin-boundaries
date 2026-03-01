@@ -36,7 +36,7 @@ export default [{
   settings: {
     "boundaries/elements": [
       {
-        type: "helpers",
+        type: "helper",
         pattern: "helpers/*/*.js",
         mode: "file",
         capture: ["family", "elementName"]

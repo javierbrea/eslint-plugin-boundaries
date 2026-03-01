@@ -94,7 +94,7 @@ Selecting elements:
 
 ```js
 // Match all helper elements
-{ type: "helpers" }
+{ type: "helper" }
 
 // Match React components
 { type: "component", category: "react" }
@@ -138,7 +138,7 @@ When multiple properties are specified in a selector object, **all** conditions 
 ```js
 // Match local helpers with category "data"
 {
-  type: "helpers",
+  type: "helper",
   category: "data",
   origin: "local"
 }
@@ -158,7 +158,7 @@ Arrays of values for a selector property use **OR logic** - any value in the arr
 ```js
 // Match helpers with category "data" OR "api"
 {
-  type: "helpers",
+  type: "helper",
   category: ["data", "api"]
 }
 ```
@@ -168,14 +168,14 @@ When an array of selectors is provided, it matches if **any** selector in the ar
 ```js
 // Matches helpers OR components
 [
-  { type: "helpers" },
-  { type: "components" }
+  { type: "helper" },
+  { type: "component" }
 ]
 
 // Matches data helpers OR all services
 [
-  { type: "helpers", captured: { domain: "users" } },
-  { type: "services" }
+  { type: "helper", captured: { domain: "users" } },
+  { type: "service" }
 ]
 
 // Complex OR conditions
@@ -197,20 +197,20 @@ When `captured` is an object, **all** properties must match:
 ```js
 // Element configuration
 {
-  type: "helpers",
+  type: "helper",
   pattern: "helpers/*/*.js",
   capture: ["domain", "elementName"]
 }
 
 // Selector - matches helpers where domain is "users" AND elementName is "parser"
 {
-  type: "helpers",
+  type: "helper",
   captured: { domain: "users", elementName: "parser" }
 }
 
 // Using micromatch patterns
 {
-  type: "helpers",
+  type: "helper",
   captured: { domain: "users|admin", elementName: "parse*" }
 }
 ```
@@ -224,7 +224,7 @@ When `captured` is an **array of objects**, the element matches if **any** objec
 // - domain is "auth" OR
 // - domain is "users" AND elementName is "profile"
 {
-  type: "helpers",
+  type: "helper",
   captured: [
     { domain: "auth" },
     { domain: "users", elementName: "profile" }
@@ -285,8 +285,8 @@ For further info about rules syntax, read the [Rules documentation](./rules.mdx)
 If a file `users/helpers/parser.js` (domain: "users") tries to import from `auth/helpers/fetcher.js` (domain: "auth"):
 
 1. Template `{{ from.domain }}` resolves to `"users"`
-2. Template `{{ from.type }}` resolves to `"helpers"`
-2. Pattern becomes `{ type: "helpers", captured: { domain: "!users" } }`
+2. Template `{{ from.type }}` resolves to `"helper"`
+2. Pattern becomes `{ type: "helper", captured: { domain: "!users" } }`
 3. The target helper has domain "auth" → matches `"!users"`
 4. Rule disallows the import
 
@@ -312,7 +312,7 @@ If a file `users/helpers/parser.js` (domain: "users") tries to import from `auth
   from: { type: "component", captured: { domain: "*" } },
   allow: [
     {
-      type: "helpers",
+      type: "helper",
       captured: { domain: "{{ from.domain }}-*" }
     }
   ]

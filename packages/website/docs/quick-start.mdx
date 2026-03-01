@@ -94,9 +94,9 @@ Read the **[Elements](./setup/elements.md)** section for guidance on how to defi
 .     },
 +     settings: {
 +       "boundaries/elements": [
-+         { type: "controllers", pattern: "controllers/*" },
-+         { type: "models", pattern: "models/*" },
-+         { type: "views", pattern: "views/*" }
++         { type: "controller", pattern: "controllers/*" },
++         { type: "model", pattern: "models/*" },
++         { type: "view", pattern: "views/*" }
 +       ],
 +     },
 .   }
@@ -116,9 +116,9 @@ Read the **[Elements](./setup/elements.md)** section for guidance on how to defi
 .     },
 +     settings: {
 +       "boundaries/elements": [
-+         { type: "controllers", pattern: "controllers/*" },
-+         { type: "models", pattern: "models/*" },
-+         { type: "views", pattern: "views/*" }
++         { type: "controller", pattern: "controllers/*" },
++         { type: "model", pattern: "models/*" },
++         { type: "view", pattern: "views/*" }
 +       ],
 +     } satisfies Settings,
 .   } satisfies Config
@@ -153,9 +153,9 @@ You should use `recommended` config in already existing projects to gradually in
 .     },
 .     settings: {
 .       "boundaries/elements": [
-.         { type: "controllers", pattern: "controllers/*" },
-.         { type: "models", pattern: "models/*" },
-.         { type: "views", pattern: "views/*" }
+.         { type: "controller", pattern: "controllers/*" },
+.         { type: "model", pattern: "models/*" },
+.         { type: "view", pattern: "views/*" }
 .       ],
 .     },
 +     rules: {
@@ -178,9 +178,9 @@ You should use `recommended` config in already existing projects to gradually in
 .     },
 .     settings: {
 .       "boundaries/elements": [
-.         { type: "controllers", pattern: "controllers/*" },
-.         { type: "models", pattern: "models/*" },
-.         { type: "views", pattern: "views/*" }
+.         { type: "controller", pattern: "controllers/*" },
+.         { type: "model", pattern: "models/*" },
+.         { type: "view", pattern: "views/*" }
 .       ],
 .     } satisfies Settings,
 +     rules: {
@@ -214,9 +214,9 @@ Read how to use **[Element Selectors](./setup/selectors.md)** to configure your 
 .    },
 .    settings: {
 .      "boundaries/elements": [
-.        { type: "controllers", pattern: "controllers/*" },
-.        { type: "models", pattern: "models/*" },
-.        { type: "views", pattern: "views/*" }
+.        { type: "controller", pattern: "controllers/*" },
+.        { type: "model", pattern: "models/*" },
+.        { type: "view", pattern: "views/*" }
 .      ],
 .    },
 .    rules: {
@@ -225,15 +225,15 @@ Read how to use **[Element Selectors](./setup/selectors.md)** to configure your 
 +        default: "disallow",
 +        rules: [
 +          {
-+            from: { type: "controllers" },
-+            allow: { to: { type: ["models", "views"] } }
++            from: { type: "controller" },
++            allow: { to: { type: ["model", "view"] } }
 +          },
 +          {
-+            from: { type: "views" },
-+            allow: { to: { type: "models" } }
++            from: { type: "view" },
++            allow: { to: { type: "model" } }
 +          },
 +          {
-+            from: { type: "models" },
++            from: { type: "model" },
 +            disallow: { to: { type: "*" } }
 +          }
 +        ]
@@ -256,9 +256,9 @@ Read how to use **[Element Selectors](./setup/selectors.md)** to configure your 
 .    },
 .    settings: {
 .      "boundaries/elements": [
-.        { type: "controllers", pattern: "controllers/*" },
-.        { type: "models", pattern: "models/*" },
-.        { type: "views", pattern: "views/*" }
+.        { type: "controller", pattern: "controllers/*" },
+.        { type: "model", pattern: "models/*" },
+.        { type: "view", pattern: "views/*" }
 .      ],
 .    } satisfies Settings,
 .    rules: {
@@ -267,15 +267,15 @@ Read how to use **[Element Selectors](./setup/selectors.md)** to configure your 
 +        default: "disallow",
 +        rules: [
 +          {
-+            from: { type: "controllers" },
-+            allow: [{ type: "models" }, { type: "views" }]
++            from: { type: "controller" },
++            allow: [{ type: "model" }, { type: "view" }]
 +          },
 +          {
-+            from: { type: "views" },
-+            allow: [{ type: "models" }]
++            from: { type: "view" },
++            allow: [{ type: "model" }]
 +          },
 +          {
-+            from: { type: "models" },
++            from: { type: "model" },
 +            disallow: [{ type: "*" }]
 +          }
 +        ]

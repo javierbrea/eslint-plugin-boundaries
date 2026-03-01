@@ -110,7 +110,7 @@ When using options:
       rules: [
         {
           // from helper elements
-          from: { type: "helpers" },
+          from: { type: "helper" },
           // allow importing moment
           allow: ["moment"],
           // allow only importing types, not values (TypeScript only)
@@ -118,7 +118,7 @@ When using options:
         },
         {
           // from component elements
-          from: { type: "components" },
+          from: { type: "component" },
           allow: [
             // allow importing react
             "react",
@@ -128,7 +128,7 @@ When using options:
         },
         {
           // from components of family "molecules"
-          from: { type: "components", captured: { family: "molecules" } },
+          from: { type: "component", captured: { family: "molecules" } },
           disallow: [
             // disallow importing @material-ui/icons
             "@material-ui/icons"
@@ -136,7 +136,7 @@ When using options:
         },
         {
           // from modules
-          from: { type: "modules" },
+          from: { type: "module" },
           allow: [
             // allow importing react
             "react",
@@ -203,19 +203,19 @@ src/
   settings: {
     "boundaries/elements": [
       {
-        type: "helpers",
+        type: "helper",
         pattern: "helpers/*/*.js",
         mode: "file",
         capture: ["family", "elementName"]
       },
       {
-        type: "components",
+        type: "component",
         pattern: "components/*/*",
         mode: "folder",
         capture: ["family", "elementName"]
       },
       {
-        type: "modules",
+        type: "module",
         pattern: "modules/*",
         mode: "folder",
         capture: ["elementName"]
@@ -416,7 +416,7 @@ Here you have an example of how to migrate a configuration from `boundaries/exte
       default: "disallow",
       rules: [
         {
-          from: { type: "helpers" },
+          from: { type: "helper" },
           allow: ["moment"],
           importKind: "type"
         }
@@ -432,7 +432,7 @@ Here you have an example of how to migrate a configuration from `boundaries/exte
       default: "disallow",
       rules: [
         {
-          from: { type: "helpers" },
+          from: { type: "helper" },
           allow: {
             to: {
               origin: "external",

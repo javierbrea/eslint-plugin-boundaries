@@ -67,41 +67,41 @@ Enable [debug mode](../guides/debugging.md) in the plugin configuration to inspe
       rules: [
         {
           // from helper elements
-          from: { type: "helpers" },
+          from: { type: "helper" },
           // allow importing helper elements
           allow: {
-            to: { type: "helpers" },
+            to: { type: "helper" },
             // allow only importing value, not type (TypeScript only)
             dependency: { kind: "value" }
           },
         },
         {
           // from component elements
-          from: { type: "components" },
+          from: { type: "component" },
           allow: {
             to: [
               // allow importing components of the same family
-              { type: "components", captured: { family: "{{ family }}" } },
+              { type: "component", captured: { family: "{{ family }}" } },
               // allow importing helpers with fileName "sort"
-              { type: "helpers", captured: { fileName: "sort" } }
+              { type: "helper", captured: { fileName: "sort" } }
             ]
           }
         },
         {
           // from components with captured family "molecule"
-          from: { type: "components", captured: { family: "molecule" } },
+          from: { type: "component", captured: { family: "molecule" } },
           allow: {
             // allow importing components with captured family "atom"
-            to: { type: "components", captured: { family: "atom" } }
+            to: { type: "component", captured: { family: "atom" } }
           }
         },
         {
           // from modules
-          from: { type: "modules" },
+          from: { type: "module" },
           // allow importing helpers, components, and modules
           allow: {
             to: {
-               type: ["helpers", "components", "modules"]
+               type: ["helper", "component", "module"]
             }
           }
         }
@@ -156,19 +156,19 @@ src/
   settings: {
     "boundaries/elements": [
       {
-        type: "helpers",
+        type: "helper",
         pattern: "helpers/*/*.js",
         mode: "file",
         capture: ["family", "elementName"]
       },
       {
-        type: "components",
+        type: "component",
         pattern: "components/*/*",
         mode: "folder",
         capture: ["family", "elementName"]
       },
       {
-        type: "modules",
+        type: "module",
         pattern: "modules/*",
         mode: "folder",
         capture: ["elementName"]
@@ -288,15 +288,15 @@ This rule provides detailed error messages to help you understand and resolve vi
 
 - **Default disallow message:** When an import is disallowed because it doesn't match any rule and the default is `"disallow"`, the message includes the file type with captured values and the dependency type with captured values:
 
-  `No rule allowing this dependency was found. File is of type 'components' with family 'molecules' and elementName 'molecule-c'. Dependency is of type 'modules' with domain 'domain-a' and elementName 'module-a'`
+  `No rule allowing this dependency was found. File is of type 'component' with family 'molecules' and elementName 'molecule-c'. Dependency is of type 'modules' with domain 'domain-a' and elementName 'module-a'`
 
 - **Rule violation message:** When a specific rule disallows an import, the message includes which rule triggered it:
 
-  `Importing elements of type 'components' with family 'atoms' and elementName '*-a' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1`
+  `Importing elements of type 'component' with family 'atoms' and elementName '*-a' is not allowed in elements of type 'helper' with elementName 'helper-c'. Disallowed in rule 1`
 
 - **Dependency kind message:** For TypeScript imports, the message also includes the dependency kind:
 
-  `Importing kind "value" from elements of type 'components' with family 'atoms' and elementName '*-a' as 'value' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1`
+  `Importing kind "value" from elements of type 'component' with family 'atoms' and elementName '*-a' as 'value' is not allowed in elements of type 'helper' with elementName 'helper-c'. Disallowed in rule 1`
 
 ### Custom Messages with Templates
 

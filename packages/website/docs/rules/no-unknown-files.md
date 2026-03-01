@@ -67,7 +67,7 @@ src/
     "boundaries/ignore": ["src/index.js"],
     "boundaries/elements": [
       {
-        "type": "helpers",
+        "type": "helper",
         "pattern": "helpers/*/*.js",
         "mode": "file"
       }

@@ -45,7 +45,7 @@ export default [{
     ...recommended.settings,
     "boundaries/elements": [
       {
-        type: "helpers",
+        type: "helper",
         pattern: "helpers/*"
       },
     ]

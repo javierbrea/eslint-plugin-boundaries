@@ -74,7 +74,7 @@ src/
     "boundaries/ignore": ["src/foo.js"],
     "boundaries/elements": [
       {
-        type: "helpers",
+        type: "helper",
         pattern: "helpers/*/*.js",
         mode: "file",
         capture: ["family", "elementName"]
@@ -124,7 +124,7 @@ You can achieve the same result by using the [`boundaries/element-types` rule](.
           // Or use more granular rules to allow some specific dependencies
           // to ignored files, for example:
           {
-            from: { type: "helpers" },
+            from: { type: "helper" },
             allow: {
               to: { isIgnored: true }
             }

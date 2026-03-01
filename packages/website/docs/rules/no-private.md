@@ -92,7 +92,7 @@ src/
   settings: {
     "boundaries/elements": [
       {
-        type: "modules",
+        type: "module",
         pattern: "modules/*",
         mode: "folder"
       }

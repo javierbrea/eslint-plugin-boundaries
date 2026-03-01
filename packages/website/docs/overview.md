@@ -50,9 +50,9 @@ By default, it analyzes `import` statements, but it can also evaluate `require`,
 
 ```javascript
 const elementDescriptors = [
-  { type: "controllers", pattern: "controllers/*" },
-  { type: "models", pattern: "models/*" },
-  { type: "views", pattern: "views/*" },
+  { type: "controller", pattern: "controllers/*" },
+  { type: "model", pattern: "models/*" },
+  { type: "view", pattern: "views/*" },
   { type: "shared", pattern: "shared/*" },
 ];
 ```
@@ -66,14 +66,14 @@ Given this configuration, the plugin will analyze your project in runtime and cl
 {
   from: {
     path: "src/controllers/controller-a.js",
-    type: "controllers",
+    type: "controller",
     category: null,
     captured: { elementName: "controller-a" },
     origin: "local",
   },
   to: {
     path: "src/views/view-a.js",
-    type: "views",
+    type: "view",
     category: null,
     captured: { elementName: "view-a" },
     origin: "local",
@@ -99,28 +99,28 @@ const dependencyRules = [
   // Allow controllers to depend on models and views
   {
     from: {
-      type: "controllers",
+      type: "controller",
     },
     allow: {
-      to: { type: ["models", "views"] },
+      to: { type: ["model", "view"] },
     },
   },
   // Allow views to depend on models
   {
     from: {
-      type: "views",
+      type: "view",
     },
     allow: {
-      to: { type: "models" },
+      to: { type: "model" },
     },
   },
   // Disallow models to depend on anything other than other models
   {
     from: {
-      type: "models",
+      type: "model",
     },
     disallow: {
-      to: { type: "!models" },
+      to: { type: "!model" },
     },
   },
   // Allow any file to depend on other files of the same element

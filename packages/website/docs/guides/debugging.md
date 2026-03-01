@@ -64,10 +64,10 @@ export default [{
     "boundaries/debug": {
       enabled: true,
       filter: {
-        files: [{ type: "components" }],
+        files: [{ type: "component" }],
         dependencies: [
           {
-            from: [{ type: "components" }],
+            from: [{ type: "component" }],
             to: [{ source: "@/shared/**" }],
           },
         ],

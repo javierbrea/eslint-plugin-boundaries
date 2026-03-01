@@ -51,18 +51,18 @@ export default [{
       rules: [
         {
           from: {
-            type: "helpers"
+            type: "helper"
           },
           disallow: {
             to: {
-              type: ["modules", "components"]
+              type: ["module", "component"]
             }
           },
-          message: "Helpers must not import modules or components"
+          message: "Helpers must not import module or component"
         },
         {
-          from: { type: "components" },
-          disallow: { to: { type: ["modules"] } }
+          from: { type: "component" },
+          disallow: { to: { type: ["module"] } }
         }
       ]
     }]
@@ -89,15 +89,15 @@ Determines when the rule applies:
 ```js
 // Rule applies to files that are described as controllers
 {
-  from: { type: "controllers" }
+  from: { type: "controller" }
 }
 
 // Rule applies to dependencies that are either:
 // components of family "atoms" or helpers
 {
   to: [
-    { type: "components", captured: { family: "atoms" } },
-    { type: "helpers"}
+    { type: "component", captured: { family: "atoms" } },
+    { type: "helper"}
   ]
 }
 ```
@@ -121,14 +121,14 @@ Determines whether the matched dependencies are allowed or disallowed. Each rule
 ```js
 // Controllers can import models and views
 {
-  from: { type: "controllers" },
-  allow: { to: { type: ["models", "views"] } }
+  from: { type: "controller" },
+  allow: { to: { type: ["model", "view"] } }
 }
 
 // Models cannot import anything other than other models
 {
-  from: { type: "models" },
-  disallow: { to: { type: "!models" } }
+  from: { type: "model" },
+  disallow: { to: { type: "!model" } }
 }
 
 // Any file can import other files of the same element (internal dependencies)
@@ -176,7 +176,7 @@ Custom error messages use Handlebars templates to dynamically insert information
 // importing a dependency with category "molecule", the message becomes:
 // "components of category atom are not allowed to import molecules"
 {
-  "message": "{{from.type}}s of category {{from.category}} are not allowed to import {{to.category}}s"
+  "message": "{{from.type}}s of category {{from.category}}s are not allowed to import {{to.category}}s"
 }
 ```
 
@@ -198,7 +198,7 @@ For the complete API reference of all available properties in `from`, `to`, and 
 ```js
 {
   // Access element properties
-  "message": "{{from.type}} cannot import {{to.type}}",
+  "message": "Elements of type {{from.type}} cannot import from type {{to.type}}",
   
   // Access captured values
   "message": "Module {{from.captured.elementName}} cannot import {{to.captured.family}} components",
@@ -265,29 +265,29 @@ When both rule-level `importKind` and dependency-level `kind` are defined, depen
 ```js
 // Components can import helpers as values
 {
-  from: { type: "components" },
-  allow: { to: { type: "helpers" } },
+  from: { type: "component" },
+  allow: { to: { type: "helper" } },
   importKind: "value"
 }
 
 // Components cannot import helper types
 {
-  from: { type: "components" },
-  disallow: { to: { type: "helpers" } },
+  from: { type: "component" },
+  disallow: { to: { type: "helper" } },
   importKind: "type"
 }
 
 // Services can import models as values or types
 {
-  from: { type: "services" },
-  allow: { to: { type: "models" } },
+  from: { type: "service" },
+  allow: { to: { type: "model" } },
   importKind: ["value", "type"]
 }
 
 // Controllers can import models as any import kind
 {
-  from: { type: "controllers" },
-  allow: { to: { type: "models" } },
+  from: { type: "controller" },
+  allow: { to: { type: "model" } },
   importKind: "*"
 }
 ```
@@ -298,9 +298,9 @@ When both rule-level `importKind` and dependency-level `kind` are defined, depen
 <CodeDiff language="javascript">{`
 . // Components can import helpers as values
 . {
-.   from: { type: "components" },
+.   from: { type: "component" },
 .   allow: {
-.     to: { type: "helpers" },
+.     to: { type: "helper" },
 +     dependency: { kind: "value" }
 .   },
 -   importKind: "value"
@@ -308,9 +308,9 @@ When both rule-level `importKind` and dependency-level `kind` are defined, depen
 
 . // Components cannot import helper types
 . {
-.   from: { type: "components" },
+.   from: { type: "component" },
 .   disallow: {
-.     to: { type: "helpers" },
+.     to: { type: "helper" },
 +     dependency: { kind: "type" }
 .   }
 -   importKind: "type"
@@ -318,9 +318,9 @@ When both rule-level `importKind` and dependency-level `kind` are defined, depen
 
 . // Services can import models as values or types
 . {
-.   from: { type: "services" },
+.   from: { type: "service" },
 .   allow: {
-.     to: { type: "models" },
+.     to: { type: "model" },
 +     dependency: { kind: ["value", "type"] }
 .   }
 -   importKind: ["value", "type"]
@@ -328,9 +328,9 @@ When both rule-level `importKind` and dependency-level `kind` are defined, depen
 .
 . // Controllers can import models as any import kind
 . {
-.   from: { type: "controllers" },
+.   from: { type: "controller" },
 .   allow: { 
-.     to: { type: "models" }
+.     to: { type: "model" },
 +     dependency: { kind: "*" }
 .   },
 -   importKind: "*"
@@ -352,21 +352,21 @@ Rules are evaluated sequentially, and each matching rule can override previous r
     // If this matches: result is "allow"
     // Components can import helpers
     {
-      from: { type: "components" },
-      allow: { to: { type: "helpers" } }
+      from: { type: "component" },
+      allow: { to: { type: "helper" } }
     },
     // If this also matches: result is "disallow" (overrides previous).
     // Component family "atoms" cannot import "api" helpers
     {
-      from: { type: "components", captured: { family: "atoms" } },
-      disallow: { to: { type: "helpers", captured: { domain: "api" } } },
+      from: { type: "component", captured: { family: "atoms" } },
+      disallow: { to: { type: "helper", captured: { domain: "api" } } },
     },
     // If this also matches: result is "allow" (overrides previous).
     // Component family "atoms" can import "api/fetcher" helper, in exception to previous rule
     {
-      from: { type: "components", captured: { family: "atoms" } },
+      from: { type: "component", captured: { family: "atoms" } },
       allow: {
-        to: { type: "helpers", captured: { domain: "api", elementName: "fetcher" } }
+        to: { type: "helper", captured: { domain: "api", elementName: "fetcher" } }
       }
     }
   ]
@@ -390,53 +390,53 @@ export default [{
       rules: [
         {
           // allow importing helpers from helpers
-          from: { type: "helpers" },
-          allow: { to: { type: "helpers" } }
+          from: { type: "helper" },
+          allow: { to: { type: "helper" } }
         },
         {
-          // when file is inside an element of type "components"
-          from: { type: "components" },
+          // when file is inside an element of type "component"
+          from: { type: "component" },
           allow: {
             to: [
               // allow importing components of the same family
-              { type: "components", captured: { family: "{{from.family}}" } },
+              { type: "component", captured: { family: "{{from.family}}" } },
                 // allow importing helpers with domain "data"
-              { type: "helpers", captured: { domain: "data" } }
+              { type: "helper", captured: { domain: "data" } }
             ]
           }
         },
         {
           // when component has family "molecule"
-          from: { type: "components", captured: { family: "molecule" } },
+          from: { type: "component", captured: { family: "molecule" } },
           allow: {
             // allow importing components with family "atom"
-            to: { type: "components", captured: { family: "atom" } },
+            to: { type: "component", captured: { family: "atom" } },
           },
         },
         {
           // when component has family "atom"
-          from: { type: "components", captured: { family: "atom" } },
+          from: { type: "component", captured: { family: "atom" } },
           disallow: {
             // disallow importing helpers with domain "data"
-            to: { type: "helpers", captured: { domain: "data" } }
+            to: { type: "helper", captured: { domain: "data" } }
           },
           // Custom message only for this specific error
           message: "Atom components can't import data helpers"
         },
         {
           // when file is inside a module
-          from: { type: "modules" },
+          from: { type: "module" },
           allow: {
             // allow importing any type of component or helper
-            to: { type: ["helpers", "components"] }
+            to: { type: ["helper", "component"] }
           }
         },
         {
           // when module name starts by "page-"
-          from: { type: "modules", captured: { elementName: "page-*" } },
+          from: { type: "module", captured: { elementName: "page-*" } },
           disallow: {
             // disallow importing any type of component not being of family layout
-            to: { type: "components", captured: { family: "!layout" } },
+            to: { type: "component", captured: { family: "!layout" } },
           },
           // Custom message only for this specific error
           message: `

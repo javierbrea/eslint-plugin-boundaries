@@ -37,18 +37,18 @@ export default [{
   settings: {
     "boundaries/elements": [
       {
-        type: "helpers",
+        type: "helper",
         pattern: "helpers/*/*.js",
         mode: "file",
         capture: ["domain", "elementName"]
       },
       {
-        type: "components",
+        type: "component",
         pattern: "components/*/*",
         capture: ["family", "elementName"]
       },
       {
-        type: "modules",
+        type: "module",
         pattern: "module/*",
         capture: ["elementName"]
       }
@@ -87,7 +87,7 @@ The element type to be assigned to files or imports matching the pattern. This t
 
 ```js
 {
-  type: "helpers"
+  type: "helper"
 }
 ```
 
@@ -113,7 +113,7 @@ This behavior can be disabled by setting `mode` to `full`.
 
 ```js
 {
-  type: "helpers",
+  type: "helper",
   pattern: "helpers/*/*.js"
 }
 ```
@@ -129,8 +129,8 @@ Controls how the pattern matching works:
 - **`folder`** (default): When analyzing a file path, the element type is assigned to the first parent folder matching the pattern. Any file within that folder is considered part of the element. In practice, it's like adding `**/*` to your pattern.
 
   A pattern like `models/*` would match:
-  - `src/models/user.js` (assigns type `models` to `user.js` file)
-  - `src/modules/foo/bar.js` (assigns type `models` to `bar.js` file)
+  - `src/models/user.js` (assigns type `model` to `user.js` file)
+  - `src/modules/foo/bar.js` (assigns type `model` to `bar.js` file)
 
 - **`file`**: The pattern is not modified, but the plugin still tries to match the last part of the path. So, a pattern like `*.model.js` would match:
   - `src/foo.model.js`
@@ -202,7 +202,7 @@ Each captured value is stored in an object with the key from the `capture` array
 
 ```js
 {
-  type: "helpers",
+  type: "helper",
   pattern: "*/helpers/*.js",
   capture: ["domain", "elementName"]
 }
@@ -232,7 +232,7 @@ The effective pattern becomes: `[basePattern]/**/[pattern]`
 
 ```js
 {
-  type: "components",
+  type: "component",
   pattern: "*/component.js",
   basePattern: "src/modules/*",
   baseCapture: ["moduleName"]
@@ -249,7 +249,7 @@ All keys from both `capture` and `baseCapture` can be used in rules configuratio
 
 ```js
 {
-  type: "components",
+  type: "component",
   pattern: "components/*",
   basePattern: "src/modules/*",
   capture: ["componentName"],
