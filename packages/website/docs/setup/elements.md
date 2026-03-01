@@ -61,7 +61,7 @@ export default [{
 
 Element descriptors are configuration inputs. During analysis, the plugin transforms them into **runtime element descriptions**.
 
-- These descriptions include resolved properties such as `type`, `category`, `captured`, `parents`, `origin`, etc.
+- These **element descriptions** include resolved properties such as `type`, `category`, `captured`, `parents`, `origin`, etc.
 - When a dependency is analyzed, the plugin builds a **dependency description** containing:
   - `from`: description of the file being analyzed
   - `to`: description of the imported target
@@ -294,7 +294,7 @@ Element descriptors are evaluated in array order. The plugin assigns the element
 
 ## Hierarchical Elements
 
-The plugin supports elements being children of other elements. This relationship can be used later in the [`boundaries/no-private`](../rules/no-private.md) rule to restrict access to elements to only their parent elements.
+The plugin supports elements being children of other elements. This relationship can be used later in the rules to restrict access to elements based on their relationship (e.g., only allow importing from child elements).
 
 When analyzing a path, it continues searching for parent elements after finding the first match.
 
@@ -331,8 +331,11 @@ Based on the element descriptors, the plugin builds runtime descriptions for eac
 
 Element descriptions contain the following properties:
 
-- **`path`**: <small>`<string | null>`</small> - Absolute file path (or `null`, when the dependency source can't be resolved to any file)
-- **`elementPath`**: <small>`<string | null>`</small> - Path of the element, relative to the project root path (see [Settings](../setup/settings.md#boundariesroot-path)), or `null` if the file doesn't match any element descriptor
+- **`path`**: <small>`<string | null>`</small> - Path of the element. It can be:
+  * Relative to the [rootPath](../setup/settings.md#boundariesroot-path) when the file is within it.
+  * Absolute path if the element is outside the root path
+  * `null`, when the dependency source can't be resolved to any file.
+- **`elementPath`**: <small>`<string | null>`</small> - Path of the element assigned to the file according to the descriptor. It is relative to the project root path (see [Settings](../setup/settings.md#boundariesroot-path)), or `null` if the file doesn't match any element descriptor
 - **`internalPath`**: <small>`<string | null>`</small> - Path of the file relative to the element path (or `null` if the file doesn't match any element descriptor)
 - **`type`**: <small>`<string | null>`</small> - Element type according to the matched descriptor (or `null` if the descriptor doesn't define a type or there's no match)
 - **`category`**: <small>`<string | null>`</small> - Element category according to the matched descriptor (or `null` if the descriptor doesn't define a category or there's no match)

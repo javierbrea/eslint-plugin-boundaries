@@ -327,9 +327,9 @@ If a file `users/helpers/parser.js` (domain: "users") tries to import from `auth
 ```
 
 :::caution
-When the [`boundaries/legacy-templates` setting](./settings.md#boundarieslegacy-templates) is enabled (default until next major version), if you are capturing properties with names equal to any of the [Runtime Element Description Properties](./elements.md#runtime-description-properties) in your [Element Descriptors](./elements.md) (e.g., `path`, `category`, `origin`, etc.) they will overwrite the corresponding template variables and cause unexpected behavior in your templates.
+When the new [`boundaries/legacy-templates` setting](./settings.md#boundarieslegacy-templates) is enabled (default until next major version), if you are capturing properties with names equal to any of the [Runtime Element Description Properties](./elements.md#runtime-description-properties) (e.g., `path`, `category`, `origin`, etc.) they will overwrite the corresponding template variables and cause unexpected behavior in the templates.
 
-To avoid this, it is recommended to set `boundaries/legacy-templates` to `false` and use the new template syntax with explicit `from`, `to`, and `dependency` namespaces, which will prevent any conflicts between captured properties and template variables. Read more about this in the [Settings documentation](./settings.md#boundarieslegacy-templates) and in the [Migration Guides](../releases/migration-guides/v5-to-v6.md).
+To avoid this, it is recommended to check your captured properties and set `boundaries/legacy-templates` to `false`, which will avoid injecting captured properties at first level object and instead require using the `captured` namespace to access them.
 :::
 
 ### Legacy Template Syntax
@@ -340,7 +340,7 @@ The legacy template syntax `${property}` is still supported for backwards compat
 
 In legacy templates, you can also use `${target.*}` instead of `{{ to.* }}` to reference properties from the dependency.
 
-When the [`boundaries/legacy-templates`](./settings.md#boundarieslegacy-templates)  `boundaries/legacy-templates` is enabled, you can also access to any captured property from the importer or dependency elements, respectively, by using:
+When the [`boundaries/legacy-templates`](./settings.md#boundarieslegacy-templates) setting is enabled, you can also access to any captured property from the importer or dependency elements, respectively, by using:
 
 - `${from.capturedProperty}`
 - `${target.capturedProperty}`

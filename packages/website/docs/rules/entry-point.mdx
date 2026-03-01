@@ -9,8 +9,9 @@ tags:
   - examples
 ---
 
-# entry-point
+import CodeDiff from "@site/src/components/CodeDiff";
 
+# entry-point
 
 > Enforce entry point restrictions for **[elements](../setup/elements.md)** in your project.
 
@@ -288,45 +289,38 @@ The entry point restrictions enforced by this rule can also be achieved with the
 
 Here you have an example of how to migrate a configuration from `boundaries/entry-point` to `boundaries/element-types`:
 
-```js
-// Original configuration with boundaries/entry-point
-{
-  rules: {
-    "boundaries/entry-point": [2, {
-      default: "disallow",
-      rules: [
-        {
-          to: { type: ["component", "module"] },
-          allow: "index.js",
-          importKind: "value"
-        }
-      ]
-    }]
-  }
-}
+<CodeDiff language="javascript">{`
+. {
+.   rules: {
+-     "boundaries/entry-point": [2, {
++     "boundaries/element-types": [2, {
+.       default: "disallow",
+.       rules: [
+-         {
+-           target: ["component", "module"],
+-           allow: "index.js",
+-           importKind: "value"
+-         }
++         {
++           to: {
++             type: ["component", "module"],
++             internalPath: "!index.js" 
++           },
++           disallow: {
++             from: {
++               type: "*",
++             }
++           }
++         },
+.       ]
+.     }]
+.   }
+. }
+`}</CodeDiff>
 
-// Migrated configuration with boundaries/element-types
-{
-  rules: {
-    "boundaries/element-types": [2, {
-      rules: [
-        {
-          // only allow importing index.js files from components and modules
-          to: {
-            type: ["component", "module"],
-            elementPath: "!index.js" 
-          },
-          disallow: {
-            from: {
-              type: "*",
-            }
-          }
-        },
-      ]
-    }]
-  }
-}
-```
+:::tip Bonus: Allowing different entry points based on the importer element
+With `boundaries/element-types` you can also define rules to allow different entry points depending on the importer element, which was not possible with the `entry-point` rule. For example, you could allow importing `index.js` from components but only allow importing `main.js` from modules.
+:::
 
 ## Further Reading
 

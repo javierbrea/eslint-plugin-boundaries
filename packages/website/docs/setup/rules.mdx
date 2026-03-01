@@ -27,7 +27,7 @@ Rules define to which elements they apply and what is allowed or disallowed. Thi
 
 ## Main Rules Format
 
-The main rules ([`element-types`](../rules/dependencies.md), [`external`](../rules/external.md) and [`entry-point`](../rules/entry-point.md)) share a common configuration format.
+The main rules ([`element-types`](../rules/dependencies.md), [`external`](../rules/external.mdx) and [`entry-point`](../rules/entry-point.mdx)) share a common configuration format.
 
 Rules work by setting an `allow` or `disallow` default value, then providing an array of rules that override that default.
 
@@ -218,12 +218,12 @@ Missing properties in Handlebars templates resolve to an empty string.
 ##### Legacy Message Templates
 
 :::info Backwards Compatibility
-Legacy message templates using `${...}` syntax are still supported but deprecated. For migration guidance, see [Legacy Message Templates](#legacy-message-templates) and the [v5 to v6 migration guide](../releases/migration-guides/v5-to-v6.md#migrating-custom-messages).
+Legacy message templates using `${...}` syntax are still supported but deprecated. For migration guidance, see [Legacy Message Templates](#legacy-message-templates)
 :::
 
 #### Rule-specific `report` Properties
 
-Some rules provide extra metadata in the `report` object for custom messages. For example, the [`external`](../rules/external.md) rule provides details about forbidden specifiers:
+Some rules provide extra metadata in the `report` object for custom messages. For example, the [`external`](../rules/external.mdx) rule provides details about forbidden specifiers:
 
 ```js
 {
@@ -473,17 +473,14 @@ Legacy templates use `${...}` syntax with flattened property access and addition
 **Available properties:**
 
 - `${file.*}` and `${dependency.*}` - Legacy aliases for the importing/imported elements
+  - `type` - Element type
+  - `internalPath` - Path inside the element
+  - `source` - Import source
+  - `importKind` - Import kind (value, type, typeof)
+  - All captured values from the element pattern
 - `${from.*}` and `${target.*}` - Alternative legacy aliases
 - `${file.parent.*}`, `${from.parent.*}`, `${dependency.parent.*}`, `${target.parent.*}` - Parent element properties
-- `${report.*}` - Rule-specific metadata
-
-**Flattened properties include:**
-
-- `type` - Element type
-- `internalPath` - Path inside the element
-- `source` - Import source
-- `importKind` - Import kind (value, type, typeof)
-- All captured values from the element pattern
+- `${report.*}` - Rule-specific metadata (when provided by the rule)
 
 **Example:**
 
@@ -515,5 +512,5 @@ To migrate from legacy templates to Handlebars:
 `}</CodeDiff>
 
 :::tip Migration Guide
-For detailed migration steps and examples, see the [v5 to v6 migration guide](../releases/migration-guides/v5-to-v6.md#migrating-custom-messages).
+For detailed migration conversion table, see the [v5 to v6 migration guide](../releases/migration-guides/v5-to-v6.mdx#templates-in-custom-messages).
 :::

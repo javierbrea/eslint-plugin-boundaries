@@ -9,6 +9,8 @@ tags:
   - examples
 ---
 
+import CodeDiff from "@site/src/components/CodeDiff";
+
 # no-private
 
 > Prevent importing private **[elements](../setup/elements.md)** of another element.
@@ -201,47 +203,44 @@ The restrictions enforced by this rule can also be achieved with the more flexib
 
 Here you have an example of how to migrate a configuration from `boundaries/no-private` to `boundaries/element-types`:
 
-```js
-// Original configuration with boundaries/no-private
-{
-  rules: {
-    "boundaries/no-private": [2, { allowUncles: true }]
-  }
-}
+<CodeDiff language="javascript">{`
+. {
+.   rules: {
+-     "boundaries/no-private": [2, { allowUncles: true }]
++     "boundaries/element-types": [2, {
++       default: "allow",
++       rules: [
++         // Disallow all elements importing children elements of other elements
++         {
++           from: { type: "*" },
++           disallow: {
++             dependency: {
++               relationship: {
++                 to: ["child"],
++               }
++             },
++           }
++         },
++         // Allow all elements importing their own children, siblings, and uncles     
++         {
++           from: { type: "*" },
++           allow: {
++             dependency: {
++               relationship: {
++                 to: ["child", "sibling", "uncle"],
++               }
++             },
++           }
++         }
++       ]
++     }]
+.   }
+. }
+`}</CodeDiff>
 
-// Migrated configuration with boundaries/element-types
-{
-  rules: {
-    "boundaries/element-types": [2, {
-      default: "allow",
-      rules: [
-        // Disallow all elements importing children elements of other elements
-        {
-          from: { type: "*" },
-          disallow: {
-            dependency: {
-              relationship: {
-                to: ["child"],
-              }
-            },
-          }
-        },
-        // Allow all elements importing their own children, siblings, and uncles     
-        {
-          from: { type: "*" },
-          allow: {
-            dependency: {
-              relationship: {
-                to: ["child", "sibling", "uncle"],
-              }
-            },
-          }
-        }
-      ]
-    }]
-  }
-}
-```
+:::tip Bonus: More specific rules with `boundaries/element-types`
+With `boundaries/element-types` you can also define more specific rules that were not possible with `no-private`, such as allowing only certain elements to import their siblings or uncles, while disallowing it for others.
+:::
 
 ## Further Reading
 

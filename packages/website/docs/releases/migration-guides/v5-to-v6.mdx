@@ -1,0 +1,416 @@
+---
+id: v5-to-v6
+title: Migration Guide from v5 to v6
+sidebar_label: v5 to v6
+description: Guide to migrating ESLint Plugin Boundaries from version 5 to version 6 with object-based selector syntax.
+tags:
+  - configuration
+  - migration
+keywords:
+  - eslint-plugin-boundaries
+  - migration
+  - update
+  - guide
+  - release
+  - v5
+  - v6
+  - selectors
+  - object-based
+---
+
+import CodeDiff from "@site/src/components/CodeDiff";
+
+# Migrating from v5.x to v6.x
+
+## Overview
+
+Version 6.0.0 introduces **[object-based selectors](../../setup/selectors.md)** as the recommended way to define element selectors. This provides better readability and access to advanced matching features.
+
+It also introduces several new features and changes in configuration to make it more semantic and powerful. But every change is designed to be incremental and non-breaking, allowing you to migrate at your own pace.
+
+You will receive warnings in your console about how to prepare your configuration for v7, which will remove support for legacy syntax entirely. This guide will walk you through the migration process step by step.
+
+:::info Backwards Compatibility
+Legacy selector formats and other deprecation warnings are still supported in v6.x but will show a warning in your console. They will be removed entirely in v7.0.0.
+:::
+
+Here is the list of changes and how to migrate your configuration for each one.
+
+## Object-based elements selector syntax
+
+The following [elements selector](../../setup/selectors.md) formats are now deprecated:
+
+1. **String format**: `"helper"`
+2. **Tuple format**: `["helper", { family: "data" }]`
+3. **Array of legacy selectors**: `["helper", "component"]`
+
+The new [object-based syntax](../../setup/selectors.md) provides:
+
+- **Modern format**: `{ type: "helper", captured: { family: "data" } }`
+- **Clear property names**: Self-documenting code
+- **Advanced features**: Access to new matching properties
+- **Better composition**: Combine multiple properties easily
+- **Future-proof**: New capabilities will only be added to object-based syntax
+
+### Conversion table
+
+| Legacy Format | Object-Based Format |
+|--------------|---------------------|
+| `"type"` | `{ type: "type" }` |
+| `["type", { capturedProp: "value" }]` | `{ type: "type", captured: { capturedProp: "value" } }` |
+| `"*-pattern"` | `{ type: "*-pattern" }` |
+
+<CodeDiff language="javascript">{`
+. {
+.   rules: {
+.     "boundaries/element-types": [2, {
+.       default: "disallow",
+.       rules: [
+.         {
+-           from: "helper",
++           from: { type: "helper" }
+.         },
+.         {
+-           from: [["helper", { family: "data" }]],
++           from: [{ type: "helper", captured: { family: "data" } }]
+.         }
+.       ]
+.     }]
+.   }
+. };
+`}</CodeDiff>
+
+## Dependencies selector syntax
+
+V6 introduces a new format to select dependencies in `allow` and `disallow` rules, enabling to match dependencies based on their relationship, the file origin, the target file, and more.
+
+For the migration, the main changes are:
+
+### `to` property in `allow/disallow` rules is now required
+
+**Now `allow` and `disallow` must match dependencies using dependency selectors, not just elements**: In the practice, this means that `allow` and `disallow` rules must be defined with a `to` property that specifies the dependency selector for proper migration.
+
+:::info
+Read more about the new dependency selector syntax in the [selectors documentation](../../setup/selectors.md#dependency-selectors).
+:::
+
+#### Conversion table
+
+| Legacy Format | Object-Based Format |
+|--------------|---------------------|
+| `allow: ["helper"]` | `allow: [{ to: { type: "helper" } }]` |
+
+<CodeDiff language="javascript">{`
+. {
+.   rules: {
+.     "boundaries/element-types": [2, {
+.       default: "disallow",
+.       rules: [
+.         {
+-           from: "helper",
++           from: { type: "helper" },
+.           allow: [
+-             "helper",
++             { to: { type: "helper" } }
+.           ],
+.         }
+.       ]
+.     }]
+.   }
+. };
+`}</CodeDiff>
+
+### Rule-level `importKind` is deprecated
+
+**Rule-level `importKind` is deprecated**: Use selector-level `dependency.kind` instead. When both are defined, selector-level `dependency.kind` takes precedence. This allows for more granular control over matching specific dependency kinds within the same rule.
+
+#### Conversion table
+
+| Legacy Format | Object-Based Format |
+|--------------|---------------------|
+| `importKind: "value"` at rule level | `dependency: { kind: "value" }` inside the selector |
+
+<CodeDiff language="javascript">{`
+. {
+.   rules: {
+.     "boundaries/element-types": [2, {
+.       default: "disallow",
+.       rules: [
+.         {
+-           from: "helper",
++           from: { type: "helper" },
+-           importKind: "value"
+.           allow: [
+-             "helper",
++             {
++               to: { type: "helper" },
++               dependency: { kind: "value" }
++             }
+.           ],
+.         }
+.       ]
+.     }]
+.   }
+. };
+`}</CodeDiff>
+
+:::note
+This does not apply to the [`entry-point` rule](../../rules/entry-point.mdx), because the "allow" and "disallow" properties in that rule are not used to match dependencies but to define the allowed paths to be used as entry points. In that rule, the `importKind` property is still supported. Anyway, that entire rule is also deprecated and will be removed in v7, so it is recommended to migrate to the new `boundaries/element-types` rule with the new selector syntax as soon as possible. You will find a **[migration example for that rule in its documentation page](../../rules/entry-point.mdx#migration-to-boundarieselement-types)**.
+:::
+
+## New template syntax
+
+V6 introduces a new Handlebars-style template syntax (`{{...}}`) for selectors and custom messages, providing clearer syntax and structured access to [element descriptions properties](../../setup/elements.md#runtime-description-properties). The old `${ }` syntax is still supported for backwards compatibility but will be deprecated in v7.
+
+The modern template syntax uses Handlebars-style double curly braces:
+
+- `{{ from.* }}` - References properties from the file being analyzed (the importer)
+- `{{ to.* }}` - References properties from the dependency being imported
+- `{{ dependency.* }}` - References properties from the dependency itself, such as the kind of import, the relationship between both elements, etc.
+
+
+### Templates in selectors
+
+The new template syntax can access any property from the [dependency description](../../setup/elements.md#runtime-description-properties), while the old `${to.capturedProperty}` syntax could access only captured properties.
+
+:::tip
+Read more about the description properties in the [Runtime Description Properties](../../setup/elements.md#runtime-description-properties) documentation.
+:::
+
+#### Conversion table
+
+| Legacy Format | Handlebars Format |
+|--------------|-----------------|
+| `${from.capturedProperty}` | `{{ from.captured.capturedProperty }}` |
+| `${to.capturedProperty}` | `{{ to.captured.capturedProperty }}` |
+| `${target.capturedProperty}` | `{{ to.captured.capturedProperty }}` |
+
+
+<CodeDiff language="javascript">{`
+. {
+.   rules: {
+.     "boundaries/element-types": [2, {
+.       default: "disallow",
+.       rules: [
+.         {
+-           from: [["helper", { family: "$\{ from.family }" }]],
++           from: [{ type: "helper", captured: { family: "{{ from.captured.family }}" } }]
+.         }
+.       ]
+.     }]
+.   }
+. };
+`}</CodeDiff>
+
+
+:::caution
+When the new [`boundaries/legacy-templates` setting](../../setup/settings.md#boundarieslegacy-templates) is enabled (default until next major version), if you are capturing properties with names equal to any of the [Runtime Element Description Properties](../../setup/elements.md#runtime-description-properties) (e.g., `path`, `category`, `origin`, etc.) they will overwrite the corresponding template variables and cause unexpected behavior in the templates.
+
+To avoid this, it is recommended to check your captured properties and set `boundaries/legacy-templates` to `false`, which will avoid injecting captured properties at first level object and instead require using the `captured` namespace to access them.
+:::
+
+### Templates in custom messages
+
+The new template syntax (`{{ }}`) **can access any property from the [dependency description](../../setup/elements.md#runtime-description-properties)**, while the **old `${ }` syntax could access only**:
+
+- `${file.*}` and `${dependency.*}`:
+  - `type` - Element type
+  - `internalPath` - Path inside the element
+  - `source` - Import source
+  - `importKind` - Import kind (value, type, typeof)
+  - All captured values from the element pattern
+- `${from.*}` and `${target.*}` - Alternative aliases for `${file.*}` and `${dependency.*}` respectively.
+- `${file.parent.*}`, `${from.parent.*}`, `${dependency.parent.*}`, `${target.parent.*}` - Parent element properties
+- `${report.*}` - Rule-specific metadata (when provided by the rule)
+
+For backward compatibility, message rendering runs in two phases:
+
+1. **Legacy replacement** (`${...}`): Processes legacy template syntax with flattened property access
+2. **Handlebars rendering** (`{{...}}`): Processes modern template syntax with nested object access
+
+This allows existing templates to continue working while you migrate to the new format.
+
+#### Conversion table
+
+| Legacy Format | Handlebars Format |
+|--------------|-----------------|
+| `${file.type}` / `${from.type}` / `${dependency.type}` / `${target.type}` | `{{ from.type }}` |
+| `${file.internalPath}` / `${from.internalPath}` / `${dependency.internalPath}` / `${target.internalPath}` | `{{ from.internalPath }}` |
+| `${file.source}` / `${from.source}` / `${dependency.source}` / `${target.source}` | `{{ dependency.source }}` |
+| `${dependency.importKind}` / `${target.importKind}` | `{{ dependency.kind }}` |
+| `${file.parent.type}` / `${from.parent.type}` | `{{ from.parents.0.type }}` |
+| `${dependency.parent.type}` / `${target.parent.type}` | `{{ to.parents.0.type }}` |
+| `${file.capturedProperty}` / `${from.capturedProperty}`| `{{ from.captured.capturedProperty }}` |
+| `${dependency.capturedProperty}` / `${target.capturedProperty}` | `{{ to.captured.capturedProperty }}` |
+| `${report.specifiers}` | `{{ report.specifiers }}` |
+
+<CodeDiff language="javascript">{`
+- "$\{file.type} cannot import $\{dependency.type}"
++ "{{from.type}} cannot import {{to.type}}"
+. 
+- "$\{file.type} with name $\{file.elementName} cannot import $\{dependency.domain}"
++ "{{from.type}} with name {{from.captured.elementName}} cannot import {{to.captured.domain}}"
+. 
+- "$\{file.type} in $\{file.parent.type} cannot import $\{dependency.type}"
++ "{{from.type}} in {{from.parents.0.type}} cannot import {{to.type}}"
+`}</CodeDiff>
+
+:::tip
+For more details on the template messages migration, see the Legacy Message Templates section in the [rules documentation](../../setup/rules.mdx#legacy-message-templates).
+:::
+
+## Deprecated Rules
+
+### `entry-point` rule
+
+The boundaries set by this rule now can also be achieved with the **[`boundaries/element-types` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the new [`internalPath` selector property](../../setup/selectors.md).**
+
+Here you have an example of how to migrate a configuration from `boundaries/entry-point` to `boundaries/element-types`:
+
+<CodeDiff language="javascript">{`
+. {
+.   rules: {
+-     "boundaries/entry-point": [2, {
++     "boundaries/element-types": [2, {
+.       default: "disallow",
+.       rules: [
+-         {
+-           target: ["component", "module"],
+-           allow: "index.js",
+-           importKind: "value"
+-         }
++         {
++           to: {
++             type: ["component", "module"],
++             internalPath: "!index.js" 
++           },
++           disallow: {
++             from: {
++               type: "*",
++             }
++           }
++         },
+.       ]
+.     }]
+.   }
+. }
+`}</CodeDiff>
+
+:::tip Bonus: Allowing different entry points based on the importer element
+With `boundaries/element-types` you can also define rules to allow different entry points depending on the importer element, which was not possible with the `entry-point` rule. For example, you could allow importing `index.js` from components but only allow importing `main.js` from modules.
+:::
+
+### `external` rule
+
+The boundaries set by this rule can also be achieved with the **[`boundaries/element-types` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the [`origin` and `source` selector properties](../../setup/selectors.md).**
+
+Here you have an example of how to migrate a configuration from `boundaries/external` to `boundaries/element-types`:
+
+<CodeDiff language="javascript">{`
+. {
+.   rules: {
+-     "boundaries/external": [2, {
++     "boundaries/element-types": [2, {
+.       default: "disallow",
+.       rules: [
+-         {
+-           from: "helper",
+-           allow: ["moment"],
+-           importKind: "type"
+-         }
++         {
++           from: { type: "helper" },
++           allow: {
++             to: {
++               origin: "external",
++             },
++             dependency: {
++               baseSource: "moment",
++               kind: "type"
++             },
++           }
++         }
+.       ]
+.     }]
+.   }
+. }
+`}</CodeDiff>
+
+### `no-private` rule
+
+The boundaries set by this rule can also be achieved with the **[`boundaries/element-types` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the [`relationship` selector property](../../setup/selectors.md).**
+
+<CodeDiff language="javascript">{`
+. {
+.   rules: {
+-     "boundaries/no-private": [2, { allowUncles: true }]
++     "boundaries/element-types": [2, {
++       default: "allow",
++       rules: [
++         // Disallow all elements importing children elements of other elements
++         {
++           from: { type: "*" },
++           disallow: {
++             dependency: {
++               relationship: {
++                 to: ["child"],
++               }
++             },
++           }
++         },
++         // Allow all elements importing their own children, siblings, and uncles     
++         {
++           from: { type: "*" },
++           allow: {
++             dependency: {
++               relationship: {
++                 to: ["child", "sibling", "uncle"],
++               }
++             },
++           }
++         }
++       ]
++     }]
+.   }
+. }
+`}</CodeDiff>
+
+:::tip Bonus: More specific rules with `boundaries/element-types`
+With `boundaries/element-types` you can also define more specific rules that were not possible with `no-private`, such as allowing only certain elements to import their siblings or uncles, while disallowing it for others.
+:::
+
+---
+
+## Why Migrate?
+
+### Benefits of Object-Based Selectors
+
+The modern object-based selector syntax provides several benefits over the legacy formats:
+
+- ✅ **Better readability** - Object properties are self-documenting
+- ✅ **Advanced features** - Access to properties like `origin`, `path`, `internalPath`, and more
+- ✅ **Type safety** - Better TypeScript support and IDE autocompletion
+- ✅ **Future-proof** - New features will only be added to object-based syntax
+
+These benefits make it easier to write and maintain your configuration, and to take advantage of new features as they are added in future releases. It is much more powerful and flexible, allowing you to define complex matching logic that was not possible with the legacy formats.
+
+### Benefits of the new template syntax
+
+The new template syntax also provides clearer and more structured access to all the properties of the elements and dependencies.
+
+- ✅ **Access to all properties** - Not limited to captured properties, can access any property from the element or dependency description
+- ✅ **Structured access** - Clear distinction between `from`, `to`, and `dependency` properties
+- ✅ **Future-proof** - New properties will only be added to the new template syntax, ensuring you can take advantage of new features as they are added in future releases.
+
+### Benefits of stop using legacy rules
+
+Using the `boundaries/element-types` rule with the new selector syntax instead of the deprecated `entry-point`, `external`, and `no-private` rules allows you to:
+- ✅ **Unified configuration** - Define all your boundaries in a single rule with consistent syntax
+- ✅ **More powerful rules** - Access to advanced selector features for more granular control over your boundaries
+
+## Need Help?
+
+- See [Object-Based Selectors](../../setup/selectors.md) for complete documentation
+- See [Legacy Selectors](../../setup/selectors/legacy-selectors.md) for reference
+- Check [Examples](../../rules/dependencies.md) in the rules documentation
+- Open an issue on [GitHub](https://github.com/javierbrea/eslint-plugin-boundaries/issues) if you need assistance

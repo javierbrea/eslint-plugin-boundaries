@@ -21,7 +21,7 @@ keywords:
 :::warning Deprecated
 The selector formats documented on this page are **deprecated** and will be removed in a future major version. These formats still work but will show a deprecation warning in your console.
 
-**We strongly recommend migrating to the modern [object-based selector syntax](../selectors.md).** See the [v5 to v6 migration guide](../../releases/migration-guides/v5-to-v6.md) for detailed migration instructions and examples.
+**We strongly recommend migrating to the modern [object-based selector syntax](../selectors.md).** See the [v5 to v6 migration guide](../../releases/migration-guides/v5-to-v6.mdx) for detailed migration instructions and examples.
 :::
 
 ## Overview
@@ -124,16 +124,15 @@ The modern object-based selector syntax provides:
 
 - ✅ **Better readability** - Object properties are self-documenting
 - ✅ **Advanced features** - Access to properties like `origin`, `path`, `internalPath`, and more
-- ✅ **OR logic for captured values** - Use arrays to match multiple captured value combinations
 - ✅ **Type safety** - Better TypeScript support and IDE autocompletion
 - ✅ **Future-proof** - New features will only be added to object-based syntax
 
 ## Migration Guide
 
-For comprehensive migration instructions and examples, see the **[v5 to v6 Migration Guide](../../releases/migration-guides/v5-to-v6.md)**.
+For comprehensive migration instructions and examples, see the **[v5 to v6 Migration Guide](../../releases/migration-guides/v5-to-v6.mdx)**.
 
 ## See Also
 
 - [Object-Based Selectors](../selectors.md) - Modern selector documentation
-- [v5 to v6 Migration Guide](../../releases/migration-guides/v5-to-v6.md) - Step-by-step migration instructions
+- [v5 to v6 Migration Guide](../../releases/migration-guides/v5-to-v6.mdx) - Step-by-step migration instructions
 - [Elements Configuration](../elements.md) - Understanding captured properties

@@ -211,7 +211,7 @@ import { map } from 'lodash';
 ```
 
 :::tip Use external rules to enforce constraints across packages
-You can still use the [`boundaries/external`](../rules/external.md) rule to enforce constraints on inter-package dependencies treated as external. For example, you can prevent certain packages from importing others by defining rules based on the external import patterns.
+You can still use the [`boundaries/external`](../rules/external.mdx) rule to enforce constraints on inter-package dependencies treated as external. For example, you can prevent certain packages from importing others by defining rules based on the external import patterns.
 :::
 
 ## Scenario 3: Inter-package Dependencies as Local (Monorepo-wide Rules)

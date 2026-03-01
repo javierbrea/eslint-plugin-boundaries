@@ -9,11 +9,11 @@ tags:
   - examples
 ---
 
+import CodeDiff from "@site/src/components/CodeDiff";
+
 # external
 
-
 > Enforce allowed external dependencies by **[element](../setup/elements.md)** type.
-
 
 ## Rule Details
 
@@ -404,50 +404,39 @@ When neither condition applies, `report` contains no properties.
 
 ## Migration to `boundaries/element-types`
 
-The restrictions enforced by this rule can also be achieved with the more flexible and powerful `boundaries/element-types` rule, which allows you to specify allowed relationships directly in the rules by using the `internalPath` selector property. It is recommended to migrate your configuration to `boundaries/element-types` as soon as possible, as this legacy rule will eventually be removed in oncoming major versions.
+The restrictions enforced by this rule can also be achieved with the more flexible and powerful `boundaries/element-types` rule, which allows you to specify allowed relationships directly in the rules by using the `origin` and `source` selector properties. It is recommended to migrate your configuration to `boundaries/element-types` as soon as possible, as this legacy rule will eventually be removed in oncoming major versions.
 
 Here you have an example of how to migrate a configuration from `boundaries/external` to `boundaries/element-types`:
 
-```js
-// Original configuration with boundaries/external
-{
-  rules: {
-    "boundaries/external": [2, {
-      default: "disallow",
-      rules: [
-        {
-          from: { type: "helper" },
-          allow: ["moment"],
-          importKind: "type"
-        }
-      ]
-    }]
-  }
-}
-
-// Migrated configuration with boundaries/element-types
-{
-  rules: {
-    "boundaries/element-types": [2, {
-      default: "disallow",
-      rules: [
-        {
-          from: { type: "helper" },
-          allow: {
-            to: {
-              origin: "external",
-            },
-            dependency: {
-              baseSource: "moment",
-              kind: "type"
-            },
-          }
-        }
-      ]
-    }]
-  }
-}
-```
+<CodeDiff language="javascript">{`
+. {
+.   rules: {
+-     "boundaries/external": [2, {
++     "boundaries/element-types": [2, {
+.       default: "disallow",
+.       rules: [
+-         {
+-           from: "helper",
+-           allow: ["moment"],
+-           importKind: "type"
+-         }
++         {
++           from: { type: "helper" },
++           allow: {
++             to: {
++               origin: "external",
++             },
++             dependency: {
++               baseSource: "moment",
++               kind: "type"
++             },
++           }
++         }
+.       ]
+.     }]
+.   }
+. }
+`}</CodeDiff>
 
 ## Further Reading
 

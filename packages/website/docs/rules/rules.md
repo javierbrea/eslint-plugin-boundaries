@@ -62,7 +62,7 @@ This rule ensures that elements cannot import files from another element except 
 Now this can also be achieved with the `boundaries/element-types` rule, but this legacy rule will continue working for now to give you more time to migrate your configuration. It helps maintain clear and consistent access points between different architectural layers.
 :::
 
-See the [documentation for the `boundaries/entry-point` rule](./entry-point.md) for more details.
+See the [documentation for the `boundaries/entry-point` rule](./entry-point.mdx) for more details.
 
 ### Allowed external modules
 
@@ -74,14 +74,14 @@ It helps maintain consistent dependency management across different architectura
 This rule is still available for now, but the recommended way to manage external dependencies is through the `boundaries/element-types` rule, which allows you to specify allowed external dependencies directly in the rules by using the `origin` and `source` properties. This legacy rule will eventually be removed, so it is recommended to migrate your configuration to `boundaries/element-types` as soon as possible.
 :::
 
-See the [documentation for the `boundaries/external` rule](./external.md) for more details.
+See the [documentation for the `boundaries/external` rule](./external.mdx) for more details.
 
 ### Private elements
 
 This rule ensures that elements cannot import the children of another element. When element B is a child of element A, B becomes a “private” element of A, and only A is allowed to use it.
 
 :::warning
-This rule is still available for now, but the recommended way to manage private elements is through the `boundaries/element-types` rule, which allows you to define rules based on the relationship between elements types, including parent-child relationships. This legacy rule will eventually be removed, so it is recommended to migrate your configuration to `boundaries/element-types` as soon as possible.
+This rule is still available for now, but the recommended way to manage private elements is through the `boundaries/element-types` rule, which allows you to define rules based on the relationship between elements, including parent-child relationships. This legacy rule will eventually be removed, so it is recommended to migrate your configuration to `boundaries/element-types` as soon as possible.
 :::
 
-See the [documentation for the `boundaries/no-private` rule](./no-private.md) for more details.
+See the [documentation for the `boundaries/no-private` rule](./no-private.mdx) for more details.
