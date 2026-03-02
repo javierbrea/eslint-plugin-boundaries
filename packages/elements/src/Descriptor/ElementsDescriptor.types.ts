@@ -105,7 +105,6 @@ export type ElementDescriptors = ElementDescriptor[];
 
 export type ElementDescriptionWithSource = ElementDescription & {
   baseSource?: string | null;
-  source: string;
 };
 
 /**

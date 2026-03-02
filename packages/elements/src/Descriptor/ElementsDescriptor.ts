@@ -687,7 +687,6 @@ export class ElementsDescriptor {
     if (isCore) {
       const coreElement: ElementDescriptionWithSource = {
         ...UNKNOWN_ELEMENT,
-        source: dependencySource,
         baseSource: baseDependencySource,
         origin: ELEMENT_ORIGINS_MAP.CORE,
       };
@@ -705,7 +704,6 @@ export class ElementsDescriptor {
         ...UNKNOWN_ELEMENT,
         path: filePath || null,
         internalPath: dependencySource.replace(baseDependencySource, ""),
-        source: dependencySource,
         baseSource: baseDependencySource,
         origin: ELEMENT_ORIGINS_MAP.EXTERNAL,
       };

@@ -440,7 +440,6 @@ describe("Descriptors", () => {
         isIgnored: false,
         origin: "external",
         path: "/project/node_modules/react/index.tsx",
-        source: "react",
         isUnknown: true,
       });
       expect(isExternalDependencyElement(element)).toBe(true);
@@ -463,7 +462,6 @@ describe("Descriptors", () => {
         parents: null,
         origin: "external",
         path: "/project/node_modules/@mui/icons-material/index.tsx",
-        source: "@mui/icons-material",
         isUnknown: true,
       });
       expect(isExternalDependencyElement(element)).toBe(true);
@@ -486,7 +484,6 @@ describe("Descriptors", () => {
         isIgnored: false,
         origin: "external",
         path: "/project/node_modules/@mui/icons-material/index.tsx",
-        source: "@mui/icons-material/foo",
         isUnknown: true,
       });
       expect(isExternalDependencyElement(element)).toBe(true);
@@ -506,7 +503,6 @@ describe("Descriptors", () => {
         isIgnored: false,
         origin: "external",
         path: null,
-        source: "react",
         isUnknown: true,
       });
       expect(isExternalDependencyElement(element)).toBe(true);
@@ -526,7 +522,6 @@ describe("Descriptors", () => {
         isIgnored: false,
         origin: "core",
         path: null,
-        source: "node:fs",
         isUnknown: true,
       });
       expect(isCoreDependencyElement(element)).toBe(true);
@@ -546,7 +541,6 @@ describe("Descriptors", () => {
         isIgnored: false,
         origin: "core",
         path: null,
-        source: "fs",
         isUnknown: true,
       });
       expect(isCoreDependencyElement(element)).toBe(true);

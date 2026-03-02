@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - feat: Validate and transform different settings and rules only once per different configuration object, and not per rule execution, to improve performance.
 - feat: Support all element description properties in custom messages templates by using handlebars syntax. Old message templates will continue working as they are, without any change.
 - feat: Improve debug output, and add `boundaries/debug` setting to allow enabling/disabling it and filtering the traces that are printed.
+- feat: Add `checkAllOrigins`, `checkUnknownLocals` and `checkInternals` options to `element-types` rule to allow checking or ignoring dependencies based on their properties. By default, only local dependencies with known elements are checked, and internal dependencies are ignored, as in previous versions.
 ### Changed
 ### Fixed
 ### Removed
