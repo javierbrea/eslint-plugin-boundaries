@@ -8,12 +8,12 @@ export default dependencyRule(
   {
     schema: [],
     ruleName: RULE_NO_IGNORED,
-    description: `Prevent importing ignored files from recognized elements`,
+    description: `Prevent dependencies to ignored files from recognized elements`,
   },
   function ({ dependency, node, context }) {
     if (dependency.to.isIgnored) {
       context.report({
-        message: `Importing ignored files is not allowed`,
+        message: `Dependencies to ignored files are not allowed`,
         node: node,
       });
     }

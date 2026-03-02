@@ -9,7 +9,7 @@ export default dependencyRule(
   {
     schema: [],
     ruleName: RULE_NO_UNKNOWN,
-    description: `Prevent importing unknown elements from the known ones`,
+    description: `Prevent dependencies to unknown elements`,
   },
   function ({ dependency, node, context }) {
     if (
@@ -18,7 +18,7 @@ export default dependencyRule(
       dependency.to.isUnknown
     ) {
       context.report({
-        message: `Importing unknown elements is not allowed`,
+        message: `Dependencies to unknown elements are not allowed`,
         node: node,
       });
     }

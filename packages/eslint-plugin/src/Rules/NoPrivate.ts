@@ -26,7 +26,7 @@ function errorMessage(
 export default dependencyRule<NoPrivateOptions>(
   {
     ruleName: RULE_NO_PRIVATE,
-    description: `Prevent importing private elements of another element`,
+    description: `Prevent dependencies to private elements`,
     schema: [
       {
         type: "object",

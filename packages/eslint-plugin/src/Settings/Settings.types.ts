@@ -6,6 +6,9 @@ import type {
   CapturedValues,
   ExternalLibrariesSelector,
   FlagAsExternalOptions,
+  DependencyDataSelector,
+  SimpleElementSelectorByType,
+  BaseElementSelectorWithOptions,
 } from "@boundaries/elements";
 import type { ESLint, Linter, Rule } from "eslint";
 
@@ -524,18 +527,25 @@ export type RuleMatcherElementsCapturedValues = {
   target: CapturedValues;
 };
 
+type PolicyEntry =
+  | SimpleElementSelectorByType
+  | BaseElementSelectorWithOptions
+  | DependencySelector;
+
 /**
  * Rule that defines allowed or disallowed dependencies between different element types.
  */
 export type ElementTypesRule = {
+  dependency?: DependencyDataSelector;
   /** Selectors of the source elements that the rule applies to (the elements importing) */
   from?: ElementsSelector;
   /** Selectors of the target elements that are disallowed to be imported */
   to?: ElementsSelector;
+  // TODO: Support also strings and string tuples for allow and disallow for backward compatibility. This will be removed in future major releases.
   /** Selectors of the elements that are disallowed to be imported */
-  disallow?: ElementsSelector;
+  disallow?: PolicyEntry | PolicyEntry[];
   /** Selectors of the elements that are allowed to be imported */
-  allow?: ElementsSelector;
+  allow?: PolicyEntry | PolicyEntry[];
   /** Kind of import that the rule applies to (e.g., "type", "value") */
   importKind?: DependencyKind;
   /** Custom message for rule violations */

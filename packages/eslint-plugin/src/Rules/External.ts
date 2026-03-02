@@ -3,105 +3,23 @@ import {
   isCoreDependencyElement,
   ELEMENT_ORIGINS_MAP,
 } from "@boundaries/elements";
-import type {
-  DependencyDescription,
-  ExternalLibrariesSelector,
-} from "@boundaries/elements";
+import type { ExternalLibrariesSelector } from "@boundaries/elements";
 
-import {
-  customErrorMessage,
-  ruleElementMessage,
-  elementMessage,
-  dependencyUsageKindMessage,
-} from "../Messages";
-import type {
-  ExternalRuleOptions,
-  RuleResult,
-  RuleResultReport,
-} from "../Settings";
+import type { ExternalRuleOptions, ExternalRule } from "../Settings";
 import {
   rulesOptionsSchema,
   validateAndWarnRuleOptions,
   SETTINGS,
   RULE_NAMES_MAP,
-  PLUGIN_NAME,
-  PLUGIN_ISSUES_URL,
 } from "../Settings";
 import { isString, isArray } from "../Support";
 
-import { elementRulesAllowDependency } from "./ElementTypes";
+import { evaluateRulesAndReport } from "./ElementTypes";
 import { dependencyRule } from "./Support";
 
 const { RULE_EXTERNAL } = SETTINGS;
 
-function getErrorReportMessage(report: RuleResultReport) {
-  if (report.path) {
-    return report.path;
-  }
-  return report.specifiers && report.specifiers.length > 0
-    ? report.specifiers.join(", ")
-    : undefined;
-}
-
-function errorMessage(
-  ruleData: RuleResult,
-  dependency: DependencyDescription
-): string {
-  const ruleReport = ruleData.ruleReport;
-  if (!ruleReport) {
-    return `No detailed rule report available. This is likely a bug in ${PLUGIN_NAME}. Please report it at ${PLUGIN_ISSUES_URL}`;
-  }
-
-  if (ruleReport.message) {
-    return customErrorMessage(ruleReport.message, dependency, {
-      specifiers:
-        ruleData.report?.specifiers && ruleData.report?.specifiers.length > 0
-          ? ruleData.report?.specifiers?.join(", ")
-          : undefined,
-      path: ruleData.report?.path,
-    });
-  }
-  if (ruleReport.isDefault) {
-    return `No rule allows the usage of external module '${
-      dependency.dependency.module
-    }' in elements ${elementMessage(dependency.from)}`;
-  }
-
-  const fileReport = `is not allowed in ${ruleElementMessage(
-    ruleReport.element,
-    dependency.from.captured
-  )}. Disallowed in rule ${ruleReport.index + 1}`;
-
-  if (
-    (ruleData.report?.specifiers && ruleData.report?.specifiers.length > 0) ||
-    ruleData.report?.path
-  ) {
-    return `Usage of ${dependencyUsageKindMessage(
-      ruleReport.importKind,
-      dependency
-    )}'${getErrorReportMessage(ruleData.report)}' from external module '${
-      dependency.dependency.module
-    }' ${fileReport}`;
-  }
-  return `Usage of ${dependencyUsageKindMessage(
-    ruleReport.importKind,
-    dependency,
-    {
-      suffix: " from ",
-    }
-  )}external module '${dependency.dependency.module}' ${fileReport}`;
-}
-
-function modifySelectors(selectors: ExternalLibrariesSelector): {
-  internalPath?: string | string[];
-  dependency?: {
-    module?: string | string[];
-    specifiers?: string | string[];
-  };
-  to: {
-    origin: string | string[];
-  };
-} {
+function modifySelectors(selectors: ExternalLibrariesSelector): unknown {
   const originsToMatch = [
     ELEMENT_ORIGINS_MAP.EXTERNAL,
     ELEMENT_ORIGINS_MAP.CORE,
@@ -116,7 +34,6 @@ function modifySelectors(selectors: ExternalLibrariesSelector): {
       },
     };
   }
-  // @ts-expect-error TODO: Align types.
   return selectors.map((selector) => {
     if (isArray(selector)) {
       return {
@@ -143,10 +60,20 @@ function modifySelectors(selectors: ExternalLibrariesSelector): {
   });
 }
 
+function modifyRules(rules: ExternalRule[]): Record<string, unknown>[] {
+  return rules.map((rule) => ({
+    from: rule.from,
+    allow: rule.allow ? modifySelectors(rule.allow) : undefined,
+    disallow: rule.disallow ? modifySelectors(rule.disallow) : undefined,
+    importKind: rule.importKind,
+    message: rule.message,
+  }));
+}
+
 export default dependencyRule<ExternalRuleOptions>(
   {
     ruleName: RULE_EXTERNAL,
-    description: `Check allowed external dependencies by element type`,
+    description: `Check dependencies to external and core libraries`,
     schema: rulesOptionsSchema({
       targetMatcherOptions: {
         type: "object",
@@ -183,31 +110,15 @@ export default dependencyRule<ExternalRuleOptions>(
       isExternalDependencyElement(dependency.to) ||
       isCoreDependencyElement(dependency.to)
     ) {
-      const adaptedRuleOptions: ExternalRuleOptions = {
-        ...options,
-        // @ts-expect-error TODO: Fix type
-        rules:
-          options && options.rules
-            ? options.rules.map((rule) => ({
-                ...rule,
-                allow: rule.allow && modifySelectors(rule.allow),
-                disallow: rule.disallow && modifySelectors(rule.disallow),
-              }))
-            : [],
-      };
-
-      const ruleData = elementRulesAllowDependency(
-        dependency,
+      const rules = modifyRules(options?.rules ?? []);
+      evaluateRulesAndReport({
+        rules,
         settings,
-        adaptedRuleOptions
-      );
-
-      if (!ruleData.result) {
-        context.report({
-          message: errorMessage(ruleData, dependency),
-          node: node,
-        });
-      }
+        context,
+        node,
+        options,
+        dependency,
+      });
     }
   },
   {

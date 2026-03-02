@@ -11,7 +11,7 @@ const noUnknownFilesRule: Rule.RuleModule = {
   ...meta({
     ruleName: RULE_NO_UNKNOWN_FILES,
     schema: [],
-    description: `Prevent creating files not recognized as any of the element types`,
+    description: `Prevent creating files not recognized by any element patterns`,
   }),
 
   create: function (context) {
@@ -23,7 +23,7 @@ const noUnknownFilesRule: Rule.RuleModule = {
     return {
       Program: (node) => {
         context.report({
-          message: `File is not of any known element type`,
+          message: `File does not match any element pattern`,
           node: node,
         });
       },
