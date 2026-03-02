@@ -684,6 +684,9 @@ const matchingSelector = matcher.getElementSelectorMatching("src/components/Butt
 
 Returns the dependency selector matching result (`from`, `to`, `dependency`, `isMatch`).
 
+> [!NOTE]
+> This method provides detailed information about which part of the selector matched or didn't match. When arrays of selectors are provided in the `from`, `to` or `dependency` properties, the method will return the first selector that matches on each side, so the returned `from`, `to` and `dependency` will be the matching selector from each group.
+
 ```ts
 const matchingSelector = matcher.getDependencySelectorMatching(
   {
@@ -732,6 +735,11 @@ const dependencyDescription = matcher.describeDependency({
 #### `getSelectorMatchingDescription`
 
 Matches a description against selectors. As first argument, it should receive the result of `describeElement` or `describeDependency`.
+
+As second argument, it should receive an array of selectors (element or dependency selectors depending on the description type). The method will return the first selector that matches the description or `null` if no selector matches.
+
+> [!NOTE]
+> This method provides detailed information about which part of the selector matched or didn't match. When arrays of selectors are provided in the `from`, `to` or `dependency` properties in a dependency selector, the method will return the first selector that matches on each side, so the returned `from`, `to` and `dependency` will be the matching selector from each group.
 
 ```ts
 const elementDescription = matcher.describeElement("src/components/Button.tsx");
