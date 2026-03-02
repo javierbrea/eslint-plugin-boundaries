@@ -352,7 +352,7 @@ Element descriptions contain the following properties:
 ### Dependency Description (`dependency`)
 
 - **`source`**: <small>`<string>`</small> - The source string of the dependency as it appears in the code (e.g. import source)
-- **`baseSource`**: <small>`<string | null>`</small> - The base source without any path modifiers when the dependency is external or a Node.js core dependency (e.g. package name in `node_modules`), or `null` for local dependencies
+- **`module`**: <small>`<string | null>`</small> - The base source without any path modifiers when the dependency is external or a Node.js core dependency (e.g. package name in `node_modules`), or `null` for local dependencies
 - **`kind`**: <small>`"value" | "type" | "typeof"`</small>
 - **`nodeKind`**: <small>`<string | null>`</small> - AST node kind creating the dependency (or `null`)
 - **`specifiers`**: <small>`<array | null>`</small> - imported/exported specifiers array (or `null`)

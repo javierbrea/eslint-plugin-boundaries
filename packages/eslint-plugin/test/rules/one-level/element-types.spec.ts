@@ -964,7 +964,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
                 from: { type: "helpers" },
                 allow: {
                   to: [{ type: "helpers" }],
-                  dependency: { baseSource: null },
+                  dependency: { module: null },
                 },
               },
             ],

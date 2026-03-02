@@ -140,7 +140,7 @@ When debug mode is enabled, you'll see **[descriptions of files and dependencies
   },
   "dependency": {
     "source": "../Settings",
-    "baseSource": null,
+    "module": null,
     "kind": "type",
     "nodeKind": "import",
     "relationship": {

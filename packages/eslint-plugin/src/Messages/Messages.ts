@@ -256,13 +256,13 @@ function elementPropertiesToReplaceInTemplate(
 ) {
   if (isElementDescription(element)) {
     const source = dependencyMetadata?.source || "";
-    const baseSource = dependencyMetadata?.baseSource || "";
+    const dependencyModule = dependencyMetadata?.module || "";
     return {
       ...element.captured,
       type: element.type || "",
       internalPath: element.internalPath || "",
       source,
-      baseSource,
+      module: dependencyModule,
       importKind: importKind || "",
     };
   }
@@ -271,7 +271,7 @@ function elementPropertiesToReplaceInTemplate(
     type: element.type || "",
     internalPath: "",
     source: "",
-    baseSource: "",
+    module: "",
     importKind: importKind || "",
   };
 }

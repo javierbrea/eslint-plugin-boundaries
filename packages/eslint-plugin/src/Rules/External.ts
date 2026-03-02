@@ -63,7 +63,7 @@ function errorMessage(
   }
   if (ruleReport.isDefault) {
     return `No rule allows the usage of external module '${
-      dependency.dependency.baseSource
+      dependency.dependency.module
     }' in elements ${elementMessage(dependency.from)}`;
   }
 
@@ -80,7 +80,7 @@ function errorMessage(
       ruleReport.importKind,
       dependency
     )}'${getErrorReportMessage(ruleData.report)}' from external module '${
-      dependency.dependency.baseSource
+      dependency.dependency.module
     }' ${fileReport}`;
   }
   return `Usage of ${dependencyUsageKindMessage(
@@ -89,13 +89,13 @@ function errorMessage(
     {
       suffix: " from ",
     }
-  )}external module '${dependency.dependency.baseSource}' ${fileReport}`;
+  )}external module '${dependency.dependency.module}' ${fileReport}`;
 }
 
 function modifySelectors(selectors: ExternalLibrariesSelector): {
   internalPath?: string | string[];
   dependency?: {
-    baseSource?: string | string[];
+    module?: string | string[];
     specifiers?: string | string[];
   };
   to: {
@@ -112,7 +112,7 @@ function modifySelectors(selectors: ExternalLibrariesSelector): {
         origin: originsToMatch,
       },
       dependency: {
-        baseSource: selectors,
+        module: selectors,
       },
     };
   }
@@ -125,7 +125,7 @@ function modifySelectors(selectors: ExternalLibrariesSelector): {
           internalPath: selector[1].path,
         },
         dependency: {
-          baseSource: selector[0],
+          module: selector[0],
           ...(selector[1].specifiers
             ? {
                 specifiers: selector[1].specifiers,
@@ -137,7 +137,7 @@ function modifySelectors(selectors: ExternalLibrariesSelector): {
     return {
       to: { origin: originsToMatch },
       dependency: {
-        baseSource: selector as string,
+        module: selector as string,
       },
     };
   });

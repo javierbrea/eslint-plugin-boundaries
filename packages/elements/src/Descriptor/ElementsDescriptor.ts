@@ -190,10 +190,10 @@ export class ElementsDescriptor {
   ): boolean {
     // istanbul ignore next: Fallback for non-Node.js environments
     if (this._mod) {
-      const baseSourceWithoutPrefix = baseDependencySource.startsWith("node:")
+      const moduleWithoutPrefix = baseDependencySource.startsWith("node:")
         ? baseDependencySource.slice(5)
         : baseDependencySource;
-      return this._mod.builtinModules.includes(baseSourceWithoutPrefix);
+      return this._mod.builtinModules.includes(moduleWithoutPrefix);
     }
     // istanbul ignore next: Fallback for non-Node.js environments
     return isCoreModule(dependencySource);
@@ -227,7 +227,7 @@ export class ElementsDescriptor {
    * @param dependencySource The source of the dependency to check.
    * @returns The base source of the external module. (e.g., for "@scope/package/submodule", it returns "@scope/package")
    */
-  private _getExternalOrCoreModuleBaseSource(dependencySource: string): string {
+  private _getExternalOrCoreModuleModule(dependencySource: string): string {
     if (this._dependencySourceIsScoped(dependencySource)) {
       const [scope, packageName] = dependencySource.split("/");
       return `${scope}/${packageName}`;
@@ -676,7 +676,7 @@ export class ElementsDescriptor {
     filePath?: string
   ): ElementDescriptionWithSource | null {
     const baseDependencySource =
-      this._getExternalOrCoreModuleBaseSource(dependencySource);
+      this._getExternalOrCoreModuleModule(dependencySource);
 
     // Determine if the dependency source is a core module
     const isCore = this._dependencySourceIsCoreModule(
@@ -687,7 +687,7 @@ export class ElementsDescriptor {
     if (isCore) {
       const coreElement: ElementDescriptionWithSource = {
         ...UNKNOWN_ELEMENT,
-        baseSource: baseDependencySource,
+        module: baseDependencySource,
         origin: ELEMENT_ORIGINS_MAP.CORE,
       };
       return coreElement;
@@ -704,7 +704,7 @@ export class ElementsDescriptor {
         ...UNKNOWN_ELEMENT,
         path: filePath || null,
         internalPath: dependencySource.replace(baseDependencySource, ""),
-        baseSource: baseDependencySource,
+        module: baseDependencySource,
         origin: ELEMENT_ORIGINS_MAP.EXTERNAL,
       };
       return externalElement;

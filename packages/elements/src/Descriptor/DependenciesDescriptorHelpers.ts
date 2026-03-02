@@ -73,8 +73,8 @@ export function isElementsDependencyInfo(
   return (
     isObjectWithProperty(value, "source") &&
     isString(value.source) &&
-    isObjectWithProperty(value, "baseSource") &&
-    (isNullish(value.baseSource) || isString(value.baseSource)) &&
+    isObjectWithProperty(value, "module") &&
+    (isNullish(value.module) || isString(value.module)) &&
     isObjectWithProperty(value, "kind") &&
     isDependencyKind(value.kind) &&
     isObjectWithProperty(value, "relationship") &&

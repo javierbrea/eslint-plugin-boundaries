@@ -63,7 +63,7 @@ export type ElementsDependencyInfo = {
   /** Source of the dependency (import/export path) */
   source: string;
   /** Base source of the dependency for external/core modules */
-  baseSource: string | null;
+  module: string | null;
   /** Kind of the dependency */
   kind: DependencyKind;
   /** Type of the node creating the dependency in the dependent element */

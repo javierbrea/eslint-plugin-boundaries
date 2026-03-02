@@ -105,7 +105,7 @@ const dependencyMatcherItemSchema = {
     source: {
       oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
     },
-    baseSource: {
+    module: {
       oneOf: [
         { type: ["string", "null"] },
         { type: "array", items: { type: ["string", "null"] } },

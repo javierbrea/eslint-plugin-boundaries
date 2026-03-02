@@ -1174,7 +1174,7 @@ describe("Matcher", () => {
         },
         expected: true,
       },
-      // BaseSource tests
+      // Module tests
       {
         dependency: {
           from: "/project/src/components/Button.tsx",
@@ -1185,7 +1185,7 @@ describe("Matcher", () => {
         },
         selector: {
           to: { origin: ["external", "local"] },
-          dependency: { baseSource: "react" },
+          dependency: { module: "react" },
         },
         expected: true,
       },
@@ -1198,7 +1198,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          dependency: { baseSource: "foo" },
+          dependency: { module: "foo" },
         },
         expected: false,
       },
@@ -1214,7 +1214,7 @@ describe("Matcher", () => {
           to: {
             origin: ["external", "local"],
           },
-          dependency: { baseSource: "react", source: "react" },
+          dependency: { module: "react", source: "react" },
         },
         expected: true,
       },
@@ -1231,7 +1231,7 @@ describe("Matcher", () => {
         },
         expected: false,
       },
-      // Dependency metadata source/baseSource tests
+      // Dependency metadata source/module tests
       {
         dependency: {
           from: "/project/src/components/Button.tsx",
@@ -1254,7 +1254,7 @@ describe("Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          dependency: { baseSource: "react" },
+          dependency: { module: "react" },
         },
         expected: true,
       },

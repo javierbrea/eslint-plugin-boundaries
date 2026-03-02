@@ -36,7 +36,7 @@ describe("elementHelpers", () => {
         isIgnored: false,
         isUnknown: false,
         source: null,
-        baseSource: null,
+        module: null,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -55,7 +55,7 @@ describe("elementHelpers", () => {
         isIgnored: false,
         isUnknown: false,
         source: null,
-        baseSource: null,
+        module: null,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -74,7 +74,7 @@ describe("elementHelpers", () => {
         isIgnored: false,
         isUnknown: false,
         source: null,
-        baseSource: null,
+        module: null,
       };
 
       expect(isLocalElement(localElement)).toBe(true);
@@ -87,7 +87,7 @@ describe("elementHelpers", () => {
         captured: {},
         source: "react",
         path: "foo",
-        baseSource: "react",
+        module: "react",
         internalPath: "react/index.js",
         origin: "external",
         isIgnored: false,
@@ -127,7 +127,7 @@ describe("elementHelpers", () => {
         origin: "local",
         isIgnored: false,
         isUnknown: false,
-        baseSource: null,
+        module: null,
       };
 
       expect(isLocalDependencyElement(localDependency)).toBe(true);
@@ -142,7 +142,7 @@ describe("elementHelpers", () => {
         path: "foo",
         origin: "external",
         internalPath: "lodash/index.js",
-        baseSource: "./components/Button",
+        module: "./components/Button",
         isIgnored: false,
         isUnknown: true,
         parents: null,
@@ -160,7 +160,7 @@ describe("elementHelpers", () => {
         path: "foo",
         origin: "external",
         internalPath: "lodash/index.js",
-        baseSource: "./components/Button",
+        module: "./components/Button",
         captured: null,
         isUnknown: true,
         isIgnored: false,
@@ -179,7 +179,7 @@ describe("elementHelpers", () => {
         path: "foo",
         origin: "local",
         internalPath: "lodash/index.js",
-        baseSource: "./components/Button",
+        module: "./components/Button",
         isUnknown: true,
         isIgnored: false,
       };
@@ -210,7 +210,7 @@ describe("elementHelpers", () => {
         isExternal: true,
         isLocal: true, // This is set but no path property
         isBuiltIn: false,
-        baseSource: "react",
+        module: "react",
         isIgnored: false,
         isUnknown: false,
       };
@@ -230,7 +230,7 @@ describe("elementHelpers", () => {
         isIgnored: false,
         isUnknown: false,
         source: null,
-        baseSource: null,
+        module: null,
       };
 
       // Current guard accepts any non-ignored local element
@@ -264,7 +264,7 @@ describe("elementHelpers", () => {
         captured: {},
         path: "/src/utils/helper.ts", // Required for isLocalElement
         source: "../constants", // Required for isDependencyElement
-        baseSource: "../utils", // Required for isDependencyElement
+        module: "../utils", // Required for isDependencyElement
         origin: "local",
         isUnknown: true,
         isIgnored: false,
@@ -281,7 +281,7 @@ describe("elementHelpers", () => {
         category: null,
         captured: {},
         source: "fs",
-        baseSource: "fs",
+        module: "fs",
         internalPath: "fs/index.js",
         path: "foo",
         origin: "external",
@@ -299,7 +299,7 @@ describe("elementHelpers", () => {
         type: null,
         category: null,
         source: "fs",
-        baseSource: "fs",
+        module: "fs",
         internalPath: "fs/index.js",
         path: "foo",
         origin: "local",
@@ -330,7 +330,7 @@ describe("elementHelpers", () => {
         specifiers: ["useState"],
         isExternal: true,
         isBuiltIn: false,
-        baseSource: null, // Invalid baseModule
+        module: null, // Invalid baseModule
         isLocal: false,
       };
 
@@ -349,7 +349,7 @@ describe("elementHelpers", () => {
         specifiers: ["helper"],
         isExternal: false, // This should make it fail
         isBuiltIn: false,
-        baseSource: "helper",
+        module: "helper",
         isLocal: true,
       };
 
@@ -363,7 +363,7 @@ describe("elementHelpers", () => {
         source: null,
         isExternal: true,
         isBuiltIn: false,
-        baseSource: "test",
+        module: "test",
       };
 
       expect(isExternalDependencyElement(notADependency)).toBe(false);
@@ -377,7 +377,7 @@ describe("elementHelpers", () => {
         specifiers: ["map"],
         isExternal: true,
         isBuiltIn: false,
-        baseSource: 123, // Should be string
+        module: 123, // Should be string
         isLocal: false,
       };
 
@@ -396,7 +396,7 @@ describe("elementHelpers", () => {
         captured: {},
         source: "lodash", // Required for isDependencyElement
         origin: "external",
-        baseSource: "lodash", // Required for isExternalDependency (must be string)
+        module: "lodash", // Required for isExternalDependency (must be string)
         // Missing other properties, but these are the minimal requirements
       };
 
@@ -418,7 +418,7 @@ describe("elementHelpers", () => {
         isIgnored: false,
         isUnknown: false,
         source: null,
-        baseSource: null,
+        module: null,
       };
 
       expect(isElementDescription(localElement)).toBe(true);
@@ -445,7 +445,7 @@ describe("elementHelpers", () => {
         captured: {},
         path: "foo",
         source: "lodash",
-        baseSource: "lodash",
+        module: "lodash",
         origin: "external",
         internalPath: "lodash/index.js",
         isIgnored: false,
@@ -470,7 +470,7 @@ describe("elementHelpers", () => {
         origin: "local",
         isIgnored: false,
         isUnknown: false,
-        baseSource: null,
+        module: null,
       };
 
       expect(isElementDescription(localDependency)).toBe(true);
@@ -498,7 +498,7 @@ describe("elementHelpers", () => {
         path: "/src/test.ts",
         origin: "local",
         source: "./test",
-        baseSource: "./src",
+        module: "./src",
         isUnknown: true,
         isIgnored: false,
       };

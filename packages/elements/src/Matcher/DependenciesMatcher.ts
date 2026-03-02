@@ -347,24 +347,24 @@ export class DependenciesMatcher extends BaseElementsMatcher {
   }
 
   /**
-   * Determines if the selector matches the baseSource
+   * Determines if the selector matches the module
    * @param selector The dependency selector data
-   * @param baseSource The baseSource to check
+   * @param module The module to check
    * @param templateData The template data for rendering selector values
-   * @returns Whether the selector matches the baseSource
+   * @returns Whether the selector matches the module
    */
-  private _baseSourceMatches(
+  private _moduleMatches(
     selector: DependencyDataSelectorData,
-    baseSource: string | null,
+    dependencyModule: string | null,
     templateData: TemplateData
   ): boolean {
-    if (!selector.baseSource) {
+    if (!selector.module) {
       return true;
     }
     return this.isTemplateMicromatchMatch(
-      selector.baseSource,
+      selector.module,
       templateData,
-      baseSource
+      dependencyModule
     );
   }
 
@@ -387,13 +387,13 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     const nodeKind = dependencyInfo.nodeKind;
     const specifiers = dependencyInfo.specifiers;
     const source = dependencyInfo.source;
-    const baseSource = dependencyInfo.baseSource;
+    const dependencyModule = dependencyInfo.module;
 
     return (
       this._kindMatches(selectorData, kind, templateData) &&
       this._nodeKindMatches(selectorData, nodeKind, templateData) &&
       this._sourceMatches(selectorData, source, templateData) &&
-      this._baseSourceMatches(selectorData, baseSource, templateData) &&
+      this._moduleMatches(selectorData, dependencyModule, templateData) &&
       this._relationshipFromMatches(
         selectorData,
         relationshipFrom,

@@ -84,7 +84,7 @@ export function isBaseElementSelectorData(
     "captured",
     "origin",
     "source",
-    "baseSource",
+    "module",
     "isIgnored",
     "isUnknown",
   ]);

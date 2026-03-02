@@ -402,7 +402,7 @@ When neither condition applies, `report` contains no properties.
 
 ## Migration to `boundaries/element-types`
 
-The restrictions enforced by this rule can also be achieved with the more flexible and powerful `boundaries/element-types` rule, which allows you to specify allowed relationships directly in the rules by using the `origin`, `source` and `baseSource` selector properties. It is recommended to migrate your configuration to `boundaries/element-types` as soon as possible, as this legacy rule will eventually be removed in oncoming major versions.
+The restrictions enforced by this rule can also be achieved with the more flexible and powerful `boundaries/element-types` rule, which allows you to specify allowed relationships directly in the rules by using the `origin`, `source` and `module` selector properties. It is recommended to migrate your configuration to `boundaries/element-types` as soon as possible, as this legacy rule will eventually be removed in oncoming major versions.
 
 :::warning
 You need to set the `checkAllOrigins` option to `true` in your `boundaries/element-types` configuration to make sure that dependencies from external origins are also checked, as by default `boundaries/element-types` only checks dependencies between local known elements.
@@ -431,7 +431,7 @@ Here you have an example of how to migrate a configuration from `boundaries/exte
 +               origin: "external",
 +             },
 +             dependency: {
-+               baseSource: "moment",
++               module: "moment",
 +               kind: "type"
 +             },
 +           }

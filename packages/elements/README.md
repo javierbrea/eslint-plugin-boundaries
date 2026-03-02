@@ -237,7 +237,7 @@ Additional fields for local known elements:
   to: ElementDescription,
   dependency: {
     source: string,
-    baseSource: string | null,
+    module: string | null,
     kind: "value" | "type" | "typeof",
     nodeKind: string | null,
     specifiers: string[] | null,
@@ -252,7 +252,7 @@ Additional fields for local known elements:
 Notes:
 
 - `dependency.source` is the raw import/export source string from code.
-- `dependency.baseSource` is the normalized module base for external/core dependencies.
+- `dependency.module` is the normalized module base for external/core dependencies.
 - `dependency.relationship.to` describes how `to` relates to `from`.
 - `dependency.relationship.from` is the inverse perspective.
 - For unknown/ignored scenarios, some values can be `null`.
@@ -319,7 +319,7 @@ When matching dependencies, you can use dependency selectors that specify condit
   - **`specifiers`** (`string | string[]`): Pattern(s) for import/export specifiers (e.g., named imports)
   - **`nodeKind`** (`string | string[]`): Pattern(s) for the AST node type causing the dependency (e.g., `"ImportDeclaration"`)
   - **`source`** (`string | string[]`): Pattern(s) to match the source of the dependency (e.g., the import path)
-  - **`baseSource`** (`string | string[]`): Pattern(s) for the base module name for external or core dependencies.
+  - **`module`** (`string | string[]`): Pattern(s) for the base module name for external or core dependencies.
 
 > **⚠️ Important:** All properties in a selector must match for the selector to be considered a match (AND logic). Use multiple selectors for OR logic.
 
@@ -342,7 +342,7 @@ When matching, the following data is automatically available:
 **For dependency matching:**
 - `from`: Properties of the dependency source element
 - `to`: Properties of the dependency target element
-- `dependency`: Dependency metadata (`kind`, `nodeKind`, `specifiers`, `source`, `baseSource`, `relationship`, etc.)
+- `dependency`: Dependency metadata (`kind`, `nodeKind`, `specifiers`, `source`, `module`, `relationship`, etc.)
 
 #### Template Examples
 

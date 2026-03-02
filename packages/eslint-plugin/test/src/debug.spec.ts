@@ -98,7 +98,7 @@ const createDependencyDescription = (): DependencyDescription => {
     to: dependencyElement,
     dependency: {
       source: "../helpers/Helper",
-      baseSource: null,
+      module: null,
       kind: "type",
       nodeKind: "import",
       relationship: {

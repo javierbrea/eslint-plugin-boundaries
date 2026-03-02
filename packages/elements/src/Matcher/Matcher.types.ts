@@ -116,7 +116,7 @@ export type BaseElementSelectorData = {
   /** Micromatch pattern(s) to match the source of the dependency */
   source?: MicromatchPatternNullable;
   /** Base source of the element, e.g., the import path of a dependency */
-  baseSource?: MicromatchPatternNullable;
+  module?: MicromatchPatternNullable;
   /** Whether the element is ignored */
   isIgnored?: boolean;
   /** Whether the element is unknown */
@@ -143,7 +143,7 @@ export type DependencyDataSelectorData = {
   /** Dependency source used in import/export statements */
   source?: MicromatchPatternNullable;
   /** Base source of the dependency for external/core modules */
-  baseSource?: MicromatchPatternNullable;
+  module?: MicromatchPatternNullable;
 };
 
 /**

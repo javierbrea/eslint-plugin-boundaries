@@ -262,15 +262,14 @@ export class DependenciesDescriptor {
 
     const fromElement = this._elementsDescriptor.describeElement(from);
     const toElement = this._elementsDescriptor.describeElement(to, source);
-    const { baseSource: dependencyBaseSource, ...toElementDescription } =
-      toElement;
+    const { module: dependencyModule, ...toElementDescription } = toElement;
 
     const result = {
       from: fromElement,
       to: toElementDescription,
       dependency: {
         source,
-        baseSource: dependencyBaseSource || null,
+        module: dependencyModule || null,
         kind,
         nodeKind: nodeKind || null,
         relationship: this._dependencyRelationships(

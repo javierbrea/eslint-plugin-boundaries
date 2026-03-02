@@ -102,13 +102,11 @@ describe("Descriptors", () => {
         "/project/foo/utils/testUtil.ts"
       );
 
-      expect({ ...element1, source: undefined, baseSource: undefined }).toEqual(
-        {
-          ...element2,
-          source: undefined,
-          baseSource: undefined,
-        }
-      );
+      expect({ ...element1, source: undefined, module: undefined }).toEqual({
+        ...element2,
+        source: undefined,
+        module: undefined,
+      });
     });
 
     it("should exclude files when only ignorePaths is provided", () => {
@@ -708,7 +706,7 @@ describe("Descriptors", () => {
         },
         dependency: {
           source: "project/bar",
-          baseSource: null,
+          module: null,
           kind: "type",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -760,7 +758,7 @@ describe("Descriptors", () => {
         },
         dependency: {
           source: "project/bar",
-          baseSource: null,
+          module: null,
           kind: "type",
           nodeKind: null,
           specifiers: ["foo", "bar"],
@@ -812,7 +810,7 @@ describe("Descriptors", () => {
         },
         dependency: {
           source: "project/bar",
-          baseSource: null,
+          module: null,
           kind: "type",
           nodeKind: null,
           specifiers: ["foo", "bar"],
@@ -872,7 +870,7 @@ describe("Descriptors", () => {
         },
         dependency: {
           source: "../utils/math/math.test.ts",
-          baseSource: null,
+          module: null,
           kind: "value",
           nodeKind: "Import",
           specifiers: ["calculateSum", "calculateAvg"],
@@ -926,7 +924,7 @@ describe("Descriptors", () => {
         },
         dependency: {
           source: "react",
-          baseSource: "react",
+          module: "react",
           kind: "type",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -942,7 +940,7 @@ describe("Descriptors", () => {
       expect(isExternalDependencyElement(dependency.to)).toBe(true);
     });
 
-    it("should set null dependency baseSource for external sources without package segment", () => {
+    it("should set null dependency module for external sources without package segment", () => {
       const dependency = matcher.describeDependency({
         from: "/project/src/components/Button.tsx",
         to: "/project/node_modules/react/index.tsx",
@@ -957,7 +955,7 @@ describe("Descriptors", () => {
       });
       expect(dependency.dependency).toMatchObject({
         source: "/react",
-        baseSource: null,
+        module: null,
       });
     });
 
@@ -998,7 +996,7 @@ describe("Descriptors", () => {
         },
         dependency: {
           source: "fs",
-          baseSource: "fs",
+          module: "fs",
           kind: "type",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1071,7 +1069,7 @@ describe("Descriptors", () => {
         },
         dependency: {
           source: "./modules/email/EmailService",
-          baseSource: null,
+          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1138,7 +1136,7 @@ describe("Descriptors", () => {
         },
         dependency: {
           source: "./EmailService",
-          baseSource: null,
+          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1219,7 +1217,7 @@ describe("Descriptors", () => {
         },
         dependency: {
           source: "./modules/email/modules/send/SendService",
-          baseSource: null,
+          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1300,7 +1298,7 @@ describe("Descriptors", () => {
         },
         dependency: {
           source: "../email/EmailService",
-          baseSource: null,
+          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1374,7 +1372,7 @@ describe("Descriptors", () => {
         },
         dependency: {
           source: "../../NotificationService",
-          baseSource: null,
+          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1454,7 +1452,7 @@ describe("Descriptors", () => {
         },
         dependency: {
           source: "./modules/email/modules/send/SendService",
-          baseSource: null,
+          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1542,7 +1540,7 @@ describe("Descriptors", () => {
         },
         dependency: {
           source: "../../../email/EmailService",
-          baseSource: null,
+          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
@@ -1630,7 +1628,7 @@ describe("Descriptors", () => {
         },
         dependency: {
           source: "../../../email/EmailService",
-          baseSource: null,
+          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
