@@ -60,7 +60,7 @@ const sidebars: SidebarsConfig = {
         "rules/no-ignored",
         {
           type: "category",
-          label: "Legacy Rules",
+          label: "Deprecated Rules",
           collapsed: true,
           items: ["rules/entry-point", "rules/external", "rules/no-private"],
         },

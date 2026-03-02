@@ -22,6 +22,10 @@ export default [
         "export",
       ],
 
+      "boundaries/debug": {
+        enabled: true,
+      },
+
       "boundaries/elements": [
         {
           type: "@boundaries/elements",

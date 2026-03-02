@@ -248,6 +248,7 @@ export function rulesOptionsSchema(
   options: {
     rulesMainKey?: RuleMainKey;
     targetMatcherOptions?: Record<string, unknown>;
+    extraOptionsSchema?: Record<string, unknown>;
   } = {}
 ) {
   const mainKey = rulesMainKey(options.rulesMainKey);
@@ -353,6 +354,7 @@ export function rulesOptionsSchema(
             ],
           },
         },
+        ...(options.extraOptionsSchema || {}),
       },
       additionalProperties: false,
     },

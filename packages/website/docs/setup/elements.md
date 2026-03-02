@@ -186,7 +186,7 @@ With `rootPath` set to `packages/app`:
 // ❌ Doesn't match - missing "src/" prefix in pattern
 ```
 
-**Key takeaway:** In `file` and `folder` modes, right-to-left evaluation makes patterns more flexible. In `full` mode, you must specify the complete path relative to `rootPath` (unless the file is outside `rootPath`, in which case absolute paths are used, read [monorepo setup](../guides/monorepo-setup.md) for more details).
+**Key takeaway:** In `file` and `folder` modes, right-to-left evaluation makes patterns more flexible. In `full` mode, you must specify the complete path relative to `rootPath` (unless the file is outside `rootPath`, in which case absolute paths are used. Read the [Settings](./settings.md#boundariesroot-path) documentation for more details on this behavior).
 
 :::
 

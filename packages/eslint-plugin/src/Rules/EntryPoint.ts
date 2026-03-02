@@ -111,30 +111,30 @@ function modifyRules(rules: EntryPointRule[]): ElementTypesRule[] {
         },
       ];
       newRules.push(...toAdd);
-    }
+    } else {
+      if (ruleHasDisallow) {
+        internalPathPatterns = modifyTemplates(rule.disallow);
+        disallowPattern = ["*"];
+      } else if (ruleHasAllow) {
+        internalPathPatterns = modifyTemplates(rule.allow);
+        allowPattern = ["*"];
+      }
 
-    if (ruleHasDisallow) {
-      internalPathPatterns = modifyTemplates(rule.disallow);
-      disallowPattern = ["*"];
-    } else if (ruleHasAllow) {
-      internalPathPatterns = modifyTemplates(rule.allow);
-      allowPattern = ["*"];
+      newRules.push({
+        to: newTargets.map((target) => {
+          return {
+            ...target,
+            internalPath: internalPathPatterns,
+          };
+        }),
+        allow: allowPattern,
+        disallow: disallowPattern,
+        importKind: rule.importKind,
+        message: rule.message,
+        // @ts-expect-error Workaround to support both allow and disallow in the same entry point rule
+        originalRuleIndex: i,
+      });
     }
-
-    newRules.push({
-      to: newTargets.map((target) => {
-        return {
-          ...target,
-          internalPath: internalPathPatterns,
-        };
-      }),
-      allow: allowPattern,
-      disallow: disallowPattern,
-      importKind: rule.importKind,
-      message: rule.message,
-      // @ts-expect-error Workaround to support both allow and disallow in the same entry point rule
-      originalRuleIndex: i,
-    });
   }
   return newRules;
 }

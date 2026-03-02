@@ -540,18 +540,40 @@ export default dependencyRule<ElementTypesRuleOptions>(
   {
     ruleName: RULE_ELEMENT_TYPES,
     description: `Check allowed dependencies between element types`,
-    schema: rulesOptionsSchema(),
+    schema: rulesOptionsSchema({
+      extraOptionsSchema: {
+        checkAllOrigins: {
+          type: "boolean",
+          description:
+            "Whether to check dependencies from all origins (including external and core) or only from local elements. Default to false (only local).",
+        },
+        checkUnknownLocals: {
+          type: "boolean",
+          description:
+            "Whether to check local dependencies with unknown elements (not matching any element descriptor) or to ignore them. Default to false (ignore).",
+        },
+        checkInternals: {
+          type: "boolean",
+          description:
+            "Whether to check internal dependencies (dependencies within files in the same element). Default to false (ignore).",
+        },
+      },
+    }),
   },
   function ({ dependency, node, context, settings, options }) {
     // Validate and warn about legacy selector syntax
     validateAndWarnRuleOptions(options, "from", RULE_NAMES_MAP.ELEMENT_TYPES);
 
+    const checkAllOrigins = options?.checkAllOrigins ?? false;
+    const checkUnknownLocals = options?.checkUnknownLocals ?? false;
+    const checkInternals = options?.checkInternals ?? false;
+
     // TODO: Remove these checks when allowing to use more selectors in ESLint rules
     if (
-      isLocalElement(dependency.to) &&
       !isIgnoredElement(dependency.to) &&
-      !isUnknownLocalElement(dependency.to) &&
-      !isInternalDependency(dependency)
+      (checkAllOrigins || isLocalElement(dependency.to)) &&
+      (checkUnknownLocals || !isUnknownLocalElement(dependency.to)) &&
+      (checkInternals || !isInternalDependency(dependency))
     ) {
       const ruleData = elementRulesAllowDependency(
         dependency,

@@ -188,8 +188,12 @@ Matching patterns in [element descriptors](./elements.md) must be **relative to 
 
 However, in **`file` and `folder` modes**, patterns are evaluated **right-to-left** (from the end of the path), which makes the relativity to `rootPath` less critical for most use cases. For example, a pattern like `*.model.ts` will match any file ending with `.model.ts` regardless of its location within `rootPath`.
 
-In **`full` mode**, patterns must match the complete relative path from `rootPath`. Files outside `rootPath` maintain their absolute paths and require absolute patterns to match. For more details about monorepo configurations, see the [Monorepo Setup guide](../guides/monorepo-setup.md).
+In **`full` mode**, patterns must match the complete relative path from `rootPath`. Files outside `rootPath` maintain their absolute paths and require absolute patterns to match.
 
+:::
+
+:::warning
+The `rootPath` setting may affect how the plugin assign the `origin` property for files outside the root path, categorizing them as `external` or `local`, but you can customize this behavior with the [`boundaries/flag-as-external` setting](#boundariesflag-as-external).
 :::
 
 ## `boundaries/cache`
@@ -252,7 +256,7 @@ export default [{
   settings: {
     "boundaries/root-path": resolve(import.meta.dirname, "packages/app"),
     "boundaries/flag-as-external": {
-      outsideRootPath: true  // Imports outside packages/app are external
+      outsideRootPath: true  // Imports outside packages/app have `external` origin
     }
   }
 }]

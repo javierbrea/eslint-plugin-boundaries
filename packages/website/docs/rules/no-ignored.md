@@ -21,12 +21,6 @@ This rule validates dependencies to local files. If the imported file is **[mark
 This rule prevents recognized elements from depending on files that have been explicitly excluded from the architectural boundaries.
 :::
 
-:::tip
-The restriction set by this rule can also be achieved with the **[`boundaries/element-types` rule](./dependencies.md)**, which allows you to specify rules based on the `isIgnored` property of the [elements selector](../setup/selectors.md), but it is provided as a shortcut for this common use case. You can choose to use either this specific rule or the `boundaries/element-types` for more granularity and flexibility based on your preference and needs.
-
-Read [replacement with `boundaries/element-types`](#replacement-with-boundarieselement-types) section below for more details and examples.
-:::
-
 ## Options
 
 ```
@@ -102,38 +96,6 @@ Unknown files importing ignored files:
 ```js
 // src/index.js
 import foo from "./foo"
-```
-
-## Replacement with `boundaries/element-types`
-
-You can achieve the same result by using the [`boundaries/element-types` rule](./dependencies.md) and specifying rules based on the `isIgnored` property of the [elements selector](../setup/selectors.md):
-
-```js
-{
-  rules: {
-    "boundaries/element-types": [
-      2,
-      {
-        rules: [
-          {
-            from: { isUnknown: false },
-            disallow: {
-              to: { isIgnored: true }
-            }
-          },
-          // Or use more granular rules to allow some specific dependencies
-          // to ignored files, for example:
-          {
-            from: { type: "helper" },
-            allow: {
-              to: { isIgnored: true }
-            }
-          }
-        ]
-      }
-    ]
-  }
-}
 ```
 
 ## Further Reading

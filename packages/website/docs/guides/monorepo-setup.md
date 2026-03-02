@@ -32,17 +32,35 @@ By default, the plugin categorizes dependencies as:
 - **External**: npm packages in `node_modules` and unresolvable imports
 - **Local**: all other resolved file paths within your project
 
-:::warning
-This is relevant because [`element-types`](../rules/dependencies.md) rule only applies to **local** dependencies, and [`external`](../rules/dependencies.md) rule only to **external** dependencies.
+:::info Why does this matter?
+
+This is relevant because you can use the `origin` selector property in your rules to target dependencies based on their categorization as external or local, and also decide if rules apply to dependencies from all origins or only local ones.
+
+**So you might want to control how inter-package dependencies in a monorepo are categorized to apply the appropriate rules.**
+
 :::
+
+By default, the [`element-types`](../rules/dependencies.md) rule only applies to **local** dependencies, and [`external`](../rules/dependencies.md) rule only to **external** dependencies.
+
+**The plugin now has added the `checkAllOrigins` option to `element-types` rule to allow checking dependencies from all origins (both local and external) in the same rule**, but by default it is still set to `false` to avoid unexpected breaking changes. So if you want to check inter-package dependencies categorized as external with `element-types` rules, you need to set that option to `true`.
 
 In a monorepo, you might want different behavior:
 
-1. **Treat inter-package dependencies as external** - Apply boundary rules only within each package
-2. **Treat inter-package dependencies as local** - Apply boundary rules across all packages
+1. **Treat inter-package dependencies as external**
+2. **Treat inter-package dependencies as local**
 3. **Mix both approaches** - Some packages as external, others as local
 
 The [`boundaries/flag-as-external`](../setup/settings.md#boundariesflag-as-external) setting gives you full control over this categorization.
+
+
+:::tip Fully customizable
+
+You can control both the categorization of inter-package dependencies (external vs local) and also if the `element-types` rule should check dependencies from all origins or only local ones, allowing you to mix and match different approaches in the same monorepo.
+
+* To control categorization: Use `boundaries/flag-as-external` setting with `outsideRootPath` and/or `customSourcePatterns` options.
+* To control if `element-types` checks all origins: Use `checkAllOrigins` option in the `element-types` rule configuration.
+
+:::
 
 ### Eslint Execution Context
 
@@ -112,6 +130,7 @@ export default [{
     // These rules only apply within the "app" package
     "boundaries/element-types": ["error", {
       default: "disallow",
+      checkAllOrigins: false, // Only check local dependencies
       rules: [
         {
           from:  { type: "component" },
@@ -181,10 +200,15 @@ export default [{
   rules: {
     "boundaries/element-types": ["error", {
       default: "disallow",
+      checkAllOrigins: false, // Only check local dependencies
       rules: [
         {
-          from: "component",
-          allow: ["component", "service"]
+          from: {
+            type: "component",
+          },
+          allow: [{
+            to: { type: ["component","service"] }
+          }]
         }
       ]
     }]
@@ -210,8 +234,8 @@ import { formatDate } from '@myorg/shared';
 import { map } from 'lodash';
 ```
 
-:::tip Use external rules to enforce constraints across packages
-You can still use the [`boundaries/external`](../rules/external.mdx) rule to enforce constraints on inter-package dependencies treated as external. For example, you can prevent certain packages from importing others by defining rules based on the external import patterns.
+:::tip Use the `origin` selector to target inter-package dependencies
+You can still use the `origin` selector property in your rules to target dependencies from specific origins, such as `external` to target all inter-package dependencies flagged as external, or even more specific with `external:@myorg/*` to target only those matching the custom pattern.
 :::
 
 ## Scenario 3: Inter-package Dependencies as Local (Monorepo-wide Rules)

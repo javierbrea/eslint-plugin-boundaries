@@ -29,6 +29,9 @@ This rule validates dependencies between elements in your project based on the p
 
 - `enabled`: Enables the rule. `0` = off, `1` = warning, `2` = error
 - `default`: `"allow"` or `"disallow"`. Determines the default behavior for imports that don't match any rule
+- `checkAllOrigins`: Optional. Whether to check dependencies from all origins (including external and core) or only from local elements (default: `false`, only local).
+- `checkUnknownLocals`: Optional. Whether to check local dependencies with unknown elements (not matching any element descriptor) or to ignore them. (default: `false`)
+- `checkInternals`: Optional. Whether to check internal dependencies (dependencies within files in the same element) (default: `false`).
 - `message`: Custom error message for rule violations. Note that **the default message provides detailed information about why the error occurred**, so only define a custom message if necessary. See [error messages](#error-messages) for more information
 - `rules`: An array of rule objects processed in order to determine whether an import should be allowed. Each rule object can contain the following properties:
   - `from`: **[`<element selector/s>`](../setup/selectors.md)** - If the file being analyzed matches this selector, the rule will be evaluated. Otherwise, it is skipped
@@ -40,6 +43,12 @@ This rule validates dependencies between elements in your project based on the p
 
 :::warning
 You must provide at least one of `allow` or `disallow`, and one of `to` or `from` for each rule.
+:::
+
+:::tip Start checking external dependencies with this rule
+In this version, the new `checkAllOrigins` option allows you to check dependencies from all origins (including external and core) instead of only checking dependencies between local known elements. This means that you can now use this rule to check and enforce boundaries for external dependencies as well, which was previously only possible with the deprecated `boundaries/external` rule. You can also use the new `origin` selector property in your rules to target specific origins (e.g., external, core, or local).
+
+It is recommended to set `checkAllOrigins` to `true` and start defining rules for external dependencies in this rule instead of using the deprecated [`boundaries/external` rule](../rules/external.mdx).
 :::
 
 ### Using selectors in this rule

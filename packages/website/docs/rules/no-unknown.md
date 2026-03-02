@@ -133,7 +133,11 @@ import foo from './foo'
 
 ## Replacement with `boundaries/element-types`
 
-You can achieve the same result by using the [`boundaries/element-types` rule](./dependencies.md) and specifying rules based on the `isUnknown` property of the [elements selector](../setup/selectors.md):
+You can achieve the same result by using the [`boundaries/element-types` rule](./dependencies.md) and specifying rules based on the `isUnknown` property of the [elements selector](../setup/selectors.md).
+
+:::warning
+You need to set the `checkUnknownLocals` option to `true` in your `boundaries/element-types` configuration to make sure that dependencies from unknown local files are also checked, as by default `boundaries/element-types` only checks dependencies between local known elements.
+:::
 
 ```js
 {
@@ -141,6 +145,8 @@ You can achieve the same result by using the [`boundaries/element-types` rule](.
     "boundaries/element-types": [
       2,
       {
+        checkUnknownLocals: true,
+        default: "allow",
         rules: [
           {
             from: { isUnknown: false },

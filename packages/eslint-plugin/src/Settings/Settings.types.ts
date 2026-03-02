@@ -548,6 +548,12 @@ export type ElementTypesRule = {
 export type ElementTypesRuleOptions = Omit<RuleBaseOptions, "rules"> & {
   /** Specific rules for defining boundaries between elements */
   rules?: ElementTypesRule[];
+  /** Whether to check dependencies from all origins (including external and core) or only from local elements (default: `false`, only local). */
+  checkAllOrigins?: boolean;
+  /** Whether to check local dependencies with unknown elements (not matching any element descriptor) or to ignore them. (default: `false`, ignore them) */
+  checkUnknownLocals?: boolean;
+  /** Whether to check internal dependencies (dependencies within files in the same element) (default: `false`, ignore them) */
+  checkInternals?: boolean;
 };
 
 /**
