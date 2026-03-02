@@ -799,7 +799,7 @@ They can also be defined as an array where the first element is the type and the
 // Legacy selector with captured values
 const isElementMatch = matcher.isElementMatch(
   "src/modules/auth/LoginForm.component.tsx",
-  ["component", { module: "auth" }]
+  ["component", { foo: "auth" }]
 );
 ```
 
