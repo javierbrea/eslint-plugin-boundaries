@@ -1258,6 +1258,35 @@ describe("Matcher", () => {
         },
         expected: true,
       },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          dependency: [{ source: "foo" }, { module: "react" }],
+        },
+        expected: true,
+        expectedMatch: {
+          dependency: { module: "react" },
+        },
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/node_modules/react/index.tsx",
+          source: "react",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          dependency: [{ source: "foo" }, { module: "bar" }],
+        },
+        expected: false,
+      },
       // NodeKind tests
       {
         dependency: {
@@ -1739,9 +1768,20 @@ describe("Matcher", () => {
 
       expect(
         matcher.isDependencyMatch(dependency, {
-          dependency: [{ kind: "value" }],
+          dependency: [{ kind: "type" }, { kind: "value" }],
         })
       ).toBe(true);
+
+      expect(
+        matcher.getDependencySelectorMatching(dependency, {
+          dependency: [{ kind: "type" }, { kind: "value" }],
+        })
+      ).toStrictEqual({
+        from: null,
+        to: null,
+        dependency: { kind: "value" },
+        isMatch: true,
+      });
 
       expect(
         matcher.isDependencyMatch(

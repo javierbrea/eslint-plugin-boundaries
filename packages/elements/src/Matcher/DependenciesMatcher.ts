@@ -21,7 +21,10 @@ import type {
   DependencyMatchResult,
   DependencyDataSelectorData,
 } from "./Matcher.types";
-import { isDependencySelector } from "./MatcherHelpers";
+import {
+  isDependencyDataSelector,
+  isDependencySelector,
+} from "./MatcherHelpers";
 import type { Micromatch } from "./Micromatch";
 
 /**
@@ -61,11 +64,13 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     if (!isDependencySelector(selector)) {
       throw new Error("Invalid dependency selector");
     }
-    const explicitDependencySelectors = selector.dependency
-      ? isArray(selector.dependency)
-        ? selector.dependency
-        : [selector.dependency]
-      : [];
+
+    const explicitDependencySelectors =
+      selector.dependency && isDependencyDataSelector(selector.dependency)
+        ? isArray(selector.dependency)
+          ? selector.dependency
+          : [selector.dependency]
+        : [];
 
     const normalizedDependencySelectors = explicitDependencySelectors.map(
       (dependencySelectorData) => ({

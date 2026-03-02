@@ -303,7 +303,7 @@ When matching dependencies, you can use dependency selectors that specify condit
 
 - **`from`** (`element selector | element selector[]`): [Selector(s)](#element-selectors) for the source element
 - **`to`** (`element selector | element selector[]`): [Selector(s)](#element-selectors) for the target element
-- **`dependency`** (`object`): Selector for the dependency metadata, with the following properties:
+- **`dependency`** (`object | object[]`): Selector(s) for dependency metadata. When an array is provided, the dependency metadata matches if any selector in the array matches (OR logic). Supported selector properties:
   - **`kind`** (`string | string[]`): Micromatch pattern(s) for the dependency kind
   - **`relationship`** (`object`): Relationship selectors from both perspectives:
     - **`from`** (`string | string[]`): Relationship from the perspective of `from`
@@ -460,7 +460,10 @@ const isDependencyMatch = matcher.isDependencyMatch(
   {
     from: { category: "react" }, // Dependency source selector/s
     to: { type: "service" }, // Dependency target selector/s
-    dependency: { nodeKind: "Import*" }, // Dependency metadata selector/s
+    dependency: [
+      { nodeKind: "Import*" },
+      { source: "@services/*" },
+    ], // Dependency metadata selector/s (OR logic)
   }
 );
 ```

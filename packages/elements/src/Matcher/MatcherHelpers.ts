@@ -20,6 +20,8 @@ import type {
   SimpleElementSelectorByType,
   ElementSelectorData,
   DependencySelector,
+  DependencyDataSelector,
+  DependencyDataSelectorData,
 } from "./Matcher.types";
 
 /**
@@ -153,7 +155,53 @@ export function isElementsSelector(value: unknown): value is ElementSelectors {
 export function isDependencySelector(
   value: unknown
 ): value is DependencySelector {
-  return isObjectWithAnyOfProperties(value, ["from", "to", "dependency"]);
+  if (!isObjectWithAnyOfProperties(value, ["from", "to", "dependency"])) {
+    return false;
+  }
+
+  const fromIsValid =
+    !isObjectWithProperty(value, "from") || isElementsSelector(value.from);
+  const toIsValid =
+    !isObjectWithProperty(value, "to") || isElementsSelector(value.to);
+  const dependencyIsValid =
+    !isObjectWithProperty(value, "dependency") ||
+    isDependencyDataSelector(value.dependency);
+
+  return fromIsValid && toIsValid && dependencyIsValid;
+}
+
+/**
+ * Determines if the given value is dependency metadata selector data.
+ * @param value The value to check.
+ * @returns True if the value is dependency metadata selector data, false otherwise.
+ */
+export function isDependencyDataSelectorData(
+  value: unknown
+): value is DependencyDataSelectorData {
+  return isObjectWithAnyOfProperties(value, [
+    "kind",
+    "relationship",
+    "specifiers",
+    "nodeKind",
+    "source",
+    "module",
+  ]);
+}
+
+/**
+ * Determines if the given value is dependency metadata selector(s).
+ * @param value The value to check.
+ * @returns True if the value is dependency metadata selector(s), false otherwise.
+ */
+export function isDependencyDataSelector(
+  value: unknown
+): value is DependencyDataSelector {
+  return (
+    isDependencyDataSelectorData(value) ||
+    (isArray(value) &&
+      !isEmptyArray(value) &&
+      value.every(isDependencyDataSelectorData))
+  );
 }
 
 /**
