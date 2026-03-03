@@ -187,6 +187,7 @@ const objectElementMatcherSchema = {
 };
 
 export function legacyPoliciesSchema(
+  // TODO: Remove cast and add proper types
   matcherOptions: Record<string, unknown> = DEFAULT_MATCHER_OPTIONS
 ) {
   return {
@@ -244,6 +245,7 @@ const legacyElementsSelectorSchema = {
   ],
 };
 
+// TODO: Add proper types and remove unknown
 export function rulesOptionsSchema(
   options: {
     rulesMainKey?: RuleMainKey;
@@ -370,6 +372,7 @@ export function rulesOptionsSchema(
  * @param checkConfig Whether to perform configuration checking
  * @param ruleName The name of the rule for warning messages
  */
+// TODO: Add proper types and remove unknown
 export function validateAndWarnRuleOptions<
   T extends { rules?: Array<Record<string, unknown>> },
 >(
@@ -609,6 +612,7 @@ function validateAdditionalDependencyNodes(
   return additionalDependencyNodes.filter(isValidDependencyNodeSelector);
 }
 
+// TODO: Add proper types and remove unknown
 function deprecateAlias(aliases: unknown) {
   if (aliases) {
     warnOnce(
@@ -617,6 +621,7 @@ function deprecateAlias(aliases: unknown) {
   }
 }
 
+// TODO: Add proper types and remove unknown
 function deprecateTypes(types: unknown) {
   if (types) {
     warnOnce(
@@ -884,15 +889,6 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
     (desc) => !isElementDescriptor(desc)
   );
   if (invalidDescriptors.length > 0) {
-    /*
-     * TODO: Report invalid descriptors in ESLint context as a warning in a separate rule:
-     * context.report({
-     * message: `Some element descriptors are invalid and will be ignored: ${JSON.stringify(
-     *   invalidDescriptors,
-     * )}`,
-     * loc: { line: 1, column: 0 },
-     * });
-     */
     warnOnce(
       `Some element descriptors are invalid and will be ignored: ${JSON.stringify(
         invalidDescriptors

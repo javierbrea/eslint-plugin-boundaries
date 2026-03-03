@@ -4,7 +4,7 @@ import {
   type DependencyDescription,
 } from "@boundaries/elements";
 
-import { customErrorMessage, elementMessage } from "../Messages";
+import { legacyCustomErrorMessage, legacyElementMessage } from "../Messages";
 import type { NoPrivateOptions } from "../Settings";
 import { SETTINGS } from "../Settings";
 
@@ -17,10 +17,10 @@ function errorMessage(
   options?: NoPrivateOptions
 ) {
   if (options?.message) {
-    return customErrorMessage(options.message, dependency);
+    return legacyCustomErrorMessage(options.message, dependency);
   }
   // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
-  return `Dependency is private of element ${elementMessage(dependency.to.parents?.[0])}`;
+  return `Dependency is private of element ${legacyElementMessage(dependency.to.parents?.[0])}`;
 }
 
 export default dependencyRule<NoPrivateOptions>(

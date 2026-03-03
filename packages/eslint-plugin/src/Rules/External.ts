@@ -3,9 +3,15 @@ import {
   isCoreDependencyElement,
   ELEMENT_ORIGINS_MAP,
 } from "@boundaries/elements";
-import type { ExternalLibrariesSelector } from "@boundaries/elements";
+import type { DependencySelector } from "@boundaries/elements";
 
-import type { ExternalRuleOptions, ExternalRule } from "../Settings";
+import type {
+  ExternalRuleOptions,
+  ExternalRule,
+  ElementTypesRule,
+  ExternalLibrariesSelector,
+  ExternalLibrarySelectorWithOptions,
+} from "../Settings";
 import {
   rulesOptionsSchema,
   validateAndWarnRuleOptions,
@@ -19,11 +25,43 @@ import { dependencyRule } from "./Support";
 
 const { RULE_EXTERNAL } = SETTINGS;
 
-function modifySelectors(selectors: ExternalLibrariesSelector): unknown {
+function isExternalLibrarySelectorWithOptions(
+  selector: ExternalLibrariesSelector
+): selector is ExternalLibrarySelectorWithOptions {
+  return (
+    isArray(selector) &&
+    selector.length === 2 &&
+    isString(selector[0]) &&
+    typeof selector[1] === "object" &&
+    selector[1] !== null
+  );
+}
+
+function modifySelectors(
+  selectors: ExternalLibrariesSelector
+): DependencySelector | DependencySelector[] {
   const originsToMatch = [
     ELEMENT_ORIGINS_MAP.EXTERNAL,
     ELEMENT_ORIGINS_MAP.CORE,
   ];
+  if (isExternalLibrarySelectorWithOptions(selectors)) {
+    const selectorOptions = selectors[1];
+    const moduleSelector = selectors[0];
+    return {
+      to: {
+        origin: originsToMatch,
+        internalPath: selectorOptions.path,
+      },
+      dependency: {
+        module: moduleSelector,
+        ...(selectorOptions.specifiers
+          ? {
+              specifiers: selectorOptions.specifiers,
+            }
+          : {}),
+      },
+    };
+  }
   if (isString(selectors)) {
     return {
       to: {
@@ -36,16 +74,18 @@ function modifySelectors(selectors: ExternalLibrariesSelector): unknown {
   }
   return selectors.map((selector) => {
     if (isArray(selector)) {
+      const selectorOptions = selector[1];
+      const moduleSelector = selector[0];
       return {
         to: {
           origin: originsToMatch,
-          internalPath: selector[1].path,
+          internalPath: selectorOptions.path,
         },
         dependency: {
-          module: selector[0],
-          ...(selector[1].specifiers
+          module: moduleSelector,
+          ...(selectorOptions.specifiers
             ? {
-                specifiers: selector[1].specifiers,
+                specifiers: selectorOptions.specifiers,
               }
             : {}),
         },
@@ -54,13 +94,15 @@ function modifySelectors(selectors: ExternalLibrariesSelector): unknown {
     return {
       to: { origin: originsToMatch },
       dependency: {
-        module: selector as string,
+        module: selector,
       },
     };
   });
 }
 
-function modifyRules(rules: ExternalRule[]): Record<string, unknown>[] {
+function transformToElementTypesRules(
+  rules: ExternalRule[]
+): ElementTypesRule[] {
   return rules.map((rule) => ({
     from: rule.from,
     allow: rule.allow ? modifySelectors(rule.allow) : undefined,
@@ -110,7 +152,7 @@ export default dependencyRule<ExternalRuleOptions>(
       isExternalDependencyElement(dependency.to) ||
       isCoreDependencyElement(dependency.to)
     ) {
-      const rules = modifyRules(options?.rules ?? []);
+      const rules = transformToElementTypesRules(options?.rules ?? []);
       evaluateRulesAndReport({
         rules,
         settings,

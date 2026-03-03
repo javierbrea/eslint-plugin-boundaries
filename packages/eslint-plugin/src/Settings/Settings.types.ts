@@ -4,11 +4,11 @@ import type {
   ElementDescriptors,
   ElementsSelector,
   CapturedValues,
-  ExternalLibrariesSelector,
   FlagAsExternalOptions,
   DependencyDataSelector,
   SimpleElementSelectorByType,
   BaseElementSelectorWithOptions,
+  MicromatchPatternNullable,
 } from "@boundaries/elements";
 import type { ESLint, Linter, Rule } from "eslint";
 
@@ -527,7 +527,7 @@ export type RuleMatcherElementsCapturedValues = {
   target: CapturedValues;
 };
 
-type PolicyEntry =
+export type RulePolicyEntry =
   | SimpleElementSelectorByType
   | BaseElementSelectorWithOptions
   | DependencySelector;
@@ -541,11 +541,10 @@ export type ElementTypesRule = {
   from?: ElementsSelector;
   /** Selectors of the target elements that are disallowed to be imported */
   to?: ElementsSelector;
-  // TODO: Support also strings and string tuples for allow and disallow for backward compatibility. This will be removed in future major releases.
   /** Selectors of the elements that are disallowed to be imported */
-  disallow?: PolicyEntry | PolicyEntry[];
+  disallow?: RulePolicyEntry | RulePolicyEntry[];
   /** Selectors of the elements that are allowed to be imported */
-  allow?: PolicyEntry | PolicyEntry[];
+  allow?: RulePolicyEntry | RulePolicyEntry[];
   /** Kind of import that the rule applies to (e.g., "type", "value") */
   importKind?: DependencyKind;
   /** Custom message for rule violations */
@@ -589,6 +588,47 @@ export type EntryPointRuleOptions = Omit<RuleBaseOptions, "rules"> & {
   /** Specific rules for defining entry points between elements */
   rules?: EntryPointRule[];
 };
+
+/**
+ * Options for selecting external libraries, including path patterns and optional specifiers.
+ * If specifiers are provided, they will be used to match specific imports from the external library.
+ */
+export type ExternalLibrarySelectorOptions = {
+  /**
+   * Micromatch pattern(s) to match only one or more specific subpaths of the external library.
+   */
+  path?: MicromatchPatternNullable;
+  /** Micromatch pattern(s) to match only specific imports/exports */
+  specifiers?: string[];
+};
+
+/**
+ * External library selector with options, represented as a tuple where the first element is the import path of the external library, and the second element is an object containing options for selecting only specific paths or specifiers from that library.
+ */
+export type ExternalLibrarySelectorWithOptions = [
+  string,
+  ExternalLibrarySelectorOptions,
+];
+
+/**
+ * External library selector, which can be a simple string (the import path) or an external library selector with options.
+ */
+export type ExternalLibrarySelector =
+  | string
+  | ExternalLibrarySelectorWithOptions;
+
+/**
+ * External library selectors, which can be a single external library selector or an array of external library selectors.
+ * @deprecated Use ExternalLibrariesSelector instead.
+ */
+export type ExternalLibrarySelectors = ExternalLibrariesSelector;
+
+/**
+ * External libraries selector, which can be a single external library selector or an array of external library selectors.
+ */
+export type ExternalLibrariesSelector =
+  | ExternalLibrarySelector
+  | ExternalLibrarySelector[];
 
 /**
  * Rule that defines allowed or disallowed external library imports for specific element types.

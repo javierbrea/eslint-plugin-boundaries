@@ -4,7 +4,7 @@ import micromatch from "micromatch";
 
 import type {
   ElementsSelector,
-  ElementSelectorData,
+  BaseElementSelectorData,
   DescribeDependencyOptions,
   DependencySelector,
   Matcher,
@@ -476,7 +476,7 @@ describe("Matcher", () => {
         expected: boolean;
         selector: ElementsSelector;
         extraTemplateData?: Record<string, unknown>;
-        expectedMatch?: ElementSelectorData;
+        expectedMatch?: BaseElementSelectorData;
       }) => {
         const matchResult = extraTemplateData
           ? matcher.isElementMatch(filePath, selector, { extraTemplateData })
@@ -2045,7 +2045,7 @@ describe("Matcher", () => {
         expected,
       }: {
         selector: ElementsSelector;
-        expected: ElementSelectorData[];
+        expected: BaseElementSelectorData[];
       }) => {
         const normalized = normalizeElementsSelector(selector);
 

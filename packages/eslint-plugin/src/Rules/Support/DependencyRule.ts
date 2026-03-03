@@ -30,8 +30,7 @@ export function dependencyRule<Options extends RuleOptionsWithRules>(
         return {};
       }
 
-      // TODO: Remove this check when allowing to select by any other property
-      if (file.isIgnored || !file.type) {
+      if (file.isIgnored || file.isUnknown) {
         return {};
       }
 

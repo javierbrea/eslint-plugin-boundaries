@@ -5,21 +5,11 @@ export type {
   ElementSelector,
   ElementSelectors,
   ElementsSelector,
-  ExternalLibrarySelectorOptions,
-  ExternalLibrarySelectorWithOptions,
-  ExternalLibrarySelector,
-  ExternalLibrarySelectors,
-  ExternalLibrariesSelector,
   ElementSelectorWithOptions,
   FlagAsExternalOptions,
 } from "@boundaries/elements";
 
-export {
-  isElementSelector,
-  isElementsSelector,
-  isExternalLibrarySelector,
-  isExternalLibrariesSelector,
-} from "@boundaries/elements";
+export { isElementSelector, isElementsSelector } from "@boundaries/elements";
 
 export type {
   RulePolicy,

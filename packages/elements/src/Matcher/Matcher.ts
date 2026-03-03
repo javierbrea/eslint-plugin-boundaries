@@ -18,9 +18,9 @@ import type {
   DependencySelector,
   MatcherOptions,
   ElementsSelector,
-  ElementSelectorData,
   DependencyMatchResult,
   MatcherSerializedCache,
+  BaseElementSelectorData,
 } from "./Matcher.types";
 import { isDependencySelector, isElementsSelector } from "./MatcherHelpers";
 import type { Micromatch } from "./Micromatch";
@@ -140,7 +140,7 @@ export class Matcher {
     descriptorOptions: string,
     selector: ElementsSelector,
     options?: MatcherOptions
-  ): ElementSelectorData | null;
+  ): BaseElementSelectorData | null;
   public getSelectorMatching(
     descriptorOptions: DescribeDependencyOptions,
     selector: DependencySelector,
@@ -150,7 +150,7 @@ export class Matcher {
     descriptorOptions: string | DescribeDependencyOptions,
     selector: ElementsSelector | DependencySelector,
     options?: MatcherOptions
-  ): ElementSelectorData | DependencyMatchResult | null {
+  ): BaseElementSelectorData | DependencyMatchResult | null {
     if (isString(descriptorOptions)) {
       return this.getElementSelectorMatching(
         descriptorOptions,
@@ -181,12 +181,12 @@ export class Matcher {
     description: ElementDescription,
     selector: ElementsSelector,
     options?: MatcherOptions
-  ): ElementSelectorData;
+  ): BaseElementSelectorData;
   public getSelectorMatchingDescription(
     description: DependencyDescription | ElementDescription,
     selector: DependencySelector | ElementsSelector,
     options?: MatcherOptions
-  ): DependencyMatchResult | ElementSelectorData | null {
+  ): DependencyMatchResult | BaseElementSelectorData | null {
     if (isElementsSelector(selector) && isElementDescription(description)) {
       return this._elementsMatcher.getSelectorMatching(
         description,

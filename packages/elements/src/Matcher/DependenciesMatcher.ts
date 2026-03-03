@@ -5,10 +5,7 @@ import type {
 } from "../Descriptor";
 import { isArray, isNullish } from "../Support";
 
-import {
-  BaseElementsMatcher,
-  normalizeElementsSelector,
-} from "./BaseElementsMatcher";
+import { BaseElementsMatcher } from "./BaseElementsMatcher";
 import type { ElementsMatcher } from "./ElementsMatcher";
 import type {
   BaseElementSelector,
@@ -22,6 +19,7 @@ import type {
   DependencyDataSelectorData,
 } from "./Matcher.types";
 import {
+  normalizeElementsSelector,
   isDependencyDataSelector,
   isDependencySelector,
 } from "./MatcherHelpers";

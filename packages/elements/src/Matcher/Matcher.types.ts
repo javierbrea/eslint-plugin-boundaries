@@ -23,7 +23,7 @@ export type DependencyMatchResult = {
  */
 export type ElementsMatcherSerializedCache = Record<
   string,
-  ElementSelectorData | null
+  BaseElementSelectorData | null
 >;
 
 /**
@@ -176,13 +176,6 @@ export type DependencyDataSelector =
   | DependencyDataSelectorData[];
 
 /**
- * Element selector data, which may be a base element selector or a dependency element selector.
- */
-export type ElementSelectorData =
-  | BaseElementSelectorData
-  | DependencyDataSelectorData;
-
-/**
  * Generic Element selector with options, including captured values for dynamic matching.
  * It is represented as a tuple where the first element is the element type (string)
  * and the second element is an object containing a selector for captured values.
@@ -198,7 +191,7 @@ export type ElementSelectorWithOptions = [
  */
 export type ElementSelector =
   | SimpleElementSelectorByType
-  | ElementSelectorData
+  | BaseElementSelectorData
   | ElementSelectorWithOptions;
 
 /**
@@ -240,44 +233,3 @@ export type DependencySelectorNormalized = {
  * @deprecated Use DependencySelectorDependencyData instead.
  */
 export type DependencyElementSelectorData = DependencyDataSelectorData;
-
-/**
- * Options for selecting external libraries, including path patterns and optional specifiers.
- * If specifiers are provided, they will be used to match specific imports from the external library.
- */
-export type ExternalLibrarySelectorOptions = {
-  /**
-   * Micromatch pattern(s) to match only one or more specific subpaths of the external library.
-   */
-  path?: MicromatchPatternNullable;
-  /** Micromatch pattern(s) to match only specific imports/exports */
-  specifiers?: string[];
-};
-
-/**
- * External library selector with options, represented as a tuple where the first element is the import path of the external library, and the second element is an object containing options for selecting only specific paths or specifiers from that library.
- */
-export type ExternalLibrarySelectorWithOptions = [
-  SimpleElementSelectorByType,
-  ExternalLibrarySelectorOptions,
-];
-
-/**
- * External library selector, which can be a simple string (the import path) or an external library selector with options.
- */
-export type ExternalLibrarySelector =
-  | SimpleElementSelectorByType
-  | ExternalLibrarySelectorWithOptions;
-
-/**
- * External library selectors, which can be a single external library selector or an array of external library selectors.
- * @deprecated Use ExternalLibrariesSelector instead.
- */
-export type ExternalLibrarySelectors = ExternalLibrariesSelector;
-
-/**
- * External libraries selector, which can be a single external library selector or an array of external library selectors.
- */
-export type ExternalLibrariesSelector =
-  | ExternalLibrarySelector
-  | ExternalLibrarySelector[];

@@ -1,16 +1,24 @@
-import {
-  isIgnoredElement,
-  isInternalDependency,
-  isLocalElement,
-  isUnknownLocalElement,
-} from "@boundaries/elements";
 import type {
+  BaseElementSelectorData,
   DependencyDescription,
   DependencyDataSelector,
   DependencySelector,
   TemplateData,
   Matcher,
   DependencyMatchResult,
+  BaseElementsSelector,
+  BaseElementSelectorWithOptions,
+  SimpleElementSelectorByType,
+  DependencyDataSelectorData,
+} from "@boundaries/elements";
+import {
+  isDependencySelector,
+  isElementSelectorWithLegacyOptions,
+  isIgnoredElement,
+  isInternalDependency,
+  isLocalElement,
+  isUnknownLocalElement,
+  normalizeElementsSelector,
 } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
@@ -21,6 +29,7 @@ import type {
   ElementTypesRuleOptions,
   ElementTypesRule,
   SettingsNormalized,
+  RulePolicyEntry,
 } from "../Settings";
 import {
   SETTINGS,
@@ -28,7 +37,7 @@ import {
   rulesOptionsSchema,
   validateAndWarnRuleOptions,
 } from "../Settings";
-import { warnOnce, isObject, isArray } from "../Support";
+import { warnOnce, isObject, isArray, isString } from "../Support";
 
 import { dependencyRule } from "./Support";
 
@@ -83,7 +92,7 @@ function safeMatch(
 }
 
 function getCapturedTemplateData(
-  rule: Record<string, unknown>,
+  rule: ElementTypesRule,
   dep: DependencyDescription,
   legacyTemplates: boolean
 ): TemplateData {
@@ -99,12 +108,23 @@ function getCapturedTemplateData(
  * For arrays that contain objects (new format), each element is a separate entry.
  * For legacy string/array selectors the whole value is a single entry.
  */
-function getPolicyEntries(policy: unknown): unknown[] {
+function getPolicyEntries(
+  policy: RulePolicyEntry | RulePolicyEntry[]
+): (
+  | SimpleElementSelectorByType
+  | DependencySelector
+  | BaseElementSelectorWithOptions
+)[] {
+  if (isString(policy)) {
+    return [policy];
+  }
+  if (isElementSelectorWithLegacyOptions(policy)) {
+    return [policy];
+  }
+
   if (!isArray(policy)) return [policy];
-  // New format: array whose items include plain objects → iterate individually
-  if ((policy as unknown[]).some(isObject)) return policy as unknown[];
-  // Legacy format: flat array of string matchers/tuples → one single entry
-  return [policy];
+
+  return policy;
 }
 
 /**
@@ -114,9 +134,20 @@ function getPolicyEntries(policy: unknown): unknown[] {
  *   outer = { type: "helper" } + entry = { internalPath: "index.js" } → { type: "helper", internalPath: "index.js" }
  *   outer = { module: "react" } + entry = { kind: "type" } → { module: "react", kind: "type" }
  */
-function mergeSelector(outer: unknown, entry: unknown): unknown {
+function mergeElementOrDependencySelector(
+  outer: BaseElementsSelector | undefined,
+  entry: BaseElementsSelector | undefined
+): DependencyDataSelectorData | undefined;
+function mergeElementOrDependencySelector(
+  outer: DependencyDataSelectorData | undefined,
+  entry: DependencyDataSelectorData | undefined
+): DependencyDataSelectorData | undefined;
+function mergeElementOrDependencySelector(
+  outer: BaseElementsSelector | DependencyDataSelectorData | undefined,
+  entry: BaseElementsSelector | DependencyDataSelectorData | undefined
+): BaseElementsSelector | DependencyDataSelectorData | undefined {
   if (isObject(outer) && isObject(entry)) {
-    return { ...(outer as object), ...(entry as object) };
+    return { ...outer, ...entry };
   }
   return entry !== undefined ? entry : outer;
 }
@@ -133,49 +164,61 @@ function mergeSelector(outer: unknown, entry: unknown): unknown {
  *   for the "other" direction (opposite to the direction defined at the rule level).
  */
 function buildEntrySelector(
-  outerFrom: unknown,
-  outerTo: unknown,
-  outerDependency: unknown,
-  entry: unknown
+  outerFrom: BaseElementSelectorData[] | undefined,
+  outerTo: BaseElementSelectorData[] | undefined,
+  outerDependency: DependencyDataSelector | undefined,
+  entry:
+    | string
+    | BaseElementSelectorWithOptions
+    | DependencySelector
+    | undefined
 ): DependencySelector {
-  if (isObject(entry)) {
-    const entryObj = entry as Record<string, unknown>;
+  // Normalize outer selectors to be able to merge them with entry selectors regardless of the original format (legacy string/array or new object)
+  const outerFromNormalized = outerFrom
+    ? normalizeElementsSelector(outerFrom)
+    : undefined;
+  const outerToNormalized = outerTo
+    ? normalizeElementsSelector(outerTo)
+    : undefined;
 
-    const mergedFrom =
-      outerFrom !== undefined || entryObj.from !== undefined
-        ? mergeSelector(outerFrom, entryObj.from)
-        : undefined;
-    const mergedTo =
-      outerTo !== undefined || entryObj.to !== undefined
-        ? mergeSelector(outerTo, entryObj.to)
-        : undefined;
-    const mergedDependency =
-      outerDependency !== undefined || entryObj.dependency !== undefined
-        ? mergeSelector(outerDependency, entryObj.dependency)
-        : undefined;
+  if (isDependencySelector(entry)) {
+    const entryObj = entry;
+
+    const mergedFrom = mergeElementOrDependencySelector(
+      outerFromNormalized,
+      entryObj.from
+    );
+    const mergedTo = mergeElementOrDependencySelector(
+      outerToNormalized,
+      entryObj.to
+    );
+    const mergedDependency = mergeElementOrDependencySelector(
+      outerDependency,
+      entryObj.dependency
+    );
 
     const selectorResult: DependencySelector = {};
-    if (mergedFrom !== undefined)
-      selectorResult.from = mergedFrom as DependencySelector["from"];
-    if (mergedTo !== undefined)
-      selectorResult.to = mergedTo as DependencySelector["to"];
+    if (mergedFrom !== undefined) selectorResult.from = mergedFrom;
+    if (mergedTo !== undefined) selectorResult.to = mergedTo;
     if (mergedDependency !== undefined)
-      selectorResult.dependency = mergedDependency as DependencyDataSelector;
+      selectorResult.dependency = mergedDependency;
     return selectorResult;
   }
 
   // Legacy entry: string or legacy array → becomes the "other direction" element selector
-  const hasFrom = outerFrom !== undefined;
+  // They are not merged because legacy entries are not objects but strings/arrays, so they
+  // can not express criteria in the same direction as the outer selector but only in the opposite direction
+  const hasFrom = outerFromNormalized !== undefined;
   const result: DependencySelector = {};
   if (hasFrom) {
-    result.from = outerFrom as DependencySelector["from"];
-    result.to = entry as DependencySelector["to"];
+    result.from = outerFromNormalized;
+    result.to = entry;
   } else {
-    result.to = outerTo as DependencySelector["to"];
-    result.from = entry as DependencySelector["from"];
+    result.to = outerToNormalized;
+    result.from = entry;
   }
   if (outerDependency !== undefined) {
-    result.dependency = outerDependency as DependencyDataSelector;
+    result.dependency = outerDependency;
   }
   return result;
 }
@@ -184,18 +227,18 @@ function buildEntrySelector(
  * Iterates the entries of a single policy value returning the first match, or null.
  */
 function evaluatePolicyEntries(
-  policy: unknown,
-  outerFrom: unknown,
-  outerTo: unknown,
-  outerDependency: unknown,
+  policy: RulePolicyEntry | RulePolicyEntry[],
+  outerFrom: BaseElementsSelector | undefined,
+  outerTo: BaseElementsSelector | undefined,
+  outerDependency: DependencyDataSelector | undefined,
   dep: DependencyDescription,
   matcher: Matcher,
   templateData: TemplateData
 ): DependencyMatchResult | null {
   for (const entry of getPolicyEntries(policy)) {
     const selector = buildEntrySelector(
-      outerFrom,
-      outerTo,
+      outerFrom ? normalizeElementsSelector(outerFrom) : undefined,
+      outerTo ? normalizeElementsSelector(outerTo) : undefined,
       outerDependency,
       entry
     );

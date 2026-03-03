@@ -3,7 +3,11 @@ import {
   DEPENDENCY_RELATIONSHIPS_MAP,
 } from "@boundaries/elements";
 
-import type { EntryPointRuleOptions, EntryPointRule } from "../Settings";
+import type {
+  EntryPointRuleOptions,
+  EntryPointRule,
+  ElementTypesRule,
+} from "../Settings";
 import {
   SETTINGS,
   RULE_NAMES_MAP,
@@ -28,8 +32,10 @@ function modifyLegacyTemplates(
   );
 }
 
-function modifyRules(rules: EntryPointRule[]): Record<string, unknown>[] {
-  const newRules: Record<string, unknown>[] = [];
+function transformToElementTypesRules(
+  rules: EntryPointRule[]
+): ElementTypesRule[] {
+  const newRules: ElementTypesRule[] = [];
 
   for (const rule of rules) {
     const newTargets = normalizeElementsSelector(rule.target);
@@ -69,7 +75,7 @@ export default dependencyRule<EntryPointRuleOptions>(
       dependency.dependency.relationship.to !==
         DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL
     ) {
-      const rules = modifyRules(options?.rules ?? []);
+      const rules = transformToElementTypesRules(options?.rules ?? []);
       evaluateRulesAndReport({
         rules,
         settings,

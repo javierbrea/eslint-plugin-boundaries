@@ -5,18 +5,15 @@ import type {
 import type { ElementDescription } from "../Descriptor";
 import { isArray, isNullish, isEmptyObject } from "../Support";
 
-import {
-  BaseElementsMatcher,
-  normalizeElementsSelector,
-} from "./BaseElementsMatcher";
+import { BaseElementsMatcher } from "./BaseElementsMatcher";
 import type {
   BaseElementSelectorData,
   SelectableElement,
   TemplateData,
   BaseElementsSelector,
   MatcherOptions,
-  ElementSelectorData,
 } from "./Matcher.types";
+import { normalizeElementsSelector } from "./MatcherHelpers";
 import type { Micromatch } from "./Micromatch";
 
 /**
@@ -288,7 +285,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
     element: SelectableElement,
     selectorsData: BaseElementSelectorData[],
     extraTemplateData: TemplateData
-  ): ElementSelectorData | null {
+  ): BaseElementSelectorData | null {
     const templateData: TemplateData = {
       element,
       ...extraTemplateData,
@@ -330,7 +327,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
     element: ElementDescription,
     selector: BaseElementsSelector,
     { extraTemplateData = {} }: MatcherOptions = {}
-  ): ElementSelectorData | null {
+  ): BaseElementSelectorData | null {
     const selectorsData = normalizeElementsSelector(selector);
     return this._getSelectorMatching(element, selectorsData, extraTemplateData);
   }

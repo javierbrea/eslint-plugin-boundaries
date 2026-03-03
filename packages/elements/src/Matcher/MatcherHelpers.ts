@@ -12,16 +12,15 @@ import type {
   ElementSelector,
   ElementSelectorWithOptions,
   ElementSelectors,
-  ExternalLibrarySelector,
-  ExternalLibrarySelectorWithOptions,
-  ExternalLibrariesSelector,
   CapturedValuesSelector,
-  ExternalLibrarySelectorOptions,
   SimpleElementSelectorByType,
-  ElementSelectorData,
   DependencySelector,
   DependencyDataSelector,
   DependencyDataSelectorData,
+  BaseElementSelector,
+  BaseElementSelectorData,
+  BaseElementsSelector,
+  ElementsSelector,
 } from "./Matcher.types";
 
 /**
@@ -76,7 +75,7 @@ export function isSimpleElementSelectorByType(
  */
 export function isBaseElementSelectorData(
   value: unknown
-): value is ElementSelectorData {
+): value is BaseElementSelectorData {
   return isObjectWithAnyOfProperties(value, [
     "path",
     "elementPath",
@@ -99,7 +98,7 @@ export function isBaseElementSelectorData(
  */
 export function isElementSelectorData(
   value: unknown
-): value is ElementSelectorData {
+): value is BaseElementSelectorData {
   return isBaseElementSelectorData(value);
 }
 
@@ -145,6 +144,54 @@ export function isElementsSelector(value: unknown): value is ElementSelectors {
     isElementSelector(value) ||
     (isArray(value) && !isEmptyArray(value) && value.every(isElementSelector))
   );
+}
+
+/**
+ * Normalizes a selector into ElementSelectorData format.
+ * @param selector The selector to normalize.
+ * @returns The normalized selector data.
+ */
+export function normalizeElementSelector(
+  selector: BaseElementSelector
+): BaseElementSelectorData;
+export function normalizeElementSelector(
+  selector: ElementSelector
+): BaseElementSelectorData {
+  if (isSimpleElementSelectorByType(selector)) {
+    return { type: selector };
+  }
+
+  if (isElementSelectorData(selector)) {
+    return { ...selector };
+  }
+
+  if (isElementSelectorWithLegacyOptions(selector)) {
+    return {
+      type: selector[0],
+      captured: selector[1] ? { ...selector[1] } : undefined,
+    };
+  }
+  throw new Error("Invalid element selector");
+}
+
+/**
+ * Normalizes an ElementsSelector into an array of ElementSelectorData.
+ * @param elementsSelector The elements selector, in any supported format.
+ * @returns The normalized array of selector data.
+ */
+export function normalizeElementsSelector(
+  elementsSelector: BaseElementsSelector
+): BaseElementSelectorData[];
+export function normalizeElementsSelector(
+  elementsSelector: ElementsSelector
+): BaseElementSelectorData[] {
+  if (isArray(elementsSelector)) {
+    if (isElementSelectorWithLegacyOptions(elementsSelector)) {
+      return [normalizeElementSelector(elementsSelector)];
+    }
+    return elementsSelector.map((sel) => normalizeElementSelector(sel));
+  }
+  return [normalizeElementSelector(elementsSelector)];
 }
 
 /**
@@ -201,92 +248,5 @@ export function isDependencyDataSelector(
     (isArray(value) &&
       !isEmptyArray(value) &&
       value.every(isDependencyDataSelectorData))
-  );
-}
-
-/**
- * Determines if the given value is external library selector options with a path.
- * @param value The value to check.
- * @returns True if the value is external library selector options with a path, false otherwise.
- */
-export function isExternalLibrarySelectorOptionsWithPath(
-  value: unknown
-): value is ExternalLibrarySelectorOptions & { path: string | string[] } {
-  return (
-    isObjectWithProperty(value, "path") &&
-    (isString(value.path) || isStringArray(value.path))
-  );
-}
-
-/**
- * Determines if the given value is external library selector options with specifiers.
- * @param value The value to check.
- * @returns True if the value is external library selector options with specifiers, false otherwise.
- */
-export function isExternalLibrarySelectorOptionsWithSpecifiers(
-  value: unknown
-): value is ExternalLibrarySelectorOptions & { specifiers: string[] } {
-  return (
-    isObjectWithProperty(value, "specifiers") && isStringArray(value.specifiers)
-  );
-}
-
-/**
- * Determines if the given value is external library selector options.
- * @param value The value to check.
- * @returns True if the value is external library selector options, false otherwise.
- */
-export function isExternalLibrarySelectorOptions(
-  value: unknown
-): value is ExternalLibrarySelectorOptions {
-  return (
-    isExternalLibrarySelectorOptionsWithPath(value) ||
-    isExternalLibrarySelectorOptionsWithSpecifiers(value)
-  );
-}
-
-/**
- * Determines if the given value is an external library selector with options.
- * @param value The value to check.
- * @returns True if the value is an external library selector with options, false otherwise.
- */
-export function isExternalLibrarySelectorWithOptions(
-  value: unknown
-): value is ExternalLibrarySelectorWithOptions {
-  return (
-    isArray(value) &&
-    value.length === 2 &&
-    isSimpleElementSelectorByType(value[0]) &&
-    isExternalLibrarySelectorOptions(value[1])
-  );
-}
-
-/**
- * Determines if the given value is an external library selector.
- * @param value The value to check.
- * @returns True if the value is an external library selector, false otherwise.
- */
-export function isExternalLibrarySelector(
-  value: unknown
-): value is ExternalLibrarySelector {
-  return (
-    isSimpleElementSelectorByType(value) ||
-    isExternalLibrarySelectorWithOptions(value)
-  );
-}
-
-/**
- * Determines if the given value is an external libraries selector.
- * @param value The value to check.
- * @returns True if the value is an external libraries selector, false otherwise.
- */
-export function isExternalLibrariesSelector(
-  value: unknown
-): value is ExternalLibrariesSelector {
-  return (
-    isExternalLibrarySelector(value) ||
-    (isArray(value) &&
-      !isEmptyArray(value) &&
-      value.every(isExternalLibrarySelector))
   );
 }

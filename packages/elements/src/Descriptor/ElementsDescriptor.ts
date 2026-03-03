@@ -449,7 +449,6 @@ export class ElementsDescriptor {
     const mode = isElementDescriptorMode(elementDescriptor.mode)
       ? elementDescriptor.mode
       : ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
-    // TODO: Filter patterns to file/folder/full when mode supports "external". Another method to match external dependencies might be needed.
     const patterns = isArray(elementDescriptor.pattern)
       ? elementDescriptor.pattern
       : [elementDescriptor.pattern];
