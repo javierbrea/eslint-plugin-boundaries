@@ -24,12 +24,14 @@ function errorMessage(
   options?: NoPrivateOptions
 ) {
   if (options?.message) {
+    // TODO: Rename to customErrorMessage. Rename file to CustomMessages
     return legacyCustomErrorMessage(options.message, dependency);
   }
   const privateParent = dependency.to.parents?.[0];
   if (!privateParent) {
     return `Dependency is private`;
   }
+  // TODO: Use new element message formatting here. Print type and/or category, if present.
   return `Dependency is private of element ${legacyElementMessage(privateParent)}`;
 }
 

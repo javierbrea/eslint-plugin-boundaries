@@ -24,6 +24,7 @@ import type { Rule } from "eslint";
 
 import type { EslintLiteralNode } from "../Elements";
 import { getElementsMatcher } from "../Elements";
+import { elementTypesDefaultErrorMessage } from "../Messages";
 import type {
   RuleOptionsWithRules,
   ElementTypesRuleOptions,
@@ -428,12 +429,15 @@ export function buildErrorMessage({
   customMessage,
   dependency,
 }: BuildErrorMessageParams): string {
-  return JSON.stringify({
-    matchResult,
-    ruleIndex,
-    customMessage,
-    dependency,
-  });
+  if (customMessage) {
+    return JSON.stringify({
+      matchResult,
+      ruleIndex,
+      customMessage,
+      dependency,
+    });
+  }
+  return elementTypesDefaultErrorMessage(matchResult, dependency);
 }
 
 /**
