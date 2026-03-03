@@ -23,6 +23,16 @@ function replaceObjectValueInTemplate(
 }
 
 function replaceObjectValuesInTemplates(
+  strings: string,
+  object: Record<string, string>,
+  namespace?: string | null
+): string;
+function replaceObjectValuesInTemplates(
+  strings: string[],
+  object: Record<string, string>,
+  namespace?: string | null
+): string[];
+function replaceObjectValuesInTemplates(
   strings: string | string[],
   object: Record<string, string>,
   namespace?: string | null
@@ -54,8 +64,7 @@ function replaceObjectValuesInTemplate(
   object: Record<string, string>,
   namespace?: string | null
 ): string {
-  // TODO: Remove cast
-  return replaceObjectValuesInTemplates(template, object, namespace) as string;
+  return replaceObjectValuesInTemplates(template, object, namespace);
 }
 
 function quote(str: string | undefined | null) {
@@ -105,9 +114,7 @@ function hasHandlebarsTemplate(template: string) {
 
 function renderCustomMessageHandlebarsTemplate(
   template: string,
-  dependency: DependencyDescription,
-  // TODO: Add type to report and remove cast
-  report: Record<string, unknown>
+  dependency: DependencyDescription
 ) {
   if (!hasHandlebarsTemplate(template)) {
     return template;
@@ -117,14 +124,12 @@ function renderCustomMessageHandlebarsTemplate(
     from: dependency.from,
     to: dependency.to,
     dependency: dependency.dependency,
-    report,
   });
 }
 
 export function legacyCustomErrorMessage(
   message: string,
-  dependency: DependencyDescription,
-  report = {}
+  dependency: DependencyDescription
 ) {
   let replacedMessage = replaceObjectValuesInTemplate(
     replaceObjectValuesInTemplate(
@@ -194,17 +199,7 @@ export function legacyCustomErrorMessage(
       "target.parent"
     );
   }
-  const replacedLegacyMessage = replaceObjectValuesInTemplate(
-    replacedMessage,
-    report,
-    "report"
-  );
-  return renderCustomMessageHandlebarsTemplate(
-    replacedLegacyMessage,
-    dependency,
-    // TODO: Add type to report and remove cast
-    report as Record<string, unknown>
-  );
+  return renderCustomMessageHandlebarsTemplate(replacedMessage, dependency);
 }
 
 function elementCapturedValuesMessage(capturedValues: CapturedValues | null) {

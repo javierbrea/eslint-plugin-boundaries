@@ -41,7 +41,10 @@ import {
 import type {
   DependencyNodeKey,
   DependencyNodeSelector,
+  AliasSetting,
   DebugSetting,
+  RuleOptionsRules,
+  RuleOptionsWithRules,
   Settings,
   IgnoreSetting,
   IncludeSetting,
@@ -60,8 +63,20 @@ const {
   VALID_MODES,
 } = SETTINGS;
 
-const trackedValidatedSettings = new WeakMap<object, SettingsNormalized>();
-const trackedWarnedOptions = new WeakSet<object>();
+type JsonSchemaPrimitive = string | number | boolean | null;
+type JsonSchemaValue =
+  | JsonSchemaPrimitive
+  | JsonSchemaObject
+  | JsonSchemaValue[];
+type JsonSchemaObject = {
+  [key: string]: JsonSchemaValue;
+};
+
+const trackedValidatedSettings = new WeakMap<
+  Rule.RuleContext["settings"],
+  SettingsNormalized
+>();
+const trackedWarnedOptions = new WeakSet<RuleOptionsWithRules>();
 
 const DEFAULT_MATCHER_OPTIONS = {
   type: "object",
@@ -187,8 +202,7 @@ const objectElementMatcherSchema = {
 };
 
 export function legacyPoliciesSchema(
-  // TODO: Remove cast and add proper types
-  matcherOptions: Record<string, unknown> = DEFAULT_MATCHER_OPTIONS
+  matcherOptions: JsonSchemaObject = DEFAULT_MATCHER_OPTIONS
 ) {
   return {
     anyOf: [
@@ -245,12 +259,11 @@ const legacyElementsSelectorSchema = {
   ],
 };
 
-// TODO: Add proper types and remove unknown
 export function rulesOptionsSchema(
   options: {
     rulesMainKey?: RuleMainKey;
-    targetMatcherOptions?: Record<string, unknown>;
-    extraOptionsSchema?: Record<string, unknown>;
+    targetMatcherOptions?: JsonSchemaObject;
+    extraOptionsSchema?: Record<string, JsonSchemaObject>;
   } = {}
 ) {
   const mainKey = rulesMainKey(options.rulesMainKey);
@@ -372,11 +385,20 @@ export function rulesOptionsSchema(
  * @param checkConfig Whether to perform configuration checking
  * @param ruleName The name of the rule for warning messages
  */
-// TODO: Add proper types and remove unknown
-export function validateAndWarnRuleOptions<
-  T extends { rules?: Array<Record<string, unknown>> },
->(
-  options: T | undefined,
+function getRuleMainSelector(rule: RuleOptionsRules, mainKey: RuleMainKey) {
+  if (mainKey === "from") {
+    return "from" in rule ? rule.from : undefined;
+  }
+
+  if (mainKey === "to") {
+    return "to" in rule ? rule.to : undefined;
+  }
+
+  return "target" in rule ? rule.target : undefined;
+}
+
+export function validateAndWarnRuleOptions(
+  options: RuleOptionsWithRules | undefined,
   mainKey: RuleMainKey = "from",
   ruleName = "boundaries/unknown"
 ): void {
@@ -401,12 +423,18 @@ export function validateAndWarnRuleOptions<
     let hasLegacyTemplate = false;
 
     // Check all selector properties
-    for (const key of [ruleMainKey, "allow", "disallow"]) {
-      if (rule[key]) {
-        if (detectLegacyElementSelector(rule[key])) {
+    const selectorsToCheck = [
+      getRuleMainSelector(rule, ruleMainKey),
+      rule.allow,
+      rule.disallow,
+    ];
+
+    for (const selector of selectorsToCheck) {
+      if (selector) {
+        if (detectLegacyElementSelector(selector)) {
           hasLegacySelector = true;
         }
-        if (detectLegacyTemplateSyntax(rule[key])) {
+        if (detectLegacyTemplateSyntax(selector)) {
           hasLegacyTemplate = true;
         }
       }
@@ -612,8 +640,20 @@ function validateAdditionalDependencyNodes(
   return additionalDependencyNodes.filter(isValidDependencyNodeSelector);
 }
 
-// TODO: Add proper types and remove unknown
-function deprecateAlias(aliases: unknown) {
+function isAliasSetting(value: unknown): value is AliasSetting {
+  return isObject(value) && Object.values(value).every(isString);
+}
+
+function isElementDescriptors(value: unknown): value is ElementDescriptors {
+  return (
+    isArray(value) &&
+    value.every(
+      (element) => isLegacyType(element) || isElementDescriptor(element)
+    )
+  );
+}
+
+function deprecateAlias(aliases: AliasSetting | undefined) {
   if (aliases) {
     warnOnce(
       `Defining aliases in '${ALIAS}' setting is deprecated. Please use 'import/resolver' setting`
@@ -621,8 +661,7 @@ function deprecateAlias(aliases: unknown) {
   }
 }
 
-// TODO: Add proper types and remove unknown
-function deprecateTypes(types: unknown) {
+function deprecateTypes(types: ElementDescriptors | undefined) {
   if (types) {
     warnOnce(
       `'${TYPES}' setting is deprecated. Please use '${ELEMENTS}' instead`
@@ -809,8 +848,10 @@ function validateDebug(debug: unknown): DebugSetting | undefined {
 export function validateSettings(
   settings: Rule.RuleContext["settings"]
 ): Settings {
-  deprecateTypes(settings[TYPES]);
-  deprecateAlias(settings[ALIAS]);
+  deprecateTypes(
+    isElementDescriptors(settings[TYPES]) ? settings[TYPES] : undefined
+  );
+  deprecateAlias(isAliasSetting(settings[ALIAS]) ? settings[ALIAS] : undefined);
 
   return {
     [SETTINGS_KEYS_MAP.ELEMENTS]: validateElements(

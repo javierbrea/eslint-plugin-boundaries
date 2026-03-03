@@ -3,7 +3,6 @@ import type {
   DependencySelector,
   ElementDescriptors,
   ElementsSelector,
-  CapturedValues,
   FlagAsExternalOptions,
   DependencyDataSelector,
   SimpleElementSelectorByType,
@@ -520,11 +519,6 @@ export type RuleResult = {
   result: boolean;
   ruleReport: RuleReport | null;
   report: RuleResultReport | null;
-};
-
-export type RuleMatcherElementsCapturedValues = {
-  from: CapturedValues;
-  target: CapturedValues;
 };
 
 export type RulePolicyEntry =

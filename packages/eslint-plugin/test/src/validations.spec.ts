@@ -1,3 +1,4 @@
+import type { DependencyKind } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
 import { getSettings, validateAndWarnRuleOptions } from "../../src/Settings";
@@ -45,15 +46,15 @@ describe("validateAndWarnRuleOptions", () => {
         rules: [
           {
             from: "components",
-            allow: [{ type: "helpers" }],
+            allow: ["helpers"],
           },
           {
             from: { type: "helpers" },
-            allow: [{ type: "components" }],
+            allow: ["helpers"],
           },
           {
             from: ["modules", "helpers"],
-            allow: [{ type: "components" }],
+            allow: ["components"],
           },
         ],
       },
@@ -76,9 +77,11 @@ describe("validateAndWarnRuleOptions", () => {
             from: { type: "components" },
             allow: [
               {
-                type: "helpers",
-                captured: {
-                  family: "${from.family}",
+                to: {
+                  type: "helpers",
+                  captured: {
+                    family: "${from.family}",
+                  },
                 },
               },
             ],
@@ -102,7 +105,7 @@ describe("validateAndWarnRuleOptions", () => {
         rules: [
           {
             from: { type: "components" },
-            allow: [{ type: "helpers" }],
+            allow: [{ to: { type: "helpers" } }],
             importKind: "type",
           },
         ],
@@ -126,9 +129,11 @@ describe("validateAndWarnRuleOptions", () => {
             from: "components",
             allow: [
               {
-                type: "helpers",
-                captured: {
-                  family: "${from.family}",
+                to: {
+                  type: "helpers",
+                  captured: {
+                    family: "${from.family}",
+                  },
                 },
               },
             ],
@@ -156,12 +161,13 @@ describe("validateAndWarnRuleOptions", () => {
 
   it("should only warn once for the same options object", () => {
     const warnSpy = getWarnSpy();
+    const dependencyKind: DependencyKind = "type";
     const options = {
       rules: [
         {
           from: "components",
-          allow: [{ type: "helpers" }],
-          importKind: "type",
+          allow: [{ to: { type: "helpers" } }],
+          importKind: dependencyKind,
         },
       ],
     };
