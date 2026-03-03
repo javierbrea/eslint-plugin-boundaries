@@ -100,11 +100,6 @@ export type RuleShortName = (typeof RULE_SHORT_NAMES)[number];
 export type RuleShortNames = typeof RULE_SHORT_NAMES;
 
 /**
- * Main key used in rule definitions.
- */
-export const FROM = "from" as const;
-
-/**
  * Different types of dependency nodes supported by the plugin by default.
  * Each type corresponds to a common way of importing or requiring modules in JavaScript/TypeScript.
  */
@@ -669,7 +664,9 @@ export type RuleOptions = RuleOptionsWithRules | NoPrivateOptions;
 
 export type RuleOptionsRules = ExternalRule | EntryPointRule | ElementTypesRule;
 
-export type RuleMainKey = "from" | "to" | "target";
+export const FROM = "from" as const;
+
+export type RuleMainKey = typeof FROM | "to" | "target";
 
 export type ValidateRulesOptions = {
   mainKey?: RuleMainKey;

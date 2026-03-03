@@ -40,9 +40,7 @@ Read the **[migration guide below](#migration-to-boundarieselement-types)** for 
 - `default`: `"allow"` or `"disallow"`. Determines the default behavior for imports that don't match any rule
 - `message`: Custom error message for rule violations. Note that **the default message provides detailed information about why the error occurred**, so only define a custom message if necessary. See [error messages](#error-messages) for more information
 - `rules`: An array of rule objects processed in order to determine whether an import should be allowed. Each rule object can have the following properties:
-  - `to`: **[`<element selectors>`](../setup/selectors.md)** - If defined, the rule will only be evaluated if the imported element matches this selector.
-  - `target`: **Deprecated** - Alias for `to`.
-  - `from`: **[`<element selectors>`](../setup/selectors.md)** - If defined, the rule will only be evaluated if the importing element matches this selector.
+  - `target`: **[`<element selectors>`](../setup/selectors.md)** - If defined, the rule will only be evaluated if the imported element matches this selector.
   - `disallow`: `<string>` - A [micromatch pattern](https://github.com/micromatch/micromatch). If the imported file path matches this pattern, the import is disallowed (can be overridden by a subsequent rule returning `"allow"`)
   - `allow`: `<string>` - A [micromatch pattern](https://github.com/micromatch/micromatch). If the imported file path matches this pattern, the import is allowed (can be overridden by a subsequent rule returning `"disallow"`)
   - `importKind`: `<string>` - Optional. Makes sense when using [TypeScript](../guides/typescript-support.md) only. If defined, the rule will only be evaluated for dependencies of the specified kind. Possible values: `"value"`, `"type"`, or `"typeof"`. If defined, the rule will only be evaluated for dependencies of the specified kind.

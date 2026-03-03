@@ -228,24 +228,27 @@ export function rulesOptionsSchema(
     rulesMainKey?: RuleMainKey;
     targetMatcherOptions?: JsonSchemaObject;
     extraOptionsSchema?: Record<string, JsonSchemaObject>;
-  } = {}
+    isLegacy?: boolean;
+  } = {
+    isLegacy: false,
+  }
 ) {
-  const mainKey = rulesMainKey(options.rulesMainKey);
-
-  const policySchema = {
-    anyOf: [
-      legacyPoliciesSchema(options.targetMatcherOptions),
-      {
-        type: "object",
-        properties: {
-          from: objectElementMatcherSchema,
-          to: objectElementMatcherSchema,
-          dependency: dependencyMatcherSchema,
-        },
-        additionalProperties: false,
-      },
-    ],
-  };
+  const policySchema = !options.isLegacy
+    ? {
+        anyOf: [
+          legacyPoliciesSchema(options.targetMatcherOptions),
+          {
+            type: "object",
+            properties: {
+              from: objectElementMatcherSchema,
+              to: objectElementMatcherSchema,
+              dependency: dependencyMatcherSchema,
+            },
+            additionalProperties: false,
+          },
+        ],
+      }
+    : legacyPoliciesSchema(options.targetMatcherOptions);
 
   const policiesSchema = {
     anyOf: [
@@ -261,9 +264,51 @@ export function rulesOptionsSchema(
     anyOf: [legacyElementsSelectorSchema, objectElementMatcherSchema],
   };
 
-  const fromElementSelectorSchema = {
-    from: elementSelectorSchema,
-  };
+  const legacyMainKey = rulesMainKey(options.rulesMainKey);
+
+  const ruleSupportedProperties = options.isLegacy
+    ? {
+        [legacyMainKey]: elementSelectorSchema,
+        allow: policiesSchema,
+        disallow: policiesSchema,
+      }
+    : {
+        from: elementSelectorSchema,
+        to: elementSelectorSchema,
+        dependency: dependencyMatcherSchema,
+        allow: policiesSchema,
+        disallow: policiesSchema,
+      };
+
+  const requiredProperties = options.isLegacy
+    ? [
+        {
+          required: [legacyMainKey, "allow"],
+        },
+        {
+          required: [legacyMainKey, "disallow"],
+        },
+      ]
+    : [
+        {
+          required: ["from", "allow"],
+        },
+        {
+          required: ["from", "disallow"],
+        },
+        {
+          required: ["to", "allow"],
+        },
+        {
+          required: ["to", "disallow"],
+        },
+        {
+          required: ["dependency", "allow"],
+        },
+        {
+          required: ["dependency", "disallow"],
+        },
+      ];
 
   const schema = [
     {
@@ -281,12 +326,7 @@ export function rulesOptionsSchema(
           items: {
             type: "object",
             properties: {
-              ...fromElementSelectorSchema,
-              [mainKey]: elementSelectorSchema,
-              to: elementSelectorSchema,
-              dependency: dependencyMatcherSchema,
-              allow: policiesSchema,
-              disallow: policiesSchema,
+              ...ruleSupportedProperties,
               importKind: {
                 anyOf: [
                   {
@@ -305,32 +345,7 @@ export function rulesOptionsSchema(
               },
             },
             additionalProperties: false,
-            anyOf: [
-              {
-                required: [mainKey, "allow"],
-              },
-              {
-                required: [mainKey, "disallow"],
-              },
-              {
-                required: ["from", "allow"],
-              },
-              {
-                required: ["from", "disallow"],
-              },
-              {
-                required: ["to", "allow"],
-              },
-              {
-                required: ["to", "disallow"],
-              },
-              {
-                required: ["dependency", "allow"],
-              },
-              {
-                required: ["dependency", "disallow"],
-              },
-            ],
+            anyOf: requiredProperties,
           },
         },
         ...(options.extraOptionsSchema || {}),

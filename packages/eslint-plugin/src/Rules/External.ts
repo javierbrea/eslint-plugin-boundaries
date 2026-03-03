@@ -135,6 +135,7 @@ export default dependencyRule<ExternalRuleOptions>(
     ruleName: RULE_EXTERNAL,
     description: `Check dependencies to external and core libraries`,
     schema: rulesOptionsSchema({
+      isLegacy: true,
       targetMatcherOptions: {
         type: "object",
         properties: {

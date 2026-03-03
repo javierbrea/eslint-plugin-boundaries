@@ -75,6 +75,7 @@ export default dependencyRule<EntryPointRuleOptions>(
     description: `Check elements entry point`,
     schema: rulesOptionsSchema({
       rulesMainKey: "target",
+      isLegacy: true,
     }),
   },
   function ({ dependency, node, context, settings, options }) {
