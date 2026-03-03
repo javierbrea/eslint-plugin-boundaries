@@ -78,25 +78,23 @@ const trackedValidatedSettings = new WeakMap<
 >();
 const trackedWarnedOptions = new WeakSet<RuleOptionsWithRules>();
 
-const DEFAULT_MATCHER_OPTIONS = {
+const defaultLegacyMatcherOptionsSchema = {
   type: "object",
+};
+
+/** Schema for validating a micromatch pattern or array of patterns that can also be null. */
+const micromatchPatternNullableSchema = {
+  oneOf: [
+    { type: ["string", "null"] },
+    { type: "array", items: { type: ["string", "null"] } },
+  ],
 };
 
 const dependencyRelationshipSchema = {
   type: "object",
   properties: {
-    from: {
-      oneOf: [
-        { type: ["string", "null"] },
-        { type: "array", items: { type: ["string", "null"] } },
-      ],
-    },
-    to: {
-      oneOf: [
-        { type: ["string", "null"] },
-        { type: "array", items: { type: ["string", "null"] } },
-      ],
-    },
+    from: micromatchPatternNullableSchema,
+    to: micromatchPatternNullableSchema,
   },
   additionalProperties: false,
 };
@@ -104,28 +102,12 @@ const dependencyRelationshipSchema = {
 const dependencyMatcherItemSchema = {
   type: "object",
   properties: {
-    kind: {
-      oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
-    },
-    specifiers: {
-      oneOf: [
-        { type: ["string", "null"] },
-        { type: "array", items: { type: ["string", "null"] } },
-      ],
-    },
-    nodeKind: {
-      oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
-    },
     relationship: dependencyRelationshipSchema,
-    source: {
-      oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
-    },
-    module: {
-      oneOf: [
-        { type: ["string", "null"] },
-        { type: "array", items: { type: ["string", "null"] } },
-      ],
-    },
+    kind: micromatchPatternNullableSchema,
+    specifiers: micromatchPatternNullableSchema,
+    nodeKind: micromatchPatternNullableSchema,
+    source: micromatchPatternNullableSchema,
+    module: micromatchPatternNullableSchema,
   },
   additionalProperties: false,
 };
@@ -143,48 +125,18 @@ const dependencyMatcherSchema = {
 const objectElementMatcherSchemaItem = {
   type: "object", // single object-based selector (new format)
   properties: {
-    type: {
-      oneOf: [
-        { type: ["string", "null"] },
-        { type: "array", items: { type: ["string", "null"] } },
-      ],
-    },
-    category: {
-      oneOf: [
-        { type: ["string", "null"] },
-        { type: "array", items: { type: ["string", "null"] } },
-      ],
-    },
+    path: micromatchPatternNullableSchema,
+    elementPath: micromatchPatternNullableSchema,
+    internalPath: micromatchPatternNullableSchema,
+    type: micromatchPatternNullableSchema,
+    category: micromatchPatternNullableSchema,
     captured: {
       oneOf: [
         { type: ["object", "null"] },
         { type: "array", items: { type: ["object", "null"] } },
       ],
     },
-    origin: {
-      oneOf: [
-        { type: ["string", "null"] },
-        { type: "array", items: { type: ["string", "null"] } },
-      ],
-    },
-    path: {
-      oneOf: [
-        { type: ["string", "null"] },
-        { type: "array", items: { type: ["string", "null"] } },
-      ],
-    },
-    elementPath: {
-      oneOf: [
-        { type: ["string", "null"] },
-        { type: "array", items: { type: ["string", "null"] } },
-      ],
-    },
-    internalPath: {
-      oneOf: [
-        { type: ["string", "null"] },
-        { type: "array", items: { type: ["string", "null"] } },
-      ],
-    },
+    origin: micromatchPatternNullableSchema,
     isIgnored: { type: "boolean" },
     isUnknown: { type: "boolean" },
   },
@@ -208,7 +160,7 @@ const objectElementMatcherSchema = {
  * @returns JSON schema definition for legacy policy values.
  */
 export function legacyPoliciesSchema(
-  matcherOptions: JsonSchemaObject = DEFAULT_MATCHER_OPTIONS
+  matcherOptions: JsonSchemaObject = defaultLegacyMatcherOptionsSchema
 ) {
   return {
     anyOf: [
@@ -249,7 +201,7 @@ const legacyElementsSelectorItemSchema = {
         {
           type: "string", // matcher
         },
-        DEFAULT_MATCHER_OPTIONS, // Extra options for legacy rules with custom syntax
+        defaultLegacyMatcherOptionsSchema, // Extra options for legacy rules with custom syntax
       ],
     },
   ],

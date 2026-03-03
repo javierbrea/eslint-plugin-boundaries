@@ -136,28 +136,92 @@ function getPolicyEntries(
 }
 
 /**
- * Merges two selector values field by field.
+ * Merges two selector data values field by field.
  * When both are plain objects, entry fields take precedence over outer fields,
  * enabling composed criteria for `from`, `to` and `dependency` alike:
  *   outer = { type: "helper" } + entry = { internalPath: "index.js" } → { type: "helper", internalPath: "index.js" }
  *   outer = { module: "react" } + entry = { kind: "type" } → { module: "react", kind: "type" }
  */
-function mergeElementOrDependencySelector(
-  outer: BaseElementsSelector | undefined,
-  entry: BaseElementsSelector | undefined
-): DependencyDataSelectorData | undefined;
-function mergeElementOrDependencySelector(
-  outer: DependencyDataSelectorData | undefined,
-  entry: DependencyDataSelectorData | undefined
-): DependencyDataSelectorData | undefined;
-function mergeElementOrDependencySelector(
-  outer: BaseElementsSelector | DependencyDataSelectorData | undefined,
-  entry: BaseElementsSelector | DependencyDataSelectorData | undefined
-): BaseElementsSelector | DependencyDataSelectorData | undefined {
+function mergeElementOrDependencySelectorData(
+  outer: BaseElementSelectorData,
+  entry: BaseElementSelectorData
+): BaseElementSelectorData;
+function mergeElementOrDependencySelectorData(
+  outer: DependencyDataSelectorData,
+  entry: DependencyDataSelectorData
+): DependencyDataSelectorData;
+function mergeElementOrDependencySelectorData(
+  outer: BaseElementSelectorData | DependencyDataSelectorData,
+  entry: BaseElementSelectorData | DependencyDataSelectorData
+): BaseElementSelectorData | DependencyDataSelectorData {
   if (isObject(outer) && isObject(entry)) {
     return { ...outer, ...entry };
   }
   return entry !== undefined ? entry : outer;
+}
+
+/**
+ * Merges the outer selector with the entry selector(s) for a policy, composing the final
+ * selector(s) by merging all fields in all combinations.
+ * For example, a rule with `to: { type: "helper" }` and an dependency entry with `allow: { to: [{ internalPath: "index.js" }, { internalPath: "foo.js" }] }`,
+ * it would produce the merged selectors `[{ to: { type: "helper", internalPath: "index.js" } }, { to: { type: "helper", internalPath: "foo.js" } }]`.
+ * @param outerElementSelector The outer selector defined at the rule level.
+ * @param entryElementSelector The entry selector(s) defined at the policy level.
+ * @returns The merged selector(s) as an array of `BaseElementSelectorData` objects.
+ */
+function mergeElementsSelector(
+  outerElementSelector: BaseElementSelectorData[] | undefined,
+  entryElementSelector: BaseElementSelectorData[] | undefined
+): BaseElementSelectorData[] | undefined {
+  if (!entryElementSelector) {
+    return outerElementSelector;
+  }
+  if (!outerElementSelector) {
+    return normalizeElementsSelector(entryElementSelector);
+  }
+  const normalizedEntrySelector =
+    normalizeElementsSelector(entryElementSelector);
+
+  return outerElementSelector
+    ?.map((outerSelector) => {
+      return normalizedEntrySelector.map((entrySelector) =>
+        mergeElementOrDependencySelectorData(outerSelector, entrySelector)
+      );
+    })
+    .flat();
+}
+
+/**
+ * Merges the outer dependency selector with the entry dependency selector, composing the final selector by merging all fields in all combinations.
+ * For example, a rule with `dependency: { kind: "import" }` and an dependency entry with `allow: { dependency: [{ module: "react" }, { module: "lodash" }] }`,
+ * it would produce the merged selectors `[{ dependency: { kind: "import", module: "react" } }, { dependency: { kind: "import", module: "lodash" } }]`.
+ * @param outerDependencySelector The outer dependency selector defined at the rule level.
+ * @param entryDependencySelector The entry dependency selector(s) defined at the policy level.
+ * @returns The merged dependency selector(s) as an array of `DependencyDataSelector` objects.
+ */
+function mergeDependencyDataSelectors(
+  outerDependencySelector: DependencyDataSelector | undefined,
+  entryDependencySelector: DependencyDataSelector | undefined
+): DependencyDataSelector | undefined {
+  if (!entryDependencySelector) {
+    return outerDependencySelector;
+  }
+  if (!outerDependencySelector) {
+    return entryDependencySelector;
+  }
+  const outer = isArray(outerDependencySelector)
+    ? outerDependencySelector
+    : [outerDependencySelector];
+  const entry = isArray(entryDependencySelector)
+    ? entryDependencySelector
+    : [entryDependencySelector];
+  return outer
+    .map((outerSelector) => {
+      return entry.map((entrySelector) =>
+        mergeElementOrDependencySelectorData(outerSelector, entrySelector)
+      );
+    })
+    .flat();
 }
 
 /**
@@ -181,26 +245,18 @@ function buildEntrySelector(
     | DependencySelector
     | undefined
 ): DependencySelector {
-  // Normalize outer selectors to be able to merge them with entry selectors regardless of the original format (legacy string/array or new object)
-  const outerFromNormalized = outerFrom
-    ? normalizeElementsSelector(outerFrom)
-    : undefined;
-  const outerToNormalized = outerTo
-    ? normalizeElementsSelector(outerTo)
-    : undefined;
-
   if (isDependencySelector(entry)) {
     const entryObj = entry;
 
-    const mergedFrom = mergeElementOrDependencySelector(
-      outerFromNormalized,
-      entryObj.from
+    const mergedFrom = mergeElementsSelector(
+      outerFrom,
+      entryObj.from ? normalizeElementsSelector(entryObj.from) : undefined
     );
-    const mergedTo = mergeElementOrDependencySelector(
-      outerToNormalized,
-      entryObj.to
+    const mergedTo = mergeElementsSelector(
+      outerTo,
+      entryObj.to ? normalizeElementsSelector(entryObj.to) : undefined
     );
-    const mergedDependency = mergeElementOrDependencySelector(
+    const mergedDependency = mergeDependencyDataSelectors(
       outerDependency,
       entryObj.dependency
     );
@@ -216,13 +272,13 @@ function buildEntrySelector(
   // Legacy entry: string or legacy array → becomes the "other direction" element selector
   // They are not merged because legacy entries are not objects but strings/arrays, so they
   // can not express criteria in the same direction as the outer selector but only in the opposite direction
-  const hasFrom = outerFromNormalized !== undefined;
+  const hasFrom = outerFrom !== undefined;
   const result: DependencySelector = {};
   if (hasFrom) {
-    result.from = outerFromNormalized;
+    result.from = outerFrom;
     result.to = entry;
   } else {
-    result.to = outerToNormalized;
+    result.to = outerTo;
     result.from = entry;
   }
   if (outerDependency !== undefined) {

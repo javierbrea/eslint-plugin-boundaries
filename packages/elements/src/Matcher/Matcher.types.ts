@@ -113,10 +113,6 @@ export type BaseElementSelectorData = {
   captured?: CapturedValuesSelector;
   /** Origin of the element */
   origin?: MicromatchPatternNullable;
-  /** Micromatch pattern(s) to match the source of the dependency */
-  source?: MicromatchPatternNullable;
-  /** Base source of the element, e.g., the import path of a dependency */
-  module?: MicromatchPatternNullable;
   /** Whether the element is ignored */
   isIgnored?: boolean;
   /** Whether the element is unknown */
