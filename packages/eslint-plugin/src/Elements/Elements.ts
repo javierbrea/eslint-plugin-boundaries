@@ -17,8 +17,8 @@ import type { EslintLiteralNode } from "./Elements.types";
 const elements = new Elements();
 
 /**
- * Returns the elements matcher based on the ESLint rule context, filtering out invalid descriptors
- * @param context The ESLint rule context
+ * Returns the elements matcher based on the ESLint rule context settings already normalized, filtering out invalid descriptors
+ * @param settings The ESLint rule context settings normalized
  * @returns The elements matcher
  */
 export function getElementsMatcher(settings: SettingsNormalized): Matcher {
@@ -84,7 +84,12 @@ export function elementDescription(
 
 /**
  * Returns the description of a dependency node
- * @param param0 The dependency node info
+ * @param options The dependency node info
+ * @param options.node The dependency node
+ * @param options.kind The kind of the dependency
+ * @param options.nodeKind The kind of the node generating the dependency
+ * @param fileName The file name (absolute path)
+ * @param settings The ESLint rule context settings normalized
  * @param context The ESLint rule context
  * @returns The description of the dependency node
  */
@@ -94,11 +99,8 @@ export function dependencyDescription(
     kind,
     nodeKind,
   }: {
-    /** The dependency node */
     node: EslintLiteralNode;
-    /** The kind of the dependency */
     kind: DependencyKind;
-    /** The kind of the node generating the dependency */
     nodeKind?: string;
   },
   /** The file name (absolute path) */

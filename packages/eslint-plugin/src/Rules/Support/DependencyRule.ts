@@ -14,6 +14,14 @@ import { meta } from "./Helpers";
 
 const { ADDITIONAL_DEPENDENCY_NODES } = SETTINGS;
 
+/**
+ * Creates a rule module that evaluates dependency nodes using shared matcher logic.
+ *
+ * @param ruleMeta - Metadata used to build ESLint rule `meta` information.
+ * @param rule - Rule runner invoked for each described dependency.
+ * @param ruleOptions - Optional behavior flags for validation and rule shape.
+ * @returns ESLint rule module ready to be exported by concrete rules.
+ */
 export function dependencyRule<Options extends RuleOptionsWithRules>(
   ruleMeta: RuleMetaDefinition,
   rule: DependencyRuleRunner<Options>,

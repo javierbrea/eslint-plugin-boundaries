@@ -20,6 +20,12 @@ import { dependencyRule } from "./Support";
 
 const { RULE_ENTRY_POINT } = SETTINGS;
 
+/**
+ * Adapts legacy template placeholders from `target` to `to` notation.
+ *
+ * @param templates - Legacy templates from rule options.
+ * @returns Normalized templates or `undefined` when not provided.
+ */
 function modifyLegacyTemplates(
   templates: string | string[] | undefined
 ): string[] | undefined {
@@ -32,6 +38,12 @@ function modifyLegacyTemplates(
   );
 }
 
+/**
+ * Converts `entry-point` legacy rules to `element-types` rule shape.
+ *
+ * @param rules - Entry-point rules as defined by user configuration.
+ * @returns Equivalent element-types rules for shared evaluator.
+ */
 function transformToElementTypesRules(
   rules: EntryPointRule[]
 ): ElementTypesRule[] {

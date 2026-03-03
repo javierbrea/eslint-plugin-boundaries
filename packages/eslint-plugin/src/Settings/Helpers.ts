@@ -90,6 +90,12 @@ export function isRuleShortName(value: unknown): value is RuleShortName {
   return RULE_SHORT_NAMES.includes(value as RuleShortName);
 }
 
+/**
+ * Type guard for legacy element descriptors declared as plain strings.
+ *
+ * @param type - Value to check.
+ * @returns `true` when the value is a legacy string descriptor.
+ */
 export function isLegacyType(type: unknown): type is string {
   return isString(type);
 }
@@ -176,6 +182,12 @@ export function detectLegacyTemplateSyntax(selector: unknown): boolean {
   return checkForLegacyTemplateSyntax(selector);
 }
 
+/**
+ * Returns the canonical main selector key used by schema and option checks.
+ *
+ * @param key - Optional rule main key (`from`, `to`, or `target`).
+ * @returns The same key with default fallback to `from`.
+ */
 export function rulesMainKey(key: RuleMainKey = FROM) {
   return key;
 }

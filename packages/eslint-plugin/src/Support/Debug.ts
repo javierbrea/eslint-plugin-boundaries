@@ -24,6 +24,12 @@ const COLORS_MAP = {
 
 type TraceColor = keyof typeof COLORS_MAP;
 
+/**
+ * Prints a debug line to stdout with optional color formatting.
+ *
+ * @param message - Message text to print.
+ * @param color - Optional color key from the internal color map.
+ */
 function trace(message: string, color?: TraceColor) {
   if (!color) {
     // eslint-disable-next-line no-console
@@ -35,6 +41,13 @@ function trace(message: string, color?: TraceColor) {
   console.log(output);
 }
 
+/**
+ * Indents every line except the first one by a fixed number of spaces.
+ *
+ * @param text - Multi-line text to indent.
+ * @param spaces - Number of spaces to prepend.
+ * @returns Text with indentation applied.
+ */
 function indentLines(text: string, spaces: number): string {
   const pad = " ".repeat(spaces);
   return text
@@ -43,6 +56,12 @@ function indentLines(text: string, spaces: number): string {
     .join("\n");
 }
 
+/**
+ * Prints a titled JSON block in debug output.
+ *
+ * @param title - Block title shown before data.
+ * @param data - Data serialized as formatted JSON.
+ */
 function printDebugBlock(title: string, data: unknown): void {
   const header = `${chalk.hex(PREFIX_COLOR)(`[${PLUGIN_NAME}]`)}${chalk.blue(`[debug]`)}: ${title}`;
   trace(header);
@@ -53,14 +72,30 @@ function printDebugBlock(title: string, data: unknown): void {
   trace("");
 }
 
+/**
+ * Prints a warning message using warning color.
+ *
+ * @param message - Warning message.
+ */
 export function warn(message: string) {
   trace(message, COLORS_MAP.yellow);
 }
 
+/**
+ * Prints a success message using success color.
+ *
+ * @param message - Success message.
+ */
 export function success(message: string) {
   trace(message, COLORS_MAP.green);
 }
 
+/**
+ * Prints a warning only once for each unique message.
+ *
+ * @param message - Warning message candidate.
+ * @returns `true` when warning was emitted, `false` when skipped.
+ */
 export function warnOnce(message: string): boolean {
   if (!warns.includes(message)) {
     warns.push(message);
@@ -70,6 +105,13 @@ export function warnOnce(message: string): boolean {
   return false;
 }
 
+/**
+ * Emits debug output for file or dependency descriptions when enabled.
+ *
+ * @param description - Element or dependency description to debug.
+ * @param settings - Normalized plugin settings including debug filters.
+ * @param matcher - Matcher used to evaluate debug filters.
+ */
 export function debugDescription(
   description: ElementDescription | DependencyDescription,
   settings: SettingsNormalized,
@@ -87,6 +129,13 @@ export function debugDescription(
   printFileDebug(description, settings, matcher);
 }
 
+/**
+ * Prints debug info for a file description once per file path.
+ *
+ * @param description - File element description.
+ * @param settings - Normalized plugin settings.
+ * @param matcher - Matcher used for filter checks.
+ */
 function printFileDebug(
   description: ElementDescription,
   settings: SettingsNormalized,
@@ -105,6 +154,13 @@ function printFileDebug(
   printDebugBlock(title, description);
 }
 
+/**
+ * Prints debug info for a dependency description once per file/source pair.
+ *
+ * @param description - Dependency description.
+ * @param settings - Normalized plugin settings.
+ * @param matcher - Matcher used for filter checks.
+ */
 function printDependencyDebug(
   description: DependencyDescription,
   settings: SettingsNormalized,
@@ -135,6 +191,14 @@ function printDependencyDebug(
   printDebugBlock(title, description);
 }
 
+/**
+ * Checks whether a file description passes debug file filters.
+ *
+ * @param description - File description to evaluate.
+ * @param settings - Normalized plugin settings.
+ * @param matcher - Matcher used to evaluate selectors.
+ * @returns `true` when file should be printed in debug output.
+ */
 function shouldPrintFile(
   description: ElementDescription,
   settings: SettingsNormalized,
@@ -153,6 +217,14 @@ function shouldPrintFile(
   );
 }
 
+/**
+ * Checks whether a dependency description passes debug dependency filters.
+ *
+ * @param description - Dependency description to evaluate.
+ * @param settings - Normalized plugin settings.
+ * @param matcher - Matcher used to evaluate selectors.
+ * @returns `true` when dependency should be printed in debug output.
+ */
 function shouldPrintDependency(
   description: DependencyDescription,
   settings: SettingsNormalized,

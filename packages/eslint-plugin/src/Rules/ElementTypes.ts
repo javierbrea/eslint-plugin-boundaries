@@ -91,6 +91,14 @@ function safeMatch(
   }
 }
 
+/**
+ * Builds template data for legacy `${...}` placeholders from captured values.
+ *
+ * @param rule - Rule currently being evaluated.
+ * @param dep - Dependency description under evaluation.
+ * @param legacyTemplates - Whether legacy template mode is enabled.
+ * @returns Template data object consumed by matcher template rendering.
+ */
 function getCapturedTemplateData(
   rule: ElementTypesRule,
   dep: DependencyDescription,
@@ -372,6 +380,11 @@ export function buildErrorMessage({
   });
 }
 
+/**
+ * Evaluates configured rules for a dependency and reports ESLint violations.
+ *
+ * @param params - Rule evaluation context and dependency information.
+ */
 export function evaluateRulesAndReport({
   rules,
   dependency,

@@ -25,6 +25,12 @@ import { dependencyRule } from "./Support";
 
 const { RULE_EXTERNAL } = SETTINGS;
 
+/**
+ * Type guard for external selectors using tuple syntax with options.
+ *
+ * @param selector - External library selector from rule options.
+ * @returns `true` when selector is `[module, options]`.
+ */
 function isExternalLibrarySelectorWithOptions(
   selector: ExternalLibrariesSelector
 ): selector is ExternalLibrarySelectorWithOptions {
@@ -37,6 +43,12 @@ function isExternalLibrarySelectorWithOptions(
   );
 }
 
+/**
+ * Transforms legacy external selectors into dependency selectors.
+ *
+ * @param selectors - External selector(s) from legacy rule format.
+ * @returns Dependency selector(s) compatible with `element-types` evaluator.
+ */
 function modifySelectors(
   selectors: ExternalLibrariesSelector
 ): DependencySelector | DependencySelector[] {
@@ -100,6 +112,12 @@ function modifySelectors(
   });
 }
 
+/**
+ * Converts `external` legacy rules to `element-types` rule shape.
+ *
+ * @param rules - External rules as configured by the user.
+ * @returns Equivalent element-types rules consumed by shared evaluator.
+ */
 function transformToElementTypesRules(
   rules: ExternalRule[]
 ): ElementTypesRule[] {

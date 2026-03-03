@@ -12,6 +12,13 @@ import { dependencyRule } from "./Support";
 
 const { RULE_NO_PRIVATE } = SETTINGS;
 
+/**
+ * Builds the user-facing error message for private dependency violations.
+ *
+ * @param dependency - Described dependency that triggered the violation.
+ * @param options - Optional rule options with custom message template.
+ * @returns Final error message reported by ESLint.
+ */
 function errorMessage(
   dependency: DependencyDescription,
   options?: NoPrivateOptions

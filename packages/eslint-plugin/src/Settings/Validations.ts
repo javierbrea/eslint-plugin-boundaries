@@ -201,6 +201,12 @@ const objectElementMatcherSchema = {
   ],
 };
 
+/**
+ * Builds JSON schema for legacy policy selectors.
+ *
+ * @param matcherOptions - Extra matcher options accepted in legacy tuple syntax.
+ * @returns JSON schema definition for legacy policy values.
+ */
 export function legacyPoliciesSchema(
   matcherOptions: JsonSchemaObject = DEFAULT_MATCHER_OPTIONS
 ) {
@@ -259,6 +265,12 @@ const legacyElementsSelectorSchema = {
   ],
 };
 
+/**
+ * Builds JSON schema for rule options of dependency-based rules.
+ *
+ * @param options - Schema customization options for rule main key and extras.
+ * @returns ESLint-compatible schema array for rule options.
+ */
 export function rulesOptionsSchema(
   options: {
     rulesMainKey?: RuleMainKey;
@@ -379,11 +391,11 @@ export function rulesOptionsSchema(
 }
 
 /**
- * Validates rule options and warns about legacy element selector syntax.
- * @param options The rule options to validate
- * @param mainKey The main key used in rules (from/to/target)
- * @param checkConfig Whether to perform configuration checking
- * @param ruleName The name of the rule for warning messages
+ * Returns the selector configured under the active rule main key.
+ *
+ * @param rule - Single rule entry from options.
+ * @param mainKey - Main selector key configured for current rule.
+ * @returns Selector value from the corresponding property, when present.
  */
 function getRuleMainSelector(rule: RuleOptionsRules, mainKey: RuleMainKey) {
   if (mainKey === "from") {
@@ -397,6 +409,13 @@ function getRuleMainSelector(rule: RuleOptionsRules, mainKey: RuleMainKey) {
   return "target" in rule ? rule.target : undefined;
 }
 
+/**
+ * Warns once when deprecated selector/template syntax is detected in rules.
+ *
+ * @param options - Rule options containing `rules` entries.
+ * @param mainKey - Main selector key used by the current rule.
+ * @param ruleName - Rule name displayed in warning messages.
+ */
 export function validateAndWarnRuleOptions(
   options: RuleOptionsWithRules | undefined,
   mainKey: RuleMainKey = "from",
@@ -484,6 +503,12 @@ export function validateAndWarnRuleOptions(
   }
 }
 
+/**
+ * Validates one element descriptor item from plugin settings.
+ *
+ * @param element - Candidate element descriptor from settings.
+ * @returns `true` when descriptor is valid or accepted legacy string.
+ */
 export function isValidElementAssigner(
   element: unknown
 ): element is ElementDescriptor {
@@ -543,6 +568,12 @@ export function isValidElementAssigner(
   }
 }
 
+/**
+ * Validates and filters the configured list of element descriptors.
+ *
+ * @param elements - Raw `boundaries/elements` setting value.
+ * @returns Valid descriptors or `undefined` when setting is invalid/missing.
+ */
 function validateElements(elements: unknown): ElementDescriptors | undefined {
   if (!elements || !isArray(elements) || !elements.length) {
     warnOnce(`Please provide element types using the '${ELEMENTS}' setting`);
@@ -551,6 +582,12 @@ function validateElements(elements: unknown): ElementDescriptors | undefined {
   return elements.filter(isValidElementAssigner);
 }
 
+/**
+ * Validates configured dependency node keys.
+ *
+ * @param dependencyNodes - Raw dependency node keys from settings.
+ * @returns Filtered valid keys or `undefined` for missing/invalid setting.
+ */
 function validateDependencyNodes(
   dependencyNodes: DependencyNodeKey[] | undefined
 ): DependencyNodeKey[] | undefined {
@@ -599,6 +636,12 @@ function validateLegacyTemplates(
   );
 }
 
+/**
+ * Validates one custom dependency-node selector object.
+ *
+ * @param selector - Candidate additional dependency node selector.
+ * @returns `true` when selector has a valid shape.
+ */
 function isValidDependencyNodeSelector(
   selector: unknown
 ): selector is DependencyNodeSelector {
@@ -619,6 +662,12 @@ function isValidDependencyNodeSelector(
   return isValidObject;
 }
 
+/**
+ * Validates the list of additional dependency node selectors.
+ *
+ * @param additionalDependencyNodes - Raw custom dependency nodes setting.
+ * @returns Valid selectors or `undefined` when absent/invalid.
+ */
 function validateAdditionalDependencyNodes(
   additionalDependencyNodes: unknown
 ): DependencyNodeSelector[] | undefined {
@@ -640,10 +689,22 @@ function validateAdditionalDependencyNodes(
   return additionalDependencyNodes.filter(isValidDependencyNodeSelector);
 }
 
+/**
+ * Type guard for alias setting object.
+ *
+ * @param value - Candidate alias setting value.
+ * @returns `true` when value is an object whose values are strings.
+ */
 function isAliasSetting(value: unknown): value is AliasSetting {
   return isObject(value) && Object.values(value).every(isString);
 }
 
+/**
+ * Type guard for element descriptors array including legacy entries.
+ *
+ * @param value - Candidate `types` or `elements` setting value.
+ * @returns `true` when all entries are valid descriptors or legacy strings.
+ */
 function isElementDescriptors(value: unknown): value is ElementDescriptors {
   return (
     isArray(value) &&
@@ -653,6 +714,11 @@ function isElementDescriptors(value: unknown): value is ElementDescriptors {
   );
 }
 
+/**
+ * Emits deprecation warning for legacy `alias` setting.
+ *
+ * @param aliases - Alias setting value when present.
+ */
 function deprecateAlias(aliases: AliasSetting | undefined) {
   if (aliases) {
     warnOnce(
@@ -661,6 +727,11 @@ function deprecateAlias(aliases: AliasSetting | undefined) {
   }
 }
 
+/**
+ * Emits deprecation warning for legacy `types` setting.
+ *
+ * @param types - Legacy types setting value when present.
+ */
 function deprecateTypes(types: ElementDescriptors | undefined) {
   if (types) {
     warnOnce(
@@ -669,6 +740,12 @@ function deprecateTypes(types: ElementDescriptors | undefined) {
   }
 }
 
+/**
+ * Validates `ignore` setting values.
+ *
+ * @param ignore - Raw ignore setting.
+ * @returns String or string array when valid.
+ */
 function validateIgnore(ignore: unknown): IgnoreSetting | undefined {
   if (!ignore) {
     return;
@@ -681,6 +758,12 @@ function validateIgnore(ignore: unknown): IgnoreSetting | undefined {
   );
 }
 
+/**
+ * Validates `include` setting values.
+ *
+ * @param include - Raw include setting.
+ * @returns String or string array when valid.
+ */
 function validateInclude(include: unknown): IncludeSetting | undefined {
   if (!include) {
     return;
@@ -693,6 +776,12 @@ function validateInclude(include: unknown): IncludeSetting | undefined {
   );
 }
 
+/**
+ * Validates `root-path` setting values.
+ *
+ * @param rootPath - Raw root-path setting.
+ * @returns Root path string when valid.
+ */
 function validateRootPath(rootPath: unknown): string | undefined {
   if (!rootPath) {
     return;
@@ -705,6 +794,12 @@ function validateRootPath(rootPath: unknown): string | undefined {
   );
 }
 
+/**
+ * Validates `flag-as-external` setting object and fields.
+ *
+ * @param flagAsExternal - Raw flag-as-external setting value.
+ * @returns Normalized options object with valid fields only.
+ */
 function validateFlagAsExternal(
   flagAsExternal: unknown
 ): FlagAsExternalOptions | undefined {
@@ -767,6 +862,13 @@ function validateFlagAsExternal(
   return validated;
 }
 
+/**
+ * Validates debug filter selectors for files or dependencies.
+ *
+ * @param value - Raw filter value.
+ * @param filterName - Filter key used in warning messages.
+ * @returns Filter array when valid, otherwise `undefined`.
+ */
 function validateDebugFilterSelectors(
   value: unknown,
   filterName: "files" | "dependencies"
@@ -783,6 +885,12 @@ function validateDebugFilterSelectors(
   return undefined;
 }
 
+/**
+ * Validates debug `files` filter selector list.
+ *
+ * @param value - Raw `debug.filter.files` setting value.
+ * @returns Valid files filter selectors.
+ */
 function validateDebugFilesFilter(
   value: unknown
 ): ElementsSelector[] | undefined {
@@ -791,6 +899,12 @@ function validateDebugFilesFilter(
     | undefined;
 }
 
+/**
+ * Validates debug `dependencies` filter selector list.
+ *
+ * @param value - Raw `debug.filter.dependencies` setting value.
+ * @returns Valid dependency filter selectors.
+ */
 function validateDebugDependenciesFilter(
   value: unknown
 ): DependencySelector[] | undefined {
@@ -799,6 +913,12 @@ function validateDebugDependenciesFilter(
     | undefined;
 }
 
+/**
+ * Validates the `debug` setting object and nested filters.
+ *
+ * @param debug - Raw debug setting value.
+ * @returns Normalized debug setting when valid.
+ */
 function validateDebug(debug: unknown): DebugSetting | undefined {
   if (!debug) {
     return;
@@ -844,7 +964,12 @@ function validateDebug(debug: unknown): DebugSetting | undefined {
   return validated;
 }
 
-// TODO: Remove settings validation in next major version. It should be done by schema validation only
+/**
+ * Validates plugin settings and returns a sanitized settings object.
+ *
+ * @param settings - Raw ESLint context settings.
+ * @returns Validated settings ready for normalization.
+ */
 export function validateSettings(
   settings: Rule.RuleContext["settings"]
 ): Settings {

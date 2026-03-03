@@ -35,7 +35,11 @@ function docsUrl(ruleName: RuleName) {
 
 /**
  * Returns the meta object for an ESLint rule.
- * @param param0 The rule metadata definition.
+ * @param options The rule metadata definition.
+ * @param options.description The description of the rule.
+ * @param options.schema The JSON schema for rule options validation.
+ * @param options.ruleName The name of the rule.
+ * @param options.type The type of the rule (problem, suggestion, or layout).
  * @returns The meta object for the ESLint rule.
  */
 export function meta({
