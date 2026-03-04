@@ -55,9 +55,9 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       items: [
         "rules/dependencies",
-        "rules/no-unknown-files",
         "rules/no-unknown",
         "rules/no-ignored",
+        "rules/no-unknown-files",
         {
           type: "category",
           label: "Deprecated Rules",
