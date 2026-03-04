@@ -182,21 +182,29 @@ Custom error messages use Handlebars templates to dynamically insert information
 
 ##### Template Context
 
-Handlebars templates receive this context:
+Next variables are available in the Handlebars template context for custom messages:
 
 * `from` - The element importing the dependency
 * `to` - The element being imported
 * `dependency` - Information about the dependency itself (kind, specifiers, relationship)
+* `rule` - The rule that produced the error. `null` if the error is not associated with a specific rule (e.g. default policy violation)
+  * `index` - The index of the rule that produced the error.
+  * `selector` - The selector of the rule that matched the dependency.
+    * `from` - The `from` selector of the rule that matched the importing element
+    * `to` - The `to` selector of the rule that matched the imported element
+    * `dependency` - The `dependency` selector of the rule that matched the dependency metadata (e.g. import kind, relationship)
 
 :::tip
 For the complete API reference of all available properties in `from`, `to`, and `dependency`, see [Elements → Runtime Description Properties](./elements.md#runtime-description-properties).
+
+For the complete API reference of all available properties in `rule.selector`, see [Selectors -> Dependency Selectors](./selectors.md#dependency-selectors).
 :::
 
 **Usage in templates:**
 
 ```js
 {
-  // Access element properties
+  // Access importing/imported element properties
   "message": "Elements of type {{from.type}} cannot import from type {{to.type}}",
   
   // Access captured values
@@ -204,6 +212,9 @@ For the complete API reference of all available properties in `from`, `to`, and 
   
   // Access dependency information
   "message": "Cannot import {{dependency.kind}} from {{to.type}}",
+
+  // Access rule information
+  "message": "Rule at index {{rule.index}} matched with from.type={{rule.selector.from.type}} and to.type={{rule.selector.to.type}}"
 }
 ```
 
@@ -214,7 +225,7 @@ Missing properties in Handlebars templates resolve to an empty string.
 ##### Legacy Message Templates
 
 :::info Backwards Compatibility
-Legacy message templates using `${...}` syntax are still supported but deprecated. For migration guidance, see [Legacy Message Templates](#legacy-message-templates)
+Legacy message templates using `${...}` syntax are still supported but deprecated. For migration guidance, see [Legacy Message Templates](#legacy-message-templates) below.
 :::
 
 ### `importKind` (deprecated)

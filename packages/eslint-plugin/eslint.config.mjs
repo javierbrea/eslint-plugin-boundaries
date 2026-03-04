@@ -146,7 +146,7 @@ export default [
             },
             {
               from: "public",
-              allow: ["public", "settings", "config"],
+              allow: ["public", "settings", "config", "messages"],
             },
             {
               from: "plugin",

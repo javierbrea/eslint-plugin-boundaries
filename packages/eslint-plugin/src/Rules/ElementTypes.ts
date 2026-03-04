@@ -433,7 +433,12 @@ export function buildErrorMessage({
   dependency,
 }: BuildErrorMessageParams): string {
   if (customMessage) {
-    return customErrorMessage(customMessage, dependency);
+    return customErrorMessage(
+      customMessage,
+      dependency,
+      ruleIndex,
+      matchResult
+    );
   }
   return elementTypesDefaultErrorMessage(matchResult, ruleIndex, dependency);
 }

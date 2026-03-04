@@ -22,7 +22,7 @@ keywords:
 
 # Selectors
 
-Element selectors are used in rules configuration to **match [specific elements or dependencies](./elements.md) based on their description**. They provide a flexible way to define which elements a rule should apply to.
+Element selectors are used in rules configuration to **match [specific elements or dependencies](./elements.md) based on [their description](./elements.md#runtime-description-properties)**. They provide a flexible way to define which elements a rule should apply to.
 
 Selectors match against [runtime element/dependency descriptions](./elements.md#runtime-description-properties) generated from your element descriptors.
 
@@ -68,30 +68,6 @@ Match elements based on their type, category, origin, and any other property fro
 - **`isIgnored`**  - Whether element is marked as ignored. <small>(`<boolean>`)</small>
 - **`isUnknown`**  - Whether the file doesn't match any element descriptor. <small>(`<boolean>`)</small>
 
-### Dependency Selectors
-
-Match dependencies using element selector properties for the `from` and `to` elements, as well as properties from the dependency description:
-
-- **`from`**  - Element selector matching the importer element
-- **`to`**  - Element selector matching the imported element
-- **`dependency`**  - Match based on dependency properties (see list below)
-  - **`kind`**  - Micromatch pattern(s) matching dependency kind (e.g., "value", "type", "typeof"). <small>(`<string | string[]>`)</small>
-  - **`relationship`**  - Relationship selectors from both perspectives. <small>(`<object>`)</small>
-    - **`from`**  - Relationship from the `from` perspective. <small>(`<string | string[]>`)</small>
-    - **`to`**  - Relationship from the `to` perspective. <small>(`<string | string[]>`)</small>
-  - **`specifiers`**  - Micromatch pattern(s) matching import/export specifiers. <small>(`<string | string[]>`)</small>
-  - **`nodeKind`**  - Micromatch pattern(s) matching the dependency node type (e.g., `import`, `require`, etc. See [dependency nodes](../setup/settings.md#boundariesdependency-nodes) for further information). <small>(`<string | string[]>`)</small>
-  - **`source`**  - Micromatch pattern(s) matching dependency source. <small>(`<string | string[]>`)</small>
-  - **`module`**  - Micromatch pattern(s) matching base module name for external or core dependencies. <small>(`<string | string[]>`)</small>
-
-:::tip
-**All properties are optional.** You can only use one of the properties above to match dependencies or elements, but you can combine them to select more specific cases. Remember that all specified properties must match (AND logic).
-:::
-
-### Basic Examples
-
-Selecting elements:
-
 ```js
 // Match all helper elements
 { type: "helper" }
@@ -109,12 +85,46 @@ Selecting elements:
 { isUnknown: true }
 ```
 
-Selecting dependencies:
+### Dependency Selectors
+
+Match dependencies using element selector properties for the `from` and `to` elements, as well as properties from the dependency description.
+
+:::tip
+Dependency selectors are what you have to define in the rules configuration to match specific dependencies and set a policy for them. Read more about it in the [Rules documentation](./rules.mdx).
+:::
+
+- **`from`**  - **[Element selector/s](#element-selectors)** matching the importer element. You can provide a single selector or an array of selectors to match multiple cases (OR logic).
+- **`to`**  - **[Element selector/s](#element-selectors)** matching the imported element. You can provide a single selector or an array of selectors to match multiple cases (OR logic).
+- **`dependency`**  - **[Dependency metadata selector/s](#dependency-metadata-selectors)** matching properties from the dependency description. You can provide a single selector or an array of selectors to match multiple cases (OR logic).
+
+#### Dependency Metadata Selectors
+
+Dependency descriptions contain metadata about the dependency being analyzed, such as the kind of import, the relationship between the importer and imported elements. You can match dependencies based on this metadata using the `dependency` property in selectors, which supports the following properties:
+
+- **`kind`**  - Micromatch pattern(s) matching dependency kind (e.g., "value", "type", "typeof"). <small>(`<string | string[]>`)</small>
+- **`relationship`**  - Relationship selectors from both perspectives. <small>(`<object>`)</small>
+  - **`from`**  - Relationship from the `from` perspective. <small>(`<string | string[]>`)</small>
+  - **`to`**  - Relationship from the `to` perspective. <small>(`<string | string[]>`)</small>
+- **`specifiers`**  - Micromatch pattern(s) matching import/export specifiers. <small>(`<string | string[]>`)</small>
+- **`nodeKind`**  - Micromatch pattern(s) matching the dependency node type (e.g., `import`, `require`, etc. See [dependency nodes](../setup/settings.md#boundariesdependency-nodes) for further information). <small>(`<string | string[]>`)</small>
+- **`source`**  - Micromatch pattern(s) matching dependency source. <small>(`<string | string[]>`)</small>
+- **`module`**  - Micromatch pattern(s) matching base module name for external or core dependencies. <small>(`<string | string[]>`)</small>
+
+:::info
+**All properties are optional.** You can only use one of the properties above to match dependencies or elements, but you can combine them to select more specific cases. Remember that all specified properties must match (AND logic).
+:::
 
 ```js
 // Match dependencies of kind "type" to services
 {
   to: { type: "service" },
+  dependency: { kind: "type" }
+}
+
+// Match dependencies of kind "type" to elements of type "service" OR
+// elements of category "data-access" from any module
+{
+  to: [{ type: "service" }, { category: "data-access" }],
   dependency: { kind: "type" }
 }
 
@@ -135,6 +145,8 @@ Selecting dependencies:
 
 When multiple properties are specified in a selector object, **all** conditions must match for the selector to match an element (AND logic):
 
+**Element selector examples:**
+
 ```js
 // Match local helpers with category "data"
 {
@@ -151,6 +163,16 @@ When multiple properties are specified in a selector object, **all** conditions 
 }
 ```
 
+**Dependency selector examples:**
+
+```js
+// Match dependencies from helpers to components
+{
+  from: { type: "helper" },
+  to: { type: "component" }
+}
+```
+
 ### OR Logic
 
 Arrays of values for a selector property use **OR logic** - any value in the array can match:
@@ -164,6 +186,8 @@ Arrays of values for a selector property use **OR logic** - any value in the arr
 ```
 
 When an array of selectors is provided, it matches if **any** selector in the array matches (OR logic).
+
+**Element selector examples:**
 
 ```js
 // Matches helpers OR components
@@ -184,6 +208,28 @@ When an array of selectors is provided, it matches if **any** selector in the ar
   { type: "component", category: "vue", path: "**/features/billing/**" },
   { type: "shared-component" }
 ]
+```
+
+**Dependency selector examples:**
+
+```js
+// Match dependencies from helpers to type components OR category service
+{
+  from: { type: "helper" },
+  to: [
+    { type: "component" },
+    { category: "service" }
+  ]
+}
+
+// Match dependencies from helpers in the users or billing domain to components in the billing domain OR services in the auth category
+{
+  from: { type: "helper", captured: { domain: ["users", "billing"] } },
+  to: [
+    { type: "component", captured: { domain: "billing" } },
+    { type: "service", category: "auth" }
+  ]
+}
 ```
 
 ## Captured Values Matching

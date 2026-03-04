@@ -2,9 +2,12 @@ import type {
   ElementParent,
   DependencyDescription,
   ElementDescription,
+  DependencyMatchResult,
 } from "@boundaries/elements";
 import { isElementDescription } from "@boundaries/elements";
 import Handlebars from "handlebars";
+
+import type { CustomMessageTemplateContext } from "./CustomMessages.types";
 
 /** Regular expression to detect Handlebars expressions in custom message templates */
 const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^}\s]+(?:\s+[^}\s]+)*\s*}}/;
@@ -111,21 +114,38 @@ function hasHandlebarsTemplate(template: string) {
  *
  * @param template - Message template that may include Handlebars expressions.
  * @param dependency - Dependency context exposed to the template.
+ * @param ruleIndex - Index of the rule that triggered the error, if applicable.
+ * @param matchResult - Full result of the dependency matching process, if applicable.
  * @returns Final message after optional Handlebars rendering.
  */
 function renderCustomMessageHandlebarsTemplate(
   template: string,
-  dependency: DependencyDescription
+  dependency: DependencyDescription,
+  ruleIndex: number | null,
+  matchResult: DependencyMatchResult | null
 ) {
   if (!hasHandlebarsTemplate(template)) {
     return template;
   }
-  const compiledTemplate = Handlebars.compile(template, { noEscape: true });
-  return compiledTemplate({
+  const context: CustomMessageTemplateContext = {
     from: dependency.from,
     to: dependency.to,
     dependency: dependency.dependency,
-  });
+    ruleContext:
+      ruleIndex && matchResult
+        ? {
+            index: ruleIndex,
+            selector: {
+              from: matchResult.from,
+              to: matchResult.to,
+              dependency: matchResult.dependency,
+            },
+          }
+        : null,
+  };
+
+  const compiledTemplate = Handlebars.compile(template, { noEscape: true });
+  return compiledTemplate(context);
 }
 
 /**
@@ -229,8 +249,15 @@ function replaceLegacyTemplateVariables(
  */
 export function customErrorMessage(
   template: string,
-  dependency: DependencyDescription
+  dependency: DependencyDescription,
+  ruleIndex: number | null = null,
+  matchResult: DependencyMatchResult | null = null
 ) {
   const replacedMessage = replaceLegacyTemplateVariables(template, dependency);
-  return renderCustomMessageHandlebarsTemplate(replacedMessage, dependency);
+  return renderCustomMessageHandlebarsTemplate(
+    replacedMessage,
+    dependency,
+    ruleIndex,
+    matchResult
+  );
 }
