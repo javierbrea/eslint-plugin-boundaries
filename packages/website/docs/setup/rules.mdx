@@ -187,7 +187,6 @@ Handlebars templates receive this context:
 * `from` - The element importing the dependency
 * `to` - The element being imported
 * `dependency` - Information about the dependency itself (kind, specifiers, relationship)
-* `report` - Rule-specific metadata (when provided by the rule)
 
 :::tip
 For the complete API reference of all available properties in `from`, `to`, and `dependency`, see [Elements → Runtime Description Properties](./elements.md#runtime-description-properties).
@@ -205,9 +204,6 @@ For the complete API reference of all available properties in `from`, `to`, and 
   
   // Access dependency information
   "message": "Cannot import {{dependency.kind}} from {{to.type}}",
-  
-  // Access rule-specific report data
-  "message": "Cannot import {{report.specifiers}} from {{dependency.source}}"
 }
 ```
 
@@ -219,20 +215,6 @@ Missing properties in Handlebars templates resolve to an empty string.
 
 :::info Backwards Compatibility
 Legacy message templates using `${...}` syntax are still supported but deprecated. For migration guidance, see [Legacy Message Templates](#legacy-message-templates)
-:::
-
-#### Rule-specific `report` Properties
-
-Some rules provide extra metadata in the `report` object for custom messages. For example, the [`external`](../rules/external.mdx) rule provides details about forbidden specifiers:
-
-```js
-{
-  "message": "Do not import {{report.specifiers}} from {{dependency.source}} in helpers"
-}
-```
-
-:::tip
-Check each specific [rule’s documentation](../rules/rules.md) for the complete list of `report` properties supported.
 :::
 
 ### `importKind` (deprecated)
@@ -248,7 +230,7 @@ Specifies whether the rule applies based on how the dependency is imported.
 :::warning Deprecated in v6
 Rule-level `importKind` is kept for backward compatibility but is deprecated.
 
-Prefer using dependency metadata selectors instead:`dependency.kind`
+Prefer using dependency metadata selectors instead: `dependency.kind`
 
 When both rule-level `importKind` and dependency-level `kind` are defined, dependency-level `kind` takes precedence.
 :::
@@ -495,7 +477,7 @@ Legacy templates use `${...}` syntax with flattened property access and addition
 To migrate from legacy templates to Handlebars:
 
 1. **Replace `${...}` with `{{...}}`**: Change the delimiter syntax
-2. **Update property paths**: Use the nested structure (`from`, `to`, `dependency`, `report`) instead of flattened aliases
+2. **Update property paths**: Use the new nested structure (`from`, `to`, `dependency`) instead of deprecated flattened aliases.
 3. **Remove legacy aliases**: Use official property names instead of deprecated aliases
 
 **Migration examples:**

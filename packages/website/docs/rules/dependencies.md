@@ -313,10 +313,6 @@ This rule provides detailed error messages to help you understand and resolve vi
 You can customize error messages globally or for specific rules. See [Rules Configuration](../setup/rules.mdx) for details.
 :::
 
-#### `report` in Custom Messages
-
-This rule does not populate the `report` object with rule-specific metadata to handlebars templates.
-
 ## Further Reading
 
 Read next sections to learn more about related topics:

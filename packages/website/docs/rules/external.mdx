@@ -60,9 +60,8 @@ The `allow` and `disallow` properties support one or multiple patterns to match 
 
 - **`<string>`** - A [micromatch pattern](https://github.com/micromatch/micromatch) to match the module name
 - **`[<string>, <object>]`** - An array containing a [micromatch pattern](https://github.com/micromatch/micromatch) as the first element and an options object with the following properties:
-  - `specifiers`: `<array>` - Array of import specifiers to match. Each specifier can be expressed as a [micromatch pattern](https://github.com/micromatch/micromatch). Matching specifiers are available as `{{report.specifiers}}` in custom error messages
-  - `path`: `<string>` or `<array<string>>` - Micromatch patterns to match the imported subpath from the module. If an array is provided, the module matches if any pattern matches. **Note that paths must start with a `/` character**. The path is available as `{{report.path}}` in custom error messages
-
+  - `specifiers`: `<array>` - Array of import specifiers to match. Each specifier can be expressed as a [micromatch pattern](https://github.com/micromatch/micromatch).
+  - `path`: `<string>` or `<array<string>>` - Micromatch patterns to match the imported subpath from the module. If an array is provided, the module matches if any pattern matches. **Note that paths must start with a `/` character**.
 
 :::info
 When using options:
@@ -391,12 +390,12 @@ This rule provides detailed error messages to help you understand and resolve vi
 You can customize error messages globally or for specific rules. See [Rules Configuration](../setup/rules.mdx) for details.
 :::
 
-### `report` in Custom Messages
+### `report` in Legacy Custom Messages
 
-This rule populates the `report` object with rule-specific metadata:
+This rule populates the `report` object with rule-specific metadata, but only when using [legacy message templates syntax](../setup/rules.mdx#legacy-message-templates). The following properties are available in the `report` object for legacy templates:
 
-- `report.specifiers`: Comma-separated matching import/export specifiers, when the violation is about specifiers.
-- `report.path`: Matching internal import path, when the violation is about a path rule.
+- `${report.specifiers}`: Comma-separated matching import/export specifiers, when the violation is about specifiers. Modern templates should use `{{dependency.specifiers}}` instead.
+- `${report.path}`: Matching internal import path, when the violation is about a path rule. Modern templates should use `{{to.internalPath}}` instead.
 
 When neither condition applies, `report` contains no properties.
 

@@ -242,7 +242,8 @@ This allows existing templates to continue working while you migrate to the new 
 | `${dependency.parent.type}` / `${target.parent.type}` | `{{ to.parents.0.type }}` |
 | `${file.capturedProperty}` / `${from.capturedProperty}`| `{{ from.captured.capturedProperty }}` |
 | `${dependency.capturedProperty}` / `${target.capturedProperty}` | `{{ to.captured.capturedProperty }}` |
-| `${report.specifiers}` | `{{ report.specifiers }}` |
+| `${report.specifiers}` | `{{ dependency.specifiers }}` |
+| `${report.path}` | `{{ to.internalPath }}` |
 
 <CodeDiff language="javascript">{`
 - "$\{file.type} cannot import $\{dependency.type}"

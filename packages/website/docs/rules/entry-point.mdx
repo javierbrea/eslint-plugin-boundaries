@@ -276,11 +276,6 @@ This rule provides detailed error messages to help you understand and resolve vi
 You can customize error messages globally or for specific rules. See [Rules Configuration](../setup/rules.mdx) for details.
 :::
 
-#### `report` in Custom Messages
-
-This rule does not populate the `report` object with rule-specific metadata to handlebars templates.
-
-
 ## Migration to `boundaries/element-types`
 
 The entry point restrictions enforced by this rule can also be achieved with the more flexible and powerful `boundaries/element-types` rule, which allows you to specify allowed entry points directly in the rules by using the `internalPath` selector property. It is recommended to migrate your configuration to `boundaries/element-types` as soon as possible, as this legacy rule will eventually be removed in oncoming major versions.
