@@ -496,26 +496,6 @@ export type RuleBaseOptions = {
   message?: string;
 };
 
-export type RuleReport = {
-  message?: string;
-  isDefault?: boolean;
-  importKind?: DependencyKind;
-  disallow?: ElementsSelector;
-  element: ElementsSelector;
-  index: number;
-};
-
-export type RuleResultReport = {
-  path: string | null;
-  specifiers?: string[];
-};
-
-export type RuleResult = {
-  result: boolean;
-  ruleReport: RuleReport | null;
-  report: RuleResultReport | null;
-};
-
 export type RulePolicyEntry =
   | SimpleElementSelectorByType
   | BaseElementSelectorWithOptions

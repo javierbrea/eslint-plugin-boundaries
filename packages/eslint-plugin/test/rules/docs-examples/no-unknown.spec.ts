@@ -10,7 +10,7 @@ const { NO_UNKNOWN: RULE } = require("../../../src/Settings");
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath } = pathResolvers("docs-examples");
 
-const ERROR_MESSAGE = "Importing unknown elements is not allowed";
+const ERROR_MESSAGE = "Dependencies to unknown elements are not allowed";
 
 const ruleTester = createRuleTester(settings);
 

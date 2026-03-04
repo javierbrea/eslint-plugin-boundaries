@@ -53,7 +53,7 @@ const dependencyDescription: DependencyDescription = {
   },
 };
 
-describe("Messages element-types default formatter", () => {
+describe("Messages element-types formatter", () => {
   it("creates element descriptions using the requested properties", () => {
     expect(
       elementDescriptionMessage(dependencyDescription.from, [
@@ -66,33 +66,27 @@ describe("Messages element-types default formatter", () => {
     );
   });
 
-  it("creates dependency metadata descriptions using the requested properties", () => {
+  it("creates dependency metadata fragments without redundant prefixes", () => {
     expect(
       dependencyDescriptionMessage(dependencyDescription.dependency, [
         "kind",
         "source",
       ])
-    ).toBe('dependencies of kind "type" and source "@/helpers/fetcher"');
+    ).toBe('kind "type" and source "@/helpers/fetcher"');
   });
 
-  it("returns generic element text when selected properties are not available", () => {
-    expect(elementDescriptionMessage(dependencyDescription.from, ["foo"])).toBe(
-      "elements"
-    );
-  });
-
-  it("returns generic dependencies text when selected metadata properties are not available", () => {
-    expect(
-      dependencyDescriptionMessage(dependencyDescription.dependency, ["foo"])
-    ).toBe("dependencies");
-  });
-
-  it("formats array values in metadata descriptions", () => {
+  it("formats array values in metadata fragments", () => {
     expect(
       dependencyDescriptionMessage(dependencyDescription.dependency, [
         "specifiers",
       ])
-    ).toBe('dependencies of specifiers "Fetcher"');
+    ).toBe('specifiers "Fetcher"');
+  });
+
+  it("returns empty metadata fragment when selected properties are not available", () => {
+    expect(
+      dependencyDescriptionMessage(dependencyDescription.dependency, ["foo"])
+    ).toBe("");
   });
 
   it("builds a semantic default message using relevant from/to/dependency properties", () => {
@@ -104,53 +98,63 @@ describe("Messages element-types default formatter", () => {
     };
 
     expect(
-      elementTypesDefaultErrorMessage(matchResult, dependencyDescription)
+      elementTypesDefaultErrorMessage(matchResult, 1, dependencyDescription)
     ).toBe(
-      'Dependencies of kind "type" and source "@/helpers/fetcher", to elements of type "helper" and internalPath "fetcher.ts", are not allowed in elements of type "component" and family "atoms"'
+      'Dependencies with kind "type" and source "@/helpers/fetcher" to elements of type "helper" and internalPath "fetcher.ts" are not allowed in elements of type "component" and family "atoms". Denied by rule at index 1'
     );
   });
 
-  it("capitalizes message when only dependency and to are present", () => {
-    const matchResult: DependencyMatchResult = {
-      isMatch: true,
-      from: null,
-      to: { type: "helper" },
-      dependency: { kind: "type" },
+  it("uses natural wording for no-rules message without 'dependencies of' redundancy", () => {
+    const dependencyWithModule: DependencyDescription = {
+      ...dependencyDescription,
+      dependency: {
+        ...dependencyDescription.dependency,
+        module: "react-router-dom",
+      },
     };
 
     expect(
-      elementTypesDefaultErrorMessage(matchResult, dependencyDescription)
+      elementTypesDefaultErrorMessage(null, null, dependencyWithModule)
     ).toBe(
-      'Dependencies of kind "type", to elements of type "helper", are not allowed'
+      'There is no rule allowing dependencies from elements of type "component", category "ui", family "atoms" and elementName "button" to elements of type "helper", category "data" and domain "api"'
     );
   });
 
-  it("builds message when only dependency and from are present", () => {
+  it("uses 'with module' wording when no-rules message includes dependency metadata", () => {
+    const dependencyFromWithModuleOnly: DependencyDescription = {
+      ...dependencyDescription,
+      to: {
+        ...dependencyDescription.to,
+        type: null,
+        category: null,
+        captured: null,
+      },
+      dependency: {
+        ...dependencyDescription.dependency,
+        module: "react-router-dom",
+      },
+    };
+
+    expect(
+      elementTypesDefaultErrorMessage(null, null, dependencyFromWithModuleOnly)
+    ).toBe(
+      'There is no rule allowing dependencies from elements of type "component", category "ui", family "atoms" and elementName "button" to elements of origin "local" with module "react-router-dom"'
+    );
+  });
+
+  it("omits non-present parts when only from selector is present", () => {
     const matchResult: DependencyMatchResult = {
       isMatch: true,
       from: { type: "component" },
       to: null,
-      dependency: { kind: "type" },
-    };
-
-    expect(
-      elementTypesDefaultErrorMessage(matchResult, dependencyDescription)
-    ).toBe(
-      'Dependencies of kind "type" are not allowed in elements of type "component"'
-    );
-  });
-
-  it("builds message when only to selector is present", () => {
-    const matchResult: DependencyMatchResult = {
-      isMatch: true,
-      from: null,
-      to: { type: "helper" },
       dependency: null,
     };
 
     expect(
-      elementTypesDefaultErrorMessage(matchResult, dependencyDescription)
-    ).toBe('Dependencies to elements of type "helper" are not allowed');
+      elementTypesDefaultErrorMessage(matchResult, 1, dependencyDescription)
+    ).toBe(
+      'Dependencies are not allowed in elements of type "component". Denied by rule at index 1'
+    );
   });
 
   it("builds message when only dependency selector is present", () => {
@@ -162,11 +166,13 @@ describe("Messages element-types default formatter", () => {
     };
 
     expect(
-      elementTypesDefaultErrorMessage(matchResult, dependencyDescription)
-    ).toBe('Dependencies of kind "type" are not allowed');
+      elementTypesDefaultErrorMessage(matchResult, 1, dependencyDescription)
+    ).toBe(
+      'Dependencies with kind "type" are not allowed. Denied by rule at index 1'
+    );
   });
 
-  it("falls back to generic message when no selector details are present", () => {
+  it("returns fallback error when rule matched but there are no describable selector parts", () => {
     const matchResult: DependencyMatchResult = {
       isMatch: false,
       from: null,
@@ -175,57 +181,13 @@ describe("Messages element-types default formatter", () => {
     };
 
     expect(
-      elementTypesDefaultErrorMessage(matchResult, dependencyDescription)
-    ).toBe("Dependencies are not allowed");
-  });
-
-  it("uses only matched relationship subproperty when building dependency description", () => {
-    const dependencyWithMixedRelationship: DependencyDescription = {
-      ...dependencyDescription,
-      dependency: {
-        ...dependencyDescription.dependency,
-        relationship: {
-          from: "ancestor",
-          to: "child",
-        },
-      },
-    };
-
-    const matchResult: DependencyMatchResult = {
-      isMatch: true,
-      from: null,
-      to: null,
-      dependency: {
-        relationship: {
-          from: "ancestor",
-        },
-      },
-    };
-
-    expect(
-      elementTypesDefaultErrorMessage(
-        matchResult,
-        dependencyWithMixedRelationship
-      )
-    ).toBe('Dependencies of relationship from "ancestor" are not allowed');
-  });
-
-  it("omits non-present parts when matchResult has only from selector", () => {
-    const matchResult: DependencyMatchResult = {
-      isMatch: true,
-      from: { type: "component" },
-      to: null,
-      dependency: null,
-    };
-
-    expect(
-      elementTypesDefaultErrorMessage(matchResult, dependencyDescription)
-    ).toBe('Dependencies are not allowed in elements of type "component"');
+      elementTypesDefaultErrorMessage(matchResult, 1, dependencyDescription)
+    ).toContain("Not able to create a message for this violation");
   });
 });
 
 describe("ElementTypes buildErrorMessage", () => {
-  it("returns JSON stringified payload when customMessage is provided", () => {
+  it("returns rendered custom message when customMessage is provided", () => {
     const matchResult: DependencyMatchResult = {
       isMatch: true,
       from: { type: "component" },
@@ -240,14 +202,7 @@ describe("ElementTypes buildErrorMessage", () => {
         customMessage: "My custom message",
         dependency: dependencyDescription,
       })
-    ).toBe(
-      JSON.stringify({
-        matchResult,
-        ruleIndex: 2,
-        customMessage: "My custom message",
-        dependency: dependencyDescription,
-      })
-    );
+    ).toBe("My custom message");
   });
 
   it("returns generated default message when customMessage is not provided", () => {
@@ -266,7 +221,7 @@ describe("ElementTypes buildErrorMessage", () => {
         dependency: dependencyDescription,
       })
     ).toBe(
-      'Dependencies of kind "type", to elements of type "helper", are not allowed in elements of type "component"'
+      'Dependencies with kind "type" to elements of type "helper" are not allowed in elements of type "component". Denied by rule at index 1'
     );
   });
 });

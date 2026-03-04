@@ -298,7 +298,7 @@ const testUnresolvableAliasDisabled = () => {
         code: "import UnknownPackage from 'unknown-package-xyz'",
         errors: [
           {
-            message: `Importing unknown elements is not allowed`,
+            message: `Dependencies to unknown elements are not allowed`,
             type: "Literal",
           },
         ],

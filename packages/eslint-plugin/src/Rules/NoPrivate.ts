@@ -4,7 +4,7 @@ import {
   type DependencyDescription,
 } from "@boundaries/elements";
 
-import { legacyCustomErrorMessage, legacyElementMessage } from "../Messages";
+import { customErrorMessage, elementDescriptionMessage } from "../Messages";
 import type { NoPrivateOptions } from "../Settings";
 import { SETTINGS } from "../Settings";
 
@@ -24,15 +24,17 @@ function errorMessage(
   options?: NoPrivateOptions
 ) {
   if (options?.message) {
-    // TODO: Rename to customErrorMessage. Rename file to CustomMessages
-    return legacyCustomErrorMessage(options.message, dependency);
+    return customErrorMessage(options.message, dependency);
   }
   const privateParent = dependency.to.parents?.[0];
   if (!privateParent) {
     return `Dependency is private`;
   }
-  // TODO: Use new element message formatting here. Print type and/or category, if present.
-  return `Dependency is private of element ${legacyElementMessage(privateParent)}`;
+  return `Dependency is private of ${elementDescriptionMessage(
+    privateParent,
+    ["type", "category", "captured"],
+    { singleElement: true }
+  )}`;
 }
 
 export default dependencyRule<NoPrivateOptions>(

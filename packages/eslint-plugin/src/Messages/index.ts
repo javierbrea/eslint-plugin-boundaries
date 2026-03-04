@@ -1,2 +1,2 @@
-export * from "./LegacyMessages";
+export * from "./CustomMessages";
 export * from "./Messages";
