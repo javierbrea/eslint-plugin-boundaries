@@ -206,7 +206,14 @@ function replaceLegacyTemplateVariables(
       "target.parent"
     );
   }
-  return replacedMessage;
+  return replaceObjectValuesInLegacyTemplate(
+    replacedMessage,
+    {
+      path: dependency.to.internalPath || "",
+      specifiers: dependency.dependency.specifiers?.join(", ") || "",
+    },
+    "report"
+  );
 }
 
 /**
