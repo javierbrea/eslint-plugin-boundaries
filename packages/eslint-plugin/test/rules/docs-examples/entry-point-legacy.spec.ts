@@ -5,7 +5,6 @@ import {
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
-import { errorMessage, entryPointNoRuleMessage } from "../../support/messages";
 
 const { absoluteFilePath } = pathResolvers("docs-examples");
 
@@ -31,8 +30,6 @@ const options = [
     ],
   },
 ];
-
-const errorMessages = {};
 
 const ruleTester = createRuleTester(settings);
 
@@ -71,14 +68,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage(
-            errorMessages,
-            0,
-            entryPointNoRuleMessage({
-              entryPoint: "AtomA.js",
-              dep: "'components' with family 'atoms' and elementName 'atom-a'",
-            })
-          ),
+          message:
+            'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of type "components", family "atoms" and elementName "atom-a"',
           type: "Literal",
         },
       ],
@@ -90,14 +81,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage(
-            errorMessages,
-            1,
-            entryPointNoRuleMessage({
-              entryPoint: "ModuleB.js",
-              dep: "'modules' with elementName 'module-b'",
-            })
-          ),
+          message:
+            'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of type "modules" and elementName "module-b"',
           type: "Literal",
         },
       ],

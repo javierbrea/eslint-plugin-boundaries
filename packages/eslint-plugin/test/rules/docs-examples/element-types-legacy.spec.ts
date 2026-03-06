@@ -5,7 +5,6 @@ import {
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
-import { elementTypesNoRuleMessage } from "../../support/messages";
 
 const { absoluteFilePath } = pathResolvers("docs-examples");
 
@@ -106,10 +105,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: elementTypesNoRuleMessage({
-            file: "'helpers' with category 'permissions' and elementName 'roles'",
-            dep: "'components' with family 'atoms' and elementName 'atom-a'",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "helpers", category "permissions" and elementName "roles" to elements of type "components", family "atoms" and elementName "atom-a"',
           type: "Literal",
         },
       ],
@@ -121,10 +118,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: elementTypesNoRuleMessage({
-            file: "'helpers' with category 'permissions' and elementName 'roles'",
-            dep: "'modules' with elementName 'module-a'",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "helpers", category "permissions" and elementName "roles" to elements of type "modules" and elementName "module-a"',
           type: "Literal",
         },
       ],
@@ -136,10 +131,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: elementTypesNoRuleMessage({
-            file: "'components' with family 'atoms' and elementName 'atom-a'",
-            dep: "'components' with family 'molecules' and elementName 'molecule-a'",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "components", family "atoms" and elementName "atom-a" to elements of type "components", family "molecules" and elementName "molecule-a"',
           type: "Literal",
         },
       ],
@@ -151,10 +144,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: elementTypesNoRuleMessage({
-            file: "'components' with family 'atoms' and elementName 'atom-a'",
-            dep: "'helpers' with category 'permissions' and elementName 'roles'",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "components", family "atoms" and elementName "atom-a" to elements of type "helpers", category "permissions" and elementName "roles"',
           type: "Literal",
         },
       ],
@@ -166,10 +157,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: elementTypesNoRuleMessage({
-            file: "'components' with family 'atoms' and elementName 'atom-a'",
-            dep: "'modules' with elementName 'module-a'",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "components", family "atoms" and elementName "atom-a" to elements of type "modules" and elementName "module-a"',
           type: "Literal",
         },
       ],

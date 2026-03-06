@@ -211,8 +211,8 @@ const runTest = (
               errorMessages,
               0,
               elementTypesNoRuleMessage({
-                file: "'helpers' with elementName 'helper-a'",
-                dep: "'components' with category 'atoms' and elementName 'atom-a'",
+                file: '"helpers" and elementName "helper-a"',
+                dep: '"components", category "atoms" and elementName "atom-a"',
               })
             ),
             type: "Literal",
@@ -230,8 +230,8 @@ const runTest = (
               errorMessages,
               1,
               elementTypesNoRuleMessage({
-                file: "'helpers' with elementName 'helper-a'",
-                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+                file: '"helpers" and elementName "helper-a"',
+                dep: '"modules", domain "domain-a" and elementName "module-a"',
               })
             ),
 
@@ -250,8 +250,8 @@ const runTest = (
               errorMessages,
               2,
               elementTypesNoRuleMessage({
-                file: "'components' with category 'atoms' and elementName 'atom-a'",
-                dep: "'components' with category 'molecules' and elementName 'molecule-a'",
+                file: '"components", category "atoms" and elementName "atom-a"',
+                dep: '"components", category "molecules" and elementName "molecule-a"',
               })
             ),
             type: "Literal",
@@ -269,8 +269,8 @@ const runTest = (
               errorMessages,
               3,
               elementTypesNoRuleMessage({
-                file: "'components' with category 'atoms' and elementName 'atom-a'",
-                dep: "'components' with category 'layouts' and elementName 'layout-a'",
+                file: '"components", category "atoms" and elementName "atom-a"',
+                dep: '"components", category "layouts" and elementName "layout-a"',
               })
             ),
 
@@ -289,8 +289,8 @@ const runTest = (
               errorMessages,
               4,
               elementTypesNoRuleMessage({
-                file: "'components' with category 'atoms' and elementName 'atom-a'",
-                dep: "'components' with category 'layouts' and elementName 'layout-a'",
+                file: '"components", category "atoms" and elementName "atom-a"',
+                dep: '"components", category "layouts" and elementName "layout-a"',
               })
             ),
             type: "Literal",
@@ -308,8 +308,8 @@ const runTest = (
               errorMessages,
               5,
               elementTypesNoRuleMessage({
-                file: "'components' with category 'molecules' and elementName 'molecule-a'",
-                dep: "'components' with category 'layouts' and elementName 'layout-b'",
+                file: '"components", category "molecules" and elementName "molecule-a"',
+                dep: '"components", category "layouts" and elementName "layout-b"',
               })
             ),
             type: "Literal",
@@ -327,8 +327,8 @@ const runTest = (
               errorMessages,
               6,
               elementTypesNoRuleMessage({
-                file: "'components' with category 'molecules' and elementName 'molecule-a'",
-                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+                file: '"components", category "molecules" and elementName "molecule-a"',
+                dep: '"modules", domain "domain-a" and elementName "module-a"',
               })
             ),
             type: "Literal",
@@ -346,8 +346,8 @@ const runTest = (
               errorMessages,
               7,
               elementTypesNoRuleMessage({
-                file: "'components' with category 'layouts' and elementName 'layout-a'",
-                dep: "'components' with category 'atoms' and elementName 'atom-a'",
+                file: '"components", category "layouts" and elementName "layout-a"',
+                dep: '"components", category "atoms" and elementName "atom-a"',
               })
             ),
             type: "Literal",
@@ -365,8 +365,8 @@ const runTest = (
               errorMessages,
               8,
               elementTypesNoRuleMessage({
-                file: "'components' with category 'layouts' and elementName 'layout-a'",
-                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+                file: '"components", category "layouts" and elementName "layout-a"',
+                dep: '"modules", domain "domain-a" and elementName "module-a"',
               })
             ),
             type: "Literal",
@@ -384,8 +384,8 @@ const runTest = (
               errorMessages,
               9,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'pages' and elementName 'page-a'",
-                dep: "'components' with category 'atoms' and elementName 'atom-b'",
+                file: '"modules", domain "pages" and elementName "page-a"',
+                dep: '"components", category "atoms" and elementName "atom-b"',
               })
             ),
             type: "Literal",
@@ -403,8 +403,8 @@ const runTest = (
               errorMessages,
               10,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'pages' and elementName 'page-a'",
-                dep: "'components' with category 'molecules' and elementName 'molecule-a'",
+                file: '"modules", domain "pages" and elementName "page-a"',
+                dep: '"components", category "molecules" and elementName "molecule-a"',
               })
             ),
             type: "Literal",
@@ -422,8 +422,8 @@ const runTest = (
               errorMessages,
               11,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'pages' and elementName 'page-a'",
-                dep: "'modules' with domain 'pages' and elementName 'page-b'",
+                file: '"modules", domain "pages" and elementName "page-a"',
+                dep: '"modules", domain "pages" and elementName "page-b"',
               })
             ),
             type: "Literal",
@@ -441,8 +441,8 @@ const runTest = (
               errorMessages,
               12,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'pages' and elementName 'page-a'",
-                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+                file: '"modules", domain "pages" and elementName "page-a"',
+                dep: '"modules", domain "domain-a" and elementName "module-a"',
               })
             ),
             type: "Literal",
@@ -460,8 +460,8 @@ const runTest = (
               errorMessages,
               13,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'pages' and elementName 'page-a'",
-                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+                file: '"modules", domain "pages" and elementName "page-a"',
+                dep: '"modules", domain "domain-a" and elementName "module-a"',
               })
             ),
             type: "Literal",
@@ -480,8 +480,8 @@ const runTest = (
               errorMessages,
               14,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'domain-a' and elementName 'module-b'",
-                dep: "'components' with category 'atoms' and elementName 'atom-b'",
+                file: '"modules", domain "domain-a" and elementName "module-b"',
+                dep: '"components", category "atoms" and elementName "atom-b"',
               })
             ),
             type: "Literal",
@@ -499,8 +499,8 @@ const runTest = (
               errorMessages,
               15,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'domain-a' and elementName 'module-b'",
-                dep: "'components' with category 'atoms' and elementName 'atom-b'",
+                file: '"modules", domain "domain-a" and elementName "module-b"',
+                dep: '"components", category "atoms" and elementName "atom-b"',
               })
             ),
             type: "Literal",
@@ -518,8 +518,8 @@ const runTest = (
               errorMessages,
               16,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'domain-a' and elementName 'module-a'",
-                dep: "'components' with category 'molecules' and elementName 'molecule-a'",
+                file: '"modules", domain "domain-a" and elementName "module-a"',
+                dep: '"components", category "molecules" and elementName "molecule-a"',
               })
             ),
             type: "Literal",
@@ -537,8 +537,8 @@ const runTest = (
               errorMessages,
               17,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'domain-a' and elementName 'module-a'",
-                dep: "'modules' with domain 'pages' and elementName 'page-b'",
+                file: '"modules", domain "domain-a" and elementName "module-a"',
+                dep: '"modules", domain "pages" and elementName "page-b"',
               })
             ),
             type: "Literal",
@@ -556,8 +556,8 @@ const runTest = (
               errorMessages,
               18,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'domain-a' and elementName 'module-a'",
-                dep: "'modules' with domain 'domain-b' and elementName 'module-a'",
+                file: '"modules", domain "domain-a" and elementName "module-a"',
+                dep: '"modules", domain "domain-b" and elementName "module-a"',
               })
             ),
             type: "Literal",
@@ -575,8 +575,8 @@ const runTest = (
               errorMessages,
               19,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'domain-a' and elementName 'module-a'",
-                dep: "'modules' with domain 'domain-b' and elementName 'module-b'",
+                file: '"modules", domain "domain-a" and elementName "module-a"',
+                dep: '"modules", domain "domain-b" and elementName "module-b"',
               })
             ),
             type: "Literal",
@@ -594,8 +594,8 @@ const runTest = (
               errorMessages,
               20,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'domain-b' and elementName 'module-a'",
-                dep: "'components' with category 'layouts' and elementName 'layout-a'",
+                file: '"modules", domain "domain-b" and elementName "module-a"',
+                dep: '"components", category "layouts" and elementName "layout-a"',
               })
             ),
             type: "Literal",
@@ -613,8 +613,8 @@ const runTest = (
               errorMessages,
               21,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'domain-b' and elementName 'module-a'",
-                dep: "'components' with category 'molecules' and elementName 'molecule-a'",
+                file: '"modules", domain "domain-b" and elementName "module-a"',
+                dep: '"components", category "molecules" and elementName "molecule-a"',
               })
             ),
             type: "Literal",
@@ -632,8 +632,8 @@ const runTest = (
               errorMessages,
               22,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'domain-b' and elementName 'module-a'",
-                dep: "'modules' with domain 'pages' and elementName 'page-a'",
+                file: '"modules", domain "domain-b" and elementName "module-a"',
+                dep: '"modules", domain "pages" and elementName "page-a"',
               })
             ),
             type: "Literal",
@@ -651,8 +651,8 @@ const runTest = (
               errorMessages,
               23,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'domain-b' and elementName 'module-a'",
-                dep: "'components' with category 'atoms' and elementName 'atom-a'",
+                file: '"modules", domain "domain-b" and elementName "module-a"',
+                dep: '"components", category "atoms" and elementName "atom-a"',
               })
             ),
             type: "Literal",
@@ -670,8 +670,8 @@ const runTest = (
               errorMessages,
               24,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'domain-a' and elementName 'module-a'",
-                dep: "'components' with category 'atoms' and elementName 'atom-a'",
+                file: '"modules", domain "domain-a" and elementName "module-a"',
+                dep: '"components", category "atoms" and elementName "atom-a"',
               })
             ),
             type: "Literal",
@@ -825,8 +825,8 @@ const testPrivate = (
               errorMessages,
               0,
               elementTypesNoRuleMessage({
-                file: "'helpers' with elementName 'helper-c'",
-                dep: "'components' with category 'atoms' and elementName 'atom-a'",
+                file: '"helpers" and elementName "helper-c"',
+                dep: '"components", category "atoms" and elementName "atom-a"',
               })
             ),
             type: "Literal",
@@ -846,8 +846,8 @@ const testPrivate = (
               errorMessages,
               1,
               elementTypesNoRuleMessage({
-                file: "'helpers' with elementName 'helper-c'",
-                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+                file: '"helpers" and elementName "helper-c"',
+                dep: '"modules", domain "domain-a" and elementName "module-a"',
               })
             ),
             type: "Literal",
@@ -865,8 +865,8 @@ const testPrivate = (
               errorMessages,
               2,
               elementTypesNoRuleMessage({
-                file: "'components' with category 'atoms' and elementName 'atom-a'",
-                dep: "'components' with category 'molecules' and elementName 'molecule-c'",
+                file: '"components", category "atoms" and elementName "atom-a"',
+                dep: '"components", category "molecules" and elementName "molecule-c"',
               })
             ),
             type: "Literal",
@@ -884,8 +884,8 @@ const testPrivate = (
               errorMessages,
               3,
               elementTypesNoRuleMessage({
-                file: "'components' with category 'atoms' and elementName 'atom-a'",
-                dep: "'components' with category 'molecules' and elementName 'molecule-d'",
+                file: '"components", category "atoms" and elementName "atom-a"',
+                dep: '"components", category "molecules" and elementName "molecule-d"',
               })
             ),
             type: "Literal",
@@ -905,8 +905,8 @@ const testPrivate = (
               errorMessages,
               4,
               elementTypesNoRuleMessage({
-                file: "'components' with category 'molecules' and elementName 'molecule-c'",
-                dep: "'components' with category 'layouts' and elementName 'layout-b'",
+                file: '"components", category "molecules" and elementName "molecule-c"',
+                dep: '"components", category "layouts" and elementName "layout-b"',
               })
             ),
             type: "Literal",
@@ -926,8 +926,8 @@ const testPrivate = (
               errorMessages,
               5,
               elementTypesNoRuleMessage({
-                file: "'components' with category 'molecules' and elementName 'molecule-c'",
-                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
+                file: '"components", category "molecules" and elementName "molecule-c"',
+                dep: '"modules", domain "domain-a" and elementName "module-a"',
               })
             ),
             type: "Literal",
@@ -945,8 +945,8 @@ const testPrivate = (
               errorMessages,
               6,
               elementTypesNoRuleMessage({
-                file: "'components' with category 'layouts' and elementName 'layout-a'",
-                dep: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
+                file: '"components", category "layouts" and elementName "layout-a"',
+                dep: '"modules", domain "domain-a", ancestorsPaths "module-a" and elementName "module-c"',
               })
             ),
             type: "Literal",
@@ -964,8 +964,8 @@ const testPrivate = (
               errorMessages,
               7,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'pages' and elementName 'page-a'",
-                dep: "'components' with category 'molecules' and elementName 'molecule-c'",
+                file: '"modules", domain "pages" and elementName "page-a"',
+                dep: '"components", category "molecules" and elementName "molecule-c"',
               })
             ),
             type: "Literal",
@@ -983,8 +983,8 @@ const testPrivate = (
               errorMessages,
               8,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'pages' and elementName 'page-a'",
-                dep: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
+                file: '"modules", domain "pages" and elementName "page-a"',
+                dep: '"modules", domain "domain-a", ancestorsPaths "module-a" and elementName "module-c"',
               })
             ),
             type: "Literal",
@@ -1004,8 +1004,8 @@ const testPrivate = (
               errorMessages,
               9,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
-                dep: "'components' with category 'molecules' and elementName 'molecule-c'",
+                file: '"modules", domain "domain-a", ancestorsPaths "module-a" and elementName "module-c"',
+                dep: '"components", category "molecules" and elementName "molecule-c"',
               })
             ),
             type: "Literal",
@@ -1025,8 +1025,8 @@ const testPrivate = (
               errorMessages,
               10,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
-                dep: "'modules' with domain 'pages' and elementName 'page-b'",
+                file: '"modules", domain "domain-a", ancestorsPaths "module-a" and elementName "module-c"',
+                dep: '"modules", domain "pages" and elementName "page-b"',
               })
             ),
             type: "Literal",
@@ -1046,8 +1046,8 @@ const testPrivate = (
               errorMessages,
               11,
               elementTypesNoRuleMessage({
-                file: "'modules' with domain 'domain-a', ancestorsPaths 'module-a' and elementName 'module-c'",
-                dep: "'modules' with domain 'domain-b' and elementName 'module-a'",
+                file: '"modules", domain "domain-a", ancestorsPaths "module-a" and elementName "module-c"',
+                dep: '"modules", domain "domain-b" and elementName "module-a"',
               })
             ),
             type: "Literal",
@@ -1233,17 +1233,17 @@ testPrivate(
   ],
   pathResolvers("two-levels-with-private"),
   {
-    0: "Importing elements of type 'components' with category 'atoms' and elementName '*-a' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 1",
-    1: "Importing elements of type 'modules' with domain 'domain-a' and elementName '*-a' is not allowed in elements of type 'helpers' with elementName 'helper-c'. Disallowed in rule 2",
-    2: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'components' with category 'atoms'. Disallowed in rule 3",
-    3: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'components' with category 'atoms'. Disallowed in rule 3",
-    4: "Importing elements of type 'components' with category 'layouts' is not allowed in elements of type 'components' with category 'molecules'. Disallowed in rule 4",
-    5: "Importing elements of type 'modules' is not allowed in elements of type 'components' with category '*'. Disallowed in rule 5",
-    6: "Importing elements of type 'modules' is not allowed in elements of type 'components' with category '*'. Disallowed in rule 5",
-    7: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 7",
-    8: "Importing elements of type 'modules' with domain 'domain-a' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 6",
-    9: "Importing elements of type 'components' with category 'molecules' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 8",
-    10: "Importing elements of type 'modules' with domain '!domain-a' or 'domain-b' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 10",
-    11: "Importing elements of type 'modules' with domain '!domain-a' or 'domain-b' is not allowed in elements of type 'modules' with domain 'domain-a'. Disallowed in rule 10",
+    0: 'Dependencies to elements of type "components", category "atoms" and elementName "atom-a" are not allowed in elements of type "helpers" and elementName "helper-c". Denied by rule at index 0',
+    1: 'Dependencies to elements of type "modules", domain "domain-a" and elementName "module-a" are not allowed in elements of type "helpers" and elementName "helper-c". Denied by rule at index 1',
+    2: 'Dependencies to elements of type "components" and category "molecules" are not allowed in elements of type "components" and category "atoms". Denied by rule at index 2',
+    3: 'Dependencies to elements of type "components" and category "molecules" are not allowed in elements of type "components" and category "atoms". Denied by rule at index 2',
+    4: 'Dependencies to elements of type "components" and category "layouts" are not allowed in elements of type "components" and category "molecules". Denied by rule at index 3',
+    5: 'Dependencies to elements of type "modules", domain "domain-a" and elementName "module-a" are not allowed in elements of type "components" and category "molecules". Denied by rule at index 4',
+    6: 'Dependencies to elements of type "modules", domain "domain-a", ancestorsPaths "module-a" and elementName "module-c" are not allowed in elements of type "components" and category "layouts". Denied by rule at index 4',
+    7: 'Dependencies to elements of type "components" and category "molecules" are not allowed in elements of type "modules" and domain "pages". Denied by rule at index 6',
+    8: 'Dependencies to elements of type "modules" and domain "domain-a" are not allowed in elements of type "modules" and domain "pages". Denied by rule at index 5',
+    9: 'Dependencies to elements of type "components" and category "molecules" are not allowed in elements of type "modules" and domain "domain-a". Denied by rule at index 7',
+    10: 'Dependencies to elements of type "modules" and domain "pages" are not allowed in elements of type "modules" and domain "domain-a". Denied by rule at index 9',
+    11: 'Dependencies to elements of type "modules" and domain "domain-b" are not allowed in elements of type "modules" and domain "domain-a". Denied by rule at index 9',
   }
 );

@@ -124,10 +124,10 @@ runTest(
     },
   ],
   {
-    0: "No rule allows the entry point 'main.js' in dependencies of type 'helpers' with elementName 'helper-a'",
-    1: "No rule allows the entry point 'Component.js' in dependencies of type 'components' with elementName 'component-b'",
-    2: "No rule allows the entry point 'index.js' in dependencies of type 'modules' with elementName 'module-a'",
-    3: "No rule allows the entry point 'index.js' in dependencies of type 'modules' with elementName 'module-a'",
+    0: 'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-a"',
+    1: 'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
+    2: 'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "modules" and elementName "module-a"',
+    3: 'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "modules" and elementName "module-a"',
   }
 );
 
@@ -168,9 +168,9 @@ runTest(
     },
   ],
   {
-    0: "The entry point 'main.js' is not allowed in elements of type 'helpers' when importing type. Disallowed in rule 2",
-    1: "The entry point 'Component.js' is not allowed in elements of type 'components' when importing value. Disallowed in rule 4",
-    2: "The entry point 'index.js' is not allowed in elements of type 'modules' when importing value. Disallowed in rule 5",
-    3: "The entry point 'index.js' is not allowed in elements of type 'modules' when importing type. Disallowed in rule 5",
+    0: 'Dependencies with kind "type" to elements of type "helpers" and internalPath "main.js" are not allowed. Denied by rule at index 1',
+    1: 'Dependencies with kind "value" to elements of type "components" and internalPath "Component.js" are not allowed. Denied by rule at index 3',
+    2: 'Dependencies with kind "value" to elements of type "modules" and internalPath "index.js" are not allowed. Denied by rule at index 4',
+    3: 'Dependencies with kind "type" to elements of type "modules" and internalPath "index.js" are not allowed. Denied by rule at index 4',
   }
 );

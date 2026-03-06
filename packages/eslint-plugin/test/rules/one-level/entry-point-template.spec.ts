@@ -153,7 +153,10 @@ testCapture(
     },
   ],
   {
-    3: "The entry point 'main.js' is not allowed in elements of type 'helpers' with elementName '*-a'. Disallowed in rule 2",
+    0: 'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of type "components" and elementName "component-c"',
+    1: 'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of type "components" and elementName "component-a"',
+    2: 'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-b"',
+    3: 'Dependencies to elements of type "helpers", elementName "helper-a" and internalPath "main.js" are not allowed. Denied by rule at index 1',
   }
 );
 

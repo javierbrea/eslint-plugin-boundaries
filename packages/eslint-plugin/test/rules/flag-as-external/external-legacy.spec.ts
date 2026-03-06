@@ -54,7 +54,7 @@ const testDefaultSettings = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: "'helpers' with package 'a' and elementName 'helper-a'",
+              file: '"helpers", package "a" and elementName "helper-a"',
               dep: "micromatch",
             }),
             type: "Literal",
@@ -69,7 +69,7 @@ const testDefaultSettings = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: "'helpers' with package 'a' and elementName 'helper-a'",
+              file: '"helpers", package "a" and elementName "helper-a"',
               dep: "unknown-package-xyz",
             }),
             type: "Literal",
@@ -142,7 +142,7 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: "'components' with elementName 'component-a'",
+              file: '"components" and elementName "component-a"',
               dep: "package-b",
             }),
             type: "Literal",
@@ -163,7 +163,7 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message:
-              "Usage of external module 'package-b' is not allowed in elements of type 'components'. Disallowed in rule 1",
+              'Dependencies with module "package-b" to elements of origin "external" are not allowed in elements of type "components" and elementName "component-a". Denied by rule at index 0',
             type: "Literal",
           },
         ],
@@ -176,7 +176,7 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: "'helpers' with elementName 'helper-a'",
+              file: '"helpers" and elementName "helper-a"',
               dep: "micromatch",
             }),
             type: "Literal",
@@ -249,7 +249,7 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: "'components' with package 'a' and elementName 'component-a'",
+              file: '"components", package "a" and elementName "component-a"',
               dep: "package-b",
             }),
             type: "Literal",
@@ -270,7 +270,7 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message:
-              "Usage of external module 'package-b' is not allowed in elements of type 'components'. Disallowed in rule 1",
+              'Dependencies with module "package-b" to elements of origin "external" are not allowed in elements of type "components", package "a" and elementName "component-a". Denied by rule at index 0',
             type: "Literal",
           },
         ],
@@ -283,7 +283,7 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: "'helpers' with package 'a' and elementName 'helper-a'",
+              file: '"helpers", package "a" and elementName "helper-a"',
               dep: "micromatch",
             }),
             type: "Literal",
@@ -337,7 +337,7 @@ const testInNodeModulesDisabled = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: "'any'",
+              file: '"any"',
               dep: "unknown-package-xyz",
             }),
             type: "Literal",
@@ -380,7 +380,7 @@ const testUnresolvableAliasDisabled = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: "'helpers' with package 'a' and elementName 'helper-a'",
+              file: '"helpers", package "a" and elementName "helper-a"',
               dep: "micromatch",
             }),
             type: "Literal",
@@ -423,7 +423,7 @@ const testInvalidSettings = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: "'helpers' with package 'a' and elementName 'helper-a'",
+              file: '"helpers", package "a" and elementName "helper-a"',
               dep: "eslint",
             }),
             type: "Literal",

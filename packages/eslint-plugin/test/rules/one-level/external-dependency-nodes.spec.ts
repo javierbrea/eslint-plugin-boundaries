@@ -79,7 +79,7 @@ createRuleTester(settings).run(RULE, rule, {
       errors: [
         {
           message:
-            "Usage of value 'Link' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 2",
+            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "modules". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -133,7 +133,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Usage of value 'Link' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 2",
+            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "modules". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -146,7 +146,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -159,7 +159,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -172,7 +172,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -185,7 +185,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -218,7 +218,7 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       errors: [
         {
           message:
-            "Usage of type 'Link' from external module 'react-router-dom' is not allowed in elements of type 'components'. Disallowed in rule 1",
+            'Dependencies with kind "type", module "react-router-dom" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "components". Denied by rule at index 0',
           type: "Literal",
         },
       ],
@@ -231,7 +231,7 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       errors: [
         {
           message:
-            "Usage of value 'Link' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 2",
+            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "modules". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -291,7 +291,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Usage of type 'Link' from external module 'react-router-dom' is not allowed in elements of type 'components'. Disallowed in rule 1",
+            'Dependencies with kind "type", module "react-router-dom" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "components". Denied by rule at index 0',
           type: "Literal",
         },
       ],
@@ -304,7 +304,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Usage of value 'Link' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 2",
+            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "modules". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -317,7 +317,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -330,7 +330,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Usage of type from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+            'Dependencies with kind "type" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -343,7 +343,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -356,7 +356,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -369,7 +369,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Usage of value from external module 'react' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],

@@ -109,7 +109,7 @@ const runTest = (
               errorMessages,
               0,
               externalNoRuleMessage({
-                file: "'helpers' with elementName 'helper-a'",
+                file: '"helpers" and elementName "helper-a"',
                 dep: "react",
               })
             ),
@@ -128,7 +128,7 @@ const runTest = (
               errorMessages,
               1,
               externalNoRuleMessage({
-                file: "'components' with category 'atoms' and elementName 'atom-a'",
+                file: '"components", category "atoms" and elementName "atom-a"',
                 dep: "@material-ui/core",
               })
             ),
@@ -147,7 +147,7 @@ const runTest = (
               errorMessages,
               2,
               externalNoRuleMessage({
-                file: "'components' with category 'molecules' and elementName 'molecule-a'",
+                file: '"components", category "molecules" and elementName "molecule-a"',
                 dep: "@material-ui/core",
               })
             ),
@@ -166,7 +166,7 @@ const runTest = (
               errorMessages,
               3,
               externalNoRuleMessage({
-                file: "'components' with category 'layouts' and elementName 'layout-a'",
+                file: '"components", category "layouts" and elementName "layout-a"',
                 dep: "@material-ui/core",
               })
             ),
@@ -185,7 +185,7 @@ const runTest = (
               errorMessages,
               4,
               externalNoRuleMessage({
-                file: "'modules' with domain 'pages' and elementName 'page-a'",
+                file: '"modules", domain "pages" and elementName "page-a"',
                 dep: "react-router-dom",
               })
             ),
@@ -204,7 +204,7 @@ const runTest = (
               errorMessages,
               4,
               externalNoRuleMessage({
-                file: "'modules' with domain 'domain-b' and elementName 'module-b'",
+                file: '"modules", domain "domain-b" and elementName "module-b"',
                 dep: "react",
               })
             ),

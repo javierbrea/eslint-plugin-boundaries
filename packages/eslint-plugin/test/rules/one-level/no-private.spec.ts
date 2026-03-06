@@ -5,7 +5,6 @@ import {
   pathResolvers,
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
-import { noPrivateMessage } from "../../support/messages";
 
 const { NO_PRIVATE: RULE } = require("../../../src/Settings");
 
@@ -132,9 +131,8 @@ const runTest = (settings: RuleTesterSettings) => {
         options,
         errors: [
           {
-            message: noPrivateMessage({
-              dep: "'components' with elementName 'component-c'",
-            }),
+            message:
+              'Dependency is private of element of type "components" and elementName "component-c"',
             type: "Literal",
           },
         ],
@@ -146,9 +144,8 @@ const runTest = (settings: RuleTesterSettings) => {
         options,
         errors: [
           {
-            message: noPrivateMessage({
-              dep: "'components' with elementName 'component-a'",
-            }),
+            message:
+              'Dependency is private of element of type "components" and elementName "component-a"',
             type: "Literal",
           },
         ],
@@ -162,9 +159,8 @@ const runTest = (settings: RuleTesterSettings) => {
         options,
         errors: [
           {
-            message: noPrivateMessage({
-              dep: "'helpers' with elementName 'helper-a'",
-            }),
+            message:
+              'Dependency is private of element of type "helpers" and elementName "helper-a"',
             type: "Literal",
           },
         ],
@@ -176,9 +172,8 @@ const runTest = (settings: RuleTesterSettings) => {
         options,
         errors: [
           {
-            message: noPrivateMessage({
-              dep: "'helpers' with elementName 'helper-a'",
-            }),
+            message:
+              'Dependency is private of element of type "helpers" and elementName "helper-a"',
             type: "Literal",
           },
         ],
@@ -198,9 +193,8 @@ const runTest = (settings: RuleTesterSettings) => {
         ],
         errors: [
           {
-            message: noPrivateMessage({
-              dep: "'components' with elementName 'component-a'",
-            }),
+            message:
+              'Dependency is private of element of type "components" and elementName "component-a"',
             type: "Literal",
           },
         ],

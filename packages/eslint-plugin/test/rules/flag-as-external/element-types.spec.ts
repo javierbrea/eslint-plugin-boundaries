@@ -59,8 +59,8 @@ const testDefaultSettings = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: "'helpers' with package 'a' and elementName 'helper-a'",
-              dep: "'components' with package 'a' and elementName 'component-a'",
+              file: '"helpers", package "a" and elementName "helper-a"',
+              dep: '"components", package "a" and elementName "component-a"',
             }),
             type: "Literal",
           },
@@ -94,8 +94,8 @@ const testDefaultSettings = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: "'components' with package 'a' and elementName 'component-a'",
-              dep: "'helpers' with package 'b' and elementName 'helper-b'",
+              file: '"components", package "a" and elementName "component-a"',
+              dep: '"helpers", package "b" and elementName "helper-b"',
             }),
             type: "Literal",
           },
@@ -158,8 +158,8 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: "'helpers' with elementName 'helper-a'",
-              dep: "'components' with elementName 'component-a'",
+              file: '"helpers" and elementName "helper-a"',
+              dep: '"components" and elementName "component-a"',
             }),
             type: "Literal",
           },
@@ -221,8 +221,8 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: "'helpers' with package 'a' and elementName 'helper-a'",
-              dep: "'components' with package 'a' and elementName 'component-a'",
+              file: '"helpers", package "a" and elementName "helper-a"',
+              dep: '"components", package "a" and elementName "component-a"',
             }),
             type: "Literal",
           },
@@ -275,8 +275,8 @@ const testInNodeModulesDisabled = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: "'any'",
-              dep: "'any'",
+              file: '"any"',
+              dep: '"any"',
             }),
             type: "Literal",
           },

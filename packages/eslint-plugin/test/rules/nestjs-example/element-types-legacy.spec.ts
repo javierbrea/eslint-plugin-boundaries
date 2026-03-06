@@ -122,8 +122,8 @@ const runTest = (
               errorMessages,
               0,
               elementTypesNoRuleMessage({
-                file: "'app'",
-                dep: "'interface' with base '', feature 'cats' and fileName 'cats'",
+                file: '"app"',
+                dep: '"interface", base "", feature "cats" and fileName "cats"',
               })
             ),
             type: "Literal",
@@ -141,8 +141,8 @@ const runTest = (
               errorMessages,
               1,
               elementTypesNoRuleMessage({
-                file: "'app'",
-                dep: "'controller' with base '', feature 'cats' and fileName 'cats'",
+                file: '"app"',
+                dep: '"controller", base "", feature "cats" and fileName "cats"',
               })
             ),
             type: "Literal",
@@ -160,8 +160,8 @@ const runTest = (
               errorMessages,
               2,
               elementTypesNoRuleMessage({
-                file: "'app'",
-                dep: "'service' with base '', feature 'cats' and fileName 'cats'",
+                file: '"app"',
+                dep: '"service", base "", feature "cats" and fileName "cats"',
               })
             ),
             type: "Literal",
@@ -179,8 +179,8 @@ const runTest = (
               errorMessages,
               3,
               elementTypesNoRuleMessage({
-                file: "'module' with base '', feature 'core' and fileName 'core'",
-                dep: "'controller' with base '', feature 'cats' and fileName 'cats'",
+                file: '"module", base "", feature "core" and fileName "core"',
+                dep: '"controller", base "", feature "cats" and fileName "cats"',
               })
             ),
             type: "Literal",
@@ -198,8 +198,8 @@ const runTest = (
               errorMessages,
               4,
               elementTypesNoRuleMessage({
-                file: "'module' with base '', feature 'core' and fileName 'core'",
-                dep: "'service' with base '', feature 'cats' and fileName 'cats'",
+                file: '"module", base "", feature "core" and fileName "core"',
+                dep: '"service", base "", feature "cats" and fileName "cats"',
               })
             ),
             type: "Literal",
@@ -217,8 +217,8 @@ const runTest = (
               errorMessages,
               5,
               elementTypesNoRuleMessage({
-                file: "'module' with base '', feature 'cats' and fileName 'cats'",
-                dep: "'interceptor' with base '', feature 'core' and fileName 'logging'",
+                file: '"module", base "", feature "cats" and fileName "cats"',
+                dep: '"interceptor", base "", feature "core" and fileName "logging"',
               })
             ),
             type: "Literal",
@@ -236,8 +236,8 @@ const runTest = (
               errorMessages,
               6,
               elementTypesNoRuleMessage({
-                file: "'module' with base '', feature 'cats' and fileName 'cats'",
-                dep: "'interceptor' with base '', feature 'core' and fileName 'transform'",
+                file: '"module", base "", feature "cats" and fileName "cats"',
+                dep: '"interceptor", base "", feature "core" and fileName "transform"',
               })
             ),
             type: "Literal",
@@ -255,8 +255,8 @@ const runTest = (
               errorMessages,
               7,
               elementTypesNoRuleMessage({
-                file: "'controller' with base '', feature 'core' and fileName 'core'",
-                dep: "'service' with base '', feature 'cats' and fileName 'cats'",
+                file: '"controller", base "", feature "core" and fileName "core"',
+                dep: '"service", base "", feature "cats" and fileName "cats"',
               })
             ),
             type: "Literal",
@@ -274,8 +274,8 @@ const runTest = (
               errorMessages,
               8,
               elementTypesNoRuleMessage({
-                file: "'controller' with base '', feature 'core' and fileName 'core'",
-                dep: "'dto' with base '', feature 'cats' and fileName 'create-cat'",
+                file: '"controller", base "", feature "core" and fileName "core"',
+                dep: '"dto", base "", feature "cats" and fileName "create-cat"',
               })
             ),
             type: "Literal",
@@ -293,8 +293,8 @@ const runTest = (
               errorMessages,
               9,
               elementTypesNoRuleMessage({
-                file: "'controller' with base '', feature 'core' and fileName 'core'",
-                dep: "'interface' with base '', feature 'cats' and fileName 'cats'",
+                file: '"controller", base "", feature "core" and fileName "core"',
+                dep: '"interface", base "", feature "cats" and fileName "cats"',
               })
             ),
             type: "Literal",
@@ -312,8 +312,8 @@ const runTest = (
               errorMessages,
               10,
               elementTypesNoRuleMessage({
-                file: "'controller' with base '', feature 'core' and fileName 'core'",
-                dep: `'model' with base '${base}', feature 'cats' and fileName 'persian-cat'`,
+                file: '"controller", base "", feature "core" and fileName "core"',
+                dep: `"model", base "${base}", feature "cats" and fileName "persian-cat"`,
               })
             ),
             type: "Literal",
@@ -331,8 +331,8 @@ const runTest = (
               errorMessages,
               11,
               elementTypesNoRuleMessage({
-                file: "'controller' with base '', feature 'core' and fileName 'core'",
-                dep: `'model' with base '${base}', feature 'cats' and fileName 'siamese-cat'`,
+                file: '"controller", base "", feature "core" and fileName "core"',
+                dep: `"model", base "${base}", feature "cats" and fileName "siamese-cat"`,
               })
             ),
             type: "Literal",
@@ -350,8 +350,8 @@ const runTest = (
               errorMessages,
               12,
               elementTypesNoRuleMessage({
-                file: "'controller' with base '', feature 'cats' and fileName 'cats'",
-                dep: `'model' with base '${base}', feature 'core' and fileName 'core'`,
+                file: '"controller", base "", feature "cats" and fileName "cats"',
+                dep: `"model", base "${base}", feature "core" and fileName "core"`,
               })
             ),
             type: "Literal",
@@ -539,8 +539,8 @@ runTest(
   pathResolvers("nestjs-example"),
   {
     12: elementTypesNoRuleMessage({
-      file: "'controller' with base '', feature 'cats' and fileName 'cats'",
-      dep: `'model' with base 'nestjs-example', feature 'core' and fileName 'core'`,
+      file: '"controller", base "", feature "cats" and fileName "cats"',
+      dep: '"model", base "nestjs-example", feature "core" and fileName "core"',
     }),
   },
   ""
@@ -619,8 +619,8 @@ runTest(
   pathResolvers("nestjs-example"),
   {
     12: elementTypesNoRuleMessage({
-      file: "'controller' with base '', feature 'cats' and fileName 'cats'",
-      dep: `'model' with base '', feature 'core' and fileName 'core'`,
+      file: '"controller", base "", feature "cats" and fileName "cats"',
+      dep: '"model", base "", feature "core" and fileName "core"',
     }),
   },
   "test/fixtures/nestjs-example"

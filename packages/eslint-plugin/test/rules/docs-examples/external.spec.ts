@@ -4,7 +4,6 @@ import {
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
-import { externalNoRuleMessage } from "../../support/messages";
 
 const { EXTERNAL: RULE } = require("../../../src/Settings");
 
@@ -101,10 +100,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: externalNoRuleMessage({
-            file: "'helpers' with category 'data' and elementName 'parse'",
-            dep: "react",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "helpers", category "data" and elementName "parse" to elements of origin "external" with module "react"',
           type: "Literal",
         },
       ],
@@ -116,10 +113,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: externalNoRuleMessage({
-            file: "'helpers' with category 'data' and elementName 'parse'",
-            dep: "react",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "helpers", category "data" and elementName "parse" to elements of origin "external" with module "react"',
           type: "Literal",
         },
       ],
@@ -131,10 +126,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: externalNoRuleMessage({
-            file: "'components' with family 'atoms' and elementName 'atom-a'",
-            dep: "moment",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "components", family "atoms" and elementName "atom-a" to elements of origin "external" with module "moment"',
           type: "Literal",
         },
       ],
@@ -149,7 +142,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            "Usage of external module '@material-ui/icons' is not allowed in elements of type 'components' with family 'molecules'. Disallowed in rule 3",
+            'Dependencies with module "@material-ui/icons" to elements of origin "external" are not allowed in elements of type "components" and family "molecules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -161,10 +154,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: externalNoRuleMessage({
-            file: "'modules' with elementName 'module-a'",
-            dep: "react-router-dom",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of origin "external" with module "react-router-dom"',
           type: "Literal",
         },
       ],

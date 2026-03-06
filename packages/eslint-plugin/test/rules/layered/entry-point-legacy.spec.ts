@@ -59,7 +59,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            "The entry point 'helpers.js' is not allowed in elements of type 'modules' with elementName '!(module-a)'. Disallowed in rule 2",
+            'Dependencies to elements of type "modules", elementName "module-a" and internalPath "helpers.js" are not allowed. Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -71,7 +71,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            "The entry point 'ComponentA.js' is not allowed in elements of type 'modules' with elementName '!(module-a)'. Disallowed in rule 2",
+            'Dependencies to elements of type "modules", elementName "module-a" and internalPath "ComponentA.js" are not allowed. Denied by rule at index 1',
           type: "Literal",
         },
       ],
