@@ -5,7 +5,6 @@ import {
   pathResolvers,
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
-import { errorMessage, entryPointNoRuleMessage } from "../../support/messages";
 
 const { ENTRY_POINT: RULE } = require("../../../src/Settings");
 
@@ -23,10 +22,13 @@ const defaultOptions = [
   },
 ];
 
+type RunTestErrorMessages = [string, string, string, string];
+type TestCaptureErrorMessages = [string, string];
+
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string> = {}
+  errorMessages: RunTestErrorMessages
 ) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
@@ -101,14 +103,7 @@ const runTest = (
         options: defaultOptions,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              0,
-              entryPointNoRuleMessage({
-                entryPoint: "ComponentB.js",
-                dep: "'components' with elementName 'component-b'",
-              })
-            ),
+            message: errorMessages[0],
             type: "Literal",
           },
         ],
@@ -120,14 +115,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              1,
-              entryPointNoRuleMessage({
-                entryPoint: "index.js",
-                dep: "'helpers' with elementName 'helper-a'",
-              })
-            ),
+            message: errorMessages[1],
             type: "Literal",
           },
         ],
@@ -139,14 +127,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              2,
-              entryPointNoRuleMessage({
-                entryPoint: "index.js",
-                dep: "'helpers' with elementName 'helper-a'",
-              })
-            ),
+            message: errorMessages[2],
             type: "Literal",
           },
         ],
@@ -158,14 +139,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              3,
-              entryPointNoRuleMessage({
-                entryPoint: "main.js",
-                dep: "'components' with elementName 'component-b'",
-              })
-            ),
+            message: errorMessages[3],
             type: "Literal",
           },
         ],
@@ -177,7 +151,7 @@ const runTest = (
 const testCapture = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string> = {}
+  errorMessages: TestCaptureErrorMessages
 ) => {
   const ruleTester = createRuleTester(settings);
   ruleTester.run(RULE, rule, {
@@ -203,14 +177,7 @@ const testCapture = (
         options,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              0,
-              entryPointNoRuleMessage({
-                entryPoint: "index.js",
-                dep: "'helpers' with elementName 'helper-b'",
-              })
-            ),
+            message: errorMessages[0],
             type: "Literal",
           },
         ],
@@ -222,14 +189,7 @@ const testCapture = (
         options,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              1,
-              entryPointNoRuleMessage({
-                entryPoint: "main.js",
-                dep: "'helpers' with elementName 'helper-a'",
-              })
-            ),
+            message: errorMessages[1],
             type: "Literal",
           },
         ],
@@ -240,69 +200,96 @@ const testCapture = (
 
 // deprecated settings
 
-runTest(SETTINGS.deprecated, [
-  {
-    default: "disallow",
-    rules: [
-      {
-        target: "helpers",
-        allow: "main.js",
-      },
-      {
-        target: "components",
-        allow: "Component.js",
-      },
-      {
-        target: "modules",
-        allow: "Module.js",
-      },
-    ],
-  },
-]);
+runTest(
+  SETTINGS.deprecated,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          target: "helpers",
+          allow: "main.js",
+        },
+        {
+          target: "components",
+          allow: "Component.js",
+        },
+        {
+          target: "modules",
+          allow: "Module.js",
+        },
+      ],
+    },
+  ],
+  [
+    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
+    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-a"',
+    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-a"',
+    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
+  ]
+);
 
 // disallow based options
 
-runTest(SETTINGS.oneLevel, [
-  {
-    default: "disallow",
-    rules: [
-      {
-        target: "helpers",
-        allow: "main.js",
-      },
-      {
-        target: "components",
-        allow: "Component.js",
-      },
-      {
-        target: "modules",
-        allow: "Module.js",
-      },
-    ],
-  },
-]);
+runTest(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          target: "helpers",
+          allow: "main.js",
+        },
+        {
+          target: "components",
+          allow: "Component.js",
+        },
+        {
+          target: "modules",
+          allow: "Module.js",
+        },
+      ],
+    },
+  ],
+  [
+    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
+    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-a"',
+    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-a"',
+    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
+  ]
+);
 
 // micromatch based options
 
-runTest(SETTINGS.oneLevel, [
-  {
-    default: "disallow",
-    rules: [
-      {
-        target: "h*",
-        allow: "main.*",
-      },
-      {
-        target: "c*",
-        allow: "C*.*",
-      },
-      {
-        target: "m*",
-        allow: "M*.*",
-      },
-    ],
-  },
-]);
+runTest(
+  SETTINGS.oneLevel,
+  [
+    {
+      default: "disallow",
+      rules: [
+        {
+          target: "h*",
+          allow: "main.*",
+        },
+        {
+          target: "c*",
+          allow: "C*.*",
+        },
+        {
+          target: "m*",
+          allow: "M*.*",
+        },
+      ],
+    },
+  ],
+  [
+    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
+    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-a"',
+    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-a"',
+    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
+  ]
+);
 
 // redundant options
 
@@ -339,11 +326,12 @@ runTest(
       ],
     },
   ],
-  {
-    1: "The entry point 'index.js' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    2: "The entry point 'index.js' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    3: "The entry point 'main.js' is not allowed in elements of type 'components'. Disallowed in rule 3",
-  }
+  [
+    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
+    'Dependencies to elements of type "helpers" and internalPath "index.js" are not allowed. Denied by rule at index 0',
+    'Dependencies to elements of type "helpers" and internalPath "index.js" are not allowed. Denied by rule at index 0',
+    'Dependencies to elements of type "components" and internalPath "main.js" are not allowed. Denied by rule at index 2',
+  ]
 );
 
 // options with capture
@@ -377,9 +365,10 @@ testCapture(
       ],
     },
   ],
-  {
-    1: "The entry point 'main.js' is not allowed in elements of type 'helpers' with elementName '*-a'. Disallowed in rule 2",
-  }
+  [
+    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-b"',
+    'Dependencies to elements of type "helpers", elementName "helper-a" and internalPath "main.js" are not allowed. Denied by rule at index 1',
+  ]
 );
 
 // Custom messages
@@ -416,8 +405,8 @@ testCapture(
       ],
     },
   ],
-  {
-    0: "Importing the file index.js is not allowed in helpers",
-    1: "Do not import any type of file from helpers with name *-a",
-  }
+  [
+    "Importing the file index.js is not allowed in helpers",
+    "Do not import any type of file from helpers with name *-a",
+  ]
 );

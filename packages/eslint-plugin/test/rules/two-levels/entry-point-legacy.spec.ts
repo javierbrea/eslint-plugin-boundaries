@@ -5,9 +5,20 @@ import {
   pathResolvers,
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
-import { errorMessage, entryPointNoRuleMessage } from "../../support/messages";
 
 const { ENTRY_POINT: RULE } = require("../../../src/Settings");
+
+type RunTestErrorMessages = [
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+];
 
 const runTest = (
   settings: RuleTesterSettings,
@@ -17,7 +28,7 @@ const runTest = (
   }: {
     absoluteFilePath: ReturnType<typeof pathResolvers>["absoluteFilePath"];
   },
-  errorMessages: Record<number, string> = {}
+  errorMessages: RunTestErrorMessages
 ) => {
   const ruleTester = createRuleTester(settings);
 
@@ -80,14 +91,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              0,
-              entryPointNoRuleMessage({
-                entryPoint: "index.js",
-                dep: "'helpers' with elementName 'helper-b'",
-              })
-            ),
+            message: errorMessages[0],
             type: "Literal",
           },
         ],
@@ -99,14 +103,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              1,
-              entryPointNoRuleMessage({
-                entryPoint: "main.js",
-                dep: "'helpers' with elementName 'helper-a'",
-              })
-            ),
+            message: errorMessages[1],
             type: "Literal",
           },
         ],
@@ -118,14 +115,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              2,
-              entryPointNoRuleMessage({
-                entryPoint: "index.js",
-                dep: "'components' with category 'atoms' and elementName 'atom-b'",
-              })
-            ),
+            message: errorMessages[2],
             type: "Literal",
           },
         ],
@@ -137,14 +127,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              3,
-              entryPointNoRuleMessage({
-                entryPoint: "index.js",
-                dep: "'components' with category 'molecules' and elementName 'molecule-b'",
-              })
-            ),
+            message: errorMessages[3],
             type: "Literal",
           },
         ],
@@ -156,14 +139,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              4,
-              entryPointNoRuleMessage({
-                entryPoint: "index.js",
-                dep: "'components' with category 'layouts' and elementName 'layout-a'",
-              })
-            ),
+            message: errorMessages[4],
             type: "Literal",
           },
         ],
@@ -175,14 +151,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              5,
-              entryPointNoRuleMessage({
-                entryPoint: "index.js",
-                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
-              })
-            ),
+            message: errorMessages[5],
             type: "Literal",
           },
         ],
@@ -194,14 +163,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              6,
-              entryPointNoRuleMessage({
-                entryPoint: "subfolder-1/subfolder-2/ModuleA.js",
-                dep: "'modules' with domain 'domain-a' and elementName 'module-a'",
-              })
-            ),
+            message: errorMessages[6],
             type: "Literal",
           },
         ],
@@ -213,14 +175,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              7,
-              entryPointNoRuleMessage({
-                entryPoint: "ModuleA.js",
-                dep: "'modules' with domain 'pages' and elementName 'page-a'",
-              })
-            ),
+            message: errorMessages[7],
             type: "Literal",
           },
         ],
@@ -232,14 +187,7 @@ const runTest = (
         options,
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              8,
-              entryPointNoRuleMessage({
-                entryPoint: "index.js",
-                dep: "'modules' with domain 'pages' and elementName 'page-a'",
-              })
-            ),
+            message: errorMessages[8],
             type: "Literal",
           },
         ],
@@ -291,10 +239,17 @@ runTest(
     },
   ],
   pathResolvers("two-levels"),
-  {
-    1: "The entry point 'main.js' is not allowed in elements of type 'helpers' with elementName '*-a'. Disallowed in rule 2",
-    7: "The entry point 'ModuleA.js' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 8",
-  }
+  [
+    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-b" to elements of type "helpers" and elementName "helper-b"',
+    'Dependencies to elements of type "helpers", elementName "helper-a" and internalPath "main.js" are not allowed. Denied by rule at index 1',
+    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "components", category "atoms" and elementName "atom-b"',
+    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "components", category "molecules" and elementName "molecule-b"',
+    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "components", category "layouts" and elementName "layout-a"',
+    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "modules", domain "domain-a" and elementName "module-a"',
+    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "modules", domain "domain-a" and elementName "module-a"',
+    'Dependencies to elements of type "modules", domain "pages" and internalPath "ModuleA.js" are not allowed. Denied by rule at index 7',
+    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "modules", domain "pages" and elementName "page-a"',
+  ]
 );
 
 runTest(
@@ -340,8 +295,15 @@ runTest(
     },
   ],
   pathResolvers("two-levels-with-private"),
-  {
-    1: "The entry point 'main.js' is not allowed in elements of type 'helpers' with elementName '*-a'. Disallowed in rule 2",
-    7: "The entry point 'ModuleA.js' is not allowed in elements of type 'modules' with domain 'pages'. Disallowed in rule 8",
-  }
+  [
+    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-b" to elements of type "helpers" and elementName "helper-b"',
+    'Dependencies to elements of type "helpers", elementName "helper-a" and internalPath "main.js" are not allowed. Denied by rule at index 1',
+    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "components", category "atoms" and elementName "atom-b"',
+    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "components", category "molecules" and elementName "molecule-b"',
+    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "components", category "layouts" and elementName "layout-a"',
+    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "modules", domain "domain-a" and elementName "module-a"',
+    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "modules", domain "domain-a" and elementName "module-a"',
+    'Dependencies to elements of type "modules", domain "pages" and internalPath "ModuleA.js" are not allowed. Denied by rule at index 7',
+    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "modules", domain "pages" and elementName "page-a"',
+  ]
 );

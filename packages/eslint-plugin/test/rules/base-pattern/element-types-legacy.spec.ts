@@ -5,7 +5,6 @@ import {
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
-import { elementTypesNoRuleMessage } from "../../support/messages";
 
 const settings = SETTINGS.basePattern;
 
@@ -165,10 +164,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: elementTypesNoRuleMessage({
-            file: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a' and elementName 'module-a'",
-            dep: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b' and elementName 'module-c'",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-a" and elementName "module-a" to elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-b" and elementName "module-c"',
           type: "Literal",
         },
       ],
@@ -182,10 +179,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: elementTypesNoRuleMessage({
-            file: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a' and elementName 'module-h'",
-            dep: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b' and elementName 'module-c'",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-a" and elementName "module-h" to elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-b" and elementName "module-c"',
           type: "Literal",
         },
       ],
@@ -199,10 +194,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: elementTypesNoRuleMessage({
-            file: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a' and elementName 'module-a'",
-            dep: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b', type 'atoms' and elementName 'atom-c'",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-a" and elementName "module-a" to elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-b", type "atoms" and elementName "atom-c"',
           type: "Literal",
         },
       ],
@@ -216,10 +209,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: elementTypesNoRuleMessage({
-            file: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a', type 'molecules' and elementName 'molecule-a'",
-            dep: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a' and elementName 'module-a'",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-a", type "molecules" and elementName "molecule-a" to elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-a" and elementName "module-a"',
           type: "Literal",
         },
       ],
@@ -233,10 +224,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: elementTypesNoRuleMessage({
-            file: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a', type 'molecules' and elementName 'molecule-a'",
-            dep: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b' and elementName 'module-c'",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-a", type "molecules" and elementName "molecule-a" to elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-b" and elementName "module-c"',
           type: "Literal",
         },
       ],
@@ -250,10 +239,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: elementTypesNoRuleMessage({
-            file: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a', type 'molecules' and elementName 'molecule-a'",
-            dep: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b', type 'atoms' and elementName 'atom-c'",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-a", type "molecules" and elementName "molecule-a" to elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-b", type "atoms" and elementName "atom-c"',
           type: "Literal",
         },
       ],
@@ -267,10 +254,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: elementTypesNoRuleMessage({
-            file: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a', type 'molecules' and elementName 'molecule-e'",
-            dep: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b', type 'atoms' and elementName 'atom-c'",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-a", type "molecules" and elementName "molecule-e" to elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-b", type "atoms" and elementName "atom-c"',
           type: "Literal",
         },
       ],
@@ -284,10 +269,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: elementTypesNoRuleMessage({
-            file: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b', type 'molecules' and elementName 'molecule-c'",
-            dep: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b' and elementName 'module-c'",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-b", type "molecules" and elementName "molecule-c" to elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-b" and elementName "module-c"',
           type: "Literal",
         },
       ],
@@ -301,10 +284,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: elementTypesNoRuleMessage({
-            file: "'components' with parentFolders 'test/fixtures/base-pattern', domain 'domain-b', type 'molecules' and elementName 'molecule-c'",
-            dep: "'modules' with parentFolders 'test/fixtures/base-pattern', domain 'domain-a' and elementName 'module-a'",
-          }),
+          message:
+            'There is no rule allowing dependencies from elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-b", type "molecules" and elementName "molecule-c" to elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-a" and elementName "module-a"',
           type: "Literal",
         },
       ],
