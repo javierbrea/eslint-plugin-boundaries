@@ -78,8 +78,8 @@ const testCapture = (
               errorMessages,
               0,
               elementTypesNoRuleMessage({
-                file: "'components' with elementName 'component-a'",
-                dep: "'helpers' with elementName 'helper-b'",
+                file: '"components" and elementName "component-a"',
+                dep: '"helpers" and elementName "helper-b"',
               })
             ),
             type: "Literal",
@@ -97,8 +97,8 @@ const testCapture = (
               errorMessages,
               1,
               elementTypesNoRuleMessage({
-                file: "'components' with elementName 'component-a'",
-                dep: "'helpers' with elementName 'helper-b'",
+                file: '"components" and elementName "component-a"',
+                dep: '"helpers" and elementName "helper-b"',
               })
             ),
             type: "Literal",
@@ -116,8 +116,8 @@ const testCapture = (
               errorMessages,
               2,
               elementTypesNoRuleMessage({
-                file: "'components' with elementName 'component-b'",
-                dep: "'components' with elementName 'component-a'",
+                file: '"components" and elementName "component-b"',
+                dep: '"components" and elementName "component-a"',
               })
             ),
             type: "Literal",
@@ -135,8 +135,8 @@ const testCapture = (
               errorMessages,
               3,
               elementTypesNoRuleMessage({
-                file: "'modules' with elementName 'module-a'",
-                dep: "'helpers' with elementName 'helper-b'",
+                file: '"modules" and elementName "module-a"',
+                dep: '"helpers" and elementName "helper-b"',
               })
             ),
             type: "Literal",
@@ -154,8 +154,8 @@ const testCapture = (
               errorMessages,
               4,
               elementTypesNoRuleMessage({
-                file: "'modules' with elementName 'module-b'",
-                dep: "'module-a-helpers' with elementName 'helper-1'",
+                file: '"modules" and elementName "module-b"',
+                dep: '"module-a-helpers" and elementName "helper-1"',
               })
             ),
             type: "Literal",
@@ -173,8 +173,8 @@ const testCapture = (
               errorMessages,
               5,
               elementTypesNoRuleMessage({
-                file: "'modules' with elementName 'module-b'",
-                dep: "'helpers' with elementName 'module-a'",
+                file: '"modules" and elementName "module-b"',
+                dep: '"helpers" and elementName "module-a"',
               })
             ),
             type: "Literal",
@@ -246,7 +246,7 @@ testCapture(
     },
   ],
   {
-    2: "Importing elements of type 'components' with elementName 'component-a' is not allowed in elements of type 'components'. Disallowed in rule 1",
+    2: 'Dependencies to elements of type "components" and elementName "component-a" are not allowed in elements of type "components". Denied by rule at index 0',
   }
 );
 
@@ -324,6 +324,6 @@ testCapture(
     },
   ],
   {
-    2: "Importing elements of type 'components' with elementName 'component-a' is not allowed in elements of type 'components'. Disallowed in rule 1",
+    2: 'Dependencies to elements of type "components" and elementName "component-a" are not allowed in elements of type "components". Denied by rule at index 0',
   }
 );

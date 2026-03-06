@@ -208,8 +208,8 @@ const runTest = (
               errorMessages,
               0,
               elementTypesNoRuleMessage({
-                file: "'helpers' with elementName 'helper-a'",
-                dep: "'helpers' with elementName 'helper-b'",
+                file: '"helpers" and elementName "helper-a"',
+                dep: '"helpers" and elementName "helper-b"',
               })
             ),
             type: "Literal",
@@ -227,8 +227,8 @@ const runTest = (
               errorMessages,
               1,
               elementTypesNoRuleMessage({
-                file: "'helpers' with elementName 'helper-a'",
-                dep: "'helpers' with elementName 'helper-b'",
+                file: '"helpers" and elementName "helper-a"',
+                dep: '"helpers" and elementName "helper-b"',
               })
             ),
             type: "Literal",
@@ -246,8 +246,8 @@ const runTest = (
               errorMessages,
               2,
               elementTypesNoRuleMessage({
-                file: "'helpers' with elementName 'helper-a'",
-                dep: "'components' with elementName 'component-a'",
+                file: '"helpers" and elementName "helper-a"',
+                dep: '"components" and elementName "component-a"',
               })
             ),
             type: "Literal",
@@ -265,8 +265,8 @@ const runTest = (
               errorMessages,
               3,
               elementTypesNoRuleMessage({
-                file: "'helpers' with elementName 'helper-a'",
-                dep: "'modules' with elementName 'module-a'",
+                file: '"helpers" and elementName "helper-a"',
+                dep: '"modules" and elementName "module-a"',
               })
             ),
             type: "Literal",
@@ -284,8 +284,8 @@ const runTest = (
               errorMessages,
               4,
               elementTypesNoRuleMessage({
-                file: "'components' with elementName 'component-a'",
-                dep: "'modules' with elementName 'module-a'",
+                file: '"components" and elementName "component-a"',
+                dep: '"modules" and elementName "module-a"',
               })
             ),
             type: "Literal",
@@ -348,8 +348,8 @@ const testCapture = (
               errorMessages,
               0,
               elementTypesNoRuleMessage({
-                file: "'components' with elementName 'component-a'",
-                dep: "'helpers' with elementName 'helper-b'",
+                file: '"components" and elementName "component-a"',
+                dep: '"helpers" and elementName "helper-b"',
               })
             ),
             type: "Literal",
@@ -367,8 +367,8 @@ const testCapture = (
               errorMessages,
               1,
               elementTypesNoRuleMessage({
-                file: "'components' with elementName 'component-a'",
-                dep: "'helpers' with elementName 'helper-b'",
+                file: '"components" and elementName "component-a"',
+                dep: '"helpers" and elementName "helper-b"',
               })
             ),
             type: "Literal",
@@ -386,8 +386,8 @@ const testCapture = (
               errorMessages,
               2,
               elementTypesNoRuleMessage({
-                file: "'components' with elementName 'component-b'",
-                dep: "'components' with elementName 'component-a'",
+                file: '"components" and elementName "component-b"',
+                dep: '"components" and elementName "component-a"',
               })
             ),
             type: "Literal",
@@ -405,8 +405,8 @@ const testCapture = (
               errorMessages,
               3,
               elementTypesNoRuleMessage({
-                file: "'modules' with elementName 'module-a'",
-                dep: "'helpers' with elementName 'helper-b'",
+                file: '"modules" and elementName "module-a"',
+                dep: '"helpers" and elementName "helper-b"',
               })
             ),
             type: "Literal",
@@ -479,13 +479,13 @@ runTest(
   ],
   {
     0: elementTypesNoRuleMessage({
-      file: "'helpers'",
-      dep: "'helpers'",
+      file: '"helpers"',
+      dep: '"helpers"',
     }),
-    1: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    2: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    3: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    4: "Importing elements of type 'modules' is not allowed in elements of type 'components'. Disallowed in rule 2",
+    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by rule at index 1',
   }
 );
 
@@ -599,10 +599,10 @@ runTest(
     },
   ],
   {
-    1: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    2: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    3: "Importing elements of type 'modules', or elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    4: "Importing elements of type 'modules' is not allowed in elements of type 'components'. Disallowed in rule 2",
+    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    4: 'Dependencies to elements of type "modules" and elementName "module-a" are not allowed in elements of type "components". Denied by rule at index 1',
   }
 );
 
@@ -631,7 +631,7 @@ testCapture(
     },
   ],
   {
-    2: "Importing elements of type 'components' with elementName 'component-a' is not allowed in elements of type 'components'. Disallowed in rule 1",
+    2: 'Dependencies to elements of type "components" and elementName "component-a" are not allowed in elements of type "components". Denied by rule at index 0',
   }
 );
 
@@ -685,7 +685,7 @@ testCapture(
     },
   ],
   {
-    2: "Importing elements of type 'c*' with elementName '*-a' is not allowed in elements of type 'c*'. Disallowed in rule 1",
+    2: 'Dependencies to elements of type "components" and elementName "component-a" are not allowed in elements of type "components". Denied by rule at index 0',
   }
 );
 
@@ -770,7 +770,7 @@ testCapture(
     },
   ],
   {
-    2: "Importing elements of type 'c*' with elementName '*-a', 'component-a' or '*t-a' is not allowed in elements of type 'c*'. Disallowed in rule 1",
+    2: 'Dependencies to elements of type "components" and elementName "component-a" are not allowed in elements of type "components". Denied by rule at index 0',
   }
 );
 
@@ -797,6 +797,6 @@ testCapture(
     },
   ],
   {
-    2: "Importing elements of type 'c*' with elementName '*-a' is not allowed in elements of type 'c*'. Disallowed in rule 1",
+    2: 'Dependencies to elements of type "components" and elementName "component-a" are not allowed in elements of type "components" and elementName "component-b". Denied by rule at index 0',
   }
 );

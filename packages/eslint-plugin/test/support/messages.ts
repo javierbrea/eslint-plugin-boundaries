@@ -13,7 +13,7 @@ export function elementTypesNoRuleMessage({
   file: string;
   dep: string;
 }) {
-  return `No rule allowing this dependency was found. File is of type ${file}. Dependency is of type ${dep}`;
+  return `There is no rule allowing dependencies from elements of type ${file} to elements of type ${dep}`;
 }
 
 export function entryPointNoRuleMessage({

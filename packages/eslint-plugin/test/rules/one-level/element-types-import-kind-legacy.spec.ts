@@ -114,8 +114,8 @@ const runTest = (
               errorMessages,
               0,
               elementTypesNoRuleMessage({
-                file: "'helpers'",
-                dep: "'helpers'",
+                file: '"helpers"',
+                dep: '"helpers"',
               })
             ),
             type: "Literal",
@@ -133,8 +133,8 @@ const runTest = (
               errorMessages,
               1,
               elementTypesNoRuleMessage({
-                file: "'helpers'",
-                dep: "'helpers'",
+                file: '"helpers"',
+                dep: '"helpers"',
               })
             ),
             type: "Literal",
@@ -152,8 +152,8 @@ const runTest = (
               errorMessages,
               2,
               elementTypesNoRuleMessage({
-                file: "'helpers'",
-                dep: "'components'",
+                file: '"helpers"',
+                dep: '"components"',
               })
             ),
             type: "Literal",
@@ -171,8 +171,8 @@ const runTest = (
               errorMessages,
               3,
               elementTypesNoRuleMessage({
-                file: "'helpers'",
-                dep: "'modules'",
+                file: '"helpers"',
+                dep: '"modules"',
               })
             ),
             type: "Literal",
@@ -190,8 +190,8 @@ const runTest = (
               errorMessages,
               4,
               elementTypesNoRuleMessage({
-                file: "'components'",
-                dep: "'modules'",
+                file: '"components"',
+                dep: '"modules"',
               })
             ),
             type: "Literal",
@@ -209,8 +209,8 @@ const runTest = (
               errorMessages,
               5,
               elementTypesNoRuleMessage({
-                file: "'modules'",
-                dep: "'helpers'",
+                file: '"modules"',
+                dep: '"helpers"',
               })
             ),
             type: "Literal",
@@ -271,14 +271,14 @@ runTest(
   ],
   {
     0: elementTypesNoRuleMessage({
-      file: "'helpers'",
-      dep: "'helpers'",
+      file: '"helpers"',
+      dep: '"helpers"',
     }),
-    1: "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
-    2: "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
-    3: "Importing kind 'value' from elements of type 'modules' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    4: "Importing kind 'value' from elements of type 'modules' is not allowed in elements of type 'components'. Disallowed in rule 3",
-    5: "Importing kind 'type' from elements of type 'helpers' is not allowed in elements of type 'modules'. Disallowed in rule 4",
+    1: 'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
+    2: 'Dependencies with kind "value" to elements of type "components" are not allowed in elements of type "helpers". Denied by rule at index 1',
+    3: 'Dependencies with kind "value" to elements of type "modules" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    4: 'Dependencies with kind "value" to elements of type "modules" are not allowed in elements of type "components". Denied by rule at index 2',
+    5: 'Dependencies with kind "type" to elements of type "helpers" are not allowed in elements of type "modules". Denied by rule at index 3',
   }
 );
 
@@ -361,8 +361,8 @@ runTest(
   ],
   {
     0: elementTypesNoRuleMessage({
-      file: "'helpers'",
-      dep: "'helpers'",
+      file: '"helpers"',
+      dep: '"helpers"',
     }),
     1: "Do not import value from helpers in helpers",
     2: "Do not import value from components in helpers",

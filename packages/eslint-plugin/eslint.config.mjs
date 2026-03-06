@@ -23,7 +23,7 @@ export default [
       ],
 
       "boundaries/debug": {
-        enabled: true,
+        enabled: false,
       },
 
       "boundaries/elements": [
