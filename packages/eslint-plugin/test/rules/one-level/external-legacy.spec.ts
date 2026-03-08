@@ -429,7 +429,7 @@ runTest(
     },
   ],
   {
-    0: 'Dependencies with module "react" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    0: 'Dependencies with module "react" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
     1: 'Dependencies with module "react-router-dom" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 1',
     2: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',
     3: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',
@@ -476,7 +476,7 @@ runTest(
     },
   ],
   {
-    0: 'Dependencies with module "react" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    0: 'Dependencies with module "react" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
     1: 'Dependencies with module "react-router-dom" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 1',
     2: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',
     3: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',
@@ -520,13 +520,13 @@ runTest(
     },
   ],
   {
-    0: 'Dependencies with module "react" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    0: 'Dependencies with module "react" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
     1: 'Dependencies with module "react-router-dom" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 1',
-    2: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    3: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    4: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    5: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    6: "Usage of 'L*, R*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
+    2: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    3: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    4: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    5: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    6: 'Dependencies with module "foo-library" and specifiers "Link", "Router" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',
     7: 'Dependencies with module "@material-ui/core" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
     8: 'Dependencies with module "react-router-dom" to elements of origin "external" and internalPath "/var/foo" are not allowed in elements of type "modules". Denied by rule at index 2',
   }

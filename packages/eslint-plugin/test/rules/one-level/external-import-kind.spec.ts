@@ -392,7 +392,7 @@ runTest(
     },
   ],
   {
-    0: 'Dependencies with kind "value" and module "react" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    0: 'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
     1: 'Dependencies with kind "type" and module "react-router-dom" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 1',
     2: 'Dependencies with kind "value", module "foo-library" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',
     3: 'Dependencies with kind "value", module "foo-library" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "helpers". Denied by rule at index 0',

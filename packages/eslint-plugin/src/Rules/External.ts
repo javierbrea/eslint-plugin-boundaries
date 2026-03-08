@@ -18,7 +18,7 @@ import {
   SETTINGS,
   RULE_NAMES_MAP,
 } from "../Settings";
-import { isString, isArray } from "../Support";
+import { isString, isArray, isObject } from "../Support";
 
 import { evaluateRulesAndReport } from "./ElementTypes";
 import { dependencyRule } from "./Support";
@@ -38,8 +38,7 @@ function isExternalLibrarySelectorWithOptions(
     isArray(selector) &&
     selector.length === 2 &&
     isString(selector[0]) &&
-    typeof selector[1] === "object" &&
-    selector[1] !== null
+    isObject(selector[1])
   );
 }
 
