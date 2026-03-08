@@ -63,7 +63,7 @@ describe("validateAndWarnRuleOptions", () => {
     );
 
     expect(warnSpy).toHaveBeenCalledWith(
-      "[boundaries/element-types] Detected legacy selector syntax in 2 rule(s) at indices: 0, 2. Consider migrating to object-based selectors. See documentation for migration guide."
+      "[boundaries/element-types] Detected legacy selector syntax in 3 rule(s) at indices: 0, 1, 2. Consider migrating to object-based selectors. See documentation for migration guide."
     );
   });
 
