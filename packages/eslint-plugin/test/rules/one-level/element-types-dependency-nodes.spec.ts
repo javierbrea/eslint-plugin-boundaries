@@ -34,6 +34,7 @@ const dependencyNodesSettings = {
     {
       // mock('source')
       selector: "CallExpression[callee.name=mock] > Literal",
+      name: "mock",
     },
   ],
 };
@@ -87,6 +88,56 @@ const options = [
             dependency: { kind: "type" },
           },
         ],
+      },
+    ],
+  },
+];
+
+const nodeKindSelectorOptions = [
+  {
+    default: "allow",
+    rules: [
+      {
+        from: {
+          type: "helpers",
+        },
+        disallow: [
+          {
+            to: { type: "helpers" },
+            dependency: {
+              nodeKind: "import",
+            },
+          },
+        ],
+        message: "blocked-import-node-kind",
+      },
+      {
+        from: {
+          type: "helpers",
+        },
+        disallow: [
+          {
+            to: { type: "helpers" },
+            dependency: {
+              nodeKind: "dynamic-import",
+            },
+          },
+        ],
+        message: "blocked-dynamic-import-node-kind",
+      },
+      {
+        from: {
+          type: "helpers",
+        },
+        disallow: [
+          {
+            to: { type: "helpers" },
+            dependency: {
+              nodeKind: "mock",
+            },
+          },
+        ],
+        message: "blocked-mock-node-kind",
       },
     ],
   },
@@ -255,6 +306,63 @@ createRuleTester({
   ],
 });
 
+// Selector kind precedence over rule-level importKind
+createRuleTester(typescriptSettings).run(RULE, rule, {
+  valid: [
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import HelperA from 'helpers/helper-a'",
+      options: [
+        {
+          default: "allow",
+          rules: [
+            {
+              from: { type: "components" },
+              disallow: [
+                {
+                  to: { type: "helpers" },
+                  dependency: { kind: "type" },
+                },
+              ],
+              importKind: "value",
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  invalid: [
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import type { HelperA } from 'helpers/helper-a'",
+      options: [
+        {
+          default: "allow",
+          rules: [
+            {
+              from: { type: "components" },
+              disallow: [
+                {
+                  to: { type: "helpers" },
+                  dependency: { kind: "type" },
+                },
+              ],
+              importKind: "value",
+            },
+          ],
+        },
+      ],
+      errors: [
+        {
+          message:
+            'Dependencies with kind "type" to elements of type "helpers" are not allowed in elements of type "components". Denied by rule at index 0',
+          type: "Literal",
+        },
+      ],
+    },
+  ],
+});
+
 // Typescript without redefined dependency nodes
 createRuleTester(typescriptSettings).run(RULE, rule, {
   valid: [
@@ -407,6 +515,52 @@ createRuleTester({
           type: "Literal",
         },
       ],
+    },
+  ],
+});
+
+// With nodeKind selector options
+createRuleTester({
+  ...settings,
+  ...dependencyNodesSettings,
+}).run(RULE, rule, {
+  valid: [
+    // Helpers can export value from another helper when export node kind is not disallowed
+    {
+      filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+      code: "export { HelperB } from 'helpers/helper-b'",
+      options: nodeKindSelectorOptions,
+    },
+    // Helpers can require another helper when require node kind is not disallowed
+    {
+      filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+      code: "require('helpers/helper-b')",
+      options: nodeKindSelectorOptions,
+    },
+  ],
+  invalid: [
+    // Helpers can't import another helper when import node kind is disallowed
+    {
+      filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+      code: "import { HelperB } from 'helpers/helper-b'",
+      options: nodeKindSelectorOptions,
+      errors: [{ message: "blocked-import-node-kind", type: "Literal" }],
+    },
+    // Helpers can't dynamically import another helper when dynamic-import node kind is disallowed
+    {
+      filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+      code: "import('helpers/helper-b')",
+      options: nodeKindSelectorOptions,
+      errors: [
+        { message: "blocked-dynamic-import-node-kind", type: "Literal" },
+      ],
+    },
+    // Helpers can't mock another helper when custom mock node kind is disallowed
+    {
+      filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+      code: "mock('helpers/helper-b')",
+      options: nodeKindSelectorOptions,
+      errors: [{ message: "blocked-mock-node-kind", type: "Literal" }],
     },
   ],
 });
