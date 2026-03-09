@@ -64,6 +64,20 @@ export type CapturedValuesSelector =
   | Array<Record<string, MicromatchPatternNullable>>;
 
 /**
+ * Selector for matching the first parent element.
+ */
+export type ParentElementSelectorData = {
+  /** Type of the first parent element */
+  type?: MicromatchPatternNullable;
+  /** Category of the first parent element */
+  category?: MicromatchPatternNullable;
+  /** Path of the first parent element */
+  elementPath?: MicromatchPatternNullable;
+  /** Captured values from the first parent element */
+  captured?: CapturedValuesSelector;
+};
+
+/**
  * Data to pass to selector templates when they are rendered before matching.
  */
 export type TemplateData = Record<string, unknown>;
@@ -111,6 +125,8 @@ export type BaseElementSelectorData = {
   category?: MicromatchPatternNullable;
   /** Captured values selector for dynamic matching */
   captured?: CapturedValuesSelector;
+  /** Selector for matching the first parent element */
+  parent?: ParentElementSelectorData | null;
   /** Origin of the element */
   origin?: MicromatchPatternNullable;
   /** Whether the element is ignored */

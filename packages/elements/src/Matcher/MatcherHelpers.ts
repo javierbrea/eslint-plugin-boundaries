@@ -83,6 +83,7 @@ export function isBaseElementSelectorData(
     "type",
     "category",
     "captured",
+    "parent",
     "origin",
     "source",
     "module",

@@ -43,6 +43,7 @@ describe("Matcher", () => {
         {
           category: "business-logic",
           pattern: ["modules/*"],
+          capture: ["moduleName"],
         },
         {
           type: "foo",
@@ -462,6 +463,98 @@ describe("Matcher", () => {
         selector: { internalPath: "foo.ts" },
         expected: true,
       },
+      {
+        filePath: "/project/src/modules/user/foo.ts",
+        selector: { parent: null },
+        expected: true,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: { parent: { category: "business-logic" } },
+        expected: true,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: {
+          parent: { elementPath: "{{ element.parents.0.elementPath }}" },
+        },
+        expected: true,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: { parent: { category: "foo" } },
+        expected: false,
+      },
+      {
+        filePath: "/project/src/misc/other.ts",
+        selector: { parent: { category: "business-logic" } },
+        expected: false,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: { parent: { type: null } },
+        expected: true,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: {
+          parent: {
+            captured: {
+              moduleName: "{{ element.parents.0.captured.moduleName }}",
+            },
+          },
+        },
+        expected: true,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: {
+          parent: null,
+        },
+        expected: false,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: {
+          parent: {
+            captured: [
+              { moduleName: "foo" },
+              { moduleName: "{{ element.parents.0.captured.moduleName }}" },
+            ],
+          },
+        },
+        expected: true,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: {
+          parent: {
+            captured: [{ moduleName: "foo" }, { moduleName: "bar" }],
+          },
+        },
+        expected: false,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: {
+          category: "business-logic",
+          parent: {
+            captured: {
+              moduleName: "{{ element.parents.0.captured.moduleName }}",
+            },
+          },
+        },
+        expected: true,
+      },
     ])(
       "should return $expected when checking if $filePath matches the selector $selector",
       // @ts-expect-error: Testing some invalid cases too
@@ -753,6 +846,38 @@ describe("Matcher", () => {
           from: { type: "foo" },
         },
         expected: false,
+      },
+      {
+        dependency: {
+          from: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+          to: "/project/src/bar/Baz.ts",
+          source: "project/bar",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          from: { parent: { category: "business-logic" } },
+        },
+        expected: true,
+      },
+      {
+        dependency: {
+          from: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+          to: "/project/src/bar/Baz.ts",
+          source: "project/bar",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          from: {
+            parent: {
+              captured: {
+                moduleName: "{{ from.parents.0.captured.moduleName }}",
+              },
+            },
+          },
+        },
+        expected: true,
       },
       {
         dependency: {

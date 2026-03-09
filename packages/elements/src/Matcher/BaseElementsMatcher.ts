@@ -10,7 +10,8 @@ import {
   isObjectWithProperty,
   isString,
   isBoolean,
-  isNullish,
+  isNull,
+  isUndefined,
 } from "../Support";
 
 import type {
@@ -55,8 +56,8 @@ export class BaseElementsMatcher {
   private _getBackwardsCompatibleTemplate(
     template: string | null
   ): string | null {
-    if (template === null) {
-      return null;
+    if (isNull(template)) {
+      return template;
     }
     return template.replaceAll(LEGACY_TEMPLATE_REGEX, "{{ $1 }}");
   }
@@ -67,7 +68,7 @@ export class BaseElementsMatcher {
    * @returns True if the template contains Handlebars syntax, false otherwise.
    */
   private _isHandlebarsTemplate(template: string | null): boolean {
-    if (template === null) {
+    if (isNull(template)) {
       return false;
     }
     return HANDLEBARS_TEMPLATE_REGEX.test(template);
@@ -123,8 +124,8 @@ export class BaseElementsMatcher {
   protected cleanMicromatchPattern(
     pattern: MicromatchPatternNullable
   ): string | string[] | null {
-    if (pattern === null) {
-      return null;
+    if (isNull(pattern)) {
+      return pattern;
     }
     return isArray(pattern) ? (pattern.filter(Boolean) as string[]) : pattern;
   }
@@ -140,12 +141,11 @@ export class BaseElementsMatcher {
     value: unknown,
     pattern: MicromatchPatternNullable
   ): boolean {
-    if (
-      value === null &&
-      (pattern === null ||
-        (isArray(pattern) && pattern.some((p) => p === null)))
-    ) {
-      return true;
+    if (isNull(pattern)) {
+      return isNull(value);
+    }
+    if (isNull(value)) {
+      return isArray(pattern) && pattern.some(isNull);
     }
 
     // Clean empty strings from arrays to avoid matching them.
@@ -174,15 +174,15 @@ export class BaseElementsMatcher {
     templateData: TemplateData,
     value?: unknown
   ): boolean {
-    // If the element value is nullish, it cannot match anything.
-    if (isNullish(value)) {
+    // If the element value is undefined, it cannot match anything.
+    if (isUndefined(value)) {
       return false;
     }
 
     const patternRendered = this.getRenderedTemplates(pattern, templateData);
 
     // Empty rendered selector values do not match anything. (It may happen due to templates rendering to empty strings.)
-    if (!patternRendered) {
+    if (!isNull(patternRendered) && !patternRendered) {
       return false;
     }
 

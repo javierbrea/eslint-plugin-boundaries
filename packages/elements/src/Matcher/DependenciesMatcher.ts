@@ -125,6 +125,10 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       baseSelector.captured = selector.captured;
     }
 
+    if (selector.parent) {
+      baseSelector.parent = selector.parent;
+    }
+
     if (selector.origin) {
       baseSelector.origin = selector.origin;
     }

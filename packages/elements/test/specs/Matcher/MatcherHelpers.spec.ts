@@ -150,6 +150,9 @@ describe("elementsSelectorHelpers", () => {
     it("isElementSelectorData should match either", () => {
       expect(isElementSelectorData({ type: "component" })).toBe(true);
       expect(isElementSelectorData({ category: "ui" })).toBe(true);
+      expect(
+        isElementSelectorData({ parent: { type: "feature-folder" } })
+      ).toBe(true);
       expect(isElementSelectorData({ type: "component", category: "ui" })).toBe(
         true
       );
@@ -158,6 +161,10 @@ describe("elementsSelectorHelpers", () => {
 
     it("isElementSelectorData should not match simple strings", () => {
       expect(isElementSelectorData("component")).toBe(false);
+    });
+
+    it("isElementSelectorData should match parent property being null", () => {
+      expect(isElementSelectorData({ parent: null })).toBe(true);
     });
   });
 

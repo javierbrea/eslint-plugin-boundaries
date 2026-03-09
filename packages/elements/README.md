@@ -287,6 +287,11 @@ Element selectors support the following properties:
 - **`type`** (`string | string[]`): Micromatch pattern(s) for the element type/s
 - **`category`** (`string | string[]`): Micromatch pattern(s) for the element category/categories
 - **`captured`** (`object | object[]`): Captured values selector. When provided as an object, all keys must match (AND logic). When provided as an array of objects, the element matches if any of the objects matches all keys (OR logic). Each key in the objects can be a string or an array of strings representing micromatch patterns.
+- **`parent`** (`object` | `null`): Selector for the first parent in the element description (`parents[0]`). Supported properties are:
+  - **`type`** (`string | string[]`): Micromatch pattern(s) for parent type
+  - **`category`** (`string | string[]`): Micromatch pattern(s) for parent category
+  - **`elementPath`** (`string | string[]`): Micromatch pattern(s) for parent element path
+  - **`captured`** (`object | object[]`): Parent captured values selector. Uses the same semantics as `captured` in the root selector (object = AND, array = OR)
 - **`origin`** (`"local" | "external" | "core"`): Element origin
   - `local`: Files within the project
   - `external`: External dependencies (e.g., `node_modules`)
@@ -296,6 +301,10 @@ Element selectors support the following properties:
 - **`internalPath`** (`string | string[]`): Pattern(s) for the path within the element. For file elements, it's the same as `elementPath`; for folder elements, it's relative to the folder.
 - **`isIgnored`** (`boolean`): Whether the element is ignored
 - **`isUnknown`** (`boolean`): Whether the element type is unknown (i.e., doesn't match any descriptor)
+
+
+> [!NOTE]
+> All properties in the selector are optional. You can also use `null` values in selector to match only elements with `null` values in the corresponding properties. In the case of `parent`, setting it to `null` will match elements that have no parents (i.e., top-level elements). If `parent` is an object, it will only match elements that have at least one parent, and the first parent (`parents[0]`) matches the specified conditions.
 
 #### Dependency Selectors
 

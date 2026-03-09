@@ -8,12 +8,12 @@ export function isString(value: unknown): value is string {
 }
 
 /**
- * Determines if the given value is not null or undefined.
- * @param value The value to check.
- * @returns True if the value is not null or undefined, false otherwise.
+ * Determines if the given value is undefined.
+ * @param value  The value to check.
+ * @returns True if the value is undefined, false otherwise.
  */
-export function isNullish(value: unknown): value is null | undefined {
-  return value === null || value === undefined;
+export function isUndefined(value: unknown): value is undefined {
+  return value === undefined;
 }
 
 /**
@@ -23,6 +23,15 @@ export function isNullish(value: unknown): value is null | undefined {
  */
 export function isNull(value: unknown): value is null {
   return value === null;
+}
+
+/**
+ * Determines if the given value is not null or undefined.
+ * @param value The value to check.
+ * @returns True if the value is not null or undefined, false otherwise.
+ */
+export function isNullish(value: unknown): value is null | undefined {
+  return isUndefined(value) || isNull(value);
 }
 
 /**

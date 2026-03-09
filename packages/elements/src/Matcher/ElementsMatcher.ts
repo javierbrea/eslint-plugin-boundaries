@@ -3,11 +3,18 @@ import type {
   MicromatchPatternNullable,
 } from "../Config";
 import type { ElementDescription } from "../Descriptor";
-import { isArray, isNullish, isEmptyObject } from "../Support";
+import {
+  isArray,
+  isNullish,
+  isEmptyObject,
+  isUndefined,
+  isNull,
+} from "../Support";
 
 import { BaseElementsMatcher } from "./BaseElementsMatcher";
 import type {
   BaseElementSelectorData,
+  ParentElementSelectorData,
   SelectableElement,
   TemplateData,
   BaseElementsSelector,
@@ -164,22 +171,22 @@ export class ElementsMatcher extends BaseElementsMatcher {
 
   /**
    * Checks if a single captured values object matches the element.
-   * @param element The element to check.
+   * @param capturedValues The captured values to check.
    * @param capturedSelector The captured values selector object to check against
    * @param templateData The data to use for replace in selector values
    * @returns True if all captured values in the selector match those in the element, false otherwise.
    */
   private _checkCapturedValuesObject(
-    element: SelectableElement,
+    capturedValues: SelectableElement["captured"],
     capturedSelector: Record<string, MicromatchPatternNullable>,
     templateData: TemplateData
   ): boolean {
-    if (!element.captured) {
+    if (!capturedValues) {
       return false;
     }
     // Use for...of with early return for better performance than every()
     for (const [key, pattern] of Object.entries(capturedSelector)) {
-      const elementValue = element.captured?.[key];
+      const elementValue = capturedValues[key];
       if (!elementValue) {
         return false;
       }
@@ -226,16 +233,127 @@ export class ElementsMatcher extends BaseElementsMatcher {
       }
       // Match if any of the array elements matches
       return selector.captured.some((capturedSelector) =>
-        this._checkCapturedValuesObject(element, capturedSelector, templateData)
+        this._checkCapturedValuesObject(
+          element.captured,
+          capturedSelector,
+          templateData
+        )
       );
     }
 
     // Handle single captured values selector object
     return this._checkCapturedValuesObject(
-      element,
+      element.captured,
       selector.captured,
       templateData
     );
+  }
+
+  /**
+   * Determines if the parent captured values match the selector.
+   * @param parentSelector The parent selector to match.
+   * @param parentCaptured The captured values from first parent.
+   * @param templateData The data to use for replace in selector values
+   * @returns True if the captured values match, false otherwise.
+   */
+  private _isParentCapturedValuesMatch(
+    parentSelector: ParentElementSelectorData,
+    parentCaptured: SelectableElement["captured"],
+    templateData: TemplateData
+  ): boolean {
+    if (!parentSelector.captured || isEmptyObject(parentSelector.captured)) {
+      return true;
+    }
+
+    if (isArray(parentSelector.captured)) {
+      if (parentSelector.captured.length === 0) {
+        return false;
+      }
+      return parentSelector.captured.some((capturedSelector) =>
+        this._checkCapturedValuesObject(
+          parentCaptured,
+          capturedSelector,
+          templateData
+        )
+      );
+    }
+
+    return this._checkCapturedValuesObject(
+      parentCaptured,
+      parentSelector.captured,
+      templateData
+    );
+  }
+
+  /**
+   * Whether the given element first parent matches the selector parent.
+   * @param element The element to check.
+   * @param selector The selector to check against.
+   * @param templateData The data to use for replace in selector values
+   * @returns Whether the first parent matches the selector parent.
+   */
+  private _isParentMatch(
+    element: SelectableElement,
+    selector: BaseElementSelectorData,
+    templateData: TemplateData
+  ): boolean {
+    if (isUndefined(selector.parent)) {
+      return true;
+    }
+    if (isNull(selector.parent)) {
+      return !element.parents || element.parents.length === 0;
+    }
+
+    const firstParent = element.parents?.[0];
+
+    if (!firstParent) {
+      return false;
+    }
+
+    if (
+      !isUndefined(selector.parent.type) &&
+      !this.isTemplateMicromatchMatch(
+        selector.parent.type,
+        templateData,
+        firstParent.type
+      )
+    ) {
+      return false;
+    }
+
+    if (
+      !isUndefined(selector.parent.category) &&
+      !this.isTemplateMicromatchMatch(
+        selector.parent.category,
+        templateData,
+        firstParent.category
+      )
+    ) {
+      return false;
+    }
+
+    if (
+      !isUndefined(selector.parent.elementPath) &&
+      !this.isTemplateMicromatchMatch(
+        selector.parent.elementPath,
+        templateData,
+        firstParent.elementPath
+      )
+    ) {
+      return false;
+    }
+
+    if (
+      !this._isParentCapturedValuesMatch(
+        selector.parent,
+        firstParent.captured,
+        templateData
+      )
+    ) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -303,7 +421,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
         !this._isPathMatch(element, selectorData, templateData) ||
         !this._isElementPathMatch(element, selectorData, templateData) ||
         !this._isInternalPathMatch(element, selectorData, templateData) ||
-        !this._isCapturedValuesMatch(element, selectorData, templateData)
+        !this._isCapturedValuesMatch(element, selectorData, templateData) ||
+        !this._isParentMatch(element, selectorData, templateData)
       ) {
         continue; // Early exit on first failed condition
       }
