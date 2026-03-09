@@ -7,6 +7,13 @@ tags:
   - rules
   - configuration
   - examples
+keywords:
+  - eslint-plugin-boundaries
+  - no-unknown rule
+  - unknown elements
+  - import validation
+  - architecture enforcement
+  - import restrictions
 ---
 
 # no-unknown

@@ -6,13 +6,14 @@ tags:
   - troubleshooting
   - advanced
 keywords:
-  - JS Boundaries
-  - ESLint plugin
-  - boundaries
-  - javaScript
-  - typeScript
+  - eslint-plugin-boundaries
+  - JavaScript
+  - TypeScript
   - debugging
   - troubleshooting
+  - debug mode
+  - debug filter
+  - ESLINT_PLUGIN_BOUNDARIES_DEBUG
 ---
 
 # Debugging

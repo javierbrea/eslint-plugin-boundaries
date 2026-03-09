@@ -7,13 +7,16 @@ tags:
   - configuration
   - concepts
 keywords:
-  - JS Boundaries
-  - ESLint plugin
-  - boundaries
-  - javaScript
-  - typeScript
+  - eslint-plugin-boundaries
+  - eslint setup
+  - JavaScript
+  - TypeScript
   - setup
-  - overview
+  - setup overview
+  - configuration
+  - element descriptors
+  - element selectors
+  - plugin settings
 ---
 
 # Setup Overview

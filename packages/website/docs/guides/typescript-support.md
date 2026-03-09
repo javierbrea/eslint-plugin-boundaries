@@ -6,12 +6,12 @@ tags:
   - configuration
   - troubleshooting
 keywords:
-  - JS Boundaries
-  - ESLint plugin
-  - boundaries
-  - typeScript
-  - setup
-  - configuration
+  - eslint-plugin-boundaries
+  - TypeScript
+  - eslint-import-resolver-typescript
+  - path aliases
+  - typed config
+  - Config type
   - troubleshooting
 ---
 

@@ -2,6 +2,13 @@
 id: releases
 title: Releases
 description: Information about releases, changelogs, and migration guides for the project.
+keywords:
+  - eslint-plugin-boundaries
+  - releases
+  - changelog
+  - release notes
+  - semantic versioning
+  - migration guides
 ---
 
 # Releases

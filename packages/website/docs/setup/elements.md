@@ -7,17 +7,18 @@ tags:
   - concepts
   - configuration
 keywords:
-  - JS Boundaries
-  - ESLint plugin
-  - boundaries
-  - javaScript
-  - typeScript
+  - eslint-plugin-boundaries
+  - JavaScript
+  - TypeScript
   - element descriptors
   - element types
-  - setup
-  - configuration
+  - captured values
+  - runtime descriptions
   - patterns
   - path matching
+  - architecture enforcement
+  - import restrictions
+  - dependency constraints
 ---
 
 # Elements

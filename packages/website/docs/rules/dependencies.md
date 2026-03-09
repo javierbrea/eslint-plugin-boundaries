@@ -8,6 +8,13 @@ tags:
   - rules
   - configuration
   - examples
+keywords:
+  - eslint-plugin-boundaries
+  - element-types rule
+  - dependency constraints
+  - allow disallow
+  - selectors
+  - import restrictions
 ---
 
 # element-types

@@ -7,17 +7,14 @@ tags:
   - concepts
   - configuration
 keywords:
-  - JS Boundaries
-  - ESLint plugin
-  - boundaries
-  - javaScript
-  - typeScript
-  - setup
-  - configuration
-  - rules
-  - element selectors
+  - eslint-plugin-boundaries
+  - JavaScript
+  - TypeScript
   - selectors
-  - templates
+  - element selectors
+  - dependency selectors
+  - micromatch
+  - rules configuration
 ---
 
 # Selectors

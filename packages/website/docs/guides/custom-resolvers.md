@@ -7,17 +7,16 @@ tags:
   - advanced
   - troubleshooting
 keywords:
-  - JS Boundaries
-  - ESLint plugin
-  - boundaries
-  - javaScript
-  - typeScript
+  - eslint-plugin-boundaries
+  - JavaScript
+  - TypeScript
   - webpack
   - babel
   - custom resolvers
   - module resolution
-  - setup
-  - configuration
+  - import resolver
+  - eslint-plugin-import
+  - alias resolver
   - troubleshooting
 ---
 

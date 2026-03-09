@@ -5,11 +5,10 @@ description: Learn what ESLint Plugin Boundaries is and how it can help you enfo
 tags:
   - concepts
 keywords:
-  - JS Boundaries
-  - ESLint plugin
-  - boundaries
-  - javaScript
-  - typeScript
+  - eslint-plugin-boundaries
+  - eslint plugin
+  - JavaScript
+  - TypeScript
   - architectural layers
   - software architecture
   - module dependencies
@@ -17,8 +16,8 @@ keywords:
   - code quality
   - linting
   - static analysis
-  - dependencies
-  - architecture
+  - dependency analysis
+  - architecture enforcement
   - clean code
 ---
 

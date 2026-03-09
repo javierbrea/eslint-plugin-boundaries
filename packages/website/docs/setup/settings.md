@@ -7,13 +7,15 @@ tags:
   - eslint
   - configuration
 keywords:
-  - JS Boundaries
-  - ESLint plugin
-  - boundaries
-  - javaScript
-  - typeScript
-  - setup
+  - eslint-plugin-boundaries
+  - JavaScript
+  - TypeScript
+  - settings
   - configuration
+  - include and ignore
+  - dependency nodes
+  - root path
+  - debug settings
   - settings
   - performance
   - ast

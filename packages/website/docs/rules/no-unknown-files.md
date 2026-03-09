@@ -7,6 +7,14 @@ tags:
   - rules
   - configuration
   - examples
+keywords:
+  - eslint-plugin-boundaries
+  - no-unknown-files rule
+  - file classification
+  - element descriptors
+  - architecture enforcement
+  - linting policy
+  - import restrictions
 ---
 
 # no-unknown-files

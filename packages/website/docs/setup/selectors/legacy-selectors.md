@@ -7,13 +7,14 @@ tags:
   - configuration
   - deprecated
 keywords:
-  - JS Boundaries
-  - ESLint plugin
-  - boundaries
+  - eslint-plugin-boundaries
   - legacy
   - selectors
   - deprecated
   - migration
+  - string selector
+  - tuple selector
+  - object-based selectors
 ---
 
 # Legacy Selector Syntax

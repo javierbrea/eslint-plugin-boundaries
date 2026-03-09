@@ -6,13 +6,14 @@ tags:
   - eslint
   - configuration
 keywords:
-  - JS Boundaries
-  - ESLint plugin
-  - boundaries
-  - javaScript
-  - typeScript
-  - setup
-  - configuration
+  - eslint-plugin-boundaries
+  - JavaScript
+  - TypeScript
+  - eslint integration
+  - flat config
+  - createConfig
+  - recommended config
+  - strict config
   - settings
   - helpers
 ---

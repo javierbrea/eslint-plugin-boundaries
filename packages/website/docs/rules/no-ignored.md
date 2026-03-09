@@ -7,6 +7,14 @@ tags:
   - rules
   - configuration
   - examples
+keywords:
+  - eslint-plugin-boundaries
+  - no-ignored rule
+  - ignored files
+  - boundaries/ignore
+  - known elements
+  - architecture enforcement
+  - import restrictions
 ---
 
 # no-ignored

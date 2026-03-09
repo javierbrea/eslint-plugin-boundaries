@@ -5,10 +5,16 @@ description: Overview of the rules provided by ESLint Plugin Boundaries to enfor
 tags:
   - rules
 keywords:
-  - ESLint plugin
-  - boundaries
+  - eslint-plugin-boundaries
   - rules
-  - summary
+  - rules overview
+  - element-types
+  - no-unknown
+  - no-unknown-files
+  - no-ignored
+  - architecture enforcement
+  - import restrictions
+  - dependency constraints
 ---
 
 # Rules Overview

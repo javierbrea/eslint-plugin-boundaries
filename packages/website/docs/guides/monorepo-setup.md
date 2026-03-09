@@ -7,18 +7,17 @@ tags:
   - configuration
   - advanced
 keywords:
-  - JS Boundaries
-  - ESLint plugin
-  - boundaries
+  - eslint-plugin-boundaries
   - monorepo
   - configuration
   - setup
   - settings
   - workspace
   - packages
-  - lerna
   - pnpm
   - yarn workspaces
+  - nx
+  - flag-as-external
 ---
 
 # Monorepo Setup
