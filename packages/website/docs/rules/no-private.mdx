@@ -204,22 +204,45 @@ Here you have an example of how to migrate a configuration from `boundaries/no-p
 .   rules: {
 -     "boundaries/no-private": [2, { allowUncles: true }]
 +     "boundaries/element-types": [2, {
-+       default: "allow",
++       default: "disallow",
 +       rules: [
-+         // Disallow all elements importing children elements of other elements
++         // Allow all elements importing their own children, siblings, and uncles     
 +         {
-+           from: { type: "*" },
-+           disallow: {
++           allow: {
 +             dependency: {
 +               relationship: {
-+                 to: ["child"],
++                 to: ["child", "sibling", "uncle"],
 +               }
++             },
++           }
++         }
++       ]
++     }]
+.   }
+. }
+`}</CodeDiff>
+
+In case you have the default policy set to `allow` instead of `disallow`, you can also achieve the same result by just adding a rule that disallows all elements importing other private children, while allowing to import their own children, siblings, and uncles:
+
+<CodeDiff language="javascript">{`
+. {
+.   rules: {
+-     "boundaries/no-private": [2, { allowUncles: true }]
++     "boundaries/element-types": [2, {
++       default: "allow",
++       rules: [
++         // Disallow importing any element with any kind of parent
++         {
++           disallow: {
++             to: {
++               parent: {
++                 type: "*"
++               },
 +             },
 +           }
 +         },
 +         // Allow all elements importing their own children, siblings, and uncles     
 +         {
-+           from: { type: "*" },
 +           allow: {
 +             dependency: {
 +               relationship: {

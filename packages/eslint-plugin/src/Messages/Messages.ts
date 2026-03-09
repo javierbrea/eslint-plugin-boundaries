@@ -76,10 +76,34 @@ function capitalizeFirstLetter(message: string): string {
 function buildElementPropertyFragments(
   elementDescription: ElementDescription | ElementParent,
   properties: string[],
-  options?: { capturedKeys?: string[] }
+  options?: {
+    capturedKeys?: string[];
+    parentProperties?: string[];
+    parentCapturedKeys?: string[];
+  }
 ): string[] {
   const fragments: string[] = [];
   for (const propertyName of properties) {
+    if (propertyName === "parent") {
+      const firstParent = (elementDescription as ElementDescription)
+        .parents?.[0];
+      if (!firstParent) {
+        continue;
+      }
+      const parentProperties = options?.parentProperties ?? [];
+      const parentFragments = buildElementPropertyFragments(
+        firstParent,
+        parentProperties,
+        {
+          capturedKeys: options?.parentCapturedKeys,
+        }
+      );
+      if (parentFragments.length) {
+        fragments.push(`parent ${joinWithCommasAndAnd(parentFragments)}`);
+      }
+      continue;
+    }
+
     const value =
       elementDescription[propertyName as keyof typeof elementDescription];
     if (value === undefined || value === null) {
@@ -145,11 +169,20 @@ function elementDescriptionMessageFromSelector(
   const capturedKeys = isObject(selectorData.captured)
     ? Object.keys(selectorData.captured)
     : undefined;
+  const parentProperties = isObject(selectorData.parent)
+    ? Object.keys(selectorData.parent)
+    : undefined;
+  const parentCapturedKeys =
+    isObject(selectorData.parent) && isObject(selectorData.parent.captured)
+      ? Object.keys(selectorData.parent.captured)
+      : undefined;
   const propertyFragments = buildElementPropertyFragments(
     elementDescription,
     properties,
     {
       capturedKeys,
+      parentProperties,
+      parentCapturedKeys,
     }
   );
   if (!propertyFragments.length) {

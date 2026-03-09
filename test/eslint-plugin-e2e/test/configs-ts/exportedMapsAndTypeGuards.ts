@@ -22,8 +22,6 @@ import {
   FlagAsExternalOptions,
   isElementSelector,
   isElementsSelector,
-  isExternalLibrarySelector,
-  isExternalLibrariesSelector,
 } from "@boundaries/eslint-plugin/config";
 import type {
   RulePolicy,

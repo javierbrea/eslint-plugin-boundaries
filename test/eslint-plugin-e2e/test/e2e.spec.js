@@ -68,9 +68,7 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes(
-                    "No rule allowing this dependency was found"
-                  )
+                  msg.message.includes("There is no rule allowing dependencies")
               )
           );
         }
@@ -113,9 +111,7 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes(
-                    "No rule allowing this dependency was found"
-                  )
+                  msg.message.includes("There is no rule allowing dependencies")
               )
           );
         }
@@ -161,9 +157,7 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes(
-                    "No rule allowing this dependency was found"
-                  )
+                  msg.message.includes("There is no rule allowing dependencies")
               )
           );
         }
@@ -209,9 +203,7 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes(
-                    "No rule allowing this dependency was found"
-                  )
+                  msg.message.includes("There is no rule allowing dependencies")
               )
           );
         }
@@ -254,9 +246,7 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "customBoundaries/element-types" &&
-                  msg.message.includes(
-                    "No rule allowing this dependency was found"
-                  )
+                  msg.message.includes("There is no rule allowing dependencies")
               )
           );
         }
@@ -302,9 +292,7 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "customBoundaries/element-types" &&
-                  msg.message.includes(
-                    "No rule allowing this dependency was found"
-                  )
+                  msg.message.includes("There is no rule allowing dependencies")
               )
           );
         }
@@ -330,7 +318,7 @@ const tests = [
               (msg) =>
                 msg.ruleId === "boundaries/no-unknown" &&
                 msg.message.includes(
-                  "Importing unknown elements is not allowed"
+                  "Dependencies to unknown elements are not allowed"
                 )
             )
           );
@@ -346,7 +334,7 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/no-unknown-files" &&
-                msg.message.includes("File is not of any known element type")
+                msg.message.includes("File does not match any element pattern")
             )
           );
         }
@@ -361,7 +349,9 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/no-ignored" &&
-                msg.message.includes("Importing ignored files is not allowed")
+                msg.message.includes(
+                  "Dependencies to ignored files are not allowed"
+                )
             )
           );
         }
@@ -378,9 +368,7 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes(
-                    "No rule allowing this dependency was found"
-                  )
+                  msg.message.includes("There is no rule allowing dependencies")
               )
           );
         }
@@ -424,7 +412,7 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/external" &&
-                msg.message.includes("type 'component' with name 'component-a'")
+                msg.message.includes('type "component" and name "component-a"')
             )
           );
         }
@@ -442,7 +430,7 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/external" &&
-                msg.message.includes("type 'helper' with name 'helper-a'")
+                msg.message.includes('type "helper" and name "helper-a"')
             )
           );
         }
@@ -460,7 +448,7 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/external" &&
-                msg.message.includes("type 'helper' with name 'helper-a'")
+                msg.message.includes('type "helper" and name "helper-a"')
             )
           );
         }

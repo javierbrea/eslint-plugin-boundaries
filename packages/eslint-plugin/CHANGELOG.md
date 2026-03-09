@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 ### Removed
 ### BREAKING CHANGES
+* Remove `isExternalLibrarySelector` and `isExternalLibrariesSelector` type guards. They are not needed anymore, as external rule is deprecated and external library selectors can be defined using the same `ElementSelector` format.
 
 ## [5.4.0] - 2026-02-02
 

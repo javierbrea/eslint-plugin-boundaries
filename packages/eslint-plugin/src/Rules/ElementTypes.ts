@@ -140,6 +140,23 @@ function getPolicyEntries(
 }
 
 /**
+ * Merges two objects by combining their properties, with entry properties taking precedence over outer properties.
+ * If both objects have a property that is also an object, they are merged to avoid losing any nested properties.
+ * @param outer The outer object.
+ * @param entry The entry object.
+ * @returns The merged object.
+ */
+function mergeProperties<T>(
+  outer: T | undefined,
+  entry: T | undefined
+): T | undefined {
+  if (isObject(outer) && isObject(entry)) {
+    return { ...outer, ...entry };
+  }
+  return entry !== undefined ? entry : outer;
+}
+
+/**
  * Merges two element selectors by merging their fields, with entry fields taking precedence over outer fields.
  * If both selectors have a `captured` field, they are merged separately to avoid losing any captured values.
  */
@@ -148,12 +165,16 @@ function mergeElementSelectorData(
   entry: BaseElementSelectorData
 ): BaseElementSelectorData {
   if (isObject(outer) && isObject(entry)) {
-    if (isObject(outer.captured) && isObject(entry.captured)) {
-      // Merge captured values separately to avoid losing any of them
-      const mergedCaptured = { ...outer.captured, ...entry.captured };
-      return { ...outer, ...entry, captured: mergedCaptured };
+    const result: BaseElementSelectorData = { ...outer, ...entry };
+    const captured = mergeProperties(outer.captured, entry.captured);
+    if (captured !== undefined) {
+      result.captured = captured;
     }
-    return { ...outer, ...entry };
+    const parent = mergeProperties(outer.parent, entry.parent);
+    if (parent !== undefined) {
+      result.parent = parent;
+    }
+    return result;
   }
   return entry !== undefined ? entry : outer;
 }
@@ -163,15 +184,15 @@ function mergeDependencySelectorData(
   entry: DependencyDataSelectorData
 ): DependencyDataSelectorData {
   if (isObject(outer) && isObject(entry)) {
-    if (isObject(outer.relationship) && isObject(entry.relationship)) {
-      // Merge relationship values separately to avoid losing any of them
-      const mergedRelationship = {
-        ...outer.relationship,
-        ...entry.relationship,
-      };
-      return { ...outer, ...entry, relationship: mergedRelationship };
+    const result = { ...outer, ...entry };
+    const relationship = mergeProperties(
+      outer.relationship,
+      entry.relationship
+    );
+    if (relationship !== undefined) {
+      result.relationship = relationship;
     }
-    return { ...outer, ...entry };
+    return result;
   }
   return entry !== undefined ? entry : outer;
 }

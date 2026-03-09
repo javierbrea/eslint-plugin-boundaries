@@ -122,6 +122,17 @@ const dependencyMatcherSchema = {
   ],
 };
 
+const parentElementMatcherSchema = {
+  type: "object",
+  properties: {
+    type: micromatchPatternNullableSchema,
+    category: micromatchPatternNullableSchema,
+    elementPath: micromatchPatternNullableSchema,
+    captured: micromatchPatternNullableSchema,
+  },
+  additionalProperties: false,
+};
+
 const objectElementMatcherSchemaItem = {
   type: "object", // single object-based selector (new format)
   properties: {
@@ -134,6 +145,13 @@ const objectElementMatcherSchemaItem = {
       oneOf: [
         { type: ["object", "null"] },
         { type: "array", items: { type: ["object", "null"] } },
+      ],
+    },
+    parent: {
+      oneOf: [
+        { type: "null" },
+        parentElementMatcherSchema,
+        { type: "array", items: parentElementMatcherSchema },
       ],
     },
     origin: micromatchPatternNullableSchema,
@@ -290,6 +308,12 @@ export function rulesOptionsSchema(
         },
       ]
     : [
+        {
+          required: ["allow"],
+        },
+        {
+          required: ["disallow"],
+        },
         {
           required: ["from", "allow"],
         },

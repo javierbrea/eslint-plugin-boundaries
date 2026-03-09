@@ -7,8 +7,7 @@ import type {
   Settings,
   Rules,
   ElementDescriptor,
-  ElementSelector,
-  ElementSelectors,
+  ElementSelectorWithOptions,
   AliasSetting,
 } from "@boundaries/eslint-plugin";
 
@@ -34,12 +33,12 @@ const allowComponentsFromModules: ElementTypesRule = {
   allow: ["component"],
 };
 
-const componentToComponentRuleAllowMatcher: ElementSelector = [
+const componentToComponentRuleAllowMatcher: ElementSelectorWithOptions = [
   "component",
   { name: "foo" },
 ];
 
-const componentToComponentRuleElementSelectors: ElementSelectors = [
+const componentToComponentRuleElementSelectors = [
   "component",
   componentToComponentRuleAllowMatcher,
 ];
