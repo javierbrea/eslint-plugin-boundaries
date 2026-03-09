@@ -249,31 +249,14 @@ import ModuleB from 'modules/module-b'
 
 ## Error Messages
 
-
 This rule provides detailed error messages to help you understand and resolve violations.
 
-
-- **Default disallow message:** When an entry point is disallowed because it doesn't match any rule and the default is `"disallow"`, the message includes the entry point and dependency information:
-
-
-  `No rule allows the entry point 'fooFile.js' in dependencies of type 'component' with family 'molecules' and elementName 'molecule-c'`
-
-
-- **Rule violation message:** When a specific rule disallows an entry point, the message includes which rule triggered it:
-
-
-  `The entry point 'fooFile.js' is not allowed in elements of type 'helper' with elementName 'helper-c'. Disallowed in rule 2`
-
-
-- **Import kind message:** For TypeScript imports, the message also includes the import kind:
-
-
-  `The entry point 'fooFile.js' is not allowed in elements of type 'helper' with elementName 'helper-c' when importing type. Disallowed in rule 2`
+It uses the same default message format as [`boundaries/element-types`](./dependencies.md#error-messages). The message includes information about the violated rule and the elements involved in the violation, as well as details about the specific import that is not allowed (e.g., the internal path of the imported file).
 
 ### Custom Messages with Templates
 
 :::tip
-You can customize error messages globally or for specific rules. See [Rules Configuration](../setup/rules.mdx) for details.
+You can customize error messages globally or for specific rules. See [Rules Configuration -> Message Templating](../setup/rules.mdx#message-templating) for more details.
 :::
 
 ## Migration to `boundaries/element-types`

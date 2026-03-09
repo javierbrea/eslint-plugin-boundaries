@@ -354,40 +354,16 @@ import Login from '@mui/icons-material/Login'
 
 This rule provides detailed error messages to help you understand and resolve violations.
 
+It uses the same default message format as [`boundaries/element-types`](./dependencies.md#error-messages). Messages include information about the external dependency that is not allowed, such as the `module` and, when applicable, `specifiers` and internal path details (read [Element Descriptions](../setup/elements.md#runtime-description-properties) for more information on how elements are described).
 
-- **Default disallow message:** When an external import is disallowed because it doesn't match any rule and the default is `"disallow"`, the message includes the module name and element information:
+For example:
 
-
-  `No rule allows the usage of external module 'react' in elements of type 'helper'`
-
-
-- **Rule violation message:** When a specific rule disallows an external import, the message includes which rule triggered it:
-
-
-  `Usage of external module 'react' is not allowed in elements of type 'helper' with elementName 'helper-a'. Disallowed in rule 2`
-
-
-- **Specifiers message:** When the violation involves specific import specifiers:
-
-
-  `Usage of 'useMemo, useEffect' from external module 'react' is not allowed in elements of type 'helper' with elementName 'helper-a'. Disallowed in rule 2`
-
-
-- **Path message:** When the violation involves a specific import path:
-
-
-  `Usage of '/Login' from external module '@mui/icons-material' is not allowed in elements of type 'module' with elementName 'module-a'. Disallowed in rule 3`
-
-
-- **Import kind message:** For TypeScript imports, the message also includes the import kind:
-
-
-  `Usage of type 'useMemo, useEffect' from external module 'react' is not allowed in elements of type 'helper' with elementName 'helper-a'. Disallowed in rule 2`
+`Dependencies with module "react" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0`
 
 ### Custom Messages with Templates
 
 :::tip
-You can customize error messages globally or for specific rules. See [Rules Configuration](../setup/rules.mdx) for details.
+You can customize error messages globally or for specific rules. See [Rules Configuration -> Message Templating](../setup/rules.mdx#message-templating) for more details.
 :::
 
 ### `report` in Legacy Custom Messages

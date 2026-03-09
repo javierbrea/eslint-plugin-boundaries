@@ -295,22 +295,30 @@ import ModuleB from 'modules/module-b'
 
 This rule provides detailed error messages to help you understand and resolve violations.
 
-- **Default disallow message:** When an import is disallowed because it doesn't match any rule and the default is `"disallow"`, the message includes the file type with captured values and the dependency type with captured values:
+- **No matching rule message:** When no rule matches a dependency and the default behavior is `"disallow"`, the message starts with:
 
-  `No rule allowing this dependency was found. File is of type 'component' with family 'molecules' and elementName 'molecule-c'. Dependency is of type 'modules' with domain 'domain-a' and elementName 'module-a'`
+  `There is no rule allowing dependencies ...`
 
-- **Rule violation message:** When a specific rule disallows an import, the message includes which rule triggered it:
+  Then it describes briefly the elements involved in the dependency (e.g., `from elements of type "component" and category "molecules" to elements of type "component" and category "atoms"`).
 
-  `Importing elements of type 'component' with family 'atoms' and elementName '*-a' is not allowed in elements of type 'helper' with elementName 'helper-c'. Disallowed in rule 1`
+  Example:
 
-- **Dependency kind message:** For TypeScript imports, the message also includes the dependency kind:
+  `There is no rule allowing dependencies from elements of type "component" and  category "molecules" to elements of type "module" and category "atoms"`
 
-  `Importing kind "value" from elements of type 'component' with family 'atoms' and elementName '*-a' as 'value' is not allowed in elements of type 'helper' with elementName 'helper-c'. Disallowed in rule 1`
+- **Denied by rule message:** When a rule matches and denies a dependency, the message describes the denied selector and ends with the rule index:
+
+  `... . Denied by rule at index <n>`
+
+  Example:
+
+  `Dependencies to elements of type "component" and category "atoms" are not allowed in elements of type "helper". Denied by rule at index 1`
+
+  **The exact sentence can vary depending on which **[selector](../setup/selectors.md)** parts where used to match the dependency** (in any of `from`, `to`, `dependency`, `disallow`). For example, messages can include `with module "..."`, `with source "..."`, `to elements of ...`, and/or `in elements of ...`. This detailed information in the messages is intended to help you understand exactly why a dependency is being disallowed and how to adjust your rules or code accordingly.
 
 ### Custom Messages with Templates
 
 :::tip
-You can customize error messages globally or for specific rules. See [Rules Configuration](../setup/rules.mdx) for details.
+You can customize error messages globally or for specific rules. Use the [`message` option](#options) in your rule configuration and see [Rules Configuration -> Message Templating](../setup/rules.mdx#message-templating) for more details.
 :::
 
 ## Further Reading
