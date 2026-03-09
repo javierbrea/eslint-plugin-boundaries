@@ -63,9 +63,9 @@ Element descriptors are configuration inputs. During analysis, the plugin transf
 
 - These **element descriptions** include resolved properties such as `type`, `category`, `captured`, `parents`, `origin`, etc.
 - When a dependency is analyzed, the plugin builds a **dependency description** containing:
-  - `from`: description of the file being analyzed
-  - `to`: description of the imported target
-  - `dependency`: dependency metadata (`kind`, `relationship`, `specifiers`, etc.)
+  - `from`: Element description of the file being analyzed
+  - `to`: Element description of the imported target
+  - `dependency`: Dependency metadata (`kind`, `relationship`, `specifiers`, etc.)
 
 :::info
 Read the [Runtime Descriptions](#runtime-description-properties) for a detailed breakdown of all available properties in runtime descriptions.
@@ -321,11 +321,11 @@ For path `src/modules/auth/components/LoginForm/index.js`:
 
 ## Runtime Description Properties
 
-Based on the element descriptors, the plugin builds runtime descriptions for each file and dependency. These descriptions contains:
+Based on the element descriptors, the plugin builds runtime descriptions for each dependency. These descriptions contains:
 
-* `from`: description of the file being analyzed
-* `to`: description of the imported target
-* `dependency`: dependency metadata (`kind`, `relationship`, `specifiers`, etc.)
+* `from`: Element description of the file being analyzed
+* `to`: Element description of the imported target
+* `dependency`: Dependency metadata (`kind`, `relationship`, `specifiers`, etc.)
 
 ### Element Description (`from` / `to`)
 

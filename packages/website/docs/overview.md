@@ -88,7 +88,7 @@ Given this configuration, the plugin will analyze your project in runtime and cl
 
 ### 3. Define your Rules Based on These Descriptions
 
-Based on these descriptions, you can define rules to allow or disallow dependencies between elements. For example:
+Based on these **[descriptions](./setup/elements.md#runtime-description-properties)**, you can define rules to allow or disallow dependencies between elements using **[selectors](./setup/selectors.md)**. For example:
 
 <div style={{textAlign: 'center', margin: '2rem 0'}}>
   ![Architecture Boundaries Diagram](./overview-schema.svg)

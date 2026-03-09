@@ -50,23 +50,28 @@ Example selector matching a runtime dependency to a service:
 This page covers the modern **object-based selector syntax**. If you're using older selector formats (strings or tuples), please refer to the [Legacy Selectors](./selectors/legacy-selectors.md) page and consider migrating to the object-based syntax for better functionality and future compatibility.
 :::
 
-## Object-Based Selectors
+## Selectors
 
-Object-based selectors provide the most powerful and flexible way to match elements. Properties can be combined, and all specified properties must match (AND logic).
+**Selectors provide a way to [match element or dependency descriptions](./elements.md#runtime-description-properties) in rules configuration**. Properties can be combined, and all specified properties must match (AND logic).
 
 ### Element Selectors
 
 Match elements based on their type, category, origin, and any other property from their [runtime description](./elements.md#runtime-description-properties):
 
-- **`type`**  - [Micromatch pattern(s)](https://github.com/micromatch/micromatch) matching element type(s). <small>(`<string | string[] | null>`)</small>
+- **`type`**  - [Micromatch pattern(s)](https://github.com/micromatch/micromatch) matching element type. <small>(`<string | string[] | null>`)</small>
 - **`category`**  - Micromatch pattern(s) matching element category/categories. <small>(`<string | string[] | null>`)</small>
 - **`captured`**  - Match captured values (see [Captured Values Matching](#captured-values-matching)). <small>(`<object | object[]>`)</small>
 - **`origin`**  - Element origin (local files, node_modules, or Node.js core). <small>(`<"local" | "external" | "core">`)</small>
 - **`path`**  - Micromatch pattern(s) matching file path. <small>(`<string | string[] | null>`)</small>
 - **`elementPath`**  - Micromatch pattern(s) matching element path. <small>(`<string | string[] | null>`)</small>
 - **`internalPath`**  - Micromatch pattern(s) matching path within element. <small>(`<string | string[] | null>`)</small>
-- **`isIgnored`**  - Whether element is marked as ignored. <small>(`<boolean>`)</small>
-- **`isUnknown`**  - Whether the file doesn't match any element descriptor. <small>(`<boolean>`)</small>
+- **`isIgnored`** - Whether element is marked as ignored. <small>(`<boolean>`)</small>
+- **`isUnknown`** - Whether the file doesn't match any element descriptor. <small>(`<boolean>`)</small>
+- **`parent`** - Match **the first parent element** based on their type, category, origin, etc. <small>(`<object | object[] | null>`)</small>
+  - **`type`**  - [Micromatch pattern(s)](https://github.com/micromatch/micromatch) matching the element's first parent type. <small>(`<string | string[] | null>`)</small>
+  - **`category`**  - Micromatch pattern(s) matching the element's first parent category. <small>(`<string | string[] | null>`)</small>
+  - **`elementPath`**  - Micromatch pattern(s) matching the element path of the first parent. <small>(`<string | string[] | null>`)</small>
+  - **`captured`**  - Match captured values from the first element's parent (see [Captured Values Matching](#captured-values-matching)). <small>(`<object | object[]>`)</small>
 
 ```js
 // Match all helper elements
@@ -90,7 +95,7 @@ Match elements based on their type, category, origin, and any other property fro
 Match dependencies using element selector properties for the `from` and `to` elements, as well as properties from the dependency description.
 
 :::tip
-Dependency selectors are what you have to define in the rules configuration to match specific dependencies and set a policy for them. Read more about it in the [Rules documentation](./rules.mdx).
+Use dependency selectors in your rule configuration to match specific dependencies and define the policy that applies to them. For more details, see the [Rules documentation](./rules.mdx).
 :::
 
 - **`from`**  - **[Element selector/s](#element-selectors)** matching the importer element. You can provide a single selector or an array of selectors to match multiple cases (OR logic).
@@ -231,6 +236,22 @@ When an array of selectors is provided, it matches if **any** selector in the ar
   ]
 }
 ```
+
+## Matching null values
+
+In selectors, you can use `null` to explicitly match elements that do not have a value for a specific property. This is useful to differentiate between elements that have a property with a specific value and those that simply don't have that property defined.
+
+```js
+// Match elements that do not have a category defined
+{ category: null }
+
+// Match elements that do not have any parent
+{ parent: null }
+```
+
+:::warning
+When using micromatch patterns, `null` is treated as a non-string value and will not match any pattern. Therefore, if you want to match elements that do not have a value for a property, you should explicitly use `null` in your selector.
+:::
 
 ## Captured Values Matching
 

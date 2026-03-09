@@ -23,7 +23,7 @@ import CodeDiff from '@site/src/components/CodeDiff';
 
 # Rules Configuration
 
-Rules define to which elements they apply and what is allowed or disallowed. This configuration uses **[element selectors](./selectors.md)** to match specific elements.
+Rules define to which dependencies they apply and what is allowed or disallowed. This configuration uses **[dependency selectors](./selectors.md)** to match specific dependencies and provide a high level of customization for your architectural rules.
 
 ## Main Rules Format
 
@@ -61,8 +61,9 @@ export default [{
           message: "Helpers must not import module or component"
         },
         {
-          from: { type: "component" },
-          disallow: { to: { type: ["module"] } }
+          dependency: { kind: "type" },
+          disallow: { from: { type: ["helper"] } },
+          message: "Helpers cannot import types"
         }
       ]
     }]
@@ -106,11 +107,35 @@ Determines when the rule applies:
 The `target` property is an alias for `to` and is still supported for backward compatibility but is deprecated. Use `to` for clarity.
 :::
 
+:::info
+Read the ["How rules match dependencies" section](#how-rules-match-dependencies) below for a detailed explanation of how `from`, `to`, and `dependency` properties are combined to determine if a rule matches a specific dependency.
+:::
+
+### `dependency`
+
+**Type:** `<dependency metadata selector>` (see [Dependency Selectors documentation](./selectors.md#dependency-metadata-selectors))
+
+This property allows matching specific dependencies based on their metadata (e.g. import kind, relationship type). It can be used in combination with `from` and `to` to create more specific rules.
+
+```js
+// Rule applies to dependencies that are type imports (e.g. TypeScript type imports)
+// to "shared" elements, regardless of the type of the importing file
+{
+  dependency: { kind: "type" },
+  to: { type: "shared" },
+  allow: { from: { type: "*" } },
+}
+```
+
+:::info
+Read the ["How rules match dependencies" section](#how-rules-match-dependencies) below for a detailed explanation of how `from`, `to`, and `dependency` properties are combined to determine if a rule matches a specific dependency.
+:::
+
 ### `allow` / `disallow`
 
 **Type:** Varies by rule (typically [`<dependency selector>` or `<array of dependency selectors>`](./selectors.md#dependency-selectors))
 
-:::info
+:::note
 Here we are going to see the configuration of the main rule `element-types`, which expects [dependency selectors](./selectors.md#dependency-selectors) for the `allow` and `disallow` properties.
 
 Other rules may expect different formats (e.g. file path patterns for the `entry-point` rule). See each specific [rule's documentation](../rules/rules.md) for details.
@@ -149,6 +174,10 @@ Determines whether the matched dependencies are allowed or disallowed. Each rule
 
 :::warning
 If both `allow` and `disallow` are present and match, `disallow` takes precedence.
+:::
+
+:::info
+Read the ["How rules match dependencies" section](#how-rules-match-dependencies) below for a detailed explanation of how `from`, `to`, and `dependency` properties are combined to determine if a rule matches a specific dependency.
 :::
 
 ### `message`
@@ -369,6 +398,134 @@ Rules are evaluated sequentially, and each matching rule can override previous r
 :::warning
 Rule order matters: Place more specific rules after more general rules so they can override when needed.
 :::
+
+## How rules match dependencies
+
+Rules match dependencies based on the properties of the importing file, the imported file, and the dependency itself. These properties are available in the **[runtime description](./elements.md#runtime-description-properties)** of each element and dependency.
+
+### Combining selectors
+
+**The `from`, `to`, and `dependency` selectors in your rules are combined with the properties of the `allow` and `disallow` objects to build a dependency selector** that will determine if the rule matches a specific dependency. For example, if you have a rule like this:
+
+```js
+{
+  from: { type: "view" },
+  allow: {
+    to: { type: "model" },
+    dependency: { kind: "value" }
+  }
+}
+```
+
+This rule will allow a dependency if all of the following conditions are met:
+
+- The importing file is described as a "view" element
+- The imported file is described as a "model" element
+- The dependency is a value import (not a type import)
+
+You can combine `from`, `to`, and `dependency` properties both at the rule level and inside `allow`/`disallow` to create more specific selectors. For example:
+
+```js
+{
+  from: { type: "view" },
+  dependency: { kind: "value" },
+  disallow: {
+    to: [{ type: ["model", "controller"] }, { category: "test" }],
+  },
+}
+```
+
+The same rule can be expressed in different ways. Where to define these properties depends on the specific rule you want to create, how detailed you want it to be, and it is also a matter of preference. The important thing is to understand that all these properties are combined to determine if a rule matches a specific dependency.
+
+The plugin is very flexible and allows you to define rules in the way that makes more sense for each specific case.
+
+### Merging OR conditions (arrays)
+
+When using arrays to define OR conditions, the properties are merged together as well for each item in the arrays.
+
+For example, the nex rule will apply both to dependencies:
+
+- `from` type "view" and having a parent with type "module"
+- `from` category "test", elementPath matching `**/*.spec.js`, and having a parent with type module
+
+```js
+{
+  from: [
+    { type: "view" },
+    { category: "test", elementPath: "**/*.spec.js" }
+  ],
+  allow: {
+    from: {
+      parent: {
+        type: "module",
+      }
+    },
+    dependency: {
+      relationship: {
+        to: "parent"
+      }
+    }
+  },
+}
+```
+
+### Using the same property at rule level and in policy level
+
+**When the same property is defined both at the rule level and inside `allow`/`disallow`, they are also merged together to create the final selector**, giving precedence to the properties defined inside `allow`/`disallow`. For example, in the next rule:
+
+- `allow` will only apply to dependencies that are from "view" elements with elementName "view-a", to models.
+- `disallow` will only apply to dependencies that are from "view" elements with elementName "view-b", to model elements with elementName "model-a".
+
+```js
+{
+  from: { type: "view" },
+  allow: {
+    from: { captured: { elementName: "view-a" } },
+    to: { type: "model" },
+  },
+  disallow: {
+    from: { captured: { elementName: "view-b" } },
+    to: { type: "model", captured: { elementName: "model-a" } },
+  }
+}
+```
+
+### Merging nested properties
+
+When using nested properties like `parent`, `captured` or `relationship`, the properties are merged together as well. For example, in the next rule:
+
+- `allow` applies to elements with element name "view-a" that are in the "users" domain, importing any model.
+
+```js
+{
+  from: { 
+    captured: { elementName: "view-a" },
+  },
+  allow: {
+    to: { type: "model" },
+    from: { captured: { domain: "users" } },
+  },
+}
+```
+
+:::warning
+Extending nested properties is not supported when using arrays (OR conditions)
+:::
+
+For example, in the next rule, the `allow` properties will not be merged together, and the rule will allow anything with domain "users" to import any model, because the `allow` policy takes precedence over the selectors at rule level, and it will override the `from.captured` value at rule level instead of merging with it.
+
+```js
+{
+  from: {
+    // Arrays in nested properties are not merged
+    captured: [{ elementName: "view-a" }], 
+  },
+  allow: {
+    to: { type: "model" },
+    from: { captured: { domain: "users" } }, // Only this will be applied
+  },
+}
+```
 
 ## Complete Example
 
