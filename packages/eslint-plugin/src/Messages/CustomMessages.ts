@@ -7,6 +7,8 @@ import type {
 import { isElementDescription } from "@boundaries/elements";
 import Handlebars from "handlebars";
 
+import { isNull } from "../Support";
+
 import type { CustomMessageTemplateContext } from "./CustomMessages.types";
 
 /** Regular expression to detect Handlebars expressions in custom message templates */
@@ -131,8 +133,8 @@ function renderCustomMessageHandlebarsTemplate(
     from: dependency.from,
     to: dependency.to,
     dependency: dependency.dependency,
-    ruleContext:
-      ruleIndex && matchResult
+    rule:
+      !isNull(ruleIndex) && matchResult
         ? {
             index: ruleIndex,
             selector: {

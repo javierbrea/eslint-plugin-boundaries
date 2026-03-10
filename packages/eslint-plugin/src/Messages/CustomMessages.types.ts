@@ -26,5 +26,5 @@ export type CustomMessageTemplateContext = {
   /** Information about the dependency itself */
   dependency: DependencyDescription["dependency"] | null;
   /** Context about the rule that matched the dependency, if any */
-  ruleContext: CustomMessageTemplateRuleContext;
+  rule: CustomMessageTemplateRuleContext;
 };

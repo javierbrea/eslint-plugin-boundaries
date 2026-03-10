@@ -1743,6 +1743,71 @@ createRuleTester(objectSelectorPropertiesSettings).run(
           },
         ],
       },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import { HelperB } from 'helpers/helper-b'",
+        options: [
+          {
+            default: "allow",
+            rules: [
+              {
+                from: { type: "helpers" },
+                disallow: {
+                  to: [{ type: "helpers" }],
+                  dependency: { nodeKind: "import" },
+                },
+                message:
+                  "Rule at index {{ rule.index }}: blocked from type {{ rule.selector.from.type }} to type {{ rule.selector.to.type }} with node kind {{ rule.selector.dependency.nodeKind }}",
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message:
+              "Rule at index 0: blocked from type helpers to type helpers with node kind import",
+            type: "Literal",
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            default: "allow",
+            checkAllOrigins: true,
+            rules: [
+              {
+                disallow: {
+                  to: {
+                    path: null,
+                    internalPath: null,
+                    elementPath: null,
+                    parent: null,
+                    type: null,
+                    category: null,
+                    captured: null,
+                  },
+                  dependency: {
+                    relationship: { from: null, to: null },
+                  },
+                },
+                message:
+                  "Selector at rule at index {{ rule.index }}: path={{ rule.selector.to.path }}, parent={{ rule.selector.to.parent }}, relationship.from={{ rule.selector.dependency.relationship.from }}, relationship.to={{ rule.selector.dependency.relationship.to }}",
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            // NOTE: Null values are not rendered by handlebars. This is a known behavior of the library, so we respect it and render null values as empty strings in the message.
+            message:
+              "Selector at rule at index 0: path=, parent=, relationship.from=, relationship.to=",
+            type: "Literal",
+          },
+        ],
+      },
     ],
   }
 );
