@@ -6,6 +6,7 @@ import chalk from "chalk";
 import createdConfigWithDefine from "./configs/createAndDefineConfig.config.js";
 import createdConfig from "./configs/createConfig.config.js";
 import monorepoConfig from "./configs/monorepo.config.js";
+import performanceLegacyConfig from "./configs/performance-legacy.config.js";
 import performanceConfig from "./configs/performance.config.js";
 import recommendedConfig from "./configs/recommended.config.js";
 import strictConfig from "./configs/strict.config.js";
@@ -18,11 +19,16 @@ import { runTests } from "./runner.js";
 const currentFile = fileURLToPath(import.meta.url);
 const currentDir = dirname(currentFile);
 
-const PERFORMANCE_BASELINE_MS = 55000;
 const PERFORMANCE_MAX_INCREASE_PERCENT = 20;
 const PERFORMANCE_MIN_DURATION_MS = 30000;
-const PERFORMANCE_ERRORS = 42;
+const PERFORMANCE_ERRORS = 44;
 const PERFORMANCE_FILES = 5026;
+
+const PERFORMANCE_LEGACY_BASELINE_MS = 55000;
+const PERFORMANCE_LEGACY_MAX_DURATION_MS =
+  PERFORMANCE_LEGACY_BASELINE_MS * (1 + PERFORMANCE_MAX_INCREASE_PERCENT / 100);
+
+const PERFORMANCE_BASELINE_MS = 60000;
 const PERFORMANCE_MAX_DURATION_MS =
   PERFORMANCE_BASELINE_MS * (1 + PERFORMANCE_MAX_INCREASE_PERCENT / 100);
 
@@ -38,6 +44,117 @@ const performanceFixture = ensurePerformanceFixture(
  */
 function findFileResult(fileNameFragment, result) {
   return result.files?.find((file) => file.filePath.includes(fileNameFragment));
+}
+
+/**
+ * Returns performance test definition with assertions for performance metrics and error detection
+ * @param {string} name - Name of the performance test
+ * @param {Object} config - ESLint configuration to be tested
+ * @param {number} maxDurationMs - Optional maximum duration for the test in milliseconds
+ * @returns {import('./runner.js').TestDefinition} The performance test definition
+ */
+function getPerformanceTest(name, config, maxDurationMs) {
+  return {
+    name,
+    config,
+    fixture: performanceFixture.fixturePath,
+    runOnFiles: ["src/**/*.js"],
+    assert: async (runner, result) => {
+      const allMessages = (result.files || []).flatMap((file) => file.messages);
+
+      await runner.assert(
+        `performance fixture should have ${PERFORMANCE_FILES} js files`,
+        async () => {
+          return performanceFixture.jsFilesCount >= PERFORMANCE_FILES;
+        }
+      );
+
+      await runner.assert(
+        `performance config should detect ${PERFORMANCE_ERRORS} errors`,
+        async () => {
+          return result.errorCount === PERFORMANCE_ERRORS;
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one cross-domain element-types error`,
+        async () => {
+          return allMessages.some(
+            (msg) =>
+              msg.ruleId === "boundaries/element-types" &&
+              msg.message.includes("cross-domain import blocked")
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one scenario element-types error`,
+        async () => {
+          return allMessages.some(
+            (msg) =>
+              msg.ruleId === "boundaries/element-types" &&
+              msg.message.includes(
+                "scenario boundaries cannot import architecture elements"
+              )
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one external rule error`,
+        async () => {
+          return allMessages.some((msg) =>
+            msg.message.includes(
+              "scenario external cannot import blocked module"
+            )
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one external rule error`,
+        async () => {
+          return allMessages.some((msg) =>
+            msg.message.includes(
+              "shared library must be consumed through index.js"
+            )
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one no-unknown rule error`,
+        async () => {
+          return allMessages.some(
+            (msg) => msg.ruleId === "boundaries/no-unknown"
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one no-unknown-files rule error`,
+        async () => {
+          return allMessages.some(
+            (msg) => msg.ruleId === "boundaries/no-unknown-files"
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should take at least ${PERFORMANCE_MIN_DURATION_MS}ms`,
+        async () => {
+          return (result.durationMs || 0) >= PERFORMANCE_MIN_DURATION_MS;
+        }
+      );
+
+      await runner.assert(
+        `performance config should not exceed ${maxDurationMs}ms (+${PERFORMANCE_MAX_INCREASE_PERCENT}% baseline)`,
+        async () => {
+          return (result.durationMs || 0) <= maxDurationMs;
+        }
+      );
+    },
+  };
 }
 
 // Define tests with their configurations, fixtures and assertions
@@ -389,94 +506,16 @@ const tests = [
       );
     },
   },
-  {
-    name: "performance-config",
-    config: performanceConfig,
-    fixture: performanceFixture.fixturePath,
-    runOnFiles: ["src/**/*.js"],
-    assert: async (runner, result) => {
-      const allMessages = (result.files || []).flatMap((file) => file.messages);
-
-      await runner.assert(
-        `performance fixture should have ${PERFORMANCE_FILES} js files`,
-        async () => {
-          return performanceFixture.jsFilesCount >= PERFORMANCE_FILES;
-        }
-      );
-
-      await runner.assert(
-        `performance config should detect at least ${PERFORMANCE_ERRORS} errors`,
-        async () => {
-          return (result.errorCount || 0) >= PERFORMANCE_ERRORS;
-        }
-      );
-
-      await runner.assert(
-        `performance config should include at least one cross-domain element-types error`,
-        async () => {
-          return allMessages.some(
-            (msg) =>
-              msg.ruleId === "boundaries/element-types" &&
-              msg.message.includes("cross-domain import blocked")
-          );
-        }
-      );
-
-      await runner.assert(
-        `performance config should include at least one scenario element-types error`,
-        async () => {
-          return allMessages.some(
-            (msg) =>
-              msg.ruleId === "boundaries/element-types" &&
-              msg.message.includes(
-                "scenario boundaries cannot import architecture elements"
-              )
-          );
-        }
-      );
-
-      await runner.assert(
-        `performance config should include at least one external rule error`,
-        async () => {
-          return allMessages.some(
-            (msg) => msg.ruleId === "boundaries/external"
-          );
-        }
-      );
-
-      await runner.assert(
-        `performance config should include at least one no-unknown rule error`,
-        async () => {
-          return allMessages.some(
-            (msg) => msg.ruleId === "boundaries/no-unknown"
-          );
-        }
-      );
-
-      await runner.assert(
-        `performance config should include at least one no-unknown-files rule error`,
-        async () => {
-          return allMessages.some(
-            (msg) => msg.ruleId === "boundaries/no-unknown-files"
-          );
-        }
-      );
-
-      await runner.assert(
-        `performance config should take at least ${PERFORMANCE_MIN_DURATION_MS}ms`,
-        async () => {
-          return (result.durationMs || 0) >= PERFORMANCE_MIN_DURATION_MS;
-        }
-      );
-
-      await runner.assert(
-        `performance config should not exceed ${PERFORMANCE_MAX_DURATION_MS}ms (+${PERFORMANCE_MAX_INCREASE_PERCENT}% baseline)`,
-        async () => {
-          return (result.durationMs || 0) <= PERFORMANCE_MAX_DURATION_MS;
-        }
-      );
-    },
-  },
+  getPerformanceTest(
+    "performance-config",
+    performanceConfig,
+    PERFORMANCE_MAX_DURATION_MS
+  ),
+  getPerformanceTest(
+    "performance-legacy-config",
+    performanceLegacyConfig,
+    PERFORMANCE_LEGACY_MAX_DURATION_MS
+  ),
   {
     name: "monorepo-external-config",
     config: [

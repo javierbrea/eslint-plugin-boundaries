@@ -7,42 +7,53 @@ const STRESS_ELEMENT_TYPES_RULES = Array.from({ length: 15 }, (_, index) => {
   const featureNumber = String((index % 5) + 1).padStart(2, "0");
 
   return {
-    from: [
-      [
-        "feature",
-        {
-          domain: `domain-${domainNumber}`,
-          layer: `layer-${layerNumber}`,
-        },
-      ],
-    ],
+    from: {
+      type: "feature",
+      captured: {
+        domain: `domain-${domainNumber}`,
+        layer: `layer-${layerNumber}`,
+      },
+    },
     disallow: [
-      [
-        "feature",
-        {
-          domain: `domain-{${domainNumber},${nextDomainNumber},\${from.domain}`,
-          layer: "layer-*",
-          feature: `feature-{${featureNumber},\${from.feature}`,
+      {
+        to: {
+          type: "feature",
+          captured: {
+            domain: `domain-{${domainNumber},${nextDomainNumber},{{ from.captured.domain }}`,
+            layer: "layer-*",
+            feature: `feature-{${featureNumber},{{ from.captured.feature }}`,
+          },
         },
-      ],
-      [
-        "scenario",
-        {
-          group: "boundaries,external,${from.feature}",
+      },
+      {
+        to: {
+          type: "scenario",
+          captured: {
+            group: "boundaries,external,{{ from.captured.feature }}",
+          },
         },
-      ],
-      ["library", { library: "shared,legacy,${from.domain}" }],
-      [
-        "app",
-        {
-          app: "main,admin,${from.layer}",
+      },
+      {
+        to: {
+          type: "library",
+          captured: {
+            library: "shared,legacy,{{ from.captured.domain }}",
+          },
         },
-      ],
+      },
+      {
+        to: {
+          type: "app",
+          captured: {
+            app: "main,admin,{{ from.captured.layer }}",
+          },
+        },
+      },
     ],
     message:
       "stress rule " +
       (index + 1) +
-      " evaluated for ${from.domain}/${from.layer}/${from.feature}",
+      " evaluated for {{ from.captured.domain }}/{{ from.captured.layer }}/{{ from.captured.feature }}",
   };
 });
 
@@ -109,96 +120,138 @@ export default [
         outsideRootPath: false,
         customSourcePatterns: ["@boundaries/*"],
       },
-      "boundaries/legacy-templates": true,
     },
     rules: {
       "boundaries/element-types": [
         "error",
         {
+          checkAllOrigins: true,
           default: "allow",
           message:
-            "element-types violation: ${file.type} -> ${dependency.type} through ${dependency.source}",
+            "element-types violation: {{ from.type }} -> {{ to.type }} through {{ dependency.source }}",
           rules: [
             {
-              from: [["scenario", { group: "boundaries" }]],
-              disallow: ["feature", "library"],
-              message:
-                "scenario boundaries cannot import architecture elements: ${dependency.source}",
+              disallow: {
+                to: {
+                  parent: {
+                    type: "*",
+                  },
+                },
+              },
             },
             {
-              from: [
-                [
-                  "feature",
-                  {
-                    domain: "domain-10",
-                    layer: "layer-10",
-                    feature: "feature-05",
+              allow: {
+                dependency: {
+                  relationship: {
+                    to: ["child", "sibling"],
                   },
-                ],
-              ],
-              disallow: [
-                ["feature", { domain: "domain-01", layer: "layer-10" }],
-              ],
-              message:
-                "cross-domain import blocked from ${from.domain} to ${target.domain}",
+                },
+              },
             },
             {
-              from: [
-                [
-                  "feature",
-                  {
-                    domain: "domain-09",
-                    layer: "layer-09",
-                    feature: "feature-02",
-                  },
-                ],
-              ],
+              to: {
+                type: "library-private",
+                internalPath: "!index.js",
+              },
+              disallow: {
+                from: {
+                  type: "*",
+                },
+              },
+              message:
+                "shared library must be consumed through index.js, received {{ dependency.source }}",
+            },
+            {
+              from: {
+                type: "scenario",
+                captured: {
+                  group: "external",
+                },
+              },
               disallow: [
-                ["feature", { domain: "domain-02", feature: "feature-02" }],
+                {
+                  to: {
+                    origin: "external",
+                  },
+                  dependency: {
+                    module: ["chalk", "eslint"],
+                  },
+                },
+                {
+                  to: {
+                    origin: "core",
+                  },
+                  dependency: {
+                    module: ["node:fs", "node:path"],
+                  },
+                },
               ],
               message:
-                "cross-domain import blocked from ${from.domain} to ${target.domain}",
+                "scenario external cannot import blocked module {{ dependency.source }}",
+            },
+            {
+              from: {
+                type: "scenario",
+                captured: {
+                  group: "boundaries",
+                },
+              },
+              disallow: {
+                to: {
+                  type: ["feature", "library"],
+                },
+              },
+              message:
+                "scenario boundaries cannot import architecture elements: {{ dependency.source }}",
+            },
+            {
+              from: {
+                type: "feature",
+                captured: {
+                  domain: "domain-10",
+                  layer: "layer-10",
+                  feature: "feature-05",
+                },
+              },
+              disallow: [
+                {
+                  to: {
+                    type: "feature",
+                    captured: {
+                      domain: "domain-01",
+                      layer: "layer-10",
+                    },
+                  },
+                },
+              ],
+              message:
+                "cross-domain import blocked from {{ from.captured.domain }} to {{ to.captured.domain }}",
+            },
+            {
+              from: {
+                type: "feature",
+                captured: {
+                  domain: "domain-09",
+                  layer: "layer-09",
+                  feature: "feature-02",
+                },
+              },
+              disallow: [
+                {
+                  to: {
+                    type: "feature",
+                    captured: {
+                      domain: "domain-02",
+                      feature: "feature-02",
+                    },
+                  },
+                },
+              ],
+              message:
+                "cross-domain import blocked from {{ from.captured.domain }} to {{ to.captured.domain }}",
             },
             ...STRESS_ELEMENT_TYPES_RULES,
           ],
-        },
-      ],
-      "boundaries/external": [
-        "error",
-        {
-          default: "allow",
-          message: "external dependency is not allowed: ${dependency.source}",
-          rules: [
-            {
-              from: [["scenario", { group: "external" }]],
-              disallow: ["chalk", "eslint", "node:fs", "node:path"],
-              message:
-                "scenario external cannot import blocked module ${dependency.source}",
-            },
-          ],
-        },
-      ],
-      "boundaries/entry-point": [
-        "error",
-        {
-          default: "allow",
-          message: "entry-point violation for ${dependency.source}",
-          rules: [
-            {
-              target: "library-private",
-              allow: "index.js",
-              message:
-                "shared library must be consumed through index.js, received ${dependency.source}",
-            },
-          ],
-        },
-      ],
-      "boundaries/no-private": [
-        "error",
-        {
-          allowUncles: false,
-          message:
-            "no-private violation from ${file.type} to ${dependency.source}",
         },
       ],
       "boundaries/no-unknown": ["error"],
