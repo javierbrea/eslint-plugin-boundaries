@@ -3,12 +3,11 @@ import type {
   DependencyDescription,
   DependencyRelationship,
 } from "../Descriptor";
-import { isArray, isNullish } from "../Support";
+import { isArray } from "../Support";
 
 import { BaseElementsMatcher } from "./BaseElementsMatcher";
 import type { ElementsMatcher } from "./ElementsMatcher";
 import type {
-  BaseElementSelector,
   TemplateData,
   DependencySelector,
   DependencySelectorNormalized,
@@ -92,59 +91,6 @@ export class DependenciesMatcher extends BaseElementsMatcher {
   }
 
   /**
-   * Converts a DependencyElementSelectorData to a BaseElementSelectorData, by removing dependency-specific properties.
-   * @param selector The dependency element selector data.
-   * @returns The base element selector data.
-   */
-  private _convertBaseElementSelectorDataToBaseElementSelectorData(
-    selector: BaseElementSelectorData
-  ): BaseElementSelector {
-    const baseSelector: Partial<BaseElementSelector> = {};
-
-    if (selector.type) {
-      baseSelector.type = selector.type;
-    }
-
-    if (selector.category) {
-      baseSelector.category = selector.category;
-    }
-
-    if (selector.path) {
-      baseSelector.path = selector.path;
-    }
-
-    if (selector.elementPath) {
-      baseSelector.elementPath = selector.elementPath;
-    }
-
-    if (selector.internalPath) {
-      baseSelector.internalPath = selector.internalPath;
-    }
-
-    if (selector.captured) {
-      baseSelector.captured = selector.captured;
-    }
-
-    if (selector.parent) {
-      baseSelector.parent = selector.parent;
-    }
-
-    if (selector.origin) {
-      baseSelector.origin = selector.origin;
-    }
-
-    if (!isNullish(selector.isIgnored)) {
-      baseSelector.isIgnored = selector.isIgnored;
-    }
-
-    if (!isNullish(selector.isUnknown)) {
-      baseSelector.isUnknown = selector.isUnknown;
-    }
-
-    return baseSelector as BaseElementSelector;
-  }
-
-  /**
    * Returns the selectors matching result for the given dependency.
    * @param dependency The dependency description.
    * @param selector The dependency selector normalized.
@@ -176,9 +122,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       for (const toSelectorData of selector.to!) {
         const toMatch = this._elementsMatcher.isElementMatch(
           dependency.to,
-          this._convertBaseElementSelectorDataToBaseElementSelectorData(
-            toSelectorData
-          ),
+          toSelectorData,
           {
             extraTemplateData: templateData,
           }

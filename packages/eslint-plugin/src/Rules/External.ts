@@ -18,7 +18,7 @@ import {
   SETTINGS,
   RULE_NAMES_MAP,
 } from "../Settings";
-import { isString, isArray, isObject } from "../Support";
+import { isString, isArray, isObject, isNullish } from "../Support";
 
 import { evaluateRulesAndReport } from "./ElementTypes";
 import { dependencyRule } from "./Support";
@@ -43,6 +43,34 @@ function isExternalLibrarySelectorWithOptions(
 }
 
 /**
+ * Builds a dependency selector from a legacy external selector using tuple syntax with options.
+ * @param selector The external library selector in legacy format with options.
+ * @returns The corresponding dependency selector compatible with `element-types` evaluator.
+ */
+function buildSelectorFromLegacySelectorWithOptions(
+  selector: ExternalLibrarySelectorWithOptions
+): DependencySelector {
+  const moduleSelector = selector[0];
+  const selectorOptions = selector[1];
+  return {
+    to: {
+      origin: [ELEMENT_ORIGINS_MAP.EXTERNAL, ELEMENT_ORIGINS_MAP.CORE],
+      ...(!isNullish(selectorOptions.path)
+        ? { internalPath: selectorOptions.path }
+        : {}),
+    },
+    dependency: {
+      module: moduleSelector,
+      ...(selectorOptions.specifiers
+        ? {
+            specifiers: selectorOptions.specifiers,
+          }
+        : {}),
+    },
+  };
+}
+
+/**
  * Transforms legacy external selectors into dependency selectors.
  *
  * @param selectors - External selector(s) from legacy rule format.
@@ -56,22 +84,7 @@ function modifySelectors(
     ELEMENT_ORIGINS_MAP.CORE,
   ];
   if (isExternalLibrarySelectorWithOptions(selectors)) {
-    const selectorOptions = selectors[1];
-    const moduleSelector = selectors[0];
-    return {
-      to: {
-        origin: originsToMatch,
-        internalPath: selectorOptions.path,
-      },
-      dependency: {
-        module: moduleSelector,
-        ...(selectorOptions.specifiers
-          ? {
-              specifiers: selectorOptions.specifiers,
-            }
-          : {}),
-      },
-    };
+    return buildSelectorFromLegacySelectorWithOptions(selectors);
   }
   if (isString(selectors)) {
     return {
@@ -84,23 +97,8 @@ function modifySelectors(
     };
   }
   return selectors.map((selector) => {
-    if (isArray(selector)) {
-      const selectorOptions = selector[1];
-      const moduleSelector = selector[0];
-      return {
-        to: {
-          origin: originsToMatch,
-          internalPath: selectorOptions.path,
-        },
-        dependency: {
-          module: moduleSelector,
-          ...(selectorOptions.specifiers
-            ? {
-                specifiers: selectorOptions.specifiers,
-              }
-            : {}),
-        },
-      };
+    if (isExternalLibrarySelectorWithOptions(selector)) {
+      return buildSelectorFromLegacySelectorWithOptions(selector);
     }
     return {
       to: { origin: originsToMatch },

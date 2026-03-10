@@ -80,14 +80,19 @@ function buildElementPropertyFragments(
     capturedKeys?: string[];
     parentProperties?: string[];
     parentCapturedKeys?: string[];
+    includeNullValues?: boolean;
   }
 ): string[] {
   const fragments: string[] = [];
+  const includeNullValues = options?.includeNullValues ?? false;
   for (const propertyName of properties) {
     if (propertyName === "parent") {
       const firstParent = (elementDescription as ElementDescription)
         .parents?.[0];
       if (!firstParent) {
+        if (includeNullValues) {
+          fragments.push(`parent ${quote(null)}`);
+        }
         continue;
       }
       const parentProperties = options?.parentProperties ?? [];
@@ -96,6 +101,7 @@ function buildElementPropertyFragments(
         parentProperties,
         {
           capturedKeys: options?.parentCapturedKeys,
+          includeNullValues,
         }
       );
       if (parentFragments.length) {
@@ -106,18 +112,30 @@ function buildElementPropertyFragments(
 
     const value =
       elementDescription[propertyName as keyof typeof elementDescription];
-    if (value === undefined || value === null) {
+    if (value === undefined) {
       continue;
     }
-    if (propertyName === "captured" && isObject(value)) {
+    if (value === null && !includeNullValues) {
+      continue;
+    }
+    if (propertyName === "captured") {
+      if (!isObject(value) || Object.keys(value).length === 0) {
+        if (!includeNullValues) {
+          continue;
+        }
+        fragments.push(`captured ${quote(null)}`);
+        continue;
+      }
       const capturedKeys = options?.capturedKeys ?? Object.keys(value);
       for (const capturedKey of capturedKeys) {
         const capturedValue = value[capturedKey as keyof typeof value];
-        if (capturedValue !== undefined && capturedValue !== null) {
-          fragments.push(
-            `${capturedKey} ${formatPropertyValue(capturedValue)}`
-          );
+        if (capturedValue === undefined) {
+          continue;
         }
+        if (capturedValue === null && !includeNullValues) {
+          continue;
+        }
+        fragments.push(`${capturedKey} ${formatPropertyValue(capturedValue)}`);
       }
       continue;
     }
@@ -137,11 +155,17 @@ function buildElementPropertyFragments(
 export function elementDescriptionMessage(
   elementDescription: ElementDescription | ElementParent,
   properties: string[],
-  options: { singleElement?: boolean } = { singleElement: false }
+  options: { singleElement?: boolean; includeNullValues?: boolean } = {
+    singleElement: false,
+    includeNullValues: false,
+  }
 ): string {
   const propertyFragments = buildElementPropertyFragments(
     elementDescription,
-    properties
+    properties,
+    {
+      includeNullValues: options.includeNullValues,
+    }
   );
   if (!propertyFragments.length) {
     return "";
@@ -183,6 +207,7 @@ function elementDescriptionMessageFromSelector(
       capturedKeys,
       parentProperties,
       parentCapturedKeys,
+      includeNullValues: true,
     }
   );
   if (!propertyFragments.length) {
@@ -202,13 +227,20 @@ function elementDescriptionMessageFromSelector(
 function buildDependencyPropertyFragments(
   dependencyMetadata: ElementsDependencyInfo,
   properties: string[],
-  options?: { relationshipKeys?: Array<"from" | "to"> }
+  options?: {
+    relationshipKeys?: Array<"from" | "to">;
+    includeNullValues?: boolean;
+  }
 ): string[] {
   const fragments: string[] = [];
+  const includeNullValues = options?.includeNullValues ?? false;
   for (const propertyName of properties) {
     const value =
       dependencyMetadata[propertyName as keyof typeof dependencyMetadata];
-    if (value === undefined || value === null) {
+    if (value === undefined) {
+      continue;
+    }
+    if (value === null && !includeNullValues) {
       continue;
     }
     if (propertyName === "relationship" && isObject(value)) {
@@ -216,14 +248,14 @@ function buildDependencyPropertyFragments(
       if (
         relationshipKeys.includes("from") &&
         value.from !== undefined &&
-        value.from !== null
+        (value.from !== null || includeNullValues)
       ) {
         fragments.push(`relationship from ${formatPropertyValue(value.from)}`);
       }
       if (
         relationshipKeys.includes("to") &&
         value.to !== undefined &&
-        value.to !== null
+        (value.to !== null || includeNullValues)
       ) {
         fragments.push(`relationship to ${formatPropertyValue(value.to)}`);
       }
@@ -242,11 +274,15 @@ function buildDependencyPropertyFragments(
  */
 export function dependencyDescriptionMessage(
   dependencyMetadata: ElementsDependencyInfo,
-  properties: string[]
+  properties: string[],
+  options?: { includeNullValues?: boolean }
 ): string {
   const propertyFragments = buildDependencyPropertyFragments(
     dependencyMetadata,
-    properties
+    properties,
+    {
+      includeNullValues: options?.includeNullValues,
+    }
   );
   if (!propertyFragments.length) {
     return "";
@@ -279,6 +315,7 @@ function dependencyDescriptionMessageFromSelector(
     properties,
     {
       relationshipKeys,
+      includeNullValues: true,
     }
   );
   if (!propertyFragments.length) {

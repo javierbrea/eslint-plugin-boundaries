@@ -35,6 +35,33 @@ export function isObject(object: unknown): object is Record<string, unknown> {
 }
 
 /**
+ * Determines if the provided object is undefined.
+ * @param object The object to check.
+ * @returns True if the object is undefined, false otherwise.
+ */
+export function isUndefined(object: unknown): object is undefined {
+  return object === undefined;
+}
+
+/**
+ * Determines if the provided object is null.
+ * @param object The object to check.
+ * @returns True if the object is null, false otherwise.
+ */
+export function isNull(object: unknown): object is null {
+  return object === null;
+}
+
+/**
+ * Determines if the provided object is null or undefined.
+ * @param object The object to check.
+ * @returns True if the object is null or undefined, false otherwise.
+ */
+export function isNullish(object: unknown): object is null | undefined {
+  return isNull(object) || isUndefined(object);
+}
+
+/**
  * Returns the value as an array if it is an array, or null otherwise.
  * @param value The value to check.
  * @returns The value as an array or null.

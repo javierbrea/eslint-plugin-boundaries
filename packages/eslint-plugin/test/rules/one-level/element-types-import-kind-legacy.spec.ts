@@ -276,9 +276,9 @@ runTest(
     }),
     1: 'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
     2: 'Dependencies with kind "value" to elements of type "components" are not allowed in elements of type "helpers". Denied by rule at index 1',
-    3: 'Dependencies with kind "value" to elements of type "modules" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    4: 'Dependencies with kind "value" to elements of type "modules" are not allowed in elements of type "components". Denied by rule at index 2',
-    5: 'Dependencies with kind "type" to elements of type "helpers" are not allowed in elements of type "modules". Denied by rule at index 3',
+    3: 'Dependencies with kind "value" to elements of type "modules" and captured "null" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    4: 'Dependencies with kind "value" to elements of type "modules" and captured "null" are not allowed in elements of type "components". Denied by rule at index 2',
+    5: 'Dependencies with kind "type" to elements of type "helpers" and captured "null" are not allowed in elements of type "modules". Denied by rule at index 3',
   }
 );
 

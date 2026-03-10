@@ -973,6 +973,86 @@ createRuleTester(objectSelectorPropertiesSettings).run(
       },
       {
         filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options: [
+          {
+            default: "disallow",
+            rules: [
+              {
+                allow: {
+                  to: { parent: null },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options: [
+          {
+            default: "disallow",
+            rules: [
+              {
+                allow: {
+                  to: { isIgnored: false, isUnknown: false },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options: [
+          {
+            default: "disallow",
+            rules: [
+              {
+                allow: {
+                  dependency: { relationship: { from: null } },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options: [
+          {
+            default: "disallow",
+            rules: [
+              {
+                allow: {
+                  dependency: { relationship: { to: null } },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options: [
+          {
+            default: "disallow",
+            rules: [
+              {
+                allow: {
+                  dependency: { relationship: { from: null, to: null } },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
         code: "import { HelperB } from 'helpers/helper-b'",
         options: [
           {
@@ -983,6 +1063,126 @@ createRuleTester(objectSelectorPropertiesSettings).run(
                 disallow: {
                   to: [{ type: "helpers" }],
                   dependency: { relationship: { to: "foo" } },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            default: "disallow",
+            rules: [
+              {
+                allow: {
+                  to: { path: null },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            default: "disallow",
+            rules: [
+              {
+                allow: {
+                  to: { elementPath: null },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            default: "disallow",
+            rules: [
+              {
+                allow: {
+                  to: { parent: null },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            default: "disallow",
+            rules: [
+              {
+                allow: {
+                  to: { type: null },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            default: "disallow",
+            rules: [
+              {
+                allow: {
+                  to: { category: null },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            default: "disallow",
+            rules: [
+              {
+                allow: {
+                  to: { captured: null },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            default: "disallow",
+            rules: [
+              {
+                allow: {
+                  to: {
+                    path: null,
+                    internalPath: "*",
+                    elementPath: null,
+                    parent: null,
+                    type: null,
+                    category: null,
+                    captured: null,
+                  },
                 },
               },
             ],
@@ -1225,6 +1425,323 @@ createRuleTester(objectSelectorPropertiesSettings).run(
           },
         ],
         errors: [{ message: "blocked-node-kind", type: "Literal" }],
+      },
+      // Null cases
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options: [
+          {
+            default: "allow",
+            rules: [
+              {
+                from: { type: "helpers" },
+                disallow: {
+                  to: [{ type: "helpers" }],
+                  dependency: { module: null },
+                },
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message:
+              'Dependencies with module "null" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 0',
+            type: "Literal",
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options: [
+          {
+            default: "allow",
+            rules: [
+              {
+                disallow: {
+                  to: { parent: null },
+                },
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message:
+              'Dependencies to elements of parent "null" are not allowed. Denied by rule at index 0',
+            type: "Literal",
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options: [
+          {
+            default: "allow",
+            rules: [
+              {
+                disallow: {
+                  to: { isIgnored: false, isUnknown: false },
+                },
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message:
+              'Dependencies to elements of isIgnored "false" and isUnknown "false" are not allowed. Denied by rule at index 0',
+            type: "Literal",
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options: [
+          {
+            default: "allow",
+            rules: [
+              {
+                disallow: {
+                  dependency: { relationship: { from: null } },
+                },
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message:
+              'Dependencies with relationship from "null" are not allowed. Denied by rule at index 0',
+            type: "Literal",
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options: [
+          {
+            default: "allow",
+            rules: [
+              {
+                disallow: {
+                  dependency: { relationship: { to: null } },
+                },
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message:
+              'Dependencies with relationship to "null" are not allowed. Denied by rule at index 0',
+            type: "Literal",
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options: [
+          {
+            default: "allow",
+            rules: [
+              {
+                disallow: {
+                  dependency: { relationship: { from: null, to: null } },
+                },
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message:
+              'Dependencies with relationship from "null" and relationship to "null" are not allowed. Denied by rule at index 0',
+            type: "Literal",
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            checkAllOrigins: true,
+            default: "allow",
+            rules: [
+              {
+                disallow: {
+                  to: { path: null },
+                },
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message:
+              'Dependencies to elements of path "null" are not allowed. Denied by rule at index 0',
+            type: "Literal",
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            default: "allow",
+            checkAllOrigins: true,
+            rules: [
+              {
+                disallow: {
+                  to: { elementPath: null },
+                },
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message:
+              'Dependencies to elements of elementPath "null" are not allowed. Denied by rule at index 0',
+            type: "Literal",
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            default: "allow",
+            checkAllOrigins: true,
+            rules: [
+              {
+                disallow: {
+                  to: { parent: null },
+                },
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message:
+              'Dependencies to elements of parent "null" are not allowed. Denied by rule at index 0',
+            type: "Literal",
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            default: "allow",
+            checkAllOrigins: true,
+            rules: [
+              {
+                disallow: {
+                  to: { type: null },
+                },
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message:
+              'Dependencies to elements of type "null" are not allowed. Denied by rule at index 0',
+            type: "Literal",
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            default: "allow",
+            checkAllOrigins: true,
+            rules: [
+              {
+                disallow: {
+                  to: { category: null },
+                },
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message:
+              'Dependencies to elements of category "null" are not allowed. Denied by rule at index 0',
+            type: "Literal",
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            default: "allow",
+            checkAllOrigins: true,
+            rules: [
+              {
+                disallow: {
+                  to: { captured: null },
+                },
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message:
+              'Dependencies to elements of captured "null" are not allowed. Denied by rule at index 0',
+            type: "Literal",
+          },
+        ],
+      },
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import react from 'react'",
+        options: [
+          {
+            default: "allow",
+            checkAllOrigins: true,
+            rules: [
+              {
+                disallow: {
+                  to: {
+                    path: null,
+                    internalPath: null,
+                    elementPath: null,
+                    parent: null,
+                    type: null,
+                    category: null,
+                    captured: null,
+                  },
+                },
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message:
+              'Dependencies to elements of path "null", internalPath "null", elementPath "null", parent "null", type "null", category "null" and captured "null" are not allowed. Denied by rule at index 0',
+            type: "Literal",
+          },
+        ],
       },
     ],
   }

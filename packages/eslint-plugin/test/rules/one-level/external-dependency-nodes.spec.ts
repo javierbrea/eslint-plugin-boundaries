@@ -79,7 +79,7 @@ createRuleTester(settings).run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "modules". Denied by rule at index 1',
+            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -133,7 +133,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "modules". Denied by rule at index 1',
+            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -218,7 +218,7 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies with kind "type", module "react-router-dom" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "components". Denied by rule at index 0',
+            'Dependencies with kind "type", module "react-router-dom" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
           type: "Literal",
         },
       ],
@@ -231,7 +231,7 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "modules". Denied by rule at index 1',
+            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -291,7 +291,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "type", module "react-router-dom" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "components". Denied by rule at index 0',
+            'Dependencies with kind "type", module "react-router-dom" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
           type: "Literal",
         },
       ],
@@ -304,7 +304,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" and internalPath "" are not allowed in elements of type "modules". Denied by rule at index 1',
+            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 1',
           type: "Literal",
         },
       ],

@@ -2,6 +2,7 @@ import type {
   DependencyDescription,
   ElementDescription,
   Matcher,
+  DependencyMatchResult,
 } from "@boundaries/elements";
 import { isDependencyDescription } from "@boundaries/elements";
 import chalk from "chalk";
@@ -189,6 +190,48 @@ function printDependencyDebug(
   const dependencySource = description.dependency.source || "<unknown-source>";
   const title = `Description of dependency "${chalk.green(dependencySource)}" in file "${chalk.green(filePath)}":`;
   printDebugBlock(title, description);
+}
+
+/**
+ * Prints debug information for a rule result when debug mode is enabled
+ *
+ * @param dependencyMatchResult - The result of matching a dependency against rules, including match status and captured values.
+ * @param settings - Normalized plugin settings including debug filters.
+ */
+export function printElementTypesRuleResult(
+  dependencyMatchResult: DependencyMatchResult | null,
+  ruleIndex: number | null,
+  dependency: DependencyDescription,
+  settings: SettingsNormalized
+) {
+  if (!isDebugEnabled(settings.debug.enabled)) {
+    return;
+  }
+  if (!ruleIndex || !dependencyMatchResult) {
+    printDebugBlock(
+      "Dependency did not match any rule, and default policy is to deny.",
+      {
+        dependencyDescription: dependency,
+      }
+    );
+    return;
+  }
+  const title = `Rule at index ${ruleIndex} reported a violation because the following selector matched the dependency:`;
+
+  const selectorRelevantData: Partial<DependencyMatchResult> = {};
+  if (dependencyMatchResult.from) {
+    selectorRelevantData.from = dependencyMatchResult.from;
+  }
+  if (dependencyMatchResult.to) {
+    selectorRelevantData.to = dependencyMatchResult.to;
+  }
+  if (dependencyMatchResult.dependency) {
+    selectorRelevantData.dependency = dependencyMatchResult.dependency;
+  }
+  printDebugBlock(title, {
+    dependencyDescription: dependency,
+    selectorMatching: selectorRelevantData,
+  });
 }
 
 /**

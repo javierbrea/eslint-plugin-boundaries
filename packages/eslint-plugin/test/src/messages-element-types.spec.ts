@@ -66,6 +66,33 @@ describe("Messages element-types formatter", () => {
     );
   });
 
+  it("ignores null element values by default", () => {
+    expect(
+      elementDescriptionMessage(
+        {
+          ...dependencyDescription.from,
+          type: null,
+        },
+        ["type"]
+      )
+    ).toBe("");
+  });
+
+  it("includes null element values when configured", () => {
+    expect(
+      elementDescriptionMessage(
+        {
+          ...dependencyDescription.from,
+          type: null,
+        },
+        ["type"],
+        {
+          includeNullValues: true,
+        }
+      )
+    ).toBe('elements of type "null"');
+  });
+
   it("creates dependency metadata fragments without redundant prefixes", () => {
     expect(
       dependencyDescriptionMessage(dependencyDescription.dependency, [
@@ -87,6 +114,24 @@ describe("Messages element-types formatter", () => {
     expect(
       dependencyDescriptionMessage(dependencyDescription.dependency, ["foo"])
     ).toBe("");
+  });
+
+  it("ignores null metadata values by default", () => {
+    expect(
+      dependencyDescriptionMessage(dependencyDescription.dependency, ["module"])
+    ).toBe("");
+  });
+
+  it("includes null metadata values when configured", () => {
+    expect(
+      dependencyDescriptionMessage(
+        dependencyDescription.dependency,
+        ["module"],
+        {
+          includeNullValues: true,
+        }
+      )
+    ).toBe('module "null"');
   });
 
   it("builds a semantic default message using relevant from/to/dependency properties", () => {

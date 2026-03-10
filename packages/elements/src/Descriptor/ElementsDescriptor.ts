@@ -702,7 +702,8 @@ export class ElementsDescriptor {
       const externalElement: ElementDescriptionWithSource = {
         ...UNKNOWN_ELEMENT,
         path: filePath || null,
-        internalPath: dependencySource.replace(baseDependencySource, ""),
+        internalPath:
+          dependencySource.replace(baseDependencySource, "") || null,
         module: baseDependencySource,
         origin: ELEMENT_ORIGINS_MAP.EXTERNAL,
       };

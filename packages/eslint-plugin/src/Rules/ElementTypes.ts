@@ -41,7 +41,13 @@ import {
   rulesOptionsSchema,
   validateAndWarnRuleOptions,
 } from "../Settings";
-import { warnOnce, isObject, isArray, isString } from "../Support";
+import {
+  warnOnce,
+  isObject,
+  isArray,
+  isString,
+  printElementTypesRuleResult,
+} from "../Support";
 
 import { dependencyRule } from "./Support";
 
@@ -507,6 +513,12 @@ export function evaluateRulesAndReport({
         : false;
 
   if (!finalAllowed && result.allowed === false) {
+    printElementTypesRuleResult(
+      result.matchResult,
+      result.ruleIndex,
+      dependency,
+      settings
+    );
     context.report({
       message: buildErrorMessage({
         matchResult: result.matchResult,

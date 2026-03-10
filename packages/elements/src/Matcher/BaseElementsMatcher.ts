@@ -272,8 +272,8 @@ export class BaseElementsMatcher {
     if (!(selectorKey in selector)) {
       return true;
     }
-    // Empty selector values do not match anything.
-    if (!selectorValue) {
+    // Undefined selector values do not match anything.
+    if (isUndefined(selectorValue)) {
       return false;
     }
 
