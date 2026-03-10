@@ -18,7 +18,7 @@ import { runTests } from "./runner.js";
 const currentFile = fileURLToPath(import.meta.url);
 const currentDir = dirname(currentFile);
 
-const PERFORMANCE_BASELINE_MS = 60000;
+const PERFORMANCE_BASELINE_MS = 55000;
 const PERFORMANCE_MAX_INCREASE_PERCENT = 20;
 const PERFORMANCE_MIN_DURATION_MS = 30000;
 const PERFORMANCE_ERRORS = 42;
