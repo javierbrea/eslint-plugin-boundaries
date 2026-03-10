@@ -8,11 +8,13 @@ const STRESS_ELEMENT_TYPES_RULES = Array.from({ length: 15 }, (_, index) => {
 
   return {
     from: [
-      "feature",
-      {
-        domain: `domain-${domainNumber}`,
-        layer: `layer-${layerNumber}`,
-      },
+      [
+        "feature",
+        {
+          domain: `domain-${domainNumber}`,
+          layer: `layer-${layerNumber}`,
+        },
+      ],
     ],
     disallow: [
       [
@@ -114,26 +116,25 @@ export default [
         "error",
         {
           default: "allow",
-          checkAllOrigins: true,
-          checkUnknownLocals: true,
-          checkInternals: true,
           message:
             "element-types violation: ${file.type} -> ${dependency.type} through ${dependency.source}",
           rules: [
             {
-              from: ["scenario", { group: "boundaries" }],
+              from: [["scenario", { group: "boundaries" }]],
               disallow: ["feature", "library"],
               message:
                 "scenario boundaries cannot import architecture elements: ${dependency.source}",
             },
             {
               from: [
-                "feature",
-                {
-                  domain: "domain-10",
-                  layer: "layer-10",
-                  feature: "feature-05",
-                },
+                [
+                  "feature",
+                  {
+                    domain: "domain-10",
+                    layer: "layer-10",
+                    feature: "feature-05",
+                  },
+                ],
               ],
               disallow: [
                 ["feature", { domain: "domain-01", layer: "layer-10" }],
@@ -143,12 +144,14 @@ export default [
             },
             {
               from: [
-                "feature",
-                {
-                  domain: "domain-09",
-                  layer: "layer-09",
-                  feature: "feature-02",
-                },
+                [
+                  "feature",
+                  {
+                    domain: "domain-09",
+                    layer: "layer-09",
+                    feature: "feature-02",
+                  },
+                ],
               ],
               disallow: [
                 ["feature", { domain: "domain-02", feature: "feature-02" }],
@@ -167,7 +170,7 @@ export default [
           message: "external dependency is not allowed: ${dependency.source}",
           rules: [
             {
-              from: ["scenario", { group: "external" }],
+              from: [["scenario", { group: "external" }]],
               disallow: ["chalk", "eslint", "node:fs", "node:path"],
               message:
                 "scenario external cannot import blocked module ${dependency.source}",
