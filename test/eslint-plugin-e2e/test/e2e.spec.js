@@ -6,15 +6,29 @@ import chalk from "chalk";
 import createdConfigWithDefine from "./configs/createAndDefineConfig.config.js";
 import createdConfig from "./configs/createConfig.config.js";
 import monorepoConfig from "./configs/monorepo.config.js";
+import performanceConfig from "./configs/performance.config.js";
 import recommendedConfig from "./configs/recommended.config.js";
 import strictConfig from "./configs/strict.config.js";
 import createRenamedConfig from "./configs-ts/createRenamedConfig.config.js";
 import recommendedConfigTs from "./configs-ts/recommended.config.js";
 import renamedConfigTs from "./configs-ts/renamed.config.js";
+import { ensurePerformanceFixture } from "./helpers/generatePerformanceFixture.js";
 import { runTests } from "./runner.js";
 
 const currentFile = fileURLToPath(import.meta.url);
 const currentDir = dirname(currentFile);
+
+const PERFORMANCE_BASELINE_MS = 60000;
+const PERFORMANCE_MAX_INCREASE_PERCENT = 20;
+const PERFORMANCE_MIN_DURATION_MS = 30000;
+const PERFORMANCE_ERRORS = 42;
+const PERFORMANCE_FILES = 5026;
+const PERFORMANCE_MAX_DURATION_MS =
+  PERFORMANCE_BASELINE_MS * (1 + PERFORMANCE_MAX_INCREASE_PERCENT / 100);
+
+const performanceFixture = ensurePerformanceFixture(
+  join(currentDir, "fixtures")
+);
 
 /**
  * Find the results of a file given a portion of the file name
@@ -371,6 +385,94 @@ const tests = [
                   msg.message.includes("There is no rule allowing dependencies")
               )
           );
+        }
+      );
+    },
+  },
+  {
+    name: "performance-config",
+    config: performanceConfig,
+    fixture: performanceFixture.fixturePath,
+    runOnFiles: ["src/**/*.js"],
+    assert: async (runner, result) => {
+      const allMessages = (result.files || []).flatMap((file) => file.messages);
+
+      await runner.assert(
+        `performance fixture should have ${PERFORMANCE_FILES} js files`,
+        async () => {
+          return performanceFixture.jsFilesCount >= PERFORMANCE_FILES;
+        }
+      );
+
+      await runner.assert(
+        `performance config should detect at least ${PERFORMANCE_ERRORS} errors`,
+        async () => {
+          return (result.errorCount || 0) >= PERFORMANCE_ERRORS;
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one cross-domain element-types error`,
+        async () => {
+          return allMessages.some(
+            (msg) =>
+              msg.ruleId === "boundaries/element-types" &&
+              msg.message.includes("cross-domain import blocked")
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one scenario element-types error`,
+        async () => {
+          return allMessages.some(
+            (msg) =>
+              msg.ruleId === "boundaries/element-types" &&
+              msg.message.includes(
+                "scenario boundaries cannot import architecture elements"
+              )
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one external rule error`,
+        async () => {
+          return allMessages.some(
+            (msg) => msg.ruleId === "boundaries/external"
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one no-unknown rule error`,
+        async () => {
+          return allMessages.some(
+            (msg) => msg.ruleId === "boundaries/no-unknown"
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one no-unknown-files rule error`,
+        async () => {
+          return allMessages.some(
+            (msg) => msg.ruleId === "boundaries/no-unknown-files"
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should take at least ${PERFORMANCE_MIN_DURATION_MS}ms`,
+        async () => {
+          return (result.durationMs || 0) >= PERFORMANCE_MIN_DURATION_MS;
+        }
+      );
+
+      await runner.assert(
+        `performance config should not exceed ${PERFORMANCE_MAX_DURATION_MS}ms (+${PERFORMANCE_MAX_INCREASE_PERCENT}% baseline)`,
+        async () => {
+          return (result.durationMs || 0) <= PERFORMANCE_MAX_DURATION_MS;
         }
       );
     },

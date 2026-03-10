@@ -134,3 +134,6 @@ dist
 
 # NX
 .nx
+
+# E2E performance fixture (generated)
+test/eslint-plugin-e2e/test/fixtures/performance/
