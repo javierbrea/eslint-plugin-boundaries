@@ -13,6 +13,7 @@ import {
   RULE_NAMES_MAP,
   rulesOptionsSchema,
   validateAndWarnRuleOptions,
+  warnMigrationToElementTypes,
 } from "../Settings";
 
 import { evaluateRulesAndReport } from "./ElementTypes";
@@ -79,6 +80,7 @@ export default dependencyRule<EntryPointRuleOptions>(
     }),
   },
   function ({ dependency, node, context, settings, options }) {
+    warnMigrationToElementTypes(RULE_NAMES_MAP.ENTRY_POINT);
     // Validate and warn about legacy selector syntax
     validateAndWarnRuleOptions(options, "target", RULE_NAMES_MAP.ENTRY_POINT);
 

@@ -3,6 +3,8 @@
 import chalk from "chalk";
 import { ESLint } from "eslint";
 
+import { performanceTestsAreDisabled } from "./helpers/performance.js";
+
 // Exported types for external use
 /**
  * @typedef {Object} TestResult
@@ -46,6 +48,7 @@ import { ESLint } from "eslint";
 /**
  * @typedef {Object} TestDefinition
  * @property {string} name - Test name/identifier
+ * @property {boolean} [isPerformanceTest] - Whether this test is a performance benchmark
  * @property {Object} config - ESLint configuration object
  * @property {string} fixture - Path to the fixture directory
  * @property {Array<string>} [runOnFiles] - Glob patterns of files to lint
@@ -213,6 +216,10 @@ export async function runTests(tests) {
   );
 
   for (const test of tests) {
+    if (test.isPerformanceTest && performanceTestsAreDisabled()) {
+      console.log(`${chalk.yellow(`Skipping performance test: ${test.name}`)}`);
+      continue;
+    }
     console.log(`${chalk.blue(`Running tests for: ${test.name}`)}`);
 
     const result = await runESLintOnFixture(

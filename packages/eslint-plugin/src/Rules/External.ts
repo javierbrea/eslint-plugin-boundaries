@@ -17,6 +17,7 @@ import {
   validateAndWarnRuleOptions,
   SETTINGS,
   RULE_NAMES_MAP,
+  warnMigrationToElementTypes,
 } from "../Settings";
 import { isString, isArray, isObject, isNullish } from "../Support";
 
@@ -161,6 +162,7 @@ export default dependencyRule<ExternalRuleOptions>(
     }),
   },
   function ({ dependency, node, context, settings, options }) {
+    warnMigrationToElementTypes(RULE_NAMES_MAP.EXTERNAL);
     // Validate and warn about legacy selector syntax
     validateAndWarnRuleOptions(options, "from", RULE_NAMES_MAP.EXTERNAL);
 

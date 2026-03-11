@@ -13,9 +13,9 @@ import { PLUGIN_NAME, ELEMENT_TYPES } from "../Settings/Settings.types";
 
 import { isUndefined, isNull } from "./Common";
 
-const warns: string[] = [];
-const debuggedFiles: string[] = [];
-const debuggedDependencies: string[] = [];
+const warns = new Set<string>();
+const debuggedFiles = new Set<string>();
+const debuggedDependencies = new Set<string>();
 
 const PREFIX_COLOR = "#A8B3D8" as const;
 
@@ -101,12 +101,13 @@ export function success(message: string) {
  * @returns `true` when warning was emitted, `false` when skipped.
  */
 export function warnOnce(message: string): boolean {
-  if (!warns.includes(message)) {
-    warns.push(message);
-    warn(message);
-    return true;
+  if (warns.has(message)) {
+    return false;
   }
-  return false;
+
+  warns.add(message);
+  warn(message);
+  return true;
 }
 
 /**
@@ -158,11 +159,11 @@ function printFileDebug(
     return;
   }
   const fileIdentifier = getFileIdentifier(description);
-  if (debuggedFiles.includes(fileIdentifier)) {
+  if (debuggedFiles.has(fileIdentifier)) {
     return;
   }
 
-  debuggedFiles.push(fileIdentifier);
+  debuggedFiles.add(fileIdentifier);
   if (shouldPrintFile(description, settings, matcher)) {
     const title = `Description of file "${chalk.green(fileIdentifier)}":`;
     printDebugBlock(title, description);
@@ -191,10 +192,10 @@ function printDependencyDebug(
   const fileIdentifier = getFileIdentifier(description.from);
   const dependencyIdentifier = `${dependencySource}-${fileIdentifier}`;
 
-  if (debuggedDependencies.includes(dependencyIdentifier)) {
+  if (debuggedDependencies.has(dependencyIdentifier)) {
     return;
   }
-  debuggedDependencies.push(dependencyIdentifier);
+  debuggedDependencies.add(dependencyIdentifier);
 
   if (shouldPrintDependency(description, settings, matcher)) {
     const title = `Description of dependency "${chalk.green(dependencySource)}" in file "${chalk.green(fileIdentifier)}":`;

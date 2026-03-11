@@ -63,7 +63,7 @@ describe("validateAndWarnRuleOptions", () => {
     );
 
     expect(warnSpy).toHaveBeenCalledWith(
-      "[boundaries/element-types] Detected legacy selector syntax in 3 rule(s) at indices: 0, 1, 2. Consider migrating to object-based selectors. See documentation for migration guide."
+      "[boundaries/element-types] Detected legacy selector syntax in 3 rule(s) at indices: 0, 1, 2. Consider migrating to object-based selectors. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/"
     );
   });
 
@@ -93,7 +93,7 @@ describe("validateAndWarnRuleOptions", () => {
     );
 
     expect(warnSpy).toHaveBeenCalledWith(
-      "[boundaries/element-types] Detected legacy template syntax ${...} in 1 rule(s) at indices: 0. Consider migrating to {{...}} syntax. See documentation for details."
+      "[boundaries/element-types] Detected legacy template syntax ${...} in 1 rule(s) at indices: 0. Consider migrating to {{...}} syntax. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/#new-template-syntax"
     );
   });
 
@@ -115,7 +115,7 @@ describe("validateAndWarnRuleOptions", () => {
     );
 
     expect(warnSpy).toHaveBeenCalledWith(
-      '[boundaries/element-types] Detected deprecated rule-level "importKind" in 1 rule(s) at indices: 0. Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence.'
+      '[boundaries/element-types] Detected deprecated rule-level "importKind" in 1 rule(s) at indices: 0. Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/#rule-level-importkind-is-deprecated'
     );
   });
 
@@ -147,15 +147,107 @@ describe("validateAndWarnRuleOptions", () => {
 
     expect(warnSpy).toHaveBeenNthCalledWith(
       1,
-      "[boundaries/element-types] Detected legacy selector syntax in 1 rule(s) at indices: 0. Consider migrating to object-based selectors. See documentation for migration guide."
+      "[boundaries/element-types] Detected legacy selector syntax in 1 rule(s) at indices: 0. Consider migrating to object-based selectors. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/"
     );
     expect(warnSpy).toHaveBeenNthCalledWith(
       2,
-      "[boundaries/element-types] Detected legacy template syntax ${...} in 1 rule(s) at indices: 0. Consider migrating to {{...}} syntax. See documentation for details."
+      "[boundaries/element-types] Detected legacy template syntax ${...} in 1 rule(s) at indices: 0. Consider migrating to {{...}} syntax. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/#new-template-syntax"
     );
     expect(warnSpy).toHaveBeenNthCalledWith(
       3,
-      '[boundaries/element-types] Detected deprecated rule-level "importKind" in 1 rule(s) at indices: 0. Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence.'
+      '[boundaries/element-types] Detected deprecated rule-level "importKind" in 1 rule(s) at indices: 0. Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/#rule-level-importkind-is-deprecated'
+    );
+  });
+
+  it("should not warn when rules is an empty array", () => {
+    const warnSpy = getWarnSpy();
+
+    validateAndWarnRuleOptions(
+      { rules: [] },
+      "from",
+      "boundaries/element-types"
+    );
+
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it("should not warn when rules use only modern object-based selectors", () => {
+    const warnSpy = getWarnSpy();
+
+    validateAndWarnRuleOptions(
+      {
+        rules: [
+          {
+            from: { type: "components" },
+            allow: [{ to: { type: "helpers" } }],
+          },
+        ],
+      },
+      "from",
+      "boundaries/element-types"
+    );
+
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it("should warn when legacy selector syntax is detected in 'to' main key", () => {
+    const warnSpy = getWarnSpy();
+
+    validateAndWarnRuleOptions(
+      {
+        rules: [
+          {
+            to: "helpers",
+          },
+        ],
+      },
+      "to",
+      "boundaries/element-types"
+    );
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[boundaries/element-types] Detected legacy selector syntax in 1 rule(s) at indices: 0. Consider migrating to object-based selectors. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/"
+    );
+  });
+
+  it("should warn when legacy selector syntax is detected in 'target' main key", () => {
+    const warnSpy = getWarnSpy();
+
+    validateAndWarnRuleOptions(
+      {
+        rules: [
+          {
+            target: "helpers",
+          },
+        ],
+      },
+      "target",
+      "boundaries/entry-point"
+    );
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[boundaries/entry-point] Detected legacy selector syntax in 1 rule(s) at indices: 0. Consider migrating to object-based selectors. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/"
+    );
+  });
+
+  it("should warn when legacy selector syntax is in 'allow' but 'from' uses modern selector", () => {
+    const warnSpy = getWarnSpy();
+
+    validateAndWarnRuleOptions(
+      {
+        rules: [
+          {
+            from: { type: "components" },
+            allow: ["helpers"],
+          },
+        ],
+      },
+      "from",
+      "boundaries/element-types"
+    );
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[boundaries/element-types] Detected legacy selector syntax in 1 rule(s) at indices: 0. Consider migrating to object-based selectors. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/"
     );
   });
 

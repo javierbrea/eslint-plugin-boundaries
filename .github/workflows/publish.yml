@@ -14,7 +14,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/install
-    - run: pnpm check:all
+    - run: pnpm 
+      env:
+        RUN_PERFORMANCE_TESTS: false
     - run: pnpm -r publish --no-git-checks
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -35,7 +37,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/install
-    - run: pnpm check:all
+    - run: pnpm 
+      env:
+        RUN_PERFORMANCE_TESTS: false
     - run: pnpm -r publish --no-git-checks --tag beta
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

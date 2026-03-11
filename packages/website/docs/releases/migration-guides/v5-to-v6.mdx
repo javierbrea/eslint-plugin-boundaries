@@ -43,19 +43,23 @@ Here is the list of changes and how to migrate your configuration for each one.
 
 ## Object-based elements selector syntax
 
-The following [elements selector](../../setup/selectors.md) formats are now deprecated:
+The following **[elements selector](../../setup/selectors.md)** formats are now deprecated:
 
 1. **String format**: `"helper"`
 2. **Tuple format**: `["helper", { family: "data" }]`
 3. **Array of legacy selectors**: `["helper", "component"]`
 
-The new [object-based syntax](../../setup/selectors.md) provides:
+The new **[object-based syntax](../../setup/selectors.md)** provides:
 
 - **Modern format**: `{ type: "helper", captured: { family: "data" } }`
 - **Clear property names**: Self-documenting code
 - **Advanced features**: Access to new matching properties
 - **Better composition**: Combine multiple properties easily
 - **Future-proof**: New capabilities will only be added to object-based syntax
+
+:::info
+Read more about the new object-based selector syntax in the **[selectors documentation](../../setup/selectors.md).**
+:::
 
 ### Conversion table
 
@@ -127,7 +131,7 @@ Read more about the new dependency selector syntax in the [selectors documentati
 
 ### Rule-level `importKind` is deprecated
 
-**Rule-level `importKind` is deprecated**: Use selector-level `dependency.kind` instead. When both are defined, selector-level `dependency.kind` takes precedence. This allows for more granular control over matching specific dependency kinds within the same rule.
+**Rule-level `importKind` is deprecated**: Use **[selector-level `dependency.kind`](../../setup/selectors.md#dependency-selectors)** instead. When both are defined, selector-level `dependency.kind` takes precedence. This allows for more granular control over matching specific dependency kinds within the same rule.
 
 #### Conversion table
 

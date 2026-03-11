@@ -57,6 +57,7 @@ function getPerformanceTest(name, config, maxDurationMs) {
   return {
     name,
     config,
+    isPerformanceTest: true,
     fixture: performanceFixture.fixturePath,
     runOnFiles: ["src/**/*.js"],
     assert: async (runner, result) => {

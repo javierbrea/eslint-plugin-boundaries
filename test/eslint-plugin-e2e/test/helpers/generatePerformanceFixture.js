@@ -8,6 +8,8 @@ import {
 } from "node:fs";
 import { dirname, join, relative } from "node:path";
 
+import { performanceTestsAreDisabled } from "./performance.js";
+
 const DOMAIN_COUNT = 10;
 const LAYER_COUNT = 10;
 const FEATURE_COUNT = 5;
@@ -325,6 +327,18 @@ function countJsFiles(folderPath) {
 /** @param {string} fixturesPath */
 export function ensurePerformanceFixture(fixturesPath) {
   const fixturePath = join(fixturesPath, "performance");
+  if (performanceTestsAreDisabled()) {
+    console.warn(
+      `Skipping fixture generation due to RUN_PERFORMANCE_TESTS=false`
+    );
+    return {
+      fixturePath: fixturePath,
+      generated: false,
+      jsFilesCount: 0,
+      bulkFilesCount: 0,
+    };
+  }
+
   const srcPath = join(fixturePath, "src");
   const startTime = performance.now();
 
