@@ -88,7 +88,7 @@ The `boundaries/ignore` option has precedence over `boundaries/include`. If you 
 
 **Type:** `<array of strings>`
 
-**Default:** `["import"]`
+**Default:** `["import", "require", "export", "dynamic-import"]`
 
 Modifies which built-in dependency nodes are analyzed. By default, all next nodes are analyzed:
 
@@ -110,7 +110,7 @@ export default [{
 ```
 
 :::tip
-For custom dependency nodes (like `jest.mock(...)`), use [`boundaries/additional-dependency-nodes`](#boundariesadditional-dependency-nodes).
+To check also custom dependency nodes (like `jest.mock(...)`), use [`boundaries/additional-dependency-nodes`](#boundariesadditional-dependency-nodes).
 :::
 
 ## `boundaries/additional-dependency-nodes`
@@ -124,8 +124,12 @@ Defines custom dependency nodes to analyze beyond the built-in ones. All plugin 
 **Object structure:**
 
 - **`selector`** - The [esquery selector](https://github.com/estools/esquery) for the `Literal` node where the dependency source is defined
-- **`kind`** - The dependency kind: `"value"` or `"type"` (makes sense only for TypeScript projects, where you can have type-only dependencies)
-- **`name`** (optional) - A name for the custom node, so you can use it in rules configuration (e.g., to forbid or allow this kind of dependency in some rules or to use it in custom messages templates variables)
+- **`name`** (optional) - A name for the custom node, so you can **use it in rules configuration using `dependency.nodeKind`** (e.g., to forbid or allow this kind of dependency node in some rules or to use it in custom messages templates variables)
+- **`kind`** -Assigns the **`dependency.kind` property in dependency descriptions**, which you can use in rules configuration or custom messages templates to target specific dependency kinds. Possible values are `"value"`, `"type"` or `"typeof"`. 
+
+:::warning
+The `name` property is optional for the moment, but if you don't provide it, the plugin will not be able to identify the node kind of the dependency in rules configuration or custom messages templates, so it will be treated as a generic dependency without a specific node kind. If you want to use the custom node in rules configuration or custom messages templates, make sure to provide a unique name for it.
+:::
 
 **Example:**
 
@@ -136,14 +140,14 @@ export default [{
       // jest.requireActual('source')
       {
         selector: "CallExpression[callee.object.name=jest][callee.property.name=requireActual] > Literal",
-        kind: "value",
-        name: "jest-require-actual"
+        name: "jest-require-actual",
+        kind: "value"
       },
       // jest.mock('source', ...)
       {
         selector: "CallExpression[callee.object.name=jest][callee.property.name=mock] > Literal:first-child",
-        kind: "value",
-        name: "jest-mock"
+        name: "jest-mock",
+        kind: "value"
       },
     ],
   }

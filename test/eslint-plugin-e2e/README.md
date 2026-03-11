@@ -23,8 +23,14 @@ The E2E tests also include performance benchmarks to ensure that the plugin runs
 
 You can disable performance tests by setting the `RUN_PERFORMANCE_TESTS` environment variable to `false`:
 
-```bash# Run E2E tests without performance tests
+```bash
 RUN_PERFORMANCE_TESTS=false pnpm nx test:e2e eslint-plugin-boundaries-e2e
+```
+
+Or, run directly from this package with:
+
+```bash
+pnpm test:e2e:no-perf
 ```
 
 ## Adding new tests

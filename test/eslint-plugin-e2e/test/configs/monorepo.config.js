@@ -22,6 +22,7 @@ export default [
           capture: ["name"],
         },
       ],
+      "boundaries/dependency-nodes": ["import"],
     },
     rules: {
       ...strictBoundariesConfig.rules,

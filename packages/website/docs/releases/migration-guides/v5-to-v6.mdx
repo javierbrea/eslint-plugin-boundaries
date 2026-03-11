@@ -31,12 +31,12 @@ import CodeDiff from "@site/src/components/CodeDiff";
 
 Version 6.0.0 introduces **[object-based selectors](../../setup/selectors.md)** as the recommended way to define element selectors. This provides better readability and access to advanced matching features.
 
-It also introduces several new features and changes in configuration to make it more semantic and powerful. But every change is designed to be incremental and non-breaking, allowing you to migrate at your own pace.
+It also introduces several new features and changes in configuration to make it more semantic and powerful. But almost every change is designed to be incremental and non-breaking, allowing you to migrate at your own pace. The only breaking change is the [new default value for `boundaries/dependency-nodes`](#changed-default-value-for-boundariesdependency-nodes-setting).
 
-You will receive warnings in your console about how to prepare your configuration for v7, which will remove support for legacy syntax entirely. This guide will walk you through the migration process step by step.
+You will receive warnings in your console about how to prepare your configuration for next versions removing support for legacy syntax. This guide will walk you through the migration process step by step.
 
 :::info Backwards Compatibility
-Legacy selector formats and other deprecation warnings are still supported in v6.x but will show a warning in your console. They will be removed entirely in v7.0.0.
+Legacy selector formats and other deprecation warnings are still supported in v6.x but will show a warning in your console.
 :::
 
 Here is the list of changes and how to migrate your configuration for each one.
@@ -129,11 +129,30 @@ Read more about the new dependency selector syntax in the [selectors documentati
 . };
 `}</CodeDiff>
 
-### Rule-level `importKind` is deprecated
+## Changed default value for `boundaries/dependency-nodes` setting
+
+The default value for the `boundaries/dependency-nodes` setting is now `["import", "export", "require", "dynamicImport"]`, which means that by default the plugin will analyze all types of dependencies. Previously, only `import` statements were analyzed by default.
+
+:::warning BREAKING CHANGE
+This means that if you were relying on the default value of `boundaries/dependency-nodes` to only analyze `import` statements, now your rules will also apply to other types of dependencies such as `export * from`, `require()`, and `import()`. This may cause new violations to be reported in your codebase that were not reported before.
+:::
+
+If you want to keep the previous behavior and only analyze `import` statements, you should set `boundaries/dependency-nodes` to `["import"]` in your configuration.
+
+```js
+{
+  // ...
+  settings: {
+    "boundaries/dependency-nodes": ["import"] // Only analyze import statements
+  }
+}
+```
+
+## Rule-level `importKind` is deprecated
 
 **Rule-level `importKind` is deprecated**: Use **[selector-level `dependency.kind`](../../setup/selectors.md#dependency-selectors)** instead. When both are defined, selector-level `dependency.kind` takes precedence. This allows for more granular control over matching specific dependency kinds within the same rule.
 
-#### Conversion table
+### Conversion table
 
 | Legacy Format | Object-Based Format |
 |--------------|---------------------|
@@ -164,12 +183,12 @@ Read more about the new dependency selector syntax in the [selectors documentati
 `}</CodeDiff>
 
 :::note
-This does not apply to the [`entry-point` rule](../../rules/entry-point.mdx), because the "allow" and "disallow" properties in that rule are not used to match dependencies but to define the allowed paths to be used as entry points. In that rule, the `importKind` property is still supported. Anyway, that entire rule is also deprecated and will be removed in v7, so it is recommended to migrate to the new `boundaries/element-types` rule with the new selector syntax as soon as possible. You will find a **[migration example for that rule in its documentation page](../../rules/entry-point.mdx#migration-to-boundarieselement-types)**.
+This does not apply to the [`entry-point` rule](../../rules/entry-point.mdx), because the "allow" and "disallow" properties in that rule are not used to match dependencies but to define the allowed paths to be used as entry points. In that rule, the `importKind` property is still supported. Anyway, that entire rule is also deprecated and will be removed in oncoming versions, so it is recommended to migrate to the new `boundaries/element-types` rule with the new selector syntax as soon as possible. You will find a **[migration example for that rule in its documentation page](../../rules/entry-point.mdx#migration-to-boundarieselement-types)**.
 :::
 
 ## New template syntax
 
-V6 introduces a new Handlebars-style template syntax (`{{...}}`) for selectors and custom messages, providing clearer syntax and structured access to [element descriptions properties](../../setup/elements.md#runtime-description-properties). The old `${ }` syntax is still supported for backwards compatibility but will be deprecated in v7.
+V6 introduces a new Handlebars-style template syntax (`{{...}}`) for selectors and custom messages, providing clearer syntax and structured access to [element descriptions properties](../../setup/elements.md#runtime-description-properties). The old `${ }` syntax is still supported for backwards compatibility but will be deprecated in future versions.
 
 The modern template syntax uses Handlebars-style double curly braces:
 

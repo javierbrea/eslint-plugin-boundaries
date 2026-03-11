@@ -1073,13 +1073,16 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
     getArrayOrNull<DependencyNodeSelector>(
       validatedSettings[ADDITIONAL_DEPENDENCY_NODES]
     );
-  const dependencyNodes: DependencyNodeSelector[] =
-    // TODO In next major version, make this default to all types of nodes!!!
-    (dependencyNodesSetting || [DEPENDENCY_NODE_KEYS_MAP.IMPORT])
-      .flatMap((dependencyNode) => [
-        ...DEFAULT_DEPENDENCY_NODES[dependencyNode],
-      ])
-      .filter(Boolean);
+  const dependencyNodes: DependencyNodeSelector[] = (
+    dependencyNodesSetting || [
+      DEPENDENCY_NODE_KEYS_MAP.IMPORT,
+      DEPENDENCY_NODE_KEYS_MAP.EXPORT,
+      DEPENDENCY_NODE_KEYS_MAP.REQUIRE,
+      DEPENDENCY_NODE_KEYS_MAP.DYNAMIC_IMPORT,
+    ]
+  )
+    .flatMap((dependencyNode) => [...DEFAULT_DEPENDENCY_NODES[dependencyNode]])
+    .filter(Boolean);
 
   const additionalDependencyNodes = additionalDependencyNodesSetting || [];
 

@@ -329,7 +329,7 @@ export function ensurePerformanceFixture(fixturesPath) {
   const fixturePath = join(fixturesPath, "performance");
   if (performanceTestsAreDisabled()) {
     console.warn(
-      `Skipping fixture generation due to RUN_PERFORMANCE_TESTS=false`
+      `Skipping fixture generation due to disabled performance tests.`
     );
     return {
       fixturePath: fixturePath,

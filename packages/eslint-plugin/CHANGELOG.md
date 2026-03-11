@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 ### Removed
 ### BREAKING CHANGES
+* feat: Enable all dependency nodes by default in the `boundaries/dependency-nodes` setting. Previously, only `import` nodes were enabled by default. Now, the plugin analyzes `import`, `export`, `require` and `dynamic import` by default. You should set `boundaries/dependency-nodes` to `["import"]` if you want to match only `import` statements as before.
 * Remove `isExternalLibrarySelector` and `isExternalLibrariesSelector` type guards. They are not needed anymore, as external rule is deprecated and external library selectors can be defined using the same `ElementSelector` format.
 
 ## [5.4.0] - 2026-02-02

@@ -118,7 +118,7 @@ export function dependencyDescription(
     from: fileName,
     to: resolvedPath || undefined,
     source,
-    kind: kind || "value", // TODO: Change by runtime in a backwards compatible way
+    kind: kind || "value",
     nodeKind,
     specifiers: getSpecifiers(node),
   });

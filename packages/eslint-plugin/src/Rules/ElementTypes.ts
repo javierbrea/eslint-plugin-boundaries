@@ -462,8 +462,6 @@ type BuildErrorMessageParams = {
 
 /**
  * Builds the error message for a dependency violation.
- *
- * @todo Replace JSON.stringify with a proper formatted message in a future step.
  */
 export function buildErrorMessage({
   matchResult,
