@@ -51,6 +51,11 @@ const dependencyNodeKey: DependencyNodeKey = DEPENDENCY_NODE_KEYS_MAP.EXPORT;
 
 const debugOptions: DebugSetting = {
   enabled: true,
+  messages: {
+    files: true,
+    dependencies: true,
+    violations: true,
+  },
   filter: {
     files: [{ type: "components" }],
   },
@@ -90,6 +95,35 @@ export const boundariesConfig = createConfig(
             {
               from: ["internal", "external"],
               importKind: IMPORT_KINDS_MAP.TYPE,
+            },
+            {
+              from: [{ type: "components" }],
+              dependency: {
+                kind: DEPENDENCY_KINDS_MAP.TYPE,
+              },
+              to: { internalPath: "foo" },
+              allow: {
+                from: [{ type: "utils" }],
+                to: [{ internalPath: "foo" }],
+                dependency: {
+                  relationship: {
+                    from: ["parent"],
+                    // NOTE: Micromatch patterns are allowed
+                    to: ["foo"],
+                  },
+                  nodeKind: "Foo",
+                  kind: ["type"],
+                },
+              },
+              disallow: {
+                from: [{ type: "utils" }],
+                to: [{ internalPath: "bar" }],
+                dependency: [
+                  {
+                    kind: "type",
+                  },
+                ],
+              },
             },
           ],
         },
