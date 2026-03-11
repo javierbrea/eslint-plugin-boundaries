@@ -32,8 +32,8 @@ export const boundariesConfig = createConfig(
           default: "disallow",
           rules: [
             {
-              from: "module",
-              allow: ["component"],
+              from: { type: "module" },
+              allow: { to: { type: "component" } },
             },
           ],
         },
@@ -72,8 +72,8 @@ export const config: Linter.Config[] = defineConfig([
             default: "disallow",
             rules: [
               {
-                from: "module",
-                allow: ["component"],
+                from: { type: "module" },
+                allow: [{ to: { type: "component" } }],
               },
             ],
           },
@@ -112,8 +112,8 @@ export const boundariesConfig2 = createConfig(
           default: "disallow",
           rules: [
             {
-              from: "module",
-              allow: ["component"],
+              from: { type: "module" },
+              allow: [{ to: { type: "component" } }],
             },
           ],
         },
@@ -150,8 +150,8 @@ export const boundariesConfig3 = createConfig({
         default: "disallow",
         rules: [
           {
-            from: "module",
-            allow: ["component"],
+            from: { type: "module" },
+            allow: [{ to: { type: "component" } }],
           },
         ],
       },

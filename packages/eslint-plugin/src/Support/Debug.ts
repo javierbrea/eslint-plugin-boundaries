@@ -33,16 +33,21 @@ type TraceColor = keyof typeof COLORS_MAP;
  *
  * @param message - Message text to print.
  * @param color - Optional color key from the internal color map.
+ * @param level - Optional log level (e.g., "warn", "info") for future extensibility (currently unused).
  */
-function trace(message: string, color?: TraceColor) {
+function trace(
+  message: string,
+  color?: TraceColor,
+  level: "log" | "warn" = "log"
+) {
   if (!color) {
     // eslint-disable-next-line no-console
-    console.log(message);
+    console[level](message);
     return;
   }
   const output = chalk[COLORS_MAP[color]](message);
   // eslint-disable-next-line no-console
-  console.log(output);
+  console[level](output);
 }
 
 /**
@@ -82,7 +87,7 @@ function printDebugBlock(title: string, data: unknown): void {
  * @param message - Warning message.
  */
 export function warn(message: string) {
-  trace(message, COLORS_MAP.yellow);
+  trace(message, COLORS_MAP.yellow, "warn");
 }
 
 /**

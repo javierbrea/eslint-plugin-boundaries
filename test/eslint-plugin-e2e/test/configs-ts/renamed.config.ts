@@ -40,8 +40,14 @@ const boundariesConfig: Config<"customBoundaries"> = {
         default: "disallow",
         rules: [
           {
-            from: "module",
-            allow: ["component"],
+            from: {
+              type: "module",
+            },
+            allow: [
+              {
+                to: { type: "component" },
+              },
+            ],
           },
         ],
       },

@@ -30,8 +30,8 @@ const elementsMapping: ElementDescriptors = [
 const ignoreSetting: IgnoreSetting = ["**/ignored/**/*.js"];
 
 const allowComponentsFromModules: DependenciesRule = {
-  from: "module",
-  allow: ["component"],
+  from: { type: "module" },
+  allow: [{ to: { type: "component" } }],
 };
 
 const componentToComponentRuleAllowMatcher: ElementSelectorWithOptions = [

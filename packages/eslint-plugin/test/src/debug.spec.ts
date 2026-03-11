@@ -150,17 +150,18 @@ describe("Debug", () => {
 
   it("should log warn and success messages with color", () => {
     const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     const debugModule = loadDebugModule();
 
     debugModule.warn("Warning");
     debugModule.success("Success");
 
-    expect(consoleSpy).toHaveBeenNthCalledWith(1, "Warning");
-    expect(consoleSpy).toHaveBeenNthCalledWith(2, "Success");
+    expect(warnSpy).toHaveBeenNthCalledWith(1, "Warning");
+    expect(consoleSpy).toHaveBeenNthCalledWith(1, "Success");
   });
 
   it("should warn once for identical messages", () => {
-    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const consoleSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     const debugModule = loadDebugModule();
 
     expect(debugModule.warnOnce("Only once")).toBe(true);
