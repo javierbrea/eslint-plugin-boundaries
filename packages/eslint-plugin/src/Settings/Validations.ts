@@ -54,6 +54,7 @@ import type {
   RuleMainKey,
   SettingsNormalized,
   DebugSettingNormalized,
+  RuleName,
 } from "./Settings.types";
 
 const {
@@ -414,7 +415,7 @@ function getRuleMainSelector(rule: RuleOptionsRules, mainKey: RuleMainKey) {
 export function validateAndWarnRuleOptions(
   options: RuleOptionsWithRules | undefined,
   mainKey: RuleMainKey = "from",
-  ruleName = "boundaries/unknown"
+  ruleName: RuleName
 ): void {
   if (
     !options ||
@@ -504,12 +505,12 @@ export function validateAndWarnRuleOptions(
  * @param element - Candidate element descriptor from settings.
  * @returns `true` when descriptor is valid or accepted legacy string.
  */
-export function isValidElementAssigner(
+export function isValidElementDescriptor(
   element: unknown
 ): element is ElementDescriptor {
   if (!element) {
     warnOnce(
-      `Please provide a valid object to define element types in '${ELEMENTS}' setting`
+      `Invalid element descriptor in '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
     );
     return false;
   }
@@ -522,14 +523,25 @@ export function isValidElementAssigner(
     const isObjectElement = isObject(element);
     if (!isObjectElement) {
       warnOnce(
-        // cspell: disable-next-line
-        `Please provide a valid object to define element types in '${ELEMENTS}' setting. ${migrationToV2GuideLink("boundariestypes")}`
+        `Invalid element descriptor in '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
       );
       return false;
     }
-    if (!element.type || !isString(element.type)) {
+    if (!element.type && !element.category) {
       warnOnce(
-        `Please provide type in '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
+        `Missing "type" or "category" property in an element descriptor in '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
+      );
+      return false;
+    }
+    if (element.type && !isString(element.type)) {
+      warnOnce(
+        `Invalid "type" property in an element descriptor in '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
+      );
+      return false;
+    }
+    if (element.category && !isString(element.category)) {
+      warnOnce(
+        `Invalid "category" property in an element descriptor in '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
       );
       return false;
     }
@@ -539,11 +551,9 @@ export function isValidElementAssigner(
       !VALID_MODES.includes(element.mode as ElementDescriptorMode)
     ) {
       warnOnce(
-        `Invalid mode property of type ${
-          element.type
-        } in '${ELEMENTS}' setting. Should be one of ${VALID_MODES.join(
+        `Invalid "mode" property in an element descriptor in '${ELEMENTS}' setting. Should be one of ${VALID_MODES.join(
           ","
-        )}. Default value "${VALID_MODES[0]}" will be used instead. ${moreInfoSettingsLink()}`
+        )}. ${moreInfoSettingsLink()}`
       );
       return false;
     }
@@ -552,13 +562,13 @@ export function isValidElementAssigner(
       !(isString(element.pattern) || isArray(element.pattern))
     ) {
       warnOnce(
-        `Please provide a valid pattern to type ${element.type} in '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
+        `Invalid "pattern" property in an element descriptor in '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
       );
       return false;
     }
     if (element.capture && !isArray(element.capture)) {
       warnOnce(
-        `Invalid capture property of type ${element.type} in '${ELEMENTS}' setting. Capture should be an array of strings. The invalid capture value will be ignored. ${moreInfoSettingsLink()}`
+        `Invalid "capture" property in an element descriptor in '${ELEMENTS}' setting. Capture should be an array of strings. ${moreInfoSettingsLink()}`
       );
       return false;
     }
@@ -572,14 +582,16 @@ export function isValidElementAssigner(
  * @param elements - Raw `boundaries/elements` setting value.
  * @returns Valid descriptors or `undefined` when setting is invalid/missing.
  */
-function validateElements(elements: unknown): ElementDescriptors | undefined {
+function validateElementDescriptors(
+  elements: unknown
+): ElementDescriptors | undefined {
   if (!elements || !isArray(elements) || !elements.length) {
     warnOnce(
-      `Please provide element types using the '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
+      `Please provide element descriptors using the '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
     );
     return;
   }
-  return elements.filter(isValidElementAssigner);
+  return elements.filter(isValidElementDescriptor);
 }
 
 /**
@@ -702,21 +714,6 @@ function isAliasSetting(value: unknown): value is AliasSetting {
 }
 
 /**
- * Type guard for element descriptors array including legacy entries.
- *
- * @param value - Candidate `types` or `elements` setting value.
- * @returns `true` when all entries are valid descriptors or legacy strings.
- */
-function isElementDescriptors(value: unknown): value is ElementDescriptors {
-  return (
-    isArray(value) &&
-    value.every(
-      (element) => isLegacyType(element) || isElementDescriptor(element)
-    )
-  );
-}
-
-/**
  * Emits deprecation warning for legacy `alias` setting.
  *
  * @param aliases - Alias setting value when present.
@@ -734,7 +731,7 @@ function deprecateAlias(aliases: AliasSetting | undefined) {
  *
  * @param types - Legacy types setting value when present.
  */
-function deprecateTypes(types: ElementDescriptors | undefined) {
+function deprecateTypes(types: unknown) {
   if (types) {
     warnOnce(
       `'${TYPES}' setting is deprecated. Please use '${ELEMENTS}' instead. ${migrationToV2GuideLink()}`
@@ -1022,13 +1019,11 @@ function validateDebug(debug: unknown): DebugSettingNormalized {
 export function validateSettings(
   settings: Rule.RuleContext["settings"]
 ): Settings {
-  deprecateTypes(
-    isElementDescriptors(settings[TYPES]) ? settings[TYPES] : undefined
-  );
+  deprecateTypes(settings[TYPES]);
   deprecateAlias(isAliasSetting(settings[ALIAS]) ? settings[ALIAS] : undefined);
 
   return {
-    [SETTINGS_KEYS_MAP.ELEMENTS]: validateElements(
+    [SETTINGS_KEYS_MAP.ELEMENTS]: validateElementDescriptors(
       settings[ELEMENTS] || settings[TYPES]
     ),
     [SETTINGS_KEYS_MAP.IGNORE]: validateIgnore(
@@ -1097,13 +1092,12 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
     : includeSetting;
 
   const descriptors = transformLegacyTypes(validatedSettings[ELEMENTS]);
-
-  // NOTE: Filter valid descriptors only to avoid a breaking change for the moment
   const validDescriptors = descriptors.filter(isElementDescriptor);
-  const invalidDescriptors = descriptors.filter(
-    (desc) => !isElementDescriptor(desc)
-  );
-  if (invalidDescriptors.length > 0) {
+
+  if (validDescriptors.length < descriptors.length) {
+    const invalidDescriptors = descriptors.filter(
+      (desc) => !isElementDescriptor(desc)
+    );
     warnOnce(
       `Some element descriptors are invalid and will be ignored: ${JSON.stringify(
         invalidDescriptors

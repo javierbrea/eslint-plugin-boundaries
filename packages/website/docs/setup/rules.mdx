@@ -49,7 +49,7 @@ export default [{
       default: "allow",
       
       // Optional custom message
-      message: "{{from.type}} is not allowed to import {{to.type}}",
+      message: "{{from.type}} is not allowed to depend on {{to.type}}",
       
       // Array of rules
       rules: [
@@ -102,7 +102,7 @@ Determines when the rule applies:
 {
   to: [
     { type: "component", captured: { family: "atoms" } },
-    { type: "helper"}
+    { category: "test"}
   ]
 }
 ```

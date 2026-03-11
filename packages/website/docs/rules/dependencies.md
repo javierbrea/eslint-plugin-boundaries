@@ -53,7 +53,7 @@ You must provide at least one of `allow` or `disallow`, and one of `to` or `from
 :::
 
 :::tip Start checking external dependencies with this rule
-In this version, the new `checkAllOrigins` option allows you to check dependencies from all origins (including external and core) instead of only checking dependencies between local known elements. This means that you can now use this rule to check and enforce boundaries for external dependencies as well, which was previously only possible with the deprecated `boundaries/external` rule. You can also use the new `origin` selector property in your rules to target specific origins (e.g., external, core, or local).
+The new `checkAllOrigins` option allows you to check dependencies from all origins (including external and core) instead of only checking dependencies between local known elements. This means that you can now use this rule to check and enforce boundaries for external dependencies as well, which was previously only possible with the deprecated `boundaries/external` rule. You can also use the new `origin` selector property in your rules to target specific origins (e.g., external, core, or local).
 
 It is recommended to set `checkAllOrigins` to `true` and start defining rules for external dependencies in this rule instead of using the deprecated [`boundaries/external` rule](../rules/external.mdx).
 :::

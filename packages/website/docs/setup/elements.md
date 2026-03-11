@@ -29,7 +29,7 @@ Element descriptors are the foundation of the plugin. **They define how to recog
 
 Element descriptors are configured in the `boundaries/elements` setting as an array of objects. Each descriptor defines:
 
-- **What type** of element it represents
+- **What type and/or category** of element it represents
 - **What pattern** to match in file paths
 - **What values** to capture from those paths
 
@@ -80,7 +80,7 @@ These runtime descriptions are used in two key places:
 
 ## Element Descriptor Properties
 
-### `type` (required)
+### `type` (optional)
 
 **Type:** `<string>`
 
@@ -91,6 +91,22 @@ The element type to be assigned to files or imports matching the pattern. This t
   type: "helper"
 }
 ```
+
+### `category` (optional)
+
+**Type:** `<string>`
+
+The element category to be assigned to files or imports matching the pattern. This category can be used in rules configuration to define relationships between elements.
+
+```js
+{
+  category: "helper"
+}
+```
+
+:::warning
+You have to define at least one of `type` or `category` in your element descriptors. The `type` and `category` properties are independent. You can define descriptors with only `type`, only `category`, or both. The plugin will assign whatever properties are defined in the matched descriptor.
+:::
 
 ### `pattern` (required)
 
@@ -108,14 +124,15 @@ By default, the plugin matches patterns progressively from the right side of eac
 - Then `helpers/awesome-helper/index.js`
 - And so on...
 
-Once a pattern matches, the plugin assigns the corresponding element type and continues searching for parent elements using the same logic until the full path has been analyzed.
+Once a pattern matches, the plugin assigns the corresponding element and continues searching for parent elements using the same logic until the full path has been analyzed.
 
 This behavior can be disabled by setting `mode` to `full`.
 
 ```js
 {
   type: "helper",
-  pattern: "helpers/*/*.js"
+  category: "test",
+  pattern: "helpers/*/*.spec.js"
 }
 ```
 
@@ -127,11 +144,11 @@ This behavior can be disabled by setting `mode` to `full`.
 
 Controls how the pattern matching works:
 
-- **`folder`** (default): When analyzing a file path, the element type is assigned to the first parent folder matching the pattern. Any file within that folder is considered part of the element. In practice, it's like adding `**/*` to your pattern.
+- **`folder`** (default): When analyzing a file path, the element is assigned to the first parent folder matching the pattern. Any file within that folder is considered part of the element. In practice, it's like adding `**/*` to your pattern.
 
   A pattern like `models/*` would match:
-  - `src/models/user.js` (assigns type `model` to `user.js` file)
-  - `src/modules/foo/bar.js` (assigns type `model` to `bar.js` file)
+  - `src/models/user.js` (assigns element `model` to `user.js` file)
+  - `src/modules/foo/bar.js` (assigns element `model` to `bar.js` file)
 
 - **`file`**: The pattern is not modified, but the plugin still tries to match the last part of the path. So, a pattern like `*.model.js` would match:
   - `src/foo.model.js`
@@ -283,7 +300,15 @@ Element descriptors are evaluated in array order. The plugin assigns the element
   // Most specific first
   {
     type: "react-component",
-    pattern: "components/*/Component.tsx"
+    pattern: "components/*/Component.tsx",
+    mode: "file",
+  },
+  // Less specific patterns after
+  {
+    type: "component",
+    category: "test",
+    pattern: "components/*/*.spec.tsx",
+    mode: "file",
   },
   // Less specific patterns after
   {

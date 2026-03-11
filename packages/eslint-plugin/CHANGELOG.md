@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [unreleased]
 ### Added
 - feat: Support defining element selectors as objects with any of the element properties as keys, and the corresponding values as micromatch patterns matching the value of that property in the element description.
+- feat: Support assigning categories to elements. Categories can be used in rules to match elements using new object-based selector format, and also in custom messages templates.
 - feat: Warn about usage of legacy string and tuple selector formats in the configuration.
 - feat: Warn when deprecated rule-level `importKind` is used in dependency rules. Prefer selector-level `kind`. Prioritize selector-level `kind` over rule-level `importKind` when both are defined.
 - feat: Validate and transform different settings and rules only once per different configuration object, and not per rule execution, to improve performance.
