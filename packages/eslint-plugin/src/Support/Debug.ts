@@ -8,7 +8,10 @@ import { isDependencyDescription } from "@boundaries/elements";
 import chalk from "chalk";
 
 import type { SettingsNormalized } from "../Settings";
-import { PLUGIN_NAME, isDebugEnabled } from "../Settings";
+import { isDebugEnabled } from "../Settings/Settings";
+import { PLUGIN_NAME, ELEMENT_TYPES } from "../Settings/Settings.types";
+
+import { isUndefined, isNull } from "./Common";
 
 const warns: string[] = [];
 const debuggedFiles: string[] = [];
@@ -131,6 +134,15 @@ export function debugDescription(
 }
 
 /**
+ * Returns an unique identifier for a file description, used to track which files have already been debugged.
+ * @param description - File element description.
+ * @returns Unique identifier string for the file.
+ */
+function getFileIdentifier(description: ElementDescription): string {
+  return description.path || "<unknown-file>";
+}
+
+/**
  * Prints debug info for a file description once per file path.
  *
  * @param description - File element description.
@@ -142,17 +154,19 @@ function printFileDebug(
   settings: SettingsNormalized,
   matcher: Matcher
 ) {
-  const filePath = description.path || "<unknown-file>";
-  if (debuggedFiles.includes(filePath)) {
+  if (!settings.debug.messages.files) {
+    return;
+  }
+  const fileIdentifier = getFileIdentifier(description);
+  if (debuggedFiles.includes(fileIdentifier)) {
     return;
   }
 
-  debuggedFiles.push(filePath);
-  if (!shouldPrintFile(description, settings, matcher)) {
-    return;
+  debuggedFiles.push(fileIdentifier);
+  if (shouldPrintFile(description, settings, matcher)) {
+    const title = `Description of file "${chalk.green(fileIdentifier)}":`;
+    printDebugBlock(title, description);
   }
-  const title = `Description of file "${chalk.green(filePath)}":`;
-  printDebugBlock(title, description);
 }
 
 /**
@@ -167,56 +181,64 @@ function printDependencyDebug(
   settings: SettingsNormalized,
   matcher: Matcher
 ) {
-  if (!shouldPrintFile(description.from, settings, matcher)) {
-    return;
-  }
-  const dependencyIdentifier = `${description.dependency.source || "<unknown-source>"}-${description.from.path || "<unknown-file>"}`;
-  if (debuggedDependencies.includes(dependencyIdentifier)) {
-    return;
-  }
+  printFileDebug(description.from, settings, matcher);
 
-  debuggedDependencies.push(dependencyIdentifier);
-  if (!shouldPrintDependency(description, settings, matcher)) {
+  if (!settings.debug.messages.dependencies) {
     return;
-  }
-
-  const filePath = description.from.path || "<unknown-file>";
-  if (!debuggedFiles.includes(filePath)) {
-    debuggedFiles.push(filePath);
-    const fileTitle = `Description of file "${chalk.green(filePath)}":`;
-    printDebugBlock(fileTitle, description.from);
   }
 
   const dependencySource = description.dependency.source || "<unknown-source>";
-  const title = `Description of dependency "${chalk.green(dependencySource)}" in file "${chalk.green(filePath)}":`;
-  printDebugBlock(title, description);
+  const fileIdentifier = getFileIdentifier(description.from);
+  const dependencyIdentifier = `${dependencySource}-${fileIdentifier}`;
+
+  if (debuggedDependencies.includes(dependencyIdentifier)) {
+    return;
+  }
+  debuggedDependencies.push(dependencyIdentifier);
+
+  if (shouldPrintDependency(description, settings, matcher)) {
+    const title = `Description of dependency "${chalk.green(dependencySource)}" in file "${chalk.green(fileIdentifier)}":`;
+    printDebugBlock(title, description);
+  }
 }
+
+const ELEMENT_TYPES_VIOLATION_PREFIX = `${ELEMENT_TYPES} rule violation:`;
 
 /**
  * Prints debug information for a rule result when debug mode is enabled
  *
  * @param dependencyMatchResult - The result of matching a dependency against rules, including match status and captured values.
+ * @param ruleIndex - The index of the rule that was matched, if any.
+ * @param dependency - The original dependency description that was evaluated against the rules.
  * @param settings - Normalized plugin settings including debug filters.
+ * @param matcher - Matcher used to evaluate debug filters.
  */
 export function printElementTypesRuleResult(
   dependencyMatchResult: DependencyMatchResult | null,
   ruleIndex: number | null,
   dependency: DependencyDescription,
-  settings: SettingsNormalized
+  settings: SettingsNormalized,
+  matcher: Matcher
 ) {
-  if (!isDebugEnabled(settings.debug.enabled)) {
+  if (
+    !isDebugEnabled(settings.debug.enabled) ||
+    !settings.debug.messages.violations ||
+    !shouldPrintDependency(dependency, settings, matcher) ||
+    !shouldPrintFile(dependency.from, settings, matcher)
+  ) {
     return;
   }
+
   if (!ruleIndex || !dependencyMatchResult) {
     printDebugBlock(
-      "Dependency did not match any rule, and default policy is to deny.",
+      `${ELEMENT_TYPES_VIOLATION_PREFIX} Dependency did not match any rule, and default policy is to deny.`,
       {
-        dependencyDescription: dependency,
+        dependency,
       }
     );
     return;
   }
-  const title = `Rule at index ${ruleIndex} reported a violation because the following selector matched the dependency:`;
+  const title = `${ELEMENT_TYPES_VIOLATION_PREFIX} Rule at index ${ruleIndex} reported a violation because the following selector matched the dependency:`;
 
   const selectorRelevantData: Partial<DependencyMatchResult> = {};
   if (dependencyMatchResult.from) {
@@ -229,8 +251,11 @@ export function printElementTypesRuleResult(
     selectorRelevantData.dependency = dependencyMatchResult.dependency;
   }
   printDebugBlock(title, {
-    dependencyDescription: dependency,
-    selectorMatching: selectorRelevantData,
+    dependency,
+    rule: {
+      index: ruleIndex,
+      selector: selectorRelevantData,
+    },
   });
 }
 
@@ -248,7 +273,7 @@ function shouldPrintFile(
   matcher: Matcher
 ) {
   const fileFilters = settings.debug.filter.files;
-  if (fileFilters === undefined) {
+  if (isUndefined(fileFilters)) {
     return true;
   }
   if (fileFilters.length === 0) {
@@ -256,7 +281,7 @@ function shouldPrintFile(
   }
   return fileFilters.some(
     (selector) =>
-      matcher.getSelectorMatchingDescription(description, selector) !== null
+      !isNull(matcher.getSelectorMatchingDescription(description, selector))
   );
 }
 
@@ -274,7 +299,7 @@ function shouldPrintDependency(
   matcher: Matcher
 ) {
   const dependencyFilters = settings.debug.filter.dependencies;
-  if (dependencyFilters === undefined) {
+  if (isUndefined(dependencyFilters)) {
     return true;
   }
   if (dependencyFilters.length === 0) {

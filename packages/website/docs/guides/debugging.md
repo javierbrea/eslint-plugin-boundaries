@@ -20,14 +20,14 @@ keywords:
 
 ## Overview
 
-When configuring the plugin, it's helpful to **verify that your [`elements`](../setup/elements.md) setting is working as expected**. The debugging feature provides detailed traces about how the plugin analyzes your files and imports, including information such as:
+When configuring the plugin, it's helpful to **verify that your [`elements`](../setup/elements.md) setting and [rules](../setup/rules.mdx) are correctly working as expected**. The debugging feature provides detailed traces about how the plugin analyzes your files and imports, including information such as:
 
 - File paths being analyzed
 - Assigned element types
 - Captured values and patterns
 - Import resolution results
 
-This can help you troubleshoot configuration issues and ensure your element definitions are correct.
+This can help you troubleshoot configuration issues and ensure your element definitions and rules are correct.
 
 ## Enabling Debug Mode
 
@@ -55,9 +55,40 @@ The environment variable is equivalent to enabling `boundaries/debug.enabled`.
 
 When debug mode is enabled, you will see detailed output in the console for each file and dependency analyzed by the plugin. This includes all the information of **[element and dependency descriptions](../setup/elements.md#runtime-description-properties).**
 
+## Filtering messages
+
+By default, all messages are printed when debug mode is enabled. Messages include:
+
+- File descriptions for each file analyzed
+- Dependency descriptions for each dependency analyzed
+- Rule violation descriptions for each rule violation detected
+
+You can enable/disable these message types using the `boundaries/debug.messages` setting:
+
+```js
+export default [{
+  settings: {
+    "boundaries/debug": {
+      enabled: true,
+      messages: {
+        files: true,
+        dependencies: true,
+        violations: true,
+      },
+    },
+  },
+}];
+```
+
+:::tip
+You may want to disable some message types to reduce noise and focus on specific information relevant to your debugging session. For example, if you're only interested in how files are being categorized, you can disable dependency and violation messages.
+:::
+
 ## Filtering Debug Output
 
 You can **[filter traces using selectors](../setup/selectors.md)** in the `boundaries/debug.filter` setting. This allows you to focus on specific files or dependencies that are relevant to your debugging session.
+
+Filters apply to all debug messages (file descriptions, dependency descriptions, and rule violation descriptions). If a trace doesn't match the filter, it won't be printed in the console.
 
 ```js
 export default [{
@@ -68,8 +99,8 @@ export default [{
         files: [{ type: "component" }],
         dependencies: [
           {
-            from: [{ type: "component" }],
             to: [{ source: "@/shared/**" }],
+            dependency: [{ kind: "type" }],
           },
         ],
       },
@@ -80,7 +111,7 @@ export default [{
 
 Filter behavior:
 
-- The `files` filter applies both to file traces and to the dependencies found within those files. If a file doesn't match the `files` filter, none of its dependencies will be printed, even if they match the `dependencies` filter.
+- The `files` filter applies both to file traces, and to the dependencies and rule violations found within those files. If a file doesn't match the `files` filter, none of its dependencies or rule violations will be printed, even if they match the `dependencies` filter.
 - If `files` is `undefined`, all file traces are eligible.
 - If `files` is an empty array, no file traces are printed.
 - If `dependencies` is `undefined`, all dependency traces are eligible.
@@ -88,7 +119,7 @@ Filter behavior:
 
 ## Example Output
 
-When debug mode is enabled, you'll see **[descriptions of files and dependencies](../setup/elements.md#runtime-description-properties)** in the console. This information is based on the properties defined in the **[element descriptors](../setup/elements.md)** in your configuration. For example:
+When debug mode is enabled, you'll see **[descriptions of files, dependencies, and rule violations](../setup/elements.md#runtime-description-properties)** in the console. This information is based on the properties defined in the **[element descriptors](../setup/elements.md)** in your configuration. For example:
 
 ```
 [boundaries] [debug]: Description of file "src/Config/Strict.ts":
@@ -151,6 +182,27 @@ When debug mode is enabled, you'll see **[descriptions of files and dependencies
     "specifiers": [
       "Config"
     ]
+  }
+}
+
+[boundaries][debug]: element-types rule violation: Rule at index 2 reported a violation because the following selector matched the dependency:
+
+{
+  "dependency": {
+    // ...dependency description, like the one above
+  },
+  "rule": {
+    // The index of the rule in the configuration that reported the violation
+    "index": 2,
+    // The specific selector in that rule that matched the dependency and caused the violation
+    "selector": {
+      "from": {
+        "type": "config"
+      },
+      "to": {
+        "type": "settings"
+      }
+    }
   }
 }
 ```

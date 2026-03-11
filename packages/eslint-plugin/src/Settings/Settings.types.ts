@@ -312,8 +312,41 @@ export type DebugFilterSetting = {
 export type DebugSetting = {
   /** Enables debug output when true */
   enabled?: boolean;
+  /** Enables specific debug messages */
+  messages?: {
+    /** Whether to enable debug messages for files */
+    files?: boolean;
+    /** Whether to enable debug messages for dependencies */
+    dependencies?: boolean;
+    /** Whether to enable debug messages for rule violations */
+    violations?: boolean;
+  };
   /** Optional filters for file and dependency debug messages */
   filter?: DebugFilterSetting;
+};
+
+/**
+ * Normalized debug setting.
+ */
+export type DebugSettingNormalized = {
+  /** Whether debug mode is enabled */
+  enabled: boolean;
+  /** Settings to enable/disable specific debug messages */
+  messages: {
+    /** Whether to enable debug messages for files */
+    files: boolean;
+    /** Whether to enable debug messages for dependencies */
+    dependencies: boolean;
+    /** Whether to enable debug messages for rule violations */
+    violations: boolean;
+  };
+  /** Debug filters **/
+  filter: {
+    /** File selectors used to filter file debug messages */
+    files?: ElementsSelector[];
+    /** Dependency selectors used to filter dependency debug messages */
+    dependencies?: DependencySelector[];
+  };
 };
 
 /**
@@ -395,13 +428,7 @@ export type SettingsNormalized = {
   /** Configuration for categorizing dependencies as external or local */
   flagAsExternal: FlagAsExternalOptions;
   /** Debug configuration */
-  debug: {
-    enabled: boolean;
-    filter: {
-      files?: ElementsSelector[];
-      dependencies?: DependencySelector[];
-    };
-  };
+  debug: DebugSettingNormalized;
 };
 
 /**

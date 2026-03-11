@@ -517,7 +517,8 @@ export function evaluateRulesAndReport({
       result.matchResult,
       result.ruleIndex,
       dependency,
-      settings
+      settings,
+      matcher
     );
     context.report({
       message: buildErrorMessage({

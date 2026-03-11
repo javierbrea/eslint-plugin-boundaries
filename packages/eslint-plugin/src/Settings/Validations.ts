@@ -16,6 +16,7 @@ import {
   isObject,
   isBoolean,
   getArrayOrNull,
+  isUndefined,
 } from "../Support/Common";
 import { warnOnce } from "../Support/Debug";
 
@@ -42,7 +43,6 @@ import type {
   DependencyNodeKey,
   DependencyNodeSelector,
   AliasSetting,
-  DebugSetting,
   RuleOptionsRules,
   RuleOptionsWithRules,
   Settings,
@@ -50,6 +50,7 @@ import type {
   IncludeSetting,
   RuleMainKey,
   SettingsNormalized,
+  DebugSettingNormalized,
 } from "./Settings.types";
 
 const {
@@ -910,19 +911,30 @@ function validateDebugDependenciesFilter(
  * @param debug - Raw debug setting value.
  * @returns Normalized debug setting when valid.
  */
-function validateDebug(debug: unknown): DebugSetting | undefined {
+function validateDebug(debug: unknown): DebugSettingNormalized {
+  const validated: DebugSettingNormalized = {
+    enabled: false,
+    filter: {
+      files: undefined,
+      dependencies: undefined,
+    },
+    messages: {
+      files: true,
+      dependencies: true,
+      violations: true,
+    },
+  };
+
   if (!debug) {
-    return;
+    return validated;
   }
 
   if (!isObject(debug)) {
     warnOnce(
       `Please provide a valid value in '${SETTINGS_KEYS_MAP.DEBUG}' setting. The value should be an object.`
     );
-    return;
+    return validated;
   }
-
-  const validated: DebugSetting = {};
 
   if (debug.enabled !== undefined) {
     if (isBoolean(debug.enabled)) {
@@ -931,6 +943,42 @@ function validateDebug(debug: unknown): DebugSetting | undefined {
       warnOnce(
         `Please provide a valid boolean for 'enabled' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`
       );
+    }
+  }
+
+  if (!isUndefined(debug.messages)) {
+    if (!isObject(debug.messages)) {
+      warnOnce(
+        `Please provide a valid object for 'messages' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`
+      );
+    } else {
+      if (!isUndefined(debug.messages.files)) {
+        if (isBoolean(debug.messages.files)) {
+          validated.messages.files = debug.messages.files;
+        } else {
+          warnOnce(
+            `Please provide a valid boolean for 'messages.files' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`
+          );
+        }
+      }
+      if (!isUndefined(debug.messages.dependencies)) {
+        if (isBoolean(debug.messages.dependencies)) {
+          validated.messages.dependencies = debug.messages.dependencies;
+        } else {
+          warnOnce(
+            `Please provide a valid boolean for 'messages.dependencies' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`
+          );
+        }
+      }
+      if (!isUndefined(debug.messages.violations)) {
+        if (isBoolean(debug.messages.violations)) {
+          validated.messages.violations = debug.messages.violations;
+        } else {
+          warnOnce(
+            `Please provide a valid boolean for 'messages.violations' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`
+          );
+        }
+      }
     }
   }
 
@@ -1084,6 +1132,16 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
         files: validatedSettings[SETTINGS_KEYS_MAP.DEBUG]?.filter?.files,
         dependencies:
           validatedSettings[SETTINGS_KEYS_MAP.DEBUG]?.filter?.dependencies,
+      },
+      messages: {
+        files:
+          validatedSettings[SETTINGS_KEYS_MAP.DEBUG]?.messages?.files ?? true,
+        dependencies:
+          validatedSettings[SETTINGS_KEYS_MAP.DEBUG]?.messages?.dependencies ??
+          true,
+        violations:
+          validatedSettings[SETTINGS_KEYS_MAP.DEBUG]?.messages?.violations ??
+          true,
       },
     },
   };

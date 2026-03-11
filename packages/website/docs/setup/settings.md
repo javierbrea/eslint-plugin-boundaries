@@ -329,6 +329,11 @@ export default [{
 ```js
 {
   enabled: false,
+  messages: {
+    files: true,
+    dependencies: true,
+    violations: true,
+  },
   filter: {
     files: undefined,
     dependencies: undefined,
@@ -339,11 +344,16 @@ export default [{
 Enables debug traces and optionally filters them with **[Element or Dependency Selectors](../setup/selectors.md).**
 
 - **`enabled`** `<boolean>` - Enables debug output when `true`.
-- **`filter.files`** [`<array of element selectors>`](../setup/selectors.md#element-selectors) - Filters file traces.
-- **`filter.dependencies`** [`<array of dependency selectors>`](../setup/selectors.md#dependency-selectors) - Filters dependency traces.
+- **`messages`** `<object>` - Configures which message types to print (file descriptions, dependency descriptions, and rule violation descriptions). All are enabled by default.
+  - **`files`** `<boolean>` - Prints file descriptions for each file analyzed.
+  - **`dependencies`** `<boolean>` - Prints dependency descriptions for each dependency analyzed.
+  - **`violations`** `<boolean>` - Prints rule violation descriptions for each rule violation detected.
+- **`filter`** `<object>` - Configures filters to apply to debug traces, using **[Element or Dependency Selectors](../setup/selectors.md)**. By default, no filters are applied, and all debug traces are printed when debug mode is enabled.
+  - **`filter.files`** [`<array of element selectors>`](../setup/selectors.md#element-selectors) - Filters file traces.
+  - **`filter.dependencies`** [`<array of dependency selectors>`](../setup/selectors.md#dependency-selectors) - Filters dependency traces.
 
 :::tip
-You can filter debug traces using selectors. See the [Debugging guide](../guides/debugging.md) for complete filtering examples.
+You can filter debug traces using selectors. See the **[Debugging guide](../guides/debugging.md)** for complete filtering examples.
 :::
 
 ## `boundaries/legacy-templates`

@@ -11,6 +11,7 @@ import type { SettingsNormalized } from "../../src/Settings";
 import { SETTINGS } from "../../src/Settings";
 import type {
   debugDescription,
+  printElementTypesRuleResult,
   success,
   warn,
   warnOnce,
@@ -43,6 +44,11 @@ const createSettings = (
     debug: {
       enabled: true,
       filter: {},
+      messages: {
+        files: true,
+        dependencies: true,
+        violations: true,
+      },
     },
   };
 
@@ -112,6 +118,7 @@ const createDependencyDescription = (): DependencyDescription => {
 
 type DebugModule = {
   debugDescription: typeof debugDescription;
+  printElementTypesRuleResult: typeof printElementTypesRuleResult;
   success: typeof success;
   warn: typeof warn;
   warnOnce: typeof warnOnce;
@@ -166,7 +173,13 @@ describe("Debug", () => {
   it("should not log when debug is disabled", () => {
     const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
     const debugModule = loadDebugModule();
-    const settings = createSettings({ debug: { enabled: false, filter: {} } });
+    const settings = createSettings({
+      debug: {
+        enabled: false,
+        filter: {},
+        messages: { files: true, dependencies: true, violations: true },
+      },
+    });
     const matcher = createMatcher(null);
 
     debugModule.debugDescription(
@@ -202,7 +215,11 @@ describe("Debug", () => {
     const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
     const debugModule = loadDebugModule();
     const settings = createSettings({
-      debug: { enabled: true, filter: { files: [] } },
+      debug: {
+        enabled: true,
+        filter: { files: [] },
+        messages: { files: true, dependencies: true, violations: true },
+      },
     });
     const matcher = createMatcher(null);
 
@@ -222,6 +239,7 @@ describe("Debug", () => {
       debug: {
         enabled: true,
         filter: { files: [{ type: "components" } as ElementsSelector] },
+        messages: { files: true, dependencies: true, violations: true },
       },
     });
     const matcher = createMatcher(null);
@@ -260,7 +278,11 @@ describe("Debug", () => {
     const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
     const debugModule = loadDebugModule();
     const settings = createSettings({
-      debug: { enabled: true, filter: { dependencies: [] } },
+      debug: {
+        enabled: true,
+        filter: { dependencies: [] },
+        messages: { files: true, dependencies: true, violations: true },
+      },
     });
     const matcher = createMatcher({ isMatch: true } as DependencyMatchResult);
 
@@ -270,7 +292,14 @@ describe("Debug", () => {
       matcher
     );
 
-    expect(consoleSpy).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledTimes(4);
+    expect(consoleSpy).toHaveBeenNthCalledWith(
+      1,
+      '[boundaries][debug]: Description of file "src/components/Component.ts":'
+    );
+    expect(consoleSpy.mock.calls.flat().join("\n")).not.toContain(
+      'Description of dependency "../helpers/Helper" in file "src/components/Component.ts":'
+    );
   });
 
   it("should skip dependency logs when matcher does not match", () => {
@@ -287,6 +316,7 @@ describe("Debug", () => {
             } as DependencySelector,
           ],
         },
+        messages: { files: true, dependencies: true, violations: true },
       },
     });
     const matcher = createMatcher({
@@ -301,6 +331,132 @@ describe("Debug", () => {
       matcher
     );
 
+    expect(consoleSpy).toHaveBeenCalledTimes(4);
+    expect(consoleSpy).toHaveBeenNthCalledWith(
+      1,
+      '[boundaries][debug]: Description of file "src/components/Component.ts":'
+    );
+    expect(consoleSpy.mock.calls.flat().join("\n")).not.toContain(
+      'Description of dependency "../helpers/Helper" in file "src/components/Component.ts":'
+    );
+  });
+
+  it("should skip dependency logs when dependency messages are disabled", () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const debugModule = loadDebugModule();
+    const settings = createSettings({
+      debug: {
+        enabled: true,
+        filter: {},
+        messages: { files: true, dependencies: false, violations: true },
+      },
+    });
+    const matcher = createMatcher({ isMatch: true } as DependencyMatchResult);
+
+    debugModule.debugDescription(
+      createDependencyDescription(),
+      settings,
+      matcher
+    );
+
+    expect(consoleSpy).toHaveBeenCalledTimes(4);
+    expect(consoleSpy.mock.calls.flat().join("\n")).not.toContain(
+      'Description of dependency "../helpers/Helper" in file "src/components/Component.ts":'
+    );
+  });
+
+  it("should skip file logs when file messages are disabled", () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const debugModule = loadDebugModule();
+    const settings = createSettings({
+      debug: {
+        enabled: true,
+        filter: {},
+        messages: { files: false, dependencies: true, violations: true },
+      },
+    });
+    const matcher = createMatcher({ isMatch: true } as DependencyMatchResult);
+
+    debugModule.debugDescription(
+      createDependencyDescription(),
+      settings,
+      matcher
+    );
+
+    expect(consoleSpy).toHaveBeenCalledTimes(4);
+    expect(consoleSpy.mock.calls.flat().join("\n")).toContain(
+      'Description of dependency "../helpers/Helper" in file "src/components/Component.ts":'
+    );
+    expect(consoleSpy.mock.calls.flat().join("\n")).not.toContain(
+      'Description of file "src/components/Component.ts":'
+    );
+  });
+
+  it("should skip rule result logs when violation messages are disabled", () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const debugModule = loadDebugModule();
+    const settings = createSettings({
+      debug: {
+        enabled: true,
+        filter: {},
+        messages: { files: true, dependencies: true, violations: false },
+      },
+    });
+
+    debugModule.printElementTypesRuleResult(
+      { isMatch: true } as DependencyMatchResult,
+      1,
+      createDependencyDescription(),
+      settings,
+      createMatcher({ isMatch: true } as DependencyMatchResult)
+    );
+
     expect(consoleSpy).not.toHaveBeenCalled();
+  });
+
+  it("should print default deny message when rule index is null", () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const debugModule = loadDebugModule();
+    const settings = createSettings();
+
+    debugModule.printElementTypesRuleResult(
+      null,
+      null,
+      createDependencyDescription(),
+      settings,
+      createMatcher({ isMatch: true } as DependencyMatchResult)
+    );
+
+    expect(consoleSpy).toHaveBeenCalledTimes(4);
+    expect(consoleSpy.mock.calls[0][0]).toContain(
+      "Dependency did not match any rule, and default policy is to deny."
+    );
+    expect(consoleSpy.mock.calls[2][0]).toContain('"dependency"');
+  });
+
+  it("should print rule selector details for a matched rule", () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const debugModule = loadDebugModule();
+    const settings = createSettings();
+
+    debugModule.printElementTypesRuleResult(
+      {
+        isMatch: true,
+        from: { selector: { type: "components" } },
+        to: null,
+        dependency: { selector: { kind: "type" } },
+      } as unknown as DependencyMatchResult,
+      2,
+      createDependencyDescription(),
+      settings,
+      createMatcher({ isMatch: true } as DependencyMatchResult)
+    );
+
+    expect(consoleSpy).toHaveBeenCalledTimes(4);
+    expect(consoleSpy.mock.calls[0][0]).toContain(
+      "Rule at index 2 reported a violation"
+    );
+    expect(consoleSpy.mock.calls[2][0]).toContain('"selector"');
+    expect(consoleSpy.mock.calls[2][0]).toContain('"index": 2');
   });
 });
