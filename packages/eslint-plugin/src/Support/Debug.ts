@@ -9,7 +9,7 @@ import chalk from "chalk";
 
 import type { SettingsNormalized } from "../Settings";
 import { isDebugEnabled } from "../Settings/Settings";
-import { PLUGIN_NAME, ELEMENT_TYPES } from "../Settings/Settings.types";
+import { PLUGIN_NAME, DEPENDENCIES } from "../Settings/Settings.types";
 
 import { isUndefined, isNull } from "./Common";
 
@@ -203,7 +203,7 @@ function printDependencyDebug(
   }
 }
 
-const ELEMENT_TYPES_VIOLATION_PREFIX = `${ELEMENT_TYPES} rule violation:`;
+const DEPENDENCIES_VIOLATION_PREFIX = `${DEPENDENCIES} rule violation:`;
 
 /**
  * Prints debug information for a rule result when debug mode is enabled
@@ -214,7 +214,7 @@ const ELEMENT_TYPES_VIOLATION_PREFIX = `${ELEMENT_TYPES} rule violation:`;
  * @param settings - Normalized plugin settings including debug filters.
  * @param matcher - Matcher used to evaluate debug filters.
  */
-export function printElementTypesRuleResult(
+export function printDependenciesRuleResult(
   dependencyMatchResult: DependencyMatchResult | null,
   ruleIndex: number | null,
   dependency: DependencyDescription,
@@ -232,14 +232,14 @@ export function printElementTypesRuleResult(
 
   if (!ruleIndex || !dependencyMatchResult) {
     printDebugBlock(
-      `${ELEMENT_TYPES_VIOLATION_PREFIX} Dependency did not match any rule, and default policy is to deny.`,
+      `${DEPENDENCIES_VIOLATION_PREFIX} Dependency did not match any rule, and default policy is to deny.`,
       {
         dependency,
       }
     );
     return;
   }
-  const title = `${ELEMENT_TYPES_VIOLATION_PREFIX} Rule at index ${ruleIndex} reported a violation because the following selector matched the dependency:`;
+  const title = `${DEPENDENCIES_VIOLATION_PREFIX} Rule at index ${ruleIndex} reported a violation because the following selector matched the dependency:`;
 
   const selectorRelevantData: Partial<DependencyMatchResult> = {};
   if (dependencyMatchResult.from) {

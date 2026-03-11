@@ -3,14 +3,14 @@ import { join } from "path";
 
 import recommendedConfig from "./Config/Recommended";
 import strictConfig from "./Config/Strict";
-import ElementTypesRule from "./Rules/ElementTypes";
+import getDependenciesRule from "./Rules/Dependencies";
 import EntryPointRule from "./Rules/EntryPoint";
 import ExternalRule from "./Rules/External";
 import NoIgnoredRule from "./Rules/NoIgnored";
 import NoPrivateRule from "./Rules/NoPrivate";
 import NoUnknownRule from "./Rules/NoUnknown";
 import NoUnknownFilesRule from "./Rules/NoUnknownFiles";
-import { RULE_SHORT_NAMES_MAP } from "./Settings";
+import { RULE_SHORT_NAMES_MAP, SETTINGS } from "./Settings";
 import type { PluginBoundaries } from "./Settings";
 // import { warn } from "./Support";
 
@@ -35,7 +35,11 @@ const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
 
 const RULES = {
   [RULE_SHORT_NAMES_MAP.ENTRY_POINT]: EntryPointRule,
-  [RULE_SHORT_NAMES_MAP.ELEMENT_TYPES]: ElementTypesRule,
+  /** @deprecated Use dependencies rule instead */
+  [RULE_SHORT_NAMES_MAP.ELEMENT_TYPES]: getDependenciesRule(
+    SETTINGS.RULE_ELEMENT_TYPES
+  ),
+  [RULE_SHORT_NAMES_MAP.DEPENDENCIES]: getDependenciesRule(),
   [RULE_SHORT_NAMES_MAP.EXTERNAL]: ExternalRule,
   [RULE_SHORT_NAMES_MAP.NO_IGNORED]: NoIgnoredRule,
   [RULE_SHORT_NAMES_MAP.NO_PRIVATE]: NoPrivateRule,

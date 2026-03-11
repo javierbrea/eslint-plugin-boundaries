@@ -11,7 +11,7 @@ import type { SettingsNormalized } from "../../src/Settings";
 import { SETTINGS } from "../../src/Settings";
 import type {
   debugDescription,
-  printElementTypesRuleResult,
+  printDependenciesRuleResult,
   success,
   warn,
   warnOnce,
@@ -118,7 +118,7 @@ const createDependencyDescription = (): DependencyDescription => {
 
 type DebugModule = {
   debugDescription: typeof debugDescription;
-  printElementTypesRuleResult: typeof printElementTypesRuleResult;
+  printDependenciesRuleResult: typeof printDependenciesRuleResult;
   success: typeof success;
   warn: typeof warn;
   warnOnce: typeof warnOnce;
@@ -403,7 +403,7 @@ describe("Debug", () => {
       },
     });
 
-    debugModule.printElementTypesRuleResult(
+    debugModule.printDependenciesRuleResult(
       { isMatch: true } as DependencyMatchResult,
       1,
       createDependencyDescription(),
@@ -419,7 +419,7 @@ describe("Debug", () => {
     const debugModule = loadDebugModule();
     const settings = createSettings();
 
-    debugModule.printElementTypesRuleResult(
+    debugModule.printDependenciesRuleResult(
       null,
       null,
       createDependencyDescription(),
@@ -439,7 +439,7 @@ describe("Debug", () => {
     const debugModule = loadDebugModule();
     const settings = createSettings();
 
-    debugModule.printElementTypesRuleResult(
+    debugModule.printDependenciesRuleResult(
       {
         isMatch: true,
         from: { selector: { type: "components" } },

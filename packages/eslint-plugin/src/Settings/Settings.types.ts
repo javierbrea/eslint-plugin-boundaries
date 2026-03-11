@@ -25,7 +25,9 @@ export const DEPENDENCY_NODE_DYNAMIC_IMPORT = "dynamic-import" as const;
 export const DEPENDENCY_NODE_EXPORT = "export" as const;
 
 // Rule short names
+/** @deprecated Use DEPENDENCIES instead */
 export const ELEMENT_TYPES = "element-types" as const;
+export const DEPENDENCIES = "dependencies" as const;
 export const ENTRY_POINT = "entry-point" as const;
 export const EXTERNAL = "external" as const;
 export const NO_IGNORED = "no-ignored" as const;
@@ -37,7 +39,9 @@ export const NO_UNKNOWN = "no-unknown" as const;
  * Map of all rule short names, without the plugin prefix.
  */
 export const RULE_SHORT_NAMES_MAP = {
+  /** @deprecated Use DEPENDENCIES instead */
   ELEMENT_TYPES,
+  DEPENDENCIES,
   ENTRY_POINT,
   EXTERNAL,
   NO_IGNORED,
@@ -46,7 +50,9 @@ export const RULE_SHORT_NAMES_MAP = {
   NO_UNKNOWN,
 } as const;
 
+/** @deprecated Use DEPENDENCIES_FULL instead */
 const ELEMENT_TYPES_FULL = `${PLUGIN_NAME}/${ELEMENT_TYPES}` as const;
+const DEPENDENCIES_FULL = `${PLUGIN_NAME}/${DEPENDENCIES}` as const;
 const ENTRY_POINT_FULL = `${PLUGIN_NAME}/${ENTRY_POINT}` as const;
 const EXTERNAL_FULL = `${PLUGIN_NAME}/${EXTERNAL}` as const;
 const NO_IGNORED_FULL = `${PLUGIN_NAME}/${NO_IGNORED}` as const;
@@ -58,7 +64,9 @@ const NO_UNKNOWN_FULL = `${PLUGIN_NAME}/${NO_UNKNOWN}` as const;
  * Map of all rule names, including the default plugin prefix.
  */
 export const RULE_NAMES_MAP = {
+  /** @deprecated Use DEPENDENCIES instead */
   ELEMENT_TYPES: ELEMENT_TYPES_FULL,
+  DEPENDENCIES: DEPENDENCIES_FULL,
   ENTRY_POINT: ENTRY_POINT_FULL,
   EXTERNAL: EXTERNAL_FULL,
   NO_IGNORED: NO_IGNORED_FULL,
@@ -160,7 +168,9 @@ export const SETTINGS = {
   ENV_ROOT_PATH: `${PLUGIN_ENV_VARS_PREFIX}_ROOT_PATH`,
 
   // rules
+  /** @deprecated Use RULE_DEPENDENCIES instead */
   RULE_ELEMENT_TYPES: `${PLUGIN_NAME}/${ELEMENT_TYPES}`,
+  RULE_DEPENDENCIES: `${PLUGIN_NAME}/${DEPENDENCIES}`,
   RULE_ENTRY_POINT: `${PLUGIN_NAME}/${ENTRY_POINT}`,
   RULE_EXTERNAL: `${PLUGIN_NAME}/${EXTERNAL}`,
   RULE_NO_IGNORED: `${PLUGIN_NAME}/${NO_IGNORED}`,
@@ -440,6 +450,7 @@ export type SettingsNormalized = {
 export type Rules<PluginName extends string = typeof PLUGIN_NAME> = {
   [K in `${PluginName}/${
     | typeof ELEMENT_TYPES
+    | typeof DEPENDENCIES
     | typeof ENTRY_POINT
     | typeof EXTERNAL
     | typeof NO_IGNORED
@@ -447,13 +458,15 @@ export type Rules<PluginName extends string = typeof PLUGIN_NAME> = {
     | typeof NO_UNKNOWN_FILES
     | typeof NO_UNKNOWN}`]?: K extends `${PluginName}/${typeof ELEMENT_TYPES}`
     ? Linter.RuleEntry<ElementTypesRuleOptions[]>
-    : K extends `${PluginName}/${typeof ENTRY_POINT}`
-      ? Linter.RuleEntry<EntryPointRuleOptions[]>
-      : K extends `${PluginName}/${typeof EXTERNAL}`
-        ? Linter.RuleEntry<ExternalRuleOptions[]>
-        : K extends `${PluginName}/${typeof NO_PRIVATE}`
-          ? Linter.RuleEntry<NoPrivateOptions[]>
-          : Linter.RuleEntry<never>;
+    : K extends `${PluginName}/${typeof DEPENDENCIES}`
+      ? Linter.RuleEntry<DependenciesRuleOptions[]>
+      : K extends `${PluginName}/${typeof ENTRY_POINT}`
+        ? Linter.RuleEntry<EntryPointRuleOptions[]>
+        : K extends `${PluginName}/${typeof EXTERNAL}`
+          ? Linter.RuleEntry<ExternalRuleOptions[]>
+          : K extends `${PluginName}/${typeof NO_PRIVATE}`
+            ? Linter.RuleEntry<NoPrivateOptions[]>
+            : Linter.RuleEntry<never>;
 };
 
 /**
@@ -531,7 +544,7 @@ export type RulePolicyEntry =
 /**
  * Rule that defines allowed or disallowed dependencies between different element types.
  */
-export type ElementTypesRule = {
+export type DependenciesRule = {
   dependency?: DependencyDataSelector;
   /** Selectors of the source elements that the rule applies to (the elements importing) */
   from?: ElementsSelector;
@@ -548,17 +561,32 @@ export type ElementTypesRule = {
 };
 
 /**
- * Options for the element-types rule, including default policy and specific rules.
+ * Legacy type for the renamed element-types rule, kept for backward compatibility. It has the same shape as the dependencies rule but with "target" instead of "to" and without the "dependency" field.
+ * @deprecated Use DependenciesRule instead
  */
-export type ElementTypesRuleOptions = Omit<RuleBaseOptions, "rules"> & {
+export type ElementTypesRule = DependenciesRule;
+
+/**
+ * Options for the dependencies rule, including default policy and specific rules.
+ */
+export type DependenciesRuleOptions = Omit<RuleBaseOptions, "rules"> & {
   /** Specific rules for defining boundaries between elements */
-  rules?: ElementTypesRule[];
+  rules?: DependenciesRule[];
   /** Whether to check dependencies from all origins (including external and core) or only from local elements (default: `false`, only local). */
   checkAllOrigins?: boolean;
   /** Whether to check local dependencies with unknown elements (not matching any element descriptor) or to ignore them. (default: `false`, ignore them) */
   checkUnknownLocals?: boolean;
   /** Whether to check internal dependencies (dependencies within files in the same element) (default: `false`, ignore them) */
   checkInternals?: boolean;
+};
+
+/**
+ * Legacy type for the renamed element-types rule options, kept for backward compatibility.
+ * @deprecated Use DependenciesRuleOptions instead
+ */
+export type ElementTypesRuleOptions = Omit<DependenciesRuleOptions, "rules"> & {
+  /** Specific rules for defining element types */
+  rules?: ElementTypesRule[];
 };
 
 /**
@@ -665,11 +693,11 @@ export type NoPrivateOptions = {
 export type RuleOptionsWithRules =
   | ExternalRuleOptions
   | EntryPointRuleOptions
-  | ElementTypesRuleOptions;
+  | DependenciesRuleOptions;
 
 export type RuleOptions = RuleOptionsWithRules | NoPrivateOptions;
 
-export type RuleOptionsRules = ExternalRule | EntryPointRule | ElementTypesRule;
+export type RuleOptionsRules = ExternalRule | EntryPointRule | DependenciesRule;
 
 export const FROM = "from" as const;
 

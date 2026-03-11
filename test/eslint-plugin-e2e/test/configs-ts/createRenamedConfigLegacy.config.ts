@@ -20,20 +20,14 @@ const boundariesConfig = createConfig(
     },
     rules: {
       ...recommended.rules,
-      "boundaries/dependencies": [
+      "boundaries/element-types": [
         "error",
         {
           default: "disallow",
           rules: [
             {
-              from: {
-                type: "module",
-              },
-              allow: [
-                {
-                  to: { type: "component" },
-                },
-              ],
+              from: "module",
+              allow: ["component"],
             },
           ],
         },

@@ -1,10 +1,12 @@
-import rule from "../../../src/Rules/ElementTypes";
+import ruleFactory from "../../../src/Rules/Dependencies";
 import { ELEMENT_TYPES as RULE } from "../../../src/Settings";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
+
+const rule = ruleFactory();
 
 const { absoluteFilePath } = pathResolvers("docs-examples");
 

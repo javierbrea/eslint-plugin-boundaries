@@ -122,13 +122,13 @@ export default [
       },
     },
     rules: {
-      "boundaries/element-types": [
+      "boundaries/dependencies": [
         "error",
         {
           checkAllOrigins: true,
           default: "allow",
           message:
-            "element-types violation: {{ from.type }} -> {{ to.type }} through {{ dependency.source }}",
+            "dependencies violation: {{ from.type }} -> {{ to.type }} through {{ dependency.source }}",
           rules: [
             {
               disallow: {

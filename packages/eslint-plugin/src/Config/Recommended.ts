@@ -5,6 +5,7 @@ const {
   ELEMENTS,
   // rules
   RULE_ELEMENT_TYPES,
+  RULE_DEPENDENCIES,
   RULE_ENTRY_POINT,
   RULE_EXTERNAL,
   RULE_NO_IGNORED,
@@ -25,6 +26,7 @@ const {
 const config: Config = {
   rules: {
     [RULE_ELEMENT_TYPES]: [2],
+    [RULE_DEPENDENCIES]: [2],
     [RULE_ENTRY_POINT]: [2],
     [RULE_EXTERNAL]: [2],
     [RULE_NO_IGNORED]: 0,

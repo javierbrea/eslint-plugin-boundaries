@@ -1,4 +1,4 @@
-import rule from "../../../src/Rules/ElementTypes";
+import ruleFactory from "../../../src/Rules/Dependencies";
 import noUnknownRule from "../../../src/Rules/NoUnknown";
 import {
   SETTINGS,
@@ -9,6 +9,8 @@ import type { RuleTesterSettings } from "../../support/helpers";
 import { elementTypesNoRuleMessage } from "../../support/messages";
 
 const { ELEMENT_TYPES: RULE } = require("../../../src/Settings");
+
+const rule = ruleFactory();
 
 const { absoluteFilePath } = pathResolvers("flag-as-external");
 

@@ -1,4 +1,4 @@
-import rule from "../../../src/Rules/ElementTypes";
+import ruleFactory from "../../../src/Rules/Dependencies";
 import { createRuleTester, pathResolvers } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import {
@@ -7,6 +7,8 @@ import {
 } from "../../support/messages";
 
 const { ELEMENT_TYPES: RULE } = require("../../../src/Settings");
+
+const rule = ruleFactory();
 
 const runTest = (
   settings: RuleTesterSettings,

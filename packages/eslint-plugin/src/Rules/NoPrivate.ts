@@ -9,7 +9,7 @@ import type { NoPrivateOptions } from "../Settings";
 import {
   SETTINGS,
   RULE_NAMES_MAP,
-  warnMigrationToElementTypes,
+  warnMigrationToDependencies,
 } from "../Settings";
 
 import { dependencyRule } from "./Support";
@@ -61,7 +61,7 @@ export default dependencyRule<NoPrivateOptions>(
     ],
   },
   function ({ dependency, node, context, options }) {
-    warnMigrationToElementTypes(RULE_NAMES_MAP.NO_PRIVATE);
+    warnMigrationToDependencies(RULE_NAMES_MAP.NO_PRIVATE);
     if (
       !dependency.to.isIgnored &&
       isLocalElement(dependency.to) &&

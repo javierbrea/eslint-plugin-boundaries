@@ -16,6 +16,8 @@ export type {
   RuleBaseOptions,
   ElementTypesRule,
   ElementTypesRuleOptions,
+  DependenciesRule,
+  DependenciesRuleOptions,
   EntryPointRule,
   EntryPointRuleOptions,
   ExternalRule,

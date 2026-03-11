@@ -1,4 +1,4 @@
-import rule from "../../../src/Rules/ElementTypes";
+import ruleFactory from "../../../src/Rules/Dependencies";
 import { ELEMENT_TYPES as RULE } from "../../../src/Settings";
 import {
   SETTINGS,
@@ -7,6 +7,8 @@ import {
 } from "../../support/helpers";
 
 const settings = SETTINGS.basePattern;
+
+const rule = ruleFactory();
 
 const { absoluteFilePath } = pathResolvers("base-pattern");
 

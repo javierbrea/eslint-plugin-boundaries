@@ -1,8 +1,8 @@
 import type {
   ElementDescriptors,
   IgnoreSetting,
-  DependenciesRule,
-  DependenciesRuleOptions,
+  ElementTypesRule,
+  ElementTypesRuleOptions,
   Config,
   Settings,
   Rules,
@@ -21,7 +21,6 @@ const elementsMapping: ElementDescriptors = [
   moduleElementDescriptor,
   {
     type: "component",
-    category: "ui",
     pattern: "src/components/*",
     capture: ["component"],
   },
@@ -29,7 +28,7 @@ const elementsMapping: ElementDescriptors = [
 
 const ignoreSetting: IgnoreSetting = ["**/ignored/**/*.js"];
 
-const allowComponentsFromModules: DependenciesRule = {
+const allowComponentsFromModules: ElementTypesRule = {
   from: "module",
   allow: ["component"],
 };
@@ -44,14 +43,12 @@ const componentToComponentRuleElementSelectors = [
   componentToComponentRuleAllowMatcher,
 ];
 
-const dependenciesRuleOptions: DependenciesRuleOptions = {
+const elementTypesRuleOptions: ElementTypesRuleOptions = {
   default: "disallow",
   rules: [
     allowComponentsFromModules,
     {
-      from: {
-        type: "component",
-      },
+      from: "component",
       allow: componentToComponentRuleElementSelectors,
     },
   ],
@@ -71,7 +68,7 @@ const boundariesSettings: Settings = {
 };
 
 const boundariesRules: Rules = {
-  "boundaries/dependencies": ["error", dependenciesRuleOptions],
+  "boundaries/element-types": ["error", elementTypesRuleOptions],
   // @ts-expect-error Testing that the rule is not valid for the plugin
   "foo/bar": "off", // This rule should be ignored by the plugin
 };

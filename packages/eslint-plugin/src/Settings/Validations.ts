@@ -667,9 +667,14 @@ function isValidDependencyNodeSelector(
           selector.kind as DependencyKind
         ))) &&
     (!selector.name || isString(selector.name));
+
   if (!isValidObject) {
     warnOnce(
       `Please provide a valid object in ${ADDITIONAL_DEPENDENCY_NODES} setting. The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }. The invalid object will be ignored. ${moreInfoSettingsLink()}`
+    );
+  } else if (isObject(selector) && !selector.name) {
+    warnOnce(
+      `Consider adding a "name" property to your custom dependency node for using it in selectors and custom messages. ${moreInfoSettingsLink()}`
     );
   }
   return isValidObject;

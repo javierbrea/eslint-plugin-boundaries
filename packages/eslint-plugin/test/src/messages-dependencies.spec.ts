@@ -6,9 +6,9 @@ import type {
 import {
   elementDescriptionMessage,
   dependencyDescriptionMessage,
-  elementTypesDefaultErrorMessage,
+  dependenciesRuleDefaultErrorMessage,
 } from "../../src/Messages";
-import { buildErrorMessage } from "../../src/Rules/ElementTypes";
+import { buildErrorMessage } from "../../src/Rules/Dependencies";
 
 const dependencyDescription: DependencyDescription = {
   from: {
@@ -143,7 +143,7 @@ describe("Messages element-types formatter", () => {
     };
 
     expect(
-      elementTypesDefaultErrorMessage(matchResult, 1, dependencyDescription)
+      dependenciesRuleDefaultErrorMessage(matchResult, 1, dependencyDescription)
     ).toBe(
       'Dependencies with kind "type" and source "@/helpers/fetcher" to elements of type "helper" and internalPath "fetcher.ts" are not allowed in elements of type "component" and family "atoms". Denied by rule at index 1'
     );
@@ -159,7 +159,7 @@ describe("Messages element-types formatter", () => {
     };
 
     expect(
-      elementTypesDefaultErrorMessage(null, null, dependencyWithModule)
+      dependenciesRuleDefaultErrorMessage(null, null, dependencyWithModule)
     ).toBe(
       'There is no rule allowing dependencies from elements of type "component", category "ui", family "atoms" and elementName "button" to elements of type "helper", category "data" and domain "api"'
     );
@@ -181,7 +181,11 @@ describe("Messages element-types formatter", () => {
     };
 
     expect(
-      elementTypesDefaultErrorMessage(null, null, dependencyFromWithModuleOnly)
+      dependenciesRuleDefaultErrorMessage(
+        null,
+        null,
+        dependencyFromWithModuleOnly
+      )
     ).toBe(
       'There is no rule allowing dependencies from elements of type "component", category "ui", family "atoms" and elementName "button" to elements of origin "local" with module "react-router-dom"'
     );
@@ -196,7 +200,7 @@ describe("Messages element-types formatter", () => {
     };
 
     expect(
-      elementTypesDefaultErrorMessage(matchResult, 1, dependencyDescription)
+      dependenciesRuleDefaultErrorMessage(matchResult, 1, dependencyDescription)
     ).toBe(
       'Dependencies are not allowed in elements of type "component". Denied by rule at index 1'
     );
@@ -211,7 +215,7 @@ describe("Messages element-types formatter", () => {
     };
 
     expect(
-      elementTypesDefaultErrorMessage(matchResult, 1, dependencyDescription)
+      dependenciesRuleDefaultErrorMessage(matchResult, 1, dependencyDescription)
     ).toBe(
       'Dependencies with kind "type" are not allowed. Denied by rule at index 1'
     );
@@ -226,7 +230,7 @@ describe("Messages element-types formatter", () => {
     };
 
     expect(
-      elementTypesDefaultErrorMessage(matchResult, 1, dependencyDescription)
+      dependenciesRuleDefaultErrorMessage(matchResult, 1, dependencyDescription)
     ).toContain("Not able to create a message for this violation");
   });
 });

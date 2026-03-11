@@ -1,4 +1,4 @@
-import rule from "../../../src/Rules/ElementTypes";
+import ruleFactory from "../../../src/Rules/Dependencies";
 import {
   SETTINGS,
   TYPESCRIPT_SETTINGS,
@@ -13,6 +13,7 @@ import {
 
 const { ELEMENT_TYPES: RULE } = require("../../../src/Settings");
 
+const rule = ruleFactory();
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
 const runTest = (

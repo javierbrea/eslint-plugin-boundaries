@@ -8,7 +8,7 @@ import type { DependencySelector } from "@boundaries/elements";
 import type {
   ExternalRuleOptions,
   ExternalRule,
-  ElementTypesRule,
+  DependenciesRule,
   ExternalLibrariesSelector,
   ExternalLibrarySelectorWithOptions,
 } from "../Settings";
@@ -17,11 +17,11 @@ import {
   validateAndWarnRuleOptions,
   SETTINGS,
   RULE_NAMES_MAP,
-  warnMigrationToElementTypes,
+  warnMigrationToDependencies,
 } from "../Settings";
 import { isString, isArray, isObject, isNullish } from "../Support";
 
-import { evaluateRulesAndReport } from "./ElementTypes";
+import { evaluateRulesAndReport } from "./Dependencies";
 import { dependencyRule } from "./Support";
 
 const { RULE_EXTERNAL } = SETTINGS;
@@ -46,7 +46,7 @@ function isExternalLibrarySelectorWithOptions(
 /**
  * Builds a dependency selector from a legacy external selector using tuple syntax with options.
  * @param selector The external library selector in legacy format with options.
- * @returns The corresponding dependency selector compatible with `element-types` evaluator.
+ * @returns The corresponding dependency selector compatible with `dependencies` rule evaluator.
  */
 function buildSelectorFromLegacySelectorWithOptions(
   selector: ExternalLibrarySelectorWithOptions
@@ -75,7 +75,7 @@ function buildSelectorFromLegacySelectorWithOptions(
  * Transforms legacy external selectors into dependency selectors.
  *
  * @param selectors - External selector(s) from legacy rule format.
- * @returns Dependency selector(s) compatible with `element-types` evaluator.
+ * @returns Dependency selector(s) compatible with `dependencies` rule evaluator.
  */
 function modifySelectors(
   selectors: ExternalLibrariesSelector
@@ -111,14 +111,14 @@ function modifySelectors(
 }
 
 /**
- * Converts `external` legacy rules to `element-types` rule shape.
+ * Converts `external` legacy rules to `dependencies` rule shape.
  *
  * @param rules - External rules as configured by the user.
- * @returns Equivalent element-types rules consumed by shared evaluator.
+ * @returns Equivalent dependencies rules consumed by shared evaluator.
  */
-function transformToElementTypesRules(
+function transformToDependenciesRules(
   rules: ExternalRule[]
-): ElementTypesRule[] {
+): DependenciesRule[] {
   return rules.map((rule) => ({
     from: rule.from,
     allow: rule.allow ? modifySelectors(rule.allow) : undefined,
@@ -162,7 +162,7 @@ export default dependencyRule<ExternalRuleOptions>(
     }),
   },
   function ({ dependency, node, context, settings, options }) {
-    warnMigrationToElementTypes(RULE_NAMES_MAP.EXTERNAL);
+    warnMigrationToDependencies(RULE_NAMES_MAP.EXTERNAL);
     // Validate and warn about legacy selector syntax
     validateAndWarnRuleOptions(options, "from", RULE_NAMES_MAP.EXTERNAL);
 
@@ -170,7 +170,7 @@ export default dependencyRule<ExternalRuleOptions>(
       isExternalDependencyElement(dependency.to) ||
       isCoreDependencyElement(dependency.to)
     ) {
-      const rules = transformToElementTypesRules(options?.rules ?? []);
+      const rules = transformToDependenciesRules(options?.rules ?? []);
       evaluateRulesAndReport({
         rules,
         settings,

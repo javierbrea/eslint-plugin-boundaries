@@ -25,33 +25,32 @@ import type { Rule } from "eslint";
 import type { EslintLiteralNode } from "../Elements";
 import { getElementsMatcher } from "../Elements";
 import {
-  elementTypesDefaultErrorMessage,
+  dependenciesRuleDefaultErrorMessage,
   customErrorMessage,
 } from "../Messages";
 import type {
   RuleOptionsWithRules,
-  ElementTypesRuleOptions,
-  ElementTypesRule,
+  DependenciesRuleOptions,
+  DependenciesRule,
   SettingsNormalized,
   RulePolicyEntry,
+  RuleName,
 } from "../Settings";
 import {
-  SETTINGS,
-  RULE_NAMES_MAP,
   rulesOptionsSchema,
   validateAndWarnRuleOptions,
+  RULE_NAMES_MAP,
+  migrationToV6GuideLink,
 } from "../Settings";
 import {
   warnOnce,
   isObject,
   isArray,
   isString,
-  printElementTypesRuleResult,
+  printDependenciesRuleResult,
 } from "../Support";
 
 import { dependencyRule } from "./Support";
-
-const { RULE_ELEMENT_TYPES } = SETTINGS;
 
 /**
  * Normalizes a rule that uses the legacy `importKind` option by injecting its value into
@@ -61,7 +60,7 @@ const { RULE_ELEMENT_TYPES } = SETTINGS;
  * @deprecated This function exists only for backward compatibility with the `importKind` rule
  * option deprecated in v6. Remove in next major version once `importKind` is no longer supported.
  */
-function normalizeRuleLegacyOptions(rule: ElementTypesRule): ElementTypesRule {
+function normalizeRuleLegacyOptions(rule: DependenciesRule): DependenciesRule {
   if (!rule.importKind) {
     return rule;
   }
@@ -110,7 +109,7 @@ function safeMatch(
  * @returns Template data object consumed by matcher template rendering.
  */
 function getCapturedTemplateData(
-  rule: ElementTypesRule,
+  rule: DependenciesRule,
   dep: DependencyDescription,
   legacyTemplates: boolean
 ): TemplateData {
@@ -376,7 +375,7 @@ export type EvaluateRulesResult =
  * evaluated when `disallow` already matched.
  */
 export function evaluateRules(
-  rules: ElementTypesRule[],
+  rules: DependenciesRule[],
   dep: DependencyDescription,
   matcher: Matcher,
   settings: SettingsNormalized
@@ -446,7 +445,7 @@ export function evaluateRules(
  */
 export function resolveCustomMessage(
   ruleIndex: number | null,
-  ruleOptions: ElementTypesRuleOptions
+  ruleOptions: DependenciesRuleOptions
 ): string | undefined {
   const ruleMessage =
     ruleIndex !== null ? ruleOptions.rules?.[ruleIndex]?.message : undefined;
@@ -477,7 +476,11 @@ export function buildErrorMessage({
       matchResult
     );
   }
-  return elementTypesDefaultErrorMessage(matchResult, ruleIndex, dependency);
+  return dependenciesRuleDefaultErrorMessage(
+    matchResult,
+    ruleIndex,
+    dependency
+  );
 }
 
 /**
@@ -493,7 +496,7 @@ export function evaluateRulesAndReport({
   node,
   options,
 }: {
-  rules: ElementTypesRule[];
+  rules: DependenciesRule[];
   settings: SettingsNormalized;
   context: Rule.RuleContext;
   node: EslintLiteralNode;
@@ -511,7 +514,7 @@ export function evaluateRulesAndReport({
         : false;
 
   if (!finalAllowed && result.allowed === false) {
-    printElementTypesRuleResult(
+    printDependenciesRuleResult(
       result.matchResult,
       result.ruleIndex,
       dependency,
@@ -530,53 +533,67 @@ export function evaluateRulesAndReport({
   }
 }
 
-export default dependencyRule<ElementTypesRuleOptions>(
-  {
-    ruleName: RULE_ELEMENT_TYPES,
-    description: `Check dependencies between elements`,
-    schema: rulesOptionsSchema({
-      extraOptionsSchema: {
-        checkAllOrigins: {
-          type: "boolean",
-          description:
-            "Whether to check dependencies from all origins (including external and core) or only from local elements. Default to false (only local).",
+/**
+ * Returns an ESLint rule definition for the dependencies rule, which checks dependencies between elements based on configured rules.
+ * @param customRuleName - Optional custom name for the rule.
+ * @returns ESLint rule definition.
+ */
+export default function getDependencyRule(
+  ruleName: RuleName = RULE_NAMES_MAP.DEPENDENCIES
+) {
+  return dependencyRule<DependenciesRuleOptions>(
+    {
+      ruleName,
+      description: `Check dependencies between elements`,
+      schema: rulesOptionsSchema({
+        extraOptionsSchema: {
+          checkAllOrigins: {
+            type: "boolean",
+            description:
+              "Whether to check dependencies from all origins (including external and core) or only from local elements. Default to false (only local).",
+          },
+          checkUnknownLocals: {
+            type: "boolean",
+            description:
+              "Whether to check local dependencies with unknown elements (not matching any element descriptor) or to ignore them. Default to false (ignore).",
+          },
+          checkInternals: {
+            type: "boolean",
+            description:
+              "Whether to check internal dependencies (dependencies within files in the same element). Default to false (ignore).",
+          },
         },
-        checkUnknownLocals: {
-          type: "boolean",
-          description:
-            "Whether to check local dependencies with unknown elements (not matching any element descriptor) or to ignore them. Default to false (ignore).",
-        },
-        checkInternals: {
-          type: "boolean",
-          description:
-            "Whether to check internal dependencies (dependencies within files in the same element). Default to false (ignore).",
-        },
-      },
-    }),
-  },
-  function ({ dependency, node, context, settings, options }) {
-    // Validate and warn about legacy selector syntax
-    validateAndWarnRuleOptions(options, "from", RULE_NAMES_MAP.ELEMENT_TYPES);
+      }),
+    },
+    function ({ dependency, node, context, settings, options }) {
+      if (ruleName === RULE_NAMES_MAP.ELEMENT_TYPES) {
+        warnOnce(
+          `Rule name "${RULE_NAMES_MAP.ELEMENT_TYPES}" is deprecated. Use "${RULE_NAMES_MAP.DEPENDENCIES}" instead. ${migrationToV6GuideLink()}`
+        );
+      }
+      // Validate and warn about legacy selector syntax
+      validateAndWarnRuleOptions(options, "from", ruleName);
 
-    const checkAllOrigins = options?.checkAllOrigins ?? false;
-    const checkUnknownLocals = options?.checkUnknownLocals ?? false;
-    const checkInternals = options?.checkInternals ?? false;
+      const checkAllOrigins = options?.checkAllOrigins ?? false;
+      const checkUnknownLocals = options?.checkUnknownLocals ?? false;
+      const checkInternals = options?.checkInternals ?? false;
 
-    if (
-      !isIgnoredElement(dependency.to) &&
-      (checkAllOrigins || isLocalElement(dependency.to)) &&
-      (checkUnknownLocals || !isUnknownLocalElement(dependency.to)) &&
-      (checkInternals || !isInternalDependency(dependency))
-    ) {
-      const rules = options?.rules ?? [];
-      evaluateRulesAndReport({
-        rules,
-        settings,
-        context,
-        node,
-        options,
-        dependency,
-      });
+      if (
+        !isIgnoredElement(dependency.to) &&
+        (checkAllOrigins || isLocalElement(dependency.to)) &&
+        (checkUnknownLocals || !isUnknownLocalElement(dependency.to)) &&
+        (checkInternals || !isInternalDependency(dependency))
+      ) {
+        const rules = options?.rules ?? [];
+        evaluateRulesAndReport({
+          rules,
+          settings,
+          context,
+          node,
+          options,
+          dependency,
+        });
+      }
     }
-  }
-);
+  );
+}

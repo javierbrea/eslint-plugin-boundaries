@@ -9,11 +9,9 @@ import { errorMessage } from "../../support/messages";
 
 const { resolve } = require("path");
 
-const { ELEMENT_TYPES: RULE } = require("../../../src/Settings");
+const { DEPENDENCIES: RULE } = require("../../../src/Settings");
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
-
-const rule = ruleFactory();
 
 function elementCategoriesNoRuleMessage({
   file,
@@ -24,6 +22,8 @@ function elementCategoriesNoRuleMessage({
 }) {
   return `There is no rule allowing dependencies from elements of type "code", category ${file} to elements of type "code", category ${dep}`;
 }
+
+const rule = ruleFactory();
 
 const defaultSettings: RuleTesterSettings = {
   ...SETTINGS.oneLevel,

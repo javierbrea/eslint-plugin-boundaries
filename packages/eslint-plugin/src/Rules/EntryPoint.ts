@@ -6,17 +6,17 @@ import {
 import type {
   EntryPointRuleOptions,
   EntryPointRule,
-  ElementTypesRule,
+  DependenciesRule,
 } from "../Settings";
 import {
   SETTINGS,
   RULE_NAMES_MAP,
   rulesOptionsSchema,
   validateAndWarnRuleOptions,
-  warnMigrationToElementTypes,
+  warnMigrationToDependencies,
 } from "../Settings";
 
-import { evaluateRulesAndReport } from "./ElementTypes";
+import { evaluateRulesAndReport } from "./Dependencies";
 import { dependencyRule } from "./Support";
 
 const { RULE_ENTRY_POINT } = SETTINGS;
@@ -40,15 +40,15 @@ function modifyLegacyTemplates(
 }
 
 /**
- * Converts `entry-point` legacy rules to `element-types` rule shape.
+ * Converts `entry-point` legacy rules to `dependencies` rule shape.
  *
  * @param rules - Entry-point rules as defined by user configuration.
- * @returns Equivalent element-types rules for shared evaluator.
+ * @returns Equivalent dependencies rules for shared evaluator.
  */
-function transformToElementTypesRules(
+function transformToDependenciesRules(
   rules: EntryPointRule[]
-): ElementTypesRule[] {
-  const newRules: ElementTypesRule[] = [];
+): DependenciesRule[] {
+  const newRules: DependenciesRule[] = [];
 
   for (const rule of rules) {
     const newTargets = normalizeElementsSelector(rule.target);
@@ -80,7 +80,7 @@ export default dependencyRule<EntryPointRuleOptions>(
     }),
   },
   function ({ dependency, node, context, settings, options }) {
-    warnMigrationToElementTypes(RULE_NAMES_MAP.ENTRY_POINT);
+    warnMigrationToDependencies(RULE_NAMES_MAP.ENTRY_POINT);
     // Validate and warn about legacy selector syntax
     validateAndWarnRuleOptions(options, "target", RULE_NAMES_MAP.ENTRY_POINT);
 
@@ -90,7 +90,7 @@ export default dependencyRule<EntryPointRuleOptions>(
       dependency.dependency.relationship.to !==
         DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL
     ) {
-      const rules = transformToElementTypesRules(options?.rules ?? []);
+      const rules = transformToDependenciesRules(options?.rules ?? []);
       evaluateRulesAndReport({
         rules,
         settings,

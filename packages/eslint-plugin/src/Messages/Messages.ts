@@ -380,13 +380,13 @@ function elementTypesNoRulesMatchedMessage(
 }
 
 /**
- * Builds the default message for element-types violations from the matching selector data.
+ * Builds the default message for dependencies rule violations from the matching selector data.
  * @param matchResult - Result of matching the dependency against the rule's selector, containing the relevant selector data for the from/to elements and the dependency metadata.
  * @param ruleIndex - Index of the matching rule.
  * @param dependency - Described dependency that triggered the violation, used to extract element and dependency metadata for message construction.
  * @returns Formatted error message describing the violation based on the matching selector data.
  */
-export function elementTypesDefaultErrorMessage(
+export function dependenciesRuleDefaultErrorMessage(
   matchResult: DependencyMatchResult | null,
   ruleIndex: number | null,
   dependency: DependencyDescription

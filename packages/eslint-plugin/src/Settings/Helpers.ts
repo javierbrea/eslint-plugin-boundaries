@@ -38,9 +38,8 @@ function removePluginNamespace(ruleName: string): string {
  * @returns The adapted rule name for URL usage.
  */
 function adaptRuleNameToUrl(ruleName: RuleName): string {
-  // NOTE: Urls are already prepared for the next major release where "element-types" rule will be renamed to "dependencies", so no 301 redirect will be needed then.
   if (ruleName === RULE_NAMES_MAP.ELEMENT_TYPES) {
-    return "dependencies";
+    return RULE_NAMES_MAP.DEPENDENCIES;
   }
   return ruleName;
 }
@@ -130,13 +129,13 @@ export function moreInfoSettingsLink(anchor?: string): string {
 }
 
 /**
- * Warns about the deprecation of a rule and encourages migration to the "element-types" rule.
+ * Warns about the deprecation of a rule and encourages migration to the "dependencies" rule.
  * @param ruleName The name of the deprecated rule.
  */
-export function warnMigrationToElementTypes(ruleName: RuleName) {
+export function warnMigrationToDependencies(ruleName: RuleName) {
   warnOnce(
     // cspell: disable-next-line
-    `[${ruleName}] Rule "${ruleName}" is deprecated and will be removed in future versions. Please migrate to the "${RULE_NAMES_MAP.ELEMENT_TYPES}" rule with appropriate selectors. ${moreInfoLink(getRuleDocsPath(ruleName), "migration-to-boundarieselement-types")}`
+    `[${ruleName}] Rule "${ruleName}" is deprecated and will be removed in future versions. Please migrate to the "${RULE_NAMES_MAP.DEPENDENCIES}" rule with appropriate selectors. ${moreInfoLink(getRuleDocsPath(ruleName), "migration-to-boundariesdependencies")}`
   );
 }
 

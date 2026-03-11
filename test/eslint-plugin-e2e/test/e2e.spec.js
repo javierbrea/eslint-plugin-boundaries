@@ -78,22 +78,22 @@ function getPerformanceTest(name, config, maxDurationMs) {
       );
 
       await runner.assert(
-        `performance config should include at least one cross-domain element-types error`,
+        `performance config should include at least one cross-domain dependencies error`,
         async () => {
           return allMessages.some(
             (msg) =>
-              msg.ruleId === "boundaries/element-types" &&
+              msg.ruleId === "boundaries/dependencies" &&
               msg.message.includes("cross-domain import blocked")
           );
         }
       );
 
       await runner.assert(
-        `performance config should include at least one scenario element-types error`,
+        `performance config should include at least one scenario dependencies error`,
         async () => {
           return allMessages.some(
             (msg) =>
-              msg.ruleId === "boundaries/element-types" &&
+              msg.ruleId === "boundaries/dependencies" &&
               msg.message.includes(
                 "scenario boundaries cannot import architecture elements"
               )

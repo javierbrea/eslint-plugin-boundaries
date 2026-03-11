@@ -26,7 +26,7 @@ export const boundariesConfig = createConfig(
     rules: {
       ...recommendedBoundariesConfig.rules,
       // @ts-expect-error Invalid key because it does not match plugin name nor new name
-      "foo/dependencies": [
+      "foo/element-types": [
         "error",
         {
           default: "disallow",
@@ -66,7 +66,7 @@ export const config: Linter.Config[] = defineConfig([
       rules: {
         ...recommendedBoundariesConfig.rules,
         // @ts-expect-error Invalid key because it does not match plugin name nor new name
-        "foo/dependencies": [
+        "foo/element-types": [
           "error",
           {
             default: "disallow",
@@ -106,7 +106,7 @@ export const boundariesConfig2 = createConfig(
     rules: {
       ...recommendedBoundariesConfig.rules,
       // Function also supports passing renamed rules
-      "customBoundaries/dependencies": [
+      "customBoundaries/element-types": [
         "error",
         {
           default: "disallow",
@@ -144,7 +144,7 @@ export const boundariesConfig3 = createConfig({
   rules: {
     ...recommendedBoundariesConfig.rules,
     // @ts-expect-error Function only supports passing renamed rules if second argument is provided
-    "customBoundaries/dependencies": [
+    "customBoundaries/element-types": [
       "error",
       {
         default: "disallow",

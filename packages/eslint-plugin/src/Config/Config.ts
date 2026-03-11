@@ -89,7 +89,7 @@ function renamePluginRules<PluginName extends string = typeof PLUGIN_NAME>(
  *   },
  *   rules: {
  *     ...recommended.rules,
- *     "boundaries/element-types": ["error", { default: "disallow" }],
+ *     "boundaries/dependencies": ["error", { default: "disallow" }],
  *   }
  * });
  *
