@@ -2,13 +2,13 @@ import { isAbsolute, resolve } from "node:path";
 
 import type { ElementDescriptors } from "@boundaries/elements";
 
-import { isArray } from "../Support";
+import { isArray } from "../Shared";
+import { SETTINGS } from "../Shared/Settings.types";
+import type { Settings } from "../Shared/Settings.types";
 
 import { isLegacyType } from "./Helpers";
-import { SETTINGS } from "./Settings.types";
-import type { Settings } from "./Settings.types";
 
-const { VALID_MODES, ROOT_PATH, ENV_ROOT_PATH, DEBUG } = SETTINGS;
+const { VALID_MODES, ROOT_PATH, ENV_ROOT_PATH } = SETTINGS;
 
 // TODO, remove in next major version
 /**
@@ -68,23 +68,4 @@ export function getRootPath(settings: Settings): string {
       : resolve(process.cwd(), rootPathUserSetting);
   }
   return process.cwd();
-}
-
-/**
- * Checks whether debug mode is globally enabled through environment variable.
- *
- * @returns `true` when debug env flag is active.
- */
-export function isDebugModeEnabled() {
-  return Boolean(process.env[DEBUG]);
-}
-
-/**
- * Computes final debug activation combining setting flag and environment flag.
- *
- * @param settingEnabled - Debug flag configured in plugin settings.
- * @returns `true` when either setting or environment enables debug mode.
- */
-export function isDebugEnabled(settingEnabled = false) {
-  return settingEnabled || isDebugModeEnabled();
 }

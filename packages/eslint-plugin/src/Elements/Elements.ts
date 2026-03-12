@@ -9,8 +9,8 @@ import type { Rule } from "eslint";
 import resolve from "eslint-module-utils/resolve";
 import type { Identifier, ImportSpecifier } from "estree";
 
+import { debugDescription } from "../Debug";
 import type { SettingsNormalized } from "../Settings";
-import { debugDescription } from "../Support";
 
 import type { EslintLiteralNode } from "./Elements.types";
 

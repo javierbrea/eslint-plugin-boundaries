@@ -10,6 +10,7 @@ import type {
 import { isElementDescriptor } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
+import { warnOnce } from "../Debug";
 import {
   isArray,
   isString,
@@ -17,8 +18,28 @@ import {
   isBoolean,
   getArrayOrNull,
   isUndefined,
-} from "../Support/Common";
-import { warnOnce } from "../Support/Debug";
+} from "../Shared";
+import {
+  SETTINGS,
+  SETTINGS_KEYS_MAP,
+  LEGACY_TEMPLATES_DEFAULT,
+  CACHE_DEFAULT,
+  DEPENDENCY_NODE_KEYS_MAP,
+} from "../Shared/Settings.types";
+import type {
+  DependencyNodeKey,
+  DependencyNodeSelector,
+  AliasSetting,
+  RuleOptionsRules,
+  RuleOptionsWithRules,
+  Settings,
+  IgnoreSetting,
+  IncludeSetting,
+  RuleMainKey,
+  SettingsNormalized,
+  DebugSettingNormalized,
+  RuleName,
+} from "../Shared/Settings.types";
 
 import {
   isDependencyNodeKey,
@@ -35,27 +56,6 @@ import {
   getRootPath,
   transformLegacyTypes,
 } from "./Settings";
-import {
-  SETTINGS,
-  SETTINGS_KEYS_MAP,
-  LEGACY_TEMPLATES_DEFAULT,
-  CACHE_DEFAULT,
-  DEPENDENCY_NODE_KEYS_MAP,
-} from "./Settings.types";
-import type {
-  DependencyNodeKey,
-  DependencyNodeSelector,
-  AliasSetting,
-  RuleOptionsRules,
-  RuleOptionsWithRules,
-  Settings,
-  IgnoreSetting,
-  IncludeSetting,
-  RuleMainKey,
-  SettingsNormalized,
-  DebugSettingNormalized,
-  RuleName,
-} from "./Settings.types";
 
 const {
   TYPES,

@@ -19,7 +19,7 @@ import {
   RULE_NAMES_MAP,
   warnMigrationToDependencies,
 } from "../Settings";
-import { isString, isArray, isObject, isNullish } from "../Support";
+import { isString, isArray, isObject, isNullish } from "../Shared";
 
 import { evaluateRulesAndReport } from "./Dependencies";
 import { dependencyRule } from "./Support";

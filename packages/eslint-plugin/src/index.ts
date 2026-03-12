@@ -12,7 +12,7 @@ import NoUnknownRule from "./Rules/NoUnknown";
 import NoUnknownFilesRule from "./Rules/NoUnknownFiles";
 import { RULE_SHORT_NAMES_MAP, SETTINGS } from "./Settings";
 import type { PluginBoundaries } from "./Settings";
-// import { warn } from "./Support";
+// import { warn } from "./Shared";
 
 export * from "./Public";
 

@@ -7,11 +7,14 @@ import type {
 import { isDependencyDescription } from "@boundaries/elements";
 import chalk from "chalk";
 
-import type { SettingsNormalized } from "../Settings";
-import { isDebugEnabled } from "../Settings/Settings";
-import { PLUGIN_NAME, DEPENDENCIES } from "../Settings/Settings.types";
-
-import { isUndefined, isNull } from "./Common";
+import type { SettingsNormalized } from "../Shared";
+import {
+  isUndefined,
+  isNull,
+  PLUGIN_NAME,
+  DEPENDENCIES,
+  SETTINGS,
+} from "../Shared";
 
 const warns = new Set<string>();
 const debuggedFiles = new Set<string>();
@@ -39,6 +42,25 @@ const LOG_LEVELS = {
 type TraceColor = keyof typeof COLORS_MAP;
 type ConsoleLevel = keyof typeof CONSOLE_LEVELS;
 type LogLevel = keyof typeof LOG_LEVELS;
+
+/**
+ * Checks whether debug mode is globally enabled through environment variable.
+ *
+ * @returns `true` when debug env flag is active.
+ */
+function isDebugModeEnabled() {
+  return Boolean(process.env[SETTINGS.DEBUG]);
+}
+
+/**
+ * Computes final debug activation combining setting flag and environment flag.
+ *
+ * @param settingEnabled - Debug flag configured in plugin settings.
+ * @returns `true` when either setting or environment enables debug mode.
+ */
+function isDebugEnabled(settingEnabled = false) {
+  return settingEnabled || isDebugModeEnabled();
+}
 
 /**
  * Prints a log line to stdout with optional color formatting.

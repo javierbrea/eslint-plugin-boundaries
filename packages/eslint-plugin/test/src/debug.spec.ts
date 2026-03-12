@@ -7,14 +7,14 @@ import type {
   Matcher,
 } from "@boundaries/elements";
 
-import type { SettingsNormalized } from "../../src/Settings";
-import { SETTINGS } from "../../src/Settings";
 import type {
   debugDescription,
   printDependenciesRuleResult,
   warn,
   warnOnce,
-} from "../../src/Support/Debug";
+} from "../../src/Debug/Debug";
+import type { SettingsNormalized } from "../../src/Settings";
+import { SETTINGS } from "../../src/Settings";
 
 jest.mock("chalk", () => ({
   __esModule: true,
@@ -124,7 +124,7 @@ type DebugModule = {
 
 const loadDebugModule = (): DebugModule => {
   jest.resetModules();
-  return require("../../src/Support/Debug") as DebugModule;
+  return require("../../src/Debug/Debug") as DebugModule;
 };
 
 describe("Debug", () => {

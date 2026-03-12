@@ -22,6 +22,7 @@ import {
 } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
+import { warnOnce, printDependenciesRuleResult } from "../Debug";
 import type { EslintLiteralNode } from "../Elements";
 import { getElementsMatcher } from "../Elements";
 import {
@@ -42,15 +43,7 @@ import {
   RULE_NAMES_MAP,
   migrationToV6GuideLink,
 } from "../Settings";
-import {
-  warnOnce,
-  isObject,
-  isArray,
-  isString,
-  isUndefined,
-  isNull,
-  printDependenciesRuleResult,
-} from "../Support";
+import { isObject, isArray, isString, isUndefined, isNull } from "../Shared";
 
 import { dependencyRule } from "./Support";
 

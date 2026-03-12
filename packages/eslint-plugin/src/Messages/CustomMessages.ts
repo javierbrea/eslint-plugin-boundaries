@@ -7,7 +7,7 @@ import type {
 import { isElementDescription } from "@boundaries/elements";
 import Handlebars from "handlebars";
 
-import { isNull } from "../Support";
+import { isNull } from "../Shared";
 
 import type { CustomMessageTemplateContext } from "./CustomMessages.types";
 

@@ -5,7 +5,7 @@ import { getSettings, validateAndWarnRuleOptions } from "../../src/Settings";
 
 describe("validateAndWarnRuleOptions", () => {
   const getWarnSpy = () => {
-    const debugModule = jest.requireActual("../../src/Support/Debug") as {
+    const debugModule = jest.requireActual("../../src/Debug/Debug") as {
       warnOnce: (message: string) => boolean;
     };
     return jest.spyOn(debugModule, "warnOnce").mockReturnValue(true);

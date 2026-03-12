@@ -1,8 +1,8 @@
 import type { DependencyKind } from "@boundaries/elements";
 import { DEPENDENCY_KINDS_MAP } from "@boundaries/elements";
 
-import { isString, warnOnce, isNull } from "../Support";
-
+import { warnOnce } from "../Debug";
+import { isString, isNull } from "../Shared";
 import {
   PLUGIN_NAME,
   WEBSITE_URL,
@@ -14,7 +14,7 @@ import {
   RULE_SHORT_NAMES,
   FROM,
   RULE_NAMES_MAP,
-} from "./Settings.types";
+} from "../Shared/Settings.types";
 import type {
   DependencyNodeKey,
   SettingsKey,
@@ -22,7 +22,7 @@ import type {
   RuleShortName,
   RuleName,
   RuleMainKey,
-} from "./Settings.types";
+} from "../Shared/Settings.types";
 
 /**
  * Removes the plugin namespace from a rule name.
