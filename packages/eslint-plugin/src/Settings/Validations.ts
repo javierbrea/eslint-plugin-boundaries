@@ -462,7 +462,7 @@ export function validateAndWarnRuleOptions(
       rulesWithLegacyTemplate.push(index);
     }
 
-    if (rule.importKind !== undefined) {
+    if (!isUndefined(rule.importKind)) {
       rulesWithDeprecatedImportKind.push(index);
     }
   }
@@ -639,7 +639,7 @@ function validateLegacyTemplates(
   /** The legacyTemplates setting value */
   legacyTemplates: unknown
 ): boolean | undefined {
-  if (legacyTemplates === undefined) {
+  if (isUndefined(legacyTemplates)) {
     return;
   }
   if (isBoolean(legacyTemplates)) {
@@ -826,7 +826,7 @@ function validateFlagAsExternal(
 
   const validated: FlagAsExternalOptions = {};
 
-  if (flagAsExternal.unresolvableAlias !== undefined) {
+  if (!isUndefined(flagAsExternal.unresolvableAlias)) {
     if (isBoolean(flagAsExternal.unresolvableAlias)) {
       validated.unresolvableAlias = flagAsExternal.unresolvableAlias;
     } else {
@@ -837,7 +837,7 @@ function validateFlagAsExternal(
     }
   }
 
-  if (flagAsExternal.inNodeModules !== undefined) {
+  if (!isUndefined(flagAsExternal.inNodeModules)) {
     if (isBoolean(flagAsExternal.inNodeModules)) {
       validated.inNodeModules = flagAsExternal.inNodeModules;
     } else {
@@ -848,7 +848,7 @@ function validateFlagAsExternal(
     }
   }
 
-  if (flagAsExternal.outsideRootPath !== undefined) {
+  if (!isUndefined(flagAsExternal.outsideRootPath)) {
     if (isBoolean(flagAsExternal.outsideRootPath)) {
       validated.outsideRootPath = flagAsExternal.outsideRootPath;
     } else {
@@ -859,7 +859,7 @@ function validateFlagAsExternal(
     }
   }
 
-  if (flagAsExternal.customSourcePatterns !== undefined) {
+  if (!isUndefined(flagAsExternal.customSourcePatterns)) {
     if (
       isArray(flagAsExternal.customSourcePatterns) &&
       flagAsExternal.customSourcePatterns.every(isString)
@@ -887,7 +887,7 @@ function validateDebugFilterSelectors(
   value: unknown,
   filterName: "files" | "dependencies"
 ) {
-  if (value === undefined) {
+  if (isUndefined(value)) {
     return undefined;
   }
   if (isArray(value)) {
@@ -960,7 +960,7 @@ function validateDebug(debug: unknown): DebugSettingNormalized {
     return validated;
   }
 
-  if (debug.enabled !== undefined) {
+  if (!isUndefined(debug.enabled)) {
     if (isBoolean(debug.enabled)) {
       validated.enabled = debug.enabled;
     } else {
@@ -1011,7 +1011,7 @@ function validateDebug(debug: unknown): DebugSettingNormalized {
     }
   }
 
-  if (debug.filter !== undefined) {
+  if (!isUndefined(debug.filter)) {
     if (isObject(debug.filter)) {
       const files = validateDebugFilesFilter(debug.filter.files);
       const dependencies = validateDebugDependenciesFilter(
@@ -1019,8 +1019,8 @@ function validateDebug(debug: unknown): DebugSettingNormalized {
       );
 
       validated.filter = {
-        ...(files !== undefined ? { files } : {}),
-        ...(dependencies !== undefined ? { dependencies } : {}),
+        ...(!isUndefined(files) ? { files } : {}),
+        ...(!isUndefined(dependencies) ? { dependencies } : {}),
       };
     } else {
       warnOnce(

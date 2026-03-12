@@ -33,7 +33,7 @@ jobs:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   publish-beta:
     runs-on: ubuntu-latest
-    if: contains(github.event.release.target_commitish, 'release-') && contains(github.event.release.target_commitish, '-beta.')
+    if: contains(github.event.release.target_commitish, '-beta.')
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/install

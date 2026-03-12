@@ -9,7 +9,7 @@ import type {
 } from "@boundaries/elements";
 
 import { PLUGIN_ISSUES_URL } from "../Settings";
-import { isArray, isObject } from "../Support";
+import { isArray, isObject, isUndefined, isNull } from "../Support";
 
 const MESSAGE_ERROR = `Not able to create a message for this violation. Please report this at: ${PLUGIN_ISSUES_URL}`;
 const NO_RULE_MESSAGE = "There is no rule allowing dependencies";
@@ -112,10 +112,10 @@ function buildElementPropertyFragments(
 
     const value =
       elementDescription[propertyName as keyof typeof elementDescription];
-    if (value === undefined) {
+    if (isUndefined(value)) {
       continue;
     }
-    if (value === null && !includeNullValues) {
+    if (isNull(value) && !includeNullValues) {
       continue;
     }
     if (propertyName === "captured") {
@@ -129,10 +129,10 @@ function buildElementPropertyFragments(
       const capturedKeys = options?.capturedKeys ?? Object.keys(value);
       for (const capturedKey of capturedKeys) {
         const capturedValue = value[capturedKey as keyof typeof value];
-        if (capturedValue === undefined) {
+        if (isUndefined(capturedValue)) {
           continue;
         }
-        if (capturedValue === null && !includeNullValues) {
+        if (isNull(capturedValue) && !includeNullValues) {
           continue;
         }
         fragments.push(`${capturedKey} ${formatPropertyValue(capturedValue)}`);
@@ -237,25 +237,25 @@ function buildDependencyPropertyFragments(
   for (const propertyName of properties) {
     const value =
       dependencyMetadata[propertyName as keyof typeof dependencyMetadata];
-    if (value === undefined) {
+    if (isUndefined(value)) {
       continue;
     }
-    if (value === null && !includeNullValues) {
+    if (isNull(value) && !includeNullValues) {
       continue;
     }
     if (propertyName === "relationship" && isObject(value)) {
       const relationshipKeys = options?.relationshipKeys ?? ["from", "to"];
       if (
         relationshipKeys.includes("from") &&
-        value.from !== undefined &&
-        (value.from !== null || includeNullValues)
+        !isUndefined(value.from) &&
+        (!isNull(value.from) || includeNullValues)
       ) {
         fragments.push(`relationship from ${formatPropertyValue(value.from)}`);
       }
       if (
         relationshipKeys.includes("to") &&
-        value.to !== undefined &&
-        (value.to !== null || includeNullValues)
+        !isUndefined(value.to) &&
+        (!isNull(value.to) || includeNullValues)
       ) {
         fragments.push(`relationship to ${formatPropertyValue(value.to)}`);
       }
@@ -391,7 +391,7 @@ export function dependenciesRuleDefaultErrorMessage(
   ruleIndex: number | null,
   dependency: DependencyDescription
 ): string {
-  if (ruleIndex === null) {
+  if (isNull(ruleIndex)) {
     return elementTypesNoRulesMatchedMessage(dependency);
   }
 

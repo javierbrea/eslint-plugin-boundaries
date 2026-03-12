@@ -26,12 +26,21 @@ export function isBoolean(object: unknown): object is boolean {
 }
 
 /**
+ * Determines if the provided object is null.
+ * @param object The object to check.
+ * @returns True if the object is null, false otherwise.
+ */
+export function isNull(object: unknown): object is null {
+  return object === null;
+}
+
+/**
  * Determines if the provided object is a non-null object (but not an array).
  * @param object The object to check.
  * @returns True if the object is a non-null object, false otherwise.
  */
 export function isObject(object: unknown): object is Record<string, unknown> {
-  return typeof object === "object" && object !== null && !isArray(object);
+  return typeof object === "object" && !isNull(object) && !isArray(object);
 }
 
 /**
@@ -41,15 +50,6 @@ export function isObject(object: unknown): object is Record<string, unknown> {
  */
 export function isUndefined(object: unknown): object is undefined {
   return object === undefined;
-}
-
-/**
- * Determines if the provided object is null.
- * @param object The object to check.
- * @returns True if the object is null, false otherwise.
- */
-export function isNull(object: unknown): object is null {
-  return object === null;
 }
 
 /**

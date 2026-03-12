@@ -47,6 +47,8 @@ import {
   isObject,
   isArray,
   isString,
+  isUndefined,
+  isNull,
   printDependenciesRuleResult,
 } from "../Support";
 
@@ -68,7 +70,7 @@ function normalizeRuleLegacyOptions(rule: DependenciesRule): DependenciesRule {
   const existingDependency = isObject(rule.dependency) ? rule.dependency : {};
 
   // If dependency.kind is already explicitly defined, it takes precedence over importKind.
-  if (existingDependency.kind !== undefined) {
+  if (!isUndefined(existingDependency.kind)) {
     return { ...rule, importKind: undefined };
   }
 
@@ -159,7 +161,7 @@ function mergeProperties<T>(
   if (isObject(outer) && isObject(entry)) {
     return { ...outer, ...entry };
   }
-  return entry !== undefined ? entry : outer;
+  return !isUndefined(entry) ? entry : outer;
 }
 
 /**
@@ -173,16 +175,16 @@ function mergeElementSelectorData(
   if (isObject(outer) && isObject(entry)) {
     const result: BaseElementSelectorData = { ...outer, ...entry };
     const captured = mergeProperties(outer.captured, entry.captured);
-    if (captured !== undefined) {
+    if (!isUndefined(captured)) {
       result.captured = captured;
     }
     const parent = mergeProperties(outer.parent, entry.parent);
-    if (parent !== undefined) {
+    if (!isUndefined(parent)) {
       result.parent = parent;
     }
     return result;
   }
-  return entry !== undefined ? entry : outer;
+  return !isUndefined(entry) ? entry : outer;
 }
 
 function mergeDependencySelectorData(
@@ -195,12 +197,12 @@ function mergeDependencySelectorData(
       outer.relationship,
       entry.relationship
     );
-    if (relationship !== undefined) {
+    if (!isUndefined(relationship)) {
       result.relationship = relationship;
     }
     return result;
   }
-  return entry !== undefined ? entry : outer;
+  return !isUndefined(entry) ? entry : outer;
 }
 
 /**
@@ -305,9 +307,9 @@ function buildEntrySelector(
     );
 
     const selectorResult: DependencySelector = {};
-    if (mergedFrom !== undefined) selectorResult.from = mergedFrom;
-    if (mergedTo !== undefined) selectorResult.to = mergedTo;
-    if (mergedDependency !== undefined)
+    if (!isUndefined(mergedFrom)) selectorResult.from = mergedFrom;
+    if (!isUndefined(mergedTo)) selectorResult.to = mergedTo;
+    if (!isUndefined(mergedDependency))
       selectorResult.dependency = mergedDependency;
     return selectorResult;
   }
@@ -315,7 +317,7 @@ function buildEntrySelector(
   // Legacy entry: string or legacy array → becomes the "other direction" element selector
   // They are not merged because legacy entries are not objects but strings/arrays, so they
   // can not express criteria in the same direction as the outer selector but only in the opposite direction
-  const hasFrom = outerFrom !== undefined;
+  const hasFrom = !isUndefined(outerFrom);
   const result: DependencySelector = {};
   if (hasFrom) {
     result.from = outerFrom;
@@ -324,7 +326,7 @@ function buildEntrySelector(
     result.to = outerTo;
     result.from = entry;
   }
-  if (outerDependency !== undefined) {
+  if (!isUndefined(outerDependency)) {
     result.dependency = outerDependency;
   }
   return result;
@@ -448,8 +450,9 @@ export function resolveCustomMessage(
   ruleIndex: number | null,
   ruleOptions: DependenciesRuleOptions
 ): string | undefined {
-  const ruleMessage =
-    ruleIndex !== null ? ruleOptions.rules?.[ruleIndex]?.message : undefined;
+  const ruleMessage = !isNull(ruleIndex)
+    ? ruleOptions.rules?.[ruleIndex]?.message
+    : undefined;
   return ruleMessage ?? ruleOptions.message;
 }
 
@@ -510,7 +513,7 @@ export function evaluateRulesAndReport({
   const finalAllowed =
     result.allowed === true
       ? true
-      : result.ruleIndex === null
+      : isNull(result.ruleIndex)
         ? defaultAllowed
         : false;
 

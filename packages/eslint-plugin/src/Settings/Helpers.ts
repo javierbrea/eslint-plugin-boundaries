@@ -1,7 +1,7 @@
 import type { DependencyKind } from "@boundaries/elements";
 import { DEPENDENCY_KINDS_MAP } from "@boundaries/elements";
 
-import { isString, warnOnce } from "../Support";
+import { isString, warnOnce, isNull } from "../Support";
 
 import {
   PLUGIN_NAME,
@@ -285,7 +285,7 @@ function checkForLegacyTemplateSyntax(value: unknown): boolean {
         return true;
       }
     }
-  } else if (typeof value === "object" && value !== null) {
+  } else if (typeof value === "object" && !isNull(value)) {
     for (const val of Object.values(value)) {
       if (checkForLegacyTemplateSyntax(val)) {
         return true;
