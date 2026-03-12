@@ -169,7 +169,7 @@ export class Matcher {
    * Returns the selectors matching result for the given element or dependency description.
    * @param description The element or dependency  description to check.
    * @param selector The selector to check against.
-   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
+   * @param options Extra options for matching, such as templates data, etc.
    * @returns The selectors matching result for the given description, and whether it matches or not.
    */
   public getSelectorMatchingDescription(

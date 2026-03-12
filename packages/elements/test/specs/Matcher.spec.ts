@@ -1882,7 +1882,7 @@ describe("Matcher", () => {
       expect(result).toBe(true);
     });
 
-    it("should support dependency selector arrays and dependency selector globals", () => {
+    it("should support dependency selector arrays", () => {
       const dependency = {
         from: "/project/src/components/Button.tsx",
         to: "/project/node_modules/react/index.tsx",
@@ -1907,33 +1907,6 @@ describe("Matcher", () => {
         dependency: { kind: "value" },
         isMatch: true,
       });
-
-      expect(
-        matcher.isDependencyMatch(
-          dependency,
-          {
-            from: { type: "component" },
-          },
-          {
-            dependencySelectorsGlobals: { kind: "value" },
-          }
-        )
-      ).toBe(true);
-
-      expect(
-        matcher.isDependencyMatch(
-          {
-            ...dependency,
-            kind: "type",
-          },
-          {
-            from: { type: "component" },
-          },
-          {
-            dependencySelectorsGlobals: { kind: "value" },
-          }
-        )
-      ).toBe(false);
     });
 
     it("should throw an error when using invalid dependency selector", () => {

@@ -439,7 +439,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * It omits checks in keys applying only to dependency between elements, such as relationship.
    * @param element The element to check.
    * @param selector The selector to check against.
-   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
+   * @param options Extra options for matching, such as templates data, etc.
    * @returns The selector matching result for the given element, or null if none matches.
    */
   public getSelectorMatching(
@@ -456,7 +456,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * It omits checks in keys applying only to dependency between elements, such as relationship.
    * @param element The element to check.
    * @param selector The selector to check against.
-   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
+   * @param options Extra options for matching, such as templates data, etc.
    * @returns Whether the element matches the selector properties applying to elements.
    */
   public isElementMatch(

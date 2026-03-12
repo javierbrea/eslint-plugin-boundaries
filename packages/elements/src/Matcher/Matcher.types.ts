@@ -85,22 +85,9 @@ export type TemplateData = Record<string, unknown>;
 /**
  * Options for elements and dependencies matchers.
  */
-export type MatcherOptionsDependencySelectorsGlobals = {
-  /** The kind of the dependency */
-  kind?: MicromatchPatternNullable;
-};
-
-/**
- * Options for elements and dependencies matchers.
- */
 export type MatcherOptions = {
   /** Extra data to pass to captured values templates. By default, data from the element and dependency being matched is passed as to/from. */
   extraTemplateData?: TemplateData;
-  /**
-   * Properties to add to all dependency selectors used in the matcher. Added for backwards compatibility, because eslint-plugin rules defined importKind at the top level of the rule options.
-   * @deprecated Use 'kind' property directly in the dependency element selectors instead.
-   **/
-  dependencySelectorsGlobals?: MatcherOptionsDependencySelectorsGlobals;
 };
 
 /**

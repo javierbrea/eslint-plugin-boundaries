@@ -13,7 +13,6 @@ import type {
   DependencySelectorNormalized,
   BaseElementSelectorData,
   MatcherOptions,
-  MatcherOptionsDependencySelectorsGlobals,
   DependencyMatchResult,
   DependencyDataSelectorData,
 } from "./Matcher.types";
@@ -55,38 +54,23 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * @returns The normalized dependency selector.
    */
   private _normalizeDependencySelector(
-    selector: DependencySelector,
-    dependencySelectorsGlobals: MatcherOptionsDependencySelectorsGlobals
+    selector: DependencySelector
   ): DependencySelectorNormalized {
     if (!isDependencySelector(selector)) {
       throw new Error("Invalid dependency selector");
     }
 
-    const explicitDependencySelectors =
+    const normalizedDependencySelectors =
       selector.dependency && isDependencyDataSelector(selector.dependency)
         ? isArray(selector.dependency)
           ? selector.dependency
           : [selector.dependency]
-        : [];
-
-    const normalizedDependencySelectors = explicitDependencySelectors.map(
-      (dependencySelectorData) => ({
-        ...dependencySelectorsGlobals,
-        ...dependencySelectorData,
-      })
-    );
-
-    const normalizedDependencyMetadataSelectors =
-      normalizedDependencySelectors.length > 0
-        ? normalizedDependencySelectors
-        : Object.keys(dependencySelectorsGlobals).length > 0
-          ? [{ ...dependencySelectorsGlobals }]
-          : null;
+        : null;
 
     return {
       from: selector.from ? normalizeElementsSelector(selector.from) : null,
       to: selector.to ? normalizeElementsSelector(selector.to) : null,
-      dependency: normalizedDependencyMetadataSelectors,
+      dependency: normalizedDependencySelectors,
     };
   }
 
@@ -359,21 +343,15 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * Returns the selectors matching result for the given dependency.
    * @param dependency The dependency to check.
    * @param selector The selector to check against.
-   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
+   * @param options Extra options for matching, such as templates data, etc.
    * @returns The matching result for the dependency against the selector.
    */
   public getSelectorsMatching(
     dependency: DependencyDescription,
     selector: DependencySelector,
-    {
-      extraTemplateData = {},
-      dependencySelectorsGlobals = {},
-    }: MatcherOptions = {}
+    { extraTemplateData = {} }: MatcherOptions = {}
   ): DependencyMatchResult {
-    const normalizedSelector = this._normalizeDependencySelector(
-      selector,
-      dependencySelectorsGlobals
-    );
+    const normalizedSelector = this._normalizeDependencySelector(selector);
 
     const fromExtraData = extraTemplateData.from || {};
     const toExtraData = extraTemplateData.to || {};
@@ -404,7 +382,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * Returns whether the given dependency matches the selector.
    * @param dependency The dependency to check.
    * @param selector The selector to check against.
-   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
+   * @param options Extra options for matching, such as templates data, etc.
    * @returns Whether the dependency matches the selector properties.
    */
   public isDependencyMatch(
