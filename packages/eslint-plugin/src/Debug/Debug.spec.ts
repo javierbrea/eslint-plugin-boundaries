@@ -117,6 +117,21 @@ const createDependencyDescription = (): DependencyDescription => {
   };
 };
 
+type RuleDebugPayload = {
+  dependency: DependencyDescription;
+  rule: {
+    index: number;
+    selector: Record<string, unknown>;
+  };
+};
+
+const extractRuleDebugPayload = (loggedMessage: string): RuleDebugPayload => {
+  const messageLines = loggedMessage.split("\n");
+  const serializedPayload = messageLines.slice(1).join("\n").trim();
+
+  return JSON.parse(serializedPayload) as RuleDebugPayload;
+};
+
 type DebugModule = {
   debugDescription: typeof debugDescription;
   printDependenciesRuleResult: typeof printDependenciesRuleResult;
@@ -504,6 +519,57 @@ describe("Debug", () => {
     expect(consoleSpy.mock.calls[0][0]).toContain('"to"');
     expect(consoleSpy.mock.calls[0][0]).toContain('"dependency"');
   });
+
+  it.each([
+    {
+      name: "from",
+      dependencyMatchResult: {
+        isMatch: true,
+        from: { selector: { type: "components" } },
+      },
+    },
+    {
+      name: "to",
+      dependencyMatchResult: {
+        isMatch: true,
+        to: { selector: { type: "helpers" } },
+      },
+    },
+    {
+      name: "dependency",
+      dependencyMatchResult: {
+        isMatch: true,
+        dependency: { selector: { kind: "type" } },
+      },
+    },
+  ])(
+    "should include $name selector details only when available",
+    ({ name, dependencyMatchResult }) => {
+      const consoleSpy = jest
+        .spyOn(console, "log")
+        .mockImplementation(() => {});
+      const debugModule = loadDebugModule();
+      const settings = createSettings();
+
+      debugModule.printDependenciesRuleResult(
+        dependencyMatchResult as unknown as DependencyMatchResult,
+        1,
+        createDependencyDescription(),
+        settings,
+        createMatcher({ isMatch: true } as DependencyMatchResult)
+      );
+
+      expect(consoleSpy).toHaveBeenCalledTimes(1);
+
+      const payload = extractRuleDebugPayload(
+        consoleSpy.mock.calls[0][0] as string
+      );
+      const selectorKeys = Object.keys(payload.rule.selector);
+
+      expect(selectorKeys).toEqual([name]);
+      expect(payload.rule.selector[name]).toBeDefined();
+    }
+  );
 
   it("should not print rule results when file description is filtered out", () => {
     const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});

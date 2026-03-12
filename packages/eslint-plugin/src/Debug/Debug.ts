@@ -22,13 +22,6 @@ const debuggedDependencies = new Set<string>();
 
 const PREFIX_COLOR = "#A8B3D8" as const;
 
-const COLORS_MAP = {
-  blue: "blue",
-  gray: "gray",
-  green: "green",
-  yellow: "yellow",
-} as const;
-
 const CONSOLE_LEVELS = {
   log: "log",
   warn: "warn",
@@ -39,7 +32,6 @@ const LOG_LEVELS = {
   warning: "warning",
 } as const;
 
-type TraceColor = keyof typeof COLORS_MAP;
 type ConsoleLevel = keyof typeof CONSOLE_LEVELS;
 type LogLevel = keyof typeof LOG_LEVELS;
 
@@ -58,7 +50,7 @@ function isDebugModeEnabled() {
  * @param settingEnabled - Debug flag configured in plugin settings.
  * @returns `true` when either setting or environment enables debug mode.
  */
-function isDebugEnabled(settingEnabled = false) {
+function isDebugEnabled(settingEnabled: boolean): boolean {
   return settingEnabled || isDebugModeEnabled();
 }
 
@@ -70,24 +62,10 @@ function isDebugEnabled(settingEnabled = false) {
  * @param options.color - Optional color key from the internal color map.
  * @param options.level - Optional log level determining which console method to use (default is "log").
  */
-function printLog(
-  message: string,
-  {
-    color,
-    level = CONSOLE_LEVELS.log,
-  }: {
-    color?: TraceColor;
-    level?: ConsoleLevel;
-  } = {}
-) {
-  if (!color) {
-    // eslint-disable-next-line no-console
-    console[level](message);
-    return;
-  }
-  const output = chalk[COLORS_MAP[color]](message);
+function printLog(message: string, level: ConsoleLevel) {
   // eslint-disable-next-line no-console
-  console[level](output);
+  console[level](message);
+  return;
 }
 
 /**
@@ -110,7 +88,7 @@ function indentLines(text: string, spaces: number): string {
  * @param logLevel Type of log level to determine prefix formatting (default is "debug").
  * @returns The formatted log prefix string to prepend to debug messages.
  */
-function getLogPrefix(logLevel: LogLevel = LOG_LEVELS.debug): string {
+function getLogPrefix(logLevel: LogLevel): string {
   const colorMethod =
     logLevel === LOG_LEVELS.warning ? chalk.yellow : chalk.blue;
   return `${chalk.hex(PREFIX_COLOR)(`[${PLUGIN_NAME}]`)}${colorMethod(`[${logLevel}]`)}:`;
@@ -127,23 +105,21 @@ function getLogPrefix(logLevel: LogLevel = LOG_LEVELS.debug): string {
 function printBlock(
   title: string,
   {
-    level = LOG_LEVELS.debug,
+    level,
     message,
   }: {
-    level?: LogLevel;
+    level: LogLevel;
     message?: string;
-  } = {}
+  }
 ): void {
   const header = `${getLogPrefix(level)} ${title}`;
   const consoleLevel =
     level === LOG_LEVELS.warning ? CONSOLE_LEVELS.warn : CONSOLE_LEVELS.log;
   if (!message) {
-    printLog(header, { level: consoleLevel });
+    printLog(header, consoleLevel);
     return;
   }
-  printLog(`${header}\n${indentLines(message, 2)}\n`, {
-    level: consoleLevel,
-  });
+  printLog(`${header}\n${indentLines(message, 2)}\n`, consoleLevel);
 }
 
 /**
@@ -216,6 +192,7 @@ export function debugDescription(
  * @returns Unique identifier string for the file.
  */
 function getFileIdentifier(description: ElementDescription): string {
+  /* istanbul ignore next - Fallback for descriptions missing path, which should not happen but ensures stability of debug logging. */
   return description.path || "<unknown-file>";
 }
 
@@ -264,6 +241,7 @@ function printDependencyDebug(
     return;
   }
 
+  /* istanbul ignore next - Fallback for descriptions missing path, which should not happen but ensures stability of debug logging. */
   const dependencySource = description.dependency.source || "<unknown-source>";
   const fileIdentifier = getFileIdentifier(description.from);
   const dependencyIdentifier = `${dependencySource}-${fileIdentifier}`;
