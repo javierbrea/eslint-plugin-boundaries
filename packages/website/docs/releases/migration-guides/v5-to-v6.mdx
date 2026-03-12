@@ -82,7 +82,7 @@ Read more about the new object-based selector syntax in the **[selectors documen
 <CodeDiff language="javascript">{`
 . {
 .   rules: {
-.     "boundaries/element-types": [2, {
+.     "boundaries/dependencies": [2, {
 .       default: "disallow",
 .       rules: [
 .         {
@@ -122,7 +122,7 @@ Read more about the new dependency selector syntax in the [selectors documentati
 <CodeDiff language="javascript">{`
 . {
 .   rules: {
-.     "boundaries/element-types": [2, {
+.     "boundaries/dependencies": [2, {
 .       default: "disallow",
 .       rules: [
 .         {
@@ -192,7 +192,7 @@ If you want to keep the previous behavior and only analyze `import` statements, 
 <CodeDiff language="javascript">{`
 . {
 .   rules: {
-.     "boundaries/element-types": [2, {
+.     "boundaries/dependencies": [2, {
 .       default: "disallow",
 .       rules: [
 .         {
@@ -214,7 +214,7 @@ If you want to keep the previous behavior and only analyze `import` statements, 
 `}</CodeDiff>
 
 :::note
-This does not apply to the [`entry-point` rule](../../rules/entry-point.mdx), because the "allow" and "disallow" properties in that rule are not used to match dependencies but to define the allowed paths to be used as entry points. In that rule, the `importKind` property is still supported. Anyway, that entire rule is also deprecated and will be removed in oncoming versions, so it is recommended to migrate to the new `boundaries/element-types` rule with the new selector syntax as soon as possible. You will find a **[migration example for that rule in its documentation page](../../rules/entry-point.mdx#migration-to-boundarieselement-types)**.
+This does not apply to the [`entry-point` rule](../../rules/entry-point.mdx), because the "allow" and "disallow" properties in that rule are not used to match dependencies but to define the allowed paths to be used as entry points. In that rule, the `importKind` property is still supported. Anyway, that entire rule is also deprecated and will be removed in oncoming versions, so it is recommended to migrate to the `boundaries/dependencies` rule with the new selector syntax as soon as possible. You will find a **[migration example for that rule in its documentation page](../../rules/entry-point.mdx#migration-to-boundariesdependencies)**.
 :::
 
 ## New template syntax
@@ -248,7 +248,7 @@ Read more about the description properties in the [Runtime Description Propertie
 <CodeDiff language="javascript">{`
 . {
 .   rules: {
-.     "boundaries/element-types": [2, {
+.     "boundaries/dependencies": [2, {
 .       default: "disallow",
 .       rules: [
 .         {
@@ -323,15 +323,15 @@ For more details on the template messages migration, see the Legacy Message Temp
 
 ### `entry-point` rule
 
-The boundaries set by this rule now can also be achieved with the **[`boundaries/element-types` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the new [`internalPath` selector property](../../setup/selectors.md).**
+The boundaries set by this rule now can also be achieved with the **[`boundaries/dependencies` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the new [`internalPath` selector property](../../setup/selectors.md).**
 
-Here you have an example of how to migrate a configuration from `boundaries/entry-point` to `boundaries/element-types`:
+Here you have an example of how to migrate a configuration from `boundaries/entry-point` to `boundaries/dependencies`:
 
 <CodeDiff language="javascript">{`
 . {
 .   rules: {
 -     "boundaries/entry-point": [2, {
-+     "boundaries/element-types": [2, {
++     "boundaries/dependencies": [2, {
 .       default: "disallow",
 .       rules: [
 -         {
@@ -357,24 +357,24 @@ Here you have an example of how to migrate a configuration from `boundaries/entr
 `}</CodeDiff>
 
 :::tip Bonus: Allowing different entry points based on the importer element
-With `boundaries/element-types` you can also define rules to allow different entry points depending on the importer element, which was not possible with the `entry-point` rule. For example, you could allow importing `index.js` from components but only allow importing `main.js` from modules.
+With `boundaries/dependencies` you can also define rules to allow different entry points depending on the importer element, which was not possible with the `entry-point` rule. For example, you could allow importing `index.js` from components but only allow importing `main.js` from modules.
 :::
 
 ### `external` rule
 
-The boundaries set by this rule can also be achieved with the **[`boundaries/element-types` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the [`origin`, `source`, `module`, 'internalPath' and `specifiers` selector properties](../../setup/selectors.md).**
+The boundaries set by this rule can also be achieved with the **[`boundaries/dependencies` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the [`origin`, `source`, `module`, 'internalPath' and `specifiers` selector properties](../../setup/selectors.md).**
 
 :::warning
-You need to set the `checkAllOrigins` option to `true` in your `boundaries/element-types` configuration to make sure that dependencies from external origins are also checked, as by default `boundaries/element-types` only checks dependencies between local known elements.
+You need to set the `checkAllOrigins` option to `true` in your `boundaries/dependencies` configuration to make sure that dependencies from external origins are also checked, as by default `boundaries/dependencies` only checks dependencies between local known elements.
 :::
 
-Here you have an example of how to migrate a configuration from `boundaries/external` to `boundaries/element-types`.
+Here you have an example of how to migrate a configuration from `boundaries/external` to `boundaries/dependencies`.
 
 <CodeDiff language="javascript">{`
 . {
 .   rules: {
 -     "boundaries/external": [2, {
-+     "boundaries/element-types": [2, {
++     "boundaries/dependencies": [2, {
 +       checkAllOrigins: true,
 .       default: "disallow",
 .       rules: [
@@ -426,13 +426,13 @@ Here you have an example of how to migrate a configuration from `boundaries/exte
 
 ### `no-private` rule
 
-The boundaries set by this rule can also be achieved with the **[`boundaries/element-types` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the [`relationship` selector property](../../setup/selectors.md).**
+The boundaries set by this rule can also be achieved with the **[`boundaries/dependencies` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the [`relationship` selector property](../../setup/selectors.md).**
 
 <CodeDiff language="javascript">{`
 . {
 .   rules: {
 -     "boundaries/no-private": [2, { allowUncles: true }]
-+     "boundaries/element-types": [2, {
++     "boundaries/dependencies": [2, {
 +       default: "allow",
 +       rules: [
 +         // Disallow all elements importing children elements of other elements
@@ -463,8 +463,8 @@ The boundaries set by this rule can also be achieved with the **[`boundaries/ele
 . }
 `}</CodeDiff>
 
-:::tip Bonus: More specific rules with `boundaries/element-types`
-With `boundaries/element-types` you can also define more specific rules that were not possible with `no-private`, such as allowing only certain elements to import their siblings or uncles, while disallowing it for others.
+:::tip Bonus: More specific rules with `boundaries/dependencies`
+With `boundaries/dependencies` you can also define more specific rules that were not possible with `no-private`, such as allowing only certain elements to import their siblings or uncles, while disallowing it for others.
 :::
 
 ---
@@ -492,7 +492,7 @@ The new template syntax also provides clearer and more structured access to all 
 
 ### Benefits of stop using legacy rules
 
-Using the `boundaries/element-types` rule with the new selector syntax instead of the deprecated `entry-point`, `external`, and `no-private` rules allows you to:
+Using the `boundaries/dependencies` rule with the new selector syntax instead of the deprecated `entry-point`, `external`, and `no-private` rules allows you to:
 - ✅ **Unified configuration** - Define all your boundaries in a single rule with consistent syntax
 - ✅ **More powerful rules** - Access to advanced selector features for more granular control over your boundaries
 

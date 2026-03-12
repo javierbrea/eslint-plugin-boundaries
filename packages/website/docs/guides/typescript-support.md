@@ -95,7 +95,7 @@ const config: Config = {
     "boundaries/ignore": ["**/ignored/**/*.js"],
   },
   rules: {
-    "boundaries/element-types": [
+    "boundaries/dependencies": [
       "error",
       { default: "disallow", rules: [] },
     ],
@@ -119,7 +119,7 @@ const config: Config<"custom-boundaries"> = {
     "boundaries/ignore": ["**/ignored/**/*.js"],
   },
   rules: {
-    "custom-boundaries/element-types": 2, // Must use renamed prefix
+    "custom-boundaries/dependencies": 2, // Must use renamed prefix
   },
 };
 ```
@@ -133,10 +133,10 @@ Settings always use the `boundaries/` prefix regardless of the plugin name, as E
 In addition to the main `Config` type, the plugin exports individual subtypes for fine-grained type safety:
 
 - `Settings` - Plugin settings configuration
-- `Rules` - Rule configuration
-- `ElementDescriptor` - Element type definitions
-- `ElementTypesRule` - Element types rule configuration
-- `ElementTypesRuleOptions` - Rule options
+- `Rules` - Mapping of rule names to their configurations
+- `ElementDescriptor` - Element descriptors, as set in the `boundaries/elements` setting.
+- `DependenciesRule` - `dependencies` rule configuration
+- `DependenciesRuleOptions` - Options for the `dependencies` rule.
 - `ElementSelector` - Element selector syntax
 - `IgnoreSetting` - Ignore pattern configuration
 - ...
@@ -149,7 +149,7 @@ import type {
   Settings,
   Rules,
   ElementDescriptor,
-  ElementTypesRuleOptions,
+  DependenciesRuleOptions,
 } from "eslint-plugin-boundaries";
 
 const elementDescriptor: ElementDescriptor = {
@@ -162,8 +162,18 @@ const settings: Settings = {
   "boundaries/elements": [elementDescriptor],
 };
 
+const dependenciesRuleOptions: DependenciesRuleOptions = {
+  default: "disallow",
+  rules: [
+    {
+      from: { type: "controller" },
+      allow: { to: { type: ["model", "view"] } },
+    },
+  ],
+};
+
 const rules: Rules = {
-  "boundaries/element-types": ["error", { default: "disallow", rules: [] }],
+  "boundaries/dependencies": ["error", dependenciesRuleOptions],
 };
 
 const config: Config = {

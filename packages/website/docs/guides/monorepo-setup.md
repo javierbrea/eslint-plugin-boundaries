@@ -39,9 +39,9 @@ This is relevant because you can use the `origin` selector property in your rule
 
 :::
 
-By default, the [`element-types`](../rules/dependencies.md) rule only applies to **local** dependencies, and [`external`](../rules/dependencies.md) rule only to **external** dependencies.
+By default, the [`dependencies`](../rules/dependencies.md) rule only applies to **local** dependencies, and [`external`](../rules/dependencies.md) rule only to **external** dependencies.
 
-**The plugin now has added the `checkAllOrigins` option to `element-types` rule to allow checking dependencies from all origins (both local and external) in the same rule**, but by default it is still set to `false` to avoid unexpected breaking changes. So if you want to check inter-package dependencies categorized as external with `element-types` rules, you need to set that option to `true`.
+**The plugin now has added the `checkAllOrigins` option to the `dependencies` rule to allow checking dependencies from all origins (both local and external) in the same rule**, but by default it is still set to `false` to avoid unexpected breaking changes. So if you want to check inter-package dependencies categorized as external with `dependencies` rules, you need to set that option to `true`.
 
 In a monorepo, you might want different behavior:
 
@@ -54,10 +54,10 @@ The [`boundaries/flag-as-external`](../setup/settings.md#boundariesflag-as-exter
 
 :::tip Fully customizable
 
-You can control both the categorization of inter-package dependencies (external vs local) and also if the `element-types` rule should check dependencies from all origins or only local ones, allowing you to mix and match different approaches in the same monorepo.
+You can control both the categorization of inter-package dependencies (external vs local) and also if the `dependencies` rule should check dependencies from all origins or only local ones, allowing you to mix and match different approaches in the same monorepo.
 
 * To control categorization: Use `boundaries/flag-as-external` setting with `outsideRootPath` and/or `customSourcePatterns` options.
-* To control if `element-types` checks all origins: Use `checkAllOrigins` option in the `element-types` rule configuration.
+* To control if the `dependencies` rule checks all origins: Use its `checkAllOrigins` option.
 
 :::
 
@@ -127,7 +127,7 @@ export default [{
   
   rules: {
     // These rules only apply within the "app" package
-    "boundaries/element-types": ["error", {
+    "boundaries/dependencies": ["error", {
       default: "disallow",
       checkAllOrigins: false, // Only check local dependencies
       rules: [
@@ -197,7 +197,7 @@ export default [{
   },
   
   rules: {
-    "boundaries/element-types": ["error", {
+    "boundaries/dependencies": ["error", {
       default: "disallow",
       checkAllOrigins: false, // Only check local dependencies
       rules: [
@@ -270,7 +270,7 @@ export default [{
   },
   
   rules: {
-    "boundaries/element-types": ["error", {
+    "boundaries/dependencies": ["error", {
       default: "disallow",
       rules: [
         {
@@ -314,7 +314,7 @@ You can combine multiple configurations with different `files` patterns in the s
 
 For example, you could combine Scenario 3, defining rules that consider inter-package dependencies as local, and also Scenario 1, defining package-isolated rules.
 
-You could even have different configurations considering inter-package dependencies as external to add global constraints using the `external` rule, while also having configurations treating them as local for granular control using the `element-types` rule for packages that are allowed to interact.
+You could even have different configurations considering inter-package dependencies as external to add global constraints using the `external` rule, while also having configurations treating them as local for granular control using the `dependencies` rule for packages that are allowed to interact.
 
 ## Common Patterns
 

@@ -34,7 +34,7 @@ The plugin architecture is built on three main concepts that work together:
 
 The typical workflow when setting up the plugin involves three main steps:
 
-1. **Define your element types** using [element descriptors](./elements.md) in `boundaries/elements` setting
+1. **Define your elements** using [element descriptors](./elements.md) in `boundaries/elements` setting
 2. **Configure rules** using [element selectors](./selectors.md) to specify which elements can interact with each other
 3. **Customize global settings** to include/ignore files, define dependency nodes, etc. You can use the helpers in the [Configuration Helpers](./eslint-integration.md) section to simplify this process.
 

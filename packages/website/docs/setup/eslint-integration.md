@@ -32,7 +32,7 @@ The plugin includes two predefined configurations to get started quickly.
 **Best for:** Applying the plugin to an existing project
 :::
 
-The recommended configuration disables `boundaries/no-unknown`, `boundaries/no-unknown-files`, and `boundaries/no-ignored` rules. This allows parts of the project to be non-compliant with your element types, enabling progressive refactoring.
+The recommended configuration disables `boundaries/no-unknown`, `boundaries/no-unknown-files`, and `boundaries/no-ignored` rules. This allows parts of the project to be non-compliant with your architectural elements, enabling progressive refactoring.
 
 ```js
 import boundaries from "eslint-plugin-boundaries";
@@ -53,7 +53,7 @@ export default [{
   },
   rules: {
     ...recommended.rules,
-    "boundaries/element-types": [2, {
+    "boundaries/dependencies": [2, {
       // Define your rules here
     }],
   }
@@ -87,7 +87,7 @@ export default [{
   },
   rules: {
     ...strict.rules,
-    "boundaries/element-types": [2, {
+    "boundaries/dependencies": [2, {
       // Define your rules here
     }],
   }
@@ -115,7 +115,7 @@ const config = createConfig({
   },
   rules: {
     ...recommended.rules,
-    "boundaries/element-types": ["error", { default: "disallow" }],
+    "boundaries/dependencies": ["error", { default: "disallow" }],
   }
 });
 
@@ -136,7 +136,7 @@ const config = createConfig({
   },
   rules: {
     ...recommended.rules,
-    "custom-boundaries/element-types": ["error", { default: "disallow" }], // Renamed prefix
+    "custom-boundaries/dependencies": ["error", { default: "disallow" }], // Renamed prefix
     "boundaries/entry-point": 0, // Original prefix still works
   }
 }, "custom-boundaries");

@@ -31,7 +31,7 @@ Rules define to which dependencies they apply and what is allowed or disallowed.
 
 ## Main Rules Format
 
-The main rules ([`element-types`](../rules/dependencies.md), [`external`](../rules/external.mdx) and [`entry-point`](../rules/entry-point.mdx)) share a common configuration format.
+The main rules ([`dependencies`](../rules/dependencies.md), [`external`](../rules/external.mdx) and [`entry-point`](../rules/entry-point.mdx)) share a common configuration format.
 
 Rules work by setting an `allow` or `disallow` default value, then providing an array of rules that override that default.
 
@@ -44,7 +44,7 @@ Each matching rule overrides previous values, so the **final result is determine
 ```js
 export default [{
   rules: {
-    "boundaries/element-types": [2, {
+    "boundaries/dependencies": [2, {
       // Default policy
       default: "allow",
       
@@ -140,7 +140,7 @@ Read the ["How rules match dependencies" section](#how-rules-match-dependencies)
 **Type:** Varies by rule (typically [`<dependency selector>` or `<array of dependency selectors>`](./selectors.md#dependency-selectors))
 
 :::note
-Here we are going to see the configuration of the main rule `element-types`, which expects [dependency selectors](./selectors.md#dependency-selectors) for the `allow` and `disallow` properties.
+Here we are going to see the configuration of the main rule `dependencies`, which expects [dependency selectors](./selectors.md#dependency-selectors) for the `allow` and `disallow` properties.
 
 Other rules may expect different formats (e.g. file path patterns for the `entry-point` rule). See each specific [rule's documentation](../rules/rules.md) for details.
 :::
@@ -533,12 +533,12 @@ For example, in the next rule, the `allow` properties will not be merged togethe
 
 ## Complete Example
 
-Just to illustrate the high level of customization that the plugin supports, here is an example of advanced options for the `boundaries/element-types` rule:
+Just to illustrate the high level of customization that the plugin supports, here is an example of advanced options for the `boundaries/dependencies` rule:
 
 ```js
 export default [{
   rules: {
-    "boundaries/element-types": [2, {
+    "boundaries/dependencies": [2, {
       // disallow importing any element by default
       default: "disallow",
       rules: [

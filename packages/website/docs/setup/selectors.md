@@ -83,7 +83,7 @@ Match elements based on their type, category, origin, and any other property fro
 // Match components in specific path
 { type: "component", path: "**/features/**" }
 
-// Match unknown element types
+// Match unknown elements
 { isUnknown: true }
 ```
 

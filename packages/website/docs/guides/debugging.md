@@ -23,9 +23,8 @@ keywords:
 When configuring the plugin, it's helpful to **verify that your [`elements`](../setup/elements.md) setting and [rules](../setup/rules.mdx) are correctly working as expected**. The debugging feature provides detailed traces about how the plugin analyzes your files and imports, including information such as:
 
 - File paths being analyzed
-- Assigned element types
-- Captured values and patterns
-- Import resolution results
+- Assigned descriptions for each file and dependency
+- Rule violations, and which dependency selectors are matching them
 
 This can help you troubleshoot configuration issues and ensure your element definitions and rules are correct.
 
@@ -185,7 +184,7 @@ When debug mode is enabled, you'll see **[descriptions of files, dependencies, a
   }
 }
 
-[boundaries][debug]: element-types rule violation: Rule at index 2 reported a violation because the following selector matched the dependency:
+[boundaries][debug]: dependencies rule violation: Rule at index 2 reported a violation because the following selector matched the dependency:
 
 {
   "dependency": {

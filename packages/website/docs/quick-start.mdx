@@ -139,7 +139,7 @@ This is only a basic example of configuration. The plugin can be configured to i
 Apply one of the [predefined rule configurations](./setup/eslint-integration.md) as a starting point by extending it in your `rules` section.
 
 :::tip
-You should use `recommended` config in already existing projects to gradually introduce the rules without too many errors at once, because it does not require all files in the project to belong to an element type. For new projects, you can use `strict` config to ensure all files belong to an element type from the beginning.
+You should use `recommended` config in already existing projects to gradually introduce the rules without too many errors at once, because it does not require all files in the project to belong to be part of a defined element. For new projects, you can use `strict` config to ensure all files belong to an element from the beginning.
 :::
 
 <Tabs>
@@ -197,7 +197,7 @@ You should use `recommended` config in already existing projects to gradually in
 
 ## 5. Set Dependency Rules
 
-Now you can define your own dependency rules by using the [`boundaries/element-types` rule](./setup/rules.mdx).
+Now you can define your own dependency rules by using the [`boundaries/dependencies` rule](./setup/rules.mdx).
 
 :::tip
 Read how to use **[Element Selectors](./setup/selectors.md)** to configure your rules in more detail.
@@ -223,7 +223,7 @@ Read how to use **[Element Selectors](./setup/selectors.md)** to configure your 
 .    },
 .    rules: {
 .      ...boundaries.configs.recommended.rules,
-+      "boundaries/element-types": [2, {
++      "boundaries/dependencies": [2, {
 +        default: "disallow",
 +        rules: [
 +          {
@@ -265,7 +265,7 @@ Read how to use **[Element Selectors](./setup/selectors.md)** to configure your 
 .    } satisfies Settings,
 .    rules: {
 .      ...boundaries.configs.recommended.rules,
-+      "boundaries/element-types": [2, {
++      "boundaries/dependencies": [2, {
 +        default: "disallow",
 +        rules: [
 +          {
@@ -297,7 +297,7 @@ You are all set! Now you can start enforcing architectural boundaries in your pr
 From here you can:
 
 * Explore the **[Setup section](./setup/setup.md)** to learn:
-  * How to **[assign Element Types](./setup/elements.md)**.
+  * How to **[assign Elements](./setup/elements.md)**.
   * How to **[use Element Selectors](./setup/selectors.md)**.
   * How to **[define Dependency Rules](./setup/rules.mdx)**.
   * How to **[customize Global Settings](./setup/settings.md)**.

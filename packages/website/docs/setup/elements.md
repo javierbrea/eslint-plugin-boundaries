@@ -11,7 +11,7 @@ keywords:
   - JavaScript
   - TypeScript
   - element descriptors
-  - element types
+  - dependencies
   - captured values
   - runtime descriptions
   - patterns
@@ -23,13 +23,13 @@ keywords:
 
 # Elements
 
-Element descriptors are the foundation of the plugin. **They define how to recognize and classify files in your project as specific element types.**
+Element descriptors are the foundation of the plugin. **They define how to classify files in your project as part of known architectural elements.**
 
 ## Defining Element Descriptors
 
 Element descriptors are configured in the `boundaries/elements` setting as an array of objects. Each descriptor defines:
 
-- **What type and/or category** of element it represents
+- **What type and/or category** of element it represents or belongs to.
 - **What pattern** to match in file paths
 - **What values** to capture from those paths
 
@@ -84,7 +84,7 @@ These runtime descriptions are used in two key places:
 
 **Type:** `<string>`
 
-The element type to be assigned to files or imports matching the pattern. This type will be used in rules configuration to define relationships between elements.
+The element type to be assigned to files or imports matching the pattern.
 
 ```js
 {
@@ -96,7 +96,7 @@ The element type to be assigned to files or imports matching the pattern. This t
 
 **Type:** `<string>`
 
-The element category to be assigned to files or imports matching the pattern. This category can be used in rules configuration to define relationships between elements.
+The element category to be assigned to files or imports matching the pattern.
 
 ```js
 {
@@ -290,7 +290,7 @@ Be careful to avoid overlapping captures between `capture` and `baseCapture`. Ea
 ## Element Matching Order
 
 :::danger
-Element descriptors are evaluated in array order. The plugin assigns the element type from the **first matching pattern**.
+Element descriptors are evaluated in array order. The plugin assigns the element from the **first matching pattern**.
 :::
 
 **Best Practice:** Sort element descriptors from most specific to least specific patterns.

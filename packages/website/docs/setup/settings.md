@@ -31,7 +31,7 @@ This section provides a complete reference of all available global settings for 
 
 **Required:** Yes (for rules to work)
 
-Defines **[element descriptors](./elements.md)** to recognize each file in the project as one of the defined element types. All rules need this setting to be configured properly.
+Defines **[element descriptors](./elements.md)** to recognize each file in the project as part of one of the defined element. All rules need this setting to be configured properly.
 
 ```js
 export default [{

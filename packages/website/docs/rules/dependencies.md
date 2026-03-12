@@ -1,8 +1,8 @@
 ---
 id: dependencies
-title: Rule element-types
-sidebar_label: Element Types
-description: Documentation for the element-types rule in ESLint Plugin Boundaries.
+title: Rule dependencies
+sidebar_label: Dependencies
+description: Documentation for the dependencies rule in ESLint Plugin Boundaries.
 tags:
   - concepts
   - rules
@@ -10,14 +10,14 @@ tags:
   - examples
 keywords:
   - eslint-plugin-boundaries
-  - element-types rule
+  - dependencies rule
   - dependency constraints
   - allow disallow
   - selectors
   - import restrictions
 ---
 
-# element-types
+# dependencies
 
 > Enforce allowed dependencies between **[elements](../setup/elements.md)** in your project.
 
@@ -28,7 +28,7 @@ This rule validates dependencies between elements in your project based on the p
 ## Options
 
 ```
-"boundaries/element-types":
+"boundaries/dependencies":
   [<enabled>, { "default": <string>, "message": <string>, "rules": <object> }]
 ```
 
@@ -77,7 +77,7 @@ Enable [debug mode](../guides/debugging.md) in the plugin configuration to inspe
 ```js
 {
   rules: {
-    "boundaries/element-types": [2, {
+    "boundaries/dependencies": [2, {
       // disallow all local imports by default
       default: "disallow",
       rules: [

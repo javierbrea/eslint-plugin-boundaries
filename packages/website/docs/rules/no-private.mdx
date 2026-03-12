@@ -39,9 +39,9 @@ This rule helps maintain encapsulation by preventing external elements from dire
 :::
 
 :::warning
-The boundaries set by this rule can also be achieved with the **[`boundaries/element-types` rule](./dependencies.md)**, which allows you to specify allowed entry points directly in the rules by using the [`relationship` selector property](../setup/selectors.md). This legacy rule will continue working for now to give you more time to migrate your configuration, but it is recommended to migrate to `boundaries/element-types` as soon as possible, as this rule will eventually be removed in oncoming major versions.
+The boundaries set by this rule can also be achieved with the **[`boundaries/dependencies` rule](./dependencies.md)**, which allows you to specify allowed entry points directly in the rules by using the [`relationship` selector property](../setup/selectors.md). This legacy rule will continue working for now to give you more time to migrate your configuration, but it is recommended to migrate to `boundaries/dependencies` as soon as possible, as this rule will eventually be removed in oncoming major versions.
 
-Read the **[migration guide below](#migration-to-boundarieselement-types)** for more details and examples on how to migrate your configuration.
+Read the **[migration guide below](#migration-to-boundariesdependencies)** for more details and examples on how to migrate your configuration.
 :::
 
 ## Options
@@ -202,17 +202,17 @@ This rule provides detailed error messages indicating which element owns the pri
 You can customize error messages globally or for specific rules. See [Rules Configuration -> Message Templating](../setup/rules.mdx#message-templating) for more details.
 :::
 
-## Migration to `boundaries/element-types`
+## Migration to `boundaries/dependencies`
 
-The restrictions enforced by this rule can also be achieved with the more flexible and powerful `boundaries/element-types` rule, which allows you to specify allowed relationships directly in the rules by using the `relationship` selector property. It is recommended to migrate your configuration to `boundaries/element-types` as soon as possible, as this legacy rule will eventually be removed in oncoming major versions.
+The restrictions enforced by this rule can also be achieved with the more flexible and powerful `boundaries/dependencies` rule, which allows you to specify allowed relationships directly in the rules by using the `relationship` selector property. It is recommended to migrate your configuration to `boundaries/dependencies` as soon as possible, as this legacy rule will eventually be removed in oncoming major versions.
 
-Here you have an example of how to migrate a configuration from `boundaries/no-private` to `boundaries/element-types`:
+Here you have an example of how to migrate a configuration from `boundaries/no-private` to `boundaries/dependencies`:
 
 <CodeDiff language="javascript">{`
 . {
 .   rules: {
 -     "boundaries/no-private": [2, { allowUncles: true }]
-+     "boundaries/element-types": [2, {
++     "boundaries/dependencies": [2, {
 +       default: "disallow",
 +       rules: [
 +         // Allow all elements importing their own children, siblings, and uncles     
@@ -237,7 +237,7 @@ In case you have the default policy set to `allow` instead of `disallow`, you ca
 . {
 .   rules: {
 -     "boundaries/no-private": [2, { allowUncles: true }]
-+     "boundaries/element-types": [2, {
++     "boundaries/dependencies": [2, {
 +       default: "allow",
 +       rules: [
 +         // Disallow importing any element with any kind of parent
@@ -266,8 +266,8 @@ In case you have the default policy set to `allow` instead of `disallow`, you ca
 . }
 `}</CodeDiff>
 
-:::tip Bonus: More specific rules with `boundaries/element-types`
-With `boundaries/element-types` you can also define more specific rules that were not possible with `no-private`, such as allowing only certain elements to import their siblings or uncles, while disallowing it for others.
+:::tip Bonus: More specific rules with `boundaries/dependencies`
+With `boundaries/dependencies` you can also define more specific rules that were not possible with `no-private`, such as allowing only certain elements to import their siblings or uncles, while disallowing it for others.
 :::
 
 ## Further Reading

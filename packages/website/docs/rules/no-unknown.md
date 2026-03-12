@@ -29,9 +29,9 @@ This rule helps ensure that all files used in your project are properly categori
 :::
 
 :::tip
-The restriction set by this rule can also be achieved with the **[`boundaries/element-types` rule](./dependencies.md)**, which allows you to specify rules based on the `isUnknown` property of the [elements selector](../setup/selectors.md), but it is provided as a shortcut for this common use case. You can choose to use either this specific rule or the `boundaries/element-types` for more granularity and flexibility based on your preference and needs.
+The restriction set by this rule can also be achieved with the **[`boundaries/dependencies` rule](./dependencies.md)**, which allows you to specify rules based on the `isUnknown` property of the [elements selector](../setup/selectors.md), but it is provided as a shortcut for this common use case. You can choose to use either this specific rule or the `boundaries/dependencies` for more granularity and flexibility based on your preference and needs.
 
-Read [replacement with `boundaries/element-types`](#replacement-with-boundarieselement-types) section below for more details and examples.
+Read [replacement with `boundaries/dependencies`](#replacement-with-boundariesdependencies) section below for more details and examples.
 :::
 
 ## Options
@@ -138,18 +138,18 @@ Unknown files importing other unknown files:
 import foo from './foo'
 ```
 
-## Replacement with `boundaries/element-types`
+## Replacement with `boundaries/dependencies`
 
-You can achieve the same result by using the [`boundaries/element-types` rule](./dependencies.md) and specifying rules based on the `isUnknown` property of the [elements selector](../setup/selectors.md).
+You can achieve the same result by using the [`boundaries/dependencies` rule](./dependencies.md) and specifying rules based on the `isUnknown` property of the [elements selector](../setup/selectors.md).
 
 :::warning
-You need to set the `checkUnknownLocals` option to `true` in your `boundaries/element-types` configuration to make sure that dependencies from unknown local files are also checked, as by default `boundaries/element-types` only checks dependencies between local known elements.
+You need to set the `checkUnknownLocals` option to `true` in your `boundaries/dependencies` configuration to make sure that dependencies from unknown local files are also checked, as by default `boundaries/dependencies` only checks dependencies between local known elements.
 :::
 
 ```js
 {
   rules: {
-    "boundaries/element-types": [
+    "boundaries/dependencies": [
       2,
       {
         checkUnknownLocals: true,
