@@ -12,7 +12,6 @@ import { SETTINGS } from "../../src/Settings";
 import type {
   debugDescription,
   printDependenciesRuleResult,
-  success,
   warn,
   warnOnce,
 } from "../../src/Support/Debug";
@@ -119,7 +118,6 @@ const createDependencyDescription = (): DependencyDescription => {
 type DebugModule = {
   debugDescription: typeof debugDescription;
   printDependenciesRuleResult: typeof printDependenciesRuleResult;
-  success: typeof success;
   warn: typeof warn;
   warnOnce: typeof warnOnce;
 };
@@ -148,27 +146,46 @@ describe("Debug", () => {
     process.env[SETTINGS.DEBUG] = originalDebugEnv;
   });
 
-  it("should log warn and success messages with color", () => {
-    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+  it("should log warn messages with color", () => {
     const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     const debugModule = loadDebugModule();
 
     debugModule.warn("Warning");
-    debugModule.success("Success");
 
-    expect(warnSpy).toHaveBeenNthCalledWith(1, "Warning");
-    expect(consoleSpy).toHaveBeenNthCalledWith(1, "Success");
+    expect(warnSpy).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("[boundaries]")
+    );
+    expect(warnSpy).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("[warning]")
+    );
+    expect(warnSpy).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("Warning")
+    );
   });
 
   it("should warn once for identical messages", () => {
-    const consoleSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     const debugModule = loadDebugModule();
 
     expect(debugModule.warnOnce("Only once")).toBe(true);
     expect(debugModule.warnOnce("Only once")).toBe(false);
 
-    expect(consoleSpy).toHaveBeenCalledTimes(1);
-    expect(consoleSpy).toHaveBeenCalledWith("Only once");
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("[boundaries]")
+    );
+    expect(warnSpy).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("[warning]")
+    );
+    expect(warnSpy).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("Only once")
+    );
   });
 
   it("should not log when debug is disabled", () => {
@@ -202,13 +219,12 @@ describe("Debug", () => {
     debugModule.debugDescription(description, settings, matcher);
     debugModule.debugDescription(description, settings, matcher);
 
-    expect(consoleSpy).toHaveBeenCalledTimes(4);
-    expect(consoleSpy).toHaveBeenNthCalledWith(
-      1,
-      '[boundaries][debug]: Description of file "src/components/Component.ts":'
+    expect(consoleSpy).toHaveBeenCalledTimes(1);
+    expect(consoleSpy.mock.calls[0][0]).toContain(
+      'Description of file "src/components/Component.ts":'
     );
-    expect(consoleSpy.mock.calls[2][0]).toContain(
-      '\n    "path": "src/components/Component.ts"'
+    expect(consoleSpy.mock.calls[0][0]).toContain(
+      '"path": "src/components/Component.ts"'
     );
   });
 
@@ -264,14 +280,12 @@ describe("Debug", () => {
     debugModule.debugDescription(description, settings, matcher);
     debugModule.debugDescription(description, settings, matcher);
 
-    expect(consoleSpy).toHaveBeenCalledTimes(8);
-    expect(consoleSpy).toHaveBeenNthCalledWith(
-      1,
-      '[boundaries][debug]: Description of file "src/components/Component.ts":'
+    expect(consoleSpy).toHaveBeenCalledTimes(2);
+    expect(consoleSpy.mock.calls[0][0]).toContain(
+      'Description of file "src/components/Component.ts":'
     );
-    expect(consoleSpy).toHaveBeenNthCalledWith(
-      5,
-      '[boundaries][debug]: Description of dependency "../helpers/Helper" in file "src/components/Component.ts":'
+    expect(consoleSpy.mock.calls[1][0]).toContain(
+      'Description of dependency "../helpers/Helper" in file "src/components/Component.ts":'
     );
   });
 
@@ -293,10 +307,9 @@ describe("Debug", () => {
       matcher
     );
 
-    expect(consoleSpy).toHaveBeenCalledTimes(4);
-    expect(consoleSpy).toHaveBeenNthCalledWith(
-      1,
-      '[boundaries][debug]: Description of file "src/components/Component.ts":'
+    expect(consoleSpy).toHaveBeenCalledTimes(1);
+    expect(consoleSpy.mock.calls[0][0]).toContain(
+      'Description of file "src/components/Component.ts":'
     );
     expect(consoleSpy.mock.calls.flat().join("\n")).not.toContain(
       'Description of dependency "../helpers/Helper" in file "src/components/Component.ts":'
@@ -332,10 +345,9 @@ describe("Debug", () => {
       matcher
     );
 
-    expect(consoleSpy).toHaveBeenCalledTimes(4);
-    expect(consoleSpy).toHaveBeenNthCalledWith(
-      1,
-      '[boundaries][debug]: Description of file "src/components/Component.ts":'
+    expect(consoleSpy).toHaveBeenCalledTimes(1);
+    expect(consoleSpy.mock.calls[0][0]).toContain(
+      'Description of file "src/components/Component.ts":'
     );
     expect(consoleSpy.mock.calls.flat().join("\n")).not.toContain(
       'Description of dependency "../helpers/Helper" in file "src/components/Component.ts":'
@@ -360,9 +372,12 @@ describe("Debug", () => {
       matcher
     );
 
-    expect(consoleSpy).toHaveBeenCalledTimes(4);
+    expect(consoleSpy).toHaveBeenCalledTimes(1);
     expect(consoleSpy.mock.calls.flat().join("\n")).not.toContain(
       'Description of dependency "../helpers/Helper" in file "src/components/Component.ts":'
+    );
+    expect(consoleSpy.mock.calls[0][0]).toContain(
+      'Description of file "src/components/Component.ts":'
     );
   });
 
@@ -384,8 +399,8 @@ describe("Debug", () => {
       matcher
     );
 
-    expect(consoleSpy).toHaveBeenCalledTimes(4);
-    expect(consoleSpy.mock.calls.flat().join("\n")).toContain(
+    expect(consoleSpy).toHaveBeenCalledTimes(1);
+    expect(consoleSpy.mock.calls[0][0]).toContain(
       'Description of dependency "../helpers/Helper" in file "src/components/Component.ts":'
     );
     expect(consoleSpy.mock.calls.flat().join("\n")).not.toContain(
@@ -428,11 +443,11 @@ describe("Debug", () => {
       createMatcher({ isMatch: true } as DependencyMatchResult)
     );
 
-    expect(consoleSpy).toHaveBeenCalledTimes(4);
+    expect(consoleSpy).toHaveBeenCalledTimes(1);
     expect(consoleSpy.mock.calls[0][0]).toContain(
       "Dependency did not match any rule, and default policy is to deny."
     );
-    expect(consoleSpy.mock.calls[2][0]).toContain('"dependency"');
+    expect(consoleSpy.mock.calls[0][0]).toContain('"dependency"');
   });
 
   it("should print rule selector details for a matched rule", () => {
@@ -453,11 +468,108 @@ describe("Debug", () => {
       createMatcher({ isMatch: true } as DependencyMatchResult)
     );
 
-    expect(consoleSpy).toHaveBeenCalledTimes(4);
+    expect(consoleSpy).toHaveBeenCalledTimes(1);
     expect(consoleSpy.mock.calls[0][0]).toContain(
       "Rule at index 2 reported a violation"
     );
-    expect(consoleSpy.mock.calls[2][0]).toContain('"selector"');
-    expect(consoleSpy.mock.calls[2][0]).toContain('"index": 2');
+    expect(consoleSpy.mock.calls[0][0]).toContain('"selector"');
+    expect(consoleSpy.mock.calls[0][0]).toContain('"index": 2');
+  });
+
+  it("should print rule selector with full match result details", () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const debugModule = loadDebugModule();
+    const settings = createSettings();
+
+    debugModule.printDependenciesRuleResult(
+      {
+        isMatch: true,
+        from: { selector: { type: "components" } },
+        to: { selector: { type: "helpers" } },
+        dependency: { selector: { kind: "import" } },
+      } as unknown as DependencyMatchResult,
+      3,
+      createDependencyDescription(),
+      settings,
+      createMatcher({ isMatch: true } as DependencyMatchResult)
+    );
+
+    expect(consoleSpy).toHaveBeenCalledTimes(1);
+    expect(consoleSpy.mock.calls[0][0]).toContain(
+      "Rule at index 3 reported a violation"
+    );
+    expect(consoleSpy.mock.calls[0][0]).toContain('"from"');
+    expect(consoleSpy.mock.calls[0][0]).toContain('"to"');
+    expect(consoleSpy.mock.calls[0][0]).toContain('"dependency"');
+  });
+
+  it("should not print rule results when file description is filtered out", () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const debugModule = loadDebugModule();
+    const settings = createSettings({
+      debug: {
+        enabled: true,
+        filter: { files: [] },
+        messages: { files: true, dependencies: true, violations: true },
+      },
+    });
+
+    debugModule.printDependenciesRuleResult(
+      { isMatch: true } as DependencyMatchResult,
+      1,
+      createDependencyDescription(),
+      settings,
+      createMatcher(null)
+    );
+
+    expect(consoleSpy).not.toHaveBeenCalled();
+  });
+
+  it("should not print rule results when dependency is filtered out", () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const debugModule = loadDebugModule();
+    const settings = createSettings({
+      debug: {
+        enabled: true,
+        filter: { dependencies: [] },
+        messages: { files: true, dependencies: true, violations: true },
+      },
+    });
+
+    debugModule.printDependenciesRuleResult(
+      { isMatch: true } as DependencyMatchResult,
+      1,
+      createDependencyDescription(),
+      settings,
+      createMatcher(null)
+    );
+
+    expect(consoleSpy).not.toHaveBeenCalled();
+  });
+
+  it("should skip dependency debug when from file is filtered out", () => {
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const debugModule = loadDebugModule();
+    const settings = createSettings({
+      debug: {
+        enabled: true,
+        filter: {
+          files: [{ type: "nonexistent" }],
+          dependencies: [
+            { from: [{ type: "components" }] },
+          ] as unknown as DependencySelector[],
+        },
+        messages: { files: true, dependencies: true, violations: true },
+      },
+    });
+    const matcher = createMatcher(null);
+
+    debugModule.debugDescription(
+      createDependencyDescription(),
+      settings,
+      matcher
+    );
+
+    expect(consoleSpy).not.toHaveBeenCalled();
   });
 });

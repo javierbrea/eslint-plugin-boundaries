@@ -31,7 +31,17 @@ import CodeDiff from "@site/src/components/CodeDiff";
 
 Version 6.0.0 introduces **[object-based selectors](../../setup/selectors.md)** as the recommended way to define element selectors. This provides better readability and access to advanced matching features.
 
-It also introduces several new features and changes in configuration to make it more semantic and powerful. But almost every change is designed to be incremental and non-breaking, allowing you to migrate at your own pace. The only breaking change is the [new default value for `boundaries/dependency-nodes`](#changed-default-value-for-boundariesdependency-nodes-setting).
+It also introduces several new features and changes in configuration to make it more semantic and powerful. But **almost every change is designed to be incremental and non-breaking, allowing you to migrate at your own pace**. The only breaking change is the [new default value for `boundaries/dependency-nodes`](#changed-default-value-for-boundariesdependency-nodes-setting).
+
+Main changes include:
+
+- **[New object-based selector syntax](#object-based-elements-selector-syntax)**
+- **[New dependency selector syntax](#dependencies-selector-syntax)**
+- **[Renamed `boundaries/element-types` rule to `boundaries/dependencies`](#rule-element-types-renamed-to-dependencies)**
+- **[Changed default value for `boundaries/dependency-nodes` setting](#changed-default-value-for-boundariesdependency-nodes-setting)** - ⚠️ Breaking change
+- **[Deprecated rule-level `importKind` in favor of selector-level `dependency.kind`](#rule-level-importkind-is-deprecated)**
+- **[New Handlebars-style template syntax](#new-template-syntax)**
+- **[Deprecated `entry-point`, `external`, and `no-private` rules](#deprecated-rules)**
 
 You will receive warnings in your console about how to prepare your configuration for next versions removing support for legacy syntax. This guide will walk you through the migration process step by step.
 
@@ -128,6 +138,27 @@ Read more about the new dependency selector syntax in the [selectors documentati
 .   }
 . };
 `}</CodeDiff>
+
+## Rule `element-types` renamed to `dependencies`
+
+The `boundaries/element-types` rule has been renamed to `boundaries/dependencies` to better reflect its purpose of defining boundaries between elements based on their dependencies. The new name is more intuitive and consistent.
+
+To migrate, simply change the rule name in your configuration:
+
+<CodeDiff language="javascript">{`
+. {
+.   rules: {
+-     "boundaries/element-types": [2, {
++     "boundaries/dependencies": [2, {
+.       // ...rule configuration
+.     }]
+.   }
+. };
+`}</CodeDiff>
+
+:::info
+Read more about this change in the [GitHub discussion here](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/362)
+:::
 
 ## Changed default value for `boundaries/dependency-nodes` setting
 

@@ -3,7 +3,7 @@ import type { Rule } from "eslint";
 import { elementDescription, dependencyDescription } from "../../Elements";
 import type { EslintLiteralNode } from "../../Elements";
 import type { RuleOptionsWithRules, RuleMetaDefinition } from "../../Settings";
-import { SETTINGS, getSettings } from "../../Settings";
+import { SETTINGS, getSettings, moreInfoSettingsLink } from "../../Settings";
 import { warnOnce, isString } from "../../Support";
 
 import type {
@@ -47,7 +47,8 @@ export function dependencyRule<Options extends RuleOptionsWithRules>(
           visitors[selector] = (node: EslintLiteralNode) => {
             if (!isString(node.value)) {
               warnOnce(
-                `Dependency node is not a Literal, skipping node. Please check your ${ADDITIONAL_DEPENDENCY_NODES} setting.`
+                `Dependency node is not a Literal, skipping node.`,
+                `Please check your ${ADDITIONAL_DEPENDENCY_NODES} setting. ${moreInfoSettingsLink()}`
               );
               return;
             }

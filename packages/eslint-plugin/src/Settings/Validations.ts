@@ -472,9 +472,8 @@ export function validateAndWarnRuleOptions(
     warnOnce(
       `[${ruleName}] Detected legacy selector syntax in ${
         rulesWithLegacySelector.length
-      } rule(s) at indices: ${rulesWithLegacySelector.join(
-        ", "
-      )}. Consider migrating to object-based selectors. ${migrationToV6GuideLink()}`
+      } rule(s) at indices: ${rulesWithLegacySelector.join(", ")}.`,
+      `Consider migrating to object-based selectors. ${migrationToV6GuideLink()}`
     );
   }
 
@@ -482,9 +481,8 @@ export function validateAndWarnRuleOptions(
     warnOnce(
       `[${ruleName}] Detected legacy template syntax \${...} in ${
         rulesWithLegacyTemplate.length
-      } rule(s) at indices: ${rulesWithLegacyTemplate.join(
-        ", "
-      )}. Consider migrating to {{...}} syntax. ${migrationToV6GuideLink("new-template-syntax")}`
+      } rule(s) at indices: ${rulesWithLegacyTemplate.join(", ")}.`,
+      `Consider migrating to {{...}} syntax. ${migrationToV6GuideLink("new-template-syntax")}`
     );
   }
 
@@ -492,9 +490,8 @@ export function validateAndWarnRuleOptions(
     warnOnce(
       `[${ruleName}] Detected deprecated rule-level "importKind" in ${
         rulesWithDeprecatedImportKind.length
-      } rule(s) at indices: ${rulesWithDeprecatedImportKind.join(
-        ", "
-      )}. Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence. ${migrationToV6GuideLink("rule-level-importkind-is-deprecated")}`
+      } rule(s) at indices: ${rulesWithDeprecatedImportKind.join(", ")}.`,
+      `Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence. ${migrationToV6GuideLink("rule-level-importkind-is-deprecated")}`
     );
   }
 }
@@ -510,38 +507,44 @@ export function isValidElementDescriptor(
 ): element is ElementDescriptor {
   if (!element) {
     warnOnce(
-      `Invalid element descriptor in '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
+      `Invalid element descriptor in '${ELEMENTS}' setting.`,
+      moreInfoSettingsLink()
     );
     return false;
   }
   if (isLegacyType(element)) {
     warnOnce(
-      `Defining elements as strings in settings is deprecated. Will be automatically converted, but this feature will be removed in next major versions. ${migrationToV6GuideLink()}`
+      `Defining elements as strings in settings is deprecated.`,
+      `It will be automatically converted, but this feature will be removed in next major versions. ${migrationToV6GuideLink()}`
     );
     return true;
   } else {
     const isObjectElement = isObject(element);
     if (!isObjectElement) {
       warnOnce(
-        `Invalid element descriptor in '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
+        `Invalid element descriptor in '${ELEMENTS}' setting.`,
+        moreInfoSettingsLink()
       );
       return false;
     }
     if (!element.type && !element.category) {
       warnOnce(
-        `Missing "type" or "category" property in an element descriptor in '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
+        `Missing "type" or "category" property in an element descriptor in '${ELEMENTS}' setting.`,
+        moreInfoSettingsLink()
       );
       return false;
     }
     if (element.type && !isString(element.type)) {
       warnOnce(
-        `Invalid "type" property in an element descriptor in '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
+        `Invalid "type" property in an element descriptor in '${ELEMENTS}' setting.`,
+        moreInfoSettingsLink()
       );
       return false;
     }
     if (element.category && !isString(element.category)) {
       warnOnce(
-        `Invalid "category" property in an element descriptor in '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
+        `Invalid "category" property in an element descriptor in '${ELEMENTS}' setting.`,
+        moreInfoSettingsLink()
       );
       return false;
     }
@@ -551,9 +554,8 @@ export function isValidElementDescriptor(
       !VALID_MODES.includes(element.mode as ElementDescriptorMode)
     ) {
       warnOnce(
-        `Invalid "mode" property in an element descriptor in '${ELEMENTS}' setting. Should be one of ${VALID_MODES.join(
-          ","
-        )}. ${moreInfoSettingsLink()}`
+        `Invalid "mode" property in an element descriptor in '${ELEMENTS}' setting.`,
+        `It should be one of ${VALID_MODES.join(", ")}. ${moreInfoSettingsLink()}`
       );
       return false;
     }
@@ -562,13 +564,15 @@ export function isValidElementDescriptor(
       !(isString(element.pattern) || isArray(element.pattern))
     ) {
       warnOnce(
-        `Invalid "pattern" property in an element descriptor in '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
+        `Invalid "pattern" property in an element descriptor in '${ELEMENTS}' setting.`,
+        moreInfoSettingsLink()
       );
       return false;
     }
     if (element.capture && !isArray(element.capture)) {
       warnOnce(
-        `Invalid "capture" property in an element descriptor in '${ELEMENTS}' setting. Capture should be an array of strings. ${moreInfoSettingsLink()}`
+        `Invalid "capture" property in an element descriptor in '${ELEMENTS}' setting.`,
+        `Capture should be an array of strings. ${moreInfoSettingsLink()}`
       );
       return false;
     }
@@ -587,7 +591,8 @@ function validateElementDescriptors(
 ): ElementDescriptors | undefined {
   if (!elements || !isArray(elements) || !elements.length) {
     warnOnce(
-      `Please provide element descriptors using the '${ELEMENTS}' setting. ${moreInfoSettingsLink()}`
+      `Please provide element descriptors using the '${ELEMENTS}' setting.`,
+      moreInfoSettingsLink()
     );
     return;
   }
@@ -608,21 +613,17 @@ function validateDependencyNodes(
   }
 
   const defaultNodesNames = Object.keys(DEFAULT_DEPENDENCY_NODES);
-  const invalidFormatMessage = [
-    `Please provide a valid value in ${DEPENDENCY_NODES} setting.`,
-    `The value should be an array of the following strings:`,
-    ` "${defaultNodesNames.join('", "')}".`,
-    `${moreInfoSettingsLink()}`,
-  ].join(" ");
+  const invalidFormatTitle = `Invalid ${DEPENDENCY_NODES} setting format.`;
+  const invalidNodeMessage = `It should be an array of the following strings: "${defaultNodesNames.join('", "')}". ${moreInfoSettingsLink()}`;
 
   if (!isArray(dependencyNodes)) {
-    warnOnce(invalidFormatMessage);
+    warnOnce(invalidFormatTitle, invalidNodeMessage);
     return;
   }
 
   for (const dependencyNode of dependencyNodes) {
     if (!isDependencyNodeKey(dependencyNode)) {
-      warnOnce(invalidFormatMessage);
+      warnOnce(invalidFormatTitle, invalidNodeMessage);
     }
   }
 
@@ -645,7 +646,8 @@ function validateLegacyTemplates(
     return legacyTemplates;
   }
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting. The value should be a boolean. ${moreInfoSettingsLink()}`
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting.`,
+    `The value should be a boolean. ${moreInfoSettingsLink()}`
   );
 }
 
@@ -670,11 +672,13 @@ function isValidDependencyNodeSelector(
 
   if (!isValidObject) {
     warnOnce(
-      `Please provide a valid object in ${ADDITIONAL_DEPENDENCY_NODES} setting. The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }. The invalid object will be ignored. ${moreInfoSettingsLink()}`
+      `Please provide a valid object in ${ADDITIONAL_DEPENDENCY_NODES} setting.`,
+      `The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }. The invalid object will be ignored. ${moreInfoSettingsLink()}`
     );
   } else if (isObject(selector) && !selector.name) {
     warnOnce(
-      `Consider adding a "name" property to your custom dependency node for using it in selectors and custom messages. ${moreInfoSettingsLink()}`
+      `Consider adding a "name" property to your custom dependency node for using it in selectors and custom messages.`,
+      moreInfoSettingsLink()
     );
   }
   return isValidObject;
@@ -693,15 +697,11 @@ function validateAdditionalDependencyNodes(
     return;
   }
 
-  const invalidFormatMessage = [
-    `Please provide a valid value in ${ADDITIONAL_DEPENDENCY_NODES} setting.`,
-    "The value should be an array composed of the following objects:",
-    '{ selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }.',
-    `${moreInfoSettingsLink()}`,
-  ].join(" ");
+  const invalidFormatTitle = `Invalid ${ADDITIONAL_DEPENDENCY_NODES} setting format.`;
+  const invalidNodeMessage = `It should be an array containing objects with the following properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }. ${moreInfoSettingsLink()}`;
 
   if (!isArray(additionalDependencyNodes)) {
-    warnOnce(invalidFormatMessage);
+    warnOnce(invalidFormatTitle, invalidNodeMessage);
     return;
   }
 
@@ -726,7 +726,8 @@ function isAliasSetting(value: unknown): value is AliasSetting {
 function deprecateAlias(aliases: AliasSetting | undefined) {
   if (aliases) {
     warnOnce(
-      `Defining aliases in '${ALIAS}' setting is deprecated. Please use 'import/resolver' setting. ${moreInfoSettingsLink()}`
+      `Defining aliases in '${ALIAS}' setting is deprecated.`,
+      `Please use 'import/resolver' setting. ${moreInfoSettingsLink()}`
     );
   }
 }
@@ -739,7 +740,8 @@ function deprecateAlias(aliases: AliasSetting | undefined) {
 function deprecateTypes(types: unknown) {
   if (types) {
     warnOnce(
-      `'${TYPES}' setting is deprecated. Please use '${ELEMENTS}' instead. ${migrationToV2GuideLink()}`
+      `'${TYPES}' setting is deprecated.`,
+      `Please use '${ELEMENTS}' instead. ${migrationToV2GuideLink()}`
     );
   }
 }
@@ -758,7 +760,8 @@ function validateIgnore(ignore: unknown): IgnoreSetting | undefined {
     return ignore;
   }
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.IGNORE}' setting. The value should be a string or an array of strings. ${moreInfoSettingsLink()}`
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.IGNORE}' setting.`,
+    `The value should be a string or an array of strings. ${moreInfoSettingsLink()}`
   );
 }
 
@@ -776,7 +779,8 @@ function validateInclude(include: unknown): IncludeSetting | undefined {
     return include;
   }
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.INCLUDE}' setting. The value should be a string or an array of strings. ${moreInfoSettingsLink()}`
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.INCLUDE}' setting.`,
+    `The value should be a string or an array of strings. ${moreInfoSettingsLink()}`
   );
 }
 
@@ -794,7 +798,8 @@ function validateRootPath(rootPath: unknown): string | undefined {
     return rootPath;
   }
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.ROOT_PATH}' setting. The value should be a string. ${moreInfoSettingsLink()}`
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.ROOT_PATH}' setting.`,
+    `The value should be a string. ${moreInfoSettingsLink()}`
   );
 }
 
@@ -813,7 +818,8 @@ function validateFlagAsExternal(
 
   if (!isObject(flagAsExternal)) {
     warnOnce(
-      `Please provide a valid value in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting. The value should be an object. ${moreInfoSettingsLink()}`
+      `Please provide a valid value in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
+      `The value should be an object. ${moreInfoSettingsLink()}`
     );
     return;
   }
@@ -825,7 +831,8 @@ function validateFlagAsExternal(
       validated.unresolvableAlias = flagAsExternal.unresolvableAlias;
     } else {
       warnOnce(
-        `Please provide a valid boolean for 'unresolvableAlias' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting. ${moreInfoSettingsLink()}`
+        `Please provide a valid boolean for 'unresolvableAlias' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
+        moreInfoSettingsLink()
       );
     }
   }
@@ -835,7 +842,8 @@ function validateFlagAsExternal(
       validated.inNodeModules = flagAsExternal.inNodeModules;
     } else {
       warnOnce(
-        `Please provide a valid boolean for 'inNodeModules' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting. ${moreInfoSettingsLink()}`
+        `Please provide a valid boolean for 'inNodeModules' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
+        moreInfoSettingsLink()
       );
     }
   }
@@ -845,7 +853,8 @@ function validateFlagAsExternal(
       validated.outsideRootPath = flagAsExternal.outsideRootPath;
     } else {
       warnOnce(
-        `Please provide a valid boolean for 'outsideRootPath' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting. ${moreInfoSettingsLink()}`
+        `Please provide a valid boolean for 'outsideRootPath' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
+        moreInfoSettingsLink()
       );
     }
   }
@@ -858,7 +867,8 @@ function validateFlagAsExternal(
       validated.customSourcePatterns = flagAsExternal.customSourcePatterns;
     } else {
       warnOnce(
-        `Please provide a valid array of strings for 'customSourcePatterns' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting. ${moreInfoSettingsLink()}`
+        `Please provide a valid array of strings for 'customSourcePatterns' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
+        moreInfoSettingsLink()
       );
     }
   }
@@ -884,7 +894,8 @@ function validateDebugFilterSelectors(
     return value;
   }
   warnOnce(
-    `Please provide a valid array for '${filterName}' in '${SETTINGS_KEYS_MAP.DEBUG}' setting. ${moreInfoSettingsLink()}`
+    `Please provide a valid array for '${filterName}' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+    moreInfoSettingsLink()
   );
   return undefined;
 }
@@ -943,7 +954,8 @@ function validateDebug(debug: unknown): DebugSettingNormalized {
 
   if (!isObject(debug)) {
     warnOnce(
-      `Please provide a valid value in '${SETTINGS_KEYS_MAP.DEBUG}' setting. The value should be an object. ${moreInfoSettingsLink()}`
+      `Please provide a valid value in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+      `The value should be an object. ${moreInfoSettingsLink()}`
     );
     return validated;
   }
@@ -953,7 +965,8 @@ function validateDebug(debug: unknown): DebugSettingNormalized {
       validated.enabled = debug.enabled;
     } else {
       warnOnce(
-        `Please provide a valid boolean for 'enabled' in '${SETTINGS_KEYS_MAP.DEBUG}' setting. ${moreInfoSettingsLink()}`
+        `Please provide a valid boolean for 'enabled' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+        moreInfoSettingsLink()
       );
     }
   }
@@ -961,7 +974,8 @@ function validateDebug(debug: unknown): DebugSettingNormalized {
   if (!isUndefined(debug.messages)) {
     if (!isObject(debug.messages)) {
       warnOnce(
-        `Please provide a valid object for 'messages' in '${SETTINGS_KEYS_MAP.DEBUG}' setting. ${moreInfoSettingsLink()}`
+        `Please provide a valid object for 'messages' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+        moreInfoSettingsLink()
       );
     } else {
       if (!isUndefined(debug.messages.files)) {
@@ -969,7 +983,8 @@ function validateDebug(debug: unknown): DebugSettingNormalized {
           validated.messages.files = debug.messages.files;
         } else {
           warnOnce(
-            `Please provide a valid boolean for 'messages.files' in '${SETTINGS_KEYS_MAP.DEBUG}' setting. ${moreInfoSettingsLink()}`
+            `Please provide a valid boolean for 'messages.files' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+            moreInfoSettingsLink()
           );
         }
       }
@@ -978,7 +993,8 @@ function validateDebug(debug: unknown): DebugSettingNormalized {
           validated.messages.dependencies = debug.messages.dependencies;
         } else {
           warnOnce(
-            `Please provide a valid boolean for 'messages.dependencies' in '${SETTINGS_KEYS_MAP.DEBUG}' setting. ${moreInfoSettingsLink()}`
+            `Please provide a valid boolean for 'messages.dependencies' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+            moreInfoSettingsLink()
           );
         }
       }
@@ -987,7 +1003,8 @@ function validateDebug(debug: unknown): DebugSettingNormalized {
           validated.messages.violations = debug.messages.violations;
         } else {
           warnOnce(
-            `Please provide a valid boolean for 'messages.violations' in '${SETTINGS_KEYS_MAP.DEBUG}' setting. ${moreInfoSettingsLink()}`
+            `Please provide a valid boolean for 'messages.violations' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+            moreInfoSettingsLink()
           );
         }
       }
@@ -1007,7 +1024,8 @@ function validateDebug(debug: unknown): DebugSettingNormalized {
       };
     } else {
       warnOnce(
-        `Please provide a valid object for 'filter' in '${SETTINGS_KEYS_MAP.DEBUG}' setting. ${moreInfoSettingsLink()}`
+        `Please provide a valid object for 'filter' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+        moreInfoSettingsLink()
       );
     }
   }
@@ -1107,9 +1125,8 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
       (desc) => !isElementDescriptor(desc)
     );
     warnOnce(
-      `Some element descriptors are invalid and will be ignored: ${JSON.stringify(
-        invalidDescriptors
-      )}. ${moreInfoSettingsLink()}`
+      `Some element descriptors are invalid and will be ignored.`,
+      `Invalid descriptors:\n${JSON.stringify(invalidDescriptors)}.\n${moreInfoSettingsLink()}`
     );
   }
 

@@ -25,14 +25,14 @@ export default [
       "boundaries/debug": {
         enabled: false,
         messages: {
-          files: false,
-          dependencies: false,
+          files: true,
+          dependencies: true,
           violations: true,
         },
         filter: {
           files: [
             {
-              path: "**/Config.types.ts",
+              path: "**/Debug.ts",
             },
           ],
           dependencies: [

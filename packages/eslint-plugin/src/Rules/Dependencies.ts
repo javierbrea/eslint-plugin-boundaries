@@ -94,7 +94,8 @@ function safeMatch(
     });
   } catch (error) {
     warnOnce(
-      `Error occurred while matching dependency with selector ${JSON.stringify(selector)}: ${String(error)}`
+      `Error occurred while matching dependency: ${String(error)}.`,
+      `Selector: ${JSON.stringify(selector)}`
     );
     return { isMatch: false, from: null, to: null, dependency: null };
   }
@@ -568,7 +569,8 @@ export default function getDependencyRule(
     function ({ dependency, node, context, settings, options }) {
       if (ruleName === RULE_NAMES_MAP.ELEMENT_TYPES) {
         warnOnce(
-          `Rule name "${RULE_NAMES_MAP.ELEMENT_TYPES}" is deprecated. Use "${RULE_NAMES_MAP.DEPENDENCIES}" instead. ${migrationToV6GuideLink()}`
+          `Rule name "${RULE_NAMES_MAP.ELEMENT_TYPES}" is deprecated. Use "${RULE_NAMES_MAP.DEPENDENCIES}" instead.`,
+          migrationToV6GuideLink("rule-element-types-renamed-to-dependencies")
         );
       }
       // Validate and warn about legacy selector syntax

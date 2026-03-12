@@ -134,8 +134,12 @@ export function moreInfoSettingsLink(anchor?: string): string {
  */
 export function warnMigrationToDependencies(ruleName: RuleName) {
   warnOnce(
-    // cspell: disable-next-line
-    `[${ruleName}] Rule "${ruleName}" is deprecated and will be removed in future versions. Please migrate to the "${RULE_NAMES_MAP.DEPENDENCIES}" rule with appropriate selectors. ${moreInfoLink(getRuleDocsPath(ruleName), "migration-to-boundariesdependencies")}`
+    `Rule "${ruleName}" is deprecated and will be removed in future versions.`,
+    `Please migrate to the "${RULE_NAMES_MAP.DEPENDENCIES}" rule with appropriate selectors. ${moreInfoLink(
+      getRuleDocsPath(ruleName),
+      // cspell: disable-next-line
+      "migration-to-boundariesdependencies"
+    )}`
   );
 }
 

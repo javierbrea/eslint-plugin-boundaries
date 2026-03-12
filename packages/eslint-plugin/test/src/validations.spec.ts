@@ -63,7 +63,10 @@ describe("validateAndWarnRuleOptions", () => {
     );
 
     expect(warnSpy).toHaveBeenCalledWith(
-      "[boundaries/element-types] Detected legacy selector syntax in 3 rule(s) at indices: 0, 1, 2. Consider migrating to object-based selectors. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/"
+      expect.stringContaining(
+        "Detected legacy selector syntax in 3 rule(s) at indices: 0, 1, 2."
+      ),
+      expect.stringContaining("Consider migrating to object-based selectors")
     );
   });
 
@@ -93,7 +96,10 @@ describe("validateAndWarnRuleOptions", () => {
     );
 
     expect(warnSpy).toHaveBeenCalledWith(
-      "[boundaries/element-types] Detected legacy template syntax ${...} in 1 rule(s) at indices: 0. Consider migrating to {{...}} syntax. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/#new-template-syntax"
+      expect.stringContaining(
+        "Detected legacy template syntax ${...} in 1 rule(s) at indices: 0."
+      ),
+      expect.stringContaining("Consider migrating to {{...}} syntax")
     );
   });
 
@@ -115,7 +121,10 @@ describe("validateAndWarnRuleOptions", () => {
     );
 
     expect(warnSpy).toHaveBeenCalledWith(
-      '[boundaries/element-types] Detected deprecated rule-level "importKind" in 1 rule(s) at indices: 0. Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/#rule-level-importkind-is-deprecated'
+      expect.stringContaining(
+        'Detected deprecated rule-level "importKind" in 1 rule(s) at indices: 0.'
+      ),
+      expect.stringContaining('Use selector-level "dependency.kind" instead')
     );
   });
 
@@ -147,15 +156,24 @@ describe("validateAndWarnRuleOptions", () => {
 
     expect(warnSpy).toHaveBeenNthCalledWith(
       1,
-      "[boundaries/element-types] Detected legacy selector syntax in 1 rule(s) at indices: 0. Consider migrating to object-based selectors. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/"
+      expect.stringContaining(
+        "Detected legacy selector syntax in 1 rule(s) at indices: 0."
+      ),
+      expect.stringContaining("Consider migrating to object-based selectors")
     );
     expect(warnSpy).toHaveBeenNthCalledWith(
       2,
-      "[boundaries/element-types] Detected legacy template syntax ${...} in 1 rule(s) at indices: 0. Consider migrating to {{...}} syntax. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/#new-template-syntax"
+      expect.stringContaining(
+        "Detected legacy template syntax ${...} in 1 rule(s) at indices: 0."
+      ),
+      expect.stringContaining("Consider migrating to {{...}} syntax")
     );
     expect(warnSpy).toHaveBeenNthCalledWith(
       3,
-      '[boundaries/element-types] Detected deprecated rule-level "importKind" in 1 rule(s) at indices: 0. Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/#rule-level-importkind-is-deprecated'
+      expect.stringContaining(
+        'Detected deprecated rule-level "importKind" in 1 rule(s) at indices: 0.'
+      ),
+      expect.stringContaining('Use selector-level "dependency.kind" instead')
     );
   });
 
@@ -206,7 +224,10 @@ describe("validateAndWarnRuleOptions", () => {
     );
 
     expect(warnSpy).toHaveBeenCalledWith(
-      "[boundaries/element-types] Detected legacy selector syntax in 1 rule(s) at indices: 0. Consider migrating to object-based selectors. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/"
+      expect.stringContaining(
+        "Detected legacy selector syntax in 1 rule(s) at indices: 0."
+      ),
+      expect.stringContaining("Consider migrating to object-based selectors")
     );
   });
 
@@ -226,7 +247,10 @@ describe("validateAndWarnRuleOptions", () => {
     );
 
     expect(warnSpy).toHaveBeenCalledWith(
-      "[boundaries/entry-point] Detected legacy selector syntax in 1 rule(s) at indices: 0. Consider migrating to object-based selectors. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/"
+      expect.stringContaining(
+        "Detected legacy selector syntax in 1 rule(s) at indices: 0."
+      ),
+      expect.stringContaining("Consider migrating to object-based selectors")
     );
   });
 
@@ -247,7 +271,10 @@ describe("validateAndWarnRuleOptions", () => {
     );
 
     expect(warnSpy).toHaveBeenCalledWith(
-      "[boundaries/element-types] Detected legacy selector syntax in 1 rule(s) at indices: 0. Consider migrating to object-based selectors. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/"
+      expect.stringContaining(
+        "Detected legacy selector syntax in 1 rule(s) at indices: 0."
+      ),
+      expect.stringContaining("Consider migrating to object-based selectors")
     );
   });
 

@@ -26,19 +26,37 @@ const COLORS_MAP = {
   yellow: "yellow",
 } as const;
 
+const CONSOLE_LEVELS = {
+  log: "log",
+  warn: "warn",
+} as const;
+
+const LOG_LEVELS = {
+  debug: "debug",
+  warning: "warning",
+} as const;
+
 type TraceColor = keyof typeof COLORS_MAP;
+type ConsoleLevel = keyof typeof CONSOLE_LEVELS;
+type LogLevel = keyof typeof LOG_LEVELS;
 
 /**
- * Prints a debug line to stdout with optional color formatting.
+ * Prints a log line to stdout with optional color formatting.
  *
  * @param message - Message text to print.
- * @param color - Optional color key from the internal color map.
- * @param level - Optional log level (e.g., "warn", "info") for future extensibility (currently unused).
+ * @param options - Optional parameters for color and log level.
+ * @param options.color - Optional color key from the internal color map.
+ * @param options.level - Optional log level determining which console method to use (default is "log").
  */
-function trace(
+function printLog(
   message: string,
-  color?: TraceColor,
-  level: "log" | "warn" = "log"
+  {
+    color,
+    level = CONSOLE_LEVELS.log,
+  }: {
+    color?: TraceColor;
+    level?: ConsoleLevel;
+  } = {}
 ) {
   if (!color) {
     // eslint-disable-next-line no-console
@@ -61,8 +79,49 @@ function indentLines(text: string, spaces: number): string {
   const pad = " ".repeat(spaces);
   return text
     .split("\n")
-    .map((line, index) => (index === 0 ? line : `${pad}${line}`))
+    .map((line) => `${pad}${line}`)
     .join("\n");
+}
+
+/**
+ * Generates a log prefix with plugin name and log level, applying color formatting based on log level.
+ * @param logLevel Type of log level to determine prefix formatting (default is "debug").
+ * @returns The formatted log prefix string to prepend to debug messages.
+ */
+function getLogPrefix(logLevel: LogLevel = LOG_LEVELS.debug): string {
+  const colorMethod =
+    logLevel === LOG_LEVELS.warning ? chalk.yellow : chalk.blue;
+  return `${chalk.hex(PREFIX_COLOR)(`[${PLUGIN_NAME}]`)}${colorMethod(`[${logLevel}]`)}:`;
+}
+
+/**
+ * Prints a titled block of text in debug output, with the title formatted according to the log level.
+ * @param title - Block title shown before the message.
+ * @param options - Optional parameters for log level.
+ * @param options.level - Log level determining the title formatting (default is "debug").
+ * @param options.message - Message text to print within the block.
+ * @param level - Log level determining the title formatting (default is "debug").
+ */
+function printBlock(
+  title: string,
+  {
+    level = LOG_LEVELS.debug,
+    message,
+  }: {
+    level?: LogLevel;
+    message?: string;
+  } = {}
+): void {
+  const header = `${getLogPrefix(level)} ${title}`;
+  const consoleLevel =
+    level === LOG_LEVELS.warning ? CONSOLE_LEVELS.warn : CONSOLE_LEVELS.log;
+  if (!message) {
+    printLog(header, { level: consoleLevel });
+    return;
+  }
+  printLog(`${header}\n${indentLines(message, 2)}\n`, {
+    level: consoleLevel,
+  });
 }
 
 /**
@@ -72,46 +131,36 @@ function indentLines(text: string, spaces: number): string {
  * @param data - Data serialized as formatted JSON.
  */
 function printDebugBlock(title: string, data: unknown): void {
-  const header = `${chalk.hex(PREFIX_COLOR)(`[${PLUGIN_NAME}]`)}${chalk.blue(`[debug]`)}: ${title}`;
-  trace(header);
-  trace("");
-  const jsonString = JSON.stringify(data, null, 2);
-  const indentedJson = indentLines(jsonString, 2);
-  trace(indentedJson);
-  trace("");
+  printBlock(title, {
+    message: JSON.stringify(data, null, 2),
+    level: LOG_LEVELS.debug,
+  });
 }
 
 /**
  * Prints a warning message using warning color.
- *
+ * @param title - Warning title shown before message.
  * @param message - Warning message.
  */
-export function warn(message: string) {
-  trace(message, COLORS_MAP.yellow, "warn");
-}
-
-/**
- * Prints a success message using success color.
- *
- * @param message - Success message.
- */
-export function success(message: string) {
-  trace(message, COLORS_MAP.green);
+export function warn(title: string, message?: string): void {
+  printBlock(title, { message, level: LOG_LEVELS.warning });
 }
 
 /**
  * Prints a warning only once for each unique message.
  *
+ * @param title - Warning title shown before message.
  * @param message - Warning message candidate.
  * @returns `true` when warning was emitted, `false` when skipped.
  */
-export function warnOnce(message: string): boolean {
-  if (warns.has(message)) {
+export function warnOnce(title: string, message?: string): boolean {
+  const messageKey = `${title}-${message}`;
+  if (warns.has(messageKey)) {
     return false;
   }
 
-  warns.add(message);
-  warn(message);
+  warns.add(messageKey);
+  warn(title, message);
   return true;
 }
 
@@ -309,6 +358,9 @@ function shouldPrintDependency(
     return true;
   }
   if (dependencyFilters.length === 0) {
+    return false;
+  }
+  if (!shouldPrintFile(description.from, settings, matcher)) {
     return false;
   }
   return dependencyFilters.some(
