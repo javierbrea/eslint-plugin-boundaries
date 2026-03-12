@@ -1,7 +1,7 @@
 import type { DependencyKind } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
-import { getSettings, validateAndWarnRuleOptions } from "../../src/Settings";
+import { getSettings, validateAndWarnRuleOptions } from "./Validations";
 
 describe("validateAndWarnRuleOptions", () => {
   const getWarnSpy = () => {

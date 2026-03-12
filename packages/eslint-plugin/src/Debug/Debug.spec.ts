@@ -7,14 +7,15 @@ import type {
   Matcher,
 } from "@boundaries/elements";
 
+import type { SettingsNormalized } from "../Shared";
+import { SETTINGS } from "../Shared";
+
 import type {
   debugDescription,
   printDependenciesRuleResult,
   warn,
   warnOnce,
-} from "../../src/Debug/Debug";
-import type { SettingsNormalized } from "../../src/Shared";
-import { SETTINGS } from "../../src/Shared";
+} from "./Debug";
 
 jest.mock("chalk", () => ({
   __esModule: true,

@@ -327,7 +327,6 @@ Example rule disallowing runtime dependencies between elements of the same type 
 
 ```js
 {
-  from: { type: "*" },
   disallow: {
     to: {
       type: "{{ from.type }}" // Match the same element type as the importer
@@ -357,23 +356,9 @@ If a file `users/helpers/parser.js` (domain: "users") tries to import from `auth
 **More template examples:**
 
 ```js
-// Allow importing any file from other files of the same element
-{
-  from: {
-    type: "*",
-  },
-  allow: {
-    dependency: {
-      relationship: {
-        to: "internal",
-      },
-    }
-  },
-}
-
 // Only allow importing from helpers with the same base domain
 {
-  from: { type: "component", captured: { domain: "*" } },
+  from: { type: "component", captured: { domain: "auth|data" } },
   allow: [
     {
       type: "helper",
@@ -384,7 +369,6 @@ If a file `users/helpers/parser.js` (domain: "users") tries to import from `auth
 
 // Type-level templating
 {
-  from: { type: "*" },
   // Allow importing element types that share the same base type (e.g. "component" can import "component-*" but not "service")
   allow: [{ type: "{{ from.type }}-*" }]
 }

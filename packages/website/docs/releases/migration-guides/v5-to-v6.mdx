@@ -435,20 +435,18 @@ The boundaries set by this rule can also be achieved with the **[`boundaries/dep
 +     "boundaries/dependencies": [2, {
 +       default: "allow",
 +       rules: [
-+         // Disallow all elements importing children elements of other elements
++         // Disallow importing any element with any kind of parent
 +         {
-+           from: { type: "*" },
 +           disallow: {
-+             dependency: {
-+               relationship: {
-+                 to: ["child"],
-+               }
++             to: {
++               parent: {
++                 type: "*"
++               },
 +             },
 +           }
 +         },
 +         // Allow all elements importing their own children, siblings, and uncles     
 +         {
-+           from: { type: "*" },
 +           allow: {
 +             dependency: {
 +               relationship: {

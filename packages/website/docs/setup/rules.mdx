@@ -162,13 +162,11 @@ Determines whether the matched dependencies are allowed or disallowed. Each rule
 
 // Any file can import other files of the same element (internal dependencies)
 {
-  from: { type: "*" },
   allow: { dependency: { relationship: { to: "internal" } } }
 }
 
 // Any file can import shared files, but only if it's a type dependency (e.g. TypeScript type imports)
 {
-  from: { type: "*" },
   allow: {
     to: { type: "shared" },
     dependency: { kind: "type" }

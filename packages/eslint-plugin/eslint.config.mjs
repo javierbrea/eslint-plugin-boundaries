@@ -98,7 +98,12 @@ export default [
         {
           type: "plugin",
           mode: "full",
-          pattern: ["src/index.ts"],
+          pattern: ["src/*.ts"],
+        },
+        {
+          type: "test",
+          mode: "full",
+          pattern: ["src/**/*.spec.ts"],
         },
       ],
     },
@@ -119,6 +124,9 @@ export default [
                 {
                   // Allow all elements importing the elements library
                   to: { type: "@boundaries/elements" },
+                },
+                {
+                  from: { type: "test" },
                 },
               ],
             },
@@ -188,7 +196,7 @@ export default [
   },
   {
     ...jestConfig,
-    files: ["test/**/*.js", "test/**/*.ts"],
+    files: ["test/**/*.js", "test/**/*.ts", "**/*.spec.ts"],
     rules: {
       "@typescript-eslint/no-require-imports": [0],
     },

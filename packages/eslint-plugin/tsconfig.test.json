@@ -1,7 +1,7 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": ".",
+    "rootDir": ".",
     "moduleResolution": "node"
   },
   "include": ["**/*"]

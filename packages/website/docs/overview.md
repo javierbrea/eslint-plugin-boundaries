@@ -124,9 +124,6 @@ const dependencyRules = [
   },
   // Allow any file to depend on other files of the same element
   {
-    from: {
-      type: "*",
-    },
     allow: {
       dependency: {
         relationship: {
@@ -138,9 +135,6 @@ const dependencyRules = [
   // Allow any file to depend on shared files,
   // but only if it's a type dependency (e.g. TypeScript type imports)
   {
-    from: {
-      type: "*",
-    },
     allow: {
       to: { type: "shared" },
       dependency: {

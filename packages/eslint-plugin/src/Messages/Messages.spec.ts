@@ -3,12 +3,13 @@ import type {
   DependencyMatchResult,
 } from "@boundaries/elements";
 
+import { buildErrorMessage } from "../Rules/Dependencies";
+
 import {
   elementDescriptionMessage,
   dependencyDescriptionMessage,
   dependenciesRuleDefaultErrorMessage,
-} from "../../src/Messages";
-import { buildErrorMessage } from "../../src/Rules/Dependencies";
+} from "./Messages";
 
 const dependencyDescription: DependencyDescription = {
   from: {
@@ -53,7 +54,7 @@ const dependencyDescription: DependencyDescription = {
   },
 };
 
-describe("Messages element-types formatter", () => {
+describe("Messages", () => {
   it("creates element descriptions using the requested properties", () => {
     expect(
       elementDescriptionMessage(dependencyDescription.from, [

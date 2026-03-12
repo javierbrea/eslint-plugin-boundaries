@@ -1,5 +1,6 @@
-import plugin from "../../src";
-import { RULE_SHORT_NAMES_MAP } from "../../src/Public";
+import { RULE_SHORT_NAMES_MAP } from "./Public";
+
+import plugin from "./index";
 
 describe("package", () => {
   describe("rules property", () => {
