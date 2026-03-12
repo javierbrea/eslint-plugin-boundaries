@@ -2,7 +2,7 @@ import type {
   ElementSelectorWithOptions,
   ElementSelectors,
   CapturedValuesSelector,
-} from "../../../src/Matcher/Matcher.types";
+} from "./Matcher.types";
 import {
   isCapturedValuesSelector,
   isSimpleElementSelectorByType,
@@ -10,7 +10,7 @@ import {
   isElementSelectorData,
   isElementSelector,
   isElementsSelector,
-} from "../../../src/Matcher/MatcherHelpers";
+} from "./MatcherHelpers";
 
 describe("elementsSelectorHelpers", () => {
   describe("isCapturedValuesSelector", () => {

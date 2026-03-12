@@ -9,10 +9,10 @@ import type {
   DependencySelector,
   Matcher,
   BaseElementSelectorWithOptions,
-} from "../../src/index";
-import { Elements, normalizeElementsSelector } from "../../src/index";
+} from "./index";
+import { Elements, normalizeElementsSelector } from "./index";
 
-describe("Matcher", () => {
+describe("Elements Matcher", () => {
   let matcher: Matcher;
   let elements: Elements;
   let micromatchSpy: jest.SpyInstance;

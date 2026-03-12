@@ -3,7 +3,7 @@ import type {
   ElementDescriptorWithType,
   ElementDescriptorWithCategory,
   ElementDescriptorWithTypeAndCategory,
-} from "../../../src/Descriptor/ElementsDescriptor.types";
+} from "./ElementsDescriptor.types";
 import {
   isLocalElement,
   isExternalDependencyElement,
@@ -15,7 +15,7 @@ import {
   isElementDescriptorWithType,
   isElementDescriptorWithCategory,
   isElementDescriptor,
-} from "../../../src/Descriptor/ElementsDescriptorHelpers";
+} from "./ElementsDescriptorHelpers";
 
 type FileElement = Record<string, unknown>;
 type LocalDependencyElement = Record<string, unknown>;

@@ -1,7 +1,7 @@
-import { Elements } from "../../src/index";
-import type { Matcher } from "../../src/index";
+import { Elements } from "./index";
+import type { Matcher } from "./index";
 
-describe("FlagAsExternal configuration", () => {
+describe("Elements FlagAsExternal configuration", () => {
   let elements: Elements;
   let matcher: Matcher;
 

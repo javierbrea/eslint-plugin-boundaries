@@ -1,6 +1,7 @@
-import { CacheManager, CacheManagerDisabled } from "../../../src/Cache";
+import { CacheManager } from "./Cache";
+import { CacheManagerDisabled } from "./CacheDisabled";
 
-describe("CacheManager", () => {
+describe("Cache", () => {
   let cacheManager: CacheManager<string, string>;
 
   beforeEach(() => {
