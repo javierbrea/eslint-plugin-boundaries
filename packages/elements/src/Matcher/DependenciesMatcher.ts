@@ -11,7 +11,6 @@ import type {
   TemplateData,
   DependencySelector,
   DependencySelectorNormalized,
-  BaseElementSelectorData,
   MatcherOptions,
   DependencyMatchResult,
   DependencyDataSelectorData,
@@ -86,40 +85,6 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     selector: DependencySelectorNormalized,
     templateData: TemplateData
   ): DependencyMatchResult {
-    // TODO: Use "getSelectorMatching" for "from" and "to"?
-    const getFromSelectorMatching = (): BaseElementSelectorData | null => {
-      for (const fromSelectorData of selector.from!) {
-        const fromMatch = this._elementsMatcher.isElementMatch(
-          dependency.from,
-          fromSelectorData,
-          {
-            extraTemplateData: templateData,
-          }
-        );
-        if (fromMatch) {
-          return fromSelectorData;
-        }
-      }
-      return null;
-    };
-
-    const getToSelectorMatching = (): BaseElementSelectorData | null => {
-      for (const toSelectorData of selector.to!) {
-        const toMatch = this._elementsMatcher.isElementMatch(
-          dependency.to,
-          toSelectorData,
-          {
-            extraTemplateData: templateData,
-          }
-        );
-
-        if (toMatch) {
-          return toSelectorData;
-        }
-      }
-      return null;
-    };
-
     const getDependencyMetadataSelectorMatching =
       (): DependencyDataSelectorData | null => {
         for (const dependencySelectorData of selector.dependency!) {
@@ -136,9 +101,19 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       };
 
     const fromSelectorMatching = selector.from
-      ? getFromSelectorMatching()
+      ? this._elementsMatcher.getSelectorMatching(
+          dependency.from,
+          selector.from,
+          {
+            extraTemplateData: templateData,
+          }
+        )
       : null;
-    const toSelectorMatching = selector.to ? getToSelectorMatching() : null;
+    const toSelectorMatching = selector.to
+      ? this._elementsMatcher.getSelectorMatching(dependency.to, selector.to, {
+          extraTemplateData: templateData,
+        })
+      : null;
     const dependencyMetadataSelectorMatching = selector.dependency
       ? getDependencyMetadataSelectorMatching()
       : null;
