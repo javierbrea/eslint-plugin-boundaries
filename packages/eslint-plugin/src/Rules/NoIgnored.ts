@@ -1,4 +1,4 @@
-import { SETTINGS } from "../Settings";
+import { SETTINGS } from "../Shared";
 
 import { dependencyRule } from "./Support";
 

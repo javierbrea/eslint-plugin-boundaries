@@ -1,8 +1,9 @@
 import type { Linter } from "eslint";
 
 import plugin from "../index";
-import type { PluginBoundaries, Config, Rules } from "../Settings";
-import { PLUGIN_NAME, isRuleShortName, isSettingsKey } from "../Settings";
+import { isRuleShortName, isSettingsKey } from "../Settings";
+import type { PluginBoundaries, Config, Rules } from "../Shared";
+import { PLUGIN_NAME } from "../Shared";
 
 import recommendedConfig from "./Recommended";
 import strictConfig from "./Strict";

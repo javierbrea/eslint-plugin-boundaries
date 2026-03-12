@@ -13,8 +13,8 @@ import type {
   warn,
   warnOnce,
 } from "../../src/Debug/Debug";
-import type { SettingsNormalized } from "../../src/Settings";
-import { SETTINGS } from "../../src/Settings";
+import type { SettingsNormalized } from "../../src/Shared";
+import { SETTINGS } from "../../src/Shared";
 
 jest.mock("chalk", () => ({
   __esModule: true,

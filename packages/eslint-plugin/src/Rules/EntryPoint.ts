@@ -3,18 +3,17 @@ import {
   DEPENDENCY_RELATIONSHIPS_MAP,
 } from "@boundaries/elements";
 
-import type {
-  EntryPointRuleOptions,
-  EntryPointRule,
-  DependenciesRule,
-} from "../Settings";
 import {
-  SETTINGS,
-  RULE_NAMES_MAP,
   rulesOptionsSchema,
   validateAndWarnRuleOptions,
   warnMigrationToDependencies,
 } from "../Settings";
+import type {
+  EntryPointRuleOptions,
+  EntryPointRule,
+  DependenciesRule,
+} from "../Shared";
+import { SETTINGS, RULE_NAMES_MAP } from "../Shared";
 
 import { evaluateRulesAndReport } from "./Dependencies";
 import { dependencyRule } from "./Support";

@@ -10,7 +10,7 @@ import resolve from "eslint-module-utils/resolve";
 import type { Identifier, ImportSpecifier } from "estree";
 
 import { debugDescription } from "../Debug";
-import type { SettingsNormalized } from "../Settings";
+import type { SettingsNormalized } from "../Shared";
 
 import type { EslintLiteralNode } from "./Elements.types";
 

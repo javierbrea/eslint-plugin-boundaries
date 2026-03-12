@@ -21,7 +21,9 @@ export type {
   DependencyNodeKey,
   DependencyNodeSelector,
   AliasSetting,
-} from "../Settings";
+} from "../Shared";
+
+export { DEPENDENCY_NODE_KEYS_MAP, SETTINGS_KEYS_MAP } from "../Shared";
 
 /**
  * Map of the kinds of import, either a type import or a value import.
@@ -29,10 +31,4 @@ export type {
  */
 export const IMPORT_KINDS_MAP = DEPENDENCY_KINDS_MAP;
 
-export {
-  isImportKind,
-  DEPENDENCY_NODE_KEYS_MAP,
-  isDependencyNodeKey,
-  SETTINGS_KEYS_MAP,
-  isSettingsKey,
-} from "../Settings";
+export { isImportKind, isDependencyNodeKey, isSettingsKey } from "../Settings";

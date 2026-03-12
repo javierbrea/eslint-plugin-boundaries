@@ -1,5 +1,5 @@
-import type { Config } from "../Settings";
-import { SETTINGS } from "../Settings";
+import type { Config } from "../Shared";
+import { SETTINGS } from "../Shared";
 
 const {
   ELEMENTS,

@@ -29,6 +29,11 @@ import {
   dependenciesRuleDefaultErrorMessage,
   customErrorMessage,
 } from "../Messages";
+import {
+  rulesOptionsSchema,
+  validateAndWarnRuleOptions,
+  migrationToV6GuideLink,
+} from "../Settings";
 import type {
   RuleOptionsWithRules,
   DependenciesRuleOptions,
@@ -36,14 +41,15 @@ import type {
   SettingsNormalized,
   RulePolicyEntry,
   RuleName,
-} from "../Settings";
+} from "../Shared";
 import {
-  rulesOptionsSchema,
-  validateAndWarnRuleOptions,
+  isObject,
+  isArray,
+  isString,
+  isUndefined,
+  isNull,
   RULE_NAMES_MAP,
-  migrationToV6GuideLink,
-} from "../Settings";
-import { isObject, isArray, isString, isUndefined, isNull } from "../Shared";
+} from "../Shared";
 
 import { dependencyRule } from "./Support";
 

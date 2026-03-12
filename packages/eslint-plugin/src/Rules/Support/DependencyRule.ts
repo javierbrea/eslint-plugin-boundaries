@@ -3,9 +3,9 @@ import type { Rule } from "eslint";
 import { warnOnce } from "../../Debug";
 import { elementDescription, dependencyDescription } from "../../Elements";
 import type { EslintLiteralNode } from "../../Elements";
-import type { RuleOptionsWithRules, RuleMetaDefinition } from "../../Settings";
-import { SETTINGS, getSettings, moreInfoSettingsLink } from "../../Settings";
-import { isString } from "../../Shared";
+import { getSettings, moreInfoSettingsLink } from "../../Settings";
+import type { RuleOptionsWithRules, RuleMetaDefinition } from "../../Shared";
+import { SETTINGS, isString } from "../../Shared";
 
 import type {
   DependencyRuleRunner,

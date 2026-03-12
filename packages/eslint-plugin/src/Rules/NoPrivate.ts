@@ -5,12 +5,9 @@ import {
 } from "@boundaries/elements";
 
 import { customErrorMessage, elementDescriptionMessage } from "../Messages";
-import type { NoPrivateOptions } from "../Settings";
-import {
-  SETTINGS,
-  RULE_NAMES_MAP,
-  warnMigrationToDependencies,
-} from "../Settings";
+import { warnMigrationToDependencies } from "../Settings";
+import type { NoPrivateOptions } from "../Shared";
+import { SETTINGS, RULE_NAMES_MAP } from "../Shared";
 
 import { dependencyRule } from "./Support";
 

@@ -1,7 +1,8 @@
 import type { Rule } from "eslint";
 
 import { elementDescription } from "../Elements";
-import { getSettings, SETTINGS } from "../Settings";
+import { getSettings } from "../Settings";
+import { SETTINGS } from "../Shared";
 
 import { meta } from "./Support";
 

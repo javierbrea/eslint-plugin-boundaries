@@ -1,6 +1,6 @@
 import { isLocalElement } from "@boundaries/elements";
 
-import { SETTINGS } from "../Settings";
+import { SETTINGS } from "../Shared";
 
 import { dependencyRule } from "./Support";
 const { RULE_NO_UNKNOWN } = SETTINGS;

@@ -1,5 +1,5 @@
 import rule from "../../../src/Rules/EntryPoint";
-import { ENTRY_POINT as RULE } from "../../../src/Settings";
+import { ENTRY_POINT as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,

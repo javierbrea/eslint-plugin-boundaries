@@ -5,21 +5,26 @@ import {
 } from "@boundaries/elements";
 import type { DependencySelector } from "@boundaries/elements";
 
+import {
+  rulesOptionsSchema,
+  validateAndWarnRuleOptions,
+  warnMigrationToDependencies,
+} from "../Settings";
 import type {
   ExternalRuleOptions,
   ExternalRule,
   DependenciesRule,
   ExternalLibrariesSelector,
   ExternalLibrarySelectorWithOptions,
-} from "../Settings";
+} from "../Shared";
 import {
-  rulesOptionsSchema,
-  validateAndWarnRuleOptions,
+  isString,
+  isArray,
+  isObject,
+  isNullish,
   SETTINGS,
   RULE_NAMES_MAP,
-  warnMigrationToDependencies,
-} from "../Settings";
-import { isString, isArray, isObject, isNullish } from "../Shared";
+} from "../Shared";
 
 import { evaluateRulesAndReport } from "./Dependencies";
 import { dependencyRule } from "./Support";

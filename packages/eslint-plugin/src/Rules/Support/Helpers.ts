@@ -1,7 +1,7 @@
 import type { Rule } from "eslint";
 
 import { ruleDocsUrl } from "../../Settings";
-import type { RuleMetaDefinition } from "../../Settings";
+import type { RuleMetaDefinition } from "../../Shared";
 
 /**
  * Returns the meta object for an ESLint rule.

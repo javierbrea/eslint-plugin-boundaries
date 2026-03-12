@@ -1,5 +1,5 @@
 import ruleFactory from "../../../src/Rules/Dependencies";
-import { ELEMENT_TYPES as RULE } from "../../../src/Settings";
+import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,

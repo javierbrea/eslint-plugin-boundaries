@@ -8,8 +8,13 @@ import type {
   ElementsDependencyInfo,
 } from "@boundaries/elements";
 
-import { PLUGIN_ISSUES_URL } from "../Settings";
-import { isArray, isObject, isUndefined, isNull } from "../Shared";
+import {
+  PLUGIN_ISSUES_URL,
+  isArray,
+  isObject,
+  isUndefined,
+  isNull,
+} from "../Shared";
 
 const MESSAGE_ERROR = `Not able to create a message for this violation. Please report this at: ${PLUGIN_ISSUES_URL}`;
 const NO_RULE_MESSAGE = "There is no rule allowing dependencies";

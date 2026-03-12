@@ -10,8 +10,8 @@ import NoIgnoredRule from "./Rules/NoIgnored";
 import NoPrivateRule from "./Rules/NoPrivate";
 import NoUnknownRule from "./Rules/NoUnknown";
 import NoUnknownFilesRule from "./Rules/NoUnknownFiles";
-import { RULE_SHORT_NAMES_MAP, SETTINGS } from "./Settings";
-import type { PluginBoundaries } from "./Settings";
+import { RULE_SHORT_NAMES_MAP, SETTINGS } from "./Shared";
+import type { PluginBoundaries } from "./Shared";
 // import { warn } from "./Shared";
 
 export * from "./Public";
