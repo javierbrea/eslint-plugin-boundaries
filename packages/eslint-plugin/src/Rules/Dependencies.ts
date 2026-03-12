@@ -81,7 +81,7 @@ function normalizeRuleLegacyOptions(rule: DependenciesRule): DependenciesRule {
 }
 
 /**
- * Wraps matcher.getSelectorMatchingDescription catching any errors to avoid breaking the rule.
+ * Wraps matcher.getDependencySelectorMatchingDescription catching any errors to avoid breaking the rule.
  */
 function safeMatch(
   dep: DependencyDescription,
@@ -90,7 +90,7 @@ function safeMatch(
   extraTemplateData: TemplateData
 ): DependencyMatchResult {
   try {
-    return matcher.getSelectorMatchingDescription(dep, selector, {
+    return matcher.getDependencySelectorMatchingDescription(dep, selector, {
       extraTemplateData,
     });
   } catch (error) {

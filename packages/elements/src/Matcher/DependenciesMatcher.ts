@@ -81,11 +81,12 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * @param extraTemplateData The extra template data for selector values.
    * @returns The selectors matching result for the given dependency.
    */
-  private _getSelectorMatching(
+  private _getSelectorsMatching(
     dependency: DependencyDescription,
     selector: DependencySelectorNormalized,
     templateData: TemplateData
   ): DependencyMatchResult {
+    // TODO: Use "getSelectorMatching" for "from" and "to"?
     const getFromSelectorMatching = (): BaseElementSelectorData | null => {
       for (const fromSelectorData of selector.from!) {
         const fromMatch = this._elementsMatcher.isElementMatch(
@@ -119,7 +120,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       return null;
     };
 
-    const getDependencySelectorMatching =
+    const getDependencyMetadataSelectorMatching =
       (): DependencyDataSelectorData | null => {
         for (const dependencySelectorData of selector.dependency!) {
           const dependencyPropertiesMatch = this._dependencyPropertiesMatch(
@@ -138,18 +139,18 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       ? getFromSelectorMatching()
       : null;
     const toSelectorMatching = selector.to ? getToSelectorMatching() : null;
-    const dependencySelectorMatching = selector.dependency
-      ? getDependencySelectorMatching()
+    const dependencyMetadataSelectorMatching = selector.dependency
+      ? getDependencyMetadataSelectorMatching()
       : null;
 
     return {
       from: fromSelectorMatching,
       to: toSelectorMatching,
-      dependency: dependencySelectorMatching,
+      dependency: dependencyMetadataSelectorMatching,
       isMatch: Boolean(
         (selector.from ? fromSelectorMatching : true) &&
           (selector.to ? toSelectorMatching : true) &&
-          (selector.dependency ? dependencySelectorMatching : true)
+          (selector.dependency ? dependencyMetadataSelectorMatching : true)
       ),
     };
   }
@@ -370,7 +371,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       dependency: dependency.dependency,
     };
 
-    const result = this._getSelectorMatching(
+    const result = this._getSelectorsMatching(
       dependency,
       normalizedSelector,
       templateData

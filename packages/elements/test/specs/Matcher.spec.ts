@@ -609,7 +609,7 @@ describe("Matcher", () => {
           const description = matcher.describeElement(filePath);
 
           const selectorMatchingFromDescription =
-            matcher.getSelectorMatchingDescription(
+            matcher.getElementSelectorMatchingDescription(
               description,
               selector,
               extraTemplateData ? { extraTemplateData } : undefined
@@ -1828,7 +1828,7 @@ describe("Matcher", () => {
           const description = matcher.describeDependency(dependency);
           try {
             const selectorMatchingFromDescription =
-              matcher.getSelectorMatchingDescription(
+              matcher.getDependencySelectorMatchingDescription(
                 description,
                 selector,
                 extraTemplateData ? { extraTemplateData } : undefined
@@ -1927,9 +1927,9 @@ describe("Matcher", () => {
       ).toThrow();
     });
 
-    it("should throw an error when using invalid dependency description in getSelectorMatchingDescription", () => {
+    it("should throw an error when using invalid dependency description in getDependencySelectorMatchingDescription", () => {
       expect(() =>
-        matcher.getSelectorMatchingDescription(
+        matcher.getDependencySelectorMatchingDescription(
           // @ts-expect-error: Testing invalid description
           {},
           {

@@ -427,7 +427,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
         continue; // Early exit on first failed condition
       }
 
-      // All conditions passed, return the matching selector
+      // All conditions passed, return the first matching selector
       return selectorData;
     }
 

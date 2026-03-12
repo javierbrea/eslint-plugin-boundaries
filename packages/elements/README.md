@@ -741,18 +741,35 @@ const dependencyDescription = matcher.describeDependency({
   - `dependency`: The [properties of the dependency to describe](#dependency-matching).
 - __Returns__: [Dependency Description](#dependency-description).
 
-#### `getSelectorMatchingDescription`
+#### `getElementSelectorMatchingDescription`
 
-Matches a description against selectors. As first argument, it should receive the result of `describeElement` or `describeDependency`.
+Matches an element description against element selectors. As first argument, it should receive the result of `describeElement`.
 
-As second argument, it should receive an array of selectors (element or dependency selectors depending on the description type). The method will return the first selector that matches the description or `null` if no selector matches.
+As second argument, it should receive an array of element selectors. The method will return the first selector that matches the description or `null` if no selector matches.
+
+```ts
+const elementDescription = matcher.describeElement("src/components/Button.tsx");
+const matchingSelector = matcher.getElementSelectorMatchingDescription(elementDescription, [{ type: "component" }]);
+```
+
+#### `getDependencySelectorMatchingDescription`
+
+Matches a dependency description against dependency selectors. As first argument, it should receive the result of `describeDependency`.
+
+As second argument, it should receive an array of dependency selectors. The method will return the first selector that matches the description or `null` if no selector matches.
 
 > [!NOTE]
 > This method provides detailed information about which part of the selector matched or didn't match. When arrays of selectors are provided in the `from`, `to` or `dependency` properties in a dependency selector, the method will return the first selector that matches on each side, so the returned `from`, `to` and `dependency` will be the matching selector from each group.
 
 ```ts
-const elementDescription = matcher.describeElement("src/components/Button.tsx");
-const matchingSelector = matcher.getSelectorMatchingDescription(elementDescription, [{ type: "component" }]);
+const dependencyDescription = matcher.describeDependency({
+  from: "src/components/Button.tsx",
+  to: "src/services/Api.ts",
+  source: "../services/Api",
+  kind: "type",
+  nodeKind: "ImportDeclaration",
+});
+const matchingSelector = matcher.getDependencySelectorMatchingDescription(dependencyDescription, [{ to: { type: "service" }, dependency: { kind: "type" } }]);
 ```
 
 #### `clearCache`

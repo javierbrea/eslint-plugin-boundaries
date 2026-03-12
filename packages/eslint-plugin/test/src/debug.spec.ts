@@ -67,7 +67,8 @@ const createSettings = (
 
 const createMatcher = (result: unknown): Matcher =>
   ({
-    getSelectorMatchingDescription: jest.fn().mockReturnValue(result),
+    getElementSelectorMatchingDescription: jest.fn().mockReturnValue(result),
+    getDependencySelectorMatchingDescription: jest.fn().mockReturnValue(result),
   }) as unknown as Matcher;
 
 const createFileDescription = (path: string): ElementDescription => ({

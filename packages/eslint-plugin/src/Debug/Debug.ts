@@ -358,7 +358,9 @@ function shouldPrintFile(
   }
   return fileFilters.some(
     (selector) =>
-      !isNull(matcher.getSelectorMatchingDescription(description, selector))
+      !isNull(
+        matcher.getElementSelectorMatchingDescription(description, selector)
+      )
   );
 }
 
@@ -387,6 +389,7 @@ function shouldPrintDependency(
   }
   return dependencyFilters.some(
     (selector) =>
-      matcher.getSelectorMatchingDescription(description, selector).isMatch
+      matcher.getDependencySelectorMatchingDescription(description, selector)
+        .isMatch
   );
 }
