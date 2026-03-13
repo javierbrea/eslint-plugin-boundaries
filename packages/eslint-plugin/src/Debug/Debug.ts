@@ -65,7 +65,6 @@ function isDebugEnabled(settingEnabled: boolean): boolean {
 function printLog(message: string, level: ConsoleLevel) {
   // eslint-disable-next-line no-console
   console[level](message);
-  return;
 }
 
 /**
@@ -91,7 +90,9 @@ function indentLines(text: string, spaces: number): string {
 function getLogPrefix(logLevel: LogLevel): string {
   const colorMethod =
     logLevel === LOG_LEVELS.warning ? chalk.yellow : chalk.blue;
-  return `${chalk.hex(PREFIX_COLOR)(`[${PLUGIN_NAME}]`)}${colorMethod(`[${logLevel}]`)}:`;
+  const pluginTag = `[${PLUGIN_NAME}]`;
+  const levelTag = `[${logLevel}]`;
+  return `${chalk.hex(PREFIX_COLOR)(pluginTag)}${colorMethod(levelTag)}:`;
 }
 
 /**

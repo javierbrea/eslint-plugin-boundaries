@@ -138,6 +138,27 @@ describe("Messages", () => {
       ).toBe("");
     });
 
+    it("ignores parent when parent exists but no parent properties are selected", () => {
+      expect(
+        elementDescriptionMessage(
+          {
+            ...dependencyDescription.from,
+            parents: [
+              {
+                elementPath: "src/shared",
+                type: "shared",
+                category: "ui",
+                captured: {
+                  scope: "shared",
+                },
+              },
+            ],
+          },
+          ["parent"]
+        )
+      ).toBe("");
+    });
+
     it("includes parent with null value when configured", () => {
       expect(
         elementDescriptionMessage(dependencyDescription.from, ["parent"], {

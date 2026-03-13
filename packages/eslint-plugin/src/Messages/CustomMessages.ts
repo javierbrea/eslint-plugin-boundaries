@@ -12,7 +12,7 @@ import { isNull } from "../Shared";
 import type { CustomMessageTemplateContext } from "./CustomMessages.types";
 
 /** Regular expression to detect Handlebars expressions in custom message templates */
-const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^}\s]+(?:\s+[^}\s]+)*\s*}}/;
+const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^{}\s][^{}]*}}/;
 
 /**
  * Replaces all occurrences of a placeholder key in a template string.
@@ -33,7 +33,7 @@ export function replaceObjectValueInLegacyTemplate(
   namespace?: string | null
 ) {
   const keyToReplace = namespace ? `${namespace}.${key}` : key;
-  const regexp = new RegExp(`\\$\\{${keyToReplace}\\}`, "g");
+  const regexp = new RegExp(String.raw`\$\{${keyToReplace}\}`, "g");
   return template.replace(regexp, value);
 }
 

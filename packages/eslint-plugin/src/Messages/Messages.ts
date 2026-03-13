@@ -44,7 +44,7 @@ function joinWithCommasAndAnd(parts: string[]): string {
   if (parts.length === 2) {
     return `${parts[0]} and ${parts[1]}`;
   }
-  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+  return `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}`;
 }
 
 /**
@@ -90,63 +90,149 @@ function buildElementPropertyFragments(
     includeNullValues?: boolean;
   }
 ): string[] {
-  const fragments: string[] = [];
   const includeNullValues = options?.includeNullValues ?? false;
+  const fragments: string[] = [];
+
   for (const propertyName of properties) {
     if (propertyName === "parent") {
-      const firstParent = (elementDescription as ElementDescription)
-        .parents?.[0];
-      if (!firstParent) {
-        if (includeNullValues) {
-          fragments.push(`parent ${quote(null)}`);
-        }
-        continue;
-      }
-      /* istanbul ignore next -- Defensive: if "parent" is included in properties, options always provide parentProperties */
-      const parentProperties = options?.parentProperties ?? [];
-      const parentFragments = buildElementPropertyFragments(
-        firstParent,
-        parentProperties,
-        {
-          capturedKeys: options?.parentCapturedKeys,
-          includeNullValues,
-        }
+      const parentFragment = buildParentFragment(
+        elementDescription,
+        options,
+        includeNullValues
       );
-      if (parentFragments.length) {
-        fragments.push(`parent ${joinWithCommasAndAnd(parentFragments)}`);
+      if (parentFragment) {
+        fragments.push(parentFragment);
       }
       continue;
     }
 
-    const value =
-      elementDescription[propertyName as keyof typeof elementDescription];
-    if (isUndefined(value)) {
+    const value = getElementPropertyValue(elementDescription, propertyName);
+    if (shouldSkipFragmentValue(value, includeNullValues)) {
       continue;
     }
-    if (isNull(value) && !includeNullValues) {
-      continue;
-    }
+
     if (propertyName === "captured") {
-      if (!isObject(value) || Object.keys(value).length === 0) {
-        if (!includeNullValues) {
-          continue;
-        }
-        fragments.push(`captured ${quote(null)}`);
-        continue;
-      }
-      const capturedKeys = options?.capturedKeys ?? Object.keys(value);
-      for (const capturedKey of capturedKeys) {
-        const capturedValue = value[capturedKey as keyof typeof value];
-        if (isUndefined(capturedValue)) {
-          continue;
-        }
-        fragments.push(`${capturedKey} ${formatPropertyValue(capturedValue)}`);
-      }
+      fragments.push(
+        ...buildCapturedFragments(
+          value,
+          options?.capturedKeys,
+          includeNullValues
+        )
+      );
       continue;
     }
-    fragments.push(`${propertyName} ${formatPropertyValue(value)}`);
+
+    fragments.push(formatPropertyFragment(propertyName, value));
   }
+
   return fragments;
+}
+
+/**
+ * Builds a message fragment for the first parent element when requested.
+ * @param elementDescription - Element that may include parent information.
+ * @param options - Selector-driven options for parent and captured properties.
+ * @param includeNullValues - Whether null parent values should be rendered.
+ * @returns Parent fragment string, or null when no parent information should be emitted.
+ */
+function buildParentFragment(
+  elementDescription: ElementDescription | ElementParent,
+  options:
+    | {
+        capturedKeys?: string[];
+        parentProperties?: string[];
+        parentCapturedKeys?: string[];
+        includeNullValues?: boolean;
+      }
+    | undefined,
+  includeNullValues: boolean
+): string | null {
+  const firstParent = (elementDescription as ElementDescription).parents?.[0];
+  if (!firstParent) {
+    return includeNullValues ? `parent ${quote(null)}` : null;
+  }
+
+  const parentProperties = options?.parentProperties ?? [];
+  const parentFragments = buildElementPropertyFragments(
+    firstParent,
+    parentProperties,
+    {
+      capturedKeys: options?.parentCapturedKeys,
+      includeNullValues,
+    }
+  );
+
+  if (!parentFragments.length) {
+    return null;
+  }
+
+  return `parent ${joinWithCommasAndAnd(parentFragments)}`;
+}
+
+/**
+ * Reads an element property value using a dynamic property name.
+ * @param elementDescription - Element metadata source object.
+ * @param propertyName - Property name to read.
+ * @returns Raw value for the requested property.
+ */
+function getElementPropertyValue(
+  elementDescription: ElementDescription | ElementParent,
+  propertyName: string
+): unknown {
+  return elementDescription[propertyName as keyof typeof elementDescription];
+}
+
+/**
+ * Determines whether a property value should be skipped when building fragments.
+ * @param value - Property value to evaluate.
+ * @param includeNullValues - Whether null values are allowed in output.
+ * @returns True when the value should be ignored for message output.
+ */
+function shouldSkipFragmentValue(
+  value: unknown,
+  includeNullValues: boolean
+): boolean {
+  return isUndefined(value) || (isNull(value) && !includeNullValues);
+}
+
+/**
+ * Builds captured-property message fragments from selected captured keys.
+ * @param value - Captured value container to inspect.
+ * @param capturedKeys - Captured keys selected by the selector.
+ * @param includeNullValues - Whether empty captured values should render as null.
+ * @returns List of captured fragments ready to be joined in a message.
+ */
+function buildCapturedFragments(
+  value: unknown,
+  capturedKeys: string[] | undefined,
+  includeNullValues: boolean
+): string[] {
+  if (!isObject(value) || Object.keys(value).length === 0) {
+    return includeNullValues ? [`captured ${quote(null)}`] : [];
+  }
+
+  const fragments: string[] = [];
+  const keys = capturedKeys ?? Object.keys(value);
+
+  for (const capturedKey of keys) {
+    const capturedValue = value[capturedKey as keyof typeof value];
+    if (isUndefined(capturedValue)) {
+      continue;
+    }
+    fragments.push(`${capturedKey} ${formatPropertyValue(capturedValue)}`);
+  }
+
+  return fragments;
+}
+
+/**
+ * Formats a generic property fragment using key and value.
+ * @param propertyName - Property name label.
+ * @param value - Property value to serialize.
+ * @returns Formatted property fragment.
+ */
+function formatPropertyFragment(propertyName: string, value: unknown): string {
+  return `${propertyName} ${formatPropertyValue(value)}`;
 }
 
 /**
@@ -329,6 +415,11 @@ export function dependencyDescriptionMessageFromSelector(
   return joinWithCommasAndAnd(propertyFragments);
 }
 
+/**
+ * Builds the fallback no-rules message when no rule matches a dependency.
+ * @param dependency - Dependency description used to derive message details.
+ * @returns Human-readable fallback message for no-rules scenarios.
+ */
 function elementTypesNoRulesMatchedMessage(
   dependency: DependencyDescription
 ): string {
