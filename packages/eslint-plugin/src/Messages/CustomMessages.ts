@@ -26,7 +26,7 @@ const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^}\s]+(?:\s+[^}\s]+)*\s*}}/;
  * @param namespace - Optional namespace prepended to the key before replacing.
  * @returns Template string with the requested placeholder replaced.
  */
-function replaceObjectValueInLegacyTemplate(
+export function replaceObjectValueInLegacyTemplate(
   template: string,
   key: string,
   value: string,
@@ -72,7 +72,7 @@ function replaceObjectValuesInLegacyTemplate(
  * @param dependencyMetadata - Extra dependency metadata for full elements.
  * @returns Normalized key/value map used during placeholder replacement.
  */
-function elementPropertiesToReplaceInLegacyTemplate(
+export function elementPropertiesToReplaceInLegacyTemplate(
   element: ElementDescription | ElementParent,
   importKind: string,
   dependencyMetadata?: DependencyDescription["dependency"]

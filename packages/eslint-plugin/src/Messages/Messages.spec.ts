@@ -276,6 +276,24 @@ describe("Messages", () => {
         )
       ).toBe('module "null"');
     });
+
+    it("includes relationship null property in dependency description when configured", () => {
+      expect(
+        dependencyDescriptionMessage(
+          {
+            ...dependencyDescription.dependency,
+            relationship: {
+              from: null,
+              to: null,
+            },
+          },
+          ["relationship"],
+          {
+            includeNullValues: true,
+          }
+        )
+      ).toBe('relationship from "null" and relationship to "null"');
+    });
   });
 
   describe("dependencyDescriptionMessageFromSelector", () => {
@@ -330,6 +348,28 @@ describe("Messages", () => {
           }
         )
       ).toBe('relationship from "sibling" and relationship to "sibling"');
+    });
+
+    it("ignores relationship to when specified in selector", () => {
+      expect(
+        dependencyDescriptionMessageFromSelector(
+          dependencyDescription.dependency,
+          {
+            relationship: { from: "sibling" },
+          }
+        )
+      ).toBe('relationship from "sibling"');
+    });
+
+    it("ignores relationship from when specified in selector", () => {
+      expect(
+        dependencyDescriptionMessageFromSelector(
+          dependencyDescription.dependency,
+          {
+            relationship: { to: "sibling" },
+          }
+        )
+      ).toBe('relationship to "sibling"');
     });
 
     it("includes null dependency values when selector targets those properties", () => {
