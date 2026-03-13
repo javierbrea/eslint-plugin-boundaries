@@ -410,3 +410,40 @@ testCapture(
     "Do not import any type of file from helpers with name *-a",
   ]
 );
+
+const noRulesRuleTester = createRuleTester(SETTINGS.oneLevel);
+noRulesRuleTester.run(RULE, rule, {
+  valid: [
+    {
+      filename: absoluteFilePath("helpers/helper-b/HelperB.js"),
+      code: "import HelperA from 'helpers/helper-a/HelperA.js'",
+      options: [
+        {
+          default: "allow",
+          message:
+            "Importing the file ${dependency.internalPath} is not allowed in ${dependency.type}",
+          // Testing options with no rules
+        },
+      ],
+    },
+  ],
+  invalid: [
+    {
+      filename: absoluteFilePath("helpers/helper-b/HelperB.js"),
+      code: "import HelperA from 'helpers/helper-a/HelperA.js'",
+      options: [
+        {
+          default: "disallow",
+          message: "disallowed by default",
+          // Testing options with no rules
+        },
+      ],
+      errors: [
+        {
+          message: "disallowed by default",
+          type: "Literal",
+        },
+      ],
+    },
+  ],
+});

@@ -26,12 +26,7 @@ const { RULE_ENTRY_POINT } = SETTINGS;
  * @param templates - Legacy templates from rule options.
  * @returns Normalized templates or `undefined` when not provided.
  */
-function modifyLegacyTemplates(
-  templates: string | string[] | undefined
-): string[] | undefined {
-  if (!templates) {
-    return undefined;
-  }
+function modifyLegacyTemplates(templates: string | string[]): string[] {
   const templatesArray = Array.isArray(templates) ? templates : [templates];
   return templatesArray.map((template) =>
     template.replaceAll("${target.", "${to.")

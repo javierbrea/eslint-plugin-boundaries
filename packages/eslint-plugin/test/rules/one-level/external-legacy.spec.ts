@@ -645,11 +645,11 @@ testCapture(
         },
         {
           from: [["helpers", { elementName: "helper-b" }]],
-          disallow: ["foo-library"],
+          disallow: "foo-library",
         },
         {
           from: [["helpers", { elementName: "helper-a" }]],
-          disallow: [["foo-library", { specifiers: ["Link"] }]],
+          disallow: ["foo-library", { specifiers: ["Link"] }],
         },
       ],
     },

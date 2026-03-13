@@ -7,7 +7,7 @@ import {
 import { customErrorMessage, elementDescriptionMessage } from "../Messages";
 import { warnMigrationToDependencies } from "../Settings";
 import type { NoPrivateOptions } from "../Shared";
-import { SETTINGS, RULE_NAMES_MAP } from "../Shared";
+import { SETTINGS, RULE_NAMES_MAP, PLUGIN_ISSUES_URL } from "../Shared";
 
 import { dependencyRule } from "./Support";
 
@@ -28,8 +28,9 @@ function errorMessage(
     return customErrorMessage(options.message, dependency);
   }
   const privateParent = dependency.to.parents?.[0];
+  /* istanbul ignore next - Defensive: This should not happen */
   if (!privateParent) {
-    return `Dependency is private`;
+    return `Not able to create a message for this violation. Please report this at: ${PLUGIN_ISSUES_URL}`;
   }
   return `Dependency is private of ${elementDescriptionMessage(
     privateParent,

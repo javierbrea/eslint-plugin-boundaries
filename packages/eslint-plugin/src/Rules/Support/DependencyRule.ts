@@ -46,6 +46,7 @@ export function dependencyRule<Options extends RuleOptionsWithRules>(
       return settings.dependencyNodes.reduce(
         (visitors, { selector, kind, name }) => {
           visitors[selector] = (node: EslintLiteralNode) => {
+            /* istanbul ignore next - Defensive check */
             if (!isString(node.value)) {
               warnOnce(
                 `Dependency node is not a Literal, skipping node.`,

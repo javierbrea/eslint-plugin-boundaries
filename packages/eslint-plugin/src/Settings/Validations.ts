@@ -191,9 +191,18 @@ export function legacyPoliciesSchema(
         type: "string", // single matcher (legacy)
       },
       {
+        type: "array", // matcher with captured values (legacy)
+        items: [
+          {
+            type: "string", // matcher
+          },
+          matcherOptions, // Extra options for legacy rules with custom syntax
+        ],
+      },
+      {
         type: "array", // multiple matchers
         items: {
-          oneOf: [
+          anyOf: [
             {
               type: "string", // matcher (legacy)
             },

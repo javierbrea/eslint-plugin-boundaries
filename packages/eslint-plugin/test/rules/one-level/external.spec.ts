@@ -660,3 +660,36 @@ testCapture(
     2: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers" and elementName "helper-a". Denied by rule at index 2',
   }
 );
+
+const noRulesTester = createRuleTester(SETTINGS.oneLevel);
+noRulesTester.run(RULE, rule, {
+  valid: [
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import React from 'react'",
+      options: [
+        {
+          default: "allow",
+        },
+      ],
+    },
+  ],
+  invalid: [
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import React from 'react'",
+      options: [
+        {
+          default: "disallow",
+          message: "No external dependencies allowed",
+        },
+      ],
+      errors: [
+        {
+          message: "No external dependencies allowed",
+          type: "Literal",
+        },
+      ],
+    },
+  ],
+});

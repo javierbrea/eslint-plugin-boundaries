@@ -149,7 +149,7 @@ export default dependencyRule<ExternalRuleOptions>(
             },
           },
           path: {
-            oneOf: [
+            anyOf: [
               {
                 type: "string",
               },
