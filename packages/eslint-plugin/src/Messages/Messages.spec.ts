@@ -7,6 +7,7 @@ import { buildErrorMessage } from "../Rules/Dependencies";
 
 import {
   elementDescriptionMessage,
+  elementDescriptionMessageFromSelector,
   dependencyDescriptionMessage,
   dependencyDescriptionMessageFromSelector,
   dependenciesRuleDefaultErrorMessage,
@@ -96,6 +97,33 @@ describe("Messages", () => {
       ).toBe('elements of type "null"');
     });
 
+    it("ignores empty parent element values by default", () => {
+      expect(
+        elementDescriptionMessage(
+          {
+            ...dependencyDescription.from,
+            type: null,
+            parents: [],
+          },
+          ["type", "parent"]
+        )
+      ).toBe("");
+    });
+
+    it("ignores empty captured values by default", () => {
+      expect(
+        elementDescriptionMessage(
+          {
+            ...dependencyDescription.from,
+            elementPath: "",
+            path: "",
+            captured: {},
+          },
+          ["type", "captured"]
+        )
+      ).toBe('elements of type "component"');
+    });
+
     it("uses singleElement option for grammar", () => {
       expect(
         elementDescriptionMessage(dependencyDescription.from, ["type"], {
@@ -116,6 +144,64 @@ describe("Messages", () => {
           includeNullValues: true,
         })
       ).toBe('elements of parent "null"');
+    });
+  });
+
+  describe("elementDescriptionMessageFromSelector", () => {
+    it("returns null when element selector data is null", () => {
+      expect(
+        elementDescriptionMessageFromSelector(dependencyDescription.from, null)
+      ).toBeNull();
+    });
+
+    it("returns null when element selector has no properties", () => {
+      expect(
+        elementDescriptionMessageFromSelector(
+          dependencyDescription.from,
+          {} as unknown as DependencyMatchResult["from"]
+        )
+      ).toBeNull();
+    });
+
+    it("returns null when selector properties do not exist in element metadata", () => {
+      expect(
+        elementDescriptionMessageFromSelector(dependencyDescription.from, {
+          /* @ts-expect-error Testing branch with unsupported selector property */
+          foo: "bar",
+        })
+      ).toBeNull();
+    });
+
+    it("describes parent captured keys selected in element selector", () => {
+      const elementWithParent = {
+        ...dependencyDescription.from,
+        parents: [
+          {
+            elementPath: "src/shared",
+            internalPath: "index.ts",
+            type: "shared",
+            category: "ui",
+            captured: {
+              scope: "shared",
+              layer: "core",
+            },
+            parents: [],
+            origin: "local",
+            isIgnored: false,
+            isUnknown: false,
+          },
+        ],
+      };
+
+      expect(
+        elementDescriptionMessageFromSelector(elementWithParent, {
+          parent: {
+            captured: {
+              scope: "shared",
+            },
+          },
+        })
+      ).toBe('elements of parent scope "shared"');
     });
   });
 
@@ -691,6 +777,48 @@ describe("Messages", () => {
           dependencyWithParent
         )
       ).toContain("parent type");
+    });
+
+    it("builds message with parent captured selector in from", () => {
+      const dependencyWithParent = {
+        ...dependencyDescription,
+        from: {
+          ...dependencyDescription.from,
+          parents: [
+            {
+              elementPath: "src/shared",
+              internalPath: "index.ts",
+              type: "shared",
+              category: "ui",
+              captured: {
+                scope: "shared",
+                layer: "core",
+              },
+              parents: [],
+              origin: "local",
+              isIgnored: false,
+              isUnknown: false,
+            },
+          ],
+        },
+      };
+
+      const matchResult: DependencyMatchResult = {
+        isMatch: true,
+        from: { parent: { captured: { scope: "shared" } } },
+        to: null,
+        dependency: null,
+      };
+
+      expect(
+        dependenciesRuleDefaultErrorMessage(
+          matchResult,
+          16,
+          dependencyWithParent
+        )
+      ).toBe(
+        'Dependencies are not allowed in elements of parent scope "shared". Denied by rule at index 16'
+      );
     });
 
     it("builds message with wrong parent selector in from", () => {

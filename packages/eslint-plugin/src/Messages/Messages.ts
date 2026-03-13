@@ -140,9 +140,6 @@ function buildElementPropertyFragments(
         if (isUndefined(capturedValue)) {
           continue;
         }
-        if (isNull(capturedValue) && !includeNullValues) {
-          continue;
-        }
         fragments.push(`${capturedKey} ${formatPropertyValue(capturedValue)}`);
       }
       continue;
@@ -187,7 +184,7 @@ export function elementDescriptionMessage(
  * @param elementDescription - Element to describe.
  * @param selectorData - Selector data that determines which properties and captured keys to include in the description.
  */
-function elementDescriptionMessageFromSelector(
+export function elementDescriptionMessageFromSelector(
   elementDescription: ElementDescription | ElementParent,
   selectorData: BaseElementSelectorData | null
 ): string | null {
@@ -414,21 +411,15 @@ export function dependenciesRuleDefaultErrorMessage(
   );
 
   const fromPart = fromProperties.length
-    ? elementDescriptionMessageFromSelector(
-        dependency.from,
-        matchResult?.from ?? null
-      )
+    ? elementDescriptionMessageFromSelector(dependency.from, matchResult!.from!)
     : null;
   const toPart = toProperties.length
-    ? elementDescriptionMessageFromSelector(
-        dependency.to,
-        matchResult?.to ?? null
-      )
+    ? elementDescriptionMessageFromSelector(dependency.to, matchResult!.to!)
     : null;
   const dependencyPart = dependencyProperties.length
     ? dependencyDescriptionMessageFromSelector(
         dependency.dependency,
-        matchResult?.dependency ?? null
+        matchResult!.dependency!
       )
     : null;
 
