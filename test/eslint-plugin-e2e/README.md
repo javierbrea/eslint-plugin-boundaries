@@ -14,7 +14,7 @@ This package contains end-to-end (E2E) tests for the eslint-plugin-boundaries pl
 
 ```bash
 # Run all E2E tests
-pnpm nx test:e2e eslint-plugin-boundaries-e2e
+pnpm nx test:e2e eslint-plugin-e2e
 ```
 
 ## Performance tests
@@ -24,7 +24,7 @@ The E2E tests also include performance benchmarks to ensure that the plugin runs
 By default, performance tests are excluded from the regular test run to keep feedback fast during development. To include performance tests in your test run, use the following command:
 
 ```bash
-pnpm nx test:performance eslint-plugin-boundaries-e2e
+pnpm nx test:performance eslint-plugin-e2e
 ```
 
 Or, run directly from this package with:
