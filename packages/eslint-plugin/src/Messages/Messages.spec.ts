@@ -315,6 +315,21 @@ describe("Messages", () => {
         )
       ).toBe('relationship from "null" and relationship to "null"');
     });
+
+    it("omits relationship side when it is undefined", () => {
+      expect(
+        dependencyDescriptionMessage(
+          {
+            ...dependencyDescription.dependency,
+            relationship: {
+              from: undefined,
+              to: "sibling",
+            },
+          } as unknown as DependencyDescription["dependency"],
+          ["relationship"]
+        )
+      ).toBe('relationship to "sibling"');
+    });
   });
 
   describe("dependencyDescriptionMessageFromSelector", () => {

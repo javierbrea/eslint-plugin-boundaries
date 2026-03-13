@@ -83,14 +83,14 @@ function capitalizeFirstLetter(message: string): string {
 function buildElementPropertyFragments(
   elementDescription: ElementDescription | ElementParent,
   properties: string[],
-  options?: {
+  options: {
     capturedKeys?: string[];
     parentProperties?: string[];
     parentCapturedKeys?: string[];
-    includeNullValues?: boolean;
+    includeNullValues: boolean;
   }
 ): string[] {
-  const includeNullValues = options?.includeNullValues ?? false;
+  const includeNullValues = options.includeNullValues;
   const fragments: string[] = [];
 
   for (const propertyName of properties) {
@@ -236,6 +236,64 @@ function formatPropertyFragment(propertyName: string, value: unknown): string {
 }
 
 /**
+ * Determines whether a dependency property value should be rendered.
+ * @param value - Property value to evaluate.
+ * @param includeNullValues - Whether null values should be included in the output.
+ * @returns True when the value should be rendered.
+ */
+function shouldRenderDependencyValue(
+  value: unknown,
+  includeNullValues: boolean
+): boolean {
+  return !isUndefined(value) && (!isNull(value) || includeNullValues);
+}
+
+/**
+ * Builds a relationship-side fragment when the selected side should be rendered.
+ * @param relationship - Relationship metadata value.
+ * @param relationshipKey - Relationship side to describe.
+ * @param includeNullValues - Whether null values should be included in the output.
+ * @returns Formatted relationship fragment, or null when the side should be ignored.
+ */
+function buildRelationshipFragment(
+  relationship: NonNullable<ElementsDependencyInfo["relationship"]>,
+  relationshipKey: "from" | "to",
+  includeNullValues: boolean
+): string | null {
+  const relationshipValue = relationship[relationshipKey];
+  if (!shouldRenderDependencyValue(relationshipValue, includeNullValues)) {
+    return null;
+  }
+  return `relationship ${relationshipKey} ${formatPropertyValue(relationshipValue)}`;
+}
+
+/**
+ * Builds message fragments for selected relationship sides.
+ * @param relationship - Relationship metadata value.
+ * @param relationshipKeys - Relationship sides to include.
+ * @param includeNullValues - Whether null values should be included in the output.
+ * @returns List of relationship fragments.
+ */
+function buildRelationshipFragments(
+  relationship: NonNullable<ElementsDependencyInfo["relationship"]>,
+  relationshipKeys: Array<"from" | "to"> | undefined,
+  includeNullValues: boolean
+): string[] {
+  const fragments: string[] = [];
+  for (const relationshipKey of relationshipKeys ?? ["from", "to"]) {
+    const fragment = buildRelationshipFragment(
+      relationship,
+      relationshipKey,
+      includeNullValues
+    );
+    if (fragment) {
+      fragments.push(fragment);
+    }
+  }
+  return fragments;
+}
+
+/**
  * Describes elements using the selected relevant properties.
  * @param elementDescription - Element to describe.
  * @param properties - List of element properties to include in the description.
@@ -246,22 +304,22 @@ function formatPropertyFragment(propertyName: string, value: unknown): string {
 export function elementDescriptionMessage(
   elementDescription: ElementDescription | ElementParent,
   properties: string[],
-  options: { singleElement?: boolean; includeNullValues?: boolean } = {
-    singleElement: false,
-    includeNullValues: false,
-  }
+  {
+    singleElement = false,
+    includeNullValues = false,
+  }: { singleElement?: boolean; includeNullValues?: boolean } = {}
 ): string {
   const propertyFragments = buildElementPropertyFragments(
     elementDescription,
     properties,
     {
-      includeNullValues: options.includeNullValues,
+      includeNullValues,
     }
   );
   if (!propertyFragments.length) {
     return "";
   }
-  const elementLabel = options.singleElement ? "element" : "elements";
+  const elementLabel = singleElement ? "element" : "elements";
   return `${elementLabel} of ${joinWithCommasAndAnd(propertyFragments)}`;
 }
 
@@ -328,31 +386,20 @@ function buildDependencyPropertyFragments(
   for (const propertyName of properties) {
     const value =
       dependencyMetadata[propertyName as keyof typeof dependencyMetadata];
-    if (isUndefined(value)) {
-      continue;
-    }
-    if (isNull(value) && !includeNullValues) {
+    if (!shouldRenderDependencyValue(value, includeNullValues)) {
       continue;
     }
     if (propertyName === "relationship" && isObject(value)) {
-      const relationshipKeys = options?.relationshipKeys ?? ["from", "to"];
-      if (
-        relationshipKeys.includes("from") &&
-        !isUndefined(value.from) &&
-        (!isNull(value.from) || includeNullValues)
-      ) {
-        fragments.push(`relationship from ${formatPropertyValue(value.from)}`);
-      }
-      if (
-        relationshipKeys.includes("to") &&
-        !isUndefined(value.to) &&
-        (!isNull(value.to) || includeNullValues)
-      ) {
-        fragments.push(`relationship to ${formatPropertyValue(value.to)}`);
-      }
+      fragments.push(
+        ...buildRelationshipFragments(
+          value,
+          options?.relationshipKeys,
+          includeNullValues
+        )
+      );
       continue;
     }
-    fragments.push(`${propertyName} ${formatPropertyValue(value)}`);
+    fragments.push(formatPropertyFragment(propertyName, value));
   }
   return fragments;
 }
