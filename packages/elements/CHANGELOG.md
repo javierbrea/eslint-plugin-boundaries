@@ -6,12 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 ### Added
+### Fixed
+### Removed
+### Breaking Changes
+
+## [2.0.0-beta.1] - 2026-03-13
+
+### Added
 - feat: Add support for `captured` as an array in element selectors, where each element in the array represents an alternative (OR logic). The selector matches if any of the array elements matches.
 - feat: Support matching `null` values in selectors.
 - feat: Add support for `parent` selector property to match against first parent (`parents[0]`) properties (`type`, `category`, `elementPath`, and `captured`).
-### Fixed
-### Removed
-### BREAKING CHANGES
+
+### Breaking Changes
 - feat: Remove `source` and `baseSource` properties from the `to` and `from` objects in element descriptions and selectors. Move them to the `dependency` object instead, as they are properties of the dependency rather than the target element. This change may require updates to any custom rules or configurations that reference these properties in the `to` object. Refactor all types, tests, and documentation to reflect this change.
 - feat: Rename "baseSource" property to "module" to better reflect its purpose and avoid confusion with the "source" property. Update all types, tests, and documentation to reflect this change.
 - feat: Support array of dependency metadata selectors in the `dependency` property of dependency selectors, allowing for more flexible matching of dependencies based on their metadata. Each selector in the array represents an alternative (OR logic), and the dependency matches if any of the selectors in the array matches its metadata.

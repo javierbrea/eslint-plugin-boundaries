@@ -6,20 +6,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 ### Added
-- feat: Support defining element selectors as objects with any of the element properties as keys, and the corresponding values as micromatch patterns matching the value of that property in the element description.
-- feat: Support assigning categories to elements. Categories can be used in rules to match elements using new object-based selector format, and also in custom messages templates.
-- feat: Warn about usage of legacy string and tuple selector formats in the configuration.
-- feat: Warn when deprecated rule-level `importKind` is used in dependency rules. Prefer selector-level `kind`. Prioritize selector-level `kind` over rule-level `importKind` when both are defined.
-- feat: Validate and transform different settings and rules only once per different configuration object, and not per rule execution, to improve performance.
-- feat: Support all element description properties in custom messages templates by using handlebars syntax. Old message templates will continue working as they are, without any change.
-- feat: Improve debug output, and add `boundaries/debug` setting to allow enabling/disabling it and filtering the traces that are printed.
-- feat: Add `checkAllOrigins`, `checkUnknownLocals` and `checkInternals` options to `element-types` rule to allow checking or ignoring dependencies based on their properties. By default, only local dependencies with known elements are checked, and internal dependencies are ignored, as in previous versions.
 ### Changed
 ### Fixed
 ### Removed
-### BREAKING CHANGES
-* feat: Enable all dependency nodes by default in the `boundaries/dependency-nodes` setting. Previously, only `import` nodes were enabled by default. Now, the plugin analyzes `import`, `export`, `require` and `dynamic import` by default. You should set `boundaries/dependency-nodes` to `["import"]` if you want to match only `import` statements as before.
-* Remove `isExternalLibrarySelector` and `isExternalLibrariesSelector` type guards. They are not needed anymore, as external rule is deprecated and external library selectors can be defined using the same `ElementSelector` format.
+### Breaking Changes
+
+## [6.0.0-beta.1] - 2026-03-13
+
+### Added
+
+- feat(#383, #388): Add object-based element selector syntax as the recommended way to define element selectors, providing better readability and access to advanced matching features.
+- feat(#395): Support `from` and `to` dependency selector objects in the `boundaries/dependencies` rule, enabling matching based on dependency relationship, origin, source, internal path, and more.
+- feat(#387): Add optional `category` field to element descriptors to enable multi-dimensional architectural classification.
+- feat(#386): Support a `name` property in the `additional-dependency-nodes` setting on each node definition, allowing to identify custom dependency nodes by name in rules and messages.
+- feat: Add `checkAllOrigins`, `checkUnknownLocals` and `checkInternals` options to `dependencies` (old `element-types`) rule to allow checking or ignoring dependencies based on their properties. By default, only local dependencies with known elements are checked, and internal dependencies are ignored, as in previous versions.
+- feat: Improve debug output, and add `boundaries/debug` setting to allow enabling/disabling it and filtering the traces that are printed.
+- feat: Support all element description properties in custom messages templates by using handlebars syntax. Old message templates will continue working as they are, without any change.
+
+### Changed
+
+- feat(#403): Rename `boundaries/element-types` rule to `boundaries/dependencies`. The legacy name is still supported with a deprecation warning.
+- feat(#393): Deprecate rule-level `importKind` option in favor of selector-level `dependency.kind`, allowing more granular per-selector control over dependency kind matching.
+- feat(#392): Add deprecation warning when using legacy template format (`${ }`), and introduce new Handlebars-style template syntax (`{{ }}`). The legacy format is still supported but will be removed in a future major version.
+- feat(#384): Add deprecation warning when using legacy element selector syntax (string or tuple formats).
+- feat: Validate and transform different settings and rules only once per different configuration object, and not per rule execution, to improve performance.
+- refactor: Refactor the core of the plugin to support the new features and improvements, and to improve code organization, readability and maintainability. It is now fully typed with TypeScript.
+
+### Breaking Changes
+
+- feat(#429): Change default value of `boundaries/dependency-nodes` setting to `["import", "export", "require", "dynamic-import"]`. Previously only `import` statements were analyzed by default. To preserve previous behavior, set `"boundaries/dependency-nodes": ["import"]` explicitly in your configuration.
+- Remove `isExternalLibrarySelector` and `isExternalLibrariesSelector` type guards. They are not needed anymore, as external rule is deprecated and external library selectors can be defined using the same `ElementSelector` format.
+
+### Docs
+
+- docs(#396): Improve TypeScript typings documentation, enabling better IDE support and autocompletion.
 
 ## [5.4.0] - 2026-02-02
 
