@@ -1571,7 +1571,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
       },
       {
         filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import react from 'react'",
+        code: "import react from 'foo'",
         options: [
           {
             checkAllOrigins: true,
@@ -1715,7 +1715,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
       },
       {
         filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import react from 'react'",
+        code: "import react from 'foo'",
         options: [
           {
             default: "allow",
@@ -1774,7 +1774,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
       },
       {
         filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-        code: "import react from 'react'",
+        code: "import react from 'foo'",
         options: [
           {
             default: "allow",
