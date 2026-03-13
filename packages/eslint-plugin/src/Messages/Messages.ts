@@ -215,7 +215,7 @@ function buildCapturedFragments(
   const keys = capturedKeys ?? Object.keys(value);
 
   for (const capturedKey of keys) {
-    const capturedValue = value[capturedKey as keyof typeof value];
+    const capturedValue = value[capturedKey];
     if (isUndefined(capturedValue)) {
       continue;
     }
