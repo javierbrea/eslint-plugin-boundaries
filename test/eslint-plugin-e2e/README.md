@@ -21,16 +21,16 @@ pnpm nx test:e2e eslint-plugin-boundaries-e2e
 
 The E2E tests also include performance benchmarks to ensure that the plugin runs efficiently. Performance tests are defined in the same `e2e.spec.js` file and can be identified by their naming convention (e.g., "performance-test"). These tests measure the execution time of ESLint with the plugin under specific configurations and assert that it meets acceptable performance thresholds.
 
-You can disable performance tests by setting the `RUN_PERFORMANCE_TESTS` environment variable to `false`:
+By default, performance tests are excluded from the regular test run to keep feedback fast during development. To include performance tests in your test run, use the following command:
 
 ```bash
-RUN_PERFORMANCE_TESTS=false pnpm nx test:e2e eslint-plugin-boundaries-e2e
+pnpm nx test:performance eslint-plugin-boundaries-e2e
 ```
 
 Or, run directly from this package with:
 
 ```bash
-pnpm test:e2e:no-perf
+pnpm test:performance
 ```
 
 ## Adding new tests

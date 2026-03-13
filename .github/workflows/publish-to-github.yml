@@ -34,8 +34,6 @@ jobs:
         HUSKY_SKIP_INSTALL: 1
 
     - run: pnpm check:all
-      env:
-        RUN_PERFORMANCE_TESTS: false
 
     - uses: MerthinTechnologies/edit-json-action@v1
       with:

@@ -57,8 +57,6 @@ jobs:
       - name: Check all
         if: ${{ matrix.node == '22.14.0' }}
         run: pnpm nx run-many --target=check:all --all --output-style=stream --parallel=1
-        env:
-          RUN_PERFORMANCE_TESTS: false
       - name: Upload elements test results
         if: ${{ matrix.node == '22.14.0' }}
         uses: actions/upload-artifact@v4
