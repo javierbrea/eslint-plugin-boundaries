@@ -8,6 +8,7 @@ import { buildErrorMessage } from "../Rules/Dependencies";
 import {
   elementDescriptionMessage,
   dependencyDescriptionMessage,
+  dependencyDescriptionMessageFromSelector,
   dependenciesRuleDefaultErrorMessage,
 } from "./Messages";
 
@@ -181,6 +182,71 @@ describe("Messages", () => {
         {
           includeNullValues: true,
         }
+      )
+    ).toBe('module "null"');
+  });
+
+  it("returns null when dependency selector data is null", () => {
+    expect(
+      dependencyDescriptionMessageFromSelector(
+        dependencyDescription.dependency,
+        null
+      )
+    ).toBeNull();
+  });
+
+  it("returns null when dependency selector has no properties", () => {
+    expect(
+      dependencyDescriptionMessageFromSelector(
+        dependencyDescription.dependency,
+        {} as unknown as DependencyMatchResult["dependency"]
+      )
+    ).toBeNull();
+  });
+
+  it("returns null when selector properties do not exist in dependency metadata", () => {
+    expect(
+      dependencyDescriptionMessageFromSelector(
+        dependencyDescription.dependency,
+        {
+          /* @ts-expect-error Testing branch with unsupported selector property */
+          foo: "bar",
+        }
+      )
+    ).toBeNull();
+  });
+
+  it("describes only selected relationship sides from dependency selector", () => {
+    expect(
+      dependencyDescriptionMessageFromSelector(
+        dependencyDescription.dependency,
+        {
+          relationship: { from: "sibling" },
+        }
+      )
+    ).toBe('relationship from "sibling"');
+  });
+
+  it("describes all relationship sides when relationship selector is not an object", () => {
+    expect(
+      dependencyDescriptionMessageFromSelector(
+        dependencyDescription.dependency,
+        {
+          /* @ts-expect-error Testing fallback when relationship selector is not an object */
+          relationship: true,
+        }
+      )
+    ).toBe('relationship from "sibling" and relationship to "sibling"');
+  });
+
+  it("includes null dependency values when selector targets those properties", () => {
+    expect(
+      dependencyDescriptionMessageFromSelector(
+        {
+          ...dependencyDescription.dependency,
+          module: null,
+        },
+        { module: "react" }
       )
     ).toBe('module "null"');
   });
