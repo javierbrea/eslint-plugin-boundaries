@@ -21,8 +21,8 @@ import type {
 } from "./Matcher.types";
 import type { Micromatch } from "./Micromatch";
 
-const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^}\s]+(?:\s+[^}\s]+)*\s*}}/;
 const LEGACY_TEMPLATE_REGEX = /\$\{([^}]+)\}/g;
+const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^{}\s][^{}]*}}/;
 
 /**
  * Base matcher class to determine if elements or dependencies match a given selector.
