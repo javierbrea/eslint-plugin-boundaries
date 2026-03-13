@@ -34,6 +34,7 @@ function quote(value: unknown): string {
  * @returns Joined message string with proper comma and "and" placement.
  */
 function joinWithCommasAndAnd(parts: string[]): string {
+  /* istanbul ignore next -- Defensive: callers always guard against empty array */
   if (parts.length === 0) {
     return "";
   }
@@ -64,6 +65,7 @@ function formatPropertyValue(value: unknown): string {
  * @returns Message with the first character capitalized.
  */
 function capitalizeFirstLetter(message: string): string {
+  /* istanbul ignore next -- Defensive: capitalizeFirstLetter is always called with non-empty message strings */
   if (!message.length) {
     return message;
   }
@@ -100,6 +102,7 @@ function buildElementPropertyFragments(
         }
         continue;
       }
+      /* istanbul ignore next -- Defensive: if "parent" is included in properties, options always provide parentProperties */
       const parentProperties = options?.parentProperties ?? [];
       const parentFragments = buildElementPropertyFragments(
         firstParent,
@@ -301,7 +304,7 @@ export function dependencyDescriptionMessage(
  * @param selectorData - Selector data that determines which properties and captured keys to include in the description.
  * @returns Formatted message describing the dependency metadata based on the selected properties.
  */
-function dependencyDescriptionMessageFromSelector(
+export function dependencyDescriptionMessageFromSelector(
   dependencyMetadata: ElementsDependencyInfo,
   selectorData: DependencyDataSelectorData | null
 ): string | null {
