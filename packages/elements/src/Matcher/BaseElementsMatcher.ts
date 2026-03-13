@@ -117,9 +117,9 @@ export class BaseElementsMatcher {
   }
 
   /**
-   * Cleans an array of micromatch patterns by removing falsy values and returning null if the resulting array is empty.
-   * @param arr The array of micromatch patterns to clean.
-   * @returns The cleaned array of micromatch patterns, or null if the array is empty.
+   * Cleans a micromatch pattern by removing falsy values from arrays.
+   * @param pattern The micromatch pattern(s) to clean.
+   * @returns The cleaned pattern. If an array is provided, falsy entries are removed and the resulting array may be empty. If null is provided, null is returned unchanged.
    */
   protected cleanMicromatchPattern(
     pattern: MicromatchPatternNullable
