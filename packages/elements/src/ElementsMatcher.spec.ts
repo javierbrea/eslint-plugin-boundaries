@@ -9,6 +9,7 @@ import type {
   DependencySelector,
   Matcher,
   BaseElementSelectorWithOptions,
+  ElementDescription,
 } from "./index";
 import { Elements, normalizeElementsSelector } from "./index";
 
@@ -306,6 +307,20 @@ describe("Elements Matcher", () => {
       {
         filePath: "/project/src/components/Button.tsx",
         selector: {
+          type: [],
+        },
+        expected: false,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: {
+          type: [undefined],
+        },
+        expected: false,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: {
           type: "component",
           category: "react",
           origin: "local",
@@ -485,6 +500,30 @@ describe("Elements Matcher", () => {
       {
         filePath:
           "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: { parent: { type: "foo" } },
+        expected: false,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: { parent: { type: null } },
+        expected: true,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: { parent: { elementPath: "foo" } },
+        expected: false,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: { parent: { elementPath: "**" } },
+        expected: true,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
         selector: { parent: { category: "foo" } },
         expected: false,
       },
@@ -531,6 +570,16 @@ describe("Elements Matcher", () => {
           },
         },
         expected: true,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: {
+          parent: {
+            captured: [],
+          },
+        },
+        expected: false,
       },
       {
         filePath:
@@ -623,6 +672,29 @@ describe("Elements Matcher", () => {
       }
     );
 
+    it("should throw an error when using invalid selector", () => {
+      const invalidSelector = { foo: "var" } as unknown as ElementsSelector;
+
+      expect(() =>
+        matcher.getElementSelectorMatchingDescription(
+          matcher.describeElement("/project/src/modules/user/foo.ts"),
+          invalidSelector
+        )
+      ).toThrow();
+    });
+
+    it("should throw an error when using invalid description", () => {
+      const invalidDescription = {
+        foo: "var",
+      } as unknown as ElementDescription;
+
+      expect(() =>
+        matcher.getElementSelectorMatchingDescription(invalidDescription, {
+          type: "foo",
+        })
+      ).toThrow();
+    });
+
     it("should match using legacy string selector", () => {
       const result = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
@@ -713,7 +785,7 @@ describe("Elements Matcher", () => {
       expect(result).toBe(true);
     });
 
-    it("should throw an error when using invalid selector", () => {
+    it("should throw an error when using invalid selector in isElementMatch", () => {
       const invalidSelector = {
         var: "baz",
       } as unknown as ElementsSelector;

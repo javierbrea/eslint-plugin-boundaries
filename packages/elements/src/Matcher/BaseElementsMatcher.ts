@@ -56,7 +56,7 @@ export class BaseElementsMatcher {
   private _getBackwardsCompatibleTemplate(
     template: string | null
   ): string | null {
-    if (isNull(template)) {
+    if (!template) {
       return template;
     }
     return template.replaceAll(LEGACY_TEMPLATE_REGEX, "{{ $1 }}");
@@ -68,7 +68,7 @@ export class BaseElementsMatcher {
    * @returns True if the template contains Handlebars syntax, false otherwise.
    */
   private _isHandlebarsTemplate(template: string | null): boolean {
-    if (isNull(template)) {
+    if (!template) {
       return false;
     }
     return HANDLEBARS_TEMPLATE_REGEX.test(template);
@@ -124,9 +124,6 @@ export class BaseElementsMatcher {
   protected cleanMicromatchPattern(
     pattern: MicromatchPatternNullable
   ): string | string[] | null {
-    if (isNull(pattern)) {
-      return pattern;
-    }
     return isArray(pattern) ? (pattern.filter(Boolean) as string[]) : pattern;
   }
 
@@ -151,7 +148,7 @@ export class BaseElementsMatcher {
     // Clean empty strings from arrays to avoid matching them.
     const patternToCheck = this.cleanMicromatchPattern(pattern);
 
-    if (!patternToCheck) {
+    if (!patternToCheck || !patternToCheck.length) {
       return false;
     }
 
@@ -273,12 +270,12 @@ export class BaseElementsMatcher {
       return true;
     }
     // Undefined selector values do not match anything.
-    if (isUndefined(selectorValue)) {
-      return false;
-    }
-
     // The selector key exists in the selector, but it does not exist in the element. No match.
-    if (!isObjectWithProperty(element, String(elementKey))) {
+    /* istanbul ignore next - This cases should not happen due to selector validations, but we guard against it anyway. */
+    if (
+      isUndefined(selectorValue) ||
+      !isObjectWithProperty(element, String(elementKey))
+    ) {
       return false;
     }
 
