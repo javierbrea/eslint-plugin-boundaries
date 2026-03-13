@@ -127,13 +127,31 @@ const dependencyMatcherSchema = {
   ],
 };
 
+const capturedValuesSelectorSchema = {
+  type: "object",
+  additionalProperties: micromatchPatternNullableSchema,
+};
+
+const capturedValuesSchema = {
+  oneOf: [
+    {
+      type: "null",
+    },
+    capturedValuesSelectorSchema,
+    {
+      type: "array",
+      items: capturedValuesSelectorSchema,
+    },
+  ],
+};
+
 const parentElementMatcherSchema = {
   type: "object",
   properties: {
     type: micromatchPatternNullableSchema,
     category: micromatchPatternNullableSchema,
     elementPath: micromatchPatternNullableSchema,
-    captured: micromatchPatternNullableSchema,
+    captured: capturedValuesSchema,
   },
   additionalProperties: false,
 };
@@ -146,12 +164,7 @@ const objectElementMatcherSchemaItem = {
     internalPath: micromatchPatternNullableSchema,
     type: micromatchPatternNullableSchema,
     category: micromatchPatternNullableSchema,
-    captured: {
-      oneOf: [
-        { type: ["object", "null"] },
-        { type: "array", items: { type: ["object", "null"] } },
-      ],
-    },
+    captured: capturedValuesSchema,
     parent: {
       oneOf: [
         { type: "null" },

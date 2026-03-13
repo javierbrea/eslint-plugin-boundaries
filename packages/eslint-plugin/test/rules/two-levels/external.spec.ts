@@ -7,7 +7,7 @@ import {
 import type { RuleTesterSettings } from "../../support/helpers";
 import { errorMessage, externalNoRuleMessage } from "../../support/messages";
 
-const { EXTERNAL: RULE } = require("../../../src/Settings");
+const { EXTERNAL: RULE } = require("../../../src/Shared");
 
 // Generic test function
 

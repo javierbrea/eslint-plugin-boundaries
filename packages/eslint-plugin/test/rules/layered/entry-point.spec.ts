@@ -5,7 +5,7 @@ import {
   pathResolvers,
 } from "../../support/helpers";
 
-const { ENTRY_POINT: RULE } = require("../../../src/Settings");
+const { ENTRY_POINT: RULE } = require("../../../src/Shared");
 
 const { absoluteFilePath } = pathResolvers("layered");
 

@@ -10,7 +10,7 @@ import {
   elementTypesNoRuleMessage,
 } from "../../support/messages";
 
-const { ELEMENT_TYPES: RULE } = require("../../../src/Settings");
+const { ELEMENT_TYPES: RULE } = require("../../../src/Shared");
 
 const rule = ruleFactory();
 const { absoluteFilePath } = pathResolvers("one-level");

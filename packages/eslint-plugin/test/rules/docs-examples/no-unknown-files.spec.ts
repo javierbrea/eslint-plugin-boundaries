@@ -5,7 +5,7 @@ import {
   pathResolvers,
 } from "../../support/helpers";
 
-const { NO_UNKNOWN_FILES: RULE } = require("../../../src/Settings");
+const { NO_UNKNOWN_FILES: RULE } = require("../../../src/Shared");
 
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath, codeFilePath } = pathResolvers("docs-examples");

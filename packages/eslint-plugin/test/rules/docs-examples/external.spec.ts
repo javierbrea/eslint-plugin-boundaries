@@ -5,7 +5,7 @@ import {
   pathResolvers,
 } from "../../support/helpers";
 
-const { EXTERNAL: RULE } = require("../../../src/Settings");
+const { EXTERNAL: RULE } = require("../../../src/Shared");
 
 const { absoluteFilePath } = pathResolvers("docs-examples");
 

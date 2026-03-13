@@ -7,7 +7,7 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 
-const { EXTERNAL: RULE } = require("../../../src/Settings");
+const { EXTERNAL: RULE } = require("../../../src/Shared");
 
 const { absoluteFilePath } = pathResolvers("one-level");
 

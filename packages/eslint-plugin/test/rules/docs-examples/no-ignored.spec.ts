@@ -6,7 +6,7 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 
-const { NO_IGNORED: RULE } = require("../../../src/Settings");
+const { NO_IGNORED: RULE } = require("../../../src/Shared");
 
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath } = pathResolvers("docs-examples");

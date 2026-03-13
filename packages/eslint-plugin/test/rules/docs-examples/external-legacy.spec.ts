@@ -1,11 +1,10 @@
 import rule from "../../../src/Rules/External";
+import { EXTERNAL as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
-
-const { EXTERNAL: RULE } = require("../../../src/Settings");
 
 const { absoluteFilePath } = pathResolvers("docs-examples");
 

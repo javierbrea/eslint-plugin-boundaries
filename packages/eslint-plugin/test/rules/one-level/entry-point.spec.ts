@@ -6,7 +6,7 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 
-const { ENTRY_POINT: RULE } = require("../../../src/Settings");
+const { ENTRY_POINT: RULE } = require("../../../src/Shared");
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 

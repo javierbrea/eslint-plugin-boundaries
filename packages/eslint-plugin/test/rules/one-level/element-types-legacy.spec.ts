@@ -1,4 +1,5 @@
 import ruleFactory from "../../../src/Rules/Dependencies";
+import { ELEMENT_TYPES as RULE, RULE_NAMES_MAP } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
@@ -12,9 +13,7 @@ import {
 
 const { resolve } = require("path");
 
-const { ELEMENT_TYPES: RULE } = require("../../../src/Settings");
-
-const rule = ruleFactory();
+const rule = ruleFactory(RULE_NAMES_MAP.ELEMENT_TYPES);
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
@@ -25,13 +24,18 @@ const runTest = (
 ) => {
   const ruleTester = createRuleTester(settings);
 
-  ruleTester.run(RULE, rule, {
+  ruleTester.run(RULE_NAMES_MAP.ELEMENT_TYPES, rule, {
     valid: [
       // Non recognized types can import whatever
       {
         filename: absoluteFilePath("foo/index.js"),
         code: "import HelperA from 'helpers/helper-a'",
         options,
+      },
+      // No options
+      {
+        filename: absoluteFilePath("foo/index.js"),
+        code: "import HelperA from 'helpers/helper-a'",
       },
       // Components can import helpers
       {

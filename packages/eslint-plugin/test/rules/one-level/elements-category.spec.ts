@@ -9,7 +9,7 @@ import { errorMessage } from "../../support/messages";
 
 const { resolve } = require("path");
 
-const { ELEMENT_TYPES: RULE } = require("../../../src/Settings");
+const { ELEMENT_TYPES: RULE } = require("../../../src/Shared");
 
 const rule = ruleFactory();
 

@@ -7,7 +7,7 @@ import {
 import type { RuleTesterSettings } from "../../support/helpers";
 import { noPrivateMessage } from "../../support/messages";
 
-const { NO_PRIVATE: RULE } = require("../../../src/Settings");
+const { NO_PRIVATE: RULE } = require("../../../src/Shared");
 
 const options = [
   {

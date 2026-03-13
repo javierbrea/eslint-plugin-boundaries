@@ -9,7 +9,7 @@ import { errorMessage } from "../../support/messages";
 
 const { resolve } = require("path");
 
-const { DEPENDENCIES: RULE } = require("../../../src/Settings");
+const { DEPENDENCIES: RULE } = require("../../../src/Shared");
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
