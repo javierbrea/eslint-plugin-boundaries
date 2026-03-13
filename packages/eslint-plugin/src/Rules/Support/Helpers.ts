@@ -14,7 +14,7 @@ import type { RuleMetaDefinition } from "../../Shared";
  */
 export function meta({
   description,
-  schema = [],
+  schema,
   ruleName,
   type,
 }: RuleMetaDefinition): Pick<Rule.RuleModule, "meta"> {
