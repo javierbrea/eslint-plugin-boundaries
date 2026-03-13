@@ -1,3 +1,5 @@
+import { resolve } from "node:path";
+
 import ruleFactory from "../../../src/Rules/Dependencies";
 import {
   SETTINGS,
@@ -6,8 +8,6 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import { errorMessage } from "../../support/messages";
-
-const { resolve } = require("path");
 
 const { ELEMENT_TYPES: RULE } = require("../../../src/Shared");
 

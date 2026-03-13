@@ -2,7 +2,7 @@ import type { DependencyKind } from "@boundaries/elements";
 import { DEPENDENCY_KINDS_MAP } from "@boundaries/elements";
 
 import { warnOnce } from "../Debug";
-import { isString, isNull } from "../Shared";
+import { isString, isNull, isArray, isObject } from "../Shared";
 import {
   PLUGIN_NAME,
   WEBSITE_URL,
@@ -51,7 +51,8 @@ function adaptRuleNameToUrl(ruleName: RuleName): string {
  * @returns The documentation URL for the ESLint rule.
  */
 export function docsUrl(path: string, anchor?: string): string {
-  return `${WEBSITE_URL}/docs/${path}/${anchor ? `#${anchor}` : ""}`;
+  const anchorSuffix = anchor ? `#${anchor}` : "";
+  return `${WEBSITE_URL}/docs/${path}/${anchorSuffix}`;
 }
 
 /**
@@ -276,23 +277,18 @@ function hasLegacyTemplateSyntax(value: string): boolean {
  */
 function checkForLegacyTemplateSyntax(value: unknown): boolean {
   if (isString(value)) {
-    if (hasLegacyTemplateSyntax(value)) {
-      return true;
-    }
-  } else if (Array.isArray(value)) {
-    for (const item of value) {
-      if (checkForLegacyTemplateSyntax(item)) {
-        return true;
-      }
-    }
-  } else if (typeof value === "object" && !isNull(value)) {
-    for (const val of Object.values(value)) {
-      if (checkForLegacyTemplateSyntax(val)) {
-        return true;
-      }
-    }
+    return hasLegacyTemplateSyntax(value);
   }
-  return false;
+
+  if (isArray(value)) {
+    return value.some(checkForLegacyTemplateSyntax);
+  }
+
+  if (isNull(value) || !isObject(value)) {
+    return false;
+  }
+
+  return Object.values(value).some(checkForLegacyTemplateSyntax);
 }
 
 /**

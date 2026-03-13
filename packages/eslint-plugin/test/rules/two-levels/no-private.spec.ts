@@ -32,7 +32,6 @@ const runTest = (
         code: 'import ComponentA from "components/atoms/atom-a"',
         options,
       },
-      // Private elements can use a parent elements: // TODO, add relationship rule to avoid this
       {
         filename: absoluteFilePath(
           "components/molecules/molecule-a/components/molecules/molecule-c/index.js"

@@ -58,7 +58,6 @@ const runTest = (settings: RuleTesterSettings) => {
         code: 'import ComponentA from "components/component-a"',
         options,
       },
-      // Private elements can use a parent elements: // TODO, add relationship rule to avoid this
       {
         filename: absoluteFilePath(
           "components/component-a/components/component-c/ComponentC.js"

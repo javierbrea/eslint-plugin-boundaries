@@ -1,3 +1,5 @@
+import { resolve } from "node:path";
+
 import ruleFactory from "../../../src/Rules/Dependencies";
 import { ELEMENT_TYPES as RULE, RULE_NAMES_MAP } from "../../../src/Shared";
 import {
@@ -10,8 +12,6 @@ import {
   errorMessage,
   elementTypesNoRuleMessage,
 } from "../../support/messages";
-
-const { resolve } = require("path");
 
 const rule = ruleFactory(RULE_NAMES_MAP.ELEMENT_TYPES);
 

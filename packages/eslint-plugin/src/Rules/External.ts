@@ -58,12 +58,11 @@ function buildSelectorFromLegacySelectorWithOptions(
 ): DependencySelector {
   const moduleSelector = selector[0];
   const selectorOptions = selector[1];
+  const hasPathSelector = !isNullish(selectorOptions.path);
   return {
     to: {
       origin: [ELEMENT_ORIGINS_MAP.EXTERNAL, ELEMENT_ORIGINS_MAP.CORE],
-      ...(!isNullish(selectorOptions.path)
-        ? { internalPath: selectorOptions.path }
-        : {}),
+      ...(hasPathSelector ? { internalPath: selectorOptions.path } : {}),
     },
     dependency: {
       module: moduleSelector,
