@@ -49,7 +49,7 @@ export function dependencyRule<Options extends RuleOptionsWithRules>(
             /* istanbul ignore next - Defensive check */
             if (!isString(node.value)) {
               warnOnce(
-                `Dependency node is not a Literal, skipping node.`,
+                `Dependency node value is not a string, skipping node.`,
                 `Please check your ${ADDITIONAL_DEPENDENCY_NODES} setting. ${moreInfoSettingsLink()}`
               );
               return;
