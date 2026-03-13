@@ -2,7 +2,6 @@ import { isAbsolute, resolve } from "node:path";
 
 import type { ElementDescriptors } from "@boundaries/elements";
 
-import { isArray } from "../Shared";
 import { SETTINGS } from "../Shared/Settings.types";
 import type { Settings } from "../Shared/Settings.types";
 
@@ -21,9 +20,6 @@ export function transformLegacyTypes(
   typesFromSettings?: string[] | ElementDescriptors
 ): ElementDescriptors {
   const types = typesFromSettings || [];
-  if (!isArray(types)) {
-    return [];
-  }
   return types.map((type) => {
     // backward compatibility with v1
     if (isLegacyType(type)) {

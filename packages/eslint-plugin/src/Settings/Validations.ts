@@ -415,7 +415,10 @@ export function rulesOptionsSchema(
  * @param mainKey - Main selector key configured for current rule.
  * @returns Selector value from the corresponding property, when present.
  */
-function getRuleMainSelector(rule: RuleOptionsRules, mainKey: RuleMainKey) {
+export function getRuleMainSelector(
+  rule: RuleOptionsRules,
+  mainKey: RuleMainKey
+) {
   if (mainKey === "from") {
     return "from" in rule ? rule.from : undefined;
   }
@@ -608,7 +611,7 @@ export function isValidElementDescriptor(
  * @param elements - Raw `boundaries/elements` setting value.
  * @returns Valid descriptors or `undefined` when setting is invalid/missing.
  */
-function validateElementDescriptors(
+export function validateElementDescriptors(
   elements: unknown
 ): ElementDescriptors | undefined {
   if (!elements || !isArray(elements) || !elements.length) {
@@ -627,7 +630,7 @@ function validateElementDescriptors(
  * @param dependencyNodes - Raw dependency node keys from settings.
  * @returns Filtered valid keys or `undefined` for missing/invalid setting.
  */
-function validateDependencyNodes(
+export function validateDependencyNodes(
   dependencyNodes: DependencyNodeKey[] | undefined
 ): DependencyNodeKey[] | undefined {
   if (!dependencyNodes) {
@@ -657,7 +660,7 @@ function validateDependencyNodes(
  * @param legacyTemplates The legacyTemplates setting value
  * @returns The validated legacyTemplates value or undefined
  */
-function validateLegacyTemplates(
+export function validateLegacyTemplates(
   /** The legacyTemplates setting value */
   legacyTemplates: unknown
 ): boolean | undefined {
@@ -679,7 +682,7 @@ function validateLegacyTemplates(
  * @param selector - Candidate additional dependency node selector.
  * @returns `true` when selector has a valid shape.
  */
-function isValidDependencyNodeSelector(
+export function isValidDependencyNodeSelector(
   selector: unknown
 ): selector is DependencyNodeSelector {
   const isValidObject =
@@ -712,7 +715,7 @@ function isValidDependencyNodeSelector(
  * @param additionalDependencyNodes - Raw custom dependency nodes setting.
  * @returns Valid selectors or `undefined` when absent/invalid.
  */
-function validateAdditionalDependencyNodes(
+export function validateAdditionalDependencyNodes(
   additionalDependencyNodes: unknown
 ): DependencyNodeSelector[] | undefined {
   if (!additionalDependencyNodes) {
@@ -736,7 +739,7 @@ function validateAdditionalDependencyNodes(
  * @param value - Candidate alias setting value.
  * @returns `true` when value is an object whose values are strings.
  */
-function isAliasSetting(value: unknown): value is AliasSetting {
+export function isAliasSetting(value: unknown): value is AliasSetting {
   return isObject(value) && Object.values(value).every(isString);
 }
 
@@ -745,7 +748,7 @@ function isAliasSetting(value: unknown): value is AliasSetting {
  *
  * @param aliases - Alias setting value when present.
  */
-function deprecateAlias(aliases: AliasSetting | undefined) {
+export function deprecateAlias(aliases: AliasSetting | undefined) {
   if (aliases) {
     warnOnce(
       `Defining aliases in '${ALIAS}' setting is deprecated.`,
@@ -759,7 +762,7 @@ function deprecateAlias(aliases: AliasSetting | undefined) {
  *
  * @param types - Legacy types setting value when present.
  */
-function deprecateTypes(types: unknown) {
+export function deprecateTypes(types: unknown) {
   if (types) {
     warnOnce(
       `'${TYPES}' setting is deprecated.`,
@@ -774,7 +777,7 @@ function deprecateTypes(types: unknown) {
  * @param ignore - Raw ignore setting.
  * @returns String or string array when valid.
  */
-function validateIgnore(ignore: unknown): IgnoreSetting | undefined {
+export function validateIgnore(ignore: unknown): IgnoreSetting | undefined {
   if (!ignore) {
     return;
   }
@@ -793,7 +796,7 @@ function validateIgnore(ignore: unknown): IgnoreSetting | undefined {
  * @param include - Raw include setting.
  * @returns String or string array when valid.
  */
-function validateInclude(include: unknown): IncludeSetting | undefined {
+export function validateInclude(include: unknown): IncludeSetting | undefined {
   if (!include) {
     return;
   }
@@ -812,7 +815,7 @@ function validateInclude(include: unknown): IncludeSetting | undefined {
  * @param rootPath - Raw root-path setting.
  * @returns Root path string when valid.
  */
-function validateRootPath(rootPath: unknown): string | undefined {
+export function validateRootPath(rootPath: unknown): string | undefined {
   if (!rootPath) {
     return;
   }
@@ -831,7 +834,7 @@ function validateRootPath(rootPath: unknown): string | undefined {
  * @param flagAsExternal - Raw flag-as-external setting value.
  * @returns Normalized options object with valid fields only.
  */
-function validateFlagAsExternal(
+export function validateFlagAsExternal(
   flagAsExternal: unknown
 ): FlagAsExternalOptions | undefined {
   if (!flagAsExternal) {
@@ -905,7 +908,7 @@ function validateFlagAsExternal(
  * @param filterName - Filter key used in warning messages.
  * @returns Filter array when valid, otherwise `undefined`.
  */
-function validateDebugFilterSelectors(
+export function validateDebugFilterSelectors(
   value: unknown,
   filterName: "files" | "dependencies"
 ) {
@@ -928,7 +931,7 @@ function validateDebugFilterSelectors(
  * @param value - Raw `debug.filter.files` setting value.
  * @returns Valid files filter selectors.
  */
-function validateDebugFilesFilter(
+export function validateDebugFilesFilter(
   value: unknown
 ): ElementsSelector[] | undefined {
   return validateDebugFilterSelectors(value, "files") as
@@ -942,7 +945,7 @@ function validateDebugFilesFilter(
  * @param value - Raw `debug.filter.dependencies` setting value.
  * @returns Valid dependency filter selectors.
  */
-function validateDebugDependenciesFilter(
+export function validateDebugDependenciesFilter(
   value: unknown
 ): DependencySelector[] | undefined {
   return validateDebugFilterSelectors(value, "dependencies") as
@@ -956,7 +959,7 @@ function validateDebugDependenciesFilter(
  * @param debug - Raw debug setting value.
  * @returns Normalized debug setting when valid.
  */
-function validateDebug(debug: unknown): DebugSettingNormalized {
+export function validateDebug(debug: unknown): DebugSettingNormalized {
   const validated: DebugSettingNormalized = {
     enabled: false,
     filter: {
@@ -1061,9 +1064,12 @@ function validateDebug(debug: unknown): DebugSettingNormalized {
  * @param settings - Raw ESLint context settings.
  * @returns Validated settings ready for normalization.
  */
-export function validateSettings(
-  settings: Rule.RuleContext["settings"]
-): Settings {
+export function validateSettings(settings: Rule.RuleContext["settings"]): Omit<
+  Settings,
+  "boundaries/debug"
+> & {
+  [SETTINGS_KEYS_MAP.DEBUG]: DebugSettingNormalized;
+} {
   deprecateTypes(settings[TYPES]);
   deprecateAlias(isAliasSetting(settings[ALIAS]) ? settings[ALIAS] : undefined);
 
@@ -1138,6 +1144,7 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
   const includePaths = isString(includeSetting)
     ? [includeSetting]
     : includeSetting;
+  const debugSetting = validatedSettings[SETTINGS_KEYS_MAP.DEBUG];
 
   const descriptors = transformLegacyTypes(validatedSettings[ELEMENTS]);
   const validDescriptors = descriptors.filter(isElementDescriptor);
@@ -1177,24 +1184,7 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
         validatedSettings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]
           ?.customSourcePatterns ?? [],
     },
-    debug: {
-      enabled: validatedSettings[SETTINGS_KEYS_MAP.DEBUG]?.enabled ?? false,
-      filter: {
-        files: validatedSettings[SETTINGS_KEYS_MAP.DEBUG]?.filter?.files,
-        dependencies:
-          validatedSettings[SETTINGS_KEYS_MAP.DEBUG]?.filter?.dependencies,
-      },
-      messages: {
-        files:
-          validatedSettings[SETTINGS_KEYS_MAP.DEBUG]?.messages?.files ?? true,
-        dependencies:
-          validatedSettings[SETTINGS_KEYS_MAP.DEBUG]?.messages?.dependencies ??
-          true,
-        violations:
-          validatedSettings[SETTINGS_KEYS_MAP.DEBUG]?.messages?.violations ??
-          true,
-      },
-    },
+    debug: debugSetting,
   };
   trackedValidatedSettings.set(context.settings, result);
   return result;
