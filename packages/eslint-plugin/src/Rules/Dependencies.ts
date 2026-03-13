@@ -277,13 +277,11 @@ function mergeElementsSelector(
   const normalizedEntrySelector =
     normalizeElementsSelector(entryElementSelector);
 
-  return outerElementSelector
-    ?.map((outerSelector) => {
-      return normalizedEntrySelector.map((entrySelector) =>
-        mergeElementSelectorData(outerSelector, entrySelector)
-      );
-    })
-    .flat();
+  return outerElementSelector?.flatMap((outerSelector) => {
+    return normalizedEntrySelector.map((entrySelector) =>
+      mergeElementSelectorData(outerSelector, entrySelector)
+    );
+  });
 }
 
 /**
@@ -310,13 +308,11 @@ function mergeDependencyDataSelectors(
   const entry = isArray(entryDependencySelector)
     ? entryDependencySelector
     : [entryDependencySelector];
-  return outer
-    .map((outerSelector) => {
-      return entry.map((entrySelector) =>
-        mergeDependencySelectorData(outerSelector, entrySelector)
-      );
-    })
-    .flat();
+  return outer.flatMap((outerSelector) => {
+    return entry.map((entrySelector) =>
+      mergeDependencySelectorData(outerSelector, entrySelector)
+    );
+  });
 }
 
 /**
@@ -514,9 +510,9 @@ export function resolveCustomMessage(
   ruleIndex: number | null,
   ruleOptions: DependenciesRuleOptions
 ): string | undefined {
-  const ruleMessage = !isNull(ruleIndex)
-    ? ruleOptions.rules?.[ruleIndex]?.message
-    : undefined;
+  const ruleMessage = isNull(ruleIndex)
+    ? undefined
+    : ruleOptions.rules?.[ruleIndex]?.message;
   return ruleMessage ?? ruleOptions.message;
 }
 

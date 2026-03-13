@@ -571,15 +571,15 @@ export function dependenciesRuleDefaultErrorMessage(
   );
 
   const fromPart = fromProperties.length
-    ? elementDescriptionMessageFromSelector(dependency.from, matchResult!.from!)
+    ? elementDescriptionMessageFromSelector(dependency.from, matchResult!.from)
     : null;
   const toPart = toProperties.length
-    ? elementDescriptionMessageFromSelector(dependency.to, matchResult!.to!)
+    ? elementDescriptionMessageFromSelector(dependency.to, matchResult!.to)
     : null;
   const dependencyPart = dependencyProperties.length
     ? dependencyDescriptionMessageFromSelector(
         dependency.dependency,
-        matchResult!.dependency!
+        matchResult!.dependency
       )
     : null;
 
