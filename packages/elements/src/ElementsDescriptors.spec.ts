@@ -421,7 +421,6 @@ describe("Elements Descriptors", () => {
       expect(isElementDescription(element)).toBe(true);
     });
 
-    // TODO: Add "external" mode to descriptors, and test known external elements too
     it("should assign descriptions to unknown external dependency elements correctly", () => {
       const element = describeDependencyTarget(
         "react",

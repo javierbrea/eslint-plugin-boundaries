@@ -148,7 +148,7 @@ export class BaseElementsMatcher {
     // Clean empty strings from arrays to avoid matching them.
     const patternToCheck = this.cleanMicromatchPattern(pattern);
 
-    if (!patternToCheck || !patternToCheck.length) {
+    if (!patternToCheck?.length) {
       return false;
     }
 

@@ -59,12 +59,14 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       throw new Error("Invalid dependency selector");
     }
 
-    const normalizedDependencySelectors =
-      selector.dependency && isDependencyDataSelector(selector.dependency)
-        ? isArray(selector.dependency)
-          ? selector.dependency
-          : [selector.dependency]
-        : null;
+    let normalizedDependencySelectors: DependencyDataSelectorData[] | null =
+      null;
+
+    if (selector.dependency && isDependencyDataSelector(selector.dependency)) {
+      normalizedDependencySelectors = isArray(selector.dependency)
+        ? selector.dependency
+        : [selector.dependency];
+    }
 
     return {
       from: selector.from ? normalizeElementsSelector(selector.from) : null,
