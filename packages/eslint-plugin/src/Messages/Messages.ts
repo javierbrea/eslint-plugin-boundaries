@@ -463,34 +463,19 @@ export function dependencyDescriptionMessageFromSelector(
 }
 
 /**
- * Builds the fallback no-rules message when no rule matches a dependency.
- * @param dependency - Dependency description used to derive message details.
- * @returns Human-readable fallback message for no-rules scenarios.
+ * Resolves the fallback no-rules message from available description fragments.
+ * @param fromDescription - Description of the source element.
+ * @param toDescription - Description of the target element.
+ * @param dependencyDescription - Description of dependency metadata.
+ * @param originDescription - Optional origin description when target details are not available.
+ * @returns The most specific no-rules message that can be composed.
  */
-function elementTypesNoRulesMatchedMessage(
-  dependency: DependencyDescription
+function resolveNoRulesMatchedMessage(
+  fromDescription: string,
+  toDescription: string,
+  dependencyDescription: string,
+  originDescription: string | null
 ): string {
-  const fromDescription = elementDescriptionMessage(dependency.from, [
-    "type",
-    "category",
-    "captured",
-  ]);
-  const toDescription = elementDescriptionMessage(dependency.to, [
-    "type",
-    "category",
-    "captured",
-  ]);
-  const propertyToShowInDependency = dependency.dependency.module
-    ? "module"
-    : "source";
-  const dependencyDescription = dependencyDescriptionMessage(
-    dependency.dependency,
-    [propertyToShowInDependency]
-  );
-  const originDescription = !toDescription.length
-    ? elementDescriptionMessage(dependency.to, ["origin"])
-    : null;
-
   if (fromDescription && toDescription) {
     return `${NO_RULE_MESSAGE} from ${fromDescription} to ${toDescription}`;
   }
@@ -520,6 +505,43 @@ function elementTypesNoRulesMatchedMessage(
   }
 
   return MESSAGE_ERROR;
+}
+
+/**
+ * Builds the fallback no-rules message when no rule matches a dependency.
+ * @param dependency - Dependency description used to derive message details.
+ * @returns Human-readable fallback message for no-rules scenarios.
+ */
+function elementTypesNoRulesMatchedMessage(
+  dependency: DependencyDescription
+): string {
+  const fromDescription = elementDescriptionMessage(dependency.from, [
+    "type",
+    "category",
+    "captured",
+  ]);
+  const toDescription = elementDescriptionMessage(dependency.to, [
+    "type",
+    "category",
+    "captured",
+  ]);
+  const propertyToShowInDependency = dependency.dependency.module
+    ? "module"
+    : "source";
+  const dependencyDescription = dependencyDescriptionMessage(
+    dependency.dependency,
+    [propertyToShowInDependency]
+  );
+  const originDescription = !toDescription.length
+    ? elementDescriptionMessage(dependency.to, ["origin"])
+    : null;
+
+  return resolveNoRulesMatchedMessage(
+    fromDescription,
+    toDescription,
+    dependencyDescription,
+    originDescription
+  );
 }
 
 /**
