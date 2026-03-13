@@ -570,12 +570,12 @@ export function evaluateRulesAndReport({
   const matcher = getElementsMatcher(settings);
   const result = evaluateRules(rules, dependency, matcher, settings);
   const defaultAllowed = options?.default === "allow";
-  const finalAllowed =
-    result.allowed === true
-      ? true
-      : isNull(result.ruleIndex)
-        ? defaultAllowed
-        : false;
+  let finalAllowed = false;
+  if (result.allowed === true) {
+    finalAllowed = true;
+  } else if (isNull(result.ruleIndex)) {
+    finalAllowed = defaultAllowed;
+  }
 
   if (!finalAllowed && result.allowed === false) {
     printDependenciesRuleResult(
