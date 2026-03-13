@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/install
-    - run: pnpm 
+    - run: pnpm check:all
       env:
         RUN_PERFORMANCE_TESTS: false
     - run: pnpm -r publish --no-git-checks
@@ -37,7 +37,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/install
-    - run: pnpm 
+    - run: pnpm check:all
       env:
         RUN_PERFORMANCE_TESTS: false
     - run: pnpm -r publish --no-git-checks --tag beta

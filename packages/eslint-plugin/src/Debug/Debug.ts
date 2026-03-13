@@ -284,7 +284,7 @@ export function printDependenciesRuleResult(
     return;
   }
 
-  if (!ruleIndex || !dependencyMatchResult) {
+  if (isNull(ruleIndex) || !dependencyMatchResult) {
     printDebugBlock(
       `${DEPENDENCIES_VIOLATION_PREFIX} Dependency did not match any rule, and default policy is to deny.`,
       {
@@ -306,11 +306,11 @@ export function printDependenciesRuleResult(
     selectorRelevantData.dependency = dependencyMatchResult.dependency;
   }
   printDebugBlock(title, {
-    dependency,
     rule: {
       index: ruleIndex,
       selector: selectorRelevantData,
     },
+    dependency,
   });
 }
 

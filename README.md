@@ -77,7 +77,7 @@ Define your dependency rules:
 ```javascript
 {
   rules: {
-    "boundaries/element-types": [2, {
+    "boundaries/dependencies": [2, {
       default: "disallow",
       rules: [
         { from: { type: "controller" }, allow: { to: { type: ["model", "view"] } } },

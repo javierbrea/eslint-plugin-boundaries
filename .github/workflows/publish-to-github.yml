@@ -33,7 +33,7 @@ jobs:
       env:
         HUSKY_SKIP_INSTALL: 1
 
-    - run: pnpm 
+    - run: pnpm check:all
       env:
         RUN_PERFORMANCE_TESTS: false
 

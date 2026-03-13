@@ -22,13 +22,6 @@ export default [
           dependencies: false,
           violations: true,
         },
-        filter: {
-          files: [
-            {
-              path: "**/CustomMessages.ts",
-            },
-          ],
-        },
       },
 
       "boundaries/elements": [
