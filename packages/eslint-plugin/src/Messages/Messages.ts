@@ -532,9 +532,9 @@ function elementTypesNoRulesMatchedMessage(
     dependency.dependency,
     [propertyToShowInDependency]
   );
-  const originDescription = !toDescription.length
-    ? elementDescriptionMessage(dependency.to, ["origin"])
-    : null;
+  const originDescription = toDescription.length
+    ? null
+    : elementDescriptionMessage(dependency.to, ["origin"]);
 
   return resolveNoRulesMatchedMessage(
     fromDescription,

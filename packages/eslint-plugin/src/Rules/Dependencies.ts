@@ -220,7 +220,7 @@ function mergeProperties<T>(
   if (isObject(outer) && isObject(entry)) {
     return { ...outer, ...entry };
   }
-  return !isUndefined(entry) ? entry : outer;
+  return isUndefined(entry) ? outer : entry;
 }
 
 /**
@@ -377,26 +377,36 @@ function buildEntrySelector(
 
 /**
  * Iterates the entries of a single policy value returning the first match, or null.
- * @param policy - The policy value, which can be a single entry or an array of entries.
- * @param outerFrom - The outer `from` selector defined at the rule level, to be merged with each entry.
- * @param outerTo - The outer `to` selector defined at the rule level, to be merged with each entry.
- * @param outerDependency - The outer `dependency` selector defined at the rule level, to be merged with each entry.
- * @param dep - The dependency description under evaluation.
- * @param matcher - The elements matcher instance used to evaluate matches.
- * @param templateData - The template data object containing captured values for template rendering.
- * @param legacyImportKind - The legacy import kind at rule level, if applicable.
+ * @param options - The rule options object containing the policy entries and outer selectors.
+ * @param options.policy - The policy value, which can be a single entry or an array of entries.
+ * @param options.outerFrom - The outer `from` selector defined at the rule level, to be merged with each entry.
+ * @param options.outerTo - The outer `to` selector defined at the rule level, to be merged with each entry.
+ * @param options.outerDependency - The outer `dependency` selector defined at the rule level, to be merged with each entry.
+ * @param options.dep - The dependency description under evaluation.
+ * @param options.matcher - The elements matcher instance used to evaluate matches.
+ * @param options.templateData - The template data object containing captured values for template rendering.
+ * @param options.legacyImportKind - The legacy import kind at rule level, if applicable.
  * @returns The match result from the first matching entry, or null if no entries matched.
  */
-function evaluatePolicyEntries(
-  policy: RulePolicyEntry | RulePolicyEntry[],
-  outerFrom: BaseElementsSelector | undefined,
-  outerTo: BaseElementsSelector | undefined,
-  outerDependency: DependencyDataSelector | undefined,
-  dep: DependencyDescription,
-  matcher: Matcher,
-  templateData: TemplateData,
-  legacyImportKind?: DependencyKind
-): DependencyMatchResult | null {
+function evaluatePolicyEntries({
+  policy,
+  outerFrom,
+  outerTo,
+  outerDependency,
+  dep,
+  matcher,
+  templateData,
+  legacyImportKind,
+}: {
+  policy: RulePolicyEntry | RulePolicyEntry[];
+  outerFrom: BaseElementsSelector | undefined;
+  outerTo: BaseElementsSelector | undefined;
+  outerDependency: DependencyDataSelector | undefined;
+  dep: DependencyDescription;
+  matcher: Matcher;
+  templateData: TemplateData;
+  legacyImportKind?: DependencyKind;
+}): DependencyMatchResult | null {
   for (const entry of getPolicyEntries(policy)) {
     const selector = buildEntrySelector(
       outerFrom ? normalizeElementsSelector(outerFrom) : undefined,
@@ -460,16 +470,17 @@ export function evaluateRules(
 
     let denyMatched = false;
     if (rule.disallow) {
-      const denyMatch = evaluatePolicyEntries(
-        rule.disallow,
+      const denyMatch = evaluatePolicyEntries({
+        policy: rule.disallow,
         outerFrom,
         outerTo,
         outerDependency,
         dep,
         matcher,
         templateData,
-        rule.importKind /* legacy importKind for backward compatibility */
-      );
+        legacyImportKind:
+          rule.importKind /* legacy importKind for backward compatibility */,
+      });
       if (denyMatch) {
         allowed = false;
         ruleIndex = i;
@@ -480,16 +491,17 @@ export function evaluateRules(
 
     // Allow is only evaluated when disallow/deny did not match for this rule
     if (!denyMatched && rule.allow) {
-      const allowMatch = evaluatePolicyEntries(
-        rule.allow,
+      const allowMatch = evaluatePolicyEntries({
+        policy: rule.allow,
         outerFrom,
         outerTo,
         outerDependency,
         dep,
         matcher,
         templateData,
-        rule.importKind /* legacy importKind for backward compatibility */
-      );
+        legacyImportKind:
+          rule.importKind /* legacy importKind for backward compatibility */,
+      });
       if (allowMatch) {
         allowed = true;
         ruleIndex = i;
