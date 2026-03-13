@@ -72,7 +72,6 @@ const runTest = (
         code: 'import HelperA from "components/molecules/molecule-a/components/atoms/atom-c"',
         options,
       },
-      // Private elements can use an ancestor // TODO, add relationships rule to avoid this
       {
         filename: absoluteFilePath(
           "components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/MoleculeD.js"

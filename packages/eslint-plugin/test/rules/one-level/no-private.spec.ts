@@ -98,7 +98,6 @@ const runTest = (settings: RuleTesterSettings) => {
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options,
       },
-      // Private elements can use an ancestor // TODO, add relationships rule to avoid this
       {
         filename: absoluteFilePath(
           "components/component-a/components/component-c/components/component-d/ComponentD.js"
