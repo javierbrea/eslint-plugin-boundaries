@@ -1,7 +1,8 @@
+import type { ConfigOptionsNormalized } from "../Config";
+import { Micromatch } from "../Matcher";
+
 import { DependenciesDescriptor } from "./DependenciesDescriptor";
 import { ElementsDescriptor } from "./ElementsDescriptor";
-import { ConfigOptionsNormalized } from "../Config";
-import { Micromatch } from "../Matcher";
 
 describe("DependenciesDescriptor cache serialization", () => {
   let elementsDescriptor: ElementsDescriptor;
@@ -22,9 +23,12 @@ describe("DependenciesDescriptor cache serialization", () => {
       },
     } as unknown as ConfigOptionsNormalized;
 
-    const micromatch = new Micromatch(config);
+    const micromatch = new Micromatch(config.cache);
     elementsDescriptor = new ElementsDescriptor([], config, micromatch);
-    dependenciesDescriptor = new DependenciesDescriptor(elementsDescriptor, config);
+    dependenciesDescriptor = new DependenciesDescriptor(
+      elementsDescriptor,
+      config
+    );
   });
 
   it("should serialize and deserialize cache correctly", () => {
@@ -37,12 +41,14 @@ describe("DependenciesDescriptor cache serialization", () => {
     });
 
     const serialized = dependenciesDescriptor.serializeCache();
+
     expect(Object.keys(serialized).length).toBeGreaterThan(0);
 
     // Clear and restore
     dependenciesDescriptor.clearCache();
     const serializedAfterClear = dependenciesDescriptor.serializeCache();
-    expect(Object.keys(serializedAfterClear).length).toBe(0);
+
+    expect(Object.keys(serializedAfterClear)).toHaveLength(0);
 
     dependenciesDescriptor.setCacheFromSerialized(serialized);
 

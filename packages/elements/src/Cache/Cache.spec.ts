@@ -125,6 +125,7 @@ describe("CacheManager serialization", () => {
     cacheManager.set("key2", "value2");
 
     const serialized = cacheManager.serialize();
+
     expect(serialized).toEqual({
       key1: "value1",
       key2: "value2",

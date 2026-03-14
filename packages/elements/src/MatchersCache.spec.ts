@@ -1,3 +1,5 @@
+import type { ConfigOptionsNormalized } from "./Config";
+import type { ElementDescriptors } from "./Descriptor";
 import { MatchersCache } from "./MatchersCache";
 
 describe("MatchersCache", () => {
@@ -20,7 +22,7 @@ describe("MatchersCache", () => {
         outsideRootPath: true,
         customSourcePatterns: ["@external/*"],
       },
-    } as any;
+    } as unknown as ConfigOptionsNormalized;
 
     const elementDescriptors = [
       {
@@ -32,7 +34,7 @@ describe("MatchersCache", () => {
         capture: ["name"],
         baseCapture: ["baseName"],
       },
-    ] as any;
+    ] as unknown as ElementDescriptors;
 
     const key = matchersCache.getKey({ config, elementDescriptors });
 
