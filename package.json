@@ -23,7 +23,7 @@
     "@stryker-mutator/api": "9.6.0",
     "@stryker-mutator/core": "9.6.0",
     "@stryker-mutator/jest-runner": "9.6.0",
-    "@types/jest": "29.5.14",
+    "@types/jest": "30.0.0",
     "@types/node": "22.9.0",
     "@typescript-eslint/parser": "8.57.0",
     "cross-env": "10.1.0",
@@ -33,7 +33,7 @@
     "is-ci": "4.1.0",
     "jest": "30.3.0",
     "lint-staged": "16.3.3",
-    "nx": "21.6.3",
+    "nx": "22.5.4",
     "serve": "14.2.6",
     "typescript": "5.9.3"
   },
