@@ -268,20 +268,22 @@ const legacyElementsSelectorSchema = {
  * @param options - Schema customization options for rule main key and extras.
  * @returns ESLint-compatible schema array for rule options.
  */
-export function rulesOptionsSchema(
-  options: {
-    rulesMainKey?: RuleMainKey;
-    targetMatcherOptions?: JsonSchemaObject;
-    extraOptionsSchema?: Record<string, JsonSchemaObject>;
-    isLegacy?: boolean;
-  } = {
-    isLegacy: false,
-  }
-) {
-  const policySchema = !options.isLegacy
-    ? {
+export function rulesOptionsSchema({
+  rulesMainKey: mainKey,
+  targetMatcherOptions,
+  extraOptionsSchema,
+  isLegacy = false,
+}: {
+  rulesMainKey?: RuleMainKey;
+  targetMatcherOptions?: JsonSchemaObject;
+  extraOptionsSchema?: Record<string, JsonSchemaObject>;
+  isLegacy?: boolean;
+} = {}) {
+  const policySchema = isLegacy
+    ? legacyPoliciesSchema(targetMatcherOptions)
+    : {
         anyOf: [
-          legacyPoliciesSchema(options.targetMatcherOptions),
+          legacyPoliciesSchema(targetMatcherOptions),
           {
             type: "object",
             properties: {
@@ -292,8 +294,7 @@ export function rulesOptionsSchema(
             additionalProperties: false,
           },
         ],
-      }
-    : legacyPoliciesSchema(options.targetMatcherOptions);
+      };
 
   const policiesSchema = {
     anyOf: [
@@ -309,9 +310,9 @@ export function rulesOptionsSchema(
     anyOf: [legacyElementsSelectorSchema, objectElementMatcherSchema],
   };
 
-  const legacyMainKey = rulesMainKey(options.rulesMainKey);
+  const legacyMainKey = rulesMainKey(mainKey);
 
-  const ruleSupportedProperties = options.isLegacy
+  const ruleSupportedProperties = isLegacy
     ? {
         [legacyMainKey]: elementSelectorSchema,
         allow: policiesSchema,
@@ -325,7 +326,7 @@ export function rulesOptionsSchema(
         disallow: policiesSchema,
       };
 
-  const requiredProperties = options.isLegacy
+  const requiredProperties = isLegacy
     ? [
         {
           required: [legacyMainKey, "allow"],
@@ -399,7 +400,7 @@ export function rulesOptionsSchema(
             anyOf: requiredProperties,
           },
         },
-        ...(options.extraOptionsSchema || {}),
+        ...extraOptionsSchema,
       },
       additionalProperties: false,
     },
@@ -997,12 +998,7 @@ export function validateDebug(debug: unknown): DebugSettingNormalized {
   }
 
   if (!isUndefined(debug.messages)) {
-    if (!isObject(debug.messages)) {
-      warnOnce(
-        `Please provide a valid object for 'messages' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
-        moreInfoSettingsLink()
-      );
-    } else {
+    if (isObject(debug.messages)) {
       if (!isUndefined(debug.messages.files)) {
         if (isBoolean(debug.messages.files)) {
           validated.messages.files = debug.messages.files;
@@ -1033,6 +1029,11 @@ export function validateDebug(debug: unknown): DebugSettingNormalized {
           );
         }
       }
+    } else {
+      warnOnce(
+        `Please provide a valid object for 'messages' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+        moreInfoSettingsLink()
+      );
     }
   }
 
@@ -1044,8 +1045,8 @@ export function validateDebug(debug: unknown): DebugSettingNormalized {
       );
 
       validated.filter = {
-        ...(!isUndefined(files) ? { files } : {}),
-        ...(!isUndefined(dependencies) ? { dependencies } : {}),
+        ...(isUndefined(files) ? {} : { files }),
+        ...(isUndefined(dependencies) ? {} : { dependencies }),
       };
     } else {
       warnOnce(
