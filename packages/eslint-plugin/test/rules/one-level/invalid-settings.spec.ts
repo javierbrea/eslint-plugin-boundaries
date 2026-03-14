@@ -5,7 +5,6 @@ import {
   pathResolvers,
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
-import { errorMessage } from "../../support/messages";
 
 const { ELEMENT_TYPES: RULE } = require("../../../src/Shared");
 
@@ -15,9 +14,9 @@ const { absoluteFilePath } = pathResolvers("one-level");
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string> = {
-    0: 'There is no rule allowing dependencies from elements of type "helpers" and elementName "helper-a" to elements of type "helpers" and elementName "helper-b"',
-  }
+  {
+    0: errorMessage0 = 'There is no rule allowing dependencies from elements of type "helpers" and elementName "helper-a" to elements of type "helpers" and elementName "helper-b"',
+  }: Partial<Record<number, string>> = {}
 ) => {
   const ruleTester = createRuleTester(settings);
 
@@ -72,11 +71,7 @@ const runTest = (
         ],
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              0,
-              'There is no rule allowing dependencies from elements of type "helpers" and elementName "helper-a" to elements of type "helpers" and elementName "helper-b"'
-            ),
+            message: errorMessage0,
             type: "Literal",
           },
         ],

@@ -1041,7 +1041,7 @@ export function validateFlagAsExternal(
     return;
   }
 
-  const options = flagAsExternal as Record<string, unknown>;
+  const options = flagAsExternal;
   const validated: FlagAsExternalOptions = {};
 
   assignFlagAsExternalBooleanOption(options, validated, "unresolvableAlias");
