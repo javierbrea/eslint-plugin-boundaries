@@ -14,6 +14,9 @@ export default [
     },
   },
   {
-    ignores: ["test/configs-ts/**/*.js"],
+    ignores: [
+      "test/configs-ts/**/*.js",
+      "test/fixtures/performance/src/**/*.js",
+    ],
   },
 ];

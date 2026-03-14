@@ -1,4 +1,5 @@
 import rule from "../../../src/Rules/NoUnknownFiles";
+import { NO_UNKNOWN_FILES as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
@@ -6,12 +7,10 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 
-const { NO_UNKNOWN_FILES: RULE } = require("../../../src/Settings");
-
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
 const FOO_CODE = "export default {}";
-const ERROR_MESSAGE = "File is not of any known element type";
+const ERROR_MESSAGE = "File does not match any element pattern";
 
 const runTest = (settings: RuleTesterSettings) => {
   const ruleTester = createRuleTester(settings);

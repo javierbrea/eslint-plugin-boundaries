@@ -1,138 +1,65 @@
-import type { DependencyDescription } from "@boundaries/elements";
 import {
   normalizeElementsSelector,
   DEPENDENCY_RELATIONSHIPS_MAP,
 } from "@boundaries/elements";
 
 import {
-  customErrorMessage,
-  ruleElementMessage,
-  elementMessage,
-  dependencyUsageKindMessage,
-} from "../Messages";
+  rulesOptionsSchema,
+  validateAndWarnRuleOptions,
+  warnMigrationToDependencies,
+} from "../Settings";
 import type {
   EntryPointRuleOptions,
-  RuleResult,
   EntryPointRule,
-  ElementTypesRule,
-} from "../Settings";
-import {
-  PLUGIN_NAME,
-  PLUGIN_ISSUES_URL,
-  SETTINGS,
-  rulesOptionsSchema,
-} from "../Settings";
+  DependenciesRule,
+} from "../Shared";
+import { SETTINGS, RULE_NAMES_MAP } from "../Shared";
 
-import { elementRulesAllowDependency } from "./ElementTypes";
+import { evaluateRulesAndReport } from "./Dependencies";
 import { dependencyRule } from "./Support";
 
 const { RULE_ENTRY_POINT } = SETTINGS;
 
-type AdaptedRuleOptions = Omit<EntryPointRuleOptions, "rules"> & {
-  rules: ElementTypesRule[];
-};
-
-function errorMessage(ruleData: RuleResult, dependency: DependencyDescription) {
-  const ruleReport = ruleData.ruleReport;
-  if (!ruleReport) {
-    return `No detailed rule report available. This is likely a bug in ${PLUGIN_NAME}. Please report it at ${PLUGIN_ISSUES_URL}`;
-  }
-
-  if (ruleReport.message) {
-    return customErrorMessage(ruleReport.message, dependency);
-  }
-  if (ruleReport.isDefault) {
-    return `No rule allows the entry point '${
-      dependency.to.internalPath
-    }' in dependencies ${elementMessage(dependency.to)}`;
-  }
-  return `The entry point '${dependency.to.internalPath}' is not allowed in ${ruleElementMessage(
-    ruleReport.disallow,
-    dependency.to.captured
-  )}${dependencyUsageKindMessage(ruleReport.importKind, dependency, {
-    prefix: " when importing ",
-    suffix: "",
-  })}. Disallowed in rule ${ruleReport.index + 1}`;
-}
-
-function modifyTemplates(
-  templates: string | string[] | undefined
-): string[] | undefined {
-  if (!templates) {
-    return undefined;
-  }
+/**
+ * Adapts legacy template placeholders from `target` to `to` notation.
+ *
+ * @param templates - Legacy templates from rule options.
+ * @returns Normalized templates or `undefined` when not provided.
+ */
+function modifyLegacyTemplates(templates: string | string[]): string[] {
   const templatesArray = Array.isArray(templates) ? templates : [templates];
   return templatesArray.map((template) =>
     template.replaceAll("${target.", "${to.")
   );
 }
 
-function modifyRules(rules: EntryPointRule[]): ElementTypesRule[] {
-  const newRules: ElementTypesRule[] = [];
+/**
+ * Converts `entry-point` legacy rules to `dependencies` rule shape.
+ *
+ * @param rules - Entry-point rules as defined by user configuration.
+ * @returns Equivalent dependencies rules for shared evaluator.
+ */
+function transformToDependenciesRules(
+  rules: EntryPointRule[]
+): DependenciesRule[] {
+  const newRules: DependenciesRule[] = [];
 
-  for (let i = 0; i < rules.length; i++) {
-    const rule = rules[i];
+  for (const rule of rules) {
     const newTargets = normalizeElementsSelector(rule.target);
 
-    const ruleHasDisallow = !!rule.disallow;
-    const ruleHasAllow = !!rule.allow;
-    let internalPathPatterns: string[] | undefined = undefined;
-    let allowPattern: string[] | undefined = undefined;
-    let disallowPattern: string[] | undefined = undefined;
-
-    if (ruleHasDisallow && ruleHasAllow) {
-      // Workaround to support both allow and disallow in the same rule
-      const toAdd = [
-        {
-          to: newTargets.map((target) => {
-            return {
-              ...target,
-              internalPath: modifyTemplates(rule.allow)!,
-            };
-          }),
-          allow: ["*"],
-          importKind: rule.importKind,
-          message: rule.message,
-          originalRuleIndex: i,
-        },
-        {
-          to: newTargets.map((target) => {
-            return {
-              ...target,
-              internalPath: modifyTemplates(rule.disallow)!,
-            };
-          }),
-          disallow: ["*"],
-          importKind: rule.importKind,
-          message: rule.message,
-          originalRuleIndex: i,
-        },
-      ];
-      newRules.push(...toAdd);
+    for (const target of newTargets) {
+      newRules.push({
+        to: target,
+        allow: rule.allow
+          ? { to: { internalPath: modifyLegacyTemplates(rule.allow) } }
+          : undefined,
+        disallow: rule.disallow
+          ? { to: { internalPath: modifyLegacyTemplates(rule.disallow) } }
+          : undefined,
+        importKind: rule.importKind,
+        message: rule.message,
+      });
     }
-
-    if (ruleHasDisallow) {
-      internalPathPatterns = modifyTemplates(rule.disallow);
-      disallowPattern = ["*"];
-    } else if (ruleHasAllow) {
-      internalPathPatterns = modifyTemplates(rule.allow);
-      allowPattern = ["*"];
-    }
-
-    newRules.push({
-      to: newTargets.map((target) => {
-        return {
-          ...target,
-          internalPath: internalPathPatterns,
-        };
-      }),
-      allow: allowPattern,
-      disallow: disallowPattern,
-      importKind: rule.importKind,
-      message: rule.message,
-      // @ts-expect-error Workaround to support both allow and disallow in the same entry point rule
-      originalRuleIndex: i,
-    });
   }
   return newRules;
 }
@@ -140,34 +67,32 @@ function modifyRules(rules: EntryPointRule[]): ElementTypesRule[] {
 export default dependencyRule<EntryPointRuleOptions>(
   {
     ruleName: RULE_ENTRY_POINT,
-    description: `Check entry point used for each element type`,
+    description: `Check elements entry point`,
     schema: rulesOptionsSchema({
       rulesMainKey: "target",
+      isLegacy: true,
     }),
   },
   function ({ dependency, node, context, settings, options }) {
+    warnMigrationToDependencies(RULE_NAMES_MAP.ENTRY_POINT);
+    // Validate and warn about legacy selector syntax
+    validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, "target");
+
     if (
       !dependency.to.isIgnored &&
       dependency.to.type &&
       dependency.dependency.relationship.to !==
         DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL
     ) {
-      const adaptedRuleOptions: AdaptedRuleOptions = {
-        ...options,
-        rules: options && options.rules ? modifyRules(options.rules) : [],
-      };
-
-      const ruleData = elementRulesAllowDependency(
-        dependency,
+      const rules = transformToDependenciesRules(options?.rules ?? []);
+      evaluateRulesAndReport({
+        rules,
         settings,
-        adaptedRuleOptions
-      );
-      if (!ruleData.result) {
-        context.report({
-          message: errorMessage(ruleData, dependency),
-          node: node,
-        });
-      }
+        context,
+        node,
+        options,
+        dependency,
+      });
     }
   },
   {

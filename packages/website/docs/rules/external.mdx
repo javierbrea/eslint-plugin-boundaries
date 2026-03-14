@@ -1,0 +1,461 @@
+---
+id: external
+title: Rule external
+sidebar_label: External
+description: Documentation for the external rule in ESLint Plugin Boundaries.
+tags:
+  - rules
+  - configuration
+  - examples
+keywords:
+  - eslint-plugin-boundaries
+  - external rule
+  - external dependencies
+  - module restrictions
+  - import restrictions
+  - specifiers
+  - importKind
+  - migration
+  - dependencies replacement
+---
+
+import CodeDiff from "@site/src/components/CodeDiff";
+
+# external
+
+> Enforce allowed external dependencies by **[element](../setup/elements.md)** type.
+
+## Rule Details
+
+This rule validates dependencies to external modules and allows or disallows them based on the element importing the module and the provided configuration. It helps maintain consistent dependency management across different architectural layers.
+
+:::warning
+The boundaries set by this rule can also be achieved with the **[`boundaries/dependencies` rule](./dependencies.md)**, which allows you to specify allowed entry points directly in the rules by using the [`origin` and `source` selector properties](../setup/selectors.md). This legacy rule will continue working for now to give you more time to migrate your configuration, but it is recommended to migrate to `boundaries/dependencies` as soon as possible, as this rule will eventually be removed in oncoming major versions.
+
+Read the **[migration guide below](#migration-to-boundariesdependencies)** for more details and examples on how to migrate your configuration.
+:::
+
+
+## Options
+
+
+```
+"boundaries/external":
+  [<enabled>, { "default": <string>, "message": <string>, "rules": <object> }]
+```
+
+
+**Configuration properties:**
+
+- `enabled`: Enables the rule. `0` = off, `1` = warning, `2` = error
+- `default`: `"allow"` or `"disallow"`. Determines the default behavior for external imports that don't match any rule
+- `message`: Custom error message for rule violations. Note that **the default message provides detailed information about why the error occurred**, so only define a custom message if necessary. See [error messages](#error-messages) for more information
+- `rules`: An array of rule objects processed in order to determine whether an import should be allowed. Each rule object contains:
+  - `from`: **[`<element selectors>`](../setup/selectors.md)** - If the file being analyzed matches this selector, the rule will be evaluated. Otherwise, it is skipped
+  - `disallow`: **`<external module selectors>`** - If the imported external module matches this selector, the import is disallowed (can be overridden by a subsequent rule returning `"allow"`)
+  - `allow`: **`<external module selectors>`** - If the imported external module matches this selector, the import is allowed (can be overridden by a subsequent rule returning `"disallow"`)
+  - `importKind`: `<string>` - Optional. Makes sense when using [TypeScript](../guides/typescript-support.md) only. If defined, the rule will only be evaluated for dependencies of the specified kind. Possible values: `"value"`, `"type"`, or `"typeof"`. If defined, the rule will only be evaluated for dependencies of the specified kind.
+  - `message`: `<string>` - Custom error message for this specific rule. See [error messages](#error-messages) for more information
+
+:::warning
+You must provide at least one of `allow` or `disallow`, and `from` for each rule.
+:::
+
+
+### External Module Selectors
+
+
+The `allow` and `disallow` properties support one or multiple patterns to match external libraries. Each pattern can have the following formats:
+
+
+- **`<string>`** - A [micromatch pattern](https://github.com/micromatch/micromatch) to match the module name
+- **`[<string>, <object>]`** - An array containing a [micromatch pattern](https://github.com/micromatch/micromatch) as the first element and an options object with the following properties:
+  - `specifiers`: `<array>` - Array of import specifiers to match. Each specifier can be expressed as a [micromatch pattern](https://github.com/micromatch/micromatch).
+  - `path`: `<string>` or `<array<string>>` - Micromatch patterns to match the imported subpath from the module. If an array is provided, the module matches if any pattern matches. **Note that paths must start with a `/` character**.
+
+:::info
+When using options:
+- If `path` is provided, the pattern only matches if the imported subpath from the module matches any of the patterns
+- If `specifiers` is provided, the pattern only matches if any of the specifiers is used in the import statement
+:::
+
+
+### Pattern Matching Examples
+
+
+| Pattern | Import Statement | Match |
+|---------|-----------------|-------|
+| `"foo-library"` | `import "foo-library"` | ✅ |
+| `"foo-library"` | `import { Link } from "foo-library"` | ✅ |
+| `"foo-library"` | `import { Link, Foo } from "foo-library"` | ✅ |
+| `"foo-library"` | `import "another-library"` | ❌ |
+| `{ module: "foo-library", specifiers: ["Link"] }` | `import { Link } from "foo-library"` | ✅ |
+| `{ module: "foo-library", specifiers: ["Link"] }` | `import { Link, Foo } from "foo-library"` | ✅ |
+| `{ module: "foo-library", specifiers: ["Link"] }` | `import "foo-library"` | ❌ |
+| `{ module: "foo-library", specifiers: ["Link"] }` | `import { Foo } from "foo-library"` | ❌ |
+| `{ module: "foo-library", specifiers: ["Link"] }` | `import "another-library"` | ❌ |
+| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import { Link } from "foo-library"` | ✅ |
+| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import { Foo } from "foo-another-library"` | ✅ |
+| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import { Var, Foo } from "foo-library"` | ✅ |
+| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import "foo-library"` | ❌ |
+| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import "another-library"` | ❌ |
+| `{ module: "foo-library", path: "/subpath" }` | `import "foo-library/subpath"` | ✅ |
+| `{ module: "foo-library", path: "/utils/*" }` | `import "foo-library/utils/helper"` | ✅ |
+| `{ module: "foo-library", path: "/utils/*" }` | `import "foo-library/utils"` | ❌ |
+| `{ module: "foo-library", path: ["/subpath", "/utils/*"] }` | `import "foo-library/another"` | ❌ |
+
+
+### Configuration Example
+
+
+```js
+{
+  rules: {
+    "boundaries/external": [2, {
+      // disallow all external imports by default
+      default: "disallow",
+      rules: [
+        {
+          // from helper elements
+          from: { type: "helper" },
+          // allow importing moment
+          allow: ["moment"],
+          // allow only importing types, not values (TypeScript only)
+          importKind: "type"
+        },
+        {
+          // from component elements
+          from: { type: "component" },
+          allow: [
+            // allow importing react
+            "react",
+            // allow importing any @material-ui module
+            "@material-ui/*"
+          ]
+        },
+        {
+          // from components of family "molecules"
+          from: { type: "component", captured: { family: "molecules" } },
+          disallow: [
+            // disallow importing @material-ui/icons
+            "@material-ui/icons"
+          ]
+        },
+        {
+          // from modules
+          from: { type: "module" },
+          allow: [
+            // allow importing react
+            "react",
+            // allow importing useHistory, Switch and Route from react-router-dom
+            { module: "react-router-dom", specifiers: ["useHistory", "Switch", "Route"] },
+            // allow importing Menu icon and any icon starting with "Log" from @mui/icons-material
+            { module: "@mui/icons-material", path: ["/Menu", "/Log*"] }
+          ]
+        }
+      ]
+    }]
+  }
+}
+```
+
+
+### Settings
+
+
+The following examples use this project structure and settings configuration.
+
+
+**Project structure:**
+
+
+```text
+src/
+├── components/
+│   ├── atoms/
+│   │   ├── atom-a/
+│   │   │   ├── index.js
+│   │   │   └── AtomA.js
+│   │   └── atom-b/
+│   │       ├── index.js
+│   │       └── AtomB.js
+│   └── molecules/
+│       ├── molecule-a/
+│       │   ├── index.js
+│       │   └── MoleculeA.js
+│       └── molecule-b/
+│           ├── index.js
+│           └── MoleculeB.js
+├── helpers/
+│   ├── data/
+│   │   ├── sort.js
+│   │   └── parse.js
+│   └── permissions/
+│       └── roles.js
+└── modules/
+    ├── module-a/
+    │   ├── index.js
+    │   └── ModuleA.js
+    └── module-b/
+        ├── index.js
+        └── ModuleB.js
+```
+
+
+**Settings configuration:**
+
+
+```js
+{
+  settings: {
+    "boundaries/elements": [
+      {
+        type: "helper",
+        pattern: "helpers/*/*.js",
+        mode: "file",
+        capture: ["family", "elementName"]
+      },
+      {
+        type: "component",
+        pattern: "components/*/*",
+        mode: "folder",
+        capture: ["family", "elementName"]
+      },
+      {
+        type: "module",
+        pattern: "modules/*",
+        mode: "folder",
+        capture: ["elementName"]
+      }
+    ]
+  }
+}
+```
+
+
+## Examples
+
+
+### Incorrect
+
+
+Helpers importing value from `moment`:
+
+
+```js
+// src/helpers/data/parse.js
+import moment from 'moment'
+```
+
+
+Helpers importing `react`:
+
+
+```js
+// src/helpers/data/parse.js
+import React from 'react'
+```
+
+
+Components importing `moment`:
+
+
+```js
+// src/components/atoms/atom-a/AtomA.js
+import moment from 'moment'
+```
+
+
+Molecule components importing `@material-ui/icons`:
+
+
+```js
+// src/components/molecules/molecule-a/MoleculeA.js
+import { Info } from '@material-ui/icons'
+```
+
+
+Modules importing `withRouter` from `react-router-dom`:
+
+
+```js
+// src/modules/module-a/ModuleA.js
+import { withRouter } from 'react-router-dom'
+```
+
+
+Modules importing non-allowed icons from `@mui/icons-material`:
+
+
+```js
+// src/modules/module-a/ModuleA.js
+import { Home } from '@mui/icons-material'
+```
+
+
+### Correct
+
+
+Helpers importing type from `moment`:
+
+
+```js
+// src/helpers/data/parse.js
+import type moment from 'moment'
+```
+
+
+Components importing `react`:
+
+
+```js
+// src/components/atoms/atom-a/AtomA.js
+import React from 'react'
+```
+
+
+Components importing `@material-ui/core`:
+
+
+```js
+// src/components/atoms/atom-a/AtomA.js
+import { Button } from '@material-ui/core'
+```
+
+
+Modules importing `react`:
+
+
+```js
+// src/modules/module-a/ModuleA.js
+import React from 'react'
+```
+
+
+Modules importing `useHistory` from `react-router-dom`:
+
+
+```js
+// src/modules/module-a/ModuleA.js
+import { useHistory } from 'react-router-dom'
+```
+
+
+Modules importing `Menu` icon from `@mui/icons-material`:
+
+
+```js
+// src/modules/module-a/ModuleA.js
+import Menu from '@mui/icons-material/Menu'
+```
+
+
+Modules importing `Login` icon from `@mui/icons-material`:
+
+
+```js
+// src/modules/module-a/ModuleA.js
+import Login from '@mui/icons-material/Login'
+```
+
+
+## Error Messages
+
+
+This rule provides detailed error messages to help you understand and resolve violations.
+
+It uses the same default message format as [`boundaries/dependencies`](./dependencies.md#error-messages). Messages include information about the external dependency that is not allowed, such as the `module` and, when applicable, `specifiers` and internal path details (read [Element Descriptions](../setup/elements.md#runtime-description-properties) for more information on how elements are described).
+
+For example:
+
+`Dependencies with module "react" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0`
+
+### Custom Messages with Templates
+
+:::tip
+You can customize error messages globally or for specific rules. See [Rules Configuration -> Message Templating](../setup/rules.mdx#message-templating) for more details.
+:::
+
+### `report` in Legacy Custom Messages
+
+This rule populates the `report` object with rule-specific metadata, but only when using [legacy message templates syntax](../setup/rules.mdx#legacy-message-templates). The following properties are available in the `report` object for legacy templates:
+
+- `${report.specifiers}`: Comma-separated matching import/export specifiers, when the violation is about specifiers. Modern templates should use `{{dependency.specifiers}}` instead.
+- `${report.path}`: Matching internal import path, when the violation is about a path rule. Modern templates should use `{{to.internalPath}}` instead.
+
+When neither condition applies, `report` contains no properties.
+
+## Migration to `boundaries/dependencies`
+
+The restrictions enforced by this rule can also be achieved with the more flexible and powerful `boundaries/dependencies` rule, which allows you to specify allowed relationships directly in the rules by using the `origin`, `source`, `module`, `internalPath` and `specifiers` selector properties. It is recommended to migrate your configuration to `boundaries/dependencies` as soon as possible, as this legacy rule will eventually be removed in oncoming major versions.
+
+:::warning
+You need to set the `checkAllOrigins` option to `true` in your `boundaries/dependencies` configuration to make sure that dependencies from external origins are also checked, as by default `boundaries/dependencies` only checks dependencies between local known elements.
+:::
+
+Here you have an example of how to migrate a configuration from `boundaries/external` to `boundaries/dependencies`:
+
+<CodeDiff language="javascript">{`
+. {
+.   rules: {
+-     "boundaries/external": [2, {
++     "boundaries/dependencies": [2, {
++       checkAllOrigins: true,
+.       default: "disallow",
+.       rules: [
+-         {
+-           from: "helper",
+-           allow: ["moment"],
+-           importKind: "type"
+-         }
++         {
++           from: { type: "helper" },
++           allow: {
++             to: {
++               origin: "external",
++             },
++             dependency: {
++               module: "moment",
++               kind: "type"
++             },
++           }
++         }
+-         {
+-           from: "helper",
+-           allow:  [
+-             "@mui/material",
+-             {
+-               path: "Autocomplete",
+-               specifiers: ["useAutocomplete"]
+-             }
+-           ]
+-         }
++         {
++           from: { type: "helper" },
++           allow: {
++             to: {
++               origin: "external",
++               internalPath: "Autocomplete",
++             },
++             dependency: {
++               module: "@mui/material",
++               specifiers: ["useAutocomplete"]
++             },
++           }
++         }
+.       ]
+.     }]
+.   }
+. }
+`}</CodeDiff>
+
+## Further Reading
+
+
+Read next sections to learn more about related topics:
+
+
+* [Defining Elements](../setup/elements.md) - Learn how to define architectural elements in your project
+* [Element Selectors](../setup/selectors.md) - Learn how to define and use element selectors in your rules
+* [Rules Configuration](../setup/rules.mdx) - Learn how to configure common rule options
+* [Global Settings](../setup/settings.md) - Learn about global settings that affect all rules

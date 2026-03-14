@@ -1,11 +1,10 @@
 import rule from "../../../src/Rules/EntryPoint";
-import { ENTRY_POINT as RULE } from "../../../src/Settings";
+import { ENTRY_POINT as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
-import { errorMessage, entryPointNoRuleMessage } from "../../support/messages";
 
 const { absoluteFilePath } = pathResolvers("docs-examples");
 
@@ -18,21 +17,19 @@ const options = [
     rules: [
       {
         // when importing helpers
-        target: ["helpers"],
+        target: { type: "helpers" },
         // allow everything (helpers are single files)
         allow: "*",
       },
       {
         // when importing components or modules
-        target: ["components", "modules"],
+        target: [{ type: "components" }, { type: "modules" }],
         // only allow index.js
         allow: "index.js",
       },
     ],
   },
 ];
-
-const errorMessages = {};
 
 const ruleTester = createRuleTester(settings);
 
@@ -71,14 +68,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage(
-            errorMessages,
-            0,
-            entryPointNoRuleMessage({
-              entryPoint: "AtomA.js",
-              dep: "'components' with family 'atoms' and elementName 'atom-a'",
-            })
-          ),
+          message:
+            'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of type "components", family "atoms" and elementName "atom-a"',
           type: "Literal",
         },
       ],
@@ -90,14 +81,8 @@ ruleTester.run(RULE, rule, {
       options,
       errors: [
         {
-          message: errorMessage(
-            errorMessages,
-            1,
-            entryPointNoRuleMessage({
-              entryPoint: "ModuleB.js",
-              dep: "'modules' with elementName 'module-b'",
-            })
-          ),
+          message:
+            'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of type "modules" and elementName "module-b"',
           type: "Literal",
         },
       ],

@@ -9,11 +9,14 @@ keywords:
   - eslint-plugin-boundaries
   - migration
   - update
-  - guide
+  - migration guide
   - release
   - release notes
   - v3
   - v4
+  - multiline imports
+  - eslint-disable
+  - error position
 ---
 
 # Migrating from v3.x to v4.x

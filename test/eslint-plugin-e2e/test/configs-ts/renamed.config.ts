@@ -4,7 +4,7 @@ import boundaries from "@boundaries/eslint-plugin";
 
 export const invalidRule: Rules<"customBoundaries"> = {
   // @ts-expect-error Testing that the rule is not valid for the plugin because it has been renamed
-  "boundaries/element-types": 0,
+  "boundaries/dependencies": 0,
 };
 
 export const invalidSetting: Settings = {
@@ -34,14 +34,20 @@ const boundariesConfig: Config<"customBoundaries"> = {
     "boundaries/ignore": ["**/ignored/**/*.js"],
   },
   rules: {
-    "customBoundaries/element-types": [
+    "customBoundaries/dependencies": [
       "error",
       {
         default: "disallow",
         rules: [
           {
-            from: "module",
-            allow: ["component"],
+            from: {
+              type: "module",
+            },
+            allow: [
+              {
+                to: { type: "component" },
+              },
+            ],
           },
         ],
       },

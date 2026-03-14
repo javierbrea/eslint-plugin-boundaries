@@ -10,8 +10,7 @@ import type { DescriptorsSerializedCache } from "./Descriptors.types";
 import { ElementsDescriptor } from "./ElementsDescriptor";
 import type {
   ElementDescriptors,
-  DependencyElementDescription,
-  FileElement,
+  ElementDescription,
 } from "./ElementsDescriptor.types";
 
 /**
@@ -79,24 +78,8 @@ export class Descriptors {
    * @param filePath The path of the file to describe.
    * @returns The description of the element.
    */
-  public describeElement(filePath?: string): FileElement {
+  public describeElement(filePath?: string): ElementDescription {
     return this._elementsDescriptor.describeElement(filePath);
-  }
-
-  /**
-   * Describes a dependency element given its dependency source and file path.
-   * @param dependencySource The source of the dependency.
-   * @param filePath The path of the file being the dependency, if known.
-   * @returns The description of the dependency element.
-   */
-  public describeDependencyElement(
-    dependencySource: string,
-    filePath?: string
-  ): DependencyElementDescription {
-    return this._elementsDescriptor.describeDependencyElement(
-      dependencySource,
-      filePath
-    );
   }
 
   /**

@@ -7,15 +7,23 @@ tags:
   - rules
   - configuration
   - examples
+keywords:
+  - eslint-plugin-boundaries
+  - no-ignored rule
+  - ignored files
+  - boundaries/ignore
+  - known elements
+  - architecture enforcement
+  - import restrictions
 ---
 
 # no-ignored
 
-> Prevent importing **[ignored files](../setup/settings.md#boundariesignore)** from recognized **[elements](../setup/elements.md)**.
+> Prevent importing **[ignored files](../setup/settings.md#boundariesignore)** from known **[elements](../setup/elements.md)**.
 
 ## Rule Details
 
-This rule validates `import` statements (or any other **[dependency-creating syntax](../setup/settings.md#boundariesdependency-nodes)**) to local files. If the imported file is **[marked as ignored in the plugin settings](../setup/settings.md#boundariesignore)**, the import will be reported as an error when importing from files recognized as **[elements](../setup/elements.md)**.
+This rule validates dependencies to local files. If the imported file is **[marked as ignored in the plugin settings](../setup/settings.md#boundariesignore)**, the import will be reported as an error when importing from known **[elements](../setup/elements.md)**.
 
 :::info
 This rule prevents recognized elements from depending on files that have been explicitly excluded from the architectural boundaries.
@@ -61,17 +69,17 @@ src/
 
 **Settings configuration:**
 
-```json
+```js
 {
-  "settings": {
+  settings: {
     "boundaries/include": ["src/**/*.js"],
     "boundaries/ignore": ["src/foo.js"],
     "boundaries/elements": [
       {
-        "type": "helpers",
-        "pattern": "helpers/*/*.js",
-        "mode": "file",
-        "capture": ["category", "elementName"]
+        type: "helper",
+        pattern: "helpers/*/*.js",
+        mode: "file",
+        capture: ["family", "elementName"]
       }
     ]
   }

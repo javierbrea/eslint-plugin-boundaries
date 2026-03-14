@@ -13,7 +13,7 @@ export function elementTypesNoRuleMessage({
   file: string;
   dep: string;
 }) {
-  return `No rule allowing this dependency was found. File is of type ${file}. Dependency is of type ${dep}`;
+  return `There is no rule allowing dependencies from elements of type ${file} to elements of type ${dep}`;
 }
 
 export function entryPointNoRuleMessage({
@@ -33,7 +33,7 @@ export function externalNoRuleMessage({
   file: string;
   dep: string;
 }) {
-  return `No rule allows the usage of external module '${dep}' in elements of type ${file}`;
+  return `There is no rule allowing dependencies from elements of type ${file} to elements of origin "external" with module "${dep}"`;
 }
 
 export function noPrivateMessage({ dep }: { dep: string }) {

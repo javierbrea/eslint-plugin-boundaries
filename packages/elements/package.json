@@ -1,6 +1,6 @@
 {
   "name": "@boundaries/elements",
-  "version": "1.2.0",
+  "version": "2.0.0-beta.1",
   "description": "Element descriptors and matchers for @boundaries tools",
   "keywords": [
     "boundaries",
@@ -48,9 +48,7 @@
     "build": "tsup --config tsup.config.js",
     "check:all": "echo 'All checks passed'",
     "check:spell": "cspell --quiet .",
-    "check:types": "pnpm check:types:code && pnpm check:types:test",
-    "check:types:code": "tsc --noEmit",
-    "check:types:test": "tsc --noEmit --project ./test/tsconfig.json",
+    "check:types": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "serve:mutation:report": "serve --config ./serve.test-mutation-report.json",
@@ -71,9 +69,9 @@
   "devDependencies": {
     "@types/estree": "1.0.8",
     "@types/is-core-module": "2.2.2",
-    "@types/micromatch": "4.0.9",
+    "@types/micromatch": "4.0.10",
     "@types/object-hash": "3.0.6",
     "path-browserify": "1.0.1",
-    "tsup": "8.5.0"
+    "tsup": "8.5.1"
   }
 }

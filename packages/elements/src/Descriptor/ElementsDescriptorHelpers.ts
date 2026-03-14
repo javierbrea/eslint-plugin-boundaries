@@ -8,9 +8,6 @@ import {
 import type {
   ElementDescription,
   LocalElementKnown,
-  LocalDependencyElement,
-  ExternalDependencyElement,
-  DependencyElementDescription,
   BaseElementDescriptor,
   ElementDescriptorPattern,
   ElementDescriptorMode,
@@ -19,8 +16,7 @@ import type {
   ElementDescriptor,
   IgnoredElement,
   LocalElementUnknown,
-  BaseElement,
-  CoreDependencyElement,
+  BaseElementDescription,
 } from "./ElementsDescriptor.types";
 import {
   ELEMENT_DESCRIPTOR_MODES_MAP,
@@ -119,7 +115,7 @@ export function isElementDescriptor(
  * @param value The value to check
  * @returns True if the value is a valid BaseElement, false otherwise
  */
-export function isBaseElement(value: unknown): value is BaseElement {
+export function isBaseElement(value: unknown): value is BaseElementDescription {
   return (
     isObjectWithProperty(value, "type") &&
     isObjectWithProperty(value, "category") &&
@@ -178,18 +174,36 @@ export function isKnownLocalElement(
 }
 
 /**
- * Determines if the given value is a dependency element.
- * @param value The element to check.
- * @returns True if the element is a dependency element, false otherwise.
+ * Determines if the given value is a local dependency element.
+ * @param value The value to check.
+ * @returns True if the element is a local dependency element, false otherwise.
  */
-export function isDependencyElementDescription(
+export function isLocalDependencyElement(
   value: unknown
-): value is DependencyElementDescription {
-  return (
-    isBaseElement(value) &&
-    isObjectWithProperty(value, "source") &&
-    isString(value.source)
-  );
+): value is LocalElementKnown | LocalElementUnknown {
+  return isLocalElement(value) && value.isIgnored === false;
+}
+
+/**
+ * Determines if the given value is an external element.
+ * @param value The value to check.
+ * @returns True if the element is an external dependency element, false otherwise.
+ */
+export function isExternalDependencyElement(
+  value: unknown
+): value is ElementDescription {
+  return isBaseElement(value) && value.origin === ELEMENT_ORIGINS_MAP.EXTERNAL;
+}
+
+/**
+ * Determines if the given value is a core element.
+ * @param value The value to check.
+ * @returns True if the element is a core dependency element, false otherwise.
+ */
+export function isCoreDependencyElement(
+  value: unknown
+): value is ElementDescription {
+  return isBaseElement(value) && value.origin === ELEMENT_ORIGINS_MAP.CORE;
 }
 
 /**
@@ -204,49 +218,7 @@ export function isElementDescription(
     isIgnoredElement(value) ||
     isUnknownLocalElement(value) ||
     isKnownLocalElement(value) ||
-    isDependencyElementDescription(value)
-  );
-}
-
-/**
- * Determines if the given value is a local dependency element.
- * @param value The value to check.
- * @returns True if the element is a local dependency element, false otherwise.
- */
-export function isLocalDependencyElement(
-  value: unknown
-): value is LocalDependencyElement {
-  return isDependencyElementDescription(value) && isLocalElement(value);
-}
-
-/**
- * Determines if the given value is an external element.
- * @param value The value to check.
- * @returns True if the element is an external dependency element, false otherwise.
- */
-export function isExternalDependencyElement(
-  value: unknown
-): value is ExternalDependencyElement {
-  return (
-    isDependencyElementDescription(value) &&
-    value.origin === ELEMENT_ORIGINS_MAP.EXTERNAL &&
-    isObjectWithProperty(value, "baseSource") &&
-    isString(value.baseSource)
-  );
-}
-
-/**
- * Determines if the given value is a core element.
- * @param value The value to check.
- * @returns True if the element is a core dependency element, false otherwise.
- */
-export function isCoreDependencyElement(
-  value: unknown
-): value is CoreDependencyElement {
-  return (
-    isDependencyElementDescription(value) &&
-    value.origin === ELEMENT_ORIGINS_MAP.CORE &&
-    isObjectWithProperty(value, "baseSource") &&
-    isString(value.baseSource)
+    isExternalDependencyElement(value) ||
+    isCoreDependencyElement(value)
   );
 }

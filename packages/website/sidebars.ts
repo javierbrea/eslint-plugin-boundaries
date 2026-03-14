@@ -31,7 +31,15 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       items: [
         "setup/elements",
-        "setup/selectors",
+        {
+          type: "category",
+          label: "Selectors",
+          link: {
+            type: "doc",
+            id: "setup/selectors",
+          },
+          items: ["setup/selectors/legacy-selectors"],
+        },
         "setup/rules",
         "setup/settings",
         "setup/eslint-integration",
@@ -47,12 +55,15 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       items: [
         "rules/dependencies",
-        "rules/entry-point",
-        "rules/external",
-        "rules/no-private",
         "rules/no-unknown",
-        "rules/no-unknown-files",
         "rules/no-ignored",
+        "rules/no-unknown-files",
+        {
+          type: "category",
+          label: "Deprecated Rules",
+          collapsed: true,
+          items: ["rules/entry-point", "rules/external", "rules/no-private"],
+        },
       ],
     },
     {
@@ -79,8 +90,9 @@ const sidebars: SidebarsConfig = {
           label: "Migration Guides",
           collapsed: false,
           items: [
-            "releases/migration-guides/v1-to-v2",
+            "releases/migration-guides/v5-to-v6",
             "releases/migration-guides/v3-to-v4",
+            "releases/migration-guides/v1-to-v2",
           ],
         },
       ],

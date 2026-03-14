@@ -1,6 +1,6 @@
 {
   "name": "@boundaries/eslint-plugin-e2e",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,11 +11,12 @@
     "check:types": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test:e2e": "cross-env node test/e2e.spec.js"
+    "test:e2e": "cross-env RUN_PERFORMANCE_TESTS=false node test/e2e.spec.js",
+    "test:performance": "node test/e2e.spec.js"
   },
   "dependencies": {
+    "@boundaries/eslint-plugin": "workspace:*",
     "chalk": "5.6.2",
-    "eslint": "9.37.0",
-    "@boundaries/eslint-plugin": "workspace:*"
+    "eslint": "9.37.0"
   }
 }

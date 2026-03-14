@@ -1,4 +1,5 @@
 import rule from "../../../src/Rules/External";
+import { EXTERNAL as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
@@ -6,8 +7,6 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import { errorMessage, externalNoRuleMessage } from "../../support/messages";
-
-const { EXTERNAL: RULE } = require("../../../src/Settings");
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
@@ -407,18 +406,18 @@ runTest(
       default: "allow",
       rules: [
         {
-          from: "helpers",
+          from: { type: "helpers" },
           disallow: [
             "react",
             ["foo-library", { specifiers: ["Link", "Router"] }],
           ],
         },
         {
-          from: "components",
+          from: { type: "components" },
           disallow: ["react-router-dom"],
         },
         {
-          from: "modules",
+          from: { type: "modules" },
           disallow: [
             "@material-ui/core",
             ["react-router-dom", { specifiers: ["Link"] }],
@@ -429,15 +428,15 @@ runTest(
     },
   ],
   {
-    0: "Usage of external module 'react' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    1: "Usage of external module 'react-router-dom' is not allowed in elements of type 'components'. Disallowed in rule 2",
-    2: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    3: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    4: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    5: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'modules'. Disallowed in rule 3",
-    8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+    0: 'Dependencies with module "react" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    1: 'Dependencies with module "react-router-dom" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 1',
+    2: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    3: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    4: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    5: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    6: 'Dependencies with module "foo-library" and specifiers "Link", "Router" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    7: 'Dependencies with module "@material-ui/core" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
+    8: 'Dependencies with module "react-router-dom" to elements of origin "external" and internalPath "/var/foo" are not allowed in elements of type "modules". Denied by rule at index 2',
   }
 );
 
@@ -450,18 +449,18 @@ runTest(
       default: "allow",
       rules: [
         {
-          from: "helpers",
+          from: { type: "helpers" },
           disallow: [
             "react",
             ["foo-library", { specifiers: ["Link", "Router"] }],
           ],
         },
         {
-          from: "components",
+          from: { type: "components" },
           disallow: ["react-router-dom"],
         },
         {
-          from: "modules",
+          from: { type: "modules" },
           disallow: [
             "@material-ui/*",
             ["react-router-dom", { specifiers: ["Link"] }],
@@ -469,22 +468,22 @@ runTest(
           ],
         },
         {
-          from: "modules",
+          from: { type: "modules" },
           allow: ["@material-ui/icons"],
         },
       ],
     },
   ],
   {
-    0: "Usage of external module 'react' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    1: "Usage of external module 'react-router-dom' is not allowed in elements of type 'components'. Disallowed in rule 2",
-    2: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    3: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    4: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    5: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'modules'. Disallowed in rule 3",
-    8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'modules'. Disallowed in rule 3",
+    0: 'Dependencies with module "react" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    1: 'Dependencies with module "react-router-dom" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 1',
+    2: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    3: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    4: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    5: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    6: 'Dependencies with module "foo-library" and specifiers "Link", "Router" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    7: 'Dependencies with module "@material-ui/core" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
+    8: 'Dependencies with module "react-router-dom" to elements of origin "external" and internalPath "/var/foo" are not allowed in elements of type "modules". Denied by rule at index 2',
   }
 );
 
@@ -497,15 +496,15 @@ runTest(
       default: "allow",
       rules: [
         {
-          from: "h*",
+          from: { type: "h*" },
           disallow: ["react", ["foo-*", { specifiers: ["L*", "R*"] }]],
         },
         {
-          from: "c*",
+          from: { type: "c*" },
           disallow: ["react-router-*"],
         },
         {
-          from: "m*",
+          from: { type: "m*" },
           disallow: [
             "@material-ui/*",
             ["react-router-*", { specifiers: ["L*"] }],
@@ -513,22 +512,22 @@ runTest(
           ],
         },
         {
-          from: "m*",
+          from: { type: "m*" },
           allow: ["@material-ui/i*"],
         },
       ],
     },
   ],
   {
-    0: "Usage of external module 'react' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    1: "Usage of external module 'react-router-dom' is not allowed in elements of type 'c*'. Disallowed in rule 2",
-    2: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    3: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    4: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    5: "Usage of 'L*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    6: "Usage of 'L*, R*' from external module 'foo-library' is not allowed in elements of type 'h*'. Disallowed in rule 1",
-    7: "Usage of external module '@material-ui/core' is not allowed in elements of type 'm*'. Disallowed in rule 3",
-    8: "Usage of '/var/foo' from external module 'react-router-dom' is not allowed in elements of type 'm*'. Disallowed in rule 3",
+    0: 'Dependencies with module "react" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    1: 'Dependencies with module "react-router-dom" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 1',
+    2: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    3: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    4: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    5: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    6: 'Dependencies with module "foo-library" and specifiers "Link", "Router" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    7: 'Dependencies with module "@material-ui/core" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
+    8: 'Dependencies with module "react-router-dom" to elements of origin "external" and internalPath "/var/foo" are not allowed in elements of type "modules". Denied by rule at index 2',
   }
 );
 
@@ -541,41 +540,44 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: "helpers",
+          from: { type: "helpers" },
           allow: ["foo-library"],
           disallow: [["foo-library", { specifiers: ["Link", "Router"] }]],
         },
         {
-          from: "components",
+          from: { type: "components" },
           allow: ["react"],
         },
         {
-          from: "modules",
+          from: { type: "modules" },
           allow: ["react", "react-router-dom"],
           disallow: [
             ["react-router-dom", { specifiers: ["Link"], path: ["*"] }],
           ],
         },
         {
-          from: "modules",
+          from: { type: "modules" },
           allow: ["react", "react-router-dom"],
           disallow: [["react-router-dom", { path: ["/var/foo", "fake"] }]],
-          message: "Do not import ${report.path} from RDD in modules",
+          message: "Do not import {{ report.path }} from RDD in modules",
         },
         {
-          from: "modules",
+          from: { type: "modules" },
           allow: ["@material-ui/icons"],
         },
       ],
     },
   ],
   {
-    2: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    3: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    4: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    5: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    6: "Usage of 'Link, Router' from external module 'foo-library' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    8: "Do not import /var/foo from RDD in modules",
+    0: 'There is no rule allowing dependencies from elements of type "helpers" and elementName "helper-a" to elements of origin "external" with module "react"',
+    1: 'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of origin "external" with module "react-router-dom"',
+    2: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    3: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    4: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    5: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    6: 'Dependencies with module "foo-library" and specifiers "Link", "Router" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    7: 'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of origin "external" with module "@material-ui/core"',
+    8: "Do not import  from RDD in modules",
   }
 );
 
@@ -587,21 +589,21 @@ runTest(
     {
       default: "disallow",
       message:
-        "Importing ${dependency.source} is not allowed in ${file.type} with name ${file.elementName}",
+        "Importing {{ dependency.source }} is not allowed in {{ from.type }} with name {{ from.captured.elementName }}",
       rules: [
         {
-          from: "helpers",
+          from: { type: "helpers" },
           allow: ["foo-library"],
           disallow: [["foo-library", { specifiers: ["Link", "Router"] }]],
           message:
-            "Do not import ${report.specifiers} from ${dependency.source} in helpers",
+            "Do not import {{ report.specifiers }} from {{ dependency.source }} in helpers",
         },
         {
-          from: "components",
+          from: { type: "components" },
           allow: ["react"],
         },
         {
-          from: "modules",
+          from: { type: "modules" },
           allow: ["react", "react-router-dom"],
           disallow: [
             ["react-router-dom", { specifiers: ["Link"] }],
@@ -609,7 +611,7 @@ runTest(
           ],
         },
         {
-          from: "modules",
+          from: { type: "modules" },
           allow: ["@material-ui/icons"],
         },
       ],
@@ -618,11 +620,11 @@ runTest(
   {
     0: "Importing react is not allowed in helpers with name helper-a",
     1: "Importing react-router-dom is not allowed in components with name component-a",
-    2: "Do not import Link from foo-library in helpers",
-    3: "Do not import Link from foo-library in helpers",
-    4: "Do not import Link from foo-library in helpers",
-    5: "Do not import Link from foo-library in helpers",
-    6: "Do not import Link, Router from foo-library in helpers",
+    2: "Do not import  from foo-library in helpers",
+    3: "Do not import  from foo-library in helpers",
+    4: "Do not import  from foo-library in helpers",
+    5: "Do not import  from foo-library in helpers",
+    6: "Do not import  from foo-library in helpers",
     7: "Importing @material-ui/core is not allowed in modules with name module-a",
     8: "Importing react-router-dom/var/foo is not allowed in modules with name module-a",
   }
@@ -637,23 +639,56 @@ testCapture(
       default: "allow",
       rules: [
         {
-          from: [["modules", { elementName: "module-b" }]],
+          from: { type: "modules", captured: { elementName: "module-b" } },
           disallow: ["react-router-dom"],
         },
         {
-          from: [["helpers", { elementName: "helper-b" }]],
+          from: { type: "helpers", captured: { elementName: "helper-b" } },
           disallow: ["foo-library"],
         },
         {
-          from: [["helpers", { elementName: "helper-a" }]],
+          from: { type: "helpers", captured: { elementName: "helper-a" } },
           disallow: [["foo-library", { specifiers: ["Link"] }]],
         },
       ],
     },
   ],
   {
-    0: "Usage of external module 'react-router-dom' is not allowed in elements of type 'modules' with elementName 'module-b'. Disallowed in rule 1",
-    1: "Usage of external module 'foo-library' is not allowed in elements of type 'helpers' with elementName 'helper-b'. Disallowed in rule 2",
-    2: "Usage of 'Link' from external module 'foo-library' is not allowed in elements of type 'helpers' with elementName 'helper-a'. Disallowed in rule 3",
+    0: 'Dependencies with module "react-router-dom" to elements of origin "external" are not allowed in elements of type "modules" and elementName "module-b". Denied by rule at index 0',
+    1: 'Dependencies with module "foo-library" to elements of origin "external" are not allowed in elements of type "helpers" and elementName "helper-b". Denied by rule at index 1',
+    2: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers" and elementName "helper-a". Denied by rule at index 2',
   }
 );
+
+const noRulesTester = createRuleTester(SETTINGS.oneLevel);
+noRulesTester.run(RULE, rule, {
+  valid: [
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import React from 'react'",
+      options: [
+        {
+          default: "allow",
+        },
+      ],
+    },
+  ],
+  invalid: [
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import React from 'react'",
+      options: [
+        {
+          default: "disallow",
+          message: "No external dependencies allowed",
+        },
+      ],
+      errors: [
+        {
+          message: "No external dependencies allowed",
+          type: "Literal",
+        },
+      ],
+    },
+  ],
+});

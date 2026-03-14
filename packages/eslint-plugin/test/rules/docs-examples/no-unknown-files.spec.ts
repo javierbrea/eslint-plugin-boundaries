@@ -1,17 +1,16 @@
 import rule from "../../../src/Rules/NoUnknownFiles";
+import { NO_UNKNOWN_FILES as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
 
-const { NO_UNKNOWN_FILES: RULE } = require("../../../src/Settings");
-
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath, codeFilePath } = pathResolvers("docs-examples");
 
 const FOO_CODE = "export default {}";
-const ERROR_MESSAGE = "File is not of any known element type";
+const ERROR_MESSAGE = "File does not match any element pattern";
 
 const ruleTester = createRuleTester(settings);
 

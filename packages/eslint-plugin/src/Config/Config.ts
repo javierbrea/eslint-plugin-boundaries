@@ -1,19 +1,33 @@
 import type { Linter } from "eslint";
 
 import plugin from "../index";
-import type { PluginBoundaries, Config, Rules } from "../Settings";
-import { PLUGIN_NAME, isRuleShortName, isSettingsKey } from "../Settings";
+import { isRuleShortName, isSettingsKey } from "../Settings";
+import type { PluginBoundaries, Config, Rules } from "../Shared";
+import { PLUGIN_NAME } from "../Shared";
 
 import recommendedConfig from "./Recommended";
 import strictConfig from "./Strict";
 
 export * from "../Public";
 
+/**
+ * The full ESLint config object returned by createConfig, including the plugins field with the boundaries plugin registered.
+ */
 type PluginFullConfig<PluginName extends string = typeof PLUGIN_NAME> = {
   plugins: Record<PluginName, PluginBoundaries>;
   files: Linter.Config["files"];
 } & Omit<Config<PluginName>, "plugins">;
 
+/**
+ * Rewrites rule keys to the effective plugin namespace used by `createConfig`.
+ *
+ * It accepts rules prefixed either with the default plugin name (`boundaries`)
+ * or with the custom plugin name passed to `createConfig`.
+ *
+ * @param pluginName - Plugin namespace to enforce in output rule keys.
+ * @param rules - Input rule entries from the user config.
+ * @returns Rules object normalized to the requested plugin namespace.
+ */
 function renamePluginRules<PluginName extends string = typeof PLUGIN_NAME>(
   pluginName: string,
   rules?: Config["rules"]
@@ -76,7 +90,7 @@ function renamePluginRules<PluginName extends string = typeof PLUGIN_NAME>(
  *   },
  *   rules: {
  *     ...recommended.rules,
- *     "boundaries/element-types": ["error", { default: "disallow" }],
+ *     "boundaries/dependencies": ["error", { default: "disallow" }],
  *   }
  * });
  *

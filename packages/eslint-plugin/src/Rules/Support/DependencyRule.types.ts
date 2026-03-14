@@ -2,7 +2,7 @@ import type { DependencyDescription } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
 import type { EslintLiteralNode } from "../../Elements";
-import type { ValidateRulesOptions, SettingsNormalized } from "../../Settings";
+import type { ValidateRulesOptions, SettingsNormalized } from "../../Shared";
 
 export type DependencyRuleRunner<Options> = (options: {
   dependency: DependencyDescription;

@@ -4,21 +4,20 @@ title: Monorepo Setup
 sidebar_label: Monorepo Setup
 description: Configuring ESLint Plugin Boundaries for monorepo environments
 tags:
-  - eslint
-  - monorepo
+  - configuration
+  - advanced
 keywords:
-  - JS Boundaries
-  - ESLint plugin
-  - boundaries
+  - eslint-plugin-boundaries
   - monorepo
   - configuration
   - setup
   - settings
   - workspace
   - packages
-  - lerna
   - pnpm
   - yarn workspaces
+  - nx
+  - flag-as-external
 ---
 
 # Monorepo Setup
@@ -32,17 +31,35 @@ By default, the plugin categorizes dependencies as:
 - **External**: npm packages in `node_modules` and unresolvable imports
 - **Local**: all other resolved file paths within your project
 
-:::warning
-This is relevant because [`element-types`](../rules/dependencies.md) rule only applies to **local** dependencies, and [`external`](../rules/dependencies.md) rule only to **external** dependencies.
+:::info Why does this matter?
+
+This is relevant because you can use the `origin` selector property in your rules to target dependencies based on their categorization as external or local, and also decide if rules apply to dependencies from all origins or only local ones.
+
+**So you might want to control how inter-package dependencies in a monorepo are categorized to apply the appropriate rules.**
+
 :::
+
+By default, the [`dependencies`](../rules/dependencies.md) rule only applies to **local** dependencies, and [`external`](../rules/dependencies.md) rule only to **external** dependencies.
+
+**The plugin now has added the `checkAllOrigins` option to the `dependencies` rule to allow checking dependencies from all origins (both local and external) in the same rule**, but by default it is still set to `false` to avoid unexpected breaking changes. So if you want to check inter-package dependencies categorized as external with `dependencies` rules, you need to set that option to `true`.
 
 In a monorepo, you might want different behavior:
 
-1. **Treat inter-package dependencies as external** - Apply boundary rules only within each package
-2. **Treat inter-package dependencies as local** - Apply boundary rules across all packages
+1. **Treat inter-package dependencies as external**
+2. **Treat inter-package dependencies as local**
 3. **Mix both approaches** - Some packages as external, others as local
 
 The [`boundaries/flag-as-external`](../setup/settings.md#boundariesflag-as-external) setting gives you full control over this categorization.
+
+
+:::tip Fully customizable
+
+You can control both the categorization of inter-package dependencies (external vs local) and also if the `dependencies` rule should check dependencies from all origins or only local ones, allowing you to mix and match different approaches in the same monorepo.
+
+* To control categorization: Use `boundaries/flag-as-external` setting with `outsideRootPath` and/or `customSourcePatterns` options.
+* To control if the `dependencies` rule checks all origins: Use its `checkAllOrigins` option.
+
+:::
 
 ### Eslint Execution Context
 
@@ -110,12 +127,13 @@ export default [{
   
   rules: {
     // These rules only apply within the "app" package
-    "boundaries/element-types": ["error", {
+    "boundaries/dependencies": ["error", {
       default: "disallow",
+      checkAllOrigins: false, // Only check local dependencies
       rules: [
         {
-          from: "component",
-          allow: ["component", "service"]
+          from:  { type: "component" },
+          allow: { to: { type: ["component","service"] } }
         }
       ]
     }]
@@ -179,12 +197,17 @@ export default [{
   },
   
   rules: {
-    "boundaries/element-types": ["error", {
+    "boundaries/dependencies": ["error", {
       default: "disallow",
+      checkAllOrigins: false, // Only check local dependencies
       rules: [
         {
-          from: "component",
-          allow: ["component", "service"]
+          from: {
+            type: "component",
+          },
+          allow: [{
+            to: { type: ["component","service"] }
+          }]
         }
       ]
     }]
@@ -210,8 +233,8 @@ import { formatDate } from '@myorg/shared';
 import { map } from 'lodash';
 ```
 
-:::tip Use external rules to enforce constraints across packages
-You can still use the [`boundaries/external`](../rules/dependencies.md) rule to enforce constraints on inter-package dependencies treated as external. For example, you can prevent certain packages from importing others by defining rules based on the external import patterns.
+:::tip Use the `origin` selector to target inter-package dependencies
+You can still use the `origin` selector property in your rules to target dependencies from specific origins, such as `external` to target all inter-package dependencies flagged as external, or even more specific with `external:@myorg/*` to target only those matching the custom pattern.
 :::
 
 ## Scenario 3: Inter-package Dependencies as Local (Monorepo-wide Rules)
@@ -247,12 +270,12 @@ export default [{
   },
   
   rules: {
-    "boundaries/element-types": ["error", {
+    "boundaries/dependencies": ["error", {
       default: "disallow",
       rules: [
         {
-          from: "component",
-          allow: ["component", "service"]
+          from: { type: "component" },
+          allow: { to: { type: ["component","service"] } }
         }
       ]
     }]
@@ -291,7 +314,7 @@ You can combine multiple configurations with different `files` patterns in the s
 
 For example, you could combine Scenario 3, defining rules that consider inter-package dependencies as local, and also Scenario 1, defining package-isolated rules.
 
-You could even have different configurations considering inter-package dependencies as external to add global constraints using the `external` rule, while also having configurations treating them as local for granular control using the `element-types` rule for packages that are allowed to interact.
+You could even have different configurations considering inter-package dependencies as external to add global constraints using the `external` rule, while also having configurations treating them as local for granular control using the `dependencies` rule for packages that are allowed to interact.
 
 ## Common Patterns
 
@@ -312,52 +335,6 @@ export default [{
     }
   }
 }];
-```
-
-### Pattern: Different Rules for Tests
-
-Apply different boundary rules to test files:
-
-```js
-export default [
-  // Production code: strict boundaries
-  {
-    files: ["packages/*/src/**/*.ts"],
-    
-    settings: {
-      "boundaries/elements": [
-        { type: "component", pattern: "packages/*/src/components/**/*.ts" },
-        { type: "service", pattern: "packages/*/src/services/**/*.ts" }
-      ]
-    },
-    
-    rules: {
-      "boundaries/element-types": ["error", {
-        default: "disallow",
-        rules: [
-          { from: "component", allow: ["component", "service"] }
-        ]
-      }]
-    }
-  },
-  
-  // Test files: relaxed boundaries
-  {
-    files: ["packages/*/test/**/*.ts", "packages/**/*.spec.ts"],
-    
-    settings: {
-      "boundaries/elements": [
-        { type: "test", pattern: "**/*.ts" }
-      ]
-    },
-    
-    rules: {
-      "boundaries/element-types": ["error", {
-        default: "allow"  // Tests can import anything
-      }]
-    }
-  }
-];
 ```
 
 ## Troubleshooting

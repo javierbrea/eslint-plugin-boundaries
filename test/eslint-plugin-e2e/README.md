@@ -14,7 +14,23 @@ This package contains end-to-end (E2E) tests for the eslint-plugin-boundaries pl
 
 ```bash
 # Run all E2E tests
-pnpm nx test:e2e eslint-plugin-boundaries-e2e
+pnpm nx test:e2e eslint-plugin-e2e
+```
+
+## Performance tests
+
+The E2E tests also include performance benchmarks to ensure that the plugin runs efficiently. Performance tests are defined in the same `e2e.spec.js` file and can be identified by their naming convention (e.g., "performance-test"). These tests measure the execution time of ESLint with the plugin under specific configurations and assert that it meets acceptable performance thresholds.
+
+By default, performance tests are excluded from the regular test run to keep feedback fast during development. To include performance tests in your test run, use the following command:
+
+```bash
+pnpm nx test:performance eslint-plugin-e2e
+```
+
+Or, run directly from this package with:
+
+```bash
+pnpm test:performance
 ```
 
 ## Adding new tests

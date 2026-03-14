@@ -1,23 +1,21 @@
-import rule from "../../../src/Rules/ElementTypes";
+import ruleFactory from "../../../src/Rules/Dependencies";
+import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
-import {
-  errorMessage,
-  elementTypesNoRuleMessage,
-} from "../../support/messages";
 
-const { ELEMENT_TYPES: RULE } = require("../../../src/Settings");
-
+const rule = ruleFactory();
 const { absoluteFilePath } = pathResolvers("one-level");
 
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
-  errorMessages: Record<number, string> = {}
+  {
+    0: errorMessage0 = 'There is no rule allowing dependencies from elements of type "helpers" and elementName "helper-a" to elements of type "helpers" and elementName "helper-b"',
+  }: Partial<Record<number, string>> = {}
 ) => {
   const ruleTester = createRuleTester(settings);
 
@@ -72,14 +70,7 @@ const runTest = (
         ],
         errors: [
           {
-            message: errorMessage(
-              errorMessages,
-              0,
-              elementTypesNoRuleMessage({
-                file: "'helpers' with elementName 'helper-a'",
-                dep: "'helpers' with elementName 'helper-b'",
-              })
-            ),
+            message: errorMessage0,
             type: "Literal",
           },
         ],

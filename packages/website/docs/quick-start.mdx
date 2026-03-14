@@ -7,14 +7,16 @@ tags:
   - examples
   - eslint
 keywords:
-  - JS Boundaries
-  - ESLint plugin
-  - boundaries
-  - javaScript
-  - typeScript
-  - tutorial
+  - eslint-plugin-boundaries
+  - eslint plugin
+  - JavaScript
+  - TypeScript
   - quick start
+  - tutorial
   - basic setup
+  - elements
+  - selectors
+  - rules configuration
 ---
 
 import Tabs from '@theme/Tabs';
@@ -71,9 +73,9 @@ export default [
 </TabItem>
 </Tabs>
 
-## 3. Define your Element Types
+## 3. Define your Elements
 
-The plugin needs to identify the elements in your project. To do so, define your element types using the `boundaries/elements` setting.
+The plugin needs to identify the elements in your project. To do so, define your elements using the [`boundaries/elements` setting](./setup/elements.md).
 
 These patterns determine how each file or dependency is classified.
 
@@ -94,9 +96,9 @@ Read the **[Elements](./setup/elements.md)** section for guidance on how to defi
 .     },
 +     settings: {
 +       "boundaries/elements": [
-+         { type: "controllers", pattern: "controllers/*" },
-+         { type: "models", pattern: "models/*" },
-+         { type: "views", pattern: "views/*" }
++         { type: "controller", pattern: "controllers/*" },
++         { type: "model", pattern: "models/*" },
++         { type: "view", pattern: "views/*" }
 +       ],
 +     },
 .   }
@@ -116,9 +118,9 @@ Read the **[Elements](./setup/elements.md)** section for guidance on how to defi
 .     },
 +     settings: {
 +       "boundaries/elements": [
-+         { type: "controllers", pattern: "controllers/*" },
-+         { type: "models", pattern: "models/*" },
-+         { type: "views", pattern: "views/*" }
++         { type: "controller", pattern: "controllers/*" },
++         { type: "model", pattern: "models/*" },
++         { type: "view", pattern: "views/*" }
 +       ],
 +     } satisfies Settings,
 .   } satisfies Config
@@ -137,7 +139,7 @@ This is only a basic example of configuration. The plugin can be configured to i
 Apply one of the [predefined rule configurations](./setup/eslint-integration.md) as a starting point by extending it in your `rules` section.
 
 :::tip
-You should use `recommended` config in already existing projects to gradually introduce the rules without too many errors at once, because it does not require all files in the project to belong to an element type. For new projects, you can use `strict` config to ensure all files belong to an element type from the beginning.
+You should use `recommended` config in already existing projects to gradually introduce the rules without too many errors at once, because it does not require all files in the project to belong to be part of a defined element. For new projects, you can use `strict` config to ensure all files belong to an element from the beginning.
 :::
 
 <Tabs>
@@ -153,9 +155,9 @@ You should use `recommended` config in already existing projects to gradually in
 .     },
 .     settings: {
 .       "boundaries/elements": [
-.         { type: "controllers", pattern: "controllers/*" },
-.         { type: "models", pattern: "models/*" },
-.         { type: "views", pattern: "views/*" }
+.         { type: "controller", pattern: "controllers/*" },
+.         { type: "model", pattern: "models/*" },
+.         { type: "view", pattern: "views/*" }
 .       ],
 .     },
 +     rules: {
@@ -178,9 +180,9 @@ You should use `recommended` config in already existing projects to gradually in
 .     },
 .     settings: {
 .       "boundaries/elements": [
-.         { type: "controllers", pattern: "controllers/*" },
-.         { type: "models", pattern: "models/*" },
-.         { type: "views", pattern: "views/*" }
+.         { type: "controller", pattern: "controllers/*" },
+.         { type: "model", pattern: "models/*" },
+.         { type: "view", pattern: "views/*" }
 .       ],
 .     } satisfies Settings,
 +     rules: {
@@ -195,7 +197,7 @@ You should use `recommended` config in already existing projects to gradually in
 
 ## 5. Set Dependency Rules
 
-Now you can define your own dependency rules by using the `boundaries/element-types` rule.
+Now you can define your own dependency rules by using the [`boundaries/dependencies` rule](./setup/rules.mdx).
 
 :::tip
 Read how to use **[Element Selectors](./setup/selectors.md)** to configure your rules in more detail.
@@ -214,27 +216,27 @@ Read how to use **[Element Selectors](./setup/selectors.md)** to configure your 
 .    },
 .    settings: {
 .      "boundaries/elements": [
-.        { type: "controllers", pattern: "controllers/*" },
-.        { type: "models", pattern: "models/*" },
-.        { type: "views", pattern: "views/*" }
+.        { type: "controller", pattern: "controllers/*" },
+.        { type: "model", pattern: "models/*" },
+.        { type: "view", pattern: "views/*" }
 .      ],
 .    },
 .    rules: {
 .      ...boundaries.configs.recommended.rules,
-+      "boundaries/element-types": [2, {
++      "boundaries/dependencies": [2, {
 +        default: "disallow",
 +        rules: [
 +          {
-+            from: "controllers",
-+            allow: ["models", "views"]
++            from: { type: "controller" },
++            allow: { to: { type: ["model", "view"] } }
 +          },
 +          {
-+            from: "views",
-+            allow: ["models"]
++            from: { type: "view" },
++            allow: { to: { type: "model" } }
 +          },
 +          {
-+            from: "models",
-+            disallow: ["*"]
++            from: { type: "model" },
++            disallow: { to: { type: "*" } }
 +          }
 +        ]
 +      }]
@@ -256,27 +258,27 @@ Read how to use **[Element Selectors](./setup/selectors.md)** to configure your 
 .    },
 .    settings: {
 .      "boundaries/elements": [
-.        { type: "controllers", pattern: "controllers/*" },
-.        { type: "models", pattern: "models/*" },
-.        { type: "views", pattern: "views/*" }
+.        { type: "controller", pattern: "controllers/*" },
+.        { type: "model", pattern: "models/*" },
+.        { type: "view", pattern: "views/*" }
 .      ],
 .    } satisfies Settings,
 .    rules: {
 .      ...boundaries.configs.recommended.rules,
-+      "boundaries/element-types": [2, {
++      "boundaries/dependencies": [2, {
 +        default: "disallow",
 +        rules: [
 +          {
-+            from: "controllers",
-+            allow: ["models", "views"]
++            from: { type: "controller" },
++            allow: [{ type: "model" }, { type: "view" }]
 +          },
 +          {
-+            from: "views",
-+            allow: ["models"]
++            from: { type: "view" },
++            allow: [{ type: "model" }]
 +          },
 +          {
-+            from: "models",
-+            disallow: ["*"]
++            from: { type: "model" },
++            disallow: [{ type: "*" }]
 +          }
 +        ]
 +      }]
@@ -295,8 +297,8 @@ You are all set! Now you can start enforcing architectural boundaries in your pr
 From here you can:
 
 * Explore the **[Setup section](./setup/setup.md)** to learn:
-  * How to **[assign Element Types](./setup/elements.md)**.
+  * How to **[assign Elements](./setup/elements.md)**.
   * How to **[use Element Selectors](./setup/selectors.md)**.
-  * How to **[define Dependency Rules](./setup/rules.md)**.
+  * How to **[define Dependency Rules](./setup/rules.mdx)**.
   * How to **[customize Global Settings](./setup/settings.md)**.
 * Review the **[Rules section](./rules/rules.md)** to understand **all available rules and how to configure them**.

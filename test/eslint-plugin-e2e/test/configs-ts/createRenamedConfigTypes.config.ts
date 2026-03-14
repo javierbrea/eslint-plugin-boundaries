@@ -26,14 +26,14 @@ export const boundariesConfig = createConfig(
     rules: {
       ...recommendedBoundariesConfig.rules,
       // @ts-expect-error Invalid key because it does not match plugin name nor new name
-      "foo/element-types": [
+      "foo/dependencies": [
         "error",
         {
           default: "disallow",
           rules: [
             {
-              from: "module",
-              allow: ["component"],
+              from: { type: "module" },
+              allow: { to: { type: "component" } },
             },
           ],
         },
@@ -66,14 +66,14 @@ export const config: Linter.Config[] = defineConfig([
       rules: {
         ...recommendedBoundariesConfig.rules,
         // @ts-expect-error Invalid key because it does not match plugin name nor new name
-        "foo/element-types": [
+        "foo/dependencies": [
           "error",
           {
             default: "disallow",
             rules: [
               {
-                from: "module",
-                allow: ["component"],
+                from: { type: "module" },
+                allow: [{ to: { type: "component" } }],
               },
             ],
           },
@@ -106,14 +106,14 @@ export const boundariesConfig2 = createConfig(
     rules: {
       ...recommendedBoundariesConfig.rules,
       // Function also supports passing renamed rules
-      "customBoundaries/element-types": [
+      "customBoundaries/dependencies": [
         "error",
         {
           default: "disallow",
           rules: [
             {
-              from: "module",
-              allow: ["component"],
+              from: { type: "module" },
+              allow: [{ to: { type: "component" } }],
             },
           ],
         },
@@ -144,14 +144,14 @@ export const boundariesConfig3 = createConfig({
   rules: {
     ...recommendedBoundariesConfig.rules,
     // @ts-expect-error Function only supports passing renamed rules if second argument is provided
-    "customBoundaries/element-types": [
+    "customBoundaries/dependencies": [
       "error",
       {
         default: "disallow",
         rules: [
           {
-            from: "module",
-            allow: ["component"],
+            from: { type: "module" },
+            allow: [{ to: { type: "component" } }],
           },
         ],
       },

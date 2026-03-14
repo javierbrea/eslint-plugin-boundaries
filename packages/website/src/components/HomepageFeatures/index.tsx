@@ -17,8 +17,8 @@ const FeatureList: FeatureItem[] = [
     Svg: require("@site/static/img/undraw_software-engineer_xv60.svg").default,
     description: (
       <>
-        Define your own element types using file patterns. Components, services,
-        layers, domains, or whatever fits your architecture.
+        Define and categorize elements in your architecture using file patterns.
+        Components, services, layers, domains, or whatever fits it.
       </>
     ),
   },
@@ -38,7 +38,7 @@ const FeatureList: FeatureItem[] = [
     description: (
       <>
         Distributed as an ESLint plugin. See architectural issues in your IDE
-        and CI/CD pipelines. More tools coming soon.
+        and avoid them in CI/CD pipelines. More tools coming soon.
       </>
     ),
   },

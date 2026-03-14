@@ -1,4 +1,5 @@
 import rule from "../../../src/Rules/NoPrivate";
+import { NO_PRIVATE as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
@@ -6,8 +7,6 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import { noPrivateMessage } from "../../support/messages";
-
-const { NO_PRIVATE: RULE } = require("../../../src/Settings");
 
 const options = [
   {
@@ -32,7 +31,6 @@ const runTest = (
         code: 'import ComponentA from "components/atoms/atom-a"',
         options,
       },
-      // Private elements can use a parent elements: // TODO, add relationship rule to avoid this
       {
         filename: absoluteFilePath(
           "components/molecules/molecule-a/components/molecules/molecule-c/index.js"
@@ -73,7 +71,6 @@ const runTest = (
         code: 'import HelperA from "components/molecules/molecule-a/components/atoms/atom-c"',
         options,
       },
-      // Private elements can use an ancestor // TODO, add relationships rule to avoid this
       {
         filename: absoluteFilePath(
           "components/molecules/molecule-a/components/molecules/molecule-c/components/molecules/molecule-d/MoleculeD.js"
@@ -94,7 +91,7 @@ const runTest = (
         errors: [
           {
             message: noPrivateMessage({
-              dep: "'components' with category 'molecules' and elementName 'molecule-c'",
+              dep: '"components", category "molecules" and elementName "molecule-c"',
             }),
             type: "Literal",
           },
@@ -107,7 +104,7 @@ const runTest = (
         errors: [
           {
             message: noPrivateMessage({
-              dep: "'components' with category 'molecules' and elementName 'molecule-a'",
+              dep: '"components", category "molecules" and elementName "molecule-a"',
             }),
             type: "Literal",
           },
@@ -121,7 +118,7 @@ const runTest = (
         errors: [
           {
             message: noPrivateMessage({
-              dep: "'helpers' with elementName 'helper-a'",
+              dep: '"helpers" and elementName "helper-a"',
             }),
             type: "Literal",
           },
@@ -137,7 +134,7 @@ const runTest = (
         errors: [
           {
             message: noPrivateMessage({
-              dep: "'components' with category 'molecules' and elementName 'molecule-c'",
+              dep: '"components", category "molecules" and elementName "molecule-c"',
             }),
             type: "Literal",
           },
@@ -159,7 +156,7 @@ const runTest = (
         errors: [
           {
             message: noPrivateMessage({
-              dep: "'components' with category 'molecules' and elementName 'molecule-a'",
+              dep: '"components", category "molecules" and elementName "molecule-a"',
             }),
             type: "Literal",
           },

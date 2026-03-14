@@ -19,8 +19,13 @@
 - [Usage](#usage)
   - [Configuration Options](#configuration-options)
   - [Creating a matcher](#creating-a-matcher)
-    - [Element Descriptors](#element-descriptors)
+  - [Element Descriptors](#element-descriptors)
+  - [Descriptions API](#descriptions-api)
+    - [Element Description](#element-description)
+    - [Dependency Description](#dependency-description)
   - [Selectors](#selectors)
+    - [Element Selectors](#element-selectors)
+    - [Dependency Selectors](#dependency-selectors)
     - [Template Variables](#template-variables)
   - [Using Matchers](#using-matchers)
     - [Element Matching](#element-matching)
@@ -91,12 +96,12 @@ const matcher = elements.getMatcher([
 ]);
 
 // Match an element
-const isComponent = matcher.isMatch("src/components/Button.tsx", { 
+const isComponent = matcher.isElementMatch("src/components/Button.tsx", { 
   type: "component" 
 }); // true
 
 // Match a dependency
-const isValidDependency = matcher.isMatch(
+const isValidDependency = matcher.isDependencyMatch(
   {
     from: "src/components/Button.tsx",
     to: "src/services/Api.ts",
@@ -107,6 +112,7 @@ const isValidDependency = matcher.isMatch(
   {
     from: { category: "react" },
     to: { type: "service" },
+    dependency: { nodeKind: "ImportDeclaration" },
   }
 ); // true
 ```
@@ -194,17 +200,98 @@ Element descriptors define how files are identified and categorized. Each descri
 - **`capture`** (`string[]`): Array of keys to capture path fragments
 - **`baseCapture`** (`string[]`): Array of keys to capture fragments from `basePattern`. If the same key is defined in both `capture` and `baseCapture`, the value from `capture` takes precedence.
 
+### Descriptions API
+
+The matcher can also return normalized runtime descriptions. These descriptions are the canonical API used by `@boundaries/eslint-plugin` and are useful for debugging, reporting, and custom tooling.
+
+> [!IMPORTANT]
+> This section describes the **output API** of `describeElement` / `describeDependency`, which is different from the **input API** used by `isDependencyMatch`.
+
+#### Element Description
+
+`matcher.describeElement(filePath)` returns an object with normalized element metadata.
+
+Common fields:
+
+- `path`: Absolute or relative file path used in the matcher call
+- `type`: Matched element type, or `null` if unknown
+- `category`: Matched element category, or `null`
+- `captured`: Captured values map from descriptor patterns, or `null`
+- `elementPath`: Path representing the detected element boundary, or `null`
+- `internalPath`: Path of the file relative to `elementPath`, or `null`
+- `origin`: One of `"local" | "external" | "core"`
+- `isIgnored`: Whether the file was excluded by `ignorePaths` / `includePaths`
+- `isUnknown`: Whether no descriptor matched
+
+Additional fields for local known elements:
+
+- `parents`: Parent element chain, or `null`
+
+#### Dependency Description
+
+`matcher.describeDependency(options)` returns:
+
+```ts
+{
+  from: ElementDescription,
+  to: ElementDescription,
+  dependency: {
+    source: string,
+    module: string | null,
+    kind: "value" | "type" | "typeof",
+    nodeKind: string | null,
+    specifiers: string[] | null,
+    relationship: {
+      from: "internal" | "child" | "descendant" | "sibling" | "parent" | "uncle" | "nephew" | "ancestor" | null,
+      to: "internal" | "child" | "descendant" | "sibling" | "parent" | "uncle" | "nephew" | "ancestor" | null,
+    }
+  }
+}
+```
+
+Notes:
+
+- `dependency.source` is the raw import/export source string from code.
+- `dependency.module` is the normalized module base for external/core dependencies.
+- `dependency.relationship.to` describes how `to` relates to `from`.
+- `dependency.relationship.from` is the inverse perspective.
+- For unknown/ignored scenarios, some values can be `null`.
+
+Example:
+
+```ts
+const description = matcher.describeDependency({
+  from: "src/components/Button.tsx",
+  to: "src/services/Api.ts",
+  source: "../services/Api",
+  kind: "value",
+  nodeKind: "ImportDeclaration",
+  specifiers: ["ApiClient"],
+});
+
+console.log(description.dependency.source); // "../services/Api"
+console.log(description.dependency.kind); // "value"
+console.log(description.dependency.relationship); // { from: ..., to: ... }
+```
+
 ### Selectors
 
 Selectors are used to match elements and dependencies against specific criteria. They are objects where each property represents a matching condition.
 
-#### Element Properties
+#### Element Selectors
 
-All element selectors support the following properties:
+When matching elements, you can use element selectors that specify conditions on the element's properties.
+
+Element selectors support the following properties:
 
 - **`type`** (`string | string[]`): Micromatch pattern(s) for the element type/s
 - **`category`** (`string | string[]`): Micromatch pattern(s) for the element category/categories
-- **`captured`** (`object`): Object with keys matching captured values. Each key can be a string or an array of strings representing micromatch patterns.
+- **`captured`** (`object | object[]`): Captured values selector. When provided as an object, all keys must match (AND logic). When provided as an array of objects, the element matches if any of the objects matches all keys (OR logic). Each key in the objects can be a string or an array of strings representing micromatch patterns.
+- **`parent`** (`object` | `null`): Selector for the first parent in the element description (`parents[0]`). Supported properties are:
+  - **`type`** (`string | string[]`): Micromatch pattern(s) for parent type
+  - **`category`** (`string | string[]`): Micromatch pattern(s) for parent category
+  - **`elementPath`** (`string | string[]`): Micromatch pattern(s) for parent element path
+  - **`captured`** (`object | object[]`): Parent captured values selector. Uses the same semantics as `captured` in the root selector (object = AND, array = OR)
 - **`origin`** (`"local" | "external" | "core"`): Element origin
   - `local`: Files within the project
   - `external`: External dependencies (e.g., `node_modules`)
@@ -215,24 +302,33 @@ All element selectors support the following properties:
 - **`isIgnored`** (`boolean`): Whether the element is ignored
 - **`isUnknown`** (`boolean`): Whether the element type is unknown (i.e., doesn't match any descriptor)
 
-#### Dependency Properties
 
-When matching dependencies, the `to` selector can additionally use:
+> [!NOTE]
+> All properties in the selector are optional. You can also use `null` values in selector to match only elements with `null` values in the corresponding properties. In the case of `parent`, setting it to `null` will match elements that have no parents (i.e., top-level elements). If `parent` is an object, it will only match elements that have at least one parent, and the first parent (`parents[0]`) matches the specified conditions.
 
-- **`kind`** (`string | string[]`): Micromatch pattern(s) for the dependency kind
-- **`relationship`** (`string | string[]`): Element relationship. Micromatch pattern(s) for the relationship between source and target elements:
-  - `internal`: Both files belong to the same element
-  - `child`: Target is a child of source
-  - `parent`: Target is a parent of source
-  - `sibling`: Elements share the same parent
-  - `uncle`: Target is a sibling of a source ancestor
-  - `nephew`: Target is a child of a source sibling
-  - `descendant`: Target is a descendant of source
-  - `ancestor`: Target is an ancestor of source
-- **`specifiers`** (`string | string[]`): Pattern(s) for import/export specifiers (e.g., named imports)
-- **`nodeKind`** (`string | string[]`): Pattern(s) for the AST node type causing the dependency (e.g., `"ImportDeclaration"`)
-- **`source`** (`string | string[]`): Pattern(s) to match the source of the dependency. (e.g., the import path).
-- **`baseSource`** (`string | string[]`): Pattern(s) for the base module name for external imports.
+#### Dependency Selectors
+
+When matching dependencies, you can use dependency selectors that specify conditions on the source and target elements, as well as the dependency metadata.
+
+- **`from`** (`element selector | element selector[]`): [Selector(s)](#element-selectors) for the source element
+- **`to`** (`element selector | element selector[]`): [Selector(s)](#element-selectors) for the target element
+- **`dependency`** (`object | object[]`): Selector(s) for dependency metadata. When an array is provided, the dependency metadata matches if any selector in the array matches (OR logic). Supported selector properties:
+  - **`kind`** (`string | string[]`): Micromatch pattern(s) for the dependency kind
+  - **`relationship`** (`object`): Relationship selectors from both perspectives:
+    - **`from`** (`string | string[]`): Relationship from the perspective of `from`
+    - **`to`** (`string | string[]`): Relationship from the perspective of `to`
+      - `internal`: Both files belong to the same element
+      - `child`: Target is a child of source
+      - `parent`: Target is a parent of source
+      - `sibling`: Elements share the same parent
+      - `uncle`: Target is a sibling of a source ancestor
+      - `nephew`: Target is a child of a source sibling
+      - `descendant`: Target is a descendant of source
+      - `ancestor`: Target is an ancestor of source
+  - **`specifiers`** (`string | string[]`): Pattern(s) for import/export specifiers (e.g., named imports)
+  - **`nodeKind`** (`string | string[]`): Pattern(s) for the AST node type causing the dependency (e.g., `"ImportDeclaration"`)
+  - **`source`** (`string | string[]`): Pattern(s) to match the source of the dependency (e.g., the import path)
+  - **`module`** (`string | string[]`): Pattern(s) for the base module name for external or core dependencies.
 
 > **⚠️ Important:** All properties in a selector must match for the selector to be considered a match (AND logic). Use multiple selectors for OR logic.
 
@@ -243,7 +339,7 @@ When matching dependencies, the `to` selector can additionally use:
 Selectors support template variables using [Handlebars syntax](https://handlebarsjs.com/) (`{{ variableName }}`). Templates are resolved at match time using:
 
 - **Element properties** (`type`, `category`, `captured`, etc.)
-- **Dependency properties** (`from`, `to`)
+- **Dependency properties** (`from`, `to`, `dependency`)
 
 #### Available Template Data
 
@@ -254,7 +350,8 @@ When matching, the following data is automatically available:
 
 **For dependency matching:**
 - `from`: Properties of the dependency source element
-- `to`: Properties of the dependency target element, and properties of the dependency itself (source, kind, nodeKind, specifiers, etc.)
+- `to`: Properties of the dependency target element
+- `dependency`: Dependency metadata (`kind`, `nodeKind`, `specifiers`, `source`, `module`, `relationship`, etc.)
 
 #### Template Examples
 
@@ -270,7 +367,7 @@ const matcher = elements.getMatcher([
 ]);
 
 // Match components from specific module using template
-const isAuthComponent = matcher.isMatch(
+const isAuthComponent = matcher.isElementMatch(
   "src/modules/auth/LoginForm.component.tsx",
   { 
     type: "component",
@@ -278,8 +375,20 @@ const isAuthComponent = matcher.isMatch(
   },
 );
 
+// Using captured array for OR logic
+const isAuthOrUserComponent = matcher.isElementMatch(
+  "src/modules/auth/LoginForm.component.tsx",
+  { 
+    type: "component",
+    captured: [
+      { module: "auth" },      // Matches if module is "auth"
+      { module: "user", fileName: "UserProfile" }       // OR if module is "user" and fileName is "UserProfile"
+    ]
+  },
+);
+
 // Using templates in dependency selectors
-const isDependencyMatch = matcher.isMatch(
+const isDependencyMatch = matcher.isDependencyMatch(
   {
     from: "src/components/Button.tsx",
     to: "src/services/Api.ts",
@@ -290,7 +399,11 @@ const isDependencyMatch = matcher.isMatch(
   },
   {
     from: { type: "{{ from.type }}", captured: { fileName: "{{ from.captured.fileName }}" } },
-    to: { path: "{{ to.path }}", specifiers: "{{ lookup to.specifiers 0 }}", kind: "{{ to.kind }}" },
+    to: { path: "{{ to.path }}" },
+    dependency: {
+      specifiers: "{{ lookup dependency.specifiers 0 }}",
+      kind: "{{ dependency.kind }}",
+    },
   }
 );
 ```
@@ -301,7 +414,7 @@ You can provide additional template data using the `extraTemplateData` option in
 
 ```ts
 // Using templates in selectors
-const isMatch = matcher.isMatch(
+const isMatch = matcher.isElementMatch(
   "src/components/UserProfile.tsx",
   { type: "{{ componentType }}" },
   {
@@ -316,18 +429,18 @@ You can use element selectors with a created matcher to check if a given path co
 
 #### Element Matching
 
-To match an element, use the `isMatch` method of the matcher, providing the file path and an element selector.
+To match an element, use the `isElementMatch` method of the matcher, providing the file path and an element selector.
 
 ```ts
-const isElementMatch = matcher.isMatch("src/components/Button.tsx", { type: "component" });
+const isElementMatch = matcher.isElementMatch("src/components/Button.tsx", { type: "component" });
 ```
 
 > [!TIP]
-> You can also provide an array of selectors to the `isMatch` method. In this case, the method will return `true` if the element matches any of the provided selectors (OR logic).
+> You can also provide an array of selectors to the `isElementMatch` method. In this case, the method will return `true` if the element matches any of the provided selectors (OR logic).
 
 #### Dependency Matching
 
-To match a dependency, use the `isMatch` method of the matcher, providing the properties of the dependency and a dependency selector.
+To match a dependency, use the `isDependencyMatch` method of the matcher, providing the properties of the dependency and a dependency selector.
 
 **Dependency object properties:**
 
@@ -341,10 +454,11 @@ To match a dependency, use the `isMatch` method of the matcher, providing the pr
 **Dependency selector:**
 
 - **`from`**: Element selector(s) for the source file
-- **`to`**: Dependency selector(s) for the target file
+- **`to`**: Element selector(s) for the target file
+- **`dependency`**: Dependency metadata selector(s)
 
 ```ts
-const isDependencyMatch = matcher.isMatch(
+const isDependencyMatch = matcher.isDependencyMatch(
   { // Dependency properties
     from: "src/components/Button.tsx",
     to: "src/services/Api.ts",
@@ -354,13 +468,17 @@ const isDependencyMatch = matcher.isMatch(
   },
   {
     from: { category: "react" }, // Dependency source selector/s
-    to: { type: "service", nodeKind: "Import*" }, // Dependency target selector/s
+    to: { type: "service" }, // Dependency target selector/s
+    dependency: [
+      { nodeKind: "Import*" },
+      { source: "@services/*" },
+    ], // Dependency metadata selector/s (OR logic)
   }
 );
 ```
 
 > [!TIP]
-> You can also provide an array of selectors both to the `from` and `to` properties of the dependency selector. In this case, the method will return `true` if the dependency matches any combination of the provided selectors (OR logic).
+> You can also provide an array of selectors to `from`, `to` and `dependency`. The matcher will return `true` when all provided selector groups match.
 
 ### Flagging Dependencies as External
 
@@ -534,14 +652,20 @@ elements.setCacheFromSerialized(cache);
 
 ### Matcher Instance Methods
 
-#### `isMatch`
+#### `isElementMatch`
 
-Checks if a given path matches the specified element or dependency selector.
+Checks if a given path matches an element selector.
 
 ```ts
-const isElementMatch = matcher.isMatch("src/components/Button.tsx", [{ type: "component" }]);
+const isElementMatch = matcher.isElementMatch("src/components/Button.tsx", [{ type: "component" }]);
+```
 
-const isDependencyMatch = matcher.isMatch(
+#### `isDependencyMatch`
+
+Checks if dependency properties match a dependency selector.
+
+```ts
+const isDependencyMatch = matcher.isDependencyMatch(
   {
     from: "src/components/Button.tsx",
     to: "src/services/Api.ts",
@@ -551,30 +675,41 @@ const isDependencyMatch = matcher.isMatch(
   },
   {
     from: [{ category: "react" }],
-    to: { type: "service", nodeKind: "Import*" },
+    to: { type: "service" },
+    dependency: { nodeKind: "Import*" },
   }
 );
 ```
 
-- __Parameters__:
-  - `path`:
-    - `string` The path to check when using an [element selector](#selectors).
-    - `DependencyProperties` The [properties of the dependency](#dependency-matching) to check when using a [dependency selector](#selectors).
-  - `selector`: `ElementSelector | DependencySelector` The [selector](#selectors) to match against. It can be either an element selector (for path matching) or a dependency selector (for dependency matching).
-    - If `path` is a string, `selector` should be an [`ElementSelector`](#selectors) or an array of `ElementSelector`.
-    - If `path` are dependency properties, `selector` should be a [`DependencySelector`](#selectors) or an array of `DependencySelector`.
-  - `options`: `MatcherOptions` Optional. Additional options for matching:
-    - `extraTemplateData`: `object` Optional. Extra data to pass to selector templates. When using [template variables](#template-variables) in selectors, this data will be available for rendering.
+#### `getElementSelectorMatching`
 
-#### `getSelectorMatching`
-
-Returns the first matching selector or `null`.
+Returns the first matching element selector or `null`.
 
 ```ts
-const matchingSelector = matcher.getSelectorMatching("src/components/Button.tsx", [{ type: "component" }]);
+const matchingSelector = matcher.getElementSelectorMatching("src/components/Button.tsx", [{ type: "component" }]);
 ```
 
-Parameters are the same as `isMatch`, but instead of returning a boolean, it returns the first matching selector or `null` if none match.
+#### `getDependencySelectorMatching`
+
+Returns the dependency selector matching result (`from`, `to`, `dependency`, `isMatch`).
+
+> [!NOTE]
+> This method provides detailed information about which part of the selector matched or didn't match. When arrays of selectors are provided in the `from`, `to` or `dependency` properties, the method will return the first selector that matches on each side, so the returned `from`, `to` and `dependency` will be the matching selector from each group.
+
+```ts
+const matchingSelector = matcher.getDependencySelectorMatching(
+  {
+    from: "src/components/Button.tsx",
+    to: "src/services/Api.ts",
+    source: "../services/Api",
+    kind: "type",
+  },
+  {
+    to: { type: "service" },
+    dependency: { kind: "type" },
+  }
+);
+```
 
 #### `describeElement`
 
@@ -586,6 +721,7 @@ const elementDescription = matcher.describeElement("src/components/Button.tsx");
 
 - __Parameters__:
   - `path`: `string` The path of the element to describe.
+- __Returns__: [Element Description](#element-description).
 
 #### `describeDependency`
 
@@ -603,14 +739,37 @@ const dependencyDescription = matcher.describeDependency({
 
 - __Parameters__:
   - `dependency`: The [properties of the dependency to describe](#dependency-matching).
+- __Returns__: [Dependency Description](#dependency-description).
 
-#### `getSelectorMatchingDescription`
+#### `getElementSelectorMatchingDescription`
 
-Matches a description against selectors. As first argument, it should receive the result of `describeElement` or `describeDependency`.
+Matches an element description against element selectors. As first argument, it should receive the result of `describeElement`.
+
+As second argument, it should receive an array of element selectors. The method will return the first selector that matches the description or `null` if no selector matches.
 
 ```ts
 const elementDescription = matcher.describeElement("src/components/Button.tsx");
-const matchingSelector = matcher.getSelectorMatchingDescription(elementDescription, [{ type: "component" }]);
+const matchingSelector = matcher.getElementSelectorMatchingDescription(elementDescription, [{ type: "component" }]);
+```
+
+#### `getDependencySelectorMatchingDescription`
+
+Matches a dependency description against dependency selectors. As first argument, it should receive the result of `describeDependency`.
+
+As second argument, it should receive an array of dependency selectors. The method will return the first selector that matches the description or `null` if no selector matches.
+
+> [!NOTE]
+> This method provides detailed information about which part of the selector matched or didn't match. When arrays of selectors are provided in the `from`, `to` or `dependency` properties in a dependency selector, the method will return the first selector that matches on each side, so the returned `from`, `to` and `dependency` will be the matching selector from each group.
+
+```ts
+const dependencyDescription = matcher.describeDependency({
+  from: "src/components/Button.tsx",
+  to: "src/services/Api.ts",
+  source: "../services/Api",
+  kind: "type",
+  nodeKind: "ImportDeclaration",
+});
+const matchingSelector = matcher.getDependencySelectorMatchingDescription(dependencyDescription, [{ to: { type: "service" }, dependency: { kind: "type" } }]);
 ```
 
 #### `clearCache`
@@ -655,18 +814,18 @@ Selectors can be defined as either a string or an array of strings representing 
 
 ```ts
 // Legacy selector using a string
-const isElementMatch = matcher.isMatch("src/components/Button.tsx", "component");
+const isElementMatch = matcher.isElementMatch("src/components/Button.tsx", "component");
 // Legacy selector using an array of strings
-const isElementMatch = matcher.isMatch("src/components/Button.tsx", ["component", "service"]);
+const isElementMatch = matcher.isElementMatch("src/components/Button.tsx", ["component", "service"]);
 ```
 
 They can also be defined as an array where the first element is the type and the second element is an object containing captured values:
 
 ```ts
 // Legacy selector with captured values
-const isElementMatch = matcher.isMatch(
+const isElementMatch = matcher.isElementMatch(
   "src/modules/auth/LoginForm.component.tsx",
-  ["component", { module: "auth" }]
+  ["component", { foo: "auth" }]
 );
 ```
 

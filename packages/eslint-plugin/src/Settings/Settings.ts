@@ -2,22 +2,24 @@ import { isAbsolute, resolve } from "node:path";
 
 import type { ElementDescriptors } from "@boundaries/elements";
 
-import { isArray } from "../Support";
+import { SETTINGS } from "../Shared/Settings.types";
+import type { Settings } from "../Shared/Settings.types";
 
 import { isLegacyType } from "./Helpers";
-import { SETTINGS } from "./Settings.types";
-import type { Settings } from "./Settings.types";
 
-const { VALID_MODES, ROOT_PATH, ENV_ROOT_PATH, DEBUG } = SETTINGS;
+const { VALID_MODES, ROOT_PATH, ENV_ROOT_PATH } = SETTINGS;
 
 // TODO, remove in next major version
+/**
+ * Converts legacy string element descriptors into object descriptors.
+ *
+ * @param typesFromSettings - Raw `boundaries/elements` setting value.
+ * @returns Normalized element descriptors compatible with current matcher API.
+ */
 export function transformLegacyTypes(
   typesFromSettings?: string[] | ElementDescriptors
 ): ElementDescriptors {
   const types = typesFromSettings || [];
-  if (!isArray(types)) {
-    return [];
-  }
   return types.map((type) => {
     // backward compatibility with v1
     if (isLegacyType(type)) {
@@ -36,12 +38,24 @@ export function transformLegacyTypes(
   });
 }
 
+/**
+ * Extracts element type names from normalized element descriptors.
+ *
+ * @param descriptors - Normalized descriptors from settings.
+ * @returns List of defined element type names.
+ */
 export function getElementsTypeNames(
   descriptors: ElementDescriptors
 ): string[] {
   return descriptors.map((element) => element.type).filter(Boolean) as string[];
 }
 
+/**
+ * Resolves the effective root path used by boundaries matchers.
+ *
+ * @param settings - Validated plugin settings.
+ * @returns Absolute root path used for dependency and element resolution.
+ */
 export function getRootPath(settings: Settings): string {
   const rootPathUserSetting = process.env[ENV_ROOT_PATH] || settings[ROOT_PATH];
   if (rootPathUserSetting) {
@@ -50,8 +64,4 @@ export function getRootPath(settings: Settings): string {
       : resolve(process.cwd(), rootPathUserSetting);
   }
   return process.cwd();
-}
-
-export function isDebugModeEnabled() {
-  return process.env[DEBUG];
 }

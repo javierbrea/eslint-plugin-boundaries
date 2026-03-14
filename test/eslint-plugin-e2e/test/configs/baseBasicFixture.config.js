@@ -22,8 +22,14 @@ export default {
         default: "disallow",
         rules: [
           {
-            from: "module",
-            allow: ["component"],
+            from: {
+              type: "module",
+            },
+            allow: [
+              {
+                to: { type: "component" },
+              },
+            ],
           },
         ],
       },

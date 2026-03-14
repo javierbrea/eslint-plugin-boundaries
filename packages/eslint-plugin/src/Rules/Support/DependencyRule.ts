@@ -1,10 +1,11 @@
 import type { Rule } from "eslint";
 
+import { warnOnce } from "../../Debug";
 import { elementDescription, dependencyDescription } from "../../Elements";
 import type { EslintLiteralNode } from "../../Elements";
-import type { RuleOptionsWithRules, RuleMetaDefinition } from "../../Settings";
-import { SETTINGS, getSettings } from "../../Settings";
-import { warnOnce, isString } from "../../Support";
+import { getSettings, moreInfoSettingsLink } from "../../Settings";
+import type { RuleOptionsWithRules, RuleMetaDefinition } from "../../Shared";
+import { SETTINGS, isString } from "../../Shared";
 
 import type {
   DependencyRuleRunner,
@@ -14,6 +15,14 @@ import { meta } from "./Helpers";
 
 const { ADDITIONAL_DEPENDENCY_NODES } = SETTINGS;
 
+/**
+ * Creates a rule module that evaluates dependency nodes using shared matcher logic.
+ *
+ * @param ruleMeta - Metadata used to build ESLint rule `meta` information.
+ * @param rule - Rule runner invoked for each described dependency.
+ * @param ruleOptions - Optional behavior flags for validation and rule shape.
+ * @returns ESLint rule module ready to be exported by concrete rules.
+ */
 export function dependencyRule<Options extends RuleOptionsWithRules>(
   ruleMeta: RuleMetaDefinition,
   rule: DependencyRuleRunner<Options>,
@@ -30,17 +39,18 @@ export function dependencyRule<Options extends RuleOptionsWithRules>(
         return {};
       }
 
-      // TODO: Remove this check when allowing to select by any other property
-      if (file.isIgnored || !file.type) {
+      if (file.isIgnored || file.isUnknown) {
         return {};
       }
 
       return settings.dependencyNodes.reduce(
         (visitors, { selector, kind, name }) => {
           visitors[selector] = (node: EslintLiteralNode) => {
+            /* istanbul ignore next - Defensive check */
             if (!isString(node.value)) {
               warnOnce(
-                `Dependency node is not a Literal, skipping node. Please check your ${ADDITIONAL_DEPENDENCY_NODES} setting.`
+                `Dependency node value is not a string, skipping node.`,
+                `Please check your ${ADDITIONAL_DEPENDENCY_NODES} setting. ${moreInfoSettingsLink()}`
               );
               return;
             }

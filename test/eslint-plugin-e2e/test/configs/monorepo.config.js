@@ -22,6 +22,7 @@ export default [
           capture: ["name"],
         },
       ],
+      "boundaries/dependency-nodes": ["import"],
     },
     rules: {
       ...strictBoundariesConfig.rules,
@@ -35,8 +36,16 @@ export default [
               allow: ["helper"],
             },
             {
-              from: "helper",
-              allow: ["helper"],
+              from: {
+                type: "helper",
+              },
+              allow: [
+                {
+                  to: {
+                    type: "helper",
+                  },
+                },
+              ],
             },
           ],
         },

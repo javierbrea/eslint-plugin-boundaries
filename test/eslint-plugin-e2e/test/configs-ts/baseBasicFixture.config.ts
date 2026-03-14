@@ -1,14 +1,13 @@
 import type {
   ElementDescriptors,
   IgnoreSetting,
-  ElementTypesRule,
-  ElementTypesRuleOptions,
+  DependenciesRule,
+  DependenciesRuleOptions,
   Config,
   Settings,
   Rules,
   ElementDescriptor,
-  ElementSelector,
-  ElementSelectors,
+  ElementSelectorWithOptions,
   AliasSetting,
 } from "@boundaries/eslint-plugin";
 
@@ -22,6 +21,7 @@ const elementsMapping: ElementDescriptors = [
   moduleElementDescriptor,
   {
     type: "component",
+    category: "ui",
     pattern: "src/components/*",
     capture: ["component"],
   },
@@ -29,27 +29,29 @@ const elementsMapping: ElementDescriptors = [
 
 const ignoreSetting: IgnoreSetting = ["**/ignored/**/*.js"];
 
-const allowComponentsFromModules: ElementTypesRule = {
-  from: "module",
-  allow: ["component"],
+const allowComponentsFromModules: DependenciesRule = {
+  from: { type: "module" },
+  allow: [{ to: { type: "component" } }],
 };
 
-const componentToComponentRuleAllowMatcher: ElementSelector = [
+const componentToComponentRuleAllowMatcher: ElementSelectorWithOptions = [
   "component",
   { name: "foo" },
 ];
 
-const componentToComponentRuleElementSelectors: ElementSelectors = [
+const componentToComponentRuleElementSelectors = [
   "component",
   componentToComponentRuleAllowMatcher,
 ];
 
-const elementTypesRuleOptions: ElementTypesRuleOptions = {
+const dependenciesRuleOptions: DependenciesRuleOptions = {
   default: "disallow",
   rules: [
     allowComponentsFromModules,
     {
-      from: "component",
+      from: {
+        type: "component",
+      },
       allow: componentToComponentRuleElementSelectors,
     },
   ],
@@ -69,7 +71,7 @@ const boundariesSettings: Settings = {
 };
 
 const boundariesRules: Rules = {
-  "boundaries/element-types": ["error", elementTypesRuleOptions],
+  "boundaries/dependencies": ["error", dependenciesRuleOptions],
   // @ts-expect-error Testing that the rule is not valid for the plugin
   "foo/bar": "off", // This rule should be ignored by the plugin
 };

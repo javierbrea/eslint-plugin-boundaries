@@ -5,53 +5,90 @@ description: Overview of the rules provided by ESLint Plugin Boundaries to enfor
 tags:
   - rules
 keywords:
-  - ESLint plugin
-  - boundaries
+  - eslint-plugin-boundaries
   - rules
-  - summary
+  - rules overview
+  - dependencies
+  - no-unknown
+  - no-unknown-files
+  - no-ignored
+  - architecture enforcement
+  - import restrictions
+  - dependency constraints
 ---
 
 # Rules Overview
 
-ESLint Plugin Boundaries provides a primary rule (`boundaries/element-types`) that enables you to define and enforce architectural boundaries within your codebase. With this rule, you can specify which types of elements (e.g., modules, components, services) are allowed to interact with each other.
+ESLint Plugin Boundaries provides a primary rule (`boundaries/dependencies`) that enables you to define and enforce architectural boundaries within your codebase. With this rule, you can specify which types of elements (e.g., modules, components, services) are allowed to interact with each other.
 
-But that’s not all. In addition to the main rule, the plugin includes other complementary rules that further enhance its capabilities and help you maintain the integrity and consistency of your architecture.
+In addition to the main rule, the plugin includes another rule that ensures all files in your project belong to a known element, preventing the creation of stray files that do not fit into your defined architecture.
 
 Here are the key rules provided by the plugin:
 
-### Element types
+## dependencies
 
 This rule ensures that dependencies between the [elements](../setup/elements.md) in your project follow the constraints you have defined.
 
-Examples:
+Example:
 
 * Define the element types in your project as “models”, “views”, and “controllers”. Then enforce that “views” and “models” can only be imported by “controllers”, and that “controllers” are never used by “views” or “models”.
-* Define the element types in your project as “components”, “views”, “layouts”, “pages”, and “helpers”. Then enforce that “components” can only import “helpers”; “views” can only import “components” or “helpers”; “layouts” can only import “views”, “components”, or “helpers”; and “pages” can import any other element type.
 
-See the [documentation for the `boundaries/element-types` rule](./dependencies.md) for more details.
+See the [documentation for the `boundaries/dependencies` rule](./dependencies.md) for more details.
 
-### Entry point
+## no-unknown-files
+
+This rule ensures that all files in your project belong to a known element (files matching [element descriptors](../setup/elements.md)). It helps maintain a well-defined architecture by preventing stray files from being even created.
+
+See the [documentation for the `boundaries/no-unknown-files` rule](./no-unknown-files.md) for more details.
+
+## no-unknown
+
+This rule ensures that known files cannot import unknown files (files that do not match with any [element descriptor](../setup/elements.md)). It helps maintain clear boundaries by preventing dependencies on unclassified files.
+
+See the [documentation for the `boundaries/no-unknown` rule](./no-unknown.md) for more details.
+
+:::tip
+The restriction set by this rule can also be achieved with the **[`boundaries/dependencies` rule](./dependencies.md)**, which allows you to specify rules based on the `isUnknown` property of the [elements selector](../setup/selectors.md), but it is provided as a shortcut for this common use case. You can choose to use either this specific rule or the `boundaries/dependencies` for more granularity and flexibility based on your preference and needs. 
+:::
+
+## no-ignored
+
+This rule ensures that all known files can only import non-ignored files. It helps maintain the integrity of your architecture by preventing dependencies on files that are intentionally excluded from the architectural boundaries.
+
+See the [documentation for the `boundaries/no-ignored` rule](./no-ignored.md) for more details.
+
+## Deprecated legacy rules
+
+Some legacy rules that are not aligned with the new architecture and configuration system will be deprecated in oncoming major versions. They will continue working for now, but it is recommended to migrate them to `boundaries/dependencies` as soon as possible, as they will eventually be removed.
+
+### entry-point
 
 This rule ensures that elements cannot import files from another element except through the defined entry point for that type.
 
-See the [documentation for the `boundaries/entry-point` rule](./entry-point.md) for more details.
+:::warning
+Now this can also be achieved with the `boundaries/dependencies` rule, but this legacy rule will continue working for now to give you more time to migrate your configuration. It helps maintain clear and consistent access points between different architectural layers.
+:::
 
-### Allowed external modules
+See the [documentation for the `boundaries/entry-point` rule](./entry-point.mdx) for more details.
 
-This rule checks which external dependencies can be used by each element type. It helps maintain consistent dependency management across different architectural layers. For example, you can configure that “helpers” cannot import `react`, that “components” cannot import `react-router-dom`, or that modules cannot import `{ Link }` from `react-router-dom`.
+### external
 
-See the [documentation for the `boundaries/external` rule](./external.md) for more details.
+This rule checks which external dependencies can be used by each element.
 
-### Private elements
+It helps maintain consistent dependency management across different architectural layers. For example, you can configure that “helpers” cannot import `react`, that “components” cannot import `react-router-dom`, or that modules cannot import `{ Link }` from `react-router-dom`.
+
+:::warning
+This rule is still available for now, but the recommended way to manage external dependencies is through the `boundaries/dependencies` rule, which allows you to specify allowed external dependencies directly in the rules by using the `origin` and `source` properties. This legacy rule will eventually be removed, so it is recommended to migrate your configuration to `boundaries/dependencies` as soon as possible.
+:::
+
+See the [documentation for the `boundaries/external` rule](./external.mdx) for more details.
+
+### no-private
 
 This rule ensures that elements cannot import the children of another element. When element B is a child of element A, B becomes a “private” element of A, and only A is allowed to use it.
 
-See the [documentation for the `boundaries/no-private` rule](./no-private.md) for more details.
+:::warning
+This rule is still available for now, but the recommended way to manage private elements is through the `boundaries/dependencies` rule, which allows you to define rules based on the relationship between elements, including parent-child relationships. This legacy rule will eventually be removed, so it is recommended to migrate your configuration to `boundaries/dependencies` as soon as possible.
+:::
 
-### Rules about unknown or ignored files
-
-Next rules help you manage files or dependencies with files that do not belong to any known element type, or files that are explicitly ignored in the plugin settings:
-
-- [**No Unknown**](./no-unknown.md): This rule ensures that files cannot import unknown files (files that do not belong to any known element type). It helps maintain clear boundaries by preventing dependencies on unclassified files.
-- [**No Unknown Files**](./no-unknown-files.md): This rule ensures that all files in your project belong to a known element type. It helps maintain a well-defined architecture by preventing stray files from being even created.
-- [**No Ignored**](./no-ignored.md): This rule ensures that all known files can only import non-ignored files. It helps maintain the integrity of your architecture by preventing dependencies on files that are intentionally excluded from the architectural boundaries.
+See the [documentation for the `boundaries/no-private` rule](./no-private.mdx) for more details.

@@ -1,4 +1,10 @@
-import { isString, isObjectWithProperty, isNull } from "../Support/TypeGuards";
+import {
+  isString,
+  isObjectWithProperty,
+  isNull,
+  isNullish,
+  isStringArray,
+} from "../Support/TypeGuards";
 
 import type {
   DependencyKind,
@@ -65,12 +71,18 @@ export function isElementsDependencyInfo(
   value: unknown
 ): value is ElementsDependencyInfo {
   return (
+    isObjectWithProperty(value, "source") &&
+    isString(value.source) &&
+    isObjectWithProperty(value, "module") &&
+    (isNullish(value.module) || isString(value.module)) &&
     isObjectWithProperty(value, "kind") &&
     isDependencyKind(value.kind) &&
     isObjectWithProperty(value, "relationship") &&
     isDependencyRelationshipDescription(value.relationship) &&
     isObjectWithProperty(value, "nodeKind") &&
-    (isNull(value.nodeKind) || isString(value.nodeKind))
+    (isNull(value.nodeKind) || isString(value.nodeKind)) &&
+    isObjectWithProperty(value, "specifiers") &&
+    (isNull(value.specifiers) || isStringArray(value.specifiers))
   );
 }
 

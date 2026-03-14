@@ -7,6 +7,13 @@ tags:
   - rules
   - configuration
   - examples
+keywords:
+  - eslint-plugin-boundaries
+  - no-unknown rule
+  - unknown elements
+  - import validation
+  - architecture enforcement
+  - import restrictions
 ---
 
 # no-unknown
@@ -15,10 +22,16 @@ tags:
 
 ## Rule Details
 
-This rule validates `import` statements (or any other **[dependency-creating syntax](../setup/settings.md#boundariesdependency-nodes)**) to local files. If the imported file is not recognized as any of the **[elements defined in settings](../setup/elements.md)**, the import will be reported as an error when importing from a known element.
+This rule validates dependencies to local files. If the imported file is not recognized as any of the **[elements defined in settings](../setup/elements.md)**, the dependency will be reported as an error when importing from a known element.
 
 :::info
 This rule helps ensure that all files used in your project are properly categorized as elements, preventing unstructured dependencies.
+:::
+
+:::tip
+The restriction set by this rule can also be achieved with the **[`boundaries/dependencies` rule](./dependencies.md)**, which allows you to specify rules based on the `isUnknown` property of the [elements selector](../setup/selectors.md), but it is provided as a shortcut for this common use case. You can choose to use either this specific rule or the `boundaries/dependencies` for more granularity and flexibility based on your preference and needs.
+
+Read [replacement with `boundaries/dependencies`](#replacement-with-boundariesdependencies) section below for more details and examples.
 :::
 
 ## Options
@@ -33,9 +46,9 @@ This rule helps ensure that all files used in your project are properly categori
 
 ### Configuration Example
 
-```json
+```js
 {
-  "rules": {
+  rules: {
     "boundaries/no-unknown": [2]
   }
 }
@@ -70,21 +83,21 @@ src/
 
 **Settings configuration:**
 
-```json
+```js
 {
-  "settings": {
+  settings: {
     "boundaries/elements": [
       {
-        "type": "helpers",
-        "pattern": "helpers/*/*.js",
-        "mode": "file",
-        "capture": ["category", "elementName"]
+        type: "helper",
+        pattern: "helpers/*/*.js",
+        mode: "file",
+        capture: ["family", "elementName"]
       },
       {
-        "type": "components",
-        "pattern": "components/*/*",
-        "mode": "folder",
-        "capture": ["family", "elementName"]
+        type: "component",
+        pattern: "components/*/*",
+        mode: "folder",
+        capture: ["family", "elementName"]
       }
     ]
   }
@@ -123,6 +136,44 @@ Unknown files importing other unknown files:
 ```js
 // src/index.js
 import foo from './foo'
+```
+
+## Replacement with `boundaries/dependencies`
+
+You can achieve the same result by using the [`boundaries/dependencies` rule](./dependencies.md) and specifying rules based on the `isUnknown` property of the [elements selector](../setup/selectors.md).
+
+:::warning
+You need to set the `checkUnknownLocals` option to `true` in your `boundaries/dependencies` configuration to make sure that dependencies from unknown local files are also checked, as by default `boundaries/dependencies` only checks dependencies between local known elements.
+:::
+
+```js
+{
+  rules: {
+    "boundaries/dependencies": [
+      2,
+      {
+        checkUnknownLocals: true,
+        default: "allow",
+        rules: [
+          {
+            from: { isUnknown: false },
+            disallow: {
+              to: { isUnknown: true }
+            }
+          },
+          // Or use more granular rules to allow some specific dependencies
+          // to unknown files, for example:
+          {
+            from: { type: "helper" },
+            allow: {
+              to: { isUnknown: true }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
 ```
 
 ## Further Reading
