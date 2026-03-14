@@ -1105,6 +1105,120 @@ export function validateDebugDependenciesFilter(
 }
 
 /**
+ * Validates and assigns `debug.enabled` when provided.
+ *
+ * @param debug - Raw debug setting object.
+ * @param validated - Debug setting accumulator.
+ */
+function assignDebugEnabled(
+  debug: Record<string, unknown>,
+  validated: DebugSettingNormalized
+) {
+  if (isUndefined(debug.enabled)) {
+    return;
+  }
+
+  if (isBoolean(debug.enabled)) {
+    validated.enabled = debug.enabled;
+    return;
+  }
+
+  warnOnce(
+    `Please provide a valid boolean for 'enabled' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+    moreInfoSettingsLink()
+  );
+}
+
+/**
+ * Validates and assigns a `debug.messages.*` boolean flag when provided.
+ *
+ * @param messages - Raw `debug.messages` object.
+ * @param validated - Debug setting accumulator.
+ * @param key - Message flag key to validate.
+ */
+function assignDebugMessageFlag(
+  messages: Record<string, unknown>,
+  validated: DebugSettingNormalized,
+  key: keyof DebugSettingNormalized["messages"]
+) {
+  const value = messages[key];
+
+  if (isUndefined(value)) {
+    return;
+  }
+
+  if (isBoolean(value)) {
+    validated.messages[key] = value;
+    return;
+  }
+
+  warnOnce(
+    `Please provide a valid boolean for 'messages.${key}' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+    moreInfoSettingsLink()
+  );
+}
+
+/**
+ * Validates and assigns `debug.messages` object and known flags.
+ *
+ * @param debug - Raw debug setting object.
+ * @param validated - Debug setting accumulator.
+ */
+function assignDebugMessages(
+  debug: Record<string, unknown>,
+  validated: DebugSettingNormalized
+) {
+  if (isUndefined(debug.messages)) {
+    return;
+  }
+
+  if (!isObject(debug.messages)) {
+    warnOnce(
+      `Please provide a valid object for 'messages' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+      moreInfoSettingsLink()
+    );
+    return;
+  }
+
+  assignDebugMessageFlag(debug.messages, validated, "files");
+  assignDebugMessageFlag(debug.messages, validated, "dependencies");
+  assignDebugMessageFlag(debug.messages, validated, "violations");
+}
+
+/**
+ * Validates and assigns `debug.filter` object and supported selectors.
+ *
+ * @param debug - Raw debug setting object.
+ * @param validated - Debug setting accumulator.
+ */
+function assignDebugFilter(
+  debug: Record<string, unknown>,
+  validated: DebugSettingNormalized
+) {
+  if (isUndefined(debug.filter)) {
+    return;
+  }
+
+  if (!isObject(debug.filter)) {
+    warnOnce(
+      `Please provide a valid object for 'filter' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+      moreInfoSettingsLink()
+    );
+    return;
+  }
+
+  const files = validateDebugFilesFilter(debug.filter.files);
+  const dependencies = validateDebugDependenciesFilter(
+    debug.filter.dependencies
+  );
+
+  validated.filter = {
+    ...(isUndefined(files) ? {} : { files }),
+    ...(isUndefined(dependencies) ? {} : { dependencies }),
+  };
+}
+
+/**
  * Validates the `debug` setting object and nested filters.
  *
  * @param debug - Raw debug setting value.
@@ -1136,75 +1250,9 @@ export function validateDebug(debug: unknown): DebugSettingNormalized {
     return validated;
   }
 
-  if (!isUndefined(debug.enabled)) {
-    if (isBoolean(debug.enabled)) {
-      validated.enabled = debug.enabled;
-    } else {
-      warnOnce(
-        `Please provide a valid boolean for 'enabled' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
-        moreInfoSettingsLink()
-      );
-    }
-  }
-
-  if (!isUndefined(debug.messages)) {
-    if (isObject(debug.messages)) {
-      if (!isUndefined(debug.messages.files)) {
-        if (isBoolean(debug.messages.files)) {
-          validated.messages.files = debug.messages.files;
-        } else {
-          warnOnce(
-            `Please provide a valid boolean for 'messages.files' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
-            moreInfoSettingsLink()
-          );
-        }
-      }
-      if (!isUndefined(debug.messages.dependencies)) {
-        if (isBoolean(debug.messages.dependencies)) {
-          validated.messages.dependencies = debug.messages.dependencies;
-        } else {
-          warnOnce(
-            `Please provide a valid boolean for 'messages.dependencies' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
-            moreInfoSettingsLink()
-          );
-        }
-      }
-      if (!isUndefined(debug.messages.violations)) {
-        if (isBoolean(debug.messages.violations)) {
-          validated.messages.violations = debug.messages.violations;
-        } else {
-          warnOnce(
-            `Please provide a valid boolean for 'messages.violations' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
-            moreInfoSettingsLink()
-          );
-        }
-      }
-    } else {
-      warnOnce(
-        `Please provide a valid object for 'messages' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
-        moreInfoSettingsLink()
-      );
-    }
-  }
-
-  if (!isUndefined(debug.filter)) {
-    if (isObject(debug.filter)) {
-      const files = validateDebugFilesFilter(debug.filter.files);
-      const dependencies = validateDebugDependenciesFilter(
-        debug.filter.dependencies
-      );
-
-      validated.filter = {
-        ...(isUndefined(files) ? {} : { files }),
-        ...(isUndefined(dependencies) ? {} : { dependencies }),
-      };
-    } else {
-      warnOnce(
-        `Please provide a valid object for 'filter' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
-        moreInfoSettingsLink()
-      );
-    }
-  }
+  assignDebugEnabled(debug, validated);
+  assignDebugMessages(debug, validated);
+  assignDebugFilter(debug, validated);
 
   return validated;
 }
