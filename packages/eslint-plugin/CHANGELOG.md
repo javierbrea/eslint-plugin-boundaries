@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [unreleased]
 ### Added
 ### Changed
+- refactor: Use `node:` prefix for built-in modules.
 ### Fixed
 ### Removed
 ### Breaking Changes

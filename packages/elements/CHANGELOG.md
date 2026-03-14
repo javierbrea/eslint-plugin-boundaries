@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 ### Added
+### Changed
+- refactor: Improve typing for better maintainability.
 ### Fixed
 ### Removed
 ### Breaking Changes
