@@ -39,6 +39,7 @@ import type {
   SettingsNormalized,
   DebugSettingNormalized,
   RuleName,
+  FlagAsExternalBooleanOptionKey,
 } from "../Shared/Settings.types";
 
 import {
@@ -964,6 +965,62 @@ export function validateRootPath(rootPath: unknown): string | undefined {
 }
 
 /**
+ * Validates and assigns an optional boolean field in `flag-as-external` settings.
+ *
+ * @param options - Raw `flag-as-external` settings object.
+ * @param validated - Accumulator for validated options.
+ * @param optionKey - Optional boolean field to validate and assign.
+ */
+function assignFlagAsExternalBooleanOption(
+  options: Record<string, unknown>,
+  validated: FlagAsExternalOptions,
+  optionKey: FlagAsExternalBooleanOptionKey
+) {
+  const value = options[optionKey];
+
+  if (isUndefined(value)) {
+    return;
+  }
+
+  if (isBoolean(value)) {
+    validated[optionKey] = value;
+    return;
+  }
+
+  warnOnce(
+    `Please provide a valid boolean for '${optionKey}' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
+    moreInfoSettingsLink()
+  );
+}
+
+/**
+ * Validates and assigns `customSourcePatterns` in `flag-as-external` settings.
+ *
+ * @param options - Raw `flag-as-external` settings object.
+ * @param validated - Accumulator for validated options.
+ */
+function assignFlagAsExternalCustomSourcePatterns(
+  options: Record<string, unknown>,
+  validated: FlagAsExternalOptions
+) {
+  const value = options.customSourcePatterns;
+
+  if (isUndefined(value)) {
+    return;
+  }
+
+  if (isArray(value) && value.every(isString)) {
+    validated.customSourcePatterns = value;
+    return;
+  }
+
+  warnOnce(
+    `Please provide a valid array of strings for 'customSourcePatterns' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
+    moreInfoSettingsLink()
+  );
+}
+
+/**
  * Validates `flag-as-external` setting object and fields.
  *
  * @param flagAsExternal - Raw flag-as-external setting value.
@@ -984,54 +1041,13 @@ export function validateFlagAsExternal(
     return;
   }
 
+  const options = flagAsExternal as Record<string, unknown>;
   const validated: FlagAsExternalOptions = {};
 
-  if (!isUndefined(flagAsExternal.unresolvableAlias)) {
-    if (isBoolean(flagAsExternal.unresolvableAlias)) {
-      validated.unresolvableAlias = flagAsExternal.unresolvableAlias;
-    } else {
-      warnOnce(
-        `Please provide a valid boolean for 'unresolvableAlias' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
-        moreInfoSettingsLink()
-      );
-    }
-  }
-
-  if (!isUndefined(flagAsExternal.inNodeModules)) {
-    if (isBoolean(flagAsExternal.inNodeModules)) {
-      validated.inNodeModules = flagAsExternal.inNodeModules;
-    } else {
-      warnOnce(
-        `Please provide a valid boolean for 'inNodeModules' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
-        moreInfoSettingsLink()
-      );
-    }
-  }
-
-  if (!isUndefined(flagAsExternal.outsideRootPath)) {
-    if (isBoolean(flagAsExternal.outsideRootPath)) {
-      validated.outsideRootPath = flagAsExternal.outsideRootPath;
-    } else {
-      warnOnce(
-        `Please provide a valid boolean for 'outsideRootPath' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
-        moreInfoSettingsLink()
-      );
-    }
-  }
-
-  if (!isUndefined(flagAsExternal.customSourcePatterns)) {
-    if (
-      isArray(flagAsExternal.customSourcePatterns) &&
-      flagAsExternal.customSourcePatterns.every(isString)
-    ) {
-      validated.customSourcePatterns = flagAsExternal.customSourcePatterns;
-    } else {
-      warnOnce(
-        `Please provide a valid array of strings for 'customSourcePatterns' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
-        moreInfoSettingsLink()
-      );
-    }
-  }
+  assignFlagAsExternalBooleanOption(options, validated, "unresolvableAlias");
+  assignFlagAsExternalBooleanOption(options, validated, "inNodeModules");
+  assignFlagAsExternalBooleanOption(options, validated, "outsideRootPath");
+  assignFlagAsExternalCustomSourcePatterns(options, validated);
 
   return validated;
 }

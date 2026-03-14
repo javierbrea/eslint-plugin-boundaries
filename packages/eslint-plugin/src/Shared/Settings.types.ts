@@ -469,6 +469,11 @@ export type Rules<PluginName extends string = typeof PLUGIN_NAME> = {
             : Linter.RuleEntry<never>;
 };
 
+export type FlagAsExternalBooleanOptionKey =
+  | "unresolvableAlias"
+  | "inNodeModules"
+  | "outsideRootPath";
+
 /**
  * ESLint configuration with optional settings and rules specific to the boundaries plugin.
  */
