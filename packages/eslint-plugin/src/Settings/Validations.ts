@@ -575,6 +575,142 @@ export function validateAndWarnRuleOptions(
 }
 
 /**
+ * Emits a generic warning for invalid element descriptor values.
+ */
+function warnInvalidElementDescriptor() {
+  warnOnce(
+    `Invalid element descriptor in '${ELEMENTS}' setting.`,
+    moreInfoSettingsLink()
+  );
+}
+
+/**
+ * Validates that descriptor contains at least one identity property.
+ *
+ * @param element - Candidate element descriptor object.
+ * @returns `true` when descriptor has either `type` or `category`.
+ */
+function hasTypeOrCategory(element: Record<string, unknown>): boolean {
+  return Boolean(element.type || element.category);
+}
+
+/**
+ * Checks whether descriptor `type` property, when present, is valid.
+ *
+ * @param element - Candidate element descriptor object.
+ * @returns `true` when `type` is absent or a string.
+ */
+function hasValidTypeProperty(element: Record<string, unknown>): boolean {
+  return !element.type || isString(element.type);
+}
+
+/**
+ * Checks whether descriptor `category` property, when present, is valid.
+ *
+ * @param element - Candidate element descriptor object.
+ * @returns `true` when `category` is absent or a string.
+ */
+function hasValidCategoryProperty(element: Record<string, unknown>): boolean {
+  return !element.category || isString(element.category);
+}
+
+/**
+ * Checks whether descriptor `mode` property uses a supported mode value.
+ *
+ * @param element - Candidate element descriptor object.
+ * @returns `true` when mode is absent, non-string, or included in valid modes.
+ */
+function hasValidModeProperty(element: Record<string, unknown>): boolean {
+  if (!element.mode || !isString(element.mode)) {
+    return true;
+  }
+
+  return VALID_MODES.includes(element.mode as ElementDescriptorMode);
+}
+
+/**
+ * Checks whether descriptor `pattern` property is valid.
+ *
+ * @param element - Candidate element descriptor object.
+ * @returns `true` when pattern exists and is a string or array.
+ */
+function hasValidPatternProperty(element: Record<string, unknown>): boolean {
+  return Boolean(
+    element.pattern && (isString(element.pattern) || isArray(element.pattern))
+  );
+}
+
+/**
+ * Checks whether descriptor `capture` property, when present, is valid.
+ *
+ * @param element - Candidate element descriptor object.
+ * @returns `true` when capture is absent or an array.
+ */
+function hasValidCaptureProperty(element: Record<string, unknown>): boolean {
+  return !element.capture || isArray(element.capture);
+}
+
+/**
+ * Validates object-based element descriptor properties and emits warnings.
+ *
+ * @param element - Candidate element descriptor object.
+ * @returns `true` when descriptor object is valid.
+ */
+function validateObjectElementDescriptor(
+  element: Record<string, unknown>
+): element is ElementDescriptor {
+  if (!hasTypeOrCategory(element)) {
+    warnOnce(
+      `Missing "type" or "category" property in an element descriptor in '${ELEMENTS}' setting.`,
+      moreInfoSettingsLink()
+    );
+    return false;
+  }
+
+  if (!hasValidTypeProperty(element)) {
+    warnOnce(
+      `Invalid "type" property in an element descriptor in '${ELEMENTS}' setting.`,
+      moreInfoSettingsLink()
+    );
+    return false;
+  }
+
+  if (!hasValidCategoryProperty(element)) {
+    warnOnce(
+      `Invalid "category" property in an element descriptor in '${ELEMENTS}' setting.`,
+      moreInfoSettingsLink()
+    );
+    return false;
+  }
+
+  if (!hasValidModeProperty(element)) {
+    warnOnce(
+      `Invalid "mode" property in an element descriptor in '${ELEMENTS}' setting.`,
+      `It should be one of ${VALID_MODES.join(", ")}. ${moreInfoSettingsLink()}`
+    );
+    return false;
+  }
+
+  if (!hasValidPatternProperty(element)) {
+    warnOnce(
+      `Invalid "pattern" property in an element descriptor in '${ELEMENTS}' setting.`,
+      moreInfoSettingsLink()
+    );
+    return false;
+  }
+
+  if (!hasValidCaptureProperty(element)) {
+    warnOnce(
+      `Invalid "capture" property in an element descriptor in '${ELEMENTS}' setting.`,
+      `Capture should be an array of strings. ${moreInfoSettingsLink()}`
+    );
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Validates one element descriptor item from plugin settings.
  *
  * @param element - Candidate element descriptor from settings.
@@ -584,78 +720,24 @@ export function isValidElementDescriptor(
   element: unknown
 ): element is ElementDescriptor {
   if (!element) {
-    warnOnce(
-      `Invalid element descriptor in '${ELEMENTS}' setting.`,
-      moreInfoSettingsLink()
-    );
+    warnInvalidElementDescriptor();
     return false;
   }
+
   if (isLegacyType(element)) {
     warnOnce(
       `Defining elements as strings in settings is deprecated.`,
       `It will be automatically converted, but this feature will be removed in next major versions. ${migrationToV6GuideLink()}`
     );
     return true;
-  } else {
-    const isObjectElement = isObject(element);
-    if (!isObjectElement) {
-      warnOnce(
-        `Invalid element descriptor in '${ELEMENTS}' setting.`,
-        moreInfoSettingsLink()
-      );
-      return false;
-    }
-    if (!element.type && !element.category) {
-      warnOnce(
-        `Missing "type" or "category" property in an element descriptor in '${ELEMENTS}' setting.`,
-        moreInfoSettingsLink()
-      );
-      return false;
-    }
-    if (element.type && !isString(element.type)) {
-      warnOnce(
-        `Invalid "type" property in an element descriptor in '${ELEMENTS}' setting.`,
-        moreInfoSettingsLink()
-      );
-      return false;
-    }
-    if (element.category && !isString(element.category)) {
-      warnOnce(
-        `Invalid "category" property in an element descriptor in '${ELEMENTS}' setting.`,
-        moreInfoSettingsLink()
-      );
-      return false;
-    }
-    if (
-      element.mode &&
-      isString(element.mode) &&
-      !VALID_MODES.includes(element.mode as ElementDescriptorMode)
-    ) {
-      warnOnce(
-        `Invalid "mode" property in an element descriptor in '${ELEMENTS}' setting.`,
-        `It should be one of ${VALID_MODES.join(", ")}. ${moreInfoSettingsLink()}`
-      );
-      return false;
-    }
-    if (
-      !element.pattern ||
-      !(isString(element.pattern) || isArray(element.pattern))
-    ) {
-      warnOnce(
-        `Invalid "pattern" property in an element descriptor in '${ELEMENTS}' setting.`,
-        moreInfoSettingsLink()
-      );
-      return false;
-    }
-    if (element.capture && !isArray(element.capture)) {
-      warnOnce(
-        `Invalid "capture" property in an element descriptor in '${ELEMENTS}' setting.`,
-        `Capture should be an array of strings. ${moreInfoSettingsLink()}`
-      );
-      return false;
-    }
-    return true;
   }
+
+  if (!isObject(element)) {
+    warnInvalidElementDescriptor();
+    return false;
+  }
+
+  return validateObjectElementDescriptor(element);
 }
 
 /**
