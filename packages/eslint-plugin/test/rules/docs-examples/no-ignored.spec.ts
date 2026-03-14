@@ -1,12 +1,11 @@
 import rule from "../../../src/Rules/NoIgnored";
+import { NO_IGNORED as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
-
-const { NO_IGNORED: RULE } = require("../../../src/Shared");
 
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath } = pathResolvers("docs-examples");

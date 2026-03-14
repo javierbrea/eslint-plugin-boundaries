@@ -1,11 +1,10 @@
 import rule from "../../../src/Rules/NoUnknownFiles";
+import { NO_UNKNOWN_FILES as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
-
-const { NO_UNKNOWN_FILES: RULE } = require("../../../src/Shared");
 
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath, codeFilePath } = pathResolvers("docs-examples");

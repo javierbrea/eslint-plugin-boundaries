@@ -1,4 +1,5 @@
 import ruleFactory from "../../../src/Rules/Dependencies";
+import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   TYPESCRIPT_SETTINGS,
@@ -10,8 +11,6 @@ import {
   errorMessage,
   elementTypesNoRuleMessage,
 } from "../../support/messages";
-
-const { ELEMENT_TYPES: RULE } = require("../../../src/Shared");
 
 const rule = ruleFactory();
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");

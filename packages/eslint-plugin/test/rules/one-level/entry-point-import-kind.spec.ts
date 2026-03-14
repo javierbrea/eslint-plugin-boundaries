@@ -1,4 +1,5 @@
 import rule from "../../../src/Rules/EntryPoint";
+import { ENTRY_POINT as RULE } from "../../../src/Shared";
 import {
   TYPESCRIPT_SETTINGS,
   createRuleTester,
@@ -6,8 +7,6 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import { errorMessage } from "../../support/messages";
-
-const { ENTRY_POINT: RULE } = require("../../../src/Shared");
 
 const { absoluteFilePath } = pathResolvers("one-level");
 

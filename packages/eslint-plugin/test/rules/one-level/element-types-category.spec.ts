@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 
 import ruleFactory from "../../../src/Rules/Dependencies";
+import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
@@ -8,8 +9,6 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import { errorMessage } from "../../support/messages";
-
-const { ELEMENT_TYPES: RULE } = require("../../../src/Shared");
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 

@@ -1,12 +1,11 @@
 import rule from "../../../src/Rules/External";
+import { EXTERNAL as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
-
-const { EXTERNAL: RULE } = require("../../../src/Shared");
 
 const { absoluteFilePath } = pathResolvers("flag-as-external");
 

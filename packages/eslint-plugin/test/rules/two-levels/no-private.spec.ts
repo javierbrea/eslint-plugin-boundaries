@@ -1,4 +1,5 @@
 import rule from "../../../src/Rules/NoPrivate";
+import { NO_PRIVATE as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
@@ -6,8 +7,6 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import { noPrivateMessage } from "../../support/messages";
-
-const { NO_PRIVATE: RULE } = require("../../../src/Shared");
 
 const options = [
   {

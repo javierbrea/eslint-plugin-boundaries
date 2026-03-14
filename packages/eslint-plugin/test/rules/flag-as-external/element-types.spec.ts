@@ -1,5 +1,6 @@
 import ruleFactory from "../../../src/Rules/Dependencies";
 import noUnknownRule from "../../../src/Rules/NoUnknown";
+import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
@@ -7,8 +8,6 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import { elementTypesNoRuleMessage } from "../../support/messages";
-
-const { ELEMENT_TYPES: RULE } = require("../../../src/Shared");
 
 const rule = ruleFactory();
 

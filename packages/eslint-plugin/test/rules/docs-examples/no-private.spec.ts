@@ -1,12 +1,11 @@
 import rule from "../../../src/Rules/NoPrivate";
+import { NO_PRIVATE as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
 import { noPrivateMessage } from "../../support/messages";
-
-const { NO_PRIVATE: RULE } = require("../../../src/Shared");
 
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath } = pathResolvers("docs-examples");

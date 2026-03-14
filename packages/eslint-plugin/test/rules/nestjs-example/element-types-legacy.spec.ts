@@ -1,12 +1,11 @@
 import ruleFactory from "../../../src/Rules/Dependencies";
+import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
 import { createRuleTester, pathResolvers } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import {
   errorMessage,
   elementTypesNoRuleMessage,
 } from "../../support/messages";
-
-const { ELEMENT_TYPES: RULE } = require("../../../src/Shared");
 
 const rule = ruleFactory();
 
