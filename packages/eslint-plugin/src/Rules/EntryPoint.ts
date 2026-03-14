@@ -76,7 +76,7 @@ export default dependencyRule<EntryPointRuleOptions>(
   function ({ dependency, node, context, settings, options }) {
     warnMigrationToDependencies(RULE_NAMES_MAP.ENTRY_POINT);
     // Validate and warn about legacy selector syntax
-    validateAndWarnRuleOptions(options, "target", RULE_NAMES_MAP.ENTRY_POINT);
+    validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, "target");
 
     if (
       !dependency.to.isIgnored &&

@@ -654,7 +654,7 @@ export default function getDependencyRule(
         );
       }
       // Validate and warn about legacy selector syntax
-      validateAndWarnRuleOptions(options, "from", ruleName);
+      validateAndWarnRuleOptions(options, ruleName, "from");
 
       const checkAllOrigins = options?.checkAllOrigins ?? false;
       const checkUnknownLocals = options?.checkUnknownLocals ?? false;

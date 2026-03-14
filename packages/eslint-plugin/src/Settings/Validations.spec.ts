@@ -190,7 +190,7 @@ describe("validateAndWarnRuleOptions", () => {
   it("should not warn when options are undefined", () => {
     const warnSpy = getWarnSpy();
 
-    validateAndWarnRuleOptions(undefined, "from", RULE_NAMES_MAP.DEPENDENCIES);
+    validateAndWarnRuleOptions(undefined, RULE_NAMES_MAP.DEPENDENCIES, "from");
 
     expect(warnSpy).not.toHaveBeenCalled();
   });
@@ -202,8 +202,8 @@ describe("validateAndWarnRuleOptions", () => {
       {
         rules: "invalid-rules",
       } as unknown as Parameters<typeof validateAndWarnRuleOptions>[0],
-      "from",
-      RULE_NAMES_MAP.DEPENDENCIES
+      RULE_NAMES_MAP.DEPENDENCIES,
+      "from"
     );
 
     expect(warnSpy).not.toHaveBeenCalled();
@@ -212,7 +212,7 @@ describe("validateAndWarnRuleOptions", () => {
   it("should not warn when rules are missing", () => {
     const warnSpy = getWarnSpy();
 
-    validateAndWarnRuleOptions({}, "from", RULE_NAMES_MAP.DEPENDENCIES);
+    validateAndWarnRuleOptions({}, RULE_NAMES_MAP.DEPENDENCIES, "from");
 
     expect(warnSpy).not.toHaveBeenCalled();
   });
@@ -229,7 +229,6 @@ describe("validateAndWarnRuleOptions", () => {
           },
         ],
       },
-      undefined,
       RULE_NAMES_MAP.DEPENDENCIES
     );
 
@@ -251,8 +250,8 @@ describe("validateAndWarnRuleOptions", () => {
           },
         ],
       },
-      "from",
-      RULE_NAMES_MAP.DEPENDENCIES
+      RULE_NAMES_MAP.DEPENDENCIES,
+      "from"
     );
 
     expect(warnSpy).not.toHaveBeenCalled();
@@ -280,8 +279,8 @@ describe("validateAndWarnRuleOptions", () => {
           },
         ],
       },
-      "from",
-      RULE_NAMES_MAP.DEPENDENCIES
+      RULE_NAMES_MAP.DEPENDENCIES,
+      "from"
     );
 
     expect(warnSpy).toHaveBeenNthCalledWith(
@@ -320,8 +319,8 @@ describe("validateAndWarnRuleOptions", () => {
       ],
     };
 
-    validateAndWarnRuleOptions(options, "from", RULE_NAMES_MAP.DEPENDENCIES);
-    validateAndWarnRuleOptions(options, "from", RULE_NAMES_MAP.DEPENDENCIES);
+    validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, "from");
+    validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, "from");
 
     expect(warnSpy).toHaveBeenCalledTimes(2);
   });

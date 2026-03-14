@@ -431,69 +431,121 @@ export function getRuleMainSelector(
   return "target" in rule ? rule.target : undefined;
 }
 
+type RuleWarningIndexes = {
+  rulesWithLegacySelector: number[];
+  rulesWithLegacyTemplate: number[];
+  rulesWithDeprecatedImportKind: number[];
+};
+
+/**
+ * Returns all rule selectors that must be checked for legacy syntax.
+ *
+ * @param rule - Rule entry from options.
+ * @param mainKey - Main key used by the current rule.
+ * @returns List of selectors from main key, allow and disallow.
+ */
+function getRuleSelectorsToCheck(rule: RuleOptionsRules, mainKey: RuleMainKey) {
+  const ruleMainKey = rulesMainKey(mainKey);
+
+  return [getRuleMainSelector(rule, ruleMainKey), rule.allow, rule.disallow];
+}
+
+/**
+ * Detects deprecated selector and template syntax across selectors.
+ *
+ * @param selectors - Selector values to inspect.
+ * @returns Flags describing whether each deprecated syntax was found.
+ */
+function detectLegacyFlags(selectors: unknown[]) {
+  let hasLegacySelector = false;
+  let hasLegacyTemplate = false;
+
+  for (const selector of selectors) {
+    if (!selector) {
+      continue;
+    }
+
+    if (detectLegacyElementSelector(selector)) {
+      hasLegacySelector = true;
+    }
+
+    if (detectLegacyTemplateSyntax(selector)) {
+      hasLegacyTemplate = true;
+    }
+  }
+
+  return {
+    hasLegacySelector,
+    hasLegacyTemplate,
+  };
+}
+
+/**
+ * Collects indices of rules using deprecated selector/template/importKind syntax.
+ *
+ * @param rules - Rule list to inspect.
+ * @param mainKey - Main selector key configured for current rule.
+ * @returns Rule indices grouped by deprecated syntax type.
+ */
+function collectRuleWarningIndexes(
+  rules: RuleOptionsRules[],
+  mainKey: RuleMainKey
+): RuleWarningIndexes {
+  const indexes: RuleWarningIndexes = {
+    rulesWithLegacySelector: [],
+    rulesWithLegacyTemplate: [],
+    rulesWithDeprecatedImportKind: [],
+  };
+
+  for (const [index, rule] of rules.entries()) {
+    const selectorsToCheck = getRuleSelectorsToCheck(rule, mainKey);
+    const { hasLegacySelector, hasLegacyTemplate } =
+      detectLegacyFlags(selectorsToCheck);
+
+    if (hasLegacySelector) {
+      indexes.rulesWithLegacySelector.push(index);
+    }
+
+    if (hasLegacyTemplate) {
+      indexes.rulesWithLegacyTemplate.push(index);
+    }
+
+    if (!isUndefined(rule.importKind)) {
+      indexes.rulesWithDeprecatedImportKind.push(index);
+    }
+  }
+
+  return indexes;
+}
+
 /**
  * Warns once when deprecated selector/template syntax is detected in rules.
  *
  * @param options - Rule options containing `rules` entries.
- * @param mainKey - Main selector key used by the current rule.
  * @param ruleName - Rule name displayed in warning messages.
+ * @param mainKey - Main selector key used by the current rule.
  */
 export function validateAndWarnRuleOptions(
   options: RuleOptionsWithRules | undefined,
-  mainKey: RuleMainKey = "from",
-  ruleName: RuleName
+  ruleName: RuleName,
+  mainKey: RuleMainKey = "from"
 ): void {
-  if (
-    !options ||
-    !options.rules ||
-    !isArray(options.rules) ||
-    trackedWarnedOptions.has(options)
-  ) {
+  if (!options || trackedWarnedOptions.has(options)) {
     return;
   }
-  trackedWarnedOptions.add(options);
 
-  // Collect ALL rules with legacy syntax
-  const rulesWithLegacySelector: number[] = [];
-  const rulesWithLegacyTemplate: number[] = [];
-  const rulesWithDeprecatedImportKind: number[] = [];
-
-  for (const [index, rule] of options.rules.entries()) {
-    const ruleMainKey = rulesMainKey(mainKey);
-    let hasLegacySelector = false;
-    let hasLegacyTemplate = false;
-
-    // Check all selector properties
-    const selectorsToCheck = [
-      getRuleMainSelector(rule, ruleMainKey),
-      rule.allow,
-      rule.disallow,
-    ];
-
-    for (const selector of selectorsToCheck) {
-      if (selector) {
-        if (detectLegacyElementSelector(selector)) {
-          hasLegacySelector = true;
-        }
-        if (detectLegacyTemplateSyntax(selector)) {
-          hasLegacyTemplate = true;
-        }
-      }
-    }
-
-    if (hasLegacySelector) {
-      rulesWithLegacySelector.push(index);
-    }
-    if (hasLegacyTemplate) {
-      rulesWithLegacyTemplate.push(index);
-    }
-
-    if (!isUndefined(rule.importKind)) {
-      rulesWithDeprecatedImportKind.push(index);
-    }
+  if (!options.rules || !isArray(options.rules)) {
+    return;
   }
 
-  // Show warnings if needed
+  trackedWarnedOptions.add(options);
+
+  const {
+    rulesWithLegacySelector,
+    rulesWithLegacyTemplate,
+    rulesWithDeprecatedImportKind,
+  } = collectRuleWarningIndexes(options.rules, mainKey);
+
   if (rulesWithLegacySelector.length > 0) {
     warnOnce(
       `[${ruleName}] Detected legacy selector syntax in ${
@@ -658,11 +710,11 @@ export function validateDependencyNodes(
 
 /**
  * Validates the legacyTemplates setting.
- * @param legacyTemplates The legacyTemplates setting value
- * @returns The validated legacyTemplates value or undefined
+ *
+ * @param legacyTemplates - Raw legacyTemplates setting value.
+ * @returns Validated boolean value or `undefined` when missing/invalid.
  */
 export function validateLegacyTemplates(
-  /** The legacyTemplates setting value */
   legacyTemplates: unknown
 ): boolean | undefined {
   if (isUndefined(legacyTemplates)) {
@@ -1105,9 +1157,10 @@ export function validateSettings(settings: Rule.RuleContext["settings"]): Omit<
   };
 }
 /**
- * Returns the normalized settings from the ESLint rule context
- * @param context The ESLint rule context
- * @returns The normalized settings
+ * Returns normalized and cached settings from ESLint rule context.
+ *
+ * @param context - ESLint rule context.
+ * @returns Normalized settings object used by rules.
  */
 export function getSettings(context: Rule.RuleContext): SettingsNormalized {
   const alreadyValidatedSettings = trackedValidatedSettings.get(
