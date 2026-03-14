@@ -1,4 +1,5 @@
-import rule from "../../../src/Rules/ElementTypes";
+import ruleFactory from "../../../src/Rules/Dependencies";
+import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   TYPESCRIPT_SETTINGS,
@@ -7,7 +8,7 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 
-const { ELEMENT_TYPES: RULE } = require("../../../src/Settings");
+const rule = ruleFactory();
 
 const { absoluteFilePath } = pathResolvers("one-level");
 const settings = {
@@ -34,6 +35,7 @@ const dependencyNodesSettings = {
     {
       // mock('source')
       selector: "CallExpression[callee.name=mock] > Literal",
+      name: "mock",
     },
   ],
 };
@@ -43,24 +45,100 @@ const options = [
     default: "allow",
     rules: [
       {
-        from: "helpers",
-        disallow: ["modules"],
-        importKind: "*",
+        from: {
+          type: "helpers",
+        },
+        disallow: [
+          {
+            to: { type: "modules" },
+            dependency: {
+              kind: "*",
+            },
+          },
+        ],
       },
       {
-        from: "helpers",
-        disallow: ["components", "helpers"],
-        importKind: "value",
+        from: {
+          type: "helpers",
+        },
+        disallow: [
+          {
+            to: { type: ["components"] },
+            dependency: { kind: "value" },
+          },
+          {
+            to: { type: ["helpers"] },
+            dependency: { kind: "value" },
+          },
+        ],
       },
       {
-        from: "components",
-        disallow: ["modules"],
-        importKind: "value",
+        from: { type: "components" },
+        disallow: [
+          {
+            to: { type: "modules" },
+            dependency: { kind: "value" },
+          },
+        ],
       },
       {
-        from: "modules",
-        disallow: ["helpers"],
-        importKind: "type",
+        from: { type: "modules" },
+        disallow: [
+          {
+            to: { type: "helpers" },
+            dependency: { kind: "type" },
+          },
+        ],
+      },
+    ],
+  },
+];
+
+const nodeKindSelectorOptions = [
+  {
+    default: "allow",
+    rules: [
+      {
+        from: {
+          type: "helpers",
+        },
+        disallow: [
+          {
+            to: { type: "helpers" },
+            dependency: {
+              nodeKind: "import",
+            },
+          },
+        ],
+        message: "blocked-import-node-kind",
+      },
+      {
+        from: {
+          type: "helpers",
+        },
+        disallow: [
+          {
+            to: { type: "helpers" },
+            dependency: {
+              nodeKind: "dynamic-import",
+            },
+          },
+        ],
+        message: "blocked-dynamic-import-node-kind",
+      },
+      {
+        from: {
+          type: "helpers",
+        },
+        disallow: [
+          {
+            to: { type: "helpers" },
+            dependency: {
+              nodeKind: "mock",
+            },
+          },
+        ],
+        message: "blocked-mock-node-kind",
       },
     ],
   },
@@ -115,7 +193,7 @@ createRuleTester(settings).run(RULE, rule, {
       errors: [
         {
           message:
-            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -169,7 +247,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -182,7 +260,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -195,7 +273,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -208,7 +286,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -221,7 +299,64 @@ createRuleTester({
       errors: [
         {
           message:
-            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
+          type: "Literal",
+        },
+      ],
+    },
+  ],
+});
+
+// Selector kind precedence over rule-level importKind
+createRuleTester(typescriptSettings).run(RULE, rule, {
+  valid: [
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import HelperA from 'helpers/helper-a'",
+      options: [
+        {
+          default: "allow",
+          rules: [
+            {
+              from: { type: "components" },
+              disallow: [
+                {
+                  to: { type: "helpers" },
+                  dependency: { kind: "type" },
+                },
+              ],
+              importKind: "value",
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  invalid: [
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import type { HelperA } from 'helpers/helper-a'",
+      options: [
+        {
+          default: "allow",
+          rules: [
+            {
+              from: { type: "components" },
+              disallow: [
+                {
+                  to: { type: "helpers" },
+                  dependency: { kind: "type" },
+                },
+              ],
+              importKind: "value",
+            },
+          ],
+        },
+      ],
+      errors: [
+        {
+          message:
+            'Dependencies with kind "type" to elements of type "helpers" are not allowed in elements of type "components". Denied by rule at index 0',
           type: "Literal",
         },
       ],
@@ -290,7 +425,7 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       errors: [
         {
           message:
-            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -338,7 +473,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -351,7 +486,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Importing kind 'type' from elements of type 'helpers' is not allowed in elements of type 'modules'. Disallowed in rule 4",
+            'Dependencies with kind "type" to elements of type "helpers" are not allowed in elements of type "modules". Denied by rule at index 3',
           type: "Literal",
         },
       ],
@@ -364,7 +499,7 @@ createRuleTester({
       errors: [
         {
           message:
-            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -377,10 +512,56 @@ createRuleTester({
       errors: [
         {
           message:
-            "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
           type: "Literal",
         },
       ],
+    },
+  ],
+});
+
+// With nodeKind selector options
+createRuleTester({
+  ...settings,
+  ...dependencyNodesSettings,
+}).run(RULE, rule, {
+  valid: [
+    // Helpers can export value from another helper when export node kind is not disallowed
+    {
+      filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+      code: "export { HelperB } from 'helpers/helper-b'",
+      options: nodeKindSelectorOptions,
+    },
+    // Helpers can require another helper when require node kind is not disallowed
+    {
+      filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+      code: "require('helpers/helper-b')",
+      options: nodeKindSelectorOptions,
+    },
+  ],
+  invalid: [
+    // Helpers can't import another helper when import node kind is disallowed
+    {
+      filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+      code: "import { HelperB } from 'helpers/helper-b'",
+      options: nodeKindSelectorOptions,
+      errors: [{ message: "blocked-import-node-kind", type: "Literal" }],
+    },
+    // Helpers can't dynamically import another helper when dynamic-import node kind is disallowed
+    {
+      filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+      code: "import('helpers/helper-b')",
+      options: nodeKindSelectorOptions,
+      errors: [
+        { message: "blocked-dynamic-import-node-kind", type: "Literal" },
+      ],
+    },
+    // Helpers can't mock another helper when custom mock node kind is disallowed
+    {
+      filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+      code: "mock('helpers/helper-b')",
+      options: nodeKindSelectorOptions,
+      errors: [{ message: "blocked-mock-node-kind", type: "Literal" }],
     },
   ],
 });

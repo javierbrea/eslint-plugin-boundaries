@@ -1,13 +1,11 @@
 import rule from "../../../src/Rules/NoPrivate";
+import { NO_PRIVATE as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
-import { noPrivateMessage } from "../../support/messages";
-
-const { NO_PRIVATE: RULE } = require("../../../src/Settings");
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
@@ -59,7 +57,6 @@ const runTest = (settings: RuleTesterSettings) => {
         code: 'import ComponentA from "components/component-a"',
         options,
       },
-      // Private elements can use a parent elements: // TODO, add relationship rule to avoid this
       {
         filename: absoluteFilePath(
           "components/component-a/components/component-c/ComponentC.js"
@@ -100,7 +97,6 @@ const runTest = (settings: RuleTesterSettings) => {
         code: 'import HelperA from "components/component-a/helpers/helper-a"',
         options,
       },
-      // Private elements can use an ancestor // TODO, add relationships rule to avoid this
       {
         filename: absoluteFilePath(
           "components/component-a/components/component-c/components/component-d/ComponentD.js"
@@ -132,9 +128,8 @@ const runTest = (settings: RuleTesterSettings) => {
         options,
         errors: [
           {
-            message: noPrivateMessage({
-              dep: "'components' with elementName 'component-c'",
-            }),
+            message:
+              'Dependency is private of element of type "components" and elementName "component-c"',
             type: "Literal",
           },
         ],
@@ -146,9 +141,8 @@ const runTest = (settings: RuleTesterSettings) => {
         options,
         errors: [
           {
-            message: noPrivateMessage({
-              dep: "'components' with elementName 'component-a'",
-            }),
+            message:
+              'Dependency is private of element of type "components" and elementName "component-a"',
             type: "Literal",
           },
         ],
@@ -162,9 +156,8 @@ const runTest = (settings: RuleTesterSettings) => {
         options,
         errors: [
           {
-            message: noPrivateMessage({
-              dep: "'helpers' with elementName 'helper-a'",
-            }),
+            message:
+              'Dependency is private of element of type "helpers" and elementName "helper-a"',
             type: "Literal",
           },
         ],
@@ -176,9 +169,8 @@ const runTest = (settings: RuleTesterSettings) => {
         options,
         errors: [
           {
-            message: noPrivateMessage({
-              dep: "'helpers' with elementName 'helper-a'",
-            }),
+            message:
+              'Dependency is private of element of type "helpers" and elementName "helper-a"',
             type: "Literal",
           },
         ],
@@ -198,9 +190,8 @@ const runTest = (settings: RuleTesterSettings) => {
         ],
         errors: [
           {
-            message: noPrivateMessage({
-              dep: "'components' with elementName 'component-a'",
-            }),
+            message:
+              'Dependency is private of element of type "components" and elementName "component-a"',
             type: "Literal",
           },
         ],

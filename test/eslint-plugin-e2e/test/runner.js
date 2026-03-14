@@ -3,6 +3,8 @@
 import chalk from "chalk";
 import { ESLint } from "eslint";
 
+import { performanceTestsAreDisabled } from "./helpers/performance.js";
+
 // Exported types for external use
 /**
  * @typedef {Object} TestResult
@@ -34,6 +36,7 @@ import { ESLint } from "eslint";
  * @property {Array<Object>} [results] - Raw ESLint results
  * @property {number} [errorCount] - Total number of errors
  * @property {number} [warningCount] - Total number of warnings
+ * @property {number} [durationMs] - Total lint execution time in milliseconds
  * @property {Array<ESLintFileResult>} [files] - Processed file results
  * @property {string} [error] - Error message if ESLint failed
  */
@@ -45,6 +48,7 @@ import { ESLint } from "eslint";
 /**
  * @typedef {Object} TestDefinition
  * @property {string} name - Test name/identifier
+ * @property {boolean} [isPerformanceTest] - Whether this test is a performance benchmark
  * @property {Object} config - ESLint configuration object
  * @property {string} fixture - Path to the fixture directory
  * @property {Array<string>} [runOnFiles] - Glob patterns of files to lint
@@ -140,11 +144,14 @@ async function runESLintOnFixture(
   try {
     const eslint = new ESLint({
       overrideConfig: eslintConfig,
+      overrideConfigFile: true,
       cwd: fixturePath,
     });
 
-    // Get all .js files in the src folder
+    const startTime = performance.now();
+    // Get all files matching provided globs
     const results = await eslint.lintFiles(runOnFiles);
+    const durationMs = performance.now() - startTime;
 
     return {
       success: true,
@@ -154,6 +161,7 @@ async function runESLintOnFixture(
         (sum, result) => sum + result.warningCount,
         0
       ),
+      durationMs,
       files: results.map((result) => ({
         filePath: result.filePath,
         messages: result.messages,
@@ -208,6 +216,10 @@ export async function runTests(tests) {
   );
 
   for (const test of tests) {
+    if (test.isPerformanceTest && performanceTestsAreDisabled()) {
+      console.log(`${chalk.yellow(`Skipping performance test: ${test.name}`)}`);
+      continue;
+    }
     console.log(`${chalk.blue(`Running tests for: ${test.name}`)}`);
 
     const result = await runESLintOnFixture(
@@ -239,6 +251,9 @@ export async function runTests(tests) {
         );
         console.log(
           `  ${chalk.yellow(`Total warnings: ${result.warningCount || 0}`)}`
+        );
+        console.log(
+          `  ${chalk.yellow(`Lint duration: ${(result.durationMs || 0).toFixed(2)} ms`)}`
         );
 
         // Show specific errors for debugging

@@ -1,17 +1,25 @@
 import {
   DEPENDENCY_RELATIONSHIPS_MAP,
-  isLocalDependencyElement,
+  isLocalElement,
   type DependencyDescription,
 } from "@boundaries/elements";
 
-import { customErrorMessage, elementMessage } from "../Messages";
-import type { NoPrivateOptions } from "../Settings";
-import { SETTINGS } from "../Settings";
+import { customErrorMessage, elementDescriptionMessage } from "../Messages";
+import { warnMigrationToDependencies } from "../Settings";
+import type { NoPrivateOptions } from "../Shared";
+import { SETTINGS, RULE_NAMES_MAP, PLUGIN_ISSUES_URL } from "../Shared";
 
 import { dependencyRule } from "./Support";
 
 const { RULE_NO_PRIVATE } = SETTINGS;
 
+/**
+ * Builds the user-facing error message for private dependency violations.
+ *
+ * @param dependency - Described dependency that triggered the violation.
+ * @param options - Optional rule options with custom message template.
+ * @returns Final error message reported by ESLint.
+ */
 function errorMessage(
   dependency: DependencyDescription,
   options?: NoPrivateOptions
@@ -19,14 +27,22 @@ function errorMessage(
   if (options?.message) {
     return customErrorMessage(options.message, dependency);
   }
-  // @ts-expect-error could not be defined. TODO: I have to decide whether to unify properties in all elements, or to use type guards
-  return `Dependency is private of element ${elementMessage(dependency.to.parents?.[0])}`;
+  const privateParent = dependency.to.parents?.[0];
+  /* istanbul ignore next - Defensive: This should not happen */
+  if (!privateParent) {
+    return `Not able to create a message for this violation. Please report this at: ${PLUGIN_ISSUES_URL}`;
+  }
+  return `Dependency is private of ${elementDescriptionMessage(
+    privateParent,
+    ["type", "category", "captured"],
+    { singleElement: true }
+  )}`;
 }
 
 export default dependencyRule<NoPrivateOptions>(
   {
     ruleName: RULE_NO_PRIVATE,
-    description: `Prevent importing private elements of another element`,
+    description: `Prevent dependencies to private elements`,
     schema: [
       {
         type: "object",
@@ -43,9 +59,10 @@ export default dependencyRule<NoPrivateOptions>(
     ],
   },
   function ({ dependency, node, context, options }) {
+    warnMigrationToDependencies(RULE_NAMES_MAP.NO_PRIVATE);
     if (
       !dependency.to.isIgnored &&
-      isLocalDependencyElement(dependency.to) &&
+      isLocalElement(dependency.to) &&
       dependency.to.type &&
       dependency.to.parents.length &&
       dependency.dependency.relationship.to !==

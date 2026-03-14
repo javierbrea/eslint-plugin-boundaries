@@ -15,12 +15,14 @@ export default [
     files: ["src/**/*.ts"],
 
     settings: {
-      "boundaries/dependency-nodes": [
-        "require",
-        "import",
-        "dynamic-import",
-        "export",
-      ],
+      "boundaries/debug": {
+        enabled: true,
+        messages: {
+          files: false,
+          dependencies: false,
+          violations: true,
+        },
+      },
 
       "boundaries/elements": [
         {
@@ -75,15 +77,26 @@ export default [
           capture: ["name"],
         },
         {
-          type: "support",
+          type: "shared",
           mode: "file",
-          pattern: "src/Support/*.ts",
+          pattern: "src/Shared/*.ts",
+          capture: ["name"],
+        },
+        {
+          type: "debug",
+          mode: "file",
+          pattern: "src/Debug/*.ts",
           capture: ["name"],
         },
         {
           type: "plugin",
           mode: "full",
-          pattern: ["src/index.ts"],
+          pattern: ["src/*.ts"],
+        },
+        {
+          type: "test",
+          mode: "full",
+          pattern: ["src/**/*.spec.ts"],
         },
       ],
     },
@@ -96,57 +109,74 @@ export default [
 
           rules: [
             {
-              from: "*",
-              allow: ["@boundaries/elements", "elements"],
+              allow: [
+                {
+                  // Allow all elements importing the same type of element
+                  to: { type: "{{ from.type }}" },
+                },
+                {
+                  // Allow all elements importing the elements library
+                  to: { type: "@boundaries/elements" },
+                },
+                {
+                  from: { type: "test" },
+                },
+              ],
+            },
+            // Allow all elements importing settings and support
+            {
+              to: { type: ["settings", "shared", "debug"] },
+              allow: {
+                from: {
+                  type: [
+                    "rule",
+                    "rule-support",
+                    "elements",
+                    "messages",
+                    "plugin",
+                    "config",
+                    "public",
+                    "config-utils",
+                  ],
+                },
+              },
             },
             {
-              from: "rule",
-              allow: ["rule", "rule-support", "settings", "support"],
+              from: { type: "settings" },
+              allow: { to: { type: ["shared", "debug"] } },
             },
             {
-              from: "elements",
-              allow: ["elements", "settings", "support"],
+              from: { type: "debug" },
+              allow: [{ to: { type: ["shared"] } }],
             },
             {
-              from: "messages",
-              allow: ["messages", "settings", "support"],
+              from: { type: "elements" },
+              allow: { to: { type: "@boundaries/elements" } },
+            },
+
+            {
+              from: { type: "rule" },
+              allow: {
+                to: { type: ["rule-support", "elements", "messages"] },
+              },
             },
             {
-              from: "config-utils",
-              allow: ["config-utils", "settings", "config", "public", "plugin"],
+              from: { type: "rule-support" },
+              allow: {
+                to: { type: "elements" },
+              },
             },
             {
-              from: "plugin",
-              allow: ["settings", "support", "config", "rule"],
+              from: { type: "config-utils" },
+              allow: { to: { type: ["config", "public", "plugin"] } },
             },
             {
-              from: "config",
-              allow: ["config", "settings", "support"],
+              from: { type: "plugin" },
+              allow: { to: { type: ["config", "public", "rule"] } },
             },
             {
-              from: "rule",
-              allow: ["rule", "messages", "settings", "support"],
-            },
-            {
-              from: "rule-support",
-              allow: ["rule-support", "settings", "support"],
-            },
-            {
-              from: "settings",
-              allow: ["settings", "support"],
-            },
-            {
-              from: "support",
-              // TODO: Cyclic dependency detected between settings and support. Fix it.
-              allow: ["support", "settings"],
-            },
-            {
-              from: "public",
-              allow: ["public", "settings", "config"],
-            },
-            {
-              from: "plugin",
-              allow: ["settings", "support", "config", "rule", "public"],
+              from: { type: "public" },
+              allow: { to: { type: ["messages"] } },
             },
           ],
         },
@@ -159,7 +189,7 @@ export default [
   },
   {
     ...jestConfig,
-    files: ["test/**/*.js", "test/**/*.ts"],
+    files: ["test/**/*.js", "test/**/*.ts", "**/*.spec.ts"],
     rules: {
       "@typescript-eslint/no-require-imports": [0],
     },

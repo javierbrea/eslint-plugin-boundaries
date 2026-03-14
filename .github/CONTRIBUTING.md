@@ -101,8 +101,6 @@ Some important points to consider:
 * __The "release" branch is the default branch for PRs.__ Only a project maintainer should open a PR to the "main" branch, and only when the release is ready to be published.
 * Usually, feature branches should be short-lived, and they should be merged into the "release" branch as soon as possible. This way, the changes will be included in the next release, and the feature branch can be deleted.
 * When necessary, a medium-lived branch can be created from the "release" branch to group changes that will be released together and require more time to be prepared, such as `release-<version>`. Once the changes are ready, the branch can be merged into the "release" branch.
-* For publishing beta versions or fix versions of precedent releases, medium-lived branches should be also created from the "release" branch. A branch naming convention should be followed in order to identify these branches easily. For example:
-   * `release-X.Y.Z-beta.N`: For beta versions of the next release.
 
 ## Merging strategy
 
@@ -172,14 +170,14 @@ The release process is as follows:
    * Once the release is created, the packages will be published to the npm registry automatically. __For the moment, creating any release will trigger the publication of all the packages__. If you have to release more than one package there is no problem, next executions will do nothing if the package is already published.
       NOTE: Publishing all packages when the first release is created has been done to avoid having packages without dependencies published due to possible errors when creating releases for each package manually. In the future, we could only release the target package based on the release tag, but some extra checks should be implemented in order to ensure that the dependencies are published before the dependent packages.
 
+> [!NOTE]
+> For publishing beta versions, remember to set the corresponding package version with the `-beta.X` suffix, and to create the release with the corresponding tag and title, following the same instructions as for stable releases. The only difference is that the tag should include the `-beta.X` suffix, and the title should include the `Beta` word to make it clear that it is a beta release. Then, the publishing workflow will automatically publish the package as a beta version in the npm registry.
+
 > [!CAUTION]
 > - The website package version should always match the `eslint-plugin` package version. So, if you modify the `eslint-plugin` package version, you should also update the `website` package version accordingly during the release process. Read the [website README](./packages/website/README.md) for more information about versioning.
 > - After releasing website changes, verify that the Algolia search index was successfully updated. If the index is not updated, manually trigger the workflow from GitHub's Actions tab by selecting "Update Website Search Index" and clicking "Run workflow". 
 >
 >   **Background**: Netlify deploy-based workflow triggers cannot pass the GitHub authentication tokens required by the Algolia scraper action. As a workaround, the scraper runs automatically after a delay following deployment. However, this timing may occasionally be insufficient, so manual verification and triggering may be necessary.
-
-> [!WARNING]
-> For publishing beta versions, please create a branch from the `release` branch named `release-X.Y.Z-beta.N` (Replace `X.Y.Z` with the version number of the next release and `N` with the beta version number, starting from 1). Then, you can open PRs to this branch, and when you merge them. When the release is ready, you can create a release in Github from that branch, following the same instructions as for a normal release. The only difference is that the version number should be `X.Y.Z-beta.N`. This way, the beta versions will be published to npm with the `beta` tag, and they will not affect the latest stable version of the packages. Once the beta testing is done, you can merge the `release-X.Y.Z-beta.N` branch into the `release` branch, and then create a normal release from there.
 
 # License
 

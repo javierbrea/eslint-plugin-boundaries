@@ -1,0 +1,668 @@
+---
+id: rules
+title: Rules Configuration
+sidebar_label: Rules
+description: Define and configure architectural rules in ESLint Plugin Boundaries to enforce boundaries between elements.
+tags:
+  - concepts
+  - configuration
+keywords:
+  - eslint-plugin-boundaries
+  - JavaScript
+  - TypeScript
+  - rules
+  - configuration
+  - dependency selectors
+  - allow disallow
+  - custom messages
+  - rule precedence
+  - architecture enforcement
+  - import restrictions
+  - dependency constraints
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CodeDiff from '@site/src/components/CodeDiff';
+
+# Rules Configuration
+
+Rules define to which dependencies they apply and what is allowed or disallowed. This configuration uses **[dependency selectors](./selectors.md)** to match specific dependencies and provide a high level of customization for your architectural rules.
+
+## Main Rules Format
+
+The main rules ([`dependencies`](../rules/dependencies.md), [`external`](../rules/external.mdx) and [`entry-point`](../rules/entry-point.mdx)) share a common configuration format.
+
+Rules work by setting an `allow` or `disallow` default value, then providing an array of rules that override that default.
+
+:::info
+Each matching rule overrides previous values, so the **final result is determined by the last matching rule**.
+:::
+
+**Basic structure:**
+
+```js
+export default [{
+  rules: {
+    "boundaries/dependencies": [2, {
+      // Default policy
+      default: "allow",
+      
+      // Optional custom message
+      message: "{{from.type}} is not allowed to depend on {{to.type}}",
+      
+      // Array of rules
+      rules: [
+        {
+          from: {
+            type: "helper"
+          },
+          disallow: {
+            to: {
+              type: ["module", "component"]
+            }
+          },
+          message: "Helpers must not import module or component"
+        },
+        {
+          dependency: { kind: "type" },
+          disallow: { from: { type: ["helper"] } },
+          message: "Helpers cannot import types"
+        }
+      ]
+    }]
+  }
+}]
+```
+
+:::info Important
+- All rules are evaluated, and the final result is from the last matching rule
+- If a rule has both `allow` and `disallow` properties, `disallow` takes priority
+- Each rule's result will be "allow" or "disallow", producing an ESLint error accordingly
+:::
+
+## Rule Properties
+
+### `from` / `to`
+
+**Type:** `<element selector>` or `<array of element selectors>` (see [Element Selectors documentation](./selectors.md#element-selectors))
+
+Determines when the rule applies:
+- **`from`** - The rule applies if the file being analyzed matches this [element selector](./selectors.md#element-selectors)
+- **`to`** - The rule applies if the dependency being imported matches this [element selector](./selectors.md#element-selectors)
+
+```js
+// Rule applies to files that are described as controllers
+{
+  from: { type: "controller" }
+}
+
+// Rule applies to dependencies that are either:
+// components of family "atoms" or helpers
+{
+  to: [
+    { type: "component", captured: { family: "atoms" } },
+    { category: "test"}
+  ]
+}
+```
+
+:::warning
+The `target` property is an alias for `to` and is still supported for backward compatibility but is deprecated. Use `to` for clarity.
+:::
+
+:::info
+Read the ["How rules match dependencies" section](#how-rules-match-dependencies) below for a detailed explanation of how `from`, `to`, and `dependency` properties are combined to determine if a rule matches a specific dependency.
+:::
+
+### `dependency`
+
+**Type:** `<dependency metadata selector>` (see [Dependency Selectors documentation](./selectors.md#dependency-metadata-selectors))
+
+This property allows matching specific dependencies based on their metadata (e.g. import kind, relationship type). It can be used in combination with `from` and `to` to create more specific rules.
+
+```js
+// Rule applies to dependencies that are type imports (e.g. TypeScript type imports)
+// to "shared" elements, regardless of the type of the importing file
+{
+  dependency: { kind: "type" },
+  to: { type: "shared" },
+  allow: { from: { type: "*" } },
+}
+```
+
+:::info
+Read the ["How rules match dependencies" section](#how-rules-match-dependencies) below for a detailed explanation of how `from`, `to`, and `dependency` properties are combined to determine if a rule matches a specific dependency.
+:::
+
+### `allow` / `disallow`
+
+**Type:** Varies by rule (typically [`<dependency selector>` or `<array of dependency selectors>`](./selectors.md#dependency-selectors))
+
+:::note
+Here we are going to see the configuration of the main rule `dependencies`, which expects [dependency selectors](./selectors.md#dependency-selectors) for the `allow` and `disallow` properties.
+
+Other rules may expect different formats (e.g. file path patterns for the `entry-point` rule). See each specific [rule's documentation](../rules/rules.md) for details.
+:::
+
+Determines whether the matched dependencies are allowed or disallowed. Each rule must have either an `allow` or `disallow` property (or both, in which case `disallow` takes precedence).
+
+```js
+// Controllers can import models and views
+{
+  from: { type: "controller" },
+  allow: { to: { type: ["model", "view"] } }
+}
+
+// Models cannot import anything other than other models
+{
+  from: { type: "model" },
+  disallow: { to: { type: "!model" } }
+}
+
+// Any file can import other files of the same element (internal dependencies)
+{
+  allow: { dependency: { relationship: { to: "internal" } } }
+}
+
+// Any file can import shared files, but only if it's a type dependency (e.g. TypeScript type imports)
+{
+  allow: {
+    to: { type: "shared" },
+    dependency: { kind: "type" }
+  }
+}
+```
+
+:::warning
+If both `allow` and `disallow` are present and match, `disallow` takes precedence.
+:::
+
+:::info
+Read the ["How rules match dependencies" section](#how-rules-match-dependencies) below for a detailed explanation of how `from`, `to`, and `dependency` properties are combined to determine if a rule matches a specific dependency.
+:::
+
+### `message`
+
+**Type:** `<string>`
+
+**Optional**
+
+Some rules support custom error messages in addition to their built-in defaults. Custom messages allow expressing more helpful feedback tailored to your project conventions.
+
+The plugin provides a default message for each rule. For details on each default, refer to that rule's documentation. You can override this by setting the `message` in the rule options.
+
+:::tip
+You can define a custom message at the top level of the rule configuration, which applies to all rules, or at the individual rule level for more specific messages.
+:::
+
+#### Message Templating
+
+Custom error messages use Handlebars templates to dynamically insert information about the dependency violation.
+
+**Example:**
+
+```js
+// If the error is produced by a file with type "component" and category as "atom"
+// importing a dependency with category "molecule", the message becomes:
+// "components of category atom are not allowed to import molecules"
+{
+  "message": "{{from.type}}s of category {{from.category}}s are not allowed to import {{to.category}}s"
+}
+```
+
+##### Template Context
+
+Next variables are available in the Handlebars template context for custom messages:
+
+* `from` - The element importing the dependency
+* `to` - The element being imported
+* `dependency` - Information about the dependency itself (kind, specifiers, relationship)
+* `rule` - The rule that produced the error. `null` if the error is not associated with a specific rule (e.g. default policy violation)
+  * `index` - The index of the rule that produced the error.
+  * `selector` - The selector of the rule that matched the dependency.
+    * `from` - The `from` selector of the rule that matched the importing element
+    * `to` - The `to` selector of the rule that matched the imported element
+    * `dependency` - The `dependency` selector of the rule that matched the dependency metadata (e.g. import kind, relationship)
+
+:::tip
+For the complete API reference of all available properties in `from`, `to`, and `dependency`, see [Elements → Runtime Description Properties](./elements.md#runtime-description-properties).
+
+For the complete API reference of all available properties in `rule.selector`, see [Selectors -> Dependency Selectors](./selectors.md#dependency-selectors).
+:::
+
+**Usage in templates:**
+
+```js
+{
+  // Access importing/imported element properties
+  "message": "Elements of type {{from.type}} cannot import from type {{to.type}}",
+  
+  // Access captured values
+  "message": "Module {{from.captured.elementName}} cannot import {{to.captured.family}} components",
+  
+  // Access dependency information
+  "message": "Cannot import {{dependency.kind}} from {{to.type}}",
+
+  // Access rule information
+  "message": "Rule at index {{rule.index}} matched with from.type={{rule.selector.from.type}} and to.type={{rule.selector.to.type}}"
+}
+```
+
+:::note
+Missing properties in Handlebars templates resolve to an empty string.
+:::
+
+##### Legacy Message Templates
+
+:::info Backwards Compatibility
+Legacy message templates using `${...}` syntax are still supported but deprecated. For migration guidance, see [Legacy Message Templates](#legacy-message-templates) below.
+:::
+
+### `importKind` (deprecated)
+
+**Type:** `<string>` or `<array of strings>` or `<micromatch pattern>`
+
+**Available with:** TypeScript
+
+**Optional**
+
+Specifies whether the rule applies based on how the dependency is imported.
+
+:::warning Deprecated in v6
+Rule-level `importKind` is kept for backward compatibility but is deprecated.
+
+Prefer using dependency metadata selectors instead: `dependency.kind`
+
+When both rule-level `importKind` and dependency-level `kind` are defined, dependency-level `kind` takes precedence.
+:::
+
+**Possible values:**
+- `"value"` - Importing as a value
+- `"type"` - Importing as a type
+- `"typeof"` - Importing with typeof
+
+<Tabs>
+
+<TabItem value="Legacy">
+
+```js
+// Components can import helpers as values
+{
+  from: { type: "component" },
+  allow: { to: { type: "helper" } },
+  importKind: "value"
+}
+
+// Components cannot import helper types
+{
+  from: { type: "component" },
+  disallow: { to: { type: "helper" } },
+  importKind: "type"
+}
+
+// Services can import models as values or types
+{
+  from: { type: "service" },
+  allow: { to: { type: "model" } },
+  importKind: ["value", "type"]
+}
+
+// Controllers can import models as any import kind
+{
+  from: { type: "controller" },
+  allow: { to: { type: "model" } },
+  importKind: "*"
+}
+```
+</TabItem>
+
+<TabItem value="Modern">
+
+<CodeDiff language="javascript">{`
+. // Components can import helpers as values
+. {
+.   from: { type: "component" },
+.   allow: {
+.     to: { type: "helper" },
++     dependency: { kind: "value" }
+.   },
+-   importKind: "value"
+. }
+
+. // Components cannot import helper types
+. {
+.   from: { type: "component" },
+.   disallow: {
+.     to: { type: "helper" },
++     dependency: { kind: "type" }
+.   }
+-   importKind: "type"
+. }
+
+. // Services can import models as values or types
+. {
+.   from: { type: "service" },
+.   allow: {
+.     to: { type: "model" },
++     dependency: { kind: ["value", "type"] }
+.   }
+-   importKind: ["value", "type"]
+. }
+.
+. // Controllers can import models as any import kind
+. {
+.   from: { type: "controller" },
+.   allow: { 
+.     to: { type: "model" },
++     dependency: { kind: "*" }
+.   },
+-   importKind: "*"
+. }
+`}</CodeDiff>
+
+</TabItem>
+
+</Tabs>
+
+## Rule Evaluation Order
+
+Rules are evaluated sequentially, and each matching rule can override previous results:
+
+```js
+{
+  default: "disallow",
+  rules: [
+    // If this matches: result is "allow"
+    // Components can import helpers
+    {
+      from: { type: "component" },
+      allow: { to: { type: "helper" } }
+    },
+    // If this also matches: result is "disallow" (overrides previous).
+    // Component family "atoms" cannot import "api" helpers
+    {
+      from: { type: "component", captured: { family: "atoms" } },
+      disallow: { to: { type: "helper", captured: { domain: "api" } } },
+    },
+    // If this also matches: result is "allow" (overrides previous).
+    // Component family "atoms" can import "api/fetcher" helper, in exception to previous rule
+    {
+      from: { type: "component", captured: { family: "atoms" } },
+      allow: {
+        to: { type: "helper", captured: { domain: "api", elementName: "fetcher" } }
+      }
+    }
+  ]
+}
+```
+
+:::warning
+Rule order matters: Place more specific rules after more general rules so they can override when needed.
+:::
+
+## How rules match dependencies
+
+Rules match dependencies based on the properties of the importing file, the imported file, and the dependency itself. These properties are available in the **[runtime description](./elements.md#runtime-description-properties)** of each element and dependency.
+
+### Combining selectors
+
+**The `from`, `to`, and `dependency` selectors in your rules are combined with the properties of the `allow` and `disallow` objects to build a dependency selector** that will determine if the rule matches a specific dependency. For example, if you have a rule like this:
+
+```js
+{
+  from: { type: "view" },
+  allow: {
+    to: { type: "model" },
+    dependency: { kind: "value" }
+  }
+}
+```
+
+This rule will allow a dependency if all of the following conditions are met:
+
+- The importing file is described as a "view" element
+- The imported file is described as a "model" element
+- The dependency is a value import (not a type import)
+
+You can combine `from`, `to`, and `dependency` properties both at the rule level and inside `allow`/`disallow` to create more specific selectors. For example:
+
+```js
+{
+  from: { type: "view" },
+  dependency: { kind: "value" },
+  disallow: {
+    to: [{ type: ["model", "controller"] }, { category: "test" }],
+  },
+}
+```
+
+The same rule can be expressed in different ways. Where to define these properties depends on the specific rule you want to create, how detailed you want it to be, and it is also a matter of preference. The important thing is to understand that all these properties are combined to determine if a rule matches a specific dependency.
+
+The plugin is very flexible and allows you to define rules in the way that makes more sense for each specific case.
+
+### Merging OR conditions (arrays)
+
+When using arrays to define OR conditions, the properties are merged together as well for each item in the arrays.
+
+For example, the nex rule will apply both to dependencies:
+
+- `from` type "view" and having a parent with type "module"
+- `from` category "test", elementPath matching `**/*.spec.js`, and having a parent with type module
+
+```js
+{
+  from: [
+    { type: "view" },
+    { category: "test", elementPath: "**/*.spec.js" }
+  ],
+  allow: {
+    from: {
+      parent: {
+        type: "module",
+      }
+    },
+    dependency: {
+      relationship: {
+        to: "parent"
+      }
+    }
+  },
+}
+```
+
+### Using the same property at rule level and in policy level
+
+**When the same property is defined both at the rule level and inside `allow`/`disallow`, they are also merged together to create the final selector**, giving precedence to the properties defined inside `allow`/`disallow`. For example, in the next rule:
+
+- `allow` will only apply to dependencies that are from "view" elements with elementName "view-a", to models.
+- `disallow` will only apply to dependencies that are from "view" elements with elementName "view-b", to model elements with elementName "model-a".
+
+```js
+{
+  from: { type: "view" },
+  allow: {
+    from: { captured: { elementName: "view-a" } },
+    to: { type: "model" },
+  },
+  disallow: {
+    from: { captured: { elementName: "view-b" } },
+    to: { type: "model", captured: { elementName: "model-a" } },
+  }
+}
+```
+
+### Merging nested properties
+
+When using nested properties like `parent`, `captured` or `relationship`, the properties are merged together as well. For example, in the next rule:
+
+- `allow` applies to elements with element name "view-a" that are in the "users" domain, importing any model.
+
+```js
+{
+  from: { 
+    captured: { elementName: "view-a" },
+  },
+  allow: {
+    to: { type: "model" },
+    from: { captured: { domain: "users" } },
+  },
+}
+```
+
+:::warning
+Extending nested properties is not supported when using arrays (OR conditions)
+:::
+
+For example, in the next rule, the `allow` properties will not be merged together, and the rule will allow anything with domain "users" to import any model, because the `allow` policy takes precedence over the selectors at rule level, and it will override the `from.captured` value at rule level instead of merging with it.
+
+```js
+{
+  from: {
+    // Arrays in nested properties are not merged
+    captured: [{ elementName: "view-a" }], 
+  },
+  allow: {
+    to: { type: "model" },
+    from: { captured: { domain: "users" } }, // Only this will be applied
+  },
+}
+```
+
+## Complete Example
+
+Just to illustrate the high level of customization that the plugin supports, here is an example of advanced options for the `boundaries/dependencies` rule:
+
+```js
+export default [{
+  rules: {
+    "boundaries/dependencies": [2, {
+      // disallow importing any element by default
+      default: "disallow",
+      rules: [
+        {
+          // allow importing helpers from helpers
+          from: { type: "helper" },
+          allow: { to: { type: "helper" } }
+        },
+        {
+          // when file is inside an element of type "component"
+          from: { type: "component" },
+          allow: {
+            to: [
+              // allow importing components of the same family
+              { type: "component", captured: { family: "{{from.family}}" } },
+                // allow importing helpers with domain "data"
+              { type: "helper", captured: { domain: "data" } }
+            ]
+          }
+        },
+        {
+          // when component has family "molecule"
+          from: { type: "component", captured: { family: "molecule" } },
+          allow: {
+            // allow importing components with family "atom"
+            to: { type: "component", captured: { family: "atom" } },
+          },
+        },
+        {
+          // when component has family "atom"
+          from: { type: "component", captured: { family: "atom" } },
+          disallow: {
+            // disallow importing helpers with domain "data"
+            to: { type: "helper", captured: { domain: "data" } }
+          },
+          // Custom message only for this specific error
+          message: "Atom components can't import data helpers"
+        },
+        {
+          // when file is inside a module
+          from: { type: "module" },
+          allow: {
+            // allow importing any type of component or helper
+            to: { type: ["helper", "component"] }
+          }
+        },
+        {
+          // when module name starts by "page-"
+          from: { type: "module", captured: { elementName: "page-*" } },
+          disallow: {
+            // disallow importing any type of component not being of family layout
+            to: { type: "component", captured: { family: "!layout" } },
+          },
+          // Custom message only for this specific error
+          message: `
+            Modules with name starting by 'page-' only can import layout components.
+            You tried to import a component of family {{to.captured.family}}
+            from a module with name {{from.captured.elementName}}
+          `
+        }
+      ]
+    }]
+  }
+}]
+```
+
+## Legacy Message Templates
+
+:::warning Deprecated
+Legacy message template syntax using `${...}` is deprecated and will be removed in a future major version. It is strongly recommended to migrate to Handlebars templates using `{{...}}` syntax.
+:::
+
+### Backward Compatibility
+
+For backward compatibility, message rendering runs in two phases:
+
+1. **Legacy replacement** (`${...}`): Processes legacy template syntax with flattened property access
+2. **Handlebars rendering** (`{{...}}`): Processes modern template syntax with nested object access
+
+This allows existing templates to continue working while you migrate to the new format.
+
+### Legacy Syntax
+
+Legacy templates use `${...}` syntax with flattened property access and additional legacy aliases:
+
+**Available properties:**
+
+- `${file.*}` and `${dependency.*}` - Legacy aliases for the importing/imported elements
+  - `type` - Element type
+  - `internalPath` - Path inside the element
+  - `source` - Import source
+  - `importKind` - Import kind (value, type, typeof)
+  - All captured values from the element pattern
+- `${from.*}` and `${target.*}` - Alternative legacy aliases
+- `${file.parent.*}`, `${from.parent.*}`, `${dependency.parent.*}`, `${target.parent.*}` - Parent element properties
+- `${report.*}` - Rule-specific metadata (when provided by the rule)
+
+**Example:**
+
+```js
+{
+  "message": "${file.type} cannot import ${dependency.type}"
+}
+```
+
+### Migration to Handlebars
+
+To migrate from legacy templates to Handlebars:
+
+1. **Replace `${...}` with `{{...}}`**: Change the delimiter syntax
+2. **Update property paths**: Use the new nested structure (`from`, `to`, `dependency`) instead of deprecated flattened aliases.
+3. **Remove legacy aliases**: Use official property names instead of deprecated aliases
+
+**Migration examples:**
+
+<CodeDiff language="javascript">{`
+- "$\{file.type} cannot import $\{dependency.type}"
++ "{{from.type}} cannot import {{to.type}}"
+. 
+- "$\{file.type} with name $\{file.elementName} cannot import $\{dependency.domain}"
++ "{{from.type}} with name {{from.captured.elementName}} cannot import {{to.captured.domain}}"
+. 
+- "$\{file.type} in $\{file.parent.type} cannot import $\{dependency.type}"
++ "{{from.type}} in {{from.parents.0.type}} cannot import {{to.type}}"
+`}</CodeDiff>
+
+:::tip Migration Guide
+For detailed migration conversion table, see the [v5 to v6 migration guide](../releases/migration-guides/v5-to-v6.mdx#templates-in-custom-messages).
+:::

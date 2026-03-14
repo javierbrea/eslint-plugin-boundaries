@@ -1,4 +1,5 @@
-import rule from "../../../src/Rules/ElementTypes";
+import ruleFactory from "../../../src/Rules/Dependencies";
+import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
 import {
   TYPESCRIPT_SETTINGS,
   createRuleTester,
@@ -10,7 +11,7 @@ import {
   elementTypesNoRuleMessage,
 } from "../../support/messages";
 
-const { ELEMENT_TYPES: RULE } = require("../../../src/Settings");
+const rule = ruleFactory();
 
 const { absoluteFilePath } = pathResolvers("one-level");
 
@@ -19,9 +20,9 @@ const runTest = (
   options: unknown[],
   errorMessages: Record<number, string> = {}
 ) => {
-  const ruleTester = createRuleTester(settings);
+  const localRuleTester = createRuleTester(settings);
 
-  ruleTester.run(RULE, rule, {
+  localRuleTester.run(RULE, rule, {
     valid: [
       // Helpers cant import type from components
       {
@@ -114,8 +115,8 @@ const runTest = (
               errorMessages,
               0,
               elementTypesNoRuleMessage({
-                file: "'helpers'",
-                dep: "'helpers'",
+                file: '"helpers"',
+                dep: '"helpers"',
               })
             ),
             type: "Literal",
@@ -133,8 +134,8 @@ const runTest = (
               errorMessages,
               1,
               elementTypesNoRuleMessage({
-                file: "'helpers'",
-                dep: "'helpers'",
+                file: '"helpers"',
+                dep: '"helpers"',
               })
             ),
             type: "Literal",
@@ -152,8 +153,8 @@ const runTest = (
               errorMessages,
               2,
               elementTypesNoRuleMessage({
-                file: "'helpers'",
-                dep: "'components'",
+                file: '"helpers"',
+                dep: '"components"',
               })
             ),
             type: "Literal",
@@ -171,8 +172,8 @@ const runTest = (
               errorMessages,
               3,
               elementTypesNoRuleMessage({
-                file: "'helpers'",
-                dep: "'modules'",
+                file: '"helpers"',
+                dep: '"modules"',
               })
             ),
             type: "Literal",
@@ -190,8 +191,8 @@ const runTest = (
               errorMessages,
               4,
               elementTypesNoRuleMessage({
-                file: "'components'",
-                dep: "'modules'",
+                file: '"components"',
+                dep: '"modules"',
               })
             ),
             type: "Literal",
@@ -209,8 +210,8 @@ const runTest = (
               errorMessages,
               5,
               elementTypesNoRuleMessage({
-                file: "'modules'",
-                dep: "'helpers'",
+                file: '"modules"',
+                dep: '"helpers"',
               })
             ),
             type: "Literal",
@@ -247,38 +248,47 @@ runTest(
       default: "allow",
       rules: [
         {
-          from: "helpers",
-          disallow: ["modules"],
-          importKind: "*",
+          from: {
+            type: "helpers",
+          },
+          disallow: [{ to: { type: "modules" }, dependency: { kind: "*" } }],
         },
         {
-          from: "helpers",
-          disallow: ["components", "helpers"],
-          importKind: "value",
+          from: {
+            type: "helpers",
+          },
+          disallow: [
+            { to: { type: "components" }, dependency: { kind: "value" } },
+            { to: { type: "helpers" }, dependency: { kind: "value" } },
+          ],
         },
         {
-          from: "components",
-          disallow: ["modules"],
-          importKind: "value",
+          from: {
+            type: "components",
+          },
+          disallow: [
+            { to: { type: "modules" }, dependency: { kind: "value" } },
+          ],
         },
         {
-          from: "modules",
-          disallow: ["helpers"],
-          importKind: "type",
+          from: {
+            type: "modules",
+          },
+          disallow: [{ to: { type: "helpers" }, dependency: { kind: "type" } }],
         },
       ],
     },
   ],
   {
     0: elementTypesNoRuleMessage({
-      file: "'helpers'",
-      dep: "'helpers'",
+      file: '"helpers"',
+      dep: '"helpers"',
     }),
-    1: "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
-    2: "Importing kind 'value' from elements of type 'components', or elements of type 'helpers' is not allowed in elements of type 'helpers'. Disallowed in rule 2",
-    3: "Importing kind 'value' from elements of type 'modules' is not allowed in elements of type 'helpers'. Disallowed in rule 1",
-    4: "Importing kind 'value' from elements of type 'modules' is not allowed in elements of type 'components'. Disallowed in rule 3",
-    5: "Importing kind 'type' from elements of type 'helpers' is not allowed in elements of type 'modules'. Disallowed in rule 4",
+    1: 'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
+    2: 'Dependencies with kind "value" to elements of type "components" are not allowed in elements of type "helpers". Denied by rule at index 1',
+    3: 'Dependencies with kind "value" to elements of type "modules" are not allowed in elements of type "helpers". Denied by rule at index 0',
+    4: 'Dependencies with kind "value" to elements of type "modules" are not allowed in elements of type "components". Denied by rule at index 2',
+    5: 'Dependencies with kind "type" to elements of type "helpers" are not allowed in elements of type "modules". Denied by rule at index 3',
   }
 );
 
@@ -291,29 +301,33 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: "modules",
-          allow: ["modules", "components"],
-          importKind: ["*"],
+          from: { type: "modules" },
+          allow: [
+            { to: { type: "modules" }, dependency: { kind: "*" } },
+            { to: { type: "components" }, dependency: { kind: "*" } },
+          ],
         },
         {
-          from: "modules",
-          allow: ["helpers"],
-          importKind: ["value"],
+          from: { type: "modules" },
+          allow: [{ to: { type: "helpers" }, dependency: { kind: "value" } }],
         },
         {
-          from: "components",
-          allow: ["components", "helpers"],
-          importKind: ["*"],
+          from: { type: "components" },
+          allow: [
+            { to: { type: "components" }, dependency: { kind: "*" } },
+            { to: { type: "helpers" }, dependency: { kind: "*" } },
+          ],
         },
         {
-          from: "components",
-          allow: ["modules"],
-          importKind: "type",
+          from: { type: "components" },
+          allow: [{ to: { type: "modules" }, dependency: { kind: "type" } }],
         },
         {
-          from: "helpers",
-          allow: ["helpers", "components"],
-          importKind: "type",
+          from: { type: "helpers" },
+          allow: [
+            { to: { type: "helpers" }, dependency: { kind: "type" } },
+            { to: { type: "components" }, dependency: { kind: "type" } },
+          ],
         },
       ],
     },
@@ -330,39 +344,41 @@ runTest(
       default: "allow",
       rules: [
         {
-          from: "helpers",
-          disallow: ["modules"],
-          importKind: "*",
+          from: { type: "helpers" },
+          disallow: [{ to: { type: "modules" }, dependency: { kind: "*" } }],
           message:
-            "Do not import ${dependency.importKind} from modules in helpers",
+            "Do not import {{ dependency.kind }} from {{ to.type }} in {{ from.type }}",
         },
         {
-          from: "helpers",
-          disallow: ["components", "helpers"],
-          importKind: "value",
-          message: "Do not import value from ${dependency.type} in helpers",
+          from: { type: "helpers" },
+          disallow: [
+            { to: { type: "components" }, dependency: { kind: "value" } },
+            { to: { type: "helpers" }, dependency: { kind: "value" } },
+          ],
+          message:
+            "Do not import {{ dependency.kind }} from {{ to.type }} in {{ from.type }}",
         },
         {
-          from: "components",
-          disallow: ["modules"],
-          importKind: "value",
+          from: { type: "components" },
+          disallow: [
+            { to: { type: "modules" }, dependency: { kind: "value" } },
+          ],
           message:
-            "Do not import ${dependency.importKind} from ${dependency.type} in ${file.type}",
+            "Do not import {{ dependency.kind }} from {{ to.type }} in {{ from.type }}",
         },
         {
-          from: "modules",
-          disallow: ["helpers"],
-          importKind: "type",
+          from: { type: "modules" },
+          disallow: [{ to: { type: "helpers" }, dependency: { kind: "type" } }],
           message:
-            "Do not import ${dependency.importKind} from ${dependency.type} in ${file.type}",
+            "Do not import {{ dependency.kind }} from {{ to.type }} in {{ from.type }}",
         },
       ],
     },
   ],
   {
     0: elementTypesNoRuleMessage({
-      file: "'helpers'",
-      dep: "'helpers'",
+      file: '"helpers"',
+      dep: '"helpers"',
     }),
     1: "Do not import value from helpers in helpers",
     2: "Do not import value from components in helpers",
@@ -371,3 +387,57 @@ runTest(
     5: "Do not import type from helpers in modules",
   }
 );
+
+const precedenceRuleTester = createRuleTester(settingsOneLevelTypeScript);
+
+precedenceRuleTester.run(`${RULE} selector kind precedence`, rule, {
+  valid: [
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import HelperA from 'helpers/helper-a'",
+      options: [
+        {
+          default: "disallow",
+          rules: [
+            {
+              from: { type: "components" },
+              allow: [
+                { to: { type: "helpers" }, dependency: { kind: "value" } },
+              ],
+              importKind: "type",
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  invalid: [
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import type { HelperA } from 'helpers/helper-a'",
+      options: [
+        {
+          default: "disallow",
+          rules: [
+            {
+              from: { type: "components" },
+              allow: [
+                { to: { type: "helpers" }, dependency: { kind: "value" } },
+              ],
+              importKind: "type",
+            },
+          ],
+        },
+      ],
+      errors: [
+        {
+          message: elementTypesNoRuleMessage({
+            file: '"components"',
+            dep: '"helpers"',
+          }),
+          type: "Literal",
+        },
+      ],
+    },
+  ],
+});

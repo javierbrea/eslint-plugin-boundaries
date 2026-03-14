@@ -3,127 +3,141 @@ import {
   isCoreDependencyElement,
   ELEMENT_ORIGINS_MAP,
 } from "@boundaries/elements";
-import type {
-  DependencyDescription,
-  ExternalLibrariesSelector,
-} from "@boundaries/elements";
+import type { DependencySelector } from "@boundaries/elements";
 
-import {
-  customErrorMessage,
-  ruleElementMessage,
-  elementMessage,
-  dependencyUsageKindMessage,
-} from "../Messages";
-import type {
-  ExternalRuleOptions,
-  RuleResult,
-  RuleResultReport,
-} from "../Settings";
 import {
   rulesOptionsSchema,
-  SETTINGS,
-  PLUGIN_NAME,
-  PLUGIN_ISSUES_URL,
+  validateAndWarnRuleOptions,
+  warnMigrationToDependencies,
 } from "../Settings";
-import { isString, isArray } from "../Support";
+import type {
+  ExternalRuleOptions,
+  ExternalRule,
+  DependenciesRule,
+  ExternalLibrariesSelector,
+  ExternalLibrarySelectorWithOptions,
+} from "../Shared";
+import {
+  isString,
+  isArray,
+  isObject,
+  isNullish,
+  SETTINGS,
+  RULE_NAMES_MAP,
+} from "../Shared";
 
-import { elementRulesAllowDependency } from "./ElementTypes";
+import { evaluateRulesAndReport } from "./Dependencies";
 import { dependencyRule } from "./Support";
 
 const { RULE_EXTERNAL } = SETTINGS;
 
-function getErrorReportMessage(report: RuleResultReport) {
-  if (report.path) {
-    return report.path;
-  }
-  return report.specifiers && report.specifiers.length > 0
-    ? report.specifiers.join(", ")
-    : undefined;
+/**
+ * Type guard for external selectors using tuple syntax with options.
+ *
+ * @param selector - External library selector from rule options.
+ * @returns `true` when selector is `[module, options]`.
+ */
+function isExternalLibrarySelectorWithOptions(
+  selector: ExternalLibrariesSelector
+): selector is ExternalLibrarySelectorWithOptions {
+  return (
+    isArray(selector) &&
+    selector.length === 2 &&
+    isString(selector[0]) &&
+    isObject(selector[1])
+  );
 }
 
-function errorMessage(
-  ruleData: RuleResult,
-  dependency: DependencyDescription
-): string {
-  const ruleReport = ruleData.ruleReport;
-  if (!ruleReport) {
-    return `No detailed rule report available. This is likely a bug in ${PLUGIN_NAME}. Please report it at ${PLUGIN_ISSUES_URL}`;
-  }
-
-  if (ruleReport.message) {
-    return customErrorMessage(ruleReport.message, dependency, {
-      specifiers:
-        ruleData.report?.specifiers && ruleData.report?.specifiers.length > 0
-          ? ruleData.report?.specifiers?.join(", ")
-          : undefined,
-      path: ruleData.report?.path,
-    });
-  }
-  if (ruleReport.isDefault) {
-    return `No rule allows the usage of external module '${
-      dependency.to.baseSource
-    }' in elements ${elementMessage(dependency.from)}`;
-  }
-
-  const fileReport = `is not allowed in ${ruleElementMessage(
-    ruleReport.element,
-    dependency.from.captured
-  )}. Disallowed in rule ${ruleReport.index + 1}`;
-
-  if (
-    (ruleData.report?.specifiers && ruleData.report?.specifiers.length > 0) ||
-    ruleData.report?.path
-  ) {
-    return `Usage of ${dependencyUsageKindMessage(
-      ruleReport.importKind,
-      dependency
-    )}'${getErrorReportMessage(ruleData.report)}' from external module '${
-      dependency.to.baseSource
-    }' ${fileReport}`;
-  }
-  return `Usage of ${dependencyUsageKindMessage(
-    ruleReport.importKind,
-    dependency,
-    {
-      suffix: " from ",
-    }
-  )}external module '${dependency.to.baseSource}' ${fileReport}`;
+/**
+ * Builds a dependency selector from a legacy external selector using tuple syntax with options.
+ * @param selector The external library selector in legacy format with options.
+ * @returns The corresponding dependency selector compatible with `dependencies` rule evaluator.
+ */
+function buildSelectorFromLegacySelectorWithOptions(
+  selector: ExternalLibrarySelectorWithOptions
+): DependencySelector {
+  const moduleSelector = selector[0];
+  const selectorOptions = selector[1];
+  const hasPathSelector = !isNullish(selectorOptions.path);
+  return {
+    to: {
+      origin: [ELEMENT_ORIGINS_MAP.EXTERNAL, ELEMENT_ORIGINS_MAP.CORE],
+      ...(hasPathSelector ? { internalPath: selectorOptions.path } : {}),
+    },
+    dependency: {
+      module: moduleSelector,
+      ...(selectorOptions.specifiers
+        ? {
+            specifiers: selectorOptions.specifiers,
+          }
+        : {}),
+    },
+  };
 }
 
-function modifySelectors(selectors: ExternalLibrariesSelector): {
-  baseSource?: string | string[];
-  specifiers?: string | string[];
-  internalPath?: string | string[];
-  origin: string[];
-}[] {
+/**
+ * Transforms legacy external selectors into dependency selectors.
+ *
+ * @param selectors - External selector(s) from legacy rule format.
+ * @returns Dependency selector(s) compatible with `dependencies` rule evaluator.
+ */
+function modifySelectors(
+  selectors: ExternalLibrariesSelector
+): DependencySelector | DependencySelector[] {
   const originsToMatch = [
     ELEMENT_ORIGINS_MAP.EXTERNAL,
     ELEMENT_ORIGINS_MAP.CORE,
   ];
+  if (isExternalLibrarySelectorWithOptions(selectors)) {
+    return buildSelectorFromLegacySelectorWithOptions(selectors);
+  }
   if (isString(selectors)) {
-    return [{ baseSource: selectors, origin: originsToMatch }];
+    return {
+      to: {
+        origin: originsToMatch,
+      },
+      dependency: {
+        module: selectors,
+      },
+    };
   }
   return selectors.map((selector) => {
-    if (isArray(selector)) {
-      return {
-        origin: originsToMatch,
-        baseSource: selector[0],
-        specifiers: selector[1].specifiers,
-        internalPath: selector[1].path,
-      };
+    if (isExternalLibrarySelectorWithOptions(selector)) {
+      return buildSelectorFromLegacySelectorWithOptions(selector);
     }
     return {
-      origin: originsToMatch,
-      baseSource: selector as string,
+      to: { origin: originsToMatch },
+      dependency: {
+        module: selector,
+      },
     };
   });
+}
+
+/**
+ * Converts `external` legacy rules to `dependencies` rule shape.
+ *
+ * @param rules - External rules as configured by the user.
+ * @returns Equivalent dependencies rules consumed by shared evaluator.
+ */
+function transformToDependenciesRules(
+  rules: ExternalRule[]
+): DependenciesRule[] {
+  return rules.map((rule) => ({
+    from: rule.from,
+    allow: rule.allow ? modifySelectors(rule.allow) : undefined,
+    disallow: rule.disallow ? modifySelectors(rule.disallow) : undefined,
+    importKind: rule.importKind,
+    message: rule.message,
+  }));
 }
 
 export default dependencyRule<ExternalRuleOptions>(
   {
     ruleName: RULE_EXTERNAL,
-    description: `Check allowed external dependencies by element type`,
+    description: `Check dependencies to external and core libraries`,
     schema: rulesOptionsSchema({
+      isLegacy: true,
       targetMatcherOptions: {
         type: "object",
         properties: {
@@ -134,7 +148,7 @@ export default dependencyRule<ExternalRuleOptions>(
             },
           },
           path: {
-            oneOf: [
+            anyOf: [
               {
                 type: "string",
               },
@@ -152,35 +166,23 @@ export default dependencyRule<ExternalRuleOptions>(
     }),
   },
   function ({ dependency, node, context, settings, options }) {
+    warnMigrationToDependencies(RULE_NAMES_MAP.EXTERNAL);
+    // Validate and warn about legacy selector syntax
+    validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL, "from");
+
     if (
       isExternalDependencyElement(dependency.to) ||
       isCoreDependencyElement(dependency.to)
     ) {
-      const adaptedRuleOptions: ExternalRuleOptions = {
-        ...options,
-        // @ts-expect-error TODO: Fix type
-        rules:
-          options && options.rules
-            ? options.rules.map((rule) => ({
-                ...rule,
-                allow: rule.allow && modifySelectors(rule.allow),
-                disallow: rule.disallow && modifySelectors(rule.disallow),
-              }))
-            : [],
-      };
-
-      const ruleData = elementRulesAllowDependency(
-        dependency,
+      const rules = transformToDependenciesRules(options?.rules ?? []);
+      evaluateRulesAndReport({
+        rules,
         settings,
-        adaptedRuleOptions
-      );
-
-      if (!ruleData.result) {
-        context.report({
-          message: errorMessage(ruleData, dependency),
-          node: node,
-        });
-      }
+        context,
+        node,
+        options,
+        dependency,
+      });
     }
   },
   {

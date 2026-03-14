@@ -7,18 +7,26 @@ tags:
   - rules
   - configuration
   - examples
+keywords:
+  - eslint-plugin-boundaries
+  - no-unknown-files rule
+  - file classification
+  - element descriptors
+  - architecture enforcement
+  - linting policy
+  - import restrictions
 ---
 
 # no-unknown-files
 
-> Prevent creating files not recognized as any **[element](../setup/elements.md)** type.
+> Prevent creating files not recognized as any **[element](../setup/elements.md)**.
 
 ## Rule Details
 
-This rule validates local file paths. If a file is not recognized as part of any **[element](../setup/elements.md)** defined in settings, it will be reported as an error.
+This rule validates local file paths. If a file is not recognized as part of any **[element](../setup/elements.md)** defined in the **[element descriptors](../setup/elements.md)**, it will be reported as an error.
 
 :::info
-This rule ensures that all files in your project belong to a defined element type, maintaining a clean architectural structure.
+This rule ensures that all files in your project belong to a recognized element, maintaining a clean architectural structure.
 :::
 
 ## Options
@@ -67,7 +75,7 @@ src/
     "boundaries/ignore": ["src/index.js"],
     "boundaries/elements": [
       {
-        "type": "helpers",
+        "type": "helper",
         "pattern": "helpers/*/*.js",
         "mode": "file"
       }

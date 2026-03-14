@@ -1,11 +1,10 @@
 import rule from "../../../src/Rules/EntryPoint";
+import { ENTRY_POINT as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
-
-const { ENTRY_POINT: RULE } = require("../../../src/Settings");
 
 const { absoluteFilePath } = pathResolvers("layered");
 
@@ -18,14 +17,17 @@ const options = [
     default: "disallow",
     rules: [
       {
-        target: ["modules"],
+        target: { type: "modules" },
         allow: "**",
       },
       {
-        target: [
-          // Any element, except the same as target
-          ["modules", { elementName: "!(${from.elementName})" }],
-        ],
+        target: {
+          type: "modules",
+          captured: {
+            // Any element, except the same as target
+            elementName: "!({{ from.elementName }})",
+          },
+        },
         // Any file, except index.js
         disallow: "!(index.js)",
       },
@@ -59,7 +61,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            "The entry point 'helpers.js' is not allowed in elements of type 'modules' with elementName '!(module-a)'. Disallowed in rule 2",
+            'Dependencies to elements of type "modules", elementName "module-a" and internalPath "helpers.js" are not allowed. Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -71,7 +73,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            "The entry point 'ComponentA.js' is not allowed in elements of type 'modules' with elementName '!(module-a)'. Disallowed in rule 2",
+            'Dependencies to elements of type "modules", elementName "module-a" and internalPath "ComponentA.js" are not allowed. Denied by rule at index 1',
           type: "Literal",
         },
       ],

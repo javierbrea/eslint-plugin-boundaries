@@ -5,27 +5,19 @@ export type {
   ElementSelector,
   ElementSelectors,
   ElementsSelector,
-  ExternalLibrarySelectorOptions,
-  ExternalLibrarySelectorWithOptions,
-  ExternalLibrarySelector,
-  ExternalLibrarySelectors,
-  ExternalLibrariesSelector,
   ElementSelectorWithOptions,
   FlagAsExternalOptions,
 } from "@boundaries/elements";
 
-export {
-  isElementSelector,
-  isElementsSelector,
-  isExternalLibrarySelector,
-  isExternalLibrariesSelector,
-} from "@boundaries/elements";
+export { isElementSelector, isElementsSelector } from "@boundaries/elements";
 
 export type {
   RulePolicy,
   RuleBaseOptions,
   ElementTypesRule,
   ElementTypesRuleOptions,
+  DependenciesRule,
+  DependenciesRuleOptions,
   EntryPointRule,
   EntryPointRuleOptions,
   ExternalRule,
@@ -33,16 +25,15 @@ export type {
   NoPrivateOptions,
   RuleShortName,
   RuleName,
-} from "../Settings";
+} from "../Shared";
 
 export {
   RULE_POLICIES_MAP,
-  isRulePolicy,
   RULE_SHORT_NAMES_MAP,
   RULE_NAMES_MAP,
-  isRuleShortName,
-  isRuleName,
-} from "../Settings";
+} from "../Shared";
+
+export { isRulePolicy, isRuleShortName, isRuleName } from "../Settings";
 
 /**
  * Kind of import that the rule applies to (e.g., "type", "value")

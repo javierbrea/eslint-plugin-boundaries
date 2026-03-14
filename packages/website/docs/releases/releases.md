@@ -2,6 +2,13 @@
 id: releases
 title: Releases
 description: Information about releases, changelogs, and migration guides for the project.
+keywords:
+  - eslint-plugin-boundaries
+  - releases
+  - changelog
+  - release notes
+  - semantic versioning
+  - migration guides
 ---
 
 # Releases
@@ -29,5 +36,6 @@ The core elements package that powers the plugin.
 
 For breaking changes, we provide detailed migration guides to help you upgrade:
 
+- [Migrating from v5 to v6](./migration-guides/v5-to-v6.mdx)
 - [Migrating from v3 to v4](./migration-guides/v3-to-v4.md)
 - [Migrating from v1 to v2](./migration-guides/v1-to-v2.md)

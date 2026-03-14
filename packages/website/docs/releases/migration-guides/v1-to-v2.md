@@ -9,11 +9,14 @@ keywords:
   - eslint-plugin-boundaries
   - migration
   - update
-  - guide
+  - migration guide
   - release
   - release notes
   - v1
   - v2
+  - boundaries/elements
+  - import/resolver
+  - rule renaming
 ---
 
 # Migrating from v1.x to v2.x

@@ -1,28 +1,32 @@
-import type { MatchersOptionsNormalized } from "../Config";
+import type {
+  MatchersOptionsNormalized,
+  MicromatchPatternNullable,
+} from "../Config";
 import type { ElementDescription } from "../Descriptor";
-import { isArray, isNullish, isEmptyObject } from "../Support";
-
 import {
-  BaseElementsMatcher,
-  normalizeElementsSelector,
-} from "./BaseElementsMatcher";
+  isArray,
+  isNullish,
+  isEmptyObject,
+  isUndefined,
+  isNull,
+} from "../Support";
+
+import { BaseElementsMatcher } from "./BaseElementsMatcher";
 import type {
   BaseElementSelectorData,
+  ParentElementSelectorData,
   SelectableElement,
   TemplateData,
   BaseElementsSelector,
   MatcherOptions,
-  ElementSelectorData,
 } from "./Matcher.types";
+import { normalizeElementsSelector } from "./MatcherHelpers";
 import type { Micromatch } from "./Micromatch";
 
 /**
  * Matcher class to determine if elements match a given selector.
  */
 export class ElementsMatcher extends BaseElementsMatcher {
-  /** Whether the cache is enabled or not */
-  private readonly _cacheIsEnabled: boolean;
-
   /**
    * Creates a new ElementsSelectorMatcher.
    * @param config Configuration options for the matcher.
@@ -166,51 +170,47 @@ export class ElementsMatcher extends BaseElementsMatcher {
   }
 
   /**
-   * Whether the given element baseSource matches the selector baseSource
-   * @param element The element to check.
-   * @param selector The selector to check against.
-   * @param templateData The data to use for replace in selector value
-   * @returns Whether the element baseSource matches the selector baseSource.
+   * Checks if a single captured values object matches the element.
+   * @param capturedValues The captured values to check.
+   * @param capturedSelector The captured values selector object to check against
+   * @param templateData The data to use for replace in selector values
+   * @returns True if all captured values in the selector match those in the element, false otherwise.
    */
-  private _isBaseSourceMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
+  private _checkCapturedValuesObject(
+    capturedValues: SelectableElement["captured"],
+    capturedSelector: Record<string, MicromatchPatternNullable>,
     templateData: TemplateData
   ): boolean {
-    return this.isElementKeyMicromatchMatch({
-      element,
-      selector,
-      elementKey: "baseSource",
-      selectorKey: "baseSource",
-      selectorValue: selector.baseSource,
-      templateData,
-    });
-  }
+    if (!capturedValues) {
+      return false;
+    }
+    // Use for...of with early return for better performance than every()
+    for (const [key, pattern] of Object.entries(capturedSelector)) {
+      const elementValue = capturedValues[key];
+      if (!elementValue) {
+        return false;
+      }
 
-  /**
-   * Whether the given element source matches the selector source
-   * @param element The element to check.
-   * @param selector The selector to check against.
-   * @param templateData The data to use for replace in selector value
-   * @returns Whether the element source matches the selector source.
-   */
-  private _isSourceMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
-    templateData: TemplateData
-  ): boolean {
-    return this.isElementKeyMicromatchMatch({
-      element,
-      selector,
-      elementKey: "source",
-      selectorKey: "source",
-      selectorValue: selector.source,
-      templateData,
-    });
+      const renderedPattern = this.getRenderedTemplates(pattern, templateData);
+
+      const filteredPattern = this.cleanMicromatchPattern(renderedPattern);
+
+      if (!filteredPattern) {
+        return false;
+      }
+
+      const isMatch = this.micromatch.isMatch(elementValue, filteredPattern);
+      if (!isMatch) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
    * Determines if the captured values of the element match those in the selector.
+   * When the selector is an array, the element matches if it matches any of the array elements (OR logic).
    * @param element The element to check.
    * @param selector The selector to check against
    * @param templateData The data to use for replace in selector values
@@ -224,33 +224,133 @@ export class ElementsMatcher extends BaseElementsMatcher {
     if (!selector.captured || isEmptyObject(selector.captured)) {
       return true;
     }
-    if (!element.captured) {
+
+    // Handle array of captured values selectors (OR logic)
+    if (isArray(selector.captured)) {
+      // Empty array doesn't match anything
+      if (selector.captured.length === 0) {
+        return false;
+      }
+      // Match if any of the array elements matches
+      return selector.captured.some((capturedSelector) =>
+        this._checkCapturedValuesObject(
+          element.captured,
+          capturedSelector,
+          templateData
+        )
+      );
+    }
+
+    // Handle single captured values selector object
+    return this._checkCapturedValuesObject(
+      element.captured,
+      selector.captured,
+      templateData
+    );
+  }
+
+  /**
+   * Determines if the parent captured values match the selector.
+   * @param parentSelector The parent selector to match.
+   * @param parentCaptured The captured values from first parent.
+   * @param templateData The data to use for replace in selector values
+   * @returns True if the captured values match, false otherwise.
+   */
+  private _isParentCapturedValuesMatch(
+    parentSelector: ParentElementSelectorData,
+    parentCaptured: SelectableElement["captured"],
+    templateData: TemplateData
+  ): boolean {
+    if (!parentSelector.captured || isEmptyObject(parentSelector.captured)) {
+      return true;
+    }
+
+    if (isArray(parentSelector.captured)) {
+      if (parentSelector.captured.length === 0) {
+        return false;
+      }
+      return parentSelector.captured.some((capturedSelector) =>
+        this._checkCapturedValuesObject(
+          parentCaptured,
+          capturedSelector,
+          templateData
+        )
+      );
+    }
+
+    return this._checkCapturedValuesObject(
+      parentCaptured,
+      parentSelector.captured,
+      templateData
+    );
+  }
+
+  /**
+   * Whether the given element first parent matches the selector parent.
+   * @param element The element to check.
+   * @param selector The selector to check against.
+   * @param templateData The data to use for replace in selector values
+   * @returns Whether the first parent matches the selector parent.
+   */
+  private _isParentMatch(
+    element: SelectableElement,
+    selector: BaseElementSelectorData,
+    templateData: TemplateData
+  ): boolean {
+    if (isUndefined(selector.parent)) {
+      return true;
+    }
+    if (isNull(selector.parent)) {
+      return !element.parents || element.parents.length === 0;
+    }
+
+    const firstParent = element.parents?.[0];
+
+    if (!firstParent) {
       return false;
     }
 
-    // Use for...of with early return for better performance than every()
-    for (const [key, pattern] of Object.entries(selector.captured)) {
-      const elementValue = element.captured?.[key];
-      if (!elementValue) {
-        return false;
-      }
+    if (
+      !isUndefined(selector.parent.type) &&
+      !this.isTemplateMicromatchMatch(
+        selector.parent.type,
+        templateData,
+        firstParent.type
+      )
+    ) {
+      return false;
+    }
 
-      const renderedPattern = this.getRenderedTemplates(pattern, templateData);
-      // Empty selector values do not match anything.
-      if (!renderedPattern) {
-        return false;
-      }
+    if (
+      !isUndefined(selector.parent.category) &&
+      !this.isTemplateMicromatchMatch(
+        selector.parent.category,
+        templateData,
+        firstParent.category
+      )
+    ) {
+      return false;
+    }
 
-      // Clean empty strings from arrays to avoid matching them.
-      const filteredPattern = isArray(renderedPattern)
-        ? renderedPattern.filter(Boolean)
-        : renderedPattern;
+    if (
+      !isUndefined(selector.parent.elementPath) &&
+      !this.isTemplateMicromatchMatch(
+        selector.parent.elementPath,
+        templateData,
+        firstParent.elementPath
+      )
+    ) {
+      return false;
+    }
 
-      const isMatch = this.micromatch.isMatch(elementValue, filteredPattern);
-
-      if (!isMatch) {
-        return false;
-      }
+    if (
+      !this._isParentCapturedValuesMatch(
+        selector.parent,
+        firstParent.captured,
+        templateData
+      )
+    ) {
+      return false;
     }
 
     return true;
@@ -303,7 +403,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
     element: SelectableElement,
     selectorsData: BaseElementSelectorData[],
     extraTemplateData: TemplateData
-  ): ElementSelectorData | null {
+  ): BaseElementSelectorData | null {
     const templateData: TemplateData = {
       element,
       ...extraTemplateData,
@@ -321,14 +421,13 @@ export class ElementsMatcher extends BaseElementsMatcher {
         !this._isPathMatch(element, selectorData, templateData) ||
         !this._isElementPathMatch(element, selectorData, templateData) ||
         !this._isInternalPathMatch(element, selectorData, templateData) ||
-        !this._isSourceMatch(element, selectorData, templateData) ||
-        !this._isBaseSourceMatch(element, selectorData, templateData) ||
-        !this._isCapturedValuesMatch(element, selectorData, templateData)
+        !this._isCapturedValuesMatch(element, selectorData, templateData) ||
+        !this._isParentMatch(element, selectorData, templateData)
       ) {
         continue; // Early exit on first failed condition
       }
 
-      // All conditions passed, return the matching selector
+      // All conditions passed, return the first matching selector
       return selectorData;
     }
 
@@ -340,14 +439,14 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * It omits checks in keys applying only to dependency between elements, such as relationship.
    * @param element The element to check.
    * @param selector The selector to check against.
-   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
+   * @param options Extra options for matching, such as templates data, etc.
    * @returns The selector matching result for the given element, or null if none matches.
    */
   public getSelectorMatching(
     element: ElementDescription,
     selector: BaseElementsSelector,
     { extraTemplateData = {} }: MatcherOptions = {}
-  ): ElementSelectorData | null {
+  ): BaseElementSelectorData | null {
     const selectorsData = normalizeElementsSelector(selector);
     return this._getSelectorMatching(element, selectorsData, extraTemplateData);
   }
@@ -357,7 +456,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * It omits checks in keys applying only to dependency between elements, such as relationship.
    * @param element The element to check.
    * @param selector The selector to check against.
-   * @param options Extra options for matching, such as templates data, globals for dependency selectors, etc.
+   * @param options Extra options for matching, such as templates data, etc.
    * @returns Whether the element matches the selector properties applying to elements.
    */
   public isElementMatch(

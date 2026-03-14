@@ -1,4 +1,5 @@
-import rule from "../../../src/Rules/ElementTypes";
+import ruleFactory from "../../../src/Rules/Dependencies";
+import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
@@ -10,8 +11,7 @@ import {
   elementTypesNoRuleMessage,
 } from "../../support/messages";
 
-const { ELEMENT_TYPES: RULE } = require("../../../src/Settings");
-
+const rule = ruleFactory();
 const { absoluteFilePath } = pathResolvers("one-level");
 
 const testCapture = (
@@ -78,8 +78,8 @@ const testCapture = (
               errorMessages,
               0,
               elementTypesNoRuleMessage({
-                file: "'components' with elementName 'component-a'",
-                dep: "'helpers' with elementName 'helper-b'",
+                file: '"components" and elementName "component-a"',
+                dep: '"helpers" and elementName "helper-b"',
               })
             ),
             type: "Literal",
@@ -97,8 +97,8 @@ const testCapture = (
               errorMessages,
               1,
               elementTypesNoRuleMessage({
-                file: "'components' with elementName 'component-a'",
-                dep: "'helpers' with elementName 'helper-b'",
+                file: '"components" and elementName "component-a"',
+                dep: '"helpers" and elementName "helper-b"',
               })
             ),
             type: "Literal",
@@ -116,8 +116,8 @@ const testCapture = (
               errorMessages,
               2,
               elementTypesNoRuleMessage({
-                file: "'components' with elementName 'component-b'",
-                dep: "'components' with elementName 'component-a'",
+                file: '"components" and elementName "component-b"',
+                dep: '"components" and elementName "component-a"',
               })
             ),
             type: "Literal",
@@ -135,8 +135,8 @@ const testCapture = (
               errorMessages,
               3,
               elementTypesNoRuleMessage({
-                file: "'modules' with elementName 'module-a'",
-                dep: "'helpers' with elementName 'helper-b'",
+                file: '"modules" and elementName "module-a"',
+                dep: '"helpers" and elementName "helper-b"',
               })
             ),
             type: "Literal",
@@ -154,8 +154,8 @@ const testCapture = (
               errorMessages,
               4,
               elementTypesNoRuleMessage({
-                file: "'modules' with elementName 'module-b'",
-                dep: "'module-a-helpers' with elementName 'helper-1'",
+                file: '"modules" and elementName "module-b"',
+                dep: '"module-a-helpers" and elementName "helper-1"',
               })
             ),
             type: "Literal",
@@ -173,8 +173,8 @@ const testCapture = (
               errorMessages,
               5,
               elementTypesNoRuleMessage({
-                file: "'modules' with elementName 'module-b'",
-                dep: "'helpers' with elementName 'module-a'",
+                file: '"modules" and elementName "module-b"',
+                dep: '"helpers" and elementName "module-a"',
               })
             ),
             type: "Literal",
@@ -218,35 +218,57 @@ testCapture(
       default: "disallow",
       rules: [
         {
-          from: "components",
-          allow: [["helpers", { elementName: "helper-a" }], "components"],
-          disallow: [["components", { elementName: "component-a" }]],
+          from: { type: "components" },
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "helper-a" } },
+              { type: "components" },
+            ],
+          },
+          disallow: {
+            to: [
+              { type: "components", captured: { elementName: "component-a" } },
+            ],
+          },
         },
         {
-          from: "modules",
-          allow: [
-            ["helpers", { elementName: "helper-a" }],
-            "components",
-            "modules",
-          ],
+          from: { type: "modules" },
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "helper-a" } },
+              { type: "components" },
+              { type: "modules" },
+            ],
+          },
         },
         {
-          from: [["modules", { elementName: "*-a" }]],
-          allow: [
-            ["helpers", { elementName: "${from.elementName}" }],
-            "components",
-            "modules",
-          ],
+          from: { type: "modules", captured: { elementName: "*-a" } },
+          allow: {
+            to: [
+              {
+                type: "helpers",
+                captured: { elementName: "{{ from.captured.elementName }}" },
+              },
+              { type: "components" },
+              { type: "modules" },
+            ],
+          },
         },
         {
-          from: [["modules", { elementName: "*-a" }]],
-          allow: ["${from.elementName}-helpers", "components", "modules"],
+          from: { type: "modules", captured: { elementName: "*-a" } },
+          allow: {
+            to: [
+              { type: "{{ from.captured.elementName }}-helpers" },
+              { type: "components" },
+              { type: "modules" },
+            ],
+          },
         },
       ],
     },
   ],
   {
-    2: "Importing elements of type 'components' with elementName 'component-a' is not allowed in elements of type 'components'. Disallowed in rule 1",
+    2: 'Dependencies to elements of type "components" and elementName "component-a" are not allowed in elements of type "components". Denied by rule at index 0',
   }
 );
 
@@ -283,47 +305,55 @@ testCapture(
       default: "disallow",
       rules: [
         {
-          from: "components",
-          allow: [["helpers", { elementName: "helper-a" }], "components"],
-          disallow: [["components", { elementName: "component-a" }]],
-        },
-        {
-          from: "modules",
-          allow: [
-            ["helpers", { elementName: "helper-a" }],
-            "components",
-            "modules",
-          ],
-        },
-        {
-          from: [["modules", { elementName: "*-a" }]],
-          allow: [
-            ["helpers", { elementName: "{{from.captured.elementName}}" }],
-            "components",
-            "modules",
-          ],
-        },
-        // Now disallow, but using legacy format. As it is disabled, this should no affect the results
-        {
-          from: [["modules", { elementName: "*-a" }]],
+          from: { type: "components" },
+          allow: {
+            to: [
+              { type: "helpers", captured: { elementName: "helper-a" } },
+              { type: "components" },
+            ],
+          },
           disallow: [
-            ["helpers", { elementName: "${from.captured.elementName}" }],
-            "components",
-            "modules",
+            {
+              to: {
+                type: "components",
+                captured: { elementName: "component-a" },
+              },
+            },
           ],
         },
         {
-          from: [["modules", { elementName: "*-a" }]],
+          from: { type: "modules" },
           allow: [
-            "{{from.captured.elementName}}-helpers",
-            "components",
-            "modules",
+            { to: { type: "helpers", captured: { elementName: "helper-a" } } },
+            { to: { type: "components" } },
+            { to: { type: "modules" } },
+          ],
+        },
+        {
+          from: { type: "modules", captured: { elementName: "*-a" } },
+          allow: {
+            to: [
+              {
+                type: "helpers",
+                captured: { elementName: "{{ from.captured.elementName }}" },
+              },
+              { type: "components" },
+              { type: "modules" },
+            ],
+          },
+        },
+        {
+          from: { type: "modules", captured: { elementName: "*-a" } },
+          allow: [
+            { to: { type: "{{ from.captured.elementName }}-helpers" } },
+            { to: { type: "components" } },
+            { to: { type: "modules" } },
           ],
         },
       ],
     },
   ],
   {
-    2: "Importing elements of type 'components' with elementName 'component-a' is not allowed in elements of type 'components'. Disallowed in rule 1",
+    2: 'Dependencies to elements of type "components" and elementName "component-a" are not allowed in elements of type "components". Denied by rule at index 0',
   }
 );

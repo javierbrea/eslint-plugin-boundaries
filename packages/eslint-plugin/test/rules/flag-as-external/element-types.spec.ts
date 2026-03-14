@@ -1,5 +1,6 @@
-import rule from "../../../src/Rules/ElementTypes";
+import ruleFactory from "../../../src/Rules/Dependencies";
 import noUnknownRule from "../../../src/Rules/NoUnknown";
+import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
@@ -8,7 +9,7 @@ import {
 import type { RuleTesterSettings } from "../../support/helpers";
 import { elementTypesNoRuleMessage } from "../../support/messages";
 
-const { ELEMENT_TYPES: RULE } = require("../../../src/Settings");
+const rule = ruleFactory();
 
 const { absoluteFilePath } = pathResolvers("flag-as-external");
 
@@ -30,8 +31,8 @@ const testDefaultSettings = () => {
             default: "disallow",
             rules: [
               {
-                from: [["components", { package: "a" }]],
-                allow: [["helpers", { package: "a" }]],
+                from: { type: "components", captured: { package: "a" } },
+                allow: { to: { type: "helpers", captured: { package: "a" } } },
               },
             ],
           },
@@ -59,8 +60,8 @@ const testDefaultSettings = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: "'helpers' with package 'a' and elementName 'helper-a'",
-              dep: "'components' with package 'a' and elementName 'component-a'",
+              file: '"helpers", package "a" and elementName "helper-a"',
+              dep: '"components", package "a" and elementName "component-a"',
             }),
             type: "Literal",
           },
@@ -77,8 +78,16 @@ const testDefaultSettings = () => {
             default: "disallow",
             rules: [
               {
-                from: [["components", { package: "package-a" }]],
-                allow: [["helpers", { package: "package-a" }]],
+                from: {
+                  type: "components",
+                  captured: { package: "package-a" },
+                },
+                allow: {
+                  to: {
+                    type: "helpers",
+                    captured: { package: "package-a" },
+                  },
+                },
               },
             ],
           },
@@ -86,8 +95,8 @@ const testDefaultSettings = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: "'components' with package 'a' and elementName 'component-a'",
-              dep: "'helpers' with package 'b' and elementName 'helper-b'",
+              file: '"components", package "a" and elementName "component-a"',
+              dep: '"helpers", package "b" and elementName "helper-b"',
             }),
             type: "Literal",
           },
@@ -150,8 +159,8 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: "'helpers' with elementName 'helper-a'",
-              dep: "'components' with elementName 'component-a'",
+              file: '"helpers" and elementName "helper-a"',
+              dep: '"components" and elementName "component-a"',
             }),
             type: "Literal",
           },
@@ -188,8 +197,8 @@ const testCustomSourcePatterns = () => {
             default: "disallow",
             rules: [
               {
-                from: [["components", { package: "a" }]],
-                allow: [["helpers", { package: "a" }]],
+                from: { type: "components", captured: { package: "a" } },
+                allow: { to: { type: "helpers", captured: { package: "a" } } },
               },
             ],
           },
@@ -213,8 +222,8 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: "'helpers' with package 'a' and elementName 'helper-a'",
-              dep: "'components' with package 'a' and elementName 'component-a'",
+              file: '"helpers", package "a" and elementName "helper-a"',
+              dep: '"components", package "a" and elementName "component-a"',
             }),
             type: "Literal",
           },
@@ -251,7 +260,10 @@ const testInNodeModulesDisabled = () => {
         filename: absoluteFilePath("package-a/helpers/helper-a/HelperA.js"),
         code: "import eslint from 'eslint'",
         options: [
-          { default: "disallow", rules: [{ from: ["any"], allow: ["any"] }] },
+          {
+            default: "disallow",
+            rules: [{ from: { type: "any" }, allow: { to: { type: "any" } } }],
+          },
         ],
       },
     ],
@@ -264,8 +276,8 @@ const testInNodeModulesDisabled = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: "'any'",
-              dep: "'any'",
+              file: '"any"',
+              dep: '"any"',
             }),
             type: "Literal",
           },
@@ -298,7 +310,7 @@ const testUnresolvableAliasDisabled = () => {
         code: "import UnknownPackage from 'unknown-package-xyz'",
         errors: [
           {
-            message: `Importing unknown elements is not allowed`,
+            message: `Dependencies to unknown elements are not allowed`,
             type: "Literal",
           },
         ],
@@ -334,8 +346,8 @@ const testInvalidSettings = () => {
             default: "disallow",
             rules: [
               {
-                from: [["components", { package: "a" }]],
-                allow: [["helpers", { package: "a" }]],
+                from: { type: "components", captured: { package: "a" } },
+                allow: { to: { type: "helpers", captured: { package: "a" } } },
               },
             ],
           },

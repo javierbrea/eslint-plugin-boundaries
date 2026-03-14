@@ -6,15 +6,38 @@ import chalk from "chalk";
 import createdConfigWithDefine from "./configs/createAndDefineConfig.config.js";
 import createdConfig from "./configs/createConfig.config.js";
 import monorepoConfig from "./configs/monorepo.config.js";
+import performanceLegacyConfig from "./configs/performance-legacy.config.js";
+import performanceConfig from "./configs/performance.config.js";
 import recommendedConfig from "./configs/recommended.config.js";
 import strictConfig from "./configs/strict.config.js";
 import createRenamedConfig from "./configs-ts/createRenamedConfig.config.js";
+import createRenamedLegacyConfig from "./configs-ts/createRenamedConfigLegacy.config.js";
 import recommendedConfigTs from "./configs-ts/recommended.config.js";
+import recommendedLegacyConfigTs from "./configs-ts/recommendedLegacy.config.js";
 import renamedConfigTs from "./configs-ts/renamed.config.js";
+import renamedLegacyConfigTs from "./configs-ts/renamedLegacy.config.js";
+import { ensurePerformanceFixture } from "./helpers/generatePerformanceFixture.js";
 import { runTests } from "./runner.js";
 
 const currentFile = fileURLToPath(import.meta.url);
 const currentDir = dirname(currentFile);
+
+const PERFORMANCE_MAX_INCREASE_PERCENT = 20;
+const PERFORMANCE_MIN_DURATION_MS = 30000;
+const PERFORMANCE_ERRORS = 44;
+const PERFORMANCE_FILES = 5026;
+
+const PERFORMANCE_LEGACY_BASELINE_MS = 55000;
+const PERFORMANCE_LEGACY_MAX_DURATION_MS =
+  PERFORMANCE_LEGACY_BASELINE_MS * (1 + PERFORMANCE_MAX_INCREASE_PERCENT / 100);
+
+const PERFORMANCE_BASELINE_MS = 65000;
+const PERFORMANCE_MAX_DURATION_MS =
+  PERFORMANCE_BASELINE_MS * (1 + PERFORMANCE_MAX_INCREASE_PERCENT / 100);
+
+const performanceFixture = ensurePerformanceFixture(
+  join(currentDir, "fixtures")
+);
 
 /**
  * Find the results of a file given a portion of the file name
@@ -24,6 +47,123 @@ const currentDir = dirname(currentFile);
  */
 function findFileResult(fileNameFragment, result) {
   return result.files?.find((file) => file.filePath.includes(fileNameFragment));
+}
+
+/**
+ * Returns performance test definition with assertions for performance metrics and error detection
+ * @param {Object} options Options to get the performance test definition
+ * @param {string} options.name - Name of the performance test
+ * @param {Object} options.config - ESLint configuration to be tested
+ * @param {number} options.maxDurationMs - Optional maximum duration for the test in milliseconds
+ * @param {boolean} [options.legacyRuleNames] - Whether to use legacy rule names
+ * @returns {import('./runner.js').TestDefinition} The performance test definition
+ */
+function getPerformanceTest({ name, config, maxDurationMs, legacyRuleNames }) {
+  return {
+    name,
+    config,
+    isPerformanceTest: true,
+    fixture: performanceFixture.fixturePath,
+    runOnFiles: ["src/**/*.js"],
+    assert: async (runner, result) => {
+      const allMessages = (result.files || []).flatMap((file) => file.messages);
+      const dependenciesRuleName = legacyRuleNames
+        ? "element-types"
+        : "dependencies";
+
+      await runner.assert(
+        `performance fixture should have ${PERFORMANCE_FILES} js files`,
+        async () => {
+          return performanceFixture.jsFilesCount >= PERFORMANCE_FILES;
+        }
+      );
+
+      await runner.assert(
+        `performance config should detect ${PERFORMANCE_ERRORS} errors`,
+        async () => {
+          return result.errorCount === PERFORMANCE_ERRORS;
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one cross-domain dependencies error`,
+        async () => {
+          return allMessages.some(
+            (msg) =>
+              msg.ruleId === `boundaries/${dependenciesRuleName}` &&
+              msg.message.includes("cross-domain import blocked")
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one scenario dependencies error`,
+        async () => {
+          return allMessages.some(
+            (msg) =>
+              msg.ruleId === `boundaries/${dependenciesRuleName}` &&
+              msg.message.includes(
+                "scenario boundaries cannot import architecture elements"
+              )
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one external rule error`,
+        async () => {
+          return allMessages.some((msg) =>
+            msg.message.includes(
+              "scenario external cannot import blocked module"
+            )
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one external rule error`,
+        async () => {
+          return allMessages.some((msg) =>
+            msg.message.includes(
+              "shared library must be consumed through index.js"
+            )
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one no-unknown rule error`,
+        async () => {
+          return allMessages.some(
+            (msg) => msg.ruleId === "boundaries/no-unknown"
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should include at least one no-unknown-files rule error`,
+        async () => {
+          return allMessages.some(
+            (msg) => msg.ruleId === "boundaries/no-unknown-files"
+          );
+        }
+      );
+
+      await runner.assert(
+        `performance config should take at least ${PERFORMANCE_MIN_DURATION_MS}ms`,
+        async () => {
+          return (result.durationMs || 0) >= PERFORMANCE_MIN_DURATION_MS;
+        }
+      );
+
+      await runner.assert(
+        `performance config should not exceed ${maxDurationMs}ms (+${PERFORMANCE_MAX_INCREASE_PERCENT}% baseline)`,
+        async () => {
+          return (result.durationMs || 0) <= maxDurationMs;
+        }
+      );
+    },
+  };
 }
 
 // Define tests with their configurations, fixtures and assertions
@@ -68,9 +208,7 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes(
-                    "No rule allowing this dependency was found"
-                  )
+                  msg.message.includes("There is no rule allowing dependencies")
               )
           );
         }
@@ -113,9 +251,7 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes(
-                    "No rule allowing this dependency was found"
-                  )
+                  msg.message.includes("There is no rule allowing dependencies")
               )
           );
         }
@@ -161,9 +297,53 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes(
-                    "No rule allowing this dependency was found"
-                  )
+                  msg.message.includes("There is no rule allowing dependencies")
+              )
+          );
+        }
+      );
+    },
+  },
+  {
+    name: "recommended-legacy-config-ts",
+    config: recommendedLegacyConfigTs,
+    fixture: join(currentDir, "fixtures", "basic"),
+    assert: async (runner, result) => {
+      await runner.assert(
+        `recommended config in Ts should detect 1 error`,
+        async () => {
+          return result.errorCount === 1;
+        }
+      );
+
+      await runner.assert(
+        `recommended config in Ts should have no errors when importing unknown elements`,
+        async () => {
+          const fileResult = findFileResult("ignored-import", result);
+          return fileResult?.errorCount === 0;
+        }
+      );
+
+      await runner.assert(
+        `recommended config in Ts should have no errors when importing ignored elements`,
+        async () => {
+          const fileResult = findFileResult("unknown-import", result);
+          return fileResult?.errorCount === 0;
+        }
+      );
+
+      await runner.assert(
+        `recommended config in Ts should detect boundaries violation`,
+        async () => {
+          const boundariesErrorFile = findFileResult("boundary-import", result);
+
+          return Boolean(
+            boundariesErrorFile?.errorCount &&
+              boundariesErrorFile?.errorCount > 0 &&
+              boundariesErrorFile?.messages.some(
+                (msg) =>
+                  msg.ruleId === "boundaries/element-types" &&
+                  msg.message.includes("There is no rule allowing dependencies")
               )
           );
         }
@@ -208,10 +388,51 @@ const tests = [
               boundariesErrorFile?.errorCount > 0 &&
               boundariesErrorFile?.messages.some(
                 (msg) =>
-                  msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes(
-                    "No rule allowing this dependency was found"
-                  )
+                  msg.ruleId === "boundaries/dependencies" &&
+                  msg.message.includes("There is no rule allowing dependencies")
+              )
+          );
+        }
+      );
+    },
+  },
+  {
+    name: "renamed-config-legacy-ts",
+    config: renamedLegacyConfigTs,
+    fixture: join(currentDir, "fixtures", "basic"),
+    assert: async (runner, result) => {
+      await runner.assert(`renamed config should detect 1 error`, async () => {
+        return result.errorCount === 1;
+      });
+
+      await runner.assert(
+        `renamed config should have no errors when importing unknown elements`,
+        async () => {
+          const fileResult = findFileResult("ignored-import", result);
+          return fileResult?.errorCount === 0;
+        }
+      );
+
+      await runner.assert(
+        `renamed config should have no errors when importing ignored elements`,
+        async () => {
+          const fileResult = findFileResult("unknown-import", result);
+          return fileResult?.errorCount === 0;
+        }
+      );
+
+      await runner.assert(
+        `renamed config should detect boundaries violation`,
+        async () => {
+          const boundariesErrorFile = findFileResult("boundary-import", result);
+
+          return Boolean(
+            boundariesErrorFile?.errorCount &&
+              boundariesErrorFile?.errorCount > 0 &&
+              boundariesErrorFile?.messages.some(
+                (msg) =>
+                  msg.ruleId === "customBoundaries/element-types" &&
+                  msg.message.includes("There is no rule allowing dependencies")
               )
           );
         }
@@ -253,10 +474,54 @@ const tests = [
               boundariesErrorFile?.errorCount > 0 &&
               boundariesErrorFile?.messages.some(
                 (msg) =>
+                  msg.ruleId === "customBoundaries/dependencies" &&
+                  msg.message.includes("There is no rule allowing dependencies")
+              )
+          );
+        }
+      );
+    },
+  },
+  {
+    name: "created-renamed-legacy-config-ts",
+    config: createRenamedLegacyConfig,
+    fixture: join(currentDir, "fixtures", "basic"),
+    assert: async (runner, result) => {
+      await runner.assert(
+        `created renamed config should detect 1 error`,
+        async () => {
+          return result.errorCount === 1;
+        }
+      );
+
+      await runner.assert(
+        `created renamed config should have no errors when importing unknown elements`,
+        async () => {
+          const fileResult = findFileResult("ignored-import", result);
+          return fileResult?.errorCount === 0;
+        }
+      );
+
+      await runner.assert(
+        `created renamed config should have no errors when importing ignored elements`,
+        async () => {
+          const fileResult = findFileResult("unknown-import", result);
+          return fileResult?.errorCount === 0;
+        }
+      );
+
+      await runner.assert(
+        `created renamed config should detect boundaries violation`,
+        async () => {
+          const boundariesErrorFile = findFileResult("boundary-import", result);
+
+          return Boolean(
+            boundariesErrorFile?.errorCount &&
+              boundariesErrorFile?.errorCount > 0 &&
+              boundariesErrorFile?.messages.some(
+                (msg) =>
                   msg.ruleId === "customBoundaries/element-types" &&
-                  msg.message.includes(
-                    "No rule allowing this dependency was found"
-                  )
+                  msg.message.includes("There is no rule allowing dependencies")
               )
           );
         }
@@ -301,10 +566,8 @@ const tests = [
               boundariesErrorFile?.errorCount > 0 &&
               boundariesErrorFile?.messages.some(
                 (msg) =>
-                  msg.ruleId === "customBoundaries/element-types" &&
-                  msg.message.includes(
-                    "No rule allowing this dependency was found"
-                  )
+                  msg.ruleId === "customBoundaries/dependencies" &&
+                  msg.message.includes("There is no rule allowing dependencies")
               )
           );
         }
@@ -330,7 +593,7 @@ const tests = [
               (msg) =>
                 msg.ruleId === "boundaries/no-unknown" &&
                 msg.message.includes(
-                  "Importing unknown elements is not allowed"
+                  "Dependencies to unknown elements are not allowed"
                 )
             )
           );
@@ -346,7 +609,7 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/no-unknown-files" &&
-                msg.message.includes("File is not of any known element type")
+                msg.message.includes("File does not match any element pattern")
             )
           );
         }
@@ -361,7 +624,9 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/no-ignored" &&
-                msg.message.includes("Importing ignored files is not allowed")
+                msg.message.includes(
+                  "Dependencies to ignored files are not allowed"
+                )
             )
           );
         }
@@ -378,9 +643,7 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes(
-                    "No rule allowing this dependency was found"
-                  )
+                  msg.message.includes("There is no rule allowing dependencies")
               )
           );
         }
@@ -424,7 +687,7 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/external" &&
-                msg.message.includes("type 'component' with name 'component-a'")
+                msg.message.includes('type "component" and name "component-a"')
             )
           );
         }
@@ -442,7 +705,7 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/external" &&
-                msg.message.includes("type 'helper' with name 'helper-a'")
+                msg.message.includes('type "helper" and name "helper-a"')
             )
           );
         }
@@ -460,7 +723,7 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/external" &&
-                msg.message.includes("type 'helper' with name 'helper-a'")
+                msg.message.includes('type "helper" and name "helper-a"')
             )
           );
         }
@@ -494,6 +757,17 @@ const tests = [
       });
     },
   },
+  getPerformanceTest({
+    name: "performance-config",
+    config: performanceConfig,
+    maxDurationMs: PERFORMANCE_MAX_DURATION_MS,
+  }),
+  getPerformanceTest({
+    name: "performance-legacy-config",
+    config: performanceLegacyConfig,
+    maxDurationMs: PERFORMANCE_LEGACY_MAX_DURATION_MS,
+    legacyRuleNames: true,
+  }),
 ];
 
 // Run the tests

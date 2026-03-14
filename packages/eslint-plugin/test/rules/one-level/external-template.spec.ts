@@ -1,4 +1,5 @@
 import rule from "../../../src/Rules/External";
+import { EXTERNAL as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
@@ -6,8 +7,6 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import { errorMessage, externalNoRuleMessage } from "../../support/messages";
-
-const { EXTERNAL: RULE } = require("../../../src/Settings");
 
 const { absoluteFilePath } = pathResolvers("one-level");
 
@@ -84,17 +83,20 @@ runTest(
       default: "disallow",
       rules: [
         {
-          from: [["modules", { elementName: "module-a" }]],
-          allow: ["@module-helpers/${from.elementName}"],
+          from: { type: "modules", captured: { elementName: "module-a" } },
+          allow: ["@module-helpers/{{ from.elementName }}"],
         },
         {
-          from: [["modules", { elementName: "ModuleC" }]],
+          from: { type: "modules", captured: { elementName: "ModuleC" } },
           allow: [
-            ["@module-helpers/all", { specifiers: ["${from.elementName}"] }],
+            ["@module-helpers/all", { specifiers: ["{{ from.elementName }}"] }],
           ],
         },
       ],
     },
   ],
-  {}
+  {
+    0: 'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of origin "external" with module "@module-helpers/module-b"',
+    1: 'There is no rule allowing dependencies from elements of type "modules" and elementName "ModuleC" to elements of origin "external" with module "@module-helpers/all"',
+  }
 );

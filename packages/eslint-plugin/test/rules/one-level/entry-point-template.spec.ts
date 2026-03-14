@@ -1,4 +1,5 @@
 import rule from "../../../src/Rules/EntryPoint";
+import { ENTRY_POINT as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
@@ -6,8 +7,6 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 import { errorMessage, entryPointNoRuleMessage } from "../../support/messages";
-
-const { ENTRY_POINT: RULE } = require("../../../src/Settings");
 
 const { absoluteFilePath } = pathResolvers("one-level");
 
@@ -153,7 +152,10 @@ testCapture(
     },
   ],
   {
-    3: "The entry point 'main.js' is not allowed in elements of type 'helpers' with elementName '*-a'. Disallowed in rule 2",
+    0: 'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of type "components" and elementName "component-c"',
+    1: 'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of type "components" and elementName "component-a"',
+    2: 'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-b"',
+    3: 'Dependencies to elements of type "helpers", elementName "helper-a" and internalPath "main.js" are not allowed. Denied by rule at index 1',
   }
 );
 

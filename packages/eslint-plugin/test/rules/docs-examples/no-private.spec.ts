@@ -1,12 +1,11 @@
 import rule from "../../../src/Rules/NoPrivate";
+import { NO_PRIVATE as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
 import { noPrivateMessage } from "../../support/messages";
-
-const { NO_PRIVATE: RULE } = require("../../../src/Settings");
 
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath } = pathResolvers("docs-examples");
@@ -61,7 +60,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message: noPrivateMessage({
-            dep: "'modules' with elementName 'module-b'",
+            dep: '"modules" and elementName "module-b"',
           }),
           type: "Literal",
         },
@@ -75,7 +74,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message: noPrivateMessage({
-            dep: "'modules' with elementName 'module-c'",
+            dep: '"modules" and elementName "module-c"',
           }),
           type: "Literal",
         },
@@ -95,7 +94,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message: noPrivateMessage({
-            dep: "'modules' with elementName 'module-b'",
+            dep: '"modules" and elementName "module-b"',
           }),
           type: "Literal",
         },

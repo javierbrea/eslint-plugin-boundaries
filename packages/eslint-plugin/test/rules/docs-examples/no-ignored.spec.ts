@@ -1,4 +1,5 @@
 import rule from "../../../src/Rules/NoIgnored";
+import { NO_IGNORED as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
@@ -6,12 +7,10 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 
-const { NO_IGNORED: RULE } = require("../../../src/Settings");
-
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath } = pathResolvers("docs-examples");
 
-const ERROR_MESSAGE = "Importing ignored files is not allowed";
+const ERROR_MESSAGE = "Dependencies to ignored files are not allowed";
 
 const runTest = (customSettings: RuleTesterSettings) => {
   const ruleTester = createRuleTester(customSettings);

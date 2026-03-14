@@ -1,44 +1,62 @@
 import type {
   DependencyKind,
+  DependencySelector,
   ElementDescriptors,
   ElementDescriptor,
   ElementDescriptorMode,
+  ElementsSelector,
   FlagAsExternalOptions,
 } from "@boundaries/elements";
 import { isElementDescriptor } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
+import { warnOnce } from "../Debug";
 import {
   isArray,
   isString,
   isObject,
   isBoolean,
   getArrayOrNull,
-} from "../Support/Common";
-import { warnOnce } from "../Support/Debug";
-
-import { isDependencyNodeKey, isLegacyType, rulesMainKey } from "./Helpers";
-import {
-  getElementsTypeNames,
-  getRootPath,
-  transformLegacyTypes,
-} from "./Settings";
+  isUndefined,
+} from "../Shared";
 import {
   SETTINGS,
   SETTINGS_KEYS_MAP,
   LEGACY_TEMPLATES_DEFAULT,
   CACHE_DEFAULT,
   DEPENDENCY_NODE_KEYS_MAP,
-} from "./Settings.types";
+} from "../Shared/Settings.types";
 import type {
   DependencyNodeKey,
   DependencyNodeSelector,
+  AliasSetting,
+  RuleOptionsRules,
+  RuleOptionsWithRules,
   Settings,
   IgnoreSetting,
   IncludeSetting,
   RuleMainKey,
   SettingsNormalized,
-} from "./Settings.types";
+  DebugSettingNormalized,
+  RuleName,
+  FlagAsExternalBooleanOptionKey,
+} from "../Shared/Settings.types";
+
+import {
+  isDependencyNodeKey,
+  isLegacyType,
+  rulesMainKey,
+  detectLegacyElementSelector,
+  detectLegacyTemplateSyntax,
+  migrationToV6GuideLink,
+  migrationToV2GuideLink,
+  moreInfoSettingsLink,
+} from "./Helpers";
+import {
+  getElementsTypeNames,
+  getRootPath,
+  transformLegacyTypes,
+} from "./Settings";
 
 const {
   TYPES,
@@ -51,32 +69,164 @@ const {
   VALID_MODES,
 } = SETTINGS;
 
-const DEFAULT_MATCHER_OPTIONS = {
+type JsonSchemaPrimitive = string | number | boolean | null;
+type JsonSchemaValue =
+  | JsonSchemaPrimitive
+  | JsonSchemaObject
+  | JsonSchemaValue[];
+type JsonSchemaObject = {
+  [key: string]: JsonSchemaValue;
+};
+
+const trackedValidatedSettings = new WeakMap<
+  Rule.RuleContext["settings"],
+  SettingsNormalized
+>();
+const trackedWarnedOptions = new WeakSet<RuleOptionsWithRules>();
+
+const defaultLegacyMatcherOptionsSchema = {
   type: "object",
 };
 
-export function elementsMatcherSchema(
-  matcherOptions: Record<string, unknown> = DEFAULT_MATCHER_OPTIONS
+/** Schema for validating a micromatch pattern or array of patterns that can also be null. */
+const micromatchPatternNullableSchema = {
+  oneOf: [
+    { type: ["string", "null"] },
+    { type: "array", items: { type: ["string", "null"] } },
+  ],
+};
+
+const dependencyRelationshipSchema = {
+  type: "object",
+  properties: {
+    from: micromatchPatternNullableSchema,
+    to: micromatchPatternNullableSchema,
+  },
+  additionalProperties: false,
+};
+
+const dependencyMatcherItemSchema = {
+  type: "object",
+  properties: {
+    relationship: dependencyRelationshipSchema,
+    kind: micromatchPatternNullableSchema,
+    specifiers: micromatchPatternNullableSchema,
+    nodeKind: micromatchPatternNullableSchema,
+    source: micromatchPatternNullableSchema,
+    module: micromatchPatternNullableSchema,
+  },
+  additionalProperties: false,
+};
+
+const dependencyMatcherSchema = {
+  oneOf: [
+    dependencyMatcherItemSchema,
+    {
+      type: "array",
+      items: dependencyMatcherItemSchema,
+    },
+  ],
+};
+
+const capturedValuesSelectorSchema = {
+  type: "object",
+  additionalProperties: micromatchPatternNullableSchema,
+};
+
+const capturedValuesSchema = {
+  oneOf: [
+    {
+      type: "null",
+    },
+    capturedValuesSelectorSchema,
+    {
+      type: "array",
+      items: capturedValuesSelectorSchema,
+    },
+  ],
+};
+
+const parentElementMatcherSchema = {
+  type: "object",
+  properties: {
+    type: micromatchPatternNullableSchema,
+    category: micromatchPatternNullableSchema,
+    elementPath: micromatchPatternNullableSchema,
+    captured: capturedValuesSchema,
+  },
+  additionalProperties: false,
+};
+
+const objectElementMatcherSchemaItem = {
+  type: "object", // single object-based selector (new format)
+  properties: {
+    path: micromatchPatternNullableSchema,
+    elementPath: micromatchPatternNullableSchema,
+    internalPath: micromatchPatternNullableSchema,
+    type: micromatchPatternNullableSchema,
+    category: micromatchPatternNullableSchema,
+    captured: capturedValuesSchema,
+    parent: {
+      oneOf: [
+        { type: "null" },
+        parentElementMatcherSchema,
+        { type: "array", items: parentElementMatcherSchema },
+      ],
+    },
+    origin: micromatchPatternNullableSchema,
+    isIgnored: { type: "boolean" },
+    isUnknown: { type: "boolean" },
+  },
+  additionalProperties: false,
+};
+
+const objectElementMatcherSchema = {
+  oneOf: [
+    objectElementMatcherSchemaItem,
+    {
+      type: "array",
+      items: objectElementMatcherSchemaItem,
+    },
+  ],
+};
+
+/**
+ * Builds JSON schema for legacy policy selectors.
+ *
+ * @param matcherOptions - Extra matcher options accepted in legacy tuple syntax.
+ * @returns JSON schema definition for legacy policy values.
+ */
+export function legacyPoliciesSchema(
+  matcherOptions: JsonSchemaObject = defaultLegacyMatcherOptionsSchema
 ) {
   return {
-    oneOf: [
+    anyOf: [
       {
-        type: "string", // single matcher
+        type: "string", // single matcher (legacy)
+      },
+      {
+        type: "array", // matcher with captured values (legacy)
+        items: [
+          {
+            type: "string", // matcher
+          },
+          matcherOptions, // Extra options for legacy rules with custom syntax
+        ],
       },
       {
         type: "array", // multiple matchers
         items: {
-          oneOf: [
+          anyOf: [
             {
-              type: "string", // matcher with options
+              type: "string", // matcher (legacy)
             },
             {
-              type: "array",
+              type: "array", // matcher with captured values (legacy)
               items: [
                 {
                   type: "string", // matcher
                 },
-                matcherOptions, // options
+                matcherOptions, // Extra options for legacy rules with custom syntax
               ],
             },
           ],
@@ -86,14 +236,134 @@ export function elementsMatcherSchema(
   };
 }
 
-export function rulesOptionsSchema(
-  options: {
-    rulesMainKey?: RuleMainKey;
-    targetMatcherOptions?: Record<string, unknown>;
-  } = {}
-) {
-  const mainKey = rulesMainKey(options.rulesMainKey);
-  return [
+const legacyElementsSelectorItemSchema = {
+  anyOf: [
+    {
+      type: "string", // single matcher (legacy)
+    },
+    {
+      type: "array", // matcher with captured values (legacy)
+      items: [
+        {
+          type: "string", // matcher
+        },
+        defaultLegacyMatcherOptionsSchema, // Extra options for legacy rules with custom syntax
+      ],
+    },
+  ],
+};
+
+const legacyElementsSelectorSchema = {
+  anyOf: [
+    legacyElementsSelectorItemSchema,
+    {
+      type: "array",
+      items: legacyElementsSelectorItemSchema,
+    },
+  ],
+};
+
+/**
+ * Builds JSON schema for rule options of dependency-based rules.
+ *
+ * @param options - Schema customization options for rule main key and extras.
+ * @returns ESLint-compatible schema array for rule options.
+ */
+export function rulesOptionsSchema({
+  rulesMainKey: mainKey,
+  targetMatcherOptions,
+  extraOptionsSchema,
+  isLegacy = false,
+}: {
+  rulesMainKey?: RuleMainKey;
+  targetMatcherOptions?: JsonSchemaObject;
+  extraOptionsSchema?: Record<string, JsonSchemaObject>;
+  isLegacy?: boolean;
+} = {}) {
+  const policySchema = isLegacy
+    ? legacyPoliciesSchema(targetMatcherOptions)
+    : {
+        anyOf: [
+          legacyPoliciesSchema(targetMatcherOptions),
+          {
+            type: "object",
+            properties: {
+              from: objectElementMatcherSchema,
+              to: objectElementMatcherSchema,
+              dependency: dependencyMatcherSchema,
+            },
+            additionalProperties: false,
+          },
+        ],
+      };
+
+  const policiesSchema = {
+    anyOf: [
+      policySchema,
+      {
+        type: "array",
+        items: policySchema,
+      },
+    ],
+  };
+
+  const elementSelectorSchema = {
+    anyOf: [legacyElementsSelectorSchema, objectElementMatcherSchema],
+  };
+
+  const legacyMainKey = rulesMainKey(mainKey);
+
+  const ruleSupportedProperties = isLegacy
+    ? {
+        [legacyMainKey]: elementSelectorSchema,
+        allow: policiesSchema,
+        disallow: policiesSchema,
+      }
+    : {
+        from: elementSelectorSchema,
+        to: elementSelectorSchema,
+        dependency: dependencyMatcherSchema,
+        allow: policiesSchema,
+        disallow: policiesSchema,
+      };
+
+  const requiredProperties = isLegacy
+    ? [
+        {
+          required: [legacyMainKey, "allow"],
+        },
+        {
+          required: [legacyMainKey, "disallow"],
+        },
+      ]
+    : [
+        {
+          required: ["allow"],
+        },
+        {
+          required: ["disallow"],
+        },
+        {
+          required: ["from", "allow"],
+        },
+        {
+          required: ["from", "disallow"],
+        },
+        {
+          required: ["to", "allow"],
+        },
+        {
+          required: ["to", "disallow"],
+        },
+        {
+          required: ["dependency", "allow"],
+        },
+        {
+          required: ["dependency", "disallow"],
+        },
+      ];
+
+  const schema = [
     {
       type: "object",
       properties: {
@@ -109,11 +379,9 @@ export function rulesOptionsSchema(
           items: {
             type: "object",
             properties: {
-              [mainKey]: elementsMatcherSchema(),
-              allow: elementsMatcherSchema(options.targetMatcherOptions),
-              disallow: elementsMatcherSchema(options.targetMatcherOptions),
+              ...ruleSupportedProperties,
               importKind: {
-                oneOf: [
+                anyOf: [
                   {
                     type: "string",
                   },
@@ -130,93 +398,375 @@ export function rulesOptionsSchema(
               },
             },
             additionalProperties: false,
-            anyOf: [
-              {
-                required: [mainKey, "allow", "disallow"],
-              },
-              {
-                required: [mainKey, "allow"],
-              },
-              {
-                required: [mainKey, "disallow"],
-              },
-            ],
+            anyOf: requiredProperties,
           },
         },
+        ...extraOptionsSchema,
       },
       additionalProperties: false,
     },
   ];
+
+  return schema;
 }
 
-export function isValidElementAssigner(
-  element: unknown
-): element is ElementDescriptor {
-  if (!element) {
+/**
+ * Returns the selector configured under the active rule main key.
+ *
+ * @param rule - Single rule entry from options.
+ * @param mainKey - Main selector key configured for current rule.
+ * @returns Selector value from the corresponding property, when present.
+ */
+export function getRuleMainSelector(
+  rule: RuleOptionsRules,
+  mainKey: RuleMainKey
+) {
+  if (mainKey === "from") {
+    return "from" in rule ? rule.from : undefined;
+  }
+
+  if (mainKey === "to") {
+    return "to" in rule ? rule.to : undefined;
+  }
+
+  return "target" in rule ? rule.target : undefined;
+}
+
+type RuleWarningIndexes = {
+  rulesWithLegacySelector: number[];
+  rulesWithLegacyTemplate: number[];
+  rulesWithDeprecatedImportKind: number[];
+};
+
+/**
+ * Returns all rule selectors that must be checked for legacy syntax.
+ *
+ * @param rule - Rule entry from options.
+ * @param mainKey - Main key used by the current rule.
+ * @returns List of selectors from main key, allow and disallow.
+ */
+function getRuleSelectorsToCheck(rule: RuleOptionsRules, mainKey: RuleMainKey) {
+  const ruleMainKey = rulesMainKey(mainKey);
+
+  return [getRuleMainSelector(rule, ruleMainKey), rule.allow, rule.disallow];
+}
+
+/**
+ * Detects deprecated selector and template syntax across selectors.
+ *
+ * @param selectors - Selector values to inspect.
+ * @returns Flags describing whether each deprecated syntax was found.
+ */
+function detectLegacyFlags(selectors: unknown[]) {
+  let hasLegacySelector = false;
+  let hasLegacyTemplate = false;
+
+  for (const selector of selectors) {
+    if (!selector) {
+      continue;
+    }
+
+    if (detectLegacyElementSelector(selector)) {
+      hasLegacySelector = true;
+    }
+
+    if (detectLegacyTemplateSyntax(selector)) {
+      hasLegacyTemplate = true;
+    }
+  }
+
+  return {
+    hasLegacySelector,
+    hasLegacyTemplate,
+  };
+}
+
+/**
+ * Collects indices of rules using deprecated selector/template/importKind syntax.
+ *
+ * @param rules - Rule list to inspect.
+ * @param mainKey - Main selector key configured for current rule.
+ * @returns Rule indices grouped by deprecated syntax type.
+ */
+function collectRuleWarningIndexes(
+  rules: RuleOptionsRules[],
+  mainKey: RuleMainKey
+): RuleWarningIndexes {
+  const indexes: RuleWarningIndexes = {
+    rulesWithLegacySelector: [],
+    rulesWithLegacyTemplate: [],
+    rulesWithDeprecatedImportKind: [],
+  };
+
+  for (const [index, rule] of rules.entries()) {
+    const selectorsToCheck = getRuleSelectorsToCheck(rule, mainKey);
+    const { hasLegacySelector, hasLegacyTemplate } =
+      detectLegacyFlags(selectorsToCheck);
+
+    if (hasLegacySelector) {
+      indexes.rulesWithLegacySelector.push(index);
+    }
+
+    if (hasLegacyTemplate) {
+      indexes.rulesWithLegacyTemplate.push(index);
+    }
+
+    if (!isUndefined(rule.importKind)) {
+      indexes.rulesWithDeprecatedImportKind.push(index);
+    }
+  }
+
+  return indexes;
+}
+
+/**
+ * Warns once when deprecated selector/template syntax is detected in rules.
+ *
+ * @param options - Rule options containing `rules` entries.
+ * @param ruleName - Rule name displayed in warning messages.
+ * @param mainKey - Main selector key used by the current rule.
+ */
+export function validateAndWarnRuleOptions(
+  options: RuleOptionsWithRules | undefined,
+  ruleName: RuleName,
+  mainKey: RuleMainKey = "from"
+): void {
+  if (!options || trackedWarnedOptions.has(options)) {
+    return;
+  }
+
+  if (!options.rules || !isArray(options.rules)) {
+    return;
+  }
+
+  trackedWarnedOptions.add(options);
+
+  const {
+    rulesWithLegacySelector,
+    rulesWithLegacyTemplate,
+    rulesWithDeprecatedImportKind,
+  } = collectRuleWarningIndexes(options.rules, mainKey);
+
+  if (rulesWithLegacySelector.length > 0) {
     warnOnce(
-      `Please provide a valid object to define element types in '${ELEMENTS}' setting`
+      `[${ruleName}] Detected legacy selector syntax in ${
+        rulesWithLegacySelector.length
+      } rule(s) at indices: ${rulesWithLegacySelector.join(", ")}.`,
+      `Consider migrating to object-based selectors. ${migrationToV6GuideLink()}`
+    );
+  }
+
+  if (rulesWithLegacyTemplate.length > 0) {
+    warnOnce(
+      `[${ruleName}] Detected legacy template syntax \${...} in ${
+        rulesWithLegacyTemplate.length
+      } rule(s) at indices: ${rulesWithLegacyTemplate.join(", ")}.`,
+      `Consider migrating to {{...}} syntax. ${migrationToV6GuideLink("new-template-syntax")}`
+    );
+  }
+
+  if (rulesWithDeprecatedImportKind.length > 0) {
+    warnOnce(
+      `[${ruleName}] Detected deprecated rule-level "importKind" in ${
+        rulesWithDeprecatedImportKind.length
+      } rule(s) at indices: ${rulesWithDeprecatedImportKind.join(", ")}.`,
+      `Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence. ${migrationToV6GuideLink("rule-level-importkind-is-deprecated")}`
+    );
+  }
+}
+
+/**
+ * Emits a generic warning for invalid element descriptor values.
+ */
+function warnInvalidElementDescriptor() {
+  warnOnce(
+    `Invalid element descriptor in '${ELEMENTS}' setting.`,
+    moreInfoSettingsLink()
+  );
+}
+
+/**
+ * Validates that descriptor contains at least one identity property.
+ *
+ * @param element - Candidate element descriptor object.
+ * @returns `true` when descriptor has either `type` or `category`.
+ */
+function hasTypeOrCategory(element: Record<string, unknown>): boolean {
+  return Boolean(element.type || element.category);
+}
+
+/**
+ * Checks whether descriptor `type` property, when present, is valid.
+ *
+ * @param element - Candidate element descriptor object.
+ * @returns `true` when `type` is absent or a string.
+ */
+function hasValidTypeProperty(element: Record<string, unknown>): boolean {
+  return !element.type || isString(element.type);
+}
+
+/**
+ * Checks whether descriptor `category` property, when present, is valid.
+ *
+ * @param element - Candidate element descriptor object.
+ * @returns `true` when `category` is absent or a string.
+ */
+function hasValidCategoryProperty(element: Record<string, unknown>): boolean {
+  return !element.category || isString(element.category);
+}
+
+/**
+ * Checks whether descriptor `mode` property uses a supported mode value.
+ *
+ * @param element - Candidate element descriptor object.
+ * @returns `true` when mode is absent, non-string, or included in valid modes.
+ */
+function hasValidModeProperty(element: Record<string, unknown>): boolean {
+  if (!element.mode || !isString(element.mode)) {
+    return true;
+  }
+
+  return VALID_MODES.includes(element.mode as ElementDescriptorMode);
+}
+
+/**
+ * Checks whether descriptor `pattern` property is valid.
+ *
+ * @param element - Candidate element descriptor object.
+ * @returns `true` when pattern exists and is a string or array.
+ */
+function hasValidPatternProperty(element: Record<string, unknown>): boolean {
+  return Boolean(
+    element.pattern && (isString(element.pattern) || isArray(element.pattern))
+  );
+}
+
+/**
+ * Checks whether descriptor `capture` property, when present, is valid.
+ *
+ * @param element - Candidate element descriptor object.
+ * @returns `true` when capture is absent or an array.
+ */
+function hasValidCaptureProperty(element: Record<string, unknown>): boolean {
+  return !element.capture || isArray(element.capture);
+}
+
+/**
+ * Validates object-based element descriptor properties and emits warnings.
+ *
+ * @param element - Candidate element descriptor object.
+ * @returns `true` when descriptor object is valid.
+ */
+function validateObjectElementDescriptor(
+  element: Record<string, unknown>
+): element is ElementDescriptor {
+  if (!hasTypeOrCategory(element)) {
+    warnOnce(
+      `Missing "type" or "category" property in an element descriptor in '${ELEMENTS}' setting.`,
+      moreInfoSettingsLink()
     );
     return false;
   }
+
+  if (!hasValidTypeProperty(element)) {
+    warnOnce(
+      `Invalid "type" property in an element descriptor in '${ELEMENTS}' setting.`,
+      moreInfoSettingsLink()
+    );
+    return false;
+  }
+
+  if (!hasValidCategoryProperty(element)) {
+    warnOnce(
+      `Invalid "category" property in an element descriptor in '${ELEMENTS}' setting.`,
+      moreInfoSettingsLink()
+    );
+    return false;
+  }
+
+  if (!hasValidModeProperty(element)) {
+    warnOnce(
+      `Invalid "mode" property in an element descriptor in '${ELEMENTS}' setting.`,
+      `It should be one of ${VALID_MODES.join(", ")}. ${moreInfoSettingsLink()}`
+    );
+    return false;
+  }
+
+  if (!hasValidPatternProperty(element)) {
+    warnOnce(
+      `Invalid "pattern" property in an element descriptor in '${ELEMENTS}' setting.`,
+      moreInfoSettingsLink()
+    );
+    return false;
+  }
+
+  if (!hasValidCaptureProperty(element)) {
+    warnOnce(
+      `Invalid "capture" property in an element descriptor in '${ELEMENTS}' setting.`,
+      `Capture should be an array of strings. ${moreInfoSettingsLink()}`
+    );
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Validates one element descriptor item from plugin settings.
+ *
+ * @param element - Candidate element descriptor from settings.
+ * @returns `true` when descriptor is valid or accepted legacy string.
+ */
+export function isValidElementDescriptor(
+  element: unknown
+): element is ElementDescriptor {
+  if (!element) {
+    warnInvalidElementDescriptor();
+    return false;
+  }
+
   if (isLegacyType(element)) {
     warnOnce(
-      `Defining elements as strings in settings is deprecated. Will be automatically converted, but this feature will be removed in next major versions`
+      `Defining elements as strings in settings is deprecated.`,
+      `It will be automatically converted, but this feature will be removed in next major versions. ${migrationToV6GuideLink()}`
     );
     return true;
-  } else {
-    const isObjectElement = isObject(element);
-    if (!isObjectElement) {
-      warnOnce(
-        `Please provide a valid object to define element types in '${ELEMENTS}' setting`
-      );
-      return false;
-    }
-    if (!element.type || !isString(element.type)) {
-      warnOnce(`Please provide type in '${ELEMENTS}' setting`);
-      return false;
-    }
-    if (
-      element.mode &&
-      isString(element.mode) &&
-      !VALID_MODES.includes(element.mode as ElementDescriptorMode)
-    ) {
-      warnOnce(
-        `Invalid mode property of type ${
-          element.type
-        } in '${ELEMENTS}' setting. Should be one of ${VALID_MODES.join(
-          ","
-        )}. Default value "${VALID_MODES[0]}" will be used instead`
-      );
-      return false;
-    }
-    if (
-      !element.pattern ||
-      !(isString(element.pattern) || isArray(element.pattern))
-    ) {
-      warnOnce(
-        `Please provide a valid pattern to type ${element.type} in '${ELEMENTS}' setting`
-      );
-      return false;
-    }
-    if (element.capture && !isArray(element.capture)) {
-      warnOnce(
-        `Invalid capture property of type ${element.type} in '${ELEMENTS}' setting`
-      );
-      return false;
-    }
-    return true;
   }
+
+  if (!isObject(element)) {
+    warnInvalidElementDescriptor();
+    return false;
+  }
+
+  return validateObjectElementDescriptor(element);
 }
 
-function validateElements(elements: unknown): ElementDescriptors | undefined {
+/**
+ * Validates and filters the configured list of element descriptors.
+ *
+ * @param elements - Raw `boundaries/elements` setting value.
+ * @returns Valid descriptors or `undefined` when setting is invalid/missing.
+ */
+export function validateElementDescriptors(
+  elements: unknown
+): ElementDescriptors | undefined {
   if (!elements || !isArray(elements) || !elements.length) {
-    warnOnce(`Please provide element types using the '${ELEMENTS}' setting`);
+    warnOnce(
+      `Please provide element descriptors using the '${ELEMENTS}' setting.`,
+      moreInfoSettingsLink()
+    );
     return;
   }
-  return elements.filter(isValidElementAssigner);
+  return elements.filter(isValidElementDescriptor);
 }
 
-function validateDependencyNodes(
+/**
+ * Validates configured dependency node keys.
+ *
+ * @param dependencyNodes - Raw dependency node keys from settings.
+ * @returns Filtered valid keys or `undefined` for missing/invalid setting.
+ */
+export function validateDependencyNodes(
   dependencyNodes: DependencyNodeKey[] | undefined
 ): DependencyNodeKey[] | undefined {
   if (!dependencyNodes) {
@@ -224,20 +774,17 @@ function validateDependencyNodes(
   }
 
   const defaultNodesNames = Object.keys(DEFAULT_DEPENDENCY_NODES);
-  const invalidFormatMessage = [
-    `Please provide a valid value in ${DEPENDENCY_NODES} setting.`,
-    `The value should be an array of the following strings:`,
-    ` "${defaultNodesNames.join('", "')}".`,
-  ].join(" ");
+  const invalidFormatTitle = `Invalid ${DEPENDENCY_NODES} setting format.`;
+  const invalidNodeMessage = `It should be an array of the following strings: "${defaultNodesNames.join('", "')}". ${moreInfoSettingsLink()}`;
 
   if (!isArray(dependencyNodes)) {
-    warnOnce(invalidFormatMessage);
+    warnOnce(invalidFormatTitle, invalidNodeMessage);
     return;
   }
 
   for (const dependencyNode of dependencyNodes) {
     if (!isDependencyNodeKey(dependencyNode)) {
-      warnOnce(invalidFormatMessage);
+      warnOnce(invalidFormatTitle, invalidNodeMessage);
     }
   }
 
@@ -246,25 +793,32 @@ function validateDependencyNodes(
 
 /**
  * Validates the legacyTemplates setting.
- * @param legacyTemplates The legacyTemplates setting value
- * @returns The validated legacyTemplates value or undefined
+ *
+ * @param legacyTemplates - Raw legacyTemplates setting value.
+ * @returns Validated boolean value or `undefined` when missing/invalid.
  */
-function validateLegacyTemplates(
-  /** The legacyTemplates setting value */
+export function validateLegacyTemplates(
   legacyTemplates: unknown
 ): boolean | undefined {
-  if (legacyTemplates === undefined) {
+  if (isUndefined(legacyTemplates)) {
     return;
   }
   if (isBoolean(legacyTemplates)) {
     return legacyTemplates;
   }
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting. The value should be a boolean.`
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting.`,
+    `The value should be a boolean. ${moreInfoSettingsLink()}`
   );
 }
 
-function isValidDependencyNodeSelector(
+/**
+ * Validates one custom dependency-node selector object.
+ *
+ * @param selector - Candidate additional dependency node selector.
+ * @returns `true` when selector has a valid shape.
+ */
+export function isValidDependencyNodeSelector(
   selector: unknown
 ): selector is DependencyNodeSelector {
   const isValidObject =
@@ -272,53 +826,94 @@ function isValidDependencyNodeSelector(
     isString(selector.selector) &&
     (!selector.kind ||
       (isString(selector.kind) &&
-        VALID_DEPENDENCY_NODE_KINDS.includes(selector.kind as DependencyKind)));
+        VALID_DEPENDENCY_NODE_KINDS.includes(
+          selector.kind as DependencyKind
+        ))) &&
+    (!selector.name || isString(selector.name));
+
   if (!isValidObject) {
     warnOnce(
-      `Please provide a valid object in ${ADDITIONAL_DEPENDENCY_NODES} setting. The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type" }. The invalid object will be ignored.`
+      `Please provide a valid object in ${ADDITIONAL_DEPENDENCY_NODES} setting.`,
+      `The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }. The invalid object will be ignored. ${moreInfoSettingsLink()}`
+    );
+  } else if (isObject(selector) && !selector.name) {
+    warnOnce(
+      `Consider adding a "name" property to your custom dependency node for using it in selectors and custom messages.`,
+      moreInfoSettingsLink()
     );
   }
   return isValidObject;
 }
 
-function validateAdditionalDependencyNodes(
+/**
+ * Validates the list of additional dependency node selectors.
+ *
+ * @param additionalDependencyNodes - Raw custom dependency nodes setting.
+ * @returns Valid selectors or `undefined` when absent/invalid.
+ */
+export function validateAdditionalDependencyNodes(
   additionalDependencyNodes: unknown
 ): DependencyNodeSelector[] | undefined {
   if (!additionalDependencyNodes) {
     return;
   }
 
-  const invalidFormatMessage = [
-    `Please provide a valid value in ${ADDITIONAL_DEPENDENCY_NODES} setting.`,
-    "The value should be an array composed of the following objects:",
-    '{ selector: "<esquery selector>", kind: "value" | "type" }.',
-  ].join(" ");
+  const invalidFormatTitle = `Invalid ${ADDITIONAL_DEPENDENCY_NODES} setting format.`;
+  const invalidNodeMessage = `It should be an array containing objects with the following properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }. ${moreInfoSettingsLink()}`;
 
   if (!isArray(additionalDependencyNodes)) {
-    warnOnce(invalidFormatMessage);
+    warnOnce(invalidFormatTitle, invalidNodeMessage);
     return;
   }
 
   return additionalDependencyNodes.filter(isValidDependencyNodeSelector);
 }
 
-function deprecateAlias(aliases: unknown) {
+/**
+ * Type guard for alias setting object.
+ *
+ * @param value - Candidate alias setting value.
+ * @returns `true` when value is an object whose values are strings.
+ */
+export function isAliasSetting(value: unknown): value is AliasSetting {
+  return isObject(value) && Object.values(value).every(isString);
+}
+
+/**
+ * Emits deprecation warning for legacy `alias` setting.
+ *
+ * @param aliases - Alias setting value when present.
+ */
+export function deprecateAlias(aliases: AliasSetting | undefined) {
   if (aliases) {
     warnOnce(
-      `Defining aliases in '${ALIAS}' setting is deprecated. Please use 'import/resolver' setting`
+      `Defining aliases in '${ALIAS}' setting is deprecated.`,
+      `Please use 'import/resolver' setting. ${moreInfoSettingsLink()}`
     );
   }
 }
 
-function deprecateTypes(types: unknown) {
+/**
+ * Emits deprecation warning for legacy `types` setting.
+ *
+ * @param types - Legacy types setting value when present.
+ */
+export function deprecateTypes(types: unknown) {
   if (types) {
     warnOnce(
-      `'${TYPES}' setting is deprecated. Please use '${ELEMENTS}' instead`
+      `'${TYPES}' setting is deprecated.`,
+      `Please use '${ELEMENTS}' instead. ${migrationToV2GuideLink()}`
     );
   }
 }
 
-function validateIgnore(ignore: unknown): IgnoreSetting | undefined {
+/**
+ * Validates `ignore` setting values.
+ *
+ * @param ignore - Raw ignore setting.
+ * @returns String or string array when valid.
+ */
+export function validateIgnore(ignore: unknown): IgnoreSetting | undefined {
   if (!ignore) {
     return;
   }
@@ -326,11 +921,18 @@ function validateIgnore(ignore: unknown): IgnoreSetting | undefined {
     return ignore;
   }
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.IGNORE}' setting. The value should be a string or an array of strings.`
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.IGNORE}' setting.`,
+    `The value should be a string or an array of strings. ${moreInfoSettingsLink()}`
   );
 }
 
-function validateInclude(include: unknown): IncludeSetting | undefined {
+/**
+ * Validates `include` setting values.
+ *
+ * @param include - Raw include setting.
+ * @returns String or string array when valid.
+ */
+export function validateInclude(include: unknown): IncludeSetting | undefined {
   if (!include) {
     return;
   }
@@ -338,11 +940,18 @@ function validateInclude(include: unknown): IncludeSetting | undefined {
     return include;
   }
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.INCLUDE}' setting. The value should be a string or an array of strings.`
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.INCLUDE}' setting.`,
+    `The value should be a string or an array of strings. ${moreInfoSettingsLink()}`
   );
 }
 
-function validateRootPath(rootPath: unknown): string | undefined {
+/**
+ * Validates `root-path` setting values.
+ *
+ * @param rootPath - Raw root-path setting.
+ * @returns Root path string when valid.
+ */
+export function validateRootPath(rootPath: unknown): string | undefined {
   if (!rootPath) {
     return;
   }
@@ -350,11 +959,74 @@ function validateRootPath(rootPath: unknown): string | undefined {
     return rootPath;
   }
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.ROOT_PATH}' setting. The value should be a string.`
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.ROOT_PATH}' setting.`,
+    `The value should be a string. ${moreInfoSettingsLink()}`
   );
 }
 
-function validateFlagAsExternal(
+/**
+ * Validates and assigns an optional boolean field in `flag-as-external` settings.
+ *
+ * @param options - Raw `flag-as-external` settings object.
+ * @param validated - Accumulator for validated options.
+ * @param optionKey - Optional boolean field to validate and assign.
+ */
+function assignFlagAsExternalBooleanOption(
+  options: Record<string, unknown>,
+  validated: FlagAsExternalOptions,
+  optionKey: FlagAsExternalBooleanOptionKey
+) {
+  const value = options[optionKey];
+
+  if (isUndefined(value)) {
+    return;
+  }
+
+  if (isBoolean(value)) {
+    validated[optionKey] = value;
+    return;
+  }
+
+  warnOnce(
+    `Please provide a valid boolean for '${optionKey}' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
+    moreInfoSettingsLink()
+  );
+}
+
+/**
+ * Validates and assigns `customSourcePatterns` in `flag-as-external` settings.
+ *
+ * @param options - Raw `flag-as-external` settings object.
+ * @param validated - Accumulator for validated options.
+ */
+function assignFlagAsExternalCustomSourcePatterns(
+  options: Record<string, unknown>,
+  validated: FlagAsExternalOptions
+) {
+  const value = options.customSourcePatterns;
+
+  if (isUndefined(value)) {
+    return;
+  }
+
+  if (isArray(value) && value.every(isString)) {
+    validated.customSourcePatterns = value;
+    return;
+  }
+
+  warnOnce(
+    `Please provide a valid array of strings for 'customSourcePatterns' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
+    moreInfoSettingsLink()
+  );
+}
+
+/**
+ * Validates `flag-as-external` setting object and fields.
+ *
+ * @param flagAsExternal - Raw flag-as-external setting value.
+ * @returns Normalized options object with valid fields only.
+ */
+export function validateFlagAsExternal(
   flagAsExternal: unknown
 ): FlagAsExternalOptions | undefined {
   if (!flagAsExternal) {
@@ -363,68 +1035,245 @@ function validateFlagAsExternal(
 
   if (!isObject(flagAsExternal)) {
     warnOnce(
-      `Please provide a valid value in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting. The value should be an object.`
+      `Please provide a valid value in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
+      `The value should be an object. ${moreInfoSettingsLink()}`
     );
     return;
   }
 
+  const options = flagAsExternal;
   const validated: FlagAsExternalOptions = {};
 
-  if (flagAsExternal.unresolvableAlias !== undefined) {
-    if (isBoolean(flagAsExternal.unresolvableAlias)) {
-      validated.unresolvableAlias = flagAsExternal.unresolvableAlias;
-    } else {
-      warnOnce(
-        `Please provide a valid boolean for 'unresolvableAlias' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`
-      );
-    }
-  }
-
-  if (flagAsExternal.inNodeModules !== undefined) {
-    if (isBoolean(flagAsExternal.inNodeModules)) {
-      validated.inNodeModules = flagAsExternal.inNodeModules;
-    } else {
-      warnOnce(
-        `Please provide a valid boolean for 'inNodeModules' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`
-      );
-    }
-  }
-
-  if (flagAsExternal.outsideRootPath !== undefined) {
-    if (isBoolean(flagAsExternal.outsideRootPath)) {
-      validated.outsideRootPath = flagAsExternal.outsideRootPath;
-    } else {
-      warnOnce(
-        `Please provide a valid boolean for 'outsideRootPath' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`
-      );
-    }
-  }
-
-  if (flagAsExternal.customSourcePatterns !== undefined) {
-    if (
-      isArray(flagAsExternal.customSourcePatterns) &&
-      flagAsExternal.customSourcePatterns.every(isString)
-    ) {
-      validated.customSourcePatterns = flagAsExternal.customSourcePatterns;
-    } else {
-      warnOnce(
-        `Please provide a valid array of strings for 'customSourcePatterns' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`
-      );
-    }
-  }
+  assignFlagAsExternalBooleanOption(options, validated, "unresolvableAlias");
+  assignFlagAsExternalBooleanOption(options, validated, "inNodeModules");
+  assignFlagAsExternalBooleanOption(options, validated, "outsideRootPath");
+  assignFlagAsExternalCustomSourcePatterns(options, validated);
 
   return validated;
 }
 
-// TODO: Remove settings validation in next major version. It should be done by schema validation only
-export function validateSettings(
-  settings: Rule.RuleContext["settings"]
-): Settings {
+/**
+ * Validates debug filter selectors for files or dependencies.
+ *
+ * @param value - Raw filter value.
+ * @param filterName - Filter key used in warning messages.
+ * @returns Filter array when valid, otherwise `undefined`.
+ */
+export function validateDebugFilterSelectors(
+  value: unknown,
+  filterName: "files" | "dependencies"
+) {
+  if (isUndefined(value)) {
+    return undefined;
+  }
+  if (isArray(value)) {
+    return value;
+  }
+  warnOnce(
+    `Please provide a valid array for '${filterName}' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+    moreInfoSettingsLink()
+  );
+  return undefined;
+}
+
+/**
+ * Validates debug `files` filter selector list.
+ *
+ * @param value - Raw `debug.filter.files` setting value.
+ * @returns Valid files filter selectors.
+ */
+export function validateDebugFilesFilter(
+  value: unknown
+): ElementsSelector[] | undefined {
+  return validateDebugFilterSelectors(value, "files") as
+    | ElementsSelector[]
+    | undefined;
+}
+
+/**
+ * Validates debug `dependencies` filter selector list.
+ *
+ * @param value - Raw `debug.filter.dependencies` setting value.
+ * @returns Valid dependency filter selectors.
+ */
+export function validateDebugDependenciesFilter(
+  value: unknown
+): DependencySelector[] | undefined {
+  return validateDebugFilterSelectors(value, "dependencies") as
+    | DependencySelector[]
+    | undefined;
+}
+
+/**
+ * Validates and assigns `debug.enabled` when provided.
+ *
+ * @param debug - Raw debug setting object.
+ * @param validated - Debug setting accumulator.
+ */
+function assignDebugEnabled(
+  debug: Record<string, unknown>,
+  validated: DebugSettingNormalized
+) {
+  if (isUndefined(debug.enabled)) {
+    return;
+  }
+
+  if (isBoolean(debug.enabled)) {
+    validated.enabled = debug.enabled;
+    return;
+  }
+
+  warnOnce(
+    `Please provide a valid boolean for 'enabled' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+    moreInfoSettingsLink()
+  );
+}
+
+/**
+ * Validates and assigns a `debug.messages.*` boolean flag when provided.
+ *
+ * @param messages - Raw `debug.messages` object.
+ * @param validated - Debug setting accumulator.
+ * @param key - Message flag key to validate.
+ */
+function assignDebugMessageFlag(
+  messages: Record<string, unknown>,
+  validated: DebugSettingNormalized,
+  key: keyof DebugSettingNormalized["messages"]
+) {
+  const value = messages[key];
+
+  if (isUndefined(value)) {
+    return;
+  }
+
+  if (isBoolean(value)) {
+    validated.messages[key] = value;
+    return;
+  }
+
+  warnOnce(
+    `Please provide a valid boolean for 'messages.${key}' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+    moreInfoSettingsLink()
+  );
+}
+
+/**
+ * Validates and assigns `debug.messages` object and known flags.
+ *
+ * @param debug - Raw debug setting object.
+ * @param validated - Debug setting accumulator.
+ */
+function assignDebugMessages(
+  debug: Record<string, unknown>,
+  validated: DebugSettingNormalized
+) {
+  if (isUndefined(debug.messages)) {
+    return;
+  }
+
+  if (!isObject(debug.messages)) {
+    warnOnce(
+      `Please provide a valid object for 'messages' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+      moreInfoSettingsLink()
+    );
+    return;
+  }
+
+  assignDebugMessageFlag(debug.messages, validated, "files");
+  assignDebugMessageFlag(debug.messages, validated, "dependencies");
+  assignDebugMessageFlag(debug.messages, validated, "violations");
+}
+
+/**
+ * Validates and assigns `debug.filter` object and supported selectors.
+ *
+ * @param debug - Raw debug setting object.
+ * @param validated - Debug setting accumulator.
+ */
+function assignDebugFilter(
+  debug: Record<string, unknown>,
+  validated: DebugSettingNormalized
+) {
+  if (isUndefined(debug.filter)) {
+    return;
+  }
+
+  if (!isObject(debug.filter)) {
+    warnOnce(
+      `Please provide a valid object for 'filter' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+      moreInfoSettingsLink()
+    );
+    return;
+  }
+
+  const files = validateDebugFilesFilter(debug.filter.files);
+  const dependencies = validateDebugDependenciesFilter(
+    debug.filter.dependencies
+  );
+
+  validated.filter = {
+    ...(isUndefined(files) ? {} : { files }),
+    ...(isUndefined(dependencies) ? {} : { dependencies }),
+  };
+}
+
+/**
+ * Validates the `debug` setting object and nested filters.
+ *
+ * @param debug - Raw debug setting value.
+ * @returns Normalized debug setting when valid.
+ */
+export function validateDebug(debug: unknown): DebugSettingNormalized {
+  const validated: DebugSettingNormalized = {
+    enabled: false,
+    filter: {
+      files: undefined,
+      dependencies: undefined,
+    },
+    messages: {
+      files: true,
+      dependencies: true,
+      violations: true,
+    },
+  };
+
+  if (!debug) {
+    return validated;
+  }
+
+  if (!isObject(debug)) {
+    warnOnce(
+      `Please provide a valid value in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+      `The value should be an object. ${moreInfoSettingsLink()}`
+    );
+    return validated;
+  }
+
+  assignDebugEnabled(debug, validated);
+  assignDebugMessages(debug, validated);
+  assignDebugFilter(debug, validated);
+
+  return validated;
+}
+
+/**
+ * Validates plugin settings and returns a sanitized settings object.
+ *
+ * @param settings - Raw ESLint context settings.
+ * @returns Validated settings ready for normalization.
+ */
+export function validateSettings(settings: Rule.RuleContext["settings"]): Omit<
+  Settings,
+  "boundaries/debug"
+> & {
+  [SETTINGS_KEYS_MAP.DEBUG]: DebugSettingNormalized;
+} {
   deprecateTypes(settings[TYPES]);
-  deprecateAlias(settings[ALIAS]);
+  deprecateAlias(isAliasSetting(settings[ALIAS]) ? settings[ALIAS] : undefined);
 
   return {
-    [SETTINGS_KEYS_MAP.ELEMENTS]: validateElements(
+    [SETTINGS_KEYS_MAP.ELEMENTS]: validateElementDescriptors(
       settings[ELEMENTS] || settings[TYPES]
     ),
     [SETTINGS_KEYS_MAP.IGNORE]: validateIgnore(
@@ -450,14 +1299,22 @@ export function validateSettings(
     [SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]: validateFlagAsExternal(
       settings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]
     ),
+    [SETTINGS_KEYS_MAP.DEBUG]: validateDebug(settings[SETTINGS_KEYS_MAP.DEBUG]),
   };
 }
 /**
- * Returns the normalized settings from the ESLint rule context
- * @param context The ESLint rule context
- * @returns The normalized settings
+ * Returns normalized and cached settings from ESLint rule context.
+ *
+ * @param context - ESLint rule context.
+ * @returns Normalized settings object used by rules.
  */
 export function getSettings(context: Rule.RuleContext): SettingsNormalized {
+  const alreadyValidatedSettings = trackedValidatedSettings.get(
+    context.settings
+  );
+  if (alreadyValidatedSettings) {
+    return alreadyValidatedSettings;
+  }
   const validatedSettings = validateSettings(context.settings);
 
   const dependencyNodesSetting = getArrayOrNull<DependencyNodeKey>(
@@ -467,13 +1324,16 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
     getArrayOrNull<DependencyNodeSelector>(
       validatedSettings[ADDITIONAL_DEPENDENCY_NODES]
     );
-  const dependencyNodes: DependencyNodeSelector[] =
-    // TODO In next major version, make this default to all types of nodes!!!
-    (dependencyNodesSetting || [DEPENDENCY_NODE_KEYS_MAP.IMPORT])
-      .flatMap((dependencyNode) => [
-        ...DEFAULT_DEPENDENCY_NODES[dependencyNode],
-      ])
-      .filter(Boolean);
+  const dependencyNodes: DependencyNodeSelector[] = (
+    dependencyNodesSetting || [
+      DEPENDENCY_NODE_KEYS_MAP.IMPORT,
+      DEPENDENCY_NODE_KEYS_MAP.EXPORT,
+      DEPENDENCY_NODE_KEYS_MAP.REQUIRE,
+      DEPENDENCY_NODE_KEYS_MAP.DYNAMIC_IMPORT,
+    ]
+  )
+    .flatMap((dependencyNode) => [...DEFAULT_DEPENDENCY_NODES[dependencyNode]])
+    .filter(Boolean);
 
   const additionalDependencyNodes = additionalDependencyNodesSetting || [];
 
@@ -484,28 +1344,18 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
   const includePaths = isString(includeSetting)
     ? [includeSetting]
     : includeSetting;
+  const debugSetting = validatedSettings[SETTINGS_KEYS_MAP.DEBUG];
 
   const descriptors = transformLegacyTypes(validatedSettings[ELEMENTS]);
-
-  // NOTE: Filter valid descriptors only to avoid a breaking change for the moment
   const validDescriptors = descriptors.filter(isElementDescriptor);
-  const invalidDescriptors = descriptors.filter(
-    (desc) => !isElementDescriptor(desc)
-  );
-  if (invalidDescriptors.length > 0) {
-    /*
-     * TODO: Report invalid descriptors in ESLint context as a warning in a separate rule:
-     * context.report({
-     * message: `Some element descriptors are invalid and will be ignored: ${JSON.stringify(
-     *   invalidDescriptors,
-     * )}`,
-     * loc: { line: 1, column: 0 },
-     * });
-     */
+
+  if (validDescriptors.length < descriptors.length) {
+    const invalidDescriptors = descriptors.filter(
+      (desc) => !isElementDescriptor(desc)
+    );
     warnOnce(
-      `Some element descriptors are invalid and will be ignored: ${JSON.stringify(
-        invalidDescriptors
-      )}`
+      `Some element descriptors are invalid and will be ignored.`,
+      `Invalid descriptors:\n${JSON.stringify(invalidDescriptors)}.\n${moreInfoSettingsLink()}`
     );
   }
 
@@ -534,6 +1384,8 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
         validatedSettings[SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]
           ?.customSourcePatterns ?? [],
     },
+    debug: debugSetting,
   };
+  trackedValidatedSettings.set(context.settings, result);
   return result;
 }

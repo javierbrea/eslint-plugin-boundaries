@@ -25,8 +25,8 @@ Enforce architectural boundaries in your JavaScript and TypeScript projects.
 
 **ESLint Plugin Boundaries** is an ESLint plugin that helps you maintain clean architecture by enforcing boundaries between different parts of your codebase. Define your architectural layers, specify how they can interact, and get instant feedback when boundaries are violated.
 
-- **Architectural Enforcement**: Define element types and dependency rules that match your project's architecture
-- **Flexible Configuration**: Adapt the plugin to any project structure. It works with monorepos, modular architectures, layered patterns, and more
+- **Architectural Enforcement**: Define elements and dependency rules that match your project's architecture
+- **Flexible Configuration**: Adapt the plugin to any project structure. It works with monorepos, modular architectures, layered patterns, and any custom structure you can imagine
 - **Real-time Feedback**: Get immediate ESLint errors when imports violate your architectural rules
 
 ## Documentation
@@ -63,9 +63,9 @@ export default [
     plugins: { boundaries },
     settings: {
       "boundaries/elements": [
-        { type: "controllers", pattern: "controllers/*" },
-        { type: "models", pattern: "models/*" },
-        { type: "views", pattern: "views/*" }
+        { type: "controller", pattern: "controllers/*" },
+        { type: "model", pattern: "models/*" },
+        { type: "view", pattern: "views/*" }
       ]
     }
   }
@@ -77,12 +77,12 @@ Define your dependency rules:
 ```javascript
 {
   rules: {
-    "boundaries/element-types": [2, {
+    "boundaries/dependencies": [2, {
       default: "disallow",
       rules: [
-        { from: "controllers", allow: ["models", "views"] },
-        { from: "views", allow: ["models"] },
-        { from: "models", disallow: ["*"] }
+        { from: { type: "controller" }, allow: { to: { type: ["model", "view"] } } },
+        { from: { type: "view" }, allow: { to: { type: "model" } } },
+        { from: { type: "model" }, disallow: { to: { type: "*" } } }
       ]
     }]
   }

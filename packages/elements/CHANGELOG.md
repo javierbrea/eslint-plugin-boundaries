@@ -6,10 +6,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 ### Added
-### Changed
 ### Fixed
 ### Removed
-### BREAKING CHANGES
+### Breaking Changes
+
+## [2.0.0-beta.1] - 2026-03-14
+
+### Added
+- feat: Add support for `captured` as an array in element selectors, where each element in the array represents an alternative (OR logic). The selector matches if any of the array elements matches.
+- feat: Support matching `null` values in selectors.
+- feat: Add support for `parent` selector property to match against first parent (`parents[0]`) properties (`type`, `category`, `elementPath`, and `captured`).
+
+### Changed
+
+- chore: Update dependencies and devDependencies to their latest versions.
+
+### Breaking Changes
+- feat: Remove `source` and `baseSource` properties from the `to` and `from` objects in element descriptions and selectors. Move them to the `dependency` object instead, as they are properties of the dependency rather than the target element. This change may require updates to any custom rules or configurations that reference these properties in the `to` object. Refactor all types, tests, and documentation to reflect this change.
+- feat: Rename "baseSource" property to "module" to better reflect its purpose and avoid confusion with the "source" property. Update all types, tests, and documentation to reflect this change.
+- feat: Support array of dependency metadata selectors in the `dependency` property of dependency selectors, allowing for more flexible matching of dependencies based on their metadata. Each selector in the array represents an alternative (OR logic), and the dependency matches if any of the selectors in the array matches its metadata.
+- feat: Remove external library selectors types and helpers.
+- feat: Remove deprecated `dependencySelectorGlobals` option from matching methods and types.
+- feat: Remove `getSelectorMatchingDescription` method, as it was too generic and caused confusion. Instead, provide specific methods for matching element and dependency descriptions against their respective selectors (`getElementSelectorMatchingDescription` and `getDependencySelectorMatchingDescription`) to improve clarity and usability.
 
 ## [1.2.0] - 2026-02-02
 

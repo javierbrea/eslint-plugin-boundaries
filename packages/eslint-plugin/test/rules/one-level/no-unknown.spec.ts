@@ -1,4 +1,5 @@
 import rule from "../../../src/Rules/NoUnknown";
+import { NO_UNKNOWN as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
@@ -6,11 +7,9 @@ import {
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
 
-const { NO_UNKNOWN: RULE } = require("../../../src/Settings");
-
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
-const ERROR_MESSAGE = "Importing unknown elements is not allowed";
+const ERROR_MESSAGE = "Dependencies to unknown elements are not allowed";
 
 const runTest = (settings: RuleTesterSettings) => {
   const ruleTester = createRuleTester(settings);
