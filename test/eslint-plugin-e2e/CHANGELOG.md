@@ -6,14 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 ### Added
-
-- feat: Add E2E tests for new object-based selector syntax and related typings. These tests cover various scenarios to ensure the new syntax works correctly and does not introduce any regressions.
-- feat: Add performance tests to measure the impact of the new object-based selector syntax on linting speed. These tests will help identify any potential performance issues and ensure that the new syntax does not significantly degrade linting performance.
-
 ### Changed
 ### Fixed
 ### Removed
 ### BREAKING CHANGES
+
+
+## [1.0.0] - 2026-03-14
+
+### Added
+
+- feat: Add E2E tests for new object-based selector syntax and related typings. These tests cover various scenarios to ensure the new syntax works correctly and does not introduce any regressions.
+- feat: Add performance tests to measure the impact of the new object-based selector syntax on linting speed. These tests will help identify any potential performance issues and ensure that the new syntax does not significantly degrade linting performance.
 
 ## [0.0.1]
 
