@@ -135,7 +135,7 @@ export class BaseElementsMatcher {
    * @returns Whether the value matches the pattern.
    */
   protected isMicromatchMatch(
-    value: unknown,
+    value: string | null | undefined | boolean,
     pattern: MicromatchPatternNullable
   ): boolean {
     if (isNull(pattern)) {
@@ -169,7 +169,7 @@ export class BaseElementsMatcher {
   protected isTemplateMicromatchMatch(
     pattern: MicromatchPatternNullable,
     templateData: TemplateData,
-    value?: unknown
+    value?: string | string[] | null | undefined | boolean
   ): boolean {
     // If the element value is undefined, it cannot match anything.
     if (isUndefined(value)) {
@@ -279,9 +279,12 @@ export class BaseElementsMatcher {
       return false;
     }
 
-    const elementValue = (element as Record<string, unknown>)[
-      String(elementKey)
-    ];
+    const elementValue = element[elementKey] as
+      | string
+      | string[]
+      | null
+      | undefined
+      | boolean;
 
     return this.isTemplateMicromatchMatch(
       selectorValue,
