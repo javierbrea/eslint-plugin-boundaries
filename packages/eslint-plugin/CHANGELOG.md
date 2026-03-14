@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### Breaking Changes
 
-## [6.0.0-beta.1] - 2026-03-13
+## [6.0.0-beta.1] - 2026-03-14
 
 ### Added
 
@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - feat(#384): Add deprecation warning when using legacy element selector syntax (string or tuple formats).
 - feat: Validate and transform different settings and rules only once per different configuration object, and not per rule execution, to improve performance.
 - refactor: Refactor the core of the plugin to support the new features and improvements, and to improve code organization, readability and maintainability. It is now fully typed with TypeScript.
+- chore: Update dependencies and devDependencies to their latest versions.
 
 ### Breaking Changes
 
