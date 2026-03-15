@@ -1,0 +1,101 @@
+{
+  "docs": [
+    {
+      "type": "category",
+      "label": "Getting Started",
+      "collapsed": false,
+      "items": [
+        "overview",
+        "installation",
+        "quick-start"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Setup",
+      "link": {
+        "type": "doc",
+        "id": "setup/setup"
+      },
+      "collapsed": true,
+      "items": [
+        "setup/elements",
+        {
+          "type": "category",
+          "label": "Selectors",
+          "link": {
+            "type": "doc",
+            "id": "setup/selectors"
+          },
+          "items": [
+            "setup/selectors/legacy-selectors"
+          ]
+        },
+        "setup/rules",
+        "setup/settings",
+        "setup/eslint-integration"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Rules",
+      "link": {
+        "type": "doc",
+        "id": "rules/rules"
+      },
+      "collapsed": true,
+      "items": [
+        "rules/dependencies",
+        "rules/no-unknown",
+        "rules/no-ignored",
+        "rules/no-unknown-files",
+        {
+          "type": "category",
+          "label": "Deprecated Rules",
+          "collapsed": true,
+          "items": [
+            "rules/entry-point",
+            "rules/external",
+            "rules/no-private"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Guides",
+      "collapsed": true,
+      "items": [
+        "guides/typescript-support",
+        "guides/monorepo-setup",
+        "guides/custom-resolvers",
+        "guides/debugging"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Releases",
+      "link": {
+        "type": "doc",
+        "id": "releases/releases"
+      },
+      "items": [
+        {
+          "type": "category",
+          "label": "Migration Guides",
+          "collapsed": false,
+          "items": [
+            "releases/migration-guides/v5-to-v6",
+            "releases/migration-guides/v3-to-v4",
+            "releases/migration-guides/v1-to-v2"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "doc",
+      "id": "misc/acknowledgments",
+      "label": "Acknowledgements"
+    }
+  ]
+}
