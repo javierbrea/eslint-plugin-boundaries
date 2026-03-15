@@ -6,14 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 ### Added
-- feat(#401): Publish v6.0.0 documentation website with migration guides, updated rules reference, and new selector syntax documentation.
-- feat: Add keywords to all pages to improve searchability and SEO.
 ### Changed
-- feat: Adapt docs to the new `object-based` selectors syntax.
-- feat: Add "Deprecated Rules" subsection to the sidebar, and move there the deprecated rules documentation.
 ### Fixed
 ### Removed
 ### Breaking Changes
+
+## [6.0.0] - 2026-03-15
+
+### Added
+
+- feat(#401): Publish v6.0.0 documentation website with migration guides, updated rules reference, and new selector syntax documentation.
+- feat: Add keywords to all pages to improve searchability and SEO.
+
+### Changed
+
+- feat: Adapt docs to the new `object-based` selectors syntax.
+- feat: Add "Deprecated Rules" subsection to the sidebar, and move there the deprecated rules documentation.
 
 ## [5.4.0] - 2026-02-02
 
