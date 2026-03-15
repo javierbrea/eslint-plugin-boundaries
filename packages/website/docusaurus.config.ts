@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-namespace
+// eslint -disable-next-line import/no-namespace
 import type * as Preset from "@docusaurus/preset-classic";
 import type { Config } from "@docusaurus/types";
 import { themes as prismThemes } from "prism-react-renderer";

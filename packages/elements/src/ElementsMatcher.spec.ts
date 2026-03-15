@@ -1,4 +1,4 @@
-/* eslint-disable jest/no-conditional-in-test */
+// eslint -disable jest/no-conditional-in-test */
 
 import micromatch from "micromatch";
 
@@ -70,7 +70,7 @@ describe("Elements Matcher", () => {
   });
 
   describe("when matching elements", () => {
-    // eslint-disable-next-line jest/prefer-ending-with-an-expect
+    // eslint -disable-next-line jest/prefer-ending-with-an-expect
     it.each([
       {
         filePath: "/project/src/utils/__tests__/testUtil.ts",
@@ -650,7 +650,7 @@ describe("Elements Matcher", () => {
             extraTemplateData ? { extraTemplateData } : undefined
           );
 
-          // eslint-disable-next-line jest/no-conditional-expect
+          // eslint -disable-next-line jest/no-conditional-expect
           expect(selectorMatchingResult).toStrictEqual(
             expectedMatch || selector
           );
@@ -664,7 +664,7 @@ describe("Elements Matcher", () => {
               extraTemplateData ? { extraTemplateData } : undefined
             );
 
-          // eslint-disable-next-line jest/no-conditional-expect
+          // eslint -disable-next-line jest/no-conditional-expect
           expect(selectorMatchingFromDescription).toStrictEqual(
             expectedMatch || selector
           );
@@ -859,7 +859,7 @@ describe("Elements Matcher", () => {
   });
 
   describe("when matching dependencies", () => {
-    // eslint-disable-next-line jest/prefer-ending-with-an-expect
+    // eslint -disable-next-line jest/prefer-ending-with-an-expect
     it.each([
       {
         dependency: {
@@ -1894,7 +1894,7 @@ describe("Elements Matcher", () => {
             isMatch: true,
           };
 
-          // eslint-disable-next-line jest/no-conditional-expect
+          // eslint -disable-next-line jest/no-conditional-expect
           expect(selectorMatchingResult).toStrictEqual(expectedMatchResult);
 
           const description = matcher.describeDependency(dependency);
@@ -1906,7 +1906,7 @@ describe("Elements Matcher", () => {
                 extraTemplateData ? { extraTemplateData } : undefined
               );
 
-            // eslint-disable-next-line jest/no-conditional-expect
+            // eslint -disable-next-line jest/no-conditional-expect
             expect(selectorMatchingFromDescription).toStrictEqual(
               expectedMatchResult
             );

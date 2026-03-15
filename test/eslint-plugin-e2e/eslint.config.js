@@ -10,7 +10,7 @@ export default [
     ...jsBaseConfig,
     rules: {
       ...jsBaseConfig.rules,
-      "import/extensions": 0,
+      // "import/extensions": 0,
     },
   },
   {

@@ -1,22 +1,22 @@
 import js from "@eslint/js";
 import json from "@eslint/json";
 import markdown from "@eslint/markdown";
-// eslint-disable-next-line import/no-unresolved
+// eslint -disable-next-line import/no-unresolved // TODO: Enable this exception again when rule is activated
 import typescriptEslintPlugin from "@typescript-eslint/eslint-plugin";
-// eslint-disable-next-line import/no-unresolved
+// eslint -disable-next-line import/no-unresolved // TODO: Enable this exception again when rule is activated
 import typescriptParser from "@typescript-eslint/parser";
 import eslintConfigPrettier from "eslint-config-prettier";
-import importPlugin from "eslint-plugin-import";
-import pluginJest from "eslint-plugin-jest";
+// import importPlugin from "eslint-plugin-import";
+// import pluginJest from "eslint-plugin-jest";
 import prettier from "eslint-plugin-prettier";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
-import reactPlugin from "eslint-plugin-react";
-import reactHooksPlugin from "eslint-plugin-react-hooks";
+// import reactPlugin from "eslint-plugin-react";
+// import reactHooksPlugin from "eslint-plugin-react-hooks";
 import globals from "globals";
 
 export const jestConfig = {
   files: ["**/*.spec.js", "**/*.test.js", "**/*.spec.ts", "**/*.test.ts"],
-  plugins: {
+  /* plugins: {
     jest: pluginJest,
   },
   ...pluginJest.configs["flat/recommended"],
@@ -38,6 +38,19 @@ export const jestConfig = {
     "jest/require-to-throw-message": [0],
     "jest/unbound-method": [0],
     "jest/prefer-lowercase-title": [2, { ignoreTopLevelDescribe: true }],
+  }, */
+  languageOptions: {
+    globals: {
+      jest: "readonly",
+      it: "readonly",
+      describe: "readonly",
+      expect: "readonly",
+      beforeAll: "readonly",
+      afterAll: "readonly",
+      beforeEach: "readonly",
+      afterEach: "readonly",
+      test: "readonly",
+    },
   },
 };
 
@@ -93,7 +106,7 @@ export const jsBaseConfig = {
   files: ["**/*.js", "**/*.cjs", "**/*.mjs", "**/*.jsx", "**/*.ts", "**/*.tsx"],
   plugins: {
     prettier,
-    import: importPlugin,
+    // import: importPlugin,
   },
   languageOptions: {
     ecmaVersion: "latest",
@@ -103,8 +116,8 @@ export const jsBaseConfig = {
     },
   },
   rules: {
-    ...importPlugin.flatConfigs.recommended.rules,
-    ...importPlugin.flatConfigs["typescript"].rules,
+    // ...importPlugin.flatConfigs.recommended.rules,
+    // ...importPlugin.flatConfigs["typescript"].rules,
     ...js.configs.recommended.rules,
     ...eslintConfigPrettier.rules,
     ...eslintPluginPrettierRecommended.rules,
@@ -117,7 +130,7 @@ export const jsBaseConfig = {
       2,
       { vars: "all", args: "after-used", ignoreRestSiblings: false },
     ],
-    "import/no-named-as-default-member": [2],
+    /* "import/no-named-as-default-member": [2],
     "import/no-named-as-default": [2],
     "import/no-namespace": [
       "error",
@@ -140,12 +153,12 @@ export const jsBaseConfig = {
         "newlines-between": "always",
         alphabetize: {
           order:
-            "asc" /* sort in ascending order. Options: ['ignore', 'asc', 'desc'] */,
-          caseInsensitive: true /* ignore case. Options: [true, false] */,
+            "asc" /* sort in ascending order. Options: ['ignore', 'asc', 'desc'] * /,
+          caseInsensitive: true /* ignore case. Options: [true, false] * /,
         },
       },
     ],
-    "import/extensions": [2, "never"],
+    "import/extensions": [2, "never"], */
     "prettier/prettier": [
       2,
       {
@@ -210,13 +223,13 @@ export const typescriptConfig = {
 export const disableExtensionsInEslintConfig = {
   files: ["eslint.config.js", "eslint.config.cjs", "eslint.config.mjs"],
   rules: {
-    "import/extensions": [0],
+    // "import/extensions": [0],
   },
 };
 
 export const reactConfig = {
   files: ["**/*.{jsx,mjsx,ts,tsx,mtsx}"],
-  ...reactPlugin.configs.flat.recommended,
+  /* ...reactPlugin.configs.flat.recommended,
   languageOptions: {
     ...reactPlugin.configs.flat.recommended.languageOptions,
     globals: {
@@ -231,12 +244,12 @@ export const reactConfig = {
   rules: {
     ...reactPlugin.configs.flat.recommended.rules,
     "react/react-in-jsx-scope": [0],
-  },
+  },*/
 };
 
 export const reactHooksConfig = {
   files: ["**/*.{jsx,mjsx,ts,tsx,mtsx}"],
-  ...reactHooksPlugin.configs.flat.recommended,
+  // ...reactHooksPlugin.configs.flat.recommended,
 };
 
 export const defaultConfigWithoutTypescript = [

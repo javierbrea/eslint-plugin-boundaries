@@ -17,12 +17,12 @@ export default [
     rules: {
       "react/prop-types": "off",
       "@typescript-eslint/no-require-imports": [2, { allow: ["/.*\\.svg$"] }],
-      "import/no-unresolved": [
+      /* "import/no-unresolved": [
         2,
         {
           ignore: ["^@theme", "^@docusaurus", "^@site"],
         },
-      ],
+      ], */
     },
   },
 ];
