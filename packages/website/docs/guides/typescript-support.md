@@ -193,10 +193,6 @@ Using the plugin with TypeScript provides several advantages:
 - **Refactoring**: Safely rename and restructure configurations
 - **Path Mapping**: Automatic support for TypeScript path aliases
 
-## Example Repository
-
-For a complete working example of TypeScript integration, see the [example TypeScript repository](https://github.com/javierbrea/epb-ts-example), which includes a fully tested configuration.
-
 ## Troubleshooting
 
 If you encounter issues with TypeScript support:
