@@ -489,6 +489,36 @@ export interface Config<PluginName extends string = typeof PLUGIN_NAME>
   rules?: Rules<PluginName>;
 }
 
+// Compatibility types for ESLint v9 and v10
+// ESLint v10 removes several deprecated properties from RuleContext
+// We use a mapped type to make all deprecated v9 fields optional if they exist
+export type CompatRuleContext = Omit<
+  Rule.RuleContext,
+  | "getCwd"
+  | "getFilename"
+  | "getPhysicalFilename"
+  | "getSourceCode"
+  | "parserOptions"
+  | "parserPath"
+  | "sourceCode"
+> & {
+  getCwd?: () => string;
+  getFilename?: () => string;
+  getPhysicalFilename?: () => string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getSourceCode?: () => any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sourceCode: any;
+  parserOptions?: Record<string, unknown>;
+  parserPath?: string;
+};
+
+// Also abstract over the exact shape of context in `create` so TS assigns it safely
+export type CompatRuleModule = Omit<Rule.RuleModule, "create"> & {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  create: (context: any) => ReturnType<Rule.RuleModule["create"]>;
+};
+
 /**
  * ESLint plugin interface for the boundaries plugin, including metadata, rules, and configurations.
  */
@@ -497,8 +527,7 @@ export interface PluginBoundaries extends Omit<ESLint.Plugin, "rules"> {
     name: string;
     version: string;
   };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rules: Record<RuleShortName, any>;
+  rules: Record<RuleShortName, CompatRuleModule>;
   configs: {
     recommended: Config;
     strict: Config;

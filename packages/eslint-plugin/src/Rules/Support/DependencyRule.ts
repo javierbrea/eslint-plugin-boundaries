@@ -1,4 +1,8 @@
 import type { Rule } from "eslint";
+import type {
+  CompatRuleModule,
+  CompatRuleContext,
+} from "../../Shared/Settings.types";
 
 import { warnOnce } from "../../Debug";
 import { elementDescription, dependencyDescription } from "../../Elements";
@@ -27,12 +31,12 @@ export function dependencyRule<Options extends RuleOptionsWithRules>(
   ruleMeta: RuleMetaDefinition,
   rule: DependencyRuleRunner<Options>,
   ruleOptions: DependencyRuleOptions = {}
-): Rule.RuleModule {
+): CompatRuleModule {
   return {
     ...meta(ruleMeta),
-    create: function (context: Rule.RuleContext) {
+    create: function (context: CompatRuleContext) {
       const options = context.options[0] as Options | undefined;
-      const settings = getSettings(context);
+      const settings = getSettings(context as Rule.RuleContext);
       const file = elementDescription(context.filename, settings);
 
       if (ruleOptions.validate !== false && !options) {
@@ -62,10 +66,16 @@ export function dependencyRule<Options extends RuleOptionsWithRules>(
               },
               context.filename,
               settings,
-              context
+              context as Rule.RuleContext
             );
 
-            rule({ dependency, options, node, context, settings });
+            rule({
+              dependency,
+              options,
+              node,
+              context: context as Rule.RuleContext,
+              settings,
+            });
           };
 
           return visitors;
