@@ -9,6 +9,16 @@ export type MicromatchPattern = string | string[];
 export type MicromatchPatternNullable = string | null | (string | null)[];
 
 /**
+ * Type representing values that can be matched against micromatch patterns.
+ */
+export type MicromatchMatchableValue =
+  | string
+  | string[]
+  | null
+  | undefined
+  | boolean;
+
+/**
  * Configuration options for categorizing dependencies as external or local.
  */
 export type FlagAsExternalOptions = {

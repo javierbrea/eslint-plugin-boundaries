@@ -271,7 +271,7 @@ export const createRuleTester = (
       parser: settings.languageOptions?.parser,
       ...parserOptions,
     },
-    // @ts-expect-error TODO: Do not mix parserOptions and languageOptions
+    // @ts-expect-error Wrong typing. We are merging parserOptions in the root of the config. This should be fixed.
     settings,
   });
 };

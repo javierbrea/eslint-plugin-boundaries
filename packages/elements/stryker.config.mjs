@@ -2,7 +2,7 @@
 /** @type {import('@stryker-mutator/api/core').PartialStrykerOptions} */
 
 const config = {
-  mutate: ["src/**/*.ts"],
+  mutate: ["src/**/*.ts", "!src/**/*.spec.ts"],
   packageManager: "pnpm",
   reporters: ["html", "clear-text", "progress", "dashboard"],
   dashboard: {
