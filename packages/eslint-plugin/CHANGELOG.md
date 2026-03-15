@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### Breaking Changes
 
+## [6.0.0-beta.2] - 2026-03-15
+
+### Changed
+
+- refactor: Use `node:` prefix for built-in modules.
+
+### Breaking Changes
+
+- feat: Disable `no-private` rule by default in recommended configuration, as it is now deprecated and will be removed in a future major version. To preserve previous behavior, set `"boundaries/no-private": [2, { "allowUncles": true }]` explicitly in your configuration.
+
 ## [6.0.0-beta.1] - 2026-03-14
 
 ### Added

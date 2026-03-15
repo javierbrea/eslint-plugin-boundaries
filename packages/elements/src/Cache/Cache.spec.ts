@@ -112,3 +112,33 @@ describe("CacheManagerDisabled", () => {
     expect(() => cacheManagerDisabled.clear()).not.toThrow();
   });
 });
+
+describe("CacheManager serialization", () => {
+  let cacheManager: CacheManager<string, string>;
+
+  beforeEach(() => {
+    cacheManager = new CacheManager();
+  });
+
+  it("should serialize cache to an object", () => {
+    cacheManager.set("key1", "value1");
+    cacheManager.set("key2", "value2");
+
+    const serialized = cacheManager.serialize();
+
+    expect(serialized).toEqual({
+      key1: "value1",
+      key2: "value2",
+    });
+  });
+
+  it("should initialize cache from a serialized object", () => {
+    cacheManager.setFromSerialized({
+      key1: "value1",
+      key2: "value2",
+    });
+
+    expect(cacheManager.get("key1")).toBe("value1");
+    expect(cacheManager.get("key2")).toBe("value2");
+  });
+});

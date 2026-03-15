@@ -38,10 +38,11 @@ Main changes include:
 - **[New object-based selector syntax](#object-based-elements-selector-syntax)**
 - **[New dependency selector syntax](#dependencies-selector-syntax)**
 - **[Renamed `boundaries/element-types` rule to `boundaries/dependencies`](#rule-element-types-renamed-to-dependencies)**
-- **[Changed default value for `boundaries/dependency-nodes` setting](#changed-default-value-for-boundariesdependency-nodes-setting)** - ⚠️ Breaking change
+- **[Changed default value for `boundaries/dependency-nodes` setting](#changed-default-value-for-boundariesdependency-nodes-setting)** - **⚠️ Breaking change**
 - **[Deprecated rule-level `importKind` in favor of selector-level `dependency.kind`](#rule-level-importkind-is-deprecated)**
 - **[New Handlebars-style template syntax](#new-template-syntax)**
 - **[Deprecated `entry-point`, `external`, and `no-private` rules](#deprecated-rules)**
+- **[Disabled `boundaries/no-private` rule in recommended configuration](#recommended-configuration)** - **⚠️ Breaking change**
 
 You will receive warnings in your console about how to prepare your configuration for next versions removing support for legacy syntax. This guide will walk you through the migration process step by step.
 
@@ -464,6 +465,20 @@ The boundaries set by this rule can also be achieved with the **[`boundaries/dep
 :::tip Bonus: More specific rules with `boundaries/dependencies`
 With `boundaries/dependencies` you can also define more specific rules that were not possible with `no-private`, such as allowing only certain elements to import their siblings or uncles, while disallowing it for others.
 :::
+
+## Recommended configuration
+
+The `boundaries/no-private` rule is now disabled in the recommended configuration, as its boundaries can be achieved with the `boundaries/dependencies` rule with more flexibility and better syntax. If you were relying on that rule in your configuration without explicitly enabling it, you can enable it again with the old syntax or, better, [migrate to the new `boundaries/dependencies` rule with the new selector syntax for better readability and more powerful rules](#no-private-rule).
+
+```js
+{
+  // ...
+  rules: {
+    // Old syntax (deprecated)
+    "boundaries/no-private": [2, { allowUncles: true }],
+  }
+}
+```
 
 ---
 
