@@ -5,7 +5,8 @@ import strictBoundariesConfig from "@boundaries/eslint-plugin/strict";
 
 import baseBasicFixtureConfig from "./baseBasicFixture.config.js";
 
-export default [
+/** @type {any} */
+const config = [
   {
     ...baseBasicFixtureConfig,
     plugins: {
@@ -17,3 +18,5 @@ export default [
     },
   },
 ];
+
+export default config;

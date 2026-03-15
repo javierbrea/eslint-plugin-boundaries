@@ -3,7 +3,8 @@ import boundaries from "@boundaries/eslint-plugin";
 // eslint -disable-next-line import/no-unresolved
 import strictBoundariesConfig from "@boundaries/eslint-plugin/strict";
 
-export default [
+/** @type {any} */
+const config = [
   {
     files: ["**/*.js", "**/*.ts"],
     plugins: {
@@ -54,3 +55,5 @@ export default [
     },
   },
 ];
+
+export default config;

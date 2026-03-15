@@ -492,12 +492,13 @@ export interface Config<PluginName extends string = typeof PLUGIN_NAME>
 /**
  * ESLint plugin interface for the boundaries plugin, including metadata, rules, and configurations.
  */
-export interface PluginBoundaries extends ESLint.Plugin {
+export interface PluginBoundaries extends Omit<ESLint.Plugin, "rules"> {
   meta: {
     name: string;
     version: string;
   };
-  rules: Record<RuleShortName, Rule.RuleModule>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  rules: Record<RuleShortName, any>;
   configs: {
     recommended: Config;
     strict: Config;
