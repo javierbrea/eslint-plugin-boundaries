@@ -6,6 +6,7 @@ import recommendedBoundariesConfig from "@boundaries/eslint-plugin/recommended";
 
 import baseBasicFixtureConfig from "./baseBasicFixture.config.js";
 
+/** @type {import('eslint').Linter.Config[]} */
 export default [
   createConfig({
     rules: /** @type {import('@boundaries/eslint-plugin').Rules} */ ({

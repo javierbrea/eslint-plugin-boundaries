@@ -9,7 +9,6 @@ import { isLegacyType } from "./Helpers";
 
 const { VALID_MODES, ROOT_PATH, ENV_ROOT_PATH } = SETTINGS;
 
-// TODO, remove in next major version
 /**
  * Converts legacy string element descriptors into object descriptors.
  *

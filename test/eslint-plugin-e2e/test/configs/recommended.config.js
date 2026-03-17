@@ -5,15 +5,15 @@ import recommendedBoundariesConfig from "@boundaries/eslint-plugin/recommended";
 
 import baseBasicFixtureConfig from "./baseBasicFixture.config.js";
 
-export default [
-  {
-    ...baseBasicFixtureConfig,
-    plugins: {
-      boundaries,
-    },
-    rules: {
-      ...recommendedBoundariesConfig.rules,
-      ...baseBasicFixtureConfig.rules,
-    },
+/** @type {import('@boundaries/eslint-plugin').Config} */
+const boundariesConfig = {
+  ...baseBasicFixtureConfig,
+  plugins: { boundaries },
+  rules: {
+    ...recommendedBoundariesConfig.rules,
+    ...baseBasicFixtureConfig.rules,
   },
-];
+};
+
+/** @type {import('eslint').Linter.Config[]} */
+export default [boundariesConfig];

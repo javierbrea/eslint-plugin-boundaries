@@ -5,7 +5,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    if: contains(github.event.release.target_commitish, '-beta.') == false
+    if: contains(github.event.release.tag_name, '-beta.') == false
     steps:
     - uses: actions/checkout@v4
     - name: Install pnpm

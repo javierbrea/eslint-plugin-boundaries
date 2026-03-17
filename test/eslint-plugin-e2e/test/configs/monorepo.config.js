@@ -24,6 +24,7 @@ export default [
       ],
       "boundaries/dependency-nodes": ["import"],
     },
+    /** @type {import('@boundaries/eslint-plugin').Rules} */
     rules: {
       ...strictBoundariesConfig.rules,
       "boundaries/element-types": [

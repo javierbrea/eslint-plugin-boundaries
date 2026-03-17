@@ -3,6 +3,7 @@ import Handlebars from "handlebars";
 import type {
   MicromatchPatternNullable,
   MatchersOptionsNormalized,
+  MicromatchMatchableValue,
 } from "../Config";
 import type { BaseElementDescription } from "../Descriptor";
 import {
@@ -135,7 +136,7 @@ export class BaseElementsMatcher {
    * @returns Whether the value matches the pattern.
    */
   protected isMicromatchMatch(
-    value: unknown,
+    value: string | null | undefined | boolean,
     pattern: MicromatchPatternNullable
   ): boolean {
     if (isNull(pattern)) {
@@ -169,7 +170,7 @@ export class BaseElementsMatcher {
   protected isTemplateMicromatchMatch(
     pattern: MicromatchPatternNullable,
     templateData: TemplateData,
-    value?: unknown
+    value: MicromatchMatchableValue
   ): boolean {
     // If the element value is undefined, it cannot match anything.
     if (isUndefined(value)) {
@@ -244,6 +245,7 @@ export class BaseElementsMatcher {
   protected isElementKeyMicromatchMatch<
     T extends SelectableElement,
     S extends BaseElementSelectorData,
+    K extends keyof T,
   >({
     element,
     selector,
@@ -253,11 +255,11 @@ export class BaseElementsMatcher {
     templateData,
   }: {
     /** The element to check. */
-    element: T;
+    element: T & Record<K, MicromatchMatchableValue>;
     /** The selector to check against. */
     selector: S;
     /** The key of the element to check. */
-    elementKey: keyof T;
+    elementKey: K;
     /** The key of the selector to check against. */
     selectorKey: keyof BaseElementSelectorData;
     /** The value of the selector key to check against. */
@@ -279,9 +281,7 @@ export class BaseElementsMatcher {
       return false;
     }
 
-    const elementValue = (element as Record<string, unknown>)[
-      String(elementKey)
-    ];
+    const elementValue = element[elementKey];
 
     return this.isTemplateMicromatchMatch(
       selectorValue,

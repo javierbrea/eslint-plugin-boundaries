@@ -1,8 +1,6 @@
-import type { Linter } from "eslint";
-
 import plugin from "../index";
 import { isRuleShortName, isSettingsKey } from "../Settings";
-import type { PluginBoundaries, Config, Rules } from "../Shared";
+import type { Config, Rules } from "../Shared";
 import { PLUGIN_NAME } from "../Shared";
 
 import recommendedConfig from "./Recommended";
@@ -11,12 +9,11 @@ import strictConfig from "./Strict";
 export * from "../Public";
 
 /**
- * The full ESLint config object returned by createConfig, including the plugins field with the boundaries plugin registered.
+ * Configuration object returned by createConfig.
+ * We use Record<string, unknown> to avoid exposing ESLint's internal generic types
+ * while still allowing full access to the returned config object.
  */
-type PluginFullConfig<PluginName extends string = typeof PLUGIN_NAME> = {
-  plugins: Record<PluginName, PluginBoundaries>;
-  files: Linter.Config["files"];
-} & Omit<Config<PluginName>, "plugins">;
+export type ConfigObject = Record<string, unknown>;
 
 /**
  * Rewrites rule keys to the effective plugin namespace used by `createConfig`.
@@ -100,10 +97,12 @@ function renamePluginRules<PluginName extends string = typeof PLUGIN_NAME>(
 export function createConfig<PluginName extends string = typeof PLUGIN_NAME>(
   config: Omit<Config<PluginName> | Config, "plugins">,
   name: PluginName = PLUGIN_NAME as PluginName
-): PluginFullConfig<PluginName> {
-  const pluginsRegistration = {
+): ConfigObject {
+  // Annotate plugins as Record<string, object> to prevent TypeScript from inferring
+  // the internal plugin type, which would expose ESLint internal generic types
+  const pluginsRegistration: Record<string, object> = {
     [name]: plugin,
-  } as Record<PluginName, PluginBoundaries>;
+  };
 
   if (Object.hasOwn(config, "plugins")) {
     throw new Error(
@@ -136,7 +135,7 @@ export function createConfig<PluginName extends string = typeof PLUGIN_NAME>(
     ...config,
     plugins: pluginsRegistration,
     rules: renamePluginRules(name, config.rules),
-  };
+  } as ConfigObject;
 }
 
 export const recommended = recommendedConfig;
