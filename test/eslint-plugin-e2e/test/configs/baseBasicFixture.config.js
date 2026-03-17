@@ -1,3 +1,4 @@
+/** @type {import('eslint').Linter.Config} */
 export default {
   files: ["**/*.js", "**/*.ts"],
   settings: {
@@ -15,6 +16,7 @@ export default {
     ],
     "boundaries/ignore": ["**/ignored/**/*.js"],
   },
+  /** @type {import('@boundaries/eslint-plugin').Rules} */
   rules: {
     "boundaries/element-types": [
       "error",
