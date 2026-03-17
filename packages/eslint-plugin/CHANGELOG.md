@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 ### Changed
 ### Fixed
+- fix([#438](https://github.com/javierbrea/eslint-plugin-boundaries/issues/438)): Fix `createConfig` helper types when used in Eslint v10.x. Returned type is now compatible both with eslint v9 and eslint v10.
 ### Removed
 ### Breaking Changes
 
