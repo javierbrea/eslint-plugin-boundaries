@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### BREAKING CHANGES
 
+## [1.1.0] - 2026-03-20
+
+### Changed
+
+- feat: Adapt typing E2E tests to check that the createConfig helper returns a `Linter.Config` compatible shape.
 
 ## [1.0.0] - 2026-03-14
 

@@ -2,7 +2,7 @@ import type { Linter } from "eslint";
 
 import plugin from "../index";
 import { isRuleShortName, isSettingsKey } from "../Settings";
-import type { PluginBoundaries, Config, Rules } from "../Shared";
+import type { Config, Rules } from "../Shared";
 import { PLUGIN_NAME } from "../Shared";
 
 import recommendedConfig from "./Recommended";
@@ -12,11 +12,11 @@ export * from "../Public";
 
 /**
  * The full ESLint config object returned by createConfig, including the plugins field with the boundaries plugin registered.
+ * Configuration object returned by createConfig.
+ * We use a public alias to keep the exported type nameable and portable.
+ * This helps prevent TS2742 errors caused by inferred types leaking internal ESLint type paths.
  */
-type PluginFullConfig<PluginName extends string = typeof PLUGIN_NAME> = {
-  plugins: Record<PluginName, PluginBoundaries>;
-  files: Linter.Config["files"];
-} & Omit<Config<PluginName>, "plugins">;
+export type ConfigObject = Linter.Config;
 
 /**
  * Rewrites rule keys to the effective plugin namespace used by `createConfig`.
@@ -75,7 +75,7 @@ function renamePluginRules<PluginName extends string = typeof PLUGIN_NAME>(
  *
  * @param config - ESLint config object without the plugins field.
  * @param name - The name of the plugin to register. Defaults to "boundaries".
- * @returns {Linter.Config} The ESLint config object with the boundaries plugin registered and the provided config merged in.
+ * @returns {ConfigObject} The ESLint config object with the boundaries plugin registered and the provided config merged in.
  * @throws {Error} If settings or rules are not from eslint-plugin-boundaries.
  *
  * @example
@@ -100,10 +100,12 @@ function renamePluginRules<PluginName extends string = typeof PLUGIN_NAME>(
 export function createConfig<PluginName extends string = typeof PLUGIN_NAME>(
   config: Omit<Config<PluginName> | Config, "plugins">,
   name: PluginName = PLUGIN_NAME as PluginName
-): PluginFullConfig<PluginName> {
-  const pluginsRegistration = {
+): ConfigObject {
+  // Annotate plugins as Record<string, object> to prevent TypeScript from inferring
+  // the internal plugin type, which would expose ESLint internal generic types
+  const pluginsRegistration: Record<string, object> = {
     [name]: plugin,
-  } as Record<PluginName, PluginBoundaries>;
+  };
 
   if (Object.hasOwn(config, "plugins")) {
     throw new Error(
