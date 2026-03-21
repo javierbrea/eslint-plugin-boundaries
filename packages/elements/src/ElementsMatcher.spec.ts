@@ -785,6 +785,126 @@ describe("Elements Matcher", () => {
       expect(result).toBe(true);
     });
 
+    it("should match selectors when any matched type/category value matches", () => {
+      const overlappingMatcher = elements.getMatcher([
+        {
+          type: "component",
+          pattern: "src/components/*.tsx",
+          mode: "file",
+        },
+        {
+          type: "view",
+          category: "ui",
+          pattern: "src/components/*.tsx",
+          mode: "file",
+        },
+      ]);
+
+      expect(
+        overlappingMatcher.isElementMatch(
+          "/project/src/components/Button.tsx",
+          {
+            type: "view",
+          }
+        )
+      ).toBe(true);
+      expect(
+        overlappingMatcher.isElementMatch(
+          "/project/src/components/Button.tsx",
+          {
+            category: "ui",
+          }
+        )
+      ).toBe(true);
+    });
+
+    it("should only match first descriptor values when multiMatch is false", () => {
+      const firstOnlyMatcher = elements.getMatcher(
+        [
+          {
+            type: "component",
+            pattern: "src/components/*.tsx",
+            mode: "file",
+          },
+          {
+            type: "view",
+            category: "ui",
+            pattern: "src/components/*.tsx",
+            mode: "file",
+          },
+        ],
+        {
+          multiMatch: false,
+        }
+      );
+
+      expect(
+        firstOnlyMatcher.isElementMatch("/project/src/components/Button.tsx", {
+          type: "view",
+        })
+      ).toBe(false);
+      expect(
+        firstOnlyMatcher.isElementMatch("/project/src/components/Button.tsx", {
+          category: "ui",
+        })
+      ).toBe(false);
+      expect(
+        firstOnlyMatcher.isElementMatch("/project/src/components/Button.tsx", {
+          type: "component",
+        })
+      ).toBe(true);
+    });
+
+    it("should apply elementDescriptorsPriority when selecting elementPath in multi mode", () => {
+      const descriptors = [
+        {
+          type: "module-folder",
+          pattern: "modules/(*)",
+          mode: "folder" as const,
+          capture: ["name"],
+        },
+        {
+          type: "module-file",
+          pattern: "modules/*/(*)",
+          mode: "file" as const,
+          capture: ["name"],
+        },
+      ];
+
+      const firstPriorityMatcher = elements.getMatcher(descriptors, {
+        elementDescriptorsPriority: "first",
+      });
+      const lastPriorityMatcher = elements.getMatcher(descriptors, {
+        elementDescriptorsPriority: "last",
+      });
+
+      expect(
+        firstPriorityMatcher.isElementMatch(
+          "/project/src/users/modules/foo/Foo.test.ts",
+          {
+            elementPath: "/project/src/users/modules/foo",
+          }
+        )
+      ).toBe(true);
+      expect(
+        firstPriorityMatcher.isElementMatch(
+          "/project/src/users/modules/foo/Foo.test.ts",
+          {
+            elementPath: "/project/src/users/modules/foo/Foo.test.ts",
+          }
+        )
+      ).toBe(false);
+
+      expect(
+        lastPriorityMatcher.isElementMatch(
+          "/project/src/users/modules/foo/Foo.test.ts",
+          {
+            elementPath: "/project/src/users/modules/foo/Foo.test.ts",
+          }
+        )
+      ).toBe(true);
+    });
+
     it("should throw an error when using invalid selector in isElementMatch", () => {
       const invalidSelector = {
         var: "baz",

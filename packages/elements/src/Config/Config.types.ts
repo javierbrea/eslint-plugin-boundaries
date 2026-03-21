@@ -1,3 +1,5 @@
+import type { ElementDescriptorsPriority } from "../Descriptor";
+
 /**
  * Type representing a micromatch pattern, which can be a string or an array of strings.
  */
@@ -45,6 +47,15 @@ export type ConfigOptions = {
   legacyTemplates?: boolean;
   /** Whether to enable caching */
   cache?: boolean;
+  /** Whether all matching descriptors should be collected (default: true). When false, only the first match is collected. */
+  multiMatch?: boolean;
+  /**
+   * Priority to apply when multiple descriptors match at the same level.
+   * - "first": first match wins.
+   * - "last": last match wins.
+   * Defaults to "last" when multiMatch is true and "first" when multiMatch is false.
+   */
+  elementDescriptorsPriority?: ElementDescriptorsPriority;
   /** Configuration for categorizing dependencies as external or local */
   flagAsExternal?: FlagAsExternalOptions;
   /** Root path of the project, used for determining if dependencies are outside the project */
@@ -64,12 +75,20 @@ export type FlagAsExternalOptionsNormalized = {
 
 export type ConfigOptionsNormalized = Omit<
   ConfigOptions,
-  "legacyTemplates" | "cache" | "flagAsExternal"
+  | "legacyTemplates"
+  | "cache"
+  | "multiMatch"
+  | "elementDescriptorsPriority"
+  | "flagAsExternal"
 > & {
   /** Whether to enable legacy template support */
   legacyTemplates: boolean;
   /** Cache configuration options */
   cache: boolean;
+  /** Whether all matching descriptors should be collected */
+  multiMatch: boolean;
+  /** Priority used when multiple element descriptors match */
+  elementDescriptorsPriority: ElementDescriptorsPriority;
   /** Configuration for categorizing dependencies as external or local */
   flagAsExternal: FlagAsExternalOptionsNormalized;
   /** Root path of the project, already normalized, and finishing with a slash, used for determining if dependencies are outside the project */
@@ -79,7 +98,13 @@ export type ConfigOptionsNormalized = Omit<
 /** Options for descriptors */
 export type DescriptorOptionsNormalized = Pick<
   ConfigOptionsNormalized,
-  "includePaths" | "ignorePaths" | "cache" | "flagAsExternal" | "rootPath"
+  | "includePaths"
+  | "ignorePaths"
+  | "cache"
+  | "multiMatch"
+  | "elementDescriptorsPriority"
+  | "flagAsExternal"
+  | "rootPath"
 >;
 
 /** Options for element matchers */

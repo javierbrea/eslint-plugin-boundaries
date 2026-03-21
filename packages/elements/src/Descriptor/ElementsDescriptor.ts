@@ -19,6 +19,7 @@ import type {
 } from "./ElementsDescriptor.types";
 import {
   ELEMENT_DESCRIPTOR_MODES_MAP,
+  ELEMENT_DESCRIPTORS_PRIORITY_MAP,
   ELEMENT_ORIGINS_MAP,
 } from "./ElementsDescriptor.types";
 import {
@@ -52,6 +53,17 @@ type FileDescriptorMatchOptions = {
   lastPathSegmentMatching: number;
   /** Whether the element matched previously */
   alreadyMatched: boolean;
+};
+
+type DescriptorMatch = {
+  elementDescriptor: ElementDescriptor;
+  matchInfo: {
+    matched: true;
+    capture: string[];
+    baseCapture: string[] | null;
+    useFullPathMatch: boolean;
+    patternUsed: string;
+  };
 };
 
 const SCOPED_PACKAGE_REGEX = /^@[^/]*\/?[^/]+/;
@@ -541,58 +553,110 @@ export class ElementsDescriptor {
 
     const pathSegments = filePath.split("/").reverse();
 
-    const processElementMatch = (
-      elementDescriptor: ElementDescriptor,
-      matchInfo: {
-        matched: true;
-        capture: string[];
-        baseCapture: string[] | null;
-        useFullPathMatch: boolean;
-        patternUsed: string;
-      },
-      currentPathSegments: string[],
-      elementPaths: string[]
-    ) => {
-      const { capture, baseCapture, useFullPathMatch, patternUsed } = matchInfo;
+    const getPriorityMatch = (matches: DescriptorMatch[]): DescriptorMatch => {
+      return this._config.elementDescriptorsPriority ===
+        ELEMENT_DESCRIPTORS_PRIORITY_MAP.LAST
+        ? matches[matches.length - 1]
+        : matches[0];
+    };
+
+    const getCapturedFromMatch = (
+      match: DescriptorMatch
+    ): CapturedValues | null => {
+      const { capture, baseCapture } = match.matchInfo;
 
       let capturedValues = this._getCapturedValues(
         capture,
-        elementDescriptor.capture
+        match.elementDescriptor.capture
       );
 
-      if (elementDescriptor.basePattern && baseCapture) {
+      if (match.elementDescriptor.basePattern && baseCapture) {
         capturedValues = {
           ...this._getCapturedValues(
             baseCapture,
-            elementDescriptor.baseCapture
+            match.elementDescriptor.baseCapture
           ),
           ...capturedValues,
         };
       }
 
-      const elementPath = useFullPathMatch
-        ? filePath
-        : this._getElementPath(patternUsed, currentPathSegments, elementPaths);
+      return capturedValues;
+    };
 
-      if (!elementResult.type && !elementResult.category) {
+    const mergeCapturedValues = (
+      matches: DescriptorMatch[]
+    ): CapturedValues | null => {
+      const orderedMatches =
+        this._config.elementDescriptorsPriority ===
+        ELEMENT_DESCRIPTORS_PRIORITY_MAP.LAST
+          ? matches
+          : [...matches].reverse();
+
+      return orderedMatches.reduce<CapturedValues | null>((acc, match) => {
+        const currentCaptured = getCapturedFromMatch(match);
+        if (!currentCaptured) {
+          return acc;
+        }
+        return {
+          ...(acc || {}),
+          ...currentCaptured,
+        };
+      }, null);
+    };
+
+    const processElementMatches = (
+      matches: DescriptorMatch[],
+      currentPathSegments: string[],
+      elementPaths: string[],
+      isMainElement: boolean
+    ): void => {
+      const pathMatch = getPriorityMatch(matches);
+      const valueMatch = getPriorityMatch(matches);
+
+      const matchesForTypeAndCategory = this._config.multiMatch
+        ? matches
+        : [valueMatch];
+
+      const matchedTypes = matchesForTypeAndCategory
+        .map(({ elementDescriptor }) => elementDescriptor.type)
+        .filter((value): value is string => Boolean(value));
+      const matchedCategories = matchesForTypeAndCategory
+        .map(({ elementDescriptor }) => elementDescriptor.category)
+        .filter((value): value is string => Boolean(value));
+      const typeValue = matchedTypes.length > 0 ? matchedTypes : null;
+      const categoryValue =
+        matchedCategories.length > 0 ? matchedCategories : null;
+
+      const capturedValues = this._config.multiMatch
+        ? mergeCapturedValues(matches)
+        : getCapturedFromMatch(valueMatch);
+
+      const elementPath = pathMatch.matchInfo.useFullPathMatch
+        ? filePath
+        : this._getElementPath(
+            pathMatch.matchInfo.patternUsed,
+            currentPathSegments,
+            elementPaths
+          );
+
+      if (isMainElement) {
         const mode =
-          elementDescriptor.mode || ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
-        // It is the main element
-        elementResult.type = elementDescriptor.type || null;
-        elementResult.category = elementDescriptor.category || null;
+          pathMatch.elementDescriptor.mode ||
+          ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
+        elementResult.type = typeValue;
+        elementResult.category = categoryValue;
         elementResult.isUnknown = false;
         elementResult.elementPath = elementPath;
         elementResult.captured = capturedValues;
         elementResult.internalPath =
           mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER ||
-          filePath !== elementPath // When using 'file' mode, but the pattern matches a folder, we need to calculate the internal path
+          filePath !== elementPath
             ? filePath.replace(`${elementPath}/`, "")
-            : filePath.split("/").pop(); // In 'file' mode, if the pattern matches the full file, internalPath is the file name
+            : filePath.split("/").pop();
       } else {
-        // It is a parent element, because we have already matched the main one
         parents.push({
-          type: elementDescriptor.type || null,
-          category: elementDescriptor.category || null,
+          type: typeValue,
+          category: categoryValue,
           elementPath,
           captured: capturedValues,
         });
@@ -604,9 +668,8 @@ export class ElementsDescriptor {
       const segment = pathSegments[i];
       state.pathSegmentsAccumulator.unshift(segment);
 
-      // Early exit if we have both type and category (main element found)
-      const alreadyHasMainElement =
-        Boolean(elementResult.type) || Boolean(elementResult.category);
+      const alreadyHasMainElement = Boolean(elementResult.elementPath);
+      const levelMatches: DescriptorMatch[] = [];
 
       for (const elementDescriptor of this._elementDescriptors) {
         const match = this._fileDescriptorMatch({
@@ -618,18 +681,30 @@ export class ElementsDescriptor {
         });
 
         if (match.matched) {
-          processElementMatch(
+          levelMatches.push({
             elementDescriptor,
-            match,
-            state.pathSegmentsAccumulator,
-            pathSegments
-          );
-          state.pathSegmentsAccumulator = [];
-          state.lastPathSegmentMatching = i + 1;
-
-          // Break out of the inner loop since we found a match
-          break;
+            matchInfo: match,
+          });
+          if (
+            !this._config.multiMatch &&
+            this._config.elementDescriptorsPriority ===
+              ELEMENT_DESCRIPTORS_PRIORITY_MAP.FIRST
+          ) {
+            break;
+          }
         }
+      }
+
+      if (levelMatches.length > 0) {
+        const isMainElement = !alreadyHasMainElement;
+        processElementMatches(
+          levelMatches,
+          state.pathSegmentsAccumulator,
+          pathSegments,
+          isMainElement
+        );
+        state.pathSegmentsAccumulator = [];
+        state.lastPathSegmentMatching = i + 1;
       }
     }
 

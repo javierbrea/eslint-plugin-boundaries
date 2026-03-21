@@ -22,6 +22,22 @@ export type ElementDescriptorMode =
 export type ElementDescriptorPattern = string | string[];
 
 /**
+ * Map of the priorities to select descriptor matches when more than one descriptor matches at the same level.
+ */
+export const ELEMENT_DESCRIPTORS_PRIORITY_MAP = {
+  /** Priority to select the first matching descriptor */
+  FIRST: "first",
+  /** Priority to select the last matching descriptor */
+  LAST: "last",
+} as const;
+
+/**
+ * Priority used to select descriptor matches when more than one descriptor matches.
+ */
+export type ElementDescriptorsPriority =
+  (typeof ELEMENT_DESCRIPTORS_PRIORITY_MAP)[keyof typeof ELEMENT_DESCRIPTORS_PRIORITY_MAP];
+
+/**
  * Descriptor for an element (or layer) in the project.
  * Defines the type of the element, the pattern to match files, and optional settings like mode and capture groups.
  */
@@ -154,6 +170,12 @@ export type ElementOrigin =
   (typeof ELEMENT_ORIGINS_MAP)[keyof typeof ELEMENT_ORIGINS_MAP];
 
 /**
+ * Ordered values assigned to type/category in element descriptions.
+ * Values include only matching descriptor values for that key.
+ */
+export type ElementDescriptionMatchValues = string[] | null;
+
+/**
  * Base element properties related to captured values
  */
 export type BaseElementDescription = {
@@ -163,10 +185,10 @@ export type BaseElementDescription = {
   elementPath: string | null;
   /** Internal path of the file relative to the elementPath, or null if the element is ignored or unknown */
   internalPath: string | null;
-  /** Type of the element, or null if the element is ignored or unknown */
-  type: string | null;
-  /** Category of the element, or null if the element is ignored or unknown */
-  category: string | null;
+  /** Types assigned to the element, in descriptor matching order */
+  type: ElementDescriptionMatchValues;
+  /** Categories assigned to the element, in descriptor matching order */
+  category: ElementDescriptionMatchValues;
   /** Captured values from the element, or null if the element descriptor has no capture or the element is ignored or unknown */
   captured: CapturedValues | null;
   /** Parent elements, or null if the element is ignored, unknown, or it is not a local element */
@@ -183,10 +205,10 @@ export type BaseElementDescription = {
  * Parent elements
  */
 export type ElementParent = {
-  /** Type of the parent element */
-  type: string | null;
-  /** Category of the parent element */
-  category: string | null;
+  /** Types of the parent element */
+  type: ElementDescriptionMatchValues;
+  /** Categories of the parent element */
+  category: ElementDescriptionMatchValues;
   /** Path of the element relative to the project */
   elementPath: string;
   /** Captured values from the parent element */

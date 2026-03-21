@@ -143,6 +143,15 @@ const elements = new Elements({
 - **`includePaths`**: Micromatch pattern(s) to include only specific paths (default: all paths)
 - **`legacyTemplates`**: Whether to enable legacy template syntax support (default: `true`, but it will be `false` in future releases). This allows using `${variable}` syntax in templates for backward compatibility.
 - **`cache`**: Whether to enable internal caching to improve performance (default: `true`)
+- **`multiMatch`**: Whether to collect all matching descriptors for each element level (default: `true`).
+  - When `true`, `describeElement` collects all descriptor matches and stores their `type`/`category` values in order.
+  - When `false`, only the first matching descriptor is used (legacy behavior).
+- **`elementDescriptorsPriority`**: Priority to apply when multiple descriptors match at the same path level.
+  - Allowed values: `"first"` | `"last"`.
+  - Default: `"last"` when `multiMatch` is `true`, and `"first"` when `multiMatch` is `false`.
+  - Why these defaults:
+    - `multiMatch=true` typically means you want to aggregate signals and let the most specific descriptor (usually defined later) decide path-sensitive fields.
+    - `multiMatch=false` keeps the fast legacy behavior by stopping at the first eligible match.
 - **`rootPath`**: Absolute path to the project root. When configured, file paths should be provided as absolute paths to allow the package to determine which files are outside the project root (default: `undefined`)
 - **`flagAsExternal`**: Configuration for categorizing dependencies as external or local. Multiple conditions can be specified, and dependencies will be categorized as external if ANY condition is met (OR logic). See [Flagging Dependencies as External](#flagging-dependencies-as-external) for details.
 
@@ -200,6 +209,51 @@ Element descriptors define how files are identified and categorized. Each descri
 - **`capture`** (`string[]`): Array of keys to capture path fragments
 - **`baseCapture`** (`string[]`): Array of keys to capture fragments from `basePattern`. If the same key is defined in both `capture` and `baseCapture`, the value from `capture` takes precedence.
 
+#### Accumulative vs Priority-Based Properties
+
+When multiple descriptors match the same path level:
+
+- Accumulative properties: `type`, `category`, and `captured`.
+  - In `multiMatch=true`, these are built from all matching descriptors.
+  - `captured` conflicts are resolved using `elementDescriptorsPriority` (`"first"` or `"last"`).
+- Priority-based properties: `elementPath` and `internalPath`.
+  - These are always decided by the descriptor selected by `elementDescriptorsPriority`.
+
+#### Priority and Path Contribution Example
+
+Given the file `src/users/modules/foo/Foo.test.ts`, consider these descriptors:
+
+```typescript
+[
+  {
+    category: "test",
+    pattern: "**/*.test.ts",
+    mode: "file",
+  },
+  {
+    category: "domain",
+    pattern: "src/(*)/**/*.ts",
+    mode: "folder",
+    capture: ["domain"],
+  },
+  {
+    type: "module",
+    pattern: "modules/(*)/**/*.ts",
+    mode: "folder",
+    capture: ["moduleName"],
+  },
+];
+```
+
+With `multiMatch=true`:
+
+- `type` includes `"module"`
+- `category` includes `"test"` and `"domain"`
+- `captured` merges all captures (for example `{ domain: "users", moduleName: "foo" }`)
+- `elementPath` and `internalPath` are determined by `elementDescriptorsPriority`, so you can choose whether the first or the last matching descriptor defines the element boundary.
+
+This makes descriptor resolution explicit: accumulated metadata comes from all matches, while boundary fields come from the prioritized match.
+
 ### Descriptions API
 
 The matcher can also return normalized runtime descriptions. These descriptions are the canonical API used by `@boundaries/eslint-plugin` and are useful for debugging, reporting, and custom tooling.
@@ -214,8 +268,8 @@ The matcher can also return normalized runtime descriptions. These descriptions 
 Common fields:
 
 - `path`: Absolute or relative file path used in the matcher call
-- `type`: Matched element type, or `null` if unknown
-- `category`: Matched element category, or `null`
+- `type`: Array of matched element types in descriptor matching order (`string[]`), or `null` if no descriptor with `type` matched.
+- `category`: Array of matched element categories in descriptor matching order (`string[]`), or `null` if no descriptor with `category` matched.
 - `captured`: Captured values map from descriptor patterns, or `null`
 - `elementPath`: Path representing the detected element boundary, or `null`
 - `internalPath`: Path of the file relative to `elementPath`, or `null`
@@ -304,6 +358,8 @@ Element selectors support the following properties:
 
 
 > [!NOTE]
+> In runtime descriptions, `type` and `category` are arrays. Selector matching for these fields uses OR semantics over the element values (a selector matches when **any** value in the description array matches).
+>
 > All properties in the selector are optional. You can also use `null` values in selector to match only elements with `null` values in the corresponding properties. In the case of `parent`, setting it to `null` will match elements that have no parents (i.e., top-level elements). If `parent` is an object, it will only match elements that have at least one parent, and the first parent (`parents[0]`) matches the specified conditions.
 
 #### Dependency Selectors

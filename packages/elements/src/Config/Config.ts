@@ -1,3 +1,5 @@
+import { ELEMENT_DESCRIPTORS_PRIORITY_MAP } from "../Descriptor";
+import type { ElementDescriptorsPriority } from "../Descriptor";
 import { normalizePath } from "../Support";
 
 import type {
@@ -18,6 +20,10 @@ export class Config {
   private readonly _legacyTemplates: boolean;
   /** Whether the cache is enabled */
   private readonly _cache: boolean;
+  /** Whether all matching descriptors should be collected */
+  private readonly _multiMatch: boolean;
+  /** Priority used when multiple descriptors match */
+  private readonly _elementDescriptorsPriority: ElementDescriptorsPriority;
   /** Configuration for categorizing dependencies as external or local */
   private readonly _flagAsExternal: FlagAsExternalOptionsNormalized;
   /** Root path of the project */
@@ -31,6 +37,12 @@ export class Config {
     this._includePaths = options?.includePaths;
     this._legacyTemplates = options?.legacyTemplates ?? true;
     this._cache = options?.cache ?? true;
+    this._multiMatch = options?.multiMatch ?? true;
+    this._elementDescriptorsPriority =
+      options?.elementDescriptorsPriority ??
+      (this._multiMatch
+        ? ELEMENT_DESCRIPTORS_PRIORITY_MAP.LAST
+        : ELEMENT_DESCRIPTORS_PRIORITY_MAP.FIRST);
     this._flagAsExternal = {
       unresolvableAlias: options?.flagAsExternal?.unresolvableAlias ?? true,
       inNodeModules: options?.flagAsExternal?.inNodeModules ?? true,
@@ -56,6 +68,8 @@ export class Config {
       includePaths: this._includePaths,
       legacyTemplates: this._legacyTemplates,
       cache: this._cache,
+      multiMatch: this._multiMatch,
+      elementDescriptorsPriority: this._elementDescriptorsPriority,
       flagAsExternal: this._flagAsExternal,
       rootPath: this._rootPath,
     };
@@ -69,6 +83,8 @@ export class Config {
       ignorePaths: this._ignorePaths,
       includePaths: this._includePaths,
       cache: this._cache,
+      multiMatch: this._multiMatch,
+      elementDescriptorsPriority: this._elementDescriptorsPriority,
       flagAsExternal: this._flagAsExternal,
       rootPath: this._rootPath,
     };
