@@ -818,7 +818,7 @@ describe("Elements Matcher", () => {
       ).toBe(true);
     });
 
-    it("should only match first descriptor values when multiMatch is false", () => {
+    it("should only match first descriptor values when descriptorsMultiMatch is false", () => {
       const firstOnlyMatcher = elements.getMatcher(
         [
           {
@@ -834,7 +834,7 @@ describe("Elements Matcher", () => {
           },
         ],
         {
-          multiMatch: false,
+          descriptorsMultiMatch: false,
         }
       );
 
@@ -855,7 +855,7 @@ describe("Elements Matcher", () => {
       ).toBe(true);
     });
 
-    it("should apply elementDescriptorsPriority when selecting elementPath in multi mode", () => {
+    it("should apply descriptorsPriority when selecting elementPath in multi mode", () => {
       const descriptors = [
         {
           type: "module-folder",
@@ -872,10 +872,10 @@ describe("Elements Matcher", () => {
       ];
 
       const firstPriorityMatcher = elements.getMatcher(descriptors, {
-        elementDescriptorsPriority: "first",
+        descriptorsPriority: "first",
       });
       const lastPriorityMatcher = elements.getMatcher(descriptors, {
-        elementDescriptorsPriority: "last",
+        descriptorsPriority: "last",
       });
 
       expect(

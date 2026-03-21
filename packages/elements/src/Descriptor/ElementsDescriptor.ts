@@ -554,7 +554,7 @@ export class ElementsDescriptor {
     const pathSegments = filePath.split("/").reverse();
 
     const getPriorityMatch = (matches: DescriptorMatch[]): DescriptorMatch => {
-      return this._config.elementDescriptorsPriority ===
+      return this._config.descriptorsPriority ===
         ELEMENT_DESCRIPTORS_PRIORITY_MAP.LAST
         ? matches[matches.length - 1]
         : matches[0];
@@ -587,7 +587,7 @@ export class ElementsDescriptor {
       matches: DescriptorMatch[]
     ): CapturedValues | null => {
       const orderedMatches =
-        this._config.elementDescriptorsPriority ===
+        this._config.descriptorsPriority ===
         ELEMENT_DESCRIPTORS_PRIORITY_MAP.LAST
           ? matches
           : [...matches].reverse();
@@ -613,7 +613,7 @@ export class ElementsDescriptor {
       const pathMatch = getPriorityMatch(matches);
       const valueMatch = getPriorityMatch(matches);
 
-      const matchesForTypeAndCategory = this._config.multiMatch
+      const matchesForTypeAndCategory = this._config.descriptorsMultiMatch
         ? matches
         : [valueMatch];
 
@@ -627,7 +627,7 @@ export class ElementsDescriptor {
       const categoryValue =
         matchedCategories.length > 0 ? matchedCategories : null;
 
-      const capturedValues = this._config.multiMatch
+      const capturedValues = this._config.descriptorsMultiMatch
         ? mergeCapturedValues(matches)
         : getCapturedFromMatch(valueMatch);
 
@@ -686,8 +686,8 @@ export class ElementsDescriptor {
             matchInfo: match,
           });
           if (
-            !this._config.multiMatch &&
-            this._config.elementDescriptorsPriority ===
+            !this._config.descriptorsMultiMatch &&
+            this._config.descriptorsPriority ===
               ELEMENT_DESCRIPTORS_PRIORITY_MAP.FIRST
           ) {
             break;

@@ -21,9 +21,9 @@ export class Config {
   /** Whether the cache is enabled */
   private readonly _cache: boolean;
   /** Whether all matching descriptors should be collected */
-  private readonly _multiMatch: boolean;
+  private readonly _descriptorsMultiMatch: boolean;
   /** Priority used when multiple descriptors match */
-  private readonly _elementDescriptorsPriority: ElementDescriptorsPriority;
+  private readonly _descriptorsPriority: ElementDescriptorsPriority;
   /** Configuration for categorizing dependencies as external or local */
   private readonly _flagAsExternal: FlagAsExternalOptionsNormalized;
   /** Root path of the project */
@@ -37,10 +37,10 @@ export class Config {
     this._includePaths = options?.includePaths;
     this._legacyTemplates = options?.legacyTemplates ?? true;
     this._cache = options?.cache ?? true;
-    this._multiMatch = options?.multiMatch ?? true;
-    this._elementDescriptorsPriority =
-      options?.elementDescriptorsPriority ??
-      (this._multiMatch
+    this._descriptorsMultiMatch = options?.descriptorsMultiMatch ?? true;
+    this._descriptorsPriority =
+      options?.descriptorsPriority ??
+      (this._descriptorsMultiMatch
         ? ELEMENT_DESCRIPTORS_PRIORITY_MAP.LAST
         : ELEMENT_DESCRIPTORS_PRIORITY_MAP.FIRST);
     this._flagAsExternal = {
@@ -68,8 +68,8 @@ export class Config {
       includePaths: this._includePaths,
       legacyTemplates: this._legacyTemplates,
       cache: this._cache,
-      multiMatch: this._multiMatch,
-      elementDescriptorsPriority: this._elementDescriptorsPriority,
+      descriptorsMultiMatch: this._descriptorsMultiMatch,
+      descriptorsPriority: this._descriptorsPriority,
       flagAsExternal: this._flagAsExternal,
       rootPath: this._rootPath,
     };
@@ -83,8 +83,8 @@ export class Config {
       ignorePaths: this._ignorePaths,
       includePaths: this._includePaths,
       cache: this._cache,
-      multiMatch: this._multiMatch,
-      elementDescriptorsPriority: this._elementDescriptorsPriority,
+      descriptorsMultiMatch: this._descriptorsMultiMatch,
+      descriptorsPriority: this._descriptorsPriority,
       flagAsExternal: this._flagAsExternal,
       rootPath: this._rootPath,
     };

@@ -9,8 +9,8 @@ describe("Config", () => {
       includePaths: undefined,
       legacyTemplates: true,
       cache: true,
-      multiMatch: true,
-      elementDescriptorsPriority: "last",
+      descriptorsMultiMatch: true,
+      descriptorsPriority: "last",
       rootPath: undefined,
       flagAsExternal: {
         unresolvableAlias: true,
@@ -24,8 +24,8 @@ describe("Config", () => {
       ignorePaths: undefined,
       includePaths: undefined,
       cache: true,
-      multiMatch: true,
-      elementDescriptorsPriority: "last",
+      descriptorsMultiMatch: true,
+      descriptorsPriority: "last",
       rootPath: undefined,
       flagAsExternal: {
         unresolvableAlias: true,
@@ -48,8 +48,8 @@ describe("Config", () => {
       includePaths: ["src/**"],
       legacyTemplates: false,
       cache: false,
-      multiMatch: false,
-      elementDescriptorsPriority: "last",
+      descriptorsMultiMatch: false,
+      descriptorsPriority: "last",
       rootPath: "/root/path",
       flagAsExternal: {
         unresolvableAlias: false,
@@ -64,8 +64,8 @@ describe("Config", () => {
       includePaths: ["src/**"],
       legacyTemplates: false,
       cache: false,
-      multiMatch: false,
-      elementDescriptorsPriority: "last",
+      descriptorsMultiMatch: false,
+      descriptorsPriority: "last",
       rootPath: "/root/path/",
       flagAsExternal: {
         unresolvableAlias: false,
@@ -86,12 +86,12 @@ describe("Config", () => {
     expect(config.options.rootPath).toBe("/root/path/");
   });
 
-  it("should default elementDescriptorsPriority to first when multiMatch is false", () => {
+  it("should default descriptorsPriority to first when descriptorsMultiMatch is false", () => {
     const config = new Config({
-      multiMatch: false,
+      descriptorsMultiMatch: false,
     });
 
-    expect(config.options.elementDescriptorsPriority).toBe("first");
-    expect(config.descriptorOptions.elementDescriptorsPriority).toBe("first");
+    expect(config.options.descriptorsPriority).toBe("first");
+    expect(config.descriptorOptions.descriptorsPriority).toBe("first");
   });
 });

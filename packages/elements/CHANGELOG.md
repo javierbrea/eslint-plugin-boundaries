@@ -15,15 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- feat: Add `multiMatch` option (default: `true`) to control whether all matching descriptors are collected or only the first match (`false`).
-- feat: Add `elementDescriptorsPriority` option (`"first" | "last"`) to control which descriptor wins when multiple descriptors match at the same level.
+- feat: Add `descriptorsMultiMatch` option (default: `true`) to control whether all matching descriptors are collected or only the first match (`false`).
+- feat: Add `descriptorsPriority` option (`"first" | "last"`) to control which descriptor wins when multiple descriptors match at the same level.
 
 ### Changed
 
 - feat: `describeElement` and `describeDependency` element descriptions now return `type` and `category` as ordered arrays of `string[]`, or `null` when no values are matched for that key.
 - feat: Parent element descriptions now return `type` and `category` as ordered arrays of `string[]`, or `null` when no values are matched for that key.
 - feat: Element matcher `type` and `category` selector checks now match when any value in the description arrays matches (OR semantics, equivalent to micromatch `some`).
-- feat: In `multiMatch=true`, captured values are merged from all matching descriptors and conflict resolution follows `elementDescriptorsPriority`.
+- feat: In `descriptorsMultiMatch=true`, captured values are merged from all matching descriptors and conflict resolution follows `descriptorsPriority`.
 - feat: `elementPath` and `internalPath` are resolved from the prioritized descriptor (`first` or `last`) when multiple descriptors match.
 - test: Update and extend unit tests to cover multi-match behavior and first-match-only mode.
 

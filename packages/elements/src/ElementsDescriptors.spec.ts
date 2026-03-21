@@ -219,7 +219,7 @@ describe("Elements Descriptors", () => {
       expect(isElementDescription(element)).toBe(true);
     });
 
-    it("should collect all matches by default when multiMatch is enabled", () => {
+    it("should collect all matches by default when descriptorsMultiMatch is enabled", () => {
       const otherDescriptors = elements.getMatcher([
         {
           type: "component",
@@ -247,7 +247,7 @@ describe("Elements Descriptors", () => {
       );
     });
 
-    it("should stop at first match when multiMatch is disabled", () => {
+    it("should stop at first match when descriptorsMultiMatch is disabled", () => {
       const otherDescriptors = elements.getMatcher(
         [
           {
@@ -263,7 +263,7 @@ describe("Elements Descriptors", () => {
           },
         ],
         {
-          multiMatch: false,
+          descriptorsMultiMatch: false,
         }
       );
 
@@ -297,8 +297,8 @@ describe("Elements Descriptors", () => {
           },
         ],
         {
-          multiMatch: false,
-          elementDescriptorsPriority: "last",
+          descriptorsMultiMatch: false,
+          descriptorsPriority: "last",
         }
       );
 
@@ -376,10 +376,10 @@ describe("Elements Descriptors", () => {
       ];
 
       const firstPriorityMatcher = elements.getMatcher(descriptors, {
-        elementDescriptorsPriority: "first",
+        descriptorsPriority: "first",
       });
       const lastPriorityMatcher = elements.getMatcher(descriptors, {
-        elementDescriptorsPriority: "last",
+        descriptorsPriority: "last",
       });
 
       const firstElement = firstPriorityMatcher.describeElement(

@@ -15,8 +15,8 @@ describe("MatchersCache", () => {
       includePaths: ["src/**"],
       ignorePaths: ["dist/**"],
       cache: true,
-      multiMatch: true,
-      elementDescriptorsPriority: "last",
+      descriptorsMultiMatch: true,
+      descriptorsPriority: "last",
       rootPath: "/root",
       flagAsExternal: {
         inNodeModules: true,
