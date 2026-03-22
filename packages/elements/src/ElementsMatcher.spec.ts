@@ -106,9 +106,51 @@ describe("Elements Matcher", () => {
   const hasLegacyDependencySelectorKeys = (
     selector: DependencySelector
   ): boolean => {
+    const fileSelectorKeys = [
+      "path",
+      "internalPath",
+      "category",
+      "captured",
+      "element",
+      "origin",
+      "isIgnored",
+      "isUnknown",
+    ];
+
+    const isLegacyDependencySideSelector = (value: unknown): boolean => {
+      if (value === null || value === undefined) {
+        return false;
+      }
+
+      if (typeof value === "string") {
+        return true;
+      }
+
+      if (Array.isArray(value)) {
+        return value.some((item) => isLegacyDependencySideSelector(item));
+      }
+
+      if (typeof value !== "object") {
+        return true;
+      }
+
+      const valueRecord = value as Record<string, unknown>;
+      const valueKeys = Object.keys(valueRecord);
+
+      if ("category" in valueRecord) {
+        return true;
+      }
+
+      if (valueKeys.some((key) => !fileSelectorKeys.includes(key))) {
+        return true;
+      }
+
+      return false;
+    };
+
     return (
-      hasLegacyElementSelectorKeys(selector.from) ||
-      hasLegacyElementSelectorKeys(selector.to)
+      isLegacyDependencySideSelector(selector.from) ||
+      isLegacyDependencySideSelector(selector.to)
     );
   };
 
@@ -2146,7 +2188,7 @@ describe("Elements Matcher", () => {
       }
     );
 
-    it("should match using legacy string selector", () => {
+    it("should match using file selector with nested element selector", () => {
       const result = matcher.isDependencyMatch(
         {
           from: "/project/src/components/Button.tsx",
@@ -2157,15 +2199,15 @@ describe("Elements Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: "component",
-          to: "service",
+          from: { element: { type: "component" } },
+          to: { element: { type: "service" } },
         }
       );
 
       expect(result).toBe(true);
     });
 
-    it("should match using legacy string selector with options", () => {
+    it("should match using file selector with nested element options", () => {
       const result = matcher.isDependencyMatch(
         {
           from: "/project/src/components/Button.tsx",
@@ -2176,7 +2218,12 @@ describe("Elements Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: ["component", { fileName: "Button" }],
+          from: {
+            element: {
+              type: "component",
+              captured: { fileName: "Button" },
+            },
+          },
         }
       );
 
@@ -2272,7 +2319,7 @@ describe("Elements Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
+          from: { element: { type: "component" } },
         }
       );
 
@@ -2291,7 +2338,7 @@ describe("Elements Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
+          from: { element: { type: "component" } },
         }
       );
 
@@ -2310,7 +2357,7 @@ describe("Elements Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
+          from: { element: { type: "component" } },
         }
       );
 
@@ -2329,7 +2376,7 @@ describe("Elements Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
+          from: { element: { type: "component" } },
         }
       );
 
@@ -2348,7 +2395,7 @@ describe("Elements Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
+          from: { element: { type: "component" } },
         }
       );
 
@@ -2366,7 +2413,7 @@ describe("Elements Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
+          from: { element: { type: "component" } },
         }
       );
 
@@ -2385,8 +2432,8 @@ describe("Elements Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
-          to: { type: "component" }, // Same as from, it should not normalize again
+          from: { element: { type: "component" } },
+          to: { element: { type: "component" } }, // Same as from, it should not normalize again
         }
       );
 
@@ -2405,8 +2452,8 @@ describe("Elements Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
-          to: { type: "component" },
+          from: { element: { type: "component" } },
+          to: { element: { type: "component" } },
         }
       );
 

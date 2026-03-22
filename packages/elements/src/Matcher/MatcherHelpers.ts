@@ -227,7 +227,7 @@ export function normalizeElementsSelector(
  * @returns True if the value is file selector data.
  */
 export function isFileSelectorData(value: unknown): value is FileSelectorData {
-  return isObjectWithAnyOfProperties(value, [
+  const allowedKeys = [
     "path",
     "internalPath",
     "category",
@@ -236,7 +236,25 @@ export function isFileSelectorData(value: unknown): value is FileSelectorData {
     "origin",
     "isIgnored",
     "isUnknown",
-  ]);
+  ];
+
+  if (!isObjectWithAnyOfProperties(value, allowedKeys)) {
+    return false;
+  }
+
+  if (!hasOnlyAllowedKeys(value, allowedKeys)) {
+    return false;
+  }
+
+  if (!isObjectWithProperty(value, "element")) {
+    return true;
+  }
+
+  if (value.element === null) {
+    return true;
+  }
+
+  return isBaseElementSelectorData(value.element);
 }
 
 /**
@@ -301,9 +319,9 @@ export function isDependencySelector(
   }
 
   const fromIsValid =
-    !isObjectWithProperty(value, "from") || isElementsSelector(value.from);
+    !isObjectWithProperty(value, "from") || isFilesSelector(value.from);
   const toIsValid =
-    !isObjectWithProperty(value, "to") || isElementsSelector(value.to);
+    !isObjectWithProperty(value, "to") || isFilesSelector(value.to);
   const dependencyIsValid =
     !isObjectWithProperty(value, "dependency") ||
     isDependencyDataSelector(value.dependency);

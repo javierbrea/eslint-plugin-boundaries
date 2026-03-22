@@ -9,9 +9,9 @@ import type {
  */
 export type DependencyMatchResult = {
   /** The selector matching result for the 'from' element. */
-  from: BaseElementSelectorData | null;
+  from: FileSelectorData | null;
   /** The selector matching result for the 'to' element. */
-  to: BaseElementSelectorData | null;
+  to: FileSelectorData | null;
   /** The selector matching result for the dependency metadata. */
   dependency: DependencyDataSelectorData | null;
   /** Whether the dependency matches all the selector properties provided */
@@ -218,13 +218,13 @@ export type ElementsSelector = BaseElementsSelector;
 export type ElementSelectors = ElementsSelector;
 
 /**
- * Dependency selector, which includes optional 'from' and 'to' elements selectors.
+ * Dependency selector, which includes optional 'from' and 'to' file selectors.
  */
 export type DependencySelector = {
   /** Selector for the dependant elements. The file originating the dependency */
-  from?: BaseElementsSelector;
+  from?: FilesSelector;
   /** Selector for the dependency elements. The element being imported/exported */
-  to?: BaseElementsSelector;
+  to?: FilesSelector;
   /** Selector for dependency metadata */
   dependency?: DependencyDataSelector;
 };
@@ -234,9 +234,9 @@ export type DependencySelector = {
  */
 export type DependencySelectorNormalized = {
   /** Selector for the dependant elements. The file originating the dependency */
-  from: BaseElementSelectorData[] | null;
+  from: FileSelectorData[] | null;
   /** Selector for the dependency elements. The element being imported/exported */
-  to: BaseElementSelectorData[] | null;
+  to: FileSelectorData[] | null;
   /** Selector for dependency metadata */
   dependency: DependencyDataSelectorData[] | null;
 };

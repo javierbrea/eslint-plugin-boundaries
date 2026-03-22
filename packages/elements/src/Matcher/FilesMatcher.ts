@@ -5,12 +5,14 @@ import type {
 import type { FileDescription } from "../Descriptor";
 import { isArray, isString, isNull, isUndefined } from "../Support";
 
+import { BaseElementsMatcher } from "./BaseElementsMatcher";
 import type { ElementsMatcher } from "./ElementsMatcher";
 import type {
   FileSelectorData,
   FileElementSelectorData,
   FilesSelector,
   MatcherOptions,
+  TemplateData,
 } from "./Matcher.types";
 import { normalizeFilesSelector } from "./MatcherHelpers";
 import type { Micromatch } from "./Micromatch";
@@ -19,17 +21,16 @@ import type { Micromatch } from "./Micromatch";
  * Matcher for file descriptions against file selectors.
  * Files are classified by categories and can contain references to architectural elements.
  */
-export class FilesMatcher {
+export class FilesMatcher extends BaseElementsMatcher {
   private _elementsMatcher: ElementsMatcher;
-  private _micromatch: Micromatch;
 
   constructor(
-    _config: MatchersOptionsNormalized,
+    config: MatchersOptionsNormalized,
     elementsMatcher: ElementsMatcher,
     micromatch: Micromatch
   ) {
+    super(config, micromatch);
     this._elementsMatcher = elementsMatcher;
-    this._micromatch = micromatch;
   }
 
   /**
@@ -37,8 +38,13 @@ export class FilesMatcher {
    */
   private _isCategoryMatch(
     fileCategory: string | string[] | null,
-    selectorCategory: FileSelectorData["category"]
+    selectorCategory: FileSelectorData["category"],
+    templateData: TemplateData
   ): boolean {
+    if (isUndefined(selectorCategory)) {
+      return true;
+    }
+
     if (isNull(selectorCategory)) {
       return isNull(fileCategory);
     }
@@ -46,15 +52,17 @@ export class FilesMatcher {
     if (isString(selectorCategory) || isArray(selectorCategory)) {
       if (isArray(fileCategory)) {
         return fileCategory.some((category) =>
-          this._isMicromatchMatch(
-            category,
-            selectorCategory as MicromatchPatternNullable
+          this.isTemplateMicromatchMatch(
+            selectorCategory as MicromatchPatternNullable,
+            templateData,
+            category
           )
         );
       }
-      return this._isMicromatchMatch(
-        String(fileCategory || ""),
-        selectorCategory as MicromatchPatternNullable
+      return this.isTemplateMicromatchMatch(
+        selectorCategory as MicromatchPatternNullable,
+        templateData,
+        String(fileCategory || "")
       );
     }
 
@@ -66,17 +74,16 @@ export class FilesMatcher {
    */
   private _isPathMatch(
     filePath: string | null,
-    selectorPath: FileSelectorData["path"]
+    selectorPath: FileSelectorData["path"],
+    templateData: TemplateData
   ): boolean {
     if (isUndefined(selectorPath)) {
       return true;
     }
-    if (isNull(filePath)) {
-      return isNull(selectorPath);
-    }
-    return this._isMicromatchMatch(
-      filePath,
-      selectorPath as MicromatchPatternNullable
+    return this.isTemplateMicromatchMatch(
+      selectorPath as MicromatchPatternNullable,
+      templateData,
+      filePath
     );
   }
 
@@ -85,17 +92,16 @@ export class FilesMatcher {
    */
   private _isInternalPathMatch(
     fileInternalPath: string | null,
-    selectorInternalPath: FileSelectorData["internalPath"]
+    selectorInternalPath: FileSelectorData["internalPath"],
+    templateData: TemplateData
   ): boolean {
     if (isUndefined(selectorInternalPath)) {
       return true;
     }
-    if (!fileInternalPath) {
-      return false;
-    }
-    return this._isMicromatchMatch(
-      fileInternalPath,
-      selectorInternalPath as MicromatchPatternNullable
+    return this.isTemplateMicromatchMatch(
+      selectorInternalPath as MicromatchPatternNullable,
+      templateData,
+      fileInternalPath
     );
   }
 
@@ -104,15 +110,17 @@ export class FilesMatcher {
    */
   private _isOriginMatch(
     fileOrigin: string | null,
-    selectorOrigin: FileSelectorData["origin"]
+    selectorOrigin: FileSelectorData["origin"],
+    templateData: TemplateData
   ): boolean {
     if (isUndefined(selectorOrigin)) {
       return true;
     }
-    if (isNull(fileOrigin)) {
-      return isNull(selectorOrigin);
-    }
-    return fileOrigin === selectorOrigin;
+    return this.isTemplateMicromatchMatch(
+      selectorOrigin as MicromatchPatternNullable,
+      templateData,
+      fileOrigin
+    );
   }
 
   /**
@@ -146,7 +154,8 @@ export class FilesMatcher {
    */
   private _isCapturedValuesMatch(
     fileCapturedValues: Record<string, string> | null,
-    selectorCaptured: FileSelectorData["captured"]
+    selectorCaptured: FileSelectorData["captured"],
+    templateData: TemplateData
   ): boolean {
     if (isUndefined(selectorCaptured)) {
       return true;
@@ -154,7 +163,11 @@ export class FilesMatcher {
 
     if (isArray(selectorCaptured)) {
       return selectorCaptured.some((capturedValue) =>
-        this._isCapturedValuesMatch(fileCapturedValues, capturedValue)
+        this._isCapturedValuesMatch(
+          fileCapturedValues,
+          capturedValue,
+          templateData
+        )
       );
     }
 
@@ -166,7 +179,7 @@ export class FilesMatcher {
 
       for (const [key, value] of Object.entries(selectorCapturedObj)) {
         const fileValue = fileCapturedValues[key];
-        if (!this._isMicromatchMatch(fileValue || "", value)) {
+        if (!this.isTemplateMicromatchMatch(value, templateData, fileValue)) {
           return false;
         }
       }
@@ -181,7 +194,8 @@ export class FilesMatcher {
    */
   private _isElementMatch(
     fileElement: FileDescription["element"],
-    elementSelector: FileElementSelectorData | null | undefined
+    elementSelector: FileElementSelectorData | null | undefined,
+    templateData: TemplateData
   ): boolean {
     if (!elementSelector || isNull(elementSelector)) {
       return !fileElement;
@@ -193,7 +207,10 @@ export class FilesMatcher {
 
     return this._elementsMatcher.isElementMatch(
       fileElement as Parameters<ElementsMatcher["isElementMatch"]>[0],
-      elementSelector as Parameters<ElementsMatcher["isElementMatch"]>[1]
+      elementSelector as Parameters<ElementsMatcher["isElementMatch"]>[1],
+      {
+        extraTemplateData: templateData,
+      }
     );
   }
 
@@ -202,24 +219,42 @@ export class FilesMatcher {
    */
   private _getSelectorMatching(
     file: FileDescription,
-    selectorsData: FileSelectorData[]
+    selectorsData: FileSelectorData[],
+    extraTemplateData: TemplateData
   ): FileSelectorData | null {
+    const templateData: TemplateData = {
+      file,
+      ...extraTemplateData,
+    };
+
     for (const selectorData of selectorsData) {
-      if (!this._isPathMatch(file.path, selectorData.path)) {
+      if (!this._isPathMatch(file.path, selectorData.path, templateData)) {
         continue;
       }
 
       if (
-        !this._isInternalPathMatch(file.internalPath, selectorData.internalPath)
+        !this._isInternalPathMatch(
+          file.internalPath,
+          selectorData.internalPath,
+          templateData
+        )
       ) {
         continue;
       }
 
-      if (!this._isCategoryMatch(file.category, selectorData.category)) {
+      if (
+        !this._isCategoryMatch(
+          file.category,
+          selectorData.category,
+          templateData
+        )
+      ) {
         continue;
       }
 
-      if (!this._isOriginMatch(file.origin, selectorData.origin)) {
+      if (
+        !this._isOriginMatch(file.origin, selectorData.origin, templateData)
+      ) {
         continue;
       }
 
@@ -231,12 +266,24 @@ export class FilesMatcher {
         continue;
       }
 
-      if (!this._isCapturedValuesMatch(file.captured, selectorData.captured)) {
+      if (
+        !this._isCapturedValuesMatch(
+          file.captured,
+          selectorData.captured,
+          templateData
+        )
+      ) {
         continue;
       }
 
       if (!isUndefined(selectorData.element)) {
-        if (!this._isElementMatch(file.element, selectorData.element)) {
+        if (
+          !this._isElementMatch(
+            file.element,
+            selectorData.element,
+            templateData
+          )
+        ) {
           continue;
         }
       }
@@ -253,11 +300,10 @@ export class FilesMatcher {
   getSelectorMatching(
     file: FileDescription,
     selector: FilesSelector,
-    options?: MatcherOptions
+    { extraTemplateData = {} }: MatcherOptions = {}
   ): FileSelectorData | null {
-    void options;
     const selectorsData = normalizeFilesSelector(selector);
-    return this._getSelectorMatching(file, selectorsData);
+    return this._getSelectorMatching(file, selectorsData, extraTemplateData);
   }
 
   /**
@@ -269,32 +315,5 @@ export class FilesMatcher {
     options?: MatcherOptions
   ): boolean {
     return this.getSelectorMatching(file, selector, options) !== null;
-  }
-
-  /**
-   * Returns whether the given value matches the micromatch pattern.
-   */
-  private _isMicromatchMatch(
-    value: string | boolean,
-    pattern: MicromatchPatternNullable
-  ): boolean {
-    if (isNull(pattern)) {
-      return false;
-    }
-
-    if (isNull(value)) {
-      return isArray(pattern) && pattern.some(isNull);
-    }
-
-    const patternToCheck = isArray(pattern)
-      ? (pattern.filter(Boolean) as string[])
-      : pattern;
-
-    if (!patternToCheck) {
-      return false;
-    }
-
-    const valueStr = String(value);
-    return this._micromatch.isMatch(valueStr, patternToCheck);
   }
 }

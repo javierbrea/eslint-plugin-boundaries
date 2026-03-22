@@ -6,7 +6,7 @@ import type {
 import { isArray } from "../Support";
 
 import { BaseElementsMatcher } from "./BaseElementsMatcher";
-import type { ElementsMatcher } from "./ElementsMatcher";
+import type { FilesMatcher } from "./FilesMatcher";
 import type {
   TemplateData,
   DependencySelector,
@@ -14,9 +14,11 @@ import type {
   MatcherOptions,
   DependencyMatchResult,
   DependencyDataSelectorData,
+  FileSelectorData,
 } from "./Matcher.types";
 import {
-  normalizeElementsSelector,
+  isFilesSelector,
+  normalizeFilesSelector,
   isDependencyDataSelector,
   isDependencySelector,
 } from "./MatcherHelpers";
@@ -27,24 +29,37 @@ import type { Micromatch } from "./Micromatch";
  */
 export class DependenciesMatcher extends BaseElementsMatcher {
   /**
-   * Elements matcher to use for matching elements within dependencies.
+   * Files matcher to use for matching dependency source/target files.
    */
-  private readonly _elementsMatcher: ElementsMatcher;
+  private readonly _filesMatcher: FilesMatcher;
 
   /**
    * Creates a new DependenciesMatcher.
-   * @param elementsMatcher Elements matcher to use for matching elements within dependencies.
+   * @param filesMatcher Files matcher to use for matching dependency source/target files.
    * @param config Configuration options for the matcher.
    * @param micromatch Micromatch instance for matching.
    * @param globalCache Global cache instance.
    */
   constructor(
-    elementsMatcher: ElementsMatcher,
+    filesMatcher: FilesMatcher,
     config: MatchersOptionsNormalized,
     micromatch: Micromatch
   ) {
     super(config, micromatch);
-    this._elementsMatcher = elementsMatcher;
+    this._filesMatcher = filesMatcher;
+  }
+
+  /**
+   * Normalizes dependency side selectors (`from` or `to`) into file selectors.
+   */
+  private _normalizeDependencySideSelector(
+    selector: DependencySelector["from"]
+  ): FileSelectorData[] {
+    if (isFilesSelector(selector)) {
+      return normalizeFilesSelector(selector);
+    }
+
+    throw new Error("Invalid dependency side selector");
   }
 
   /**
@@ -69,8 +84,12 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     }
 
     return {
-      from: selector.from ? normalizeElementsSelector(selector.from) : null,
-      to: selector.to ? normalizeElementsSelector(selector.to) : null,
+      from: selector.from
+        ? this._normalizeDependencySideSelector(selector.from)
+        : null,
+      to: selector.to
+        ? this._normalizeDependencySideSelector(selector.to)
+        : null,
       dependency: normalizedDependencySelectors,
     };
   }
@@ -103,24 +122,14 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       };
 
     const fromSelectorMatching = selector.from
-      ? this._elementsMatcher.getSelectorMatching(
-          // TODO: his should match the file, not the element
-          dependency.from.element,
-          selector.from,
-          {
-            extraTemplateData: templateData,
-          }
-        )
+      ? this._filesMatcher.getSelectorMatching(dependency.from, selector.from, {
+          extraTemplateData: templateData,
+        })
       : null;
     const toSelectorMatching = selector.to
-      ? this._elementsMatcher.getSelectorMatching(
-          // TODO: his should match the file, not the element
-          dependency.to.element,
-          selector.to,
-          {
-            extraTemplateData: templateData,
-          }
-        )
+      ? this._filesMatcher.getSelectorMatching(dependency.to, selector.to, {
+          extraTemplateData: templateData,
+        })
       : null;
     const dependencyMetadataSelectorMatching = selector.dependency
       ? getDependencyMetadataSelectorMatching()
@@ -339,16 +348,22 @@ export class DependenciesMatcher extends BaseElementsMatcher {
 
     const fromExtraData = extraTemplateData.from || {};
     const toExtraData = extraTemplateData.to || {};
+    const fromElementTemplateData = dependency.from.element || {};
+    const toElementTemplateData = dependency.to.element || {};
 
     // Add `to` and `from` data to the template when checking elements in dependencies
     const templateData: TemplateData = {
       ...extraTemplateData,
       from: {
         ...dependency.from,
+        ...fromElementTemplateData,
+        file: dependency.from,
         ...fromExtraData,
       },
       to: {
         ...dependency.to,
+        ...toElementTemplateData,
+        file: dependency.to,
         ...toExtraData,
       },
       dependency: dependency.dependency,

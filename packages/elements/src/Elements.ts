@@ -145,14 +145,17 @@ export class Elements {
       matchersNormalizedOptions,
       micromatch
     );
-    const dependenciesMatcher = new DependenciesMatcher(
+    const filesMatcherForDependencies = new FilesMatcher(
+      matchersNormalizedOptions,
       elementsMatcher,
+      micromatch
+    );
+    const filesMatcher = fileDescriptors ? filesMatcherForDependencies : null;
+    const dependenciesMatcher = new DependenciesMatcher(
+      filesMatcherForDependencies,
       matchersNormalizedOptions,
       micromatch
     );
-    const filesMatcher = fileDescriptors
-      ? new FilesMatcher(matchersNormalizedOptions, elementsMatcher, micromatch)
-      : null;
 
     const matcher = new Matcher(
       elementDescriptors,
