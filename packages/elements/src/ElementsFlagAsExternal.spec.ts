@@ -12,9 +12,11 @@ describe("Elements FlagAsExternal configuration", () => {
   describe("default behavior (backward compatibility)", () => {
     beforeEach(() => {
       elements = new Elements();
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/components/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [
+          { type: "component", pattern: "src/components/*.ts" },
+        ],
+      });
     });
 
     it("should categorize unresolvable non-relative imports as external by default", () => {
@@ -40,9 +42,9 @@ describe("Elements FlagAsExternal configuration", () => {
 
     it("should not categorize paths outside rootPath as external by default", () => {
       elements = new Elements({ rootPath: "/project/packages/app" });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "**/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [{ type: "component", pattern: "**/*.ts" }],
+      });
 
       const dependency = matcher.describeDependency({
         from: "/project/packages/app/src/components/App.ts",
@@ -61,9 +63,11 @@ describe("Elements FlagAsExternal configuration", () => {
       elements = new Elements({
         flagAsExternal: { unresolvableAlias: true },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/components/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [
+          { type: "component", pattern: "src/components/*.ts" },
+        ],
+      });
 
       const dependency = matcher.describeDependency({
         from: "/project/src/components/App.ts",
@@ -78,9 +82,11 @@ describe("Elements FlagAsExternal configuration", () => {
       elements = new Elements({
         flagAsExternal: { unresolvableAlias: false },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/components/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [
+          { type: "component", pattern: "src/components/*.ts" },
+        ],
+      });
 
       const dependency = matcher.describeDependency({
         from: "/project/src/components/App.ts",
@@ -96,9 +102,11 @@ describe("Elements FlagAsExternal configuration", () => {
       elements = new Elements({
         flagAsExternal: { unresolvableAlias: true },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/components/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [
+          { type: "component", pattern: "src/components/*.ts" },
+        ],
+      });
 
       const dependency = matcher.describeDependency({
         from: "/project/src/components/App.ts",
@@ -115,9 +123,11 @@ describe("Elements FlagAsExternal configuration", () => {
       elements = new Elements({
         flagAsExternal: { inNodeModules: true },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/components/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [
+          { type: "component", pattern: "src/components/*.ts" },
+        ],
+      });
 
       const dependency = matcher.describeDependency({
         from: "/project/src/components/App.ts",
@@ -135,9 +145,9 @@ describe("Elements FlagAsExternal configuration", () => {
           inNodeModules: false,
         },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "**/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [{ type: "component", pattern: "**/*.ts" }],
+      });
 
       const dependency = matcher.describeDependency({
         from: "/project/src/components/App.ts",
@@ -156,9 +166,11 @@ describe("Elements FlagAsExternal configuration", () => {
         rootPath: "/project/packages/app",
         flagAsExternal: { outsideRootPath: true },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/components/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [
+          { type: "component", pattern: "src/components/*.ts" },
+        ],
+      });
 
       const dependency = matcher.describeDependency({
         from: "/project/packages/app/src/components/App.ts",
@@ -175,10 +187,12 @@ describe("Elements FlagAsExternal configuration", () => {
         rootPath: "/project/packages/app",
         flagAsExternal: { outsideRootPath: true },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/components/*.ts" },
-        { type: "util", pattern: "src/utils/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [
+          { type: "component", pattern: "src/components/*.ts" },
+          { type: "util", pattern: "src/utils/*.ts" },
+        ],
+      });
 
       const dependency = matcher.describeDependency({
         from: "/project/packages/app/src/components/App.ts",
@@ -195,9 +209,11 @@ describe("Elements FlagAsExternal configuration", () => {
         rootPath: String.raw`C:\project\packages\app`,
         flagAsExternal: { outsideRootPath: true },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/components/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [
+          { type: "component", pattern: "src/components/*.ts" },
+        ],
+      });
 
       const dependency = matcher.describeDependency({
         from: String.raw`C:\project\packages\app\src\components\App.ts`,
@@ -217,9 +233,9 @@ describe("Elements FlagAsExternal configuration", () => {
           unresolvableAlias: false, // Disable to avoid categorizing non-relative as external
         },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "**/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [{ type: "component", pattern: "**/*.ts" }],
+      });
 
       const dependency = matcher.describeDependency({
         from: "/project/packages/app/src/components/App.ts",
@@ -239,9 +255,11 @@ describe("Elements FlagAsExternal configuration", () => {
           customSourcePatterns: ["@myorg/*", "~/**"],
         },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/components/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [
+          { type: "component", pattern: "src/components/*.ts" },
+        ],
+      });
 
       const dependency1 = matcher.describeDependency({
         from: "/project/src/components/App.ts",
@@ -267,9 +285,11 @@ describe("Elements FlagAsExternal configuration", () => {
           customSourcePatterns: ["@myorg/*"],
         },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/components/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [
+          { type: "component", pattern: "src/components/*.ts" },
+        ],
+      });
 
       const dependency = matcher.describeDependency({
         from: "/project/src/components/App.ts",
@@ -287,9 +307,11 @@ describe("Elements FlagAsExternal configuration", () => {
           customSourcePatterns: [],
         },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/components/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [
+          { type: "component", pattern: "src/components/*.ts" },
+        ],
+      });
 
       const dependency = matcher.describeDependency({
         from: "/project/src/components/App.ts",
@@ -307,9 +329,11 @@ describe("Elements FlagAsExternal configuration", () => {
           customSourcePatterns: ["@myorg/!(internal-*)", "vendor/**"],
         },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/components/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [
+          { type: "component", pattern: "src/components/*.ts" },
+        ],
+      });
 
       const external = matcher.describeDependency({
         from: "/project/src/components/App.ts",
@@ -341,9 +365,11 @@ describe("Elements FlagAsExternal configuration", () => {
           customSourcePatterns: ["@custom/*"],
         },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/components/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [
+          { type: "component", pattern: "src/components/*.ts" },
+        ],
+      });
 
       // Matches outsideRootPath
       const dep1 = matcher.describeDependency({
@@ -392,9 +418,9 @@ describe("Elements FlagAsExternal configuration", () => {
           customSourcePatterns: [],
         },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "**/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [{ type: "component", pattern: "**/*.ts" }],
+      });
 
       const dependency = matcher.describeDependency({
         from: "/project/packages/app/src/components/App.ts",
@@ -414,9 +440,9 @@ describe("Elements FlagAsExternal configuration", () => {
           outsideRootPath: true,
         },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/**/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [{ type: "component", pattern: "src/**/*.ts" }],
+      });
 
       const dependency = matcher.describeDependency({
         from: "/project/src/index.ts",
@@ -433,9 +459,9 @@ describe("Elements FlagAsExternal configuration", () => {
           outsideRootPath: true,
         },
       });
-      matcher = elements.getMatcher([
-        { type: "component", pattern: "src/**/*.ts" },
-      ]);
+      matcher = elements.getMatcher({
+        elementDescriptors: [{ type: "component", pattern: "src/**/*.ts" }],
+      });
 
       const dependency = matcher.describeDependency({
         from: "/project/src/index.ts",

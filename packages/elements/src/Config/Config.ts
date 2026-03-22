@@ -20,8 +20,6 @@ export class Config {
   private readonly _legacyTemplates: boolean;
   /** Whether the cache is enabled */
   private readonly _cache: boolean;
-  /** Whether all matching descriptors should be collected */
-  private readonly _descriptorsMultiMatch: boolean;
   /** Priority used when multiple descriptors match */
   private readonly _descriptorsPriority: ElementDescriptorsPriority;
   /** Configuration for categorizing dependencies as external or local */
@@ -37,12 +35,8 @@ export class Config {
     this._includePaths = options?.includePaths;
     this._legacyTemplates = options?.legacyTemplates ?? true;
     this._cache = options?.cache ?? true;
-    this._descriptorsMultiMatch = options?.descriptorsMultiMatch ?? true;
     this._descriptorsPriority =
-      options?.descriptorsPriority ??
-      (this._descriptorsMultiMatch
-        ? ELEMENT_DESCRIPTORS_PRIORITY_MAP.LAST
-        : ELEMENT_DESCRIPTORS_PRIORITY_MAP.FIRST);
+      options?.descriptorsPriority ?? ELEMENT_DESCRIPTORS_PRIORITY_MAP.LAST;
     this._flagAsExternal = {
       unresolvableAlias: options?.flagAsExternal?.unresolvableAlias ?? true,
       inNodeModules: options?.flagAsExternal?.inNodeModules ?? true,
@@ -68,7 +62,6 @@ export class Config {
       includePaths: this._includePaths,
       legacyTemplates: this._legacyTemplates,
       cache: this._cache,
-      descriptorsMultiMatch: this._descriptorsMultiMatch,
       descriptorsPriority: this._descriptorsPriority,
       flagAsExternal: this._flagAsExternal,
       rootPath: this._rootPath,
@@ -83,7 +76,6 @@ export class Config {
       ignorePaths: this._ignorePaths,
       includePaths: this._includePaths,
       cache: this._cache,
-      descriptorsMultiMatch: this._descriptorsMultiMatch,
       descriptorsPriority: this._descriptorsPriority,
       flagAsExternal: this._flagAsExternal,
       rootPath: this._rootPath,

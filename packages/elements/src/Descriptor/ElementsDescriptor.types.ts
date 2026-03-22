@@ -6,8 +6,6 @@ export const ELEMENT_DESCRIPTOR_MODES_MAP = {
   FOLDER: "folder",
   /** Mode to interpret the pattern as a file */
   FILE: "file",
-  /** Mode to interpret the pattern as a full path */
-  FULL: "full",
 } as const;
 
 /**
@@ -50,16 +48,19 @@ export type BaseElementDescriptor = {
    **/
   basePattern?: string;
   /**
-   * Mode to interpret the pattern. Can be "folder" (default), "file", or "full".
+   * Mode to interpret the pattern. Can be "folder" (default) or "file".
    * - "folder": Default value. the element type will be assigned to the first file's parent folder matching the pattern.
    *             In the practice, it is like adding ** /* to the given pattern, but the plugin makes it by itself because it needs to know exactly which parent folder has to be considered the element.
    * - "file": The given pattern will not be modified, but the plugin will still try to match the last part of the path.
    *           So, a pattern like *.model.js would match with paths src/foo.model.js, src/modules/foo/foo.model.js, src/modules/foo/models/foo.model.js, etc.
-   * - "full": The given pattern will only match with patterns matching the full path.
-   *           This means that you will have to provide patterns matching from the base project path.
-   *           So, in order to match src/modules/foo/foo.model.js you'll have to provide patterns like ** /*.model.js, ** /* /*.model.js, src/* /* /*.model.js, etc. (the chosen pattern will depend on what do you want to capture from the path)
    */
   mode?: ElementDescriptorMode;
+  /**
+   * When true, the pattern is matched against the full file path from project root.
+   * When false (default), the pattern is applied as a folder descriptor (like adding /** /* to the pattern).
+   * This flag is an alternative to mode: "full" and will eventually replace the mode option.
+   */
+  fullMatch?: boolean;
   /**
    * It allows to capture values of some fragments in the matching path to use them later in the rules configuration.
    * Must be an array of strings representing the names of the capture groups in the pattern.
@@ -82,59 +83,55 @@ export type BaseElementDescriptor = {
 export type ElementDescriptorWithType = BaseElementDescriptor & {
   /** Type of the element (e.g., "service", "component", "util"). */
   type: string;
-  /** Category of the element */
-  category?: never;
 };
 
 /**
- * Element descriptor with a category.
+ * Element descriptor, defined by type.
  */
-export type ElementDescriptorWithCategory = BaseElementDescriptor & {
-  /** Category of the element (e.g., "domain", "infrastructure", "application"). */
-  category: string;
-  /** Type of the element*/
-  type?: never;
-};
-
-/**
- * Element descriptor with both type and category.
- */
-export type ElementDescriptorWithTypeAndCategory = BaseElementDescriptor & {
+export type ElementDescriptor = BaseElementDescriptor & {
   /** Type of the element (e.g., "service", "component", "util"). */
   type: string;
-  /** Category of the element (e.g., "domain", "infrastructure", "application"). */
-  category: string;
 };
-
-/**
- * Element descriptor, which can be defined by type, category, or both.
- */
-export type ElementDescriptor =
-  | ElementDescriptorWithType
-  | ElementDescriptorWithCategory
-  | ElementDescriptorWithTypeAndCategory;
 
 /**
  * Array of element descriptors.
  */
 export type ElementDescriptors = ElementDescriptor[];
 
-export type ElementDescriptionWithSource = ElementDescription & {
-  module?: string | null;
+/**
+ * File descriptor for classifying files within elements.
+ * Files can match multiple FileDescriptors to accumulate multiple categories.
+ * Like ElementDescriptor, it uses pattern matching and can capture values.
+ */
+export type FileDescriptor = BaseElementDescriptor & {
+  /**
+   * File descriptors always work in file mode and do not accept custom mode.
+   */
+  mode?: never;
+  /** Category/categories assigned to matching files (e.g., "presentation", "infrastructure", "test"). */
+  category: string | string[];
 };
+
+/**
+ * Array of file descriptors.
+ */
+export type FileDescriptors = FileDescriptor[];
 
 /**
  * Serialized cache of element descriptions.
  */
 export type DescriptionsSerializedCache = Record<
   string,
-  ElementDescription | ElementDescriptionWithSource
+  ElementDescription | null
 >;
 
 /**
  * Serialized cache of file elements.
  */
-export type FileElementsSerializedCache = Record<string, ElementDescription>;
+export type FileElementsSerializedCache = Record<
+  string,
+  ElementDescription | null
+>;
 
 /**
  * Serialized cache for ElementsDescriptor class.
@@ -152,22 +149,22 @@ export type ElementsDescriptorSerializedCache = {
 export type CapturedValues = Record<string, string>;
 
 /**
- * Origins of an element
+ * Origins of a file
  */
-export const ELEMENT_ORIGINS_MAP = {
-  /** Origin of local elements (files) */
+export const FILE_ORIGINS_MAP = {
+  /** Origin of local files */
   LOCAL: "local",
-  /** Origin of external elements (libraries) */
+  /** Origin of external files (libraries) */
   EXTERNAL: "external",
-  /** Origin of core elements */
+  /** Origin of core files */
   CORE: "core",
 } as const;
 
 /**
- * Kind of element origin, either local, external, or core.
+ * Kind of file origin, either local, external, or core.
  */
-export type ElementOrigin =
-  (typeof ELEMENT_ORIGINS_MAP)[keyof typeof ELEMENT_ORIGINS_MAP];
+export type FileOrigin =
+  (typeof FILE_ORIGINS_MAP)[keyof typeof FILE_ORIGINS_MAP];
 
 /**
  * Ordered values assigned to type/category in element descriptions.
@@ -176,125 +173,132 @@ export type ElementOrigin =
 export type ElementDescriptionMatchValues = string[] | null;
 
 /**
- * Base element properties related to captured values
+ * Base element properties related to captured values.
  */
 export type BaseElementDescription = {
-  /** Absolute path of the file. It might be null when a dependency path can't be resolved */
-  path: string | null;
-  /** Path of the file relative to the element, or null if the element is ignored or unknown */
-  elementPath: string | null;
-  /** Internal path of the file relative to the elementPath, or null if the element is ignored or unknown */
-  internalPath: string | null;
-  /** Types assigned to the element, in descriptor matching order */
-  type: ElementDescriptionMatchValues;
-  /** Categories assigned to the element, in descriptor matching order */
-  category: ElementDescriptionMatchValues;
-  /** Captured values from the element, or null if the element descriptor has no capture or the element is ignored or unknown */
+  /** Path of the element. */
+  path: string;
+  /** Type assigned to the element */
+  type: string;
+  /** Captured values from the element, or null if the element descriptor has no capture */
   captured: CapturedValues | null;
-  /** Parent elements, or null if the element is ignored, unknown, or it is not a local element */
-  parents: ElementParent[] | null;
-  /** Origin of the element, or null if the element is ignored */
-  origin: ElementOrigin | null;
-  /** Indicates if the element is ignored by settings. If true, the element will be excluded from processing any other properties. */
-  isIgnored: boolean;
-  /** Indicates if the element is unknown, which means that it cannot be resolved to any descriptor */
-  isUnknown: boolean;
+  /** Parent elements */
+  parents: ElementParent[];
 };
 
 /**
  * Parent elements
  */
 export type ElementParent = {
-  /** Types of the parent element */
-  type: ElementDescriptionMatchValues;
-  /** Categories of the parent element */
-  category: ElementDescriptionMatchValues;
-  /** Path of the element relative to the project */
-  elementPath: string;
-  /** Captured values from the parent element */
-  captured: CapturedValues | null;
-};
-
-/**
- * Description of an ignored element
- */
-export type IgnoredElement = BaseElementDescription & {
-  /** Type of the element */
-  type: null;
-  /** Category of the element */
-  category: null;
-  /** Ignored elements have not captured values */
-  captured: null;
-  /** Origin of the element */
-  origin: null;
-  /** Indicates if the file is ignored */
-  isIgnored: true;
-  /** Indicates that the element is unknown */
-  isUnknown: true;
-};
-
-/**
- * Description of an unknown local element
- */
-export type LocalElementUnknown = BaseElementDescription & {
-  /** Type of the element */
-  type: null;
-  /** Category of the element */
-  category: null;
-  /** Unknown elements have not captured values */
-  captured: null;
-  /** Indicates that the element is local */
-  origin: typeof ELEMENT_ORIGINS_MAP.LOCAL;
-  /** Indicates that the file is not ignored */
-  isIgnored: false;
-  /** Indicates that the element is unknown */
-  isUnknown: true;
-};
-
-/**
- * Description of a local element (file)
- */
-export type LocalElementKnown = BaseElementDescription & {
-  /** Path of the element */
+  /** Type of the parent element */
+  type: string | null;
+  /** Path of the parent element */
   path: string;
   /** Captured values from the parent element */
   captured: CapturedValues | null;
-  /** Path of the file relative to the element */
-  elementPath: string;
-  /** Internal path of the file relative to the elementPath */
+};
+
+/**
+ * Description of an element
+ */
+export type ElementDescription = BaseElementDescription;
+
+// ============================================================================
+// FILE DESCRIPTIONS (for file-level classifications)
+// ============================================================================
+
+/**
+ * Ordered categories assigned to a file from FileDescriptor matches.
+ * Files can have multiple categories (multi-match) unlike elements which have single types.
+ */
+export type FileCategories = string[] | null;
+
+/**
+ * Base file description properties.
+ * Represents a file with its element reference and file-level classifications.
+ */
+export type BaseFileDescription = {
+  /** Absolute path of the file */
+  path: string | null;
+  /** Path of the file relative to the element path (null if element is null) */
+  internalPath: string | null;
+  /** Categories assigned to the file by matching FileDescriptors */
+  category: FileCategories;
+  /** Captured values from file descriptor matches */
+  captured: CapturedValues | null;
+  /** The element this file belongs to (null if no ElementDescriptor matched) */
+  element: ElementDescription | null;
+  /** Origin of the file (local, external, core) */
+  origin: FileOrigin | null;
+  /** Whether the file is ignored by settings */
+  isIgnored: boolean;
+  /** Whether the file is unknown (no element matched the containing path) */
+  isUnknown: boolean;
+};
+
+/**
+ * Description of an ignored file
+ */
+export type IgnoredFile = BaseFileDescription & {
+  category: null;
+  captured: null;
+  origin: null;
+  isIgnored: true;
+  isUnknown: true;
+};
+
+/**
+ * Description of an unknown local file (matched no ElementDescriptor)
+ */
+export type LocalFileUnknown = BaseFileDescription & {
+  path: string | null;
+  category: FileCategories;
+  origin: typeof FILE_ORIGINS_MAP.LOCAL;
+  isIgnored: false;
+  isUnknown: true;
+  element: null;
+};
+
+/**
+ * Description of a known local file (matched by ElementDescriptor)
+ */
+export type LocalFileKnown = BaseFileDescription & {
+  path: string;
   internalPath: string;
-  /** Parent elements */
-  parents: ElementParent[];
-  /** Indicates that the element is local */
-  origin: typeof ELEMENT_ORIGINS_MAP.LOCAL;
-  /** Indicates that the file is not ignored */
+  category: FileCategories;
+  origin: typeof FILE_ORIGINS_MAP.LOCAL;
   isIgnored: false;
-  /** Indicates that the element is known */
   isUnknown: false;
+  element: ElementDescription;
 };
 
 /**
- * Description of an unknown external element.
+ * Description of an external file
  */
-export type ExternalElementDescription = BaseElementDescription & {
-  origin: typeof ELEMENT_ORIGINS_MAP.EXTERNAL;
+export type ExternalFileDescription = BaseFileDescription & {
+  origin: typeof FILE_ORIGINS_MAP.EXTERNAL;
   isIgnored: false;
 };
 
 /**
- * Description of an unknown core element.
+ * Description of a core file
  */
-export type CoreElementDescription = BaseElementDescription & {
-  origin: typeof ELEMENT_ORIGINS_MAP.CORE;
+export type CoreFileDescription = BaseFileDescription & {
+  origin: typeof FILE_ORIGINS_MAP.CORE;
   isIgnored: false;
 };
 
 /**
- * Description of an element, either local or dependency
+ * Description of a file with its classifications and containing element
  */
-export type ElementDescription =
-  | LocalElementKnown
-  | LocalElementUnknown
-  | IgnoredElement
-  | ExternalElementDescription
-  | CoreElementDescription;
+export type FileDescription =
+  | LocalFileKnown
+  | LocalFileUnknown
+  | IgnoredFile
+  | ExternalFileDescription
+  | CoreFileDescription;
+
+/**
+ * Serialized cache of file descriptions.
+ */
+export type FileDescriptionsSerializedCache = Record<string, FileDescription>;

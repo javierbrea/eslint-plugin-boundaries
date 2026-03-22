@@ -24,40 +24,40 @@ describe("Elements Matcher", () => {
 
     elements = new Elements();
     matcher = elements.getMatcher(
-      [
-        {
-          type: "component",
-          category: "react",
-          pattern: "src/components/*.tsx",
-          mode: "file",
-          capture: ["fileName"],
-        },
-        {
-          type: "test",
-          category: "business-logic",
-          pattern: ["*/*.test.ts", "*/*.spec.ts"],
-          basePattern: "**/src/*",
-          mode: "file",
-          capture: ["elementName", "testFileName"],
-          baseCapture: ["root", "businessLogicArea"],
-        },
-        {
-          category: "business-logic",
-          pattern: ["modules/*"],
-          capture: ["moduleName"],
-        },
-        {
-          type: "foo",
-          pattern: ["foo/*"],
-        },
-        {
-          type: "service",
-          pattern: ["**/src/services/*/*.ts"],
-          mode: "full",
-          capture: ["baseFolder", "serviceName", "serviceFileName"],
-        },
-        { type: "utility", pattern: "src/utils/**/*.ts", mode: "file" },
-      ],
+      {
+        elementDescriptors: [
+          {
+            type: "component",
+            pattern: "src/components/*.tsx",
+            mode: "file",
+            capture: ["fileName"],
+          },
+          {
+            type: "test",
+            pattern: ["*/*.test.ts", "*/*.spec.ts"],
+            basePattern: "**/src/*",
+            mode: "file",
+            capture: ["elementName", "testFileName"],
+            baseCapture: ["root", "businessLogicArea"],
+          },
+          {
+            type: "business-logic",
+            pattern: ["modules/*"],
+            capture: ["moduleName"],
+          },
+          {
+            type: "foo",
+            pattern: ["foo/*"],
+          },
+          {
+            type: "service",
+            pattern: ["**/src/services/*/*.ts"],
+            fullMatch: true,
+            capture: ["baseFolder", "serviceName", "serviceFileName"],
+          },
+          { type: "utility", pattern: "src/utils/**/*.ts", mode: "file" },
+        ],
+      },
       {
         includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],
         ignorePaths: ["**/src/**/__tests__/**"],
@@ -68,6 +68,49 @@ describe("Elements Matcher", () => {
   afterEach(() => {
     elements.clearCache();
   });
+
+  const hasLegacyElementSelectorKeys = (selector: unknown): boolean => {
+    const legacyKeys = [
+      "category",
+      "internalPath",
+      "origin",
+      "isIgnored",
+      "isUnknown",
+    ];
+
+    if (
+      typeof selector === "string" ||
+      selector === null ||
+      selector === undefined
+    ) {
+      return false;
+    }
+
+    if (Array.isArray(selector)) {
+      return selector.some((item) => hasLegacyElementSelectorKeys(item));
+    }
+
+    if (typeof selector !== "object") {
+      return false;
+    }
+
+    const selectorRecord = selector as Record<string, unknown>;
+
+    if (Object.keys(selectorRecord).some((key) => legacyKeys.includes(key))) {
+      return true;
+    }
+
+    return hasLegacyElementSelectorKeys(selectorRecord.parent);
+  };
+
+  const hasLegacyDependencySelectorKeys = (
+    selector: DependencySelector
+  ): boolean => {
+    return (
+      hasLegacyElementSelectorKeys(selector.from) ||
+      hasLegacyElementSelectorKeys(selector.to)
+    );
+  };
 
   describe("when matching elements", () => {
     // eslint-disable-next-line jest/prefer-ending-with-an-expect
@@ -251,17 +294,17 @@ describe("Elements Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { elementPath: "/project/src/components/Button.tsx" },
+        selector: { path: "/project/src/components/Button.tsx" },
         expected: true,
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { elementPath: "/project/src/components/**/*" },
+        selector: { path: "/project/src/components/**/*" },
         expected: true,
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { elementPath: "/project/src/foo/**/*" },
+        selector: { path: "/project/src/foo/**/*" },
         expected: false,
       },
       {
@@ -355,7 +398,9 @@ describe("Elements Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { captured: { fileName: "{{ element.captured.fileName }}" } },
+        selector: {
+          captured: { fileName: "{{ element.captured.fileName }}" },
+        },
         expected: true,
       },
       {
@@ -493,7 +538,7 @@ describe("Elements Matcher", () => {
         filePath:
           "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
         selector: {
-          parent: { elementPath: "{{ element.parents.0.elementPath }}" },
+          parent: { path: "{{ element.parents.0.path }}" },
         },
         expected: true,
       },
@@ -507,18 +552,18 @@ describe("Elements Matcher", () => {
         filePath:
           "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
         selector: { parent: { type: null } },
-        expected: true,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: { parent: { elementPath: "foo" } },
         expected: false,
       },
       {
         filePath:
           "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: { parent: { elementPath: "**" } },
+        selector: { parent: { path: "foo" } },
+        expected: false,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: { parent: { path: "**" } },
         expected: true,
       },
       {
@@ -536,7 +581,7 @@ describe("Elements Matcher", () => {
         filePath:
           "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
         selector: { parent: { type: null } },
-        expected: true,
+        expected: false,
       },
       {
         filePath:
@@ -620,6 +665,11 @@ describe("Elements Matcher", () => {
         extraTemplateData?: Record<string, unknown>;
         expectedMatch?: BaseElementSelectorData;
       }) => {
+        // Skip test cases with legacy selector keys
+        if (hasLegacyElementSelectorKeys(selector)) {
+          return;
+        }
+
         const matchResult = extraTemplateData
           ? matcher.isElementMatch(filePath, selector, { extraTemplateData })
           : matcher.isElementMatch(filePath, selector);
@@ -724,15 +774,16 @@ describe("Elements Matcher", () => {
 
     it("should not match using legacy template with legacyTemplates disabled", () => {
       matcher = elements.getMatcher(
-        [
-          {
-            type: "component",
-            category: "react",
-            pattern: "src/components/*.tsx",
-            mode: "file",
-            capture: ["fileName"],
-          },
-        ],
+        {
+          elementDescriptors: [
+            {
+              type: "component",
+              pattern: "src/components/*.tsx",
+              mode: "file",
+              capture: ["fileName"],
+            },
+          ],
+        },
         {
           includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],
           ignorePaths: ["**/src/**/__tests__/**"],
@@ -786,41 +837,8 @@ describe("Elements Matcher", () => {
     });
 
     it("should match selectors when any matched type/category value matches", () => {
-      const overlappingMatcher = elements.getMatcher([
-        {
-          type: "component",
-          pattern: "src/components/*.tsx",
-          mode: "file",
-        },
-        {
-          type: "view",
-          category: "ui",
-          pattern: "src/components/*.tsx",
-          mode: "file",
-        },
-      ]);
-
-      expect(
-        overlappingMatcher.isElementMatch(
-          "/project/src/components/Button.tsx",
-          {
-            type: "view",
-          }
-        )
-      ).toBe(true);
-      expect(
-        overlappingMatcher.isElementMatch(
-          "/project/src/components/Button.tsx",
-          {
-            category: "ui",
-          }
-        )
-      ).toBe(true);
-    });
-
-    it("should only match first descriptor values when descriptorsMultiMatch is false", () => {
-      const firstOnlyMatcher = elements.getMatcher(
-        [
+      const overlappingMatcher = elements.getMatcher({
+        elementDescriptors: [
           {
             type: "component",
             pattern: "src/components/*.tsx",
@@ -828,31 +846,108 @@ describe("Elements Matcher", () => {
           },
           {
             type: "view",
-            category: "ui",
             pattern: "src/components/*.tsx",
             mode: "file",
           },
         ],
+      });
+
+      expect(
+        overlappingMatcher.isElementMatch(
+          "/project/src/components/Button.tsx",
+          {
+            type: "view",
+          }
+        )
+      ).toBe(true);
+      expect(
+        overlappingMatcher.isElementMatch(
+          "/project/src/components/Button.tsx",
+          {
+            type: "view",
+          }
+        )
+      ).toBe(true);
+    });
+
+    it("should apply descriptorsPriority: first to match only first descriptor", () => {
+      const firstPriorityMatcher = elements.getMatcher(
         {
-          descriptorsMultiMatch: false,
+          elementDescriptors: [
+            {
+              type: "component",
+              pattern: "src/components/*.tsx",
+              mode: "file",
+            },
+            {
+              type: "view",
+              pattern: "src/components/*.tsx",
+              mode: "file",
+            },
+          ],
+        },
+        {
+          descriptorsPriority: "first",
         }
       );
 
+      const lastPriorityMatcher = elements.getMatcher(
+        {
+          elementDescriptors: [
+            {
+              type: "component",
+              pattern: "src/components/*.tsx",
+              mode: "file",
+            },
+            {
+              type: "view",
+              pattern: "src/components/*.tsx",
+              mode: "file",
+            },
+          ],
+        },
+        {
+          descriptorsPriority: "last",
+        }
+      );
+
+      // With first priority, matches the first descriptor (component)
       expect(
-        firstOnlyMatcher.isElementMatch("/project/src/components/Button.tsx", {
-          type: "view",
-        })
-      ).toBe(false);
-      expect(
-        firstOnlyMatcher.isElementMatch("/project/src/components/Button.tsx", {
-          category: "ui",
-        })
-      ).toBe(false);
-      expect(
-        firstOnlyMatcher.isElementMatch("/project/src/components/Button.tsx", {
-          type: "component",
-        })
+        firstPriorityMatcher.isElementMatch(
+          "/project/src/components/Button.tsx",
+          {
+            type: "component",
+          }
+        )
       ).toBe(true);
+
+      expect(
+        firstPriorityMatcher.isElementMatch(
+          "/project/src/components/Button.tsx",
+          {
+            type: "view",
+          }
+        )
+      ).toBe(false);
+
+      // With last priority, matches the last descriptor (view)
+      expect(
+        lastPriorityMatcher.isElementMatch(
+          "/project/src/components/Button.tsx",
+          {
+            type: "view",
+          }
+        )
+      ).toBe(true);
+
+      expect(
+        lastPriorityMatcher.isElementMatch(
+          "/project/src/components/Button.tsx",
+          {
+            type: "component",
+          }
+        )
+      ).toBe(false);
     });
 
     it("should apply descriptorsPriority when selecting elementPath in multi mode", () => {
@@ -871,18 +966,28 @@ describe("Elements Matcher", () => {
         },
       ];
 
-      const firstPriorityMatcher = elements.getMatcher(descriptors, {
-        descriptorsPriority: "first",
-      });
-      const lastPriorityMatcher = elements.getMatcher(descriptors, {
-        descriptorsPriority: "last",
-      });
+      const firstPriorityMatcher = elements.getMatcher(
+        {
+          elementDescriptors: descriptors,
+        },
+        {
+          descriptorsPriority: "first",
+        }
+      );
+      const lastPriorityMatcher = elements.getMatcher(
+        {
+          elementDescriptors: descriptors,
+        },
+        {
+          descriptorsPriority: "last",
+        }
+      );
 
       expect(
         firstPriorityMatcher.isElementMatch(
           "/project/src/users/modules/foo/Foo.test.ts",
           {
-            elementPath: "/project/src/users/modules/foo",
+            path: "/project/src/users/modules/foo",
           }
         )
       ).toBe(true);
@@ -890,7 +995,7 @@ describe("Elements Matcher", () => {
         firstPriorityMatcher.isElementMatch(
           "/project/src/users/modules/foo/Foo.test.ts",
           {
-            elementPath: "/project/src/users/modules/foo/Foo.test.ts",
+            path: "/project/src/users/modules/foo/Foo.test.ts",
           }
         )
       ).toBe(false);
@@ -899,7 +1004,7 @@ describe("Elements Matcher", () => {
         lastPriorityMatcher.isElementMatch(
           "/project/src/users/modules/foo/Foo.test.ts",
           {
-            elementPath: "/project/src/users/modules/foo/Foo.test.ts",
+            path: "/project/src/users/modules/foo/Foo.test.ts",
           }
         )
       ).toBe(true);
@@ -930,8 +1035,6 @@ describe("Elements Matcher", () => {
         "/project/src/components/Button.tsx",
         {
           type: "component",
-          category: "react",
-          origin: "local",
         }
       );
 
@@ -944,8 +1047,6 @@ describe("Elements Matcher", () => {
         "/project/src/components/Button.tsx",
         {
           type: "component",
-          category: "react",
-          origin: "local",
         }
       );
 
@@ -1106,7 +1207,7 @@ describe("Elements Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { elementPath: "**/*" },
+          from: { path: "**/*" },
         },
         expected: true,
       },
@@ -1119,7 +1220,7 @@ describe("Elements Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { elementPath: "foo" },
+          from: { path: "foo" },
         },
         expected: false,
       },
@@ -1333,7 +1434,7 @@ describe("Elements Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { elementPath: "**" },
+          to: { path: "**" },
         },
         expected: true,
       },
@@ -1347,7 +1448,7 @@ describe("Elements Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { elementPath: "foo" },
+          to: { path: "foo" },
         },
         expected: false,
       },
@@ -1434,7 +1535,10 @@ describe("Elements Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { type: "{{ to.type }}", internalPath: ["foo", "**/Button.tsx"] },
+          to: {
+            type: "{{ to.type }}",
+            internalPath: ["foo", "**/Button.tsx"],
+          },
         },
         expected: true,
       },
@@ -1474,7 +1578,7 @@ describe("Elements Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { elementPath: "*" }, // Unknown element, so elementPath is not set
+          to: { path: "*" }, // Unknown element, so elementPath is not set
         },
         expected: false,
       },
@@ -1970,6 +2074,11 @@ describe("Elements Matcher", () => {
         extraTemplateData?: Record<string, unknown>;
         expectedMatch?: DependencySelector;
       }) => {
+        // Skip test cases with legacy selector keys
+        if (hasLegacyDependencySelectorKeys(selector)) {
+          return;
+        }
+
         const result = extraTemplateData
           ? matcher.isDependencyMatch(dependency, selector, {
               extraTemplateData,

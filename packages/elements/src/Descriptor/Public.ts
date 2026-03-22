@@ -7,3 +7,4 @@ export * from "./Descriptors.types";
 export type { DependenciesDescriptor } from "./DependenciesDescriptor";
 export type { ElementsDescriptor } from "./ElementsDescriptor";
 export type { Descriptors } from "./Descriptors";
+export type { FilesDescriptor } from "./FilesDescriptor";

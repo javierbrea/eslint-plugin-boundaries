@@ -78,22 +78,24 @@ import { Elements } from '@boundaries/elements';
 const elements = new Elements();
 
 // Define element descriptors
-const matcher = elements.getMatcher([
-  {
-    type: "component",
-    category: "react",
-    pattern: "src/components/*.tsx",
-    mode: "file",
-    capture: ["fileName"],
-  },
-  {
-    type: "service",
-    category: "data",
-    pattern: "src/services/*.ts",
-    mode: "file",
-    capture: ["fileName"],
-  },
-]);
+const matcher = elements.getMatcher({
+  elementDescriptors: [
+    {
+      type: "component",
+      category: "react",
+      pattern: "src/components/*.tsx",
+      mode: "file",
+      capture: ["fileName"],
+    },
+    {
+      type: "service",
+      category: "data",
+      pattern: "src/services/*.ts",
+      mode: "file",
+      capture: ["fileName"],
+    },
+  ],
+});
 
 // Match an element
 const isComponent = matcher.isElementMatch("src/components/Button.tsx", { 
@@ -164,21 +166,23 @@ const elements = new Elements({
 
 ### Creating a Matcher
 
-Use the `getMatcher` method to create a matcher with element descriptors:
+Use the `getMatcher` method to create a matcher with descriptor groups:
 
 ```typescript
-const matcher = elements.getMatcher([
-  {
-    type: "component",
-    pattern: "src/components/*",
-    mode: "folder",
-  },
-  {
-    type: "helper",
-    pattern: "src/helpers/*.js",
-    mode: "file",
-  }
-]);
+const matcher = elements.getMatcher({
+  elementDescriptors: [
+    {
+      type: "component",
+      pattern: "src/components/*",
+      mode: "folder",
+    },
+    {
+      type: "helper",
+      pattern: "src/helpers/*.js",
+      mode: "file",
+    },
+  ],
+});
 ```
 
 > **💡 Tip:** Matchers with identical descriptors and options share the same cache instance for improved performance.
@@ -187,7 +191,9 @@ You can override the default options when creating a matcher:
 
 ```typescript
 const matcher = elements.getMatcher(
-  [/* descriptors */],
+  {
+    elementDescriptors: [/* descriptors */],
+  },
   {
     ignorePaths: ["**/*.test.ts"],
   }
@@ -413,14 +419,16 @@ When matching, the following data is automatically available:
 
 ```ts
 // Using captured values in templates
-const matcher = elements.getMatcher([
-  {
-    type: "component",
-    pattern: "src/modules/(*)/**/*.component.tsx",
-    capture: ["module", "elementName", "fileName"],
-    mode: "file"
-  }
-]);
+const matcher = elements.getMatcher({
+  elementDescriptors: [
+    {
+      type: "component",
+      pattern: "src/modules/(*)/**/*.component.tsx",
+      capture: ["module", "elementName", "fileName"],
+      mode: "file"
+    }
+  ],
+});
 
 // Match components from specific module using template
 const isAuthComponent = matcher.isElementMatch(
@@ -550,7 +558,7 @@ The `flagAsExternal` configuration allows you to control how dependencies are ca
   const elements = new Elements({
     flagAsExternal: { unresolvableAlias: true },
   });
-  const matcher = elements.getMatcher([/* descriptors */]);
+  const matcher = elements.getMatcher({ elementDescriptors: [/* descriptors */] });
   
   // describeDependency({ from, to, source, kind }):
   // to: null, source: 'unresolved-module' -> origin: 'external'
@@ -563,7 +571,7 @@ The `flagAsExternal` configuration allows you to control how dependencies are ca
   const elements = new Elements({
     flagAsExternal: { inNodeModules: true },
   });
-  const matcher = elements.getMatcher([/* descriptors */]);
+  const matcher = elements.getMatcher({ elementDescriptors: [/* descriptors */] });
   
   // describeDependency({ from, to, source, kind }):
   // to: '/project/node_modules/react/index.js', source: 'react' -> origin: 'external'
@@ -579,7 +587,7 @@ The `flagAsExternal` configuration allows you to control how dependencies are ca
     rootPath: '/monorepo/packages/app',
     flagAsExternal: { outsideRootPath: true },
   });
-  const matcher = elements.getMatcher([/* descriptors */]);
+  const matcher = elements.getMatcher({ elementDescriptors: [/* descriptors */] });
   
   // describeDependency({ from, to, source, kind }):
   // to: '/monorepo/packages/shared/index.ts', source: '@myorg/shared' -> origin: 'external'
@@ -592,7 +600,7 @@ The `flagAsExternal` configuration allows you to control how dependencies are ca
   const elements = new Elements({
     flagAsExternal: { customSourcePatterns: ['@myorg/*', '~/**'] },
   });
-  const matcher = elements.getMatcher([/* descriptors */]);
+  const matcher = elements.getMatcher({ elementDescriptors: [/* descriptors */] });
   
   // describeDependency({ from, to, source, kind }):
   // source: '@myorg/shared' -> origin: 'external' (matches '@myorg/*')
@@ -613,9 +621,11 @@ const elements = new Elements({
 });
 
 // Matching patterns are relative to rootPath
-const matcher = elements.getMatcher([
-  { type: 'component', pattern: 'src/**/*.ts', mode: 'full' }, // Relative to /project/packages/app
-]);
+const matcher = elements.getMatcher({
+  elementDescriptors: [
+    { type: 'component', pattern: 'src/**/*.ts', mode: 'full' }, // Relative to /project/packages/app
+  ],
+});
 
 // ✅ Correct: Using absolute file paths with relative patterns
 const dep = matcher.describeDependency({
@@ -663,23 +673,27 @@ new Elements(options?: ConfigurationOptions);
 Creates a new matcher instance.
 
 - __Parameters__:
-  - `descriptors`: `array<ElementDescriptor>` Array of [element descriptors](#element-descriptors) to be used by the matcher.
+  - `descriptors`: `MatcherDescriptors` Object with descriptor groups for the matcher.
+  - `descriptors.elementDescriptors`: `ElementDescriptor[]` Optional. Array of [element descriptors](#element-descriptors) used for element classification.
+  - `descriptors.fileDescriptors`: `FileDescriptor[]` Optional. Array of file descriptors used for file classification with `describeFile` and `isFileMatch`.
   - `options`: `ElementsOptions` Optional. [Configuration options](#configuration-options) for the matcher. These options will override the default options set in the `Elements` instance.
 - __Returns__: `Matcher` A new matcher instance.
 
 ```ts
-const matcher = elements.getMatcher([
-  {
-    type: "component",
-    pattern: "src/components/*",
-    mode: "folder",
-  },
-  {
-    type: "helper",
-    pattern: "src/helpers/*.js",
-    mode: "file",
-  }
-]);
+const matcher = elements.getMatcher({
+  elementDescriptors: [
+    {
+      type: "component",
+      pattern: "src/components/*",
+      mode: "folder",
+    },
+    {
+      type: "helper",
+      pattern: "src/helpers/*.js",
+      mode: "file",
+    },
+  ],
+});
 ```
 
 ##### `clearCache`

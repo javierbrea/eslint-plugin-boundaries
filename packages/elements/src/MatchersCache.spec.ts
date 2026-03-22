@@ -15,7 +15,6 @@ describe("MatchersCache", () => {
       includePaths: ["src/**"],
       ignorePaths: ["dist/**"],
       cache: true,
-      descriptorsMultiMatch: true,
       descriptorsPriority: "last",
       rootPath: "/root",
       flagAsExternal: {
@@ -41,7 +40,7 @@ describe("MatchersCache", () => {
     const key = matchersCache.getKey({ config, elementDescriptors });
 
     expect(key).toBe(
-      "true|src/**|dist/**|true|true|last|/root|true|false|true|@external/*|:|component|ui|src/components/*.tsx|src|file|name|baseName"
+      "true|src/**|dist/**|true|last|/root|true|false|true|@external/*|:|component|src/components/*.tsx|src|file|name|baseName|:|"
     );
   });
 });

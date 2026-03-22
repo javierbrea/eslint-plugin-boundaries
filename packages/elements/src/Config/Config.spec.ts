@@ -9,7 +9,6 @@ describe("Config", () => {
       includePaths: undefined,
       legacyTemplates: true,
       cache: true,
-      descriptorsMultiMatch: true,
       descriptorsPriority: "last",
       rootPath: undefined,
       flagAsExternal: {
@@ -24,7 +23,6 @@ describe("Config", () => {
       ignorePaths: undefined,
       includePaths: undefined,
       cache: true,
-      descriptorsMultiMatch: true,
       descriptorsPriority: "last",
       rootPath: undefined,
       flagAsExternal: {
@@ -48,7 +46,6 @@ describe("Config", () => {
       includePaths: ["src/**"],
       legacyTemplates: false,
       cache: false,
-      descriptorsMultiMatch: false,
       descriptorsPriority: "last",
       rootPath: "/root/path",
       flagAsExternal: {
@@ -64,7 +61,6 @@ describe("Config", () => {
       includePaths: ["src/**"],
       legacyTemplates: false,
       cache: false,
-      descriptorsMultiMatch: false,
       descriptorsPriority: "last",
       rootPath: "/root/path/",
       flagAsExternal: {
@@ -86,12 +82,10 @@ describe("Config", () => {
     expect(config.options.rootPath).toBe("/root/path/");
   });
 
-  it("should default descriptorsPriority to first when descriptorsMultiMatch is false", () => {
-    const config = new Config({
-      descriptorsMultiMatch: false,
-    });
+  it("should default descriptorsPriority to last", () => {
+    const config = new Config();
 
-    expect(config.options.descriptorsPriority).toBe("first");
-    expect(config.descriptorOptions.descriptorsPriority).toBe("first");
+    expect(config.options.descriptorsPriority).toBe("last");
+    expect(config.descriptorOptions.descriptorsPriority).toBe("last");
   });
 });

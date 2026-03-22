@@ -27,6 +27,7 @@ describe("DependenciesDescriptor cache serialization", () => {
     elementsDescriptor = new ElementsDescriptor([], config, micromatch);
     dependenciesDescriptor = new DependenciesDescriptor(
       elementsDescriptor,
+      null,
       config
     );
   });

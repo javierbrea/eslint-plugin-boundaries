@@ -10,6 +10,11 @@ import {
   isElementSelectorData,
   isElementSelector,
   isElementsSelector,
+  isFileSelectorData,
+  isFileSelector,
+  isFilesSelector,
+  normalizeFileSelector,
+  normalizeFilesSelector,
 } from "./MatcherHelpers";
 
 describe("elementsSelectorHelpers", () => {
@@ -149,13 +154,9 @@ describe("elementsSelectorHelpers", () => {
   describe("element selector helpers", () => {
     it("isElementSelectorData should match either", () => {
       expect(isElementSelectorData({ type: "component" })).toBe(true);
-      expect(isElementSelectorData({ category: "ui" })).toBe(true);
       expect(
         isElementSelectorData({ parent: { type: "feature-folder" } })
       ).toBe(true);
-      expect(isElementSelectorData({ type: "component", category: "ui" })).toBe(
-        true
-      );
       expect(isElementSelectorData({})).toBe(false);
     });
 
@@ -163,7 +164,7 @@ describe("elementsSelectorHelpers", () => {
       expect(isElementSelectorData("component")).toBe(false);
     });
 
-    it("isElementSelectorData should match parent property being null", () => {
+    it("isElementSelectorData should match parents property being null", () => {
       expect(isElementSelectorData({ parent: null })).toBe(true);
     });
   });
@@ -265,6 +266,51 @@ describe("elementsSelectorHelpers", () => {
 
       expect(isElementsSelector(minimalSingleElementSelector)).toBe(true);
       expect(isElementsSelector(minimalArrayElementsSelector)).toBe(true);
+    });
+  });
+
+  describe("file selector helpers", () => {
+    it("isFileSelectorData should match valid file selector objects", () => {
+      expect(isFileSelectorData({ path: "src/**/*.ts" })).toBe(true);
+      expect(isFileSelectorData({ category: ["ui", "core"] })).toBe(true);
+      expect(isFileSelectorData({ element: { type: "component" } })).toBe(true);
+      expect(isFileSelectorData({})).toBe(false);
+    });
+
+    it("isFileSelector should match valid file selector objects", () => {
+      expect(isFileSelector({ path: "src/**/*.ts" })).toBe(true);
+      expect(isFileSelector("src/**/*.ts")).toBe(false);
+    });
+
+    it("isFilesSelector should match single and array selectors", () => {
+      expect(isFilesSelector({ path: "src/**/*.ts" })).toBe(true);
+      expect(
+        isFilesSelector([{ path: "src/**/*.ts" }, { category: "ui" }])
+      ).toBe(true);
+      expect(isFilesSelector([])).toBe(false);
+      expect(isFilesSelector(["invalid"])).toBe(false);
+    });
+
+    it("normalizeFileSelector should return a shallow-cloned selector", () => {
+      const selector = { path: "src/**/*.ts", category: "ui" };
+
+      const normalized = normalizeFileSelector(selector);
+
+      expect(normalized).toEqual(selector);
+      expect(normalized).not.toBe(selector);
+    });
+
+    it("normalizeFilesSelector should normalize single and array selectors", () => {
+      expect(normalizeFilesSelector({ path: "src/**/*.ts" })).toEqual([
+        { path: "src/**/*.ts" },
+      ]);
+
+      const normalized = normalizeFilesSelector([
+        { path: "src/**/*.ts" },
+        { category: "ui" },
+      ]);
+
+      expect(normalized).toEqual([{ path: "src/**/*.ts" }, { category: "ui" }]);
     });
   });
 });

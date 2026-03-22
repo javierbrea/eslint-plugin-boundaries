@@ -47,13 +47,11 @@ export type ConfigOptions = {
   legacyTemplates?: boolean;
   /** Whether to enable caching */
   cache?: boolean;
-  /** Whether all matching descriptors should be collected (default: true). When false, only the first match is collected. */
-  descriptorsMultiMatch?: boolean;
   /**
    * Priority to apply when multiple descriptors match at the same level.
    * - "first": first match wins.
    * - "last": last match wins.
-   * Defaults to "last" when descriptorsMultiMatch is true and "first" when descriptorsMultiMatch is false.
+   * Defaults to "last".
    */
   descriptorsPriority?: ElementDescriptorsPriority;
   /** Configuration for categorizing dependencies as external or local */
@@ -75,18 +73,12 @@ export type FlagAsExternalOptionsNormalized = {
 
 export type ConfigOptionsNormalized = Omit<
   ConfigOptions,
-  | "legacyTemplates"
-  | "cache"
-  | "descriptorsMultiMatch"
-  | "descriptorsPriority"
-  | "flagAsExternal"
+  "legacyTemplates" | "cache" | "descriptorsPriority" | "flagAsExternal"
 > & {
   /** Whether to enable legacy template support */
   legacyTemplates: boolean;
   /** Cache configuration options */
   cache: boolean;
-  /** Whether all matching descriptors should be collected */
-  descriptorsMultiMatch: boolean;
   /** Priority used when multiple element descriptors match */
   descriptorsPriority: ElementDescriptorsPriority;
   /** Configuration for categorizing dependencies as external or local */
@@ -101,7 +93,6 @@ export type DescriptorOptionsNormalized = Pick<
   | "includePaths"
   | "ignorePaths"
   | "cache"
-  | "descriptorsMultiMatch"
   | "descriptorsPriority"
   | "flagAsExternal"
   | "rootPath"

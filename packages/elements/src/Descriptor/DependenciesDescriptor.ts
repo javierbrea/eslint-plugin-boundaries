@@ -14,15 +14,14 @@ import type {
 import type { ElementsDescriptor } from "./ElementsDescriptor";
 import type {
   ElementDescription,
-  LocalElementKnown,
+  FileDescription,
 } from "./ElementsDescriptor.types";
-import {
-  isIgnoredElement,
-  isKnownLocalElement,
-} from "./ElementsDescriptorHelpers";
+import { FILE_ORIGINS_MAP } from "./ElementsDescriptor.types";
+import { isKnownLocalElement } from "./ElementsDescriptorHelpers";
+import type { FilesDescriptor } from "./FilesDescriptor";
 
 /**
- * Class describing dependencies between elements.
+ * Class describing dependencies between files.
  */
 export class DependenciesDescriptor {
   /**
@@ -38,6 +37,11 @@ export class DependenciesDescriptor {
   private readonly _elementsDescriptor: ElementsDescriptor;
 
   /**
+   * Files descriptor instance.
+   */
+  private readonly _filesDescriptor: FilesDescriptor | null;
+
+  /**
    * Configuration options.
    */
   private readonly _config: DescriptorOptionsNormalized;
@@ -45,13 +49,16 @@ export class DependenciesDescriptor {
   /**
    * Creates a new DependenciesDescriptor instance.
    * @param elementsDescriptor The elements descriptor instance.
+   * @param filesDescriptor The files descriptor instance.
    * @param config The configuration options.
    */
   constructor(
     elementsDescriptor: ElementsDescriptor,
+    filesDescriptor: FilesDescriptor | null,
     config: DescriptorOptionsNormalized
   ) {
     this._elementsDescriptor = elementsDescriptor;
+    this._filesDescriptor = filesDescriptor;
     this._config = config;
     this._dependenciesCache = this._config.cache
       ? new DependenciesDescriptionsCache()
@@ -91,8 +98,8 @@ export class DependenciesDescriptor {
    * @param elementInfo The element whose parent is to be retrieved.
    * @returns The parent element path, or undefined if none exists.
    */
-  private _getParent(elementInfo: LocalElementKnown) {
-    return elementInfo.parents[0]?.elementPath;
+  private _getParent(elementInfo: ElementDescription) {
+    return elementInfo.parents[0]?.path;
   }
 
   /**
@@ -102,15 +109,15 @@ export class DependenciesDescriptor {
    * @returns The common ancestor element path, or undefined if none exists.
    */
   private _getCommonAncestor(
-    elementInfoA: LocalElementKnown,
-    elementInfoB: LocalElementKnown
+    elementInfoA: ElementDescription,
+    elementInfoB: ElementDescription
   ) {
     const commonAncestor = elementInfoA.parents.find((elementParentA) => {
       return elementInfoB.parents.some((elementParentB) => {
-        return elementParentA.elementPath === elementParentB.elementPath;
+        return elementParentA.path === elementParentB.path;
       });
     });
-    return commonAncestor?.elementPath;
+    return commonAncestor?.path;
   }
 
   /**
@@ -120,8 +127,8 @@ export class DependenciesDescriptor {
    * @returns True if the parent of element A is an ancestor of element B, false otherwise.
    */
   private _isDescendantOfParent(
-    elementA: LocalElementKnown,
-    elementB: LocalElementKnown
+    elementA: ElementDescription,
+    elementB: ElementDescription
   ) {
     const commonAncestor = this._getCommonAncestor(elementA, elementB);
     return commonAncestor && commonAncestor === this._getParent(elementA);
@@ -133,7 +140,10 @@ export class DependenciesDescriptor {
    * @param elementB The second element.
    * @returns True if the elements are siblings, false otherwise.
    */
-  private _isSibling(elementA: LocalElementKnown, elementB: LocalElementKnown) {
+  private _isSibling(
+    elementA: ElementDescription,
+    elementB: ElementDescription
+  ) {
     const parentA = this._getParent(elementA);
     const parentB = this._getParent(elementB);
     return parentA && parentB && parentA === parentB;
@@ -146,12 +156,10 @@ export class DependenciesDescriptor {
    * @returns True if elementA is a descendant of elementB, false otherwise.
    */
   private _isDescendant(
-    elementA: LocalElementKnown,
-    elementB: LocalElementKnown
+    elementA: ElementDescription,
+    elementB: ElementDescription
   ) {
-    return elementA.parents.some(
-      (parent) => parent.elementPath === elementB.elementPath
-    );
+    return elementA.parents.some((parent) => parent.path === elementB.path);
   }
 
   /**
@@ -160,8 +168,8 @@ export class DependenciesDescriptor {
    * @param elementB The potential parent element.
    * @returns True if elementA is a child of elementB, false otherwise.
    */
-  private _isChild(elementA: LocalElementKnown, elementB: LocalElementKnown) {
-    return this._getParent(elementA) === elementB.elementPath;
+  private _isChild(elementA: ElementDescription, elementB: ElementDescription) {
+    return this._getParent(elementA) === elementB.path;
   }
 
   /**
@@ -171,10 +179,10 @@ export class DependenciesDescriptor {
    * @returns True if the elements are internally related, false otherwise.
    */
   private _isInternal(
-    elementA: LocalElementKnown,
-    elementB: LocalElementKnown
+    elementA: ElementDescription,
+    elementB: ElementDescription
   ) {
-    return elementA.elementPath === elementB.elementPath;
+    return elementA.path === elementB.path;
   }
 
   /**
@@ -184,14 +192,10 @@ export class DependenciesDescriptor {
    * @returns The relationship between the elements.
    */
   private _dependencyRelationship(
-    element: ElementDescription,
-    dependency: ElementDescription
+    element: ElementDescription | null,
+    dependency: ElementDescription | null
   ) {
-    if (
-      isIgnoredElement(dependency) ||
-      !isKnownLocalElement(dependency) ||
-      !isKnownLocalElement(element)
-    ) {
+    if (!isKnownLocalElement(dependency) || !isKnownLocalElement(element)) {
       return null;
     }
     if (this._isInternal(dependency, element)) {
@@ -222,8 +226,8 @@ export class DependenciesDescriptor {
   }
 
   private _dependencyRelationships(
-    element: ElementDescription,
-    dependency: ElementDescription
+    element: ElementDescription | null,
+    dependency: ElementDescription | null
   ) {
     const toRelationship = this._dependencyRelationship(element, dependency);
     const fromRelationship = toRelationship
@@ -236,9 +240,9 @@ export class DependenciesDescriptor {
   }
 
   /**
-   * Describes elements in a dependency relationship, and provides additional information about the dependency itself.
-   * @param options The options for describing the elements and the dependency details.
-   * @returns The description of the dependency between the elements.
+   * Describes files in a dependency relationship, and provides additional information about the dependency itself.
+   * @param options The options for describing the files and the dependency details.
+   * @returns The description of the dependency between the files.
    */
   public describeDependency({
     from,
@@ -260,21 +264,32 @@ export class DependenciesDescriptor {
       return this._dependenciesCache.get(cacheKey)!;
     }
 
-    const fromElement = this._elementsDescriptor.describeElement(from);
-    const toElement = this._elementsDescriptor.describeElement(to, source);
-    const { module: dependencyModule, ...toElementDescription } = toElement;
+    // Get file descriptions - FilesDescriptor is optional but recommended
+    // It provides the file classification information (origin, categories, etc.)
+    let fromFile = this._filesDescriptor?.describeFile(from);
+    let toFile = this._filesDescriptor?.describeFile(to, source);
+
+    // Fallback: create FileDescription from ElementDescription if FilesDescriptor is not available
+    if (!fromFile) {
+      const fromElement = this._elementsDescriptor.describeElement(from);
+      fromFile = this._createFileDescriptionFromElement(from, fromElement);
+    }
+    if (!toFile) {
+      const toElement = this._elementsDescriptor.describeElement(to);
+      toFile = this._createFileDescriptionFromElement(to, toElement);
+    }
 
     const result = {
-      from: fromElement,
-      to: toElementDescription,
+      from: fromFile,
+      to: toFile,
       dependency: {
         source,
-        module: dependencyModule || null,
+        module: this._extractModule(source),
         kind,
         nodeKind: nodeKind || null,
         relationship: this._dependencyRelationships(
-          fromElement,
-          toElementDescription
+          fromFile.element || this._elementsDescriptor.describeElement(from),
+          toFile.element || this._elementsDescriptor.describeElement(to)
         ),
         specifiers: specifiers || null,
       },
@@ -283,5 +298,44 @@ export class DependenciesDescriptor {
     this._dependenciesCache.set(cacheKey, result);
 
     return result;
+  }
+
+  /**
+   * Creates a FileDescription from an ElementDescription as a fallback.
+   * This is used when FilesDescriptor is not available (e.g., in tests).
+   * @param filePath The file path.
+   * @param elementDescription The element description.
+   * @returns A FileDescription based on the element description.
+   */
+  private _createFileDescriptionFromElement(
+    filePath: string | undefined,
+    elementDescription: ElementDescription | null
+  ): FileDescription {
+    return {
+      path: filePath || null,
+      internalPath: null,
+      category: null,
+      captured: elementDescription?.captured || null,
+      element: elementDescription,
+      origin: FILE_ORIGINS_MAP.LOCAL,
+      isIgnored: false,
+      isUnknown: elementDescription === null,
+    } as FileDescription;
+  }
+
+  /**
+   * Extracts the base module name from a dependency source.
+   * @param source The source of the dependency (import/export path).
+   * @returns The base module name or null.
+   */
+  private _extractModule(source: string | null): string | null {
+    if (!source) return null;
+    // For paths like '@scope/package', '@scope/package/subpath', return '@scope/package'
+    // For paths like 'package', 'package/subpath', return 'package'
+    const parts = source.split("/");
+    if (source.startsWith("@")) {
+      return `${parts[0]}/${parts[1]}`;
+    }
+    return parts[0];
   }
 }

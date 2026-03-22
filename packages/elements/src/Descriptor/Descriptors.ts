@@ -11,7 +11,10 @@ import { ElementsDescriptor } from "./ElementsDescriptor";
 import type {
   ElementDescriptors,
   ElementDescription,
+  FileDescription,
+  FileDescriptors,
 } from "./ElementsDescriptor.types";
+import { FilesDescriptor } from "./FilesDescriptor";
 
 /**
  * Class with methods to describe elements and dependencies between them.
@@ -19,6 +22,8 @@ import type {
 export class Descriptors {
   private readonly _elementsDescriptor: ElementsDescriptor;
   private readonly _dependenciesDescriptor: DependenciesDescriptor;
+  private readonly _filesDescriptor: FilesDescriptor;
+  private readonly _hasFileDescriptors: boolean;
 
   /** Creates a new DescriptorsManager instance
    * @param elementDescriptors The element descriptors.
@@ -28,15 +33,24 @@ export class Descriptors {
   constructor(
     elementDescriptors: ElementDescriptors,
     config: DescriptorOptionsNormalized,
-    micromatch: Micromatch
+    micromatch: Micromatch,
+    fileDescriptors?: FileDescriptors
   ) {
     this._elementsDescriptor = new ElementsDescriptor(
       elementDescriptors,
       config,
       micromatch
     );
+    this._hasFileDescriptors = Boolean(fileDescriptors);
+    this._filesDescriptor = new FilesDescriptor(
+      this._elementsDescriptor,
+      fileDescriptors || [],
+      config,
+      micromatch
+    );
     this._dependenciesDescriptor = new DependenciesDescriptor(
       this._elementsDescriptor,
+      this._filesDescriptor,
       config
     );
   }
@@ -49,6 +63,9 @@ export class Descriptors {
     return {
       elements: this._elementsDescriptor.serializeCache(),
       dependencies: this._dependenciesDescriptor.serializeCache(),
+      files: this._hasFileDescriptors
+        ? this._filesDescriptor.serializeCache()
+        : undefined,
     };
   }
 
@@ -63,6 +80,9 @@ export class Descriptors {
     this._dependenciesDescriptor.setCacheFromSerialized(
       serializedCache.dependencies
     );
+    if (serializedCache.files) {
+      this._filesDescriptor.setCacheFromSerialized(serializedCache.files);
+    }
   }
 
   /**
@@ -71,6 +91,7 @@ export class Descriptors {
   public clearCache(): void {
     this._elementsDescriptor.clearCache();
     this._dependenciesDescriptor.clearCache();
+    this._filesDescriptor.clearCache();
   }
 
   /**
@@ -78,8 +99,22 @@ export class Descriptors {
    * @param filePath The path of the file to describe.
    * @returns The description of the element.
    */
-  public describeElement(filePath?: string): ElementDescription {
+  public describeElement(filePath?: string): ElementDescription | null {
     return this._elementsDescriptor.describeElement(filePath);
+  }
+
+  /**
+   * Describes a file given its file path.
+   * @param filePath The path of the file to describe.
+   * @returns The description of the file.
+   */
+  public describeFile(filePath?: string): FileDescription {
+    if (!this._hasFileDescriptors) {
+      throw new Error(
+        "Files descriptor is not configured. Please provide fileDescriptors when creating the matcher."
+      );
+    }
+    return this._filesDescriptor.describeFile(filePath);
   }
 
   /**

@@ -1,27 +1,37 @@
 import type { DescriptorOptionsNormalized } from "../Config";
 import type {
   ElementDescriptors,
+  FileDescriptors,
   DescribeDependencyOptions,
   ElementDescription,
   DependencyDescription,
+  FileDescription,
 } from "../Descriptor";
 import {
   Descriptors,
   isElementDescription,
   isDependencyDescription,
+  isFileDescription,
 } from "../Descriptor";
 
 import type { DependenciesMatcher } from "./DependenciesMatcher";
 import type { ElementsMatcher } from "./ElementsMatcher";
+import type { FilesMatcher } from "./FilesMatcher";
 import type {
   DependencySelector,
   MatcherOptions,
   ElementsSelector,
+  FilesSelector,
   DependencyMatchResult,
   MatcherSerializedCache,
   BaseElementSelectorData,
+  FileSelectorData,
 } from "./Matcher.types";
-import { isDependencySelector, isElementsSelector } from "./MatcherHelpers";
+import {
+  isDependencySelector,
+  isElementsSelector,
+  isFilesSelector,
+} from "./MatcherHelpers";
 import type { Micromatch } from "./Micromatch";
 
 /**
@@ -31,6 +41,7 @@ export class Matcher {
   private readonly _descriptors: Descriptors;
   private readonly _elementsMatcher: ElementsMatcher;
   private readonly _dependenciesMatcher: DependenciesMatcher;
+  private readonly _filesMatcher: FilesMatcher | null;
 
   /**
    * Constructor for the Matcher class.
@@ -42,14 +53,22 @@ export class Matcher {
    */
   constructor(
     descriptors: ElementDescriptors,
+    fileDescriptors: FileDescriptors | undefined,
     elementsMatcher: ElementsMatcher,
     dependenciesMatcher: DependenciesMatcher,
+    filesMatcher: FilesMatcher | null,
     config: DescriptorOptionsNormalized,
     micromatch: Micromatch
   ) {
-    this._descriptors = new Descriptors(descriptors, config, micromatch);
+    this._descriptors = new Descriptors(
+      descriptors,
+      config,
+      micromatch,
+      fileDescriptors
+    );
     this._elementsMatcher = elementsMatcher;
     this._dependenciesMatcher = dependenciesMatcher;
+    this._filesMatcher = filesMatcher;
   }
 
   /**
@@ -59,6 +78,15 @@ export class Matcher {
    */
   public describeElement(filePath: string) {
     return this._descriptors.describeElement(filePath);
+  }
+
+  /**
+   * Describes a file given its file path.
+   * @param filePath The path of the file to describe.
+   * @returns The description of the file.
+   */
+  public describeFile(filePath: string) {
+    return this._descriptors.describeFile(filePath);
   }
 
   /**
@@ -107,6 +135,27 @@ export class Matcher {
   }
 
   /**
+   * Determines if a file matches a given selector.
+   * @param filePath The file path of the file.
+   * @param selector The selector to match against.
+   * @param options Extra matcher options.
+   * @returns True if the file matches the selector.
+   */
+  public isFileMatch(
+    filePath: string,
+    selector: FilesSelector,
+    options?: MatcherOptions
+  ): boolean {
+    if (!this._filesMatcher) {
+      throw new Error(
+        "Files matcher is not configured. Please provide fileDescriptors when creating the matcher."
+      );
+    }
+    const description = this._descriptors.describeFile(filePath);
+    return this._filesMatcher.isFileMatch(description, selector, options);
+  }
+
+  /**
    * Determines the selector matching for an element.
    * @param filePath The file path of the element
    * @param selector The selectors to match against
@@ -140,6 +189,31 @@ export class Matcher {
   ) {
     const description = this._descriptors.describeDependency(dependencyData);
     return this._dependenciesMatcher.getSelectorsMatching(
+      description,
+      selector,
+      options
+    );
+  }
+
+  /**
+   * Determines the selector matching for a file.
+   * @param filePath The file path of the file.
+   * @param selector The selectors to match against.
+   * @param options Extra options for matching.
+   * @returns The matching file selector data or null if no match is found.
+   */
+  public getFileSelectorMatching(
+    filePath: string,
+    selector: FilesSelector,
+    options?: MatcherOptions
+  ) {
+    if (!this._filesMatcher) {
+      throw new Error(
+        "Files matcher is not configured. Please provide fileDescriptors when creating the matcher."
+      );
+    }
+    const description = this._descriptors.describeFile(filePath);
+    return this._filesMatcher.getSelectorMatching(
       description,
       selector,
       options
@@ -181,12 +255,44 @@ export class Matcher {
    * @returns The first matching selector result for the given description, or null if no match is found.
    */
   public getElementSelectorMatchingDescription(
-    description: ElementDescription,
+    description: ElementDescription | null,
     selector: ElementsSelector,
     options?: MatcherOptions
   ): BaseElementSelectorData | null {
-    if (isElementsSelector(selector) && isElementDescription(description)) {
+    if (
+      isElementsSelector(selector) &&
+      (isElementDescription(description) || description === null)
+    ) {
       return this._elementsMatcher.getSelectorMatching(
+        description,
+        selector,
+        options
+      );
+    }
+    throw new Error(
+      "Invalid arguments: Please provide a valid description and selector"
+    );
+  }
+
+  /**
+   * Returns the first file selector matching result for the given file description.
+   * @param description The file description to check.
+   * @param selector The selector to check against.
+   * @param options Extra options for matching.
+   * @returns The first matching selector result or null if no match is found.
+   */
+  public getFileSelectorMatchingDescription(
+    description: FileDescription,
+    selector: FilesSelector,
+    options?: MatcherOptions
+  ): FileSelectorData | null {
+    if (!this._filesMatcher) {
+      throw new Error(
+        "Files matcher is not configured. Please provide fileDescriptors when creating the matcher."
+      );
+    }
+    if (isFilesSelector(selector) && isFileDescription(description)) {
+      return this._filesMatcher.getSelectorMatching(
         description,
         selector,
         options

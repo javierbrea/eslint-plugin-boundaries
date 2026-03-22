@@ -21,6 +21,9 @@ import type {
   BaseElementSelectorData,
   BaseElementsSelector,
   ElementsSelector,
+  FileSelector,
+  FileSelectorData,
+  FilesSelector,
 } from "./Matcher.types";
 
 /**
@@ -73,23 +76,46 @@ export function isSimpleElementSelectorByType(
  * @param value The value to check.
  * @returns True if the selector is a base element selector
  */
+function hasOnlyAllowedKeys(
+  value: Record<string, unknown>,
+  allowedKeys: string[]
+): boolean {
+  return Object.keys(value).every((key) => allowedKeys.includes(key));
+}
+
+function isParentElementSelectorData(value: unknown): boolean {
+  if (value === null) {
+    return true;
+  }
+  if (!isObject(value)) {
+    return false;
+  }
+  const allowedKeys = ["type", "path", "captured"];
+  return (
+    isObjectWithAnyOfProperties(value, allowedKeys) &&
+    hasOnlyAllowedKeys(value, allowedKeys)
+  );
+}
+
 export function isBaseElementSelectorData(
   value: unknown
 ): value is BaseElementSelectorData {
-  return isObjectWithAnyOfProperties(value, [
-    "path",
-    "elementPath",
-    "internalPath",
-    "type",
-    "category",
-    "captured",
-    "parent",
-    "origin",
-    "source",
-    "module",
-    "isIgnored",
-    "isUnknown",
-  ]);
+  if (!isObject(value)) {
+    return false;
+  }
+
+  const allowedKeys = ["path", "type", "captured", "parent"];
+  const hasBaseKeys = isObjectWithAnyOfProperties(value, allowedKeys);
+
+  if (!hasBaseKeys || !hasOnlyAllowedKeys(value, allowedKeys)) {
+    return false;
+  }
+
+  if (!isObjectWithProperty(value, "parent")) {
+    return true;
+  }
+
+  return isParentElementSelectorData(value.parent);
 }
 
 /**
@@ -193,6 +219,73 @@ export function normalizeElementsSelector(
     return elementsSelector.map((sel) => normalizeElementSelector(sel));
   }
   return [normalizeElementSelector(elementsSelector)];
+}
+
+/**
+ * Determines if the given value is file selector data.
+ * @param value The value to check.
+ * @returns True if the value is file selector data.
+ */
+export function isFileSelectorData(value: unknown): value is FileSelectorData {
+  return isObjectWithAnyOfProperties(value, [
+    "path",
+    "internalPath",
+    "category",
+    "captured",
+    "element",
+    "origin",
+    "isIgnored",
+    "isUnknown",
+  ]);
+}
+
+/**
+ * Determines if the given value is a file selector.
+ * @param value The value to check.
+ * @returns True if the value is a file selector.
+ */
+export function isFileSelector(value: unknown): value is FileSelector {
+  return isFileSelectorData(value);
+}
+
+/**
+ * Determines if the given value is a files selector.
+ * @param value The value to check.
+ * @returns True if the value is a files selector.
+ */
+export function isFilesSelector(value: unknown): value is FilesSelector {
+  return (
+    isFileSelector(value) ||
+    (isArray(value) && !isEmptyArray(value) && value.every(isFileSelector))
+  );
+}
+
+/**
+ * Normalizes a file selector into FileSelectorData format.
+ * @param selector The file selector to normalize.
+ * @returns The normalized selector data.
+ */
+export function normalizeFileSelector(
+  selector: FileSelector
+): FileSelectorData {
+  if (isFileSelectorData(selector)) {
+    return { ...selector };
+  }
+  throw new Error("Invalid file selector");
+}
+
+/**
+ * Normalizes a files selector into an array of FileSelectorData.
+ * @param filesSelector The files selector to normalize.
+ * @returns The normalized array of selector data.
+ */
+export function normalizeFilesSelector(
+  filesSelector: FilesSelector
+): FileSelectorData[] {
+  if (isArray(filesSelector)) {
+    return filesSelector.map((selector) => normalizeFileSelector(selector));
+  }
+  return [normalizeFileSelector(filesSelector)];
 }
 
 /**

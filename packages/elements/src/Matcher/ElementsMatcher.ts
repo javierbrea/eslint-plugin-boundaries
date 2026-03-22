@@ -60,28 +60,6 @@ export class ElementsMatcher extends BaseElementsMatcher {
   }
 
   /**
-   * Whether the given element category matches the selector category.
-   * @param element The element to check.
-   * @param selector The selector to check against.
-   * @param templateData The data to use for replace in selector value
-   * @returns Whether the element category matches the selector category.
-   */
-  private _isCategoryMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
-    templateData: TemplateData
-  ): boolean {
-    return this.isElementKeyMicromatchMatch({
-      element,
-      selector,
-      elementKey: "category",
-      selectorKey: "category",
-      selectorValue: selector.category,
-      templateData,
-    });
-  }
-
-  /**
    * Whether the given element path matches the selector path.
    * @param element The element to check.
    * @param selector The selector to check against.
@@ -99,72 +77,6 @@ export class ElementsMatcher extends BaseElementsMatcher {
       elementKey: "path",
       selectorKey: "path",
       selectorValue: selector.path,
-      templateData,
-    });
-  }
-
-  /**
-   * Whether the given element path matches the selector element path.
-   * @param element The element to check.
-   * @param selector The selector to check against.
-   * @param templateData The data to use for replace in selector value
-   * @returns Whether the element path matches the selector element path.
-   */
-  private _isElementPathMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
-    templateData: TemplateData
-  ): boolean {
-    return this.isElementKeyMicromatchMatch({
-      element,
-      selector,
-      elementKey: "elementPath",
-      selectorKey: "elementPath",
-      selectorValue: selector.elementPath,
-      templateData,
-    });
-  }
-
-  /**
-   * Whether the given element internal path matches the selector internal path.
-   * @param element The element to check.
-   * @param selector The selector to check against.
-   * @param templateData The data to use for replace in selector value
-   * @returns Whether the element internal path matches the selector internal path.
-   */
-  private _isInternalPathMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
-    templateData: TemplateData
-  ): boolean {
-    return this.isElementKeyMicromatchMatch({
-      element,
-      selector,
-      elementKey: "internalPath",
-      selectorKey: "internalPath",
-      selectorValue: selector.internalPath,
-      templateData,
-    });
-  }
-
-  /**
-   * Whether the given element origin matches the selector origin
-   * @param element The element to check.
-   * @param selector The selector to check against.
-   * @param templateData The data to use for replace in selector value
-   * @returns Whether the element origin matches the selector origin.
-   */
-  private _isOriginMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
-    templateData: TemplateData
-  ): boolean {
-    return this.isElementKeyMicromatchMatch({
-      element,
-      selector,
-      elementKey: "origin",
-      selectorKey: "origin",
-      selectorValue: selector.origin,
       templateData,
     });
   }
@@ -322,22 +234,11 @@ export class ElementsMatcher extends BaseElementsMatcher {
     }
 
     if (
-      !isUndefined(selector.parent.category) &&
+      !isUndefined(selector.parent.path) &&
       !this.isTemplateMicromatchMatch(
-        selector.parent.category,
+        selector.parent.path,
         templateData,
-        firstParent.category
-      )
-    ) {
-      return false;
-    }
-
-    if (
-      !isUndefined(selector.parent.elementPath) &&
-      !this.isTemplateMicromatchMatch(
-        selector.parent.elementPath,
-        templateData,
-        firstParent.elementPath
+        firstParent.path
       )
     ) {
       return false;
@@ -354,42 +255,6 @@ export class ElementsMatcher extends BaseElementsMatcher {
     }
 
     return true;
-  }
-
-  /**
-   * Determines if the isIgnored property of the element matches that in the selector.
-   * @param element The element to check.
-   * @param selector The selector to check against.
-   * @returns True if the isIgnored properties match, false otherwise.
-   */
-  private _isIgnoredMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData
-  ): boolean {
-    return this.isElementKeyBooleanMatch({
-      element,
-      selector,
-      elementKey: "isIgnored",
-      selectorKey: "isIgnored",
-    });
-  }
-
-  /**
-   * Determines if the isUnknown property of the element matches that in the selector.
-   * @param element The element to check.
-   * @param selector The selector to check against.
-   * @returns True if the isUnknown properties match, false otherwise.
-   */
-  private _isUnknownMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData
-  ): boolean {
-    return this.isElementKeyBooleanMatch({
-      element,
-      selector,
-      elementKey: "isUnknown",
-      selectorKey: "isUnknown",
-    });
   }
 
   /**
@@ -414,13 +279,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
       // Most restrictive checks first to fail fast
       if (
         !this._isTypeMatch(element, selectorData, templateData) ||
-        !this._isCategoryMatch(element, selectorData, templateData) ||
-        !this._isOriginMatch(element, selectorData, templateData) ||
-        !this._isIgnoredMatch(element, selectorData) ||
-        !this._isUnknownMatch(element, selectorData) ||
         !this._isPathMatch(element, selectorData, templateData) ||
-        !this._isElementPathMatch(element, selectorData, templateData) ||
-        !this._isInternalPathMatch(element, selectorData, templateData) ||
         !this._isCapturedValuesMatch(element, selectorData, templateData) ||
         !this._isParentMatch(element, selectorData, templateData)
       ) {
@@ -443,10 +302,13 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns The selector matching result for the given element, or null if none matches.
    */
   public getSelectorMatching(
-    element: ElementDescription,
+    element: ElementDescription | null,
     selector: BaseElementsSelector,
     { extraTemplateData = {} }: MatcherOptions = {}
   ): BaseElementSelectorData | null {
+    if (isNullish(element)) {
+      return null;
+    }
     const selectorsData = normalizeElementsSelector(selector);
     return this._getSelectorMatching(element, selectorsData, extraTemplateData);
   }
@@ -460,7 +322,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns Whether the element matches the selector properties applying to elements.
    */
   public isElementMatch(
-    element: ElementDescription,
+    element: ElementDescription | null,
     selector: BaseElementsSelector,
     options?: MatcherOptions
   ): boolean {

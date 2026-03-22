@@ -1,6 +1,6 @@
 import { CacheManager } from "./Cache";
 import type { ConfigOptionsNormalized } from "./Config";
-import type { ElementDescriptors } from "./Descriptor";
+import type { ElementDescriptors, FileDescriptors } from "./Descriptor";
 import type { Matcher } from "./Matcher";
 
 /**
@@ -10,10 +10,12 @@ export class MatchersCache extends CacheManager<
   {
     config: ConfigOptionsNormalized;
     elementDescriptors: ElementDescriptors;
+    fileDescriptors?: FileDescriptors;
   },
   {
     config: ConfigOptionsNormalized;
     elementDescriptors: ElementDescriptors;
+    fileDescriptors?: FileDescriptors;
     matcher: Matcher;
   }
 > {
@@ -25,22 +27,30 @@ export class MatchersCache extends CacheManager<
   protected generateKey({
     config,
     elementDescriptors,
+    fileDescriptors,
   }: {
     config: ConfigOptionsNormalized;
     elementDescriptors: ElementDescriptors;
+    fileDescriptors?: FileDescriptors;
   }): string {
     const configHash = `${config.legacyTemplates}|${config.includePaths}|${config.ignorePaths}|${
       config.cache
-    }|${config.descriptorsMultiMatch}|${config.descriptorsPriority}|${config.rootPath}|${config.flagAsExternal.inNodeModules}|${config.flagAsExternal.unresolvableAlias}|${
+    }|${config.descriptorsPriority}|${config.rootPath}|${config.flagAsExternal.inNodeModules}|${config.flagAsExternal.unresolvableAlias}|${
       config.flagAsExternal.outsideRootPath
     }|${config.flagAsExternal.customSourcePatterns.join(",")}`;
 
     const elementDescriptorsHash = elementDescriptors
       .map(
         (descriptor) =>
-          `${descriptor.type}|${descriptor.category}|${descriptor.pattern}|${descriptor.basePattern}|${descriptor.mode}|${descriptor.capture}|${descriptor.baseCapture}`
+          `${descriptor.type}|${descriptor.pattern}|${descriptor.basePattern}|${descriptor.mode}|${descriptor.capture}|${descriptor.baseCapture}`
       )
       .join(",");
-    return `${configHash}|:|${elementDescriptorsHash}`;
+    const fileDescriptorsHash = (fileDescriptors || [])
+      .map(
+        (descriptor) =>
+          `${descriptor.category}|${descriptor.pattern}|${descriptor.basePattern}|${descriptor.fullMatch}|${descriptor.capture}|${descriptor.baseCapture}`
+      )
+      .join(",");
+    return `${configHash}|:|${elementDescriptorsHash}|:|${fileDescriptorsHash}`;
   }
 }

@@ -1,5 +1,8 @@
 import type { DependenciesDescriptorSerializedCache } from "./DependenciesDescriptor.types";
-import type { ElementsDescriptorSerializedCache } from "./ElementsDescriptor.types";
+import type {
+  ElementsDescriptorSerializedCache,
+  FileDescriptionsSerializedCache,
+} from "./ElementsDescriptor.types";
 
 /**
  * Serialized cache for Descriptors class.
@@ -9,4 +12,6 @@ export type DescriptorsSerializedCache = {
   elements: ElementsDescriptorSerializedCache;
   /** Serialized dependencies cache */
   dependencies: DependenciesDescriptorSerializedCache;
+  /** Serialized files cache */
+  files?: FileDescriptionsSerializedCache;
 };

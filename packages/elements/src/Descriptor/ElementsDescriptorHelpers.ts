@@ -7,20 +7,17 @@ import {
 
 import type {
   ElementDescription,
-  LocalElementKnown,
+  FileDescription,
   BaseElementDescriptor,
+  FileDescriptor,
   ElementDescriptorPattern,
   ElementDescriptorMode,
-  ElementDescriptorWithType,
-  ElementDescriptorWithCategory,
   ElementDescriptor,
-  IgnoredElement,
-  LocalElementUnknown,
   BaseElementDescription,
 } from "./ElementsDescriptor.types";
 import {
   ELEMENT_DESCRIPTOR_MODES_MAP,
-  ELEMENT_ORIGINS_MAP,
+  FILE_ORIGINS_MAP,
 } from "./ElementsDescriptor.types";
 
 /**
@@ -74,26 +71,11 @@ export function isBaseElementDescriptor(
  */
 export function isElementDescriptorWithType(
   value: unknown
-): value is ElementDescriptorWithType {
+): value is ElementDescriptor {
   return (
     isBaseElementDescriptor(value) &&
     isObjectWithProperty(value, "type") &&
     isString(value.type)
-  );
-}
-
-/**
- * Determines if the given value is an element descriptor with category.
- * @param value The value to check.
- * @returns True if the value is an element descriptor with category, false otherwise.
- */
-export function isElementDescriptorWithCategory(
-  value: unknown
-): value is ElementDescriptorWithCategory {
-  return (
-    isBaseElementDescriptor(value) &&
-    isObjectWithProperty(value, "category") &&
-    isString(value.category)
   );
 }
 
@@ -105,8 +87,22 @@ export function isElementDescriptorWithCategory(
 export function isElementDescriptor(
   value: unknown
 ): value is ElementDescriptor {
+  return isElementDescriptorWithType(value);
+}
+
+/**
+ * Determines if the given value is a file descriptor.
+ * @param value The value to check.
+ * @returns True if the value is a file descriptor, false otherwise.
+ */
+export function isFileDescriptor(value: unknown): value is FileDescriptor {
   return (
-    isElementDescriptorWithType(value) || isElementDescriptorWithCategory(value)
+    isBaseElementDescriptor(value) &&
+    isObjectWithProperty(value, "category") &&
+    (isString(value.category) ||
+      (isArray(value.category) &&
+        !isEmptyArray(value.category) &&
+        value.category.every(isString)))
   );
 }
 
@@ -118,12 +114,9 @@ export function isElementDescriptor(
 export function isBaseElement(value: unknown): value is BaseElementDescription {
   return (
     isObjectWithProperty(value, "type") &&
-    isObjectWithProperty(value, "category") &&
     isObjectWithProperty(value, "path") &&
     isObjectWithProperty(value, "captured") &&
-    isObjectWithProperty(value, "origin") &&
-    isObjectWithProperty(value, "isIgnored") &&
-    isObjectWithProperty(value, "isUnknown")
+    isObjectWithProperty(value, "parents")
   );
 }
 
@@ -132,12 +125,8 @@ export function isBaseElement(value: unknown): value is BaseElementDescription {
  * @param value The element to check.
  * @returns True if the element is an ignored element, false otherwise.
  */
-export function isIgnoredElement(value: unknown): value is IgnoredElement {
-  return (
-    isBaseElement(value) &&
-    isObjectWithProperty(value, "isIgnored") &&
-    value.isIgnored === true
-  );
+export function isIgnoredElement(value: unknown): value is null {
+  return value === null;
 }
 
 /**
@@ -145,10 +134,8 @@ export function isIgnoredElement(value: unknown): value is IgnoredElement {
  * @param value The value to check.
  * @returns True if the value is a local element, false otherwise.
  */
-export function isLocalElement(
-  value: unknown
-): value is LocalElementKnown | LocalElementUnknown {
-  return isBaseElement(value) && value.origin === ELEMENT_ORIGINS_MAP.LOCAL;
+export function isLocalElement(value: unknown): value is ElementDescription {
+  return isBaseElement(value);
 }
 
 /**
@@ -156,10 +143,8 @@ export function isLocalElement(
  * @param value The value to check.
  * @returns True if the element is an unknown element, false otherwise.
  */
-export function isUnknownLocalElement(
-  value: unknown
-): value is LocalElementUnknown {
-  return isLocalElement(value) && value.isUnknown === true;
+export function isUnknownLocalElement(value: unknown): value is null {
+  return value === null;
 }
 
 /**
@@ -169,56 +154,67 @@ export function isUnknownLocalElement(
  */
 export function isKnownLocalElement(
   value: unknown
-): value is LocalElementKnown {
-  return isLocalElement(value) && value.isUnknown === false;
+): value is ElementDescription {
+  return isBaseElement(value);
 }
 
 /**
- * Determines if the given value is a local dependency element.
+ * Determines if the given value is a local dependency element (a file from local origin).
  * @param value The value to check.
  * @returns True if the element is a local dependency element, false otherwise.
  */
 export function isLocalDependencyElement(
   value: unknown
-): value is LocalElementKnown | LocalElementUnknown {
-  return isLocalElement(value) && value.isIgnored === false;
+): value is ElementDescription {
+  return isBaseElement(value);
 }
 
 /**
- * Determines if the given value is an external element.
+ * Determines if the given value is an external file (a file from external origin).
  * @param value The value to check.
- * @returns True if the element is an external dependency element, false otherwise.
+ * @returns True if the file is an external file, false otherwise.
  */
 export function isExternalDependencyElement(
   value: unknown
-): value is ElementDescription {
-  return isBaseElement(value) && value.origin === ELEMENT_ORIGINS_MAP.EXTERNAL;
+): value is FileDescription {
+  return isFileDescription(value) && value.origin === FILE_ORIGINS_MAP.EXTERNAL;
 }
 
 /**
- * Determines if the given value is a core element.
+ * Determines if the given value is a core file (a file from core origin).
  * @param value The value to check.
- * @returns True if the element is a core dependency element, false otherwise.
+ * @returns True if the file is a core file, false otherwise.
  */
 export function isCoreDependencyElement(
   value: unknown
-): value is ElementDescription {
-  return isBaseElement(value) && value.origin === ELEMENT_ORIGINS_MAP.CORE;
+): value is FileDescription {
+  return isFileDescription(value) && value.origin === FILE_ORIGINS_MAP.CORE;
 }
 
 /**
- * Determines if the given value is an element (local or dependency).
+ * Determines if the given value is an element (element description, not a file).
  * @param value The value to check.
- * @returns True if the value is an element, false otherwise.
+ * @returns True if the value is an element description, false otherwise.
  */
 export function isElementDescription(
   value: unknown
 ): value is ElementDescription {
+  return isBaseElement(value);
+}
+
+/**
+ * Determines if the given value is a file description.
+ * @param value The value to check.
+ * @returns True if the value is a file description, false otherwise.
+ */
+export function isFileDescription(value: unknown): value is FileDescription {
   return (
-    isIgnoredElement(value) ||
-    isUnknownLocalElement(value) ||
-    isKnownLocalElement(value) ||
-    isExternalDependencyElement(value) ||
-    isCoreDependencyElement(value)
+    isObjectWithProperty(value, "element") &&
+    isObjectWithProperty(value, "path") &&
+    isObjectWithProperty(value, "category") &&
+    isObjectWithProperty(value, "captured") &&
+    isObjectWithProperty(value, "origin") &&
+    isObjectWithProperty(value, "isIgnored") &&
+    isObjectWithProperty(value, "isUnknown")
   );
 }

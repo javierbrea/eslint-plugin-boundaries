@@ -104,7 +104,8 @@ export class DependenciesMatcher extends BaseElementsMatcher {
 
     const fromSelectorMatching = selector.from
       ? this._elementsMatcher.getSelectorMatching(
-          dependency.from,
+          // TODO: his should match the file, not the element
+          dependency.from.element,
           selector.from,
           {
             extraTemplateData: templateData,
@@ -112,9 +113,14 @@ export class DependenciesMatcher extends BaseElementsMatcher {
         )
       : null;
     const toSelectorMatching = selector.to
-      ? this._elementsMatcher.getSelectorMatching(dependency.to, selector.to, {
-          extraTemplateData: templateData,
-        })
+      ? this._elementsMatcher.getSelectorMatching(
+          // TODO: his should match the file, not the element
+          dependency.to.element,
+          selector.to,
+          {
+            extraTemplateData: templateData,
+          }
+        )
       : null;
     const dependencyMetadataSelectorMatching = selector.dependency
       ? getDependencyMetadataSelectorMatching()

@@ -1,9 +1,19 @@
 import type { ConfigOptionsNormalized } from "./Config";
-import type { ElementDescriptors } from "./Descriptor";
+import type { ElementDescriptors, FileDescriptors } from "./Descriptor";
 import type {
   MatcherSerializedCache,
   MicromatchSerializedCache,
 } from "./Matcher";
+
+/**
+ * Descriptors configuration accepted by Elements.getMatcher.
+ */
+export type MatcherDescriptors = {
+  /** Element descriptors used to resolve architectural elements. */
+  elementDescriptors?: ElementDescriptors;
+  /** File descriptors used to classify files. */
+  fileDescriptors?: FileDescriptors;
+};
 
 /**
  * Serialized cache for Elements class.
@@ -15,6 +25,7 @@ export type ElementsSerializedCache = {
     {
       config: ConfigOptionsNormalized;
       elementDescriptors: ElementDescriptors;
+      fileDescriptors?: FileDescriptors;
       cache: MatcherSerializedCache;
     }
   >;

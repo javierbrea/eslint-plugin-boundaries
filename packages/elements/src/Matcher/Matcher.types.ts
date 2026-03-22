@@ -69,10 +69,8 @@ export type CapturedValuesSelector =
 export type ParentElementSelectorData = {
   /** Type of the first parent element */
   type?: MicromatchPatternNullable;
-  /** Category of the first parent element */
-  category?: MicromatchPatternNullable;
   /** Path of the first parent element */
-  elementPath?: MicromatchPatternNullable;
+  path?: MicromatchPatternNullable;
   /** Captured values from the first parent element */
   captured?: CapturedValuesSelector;
 };
@@ -100,25 +98,40 @@ export type SimpleElementSelectorByType = string;
  * Selector for base elements, including captured values for dynamic matching.
  */
 export type BaseElementSelectorData = {
-  /** Micromatch pattern(s) to match the path of the element */
+  /** Micromatch pattern(s) to match the element path */
   path?: MicromatchPatternNullable;
-  /** Micromatch pattern(s) to match the path of the element containing the file */
-  elementPath?: MicromatchPatternNullable;
-  /** Micromatch pattern(s) to match internal paths within the file or dependency, relative to the element path */
-  internalPath?: MicromatchPatternNullable;
   /** Type of the element */
   type?: MicromatchPatternNullable;
-  /** Category of the element */
-  category?: MicromatchPatternNullable;
   /** Captured values selector for dynamic matching */
   captured?: CapturedValuesSelector;
   /** Selector for matching the first parent element */
   parent?: ParentElementSelectorData | null;
-  /** Origin of the element */
+};
+
+/**
+ * Selector for element properties within a file selector (nested element matching).
+ */
+export type FileElementSelectorData = BaseElementSelectorData;
+
+/**
+ * Selector for files with file-level classifications and element references.
+ */
+export type FileSelectorData = {
+  /** Micromatch pattern(s) to match the file path */
+  path?: MicromatchPatternNullable;
+  /** Micromatch pattern(s) to match internal paths within the element */
+  internalPath?: MicromatchPatternNullable;
+  /** Category/categories assigned to the file */
+  category?: MicromatchPatternNullable;
+  /** Captured values selector for file-level matches */
+  captured?: CapturedValuesSelector;
+  /** Element-related selectors for the containing element */
+  element?: FileElementSelectorData | null;
+  /** Origin of the file */
   origin?: MicromatchPatternNullable;
-  /** Whether the element is ignored */
+  /** Whether the file is ignored */
   isIgnored?: boolean;
-  /** Whether the element is unknown */
+  /** Whether the file is unknown (no element matched) */
   isUnknown?: boolean;
 };
 
@@ -232,3 +245,13 @@ export type DependencySelectorNormalized = {
  * @deprecated Use DependencySelectorDependencyData instead.
  */
 export type DependencyElementSelectorData = DependencyDataSelectorData;
+
+/**
+ * File selector for matching files against file descriptors.
+ */
+export type FileSelector = FileSelectorData;
+
+/**
+ * File selector, which can be a single file selector or an array of file selectors.
+ */
+export type FilesSelector = FileSelector | FileSelector[];
