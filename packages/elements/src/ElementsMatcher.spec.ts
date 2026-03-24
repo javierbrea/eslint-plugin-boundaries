@@ -5,7 +5,7 @@ import micromatch from "micromatch";
 import type {
   ElementsSelector,
   BaseElementSelectorData,
-  DescribeDependencyOptions,
+  DependencyDescriptorOptions,
   DependencySelector,
   Matcher,
   BaseElementSelectorWithOptions,
@@ -1844,7 +1844,7 @@ describe("Elements Matcher", () => {
         extraTemplateData,
         expectedMatch,
       }: {
-        dependency: DescribeDependencyOptions;
+        dependency: DependencyDescriptorOptions;
         expected: boolean;
         selector: DependencySelector;
         extraTemplateData?: Record<string, unknown>;

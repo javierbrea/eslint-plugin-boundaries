@@ -2,30 +2,33 @@ import type Mod from "node:module";
 
 import isCoreModule from "is-core-module";
 
-import { CacheManager, CacheManagerDisabled } from "../Cache";
-import type { DescriptorOptionsNormalized, MicromatchPattern } from "../Config";
-import type { Micromatch } from "../Matcher";
-import { isArray, isNullish, normalizePath } from "../Support";
+import { CacheManager, CacheManagerDisabled } from "../../Cache";
+import type {
+  DescriptorOptionsNormalized,
+  MicromatchPattern,
+} from "../../Config";
+import type { Micromatch } from "../../Matcher";
+import { isArray, isNullish, normalizePath } from "../../Support";
+import type { CapturedValues } from "../Shared";
+import { DESCRIPTOR_MODES_MAP } from "../Shared";
 
 import type {
   ElementDescriptionWithSource,
   ElementDescription,
+  LocalElementKnown,
+  LocalElementUnknown,
+} from "./ElementDescription.types";
+import { ELEMENT_ORIGINS_MAP } from "./ElementDescription.types";
+import type {
   ElementDescriptor,
   ElementDescriptors,
-  LocalElementKnown,
-  CapturedValues,
-  LocalElementUnknown,
-  ElementsDescriptorSerializedCache,
-} from "./ElementsDescriptor.types";
-import {
-  ELEMENT_DESCRIPTOR_MODES_MAP,
-  ELEMENT_ORIGINS_MAP,
-} from "./ElementsDescriptor.types";
+  ElementDescriptorSerializedCache,
+} from "./ElementDescriptor.types";
 import {
   isElementDescriptorMode,
   isKnownLocalElement,
   isElementDescriptor,
-} from "./ElementsDescriptorHelpers";
+} from "./ElementDescriptorHelpers";
 
 const UNKNOWN_ELEMENT: LocalElementUnknown = {
   path: null,
@@ -121,7 +124,7 @@ export class ElementsDescriptor {
    * Serializes the elements cache to a plain object.
    * @returns The serialized elements cache.
    */
-  public serializeCache(): ElementsDescriptorSerializedCache {
+  public serializeCache(): ElementDescriptorSerializedCache {
     return {
       descriptions: this._descriptionsCache.serialize(),
       files: this._filesCache.serialize(),
@@ -133,7 +136,7 @@ export class ElementsDescriptor {
    * @param serializedCache The serialized elements cache.
    */
   public setCacheFromSerialized(
-    serializedCache: ElementsDescriptorSerializedCache
+    serializedCache: ElementDescriptorSerializedCache
   ): void {
     this._descriptionsCache.setFromSerialized(serializedCache.descriptions);
     this._filesCache.setFromSerialized(serializedCache.files);
@@ -448,16 +451,16 @@ export class ElementsDescriptor {
   } {
     const mode = isElementDescriptorMode(elementDescriptor.mode)
       ? elementDescriptor.mode
-      : ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
+      : DESCRIPTOR_MODES_MAP.FOLDER;
     const patterns = isArray(elementDescriptor.pattern)
       ? elementDescriptor.pattern
       : [elementDescriptor.pattern];
 
     for (const pattern of patterns) {
       const useFullPathMatch =
-        mode === ELEMENT_DESCRIPTOR_MODES_MAP.FULL && !alreadyMatched;
+        mode === DESCRIPTOR_MODES_MAP.FULL && !alreadyMatched;
       const effectivePattern =
-        mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER && !alreadyMatched
+        mode === DESCRIPTOR_MODES_MAP.FOLDER && !alreadyMatched
           ? `${pattern}/**/*`
           : pattern;
 
@@ -575,8 +578,7 @@ export class ElementsDescriptor {
         : this._getElementPath(patternUsed, currentPathSegments, elementPaths);
 
       if (!elementResult.type && !elementResult.category) {
-        const mode =
-          elementDescriptor.mode || ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
+        const mode = elementDescriptor.mode || DESCRIPTOR_MODES_MAP.FOLDER;
         // It is the main element
         elementResult.type = elementDescriptor.type || null;
         elementResult.category = elementDescriptor.category || null;
@@ -584,8 +586,7 @@ export class ElementsDescriptor {
         elementResult.elementPath = elementPath;
         elementResult.captured = capturedValues;
         elementResult.internalPath =
-          mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER ||
-          filePath !== elementPath // When using 'file' mode, but the pattern matches a folder, we need to calculate the internal path
+          mode === DESCRIPTOR_MODES_MAP.FOLDER || filePath !== elementPath // When using 'file' mode, but the pattern matches a folder, we need to calculate the internal path
             ? filePath.replace(`${elementPath}/`, "")
             : filePath.split("/").pop(); // In 'file' mode, if the pattern matches the full file, internalPath is the file name
       } else {

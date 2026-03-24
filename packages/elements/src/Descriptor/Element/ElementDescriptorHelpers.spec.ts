@@ -1,9 +1,10 @@
+import type { BaseDescriptor } from "../Shared";
+
 import type {
-  BaseElementDescriptor,
   ElementDescriptorWithType,
   ElementDescriptorWithCategory,
   ElementDescriptorWithTypeAndCategory,
-} from "./ElementsDescriptor.types";
+} from "./ElementDescriptor.types";
 import {
   isLocalElement,
   isExternalDependencyElement,
@@ -15,7 +16,7 @@ import {
   isElementDescriptorWithType,
   isElementDescriptorWithCategory,
   isElementDescriptor,
-} from "./ElementsDescriptorHelpers";
+} from "./ElementDescriptorHelpers";
 
 type FileElement = Record<string, unknown>;
 type LocalDependencyElement = Record<string, unknown>;
@@ -574,11 +575,11 @@ describe("elementHelpers", () => {
 
     describe("isBaseElementDescriptor", () => {
       it("should return true for valid base descriptors", () => {
-        const desc: BaseElementDescriptor = { pattern: "src/**/*.ts" };
+        const desc: BaseDescriptor = { pattern: "src/**/*.ts" };
 
         expect(isBaseElementDescriptor(desc)).toBe(true);
 
-        const descArray: BaseElementDescriptor = {
+        const descArray: BaseDescriptor = {
           pattern: ["src/**/*.ts", "lib/**/*.ts"],
         };
 
@@ -657,7 +658,7 @@ describe("elementHelpers", () => {
       });
 
       it("should return false for base-only descriptors or invalid objects", () => {
-        const base: BaseElementDescriptor = { pattern: "src/**/*.ts" };
+        const base: BaseDescriptor = { pattern: "src/**/*.ts" };
 
         expect(isElementDescriptor(base)).toBe(false);
 

@@ -3,25 +3,27 @@ import {
   isObjectWithProperty,
   isArray,
   isEmptyArray,
-} from "../Support/TypeGuards";
+} from "../../Support/TypeGuards";
+import type {
+  BaseDescriptor,
+  DescriptorPattern,
+  DescriptorMode,
+} from "../Shared";
+import { DESCRIPTOR_MODES_MAP } from "../Shared";
 
 import type {
   ElementDescription,
   LocalElementKnown,
-  BaseElementDescriptor,
-  ElementDescriptorPattern,
-  ElementDescriptorMode,
-  ElementDescriptorWithType,
-  ElementDescriptorWithCategory,
-  ElementDescriptor,
   IgnoredElement,
   LocalElementUnknown,
   BaseElementDescription,
-} from "./ElementsDescriptor.types";
-import {
-  ELEMENT_DESCRIPTOR_MODES_MAP,
-  ELEMENT_ORIGINS_MAP,
-} from "./ElementsDescriptor.types";
+} from "./ElementDescription.types";
+import { ELEMENT_ORIGINS_MAP } from "./ElementDescription.types";
+import type {
+  ElementDescriptorWithType,
+  ElementDescriptorWithCategory,
+  ElementDescriptor,
+} from "./ElementDescriptor.types";
 
 /**
  * Determines if the given value is a valid element descriptor mode.
@@ -30,12 +32,10 @@ import {
  */
 export function isElementDescriptorMode(
   value: unknown
-): value is ElementDescriptorMode {
+): value is DescriptorMode {
   return (
     isString(value) &&
-    Object.values(ELEMENT_DESCRIPTOR_MODES_MAP).includes(
-      value as ElementDescriptorMode
-    )
+    Object.values(DESCRIPTOR_MODES_MAP).includes(value as DescriptorMode)
   );
 }
 
@@ -46,7 +46,7 @@ export function isElementDescriptorMode(
  */
 export function isElementDescriptorPattern(
   value: unknown
-): value is ElementDescriptorPattern {
+): value is DescriptorPattern {
   return (
     isString(value) ||
     (isArray(value) && !isEmptyArray(value) && value.every(isString))
@@ -60,7 +60,7 @@ export function isElementDescriptorPattern(
  */
 export function isBaseElementDescriptor(
   value: unknown
-): value is BaseElementDescriptor {
+): value is BaseDescriptor {
   return (
     isObjectWithProperty(value, "pattern") &&
     isElementDescriptorPattern(value.pattern)

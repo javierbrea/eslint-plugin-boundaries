@@ -2,14 +2,14 @@ import { CacheManager } from "../Cache";
 
 import type {
   DependencyDescription,
-  DescribeDependencyOptions,
-} from "./DependenciesDescriptor.types";
+  DependencyDescriptorOptions,
+} from "./Dependency";
 
 /**
  * Cache to store previously described dependencies.
  */
 export class DependenciesDescriptionsCache extends CacheManager<
-  DescribeDependencyOptions,
+  DependencyDescriptorOptions,
   DependencyDescription
 > {
   /** Generates a unique key for the given dependency description options.

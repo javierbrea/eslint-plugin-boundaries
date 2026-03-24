@@ -1,8 +1,8 @@
 import type { ConfigOptionsNormalized } from "../Config";
 import { Micromatch } from "../Matcher";
 
-import { DependenciesDescriptor } from "./DependenciesDescriptor";
-import { ElementsDescriptor } from "./ElementsDescriptor";
+import { DependenciesDescriptor } from "./Dependency";
+import { ElementsDescriptor } from "./Element";
 
 describe("DependenciesDescriptor cache serialization", () => {
   let elementsDescriptor: ElementsDescriptor;

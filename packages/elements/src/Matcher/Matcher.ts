@@ -1,7 +1,7 @@
 import type { DescriptorOptionsNormalized } from "../Config";
 import type {
   ElementDescriptors,
-  DescribeDependencyOptions,
+  DependencyDescriptorOptions,
   ElementDescription,
   DependencyDescription,
 } from "../Descriptor";
@@ -66,7 +66,7 @@ export class Matcher {
    * @param options The options for describing the elements and the dependency details.
    * @returns The description of the dependency between the elements.
    */
-  public describeDependency(options: DescribeDependencyOptions) {
+  public describeDependency(options: DependencyDescriptorOptions) {
     return this._descriptors.describeDependency(options);
   }
 
@@ -94,7 +94,7 @@ export class Matcher {
    * @returns True if the dependency matches the selector, false otherwise
    */
   public isDependencyMatch(
-    dependencyData: DescribeDependencyOptions,
+    dependencyData: DependencyDescriptorOptions,
     selector: DependencySelector,
     options?: MatcherOptions
   ): boolean {
@@ -134,7 +134,7 @@ export class Matcher {
    * @returns The matching dependency result or null if no match is found
    */
   public getDependencySelectorMatching(
-    dependencyData: DescribeDependencyOptions,
+    dependencyData: DependencyDescriptorOptions,
     selector: DependencySelector,
     options?: MatcherOptions
   ) {

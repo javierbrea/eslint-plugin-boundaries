@@ -1,25 +1,22 @@
-import { CacheManagerDisabled } from "../Cache";
-import type { DescriptorOptionsNormalized } from "../Config";
-
-import { DependenciesDescriptionsCache } from "./DependenciesDescriptionsCache";
-import {
-  DEPENDENCY_RELATIONSHIPS_MAP,
-  DEPENDENCY_RELATIONSHIPS_INVERTED_MAP,
-} from "./DependenciesDescriptor.types";
-import type {
-  DependenciesDescriptorSerializedCache,
-  DependencyDescription,
-  DescribeDependencyOptions,
-} from "./DependenciesDescriptor.types";
-import type { ElementsDescriptor } from "./ElementsDescriptor";
+import { CacheManagerDisabled } from "../../Cache";
+import type { DescriptorOptionsNormalized } from "../../Config";
+import { DependenciesDescriptionsCache } from "../DependenciesDescriptionsCache";
+import { isIgnoredElement, isKnownLocalElement } from "../Element";
 import type {
   ElementDescription,
   LocalElementKnown,
-} from "./ElementsDescriptor.types";
+  ElementsDescriptor,
+} from "../Element";
+
+import type { DependencyDescription } from "./DependencyDescription.types";
 import {
-  isIgnoredElement,
-  isKnownLocalElement,
-} from "./ElementsDescriptorHelpers";
+  DEPENDENCY_RELATIONSHIPS_MAP,
+  DEPENDENCY_RELATIONSHIPS_INVERTED_MAP,
+} from "./DependencyDescription.types";
+import type {
+  DependencyDescriptorSerializedCache,
+  DependencyDescriptorOptions,
+} from "./DependencyDescriptor.types";
 
 /**
  * Class describing dependencies between elements.
@@ -30,7 +27,7 @@ export class DependenciesDescriptor {
    */
   private readonly _dependenciesCache:
     | DependenciesDescriptionsCache
-    | CacheManagerDisabled<DescribeDependencyOptions, DependencyDescription>;
+    | CacheManagerDisabled<DependencyDescriptorOptions, DependencyDescription>;
 
   /**
    * Elements descriptor instance.
@@ -56,7 +53,7 @@ export class DependenciesDescriptor {
     this._dependenciesCache = this._config.cache
       ? new DependenciesDescriptionsCache()
       : new CacheManagerDisabled<
-          DescribeDependencyOptions,
+          DependencyDescriptorOptions,
           DependencyDescription
         >();
   }
@@ -65,7 +62,7 @@ export class DependenciesDescriptor {
    * Serializes the elements cache to a plain object.
    * @returns The serialized elements cache.
    */
-  public serializeCache(): DependenciesDescriptorSerializedCache {
+  public serializeCache(): DependencyDescriptorSerializedCache {
     return this._dependenciesCache.serialize();
   }
 
@@ -74,7 +71,7 @@ export class DependenciesDescriptor {
    * @param serializedCache The serialized elements cache.
    */
   public setCacheFromSerialized(
-    serializedCache: DependenciesDescriptorSerializedCache
+    serializedCache: DependencyDescriptorSerializedCache
   ): void {
     this._dependenciesCache.setFromSerialized(serializedCache);
   }
@@ -247,7 +244,7 @@ export class DependenciesDescriptor {
     kind,
     nodeKind,
     specifiers,
-  }: DescribeDependencyOptions): DependencyDescription {
+  }: DependencyDescriptorOptions): DependencyDescription {
     const cacheKey = this._dependenciesCache.getKey({
       from,
       to,

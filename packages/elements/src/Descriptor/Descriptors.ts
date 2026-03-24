@@ -1,17 +1,14 @@
 import type { DescriptorOptionsNormalized } from "../Config";
 import type { Micromatch } from "../Matcher";
 
-import { DependenciesDescriptor } from "./DependenciesDescriptor";
 import type {
   DependencyDescription,
-  DescribeDependencyOptions,
-} from "./DependenciesDescriptor.types";
+  DependencyDescriptorOptions,
+} from "./Dependency";
+import { DependenciesDescriptor } from "./Dependency/DependencyDescriptor";
 import type { DescriptorsSerializedCache } from "./Descriptors.types";
-import { ElementsDescriptor } from "./ElementsDescriptor";
-import type {
-  ElementDescriptors,
-  ElementDescription,
-} from "./ElementsDescriptor.types";
+import type { ElementDescriptors, ElementDescription } from "./Element";
+import { ElementsDescriptor } from "./Element/ElementDescriptor";
 
 /**
  * Class with methods to describe elements and dependencies between them.
@@ -88,7 +85,7 @@ export class Descriptors {
    * @returns The description of the dependency between the elements.
    */
   public describeDependency(
-    options: DescribeDependencyOptions
+    options: DependencyDescriptorOptions
   ): DependencyDescription {
     return this._dependenciesDescriptor.describeDependency(options);
   }

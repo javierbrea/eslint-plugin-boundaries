@@ -1,4 +1,4 @@
-import type { ElementDescription } from "./ElementsDescriptor.types";
+import type { ElementDescription } from "../Element";
 
 export const DEPENDENCY_KIND_TYPE = "type" as const;
 export const DEPENDENCY_KIND_VALUE = "value" as const;
@@ -58,59 +58,55 @@ export const DEPENDENCY_RELATIONSHIPS_INVERTED_MAP = {
 export type DependencyRelationship =
   (typeof DEPENDENCY_RELATIONSHIPS_MAP)[keyof typeof DEPENDENCY_RELATIONSHIPS_MAP];
 
-/** Information about a dependency between two elements */
-export type ElementsDependencyInfo = {
+/**
+ * Origins of a dependency, either local, external, or core.
+ */
+export const DEPENDENCY_ORIGIN_MAP = {
+  /** Origin of local elements (files) */
+  LOCAL: "local",
+  /** Origin of external elements (libraries) */
+  EXTERNAL: "external",
+  /** Origin of core elements */
+  CORE: "core",
+} as const;
+
+/**
+ * Kind of dependency origin, either local, external, or core.
+ */
+export type DependencyOrigin =
+  (typeof DEPENDENCY_ORIGIN_MAP)[keyof typeof DEPENDENCY_ORIGIN_MAP];
+
+/** Information about a dependency between two items */
+export type DependencyInfo = {
   /** Source of the dependency (import/export path) */
   source: string;
   /** Base source of the dependency for external/core modules */
   module: string | null;
   /** Kind of the dependency */
   kind: DependencyKind;
-  /** Type of the node creating the dependency in the dependent element */
+  /** Type of the node creating the dependency in the dependent item */
   nodeKind: string | null;
   /** Specifiers imported or exported in the dependency */
   specifiers: string[] | null;
-  /** Relationship between the elements from both perspectives */
+  /** Relationship between the items from both perspectives */
   relationship: {
-    /** Relationship between the elements from the perspective of the file */
+    /** Relationship between the items from the perspective of the file */
     from: DependencyRelationship | null;
-    /** Relationship between the elements from the perspective of the dependency */
+    /** Relationship between the items from the perspective of the dependency */
     to: DependencyRelationship | null;
   };
+  /** Origin of the dependency, either local, external, or core */
+  origin: DependencyOrigin;
 };
 
 /**
- * Description of a dependency between two elements
+ * Description of a dependency between two items
  */
 export type DependencyDescription = {
-  /** Source element of the dependency */
+  /** Source item of the dependency */
   from: ElementDescription;
-  /** Target element of the dependency */
+  /** Target item of the dependency */
   to: ElementDescription;
-  /** Information about the dependency */
-  dependency: ElementsDependencyInfo;
-};
-
-/**
- * Serialized cache of dependencies descriptor.
- */
-export type DependenciesDescriptorSerializedCache = Record<
-  string,
-  DependencyDescription
->;
-
-/** Options for describing a dependency between two elements */
-export type DescribeDependencyOptions = {
-  /** Path of the element where the dependency originates */
-  from: string;
-  /** Path of the element where the dependency points to */
-  to?: string;
-  /** Source of the dependency (import/export path) */
-  source: string;
-  /** Kind of the dependency (type, runtime) */
-  kind: DependencyKind;
-  /** Type of the node creating the dependency in the dependent element */
-  nodeKind?: string;
-  /** Specifiers imported or exported in the dependency */
-  specifiers?: string[];
+  /** Information about the dependency itself */
+  dependency: DependencyInfo;
 };

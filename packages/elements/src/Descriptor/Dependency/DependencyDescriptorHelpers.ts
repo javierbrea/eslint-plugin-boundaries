@@ -4,19 +4,19 @@ import {
   isNull,
   isNullish,
   isStringArray,
-} from "../Support/TypeGuards";
+} from "../../Support/TypeGuards";
+import { isElementDescription } from "../Element";
 
-import type {
-  DependencyKind,
-  DependencyRelationship,
-  ElementsDependencyInfo,
-  DependencyDescription,
-} from "./DependenciesDescriptor.types";
 import {
   DEPENDENCY_KINDS_MAP,
   DEPENDENCY_RELATIONSHIPS_MAP,
-} from "./DependenciesDescriptor.types";
-import { isElementDescription } from "./ElementsDescriptorHelpers";
+} from "./DependencyDescription.types";
+import type {
+  DependencyKind,
+  DependencyRelationship,
+  DependencyInfo,
+  DependencyDescription,
+} from "./DependencyDescription.types";
 
 /**
  * Determines if the value is a valid dependency kind.
@@ -69,7 +69,7 @@ export function isDependencyRelationshipDescription(
  */
 export function isElementsDependencyInfo(
   value: unknown
-): value is ElementsDependencyInfo {
+): value is DependencyInfo {
   return (
     isObjectWithProperty(value, "source") &&
     isString(value.source) &&
