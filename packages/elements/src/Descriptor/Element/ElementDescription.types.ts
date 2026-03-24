@@ -1,9 +1,5 @@
 import type { BaseDescription } from "../Shared/BaseDescription.types";
 
-export type ElementDescriptionWithSource = ElementDescription & {
-  module?: string | null;
-};
-
 /**
  * Origins of an element
  */

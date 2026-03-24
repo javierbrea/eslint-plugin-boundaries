@@ -10,7 +10,6 @@ import type {
 import type { Micromatch } from "../../Matcher";
 import { isArray, isNullish, normalizePath } from "../../Support";
 import type { CapturedValues } from "../Shared";
-import { DESCRIPTOR_MODES_MAP } from "../Shared";
 
 import type {
   ElementDescriptionWithSource,
@@ -19,6 +18,7 @@ import type {
   LocalElementUnknown,
 } from "./ElementDescription.types";
 import { ELEMENT_ORIGINS_MAP } from "./ElementDescription.types";
+import { DESCRIPTOR_MODES_MAP } from "./ElementDescriptor.types";
 import type {
   ElementDescriptor,
   ElementDescriptors,

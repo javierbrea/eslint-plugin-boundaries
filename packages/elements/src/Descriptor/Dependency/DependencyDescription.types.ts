@@ -1,4 +1,4 @@
-import type { ElementDescription } from "../Element";
+import type { EntityDescription } from "../Entity";
 
 export const DEPENDENCY_KIND_TYPE = "type" as const;
 export const DEPENDENCY_KIND_VALUE = "value" as const;
@@ -90,9 +90,9 @@ export type DependencyInfo = {
   specifiers: string[] | null;
   /** Relationship between the items from both perspectives */
   relationship: {
-    /** Relationship between the items from the perspective of the file */
+    /** Relationship between the items from the perspective of the dependent entity */
     from: DependencyRelationship | null;
-    /** Relationship between the items from the perspective of the dependency */
+    /** Relationship between the items from the perspective of the dependency entity */
     to: DependencyRelationship | null;
   };
   /** Origin of the dependency, either local, external, or core */
@@ -103,10 +103,10 @@ export type DependencyInfo = {
  * Description of a dependency between two items
  */
 export type DependencyDescription = {
-  /** Source item of the dependency */
-  from: ElementDescription;
-  /** Target item of the dependency */
-  to: ElementDescription;
+  /** Source entity of the dependency */
+  from: EntityDescription;
+  /** Target entity of the dependency */
+  to: EntityDescription;
   /** Information about the dependency itself */
   dependency: DependencyInfo;
 };
