@@ -6,8 +6,7 @@ import {
   isObjectWithProperty,
   isEmptyArray,
   isObjectWithAnyOfProperties,
-} from "../Support/TypeGuards";
-
+} from "../../Support/TypeGuards";
 import type {
   ElementSelector,
   ElementSelectorWithOptions,
@@ -21,7 +20,7 @@ import type {
   BaseElementSelectorData,
   BaseElementsSelector,
   ElementsSelector,
-} from "./Matcher.types";
+} from "../Matcher.types";
 
 /**
  * Determines if the given value is a captured values object selector (single object with pattern properties).

@@ -1,11 +1,11 @@
 import type {
   MatchersOptionsNormalized,
   MicromatchPatternNullable,
-} from "../Config";
-import type { BaseElementDescription } from "../Descriptor";
+} from "../../Config";
+import type { BaseElementDescription } from "../../Descriptor";
+import type { TemplateData, BaseElementSelectorData } from "../Matcher.types";
 
 import { BaseElementsMatcher } from "./BaseElementsMatcher";
-import type { TemplateData, BaseElementSelectorData } from "./Matcher.types";
 import type { Micromatch } from "./Micromatch";
 
 class TestMatcher extends BaseElementsMatcher {

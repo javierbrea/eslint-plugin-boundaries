@@ -2,7 +2,8 @@ import type {
   ElementSelectorWithOptions,
   ElementSelectors,
   CapturedValuesSelector,
-} from "./Matcher.types";
+} from "../Matcher.types";
+
 import {
   isCapturedValuesSelector,
   isSimpleElementSelectorByType,

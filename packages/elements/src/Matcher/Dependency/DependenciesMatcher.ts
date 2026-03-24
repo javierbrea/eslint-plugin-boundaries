@@ -1,12 +1,15 @@
-import type { MatchersOptionsNormalized } from "../Config";
+import type { MatchersOptionsNormalized } from "../../Config";
 import type {
   DependencyDescription,
   DependencyRelationship,
-} from "../Descriptor";
-import { isArray } from "../Support";
-
-import { BaseElementsMatcher } from "./BaseElementsMatcher";
-import type { ElementsMatcher } from "./ElementsMatcher";
+} from "../../Descriptor";
+import { isArray } from "../../Support";
+import type { ElementsMatcher } from "../Element";
+import {
+  normalizeElementsSelector,
+  isDependencyDataSelector,
+  isDependencySelector,
+} from "../Element";
 import type {
   TemplateData,
   DependencySelector,
@@ -14,13 +17,9 @@ import type {
   MatcherOptions,
   DependencyMatchResult,
   DependencyDataSelectorData,
-} from "./Matcher.types";
-import {
-  normalizeElementsSelector,
-  isDependencyDataSelector,
-  isDependencySelector,
-} from "./MatcherHelpers";
-import type { Micromatch } from "./Micromatch";
+} from "../Matcher.types";
+import { BaseElementsMatcher } from "../Shared";
+import type { Micromatch } from "../Shared";
 
 /**
  * Matcher class to determine if dependencies match a given dependencies selector.

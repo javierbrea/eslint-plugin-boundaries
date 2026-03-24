@@ -1,7 +1,5 @@
-export * from "./Matcher.types";
-export * from "./MatcherHelpers";
+export * from "./Matcher";
+export * from "./Element";
 export type { Matcher } from "./Matcher";
-export type { ElementsMatcher } from "./ElementsMatcher";
-export type { DependenciesMatcher } from "./DependenciesMatcher";
-
-export { normalizeElementsSelector } from "./MatcherHelpers";
+export type { ElementsMatcher, normalizeElementsSelector } from "./Element";
+export * from "./Dependency";

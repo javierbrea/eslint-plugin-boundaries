@@ -4,8 +4,8 @@ import type {
   MicromatchPatternNullable,
   MatchersOptionsNormalized,
   MicromatchMatchableValue,
-} from "../Config";
-import type { BaseElementDescription } from "../Descriptor";
+} from "../../Config";
+import type { BaseElementDescription } from "../../Descriptor";
 import {
   isArray,
   isObjectWithProperty,
@@ -13,13 +13,13 @@ import {
   isBoolean,
   isNull,
   isUndefined,
-} from "../Support";
-
+} from "../../Support";
 import type {
   BaseElementSelectorData,
   TemplateData,
   SelectableElement,
-} from "./Matcher.types";
+} from "../Matcher.types";
+
 import type { Micromatch } from "./Micromatch";
 
 const LEGACY_TEMPLATE_REGEX = /\$\{([^}]+)\}/g;

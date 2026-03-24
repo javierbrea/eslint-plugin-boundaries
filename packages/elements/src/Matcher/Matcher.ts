@@ -11,8 +11,9 @@ import {
   isDependencyDescription,
 } from "../Descriptor";
 
-import type { DependenciesMatcher } from "./DependenciesMatcher";
-import type { ElementsMatcher } from "./ElementsMatcher";
+import type { DependenciesMatcher } from "./Dependency";
+import type { ElementsMatcher } from "./Element";
+import { isDependencySelector, isElementsSelector } from "./Element";
 import type {
   DependencySelector,
   MatcherOptions,
@@ -21,8 +22,7 @@ import type {
   MatcherSerializedCache,
   BaseElementSelectorData,
 } from "./Matcher.types";
-import { isDependencySelector, isElementsSelector } from "./MatcherHelpers";
-import type { Micromatch } from "./Micromatch";
+import type { Micromatch } from "./Shared";
 
 /**
  * Matcher class to evaluate if elements or dependencies match given selectors.

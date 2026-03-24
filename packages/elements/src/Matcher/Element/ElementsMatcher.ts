@@ -1,17 +1,15 @@
 import type {
   MatchersOptionsNormalized,
   MicromatchPatternNullable,
-} from "../Config";
-import type { ElementDescription } from "../Descriptor";
+} from "../../Config";
+import type { ElementDescription } from "../../Descriptor";
 import {
   isArray,
   isNullish,
   isEmptyObject,
   isUndefined,
   isNull,
-} from "../Support";
-
-import { BaseElementsMatcher } from "./BaseElementsMatcher";
+} from "../../Support";
 import type {
   BaseElementSelectorData,
   ParentElementSelectorData,
@@ -19,9 +17,11 @@ import type {
   TemplateData,
   BaseElementsSelector,
   MatcherOptions,
-} from "./Matcher.types";
+} from "../Matcher.types";
+import { BaseElementsMatcher } from "../Shared";
+import type { Micromatch } from "../Shared";
+
 import { normalizeElementsSelector } from "./MatcherHelpers";
-import type { Micromatch } from "./Micromatch";
 
 /**
  * Matcher class to determine if elements match a given selector.
