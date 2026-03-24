@@ -1,33 +1,18 @@
-import type { BaseDescription } from "../Shared/BaseDescription.types";
-
-/**
- * Origins of an element
- */
-export const ELEMENT_ORIGINS_MAP = {
-  /** Origin of local elements (files) */
-  LOCAL: "local",
-  /** Origin of external elements (libraries) */
-  EXTERNAL: "external",
-  /** Origin of core elements */
-  CORE: "core",
-} as const;
-
-/**
- * Kind of element origin, either local, external, or core.
- */
-export type ElementOrigin =
-  (typeof ELEMENT_ORIGINS_MAP)[keyof typeof ELEMENT_ORIGINS_MAP];
+import type {
+  BaseDescription,
+  BaseIgnoredDescription,
+  BaseKnownDescription,
+  BaseUnknownDescription,
+} from "../Shared/BaseDescription.types";
 
 /**
  * Base element properties related to captured values
  */
 export type ElementDescription = BaseDescription & {
-  /** Path in elements can't be null, because in case there is no match, no element description will be created, and the file will be marked as unknown with a null path. */
-  path: string;
   /** Type of the element */
-  type: string;
+  type: string | null;
   /** Parent elements */
-  parents: ElementParent[];
+  parents: ElementParent[] | null;
 };
 
 /**
@@ -37,3 +22,36 @@ export type ElementParent = Pick<
   ElementDescription,
   "type" | "path" | "captured"
 >;
+
+/**
+ * Description of an ignored element
+ */
+export type IgnoredElementDescription = ElementDescription &
+  BaseIgnoredDescription & {
+    /** Type of the element */
+    type: null;
+  };
+
+/**
+ * Description of an unknown local element
+ */
+export type UnknownElementDescription = ElementDescription &
+  BaseUnknownDescription & {
+    /** Path of an unknown element is null, because it can't be resolved to any descriptor */
+    path: null;
+    /** Type of the element. For unknown elements, the type is null because it can't be determined without a matching descriptor. */
+    type: null;
+    /** Parent elements. For unknown elements, parents are null because the element can't be resolved to any descriptor, so we have no information about its parents. */
+    parents: null;
+  };
+
+/*
+ * Description of a known element
+ */
+export type KnownElementDescription = ElementDescription &
+  BaseKnownDescription & {
+    /** Known elements always have path  and categories */
+    path: string;
+    /** Type of the element */
+    type: string;
+  };

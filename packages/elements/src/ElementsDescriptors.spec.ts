@@ -3,14 +3,14 @@ import micromatch from "micromatch";
 import type { Matcher } from "./index";
 import {
   Elements,
-  isIgnoredElement,
+  isIgnoredElementDescription,
   isKnownLocalElement,
   isExternalDependencyElement,
   isUnknownLocalElement,
   isCoreDependencyElement,
   isElementDescription,
   isDependencyDescription,
-  isInternalDependency,
+  isDependencyWithInternalRelationship,
 } from "./index";
 
 describe("Elements Descriptors", () => {
@@ -81,7 +81,7 @@ describe("Elements Descriptors", () => {
       );
 
       expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
-      expect(isIgnoredElement(element)).toBe(true);
+      expect(isIgnoredElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -89,7 +89,7 @@ describe("Elements Descriptors", () => {
       const element = matcher.describeElement("/project/foo/utils/testUtil.ts");
 
       expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
-      expect(isIgnoredElement(element)).toBe(true);
+      expect(isIgnoredElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -129,7 +129,7 @@ describe("Elements Descriptors", () => {
       );
 
       expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
-      expect(isIgnoredElement(element)).toBe(true);
+      expect(isIgnoredElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -179,7 +179,7 @@ describe("Elements Descriptors", () => {
       );
 
       expect(element).toEqual(expect.objectContaining({ isIgnored: true }));
-      expect(isIgnoredElement(element)).toBe(true);
+      expect(isIgnoredElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -821,8 +821,8 @@ describe("Elements Descriptors", () => {
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isIgnoredElement(dependency.from)).toBe(true);
-      expect(isIgnoredElement(dependency.to)).toBe(true);
+      expect(isIgnoredElementDescription(dependency.from)).toBe(true);
+      expect(isIgnoredElementDescription(dependency.to)).toBe(true);
     });
 
     it("should return dependency between known elements", () => {
@@ -1080,7 +1080,7 @@ describe("Elements Descriptors", () => {
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isInternalDependency(dependency)).toBe(false);
+      expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
       expect(isKnownLocalElement(dependency.from)).toBe(true);
       expect(isKnownLocalElement(dependency.to)).toBe(true);
     });
@@ -1147,7 +1147,7 @@ describe("Elements Descriptors", () => {
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isInternalDependency(dependency)).toBe(true);
+      expect(isDependencyWithInternalRelationship(dependency)).toBe(true);
       expect(isKnownLocalElement(dependency.from)).toBe(true);
       expect(isKnownLocalElement(dependency.to)).toBe(true);
     });
@@ -1228,7 +1228,7 @@ describe("Elements Descriptors", () => {
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isInternalDependency(dependency)).toBe(false);
+      expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
       expect(isKnownLocalElement(dependency.from)).toBe(true);
       expect(isKnownLocalElement(dependency.to)).toBe(true);
     });
@@ -1309,7 +1309,7 @@ describe("Elements Descriptors", () => {
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isInternalDependency(dependency)).toBe(false);
+      expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
       expect(isKnownLocalElement(dependency.from)).toBe(true);
       expect(isKnownLocalElement(dependency.to)).toBe(true);
     });
@@ -1463,7 +1463,7 @@ describe("Elements Descriptors", () => {
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isInternalDependency(dependency)).toBe(false);
+      expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
       expect(isKnownLocalElement(dependency.from)).toBe(true);
       expect(isKnownLocalElement(dependency.to)).toBe(true);
     });
@@ -1551,7 +1551,7 @@ describe("Elements Descriptors", () => {
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isInternalDependency(dependency)).toBe(false);
+      expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
       expect(isKnownLocalElement(dependency.from)).toBe(true);
       expect(isKnownLocalElement(dependency.to)).toBe(true);
     });
@@ -1639,7 +1639,7 @@ describe("Elements Descriptors", () => {
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isInternalDependency(dependency)).toBe(false);
+      expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
       expect(isKnownLocalElement(dependency.from)).toBe(true);
       expect(isKnownLocalElement(dependency.to)).toBe(true);
     });

@@ -8,8 +8,9 @@ import {
 import { isElementDescription } from "../Element";
 
 import {
-  DEPENDENCY_KINDS_MAP,
+  DEPENDENCY_KINDS_SET,
   DEPENDENCY_RELATIONSHIPS_MAP,
+  DEPENDENCY_RELATIONSHIPS_SET,
 } from "./DependencyDescription.types";
 import type {
   DependencyKind,
@@ -24,10 +25,7 @@ import type {
  * @returns True if the value is a valid dependency kind, false otherwise.
  */
 export function isDependencyKind(value: unknown): value is DependencyKind {
-  return (
-    isString(value) &&
-    Object.values(DEPENDENCY_KINDS_MAP).includes(value as DependencyKind)
-  );
+  return isString(value) && DEPENDENCY_KINDS_SET.has(value as DependencyKind);
 }
 
 /**
@@ -40,9 +38,7 @@ export function isDependencyRelationship(
 ): value is DependencyRelationship {
   return (
     isString(value) &&
-    Object.values(DEPENDENCY_RELATIONSHIPS_MAP).includes(
-      value as DependencyRelationship
-    )
+    DEPENDENCY_RELATIONSHIPS_SET.has(value as DependencyRelationship)
   );
 }
 
@@ -63,13 +59,11 @@ export function isDependencyRelationshipDescription(
 }
 
 /**
- * Returns whether the given value is a valid ElementsDependencyInfo object.
+ * Returns whether the given value is a valid DependencyInfo object.
  * @param value The value to check.
- * @returns True if the value is a valid ElementsDependencyInfo object, false otherwise.
+ * @returns True if the value is a valid DependencyInfo object, false otherwise.
  */
-export function isElementsDependencyInfo(
-  value: unknown
-): value is DependencyInfo {
+export function isDependencyInfo(value: unknown): value is DependencyInfo {
   return (
     isObjectWithProperty(value, "source") &&
     isString(value.source) &&
@@ -88,7 +82,7 @@ export function isElementsDependencyInfo(
 
 /**
  * Determines whether the given value is a valid DependencyDescription object.
- * @param value The value to check
+ * @param value The value to check.
  * @returns True if the value is a valid DependencyDescription object, false otherwise.
  */
 export function isDependencyDescription(
@@ -96,20 +90,22 @@ export function isDependencyDescription(
 ): value is DependencyDescription {
   return (
     isObjectWithProperty(value, "to") &&
+    // TODO: Change by isItemDescription
     isElementDescription(value.to) &&
     isObjectWithProperty(value, "from") &&
+    // TODO: Change by isItemDescription
     isElementDescription(value.from) &&
     isObjectWithProperty(value, "dependency") &&
-    isElementsDependencyInfo(value.dependency)
+    isDependencyInfo(value.dependency)
   );
 }
 
 /**
- * Determines whether the given dependency description is internal.
+ * Determines whether the given dependency description has an internal relationship.
  * @param dependency The dependency to check
- * @returns True if the dependency is internal, false otherwise
+ * @returns True if the dependency has an internal relationship, false otherwise
  */
-export function isInternalDependency(
+export function isDependencyWithInternalRelationship(
   dependency: DependencyDescription
 ): boolean {
   return (

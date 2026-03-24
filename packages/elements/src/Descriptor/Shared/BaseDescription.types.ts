@@ -28,3 +28,27 @@ export type BaseIgnoredDescription = BaseDescription & {
   /** Indicates that the item is unknown */
   isUnknown: true;
 };
+
+/**
+ * Description of a known item, which has a path and captured values
+ */
+export type BaseKnownDescription = BaseDescription & {
+  /** Known items always have a path */
+  path: string;
+  /** Indicates if the item is ignored */
+  isIgnored: false;
+  /** Indicates that the item is known */
+  isUnknown: false;
+};
+
+/**
+ * Description of an unknown item, which has no captured values and is not ignored
+ */
+export type BaseUnknownDescription = BaseDescription & {
+  /** Unknown items have not captured values */
+  captured: null;
+  /** Indicates that the item is not ignored */
+  isIgnored: false;
+  /** Indicates that the item is unknown */
+  isUnknown: true;
+};

@@ -16,6 +16,11 @@ export const DEPENDENCY_KINDS_MAP = {
   TYPE_OF: DEPENDENCY_KIND_TYPEOF,
 } as const;
 
+/** Set of the kinds of dependency for fast lookup */
+export const DEPENDENCY_KINDS_SET = new Set(
+  Object.values(DEPENDENCY_KINDS_MAP)
+);
+
 /** Kind of dependency, either a type dependency or a value dependency */
 export type DependencyKind =
   (typeof DEPENDENCY_KINDS_MAP)[keyof typeof DEPENDENCY_KINDS_MAP];
@@ -39,6 +44,11 @@ export const DEPENDENCY_RELATIONSHIPS_MAP = {
   /** The dependency is an ancestor of the element */
   ANCESTOR: "ancestor",
 } as const;
+
+/** Set of the kinds of relationships between elements being dependencies for fast lookup */
+export const DEPENDENCY_RELATIONSHIPS_SET = new Set(
+  Object.values(DEPENDENCY_RELATIONSHIPS_MAP)
+);
 
 export const DEPENDENCY_RELATIONSHIPS_INVERTED_MAP = {
   [DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL]:

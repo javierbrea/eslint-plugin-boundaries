@@ -1,7 +1,7 @@
 import { CacheManagerDisabled } from "../../Cache";
 import type { DescriptorOptionsNormalized } from "../../Config";
 import { DependenciesDescriptionsCache } from "../DependenciesDescriptionsCache";
-import { isIgnoredElement, isKnownLocalElement } from "../Element";
+import { isIgnoredElementDescription, isKnownLocalElement } from "../Element";
 import type {
   ElementDescription,
   LocalElementKnown,
@@ -185,7 +185,7 @@ export class DependenciesDescriptor {
     dependency: ElementDescription
   ) {
     if (
-      isIgnoredElement(dependency) ||
+      isIgnoredElementDescription(dependency) ||
       !isKnownLocalElement(dependency) ||
       !isKnownLocalElement(element)
     ) {
