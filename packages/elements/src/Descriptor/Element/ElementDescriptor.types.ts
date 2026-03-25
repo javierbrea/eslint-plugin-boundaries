@@ -3,40 +3,25 @@ import type { BaseDescriptor } from "../Shared";
 import type { ElementDescription } from "./ElementDescription.types";
 
 /**
- * Map of the modes to interpret the pattern in a Descriptor.
- */
-export const DESCRIPTOR_MODES_MAP = {
-  /** Mode to interpret the pattern as a folder */
-  FOLDER: "folder",
-  /** Mode to interpret the pattern as a file */
-  FILE: "file",
-  /** Mode to interpret the pattern as a full path */
-  FULL: "full",
-} as const;
-
-/**
- * Mode to interpret the pattern in a Descriptor.
- */
-export type DescriptorMode =
-  (typeof DESCRIPTOR_MODES_MAP)[keyof typeof DESCRIPTOR_MODES_MAP];
-
-/**
  * Element descriptor, which must define a pattern and a type. The pattern is used to match files and capture values, while the type is used to categorize the element.
  */
 export type ElementDescriptor = BaseDescriptor & {
   /** Type of the element (e.g., "service", "component", "util"). */
   type: string;
   /**
-   * Mode to interpret the pattern. Can be "folder" (default), "file", or "full".
-   * - "folder": Default value. the descriptor will match to the first file's parent folder matching the pattern.
-   *             In the practice, it is like adding ** /* to the given pattern, but the plugin makes it by itself because it needs to know exactly which parent folder has to be considered the descriptor.
-   * - "file": The given pattern will not be modified, but the plugin will still try to match the last part of the path.
-   *           So, a pattern like *.model.js would match with paths src/foo.model.js, src/modules/foo/foo.model.js, src/modules/foo/models/foo.model.js, etc.
-   * - "full": The given pattern will only match with patterns matching the full path.
-   *           This means that you will have to provide patterns matching from the base project path.
-   *           So, in order to match src/modules/foo/foo.model.js you'll have to provide patterns like ** /*.model.js, ** /* /*.model.js, src/* /* /*.model.js, etc. (the chosen pattern will depend on what do you want to capture from the path)
+   * Optional micromatch pattern. If provided, the left side of the descriptor path must match also with this pattern from the root of the project (like if pattern is [basePattern]/** /[pattern]).
+   * This option is only useful when `fullMatch` is false (default), but capturing fragments from the rest of the full path is also needed.
+   **/
+  basePattern?: string;
+  /**
+   * Like capture, but for the basePattern.
+   * This allows to capture values from the left side of the path, which is useful when using the basePattern option.
+   * The captured values will be merged with the ones from the capture option. If the same name is used in both captures, the value from capture will take precedence.
    */
-  mode?: DescriptorMode;
+  baseCapture?: string[];
+
+  /** If true, the descriptor will only match files that fully match the pattern, to ensure that only the exact file or folder is matched, without matching from the right side of the path. */
+  fullMatch?: boolean;
 };
 
 /**
@@ -45,24 +30,9 @@ export type ElementDescriptor = BaseDescriptor & {
 export type ElementDescriptors = ElementDescriptor[];
 
 /**
- * Serialized cache of element descriptions.
+ * Serialized cache of ElementsDescriptor class, which is a record of element descriptions indexed by their paths.
  */
-export type ElementDescriptionsSerializedCache = Record<
+export type ElementsDescriptorSerializedCache = Record<
   string,
   ElementDescription
 >;
-
-/**
- * Serialized cache of file elements.
- */
-export type FileElementsSerializedCache = Record<string, ElementDescription>;
-
-/**
- * Serialized cache for ElementsDescriptor class.
- */
-export type ElementDescriptorSerializedCache = {
-  /** Serialized descriptions cache */
-  descriptions: ElementDescriptionsSerializedCache;
-  /** Serialized files cache */
-  files: FileElementsSerializedCache;
-};

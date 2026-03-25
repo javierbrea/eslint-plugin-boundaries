@@ -14,7 +14,7 @@ import {
 } from "./DependencyDescription.types";
 import type {
   DependencyKind,
-  DependencyRelationship,
+  DependencyRelationshipType,
   DependencyInfo,
   DependencyDescription,
 } from "./DependencyDescription.types";
@@ -35,10 +35,10 @@ export function isDependencyKind(value: unknown): value is DependencyKind {
  */
 export function isDependencyRelationship(
   value: unknown
-): value is DependencyRelationship {
+): value is DependencyRelationshipType {
   return (
     isString(value) &&
-    DEPENDENCY_RELATIONSHIPS_SET.has(value as DependencyRelationship)
+    DEPENDENCY_RELATIONSHIPS_SET.has(value as DependencyRelationshipType)
   );
 }
 
@@ -49,7 +49,7 @@ export function isDependencyRelationship(
  */
 export function isDependencyRelationshipDescription(
   value: unknown
-): value is DependencyRelationship {
+): value is DependencyRelationshipType {
   return (
     isObjectWithProperty(value, "to") &&
     (isNull(value.to) || isDependencyRelationship(value.to)) &&

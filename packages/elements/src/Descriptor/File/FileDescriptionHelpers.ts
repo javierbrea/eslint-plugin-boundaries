@@ -22,7 +22,6 @@ export function isFileDescription(value: unknown): value is FileDescription {
   return (
     isBaseDescription(value) &&
     isObjectWithProperty(value, "categories") &&
-    isObjectWithProperty(value, "isExternal") &&
     isObjectWithProperty(value, "elementInternalPath")
   );
 }

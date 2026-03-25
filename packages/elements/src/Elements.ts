@@ -1,13 +1,8 @@
 import type { ConfigOptions, ConfigOptionsNormalized } from "./Config";
 import { Config } from "./Config";
-import type { ElementDescriptors } from "./Descriptor";
+import type { DescriptorsConfig } from "./Descriptor";
 import type { ElementsSerializedCache } from "./Elements.types";
-import {
-  Micromatch,
-  DependenciesMatcher,
-  ElementsMatcher,
-  Matcher,
-} from "./Matcher";
+import { Micromatch, Matcher } from "./Matcher";
 import { MatchersCache } from "./MatchersCache";
 
 /**
@@ -45,7 +40,7 @@ export class Elements {
       (acc, [key, cache]) => {
         acc[key] = {
           config: cache.config,
-          elementDescriptors: cache.elementDescriptors,
+          descriptors: cache.descriptors,
           cache: cache.matcher.serializeCache(),
         };
         return acc;
@@ -71,13 +66,13 @@ export class Elements {
     this._micromatchWithCache.setFromSerialized(serializedCache.micromatch);
     for (const key in serializedCache.matchers) {
       const matcher = this.getMatcher(
-        serializedCache.matchers[key].elementDescriptors,
+        serializedCache.matchers[key].descriptors,
         serializedCache.matchers[key].config
       );
       matcher.setCacheFromSerialized(serializedCache.matchers[key].cache);
       this._matchersCache.set(key, {
         config: serializedCache.matchers[key].config,
-        elementDescriptors: serializedCache.matchers[key].elementDescriptors,
+        descriptors: serializedCache.matchers[key].descriptors,
         matcher: matcher,
       });
     }
@@ -97,12 +92,12 @@ export class Elements {
   /**
    * Gets a Matcher instance for the given configuration options.
    * It uses caching to return the same instance for the same configuration options. If no options are provided, the global configuration options are used.
-   * @param elementDescriptors The element descriptors to use.
+   * @param descriptors The descriptors to use.
    * @param config Optional configuration options to override the global ones.
    * @returns A matcher instance, unique for each different configuration.
    */
   public getMatcher(
-    elementDescriptors: ElementDescriptors,
+    descriptors: DescriptorsConfig,
     config?: ConfigOptions
   ): Matcher {
     const optionsToUse = config || this._globalConfigOptions;
@@ -114,7 +109,7 @@ export class Elements {
 
     const cacheKey = this._matchersCache.getKey({
       config: configOptionsNormalized,
-      elementDescriptors,
+      descriptors,
     });
 
     if (this._matchersCache.has(cacheKey)) {
@@ -125,27 +120,18 @@ export class Elements {
       ? this._micromatchWithCache
       : this._micromatchWithoutCache;
 
-    const elementsMatcher = new ElementsMatcher(
-      matchersNormalizedOptions,
-      micromatch
-    );
-    const dependenciesMatcher = new DependenciesMatcher(
-      elementsMatcher,
-      matchersNormalizedOptions,
-      micromatch
-    );
-
-    const matcher = new Matcher(
-      elementDescriptors,
-      elementsMatcher,
-      dependenciesMatcher,
-      descriptorNormalizedOptions,
-      micromatch
-    );
+    const matcher = new Matcher({
+      descriptors,
+      micromatch,
+      options: {
+        descriptors: descriptorNormalizedOptions,
+        matchers: matchersNormalizedOptions,
+      },
+    });
 
     this._matchersCache.set(cacheKey, {
       config: configOptionsNormalized,
-      elementDescriptors,
+      descriptors,
       matcher,
     });
     return matcher;

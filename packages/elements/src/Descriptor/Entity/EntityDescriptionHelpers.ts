@@ -1,4 +1,4 @@
-import { isNull, isObjectWithProperty } from "../../Shared";
+import { isObjectWithProperty } from "../../Shared";
 import { isElementDescription } from "../Element";
 import { isFileDescription } from "../File/FileDescriptionHelpers";
 
@@ -15,7 +15,8 @@ export function isEntityDescription(
   return (
     isObjectWithProperty(value, "element") &&
     isObjectWithProperty(value, "file") &&
-    (isNull(value.element) || isElementDescription(value.element)) &&
-    (isNull(value.file) || isFileDescription(value.file))
+    isObjectWithProperty(value, "origin") &&
+    isElementDescription(value.element) &&
+    isFileDescription(value.file)
   );
 }

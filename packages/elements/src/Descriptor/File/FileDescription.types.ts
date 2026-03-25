@@ -13,8 +13,6 @@ export type FileDescription = BaseDescription & {
   elementInternalPath: string | null;
   /** Categories of the file, or null if the file is ignored or unknown */
   categories: string[] | null;
-  /** Indicates if the file is external, which means that it may have been flagged as external by settings */
-  isExternal: boolean;
 };
 
 /**

@@ -1,9 +1,12 @@
-import type { DescriptorOptionsNormalized } from "../Config";
 import type {
-  ElementDescriptors,
+  DescriptorOptionsNormalized,
+  MatchersOptionsNormalized,
+} from "../Config";
+import type {
   DependencyDescriptorOptions,
   ElementDescription,
   DependencyDescription,
+  DescriptorsConfig,
 } from "../Descriptor";
 import {
   Descriptors,
@@ -12,16 +15,12 @@ import {
 } from "../Descriptor";
 
 import type {
-  DependenciesMatcher,
   DependencySingleSelector,
   DependencyMatchResult,
 } from "./Dependency";
-import type {
-  ElementsMatcher,
-  ElementSelector,
-  ElementSingleSelector,
-} from "./Element";
-import { isDependencySelector, isElementsSelector } from "./Element";
+import { isDependencySelector, DependenciesMatcher } from "./Dependency";
+import type { ElementSelector, ElementSingleSelector } from "./Element";
+import { isElementSelector, ElementsMatcher } from "./Element";
 import type { MatcherSerializedCache } from "./Matcher.types";
 import type { Micromatch, MatcherOptions } from "./Shared";
 
@@ -35,22 +34,37 @@ export class Matcher {
 
   /**
    * Constructor for the Matcher class.
-   * @param descriptors Element descriptors to use for matching.
-   * @param elementsMatcher Elements matcher instance.
-   * @param dependenciesMatcher Dependencies matcher instance.
-   * @param config Configuration options.
-   * @param globalCache Global cache instance.
+   * @param options The options to configure the Matcher instance, including descriptors, matchers for elements and dependencies, and micromatch instance for pattern matching.
+   * @param options.descriptors The descriptors configuration to use for describing elements and dependencies.
+   * @param options.options.descriptors The normalized descriptor options to use for describing elements and dependencies.
+   * @param options.options.matchers The matchers configuration for elements and dependencies.
+   * @param options.micromatch The micromatch instance to use for pattern matching.
    */
-  constructor(
-    descriptors: ElementDescriptors,
-    elementsMatcher: ElementsMatcher,
-    dependenciesMatcher: DependenciesMatcher,
-    config: DescriptorOptionsNormalized,
-    micromatch: Micromatch
-  ) {
-    this._descriptors = new Descriptors(descriptors, config, micromatch);
-    this._elementsMatcher = elementsMatcher;
-    this._dependenciesMatcher = dependenciesMatcher;
+  constructor({
+    descriptors,
+    options: { descriptors: descriptorOptions, matchers: matchersOptions },
+    micromatch,
+  }: {
+    descriptors: DescriptorsConfig;
+    options: {
+      descriptors: DescriptorOptionsNormalized;
+      matchers: MatchersOptionsNormalized;
+    };
+    micromatch: Micromatch;
+  }) {
+    this._descriptors = new Descriptors(
+      descriptors,
+      descriptorOptions,
+      micromatch
+    );
+    this._elementsMatcher = new ElementsMatcher(matchersOptions, micromatch);
+    // TODO: Create filesMatcher
+    // TODO: Create EntitiesMatcher
+    this._dependenciesMatcher = new DependenciesMatcher(
+      this._elementsMatcher,
+      matchersOptions,
+      micromatch
+    );
   }
 
   /**
@@ -186,7 +200,7 @@ export class Matcher {
     selector: ElementSelector,
     options?: MatcherOptions
   ): ElementSingleSelector | null {
-    if (isElementsSelector(selector) && isElementDescription(description)) {
+    if (isElementSelector(selector) && isElementDescription(description)) {
       return this._elementsMatcher.getSelectorMatching(
         description,
         selector,

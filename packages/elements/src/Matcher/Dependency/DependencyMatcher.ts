@@ -1,7 +1,7 @@
 import type { MatchersOptionsNormalized } from "../../Config";
 import type {
   DependencyDescription,
-  DependencyRelationship,
+  DependencyRelationshipType,
 } from "../../Descriptor";
 import { isArray } from "../../Shared";
 import type { ElementsMatcher } from "../Element";
@@ -137,7 +137,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    */
   private _relationshipFromMatches(
     selector: DependencyInfoSelector,
-    relationship: DependencyRelationship | null,
+    relationship: DependencyRelationshipType | null,
     templateData: TemplateData
   ): boolean {
     if (!selector.relationship?.from) {
@@ -159,7 +159,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    */
   private _relationshipToMatches(
     selector: DependencyInfoSelector,
-    relationship: DependencyRelationship | null,
+    relationship: DependencyRelationshipType | null,
     templateData: TemplateData
   ): boolean {
     if (!selector.relationship?.to) {

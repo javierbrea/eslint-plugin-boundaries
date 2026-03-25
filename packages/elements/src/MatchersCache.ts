@@ -1,6 +1,11 @@
 import { CacheManager } from "./Cache";
 import type { ConfigOptionsNormalized } from "./Config";
-import type { ElementDescriptors } from "./Descriptor";
+import type {
+  BaseDescriptor,
+  DescriptorsConfig,
+  ElementDescriptors,
+  FileDescriptors,
+} from "./Descriptor";
 import type { Matcher } from "./Matcher";
 
 /**
@@ -9,14 +14,53 @@ import type { Matcher } from "./Matcher";
 export class MatchersCache extends CacheManager<
   {
     config: ConfigOptionsNormalized;
-    elementDescriptors: ElementDescriptors;
+    descriptors: DescriptorsConfig;
   },
   {
     config: ConfigOptionsNormalized;
-    elementDescriptors: ElementDescriptors;
+    descriptors: DescriptorsConfig;
     matcher: Matcher;
   }
 > {
+  /**
+   * Calculates a hash for the base properties of a descriptor to be used in the cache key.
+   * @param descriptor The descriptor to calculate the hash for.
+   * @returns A string hash representing the base properties of the descriptor.
+   */
+  private _getBaseDescriptorsHash(descriptor: BaseDescriptor): string {
+    return `${descriptor.pattern}|${descriptor.basePattern}|${descriptor.capture}|${descriptor.baseCapture}|${descriptor.fullMatch}`;
+  }
+
+  /**
+   * Calculates a hash for the element descriptors to be used in the cache key.
+   * @param elementDescriptors The element descriptors to calculate the hash for.
+   * @returns A string hash representing the element descriptors.
+   */
+  private _getElementDescriptorsHash(
+    elementDescriptors: ElementDescriptors
+  ): string {
+    return elementDescriptors
+      .map(
+        (descriptor) =>
+          `${this._getBaseDescriptorsHash(descriptor)}|${descriptor.type}|${descriptor.mode}`
+      )
+      .join(",");
+  }
+
+  /**
+   * Calculates a hash for the file descriptors to be used in the cache key.
+   * @param fileDescriptors The file descriptors to calculate the hash for.
+   * @returns A string hash representing the file descriptors.
+   */
+  private _getFileDescriptorsHash(fileDescriptors: FileDescriptors): string {
+    return fileDescriptors
+      .map(
+        (descriptor) =>
+          `${this._getBaseDescriptorsHash(descriptor)}|${descriptor.category}`
+      )
+      .join(",");
+  }
+
   /**
    * Generates a unique key based on the configuration options and element descriptors
    * @param params The configuration and element descriptors
@@ -24,10 +68,10 @@ export class MatchersCache extends CacheManager<
    */
   protected generateKey({
     config,
-    elementDescriptors,
+    descriptors,
   }: {
     config: ConfigOptionsNormalized;
-    elementDescriptors: ElementDescriptors;
+    descriptors: DescriptorsConfig;
   }): string {
     const configHash = `${config.legacyTemplates}|${config.includePaths}|${config.ignorePaths}|${
       config.cache
@@ -35,12 +79,12 @@ export class MatchersCache extends CacheManager<
       config.flagAsExternal.outsideRootPath
     }|${config.flagAsExternal.customSourcePatterns.join(",")}`;
 
-    const elementDescriptorsHash = elementDescriptors
-      .map(
-        (descriptor) =>
-          `${descriptor.type}|${descriptor.category}|${descriptor.pattern}|${descriptor.basePattern}|${descriptor.mode}|${descriptor.capture}|${descriptor.baseCapture}`
-      )
-      .join(",");
-    return `${configHash}|:|${elementDescriptorsHash}`;
+    const elementDescriptorsHash = this._getElementDescriptorsHash(
+      descriptors.elements || []
+    );
+    const fileDescriptorsHash = this._getFileDescriptorsHash(
+      descriptors.files || []
+    );
+    return `|:config:|${configHash}|:elements:|${elementDescriptorsHash}|:files:|${fileDescriptorsHash}`;
   }
 }

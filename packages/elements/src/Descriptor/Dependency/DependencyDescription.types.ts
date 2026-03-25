@@ -65,33 +65,21 @@ export const DEPENDENCY_RELATIONSHIPS_INVERTED_MAP = {
 } as const;
 
 /** Kind of relationship between elements being dependencies */
-export type DependencyRelationship =
+export type DependencyRelationshipType =
   (typeof DEPENDENCY_RELATIONSHIPS_MAP)[keyof typeof DEPENDENCY_RELATIONSHIPS_MAP];
 
 /**
- * Origins of a dependency, either local, external, or core.
+ * Relationship between two elements being dependencies, from the perspective of both elements.
  */
-export const DEPENDENCY_ORIGIN_MAP = {
-  /** Origin of local elements (files) */
-  LOCAL: "local",
-  /** Origin of external elements (libraries) */
-  EXTERNAL: "external",
-  /** Origin of core elements */
-  CORE: "core",
-} as const;
-
-/**
- * Kind of dependency origin, either local, external, or core.
- */
-export type DependencyOrigin =
-  (typeof DEPENDENCY_ORIGIN_MAP)[keyof typeof DEPENDENCY_ORIGIN_MAP];
+export type DependencyRelationship = {
+  from: DependencyRelationshipType | null;
+  to: DependencyRelationshipType | null;
+};
 
 /** Information about a dependency between two items */
 export type DependencyInfo = {
   /** Source of the dependency (import/export path) */
   source: string;
-  /** Base source of the dependency for external/core modules */
-  module: string | null;
   /** Kind of the dependency */
   kind: DependencyKind;
   /** Type of the node creating the dependency in the dependent item */
@@ -99,14 +87,7 @@ export type DependencyInfo = {
   /** Specifiers imported or exported in the dependency */
   specifiers: string[] | null;
   /** Relationship between the items from both perspectives */
-  relationship: {
-    /** Relationship between the items from the perspective of the dependent entity */
-    from: DependencyRelationship | null;
-    /** Relationship between the items from the perspective of the dependency entity */
-    to: DependencyRelationship | null;
-  };
-  /** Origin of the dependency, either local, external, or core */
-  origin: DependencyOrigin;
+  relationship: DependencyRelationship;
 };
 
 /**

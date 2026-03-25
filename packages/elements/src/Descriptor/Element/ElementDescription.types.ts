@@ -54,4 +54,6 @@ export type KnownElementDescription = ElementDescription &
     path: string;
     /** Type of the element */
     type: string;
+    /** Parent elements. For known elements, parents is an array of parent descriptions, which may be empty if the element has no parents. */
+    parents: ElementParent[];
   };

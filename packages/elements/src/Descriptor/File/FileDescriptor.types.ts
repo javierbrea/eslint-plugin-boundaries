@@ -21,9 +21,9 @@ export type FileDescriptors = FileDescriptor[];
 export type FileDescriptionsSerializedCache = Record<string, FileDescription>;
 
 /**
- * Serialized cache for FileDescriptor class.
+ * Serialized cache for FilesDescriptor class.
  */
-export type FileDescriptorSerializedCache = {
+export type FilesDescriptorSerializedCache = {
   /** Serialized descriptions cache */
   descriptions: FileDescriptionsSerializedCache;
 };
