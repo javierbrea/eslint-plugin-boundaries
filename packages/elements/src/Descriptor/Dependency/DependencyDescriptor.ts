@@ -1,12 +1,7 @@
 import { CacheManagerDisabled } from "../../Cache";
 import type { DescriptorOptionsNormalized } from "../../Config";
-import { DependenciesDescriptionsCache } from "../DependenciesDescriptionsCache";
-import { isIgnoredElementDescription, isKnownLocalElement } from "../Element";
-import type {
-  ElementDescription,
-  LocalElementKnown,
-  ElementsDescriptor,
-} from "../Element";
+import { isIgnoredElementDescription } from "../Element";
+import type { ElementDescription, ElementsDescriptor } from "../Element";
 
 import type { DependencyDescription } from "./DependencyDescription.types";
 import {
@@ -17,6 +12,7 @@ import type {
   DependencyDescriptorSerializedCache,
   DependencyDescriptorOptions,
 } from "./DependencyDescriptor.types";
+import { DependenciesDescriptionsCache } from "./DependencyDescriptorCache";
 
 /**
  * Class describing dependencies between elements.

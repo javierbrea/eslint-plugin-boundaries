@@ -1,4 +1,4 @@
-import { isString, isObjectWithProperty } from "../../Support/TypeGuards";
+import { isString, isObjectWithProperty } from "../../Shared/TypeGuards";
 import { isBaseDescriptor } from "../Shared";
 
 import type { FileDescriptor } from "./FileDescriptor.types";

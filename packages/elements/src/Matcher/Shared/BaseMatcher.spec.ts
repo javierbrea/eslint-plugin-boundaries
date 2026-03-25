@@ -1,11 +1,10 @@
-import type {
-  MatchersOptionsNormalized,
-  MicromatchPatternNullable,
-} from "../../Config";
-import type { BaseElementDescription } from "../../Descriptor";
-import type { TemplateData, BaseElementSelectorData } from "../Matcher.types";
+import type { MatchersOptionsNormalized } from "../../Config";
+import type { BaseDescriptor } from "../../Descriptor";
+import type { MicromatchPatternNullable } from "../../Shared";
 
-import { BaseElementsMatcher } from "./BaseElementsMatcher";
+import { BaseElementsMatcher } from "./BaseMatcher";
+import type { TemplateData } from "./BaseMatcher.types";
+import type { BaseSingleSelector } from "./BaseSelector.types";
 import type { Micromatch } from "./Micromatch";
 
 class TestMatcher extends BaseElementsMatcher {
@@ -25,10 +24,10 @@ class TestMatcher extends BaseElementsMatcher {
   }
 
   public testIsElementKeyBooleanMatch(options: {
-    element: BaseElementDescription;
-    selector: BaseElementSelectorData;
-    elementKey: keyof BaseElementDescription;
-    selectorKey: keyof BaseElementSelectorData;
+    element: BaseDescriptor;
+    selector: BaseSingleSelector;
+    elementKey: keyof BaseDescriptor;
+    selectorKey: keyof BaseSingleSelector;
   }) {
     return this.isElementKeyBooleanMatch(options);
   }
@@ -106,10 +105,10 @@ describe("BaseElementsMatcher", () => {
     it("should return true if selectorKey does not exist in selector", () => {
       expect(
         matcher.testIsElementKeyBooleanMatch({
-          element: { a: true } as unknown as BaseElementDescription,
-          selector: {} as unknown as BaseElementSelectorData,
-          elementKey: "a" as keyof BaseElementDescription,
-          selectorKey: "a" as keyof BaseElementSelectorData,
+          element: { a: true } as unknown as BaseDescriptor,
+          selector: {} as unknown as BaseSingleSelector,
+          elementKey: "a" as keyof BaseDescriptor,
+          selectorKey: "a" as keyof BaseSingleSelector,
         })
       ).toBe(true);
     });
@@ -117,10 +116,10 @@ describe("BaseElementsMatcher", () => {
     it("should return false if selector value is not boolean", () => {
       expect(
         matcher.testIsElementKeyBooleanMatch({
-          element: { a: true } as unknown as BaseElementDescription,
-          selector: { a: "true" } as unknown as BaseElementSelectorData,
-          elementKey: "a" as keyof BaseElementDescription,
-          selectorKey: "a" as keyof BaseElementSelectorData,
+          element: { a: true } as unknown as BaseDescriptor,
+          selector: { a: "true" } as unknown as BaseSingleSelector,
+          elementKey: "a" as keyof BaseDescriptor,
+          selectorKey: "a" as keyof BaseSingleSelector,
         })
       ).toBe(false);
     });
@@ -128,10 +127,10 @@ describe("BaseElementsMatcher", () => {
     it("should return false if element value is not boolean", () => {
       expect(
         matcher.testIsElementKeyBooleanMatch({
-          element: { a: "true" } as unknown as BaseElementDescription,
-          selector: { a: true } as unknown as BaseElementSelectorData,
-          elementKey: "a" as keyof BaseElementDescription,
-          selectorKey: "a" as keyof BaseElementSelectorData,
+          element: { a: "true" } as unknown as BaseDescriptor,
+          selector: { a: true } as unknown as BaseSingleSelector,
+          elementKey: "a" as keyof BaseDescriptor,
+          selectorKey: "a" as keyof BaseSingleSelector,
         })
       ).toBe(false);
     });

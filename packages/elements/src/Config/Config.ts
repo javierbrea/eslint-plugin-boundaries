@@ -1,8 +1,8 @@
-import { normalizePath } from "../Support";
+import { normalizePath } from "../Shared";
+import type { MicromatchPattern } from "../Shared";
 
 import type {
   ConfigOptions,
-  MicromatchPattern,
   ConfigOptionsNormalized,
   DescriptorOptionsNormalized,
   MatchersOptionsNormalized,

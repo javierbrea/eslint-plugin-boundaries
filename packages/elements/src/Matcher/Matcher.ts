@@ -11,18 +11,19 @@ import {
   isDependencyDescription,
 } from "../Descriptor";
 
-import type { DependenciesMatcher } from "./Dependency";
-import type { ElementsMatcher } from "./Element";
-import { isDependencySelector, isElementsSelector } from "./Element";
 import type {
-  DependencySelector,
-  MatcherOptions,
-  ElementsSelector,
+  DependenciesMatcher,
+  DependencySingleSelector,
   DependencyMatchResult,
-  MatcherSerializedCache,
-  BaseElementSelectorData,
-} from "./Matcher.types";
-import type { Micromatch } from "./Shared";
+} from "./Dependency";
+import type {
+  ElementsMatcher,
+  ElementSelector,
+  ElementSingleSelector,
+} from "./Element";
+import { isDependencySelector, isElementsSelector } from "./Element";
+import type { MatcherSerializedCache } from "./Matcher.types";
+import type { Micromatch, MatcherOptions } from "./Shared";
 
 /**
  * Matcher class to evaluate if elements or dependencies match given selectors.
@@ -79,7 +80,7 @@ export class Matcher {
    */
   public isElementMatch(
     filePath: string,
-    selector: ElementsSelector,
+    selector: ElementSelector,
     options?: MatcherOptions
   ): boolean {
     const description = this._descriptors.describeElement(filePath);
@@ -95,7 +96,7 @@ export class Matcher {
    */
   public isDependencyMatch(
     dependencyData: DependencyDescriptorOptions,
-    selector: DependencySelector,
+    selector: DependencySingleSelector,
     options?: MatcherOptions
   ): boolean {
     const description = this._descriptors.describeDependency(dependencyData);
@@ -115,7 +116,7 @@ export class Matcher {
    */
   public getElementSelectorMatching(
     filePath: string,
-    selector: ElementsSelector,
+    selector: ElementSelector,
     options?: MatcherOptions
   ) {
     const description = this._descriptors.describeElement(filePath);
@@ -135,7 +136,7 @@ export class Matcher {
    */
   public getDependencySelectorMatching(
     dependencyData: DependencyDescriptorOptions,
-    selector: DependencySelector,
+    selector: DependencySingleSelector,
     options?: MatcherOptions
   ) {
     const description = this._descriptors.describeDependency(dependencyData);
@@ -155,7 +156,7 @@ export class Matcher {
    */
   public getDependencySelectorMatchingDescription(
     description: DependencyDescription,
-    selector: DependencySelector,
+    selector: DependencySingleSelector,
     options?: MatcherOptions
   ): DependencyMatchResult {
     if (
@@ -182,9 +183,9 @@ export class Matcher {
    */
   public getElementSelectorMatchingDescription(
     description: ElementDescription,
-    selector: ElementsSelector,
+    selector: ElementSelector,
     options?: MatcherOptions
-  ): BaseElementSelectorData | null {
+  ): ElementSingleSelector | null {
     if (isElementsSelector(selector) && isElementDescription(description)) {
       return this._elementsMatcher.getSelectorMatching(
         description,

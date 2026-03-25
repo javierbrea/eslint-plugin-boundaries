@@ -1,5 +1,4 @@
-import { isNull, isObjectWithProperty } from "src/Support";
-
+import { isNull, isObjectWithProperty } from "../../Shared";
 import { isElementDescription } from "../Element";
 import { isFileDescription } from "../File/FileDescriptionHelpers";
 

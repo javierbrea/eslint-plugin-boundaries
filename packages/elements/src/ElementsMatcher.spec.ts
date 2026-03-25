@@ -4,11 +4,11 @@ import micromatch from "micromatch";
 
 import type {
   ElementsSelector,
-  BaseElementSelectorData,
+  ElementSingleSelector,
   DependencyDescriptorOptions,
-  DependencySelector,
+  DependencySingleSelector,
   Matcher,
-  BaseElementSelectorWithOptions,
+  SimpleElementSelectorByTypeWithOptions,
   ElementDescription,
 } from "./index";
 import { Elements, normalizeElementsSelector } from "./index";
@@ -618,7 +618,7 @@ describe("Elements Matcher", () => {
         expected: boolean;
         selector: ElementsSelector;
         extraTemplateData?: Record<string, unknown>;
-        expectedMatch?: BaseElementSelectorData;
+        expectedMatch?: ElementSingleSelector;
       }) => {
         const matchResult = extraTemplateData
           ? matcher.isElementMatch(filePath, selector, { extraTemplateData })
@@ -1846,9 +1846,9 @@ describe("Elements Matcher", () => {
       }: {
         dependency: DependencyDescriptorOptions;
         expected: boolean;
-        selector: DependencySelector;
+        selector: DependencySingleSelector;
         extraTemplateData?: Record<string, unknown>;
-        expectedMatch?: DependencySelector;
+        expectedMatch?: DependencySingleSelector;
       }) => {
         const result = extraTemplateData
           ? matcher.isDependencyMatch(dependency, selector, {
@@ -1982,7 +1982,9 @@ describe("Elements Matcher", () => {
     });
 
     it("should throw an error when using invalid dependency selector", () => {
-      const invalidSelector = { var: "baz" } as unknown as DependencySelector;
+      const invalidSelector = {
+        var: "baz",
+      } as unknown as DependencySingleSelector;
 
       expect(() =>
         matcher.isDependencyMatch(
@@ -2015,7 +2017,7 @@ describe("Elements Matcher", () => {
     it("should throw an error when using invalid element selector", () => {
       const invalidSelector = {
         to: { var: "baz" },
-      } as unknown as DependencySelector;
+      } as unknown as DependencySingleSelector;
 
       expect(() =>
         matcher.isDependencyMatch(
@@ -2195,13 +2197,13 @@ describe("Elements Matcher", () => {
         selector: [
           "component",
           { fileName: "Button" },
-        ] as BaseElementSelectorWithOptions,
+        ] as SimpleElementSelectorByTypeWithOptions,
         expected: [{ type: "component", captured: { fileName: "Button" } }],
       },
       {
         selector: [
           "component",
-          ["foo", { bar: "baz" }] as BaseElementSelectorWithOptions,
+          ["foo", { bar: "baz" }] as SimpleElementSelectorByTypeWithOptions,
         ],
         expected: [
           { type: "component" },
@@ -2215,7 +2217,7 @@ describe("Elements Matcher", () => {
         expected,
       }: {
         selector: ElementsSelector;
-        expected: BaseElementSelectorData[];
+        expected: ElementSingleSelector[];
       }) => {
         const normalized = normalizeElementsSelector(selector);
 

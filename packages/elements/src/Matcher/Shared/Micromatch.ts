@@ -1,8 +1,9 @@
 import micromatch from "micromatch";
 
 import { CacheManager, CacheManagerDisabled } from "../../Cache";
-import { isArray } from "../../Support";
-import type { MicromatchSerializedCache } from "../Matcher.types";
+import { isArray } from "../../Shared";
+
+import type { MicromatchSerializedCache } from "./Micromatch.types";
 
 /**
  * Cache key type for micromatch matching results

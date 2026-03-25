@@ -1,5 +1,8 @@
-export * from "./Matcher";
-export * from "./Element";
-export type { Matcher } from "./Matcher";
-export type { ElementsMatcher, normalizeElementsSelector } from "./Element";
+// TODO: Review and export only public API
 export * from "./Dependency";
+export * from "./Element";
+export * from "./Entity";
+export * from "./Matcher";
+export * from "./Shared";
+export * from "./Matcher";
+export * from "./Matcher.types";

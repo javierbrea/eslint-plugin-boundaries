@@ -1,4 +1,4 @@
-import { isObjectWithProperty } from "../../Support/TypeGuards";
+import { isObjectWithProperty } from "../../Shared/TypeGuards";
 import {
   isBaseDescription,
   isIgnoredDescription,

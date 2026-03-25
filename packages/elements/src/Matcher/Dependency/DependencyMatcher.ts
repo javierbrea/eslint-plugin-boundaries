@@ -3,23 +3,22 @@ import type {
   DependencyDescription,
   DependencyRelationship,
 } from "../../Descriptor";
-import { isArray } from "../../Support";
+import { isArray } from "../../Shared";
 import type { ElementsMatcher } from "../Element";
-import {
-  normalizeElementsSelector,
-  isDependencyDataSelector,
-  isDependencySelector,
-} from "../Element";
-import type {
-  TemplateData,
-  DependencySelector,
-  DependencySelectorNormalized,
-  MatcherOptions,
-  DependencyMatchResult,
-  DependencyDataSelectorData,
-} from "../Matcher.types";
+import { normalizeElementSelector } from "../Element";
 import { BaseElementsMatcher } from "../Shared";
-import type { Micromatch } from "../Shared";
+import type { TemplateData, MatcherOptions, Micromatch } from "../Shared";
+
+import type { DependencyMatchResult } from "./DependencyMatcher.types";
+import type {
+  DependencySingleSelector,
+  DependencySingleSelectorNormalized,
+  DependencyInfoSelector,
+} from "./DependencySelector.types";
+import {
+  isDependencyInfoSelector,
+  isDependencySelector,
+} from "./DependencySelectorHelpers";
 
 /**
  * Matcher class to determine if dependencies match a given dependencies selector.
@@ -52,24 +51,23 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * @returns The normalized dependency selector.
    */
   private _normalizeDependencySelector(
-    selector: DependencySelector
-  ): DependencySelectorNormalized {
+    selector: DependencySingleSelector
+  ): DependencySingleSelectorNormalized {
     if (!isDependencySelector(selector)) {
       throw new Error("Invalid dependency selector");
     }
 
-    let normalizedDependencySelectors: DependencyDataSelectorData[] | null =
-      null;
+    let normalizedDependencySelectors: DependencyInfoSelector[] | null = null;
 
-    if (selector.dependency && isDependencyDataSelector(selector.dependency)) {
+    if (selector.dependency && isDependencyInfoSelector(selector.dependency)) {
       normalizedDependencySelectors = isArray(selector.dependency)
         ? selector.dependency
         : [selector.dependency];
     }
 
     return {
-      from: selector.from ? normalizeElementsSelector(selector.from) : null,
-      to: selector.to ? normalizeElementsSelector(selector.to) : null,
+      from: selector.from ? normalizeElementSelector(selector.from) : null,
+      to: selector.to ? normalizeElementSelector(selector.to) : null,
       dependency: normalizedDependencySelectors,
     };
   }
@@ -83,11 +81,11 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    */
   private _getSelectorsMatching(
     dependency: DependencyDescription,
-    selector: DependencySelectorNormalized,
+    selector: DependencySingleSelectorNormalized,
     templateData: TemplateData
   ): DependencyMatchResult {
     const getDependencyMetadataSelectorMatching =
-      (): DependencyDataSelectorData | null => {
+      (): DependencyInfoSelector | null => {
         for (const dependencySelectorData of selector.dependency!) {
           const dependencyPropertiesMatch = this._dependencyPropertiesMatch(
             dependency,
@@ -138,7 +136,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * @returns Whether the dependency relationship matches the selector.
    */
   private _relationshipFromMatches(
-    selector: DependencyDataSelectorData,
+    selector: DependencyInfoSelector,
     relationship: DependencyRelationship | null,
     templateData: TemplateData
   ): boolean {
@@ -160,7 +158,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * @returns Whether the dependency origin relationship matches.
    */
   private _relationshipToMatches(
-    selector: DependencyDataSelectorData,
+    selector: DependencyInfoSelector,
     relationship: DependencyRelationship | null,
     templateData: TemplateData
   ): boolean {
@@ -182,7 +180,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * @returns Whether the selector matches the kind
    */
   private _kindMatches(
-    selector: DependencyDataSelectorData,
+    selector: DependencyInfoSelector,
     kind: string,
     templateData: TemplateData
   ): boolean {
@@ -200,7 +198,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * @returns Whether the selector matches some of the specifiers
    */
   private _specifierMatches(
-    selector: DependencyDataSelectorData,
+    selector: DependencyInfoSelector,
     specifiers: string[] | null,
     templateData: TemplateData
   ): boolean {
@@ -222,7 +220,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * @returns Whether the selector matches the nodeKind
    */
   private _nodeKindMatches(
-    selector: DependencyDataSelectorData,
+    selector: DependencyInfoSelector,
     nodeKind: string | null,
     templateData: TemplateData
   ): boolean {
@@ -244,7 +242,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * @returns Whether the dependency properties match the selector for 'to'.
    */
   private _sourceMatches(
-    selector: DependencyDataSelectorData,
+    selector: DependencyInfoSelector,
     source: string,
     templateData: TemplateData
   ): boolean {
@@ -266,7 +264,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * @returns Whether the selector matches the module
    */
   private _moduleMatches(
-    selector: DependencyDataSelectorData,
+    selector: DependencyInfoSelector,
     dependencyModule: string | null,
     templateData: TemplateData
   ): boolean {
@@ -289,7 +287,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    */
   private _dependencyPropertiesMatch(
     dependency: DependencyDescription,
-    selectorData: DependencyDataSelectorData,
+    selectorData: DependencyInfoSelector,
     templateData: TemplateData
   ): boolean {
     const dependencyInfo = dependency.dependency;
@@ -325,7 +323,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    */
   public getSelectorsMatching(
     dependency: DependencyDescription,
-    selector: DependencySelector,
+    selector: DependencySingleSelector,
     { extraTemplateData = {} }: MatcherOptions = {}
   ): DependencyMatchResult {
     const normalizedSelector = this._normalizeDependencySelector(selector);
@@ -364,7 +362,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    */
   public isDependencyMatch(
     dependency: DependencyDescription,
-    selector: DependencySelector,
+    selector: DependencySingleSelector,
     options?: MatcherOptions
   ): boolean {
     const matchResult = this.getSelectorsMatching(

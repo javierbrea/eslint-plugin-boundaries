@@ -5,10 +5,10 @@ import type {
   DependencyDescription,
   DependencyDescriptorOptions,
 } from "./Dependency";
-import { DependenciesDescriptor } from "./Dependency/DependencyDescriptor";
+import { DependenciesDescriptor } from "./Dependency";
 import type { DescriptorsSerializedCache } from "./Descriptors.types";
 import type { ElementDescriptors, ElementDescription } from "./Element";
-import { ElementsDescriptor } from "./Element/ElementDescriptor";
+import { ElementsDescriptor } from "./Element";
 
 /**
  * Class with methods to describe elements and dependencies between them.

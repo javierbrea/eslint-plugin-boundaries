@@ -11,7 +11,7 @@ import {
   isElementSelectorData,
   isElementSelector,
   isElementsSelector,
-} from "./MatcherHelpers";
+} from "./ElementSelectorHelpers";
 
 describe("elementsSelectorHelpers", () => {
   describe("isCapturedValuesSelector", () => {

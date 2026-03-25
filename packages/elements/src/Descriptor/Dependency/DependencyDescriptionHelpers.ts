@@ -4,7 +4,7 @@ import {
   isNull,
   isNullish,
   isStringArray,
-} from "../../Support/TypeGuards";
+} from "../../Shared/TypeGuards";
 import { isEntityDescription } from "../Entity";
 
 import {

@@ -1,3 +1,3 @@
-export * from "./MatcherHelpers";
-export * from "./ElementsMatcher";
-export * from "./MatcherHelpers";
+export * from "./ElementMatcher";
+export * from "./ElementSelector.types";
+export * from "./ElementSelectorHelpers";

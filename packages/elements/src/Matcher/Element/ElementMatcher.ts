@@ -1,27 +1,22 @@
-import type {
-  MatchersOptionsNormalized,
-  MicromatchPatternNullable,
-} from "../../Config";
+import type { MatchersOptionsNormalized } from "../../Config";
 import type { ElementDescription } from "../../Descriptor";
+import type { MicromatchPatternNullable } from "../../Shared";
 import {
   isArray,
   isNullish,
   isEmptyObject,
   isUndefined,
   isNull,
-} from "../../Support";
-import type {
-  BaseElementSelectorData,
-  ParentElementSelectorData,
-  SelectableElement,
-  TemplateData,
-  BaseElementsSelector,
-  MatcherOptions,
-} from "../Matcher.types";
+} from "../../Shared";
 import { BaseElementsMatcher } from "../Shared";
-import type { Micromatch } from "../Shared";
+import type { TemplateData, MatcherOptions, Micromatch } from "../Shared";
 
-import { normalizeElementsSelector } from "./MatcherHelpers";
+import type {
+  ElementSingleSelector,
+  ElementSelector,
+  ParentElementSingleSelector,
+} from "./ElementSelector.types";
+import { normalizeElementSelector } from "./ElementSelectorHelpers";
 
 /**
  * Matcher class to determine if elements match a given selector.
@@ -45,8 +40,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns Whether the element type matches the selector type.
    */
   private _isTypeMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
+    element: ElementDescription,
+    selector: ElementSingleSelector,
     templateData: TemplateData
   ): boolean {
     return this.isElementKeyMicromatchMatch({
@@ -67,8 +62,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns Whether the element category matches the selector category.
    */
   private _isCategoryMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
+    element: ElementDescription,
+    selector: ElementSingleSelector,
     templateData: TemplateData
   ): boolean {
     return this.isElementKeyMicromatchMatch({
@@ -89,8 +84,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns Whether the element path matches the selector path.
    */
   private _isPathMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
+    element: ElementDescription,
+    selector: ElementSingleSelector,
     templateData: TemplateData
   ): boolean {
     return this.isElementKeyMicromatchMatch({
@@ -111,8 +106,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns Whether the element path matches the selector element path.
    */
   private _isElementPathMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
+    element: ElementDescription,
+    selector: ElementSingleSelector,
     templateData: TemplateData
   ): boolean {
     return this.isElementKeyMicromatchMatch({
@@ -133,8 +128,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns Whether the element internal path matches the selector internal path.
    */
   private _isInternalPathMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
+    element: ElementDescription,
+    selector: ElementSingleSelector,
     templateData: TemplateData
   ): boolean {
     return this.isElementKeyMicromatchMatch({
@@ -155,8 +150,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns Whether the element origin matches the selector origin.
    */
   private _isOriginMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
+    element: ElementDescription,
+    selector: ElementSingleSelector,
     templateData: TemplateData
   ): boolean {
     return this.isElementKeyMicromatchMatch({
@@ -177,7 +172,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns True if all captured values in the selector match those in the element, false otherwise.
    */
   private _checkCapturedValuesObject(
-    capturedValues: SelectableElement["captured"],
+    capturedValues: ElementDescription["captured"],
     capturedSelector: Record<string, MicromatchPatternNullable>,
     templateData: TemplateData
   ): boolean {
@@ -217,8 +212,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns True if the captured values match, false otherwise.
    */
   private _isCapturedValuesMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
+    element: ElementDescription,
+    selector: ElementSingleSelector,
     templateData: TemplateData
   ): boolean {
     if (!selector.captured || isEmptyObject(selector.captured)) {
@@ -257,8 +252,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns True if the captured values match, false otherwise.
    */
   private _isParentCapturedValuesMatch(
-    parentSelector: ParentElementSelectorData,
-    parentCaptured: SelectableElement["captured"],
+    parentSelector: ParentElementSingleSelector,
+    parentCaptured: ElementDescription["captured"],
     templateData: TemplateData
   ): boolean {
     if (!parentSelector.captured || isEmptyObject(parentSelector.captured)) {
@@ -293,8 +288,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns Whether the first parent matches the selector parent.
    */
   private _isParentMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData,
+    element: ElementDescription,
+    selector: ElementSingleSelector,
     templateData: TemplateData
   ): boolean {
     if (isUndefined(selector.parent)) {
@@ -363,8 +358,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns True if the isIgnored properties match, false otherwise.
    */
   private _isIgnoredMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData
+    element: ElementDescription,
+    selector: ElementSingleSelector
   ): boolean {
     return this.isElementKeyBooleanMatch({
       element,
@@ -381,8 +376,8 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns True if the isUnknown properties match, false otherwise.
    */
   private _isUnknownMatch(
-    element: SelectableElement,
-    selector: BaseElementSelectorData
+    element: ElementDescription,
+    selector: ElementSingleSelector
   ): boolean {
     return this.isElementKeyBooleanMatch({
       element,
@@ -400,10 +395,10 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @returns The selector matching result for the given element, or null if none matches.
    */
   private _getSelectorMatching(
-    element: SelectableElement,
-    selectorsData: BaseElementSelectorData[],
+    element: ElementDescription,
+    selectorsData: ElementSingleSelector[],
     extraTemplateData: TemplateData
-  ): BaseElementSelectorData | null {
+  ): ElementSingleSelector | null {
     const templateData: TemplateData = {
       element,
       ...extraTemplateData,
@@ -444,10 +439,10 @@ export class ElementsMatcher extends BaseElementsMatcher {
    */
   public getSelectorMatching(
     element: ElementDescription,
-    selector: BaseElementsSelector,
+    selector: ElementSelector,
     { extraTemplateData = {} }: MatcherOptions = {}
-  ): BaseElementSelectorData | null {
-    const selectorsData = normalizeElementsSelector(selector);
+  ): ElementSingleSelector | null {
+    const selectorsData = normalizeElementSelector(selector);
     return this._getSelectorMatching(element, selectorsData, extraTemplateData);
   }
 
@@ -461,7 +456,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
    */
   public isElementMatch(
     element: ElementDescription,
-    selector: BaseElementsSelector,
+    selector: ElementSelector,
     options?: MatcherOptions
   ): boolean {
     const selectorMatching = this.getSelectorMatching(

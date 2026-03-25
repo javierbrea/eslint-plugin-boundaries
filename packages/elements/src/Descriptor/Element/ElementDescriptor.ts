@@ -3,21 +3,14 @@ import type Mod from "node:module";
 import isCoreModule from "is-core-module";
 
 import { CacheManager, CacheManagerDisabled } from "../../Cache";
-import type {
-  DescriptorOptionsNormalized,
-  MicromatchPattern,
-} from "../../Config";
+import type { DescriptorOptionsNormalized } from "../../Config";
 import type { Micromatch } from "../../Matcher";
-import { isArray, isNullish, normalizePath } from "../../Support";
+import type { MicromatchPattern } from "../../Shared";
+import { isArray, isNullish, normalizePath } from "../../Shared";
+import { DEPENDENCY_ORIGIN_MAP } from "../Dependency";
 import type { CapturedValues } from "../Shared";
 
-import type {
-  ElementDescriptionWithSource,
-  ElementDescription,
-  LocalElementKnown,
-  LocalElementUnknown,
-} from "./ElementDescription.types";
-import { ELEMENT_ORIGINS_MAP } from "./ElementDescription.types";
+import type { ElementDescription } from "./ElementDescription.types";
 import { DESCRIPTOR_MODES_MAP } from "./ElementDescriptor.types";
 import type {
   ElementDescriptor,
@@ -26,7 +19,6 @@ import type {
 } from "./ElementDescriptor.types";
 import {
   isElementDescriptorMode,
-  isKnownLocalElement,
   isElementDescriptor,
 } from "./ElementDescriptorHelpers";
 
@@ -38,7 +30,7 @@ const UNKNOWN_ELEMENT: LocalElementUnknown = {
   type: null,
   category: null,
   captured: null,
-  origin: ELEMENT_ORIGINS_MAP.LOCAL,
+  origin: DEPENDENCY_ORIGIN_MAP.LOCAL,
   isIgnored: false,
   isUnknown: true,
 };
@@ -528,7 +520,7 @@ export class ElementsDescriptor {
       type: null,
       category: null,
       captured: null,
-      origin: ELEMENT_ORIGINS_MAP.LOCAL,
+      origin: DEPENDENCY_ORIGIN_MAP.LOCAL,
       isIgnored: false,
     };
 
@@ -688,7 +680,7 @@ export class ElementsDescriptor {
       const coreElement: ElementDescriptionWithSource = {
         ...UNKNOWN_ELEMENT,
         module: baseDependencySource,
-        origin: ELEMENT_ORIGINS_MAP.CORE,
+        origin: DEPENDENCY_ORIGIN_MAP.CORE,
       };
       return coreElement;
     }
@@ -706,7 +698,7 @@ export class ElementsDescriptor {
         internalPath:
           dependencySource.replace(baseDependencySource, "") || null,
         module: baseDependencySource,
-        origin: ELEMENT_ORIGINS_MAP.EXTERNAL,
+        origin: DEPENDENCY_ORIGIN_MAP.EXTERNAL,
       };
       return externalElement;
     }

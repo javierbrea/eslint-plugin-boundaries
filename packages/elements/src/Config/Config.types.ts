@@ -1,22 +1,4 @@
-/**
- * Type representing a micromatch pattern, which can be a string or an array of strings.
- */
-export type MicromatchPattern = string | string[];
-
-/**
- * Type representing a micromatch pattern supporting null values
- */
-export type MicromatchPatternNullable = string | null | (string | null)[];
-
-/**
- * Type representing values that can be matched against micromatch patterns.
- */
-export type MicromatchMatchableValue =
-  | string
-  | string[]
-  | null
-  | undefined
-  | boolean;
+import type { MicromatchPattern } from "../Shared";
 
 /**
  * Configuration options for categorizing dependencies as external or local.
@@ -29,7 +11,7 @@ export type FlagAsExternalOptions = {
   /** When true, dependencies whose resolved path is outside the configured root path are categorized as external (default: false) */
   outsideRootPath?: boolean;
   /** List of patterns (using micromatch syntax) that, when matching the source of the dependency, categorize it as external (default: []) */
-  customSourcePatterns?: string[];
+  customSourcePatterns?: MicromatchPattern;
 };
 
 /** Configuration options for the Config class */
@@ -59,7 +41,7 @@ export type FlagAsExternalOptionsNormalized = {
   /** When true, dependencies whose resolved path is outside the configured root path are categorized as external */
   outsideRootPath: boolean;
   /** List of patterns (using micromatch syntax) that, when matching the source of the dependency, categorize it as external */
-  customSourcePatterns: string[];
+  customSourcePatterns: MicromatchPattern;
 };
 
 export type ConfigOptionsNormalized = Omit<

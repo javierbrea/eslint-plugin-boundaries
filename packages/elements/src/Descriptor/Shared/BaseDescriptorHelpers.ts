@@ -3,7 +3,7 @@ import {
   isObjectWithProperty,
   isArray,
   isEmptyArray,
-} from "../../Support/TypeGuards";
+} from "../../Shared";
 
 import type { BaseDescriptor, DescriptorPattern } from "./BaseDescriptor.types";
 

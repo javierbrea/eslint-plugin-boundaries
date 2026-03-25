@@ -1,9 +1,7 @@
-import { CacheManager } from "../Cache";
+import { CacheManager } from "../../Cache";
 
-import type {
-  DependencyDescription,
-  DependencyDescriptorOptions,
-} from "./Dependency";
+import type { DependencyDescription } from "./DependencyDescription.types";
+import type { DependencyDescriptorOptions } from "./DependencyDescriptor.types";
 
 /**
  * Cache to store previously described dependencies.

@@ -1,11 +1,7 @@
 import Handlebars from "handlebars";
 
-import type {
-  MicromatchPatternNullable,
-  MatchersOptionsNormalized,
-  MicromatchMatchableValue,
-} from "../../Config";
-import type { BaseElementDescription } from "../../Descriptor";
+import type { MatchersOptionsNormalized } from "../../Config";
+import type { BaseDescription } from "../../Descriptor";
 import {
   isArray,
   isObjectWithProperty,
@@ -13,13 +9,14 @@ import {
   isBoolean,
   isNull,
   isUndefined,
-} from "../../Support";
+} from "../../Shared";
 import type {
-  BaseElementSelectorData,
-  TemplateData,
-  SelectableElement,
-} from "../Matcher.types";
+  MicromatchPatternNullable,
+  MicromatchMatchableValue,
+} from "../../Shared";
+import type { ElementSingleSelector } from "../Element";
 
+import type { TemplateData } from "./BaseMatcher.types";
 import type { Micromatch } from "./Micromatch";
 
 const LEGACY_TEMPLATE_REGEX = /\$\{([^}]+)\}/g;
@@ -198,8 +195,8 @@ export class BaseElementsMatcher {
    * @returns Whether the element key matches the selector key.
    */
   protected isElementKeyBooleanMatch<
-    T extends BaseElementDescription,
-    S extends BaseElementSelectorData,
+    T extends BaseDescription,
+    S extends ElementSingleSelector,
   >({
     /** The element to check. */
     element,
@@ -243,8 +240,8 @@ export class BaseElementsMatcher {
    * @returns Whether the element key matches the selector key.
    */
   protected isElementKeyMicromatchMatch<
-    T extends SelectableElement,
-    S extends BaseElementSelectorData,
+    T extends BaseDescription,
+    S extends ElementSingleSelector,
     K extends keyof T,
   >({
     element,
@@ -261,7 +258,7 @@ export class BaseElementsMatcher {
     /** The key of the element to check. */
     elementKey: K;
     /** The key of the selector to check against. */
-    selectorKey: keyof BaseElementSelectorData;
+    selectorKey: keyof ElementSingleSelector;
     /** The value of the selector key to check against. */
     selectorValue?: MicromatchPatternNullable;
     /** Data to pass when the selector value is rendered as a template */
