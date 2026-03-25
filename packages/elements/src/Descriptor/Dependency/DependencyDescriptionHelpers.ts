@@ -5,7 +5,7 @@ import {
   isNullish,
   isStringArray,
 } from "../../Support/TypeGuards";
-import { isElementDescription } from "../Element";
+import { isEntityDescription } from "../Entity";
 
 import {
   DEPENDENCY_KINDS_SET,
@@ -90,11 +90,9 @@ export function isDependencyDescription(
 ): value is DependencyDescription {
   return (
     isObjectWithProperty(value, "to") &&
-    // TODO: Change by isItemDescription
-    isElementDescription(value.to) &&
+    isEntityDescription(value.to) &&
     isObjectWithProperty(value, "from") &&
-    // TODO: Change by isItemDescription
-    isElementDescription(value.from) &&
+    isEntityDescription(value.from) &&
     isObjectWithProperty(value, "dependency") &&
     isDependencyInfo(value.dependency)
   );
