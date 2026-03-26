@@ -56,8 +56,6 @@ export type ConfigOptionsNormalized = Omit<
   flagAsExternal: FlagAsExternalOptionsNormalized;
   /** Root path of the project, already normalized, and finishing with a slash, used for determining if dependencies are outside the project */
   rootPath: string | undefined;
-  /** List of patterns (using micromatch syntax) that, when matching the source of the dependency, categorize it as external */
-  customSourcePatterns: string[];
 };
 
 /** Options for descriptors */

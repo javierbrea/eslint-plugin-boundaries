@@ -28,7 +28,10 @@ export class MatchersCache extends CacheManager<
    * @returns A string hash representing the base properties of the descriptor.
    */
   private _getBaseDescriptorsHash(descriptor: BaseDescriptor): string {
-    return `${descriptor.pattern}|${descriptor.basePattern}|${descriptor.capture}|${descriptor.baseCapture}|${descriptor.fullMatch}`;
+    const captureKey = descriptor.capture
+      ? descriptor.capture.join(",")
+      : "no-capture";
+    return `${descriptor.pattern}|${captureKey}`;
   }
 
   /**
@@ -40,10 +43,12 @@ export class MatchersCache extends CacheManager<
     elementDescriptors: ElementDescriptors
   ): string {
     return elementDescriptors
-      .map(
-        (descriptor) =>
-          `${this._getBaseDescriptorsHash(descriptor)}|${descriptor.type}|${descriptor.mode}`
-      )
+      .map((descriptor) => {
+        const baseCaptureKey = descriptor.baseCapture
+          ? descriptor.baseCapture.join(",")
+          : "no-base-capture";
+        return `${this._getBaseDescriptorsHash(descriptor)}|${descriptor.type}|${descriptor.basePattern}|${baseCaptureKey}|${descriptor.requireFullMatch}`;
+      })
       .join(",");
   }
 

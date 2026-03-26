@@ -1,4 +1,4 @@
-import { normalizePath } from "../Shared";
+import { isArray, isString, normalizePath } from "../Shared";
 import type { MicromatchPattern } from "../Shared";
 
 import type {
@@ -31,11 +31,19 @@ export class Config {
     this._includePaths = options?.includePaths;
     this._legacyTemplates = options?.legacyTemplates ?? true;
     this._cache = options?.cache ?? true;
+
+    const customSourcePatterns = options?.flagAsExternal?.customSourcePatterns;
+    const normalizedCustomSourcePatterns = isString(customSourcePatterns)
+      ? [customSourcePatterns]
+      : isArray(customSourcePatterns)
+        ? customSourcePatterns
+        : [];
+
     this._flagAsExternal = {
       unresolvableAlias: options?.flagAsExternal?.unresolvableAlias ?? true,
       inNodeModules: options?.flagAsExternal?.inNodeModules ?? true,
       outsideRootPath: options?.flagAsExternal?.outsideRootPath ?? false,
-      customSourcePatterns: options?.flagAsExternal?.customSourcePatterns ?? [],
+      customSourcePatterns: normalizedCustomSourcePatterns,
     };
     if (options?.rootPath) {
       const normalizedRoot = normalizePath(options.rootPath);

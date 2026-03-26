@@ -80,8 +80,8 @@ export class EntitiesDescriptor {
    * Describes an entity given its file path.
    * @param filePath The absolute path of the file to describe
    */
-  public describeEntity(filePath: string): EntityDescription {
-    const cacheKey = filePath;
+  public describeEntity(filePath?: string): EntityDescription {
+    const cacheKey = `$${filePath}`;
     if (this._descriptionsCache.has(cacheKey)) {
       return this._descriptionsCache.get(cacheKey)!;
     }

@@ -232,7 +232,16 @@ export class FilesDescriptor {
    * @param elementPath The path of the element to describe.
    * @returns The description of the element.
    */
-  private _getFileDescription(filePath: string): FileDescription {
+  private _getFileDescription(filePath?: string): FileDescription {
+    if (!filePath) {
+      return {
+        path: null,
+        categories: null,
+        isIgnored: false,
+        isUnknown: true,
+        captured: null,
+      };
+    }
     // Return ignored element if the path is not included in the configuration.
     if (!this._pathIsIncluded(filePath)) {
       return {
@@ -308,8 +317,8 @@ export class FilesDescriptor {
    * Describes a file given its path.
    * @param filePath The absolute path of the file to describe
    */
-  public describeFile(filePath: string): FileDescription {
-    const cacheKey = filePath;
+  public describeFile(filePath?: string): FileDescription {
+    const cacheKey = `$${filePath}`;
     if (this._descriptionsCache.has(cacheKey)) {
       return this._descriptionsCache.get(cacheKey)!;
     }

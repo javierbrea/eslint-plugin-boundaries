@@ -21,7 +21,10 @@ import type {
 import { isDependencySelector, DependenciesMatcher } from "./Dependency";
 import type { ElementSelector, ElementSingleSelector } from "./Element";
 import { isElementSelector, ElementsMatcher } from "./Element";
+import { EntitiesMatcher } from "./Entity";
+import { FilesMatcher } from "./File";
 import type { MatcherSerializedCache } from "./Matcher.types";
+import { OriginsMatcher } from "./Origin";
 import type { Micromatch, MatcherOptions } from "./Shared";
 
 /**
@@ -30,6 +33,9 @@ import type { Micromatch, MatcherOptions } from "./Shared";
 export class Matcher {
   private readonly _descriptors: Descriptors;
   private readonly _elementsMatcher: ElementsMatcher;
+  private readonly _filesMatcher: FilesMatcher;
+  private readonly _entitiesMatcher: EntitiesMatcher;
+  private readonly _originsMatcher: OriginsMatcher;
   private readonly _dependenciesMatcher: DependenciesMatcher;
 
   /**
@@ -58,10 +64,18 @@ export class Matcher {
       micromatch
     );
     this._elementsMatcher = new ElementsMatcher(matchersOptions, micromatch);
-    // TODO: Create filesMatcher
-    // TODO: Create EntitiesMatcher
-    this._dependenciesMatcher = new DependenciesMatcher(
+    this._filesMatcher = new FilesMatcher(matchersOptions, micromatch);
+    this._originsMatcher = new OriginsMatcher(matchersOptions, micromatch);
+    this._entitiesMatcher = new EntitiesMatcher(
       this._elementsMatcher,
+      this._filesMatcher,
+      this._originsMatcher,
+      matchersOptions,
+      micromatch
+    );
+
+    this._dependenciesMatcher = new DependenciesMatcher(
+      this._entitiesMatcher,
       matchersOptions,
       micromatch
     );
