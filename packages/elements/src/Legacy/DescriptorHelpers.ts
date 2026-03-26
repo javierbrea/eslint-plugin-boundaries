@@ -7,7 +7,9 @@ import { isObjectWithAnyOfProperties } from "../Shared";
 
 import type {
   LegacyElementDescriptor,
-  LegacyElementDescriptors,
+  BackwardCompatibleElementDescriptors,
+  LegacyDescriptorsConfig,
+  BackwardCompatibleDescriptorsConfig,
 } from "./Descriptor.types";
 import { ELEMENT_DESCRIPTOR_MODES_MAP } from "./Descriptor.types";
 
@@ -28,8 +30,8 @@ export function isLegacyElementDescriptor(
  * @returns True if the descriptors array contains any legacy element descriptors, false otherwise.
  */
 export function isLegacyElementDescriptors(
-  descriptors: ElementDescriptors | LegacyElementDescriptors
-): descriptors is LegacyElementDescriptors {
+  descriptors: ElementDescriptors | BackwardCompatibleElementDescriptors
+): descriptors is BackwardCompatibleElementDescriptors {
   return descriptors.some(isLegacyElementDescriptor);
 }
 
@@ -40,12 +42,14 @@ export function isLegacyElementDescriptors(
  * @returns True if the element descriptors are legacy, false otherwise.
  * @throws Error if file descriptors are provided, since legacy element descriptors cannot be used with file descriptors.
  */
-export function isLegacyDescriptors(
-  elementDescriptors: ElementDescriptors | LegacyElementDescriptors,
-  fileDescriptors: FileDescriptors
-): elementDescriptors is LegacyElementDescriptors {
-  const isLegacy = isLegacyElementDescriptors(elementDescriptors);
-  if (fileDescriptors.length > 0) {
+export function isLegacyDescriptorsConfig(
+  descriptors: BackwardCompatibleDescriptorsConfig
+): descriptors is LegacyDescriptorsConfig {
+  if (!descriptors.elements) {
+    return false;
+  }
+  const isLegacy = isLegacyElementDescriptors(descriptors.elements);
+  if (descriptors.files) {
     throw new Error(
       "Legacy element descriptors cannot be used with file descriptors. Please update the element descriptors to the new format."
     );
@@ -59,7 +63,7 @@ export function isLegacyDescriptors(
  * @returns An object containing the converted element descriptors and file descriptors.
  */
 export function convertLegacyElementDescriptors(
-  legacyElementDescriptors: LegacyElementDescriptors
+  legacyElementDescriptors: BackwardCompatibleElementDescriptors
 ): {
   elementDescriptors: ElementDescriptors;
   fileDescriptors: FileDescriptors;
@@ -82,7 +86,6 @@ export function convertLegacyElementDescriptors(
       } else if (mode === ELEMENT_DESCRIPTOR_MODES_MAP.FULL) {
         elementDescriptors.push({
           ...descriptor,
-          // TODO: Support category temporarily in element descriptors for backward compatibility.
           requireFullMatch: true,
         });
       }
@@ -90,4 +93,23 @@ export function convertLegacyElementDescriptors(
   });
 
   return { elementDescriptors, fileDescriptors };
+}
+
+/**
+ * Converts a legacy descriptors config to the new format. The function will convert the legacy element descriptors to the new format using the `convertLegacyElementDescriptors` function, and will return an object containing the converted element descriptors and file descriptors.
+ * @param legacyConfig The legacy descriptors config to convert.
+ * @returns The converted descriptors config, containing the converted element descriptors and file descriptors.
+ */
+export function convertLegacyDescriptorsConfig(
+  legacyConfig: LegacyDescriptorsConfig
+): {
+  elements: ElementDescriptors;
+  files: FileDescriptors;
+} {
+  const { elementDescriptors, fileDescriptors } =
+    convertLegacyElementDescriptors(legacyConfig.elements);
+  return {
+    elements: elementDescriptors,
+    files: fileDescriptors,
+  };
 }

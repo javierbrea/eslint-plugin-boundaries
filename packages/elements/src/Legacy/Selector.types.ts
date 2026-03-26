@@ -2,6 +2,7 @@ import type {
   ElementSingleSelector,
   DependencyInfoSingleSelector,
   ParentElementSingleSelector,
+  DependencySelector,
 } from "../Matcher";
 import type { MicromatchPatternNullable } from "../Shared";
 
@@ -72,3 +73,10 @@ export type LegacyDependencySingleSelector = {
 export type LegacyDependencySelector =
   | LegacyDependencySingleSelector
   | LegacyDependencySingleSelector[];
+
+/**
+ * Backward compatible dependency selector type that can be either a legacy dependency selector or a new dependency selector. This type is used to allow functions that accept dependency selectors to also accept legacy dependency selectors for backward compatibility.
+ */
+export type BackwardCompatibleDependencySelector =
+  | DependencySelector
+  | LegacyDependencySelector;

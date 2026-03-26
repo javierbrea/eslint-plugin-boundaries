@@ -1,3 +1,8 @@
+import {
+  convertLegacyDescriptorsConfig,
+  isLegacyDescriptorsConfig,
+} from "src/Legacy";
+
 import type {
   DescriptorOptionsNormalized,
   MatchersOptionsNormalized,
@@ -13,6 +18,7 @@ import {
   isElementDescription,
   isDependencyDescription,
 } from "../Descriptor";
+import type { BackwardCompatibleDescriptorsConfig } from "../Legacy";
 
 import type {
   DependencySingleSelector,
@@ -37,6 +43,7 @@ export class Matcher {
   private readonly _entitiesMatcher: EntitiesMatcher;
   private readonly _originsMatcher: OriginsMatcher;
   private readonly _dependenciesMatcher: DependenciesMatcher;
+  private readonly _legacyDescriptorsConverted: DescriptorsConfig | null;
 
   /**
    * Constructor for the Matcher class.
@@ -51,18 +58,25 @@ export class Matcher {
     options: { descriptors: descriptorOptions, matchers: matchersOptions },
     micromatch,
   }: {
-    descriptors: DescriptorsConfig;
+    descriptors: BackwardCompatibleDescriptorsConfig;
     options: {
       descriptors: DescriptorOptionsNormalized;
       matchers: MatchersOptionsNormalized;
     };
     micromatch: Micromatch;
   }) {
+    // TODO: Move this to a getDescriptors private method
+    // It should check if selectors are legacy, and, in such case, convert also the descriptors, assuming that they are in legacy format as well (and throw if files property is defined)
+    this._legacyDescriptorsConverted = isLegacyDescriptorsConfig(descriptors)
+      ? convertLegacyDescriptorsConfig(descriptors)
+      : null;
+
     this._descriptors = new Descriptors(
-      descriptors,
+      this._legacyDescriptorsConverted || descriptors,
       descriptorOptions,
       micromatch
     );
+    // end of getDescriptors method
     this._elementsMatcher = new ElementsMatcher(matchersOptions, micromatch);
     this._filesMatcher = new FilesMatcher(matchersOptions, micromatch);
     this._originsMatcher = new OriginsMatcher(matchersOptions, micromatch);

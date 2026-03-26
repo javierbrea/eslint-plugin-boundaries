@@ -1,4 +1,8 @@
-import type { ElementDescriptor } from "../Descriptor";
+import type {
+  DescriptorsConfig,
+  ElementDescriptor,
+  ElementDescriptors,
+} from "../Descriptor";
 
 /**
  * Map of the modes to interpret the pattern in an ElementDescriptor.
@@ -32,7 +36,19 @@ export type LegacyElementDescriptor = ElementDescriptor & {
   mode?: ElementDescriptorMode;
 };
 
-export type LegacyElementDescriptors = (
-  | LegacyElementDescriptor
-  | ElementDescriptor
-)[];
+export type LegacyElementDescriptors = LegacyElementDescriptor[];
+
+export type BackwardCompatibleElementDescriptors =
+  | LegacyElementDescriptors
+  | ElementDescriptors;
+
+export type LegacyDescriptorsConfig = {
+  /** Optional element descriptors. If not provided, no abstract layer of elements will be created and only file descriptors will be used to describe the files in the project. */
+  elements: LegacyElementDescriptors;
+  /** Optional file descriptors. If not provided, only element descriptors will be used to describe the files in the project. Legacy element descriptors cannot be used with file descriptors, so if file descriptors are provided, this property must be an empty array or not provided at all. */
+  files?: never;
+};
+
+export type BackwardCompatibleDescriptorsConfig =
+  | DescriptorsConfig
+  | LegacyDescriptorsConfig;

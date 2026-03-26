@@ -35,39 +35,41 @@ describe("Elements Descriptors", () => {
       includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],
       ignorePaths: ["**/src/**/__tests__/**"],
     });
-    matcher = elements.getMatcher([
-      {
-        type: "component",
-        category: "react",
-        pattern: "src/components/*.tsx",
-        mode: "file",
-        capture: ["fileName"],
-      },
-      {
-        type: "test",
-        category: "business-logic",
-        pattern: ["*/*.test.ts", "*/*.spec.ts"],
-        basePattern: "**/src/*",
-        mode: "file",
-        capture: ["elementName", "testFileName"],
-        baseCapture: ["root", "businessLogicArea"],
-      },
-      {
-        category: "business-logic",
-        pattern: ["modules/*"],
-      },
-      {
-        type: "foo",
-        pattern: ["foo/*"],
-      },
-      {
-        type: "service",
-        pattern: ["**/src/services/*/*.ts"],
-        mode: "full",
-        capture: ["baseFolder", "serviceName", "serviceFileName"],
-      },
-      { type: "utility", pattern: "src/utils/**/*.ts", mode: "file" },
-    ]);
+    matcher = elements.getMatcher({
+      elements: [
+        {
+          type: "component",
+          category: "react",
+          pattern: "src/components/*.tsx",
+          mode: "file",
+          capture: ["fileName"],
+        },
+        {
+          type: "test",
+          category: "business-logic",
+          pattern: ["*/*.test.ts", "*/*.spec.ts"],
+          basePattern: "**/src/*",
+          mode: "file",
+          capture: ["elementName", "testFileName"],
+          baseCapture: ["root", "businessLogicArea"],
+        },
+        {
+          category: "business-logic",
+          pattern: ["modules/*"],
+        },
+        {
+          type: "foo",
+          pattern: ["foo/*"],
+        },
+        {
+          type: "service",
+          pattern: ["**/src/services/*/*.ts"],
+          mode: "full",
+          capture: ["baseFolder", "serviceName", "serviceFileName"],
+        },
+        { type: "utility", pattern: "src/utils/**/*.ts", mode: "file" },
+      ],
+    });
   });
 
   afterEach(() => {
@@ -111,14 +113,16 @@ describe("Elements Descriptors", () => {
 
     it("should exclude files when only ignorePaths is provided", () => {
       const otherDescriptors = elements.getMatcher(
-        [
-          {
-            type: "component",
-            pattern: "/project/src/components/*.tsx",
-            mode: "file",
-            capture: ["fileName"],
-          },
-        ],
+        {
+          elements: [
+            {
+              type: "component",
+              pattern: "/project/src/components/*.tsx",
+              mode: "file",
+              capture: ["fileName"],
+            },
+          ],
+        },
         {
           ignorePaths: ["**/src/**/*.tsx"],
         }
@@ -136,20 +140,21 @@ describe("Elements Descriptors", () => {
     it("should throw an error for invalid descriptors", () => {
       expect(() =>
         elements.getMatcher(
-          [
-            {
-              type: "component",
-              pattern: "/project/src/components/*.tsx",
-              mode: "file",
-              capture: ["fileName"],
-            },
-            // @ts-expect-error Testing invalid descriptor
-            {
-              pattern: "/project/src/components/*.tsx",
-              mode: "file",
-              capture: ["fileName"],
-            },
-          ],
+          {
+            elements: [
+              {
+                type: "component",
+                pattern: "/project/src/components/*.tsx",
+                mode: "file",
+                capture: ["fileName"],
+              },
+              {
+                pattern: "/project/src/components/*.tsx",
+                mode: "file",
+                capture: ["fileName"],
+              },
+            ],
+          },
           {
             ignorePaths: ["**/src/**/*.tsx"],
           }
@@ -161,14 +166,16 @@ describe("Elements Descriptors", () => {
 
     it("should not include files when includePaths do not match", () => {
       const otherDescriptors = elements.getMatcher(
-        [
-          {
-            type: "component",
-            pattern: "/project/src/components/*.tsx",
-            mode: "file",
-            capture: ["fileName"],
-          },
-        ],
+        {
+          elements: [
+            {
+              type: "component",
+              pattern: "/project/src/components/*.tsx",
+              mode: "file",
+              capture: ["fileName"],
+            },
+          ],
+        },
         {
           includePaths: ["**/src/**/*.md"],
         }
@@ -185,15 +192,17 @@ describe("Elements Descriptors", () => {
 
     it("should include every file by default", () => {
       const otherDescriptors = elements.getMatcher(
-        [
-          {
-            type: "component",
-            category: "react",
-            pattern: "/project/src/components/*.tsx",
-            mode: "file",
-            capture: ["fileName"],
-          },
-        ],
+        {
+          elements: [
+            {
+              type: "component",
+              category: "react",
+              pattern: "/project/src/components/*.tsx",
+              mode: "file",
+              capture: ["fileName"],
+            },
+          ],
+        },
         {}
       );
 
@@ -560,7 +569,11 @@ describe("Elements Descriptors", () => {
 
     it("should call micromatch multiple times for the same element if cache is disabled", () => {
       matcher = elements.getMatcher(
-        [{ type: "utility", pattern: "src/utils/**/*.ts", mode: "file" }],
+        {
+          elements: [
+            { type: "utility", pattern: "src/utils/**/*.ts", mode: "file" },
+          ],
+        },
         {
           cache: false,
         }
@@ -1651,14 +1664,16 @@ describe("Elements Descriptors", () => {
         const elementsWithRoot = new Elements({
           rootPath: "/monorepo/packages/app",
         });
-        const matcherWithRoot = elementsWithRoot.getMatcher([
-          {
-            type: "component",
-            pattern: "src/components/*.tsx",
-            mode: "file",
-            capture: ["componentName"],
-          },
-        ]);
+        const matcherWithRoot = elementsWithRoot.getMatcher({
+          elements: [
+            {
+              type: "component",
+              pattern: "src/components/*.tsx",
+              mode: "file",
+              capture: ["componentName"],
+            },
+          ],
+        });
 
         const element = matcherWithRoot.describeElement(
           "/monorepo/packages/app/src/components/Button.tsx"
@@ -1677,13 +1692,15 @@ describe("Elements Descriptors", () => {
         const elementsWithRoot = new Elements({
           rootPath: "/monorepo/packages/app",
         });
-        const matcherWithRoot = elementsWithRoot.getMatcher([
-          {
-            type: "model",
-            pattern: "*.model.ts",
-            mode: "file",
-          },
-        ]);
+        const matcherWithRoot = elementsWithRoot.getMatcher({
+          elements: [
+            {
+              type: "model",
+              pattern: "*.model.ts",
+              mode: "file",
+            },
+          ],
+        });
 
         // Right-to-left matching should match the filename pattern
         const element = matcherWithRoot.describeElement(
@@ -1704,14 +1721,16 @@ describe("Elements Descriptors", () => {
         const elementsWithRoot = new Elements({
           rootPath: "/monorepo/packages/api",
         });
-        const matcherWithRoot = elementsWithRoot.getMatcher([
-          {
-            type: "service",
-            pattern: "src/services/*",
-            mode: "folder",
-            capture: ["serviceName"],
-          },
-        ]);
+        const matcherWithRoot = elementsWithRoot.getMatcher({
+          elements: [
+            {
+              type: "service",
+              pattern: "src/services/*",
+              mode: "folder",
+              capture: ["serviceName"],
+            },
+          ],
+        });
 
         const element = matcherWithRoot.describeElement(
           "/monorepo/packages/api/src/services/auth/AuthService.ts"
@@ -1732,14 +1751,16 @@ describe("Elements Descriptors", () => {
         const elementsWithRoot = new Elements({
           rootPath: "/monorepo/apps/web",
         });
-        const matcherWithRoot = elementsWithRoot.getMatcher([
-          {
-            type: "module",
-            pattern: "modules/*",
-            mode: "folder",
-            capture: ["moduleName"],
-          },
-        ]);
+        const matcherWithRoot = elementsWithRoot.getMatcher({
+          elements: [
+            {
+              type: "module",
+              pattern: "modules/*",
+              mode: "folder",
+              capture: ["moduleName"],
+            },
+          ],
+        });
 
         // Should match even if full path is src/features/modules/auth
         const element = matcherWithRoot.describeElement(
@@ -1761,13 +1782,15 @@ describe("Elements Descriptors", () => {
         const elementsWithRoot = new Elements({
           rootPath: "/monorepo/packages/lib",
         });
-        const matcherWithRoot = elementsWithRoot.getMatcher([
-          {
-            type: "helper",
-            pattern: "src/helpers/**/*.ts",
-            mode: "full",
-          },
-        ]);
+        const matcherWithRoot = elementsWithRoot.getMatcher({
+          elements: [
+            {
+              type: "helper",
+              pattern: "src/helpers/**/*.ts",
+              mode: "full",
+            },
+          ],
+        });
 
         const element = matcherWithRoot.describeElement(
           "/monorepo/packages/lib/src/helpers/math/sum.ts"
@@ -1785,13 +1808,15 @@ describe("Elements Descriptors", () => {
         const elementsWithRoot = new Elements({
           rootPath: "/monorepo/packages/lib",
         });
-        const matcherWithRoot = elementsWithRoot.getMatcher([
-          {
-            type: "helper",
-            pattern: "helpers/*.ts",
-            mode: "full",
-          },
-        ]);
+        const matcherWithRoot = elementsWithRoot.getMatcher({
+          elements: [
+            {
+              type: "helper",
+              pattern: "helpers/*.ts",
+              mode: "full",
+            },
+          ],
+        });
 
         // This won't match because in full mode it needs src/helpers/*.ts
         const element = matcherWithRoot.describeElement(
@@ -1810,13 +1835,15 @@ describe("Elements Descriptors", () => {
         const elementsWithRoot = new Elements({
           rootPath: "/monorepo/packages/app",
         });
-        const matcherWithRoot = elementsWithRoot.getMatcher([
-          {
-            type: "component",
-            pattern: "src/components/**/*.tsx",
-            mode: "full",
-          },
-        ]);
+        const matcherWithRoot = elementsWithRoot.getMatcher({
+          elements: [
+            {
+              type: "component",
+              pattern: "src/components/**/*.tsx",
+              mode: "full",
+            },
+          ],
+        });
 
         // File outside rootPath - keeps absolute path, won't match relative pattern
         const element = matcherWithRoot.describeElement(
@@ -1837,13 +1864,15 @@ describe("Elements Descriptors", () => {
         const elementsWithRoot = new Elements({
           rootPath: "/monorepo/packages/app",
         });
-        const matcherWithRoot = elementsWithRoot.getMatcher([
-          {
-            type: "shared",
-            pattern: "*.util.ts",
-            mode: "file",
-          },
-        ]);
+        const matcherWithRoot = elementsWithRoot.getMatcher({
+          elements: [
+            {
+              type: "shared",
+              pattern: "*.util.ts",
+              mode: "file",
+            },
+          ],
+        });
 
         // File outside rootPath - right-to-left matching still works
         const element = matcherWithRoot.describeElement(
@@ -1863,14 +1892,16 @@ describe("Elements Descriptors", () => {
         const elementsWithRoot = new Elements({
           rootPath: "/monorepo/apps/web",
         });
-        const matcherWithRoot = elementsWithRoot.getMatcher([
-          {
-            type: "package",
-            pattern: "packages/*",
-            mode: "folder",
-            capture: ["packageName"],
-          },
-        ]);
+        const matcherWithRoot = elementsWithRoot.getMatcher({
+          elements: [
+            {
+              type: "package",
+              pattern: "packages/*",
+              mode: "folder",
+              capture: ["packageName"],
+            },
+          ],
+        });
 
         // File outside rootPath - right-to-left matching can still work
         const element = matcherWithRoot.describeElement(

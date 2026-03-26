@@ -24,40 +24,42 @@ describe("Elements Matcher", () => {
 
     elements = new Elements();
     matcher = elements.getMatcher(
-      [
-        {
-          type: "component",
-          category: "react",
-          pattern: "src/components/*.tsx",
-          mode: "file",
-          capture: ["fileName"],
-        },
-        {
-          type: "test",
-          category: "business-logic",
-          pattern: ["*/*.test.ts", "*/*.spec.ts"],
-          basePattern: "**/src/*",
-          mode: "file",
-          capture: ["elementName", "testFileName"],
-          baseCapture: ["root", "businessLogicArea"],
-        },
-        {
-          category: "business-logic",
-          pattern: ["modules/*"],
-          capture: ["moduleName"],
-        },
-        {
-          type: "foo",
-          pattern: ["foo/*"],
-        },
-        {
-          type: "service",
-          pattern: ["**/src/services/*/*.ts"],
-          mode: "full",
-          capture: ["baseFolder", "serviceName", "serviceFileName"],
-        },
-        { type: "utility", pattern: "src/utils/**/*.ts", mode: "file" },
-      ],
+      {
+        elements: [
+          {
+            type: "component",
+            category: "react",
+            pattern: "src/components/*.tsx",
+            mode: "file",
+            capture: ["fileName"],
+          },
+          {
+            type: "test",
+            category: "business-logic",
+            pattern: ["*/*.test.ts", "*/*.spec.ts"],
+            basePattern: "**/src/*",
+            mode: "file",
+            capture: ["elementName", "testFileName"],
+            baseCapture: ["root", "businessLogicArea"],
+          },
+          {
+            category: "business-logic",
+            pattern: ["modules/*"],
+            capture: ["moduleName"],
+          },
+          {
+            type: "foo",
+            pattern: ["foo/*"],
+          },
+          {
+            type: "service",
+            pattern: ["**/src/services/*/*.ts"],
+            mode: "full",
+            capture: ["baseFolder", "serviceName", "serviceFileName"],
+          },
+          { type: "utility", pattern: "src/utils/**/*.ts", mode: "file" },
+        ],
+      },
       {
         includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],
         ignorePaths: ["**/src/**/__tests__/**"],
@@ -606,7 +608,6 @@ describe("Elements Matcher", () => {
       },
     ])(
       "should return $expected when checking if $filePath matches the selector $selector",
-      // @ts-expect-error: Testing some invalid cases too
       ({
         filePath,
         expected,
@@ -724,15 +725,17 @@ describe("Elements Matcher", () => {
 
     it("should not match using legacy template with legacyTemplates disabled", () => {
       matcher = elements.getMatcher(
-        [
-          {
-            type: "component",
-            category: "react",
-            pattern: "src/components/*.tsx",
-            mode: "file",
-            capture: ["fileName"],
-          },
-        ],
+        {
+          elements: [
+            {
+              type: "component",
+              category: "react",
+              pattern: "src/components/*.tsx",
+              mode: "file",
+              capture: ["fileName"],
+            },
+          ],
+        },
         {
           includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],
           ignorePaths: ["**/src/**/__tests__/**"],

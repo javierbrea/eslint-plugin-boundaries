@@ -29,6 +29,7 @@ import type {
   LegacyDependencyInfoSelector,
   LegacyDependencySelector,
   LegacyDependencySingleSelector,
+  BackwardCompatibleDependencySelector,
 } from "./Selector.types";
 
 /**
@@ -199,34 +200,17 @@ function convertLegacyElementSelector(
 }
 
 /**
- * Resolves a legacy `from` or `to` element selector to the entity selector format.
- * Returns the selector unchanged if it is already a new-format entity selector.
- * Returns undefined when the input is undefined.
- */
-function resolveEntitySelector(
-  selector: LegacyElementSelector | EntitySelector | undefined
-): EntitySelector | undefined {
-  if (isUndefined(selector)) {
-    return undefined;
-  }
-  if (isEntitySelector(selector)) {
-    return selector;
-  }
-  return convertLegacyElementSelector(selector);
-}
-
-/**
- * Adds `origin.module` to every single entity selector in a `to` selector.
- * When `toSelector` is undefined, produces a selector that matches only on origin.module.
+ * Adds `origin.module` to each entity single selector in `toSelector`.
+ * When `toSelector` is undefined, produces `{ origin: { module } }`.
+ *
+ * The `dependency` array in the legacy model uses OR semantics between items, and each item
+ * may pair a `source` with a `module`. Collecting all modules into a single array would break
+ * that pairing, so `module` must stay bound to its own entity selector per dependency item.
  */
 function addModuleToEntitySelector(
   toSelector: EntitySelector | undefined,
   modulePattern: LegacyDependencyInfoSingleSelector["module"]
 ): EntitySelector {
-  const base: EntitySingleSelector = isArray(toSelector)
-    ? {}
-    : (toSelector ?? {});
-
   if (isArray(toSelector)) {
     return toSelector.map((single) => ({
       ...single,
@@ -234,52 +218,37 @@ function addModuleToEntitySelector(
     }));
   }
 
-  return {
-    ...base,
-    origin: { ...base.origin, module: modulePattern },
-  };
-}
-
-/**
- * Converts a single legacy dependency info selector into its modern equivalent.
- *
- * The legacy `module` field does not belong to dependency metadata in the new model;
- * it is extracted and returned separately so the caller can place it in `to.origin.module`.
- */
-function convertLegacyDependencyInfoSingleSelector(
-  selector: LegacyDependencyInfoSingleSelector
-): {
-  dependencyInfo?: DependencyInfoSingleSelector;
-  modulePattern: LegacyDependencyInfoSingleSelector["module"];
-} {
-  const { module: modulePattern, ...dependencyInfo } = selector;
-  return {
-    dependencyInfo:
-      Object.keys(dependencyInfo).length > 0 ? dependencyInfo : undefined,
-    modulePattern,
-  };
+  const base: EntitySingleSelector = toSelector ?? {};
+  return { ...base, origin: { ...base.origin, module: modulePattern } };
 }
 
 /**
  * Converts a legacy dependency single selector into one or more modern dependency selectors.
  *
- * May expand to multiple selectors when `dependency` is an array with `module` entries,
- * preserving the OR semantics of each array item.
+ * When `dependency` is an array, each item produces a separate output selector to preserve
+ * OR semantics and the pairing between `source` and `module` within each item. For example,
+ * `[{ source: "foo", module: "x" }, { source: "bar", module: "y" }]` must not be collapsed
+ * into `{ dependency: { source: ["foo","bar"] }, to: { origin: { module: ["x","y"] } } }`
+ * because that would allow the combination (source "foo", module "y") which was not intended.
  */
 function convertLegacyDependencySingleSelector(
-  selector: LegacyDependencySingleSelector | DependencySingleSelector
+  selector: LegacyDependencySingleSelector
 ): DependencySingleSelector[] {
-  if (!isLegacyDependencySingleSelector(selector)) {
-    return [selector];
-  }
+  const from = isUndefined(selector.from)
+    ? undefined
+    : convertLegacyElementSelector(selector.from);
 
-  const from = resolveEntitySelector(selector.from);
-  const to = resolveEntitySelector(selector.to);
+  const to = isUndefined(selector.to)
+    ? undefined
+    : convertLegacyElementSelector(selector.to);
 
-  if (
-    isUndefined(selector.dependency) ||
-    !isLegacyDependencyInfoSelector(selector.dependency)
-  ) {
+  const dependencyItems = isUndefined(selector.dependency)
+    ? []
+    : isArray(selector.dependency)
+      ? selector.dependency
+      : [selector.dependency];
+
+  if (dependencyItems.length === 0) {
     const converted: DependencySingleSelector = {};
     if (!isUndefined(from)) {
       converted.from = from;
@@ -287,27 +256,21 @@ function convertLegacyDependencySingleSelector(
     if (!isUndefined(to)) {
       converted.to = to;
     }
-    if (!isUndefined(selector.dependency)) {
-      converted.dependency = selector.dependency;
-    }
     return [converted];
   }
 
-  const dependencyItems = isArray(selector.dependency)
-    ? selector.dependency
-    : [selector.dependency];
-
   return dependencyItems.map((dependencyItem) => {
-    const { dependencyInfo, modulePattern } =
-      convertLegacyDependencyInfoSingleSelector(dependencyItem);
+    const { module: modulePattern, ...dependencyInfo } = dependencyItem;
     const converted: DependencySingleSelector = {};
     if (!isUndefined(from)) {
       converted.from = from;
     }
-    converted.to = isUndefined(modulePattern)
-      ? to
-      : addModuleToEntitySelector(to, modulePattern);
-    if (!isUndefined(dependencyInfo)) {
+    if (!isUndefined(modulePattern)) {
+      converted.to = addModuleToEntitySelector(to, modulePattern);
+    } else if (!isUndefined(to)) {
+      converted.to = to;
+    }
+    if (Object.keys(dependencyInfo).length > 0) {
       converted.dependency = dependencyInfo;
     }
     return converted;
@@ -315,15 +278,38 @@ function convertLegacyDependencySingleSelector(
 }
 
 /**
+ * Asserts that a dependency selector does not mix legacy and new-format single selectors.
+ * In practice all items in a selector should be either entirely legacy or entirely new-format.
+ * @throws Error if legacy and new-format items are mixed in the same array.
+ */
+export function ensureNoMixedDependencySelector(
+  selector: LegacyDependencySingleSelector[] | DependencySingleSelector[]
+): LegacyDependencySingleSelector[] | never {
+  const hasNew = selector.some(
+    (item) => !isLegacyDependencySingleSelector(item)
+  );
+  if (hasNew) {
+    throw new Error(
+      "Dependency selectors cannot mix legacy-format elements and new-format items"
+    );
+  }
+  return selector as LegacyDependencySingleSelector[];
+}
+
+/**
  * Converts a dependency selector from legacy format to the new entity selector format.
  * Returns the selector unchanged if it is already in the new format.
+ * @throws Error if legacy and new-format items are mixed in the same array.
  */
 export function convertLegacyDependencySelector(
-  selector: LegacyDependencySelector | DependencySelector
+  selector: BackwardCompatibleDependencySelector
 ): DependencySelector {
-  if (isArray(selector)) {
-    return selector.flatMap(convertLegacyDependencySingleSelector);
+  if (!isLegacyDependencySelector(selector)) {
+    return selector;
   }
 
-  return convertLegacyDependencySingleSelector(selector);
+  const selectors = isArray(selector) ? selector : [selector];
+  const legacySelectors = ensureNoMixedDependencySelector(selectors);
+
+  return legacySelectors.flatMap(convertLegacyDependencySingleSelector);
 }
