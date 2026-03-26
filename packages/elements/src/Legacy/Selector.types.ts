@@ -24,8 +24,6 @@ export type LegacyParentElementSelector =
  * Legacy selectors are used for backward compatibility with previous versions of the plugin. They include additional properties that were used in the old selector format
  */
 export type LegacyElementSingleSelector = ElementSingleSelector & {
-  /** The category of the element to select. */
-  category?: MicromatchPatternNullable;
   /** The origin of the element to select. */
   origin?: MicromatchPatternNullable;
   /** The path of the element to select. */
