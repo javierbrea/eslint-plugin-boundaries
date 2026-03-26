@@ -1,7 +1,7 @@
 import Handlebars from "handlebars";
 
 import type { MatchersOptionsNormalized } from "../../Config";
-import type { BaseDescription } from "../../Descriptor";
+import type { BaseDescription, OriginDescription } from "../../Descriptor";
 import {
   isArray,
   isObjectWithProperty,
@@ -15,6 +15,7 @@ import type {
   MicromatchMatchableValue,
 } from "../../Shared";
 import type { ElementSingleSelector } from "../Element";
+import type { OriginSelector } from "../Origin";
 
 import type { TemplateData } from "./BaseMatcher.types";
 import type { Micromatch } from "./Micromatch";
@@ -195,8 +196,8 @@ export class BaseElementsMatcher {
    * @returns Whether the element key matches the selector key.
    */
   protected isElementKeyBooleanMatch<
-    T extends BaseDescription,
-    S extends ElementSingleSelector,
+    T extends BaseDescription | OriginDescription,
+    S extends ElementSingleSelector | OriginSelector,
   >({
     /** The element to check. */
     element,
@@ -240,8 +241,8 @@ export class BaseElementsMatcher {
    * @returns Whether the element key matches the selector key.
    */
   protected isElementKeyMicromatchMatch<
-    T extends BaseDescription,
-    S extends ElementSingleSelector,
+    T extends BaseDescription | OriginDescription,
+    S extends ElementSingleSelector | OriginSelector,
     K extends keyof T,
   >({
     element,
@@ -258,7 +259,7 @@ export class BaseElementsMatcher {
     /** The key of the element to check. */
     elementKey: K;
     /** The key of the selector to check against. */
-    selectorKey: keyof ElementSingleSelector;
+    selectorKey: keyof S;
     /** The value of the selector key to check against. */
     selectorValue?: MicromatchPatternNullable;
     /** Data to pass when the selector value is rendered as a template */

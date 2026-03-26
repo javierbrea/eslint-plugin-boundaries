@@ -35,6 +35,8 @@ export type SimpleElementSelectorByTypeWithOptions = [
 export type ElementSingleSelector = BaseSingleSelector & {
   /** Type of the element */
   type?: MicromatchPatternNullable;
+  /** Internal path of the file relative to the element it belongs to, or null if it has no internal path */
+  fileInternalPath?: MicromatchPatternNullable;
   /** Selector for matching the first parent element */
   parent?: ParentElementSingleSelector | null;
 };
@@ -54,3 +56,6 @@ export type BackwardCompatibleElementSingleSelector =
 export type ElementSelector =
   | BackwardCompatibleElementSingleSelector
   | BackwardCompatibleElementSingleSelector[];
+
+/** Normalized element selector, being always an array of single selectors, already transformed to the new format if it was using any of the backward compatible formats */
+export type ElementSelectorNormalized = ElementSingleSelector[];

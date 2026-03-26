@@ -10,8 +10,11 @@ import { isEntitySelector, normalizeEntitySelector } from "../Entity";
 import type {
   DependencyInfoSingleSelector,
   DependencyInfoSelector,
+  DependencyInfoSelectorNormalized,
   DependencySingleSelector,
   DependencySelector,
+  DependencySelectorNormalized,
+  DependencySingleSelectorNormalized,
 } from "./DependencySelector.types";
 
 /**
@@ -28,8 +31,6 @@ export function isDependencyInfoSingleSelector(
     "specifiers",
     "nodeKind",
     "source",
-    "module",
-    "origin",
   ]);
 }
 
@@ -45,6 +46,40 @@ export function isDependencyInfoSelector(
     isDependencyInfoSingleSelector(value) ||
     (isArray(value) && value.every(isDependencyInfoSingleSelector))
   );
+}
+
+/**
+ * Normalizes a single dependency information selector, ensuring it has the correct structure and default values.
+ * @param selector The selector to normalize.
+ * @returns The normalized selector.
+ */
+export function normalizeSingleDependencyInfoSelector(
+  selector: DependencyInfoSingleSelector
+): DependencyInfoSingleSelector {
+  if (!isDependencyInfoSingleSelector(selector)) {
+    throw new Error("Invalid dependency information selector");
+  }
+  const normalizedSelector: DependencyInfoSingleSelector = {
+    kind: selector.kind,
+    relationship: selector.relationship,
+    specifiers: selector.specifiers,
+    nodeKind: selector.nodeKind,
+    source: selector.source,
+  };
+  return normalizedSelector;
+}
+
+export function normalizeDependencyInfoSelector(
+  selector: DependencyInfoSelector
+): DependencyInfoSelectorNormalized {
+  if (isDependencyInfoSingleSelector(selector)) {
+    return [normalizeSingleDependencyInfoSelector(selector)];
+  } else if (isArray(selector)) {
+    return selector.map((singleSelector) =>
+      normalizeSingleDependencyInfoSelector(singleSelector)
+    );
+  }
+  throw new Error("Invalid dependency information selector");
 }
 
 /**
@@ -95,23 +130,20 @@ export function isDependencySelector(
  */
 export function normalizeSingleDependencySelector(
   selector: DependencySingleSelector
-): DependencySingleSelector {
+): DependencySingleSelectorNormalized {
   if (isDependencySingleSelector(selector)) {
-    const baseSelector: DependencySingleSelector = {
-      from: selector.from,
-      to: selector.to,
-      dependency: selector.dependency,
-    };
+    const baseSelector: DependencySingleSelectorNormalized = {};
 
     if (!isUndefined(selector.from)) {
-      baseSelector.from = isNull(selector.from)
-        ? null
-        : normalizeEntitySelector(selector.from);
+      baseSelector.from = normalizeEntitySelector(selector.from);
     }
     if (!isUndefined(selector.to)) {
-      baseSelector.to = isNull(selector.to)
-        ? null
-        : normalizeEntitySelector(selector.to);
+      baseSelector.to = normalizeEntitySelector(selector.to);
+    }
+    if (!isUndefined(selector.dependency)) {
+      baseSelector.dependency = normalizeDependencyInfoSelector(
+        selector.dependency
+      );
     }
     return baseSelector;
   }
@@ -126,9 +158,9 @@ export function normalizeSingleDependencySelector(
  */
 export function normalizeDependencySelector(
   selector: DependencySelector
-): DependencySelector {
+): DependencySelectorNormalized {
   if (isDependencySingleSelector(selector)) {
-    return normalizeSingleDependencySelector(selector);
+    return [normalizeSingleDependencySelector(selector)];
   } else if (isArray(selector)) {
     return selector.map((singleSelector) =>
       normalizeSingleDependencySelector(singleSelector)

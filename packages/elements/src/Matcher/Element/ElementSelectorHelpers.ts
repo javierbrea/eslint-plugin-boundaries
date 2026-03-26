@@ -11,6 +11,7 @@ import type {
   ElementSingleSelector,
   ElementSelector,
   BackwardCompatibleElementSingleSelector,
+  ElementSelectorNormalized,
 } from "./ElementSelector.types";
 
 /**
@@ -112,7 +113,7 @@ export function normalizeSingleElementSelector(
  */
 export function normalizeElementSelector(
   elementSelector: ElementSelector
-): ElementSingleSelector[] {
+): ElementSelectorNormalized {
   if (isSimpleElementSelectorByTypeWithOptions(elementSelector)) {
     return [normalizeSingleElementSelector(elementSelector)];
   }

@@ -1,7 +1,11 @@
 import { isArray, isObjectWithAnyOfProperties } from "../../Shared/TypeGuards";
 import { extendsSingleSelector } from "../Shared";
 
-import type { FileSelector, FileSingleSelector } from "./FileSelector.types";
+import type {
+  FileSelector,
+  FileSelectorNormalized,
+  FileSingleSelector,
+} from "./FileSelector.types";
 /**
  * Determines if the given selector is a single file selector
  * @param value The value to check.
@@ -53,7 +57,7 @@ export function normalizeSingleFileSelector(
  */
 export function normalizeFileSelector(
   fileSelector: FileSelector
-): FileSingleSelector[] {
+): FileSelectorNormalized {
   if (isArray(fileSelector)) {
     return fileSelector.map((sel) => normalizeSingleFileSelector(sel));
   }

@@ -1,16 +1,18 @@
 import {
   isArray,
-  isNull,
   isUndefined,
   isObjectWithAnyOfProperties,
   isObjectWithProperty,
 } from "../../Shared/TypeGuards";
 import { isElementSelector, normalizeElementSelector } from "../Element";
 import { isFileSelector, normalizeFileSelector } from "../File";
+import { isOriginSelector, normalizeOriginSelector } from "../Origin";
 
 import type {
   EntitySelector,
+  EntitySelectorNormalized,
   EntitySingleSelector,
+  EntitySingleSelectorNormalized,
 } from "./EntitySelector.types";
 
 /**
@@ -21,20 +23,18 @@ import type {
 export function isEntitySingleSelector(
   value: unknown
 ): value is EntitySingleSelector {
-  if (!isObjectWithAnyOfProperties(value, ["element", "file"])) {
+  if (!isObjectWithAnyOfProperties(value, ["element", "file", "origin"])) {
     return false;
   }
 
   const elementIsValid =
-    !isObjectWithProperty(value, "element") ||
-    isNull(value.element) ||
-    isElementSelector(value.element);
+    !isObjectWithProperty(value, "element") || isElementSelector(value.element);
   const fileIsValid =
-    !isObjectWithProperty(value, "file") ||
-    isNull(value.file) ||
-    isFileSelector(value.file);
+    !isObjectWithProperty(value, "file") || isFileSelector(value.file);
+  const originIsValid =
+    !isObjectWithProperty(value, "origin") || isOriginSelector(value.origin);
 
-  return elementIsValid && fileIsValid;
+  return elementIsValid && fileIsValid && originIsValid;
 }
 
 /**
@@ -56,21 +56,17 @@ export function isEntitySelector(value: unknown): value is EntitySelector {
  */
 export function normalizeSingleEntitySelector(
   selector: EntitySingleSelector
-): EntitySingleSelector {
+): EntitySingleSelectorNormalized {
   if (isEntitySingleSelector(selector)) {
-    const baseSelector: EntitySingleSelector = {
-      element: selector.element,
-      file: selector.file,
-    };
+    const baseSelector: EntitySingleSelectorNormalized = {};
     if (!isUndefined(selector.element)) {
-      baseSelector.element = isNull(selector.element)
-        ? null
-        : normalizeElementSelector(selector.element);
+      baseSelector.element = normalizeElementSelector(selector.element);
     }
     if (!isUndefined(selector.file)) {
-      baseSelector.file = isNull(selector.file)
-        ? null
-        : normalizeFileSelector(selector.file);
+      baseSelector.file = normalizeFileSelector(selector.file);
+    }
+    if (!isUndefined(selector.origin)) {
+      baseSelector.origin = normalizeOriginSelector(selector.origin);
     }
     return baseSelector;
   }
@@ -85,7 +81,7 @@ export function normalizeSingleEntitySelector(
  */
 export function normalizeEntitySelector(
   entitySelector: EntitySelector
-): EntitySingleSelector[] {
+): EntitySelectorNormalized {
   if (isArray(entitySelector)) {
     return entitySelector.map((sel) => normalizeSingleEntitySelector(sel));
   }
