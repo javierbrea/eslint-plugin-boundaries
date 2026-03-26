@@ -21,7 +21,7 @@ export type ElementDescriptor = BaseDescriptor & {
   baseCapture?: string[];
 
   /** If true, the descriptor will only match files that fully match the pattern, to ensure that only the exact file or folder is matched, without matching from the right side of the path. */
-  fullMatch?: boolean;
+  requireFullMatch?: boolean;
 };
 
 /**

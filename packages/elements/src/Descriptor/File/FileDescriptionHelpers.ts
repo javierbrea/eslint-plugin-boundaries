@@ -19,11 +19,7 @@ import type {
  * @returns True if the value is a file description, false otherwise.
  */
 export function isFileDescription(value: unknown): value is FileDescription {
-  return (
-    isBaseDescription(value) &&
-    isObjectWithProperty(value, "categories") &&
-    isObjectWithProperty(value, "elementInternalPath")
-  );
+  return isBaseDescription(value) && isObjectWithProperty(value, "categories");
 }
 
 /**

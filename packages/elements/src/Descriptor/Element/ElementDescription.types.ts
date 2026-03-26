@@ -11,8 +11,10 @@ import type {
 export type ElementDescription = BaseDescription & {
   /** Type of the element */
   type: string | null;
+  /** Internal path of the file relative to the element it belongs to, or null in case it has not related file */
+  fileInternalPath: string | null;
   /** Parent elements */
-  parents: ElementParent[] | null;
+  parents: ElementParent[];
 };
 
 /**
@@ -28,8 +30,14 @@ export type ElementParent = Pick<
  */
 export type IgnoredElementDescription = ElementDescription &
   BaseIgnoredDescription & {
+    /** Path of an ignored element is null, because it can't be resolved to any descriptor */
+    path: null;
     /** Type of the element */
     type: null;
+    /** File internal path of an ignored element is null, because it can't be resolved to any descriptor */
+    fileInternalPath: null;
+    /** Parent elements. For ignored elements, parents are an empty array because the element can't be resolved to any descriptor, so we have no information about its parents. */
+    parents: [];
   };
 
 /**
@@ -39,10 +47,12 @@ export type UnknownElementDescription = ElementDescription &
   BaseUnknownDescription & {
     /** Path of an unknown element is null, because it can't be resolved to any descriptor */
     path: null;
+    /** File internal path of an unknown element is null, because it can't be resolved to any descriptor */
+    fileInternalPath: null;
     /** Type of the element. For unknown elements, the type is null because it can't be determined without a matching descriptor. */
     type: null;
-    /** Parent elements. For unknown elements, parents are null because the element can't be resolved to any descriptor, so we have no information about its parents. */
-    parents: null;
+    /** Parent elements. For unknown elements, parents are an empty array because the element can't be resolved to any descriptor, so we have no information about its parents. */
+    parents: [];
   };
 
 /*
@@ -52,6 +62,8 @@ export type KnownElementDescription = ElementDescription &
   BaseKnownDescription & {
     /** Known elements always have path  and categories */
     path: string;
+    /** File internal path of a known element */
+    fileInternalPath: string;
     /** Type of the element */
     type: string;
     /** Parent elements. For known elements, parents is an array of parent descriptions, which may be empty if the element has no parents. */

@@ -344,7 +344,7 @@ export class OriginsDescriptor {
    * @returns The description of the file's origin, including its origin, and module if applicable
    */
   public describeOrigin(filePath?: string, source?: string): OriginDescription {
-    const cacheKey = `${filePath}:${source}`;
+    const cacheKey = `${filePath}::${source}`;
     if (this._descriptionsCache.has(cacheKey)) {
       return this._descriptionsCache.get(cacheKey)!;
     }

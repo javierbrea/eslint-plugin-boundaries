@@ -2,7 +2,6 @@ import {
   isString,
   isObjectWithProperty,
   isNull,
-  isNullish,
   isStringArray,
 } from "../../Shared/TypeGuards";
 import { isEntityDescription } from "../Entity";
@@ -67,8 +66,6 @@ export function isDependencyInfo(value: unknown): value is DependencyInfo {
   return (
     isObjectWithProperty(value, "source") &&
     isString(value.source) &&
-    isObjectWithProperty(value, "module") &&
-    (isNullish(value.module) || isString(value.module)) &&
     isObjectWithProperty(value, "kind") &&
     isDependencyKind(value.kind) &&
     isObjectWithProperty(value, "relationship") &&

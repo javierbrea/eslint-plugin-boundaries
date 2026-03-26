@@ -237,8 +237,6 @@ export class FilesDescriptor {
     if (!this._pathIsIncluded(filePath)) {
       return {
         path: filePath,
-        // TODO: This should be calculated, no matter that it is ignored, because it may be useful for other purposes
-        elementInternalPath: null,
         categories: null,
         isIgnored: true,
         isUnknown: true,
@@ -249,7 +247,6 @@ export class FilesDescriptor {
     const fileResult: FileDescription = {
       path: filePath,
       categories: null,
-      elementInternalPath: null,
       captured: null,
       isIgnored: false,
       isUnknown: true,

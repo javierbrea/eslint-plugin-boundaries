@@ -9,8 +9,6 @@ import type {
  * Base file properties related to captured values
  */
 export type FileDescription = BaseDescription & {
-  /** Internal path of the file relative to the element it belongs to, or null in case it has not related element */
-  elementInternalPath: string | null;
   /** Categories of the file, or null if the file is ignored or unknown */
   categories: string[] | null;
 };
