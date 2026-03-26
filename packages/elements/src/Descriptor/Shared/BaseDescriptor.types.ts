@@ -5,7 +5,7 @@ export type DescriptorPattern = string | string[];
 
 /**
  * Descriptor for an element or file in the project.
- * Defines the type of the element or file, the pattern to match files, and optional settings like mode and capture groups.
+ * Defines the type of the element or file, the pattern to match files, and optional settings;
  */
 export type BaseDescriptor = {
   /** Micromatch pattern(s) to match files belonging to this descriptor. */

@@ -1,7 +1,6 @@
-import { isNull } from "src/Shared";
-
 import { CacheManagerDisabled } from "../../Cache";
 import type { DescriptorOptionsNormalized } from "../../Config";
+import { isNull } from "../../Shared";
 import {
   isIgnoredElementDescription,
   isKnownElementDescription,
