@@ -73,13 +73,10 @@ export function convertLegacyElementDescriptors(
       if (mode === ELEMENT_DESCRIPTOR_MODES_MAP.FILE) {
         fileDescriptors.push({
           ...descriptor,
-          pattern: `${descriptor.pattern}/**/*`,
-          // TODO: Support basePattern temporarily in file descriptors for backward compatibility. In case basePattern is received, it will be used instead of the default "**".
+          pattern: descriptor.pattern,
           basePattern: descriptor.basePattern || "**",
-          // TODO: Support baseCapture temporarily in file descriptors for backward compatibility. In case baseCapture is received, it will be used instead of the default pattern capture. In case basePattern is received, it will be single match.
           baseCapture: descriptor.baseCapture,
-          category: descriptor.category || descriptor.type,
-          // TODO: Support type temporarily in file descriptors for backward compatibility.
+          category: descriptor.category || "uncategorized",
           type: descriptor.type,
         });
       } else if (mode === ELEMENT_DESCRIPTOR_MODES_MAP.FULL) {

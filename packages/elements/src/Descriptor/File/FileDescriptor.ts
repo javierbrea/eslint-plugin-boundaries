@@ -17,6 +17,17 @@ import type {
 } from "./FileDescriptor.types";
 import { isFileDescriptor } from "./FileDescriptorHelpers";
 
+const BACKWARD_COMPATIBILITY_CAPTURE_PROPERTY = "restOfPath";
+
+const UNKNOWN_FILE_DESCRIPTION: UnknownFileDescription = {
+  path: null,
+  categories: null,
+  type: null,
+  isIgnored: false,
+  isUnknown: true,
+  captured: null,
+};
+
 /**
  * Class describing files in a project given their paths and configuration.
  */
@@ -214,7 +225,10 @@ export class FilesDescriptor {
       : [fileDescriptor.pattern];
 
     for (const pattern of patterns) {
-      const capture = this._micromatch.capture(pattern, filePath);
+      const patternUsed = fileDescriptor.basePattern
+        ? `${fileDescriptor.basePattern}/${pattern}`
+        : pattern;
+      const capture = this._micromatch.capture(patternUsed, filePath);
 
       if (capture) {
         return {
@@ -228,37 +242,57 @@ export class FilesDescriptor {
   }
 
   /**
+   * Returns the capture array for a file descriptor, combining baseCapture and capture if basePattern is used, for backward compatibility with legacy mode "file".
+   * @param fileDescriptor The file descriptor to get the capture array for.
+   * @returns The combined capture array if basePattern is used, otherwise undefined.
+   */
+  private _getCaptureArray(
+    fileDescriptor: FileDescriptor
+  ): string[] | undefined {
+    if (fileDescriptor.basePattern) {
+      if (fileDescriptor.baseCapture && fileDescriptor.capture) {
+        return [
+          ...fileDescriptor.baseCapture,
+          BACKWARD_COMPATIBILITY_CAPTURE_PROPERTY,
+          ...fileDescriptor.capture,
+        ];
+      } else if (fileDescriptor.baseCapture) {
+        return [
+          ...fileDescriptor.baseCapture,
+          BACKWARD_COMPATIBILITY_CAPTURE_PROPERTY,
+        ];
+      } else if (fileDescriptor.capture) {
+        return [
+          BACKWARD_COMPATIBILITY_CAPTURE_PROPERTY,
+          ...fileDescriptor.capture,
+        ];
+      }
+    }
+  }
+
+  /**
    * Retrieves the description of a local file given its path.
    * @param elementPath The path of the element to describe.
    * @returns The description of the element.
    */
   private _getFileDescription(filePath?: string): FileDescription {
     if (!filePath) {
-      return {
-        path: null,
-        categories: null,
-        isIgnored: false,
-        isUnknown: true,
-        captured: null,
-      };
+      return UNKNOWN_FILE_DESCRIPTION;
     }
     // Return ignored element if the path is not included in the configuration.
     if (!this._pathIsIncluded(filePath)) {
       return {
+        ...UNKNOWN_FILE_DESCRIPTION,
         path: filePath,
         categories: null,
         isIgnored: true,
-        isUnknown: true,
-        captured: null,
       };
     }
 
     const fileResult: FileDescription = {
+      ...UNKNOWN_FILE_DESCRIPTION,
       path: filePath,
-      categories: null,
-      captured: null,
       isIgnored: false,
-      isUnknown: true,
     };
 
     const processElementMatch = (
@@ -271,12 +305,13 @@ export class FilesDescriptor {
 
       const capturedValues = this._getCapturedValues(
         capture,
-        fileDescriptor.capture
+        this._getCaptureArray(fileDescriptor)
       );
 
       fileResult.categories = isArray(fileResult.categories)
         ? [...fileResult.categories, ...fileDescriptor.category]
         : [fileDescriptor.category];
+      fileResult.type = fileDescriptor.type || null; // For backward compatibility with legacy mode "file", where "type" was used to store the base category.
 
       fileResult.isUnknown = false;
       fileResult.captured = isObject(capturedValues)
@@ -295,6 +330,9 @@ export class FilesDescriptor {
 
       if (match.matched) {
         processElementMatch(fileDescriptor, match);
+        if (fileDescriptor.basePattern) {
+          break; // If the descriptor has a basePattern, it has been converted from legacy mode "file", so we stop processing other matches to maintain backward compatibility. In future versions, when legacy mode is removed, this condition can be removed.
+        }
       }
     }
 
@@ -302,6 +340,7 @@ export class FilesDescriptor {
     if (!isKnownFileDescription(fileResult)) {
       const result: UnknownFileDescription = {
         ...fileResult,
+        type: null,
         categories: null,
         isIgnored: false,
         isUnknown: true,

@@ -21,6 +21,7 @@ const UNKNOWN_ELEMENT: UnknownElementDescription = {
   fileInternalPath: null,
   parents: [],
   type: null,
+  category: null,
   captured: null,
   isIgnored: false,
   isUnknown: true,
@@ -338,6 +339,7 @@ export class ElementsDescriptor {
       path: filePath,
       fileInternalPath: null,
       type: null,
+      category: null,
       captured: null,
       isIgnored: false,
       isUnknown: true,
@@ -389,9 +391,10 @@ export class ElementsDescriptor {
         ? filePath
         : this._getElementPath(patternUsed, currentPathSegments, elementPaths);
 
-      if (!elementResult.type) {
+      if (!elementResult.type && !elementResult.category) {
         // It is the main element
         elementResult.type = elementDescriptor.type || null;
+        elementResult.category = elementDescriptor.category || null;
         elementResult.isUnknown = false;
         elementResult.path = elementPath;
         elementResult.captured = capturedValues;
@@ -403,6 +406,7 @@ export class ElementsDescriptor {
         // It is a parent element, because we have already matched the main one
         parents.push({
           type: elementDescriptor.type || null,
+          category: elementDescriptor.category || null,
           path: elementPath,
           captured: capturedValues,
         });

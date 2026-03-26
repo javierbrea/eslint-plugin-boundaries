@@ -7,7 +7,13 @@ import type { ElementDescription } from "./ElementDescription.types";
  */
 export type ElementDescriptor = BaseDescriptor & {
   /** Type of the element (e.g., "service", "component", "util"). */
-  type: string;
+  type?: string;
+
+  /**
+   * Category of the element
+   * @deprecated The category property is deprecated and will be removed in future versions. Use the category property in file descriptors instead to add multiple categories to different files in the same element, instead of categorizing the whole element with a single category. This allows for more flexibility and better organization of files within an element.
+   **/
+  category?: string;
   /**
    * Optional micromatch pattern. If provided, the left side of the descriptor path must match also with this pattern from the root of the project (like if pattern is [basePattern]/** /[pattern]).
    * This option is only useful when `fullMatch` is false (default), but capturing fragments from the rest of the full path is also needed.

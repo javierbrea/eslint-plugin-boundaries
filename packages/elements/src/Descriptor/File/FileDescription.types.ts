@@ -9,6 +9,10 @@ import type {
  * Base file properties related to captured values
  */
 export type FileDescription = BaseDescription & {
+  /**
+   * @deprecated Used only for backward compatibility with legacy element descriptors with mode "file". This property will be removed in future versions.
+   */
+  type: string | null;
   /** Categories of the file, or null if the file is ignored or unknown */
   categories: string[] | null;
 };
@@ -18,6 +22,10 @@ export type FileDescription = BaseDescription & {
  */
 export type IgnoredFileDescription = FileDescription &
   BaseIgnoredDescription & {
+    /**
+     * @deprecated Used only for backward compatibility with legacy element descriptors with mode "file". This property will be removed in future versions.
+     */
+    type: null;
     /** Categories of the file */
     categories: null;
   };
@@ -27,7 +35,9 @@ export type IgnoredFileDescription = FileDescription &
  */
 export type UnknownFileDescription = FileDescription &
   BaseUnknownDescription & {
-    /** Path of an unknown file is null, because it can't be resolved to any descriptor */
+    /** @deprecated Used only for backward compatibility with legacy element descriptors with mode "file". This property will be removed in future versions. */
+    type: null;
+    /** Categories of the file */
     categories: null;
   };
 
