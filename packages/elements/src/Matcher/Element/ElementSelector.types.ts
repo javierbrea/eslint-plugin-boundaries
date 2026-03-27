@@ -12,6 +12,10 @@ export type ParentElementSingleSelector = Pick<
   type?: MicromatchPatternNullable;
 };
 
+export type ParentElementSelector =
+  | ParentElementSingleSelector
+  | ParentElementSingleSelector[];
+
 /**
  * Simple element selector by type, represented as a string matching the element type.
  * @deprecated Use BaseElementSelectorData or DependencyElementSelectorData instead.
@@ -38,7 +42,7 @@ export type ElementSingleSelector = BaseSingleSelector & {
   /** Internal path of the file relative to the element it belongs to, or null if it has no internal path */
   fileInternalPath?: MicromatchPatternNullable;
   /** Selector for matching the first parent element */
-  parent?: ParentElementSingleSelector | null;
+  parent?: ParentElementSelector | null;
 };
 
 /**

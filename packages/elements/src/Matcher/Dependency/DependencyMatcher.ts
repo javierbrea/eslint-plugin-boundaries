@@ -9,10 +9,10 @@ import type { TemplateData, MatcherOptions, Micromatch } from "../Shared";
 
 import type { DependencyMatchResult } from "./DependencyMatcher.types";
 import type {
-  DependencySingleSelector,
   DependencySelectorNormalized,
   DependencySingleSelectorNormalized,
   DependencyInfoSingleSelector,
+  DependencySelector,
 } from "./DependencySelector.types";
 import { normalizeDependencySelector } from "./DependencySelectorHelpers";
 
@@ -316,7 +316,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    */
   public getSelectorsMatching(
     dependency: DependencyDescription,
-    selector: DependencySingleSelector,
+    selector: DependencySelector,
     { extraTemplateData = {} }: MatcherOptions = {}
   ): DependencyMatchResult {
     const normalizedSelector = normalizeDependencySelector(selector);
@@ -355,7 +355,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    */
   public isDependencyMatch(
     dependency: DependencyDescription,
-    selector: DependencySingleSelector,
+    selector: DependencySelector,
     options?: MatcherOptions
   ): boolean {
     const matchResult = this.getSelectorsMatching(

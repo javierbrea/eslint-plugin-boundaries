@@ -1,6 +1,7 @@
 import type {
   ParentElementSingleSelector,
   ElementSelector,
+  ElementSingleSelector,
   BackwardCompatibleElementSingleSelector,
   EntitySelector,
   EntitySingleSelector,
@@ -8,6 +9,7 @@ import type {
   DependencyInfoSelector,
   DependencySingleSelector,
   DependencySelector,
+  ParentElementSelector,
 } from "../Matcher";
 import {
   isEntitySelector,
@@ -69,11 +71,17 @@ export function isLegacyElementSingleSelector(
     | LegacyElementSingleSelector
     | BackwardCompatibleElementSingleSelector
 ): selector is LegacyElementSingleSelector {
-  return isObjectWithAnyOfProperties(selector, [
-    "origin",
-    "elementPath",
-    "internalPath",
-  ]);
+  return (
+    isObjectWithAnyOfProperties(selector, [
+      "origin",
+      "elementPath",
+      "internalPath",
+    ]) ||
+    (isObjectWithProperty(selector, "parent") &&
+      isLegacyParentElementSelector(
+        selector.parent as LegacyParentElementSelector | ParentElementSelector
+      ))
+  );
 }
 
 /**
@@ -155,17 +163,103 @@ export function isLegacyDependencySelector(
 }
 
 /**
+ * Converts a legacy parent element single selector into the equivalent parent element single selector.
+ *
+ * Legacy properties are mapped to the new model as follows:
+ * - `elementPath` -> `path`
+ */
+function convertLegacyParentElementSingleSelector(
+  selector: LegacyParentElementSingleSelector
+): ParentElementSingleSelector {
+  const { elementPath, ...parentSelector } = selector;
+  if (!isUndefined(elementPath)) {
+    parentSelector.path = elementPath;
+  }
+  return parentSelector;
+}
+
+/**
+ * Converts a legacy parent element selector (single or array) to the parent element selector format.
+ */
+function convertLegacyParentElementSelector(
+  selector: LegacyParentElementSelector
+): ParentElementSelector {
+  if (isArray(selector)) {
+    return selector.map(convertLegacyParentElementSingleSelector);
+  }
+  return convertLegacyParentElementSingleSelector(selector);
+}
+
+/**
+ * Converts a legacy element single selector into the equivalent element single selector.
+ *
+ * Legacy properties are mapped to the new model as follows:
+ * - `elementPath` -> `path`
+ * - `internalPath` -> `fileInternalPath`
+ * - `parent.elementPath` -> `parent.path`
+ *
+ * @throws Error if the selector contains `origin`, which is an entity-level property
+ * and cannot be represented in an element selector.
+ */
+export function convertLegacyElementSingleSelector(
+  selector: LegacyElementSingleSelector
+): ElementSingleSelector {
+  const { origin, elementPath, internalPath, parent, ...rest } = selector;
+
+  if (!isUndefined(origin)) {
+    throw new Error(
+      `Cannot convert legacy element selector to element selector: the "origin" property is an entity-level property and cannot be represented in an element selector. Use convertLegacyElementSingleSelectorToEntitySelector instead.`
+    );
+  }
+
+  const elementSelector: ElementSingleSelector = { ...rest };
+
+  if (!isUndefined(elementPath)) {
+    elementSelector.path = elementPath;
+  }
+
+  if (!isUndefined(internalPath)) {
+    elementSelector.fileInternalPath = internalPath;
+  }
+
+  if (!isUndefined(parent)) {
+    elementSelector.parent = isLegacyParentElementSelector(parent)
+      ? convertLegacyParentElementSelector(parent)
+      : parent;
+  }
+
+  return elementSelector;
+}
+
+/**
+ * Converts a legacy element selector (single or array) to the element selector format.
+ *
+ * @throws Error if any single selector contains `origin`, which is an entity-level property
+ * and cannot be represented in an element selector.
+ */
+export function convertLegacyElementSelector(
+  selector: LegacyElementSelector
+): ElementSelector {
+  if (isArray(selector)) {
+    return selector.map(convertLegacyElementSingleSelector);
+  }
+  return convertLegacyElementSingleSelector(selector);
+}
+
+/**
  * Converts a legacy element single selector into the equivalent entity single selector.
  *
  * Legacy properties are mapped to the new model as follows:
  * - `origin` -> `origin.kind`
  * - `elementPath` -> `element.path`
  * - `internalPath` -> `element.fileInternalPath`
+ * - `parent.elementPath` -> `element.parent.path`
  */
-function convertLegacyElementSingleSelector(
+function convertLegacyElementSingleSelectorToEntitySelector(
   selector: LegacyElementSingleSelector
 ): EntitySingleSelector {
-  const { origin, elementPath, internalPath, ...elementSelector } = selector;
+  const { origin, elementPath, internalPath, parent, ...rest } = selector;
+  const elementSelector: ElementSingleSelector = { ...rest };
   const entitySelector: EntitySingleSelector = {};
 
   if (!isUndefined(elementPath)) {
@@ -174,6 +268,12 @@ function convertLegacyElementSingleSelector(
 
   if (!isUndefined(internalPath)) {
     elementSelector.fileInternalPath = internalPath;
+  }
+
+  if (!isUndefined(parent)) {
+    elementSelector.parent = isLegacyParentElementSelector(parent)
+      ? convertLegacyParentElementSelector(parent)
+      : parent;
   }
 
   if (Object.keys(elementSelector).length > 0) {
@@ -190,13 +290,13 @@ function convertLegacyElementSingleSelector(
 /**
  * Converts a legacy element selector (single or array) to entity selector format.
  */
-function convertLegacyElementSelector(
+export function convertLegacyElementSelectorToEntitySelector(
   selector: LegacyElementSelector
 ): EntitySelector {
   if (isArray(selector)) {
-    return selector.map(convertLegacyElementSingleSelector);
+    return selector.map(convertLegacyElementSingleSelectorToEntitySelector);
   }
-  return convertLegacyElementSingleSelector(selector);
+  return convertLegacyElementSingleSelectorToEntitySelector(selector);
 }
 
 /**
@@ -236,11 +336,11 @@ function convertLegacyDependencySingleSelector(
 ): DependencySingleSelector[] {
   const from = isUndefined(selector.from)
     ? undefined
-    : convertLegacyElementSelector(selector.from);
+    : convertLegacyElementSelectorToEntitySelector(selector.from);
 
   const to = isUndefined(selector.to)
     ? undefined
-    : convertLegacyElementSelector(selector.to);
+    : convertLegacyElementSelectorToEntitySelector(selector.to);
 
   const dependencyItems = isUndefined(selector.dependency)
     ? []

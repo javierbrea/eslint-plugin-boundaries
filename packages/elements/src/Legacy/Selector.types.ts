@@ -3,6 +3,7 @@ import type {
   DependencyInfoSingleSelector,
   ParentElementSingleSelector,
   DependencySelector,
+  ElementSelector,
 } from "../Matcher";
 import type { MicromatchPatternNullable } from "../Shared";
 
@@ -31,6 +32,8 @@ export type LegacyElementSingleSelector = ElementSingleSelector & {
   elementPath?: MicromatchPatternNullable;
   /** The path of the file containing the element to select. */
   internalPath?: MicromatchPatternNullable;
+  /** The parent element to select. */
+  parent?: LegacyParentElementSelector;
 };
 
 /**
@@ -39,6 +42,13 @@ export type LegacyElementSingleSelector = ElementSingleSelector & {
 export type LegacyElementSelector =
   | LegacyElementSingleSelector
   | LegacyElementSingleSelector[];
+
+/**
+ * Backward compatible element selector type that can be either a legacy element selector or a new element selector. This type is used to allow functions that accept element selectors to also accept legacy element selectors for backward compatibility.
+ */
+export type BackwardCompatibleElementSelector =
+  | LegacyElementSelector
+  | ElementSelector;
 
 /**
  * Legacy selectors are used for backward compatibility with previous versions of the plugin. They include additional properties that were used in the old selector format
