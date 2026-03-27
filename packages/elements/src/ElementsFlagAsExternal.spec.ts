@@ -24,7 +24,7 @@ describe("Elements FlagAsExternal configuration", () => {
         kind: "value",
       });
 
-      expect(dependency.to.origin).toBe("external");
+      expect(dependency.to.origin.kind).toBe("external");
     });
 
     it("should categorize node_modules paths as external by default", () => {
@@ -35,7 +35,7 @@ describe("Elements FlagAsExternal configuration", () => {
         kind: "value",
       });
 
-      expect(dependency.to.origin).toBe("external");
+      expect(dependency.to.origin.kind).toBe("external");
     });
 
     it("should not categorize paths outside rootPath as external by default", () => {
@@ -52,7 +52,7 @@ describe("Elements FlagAsExternal configuration", () => {
       });
 
       // Should be local since outsideRootPath is false by default and source is relative
-      expect(dependency.to.origin).toBe("local");
+      expect(dependency.to.origin.kind).toBe("local");
     });
   });
 
@@ -71,7 +71,7 @@ describe("Elements FlagAsExternal configuration", () => {
         kind: "value",
       });
 
-      expect(dependency.to.origin).toBe("external");
+      expect(dependency.to.origin.kind).toBe("external");
     });
 
     it("should not categorize unresolvable imports as external when false", () => {
@@ -106,7 +106,7 @@ describe("Elements FlagAsExternal configuration", () => {
         kind: "value",
       });
 
-      expect(dependency.to.origin).toBe("local");
+      expect(dependency.to.origin.kind).toBe("local");
     });
   });
 
@@ -126,7 +126,7 @@ describe("Elements FlagAsExternal configuration", () => {
         to: "/project/node_modules/react/index.js",
       });
 
-      expect(dependency.to.origin).toBe("external");
+      expect(dependency.to.origin.kind).toBe("external");
     });
 
     it("should not categorize node_modules paths as external when false", () => {
@@ -146,7 +146,7 @@ describe("Elements FlagAsExternal configuration", () => {
         to: "/project/node_modules/react/index.js",
       });
 
-      expect(dependency.to.origin).toBe("local");
+      expect(dependency.to.origin.kind).toBe("local");
     });
   });
 
@@ -167,7 +167,7 @@ describe("Elements FlagAsExternal configuration", () => {
         to: "/project/packages/shared/index.ts",
       });
 
-      expect(dependency.to.origin).toBe("external");
+      expect(dependency.to.origin.kind).toBe("external");
     });
 
     it("should not categorize paths inside rootPath as external", () => {
@@ -189,7 +189,7 @@ describe("Elements FlagAsExternal configuration", () => {
         to: "/project/packages/app/src/utils/helper.ts",
       });
 
-      expect(dependency.to.origin).toBe("local");
+      expect(dependency.to.origin.kind).toBe("local");
     });
 
     it("should handle Windows paths correctly", () => {
@@ -208,7 +208,7 @@ describe("Elements FlagAsExternal configuration", () => {
         to: String.raw`C:\project\packages\shared\index.ts`,
       });
 
-      expect(dependency.to.origin).toBe("external");
+      expect(dependency.to.origin.kind).toBe("external");
     });
 
     it("should not categorize as external when outsideRootPath is false", () => {
@@ -230,7 +230,7 @@ describe("Elements FlagAsExternal configuration", () => {
         to: "/project/packages/shared/index.ts",
       });
 
-      expect(dependency.to.origin).toBe("local");
+      expect(dependency.to.origin.kind).toBe("local");
     });
   });
 
@@ -259,8 +259,8 @@ describe("Elements FlagAsExternal configuration", () => {
         to: "/project/utils/helper.ts",
       });
 
-      expect(dependency1.to.origin).toBe("external");
-      expect(dependency2.to.origin).toBe("external");
+      expect(dependency1.to.origin.kind).toBe("external");
+      expect(dependency2.to.origin.kind).toBe("external");
     });
 
     it("should not categorize non-matching imports as external", () => {
@@ -280,7 +280,7 @@ describe("Elements FlagAsExternal configuration", () => {
         to: "/project/packages/other/index.ts",
       });
 
-      expect(dependency.to.origin).toBe("local");
+      expect(dependency.to.origin.kind).toBe("local");
     });
 
     it("should work with empty patterns array", () => {
@@ -300,7 +300,7 @@ describe("Elements FlagAsExternal configuration", () => {
         to: "/project/packages/shared/index.ts",
       });
 
-      expect(dependency.to.origin).toBe("local");
+      expect(dependency.to.origin.kind).toBe("local");
     });
 
     it("should support complex glob patterns", () => {
@@ -327,8 +327,8 @@ describe("Elements FlagAsExternal configuration", () => {
         to: "/project/packages/internal-utils/index.ts",
       });
 
-      expect(external.to.origin).toBe("external");
-      expect(local.to.origin).toBe("local");
+      expect(external.to.origin.kind).toBe("external");
+      expect(local.to.origin.kind).toBe("local");
     });
   });
 
@@ -378,10 +378,10 @@ describe("Elements FlagAsExternal configuration", () => {
         kind: "value",
       });
 
-      expect(dep1.to.origin).toBe("external");
-      expect(dep2.to.origin).toBe("external");
-      expect(dep3.to.origin).toBe("external");
-      expect(dep4.to.origin).toBe("external");
+      expect(dep1.to.origin.kind).toBe("external");
+      expect(dep2.to.origin.kind).toBe("external");
+      expect(dep3.to.origin.kind).toBe("external");
+      expect(dep4.to.origin.kind).toBe("external");
     });
 
     it("should categorize as local if ALL conditions are false", () => {
@@ -405,7 +405,7 @@ describe("Elements FlagAsExternal configuration", () => {
         to: "/project/node_modules/some-module/index.js",
       });
 
-      expect(dependency.to.origin).toBe("local");
+      expect(dependency.to.origin.kind).toBe("local");
     });
   });
 
@@ -426,7 +426,7 @@ describe("Elements FlagAsExternal configuration", () => {
         kind: "value",
       });
 
-      expect(dependency.to.origin).toBe("external");
+      expect(dependency.to.origin.kind).toBe("external");
     });
 
     it("should handle missing rootPath gracefully", () => {
@@ -447,7 +447,7 @@ describe("Elements FlagAsExternal configuration", () => {
       });
 
       // Without rootPath, outsideRootPath check is skipped
-      expect(dependency.to.origin).toBe("local");
+      expect(dependency.to.origin.kind).toBe("local");
     });
   });
 });

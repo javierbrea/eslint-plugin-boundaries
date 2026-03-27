@@ -322,15 +322,14 @@ export class OriginsDescriptor {
    * Gets the origin description for a given relative path and source.
    * @param relativePath The relative path of the file.
    * @param source The source of the dependency (e.g., the import statement or require call).
+   * @param isOutsideRootPath Whether the file path is outside the configured root path.
    * @returns The description of the file's origin.
    */
   private _getOriginDescription(
+    isOutsideRootPath: boolean,
     relativePath?: string,
     source?: string
   ): OriginDescription {
-    const isOutsideRootPath = relativePath
-      ? this._isOutsideRootPath(relativePath)
-      : true;
     if (source) {
       return this._getDependencyOrigin(isOutsideRootPath, source, relativePath);
     }
@@ -349,11 +348,18 @@ export class OriginsDescriptor {
       return this._descriptionsCache.get(cacheKey)!;
     }
     const normalizedFilePath = filePath ? normalizePath(filePath) : filePath;
+    const isOutsideRootPath = normalizedFilePath
+      ? this._isOutsideRootPath(normalizedFilePath)
+      : true;
     const relativePath =
       normalizedFilePath && this._config.rootPath
         ? this._toRelativePath(normalizedFilePath)
         : normalizedFilePath;
-    const originDescription = this._getOriginDescription(relativePath);
+    const originDescription = this._getOriginDescription(
+      isOutsideRootPath,
+      relativePath,
+      source
+    );
     this._descriptionsCache.set(cacheKey, originDescription);
     return originDescription;
   }

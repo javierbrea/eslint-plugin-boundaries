@@ -95,18 +95,18 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     );
 
     return {
-      from: fromMatch
+      from: fromSelectorMatching
         ? {
-            element: fromSelectorMatching!.element,
-            file: fromSelectorMatching!.file,
-            origin: fromSelectorMatching!.origin,
+            element: fromSelectorMatching.element,
+            file: fromSelectorMatching.file,
+            origin: fromSelectorMatching.origin,
           }
         : null,
-      to: toMatch
+      to: toSelectorMatching
         ? {
-            element: toSelectorMatching!.element,
-            file: toSelectorMatching!.file,
-            origin: toSelectorMatching!.origin,
+            element: toSelectorMatching.element,
+            file: toSelectorMatching.file,
+            origin: toSelectorMatching.origin,
           }
         : null,
       dependency: dependencyMetadataMatch

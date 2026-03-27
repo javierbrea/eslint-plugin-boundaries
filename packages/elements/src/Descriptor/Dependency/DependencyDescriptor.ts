@@ -285,7 +285,7 @@ export class DependenciesDescriptor {
     }
 
     const fromEntity = this._entitiesDescriptor.describeEntity(from);
-    const toEntity = this._entitiesDescriptor.describeEntity(to);
+    const toEntity = this._entitiesDescriptor.describeEntity(to, source);
     const relationship = this._dependencyRelationships(fromEntity, toEntity);
 
     const result = {
