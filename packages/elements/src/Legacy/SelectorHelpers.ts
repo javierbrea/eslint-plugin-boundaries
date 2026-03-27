@@ -10,12 +10,14 @@ import type {
   DependencySingleSelector,
   DependencySelector,
   ParentElementSelector,
+  LegacyElementSimpleSelector,
 } from "../Matcher";
 import {
   isEntitySelector,
   isBackwardCompatibleElementSingleSelector,
   isLegacyElementSimpleSelector,
   normalizeElementSelector,
+  isSimpleElementSelectorByType,
 } from "../Matcher";
 import {
   isArray,
@@ -162,12 +164,16 @@ export function isLegacyDependencySingleSelector(
   selector: LegacyDependencySingleSelector | DependencySingleSelector
 ): selector is LegacyDependencySingleSelector {
   const isLegacyTo =
-    !isEntitySelector(selector.to) && isLegacyElementSelector(selector.to);
+    !isEntitySelector(selector.to) &&
+    (isLegacyElementSelector(selector.to) ||
+      isLegacyElementSimpleSelector(selector.to));
   const isLegacyFrom =
-    !isEntitySelector(selector.from) && isLegacyElementSelector(selector.from);
-  const isLegacyDependencyInfo =
-    !isEntitySelector(selector.dependency) &&
-    isLegacyDependencyInfoSelector(selector.dependency);
+    !isEntitySelector(selector.from) &&
+    (isLegacyElementSelector(selector.from) ||
+      isLegacyElementSimpleSelector(selector.from));
+  const isLegacyDependencyInfo = isLegacyDependencyInfoSelector(
+    selector.dependency
+  );
 
   return isLegacyTo || isLegacyFrom || isLegacyDependencyInfo;
 }
@@ -279,8 +285,19 @@ export function convertLegacyElementSelector(
  * - `parent.elementPath` -> `element.parent.path`
  */
 function convertLegacyElementSingleSelectorToEntitySelector(
-  selector: LegacyElementSingleSelector
+  selector: LegacyElementSingleSelector | LegacyElementSimpleSelector
 ): EntitySingleSelector {
+  if (isLegacyElementSimpleSelector(selector)) {
+    return {
+      element: isSimpleElementSelectorByType(selector)
+        ? { type: selector }
+        : {
+            type: selector[0],
+            captured: selector[1] ? { ...selector[1] } : undefined,
+          },
+    };
+  }
+
   const { origin, elementPath, internalPath, parent, ...rest } = selector;
   const elementSelector: ElementSingleSelector = { ...rest };
   const entitySelector: EntitySingleSelector = {};
@@ -314,7 +331,7 @@ function convertLegacyElementSingleSelectorToEntitySelector(
  * Converts a legacy element selector (single or array) to entity selector format.
  */
 export function convertLegacyElementSelectorToEntitySelector(
-  selector: LegacyElementSelector
+  selector: LegacyElementSelector | LegacyElementSimpleSelector
 ): EntitySelector {
   if (isArray(selector)) {
     return selector.map(convertLegacyElementSingleSelectorToEntitySelector);

@@ -3,7 +3,7 @@
 import micromatch from "micromatch";
 
 import type {
-  ElementsSelector,
+  ElementSelector,
   ElementSingleSelector,
   DependencyDescriptorOptions,
   DependencySingleSelector,
@@ -11,7 +11,7 @@ import type {
   SimpleElementSelectorByTypeWithOptions,
   ElementDescription,
 } from "./index";
-import { Elements, normalizeElementsSelector } from "./index";
+import { Elements, normalizeElementSelector } from "./index";
 
 describe("Elements Matcher", () => {
   let matcher: Matcher;
@@ -86,7 +86,7 @@ describe("Elements Matcher", () => {
       },
       {
         filePath: "/project/src/utils/__tests__/testUtil.ts",
-        selector: { isIgnored: "false" },
+        selector: { isIgnored: "false" as unknown as boolean },
         expected: false,
       },
       // Test captured array with ignored element (captured: null)
@@ -317,7 +317,7 @@ describe("Elements Matcher", () => {
         filePath: "/project/src/components/Button.tsx",
         selector: {
           type: [undefined],
-        },
+        } as unknown as ElementSelector,
         expected: false,
       },
       {
@@ -352,17 +352,27 @@ describe("Elements Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { captured: { fileName: "Button" } },
+        selector: {
+          captured: { fileName: "Button" },
+        },
         expected: true,
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { captured: { fileName: "{{ element.captured.fileName }}" } },
+        selector: {
+          captured: {
+            fileName: "{{ element.captured.fileName }}",
+          },
+        },
         expected: true,
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { captured: { fileName: "{{ element.captured.foo }}" } },
+        selector: {
+          captured: {
+            fileName: "{{ element.captured.foo }}",
+          },
+        },
         expected: false,
       },
       {
@@ -376,12 +386,21 @@ describe("Elements Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { captured: { fileName: ["foo", "Button"] } },
+        selector: {
+          captured: {
+            fileName: ["foo", "Button"],
+          },
+        },
         expected: true,
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { captured: { fileName: "Button", foo: "bar" } },
+        selector: {
+          captured: {
+            fileName: "Button",
+            foo: "bar",
+          },
+        },
         expected: false,
       },
       // Array of captured values (OR logic)
@@ -437,12 +456,16 @@ describe("Elements Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { captured: { fileName: "Foo" } },
+        selector: {
+          captured: { fileName: "Foo" },
+        },
         expected: false,
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { captured: { fileName: "" } },
+        selector: {
+          captured: { fileName: "" },
+        },
         expected: false,
       },
       {
@@ -608,6 +631,7 @@ describe("Elements Matcher", () => {
       },
     ])(
       "should return $expected when checking if $filePath matches the selector $selector",
+      // @ts-expect-error: There is a problem with captured values because it is inferring undefined values in some objects, probably because we use different captured values in different test cases
       ({
         filePath,
         expected,
@@ -617,7 +641,7 @@ describe("Elements Matcher", () => {
       }: {
         filePath: string;
         expected: boolean;
-        selector: ElementsSelector;
+        selector: ElementSelector;
         extraTemplateData?: Record<string, unknown>;
         expectedMatch?: ElementSingleSelector;
       }) => {
@@ -674,7 +698,7 @@ describe("Elements Matcher", () => {
     );
 
     it("should throw an error when using invalid selector", () => {
-      const invalidSelector = { foo: "var" } as unknown as ElementsSelector;
+      const invalidSelector = { foo: "var" } as unknown as ElementSelector;
 
       expect(() =>
         matcher.getElementSelectorMatchingDescription(
@@ -791,7 +815,7 @@ describe("Elements Matcher", () => {
     it("should throw an error when using invalid selector in isElementMatch", () => {
       const invalidSelector = {
         var: "baz",
-      } as unknown as ElementsSelector;
+      } as unknown as ElementSelector;
 
       expect(() =>
         matcher.isElementMatch(
@@ -2219,10 +2243,10 @@ describe("Elements Matcher", () => {
         selector,
         expected,
       }: {
-        selector: ElementsSelector;
+        selector: ElementSelector;
         expected: ElementSingleSelector[];
       }) => {
-        const normalized = normalizeElementsSelector(selector);
+        const normalized = normalizeElementSelector(selector);
 
         expect(normalized).toStrictEqual(expected);
       }

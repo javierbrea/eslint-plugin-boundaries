@@ -36,7 +36,10 @@ describe("MatchersCache", () => {
       },
     ] as unknown as ElementDescriptors;
 
-    const key = matchersCache.getKey({ config, elementDescriptors });
+    const key = matchersCache.getKey({
+      config,
+      descriptors: { elements: elementDescriptors },
+    });
 
     expect(key).toBe(
       "true|src/**|dist/**|true|/root|true|false|true|@external/*|:|component|ui|src/components/*.tsx|src|file|name|baseName"

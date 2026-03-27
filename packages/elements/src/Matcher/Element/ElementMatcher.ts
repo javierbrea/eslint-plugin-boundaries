@@ -263,6 +263,17 @@ export class ElementsMatcher extends BaseElementsMatcher {
     }
 
     if (
+      !isUndefined(selector.category) &&
+      !this.isTemplateMicromatchMatch(
+        selector.category,
+        templateData,
+        firstParent.category
+      )
+    ) {
+      return false;
+    }
+
+    if (
       !this._isParentCapturedValuesMatch(
         selector,
         firstParent.captured,
@@ -275,6 +286,14 @@ export class ElementsMatcher extends BaseElementsMatcher {
     return true;
   }
 
+  /**
+   * Returns whether the given element matches the parent selector.
+   * When the parent selector is an array, the element matches if it matches any of the array elements (OR logic).
+   * @param element The element to check.
+   * @param selector The selector to check against.
+   * @param templateData The data to use for replace in selector values
+   * @returns Whether the element matches the parent selector.
+   */
   private _isParentMatch(
     element: ElementDescription,
     selector: ElementSingleSelectorNormalized,
@@ -331,6 +350,28 @@ export class ElementsMatcher extends BaseElementsMatcher {
   }
 
   /**
+   * Determines if the category of the element matches that in the selector.
+   * @param element The element to check.
+   * @param selector The selector to check against.
+   * @param templateData The data to use for replace in selector value
+   * @returns True if the categories match, false otherwise.
+   */
+  private _isCategoryMatch(
+    element: ElementDescription,
+    selector: ElementSingleSelector,
+    templateData: TemplateData
+  ): boolean {
+    return this.isElementKeyMicromatchMatch({
+      element,
+      selector,
+      elementKey: "category",
+      selectorKey: "category",
+      selectorValue: selector.category,
+      templateData,
+    });
+  }
+
+  /**
    * Returns the selector matching result for the given local or external element.
    * @param element The local or external element to check.
    * @param selector The selector to check against.
@@ -352,6 +393,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
       // Most restrictive checks first to fail fast
       if (
         !this._isTypeMatch(element, selectorData, templateData) ||
+        !this._isCategoryMatch(element, selectorData, templateData) ||
         !this._isIgnoredMatch(element, selectorData) ||
         !this._isUnknownMatch(element, selectorData) ||
         !this._isPathMatch(element, selectorData, templateData) ||

@@ -10,6 +10,10 @@ export type ParentElementSingleSelector = Pick<
 > & {
   /** Type of the first parent element */
   type?: MicromatchPatternNullable;
+  /*
+   * Legacy category field for backward compatibility. This will be removed in future versions
+   */
+  category?: MicromatchPatternNullable;
 };
 
 export type ParentElementSelector =
@@ -44,6 +48,11 @@ export type SimpleElementSelectorByTypeWithOptions = [
 export type ElementSingleSelector = BaseSingleSelector & {
   /** Type of the element */
   type?: MicromatchPatternNullable;
+  /*
+   * Legacy category field for backward compatibility. This will be removed in future versions in favor of using the `category` field in file selectors
+   * @deprecated Use the `category` field in file selectors instead.
+   */
+  category?: MicromatchPatternNullable;
   /** Internal path of the file relative to the element it belongs to, or null if it has no internal path */
   fileInternalPath?: MicromatchPatternNullable;
   /** Selector for matching the first parent element */

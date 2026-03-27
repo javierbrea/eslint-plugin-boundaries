@@ -86,8 +86,8 @@ export type LegacyDependencyInfoSelector =
  * Legacy selectors are used for backward compatibility with previous versions of the plugin. They include additional properties that were used in the old selector format
  */
 export type LegacyDependencySingleSelector = {
-  to?: LegacyElementSelector;
-  from?: LegacyElementSelector;
+  to?: LegacyElementSelector | LegacyElementSimpleSelector;
+  from?: LegacyElementSelector | LegacyElementSimpleSelector;
   dependency?: LegacyDependencyInfoSelector;
 };
 

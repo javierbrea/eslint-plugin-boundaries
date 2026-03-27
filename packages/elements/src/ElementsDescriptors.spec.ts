@@ -4,10 +4,8 @@ import type { Matcher } from "./index";
 import {
   Elements,
   isIgnoredElementDescription,
-  isKnownLocalElement,
-  isExternalDependencyElement,
-  isUnknownLocalElement,
-  isCoreDependencyElement,
+  isKnownElementDescription,
+  isUnknownElementDescription,
   isElementDescription,
   isDependencyDescription,
   isDependencyWithInternalRelationship,
@@ -224,7 +222,7 @@ describe("Elements Descriptors", () => {
         isUnknown: false,
         path: "/project/src/components/Button.tsx",
       });
-      expect(isKnownLocalElement(element)).toBe(true);
+      expect(isKnownElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
   });
@@ -234,7 +232,7 @@ describe("Elements Descriptors", () => {
       // @ts-expect-error Testing no path provided
       const element = matcher.describeElement();
 
-      expect(isUnknownLocalElement(element)).toBe(true);
+      expect(isUnknownElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -257,7 +255,7 @@ describe("Elements Descriptors", () => {
         origin: "local",
         path: "/project/src/components/Button.tsx",
       });
-      expect(isKnownLocalElement(element)).toBe(true);
+      expect(isKnownElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -284,7 +282,7 @@ describe("Elements Descriptors", () => {
         path: "/project/src/utils/math/math.test.ts",
       });
 
-      expect(isKnownLocalElement(element)).toBe(true);
+      expect(isKnownElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -305,7 +303,7 @@ describe("Elements Descriptors", () => {
         isIgnored: false,
         isUnknown: false,
       });
-      expect(isKnownLocalElement(element)).toBe(true);
+      expect(isKnownElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -330,7 +328,7 @@ describe("Elements Descriptors", () => {
         origin: "local",
         isUnknown: false,
       });
-      expect(isKnownLocalElement(element)).toBe(true);
+      expect(isKnownElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -349,7 +347,7 @@ describe("Elements Descriptors", () => {
         isIgnored: false,
         isUnknown: true,
       });
-      expect(isUnknownLocalElement(element)).toBe(true);
+      expect(isUnknownElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -370,7 +368,7 @@ describe("Elements Descriptors", () => {
         path: "/project/src/utils/math/mathUtil.ts",
         isUnknown: false,
       });
-      expect(isKnownLocalElement(element)).toBe(true);
+      expect(isKnownElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -404,7 +402,7 @@ describe("Elements Descriptors", () => {
           },
         ],
       });
-      expect(isKnownLocalElement(element)).toBe(true);
+      expect(isKnownElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -426,7 +424,7 @@ describe("Elements Descriptors", () => {
         path: "/project/src/utils/math/index.ts",
         isUnknown: false,
       });
-      expect(isKnownLocalElement(element)).toBe(true);
+      expect(isKnownElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -448,7 +446,6 @@ describe("Elements Descriptors", () => {
         path: "/project/node_modules/react/index.tsx",
         isUnknown: true,
       });
-      expect(isExternalDependencyElement(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -470,7 +467,6 @@ describe("Elements Descriptors", () => {
         path: "/project/node_modules/@mui/icons-material/index.tsx",
         isUnknown: true,
       });
-      expect(isExternalDependencyElement(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -492,7 +488,6 @@ describe("Elements Descriptors", () => {
         path: "/project/node_modules/@mui/icons-material/index.tsx",
         isUnknown: true,
       });
-      expect(isExternalDependencyElement(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -511,7 +506,6 @@ describe("Elements Descriptors", () => {
         path: null,
         isUnknown: true,
       });
-      expect(isExternalDependencyElement(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -530,7 +524,6 @@ describe("Elements Descriptors", () => {
         path: null,
         isUnknown: true,
       });
-      expect(isCoreDependencyElement(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
 
@@ -549,7 +542,6 @@ describe("Elements Descriptors", () => {
         path: null,
         isUnknown: true,
       });
-      expect(isCoreDependencyElement(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
     });
   });
@@ -730,8 +722,8 @@ describe("Elements Descriptors", () => {
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isKnownLocalElement(dependency.from)).toBe(true);
-      expect(isUnknownLocalElement(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from)).toBe(true);
+      expect(isUnknownElementDescription(dependency.to)).toBe(true);
     });
 
     it("should return dependency from unknown elements", () => {
@@ -782,8 +774,8 @@ describe("Elements Descriptors", () => {
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isUnknownLocalElement(dependency.from)).toBe(true);
-      expect(isUnknownLocalElement(dependency.to)).toBe(true);
+      expect(isUnknownElementDescription(dependency.from)).toBe(true);
+      expect(isUnknownElementDescription(dependency.to)).toBe(true);
     });
 
     it("should return dependency between ignored elements", () => {
@@ -894,8 +886,8 @@ describe("Elements Descriptors", () => {
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isKnownLocalElement(dependency.from)).toBe(true);
-      expect(isKnownLocalElement(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from)).toBe(true);
+      expect(isKnownElementDescription(dependency.to)).toBe(true);
     });
 
     it("should describe dependency to unknown external elements correctly", () => {
@@ -948,8 +940,7 @@ describe("Elements Descriptors", () => {
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isKnownLocalElement(dependency.from)).toBe(true);
-      expect(isExternalDependencyElement(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from)).toBe(true);
     });
 
     it("should set null dependency module for external sources without package segment", () => {
@@ -1020,8 +1011,7 @@ describe("Elements Descriptors", () => {
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isKnownLocalElement(dependency.from)).toBe(true);
-      expect(isCoreDependencyElement(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from)).toBe(true);
     });
 
     it("should assign relationships to child elements in dependencies", () => {
@@ -1094,8 +1084,8 @@ describe("Elements Descriptors", () => {
 
       expect(isDependencyDescription(dependency)).toBe(true);
       expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
-      expect(isKnownLocalElement(dependency.from)).toBe(true);
-      expect(isKnownLocalElement(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from)).toBe(true);
+      expect(isKnownElementDescription(dependency.to)).toBe(true);
     });
 
     it("should assign relationships to internal elements in dependencies", () => {
@@ -1161,8 +1151,8 @@ describe("Elements Descriptors", () => {
 
       expect(isDependencyDescription(dependency)).toBe(true);
       expect(isDependencyWithInternalRelationship(dependency)).toBe(true);
-      expect(isKnownLocalElement(dependency.from)).toBe(true);
-      expect(isKnownLocalElement(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from)).toBe(true);
+      expect(isKnownElementDescription(dependency.to)).toBe(true);
     });
 
     it("should assign relationships to descendant elements in dependencies", () => {
@@ -1242,8 +1232,8 @@ describe("Elements Descriptors", () => {
 
       expect(isDependencyDescription(dependency)).toBe(true);
       expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
-      expect(isKnownLocalElement(dependency.from)).toBe(true);
-      expect(isKnownLocalElement(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from)).toBe(true);
+      expect(isKnownElementDescription(dependency.to)).toBe(true);
     });
 
     it("should assign relationships to sibling elements in dependencies", () => {
@@ -1323,8 +1313,8 @@ describe("Elements Descriptors", () => {
 
       expect(isDependencyDescription(dependency)).toBe(true);
       expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
-      expect(isKnownLocalElement(dependency.from)).toBe(true);
-      expect(isKnownLocalElement(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from)).toBe(true);
+      expect(isKnownElementDescription(dependency.to)).toBe(true);
     });
 
     it("should assign relationships to parent elements in dependencies", () => {
@@ -1396,8 +1386,8 @@ describe("Elements Descriptors", () => {
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isKnownLocalElement(dependency.from)).toBe(true);
-      expect(isKnownLocalElement(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from)).toBe(true);
+      expect(isKnownElementDescription(dependency.to)).toBe(true);
     });
 
     it("should assign relationships to ancestor elements in dependencies", () => {
@@ -1477,8 +1467,8 @@ describe("Elements Descriptors", () => {
 
       expect(isDependencyDescription(dependency)).toBe(true);
       expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
-      expect(isKnownLocalElement(dependency.from)).toBe(true);
-      expect(isKnownLocalElement(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from)).toBe(true);
+      expect(isKnownElementDescription(dependency.to)).toBe(true);
     });
 
     it("should assign relationships to uncle elements in dependencies", () => {
@@ -1565,8 +1555,8 @@ describe("Elements Descriptors", () => {
 
       expect(isDependencyDescription(dependency)).toBe(true);
       expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
-      expect(isKnownLocalElement(dependency.from)).toBe(true);
-      expect(isKnownLocalElement(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from)).toBe(true);
+      expect(isKnownElementDescription(dependency.to)).toBe(true);
     });
 
     it("should assign relationships to nephew elements in dependencies", () => {
@@ -1653,8 +1643,8 @@ describe("Elements Descriptors", () => {
 
       expect(isDependencyDescription(dependency)).toBe(true);
       expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
-      expect(isKnownLocalElement(dependency.from)).toBe(true);
-      expect(isKnownLocalElement(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from)).toBe(true);
+      expect(isKnownElementDescription(dependency.to)).toBe(true);
     });
   });
 
