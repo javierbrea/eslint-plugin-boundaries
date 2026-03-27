@@ -4,6 +4,8 @@ import type {
   ParentElementSingleSelector,
   DependencySelector,
   ElementSelector,
+  EntitySelector,
+  LegacyElementSimpleSelector,
 } from "../Matcher";
 import type { MicromatchPatternNullable } from "../Shared";
 
@@ -49,6 +51,18 @@ export type LegacyElementSelector =
 export type BackwardCompatibleElementSelector =
   | LegacyElementSelector
   | ElementSelector;
+
+/** Backward compatible entity selector type that can be either a legacy entity selector or a new entity selector. This type is used to allow functions that accept entity selectors to also accept legacy entity selectors for backward compatibility. */
+export type LegacyEntitySelector =
+  | LegacyElementSelector
+  | LegacyElementSimpleSelector;
+
+/**
+ * Legacy selectors are used for backward compatibility with previous versions of the plugin. They include additional properties that were used in the old selector format
+ */
+export type BackwardCompatibleEntitySelector =
+  | LegacyEntitySelector
+  | EntitySelector;
 
 /**
  * Legacy selectors are used for backward compatibility with previous versions of the plugin. They include additional properties that were used in the old selector format

@@ -14,6 +14,8 @@ import type {
 import {
   isEntitySelector,
   isBackwardCompatibleElementSingleSelector,
+  isLegacyElementSimpleSelector,
+  normalizeElementSelector,
 } from "../Matcher";
 import {
   isArray,
@@ -32,6 +34,8 @@ import type {
   LegacyDependencySelector,
   LegacyDependencySingleSelector,
   BackwardCompatibleDependencySelector,
+  BackwardCompatibleEntitySelector,
+  LegacyEntitySelector,
 } from "./Selector.types";
 
 /**
@@ -101,6 +105,25 @@ export function isLegacyElementSelector(
   return isArray(selector)
     ? selector.some(isLegacyElementSingleSelector)
     : isLegacyElementSingleSelector(selector);
+}
+
+/**
+ * Determines if the given entity selector is a legacy entity selector, in the form of a legacy element selector or an element selector
+ * @param selector The selector to check.
+ * @returns True if the selector is a legacy entity selector, false otherwise.
+ */
+export function isLegacyEntitySelector(
+  selector?: BackwardCompatibleEntitySelector
+): selector is LegacyEntitySelector {
+  if (!selector) {
+    return false;
+  }
+  if (isEntitySelector(selector)) {
+    return false;
+  }
+  return (
+    isLegacyElementSelector(selector) || isLegacyElementSimpleSelector(selector)
+  );
 }
 
 /**
@@ -297,6 +320,24 @@ export function convertLegacyElementSelectorToEntitySelector(
     return selector.map(convertLegacyElementSingleSelectorToEntitySelector);
   }
   return convertLegacyElementSingleSelectorToEntitySelector(selector);
+}
+
+/**
+ * Converts a legacy entity selector, which can be either a legacy element selector or a legacy element simple selector, into the equivalent entity selector.
+ *
+ * Legacy properties are mapped to the new model as follows:
+ * - For legacy element selectors, the mapping is done according to convertLegacyElementSelectorToEntitySelector.
+ * - For legacy element simple selectors, which can be a simple string or an object with type and/or category, they are converted to an entity selector with an element selector with only the type and/or category defined.
+ * @param selector The legacy entity selector to convert.
+ * @returns The equivalent entity selector in the new format.
+ */
+export function convertLegacyEntitySelector(
+  selector: LegacyEntitySelector
+): EntitySelector {
+  if (isLegacyElementSelector(selector)) {
+    return convertLegacyElementSelectorToEntitySelector(selector);
+  }
+  return { element: normalizeElementSelector(selector) };
 }
 
 /**

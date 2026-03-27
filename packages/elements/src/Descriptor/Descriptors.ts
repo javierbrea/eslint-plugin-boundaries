@@ -124,10 +124,11 @@ export class Descriptors {
   /**
    * Describes a file given its path. It returns both the file description and the element description.
    * @param filePath The path of the file to describe.
+   * @param source The optional dependency source (e.g., the importer file path) to use for describing the origin of the entity being imported.
    * @returns The entity description of the file, including both the file description and the element description.
    */
-  public describeEntity(filePath: string): EntityDescription {
-    return this._entitiesDescriptor.describeEntity(filePath);
+  public describeEntity(filePath: string, source?: string): EntityDescription {
+    return this._entitiesDescriptor.describeEntity(filePath, source);
   }
 
   /**

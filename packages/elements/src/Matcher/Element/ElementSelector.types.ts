@@ -17,6 +17,11 @@ export type ParentElementSelector =
   | ParentElementSingleSelector[];
 
 /**
+ * Normalized parent element selector, being always an array of single selectors.
+ */
+export type ParentElementSelectorNormalized = ParentElementSingleSelector[];
+
+/**
  * Simple element selector by type, represented as a string matching the element type.
  * @deprecated Use BaseElementSelectorData or DependencyElementSelectorData instead.
  */
@@ -45,14 +50,26 @@ export type ElementSingleSelector = BaseSingleSelector & {
   parent?: ParentElementSelector | null;
 };
 
+/** Normalized single element selector, where the parent selector is always an array of single selectors. */
+export type ElementSingleSelectorNormalized = ElementSingleSelector & {
+  /** Normalized selector for matching the first parent element, being always an array of single selectors. */
+  parent?: ParentElementSelectorNormalized | null;
+};
+
+/**
+ * Legacy element simple selector type, which can be a simple string, object with type and/or category, or an element selector with options.
+ */
+export type LegacyElementSimpleSelector =
+  | SimpleElementSelectorByType
+  | SimpleElementSelectorByTypeWithOptions;
+
 /**
  * Element selector backward compatibility type, which can be a simple string, object with type and/or category, or an element selector with options.
  * @deprecated Use ElementSingleSelector instead.
  */
 export type BackwardCompatibleElementSingleSelector =
-  | SimpleElementSelectorByType
-  | ElementSingleSelector
-  | SimpleElementSelectorByTypeWithOptions;
+  | LegacyElementSimpleSelector
+  | ElementSingleSelector;
 
 /**
  * Element selector, which can be a single element selector or an array of element selectors.
@@ -62,4 +79,4 @@ export type ElementSelector =
   | BackwardCompatibleElementSingleSelector[];
 
 /** Normalized element selector, being always an array of single selectors, already transformed to the new format if it was using any of the backward compatible formats */
-export type ElementSelectorNormalized = ElementSingleSelector[];
+export type ElementSelectorNormalized = ElementSingleSelectorNormalized[];

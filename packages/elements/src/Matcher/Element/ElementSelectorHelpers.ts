@@ -2,6 +2,8 @@ import {
   isString,
   isArray,
   isObjectWithAnyOfProperties,
+  isNull,
+  isUndefined,
 } from "../../Shared/TypeGuards";
 import { isCapturedValuesSelector, extendsSingleSelector } from "../Shared";
 
@@ -12,6 +14,10 @@ import type {
   ElementSelector,
   BackwardCompatibleElementSingleSelector,
   ElementSelectorNormalized,
+  LegacyElementSimpleSelector,
+  ParentElementSelector,
+  ParentElementSingleSelector,
+  ElementSingleSelectorNormalized,
 } from "./ElementSelector.types";
 
 /**
@@ -58,14 +64,24 @@ export function isElementSingleSelector(
   );
 }
 
+/**
+ * Determines if the given selector is a legacy element simple selector, which can be a simple string, object with type and/or category, or an element selector with options.
+ * @param value The value to check.
+ * @returns True if the selector is a legacy element simple selector, false otherwise.
+ */
+export function isLegacyElementSimpleSelector(
+  value: unknown
+): value is LegacyElementSimpleSelector {
+  return (
+    isSimpleElementSelectorByType(value) ||
+    isSimpleElementSelectorByTypeWithOptions(value)
+  );
+}
+
 export function isBackwardCompatibleElementSingleSelector(
   value: unknown
 ): value is BackwardCompatibleElementSingleSelector {
-  return (
-    isSimpleElementSelectorByType(value) ||
-    isElementSingleSelector(value) ||
-    isSimpleElementSelectorByTypeWithOptions(value)
-  );
+  return isLegacyElementSimpleSelector(value) || isElementSingleSelector(value);
 }
 
 /**
@@ -81,13 +97,30 @@ export function isElementSelector(value: unknown): value is ElementSelector {
 }
 
 /**
+ * Normalizes a parent element selector into an array of ParentElementSingleSelector.
+ * @param selector The parent element selector to normalize, which can be a single selector or an array of selectors.
+ * @returns The normalized parent element selector as an array of ParentElementSingleSelector.
+ */
+export function normalizeParentElementSelector(
+  selector: ParentElementSelector | null
+): ParentElementSingleSelector[] | null {
+  if (isNull(selector)) {
+    return null;
+  }
+  if (!isArray(selector)) {
+    return [selector];
+  }
+  return selector;
+}
+
+/**
  * Normalizes a selector into ElementSelectorData format.
  * @param selector The selector to normalize.
  * @returns The normalized selector data.
  */
 export function normalizeSingleElementSelector(
   selector: BackwardCompatibleElementSingleSelector
-): ElementSingleSelector {
+): ElementSingleSelectorNormalized {
   if (isSimpleElementSelectorByType(selector)) {
     return { type: selector };
   }
@@ -100,7 +133,13 @@ export function normalizeSingleElementSelector(
   }
 
   if (isElementSingleSelector(selector)) {
-    return { ...selector };
+    if (isUndefined(selector.parent)) {
+      return { ...selector } as ElementSingleSelectorNormalized;
+    }
+    return {
+      ...selector,
+      parent: normalizeParentElementSelector(selector.parent),
+    };
   }
 
   throw new Error("Invalid element selector");

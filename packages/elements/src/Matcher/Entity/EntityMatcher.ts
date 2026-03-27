@@ -130,7 +130,7 @@ export class EntitiesMatcher extends BaseElementsMatcher {
    * @param options Extra options for matching, such as templates data, etc.
    * @returns The matching result for the entity against the selector.
    */
-  public getSelectorsMatching(
+  public getSelectorMatching(
     entity: EntityDescription,
     selector: EntitySelector,
     { extraTemplateData = {} }: MatcherOptions = {}
@@ -179,7 +179,7 @@ export class EntitiesMatcher extends BaseElementsMatcher {
     selector: EntitySelector,
     options?: MatcherOptions
   ): boolean {
-    const matchResult = this.getSelectorsMatching(entity, selector, options);
+    const matchResult = this.getSelectorMatching(entity, selector, options);
     return matchResult.isMatch;
   }
 }

@@ -7,11 +7,15 @@ import type {
   ElementDescription,
   DependencyDescription,
   DescriptorsConfig,
+  EntityDescription,
+  OriginDescription,
 } from "../Descriptor";
 import {
   Descriptors,
   isElementDescription,
   isDependencyDescription,
+  isEntityDescription,
+  isOriginDescription,
 } from "../Descriptor";
 import {
   convertLegacyDescriptorsConfig,
@@ -20,25 +24,36 @@ import {
   isLegacyElementSelector,
   convertLegacyElementSelector,
   convertLegacyDependencySelector,
+  convertLegacyEntitySelector,
+  isLegacyEntitySelector,
 } from "../Legacy";
 import type {
   BackwardCompatibleDependencySelector,
   BackwardCompatibleDescriptorsConfig,
   BackwardCompatibleElementSelector,
+  BackwardCompatibleEntitySelector,
 } from "../Legacy";
 
 import type { DependencyMatchResult, DependencySelector } from "./Dependency";
 import { isDependencySelector, DependenciesMatcher } from "./Dependency";
 import type { ElementSelector, ElementSingleSelector } from "./Element";
 import { isElementSelector, ElementsMatcher } from "./Element";
-import { EntitiesMatcher } from "./Entity";
+import { EntitiesMatcher, isEntitySelector } from "./Entity";
+import type { EntitySelector } from "./Entity";
 import { FilesMatcher } from "./File";
 import type { MatcherSerializedCache } from "./Matcher.types";
-import { OriginsMatcher } from "./Origin";
-import type { Micromatch, MatcherOptions } from "./Shared";
+import type { OriginSelector } from "./Origin";
+import { isOriginSelector, OriginsMatcher } from "./Origin";
+import type {
+  Micromatch,
+  MatcherOptions,
+  EntityMatcherOptions,
+} from "./Shared";
 
 const MIXED_LEGACY_AND_NON_LEGACY_ERROR =
   "Invalid configuration: Mixing legacy and non-legacy descriptors or selectors is not allowed. Please update your configuration to use non-legacy descriptors and selectors.";
+const INVALID_SELECTOR_OR_DESCRIPTION_ERROR =
+  "Invalid arguments: Please provide valid descriptions and selectors of the correct type.";
 
 /**
  * Matcher class to evaluate if elements or dependencies match given selectors.
@@ -163,6 +178,16 @@ export class Matcher {
     return selector;
   }
 
+  private _backwardCompatibleEntitySelector(
+    selector: BackwardCompatibleEntitySelector
+  ): EntitySelector {
+    if (isLegacyEntitySelector(selector)) {
+      this._createOrConvertDescriptors(true);
+      return convertLegacyEntitySelector(selector);
+    }
+    return selector;
+  }
+
   /**
    * Describes an element given its file path.
    * @param filePath The path of the file to describe.
@@ -179,6 +204,26 @@ export class Matcher {
    */
   public describeDependency(options: DependencyDescriptorOptions) {
     return this._descriptors.describeDependency(options);
+  }
+
+  /**
+   * Describes an entity given its file path, including both the file, element and origin description.
+   * @param filePath The path of the file to describe.
+   * @param source The optional dependency source (e.g., the importer file path) to use for describing the origin of the entity being imported.
+   * @returns The description of the entity.
+   */
+  public describeEntity(filePath: string, source?: string) {
+    return this._descriptors.describeEntity(filePath, source);
+  }
+
+  /**
+   * Describes the origin of a file given its path and the path of the importer file.
+   * @param filePath The path of the file to describe.
+   * @param source The optional dependency source (e.g., the importer file path) to use for describing the origin of the entity being imported.
+   * @returns The description of the file's origin.
+   */
+  public describeOrigin(filePath?: string, source?: string) {
+    return this._descriptors.describeOrigin(filePath, source);
   }
 
   /**
@@ -217,6 +262,73 @@ export class Matcher {
     );
     const description = this._descriptors.describeDependency(dependencyData);
     return this._dependenciesMatcher.isDependencyMatch(
+      description,
+      selector,
+      options
+    );
+  }
+
+  /**
+   * Determines if an entity matches a given selector.
+   * @param filePath The file path of the entity
+   * @param backwardCompatibleSelector The selector to match against
+   * @param options Extra matcher options
+   * @returns True if the entity matches the selector, false otherwise
+   */
+  public isEntityMatch(
+    filePath: string,
+    backwardCompatibleSelector: BackwardCompatibleEntitySelector,
+    options?: EntityMatcherOptions
+  ): boolean {
+    const selector = this._backwardCompatibleEntitySelector(
+      backwardCompatibleSelector
+    );
+    const description = this._descriptors.describeEntity(
+      filePath,
+      options?.source
+    );
+    return this._entitiesMatcher.isEntityMatch(description, selector, options);
+  }
+
+  /**
+   * Determines if an origin matches a given selector.
+   * @param filePath The file path of the origin
+   * @param selector The selector to match against
+   * @param options Extra matcher options
+   * @returns True if the origin matches the selector, false otherwise
+   */
+  public isOriginMatch(
+    filePath: string,
+    selector: OriginSelector,
+    options?: EntityMatcherOptions
+  ): boolean {
+    const description = this._descriptors.describeOrigin(
+      filePath,
+      options?.source
+    );
+    return this._originsMatcher.isOriginMatch(description, selector, options);
+  }
+
+  /**
+   * Determines if an entity matches a given selector.
+   * @param filePath The file path of the entity
+   * @param backwardCompatibleSelector The selector to match against
+   * @param options Extra matcher options
+   * @returns True if the entity matches the selector, false otherwise
+   */
+  public getEntitySelectorMatching(
+    filePath: string,
+    backwardCompatibleSelector: BackwardCompatibleEntitySelector,
+    options?: EntityMatcherOptions
+  ) {
+    const selector = this._backwardCompatibleEntitySelector(
+      backwardCompatibleSelector
+    );
+    const description = this._descriptors.describeEntity(
+      filePath,
+      options?.source
+    );
+    return this._entitiesMatcher.getSelectorMatching(
       description,
       selector,
       options
@@ -270,6 +382,54 @@ export class Matcher {
   }
 
   /**
+   * Determines the selector matching for an origin.
+   * @param filePath The file path of the origin
+   * @param selector The selector to match against
+   * @param options Extra options for matching
+   * @returns The matching origin result or null if no match is found
+   */
+  public getOriginSelectorMatching(
+    filePath: string,
+    selector: OriginSelector,
+    options?: EntityMatcherOptions
+  ) {
+    const description = this._descriptors.describeOrigin(
+      filePath,
+      options?.source
+    );
+    return this._originsMatcher.getSelectorMatching(
+      description,
+      selector,
+      options
+    );
+  }
+
+  /**
+   * Returns the first selector matching result for the given entity and selector.
+   * @param description The entity description to check.
+   * @param backwardCompatibleSelector The selector to check against.
+   * @param options Extra options for matching, such as templates data, etc.
+   * @returns The first selector matching result for the given entity and selector, or null if no match is found.
+   */
+  public getEntitySelectorMatchingDescription(
+    description: EntityDescription,
+    backwardCompatibleSelector: BackwardCompatibleEntitySelector,
+    options?: MatcherOptions
+  ) {
+    const selector = this._backwardCompatibleEntitySelector(
+      backwardCompatibleSelector
+    );
+    if (isEntitySelector(selector) && isEntityDescription(description)) {
+      return this._entitiesMatcher.getSelectorMatching(
+        description,
+        selector,
+        options
+      );
+    }
+    throw new Error(INVALID_SELECTOR_OR_DESCRIPTION_ERROR);
+  }
+
+  /**
    * Returns the selectors matching result for the given element or dependency description.
    * @param description The element or dependency  description to check.
    * @param backwardCompatibleSelector The selector to check against.
@@ -294,9 +454,7 @@ export class Matcher {
         options
       );
     }
-    throw new Error(
-      "Invalid arguments: Please provide a valid description and selector"
-    );
+    throw new Error(INVALID_SELECTOR_OR_DESCRIPTION_ERROR);
   }
 
   /**
@@ -321,9 +479,22 @@ export class Matcher {
         options
       );
     }
-    throw new Error(
-      "Invalid arguments: Please provide a valid description and selector"
-    );
+    throw new Error(INVALID_SELECTOR_OR_DESCRIPTION_ERROR);
+  }
+
+  public getOriginSelectorMatchingDescription(
+    description: OriginDescription,
+    selector: OriginSelector,
+    options?: EntityMatcherOptions
+  ) {
+    if (isOriginSelector(selector) && isOriginDescription(description)) {
+      return this._originsMatcher.getSelectorMatching(
+        description,
+        selector,
+        options
+      );
+    }
+    throw new Error(INVALID_SELECTOR_OR_DESCRIPTION_ERROR);
   }
 
   /**

@@ -69,7 +69,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       };
 
     const fromSelectorMatching = selector.from
-      ? this._entitiesMatcher.getSelectorsMatching(
+      ? this._entitiesMatcher.getSelectorMatching(
           dependency.from,
           selector.from,
           {
@@ -78,7 +78,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
         )
       : null;
     const toSelectorMatching = selector.to
-      ? this._entitiesMatcher.getSelectorsMatching(dependency.to, selector.to, {
+      ? this._entitiesMatcher.getSelectorMatching(dependency.to, selector.to, {
           extraTemplateData: templateData,
         })
       : null;

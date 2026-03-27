@@ -79,8 +79,9 @@ export class EntitiesDescriptor {
   /**
    * Describes an entity given its file path.
    * @param filePath The absolute path of the file to describe
+   * @param source The optional dependency source (e.g., the importer file path) to use for describing the origin of the entity being imported.
    */
-  public describeEntity(filePath?: string): EntityDescription {
+  public describeEntity(filePath?: string, source?: string): EntityDescription {
     const cacheKey = `$${filePath}`;
     if (this._descriptionsCache.has(cacheKey)) {
       return this._descriptionsCache.get(cacheKey)!;
@@ -89,7 +90,10 @@ export class EntitiesDescriptor {
     const elementDescription =
       this._elementsDescriptor.describeElement(filePath);
     const fileDescription = this._filesDescriptor.describeFile(filePath);
-    const originDescription = this._originsDescriptor.describeOrigin(filePath);
+    const originDescription = this._originsDescriptor.describeOrigin(
+      filePath,
+      source
+    );
 
     const entityDescription: EntityDescription = {
       element: elementDescription,

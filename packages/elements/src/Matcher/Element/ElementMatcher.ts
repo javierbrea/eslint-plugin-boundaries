@@ -15,6 +15,7 @@ import type {
   ElementSingleSelector,
   ElementSelector,
   ParentElementSingleSelector,
+  ElementSingleSelectorNormalized,
 } from "./ElementSelector.types";
 import { normalizeElementSelector } from "./ElementSelectorHelpers";
 
@@ -221,15 +222,15 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @param templateData The data to use for replace in selector values
    * @returns Whether the first parent matches the selector parent.
    */
-  private _isParentMatch(
+  private _isSingleParentMatch(
     element: ElementDescription,
-    selector: ElementSingleSelector,
+    selector: ParentElementSingleSelector,
     templateData: TemplateData
   ): boolean {
-    if (isUndefined(selector.parent)) {
+    if (isUndefined(selector)) {
       return true;
     }
-    if (isNull(selector.parent)) {
+    if (isNull(selector)) {
       return !element.parents || element.parents.length === 0;
     }
 
@@ -240,9 +241,9 @@ export class ElementsMatcher extends BaseElementsMatcher {
     }
 
     if (
-      !isUndefined(selector.parent.type) &&
+      !isUndefined(selector.type) &&
       !this.isTemplateMicromatchMatch(
-        selector.parent.type,
+        selector.type,
         templateData,
         firstParent.type
       )
@@ -251,9 +252,9 @@ export class ElementsMatcher extends BaseElementsMatcher {
     }
 
     if (
-      !isUndefined(selector.parent.path) &&
+      !isUndefined(selector.path) &&
       !this.isTemplateMicromatchMatch(
-        selector.parent.path,
+        selector.path,
         templateData,
         firstParent.path
       )
@@ -263,7 +264,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
 
     if (
       !this._isParentCapturedValuesMatch(
-        selector.parent,
+        selector,
         firstParent.captured,
         templateData
       )
@@ -274,6 +275,25 @@ export class ElementsMatcher extends BaseElementsMatcher {
     return true;
   }
 
+  private _isParentMatch(
+    element: ElementDescription,
+    selector: ElementSingleSelectorNormalized,
+    templateData: TemplateData
+  ): boolean {
+    if (isUndefined(selector.parent)) {
+      return true;
+    }
+    if (isNull(selector.parent)) {
+      return !element.parents || element.parents.length === 0;
+    }
+    for (const parentSelector of selector.parent) {
+      if (this._isSingleParentMatch(element, parentSelector, templateData)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Determines if the isIgnored property of the element matches that in the selector.
    * @param element The element to check.
@@ -282,7 +302,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
    */
   private _isIgnoredMatch(
     element: ElementDescription,
-    selector: ElementSingleSelector
+    selector: ElementSingleSelectorNormalized
   ): boolean {
     return this.isElementKeyBooleanMatch({
       element,
@@ -300,7 +320,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
    */
   private _isUnknownMatch(
     element: ElementDescription,
-    selector: ElementSingleSelector
+    selector: ElementSingleSelectorNormalized
   ): boolean {
     return this.isElementKeyBooleanMatch({
       element,
@@ -319,7 +339,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
    */
   private _getSelectorMatching(
     element: ElementDescription,
-    selectorsData: ElementSingleSelector[],
+    selectorsData: ElementSingleSelectorNormalized[],
     extraTemplateData: TemplateData
   ): ElementSingleSelector | null {
     const templateData: TemplateData = {

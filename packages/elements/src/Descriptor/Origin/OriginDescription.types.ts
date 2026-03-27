@@ -10,6 +10,9 @@ export const ORIGINS_MAP = {
   CORE: "core",
 } as const;
 
+/** Set of all possible origins, used for fast validation of origin values. */
+export const ORIGINS_SET = new Set(Object.values(ORIGINS_MAP));
+
 /**
  * Kind of entity origin, either local, external, or core.
  */
