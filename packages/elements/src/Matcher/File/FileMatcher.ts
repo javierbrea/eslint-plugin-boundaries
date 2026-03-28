@@ -44,6 +44,28 @@ export class FilesMatcher extends BaseElementsMatcher {
   }
 
   /**
+   * Whether the given file type matches the selector type.
+   * @param file The file to check.
+   * @param selector The selector to check against.
+   * @param templateData The data to use for replace in selector value.
+   * @returns Whether the file type matches the selector type.
+   */
+  private _isTypeMatch(
+    file: FileDescription,
+    selector: FileSingleSelector,
+    templateData: TemplateData
+  ): boolean {
+    return this.isElementKeyMicromatchMatch({
+      element: file,
+      selector,
+      elementKey: "type",
+      selectorKey: "type",
+      selectorValue: selector.type,
+      templateData,
+    });
+  }
+
+  /**
    * Whether the given file categories match the selector categories.
    * File descriptions expose categories as an array, so it matches when any category matches the selector pattern.
    * @param file The file to check.
@@ -203,6 +225,7 @@ export class FilesMatcher extends BaseElementsMatcher {
         !this._isIgnoredMatch(file, selectorData) ||
         !this._isUnknownMatch(file, selectorData) ||
         !this._isPathMatch(file, selectorData, templateData) ||
+        !this._isTypeMatch(file, selectorData, templateData) ||
         !this._isCategoriesMatch(file, selectorData, templateData) ||
         !this._isCapturedValuesMatch(file, selectorData, templateData)
       ) {

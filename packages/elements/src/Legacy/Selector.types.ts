@@ -61,6 +61,7 @@ export type LegacyEntitySelector =
  * Legacy selectors are used for backward compatibility with previous versions of the plugin. They include additional properties that were used in the old selector format
  */
 export type BackwardCompatibleEntitySelector =
+  | ElementSelector
   | LegacyEntitySelector
   | EntitySelector;
 

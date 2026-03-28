@@ -3,13 +3,16 @@ import type {
   DependencyDescription,
   DependencyRelationshipType,
 } from "../../Descriptor";
+import { isNull, isUndefined } from "../../Shared";
 import type { EntitiesMatcher } from "../Entity";
 import { BaseElementsMatcher } from "../Shared";
 import type { TemplateData, MatcherOptions, Micromatch } from "../Shared";
 
-import type { DependencyMatchResult } from "./DependencyMatcher.types";
 import type {
-  DependencySelectorNormalized,
+  DependencyMatchResult,
+  DependencySingleSelectorMatchResult,
+} from "./DependencyMatcher.types";
+import type {
   DependencySingleSelectorNormalized,
   DependencyInfoSingleSelector,
   DependencySelector,
@@ -48,7 +51,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * @param extraTemplateData The extra template data for selector values.
    * @returns The selectors matching result for the given dependency.
    */
-  private _getSelectorsMatching(
+  private _getSingleSelectorMatching(
     dependency: DependencyDescription,
     selector: DependencySingleSelectorNormalized,
     templateData: TemplateData
@@ -68,51 +71,44 @@ export class DependenciesMatcher extends BaseElementsMatcher {
         return null;
       };
 
-    const fromSelectorMatching = selector.from
-      ? this._entitiesMatcher.getSelectorMatching(
+    const fromSelectorMatching = isUndefined(selector.from)
+      ? undefined
+      : this._entitiesMatcher.getSelectorMatching(
           dependency.from,
           selector.from,
           {
             extraTemplateData: templateData,
           }
-        )
-      : null;
-    const toSelectorMatching = selector.to
-      ? this._entitiesMatcher.getSelectorMatching(dependency.to, selector.to, {
+        );
+    const toSelectorMatching = isUndefined(selector.to)
+      ? undefined
+      : this._entitiesMatcher.getSelectorMatching(dependency.to, selector.to, {
           extraTemplateData: templateData,
-        })
-      : null;
-    const dependencyMetadataSelectorMatching = selector.dependency
-      ? getDependencyMetadataSelectorMatching()
-      : null;
+        });
+    const dependencyMetadataSelectorMatching = isUndefined(selector.dependency)
+      ? undefined
+      : getDependencyMetadataSelectorMatching();
 
-    const fromMatch = Boolean(
-      selector.from ? fromSelectorMatching?.isMatch : true
-    );
-    const toMatch = Boolean(selector.to ? toSelectorMatching?.isMatch : true);
-    const dependencyMetadataMatch = Boolean(
-      selector.dependency ? dependencyMetadataSelectorMatching : true
+    const selectorResult: DependencySingleSelectorMatchResult = {};
+    if (fromSelectorMatching) {
+      selectorResult.from = fromSelectorMatching;
+    }
+    if (toSelectorMatching) {
+      selectorResult.to = toSelectorMatching;
+    }
+    if (dependencyMetadataSelectorMatching) {
+      selectorResult.dependency = dependencyMetadataSelectorMatching;
+    }
+
+    const isMatch = Boolean(
+      (selector.from ? fromSelectorMatching : true) &&
+        (selector.to ? toSelectorMatching : true) &&
+        (selector.dependency ? dependencyMetadataSelectorMatching : true)
     );
 
     return {
-      from: fromSelectorMatching
-        ? {
-            element: fromSelectorMatching.element,
-            file: fromSelectorMatching.file,
-            origin: fromSelectorMatching.origin,
-          }
-        : null,
-      to: toSelectorMatching
-        ? {
-            element: toSelectorMatching.element,
-            file: toSelectorMatching.file,
-            origin: toSelectorMatching.origin,
-          }
-        : null,
-      dependency: dependencyMetadataMatch
-        ? dependencyMetadataSelectorMatching
-        : null,
-      isMatch: fromMatch && toMatch && dependencyMetadataMatch,
+      selector: isMatch ? selectorResult : null,
+      isMatch,
     };
   }
 
@@ -278,47 +274,17 @@ export class DependenciesMatcher extends BaseElementsMatcher {
   }
 
   /**
-   * Returns the first selector matching result for the given dependency.
-   * @param dependency The dependency to check.
-   * @param selector The selector to check against.
-   * @param templateData The template data for rendering selector values.
-   * @returns The first selector matching result for the given dependency.
-   */
-  private _getFirstSelectorMatching(
-    dependency: DependencyDescription,
-    selector: DependencySelectorNormalized,
-    templateData: TemplateData
-  ): DependencyMatchResult {
-    for (const singleSelector of selector) {
-      const matchResult = this._getSelectorsMatching(
-        dependency,
-        singleSelector,
-        templateData
-      );
-      if (matchResult.isMatch) {
-        return matchResult;
-      }
-    }
-    return {
-      from: null,
-      to: null,
-      dependency: null,
-      isMatch: false,
-    };
-  }
-
-  /**
    * Returns the selectors matching result for the given dependency.
    * @param dependency The dependency to check.
    * @param selector The selector to check against.
    * @param options Extra options for matching, such as templates data, etc.
    * @returns The matching result for the dependency against the selector.
    */
-  public getSelectorsMatching(
+  public getSelectorMatching(
     dependency: DependencyDescription,
     selector: DependencySelector,
     { extraTemplateData = {} }: MatcherOptions = {}
-  ): DependencyMatchResult {
+  ): DependencySingleSelectorMatchResult | null {
     const normalizedSelector = normalizeDependencySelector(selector);
 
     const fromExtraData = extraTemplateData.from || {};
@@ -338,12 +304,17 @@ export class DependenciesMatcher extends BaseElementsMatcher {
       dependency: dependency.dependency,
     };
 
-    const result = this._getFirstSelectorMatching(
-      dependency,
-      normalizedSelector,
-      templateData
-    );
-    return result;
+    for (const singleSelector of normalizedSelector) {
+      const matchResult = this._getSingleSelectorMatching(
+        dependency,
+        singleSelector,
+        templateData
+      );
+      if (matchResult.isMatch) {
+        return matchResult.selector;
+      }
+    }
+    return null;
   }
 
   /**
@@ -358,11 +329,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
     selector: DependencySelector,
     options?: MatcherOptions
   ): boolean {
-    const matchResult = this.getSelectorsMatching(
-      dependency,
-      selector,
-      options
-    );
-    return matchResult.isMatch;
+    const matchResult = this.getSelectorMatching(dependency, selector, options);
+    return !isNull(matchResult);
   }
 }

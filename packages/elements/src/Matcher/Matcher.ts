@@ -19,6 +19,9 @@ import {
 } from "../Descriptor";
 import {
   convertLegacyDescriptorsConfig,
+  getLegacyDependencySelectorExtraTemplateData,
+  getLegacyElementSelectorExtraTemplateData,
+  getLegacyEntitySelectorExtraTemplateData,
   isLegacyDescriptorsConfig,
   isLegacyDependencySelector,
   isLegacyElementSelector,
@@ -34,12 +37,15 @@ import type {
   BackwardCompatibleEntitySelector,
 } from "../Legacy";
 
-import type { DependencyMatchResult, DependencySelector } from "./Dependency";
+import type {
+  DependencySelector,
+  DependencySingleSelectorMatchResult,
+} from "./Dependency";
 import { isDependencySelector, DependenciesMatcher } from "./Dependency";
 import type { ElementSelector, ElementSingleSelector } from "./Element";
 import { isElementSelector, ElementsMatcher } from "./Element";
 import { EntitiesMatcher, isEntitySelector } from "./Entity";
-import type { EntitySelector } from "./Entity";
+import type { EntitySelector, EntitySingleSelectorMatchResult } from "./Entity";
 import { FilesMatcher } from "./File";
 import type { MatcherSerializedCache } from "./Matcher.types";
 import type { OriginSelector } from "./Origin";
@@ -178,6 +184,12 @@ export class Matcher {
     return selector;
   }
 
+  /**
+   * Converts a backward compatible entity selector into a new format entity selector, converting it if it's in legacy format.
+   * It also checks for mixed legacy and non-legacy selectors or descriptors and throws an error if such a case is detected.
+   * @param selector The backward compatible entity selector to convert into a new format entity selector.
+   * @returns The new format entity selector, converted from legacy format if necessary.
+   */
   private _backwardCompatibleEntitySelector(
     selector: BackwardCompatibleEntitySelector
   ): EntitySelector {
@@ -242,7 +254,21 @@ export class Matcher {
       backwardCompatibleSelector
     );
     const description = this._descriptors.describeElement(filePath);
-    return this._elementsMatcher.isElementMatch(description, selector, options);
+    const matcherOptions = this._legacyDescriptorsConverted
+      ? {
+          ...options,
+          extraTemplateData: {
+            ...getLegacyElementSelectorExtraTemplateData(description),
+            ...options?.extraTemplateData,
+          },
+        }
+      : options;
+
+    return this._elementsMatcher.isElementMatch(
+      description,
+      selector,
+      matcherOptions
+    );
   }
 
   /**
@@ -261,10 +287,20 @@ export class Matcher {
       backwardCompatibleSelector
     );
     const description = this._descriptors.describeDependency(dependencyData);
+    const matcherOptions = this._legacyDescriptorsConverted
+      ? {
+          ...options,
+          extraTemplateData: {
+            ...getLegacyDependencySelectorExtraTemplateData(description),
+            ...options?.extraTemplateData,
+          },
+        }
+      : options;
+
     return this._dependenciesMatcher.isDependencyMatch(
       description,
       selector,
-      options
+      matcherOptions
     );
   }
 
@@ -287,7 +323,21 @@ export class Matcher {
       filePath,
       options?.source
     );
-    return this._entitiesMatcher.isEntityMatch(description, selector, options);
+    const matcherOptions = this._legacyDescriptorsConverted
+      ? {
+          ...options,
+          extraTemplateData: {
+            ...getLegacyEntitySelectorExtraTemplateData(description),
+            ...options?.extraTemplateData,
+          },
+        }
+      : options;
+
+    return this._entitiesMatcher.isEntityMatch(
+      description,
+      selector,
+      matcherOptions
+    );
   }
 
   /**
@@ -328,10 +378,20 @@ export class Matcher {
       filePath,
       options?.source
     );
+    const matcherOptions = this._legacyDescriptorsConverted
+      ? {
+          ...options,
+          extraTemplateData: {
+            ...getLegacyEntitySelectorExtraTemplateData(description),
+            ...options?.extraTemplateData,
+          },
+        }
+      : options;
+
     return this._entitiesMatcher.getSelectorMatching(
       description,
       selector,
-      options
+      matcherOptions
     );
   }
 
@@ -351,10 +411,20 @@ export class Matcher {
       backwardCompatibleSelector
     );
     const description = this._descriptors.describeElement(filePath);
+    const matcherOptions = this._legacyDescriptorsConverted
+      ? {
+          ...options,
+          extraTemplateData: {
+            ...getLegacyElementSelectorExtraTemplateData(description),
+            ...options?.extraTemplateData,
+          },
+        }
+      : options;
+
     return this._elementsMatcher.getSelectorMatching(
       description,
       selector,
-      options
+      matcherOptions
     );
   }
 
@@ -374,10 +444,20 @@ export class Matcher {
       backwardCompatibleSelector
     );
     const description = this._descriptors.describeDependency(dependencyData);
-    return this._dependenciesMatcher.getSelectorsMatching(
+    const matcherOptions = this._legacyDescriptorsConverted
+      ? {
+          ...options,
+          extraTemplateData: {
+            ...getLegacyDependencySelectorExtraTemplateData(description),
+            ...options?.extraTemplateData,
+          },
+        }
+      : options;
+
+    return this._dependenciesMatcher.getSelectorMatching(
       description,
       selector,
-      options
+      matcherOptions
     );
   }
 
@@ -415,15 +495,25 @@ export class Matcher {
     description: EntityDescription,
     backwardCompatibleSelector: BackwardCompatibleEntitySelector,
     options?: MatcherOptions
-  ) {
+  ): EntitySingleSelectorMatchResult | null {
     const selector = this._backwardCompatibleEntitySelector(
       backwardCompatibleSelector
     );
     if (isEntitySelector(selector) && isEntityDescription(description)) {
+      const matcherOptions = this._legacyDescriptorsConverted
+        ? {
+            ...options,
+            extraTemplateData: {
+              ...getLegacyEntitySelectorExtraTemplateData(description),
+              ...options?.extraTemplateData,
+            },
+          }
+        : options;
+
       return this._entitiesMatcher.getSelectorMatching(
         description,
         selector,
-        options
+        matcherOptions
       );
     }
     throw new Error(INVALID_SELECTOR_OR_DESCRIPTION_ERROR);
@@ -440,7 +530,7 @@ export class Matcher {
     description: DependencyDescription,
     backwardCompatibleSelector: BackwardCompatibleDependencySelector,
     options?: MatcherOptions
-  ): DependencyMatchResult {
+  ): DependencySingleSelectorMatchResult | null {
     const selector = this._backwardCompatibleDependencySelector(
       backwardCompatibleSelector
     );
@@ -448,10 +538,20 @@ export class Matcher {
       isDependencySelector(selector) &&
       isDependencyDescription(description)
     ) {
-      return this._dependenciesMatcher.getSelectorsMatching(
+      const matcherOptions = this._legacyDescriptorsConverted
+        ? {
+            ...options,
+            extraTemplateData: {
+              ...getLegacyDependencySelectorExtraTemplateData(description),
+              ...options?.extraTemplateData,
+            },
+          }
+        : options;
+
+      return this._dependenciesMatcher.getSelectorMatching(
         description,
         selector,
-        options
+        matcherOptions
       );
     }
     throw new Error(INVALID_SELECTOR_OR_DESCRIPTION_ERROR);
@@ -473,10 +573,20 @@ export class Matcher {
       backwardCompatibleSelector
     );
     if (isElementSelector(selector) && isElementDescription(description)) {
+      const matcherOptions = this._legacyDescriptorsConverted
+        ? {
+            ...options,
+            extraTemplateData: {
+              ...getLegacyElementSelectorExtraTemplateData(description),
+              ...options?.extraTemplateData,
+            },
+          }
+        : options;
+
       return this._elementsMatcher.getSelectorMatching(
         description,
         selector,
-        options
+        matcherOptions
       );
     }
     throw new Error(INVALID_SELECTOR_OR_DESCRIPTION_ERROR);

@@ -5,6 +5,16 @@ import type { BaseSingleSelector } from "../Shared";
  * Selector for files
  */
 export type FileSingleSelector = BaseSingleSelector & {
+  /**
+   * Type of the file.
+   * @deprecated Temporary backward compatibility for selectors converted from legacy element selectors. Use `categories` instead.
+   */
+  type?: MicromatchPatternNullable;
+  /**
+   * Category of the file.
+   * @deprecated Temporary backward compatibility for selectors converted from legacy element selectors. Use `categories` instead.
+   */
+  category?: MicromatchPatternNullable;
   /** Categories of the file */
   categories?: MicromatchPatternNullable;
 };

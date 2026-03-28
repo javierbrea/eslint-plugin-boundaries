@@ -59,8 +59,12 @@ export function isElementSingleSelector(
   value: unknown
 ): value is ElementSingleSelector {
   return (
-    isObjectWithAnyOfProperties(value, ["type", "parent"]) ||
-    extendsSingleSelector<ElementSingleSelector>(value)
+    isObjectWithAnyOfProperties(value, [
+      "type",
+      "parent",
+      "category",
+      "fileInternalPath",
+    ]) || extendsSingleSelector<ElementSingleSelector>(value)
   );
 }
 

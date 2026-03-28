@@ -1,12 +1,16 @@
 import type { MatchersOptionsNormalized } from "../../Config";
 import type { EntityDescription } from "../../Descriptor";
+import { isNull, isUndefined } from "../../Shared";
 import type { ElementsMatcher } from "../Element";
 import type { FilesMatcher } from "../File";
 import type { OriginsMatcher } from "../Origin";
 import { BaseElementsMatcher } from "../Shared";
 import type { TemplateData, MatcherOptions, Micromatch } from "../Shared";
 
-import type { EntityMatchResult } from "./EntityMatcher.types";
+import type {
+  EntityMatchResult,
+  EntitySingleSelectorMatchResult,
+} from "./EntityMatcher.types";
 import type {
   EntitySelector,
   EntitySingleSelector,
@@ -56,70 +60,50 @@ export class EntitiesMatcher extends BaseElementsMatcher {
     selector: EntitySingleSelector,
     templateData: TemplateData
   ): EntityMatchResult {
-    const elementSelectorMatching = selector.element
-      ? this._elementsMatcher.getSelectorMatching(
+    const elementSelectorMatching = isUndefined(selector.element)
+      ? undefined
+      : this._elementsMatcher.getSelectorMatching(
           entity.element,
           selector.element,
           {
             extraTemplateData: templateData,
           }
-        )
-      : null;
-    const fileSelectorMatching = selector.file
-      ? this._filesMatcher.getSelectorMatching(entity.file, selector.file, {
+        );
+    const fileSelectorMatching = isUndefined(selector.file)
+      ? undefined
+      : this._filesMatcher.getSelectorMatching(entity.file, selector.file, {
           extraTemplateData: templateData,
-        })
-      : null;
-    const originSelectorMatching = selector.origin
-      ? this._originsMatcher.getSelectorMatching(
+        });
+    const originSelectorMatching = isUndefined(selector.origin)
+      ? undefined
+      : this._originsMatcher.getSelectorMatching(
           entity.origin,
           selector.origin,
           {
             extraTemplateData: templateData,
           }
-        )
-      : null;
+        );
 
-    return {
-      element: elementSelectorMatching,
-      file: fileSelectorMatching,
-      origin: originSelectorMatching,
-      isMatch: Boolean(
-        (selector.element ? elementSelectorMatching : true) &&
-          (selector.file ? fileSelectorMatching : true) &&
-          (selector.origin ? originSelectorMatching : true)
-      ),
-    };
-  }
-
-  /**
-   * Returns the first selector matching result for the given entity.
-   * @param entity The entity description.
-   * @param selector The entity selector normalized.
-   * @param templateData The extra template data for selector values.
-   * @returns The first selector matching result for the given entity.
-   */
-  private _getFirstSelectorMatching(
-    entity: EntityDescription,
-    selector: EntitySingleSelector[],
-    templateData: TemplateData
-  ): EntityMatchResult {
-    for (const selectorData of selector) {
-      const result = this._getSingleSelectorMatching(
-        entity,
-        selectorData,
-        templateData
-      );
-      if (result.isMatch) {
-        return result;
-      }
+    const selectorResult: EntitySingleSelectorMatchResult = {};
+    if (elementSelectorMatching) {
+      selectorResult.element = elementSelectorMatching;
+    }
+    if (fileSelectorMatching) {
+      selectorResult.file = fileSelectorMatching;
+    }
+    if (originSelectorMatching) {
+      selectorResult.origin = originSelectorMatching;
     }
 
+    const isMatch = Boolean(
+      (selector.element ? elementSelectorMatching : true) &&
+        (selector.file ? fileSelectorMatching : true) &&
+        (selector.origin ? originSelectorMatching : true)
+    );
+
     return {
-      element: null,
-      file: null,
-      origin: null,
-      isMatch: false,
+      selector: isMatch ? selectorResult : null,
+      isMatch,
     };
   }
 
@@ -134,37 +118,32 @@ export class EntitiesMatcher extends BaseElementsMatcher {
     entity: EntityDescription,
     selector: EntitySelector,
     { extraTemplateData = {} }: MatcherOptions = {}
-  ): EntityMatchResult {
+  ): EntitySingleSelectorMatchResult | null {
     const normalizedSelector = normalizeEntitySelector(selector);
 
     const elementExtraData = extraTemplateData.element || {};
     const fileExtraData = extraTemplateData.file || {};
     const originExtraData = extraTemplateData.origin || {};
 
-    // Add extra template data for element, file and origin to be used in the matching of the selector properties.
-    // TODO: Review, is this really needed?
     const templateData: TemplateData = {
       ...extraTemplateData,
-      element: {
-        ...entity.element,
-        ...elementExtraData,
-      },
-      file: {
-        ...entity.file,
-        ...fileExtraData,
-      },
-      origin: {
-        ...entity.origin,
-        ...originExtraData,
-      },
+      element: { ...entity.element, ...elementExtraData },
+      file: { ...entity.file, ...fileExtraData },
+      origin: { ...entity.origin, ...originExtraData },
     };
 
-    const result = this._getFirstSelectorMatching(
-      entity,
-      normalizedSelector,
-      templateData
-    );
-    return result;
+    for (const selectorData of normalizedSelector) {
+      const result = this._getSingleSelectorMatching(
+        entity,
+        selectorData,
+        templateData
+      );
+      if (result.isMatch) {
+        return result.selector;
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -180,6 +159,6 @@ export class EntitiesMatcher extends BaseElementsMatcher {
     options?: MatcherOptions
   ): boolean {
     const matchResult = this.getSelectorMatching(entity, selector, options);
-    return matchResult.isMatch;
+    return !isNull(matchResult);
   }
 }

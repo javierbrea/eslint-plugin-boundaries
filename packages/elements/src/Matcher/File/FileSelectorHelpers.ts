@@ -18,6 +18,7 @@ export function isFileSingleSelector(
     isObjectWithAnyOfProperties(value, [
       "elementInternalPath",
       "categories",
+      "type",
       "isExternal",
     ]) || extendsSingleSelector<FileSingleSelector>(value)
   );

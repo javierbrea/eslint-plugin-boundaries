@@ -75,6 +75,16 @@ export function convertLegacyElementDescriptors(
     if (isLegacyElementDescriptor(descriptor)) {
       const { mode } = descriptor;
       if (mode === ELEMENT_DESCRIPTOR_MODES_MAP.FILE) {
+        const toFolderPattern = (p: string) =>
+          p.split("/").slice(0, -1).join("/");
+        const folderPattern = Array.isArray(descriptor.pattern)
+          ? descriptor.pattern.map(toFolderPattern)
+          : toFolderPattern(descriptor.pattern);
+        elementDescriptors.push({
+          ...descriptor,
+          pattern: folderPattern,
+        });
+
         fileDescriptors.push({
           ...descriptor,
           pattern: descriptor.pattern,

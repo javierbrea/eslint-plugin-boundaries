@@ -2,6 +2,8 @@
 
 import micromatch from "micromatch";
 
+import { convertLegacyEntitySelector } from "./Legacy";
+
 import type {
   ElementSelector,
   ElementSingleSelector,
@@ -646,8 +648,8 @@ describe("Elements Matcher", () => {
         expectedMatch?: ElementSingleSelector;
       }) => {
         const matchResult = extraTemplateData
-          ? matcher.isElementMatch(filePath, selector, { extraTemplateData })
-          : matcher.isElementMatch(filePath, selector);
+          ? matcher.isEntityMatch(filePath, selector, { extraTemplateData })
+          : matcher.isEntityMatch(filePath, selector);
 
         if (matchResult !== expected) {
           console.error(
@@ -658,7 +660,7 @@ describe("Elements Matcher", () => {
                 selector,
                 extraTemplateData,
                 expectedMatch,
-                description: matcher.describeElement(filePath),
+                description: matcher.describeEntity(filePath),
               },
               null,
               2
@@ -669,29 +671,22 @@ describe("Elements Matcher", () => {
         expect(matchResult).toBe(expected);
 
         if (expected) {
-          const selectorMatchingResult = matcher.getElementSelectorMatching(
+          const selectorMatchingResult = matcher.getEntitySelectorMatching(
             filePath,
             selector,
             extraTemplateData ? { extraTemplateData } : undefined
           );
-
-          // eslint-disable-next-line jest/no-conditional-expect
-          expect(selectorMatchingResult).toStrictEqual(
+          const convertedSelector = convertLegacyEntitySelector(
             expectedMatch || selector
           );
 
-          const description = matcher.describeElement(filePath);
-
-          const selectorMatchingFromDescription =
-            matcher.getElementSelectorMatchingDescription(
-              description,
-              selector,
-              extraTemplateData ? { extraTemplateData } : undefined
-            );
+          const expectedMatchingCandidates = Array.isArray(convertedSelector)
+            ? convertedSelector
+            : [convertedSelector];
 
           // eslint-disable-next-line jest/no-conditional-expect
-          expect(selectorMatchingFromDescription).toStrictEqual(
-            expectedMatch || selector
+          expect(expectedMatchingCandidates).toContainEqual(
+            selectorMatchingResult
           );
         }
       }
