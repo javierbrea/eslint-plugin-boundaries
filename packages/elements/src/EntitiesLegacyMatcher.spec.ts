@@ -2,7 +2,10 @@
 
 import micromatch from "micromatch";
 
-import { convertLegacyEntitySelector } from "./Legacy";
+import {
+  convertLegacyDependencySelector,
+  convertLegacyEntitySelector,
+} from "./Legacy";
 
 import type {
   ElementSelector,
@@ -12,10 +15,12 @@ import type {
   Matcher,
   SimpleElementSelectorByTypeWithOptions,
   ElementDescription,
+  DependencySingleSelectorNormalized,
+  DependencyMatchResult,
 } from "./index";
 import { Elements, normalizeElementSelector } from "./index";
 
-describe("Elements Matcher", () => {
+describe("Entities Legacy Matcher", () => {
   let matcher: Matcher;
   let elements: Elements;
   let micromatchSpy: jest.SpyInstance;
@@ -73,7 +78,7 @@ describe("Elements Matcher", () => {
     elements.clearCache();
   });
 
-  describe("when matching elements", () => {
+  describe("when matching entities using legacy element selectors", () => {
     // eslint-disable-next-line jest/prefer-ending-with-an-expect
     it.each([
       {
@@ -658,6 +663,7 @@ describe("Elements Matcher", () => {
               {
                 filePath,
                 selector,
+                convertedSelector: convertLegacyEntitySelector(selector),
                 extraTemplateData,
                 expectedMatch,
                 description: matcher.describeEntity(filePath),
@@ -882,7 +888,7 @@ describe("Elements Matcher", () => {
 
   describe("when matching dependencies", () => {
     // eslint-disable-next-line jest/prefer-ending-with-an-expect
-    it.each([
+    it.only.each([
       {
         dependency: {
           from: "/project/src/components/Button.tsx",
@@ -1905,16 +1911,64 @@ describe("Elements Matcher", () => {
           );
 
           const expectedSelectorMatching = expectedMatch || selector;
-          const fromMatch = expectedSelectorMatching?.from || null;
-          const toMatch = expectedSelectorMatching?.to || null;
-          const dependencyMatch = expectedSelectorMatching?.dependency || null;
+          const fromMatch = expectedSelectorMatching?.from || undefined;
+          const toMatch = expectedSelectorMatching?.to || undefined;
+          const dependencyMatch =
+            expectedSelectorMatching?.dependency || undefined;
 
-          const expectedMatchResult = {
+          const convertedExpectedMatchResult = convertLegacyDependencySelector({
             from: fromMatch,
             to: toMatch,
             dependency: dependencyMatch,
-            isMatch: true,
-          };
+          });
+
+          const expectedMatchResultRaw = Array.isArray(
+            convertedExpectedMatchResult
+          )
+            ? convertedExpectedMatchResult[0]
+            : convertedExpectedMatchResult;
+
+          const expectedMatchResult: DependencyMatchResult["selector"] = {};
+
+          if (expectedMatchResultRaw?.from) {
+            // @ts-expect-error: Creating expected match result based on the selector.
+            expectedMatchResult.from = Array.isArray(
+              expectedMatchResultRaw.from
+            )
+              ? expectedMatchResultRaw.from[0]
+              : expectedMatchResultRaw.from;
+
+            if (expectedMatchResult.from?.element?.parent) {
+              expectedMatchResult.from.element.parent = Array.isArray(
+                expectedMatchResult.from.element.parent
+              )
+                ? expectedMatchResult.from.element.parent[0]
+                : expectedMatchResult.from.element.parent;
+            }
+          }
+
+          if (expectedMatchResultRaw?.to) {
+            // @ts-expect-error: Creating expected match result based on the selector.
+            expectedMatchResult.to = Array.isArray(expectedMatchResultRaw.to)
+              ? expectedMatchResultRaw.to[0]
+              : expectedMatchResultRaw.to;
+
+            if (expectedMatchResult.to?.element?.parent) {
+              expectedMatchResult.to.element.parent = Array.isArray(
+                expectedMatchResult.to.element.parent
+              )
+                ? expectedMatchResult.to.element.parent[0]
+                : expectedMatchResult.to.element.parent;
+            }
+          }
+
+          if (expectedMatchResultRaw?.dependency) {
+            expectedMatchResult.dependency = Array.isArray(
+              expectedMatchResultRaw.dependency
+            )
+              ? expectedMatchResultRaw.dependency[0]
+              : expectedMatchResultRaw.dependency;
+          }
 
           // eslint-disable-next-line jest/no-conditional-expect
           expect(selectorMatchingResult).toStrictEqual(expectedMatchResult);

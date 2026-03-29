@@ -11,6 +11,7 @@ import {
 import { BaseElementsMatcher } from "../Shared";
 import type { TemplateData, MatcherOptions, Micromatch } from "../Shared";
 
+import type { ElementSingleSelectorMatchResult } from "./ElementMatcher.types";
 import type {
   ElementSingleSelector,
   ElementSelector,
@@ -287,30 +288,27 @@ export class ElementsMatcher extends BaseElementsMatcher {
   }
 
   /**
-   * Returns whether the given element matches the parent selector.
-   * When the parent selector is an array, the element matches if it matches any of the array elements (OR logic).
+   * Returns the parent selector that matches the element.
+   * When the parent selector is an array, returns the first parent selector that matches (OR logic).
    * @param element The element to check.
    * @param selector The selector to check against.
    * @param templateData The data to use for replace in selector values
-   * @returns Whether the element matches the parent selector.
+   * @returns The matching parent selector, or null if no parent selector matches or if parent is not applicable.
    */
-  private _isParentMatch(
+  private _getParentSelectorMatching(
     element: ElementDescription,
     selector: ElementSingleSelectorNormalized,
     templateData: TemplateData
-  ): boolean {
-    if (isUndefined(selector.parent)) {
-      return true;
-    }
-    if (isNull(selector.parent)) {
-      return !element.parents || element.parents.length === 0;
+  ): ParentElementSingleSelector | null {
+    if (isUndefined(selector.parent) || isNull(selector.parent)) {
+      return null;
     }
     for (const parentSelector of selector.parent) {
       if (this._isSingleParentMatch(element, parentSelector, templateData)) {
-        return true;
+        return parentSelector;
       }
     }
-    return false;
+    return null;
   }
 
   /**
@@ -372,6 +370,29 @@ export class ElementsMatcher extends BaseElementsMatcher {
   }
 
   /**
+   * Determines if the filePath of the element matches that in the selector.
+   * This is a legacy check for backward compatibility with legacy mode "file", where the element selector included filePath. It will be removed in future versions, so it shouldn't be used in new selectors.
+   * @param element The element to check.
+   * @param selector The selector to check against.
+   * @param templateData The data to use for replace in selector value
+   * @returns True if the filePaths match, false otherwise.
+   */
+  private _isFilePathMatch(
+    element: ElementDescription,
+    selector: ElementSingleSelector,
+    templateData: TemplateData
+  ): boolean {
+    return this.isElementKeyMicromatchMatch({
+      element,
+      selector,
+      elementKey: "filePath",
+      selectorKey: "filePath",
+      selectorValue: selector.filePath,
+      templateData,
+    });
+  }
+
+  /**
    * Returns the selector matching result for the given local or external element.
    * @param element The local or external element to check.
    * @param selector The selector to check against.
@@ -382,7 +403,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
     element: ElementDescription,
     selectorsData: ElementSingleSelectorNormalized[],
     extraTemplateData: TemplateData
-  ): ElementSingleSelector | null {
+  ): ElementSingleSelectorMatchResult | null {
     const templateData: TemplateData = {
       element,
       ...extraTemplateData,
@@ -397,15 +418,32 @@ export class ElementsMatcher extends BaseElementsMatcher {
         !this._isIgnoredMatch(element, selectorData) ||
         !this._isUnknownMatch(element, selectorData) ||
         !this._isPathMatch(element, selectorData, templateData) ||
+        !this._isFilePathMatch(element, selectorData, templateData) ||
         !this._isFileInternalPathMatch(element, selectorData, templateData) ||
-        !this._isCapturedValuesMatch(element, selectorData, templateData) ||
-        !this._isParentMatch(element, selectorData, templateData)
+        !this._isCapturedValuesMatch(element, selectorData, templateData)
       ) {
         continue; // Early exit on first failed condition
       }
 
-      // All conditions passed, return the first matching selector
-      return selectorData;
+      if (isUndefined(selectorData.parent)) {
+        // No parent selector, all conditions passed, return the matching selector
+        return selectorData as ElementSingleSelectorMatchResult;
+      }
+
+      // Check parent match and get the matching parent selector
+      const matchingParentSelector = this._getParentSelectorMatching(
+        element,
+        selectorData,
+        templateData
+      );
+
+      // All conditions including parent match passed, return the first matching selector
+      if (!isNull(matchingParentSelector)) {
+        return {
+          ...selectorData,
+          parent: matchingParentSelector,
+        };
+      }
     }
 
     return null;
@@ -423,7 +461,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
     element: ElementDescription,
     selector: ElementSelector,
     { extraTemplateData = {} }: MatcherOptions = {}
-  ): ElementSingleSelector | null {
+  ): ElementSingleSelectorMatchResult | null {
     const selectorsData = normalizeElementSelector(selector);
     return this._getSelectorMatching(element, selectorsData, extraTemplateData);
   }

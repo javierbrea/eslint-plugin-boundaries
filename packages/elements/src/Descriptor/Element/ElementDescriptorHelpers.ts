@@ -1,4 +1,4 @@
-import { isString, isObjectWithProperty } from "../../Shared/TypeGuards";
+import { isObjectWithAnyOfProperties } from "../../Shared/TypeGuards";
 import { isBaseDescriptor } from "../Shared";
 
 import type { ElementDescriptor } from "./ElementDescriptor.types";
@@ -13,7 +13,6 @@ export function isElementDescriptor(
 ): value is ElementDescriptor {
   return (
     isBaseDescriptor(value) &&
-    isObjectWithProperty(value, "type") &&
-    isString(value.type)
+    isObjectWithAnyOfProperties(value, ["type", "category"])
   );
 }

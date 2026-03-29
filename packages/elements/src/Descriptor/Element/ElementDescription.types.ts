@@ -16,6 +16,11 @@ export type ElementDescription = BaseDescription & {
    * @deprecated This property is deprecated and will be removed in future versions.
    */
   category: string | null;
+  /**
+   * Full filePath of the file related to the element, or null in case it has not related file
+   * @deprecated This property has been temporarily added for backward compatibility with legacy mode "file", where the element description included file properties. It will be removed in future versions.
+   */
+  filePath: string | null;
   /** Internal path of the file relative to the element it belongs to, or null in case it has not related file */
   fileInternalPath: string | null;
   /** Parent elements */
@@ -77,6 +82,8 @@ export type KnownElementDescription = ElementDescription &
      * Type of the element
      **/
     type: string | null; // TODO: This should be always string when legacy category property is removed
+    /** filePath is always string for known elements*/
+    filePath: string;
     /** Parent elements. For known elements, parents is an array of parent descriptions, which may be empty if the element has no parents. */
     parents: ElementParent[];
   };

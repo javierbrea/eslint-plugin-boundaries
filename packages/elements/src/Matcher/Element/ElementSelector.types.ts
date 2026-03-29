@@ -55,6 +55,11 @@ export type ElementSingleSelector = BaseSingleSelector & {
   category?: MicromatchPatternNullable;
   /** Internal path of the file relative to the element it belongs to, or null if it has no internal path */
   fileInternalPath?: MicromatchPatternNullable;
+  /*
+   * Full filePath of the file related to the element, or null in case it has not related file. This is a legacy field that was used for backward compatibility with legacy mode. It will be removed in future versions.
+   * @deprecated Use the `file.path` field in file selectors instead
+   */
+  filePath?: MicromatchPatternNullable; // For backward compatibility with legacy mode "file", where the element selector included filePath. --- IGNORE ---
   /** Selector for matching the first parent element */
   parent?: ParentElementSelector | null;
 };

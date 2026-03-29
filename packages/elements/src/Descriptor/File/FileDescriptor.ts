@@ -22,7 +22,6 @@ const BACKWARD_COMPATIBILITY_CAPTURE_PROPERTY = "restOfPath";
 const UNKNOWN_FILE_DESCRIPTION: UnknownFileDescription = {
   path: null,
   categories: null,
-  type: null,
   isIgnored: false,
   isUnknown: true,
   captured: null,
@@ -311,7 +310,6 @@ export class FilesDescriptor {
       fileResult.categories = isArray(fileResult.categories)
         ? [...fileResult.categories, ...fileDescriptor.category]
         : [fileDescriptor.category];
-      fileResult.type = fileDescriptor.type || null; // For backward compatibility with legacy mode "file", where "type" was used to store the base category.
 
       fileResult.isUnknown = false;
       fileResult.captured = isObject(capturedValues)
@@ -340,7 +338,6 @@ export class FilesDescriptor {
     if (!isKnownFileDescription(fileResult)) {
       const result: UnknownFileDescription = {
         ...fileResult,
-        type: null,
         categories: null,
         isIgnored: false,
         isUnknown: true,

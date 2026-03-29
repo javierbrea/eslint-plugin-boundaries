@@ -1,4 +1,4 @@
-import { isArray, isObjectWithAnyOfProperties } from "../../Shared/TypeGuards";
+import { isArray, isObjectWithAnyOfProperties } from "../../Shared";
 
 import type {
   OriginSelector,
@@ -39,11 +39,7 @@ export function normalizeOriginSingleSelector(
   selector: OriginSingleSelector
 ): OriginSingleSelector {
   if (isOriginSingleSelector(selector)) {
-    const baseSelector: OriginSingleSelector = {
-      kind: selector.kind,
-      module: selector.module,
-    };
-    return baseSelector;
+    return selector;
   }
 
   throw new Error("Invalid origin selector");

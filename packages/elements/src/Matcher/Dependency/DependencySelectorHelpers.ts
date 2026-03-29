@@ -59,14 +59,8 @@ export function normalizeSingleDependencyInfoSelector(
   if (!isDependencyInfoSingleSelector(selector)) {
     throw new Error("Invalid dependency information selector");
   }
-  const normalizedSelector: DependencyInfoSingleSelector = {
-    kind: selector.kind,
-    relationship: selector.relationship,
-    specifiers: selector.specifiers,
-    nodeKind: selector.nodeKind,
-    source: selector.source,
-  };
-  return normalizedSelector;
+
+  return selector;
 }
 
 export function normalizeDependencyInfoSelector(
@@ -148,7 +142,7 @@ export function normalizeSingleDependencySelector(
     return baseSelector;
   }
 
-  throw new Error("Invalid entity selector");
+  throw new Error("Invalid dependency selector");
 }
 
 /**

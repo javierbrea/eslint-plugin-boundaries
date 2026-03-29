@@ -6,7 +6,6 @@ import type {
   DependencyDescriptorOptions,
   ElementDescription,
   DependencyDescription,
-  DescriptorsConfig,
   EntityDescription,
   OriginDescription,
 } from "../Descriptor";
@@ -18,7 +17,6 @@ import {
   isOriginDescription,
 } from "../Descriptor";
 import {
-  convertLegacyDescriptorsConfig,
   getLegacyDependencySelectorExtraTemplateData,
   getLegacyElementSelectorExtraTemplateData,
   getLegacyEntitySelectorExtraTemplateData,
@@ -56,8 +54,6 @@ import type {
   EntityMatcherOptions,
 } from "./Shared";
 
-const MIXED_LEGACY_AND_NON_LEGACY_ERROR =
-  "Invalid configuration: Mixing legacy and non-legacy descriptors or selectors is not allowed. Please update your configuration to use non-legacy descriptors and selectors.";
 const INVALID_SELECTOR_OR_DESCRIPTION_ERROR =
   "Invalid arguments: Please provide valid descriptions and selectors of the correct type.";
 
@@ -73,7 +69,7 @@ export class Matcher {
   private readonly _originalDescriptors: BackwardCompatibleDescriptorsConfig;
   private readonly _descriptorOptions: DescriptorOptionsNormalized;
   private readonly _micromatch: Micromatch;
-  private _legacyDescriptorsConverted: DescriptorsConfig | null;
+  private _legacyDescriptorsOrSelectorsDetected = false;
   private _descriptors: Descriptors;
 
   /**
@@ -99,7 +95,13 @@ export class Matcher {
     this._originalDescriptors = descriptors;
     this._descriptorOptions = descriptorOptions;
     this._micromatch = micromatch;
-    this._createOrConvertDescriptors(isLegacyDescriptorsConfig(descriptors));
+    this._legacyDescriptorsOrSelectorsDetected =
+      isLegacyDescriptorsConfig(descriptors);
+    this._descriptors = new Descriptors(
+      this._originalDescriptors,
+      this._descriptorOptions,
+      this._micromatch
+    );
 
     // end of getDescriptors method
     this._elementsMatcher = new ElementsMatcher(matchersOptions, micromatch);
@@ -121,38 +123,6 @@ export class Matcher {
   }
 
   /**
-   * Creates the descriptors instance from the original descriptors configuration, converting it if it's in legacy format.
-   * This method ensures that the descriptors are created in a consistent format and that legacy configurations are properly converted to the new format.
-   * It also checks for mixed legacy and non-legacy configurations and throws an error if such a case is detected.
-   * @param convertFromLegacy Whether the descriptors should be converted from legacy format or not.
-   */
-  private _createOrConvertDescriptors(convertFromLegacy: boolean): void {
-    if (!convertFromLegacy && this._legacyDescriptorsConverted) {
-      throw new Error(MIXED_LEGACY_AND_NON_LEGACY_ERROR);
-    }
-    if (convertFromLegacy && !this._legacyDescriptorsConverted) {
-      if (!isLegacyDescriptorsConfig(this._originalDescriptors)) {
-        throw new Error(MIXED_LEGACY_AND_NON_LEGACY_ERROR);
-      }
-      this._legacyDescriptorsConverted = convertLegacyDescriptorsConfig(
-        this._originalDescriptors
-      );
-      this._descriptors = new Descriptors(
-        this._legacyDescriptorsConverted,
-        this._descriptorOptions,
-        this._micromatch
-      );
-    }
-    if (!this._descriptors) {
-      this._descriptors = new Descriptors(
-        this._originalDescriptors,
-        this._descriptorOptions,
-        this._micromatch
-      );
-    }
-  }
-
-  /**
    * Transforms a backward compatible dependency selector into a new format dependency selector, converting it if it's in legacy format.
    * It also checks for mixed legacy and non-legacy selectors or descriptors and throws an error if such a case is detected.
    * @param selector The backward compatible dependency selector to transform into a new format dependency selector.
@@ -162,7 +132,7 @@ export class Matcher {
     selector: BackwardCompatibleDependencySelector
   ): DependencySelector {
     if (isLegacyDependencySelector(selector)) {
-      this._createOrConvertDescriptors(true);
+      this._legacyDescriptorsOrSelectorsDetected = true;
       return convertLegacyDependencySelector(selector);
     }
     return selector;
@@ -178,7 +148,7 @@ export class Matcher {
     selector: BackwardCompatibleElementSelector
   ): ElementSelector {
     if (isLegacyElementSelector(selector)) {
-      this._createOrConvertDescriptors(true);
+      this._legacyDescriptorsOrSelectorsDetected = true;
       return convertLegacyElementSelector(selector);
     }
     return selector;
@@ -194,7 +164,7 @@ export class Matcher {
     selector: BackwardCompatibleEntitySelector
   ): EntitySelector {
     if (isLegacyEntitySelector(selector)) {
-      this._createOrConvertDescriptors(true);
+      this._legacyDescriptorsOrSelectorsDetected = true;
       return convertLegacyEntitySelector(selector);
     }
     return selector;
@@ -254,7 +224,7 @@ export class Matcher {
       backwardCompatibleSelector
     );
     const description = this._descriptors.describeElement(filePath);
-    const matcherOptions = this._legacyDescriptorsConverted
+    const matcherOptions = this._legacyDescriptorsOrSelectorsDetected
       ? {
           ...options,
           extraTemplateData: {
@@ -287,7 +257,7 @@ export class Matcher {
       backwardCompatibleSelector
     );
     const description = this._descriptors.describeDependency(dependencyData);
-    const matcherOptions = this._legacyDescriptorsConverted
+    const matcherOptions = this._legacyDescriptorsOrSelectorsDetected
       ? {
           ...options,
           extraTemplateData: {
@@ -323,7 +293,7 @@ export class Matcher {
       filePath,
       options?.source
     );
-    const matcherOptions = this._legacyDescriptorsConverted
+    const matcherOptions = this._legacyDescriptorsOrSelectorsDetected
       ? {
           ...options,
           extraTemplateData: {
@@ -378,7 +348,7 @@ export class Matcher {
       filePath,
       options?.source
     );
-    const matcherOptions = this._legacyDescriptorsConverted
+    const matcherOptions = this._legacyDescriptorsOrSelectorsDetected
       ? {
           ...options,
           extraTemplateData: {
@@ -411,7 +381,7 @@ export class Matcher {
       backwardCompatibleSelector
     );
     const description = this._descriptors.describeElement(filePath);
-    const matcherOptions = this._legacyDescriptorsConverted
+    const matcherOptions = this._legacyDescriptorsOrSelectorsDetected
       ? {
           ...options,
           extraTemplateData: {
@@ -444,7 +414,7 @@ export class Matcher {
       backwardCompatibleSelector
     );
     const description = this._descriptors.describeDependency(dependencyData);
-    const matcherOptions = this._legacyDescriptorsConverted
+    const matcherOptions = this._legacyDescriptorsOrSelectorsDetected
       ? {
           ...options,
           extraTemplateData: {
@@ -500,7 +470,7 @@ export class Matcher {
       backwardCompatibleSelector
     );
     if (isEntitySelector(selector) && isEntityDescription(description)) {
-      const matcherOptions = this._legacyDescriptorsConverted
+      const matcherOptions = this._legacyDescriptorsOrSelectorsDetected
         ? {
             ...options,
             extraTemplateData: {
@@ -538,7 +508,7 @@ export class Matcher {
       isDependencySelector(selector) &&
       isDependencyDescription(description)
     ) {
-      const matcherOptions = this._legacyDescriptorsConverted
+      const matcherOptions = this._legacyDescriptorsOrSelectorsDetected
         ? {
             ...options,
             extraTemplateData: {
@@ -573,7 +543,7 @@ export class Matcher {
       backwardCompatibleSelector
     );
     if (isElementSelector(selector) && isElementDescription(description)) {
-      const matcherOptions = this._legacyDescriptorsConverted
+      const matcherOptions = this._legacyDescriptorsOrSelectorsDetected
         ? {
             ...options,
             extraTemplateData: {

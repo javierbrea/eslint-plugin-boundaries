@@ -2,7 +2,6 @@ import type {
   DependencyDescription,
   ElementDescription,
   EntityDescription,
-  FileDescription,
 } from "../Descriptor";
 import type {
   ParentElementSingleSelector,
@@ -28,7 +27,6 @@ import {
   isElementSelector,
   isElementSingleSelector,
 } from "../Matcher";
-import type { FileSingleSelector } from "../Matcher/File";
 import {
   isArray,
   isObjectWithProperty,
@@ -133,11 +131,7 @@ export function isLegacyEntitySelector(
   if (isEntitySelector(selector)) {
     return false;
   }
-  return (
-    isElementSelector(selector) ||
-    isLegacyElementSimpleSelector(selector) ||
-    isLegacyElementSelector(selector)
-  );
+  return isElementSelector(selector) || isLegacyElementSelector(selector);
 }
 
 /**
@@ -175,14 +169,8 @@ export function isLegacyDependencyInfoSelector(
 export function isLegacyDependencySingleSelector(
   selector: LegacyDependencySingleSelector | DependencySingleSelector
 ): selector is LegacyDependencySingleSelector {
-  const isLegacyTo =
-    !isEntitySelector(selector.to) &&
-    (isLegacyElementSelector(selector.to) ||
-      isLegacyElementSimpleSelector(selector.to));
-  const isLegacyFrom =
-    !isEntitySelector(selector.from) &&
-    (isLegacyElementSelector(selector.from) ||
-      isLegacyElementSimpleSelector(selector.from));
+  const isLegacyTo = isLegacyEntitySelector(selector.to);
+  const isLegacyFrom = isLegacyEntitySelector(selector.from);
   const isLegacyDependencyInfo = isLegacyDependencyInfoSelector(
     selector.dependency
   );
@@ -315,39 +303,15 @@ function convertLegacyElementSingleSelectorToEntitySelector(
     const elementEntitySelector: EntitySingleSelector = {};
     if (Object.keys(sourceElementSelector).length > 0) {
       elementEntitySelector.element = sourceElementSelector;
+      if (!isUndefined(sourceElementSelector.path)) {
+        elementEntitySelector.element.filePath = sourceElementSelector.path;
+      }
     }
     if (!isUndefined(baseOrigin)) {
       elementEntitySelector.origin = baseOrigin;
     }
     if (Object.keys(elementEntitySelector).length > 0) {
       selectors.push(elementEntitySelector);
-    }
-
-    const fileSelector: FileSingleSelector = {};
-    if (!isUndefined(sourceElementSelector.path)) {
-      fileSelector.path = sourceElementSelector.path;
-    }
-    if (!isUndefined(sourceElementSelector.type)) {
-      fileSelector.type = sourceElementSelector.type;
-    }
-    if (!isUndefined(sourceElementSelector.category)) {
-      fileSelector.categories = sourceElementSelector.category;
-    }
-    if (!isUndefined(sourceElementSelector.captured)) {
-      fileSelector.captured = sourceElementSelector.captured;
-    }
-    if (!isUndefined(sourceElementSelector.isIgnored)) {
-      fileSelector.isIgnored = sourceElementSelector.isIgnored;
-    }
-    if (!isUndefined(sourceElementSelector.isUnknown)) {
-      fileSelector.isUnknown = sourceElementSelector.isUnknown;
-    }
-
-    if (Object.keys(fileSelector).length > 0) {
-      selectors.push({
-        file: fileSelector,
-        ...(isUndefined(baseOrigin) ? {} : { origin: baseOrigin }),
-      });
     }
 
     return selectors;
@@ -370,8 +334,12 @@ function convertLegacyElementSingleSelectorToEntitySelector(
     return toEntitySelectors(selector);
   }
 
-  const { origin, elementPath, internalPath, parent, ...rest } = selector;
+  const { origin, path, elementPath, internalPath, parent, ...rest } = selector;
   const elementSelector: ElementSingleSelector = { ...rest };
+
+  if (!isUndefined(path)) {
+    elementSelector.filePath = path;
+  }
 
   if (!isUndefined(elementPath)) {
     elementSelector.path = elementPath;
@@ -396,7 +364,7 @@ function convertLegacyElementSingleSelectorToEntitySelector(
 export function convertLegacyElementSelectorToEntitySelector(
   selector: LegacyElementSelector | LegacyElementSimpleSelector
 ): EntitySelector {
-  if (isArray(selector)) {
+  if (!isLegacyElementSimpleSelector(selector) && isArray(selector)) {
     return selector.flatMap(convertLegacyElementSingleSelectorToEntitySelector);
   }
   return convertLegacyElementSingleSelectorToEntitySelector(selector);
@@ -444,27 +412,11 @@ function getLegacyElementTemplateData(
 
   return {
     ...element,
+    // TODO: How to make "path" backward compatible, because before it was the file path, and now it is the element path?
     elementPath: element.path,
     internalPath: element.fileInternalPath,
     parents,
     ...(isUndefined(originKind) ? {} : { origin: originKind }),
-  };
-}
-
-/**
- * Returns legacy aliases for a file description to keep old templates working.
- *
- * Mappings are the inverse of legacy selector conversions:
- * - `categories` -> `category` (first category when available)
- */
-function getLegacyFileTemplateData(file: FileDescription): TemplateData {
-  const category = isArray(file.categories)
-    ? (file.categories[0] ?? null)
-    : file.categories;
-
-  return {
-    ...file,
-    category,
   };
 }
 
@@ -474,15 +426,9 @@ function getLegacyFileTemplateData(file: FileDescription): TemplateData {
 export function getLegacyEntitySelectorExtraTemplateData(
   entity: EntityDescription
 ): TemplateData {
-  const file = getLegacyFileTemplateData(entity.file);
-  const element = {
-    ...getLegacyElementTemplateData(entity.element, entity.origin.kind),
-    ...file,
-  };
-
   return {
-    element,
-    file,
+    element: getLegacyElementTemplateData(entity.element, entity.origin.kind),
+    file: entity.file,
     origin: entity.origin,
   };
 }
@@ -504,22 +450,16 @@ export function getLegacyElementSelectorExtraTemplateData(
 export function getLegacyDependencySelectorExtraTemplateData(
   dependency: DependencyDescription
 ): TemplateData {
-  const fromFile = getLegacyFileTemplateData(dependency.from.file);
-  const fromElement = {
-    ...fromFile,
-    ...getLegacyElementTemplateData(
-      dependency.from.element,
-      dependency.from.origin.kind
-    ),
-  };
-  const toFile = getLegacyFileTemplateData(dependency.to.file);
-  const toElement = {
-    ...toFile,
-    ...getLegacyElementTemplateData(
-      dependency.to.element,
-      dependency.to.origin.kind
-    ),
-  };
+  const fromFile = dependency.from.file;
+  const fromElement = getLegacyElementTemplateData(
+    dependency.from.element,
+    dependency.from.origin.kind
+  );
+  const toFile = dependency.to.file;
+  const toElement = getLegacyElementTemplateData(
+    dependency.to.element,
+    dependency.to.origin.kind
+  );
 
   return {
     from: {

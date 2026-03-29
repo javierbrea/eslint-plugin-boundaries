@@ -14,11 +14,13 @@ import type {
   ElementDescriptors,
   ElementsDescriptorSerializedCache,
 } from "./ElementDescriptor.types";
+import { ELEMENT_DESCRIPTOR_MODES_MAP } from "./ElementDescriptor.types";
 import { isElementDescriptor } from "./ElementDescriptorHelpers";
 
 const UNKNOWN_ELEMENT: UnknownElementDescription = {
   path: null,
   fileInternalPath: null,
+  filePath: null,
   parents: [],
   type: null,
   category: null,
@@ -119,7 +121,7 @@ export class ElementsDescriptor {
     for (const descriptor of elementDescriptors) {
       if (!isElementDescriptor(descriptor)) {
         throw new Error(
-          `Element descriptor at index ${index} must have a pattern and a 'type' defined.`
+          `Element descriptor at index ${index} must have a pattern, and either a 'type' or 'category' defined.`
         );
       }
       index++;
@@ -268,14 +270,19 @@ export class ElementsDescriptor {
     useFullPathMatch?: boolean;
     patternUsed?: string;
   } {
+    const isFolderMode =
+      !elementDescriptor.mode ||
+      elementDescriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
     const patterns = isArray(elementDescriptor.pattern)
       ? elementDescriptor.pattern
       : [elementDescriptor.pattern];
 
     for (const pattern of patterns) {
       const useFullPathMatch =
-        elementDescriptor.requireFullMatch && !alreadyMatched;
-      const effectivePattern = !alreadyMatched ? `${pattern}/**/*` : pattern;
+        elementDescriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FULL &&
+        !alreadyMatched;
+      const effectivePattern =
+        isFolderMode && !alreadyMatched ? `${pattern}/**/*` : pattern;
 
       const targetPath = useFullPathMatch
         ? filePath
@@ -329,6 +336,7 @@ export class ElementsDescriptor {
     if (!this._pathIsIncluded(filePath)) {
       return {
         ...UNKNOWN_ELEMENT,
+        filePath: filePath,
         path: filePath,
         isIgnored: true,
       };
@@ -336,6 +344,7 @@ export class ElementsDescriptor {
 
     const parents: UnknownElementDescription["parents"] = [];
     const elementResult: ElementDescription = {
+      filePath: filePath, // For backward compatibility with legacy mode "file", where filePath was used to store the path of the element. --- IGNORE ---
       path: filePath,
       fileInternalPath: null,
       type: null,
@@ -392,6 +401,9 @@ export class ElementsDescriptor {
         : this._getElementPath(patternUsed, currentPathSegments, elementPaths);
 
       if (!elementResult.type && !elementResult.category) {
+        const isFolderMode =
+          !elementDescriptor.mode ||
+          elementDescriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
         // It is the main element
         elementResult.type = elementDescriptor.type || null;
         elementResult.category = elementDescriptor.category || null;
@@ -399,7 +411,7 @@ export class ElementsDescriptor {
         elementResult.path = elementPath;
         elementResult.captured = capturedValues;
         elementResult.fileInternalPath =
-          filePath !== elementPath // Defensive check to ensure we don't return an empty string if filePath and elementPath are the same. This should not happen.
+          isFolderMode || filePath !== elementPath // Defensive check to ensure we don't return an empty string if filePath and elementPath are the same. This should not happen.
             ? filePath.replace(`${elementPath}/`, "")
             : filePath.split("/").pop() || filePath; // Extra defensive check to ensure we don't return an empty string if filePath is a single segment. This should not happen either, but we want to be safe.
       } else {

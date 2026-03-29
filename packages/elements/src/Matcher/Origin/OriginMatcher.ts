@@ -1,6 +1,6 @@
 import type { MatchersOptionsNormalized } from "../../Config";
 import type { OriginDescription } from "../../Descriptor";
-import { isNullish } from "../../Shared";
+import { isNull } from "../../Shared";
 import { BaseElementsMatcher } from "../Shared";
 import type { TemplateData, MatcherOptions, Micromatch } from "../Shared";
 
@@ -131,6 +131,6 @@ export class OriginsMatcher extends BaseElementsMatcher {
       selector,
       options
     );
-    return !isNullish(selectorMatching);
+    return !isNull(selectorMatching);
   }
 }

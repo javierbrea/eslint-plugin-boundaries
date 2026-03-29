@@ -218,7 +218,7 @@ export class BaseElementsMatcher {
     selectorKey: keyof S;
   }): boolean {
     // The selector key does not exist in the selector, so it matches any value.
-    if (!(selectorKey in selector)) {
+    if (!(selectorKey in selector) || isUndefined(selector[selectorKey])) {
       return true;
     }
     // The selector key exists in the selector, but it does not exist in the element. No match.
@@ -266,16 +266,13 @@ export class BaseElementsMatcher {
     templateData: TemplateData;
   }): boolean {
     // The selector key does not exist in the selector, so it matches any value. We also check the value passed separately in order to improve typing inference.
-    if (!(selectorKey in selector)) {
+    if (!(selectorKey in selector) || isUndefined(selectorValue)) {
       return true;
     }
     // Undefined selector values do not match anything.
     // The selector key exists in the selector, but it does not exist in the element. No match.
     /* istanbul ignore next - This cases should not happen due to selector validations, but we guard against it anyway. */
-    if (
-      isUndefined(selectorValue) ||
-      !isObjectWithProperty(element, String(elementKey))
-    ) {
+    if (!isObjectWithProperty(element, String(elementKey))) {
       return false;
     }
 

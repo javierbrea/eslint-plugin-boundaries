@@ -1,9 +1,5 @@
-import type {
-  ElementDescriptor,
-  ElementDescriptors,
-  FileDescriptors,
-} from "../Descriptor";
-import { isObjectWithAnyOfProperties } from "../Shared";
+import type { ElementDescriptor, ElementDescriptors } from "../Descriptor";
+import { isObjectWithProperty, isUndefined } from "../Shared";
 
 import type {
   LegacyElementDescriptor,
@@ -11,7 +7,6 @@ import type {
   LegacyDescriptorsConfig,
   BackwardCompatibleDescriptorsConfig,
 } from "./Descriptor.types";
-import { ELEMENT_DESCRIPTOR_MODES_MAP } from "./Descriptor.types";
 
 /**
  * Determines if the given descriptor is a legacy element descriptor.
@@ -21,7 +16,9 @@ import { ELEMENT_DESCRIPTOR_MODES_MAP } from "./Descriptor.types";
 export function isLegacyElementDescriptor(
   descriptor: ElementDescriptor | LegacyElementDescriptor
 ): descriptor is LegacyElementDescriptor {
-  return isObjectWithAnyOfProperties(descriptor, ["mode", "category"]);
+  return (
+    isObjectWithProperty(descriptor, "mode") && !isUndefined(descriptor.mode)
+  );
 }
 
 /**
@@ -55,71 +52,4 @@ export function isLegacyDescriptorsConfig(
     );
   }
   return isLegacy;
-}
-
-/**
- * Converts legacy element descriptors to the new format. Legacy element descriptors with mode "file" will be converted to file descriptors, while those with mode "folder" or "full" will be converted to element descriptors. The function will return an object containing the converted element descriptors and file descriptors.
- * @param legacyElementDescriptors The legacy element descriptors to convert.
- * @returns An object containing the converted element descriptors and file descriptors.
- */
-export function convertLegacyElementDescriptors(
-  legacyElementDescriptors: BackwardCompatibleElementDescriptors
-): {
-  elementDescriptors: ElementDescriptors;
-  fileDescriptors: FileDescriptors;
-} {
-  const elementDescriptors: ElementDescriptors = [];
-  const fileDescriptors: FileDescriptors = [];
-
-  legacyElementDescriptors.forEach((descriptor) => {
-    if (isLegacyElementDescriptor(descriptor)) {
-      const { mode } = descriptor;
-      if (mode === ELEMENT_DESCRIPTOR_MODES_MAP.FILE) {
-        const toFolderPattern = (p: string) =>
-          p.split("/").slice(0, -1).join("/");
-        const folderPattern = Array.isArray(descriptor.pattern)
-          ? descriptor.pattern.map(toFolderPattern)
-          : toFolderPattern(descriptor.pattern);
-        elementDescriptors.push({
-          ...descriptor,
-          pattern: folderPattern,
-        });
-
-        fileDescriptors.push({
-          ...descriptor,
-          pattern: descriptor.pattern,
-          basePattern: descriptor.basePattern || "**",
-          baseCapture: descriptor.baseCapture,
-          category: descriptor.category || "uncategorized",
-          type: descriptor.type,
-        });
-      } else if (mode === ELEMENT_DESCRIPTOR_MODES_MAP.FULL) {
-        elementDescriptors.push({
-          ...descriptor,
-          requireFullMatch: true,
-        });
-      }
-    }
-  });
-
-  return { elementDescriptors, fileDescriptors };
-}
-
-/**
- * Converts a legacy descriptors config to the new format. The function will convert the legacy element descriptors to the new format using the `convertLegacyElementDescriptors` function, and will return an object containing the converted element descriptors and file descriptors.
- * @param legacyConfig The legacy descriptors config to convert.
- * @returns The converted descriptors config, containing the converted element descriptors and file descriptors.
- */
-export function convertLegacyDescriptorsConfig(
-  legacyConfig: LegacyDescriptorsConfig
-): {
-  elements: ElementDescriptors;
-  files: FileDescriptors;
-} {
-  const { elementDescriptors, fileDescriptors } =
-    convertLegacyElementDescriptors(legacyConfig.elements);
-  return {
-    elements: elementDescriptors,
-    files: fileDescriptors,
-  };
 }
