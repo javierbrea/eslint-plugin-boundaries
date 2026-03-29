@@ -7,5 +7,5 @@ export type ElementSingleSelectorMatchResult = Omit<
   ElementSingleSelectorNormalized,
   "parent"
 > & {
-  parent?: ParentElementSingleSelector;
+  parent?: ParentElementSingleSelector | null;
 };

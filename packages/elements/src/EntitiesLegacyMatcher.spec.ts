@@ -77,7 +77,7 @@ describe("Entities Legacy Matcher", () => {
     elements.clearCache();
   });
 
-  describe("when matching entities using legacy element selectors", () => {
+  describe("when matching entities using element selectors", () => {
     // eslint-disable-next-line jest/prefer-ending-with-an-expect
     it.each([
       {
@@ -681,18 +681,28 @@ describe("Entities Legacy Matcher", () => {
             selector,
             extraTemplateData ? { extraTemplateData } : undefined
           );
+
           const convertedSelector = convertLegacyEntitySelector(
             expectedMatch || selector
           );
 
-          const expectedMatchingCandidates = Array.isArray(convertedSelector)
-            ? convertedSelector
-            : [convertedSelector];
+          const expectedMatchResult = Array.isArray(convertedSelector)
+            ? convertedSelector[0]
+            : convertedSelector;
+
+          // @ts-expect-error - The converted type think it might be a string in the element, but it is normalized
+          if (expectedMatchResult.element?.parent) {
+            // @ts-expect-error - The converted type think it might be a string in the element, but it is normalized
+            if (Array.isArray(expectedMatchResult.element.parent)) {
+              // @ts-expect-error - The converted type think it might be a string in the element, but it is normalized
+              expectedMatchResult.element.parent =
+                // @ts-expect-error - The converted type think it might be a string in the element, but it is normalized
+                expectedMatchResult.element.parent[0];
+            }
+          }
 
           // eslint-disable-next-line jest/no-conditional-expect
-          expect(expectedMatchingCandidates).toContainEqual(
-            selectorMatchingResult
-          );
+          expect(selectorMatchingResult).toStrictEqual(expectedMatchResult);
         }
       }
     );
@@ -885,7 +895,7 @@ describe("Entities Legacy Matcher", () => {
     });
   });
 
-  describe("when matching dependencies", () => {
+  describe("when matching dependencies using element selectors", () => {
     // eslint-disable-next-line jest/prefer-ending-with-an-expect
     it.each([
       {

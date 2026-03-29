@@ -229,7 +229,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
     templateData: TemplateData
   ): boolean {
     if (isUndefined(selector)) {
-      return true;
+      return false;
     }
     if (isNull(selector)) {
       return !element.parents || element.parents.length === 0;
@@ -293,22 +293,28 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @param element The element to check.
    * @param selector The selector to check against.
    * @param templateData The data to use for replace in selector values
-   * @returns The matching parent selector, or null if no parent selector matches or if parent is not applicable.
+   * @returns The matching parent selector, null if the selector parent is null and the element has no parents, or undefined if there is no match.
    */
   private _getParentSelectorMatching(
     element: ElementDescription,
     selector: ElementSingleSelectorNormalized,
     templateData: TemplateData
-  ): ParentElementSingleSelector | null {
-    if (isUndefined(selector.parent) || isNull(selector.parent)) {
-      return null;
+  ): ParentElementSingleSelector | null | undefined {
+    if (isUndefined(selector.parent)) {
+      return undefined;
+    }
+    if (isNull(selector.parent)) {
+      if (element.parents.length === 0) {
+        return selector.parent;
+      }
+      return undefined;
     }
     for (const parentSelector of selector.parent) {
       if (this._isSingleParentMatch(element, parentSelector, templateData)) {
         return parentSelector;
       }
     }
-    return null;
+    return undefined;
   }
 
   /**
@@ -438,7 +444,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
       );
 
       // All conditions including parent match passed, return the first matching selector
-      if (!isNull(matchingParentSelector)) {
+      if (!isUndefined(matchingParentSelector)) {
         return {
           ...selectorData,
           parent: matchingParentSelector,
