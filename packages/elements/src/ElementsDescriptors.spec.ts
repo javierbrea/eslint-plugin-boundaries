@@ -22,7 +22,7 @@ describe("Elements Descriptors", () => {
       to,
       source,
       kind: "value",
-    }).to;
+    }).to.element;
   };
 
   beforeEach(() => {
@@ -214,10 +214,9 @@ describe("Elements Descriptors", () => {
         captured: {
           fileName: "Button",
         },
-        elementPath: "/project/src/components/Button.tsx",
-        internalPath: "Button.tsx",
+        filePath: "/project/src/components/Button.tsx",
+        fileInternalPath: "Button.tsx",
         parents: [],
-        origin: "local",
         isIgnored: false,
         isUnknown: false,
         path: "/project/src/components/Button.tsx",
@@ -247,12 +246,11 @@ describe("Elements Descriptors", () => {
         captured: {
           fileName: "Button",
         },
-        elementPath: "/project/src/components/Button.tsx",
-        internalPath: "Button.tsx",
+        filePath: "/project/src/components/Button.tsx",
+        fileInternalPath: "Button.tsx",
         parents: [],
         isIgnored: false,
         isUnknown: false,
-        origin: "local",
         path: "/project/src/components/Button.tsx",
       });
       expect(isKnownElementDescription(element)).toBe(true);
@@ -275,10 +273,9 @@ describe("Elements Descriptors", () => {
         },
         isUnknown: false,
         isIgnored: false,
-        elementPath: "/project/src/utils/math/math.test.ts",
-        internalPath: "math.test.ts",
+        filePath: "/project/src/utils/math/math.test.ts",
+        fileInternalPath: "math.test.ts",
         parents: [],
-        origin: "local",
         path: "/project/src/utils/math/math.test.ts",
       });
 
@@ -295,11 +292,10 @@ describe("Elements Descriptors", () => {
         type: null,
         category: "business-logic",
         captured: null,
-        elementPath: "/project/src/modules/user",
-        internalPath: "foo.ts",
-        path: "/project/src/modules/user/foo.ts",
+        path: "/project/src/modules/user",
+        filePath: "/project/src/modules/user/foo.ts",
+        fileInternalPath: "foo.ts",
         parents: [],
-        origin: "local",
         isIgnored: false,
         isUnknown: false,
       });
@@ -320,12 +316,11 @@ describe("Elements Descriptors", () => {
           serviceName: "payment",
           serviceFileName: "PaymentService",
         },
-        elementPath: "/project/src/services/payment/PaymentService.ts",
+        filePath: "/project/src/services/payment/PaymentService.ts",
         path: "/project/src/services/payment/PaymentService.ts",
-        internalPath: "PaymentService.ts",
+        fileInternalPath: "PaymentService.ts",
         parents: [],
         isIgnored: false,
-        origin: "local",
         isUnknown: false,
       });
       expect(isKnownElementDescription(element)).toBe(true);
@@ -339,11 +334,10 @@ describe("Elements Descriptors", () => {
         type: null,
         category: null,
         captured: null,
-        elementPath: null,
-        internalPath: null,
-        parents: null,
-        path: "/project/src/misc/other.ts",
-        origin: "local",
+        filePath: null,
+        fileInternalPath: null,
+        parents: [],
+        path: null,
         isIgnored: false,
         isUnknown: true,
       });
@@ -361,9 +355,8 @@ describe("Elements Descriptors", () => {
         category: null,
         captured: null,
         isIgnored: false,
-        elementPath: "/project/src/utils/math/mathUtil.ts",
-        internalPath: "mathUtil.ts",
-        origin: "local",
+        filePath: "/project/src/utils/math/mathUtil.ts",
+        fileInternalPath: "mathUtil.ts",
         parents: [],
         path: "/project/src/utils/math/mathUtil.ts",
         isUnknown: false,
@@ -382,23 +375,23 @@ describe("Elements Descriptors", () => {
         category: "business-logic",
         captured: null,
         isIgnored: false,
-        elementPath: "/project/src/foo/var/modules/notification/modules/email",
-        internalPath: "EmailService.ts",
-        origin: "local",
-        path: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+        fileInternalPath: "EmailService.ts",
+        path: "/project/src/foo/var/modules/notification/modules/email",
         isUnknown: false,
         parents: [
           {
             type: null,
             captured: null,
             category: "business-logic",
-            elementPath: "/project/src/foo/var/modules/notification",
+            path: "/project/src/foo/var/modules/notification",
           },
           {
             type: "foo",
             captured: null,
             category: null,
-            elementPath: "/project/src/foo/var",
+            path: "/project/src/foo/var",
           },
         ],
       });
@@ -417,9 +410,8 @@ describe("Elements Descriptors", () => {
         category: null,
         isIgnored: false,
         captured: null,
-        internalPath: "index.ts",
-        elementPath: "/project/src/utils/math/index.ts",
-        origin: "local",
+        fileInternalPath: "index.ts",
+        filePath: "/project/src/utils/math/index.ts",
         parents: [],
         path: "/project/src/utils/math/index.ts",
         isUnknown: false,
@@ -438,11 +430,10 @@ describe("Elements Descriptors", () => {
         type: null,
         category: null,
         captured: null,
-        elementPath: null,
-        parents: null,
-        internalPath: null,
-        isIgnored: false,
-        origin: "external",
+        filePath: "/project/node_modules/react/index.tsx",
+        parents: [],
+        fileInternalPath: null,
+        isIgnored: true,
         path: "/project/node_modules/react/index.tsx",
         isUnknown: true,
       });
@@ -459,11 +450,10 @@ describe("Elements Descriptors", () => {
         type: null,
         category: null,
         captured: null,
-        elementPath: null,
-        internalPath: null,
-        isIgnored: false,
-        parents: null,
-        origin: "external",
+        filePath: "/project/node_modules/@mui/icons-material/index.tsx",
+        fileInternalPath: null,
+        isIgnored: true,
+        parents: [],
         path: "/project/node_modules/@mui/icons-material/index.tsx",
         isUnknown: true,
       });
@@ -480,11 +470,10 @@ describe("Elements Descriptors", () => {
         type: null,
         category: null,
         captured: null,
-        elementPath: null,
-        parents: null,
-        internalPath: "/foo",
-        isIgnored: false,
-        origin: "external",
+        filePath: "/project/node_modules/@mui/icons-material/index.tsx",
+        parents: [],
+        fileInternalPath: null,
+        isIgnored: true,
         path: "/project/node_modules/@mui/icons-material/index.tsx",
         isUnknown: true,
       });
@@ -498,11 +487,10 @@ describe("Elements Descriptors", () => {
         type: null,
         category: null,
         captured: null,
-        elementPath: null,
-        internalPath: null,
-        parents: null,
+        filePath: null,
+        fileInternalPath: null,
+        parents: [],
         isIgnored: false,
-        origin: "external",
         path: null,
         isUnknown: true,
       });
@@ -516,11 +504,10 @@ describe("Elements Descriptors", () => {
         type: null,
         category: null,
         captured: null,
-        elementPath: null,
-        internalPath: null,
-        parents: null,
+        filePath: null,
+        fileInternalPath: null,
+        parents: [],
         isIgnored: false,
-        origin: "core",
         path: null,
         isUnknown: true,
       });
@@ -534,11 +521,10 @@ describe("Elements Descriptors", () => {
         type: null,
         category: null,
         captured: null,
-        elementPath: null,
-        internalPath: null,
-        parents: null,
+        filePath: null,
+        fileInternalPath: null,
+        parents: [],
         isIgnored: false,
-        origin: "core",
         path: null,
         isUnknown: true,
       });
@@ -683,47 +669,51 @@ describe("Elements Descriptors", () => {
 
       expect(dependency).toMatchObject({
         from: {
-          captured: {
-            fileName: "Button",
+          element: {
+            captured: { fileName: "Button" },
+            category: "react",
+            filePath: "/project/src/components/Button.tsx",
+            fileInternalPath: "Button.tsx",
+            isIgnored: false,
+            parents: [],
+            path: "/project/src/components/Button.tsx",
+            type: "component",
+            isUnknown: false,
           },
-          category: "react",
-          elementPath: "/project/src/components/Button.tsx",
-          internalPath: "Button.tsx",
-          isIgnored: false,
-          origin: "local",
-          parents: [],
-          path: "/project/src/components/Button.tsx",
-          type: "component",
-          isUnknown: false,
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         to: {
-          captured: null,
-          elementPath: null,
-          internalPath: null,
-          parents: null,
-          category: null,
-          origin: "local",
-          path: "/project/src/bar/Baz.ts",
-          isIgnored: false,
-          type: null,
-          isUnknown: true,
+          element: {
+            captured: null,
+            filePath: null,
+            fileInternalPath: null,
+            parents: [],
+            category: null,
+            path: null,
+            isIgnored: false,
+            type: null,
+            isUnknown: true,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         dependency: {
           source: "project/bar",
-          module: null,
           kind: "type",
           nodeKind: "ImportDeclaration",
           specifiers: null,
-          relationship: {
-            from: null,
-            to: null,
-          },
+          relationship: { from: null, to: null },
         },
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isKnownElementDescription(dependency.from)).toBe(true);
-      expect(isUnknownElementDescription(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from.element)).toBe(true);
+      expect(isUnknownElementDescription(dependency.to.element)).toBe(true);
     });
 
     it("should return dependency from unknown elements", () => {
@@ -737,45 +727,51 @@ describe("Elements Descriptors", () => {
 
       expect(dependency).toMatchObject({
         from: {
-          category: null,
-          elementPath: null,
-          internalPath: null,
-          parents: null,
-          captured: null,
-          origin: "local",
-          path: "/project/src/var/Baz.ts",
-          isIgnored: false,
-          type: null,
-          isUnknown: true,
+          element: {
+            category: null,
+            filePath: null,
+            fileInternalPath: null,
+            parents: [],
+            captured: null,
+            path: null,
+            isIgnored: false,
+            type: null,
+            isUnknown: true,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         to: {
-          captured: null,
-          category: null,
-          origin: "local",
-          path: "/project/src/bar/Baz.ts",
-          isIgnored: false,
-          type: null,
-          isUnknown: true,
-          elementPath: null,
-          internalPath: null,
-          parents: null,
+          element: {
+            captured: null,
+            category: null,
+            filePath: null,
+            path: null,
+            isIgnored: false,
+            type: null,
+            isUnknown: true,
+            fileInternalPath: null,
+            parents: [],
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         dependency: {
           source: "project/bar",
-          module: null,
           kind: "type",
           nodeKind: null,
           specifiers: ["foo", "bar"],
-          relationship: {
-            from: null,
-            to: null,
-          },
+          relationship: { from: null, to: null },
         },
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isUnknownElementDescription(dependency.from)).toBe(true);
-      expect(isUnknownElementDescription(dependency.to)).toBe(true);
+      expect(isUnknownElementDescription(dependency.from.element)).toBe(true);
+      expect(isUnknownElementDescription(dependency.to.element)).toBe(true);
     });
 
     it("should return dependency between ignored elements", () => {
@@ -789,45 +785,51 @@ describe("Elements Descriptors", () => {
 
       expect(dependency).toMatchObject({
         from: {
-          elementPath: null,
-          internalPath: null,
-          parents: null,
-          category: null,
-          captured: null,
-          origin: null,
-          isIgnored: true,
-          path: "/var/var/Baz.ts",
-          type: null,
-          isUnknown: true,
+          element: {
+            filePath: "/var/var/Baz.ts",
+            fileInternalPath: null,
+            parents: [],
+            category: null,
+            captured: null,
+            isIgnored: true,
+            path: "/var/var/Baz.ts",
+            type: null,
+            isUnknown: true,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         to: {
-          elementPath: null,
-          internalPath: null,
-          parents: null,
-          captured: null,
-          category: null,
-          origin: null,
-          isIgnored: true,
-          path: "/var/bar/Baz.ts",
-          type: null,
-          isUnknown: true,
+          element: {
+            filePath: "/var/bar/Baz.ts",
+            fileInternalPath: null,
+            parents: [],
+            captured: null,
+            category: null,
+            isIgnored: true,
+            path: "/var/bar/Baz.ts",
+            type: null,
+            isUnknown: true,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         dependency: {
           source: "project/bar",
-          module: null,
           kind: "type",
           nodeKind: null,
           specifiers: ["foo", "bar"],
-          relationship: {
-            from: null,
-            to: null,
-          },
+          relationship: { from: null, to: null },
         },
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isIgnoredElementDescription(dependency.from)).toBe(true);
-      expect(isIgnoredElementDescription(dependency.to)).toBe(true);
+      expect(isIgnoredElementDescription(dependency.from.element)).toBe(true);
+      expect(isIgnoredElementDescription(dependency.to.element)).toBe(true);
     });
 
     it("should return dependency between known elements", () => {
@@ -842,52 +844,56 @@ describe("Elements Descriptors", () => {
 
       expect(dependency).toMatchObject({
         from: {
-          type: "component",
-          category: "react",
-          captured: {
-            fileName: "Button",
+          element: {
+            type: "component",
+            category: "react",
+            captured: { fileName: "Button" },
+            filePath: "/project/src/components/Button.tsx",
+            fileInternalPath: "Button.tsx",
+            parents: [],
+            isIgnored: false,
+            path: "/project/src/components/Button.tsx",
+            isUnknown: false,
           },
-          elementPath: "/project/src/components/Button.tsx",
-          internalPath: "Button.tsx",
-          parents: [],
-          isIgnored: false,
-          origin: "local",
-          path: "/project/src/components/Button.tsx",
-          isUnknown: false,
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         to: {
-          type: "test",
-          category: "business-logic",
-          isIgnored: false,
-          captured: {
-            elementName: "math",
-            testFileName: "math",
-            businessLogicArea: "utils",
-            root: "/project",
+          element: {
+            type: "test",
+            category: "business-logic",
+            isIgnored: false,
+            captured: {
+              elementName: "math",
+              testFileName: "math",
+              businessLogicArea: "utils",
+              root: "/project",
+            },
+            filePath: "/project/src/utils/math/math.test.ts",
+            fileInternalPath: "math.test.ts",
+            parents: [],
+            path: "/project/src/utils/math/math.test.ts",
+            isUnknown: false,
           },
-          elementPath: "/project/src/utils/math/math.test.ts",
-          internalPath: "math.test.ts",
-          parents: [],
-          origin: "local",
-          path: "/project/src/utils/math/math.test.ts",
-          isUnknown: false,
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         dependency: {
           source: "../utils/math/math.test.ts",
-          module: null,
           kind: "value",
           nodeKind: "Import",
           specifiers: ["calculateSum", "calculateAvg"],
-          relationship: {
-            from: null,
-            to: null,
-          },
+          relationship: { from: null, to: null },
         },
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isKnownElementDescription(dependency.from)).toBe(true);
-      expect(isKnownElementDescription(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from.element)).toBe(true);
+      expect(isKnownElementDescription(dependency.to.element)).toBe(true);
     });
 
     it("should describe dependency to unknown external elements correctly", () => {
@@ -901,46 +907,50 @@ describe("Elements Descriptors", () => {
 
       expect(dependency).toMatchObject({
         from: {
-          captured: {
-            fileName: "Button",
+          element: {
+            captured: { fileName: "Button" },
+            category: "react",
+            filePath: "/project/src/components/Button.tsx",
+            fileInternalPath: "Button.tsx",
+            parents: [],
+            path: "/project/src/components/Button.tsx",
+            type: "component",
+            isIgnored: false,
+            isUnknown: false,
           },
-          category: "react",
-          elementPath: "/project/src/components/Button.tsx",
-          internalPath: "Button.tsx",
-          origin: "local",
-          parents: [],
-          path: "/project/src/components/Button.tsx",
-          type: "component",
-          isIgnored: false,
-          isUnknown: false,
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         to: {
-          captured: null,
-          elementPath: null,
-          parents: null,
-          category: null,
-          origin: "external",
-          path: "/project/node_modules/react/index.tsx",
-          internalPath: null,
-          type: null,
-          isIgnored: false,
-          isUnknown: true,
+          element: {
+            captured: null,
+            filePath: "/project/node_modules/react/index.tsx",
+            parents: [],
+            category: null,
+            path: "/project/node_modules/react/index.tsx",
+            fileInternalPath: null,
+            type: null,
+            isIgnored: true,
+            isUnknown: true,
+          },
+          origin: {
+            kind: "external",
+            module: "react",
+          },
         },
         dependency: {
           source: "react",
-          module: "react",
           kind: "type",
           nodeKind: "ImportDeclaration",
           specifiers: null,
-          relationship: {
-            from: null,
-            to: null,
-          },
+          relationship: { from: null, to: null },
         },
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isKnownElementDescription(dependency.from)).toBe(true);
+      expect(isKnownElementDescription(dependency.from.element)).toBe(true);
     });
 
     it("should set null dependency module for external sources without package segment", () => {
@@ -953,13 +963,18 @@ describe("Elements Descriptors", () => {
       });
 
       expect(dependency.to).toMatchObject({
-        origin: "external",
-        path: "/project/node_modules/react/index.tsx",
+        origin: {
+          kind: "external",
+          module: "",
+        },
+        element: {
+          filePath: "/project/node_modules/react/index.tsx",
+          isIgnored: true,
+          path: "/project/node_modules/react/index.tsx",
+        },
       });
-      expect(dependency.dependency).toMatchObject({
-        source: "/react",
-        module: null,
-      });
+      expect(dependency.dependency).toMatchObject({ source: "/react" });
+      expect(dependency.dependency).not.toHaveProperty("module");
     });
 
     it("should describe dependency to core elements correctly", () => {
@@ -972,46 +987,50 @@ describe("Elements Descriptors", () => {
 
       expect(dependency).toMatchObject({
         from: {
-          captured: {
-            fileName: "Button",
+          element: {
+            captured: { fileName: "Button" },
+            category: "react",
+            filePath: "/project/src/components/Button.tsx",
+            fileInternalPath: "Button.tsx",
+            parents: [],
+            path: "/project/src/components/Button.tsx",
+            type: "component",
+            isIgnored: false,
+            isUnknown: false,
           },
-          category: "react",
-          elementPath: "/project/src/components/Button.tsx",
-          internalPath: "Button.tsx",
-          origin: "local",
-          parents: [],
-          path: "/project/src/components/Button.tsx",
-          type: "component",
-          isIgnored: false,
-          isUnknown: false,
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         to: {
-          captured: null,
-          elementPath: null,
-          internalPath: null,
-          parents: null,
-          category: null,
-          origin: "core",
-          path: null,
-          type: null,
-          isIgnored: false,
-          isUnknown: true,
+          element: {
+            captured: null,
+            filePath: null,
+            fileInternalPath: null,
+            parents: [],
+            category: null,
+            path: null,
+            type: null,
+            isIgnored: false,
+            isUnknown: true,
+          },
+          origin: {
+            kind: "core",
+            module: "fs",
+          },
         },
         dependency: {
           source: "fs",
-          module: "fs",
           kind: "type",
           nodeKind: "ImportDeclaration",
           specifiers: null,
-          relationship: {
-            from: null,
-            to: null,
-          },
+          relationship: { from: null, to: null },
         },
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isKnownElementDescription(dependency.from)).toBe(true);
+      expect(isKnownElementDescription(dependency.from.element)).toBe(true);
     });
 
     it("should assign relationships to child elements in dependencies", () => {
@@ -1025,67 +1044,74 @@ describe("Elements Descriptors", () => {
 
       expect(dependency).toMatchObject({
         from: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath: "/project/src/foo/var/modules/notification",
-          internalPath: "NotificationService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/NotificationService.ts",
-          parents: [
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification",
+            filePath:
+              "/project/src/foo/var/modules/notification/NotificationService.ts",
+            fileInternalPath: "NotificationService.ts",
+            parents: [
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         to: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath:
-            "/project/src/foo/var/modules/notification/modules/email",
-          internalPath: "EmailService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
-          parents: [
-            {
-              type: null,
-              captured: null,
-              category: "business-logic",
-              elementPath: "/project/src/foo/var/modules/notification",
-            },
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification/modules/email",
+            filePath:
+              "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+            fileInternalPath: "EmailService.ts",
+            parents: [
+              {
+                type: null,
+                captured: null,
+                category: "business-logic",
+                path: "/project/src/foo/var/modules/notification",
+              },
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         dependency: {
           source: "./modules/email/EmailService",
-          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
-          relationship: {
-            from: "parent",
-            to: "child",
-          },
+          relationship: { from: "parent", to: "child" },
         },
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
       expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
-      expect(isKnownElementDescription(dependency.from)).toBe(true);
-      expect(isKnownElementDescription(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from.element)).toBe(true);
+      expect(isKnownElementDescription(dependency.to.element)).toBe(true);
     });
 
     it("should assign relationships to internal elements in dependencies", () => {
@@ -1099,60 +1125,68 @@ describe("Elements Descriptors", () => {
 
       expect(dependency).toMatchObject({
         from: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath: "/project/src/foo/var/modules/notification",
-          internalPath: "NotificationService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/NotificationService.ts",
-          parents: [
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification",
+            filePath:
+              "/project/src/foo/var/modules/notification/NotificationService.ts",
+            fileInternalPath: "NotificationService.ts",
+            parents: [
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         to: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath: "/project/src/foo/var/modules/notification",
-          internalPath: "EmailService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/EmailService.ts",
-          parents: [
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification",
+            filePath:
+              "/project/src/foo/var/modules/notification/EmailService.ts",
+            fileInternalPath: "EmailService.ts",
+            parents: [
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         dependency: {
           source: "./EmailService",
-          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
-          relationship: {
-            from: "internal",
-            to: "internal",
-          },
+          relationship: { from: "internal", to: "internal" },
         },
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
       expect(isDependencyWithInternalRelationship(dependency)).toBe(true);
-      expect(isKnownElementDescription(dependency.from)).toBe(true);
-      expect(isKnownElementDescription(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from.element)).toBe(true);
+      expect(isKnownElementDescription(dependency.to.element)).toBe(true);
     });
 
     it("should assign relationships to descendant elements in dependencies", () => {
@@ -1166,74 +1200,80 @@ describe("Elements Descriptors", () => {
 
       expect(dependency).toMatchObject({
         from: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath: "/project/src/foo/var/modules/notification",
-          internalPath: "NotificationService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/NotificationService.ts",
-          parents: [
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification",
+            filePath:
+              "/project/src/foo/var/modules/notification/NotificationService.ts",
+            fileInternalPath: "NotificationService.ts",
+            parents: [
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         to: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath:
-            "/project/src/foo/var/modules/notification/modules/email/modules/send",
-          internalPath: "SendService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/modules/email/modules/send/SendService.ts",
-          parents: [
-            {
-              type: null,
-              captured: null,
-              category: "business-logic",
-              elementPath:
-                "/project/src/foo/var/modules/notification/modules/email",
-            },
-            {
-              type: null,
-              captured: null,
-              category: "business-logic",
-              elementPath: "/project/src/foo/var/modules/notification",
-            },
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification/modules/email/modules/send",
+            filePath:
+              "/project/src/foo/var/modules/notification/modules/email/modules/send/SendService.ts",
+            fileInternalPath: "SendService.ts",
+            parents: [
+              {
+                type: null,
+                captured: null,
+                category: "business-logic",
+                path: "/project/src/foo/var/modules/notification/modules/email",
+              },
+              {
+                type: null,
+                captured: null,
+                category: "business-logic",
+                path: "/project/src/foo/var/modules/notification",
+              },
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         dependency: {
           source: "./modules/email/modules/send/SendService",
-          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
-          relationship: {
-            from: "ancestor",
-            to: "descendant",
-          },
+          relationship: { from: "ancestor", to: "descendant" },
         },
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
       expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
-      expect(isKnownElementDescription(dependency.from)).toBe(true);
-      expect(isKnownElementDescription(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from.element)).toBe(true);
+      expect(isKnownElementDescription(dependency.to.element)).toBe(true);
     });
 
     it("should assign relationships to sibling elements in dependencies", () => {
@@ -1247,74 +1287,80 @@ describe("Elements Descriptors", () => {
 
       expect(dependency).toMatchObject({
         from: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath:
-            "/project/src/foo/var/modules/notification/modules/phone",
-          internalPath: "PhoneService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/modules/phone/PhoneService.ts",
-          parents: [
-            {
-              type: null,
-              captured: null,
-              category: "business-logic",
-              elementPath: "/project/src/foo/var/modules/notification",
-            },
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification/modules/phone",
+            filePath:
+              "/project/src/foo/var/modules/notification/modules/phone/PhoneService.ts",
+            fileInternalPath: "PhoneService.ts",
+            parents: [
+              {
+                type: null,
+                captured: null,
+                category: "business-logic",
+                path: "/project/src/foo/var/modules/notification",
+              },
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         to: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath:
-            "/project/src/foo/var/modules/notification/modules/email",
-          internalPath: "EmailService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
-          parents: [
-            {
-              type: null,
-              captured: null,
-              category: "business-logic",
-              elementPath: "/project/src/foo/var/modules/notification",
-            },
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification/modules/email",
+            filePath:
+              "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+            fileInternalPath: "EmailService.ts",
+            parents: [
+              {
+                type: null,
+                captured: null,
+                category: "business-logic",
+                path: "/project/src/foo/var/modules/notification",
+              },
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         dependency: {
           source: "../email/EmailService",
-          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
-          relationship: {
-            from: "sibling",
-            to: "sibling",
-          },
+          relationship: { from: "sibling", to: "sibling" },
         },
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
       expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
-      expect(isKnownElementDescription(dependency.from)).toBe(true);
-      expect(isKnownElementDescription(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from.element)).toBe(true);
+      expect(isKnownElementDescription(dependency.to.element)).toBe(true);
     });
 
     it("should assign relationships to parent elements in dependencies", () => {
@@ -1328,66 +1374,73 @@ describe("Elements Descriptors", () => {
 
       expect(dependency).toMatchObject({
         from: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath:
-            "/project/src/foo/var/modules/notification/modules/email",
-          internalPath: "EmailService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
-          parents: [
-            {
-              type: null,
-              captured: null,
-              category: "business-logic",
-              elementPath: "/project/src/foo/var/modules/notification",
-            },
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification/modules/email",
+            filePath:
+              "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+            fileInternalPath: "EmailService.ts",
+            parents: [
+              {
+                type: null,
+                captured: null,
+                category: "business-logic",
+                path: "/project/src/foo/var/modules/notification",
+              },
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         to: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath: "/project/src/foo/var/modules/notification",
-          internalPath: "NotificationService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/NotificationService.ts",
-          parents: [
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification",
+            filePath:
+              "/project/src/foo/var/modules/notification/NotificationService.ts",
+            fileInternalPath: "NotificationService.ts",
+            parents: [
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         dependency: {
           source: "../../NotificationService",
-          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
-          relationship: {
-            from: "child",
-            to: "parent",
-          },
+          relationship: { from: "child", to: "parent" },
         },
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
-      expect(isKnownElementDescription(dependency.from)).toBe(true);
-      expect(isKnownElementDescription(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from.element)).toBe(true);
+      expect(isKnownElementDescription(dependency.to.element)).toBe(true);
     });
 
     it("should assign relationships to ancestor elements in dependencies", () => {
@@ -1401,74 +1454,80 @@ describe("Elements Descriptors", () => {
 
       expect(dependency).toMatchObject({
         from: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath:
-            "/project/src/foo/var/modules/notification/modules/email/modules/send",
-          internalPath: "SendService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/modules/email/modules/send/SendService.ts",
-          parents: [
-            {
-              type: null,
-              captured: null,
-              category: "business-logic",
-              elementPath:
-                "/project/src/foo/var/modules/notification/modules/email",
-            },
-            {
-              type: null,
-              captured: null,
-              category: "business-logic",
-              elementPath: "/project/src/foo/var/modules/notification",
-            },
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification/modules/email/modules/send",
+            filePath:
+              "/project/src/foo/var/modules/notification/modules/email/modules/send/SendService.ts",
+            fileInternalPath: "SendService.ts",
+            parents: [
+              {
+                type: null,
+                captured: null,
+                category: "business-logic",
+                path: "/project/src/foo/var/modules/notification/modules/email",
+              },
+              {
+                type: null,
+                captured: null,
+                category: "business-logic",
+                path: "/project/src/foo/var/modules/notification",
+              },
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         to: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath: "/project/src/foo/var/modules/notification",
-          internalPath: "NotificationService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/NotificationService.ts",
-          parents: [
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification",
+            filePath:
+              "/project/src/foo/var/modules/notification/NotificationService.ts",
+            fileInternalPath: "NotificationService.ts",
+            parents: [
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         dependency: {
           source: "./modules/email/modules/send/SendService",
-          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
-          relationship: {
-            from: "descendant",
-            to: "ancestor",
-          },
+          relationship: { from: "descendant", to: "ancestor" },
         },
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
       expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
-      expect(isKnownElementDescription(dependency.from)).toBe(true);
-      expect(isKnownElementDescription(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from.element)).toBe(true);
+      expect(isKnownElementDescription(dependency.to.element)).toBe(true);
     });
 
     it("should assign relationships to uncle elements in dependencies", () => {
@@ -1482,81 +1541,86 @@ describe("Elements Descriptors", () => {
 
       expect(dependency).toMatchObject({
         from: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath:
-            "/project/src/foo/var/modules/notification/modules/phone/modules/sms",
-          internalPath: "SmsService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-          parents: [
-            {
-              captured: null,
-              category: "business-logic",
-              elementPath:
-                "/project/src/foo/var/modules/notification/modules/phone",
-              type: null,
-            },
-            {
-              type: null,
-              captured: null,
-              category: "business-logic",
-              elementPath: "/project/src/foo/var/modules/notification",
-            },
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification/modules/phone/modules/sms",
+            filePath:
+              "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+            fileInternalPath: "SmsService.ts",
+            parents: [
+              {
+                captured: null,
+                category: "business-logic",
+                path: "/project/src/foo/var/modules/notification/modules/phone",
+                type: null,
+              },
+              {
+                type: null,
+                captured: null,
+                category: "business-logic",
+                path: "/project/src/foo/var/modules/notification",
+              },
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         to: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath:
-            "/project/src/foo/var/modules/notification/modules/email",
-          internalPath: "EmailService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
-          parents: [
-            {
-              type: null,
-              captured: null,
-              category: "business-logic",
-              elementPath: "/project/src/foo/var/modules/notification",
-            },
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification/modules/email",
+            filePath:
+              "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+            fileInternalPath: "EmailService.ts",
+            parents: [
+              {
+                type: null,
+                captured: null,
+                category: "business-logic",
+                path: "/project/src/foo/var/modules/notification",
+              },
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         dependency: {
           source: "../../../email/EmailService",
-          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
-          relationship: {
-            from: "nephew",
-            to: "uncle",
-          },
+          relationship: { from: "nephew", to: "uncle" },
         },
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
       expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
-      expect(isKnownElementDescription(dependency.from)).toBe(true);
-      expect(isKnownElementDescription(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from.element)).toBe(true);
+      expect(isKnownElementDescription(dependency.to.element)).toBe(true);
     });
 
     it("should assign relationships to nephew elements in dependencies", () => {
@@ -1570,81 +1634,86 @@ describe("Elements Descriptors", () => {
 
       expect(dependency).toMatchObject({
         from: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath:
-            "/project/src/foo/var/modules/notification/modules/email",
-          internalPath: "EmailService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
-          parents: [
-            {
-              type: null,
-              captured: null,
-              category: "business-logic",
-              elementPath: "/project/src/foo/var/modules/notification",
-            },
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification/modules/email",
+            filePath:
+              "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+            fileInternalPath: "EmailService.ts",
+            parents: [
+              {
+                type: null,
+                captured: null,
+                category: "business-logic",
+                path: "/project/src/foo/var/modules/notification",
+              },
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         to: {
-          type: null,
-          category: "business-logic",
-          captured: null,
-          elementPath:
-            "/project/src/foo/var/modules/notification/modules/phone/modules/sms",
-          internalPath: "SmsService.ts",
-          origin: "local",
-          path: "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-          parents: [
-            {
-              captured: null,
-              category: "business-logic",
-              elementPath:
-                "/project/src/foo/var/modules/notification/modules/phone",
-              type: null,
-            },
-            {
-              type: null,
-              captured: null,
-              category: "business-logic",
-              elementPath: "/project/src/foo/var/modules/notification",
-            },
-            {
-              type: "foo",
-              captured: null,
-              category: null,
-              elementPath: "/project/src/foo/var",
-            },
-          ],
-          isIgnored: false,
-          isUnknown: false,
+          element: {
+            type: null,
+            category: "business-logic",
+            captured: null,
+            path: "/project/src/foo/var/modules/notification/modules/phone/modules/sms",
+            filePath:
+              "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+            fileInternalPath: "SmsService.ts",
+            parents: [
+              {
+                captured: null,
+                category: "business-logic",
+                path: "/project/src/foo/var/modules/notification/modules/phone",
+                type: null,
+              },
+              {
+                type: null,
+                captured: null,
+                category: "business-logic",
+                path: "/project/src/foo/var/modules/notification",
+              },
+              {
+                type: "foo",
+                captured: null,
+                category: null,
+                path: "/project/src/foo/var",
+              },
+            ],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          origin: {
+            kind: "local",
+            module: null,
+          },
         },
         dependency: {
           source: "../../../email/EmailService",
-          module: null,
           kind: "value",
           nodeKind: "ImportDeclaration",
           specifiers: null,
-          relationship: {
-            from: "uncle",
-            to: "nephew",
-          },
+          relationship: { from: "uncle", to: "nephew" },
         },
       });
 
       expect(isDependencyDescription(dependency)).toBe(true);
       expect(isDependencyWithInternalRelationship(dependency)).toBe(false);
-      expect(isKnownElementDescription(dependency.from)).toBe(true);
-      expect(isKnownElementDescription(dependency.to)).toBe(true);
+      expect(isKnownElementDescription(dependency.from.element)).toBe(true);
+      expect(isKnownElementDescription(dependency.to.element)).toBe(true);
     });
   });
 
@@ -1730,8 +1799,9 @@ describe("Elements Descriptors", () => {
           expect.objectContaining({
             type: "service",
             captured: { serviceName: "auth" },
-            elementPath: "src/services/auth",
-            path: "src/services/auth/AuthService.ts",
+            path: "src/services/auth",
+            filePath: "src/services/auth/AuthService.ts",
+            fileInternalPath: "AuthService.ts",
             isUnknown: false,
           })
         );
