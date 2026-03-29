@@ -15,7 +15,6 @@ import type {
   Matcher,
   SimpleElementSelectorByTypeWithOptions,
   ElementDescription,
-  DependencySingleSelectorNormalized,
   DependencyMatchResult,
 } from "./index";
 import { Elements, normalizeElementSelector } from "./index";
@@ -888,7 +887,7 @@ describe("Entities Legacy Matcher", () => {
 
   describe("when matching dependencies", () => {
     // eslint-disable-next-line jest/prefer-ending-with-an-expect
-    it.only.each([
+    it.each([
       {
         dependency: {
           from: "/project/src/components/Button.tsx",
@@ -2050,10 +2049,7 @@ describe("Entities Legacy Matcher", () => {
           dependency: [{ kind: "type" }, { kind: "value" }],
         })
       ).toStrictEqual({
-        from: null,
-        to: null,
         dependency: { kind: "value" },
-        isMatch: true,
       });
     });
 

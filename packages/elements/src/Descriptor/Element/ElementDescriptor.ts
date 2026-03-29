@@ -430,8 +430,9 @@ export class ElementsDescriptor {
       const segment = pathSegments[i];
       state.pathSegmentsAccumulator.unshift(segment);
 
-      // Early exit if we have a type and the current segment doesn't match any descriptor pattern, to avoid unnecessary checks
-      const alreadyHasMainElement = Boolean(elementResult.type);
+      // Main element is considered matched when either type or category is set.
+      const alreadyHasMainElement =
+        Boolean(elementResult.type) || Boolean(elementResult.category);
 
       for (const elementDescriptor of this._elementDescriptors) {
         const match = this._fileDescriptorMatch({
