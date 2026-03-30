@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### Breaking Changes
 
+## [6.0.2] - 2026-03-30
+
+### Changed
+
+- chore: Update `handlebars` from `4.7.8` to `4.7.9`. Resolves critical vulnerability [GHSA-2w6w-674q-4c4q](https://github.com/advisories/GHSA-2w6w-674q-4c4q) and multiple High/Medium CVEs in handlebars 4.7.8. See [handlebars 4.7.9 release notes](https://github.com/handlebars-lang/handlebars.js/releases/tag/v4.7.9) for more details.
+
 ## [6.0.1] - 2026-03-20
 
 ### Fixed
