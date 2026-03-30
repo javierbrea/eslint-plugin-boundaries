@@ -1,7 +1,7 @@
 import type { ConfigOptions, ConfigOptionsNormalized } from "./Config";
 import { Config } from "./Config";
+import type { DescriptorsConfig } from "./Descriptor";
 import type { ElementsSerializedCache } from "./Elements.types";
-import type { BackwardCompatibleDescriptorsConfig } from "./Legacy";
 import { Micromatch, Matcher } from "./Matcher";
 import { MatchersCache } from "./MatchersCache";
 
@@ -97,7 +97,7 @@ export class Elements {
    * @returns A matcher instance, unique for each different configuration.
    */
   public getMatcher(
-    descriptors: BackwardCompatibleDescriptorsConfig,
+    descriptors: DescriptorsConfig,
     config?: ConfigOptions
   ): Matcher {
     const optionsToUse = config || this._globalConfigOptions;

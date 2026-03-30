@@ -1,5 +1,9 @@
 import type { MicromatchPatternNullable } from "../../Shared";
-import type { EntitySelector, EntitySelectorNormalized } from "../Entity";
+import type {
+  EntitySelectorNormalized,
+  EntitySelector,
+  LegacyEntitySelector,
+} from "../Entity";
 
 /**
  * Selector for dependency information.
@@ -22,6 +26,26 @@ export type DependencyInfoSingleSelector = {
   source?: MicromatchPatternNullable;
 };
 
+export type LegacyDependencyInfoSingleSelector =
+  DependencyInfoSingleSelector & {
+    /**
+     * @deprecated Module source used in import/export statements (legacy property, use 'source' instead)
+     **/
+    module?: MicromatchPatternNullable;
+  };
+
+export type LegacyDependencyInfoSelector =
+  | LegacyDependencyInfoSingleSelector
+  | LegacyDependencyInfoSingleSelector[];
+
+export type BackwardCompatibleDependencyInfoSingleSelector =
+  | DependencyInfoSingleSelector
+  | LegacyDependencyInfoSingleSelector;
+
+export type BackwardCompatibleDependencyInfoSelector =
+  | BackwardCompatibleDependencyInfoSingleSelector
+  | BackwardCompatibleDependencyInfoSingleSelector[];
+
 /** Dependency information selector, which can be a single selector or an array of selectors. */
 export type DependencyInfoSelector =
   | DependencyInfoSingleSelector
@@ -29,6 +53,17 @@ export type DependencyInfoSelector =
 
 /** Normalized dependency information selector, where all properties are always arrays */
 export type DependencyInfoSelectorNormalized = DependencyInfoSingleSelector[];
+
+/** Legacy dependency selector containing legacy entity selectors for 'from' and 'to'; */
+export type LegacyDependencySingleSelector = {
+  to?: LegacyEntitySelector | EntitySelector;
+  from?: LegacyEntitySelector | EntitySelector;
+  dependency?: LegacyDependencyInfoSelector | DependencyInfoSelector;
+};
+
+export type LegacyDependencySelector =
+  | LegacyDependencySingleSelector
+  | LegacyDependencySingleSelector[];
 
 /**
  * Dependency selector, which includes optional 'from' and 'to' entities selectors.
@@ -46,6 +81,14 @@ export type DependencySingleSelector = {
 export type DependencySelector =
   | DependencySingleSelector
   | DependencySingleSelector[];
+
+export type BackwardCompatibleDependencySingleSelector =
+  | DependencySingleSelector
+  | LegacyDependencySingleSelector;
+
+export type BackwardCompatibleDependencySelector =
+  | BackwardCompatibleDependencySingleSelector
+  | BackwardCompatibleDependencySingleSelector[];
 
 /**
  * Normalized dependency selector, where 'from' and 'to' are always arrays or null.

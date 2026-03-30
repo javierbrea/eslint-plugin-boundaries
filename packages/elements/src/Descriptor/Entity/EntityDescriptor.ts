@@ -82,7 +82,7 @@ export class EntitiesDescriptor {
    * @param source The optional dependency source (e.g., the importer file path) to use for describing the origin of the entity being imported.
    */
   public describeEntity(filePath?: string, source?: string): EntityDescription {
-    const cacheKey = `$${filePath}`;
+    const cacheKey = `${filePath}::${source}`;
     if (this._descriptionsCache.has(cacheKey)) {
       return this._descriptionsCache.get(cacheKey)!;
     }

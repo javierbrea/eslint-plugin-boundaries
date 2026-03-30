@@ -4,20 +4,29 @@ import {
   isObjectWithAnyOfProperties,
   isNull,
   isUndefined,
-} from "../../Shared/TypeGuards";
+  isObjectWithProperty,
+} from "../../Shared";
 import { isCapturedValuesSelector, extendsSingleSelector } from "../Shared";
 
 import type {
-  SimpleElementSelectorByTypeWithOptions,
-  SimpleElementSelectorByType,
+  LegacySimpleElementSingleSelectorByTypeWithOptions,
+  LegacySimpleElementSingleSelectorByType,
   ElementSingleSelector,
   ElementSelector,
   BackwardCompatibleElementSingleSelector,
   ElementSelectorNormalized,
   LegacyElementSimpleSelector,
-  ParentElementSelector,
   ParentElementSingleSelector,
   ElementSingleSelectorNormalized,
+  LegacyParentElementSingleSelector,
+  LegacyElementSingleObjectSelector,
+  LegacyElementSelector,
+  LegacyElementSingleSelector,
+  LegacySimpleElementSingleSelector,
+  ParentElementSelectorNormalized,
+  BackwardCompatibleParentElementSingleSelector,
+  BackwardCompatibleParentElementSelector,
+  BackwardCompatibleElementSelector,
 } from "./ElementSelector.types";
 
 /**
@@ -25,9 +34,9 @@ import type {
  * @param value The value to check.
  * @returns True if the value is a simple element selector, false otherwise.
  */
-export function isSimpleElementSelectorByType(
+export function isLegacySimpleElementSingleSelectorByType(
   value: unknown
-): value is SimpleElementSelectorByType {
+): value is LegacySimpleElementSingleSelectorByType {
   return isString(value);
 }
 
@@ -36,17 +45,85 @@ export function isSimpleElementSelectorByType(
  * @param value The value to check.
  * @returns True if the selector is a simple element selector by type with options, false otherwise.
  */
-export function isSimpleElementSelectorByTypeWithOptions(
+export function isLegacySimpleElementSingleSelectorByTypeWithOptions(
   value: unknown
-): value is SimpleElementSelectorByTypeWithOptions {
+): value is LegacySimpleElementSingleSelectorByTypeWithOptions {
   return (
     isArray(value) &&
     ((value.length === 2 &&
-      isSimpleElementSelectorByType(value[0]) &&
+      isLegacySimpleElementSingleSelectorByType(value[0]) &&
       // NOTE: Arrays of length 2 with captured values selector as second will be treated as legacy options instead of two different selectors. We have to live with this limitation for now.
       isCapturedValuesSelector(value[1])) ||
       // NOTE: Backwards compatibility: Allow arrays of length 1 with simple element selector. Some users might defined arrays without options.
-      (value.length === 1 && isSimpleElementSelectorByType(value[0])))
+      (value.length === 1 &&
+        isLegacySimpleElementSingleSelectorByType(value[0])))
+  );
+}
+
+/**
+ * Determines if the given selector is a legacy element simple selector, which can be a simple string, object with type and/or category, or an element selector with options.
+ * @param value The value to check.
+ * @returns True if the selector is a legacy element simple selector, false otherwise.
+ */
+export function isLegacySimpleElementSingleSelector(
+  value: unknown
+): value is LegacyElementSimpleSelector {
+  return (
+    isLegacySimpleElementSingleSelectorByType(value) ||
+    isLegacySimpleElementSingleSelectorByTypeWithOptions(value)
+  );
+}
+
+/**
+ * Determines if the given selector is a legacy parent element single selector.
+ * @param selector The selector to check.
+ * @returns True if the selector is a legacy parent element single selector, false otherwise.
+ */
+export function isLegacyParentElementSingleSelector(
+  selector: unknown
+): selector is LegacyParentElementSingleSelector {
+  return isObjectWithProperty(selector, "elementPath");
+}
+
+/**
+ * Determines if the given selector is a legacy element single selector.
+ * @param selector The selector to check.
+ * @returns True if the selector is a legacy element single selector, false otherwise.
+ */
+export function isLegacyElementSingleObjectSelector(
+  selector: unknown
+): selector is LegacyElementSingleObjectSelector {
+  return (
+    isObjectWithAnyOfProperties(selector, [
+      "origin",
+      "elementPath",
+      "internalPath",
+    ]) ||
+    (isObjectWithProperty(selector, "parent") &&
+      isLegacyParentElementSingleSelector(selector.parent))
+  );
+}
+
+/**
+ * Determines if the given selector is a legacy element selector.
+ * @param selector The selector to check.
+ * @returns True if the selector is a legacy element selector, false otherwise.
+ */
+export function isLegacyElementSingleSelector(
+  selector: unknown
+): selector is LegacyElementSelector {
+  return (
+    isLegacyElementSingleObjectSelector(selector) ||
+    isLegacySimpleElementSingleSelector(selector)
+  );
+}
+
+export function isLegacyElementSelector(
+  selector: unknown
+): selector is LegacyElementSelector {
+  return (
+    isLegacyElementSingleSelector(selector) ||
+    (isArray(selector) && selector.some(isLegacyElementSingleSelector))
   );
 }
 
@@ -69,52 +146,140 @@ export function isElementSingleSelector(
 }
 
 /**
- * Determines if the given selector is a legacy element simple selector, which can be a simple string, object with type and/or category, or an element selector with options.
- * @param value The value to check.
- * @returns True if the selector is a legacy element simple selector, false otherwise.
- */
-export function isLegacyElementSimpleSelector(
-  value: unknown
-): value is LegacyElementSimpleSelector {
-  return (
-    isSimpleElementSelectorByType(value) ||
-    isSimpleElementSelectorByTypeWithOptions(value)
-  );
-}
-
-export function isBackwardCompatibleElementSingleSelector(
-  value: unknown
-): value is BackwardCompatibleElementSingleSelector {
-  return isLegacyElementSimpleSelector(value) || isElementSingleSelector(value);
-}
-
-/**
  * Determines if the given value is an element selector.
  * @param value The value to check.
  * @returns True if the value is an element selector, false otherwise.
  */
 export function isElementSelector(value: unknown): value is ElementSelector {
   return (
-    isBackwardCompatibleElementSingleSelector(value) ||
-    (isArray(value) && value.every(isBackwardCompatibleElementSingleSelector))
+    isElementSingleSelector(value) ||
+    (isArray(value) && value.every(isElementSingleSelector))
   );
 }
 
+export function isBackwardCompatibleElementSingleSelector(
+  selector: unknown
+): selector is BackwardCompatibleElementSingleSelector {
+  return (
+    isLegacyElementSingleSelector(selector) || isElementSingleSelector(selector)
+  );
+}
+
+export function isBackwardCompatibleElementSelector(
+  selector: unknown
+): selector is BackwardCompatibleElementSelector {
+  return isLegacyElementSelector(selector) || isElementSelector(selector);
+}
+
+export function normalizeLegacySimpleElementSingleSelector(
+  selector: LegacySimpleElementSingleSelector
+): ElementSingleSelectorNormalized {
+  if (isLegacySimpleElementSingleSelectorByType(selector)) {
+    return { type: selector };
+  }
+  if (isLegacySimpleElementSingleSelectorByTypeWithOptions(selector)) {
+    const objectSelector: ElementSingleSelectorNormalized = {
+      type: selector[0],
+    };
+    if (selector[1] && isCapturedValuesSelector(selector[1])) {
+      objectSelector.captured = { ...selector[1] };
+    }
+    return objectSelector;
+  }
+  throw new Error("Invalid legacy simple element single selector");
+}
+
 /**
- * Normalizes a parent element selector into an array of ParentElementSingleSelector.
- * @param selector The parent element selector to normalize, which can be a single selector or an array of selectors.
- * @returns The normalized parent element selector as an array of ParentElementSingleSelector.
+ * Converts a legacy parent element single selector into the equivalent parent element single selector.
+ *
+ * Legacy properties are mapped to the new model as follows:
+ * - `elementPath` -> `path`
  */
+function normalizeLegacyParentElementSingleSelector(
+  selector: LegacyParentElementSingleSelector
+): ParentElementSingleSelector {
+  const { elementPath, ...parentSelector } = selector;
+  if (!isUndefined(elementPath)) {
+    parentSelector.path = elementPath;
+  }
+  return parentSelector;
+}
+
+export function normalizeLegacyParentElementSelectors(
+  selector: BackwardCompatibleParentElementSingleSelector[]
+): ParentElementSelectorNormalized | null {
+  return selector.map((sel) =>
+    isLegacyParentElementSingleSelector(sel)
+      ? normalizeLegacyParentElementSingleSelector(sel)
+      : sel
+  );
+}
+
 export function normalizeParentElementSelector(
-  selector: ParentElementSelector | null
-): ParentElementSingleSelector[] | null {
+  selector: BackwardCompatibleParentElementSelector | null
+): ParentElementSelectorNormalized | null {
   if (isNull(selector)) {
     return null;
   }
-  if (!isArray(selector)) {
-    return [selector];
+  if (isArray(selector)) {
+    return normalizeLegacyParentElementSelectors(selector);
   }
-  return selector;
+  return [
+    isLegacyParentElementSingleSelector(selector)
+      ? normalizeLegacyParentElementSingleSelector(selector)
+      : selector,
+  ];
+}
+
+export function normalizeParentInElementSingleSelector(
+  selector: ElementSingleSelector
+): ElementSingleSelectorNormalized {
+  const { parent, ...rest } = selector;
+  const normalizedSelector: ElementSingleSelectorNormalized = { ...rest };
+  if (!isUndefined(parent)) {
+    normalizedSelector.parent = normalizeParentElementSelector(parent);
+  }
+  return normalizedSelector;
+}
+
+export function normalizeLegacyElementSingleObjectSelector(
+  selector: LegacyElementSingleObjectSelector
+): ElementSingleSelectorNormalized {
+  const { origin, elementPath, internalPath, parent, ...rest } = selector;
+
+  if (!isUndefined(origin)) {
+    throw new Error(
+      `Cannot convert legacy element selector to element selector: the "origin" property is an entity-level property and cannot be represented in an element selector. Use convertLegacyElementSingleSelectorToEntitySelector instead.`
+    );
+  }
+
+  const elementSelector: ElementSingleSelector = { ...rest };
+
+  if (!isUndefined(parent)) {
+    elementSelector.parent = parent;
+  }
+
+  if (!isUndefined(elementPath)) {
+    elementSelector.path = elementPath;
+  }
+
+  if (!isUndefined(internalPath)) {
+    elementSelector.fileInternalPath = internalPath;
+  }
+
+  return normalizeParentInElementSingleSelector(elementSelector);
+}
+
+export function normalizeLegacyElementSingleSelector(
+  selector: LegacyElementSingleSelector
+): ElementSingleSelectorNormalized {
+  if (isLegacySimpleElementSingleSelector(selector)) {
+    return normalizeLegacySimpleElementSingleSelector(selector);
+  }
+  if (isLegacyElementSingleObjectSelector(selector)) {
+    return normalizeLegacyElementSingleObjectSelector(selector);
+  }
+  throw new Error("Invalid legacy element single selector");
 }
 
 /**
@@ -125,28 +290,10 @@ export function normalizeParentElementSelector(
 export function normalizeSingleElementSelector(
   selector: BackwardCompatibleElementSingleSelector
 ): ElementSingleSelectorNormalized {
-  if (isSimpleElementSelectorByType(selector)) {
-    return { type: selector };
+  if (isLegacyElementSingleSelector(selector)) {
+    return normalizeLegacyElementSingleSelector(selector);
   }
-
-  if (isSimpleElementSelectorByTypeWithOptions(selector)) {
-    return {
-      type: selector[0],
-      captured: selector[1] ? { ...selector[1] } : undefined,
-    };
-  }
-
-  if (isElementSingleSelector(selector)) {
-    if (isUndefined(selector.parent)) {
-      return { ...selector } as ElementSingleSelectorNormalized;
-    }
-    return {
-      ...selector,
-      parent: normalizeParentElementSelector(selector.parent),
-    };
-  }
-
-  throw new Error("Invalid element selector");
+  return normalizeParentInElementSingleSelector(selector);
 }
 
 /**
@@ -155,9 +302,9 @@ export function normalizeSingleElementSelector(
  * @returns The normalized array of selector data.
  */
 export function normalizeElementSelector(
-  elementSelector: ElementSelector
+  elementSelector: BackwardCompatibleElementSelector
 ): ElementSelectorNormalized {
-  if (isSimpleElementSelectorByTypeWithOptions(elementSelector)) {
+  if (isLegacySimpleElementSingleSelectorByTypeWithOptions(elementSelector)) {
     return [normalizeSingleElementSelector(elementSelector)];
   }
   if (isArray(elementSelector)) {

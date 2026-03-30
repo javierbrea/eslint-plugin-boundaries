@@ -14,9 +14,9 @@ import type { TemplateData, MatcherOptions, Micromatch } from "../Shared";
 import type { ElementSingleSelectorMatchResult } from "./ElementMatcher.types";
 import type {
   ElementSingleSelector,
-  ElementSelector,
   ParentElementSingleSelector,
   ElementSingleSelectorNormalized,
+  BackwardCompatibleElementSelector,
 } from "./ElementSelector.types";
 import { normalizeElementSelector } from "./ElementSelectorHelpers";
 
@@ -465,7 +465,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
    */
   public getSelectorMatching(
     element: ElementDescription,
-    selector: ElementSelector,
+    selector: BackwardCompatibleElementSelector,
     { extraTemplateData = {} }: MatcherOptions = {}
   ): ElementSingleSelectorMatchResult | null {
     const selectorsData = normalizeElementSelector(selector);
@@ -482,7 +482,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
    */
   public isElementMatch(
     element: ElementDescription,
-    selector: ElementSelector,
+    selector: BackwardCompatibleElementSelector,
     options?: MatcherOptions
   ): boolean {
     const selectorMatching = this.getSelectorMatching(

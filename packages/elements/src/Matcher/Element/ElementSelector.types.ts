@@ -16,9 +16,29 @@ export type ParentElementSingleSelector = Pick<
   category?: MicromatchPatternNullable;
 };
 
+/**
+ * Legacy selectors are used for backward compatibility with previous versions of the plugin. They include additional properties that were used in the old selector format
+ */
+export type LegacyParentElementSingleSelector = ParentElementSingleSelector & {
+  /** The path of the parent element to select. */
+  elementPath?: MicromatchPatternNullable;
+};
+
+export type LegacyParentElementSelector =
+  | LegacyParentElementSingleSelector
+  | LegacyParentElementSingleSelector[];
+
 export type ParentElementSelector =
   | ParentElementSingleSelector
   | ParentElementSingleSelector[];
+
+export type BackwardCompatibleParentElementSingleSelector =
+  | ParentElementSingleSelector
+  | LegacyParentElementSingleSelector;
+
+export type BackwardCompatibleParentElementSelector =
+  | BackwardCompatibleParentElementSingleSelector
+  | BackwardCompatibleParentElementSingleSelector[];
 
 /**
  * Normalized parent element selector, being always an array of single selectors.
@@ -29,7 +49,7 @@ export type ParentElementSelectorNormalized = ParentElementSingleSelector[];
  * Simple element selector by type, represented as a string matching the element type.
  * @deprecated Use BaseElementSelectorData or DependencyElementSelectorData instead.
  */
-export type SimpleElementSelectorByType = string;
+export type LegacySimpleElementSingleSelectorByType = string;
 
 /**
  * File Element selector with options, including captured values for dynamic matching.
@@ -37,11 +57,21 @@ export type SimpleElementSelectorByType = string;
  * and the second element is an object containing a selector for captured values.
  * @deprecated Use FileElementSelectorData defining an object with type and/or category and the rest of properties directly instead.
  */
-export type SimpleElementSelectorByTypeWithOptions = [
-  SimpleElementSelectorByType,
+export type LegacySimpleElementSingleSelectorByTypeWithOptions = [
+  LegacySimpleElementSingleSelectorByType,
   CapturedValuesSelector,
 ];
 
+export type LegacySimpleElementSingleSelector =
+  | LegacySimpleElementSingleSelectorByType
+  | LegacySimpleElementSingleSelectorByTypeWithOptions;
+
+/**
+ * Legacy element simple selector type, which can be a simple string, object with type and/or category, or an element selector with options.
+ */
+export type LegacyElementSimpleSelector =
+  | LegacySimpleElementSingleSelector
+  | LegacySimpleElementSingleSelector[];
 /**
  * Selector for base elements, including captured values for dynamic matching.
  */
@@ -64,31 +94,60 @@ export type ElementSingleSelector = BaseSingleSelector & {
   parent?: ParentElementSelector | null;
 };
 
+/**
+ * Legacy selectors are used for backward compatibility with previous versions of the plugin. They include additional properties that were used in the old selector format
+ */
+export type LegacyElementSingleObjectSelector = ElementSingleSelector & {
+  /** The origin of the element to select. */
+  origin?: MicromatchPatternNullable;
+  /** The path of the element to select. */
+  elementPath?: MicromatchPatternNullable;
+  /** The path of the file containing the element to select. */
+  internalPath?: MicromatchPatternNullable;
+};
+
+/**
+ * Legacy selectors are used for backward compatibility with previous versions of the plugin. They include additional properties that were used in the old selector format
+ */
+export type LegacyElementObjectSelector =
+  | LegacyElementSingleObjectSelector
+  | LegacyElementSingleObjectSelector[];
+
 /** Normalized single element selector, where the parent selector is always an array of single selectors. */
 export type ElementSingleSelectorNormalized = ElementSingleSelector & {
   /** Normalized selector for matching the first parent element, being always an array of single selectors. */
   parent?: ParentElementSelectorNormalized | null;
 };
 
+/** A simple element selector in any legacy format */
+export type LegacyElementSingleSelector =
+  | LegacyElementSingleObjectSelector
+  | LegacySimpleElementSingleSelector;
+
 /**
- * Legacy element simple selector type, which can be a simple string, object with type and/or category, or an element selector with options.
+ * A legacy element selector, which can be a single legacy element selector or an array of legacy element selectors, in any legacy format
  */
-export type LegacyElementSimpleSelector =
-  | SimpleElementSelectorByType
-  | SimpleElementSelectorByTypeWithOptions;
+export type LegacyElementSelector =
+  | LegacyElementSingleSelector
+  | LegacyElementSingleSelector[];
+
+/**
+ * Element selector, which can be a single element selector or an array of element selectors.
+ */
+export type ElementSelector = ElementSingleSelector | ElementSingleSelector[];
 
 /**
  * Element selector backward compatibility type, which can be a simple string, object with type and/or category, or an element selector with options.
  * @deprecated Use ElementSingleSelector instead.
  */
 export type BackwardCompatibleElementSingleSelector =
-  | LegacyElementSimpleSelector
+  | LegacyElementSingleSelector
   | ElementSingleSelector;
 
 /**
- * Element selector, which can be a single element selector or an array of element selectors.
+ * Backward compatible element selector type that can be either a legacy element single selector or a new element single selector. This type is used to allow functions that accept element single selectors to also accept legacy element single selectors for backward compatibility.
  */
-export type ElementSelector =
+export type BackwardCompatibleElementSelector =
   | BackwardCompatibleElementSingleSelector
   | BackwardCompatibleElementSingleSelector[];
 

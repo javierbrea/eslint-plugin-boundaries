@@ -15,7 +15,7 @@ import type {
 import type {
   DependencySingleSelectorNormalized,
   DependencyInfoSingleSelector,
-  DependencySelector,
+  BackwardCompatibleDependencySelector,
 } from "./DependencySelector.types";
 import { normalizeDependencySelector } from "./DependencySelectorHelpers";
 
@@ -282,7 +282,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    */
   public getSelectorMatching(
     dependency: DependencyDescription,
-    selector: DependencySelector,
+    selector: BackwardCompatibleDependencySelector,
     { extraTemplateData = {} }: MatcherOptions = {}
   ): DependencySingleSelectorMatchResult | null {
     const normalizedSelector = normalizeDependencySelector(selector);
@@ -326,7 +326,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    */
   public isDependencyMatch(
     dependency: DependencyDescription,
-    selector: DependencySelector,
+    selector: BackwardCompatibleDependencySelector,
     options?: MatcherOptions
   ): boolean {
     const matchResult = this.getSelectorMatching(dependency, selector, options);

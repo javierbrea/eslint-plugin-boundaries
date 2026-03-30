@@ -12,7 +12,7 @@ import type {
   EntitySingleSelectorMatchResult,
 } from "./EntityMatcher.types";
 import type {
-  EntitySelector,
+  BackwardCompatibleEntitySelector,
   EntitySingleSelector,
 } from "./EntitySelector.types";
 import { normalizeEntitySelector } from "./EntitySelectorHelpers";
@@ -116,7 +116,7 @@ export class EntitiesMatcher extends BaseElementsMatcher {
    */
   public getSelectorMatching(
     entity: EntityDescription,
-    selector: EntitySelector,
+    selector: BackwardCompatibleEntitySelector,
     { extraTemplateData = {} }: MatcherOptions = {}
   ): EntitySingleSelectorMatchResult | null {
     const normalizedSelector = normalizeEntitySelector(selector);
@@ -155,7 +155,7 @@ export class EntitiesMatcher extends BaseElementsMatcher {
    */
   public isEntityMatch(
     entity: EntityDescription,
-    selector: EntitySelector,
+    selector: BackwardCompatibleEntitySelector,
     options?: MatcherOptions
   ): boolean {
     const matchResult = this.getSelectorMatching(entity, selector, options);

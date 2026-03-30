@@ -1,3 +1,4 @@
+// TODO: Review what has to be exported
 export * from "./Elements";
 export * from "./Elements.types";
 
@@ -6,3 +7,5 @@ export * from "./Descriptor/Public";
 export * from "./Config/Public";
 
 export * from "./Cache/Public";
+export * from "./Shared";
+export * from "./Legacy";
