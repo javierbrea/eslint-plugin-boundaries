@@ -1,6 +1,6 @@
 {
   "name": "@boundaries/elements",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Element descriptors and matchers for @boundaries tools",
   "keywords": [
     "boundaries",
@@ -59,7 +59,7 @@
   "dependencies": {
     "eslint-import-resolver-node": "0.3.9",
     "eslint-module-utils": "2.12.1",
-    "handlebars": "4.7.8",
+    "handlebars": "4.7.9",
     "is-core-module": "2.16.1",
     "micromatch": "4.0.8"
   },

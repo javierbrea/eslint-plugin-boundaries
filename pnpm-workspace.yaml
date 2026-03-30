@@ -3,3 +3,6 @@ packages:
   - "support/*"
   - "test/*"
 minimumReleaseAge: 2880 # 2 days
+minimumReleaseAgeExclude:
+  # Renovate security update: handlebars@4.7.9
+  - handlebars@4.7.9
