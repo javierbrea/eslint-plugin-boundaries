@@ -1,6 +1,6 @@
 import {
+  ORIGINS_MAP,
   DEPENDENCY_RELATIONSHIPS_MAP,
-  isLocalElement,
   type DependencyDescription,
 } from "@boundaries/elements";
 
@@ -27,7 +27,7 @@ function errorMessage(
   if (options?.message) {
     return customErrorMessage(options.message, dependency);
   }
-  const privateParent = dependency.to.parents?.[0];
+  const privateParent = dependency.to.element.parents?.[0];
   /* istanbul ignore next - Defensive: This should not happen */
   if (!privateParent) {
     return `Not able to create a message for this violation. Please report this at: ${PLUGIN_ISSUES_URL}`;
@@ -61,10 +61,10 @@ export default dependencyRule<NoPrivateOptions>(
   function ({ dependency, node, context, options }) {
     warnMigrationToDependencies(RULE_NAMES_MAP.NO_PRIVATE);
     if (
-      !dependency.to.isIgnored &&
-      isLocalElement(dependency.to) &&
-      dependency.to.type &&
-      dependency.to.parents.length &&
+      !dependency.to.element.isIgnored &&
+      dependency.to.origin.kind === ORIGINS_MAP.LOCAL &&
+      dependency.to.element.type &&
+      dependency.to.element.parents.length &&
       dependency.dependency.relationship.to !==
         DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL &&
       dependency.dependency.relationship.to !==

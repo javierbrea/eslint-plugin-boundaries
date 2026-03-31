@@ -77,7 +77,7 @@ export type DependencyRelationship = {
 };
 
 /** Information about a dependency between two items */
-export type DependencyInfo = {
+export type DependencyInfoDescription = {
   /** Source of the dependency (import/export path) */
   source: string;
   /** Kind of the dependency */
@@ -99,5 +99,5 @@ export type DependencyDescription = {
   /** Target entity of the dependency */
   to: EntityDescription;
   /** Information about the dependency itself */
-  dependency: DependencyInfo;
+  dependency: DependencyInfoDescription;
 };

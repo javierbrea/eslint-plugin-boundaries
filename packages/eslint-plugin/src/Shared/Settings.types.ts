@@ -1,13 +1,15 @@
 import type {
   DependencyKind,
-  DependencySelector,
   ElementDescriptors,
-  ElementsSelector,
   FlagAsExternalOptions,
-  DependencyDataSelector,
-  SimpleElementSelectorByType,
-  BaseElementSelectorWithOptions,
   MicromatchPatternNullable,
+  BackwardCompatibleEntitySelector,
+  FileDescriptors,
+  FileSelector,
+  FileSelectorNormalized,
+  DependencySelectorNormalized,
+  BackwardCompatibleDependencyInfoSelector,
+  BackwardCompatibleDependencySelector,
 } from "@boundaries/elements";
 import type { ESLint, Linter, Rule } from "eslint";
 
@@ -181,6 +183,7 @@ export const SETTINGS = {
   // deprecated settings
   TYPES: `${PLUGIN_NAME}/types`,
   ALIAS: `${PLUGIN_NAME}/alias`,
+  FILES: `${PLUGIN_NAME}/files`,
 
   // elements settings properties,
   VALID_MODES: ["folder", "file", "full"],
@@ -251,6 +254,7 @@ export const SETTINGS = {
  */
 export const SETTINGS_KEYS_MAP = {
   ELEMENTS: SETTINGS.ELEMENTS,
+  FILES: SETTINGS.FILES,
   IGNORE: SETTINGS.IGNORE,
   INCLUDE: SETTINGS.INCLUDE,
   ROOT_PATH: SETTINGS.ROOT_PATH,
@@ -314,9 +318,9 @@ export type AliasSetting = Record<string, string>;
 
 export type DebugFilterSetting = {
   /** File selectors used to filter file debug messages */
-  files?: ElementsSelector[];
+  files?: FileSelector;
   /** Dependency selectors used to filter dependency debug messages */
-  dependencies?: DependencySelector[];
+  dependencies?: BackwardCompatibleEntitySelector;
 };
 
 export type DebugSetting = {
@@ -353,9 +357,9 @@ export type DebugSettingNormalized = {
   /** Debug filters **/
   filter: {
     /** File selectors used to filter file debug messages */
-    files?: ElementsSelector[];
+    files?: FileSelectorNormalized;
     /** Dependency selectors used to filter dependency debug messages */
-    dependencies?: DependencySelector[];
+    dependencies?: DependencySelectorNormalized;
   };
 };
 
@@ -368,6 +372,12 @@ export type Settings = {
    * Each element descriptor includes a type, a pattern to match files, and optional settings like mode and capture groups.
    */
   [SETTINGS_KEYS_MAP.ELEMENTS]?: ElementDescriptors;
+
+  /**
+   * File descriptors to define specific file patterns and their associated metadata.
+   * Each file descriptor includes a category and a pattern to match files, along with optional settings.
+   */
+  [SETTINGS_KEYS_MAP.FILES]?: FileDescriptors;
   /**
    * List of glob patterns to ignore when analyzing dependencies.
    * Files matching these patterns will be excluded from the plugin analysis.
@@ -421,8 +431,8 @@ export type Settings = {
 export type SettingsNormalized = {
   /** Element descriptors */
   elementDescriptors: ElementDescriptors;
-  /** Element type names extracted from the descriptors. Used to validate selectors defined as strings in rules */
-  elementTypeNames: string[];
+  /** File descriptors */
+  fileDescriptors: FileDescriptors;
   /** List of glob patterns to ignore when analyzing dependencies */
   ignorePaths: string[] | undefined;
   /** List of glob patterns to include when analyzing dependencies */
@@ -457,7 +467,7 @@ export type Rules<PluginName extends string = typeof PLUGIN_NAME> = {
     | typeof NO_PRIVATE
     | typeof NO_UNKNOWN_FILES
     | typeof NO_UNKNOWN}`]?: K extends `${PluginName}/${typeof ELEMENT_TYPES}`
-    ? Linter.RuleEntry<ElementTypesRuleOptions[]>
+    ? Linter.RuleEntry<DependenciesRuleOptions[]>
     : K extends `${PluginName}/${typeof DEPENDENCIES}`
       ? Linter.RuleEntry<DependenciesRuleOptions[]>
       : K extends `${PluginName}/${typeof ENTRY_POINT}`
@@ -541,35 +551,26 @@ export type RuleBaseOptions = {
   message?: string;
 };
 
-export type RulePolicyEntry =
-  | SimpleElementSelectorByType
-  | BaseElementSelectorWithOptions
-  | DependencySelector;
+export type RulePolicyEntry = BackwardCompatibleEntitySelector;
 
 /**
  * Rule that defines allowed or disallowed dependencies between different element types.
  */
 export type DependenciesRule = {
-  dependency?: DependencyDataSelector;
+  dependency?: BackwardCompatibleDependencyInfoSelector;
   /** Selectors of the source elements that the rule applies to (the elements importing) */
-  from?: ElementsSelector;
+  from?: BackwardCompatibleEntitySelector;
   /** Selectors of the target elements that are disallowed to be imported */
-  to?: ElementsSelector;
+  to?: BackwardCompatibleEntitySelector;
   /** Selectors of the elements that are disallowed to be imported */
-  disallow?: RulePolicyEntry | RulePolicyEntry[];
+  disallow?: BackwardCompatibleDependencySelector;
   /** Selectors of the elements that are allowed to be imported */
-  allow?: RulePolicyEntry | RulePolicyEntry[];
+  allow?: BackwardCompatibleDependencySelector;
   /** Kind of import that the rule applies to (e.g., "type", "value") */
   importKind?: DependencyKind;
   /** Custom message for rule violations */
   message?: string;
 };
-
-/**
- * Legacy type for the renamed element-types rule, kept for backward compatibility. It has the same shape as the dependencies rule but with "target" instead of "to" and without the "dependency" field.
- * @deprecated Use DependenciesRule instead
- */
-export type ElementTypesRule = DependenciesRule;
 
 /**
  * Options for the dependencies rule, including default policy and specific rules.
@@ -586,20 +587,11 @@ export type DependenciesRuleOptions = Omit<RuleBaseOptions, "rules"> & {
 };
 
 /**
- * Legacy type for the renamed element-types rule options, kept for backward compatibility.
- * @deprecated Use DependenciesRuleOptions instead
- */
-export type ElementTypesRuleOptions = Omit<DependenciesRuleOptions, "rules"> & {
-  /** Specific rules for defining element types */
-  rules?: ElementTypesRule[];
-};
-
-/**
  * Rule that defines entry points for specific element types, controlling which files can be imported.
  */
 export type EntryPointRule = {
   /** Selectors of the elements that the rule applies to (the elements being imported) */
-  target: ElementsSelector;
+  target: BackwardCompatibleEntitySelector;
   /** Micromatch patterns of the files that are disallowed to import from other elements. Relative to the element path */
   disallow?: string[];
   /** Micromatch patterns of the files that are allowed to import from other elements. Relative to the element path */
@@ -664,7 +656,7 @@ export type ExternalLibrariesSelector =
  */
 export type ExternalRule = {
   /** Selectors of the source elements that the rule applies to (the elements importing) */
-  from: ElementsSelector;
+  from: BackwardCompatibleEntitySelector;
   /** Selectors of the external libraries that are disallowed to be imported */
   disallow?: ExternalLibrariesSelector;
   /** Selectors of the external libraries that are allowed to be imported */

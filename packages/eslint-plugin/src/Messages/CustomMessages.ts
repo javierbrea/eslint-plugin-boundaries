@@ -2,7 +2,7 @@ import type {
   ElementParent,
   DependencyDescription,
   ElementDescription,
-  DependencyMatchResult,
+  DependencySingleSelectorMatchResult,
 } from "@boundaries/elements";
 import { isElementDescription } from "@boundaries/elements";
 import Handlebars from "handlebars";
@@ -124,7 +124,7 @@ function renderCustomMessageHandlebarsTemplate(
   template: string,
   dependency: DependencyDescription,
   ruleIndex: number | null,
-  matchResult: DependencyMatchResult | null
+  matchResult: DependencySingleSelectorMatchResult | null
 ) {
   if (!hasHandlebarsTemplate(template)) {
     return template;
@@ -253,7 +253,7 @@ export function customErrorMessage(
   template: string,
   dependency: DependencyDescription,
   ruleIndex: number | null = null,
-  matchResult: DependencyMatchResult | null = null
+  matchResult: DependencySingleSelectorMatchResult | null = null
 ) {
   const replacedMessage = replaceLegacyTemplateVariables(template, dependency);
   return renderCustomMessageHandlebarsTemplate(

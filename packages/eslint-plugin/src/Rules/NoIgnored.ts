@@ -11,7 +11,7 @@ export default dependencyRule(
     description: `Prevent dependencies to ignored files from recognized elements`,
   },
   function ({ dependency, node, context }) {
-    if (dependency.to.isIgnored) {
+    if (dependency.to.file.isIgnored) {
       context.report({
         message: `Dependencies to ignored files are not allowed`,
         node: node,

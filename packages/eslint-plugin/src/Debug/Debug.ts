@@ -1,8 +1,8 @@
 import type {
   DependencyDescription,
-  ElementDescription,
   Matcher,
-  DependencyMatchResult,
+  EntityDescription,
+  DependencySingleSelectorMatchResult,
 } from "@boundaries/elements";
 import { isDependencyDescription } from "@boundaries/elements";
 import chalk from "chalk";
@@ -171,7 +171,7 @@ export function warnOnce(title: string, message?: string): boolean {
  * @param matcher - Matcher used to evaluate debug filters.
  */
 export function debugDescription(
-  description: ElementDescription | DependencyDescription,
+  description: EntityDescription | DependencyDescription,
   settings: SettingsNormalized,
   matcher: Matcher
 ) {
@@ -192,9 +192,9 @@ export function debugDescription(
  * @param description - File element description.
  * @returns Unique identifier string for the file.
  */
-function getFileIdentifier(description: ElementDescription): string {
+function getFileIdentifier(description: EntityDescription): string {
   /* istanbul ignore next - Fallback for descriptions missing path, which should not happen but ensures stability of debug logging. */
-  return description.path || "<unknown-file>";
+  return description.file.path || "<unknown-file>";
 }
 
 /**
@@ -205,7 +205,7 @@ function getFileIdentifier(description: ElementDescription): string {
  * @param matcher - Matcher used for filter checks.
  */
 function printFileDebug(
-  description: ElementDescription,
+  description: EntityDescription,
   settings: SettingsNormalized,
   matcher: Matcher
 ) {
@@ -270,7 +270,7 @@ const DEPENDENCIES_VIOLATION_PREFIX = `${DEPENDENCIES} rule violation:`;
  * @param matcher - Matcher used to evaluate debug filters.
  */
 export function printDependenciesRuleResult(
-  dependencyMatchResult: DependencyMatchResult | null,
+  dependencyMatchResult: DependencySingleSelectorMatchResult | null,
   ruleIndex: number | null,
   dependency: DependencyDescription,
   settings: SettingsNormalized,
@@ -296,7 +296,7 @@ export function printDependenciesRuleResult(
   }
   const title = `${DEPENDENCIES_VIOLATION_PREFIX} Rule at index ${ruleIndex} reported a violation because the following selector matched the dependency:`;
 
-  const selectorRelevantData: Partial<DependencyMatchResult> = {};
+  const selectorRelevantData: Partial<DependencySingleSelectorMatchResult> = {};
   if (dependencyMatchResult.from) {
     selectorRelevantData.from = dependencyMatchResult.from;
   }
@@ -324,7 +324,7 @@ export function printDependenciesRuleResult(
  * @returns `true` when file should be printed in debug output.
  */
 function shouldPrintFile(
-  description: ElementDescription,
+  description: EntityDescription,
   settings: SettingsNormalized,
   matcher: Matcher
 ) {
@@ -338,7 +338,7 @@ function shouldPrintFile(
   return fileFilters.some(
     (selector) =>
       !isNull(
-        matcher.getElementSelectorMatchingDescription(description, selector)
+        matcher.getEntitySelectorMatchingDescription(description, selector)
       )
   );
 }
@@ -368,7 +368,8 @@ function shouldPrintDependency(
   }
   return dependencyFilters.some(
     (selector) =>
-      matcher.getDependencySelectorMatchingDescription(description, selector)
-        .isMatch
+      !isNull(
+        matcher.getDependencySelectorMatchingDescription(description, selector)
+      )
   );
 }

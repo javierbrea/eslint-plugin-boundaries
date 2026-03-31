@@ -1,15 +1,10 @@
-import {
-  isExternalDependencyElement,
-  isCoreDependencyElement,
-  ELEMENT_ORIGINS_MAP,
+import { ORIGINS_MAP } from "@boundaries/elements";
+import type {
+  DependencySelector,
+  DependencySingleSelector,
 } from "@boundaries/elements";
-import type { DependencySelector } from "@boundaries/elements";
 
-import {
-  rulesOptionsSchema,
-  validateAndWarnRuleOptions,
-  warnMigrationToDependencies,
-} from "../Settings";
+import { rulesOptionsSchema, warnMigrationToDependencies } from "../Settings";
 import type {
   ExternalRuleOptions,
   ExternalRule,
@@ -55,17 +50,19 @@ function isExternalLibrarySelectorWithOptions(
  */
 function buildSelectorFromLegacySelectorWithOptions(
   selector: ExternalLibrarySelectorWithOptions
-): DependencySelector {
+): DependencySingleSelector {
   const moduleSelector = selector[0];
   const selectorOptions = selector[1];
   const hasPathSelector = !isNullish(selectorOptions.path);
   return {
     to: {
-      origin: [ELEMENT_ORIGINS_MAP.EXTERNAL, ELEMENT_ORIGINS_MAP.CORE],
+      origin: {
+        kind: [ORIGINS_MAP.EXTERNAL, ORIGINS_MAP.CORE],
+        module: moduleSelector,
+      },
       ...(hasPathSelector ? { internalPath: selectorOptions.path } : {}),
     },
     dependency: {
-      module: moduleSelector,
       ...(selectorOptions.specifiers
         ? {
             specifiers: selectorOptions.specifiers,
@@ -83,21 +80,18 @@ function buildSelectorFromLegacySelectorWithOptions(
  */
 function modifySelectors(
   selectors: ExternalLibrariesSelector
-): DependencySelector | DependencySelector[] {
-  const originsToMatch = [
-    ELEMENT_ORIGINS_MAP.EXTERNAL,
-    ELEMENT_ORIGINS_MAP.CORE,
-  ];
+): DependencySelector {
+  const originsToMatch = [ORIGINS_MAP.EXTERNAL, ORIGINS_MAP.CORE];
   if (isExternalLibrarySelectorWithOptions(selectors)) {
     return buildSelectorFromLegacySelectorWithOptions(selectors);
   }
   if (isString(selectors)) {
     return {
       to: {
-        origin: originsToMatch,
-      },
-      dependency: {
-        module: selectors,
+        origin: {
+          kind: originsToMatch,
+          module: selectors,
+        },
       },
     };
   }
@@ -106,10 +100,7 @@ function modifySelectors(
       return buildSelectorFromLegacySelectorWithOptions(selector);
     }
     return {
-      to: { origin: originsToMatch },
-      dependency: {
-        module: selector,
-      },
+      to: { origin: { kind: originsToMatch, module: selector } },
     };
   });
 }
@@ -168,12 +159,11 @@ export default dependencyRule<ExternalRuleOptions>(
   function ({ dependency, node, context, settings, options }) {
     warnMigrationToDependencies(RULE_NAMES_MAP.EXTERNAL);
     // Validate and warn about legacy selector syntax
-    validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL, "from");
+    // TODO: validate and warn about legacy usage
+    // validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL, "from");
 
-    if (
-      isExternalDependencyElement(dependency.to) ||
-      isCoreDependencyElement(dependency.to)
-    ) {
+    const origin = dependency.to.origin.kind;
+    if (origin === ORIGINS_MAP.EXTERNAL || origin === ORIGINS_MAP.CORE) {
       const rules = transformToDependenciesRules(options?.rules ?? []);
       evaluateRulesAndReport({
         rules,

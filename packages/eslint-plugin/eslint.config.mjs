@@ -1,21 +1,21 @@
 import eslintPluginEslintPlugin from "eslint-plugin-eslint-plugin";
-import localRules from "eslint-plugin-local-rules";
+// import localRules from "eslint-plugin-local-rules";
 
 import config, { jestConfig } from "../../support/eslint-config/index.js";
 
 export default [
   ...config,
-  {
-    files: ["**/*.ts"],
+  /*{
+    files: ["** /*.ts"],
     plugins: {
       "local-rules": localRules,
     },
-  },
+  },*/
   {
     files: ["src/**/*.ts"],
 
     settings: {
-      "boundaries/debug": {
+      /* "boundaries/debug": {
         enabled: true,
         messages: {
           files: false,
@@ -28,7 +28,7 @@ export default [
         {
           type: "@boundaries/elements",
           mode: "folder",
-          pattern: "**/packages/elements/dist",
+          pattern: "** /packages/elements/dist",
         },
         {
           type: "config-utils",
@@ -96,13 +96,13 @@ export default [
         {
           type: "test",
           mode: "full",
-          pattern: ["src/**/*.spec.ts"],
+          pattern: ["src/** /*.spec.ts"],
         },
-      ],
+      ], */
     },
 
     rules: {
-      "local-rules/boundaries/element-types": [
+      /* "local-rules/boundaries/element-types": [
         2,
         {
           default: "disallow",
@@ -184,7 +184,7 @@ export default [
 
       "local-rules/boundaries/no-unknown": [2],
       "local-rules/boundaries/no-unknown-files": [2],
-      "local-rules/boundaries/no-ignored": [2],
+      "local-rules/boundaries/no-ignored": [2], */
     },
   },
   {

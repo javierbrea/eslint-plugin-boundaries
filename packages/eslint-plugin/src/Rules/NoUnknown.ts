@@ -1,4 +1,4 @@
-import { isLocalElement } from "@boundaries/elements";
+import { ORIGINS_MAP } from "@boundaries/elements";
 
 import { SETTINGS } from "../Shared";
 
@@ -13,9 +13,9 @@ export default dependencyRule(
   },
   function ({ dependency, node, context }) {
     if (
-      !dependency.to.isIgnored &&
-      isLocalElement(dependency.to) &&
-      dependency.to.isUnknown
+      !dependency.to.element.isIgnored &&
+      dependency.to.origin.kind === ORIGINS_MAP.LOCAL &&
+      dependency.to.element.isUnknown
     ) {
       context.report({
         message: `Dependencies to unknown elements are not allowed`,

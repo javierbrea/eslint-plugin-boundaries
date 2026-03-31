@@ -3,19 +3,15 @@ export type {
   DependencyKind,
   CapturedValuesSelector,
   ElementSelector,
-  ElementSelectors,
-  ElementsSelector,
-  ElementSelectorWithOptions,
+  LegacySimpleElementSingleSelectorByTypeWithOptions,
   FlagAsExternalOptions,
 } from "@boundaries/elements";
 
-export { isElementSelector, isElementsSelector } from "@boundaries/elements";
+export { isElementSelector } from "@boundaries/elements";
 
 export type {
   RulePolicy,
   RuleBaseOptions,
-  ElementTypesRule,
-  ElementTypesRuleOptions,
   DependenciesRule,
   DependenciesRuleOptions,
   EntryPointRule,

@@ -1,13 +1,9 @@
 import {
-  normalizeElementsSelector,
+  normalizeEntitySelector,
   DEPENDENCY_RELATIONSHIPS_MAP,
 } from "@boundaries/elements";
 
-import {
-  rulesOptionsSchema,
-  validateAndWarnRuleOptions,
-  warnMigrationToDependencies,
-} from "../Settings";
+import { rulesOptionsSchema, warnMigrationToDependencies } from "../Settings";
 import type {
   EntryPointRuleOptions,
   EntryPointRule,
@@ -45,16 +41,28 @@ function transformToDependenciesRules(
   const newRules: DependenciesRule[] = [];
 
   for (const rule of rules) {
-    const newTargets = normalizeElementsSelector(rule.target);
+    const newTargets = normalizeEntitySelector(rule.target);
 
     for (const target of newTargets) {
       newRules.push({
         to: target,
         allow: rule.allow
-          ? { to: { internalPath: modifyLegacyTemplates(rule.allow) } }
+          ? {
+              to: {
+                element: {
+                  fileInternalPath: modifyLegacyTemplates(rule.allow),
+                },
+              },
+            }
           : undefined,
         disallow: rule.disallow
-          ? { to: { internalPath: modifyLegacyTemplates(rule.disallow) } }
+          ? {
+              to: {
+                element: {
+                  fileInternalPath: modifyLegacyTemplates(rule.disallow),
+                },
+              },
+            }
           : undefined,
         importKind: rule.importKind,
         message: rule.message,
@@ -76,11 +84,12 @@ export default dependencyRule<EntryPointRuleOptions>(
   function ({ dependency, node, context, settings, options }) {
     warnMigrationToDependencies(RULE_NAMES_MAP.ENTRY_POINT);
     // Validate and warn about legacy selector syntax
-    validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, "target");
+    // TODO: Warn about legacy usage
+    // validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, "target");
 
     if (
-      !dependency.to.isIgnored &&
-      dependency.to.type &&
+      !dependency.to.file.isIgnored &&
+      dependency.to.element.type &&
       dependency.dependency.relationship.to !==
         DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL
     ) {

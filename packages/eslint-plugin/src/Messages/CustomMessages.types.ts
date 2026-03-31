@@ -1,20 +1,13 @@
 import type {
   DependencyDescription,
-  DependencySelector,
+  DependencySingleSelectorMatchResult,
 } from "@boundaries/elements";
 
 export type CustomMessageTemplateRuleContext = {
   /** Index of the rule that triggered the error */
   index: number | null;
   /** Selector of the rule that matched the dependency */
-  selector: {
-    /** Information about the selector that matched the dependency importer element */
-    from: DependencySelector["from"] | null;
-    /** Information about the selector that matched the dependency target element */
-    to: DependencySelector["to"] | null;
-    /** Information about the selector that matched the dependency metadata */
-    dependency: DependencySelector["dependency"] | null;
-  };
+  selector: DependencySingleSelectorMatchResult | null;
 } | null;
 
 /** Context received by custom message templates */

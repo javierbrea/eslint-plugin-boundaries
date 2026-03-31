@@ -1,11 +1,11 @@
 import type {
   DependencyDescription,
-  DependencyMatchResult,
-  BaseElementSelectorData,
-  DependencyDataSelectorData,
+  DependencyInfoDescription,
+  DependencyInfoSingleSelector,
+  DependencySingleSelectorMatchResult,
   ElementDescription,
   ElementParent,
-  ElementsDependencyInfo,
+  ElementSingleSelectorNormalized,
 } from "@boundaries/elements";
 
 import {
@@ -256,7 +256,7 @@ function shouldRenderDependencyValue(
  * @returns Formatted relationship fragment, or null when the side should be ignored.
  */
 function buildRelationshipFragment(
-  relationship: NonNullable<ElementsDependencyInfo["relationship"]>,
+  relationship: NonNullable<DependencyInfoDescription["relationship"]>,
   relationshipKey: "from" | "to",
   includeNullValues: boolean
 ): string | null {
@@ -275,7 +275,7 @@ function buildRelationshipFragment(
  * @returns List of relationship fragments.
  */
 function buildRelationshipFragments(
-  relationship: NonNullable<ElementsDependencyInfo["relationship"]>,
+  relationship: NonNullable<DependencyInfoDescription["relationship"]>,
   relationshipKeys: Array<"from" | "to"> | undefined,
   includeNullValues: boolean
 ): string[] {
@@ -330,7 +330,7 @@ export function elementDescriptionMessage(
  */
 export function elementDescriptionMessageFromSelector(
   elementDescription: ElementDescription | ElementParent,
-  selectorData: BaseElementSelectorData | null
+  selectorData: ElementSingleSelectorNormalized | null
 ): string | null {
   if (!selectorData) {
     return null;
@@ -367,14 +367,14 @@ export function elementDescriptionMessageFromSelector(
 
 /**
  * Builds message fragments for dependency metadata from selected properties.
- * @param dependencyMetadata - Dependency metadata to describe.
+ * @param dependencyInfo - Dependency metadata to describe.
  * @param properties - List of dependency metadata properties to include in the description.
  * @param options - Additional options for handling specific properties like "relationship".
  * @param options.relationshipKeys - If "relationship" is included in properties, specifies which relationship sides ("from", "to") to include in the description.
  * @returns List of formatted message fragments describing the dependency metadata.
  */
 function buildDependencyPropertyFragments(
-  dependencyMetadata: ElementsDependencyInfo,
+  dependencyInfo: DependencyInfoDescription,
   properties: string[],
   options?: {
     relationshipKeys?: Array<"from" | "to">;
@@ -384,8 +384,7 @@ function buildDependencyPropertyFragments(
   const fragments: string[] = [];
   const includeNullValues = options?.includeNullValues ?? false;
   for (const propertyName of properties) {
-    const value =
-      dependencyMetadata[propertyName as keyof typeof dependencyMetadata];
+    const value = dependencyInfo[propertyName as keyof typeof dependencyInfo];
     if (!shouldRenderDependencyValue(value, includeNullValues)) {
       continue;
     }
@@ -406,17 +405,17 @@ function buildDependencyPropertyFragments(
 
 /**
  * Describes dependency metadata using selected relevant properties.
- * @param dependencyMetadata - Dependency metadata to describe.
+ * @param dependencyInfo - Dependency metadata to describe.
  * @param properties - List of dependency metadata properties to include in the description.
  * @returns Formatted message describing the dependency metadata based on the selected properties.
  */
 export function dependencyDescriptionMessage(
-  dependencyMetadata: ElementsDependencyInfo,
+  dependencyInfo: DependencyInfoDescription,
   properties: string[],
   options?: { includeNullValues?: boolean }
 ): string {
   const propertyFragments = buildDependencyPropertyFragments(
-    dependencyMetadata,
+    dependencyInfo,
     properties,
     {
       includeNullValues: options?.includeNullValues,
@@ -430,13 +429,13 @@ export function dependencyDescriptionMessage(
 
 /**
  * Describes dependency metadata using selector-driven relevant properties.
- * @param dependencyMetadata - Dependency metadata to describe.
+ * @param dependencyInfo - Dependency metadata to describe.
  * @param selectorData - Selector data that determines which properties and captured keys to include in the description.
  * @returns Formatted message describing the dependency metadata based on the selected properties.
  */
 export function dependencyDescriptionMessageFromSelector(
-  dependencyMetadata: ElementsDependencyInfo,
-  selectorData: DependencyDataSelectorData | null
+  dependencyInfo: DependencyInfoDescription,
+  selectorData: DependencyInfoSingleSelector | null
 ): string | null {
   if (!selectorData) {
     return null;
@@ -449,7 +448,7 @@ export function dependencyDescriptionMessageFromSelector(
     ? (Object.keys(selectorData.relationship) as Array<"from" | "to">)
     : undefined;
   const propertyFragments = buildDependencyPropertyFragments(
-    dependencyMetadata,
+    dependencyInfo,
     properties,
     {
       relationshipKeys,
@@ -552,7 +551,7 @@ function elementTypesNoRulesMatchedMessage(
  * @returns Formatted error message describing the violation based on the matching selector data.
  */
 export function dependenciesRuleDefaultErrorMessage(
-  matchResult: DependencyMatchResult | null,
+  matchResult: DependencySingleSelectorMatchResult | null,
   ruleIndex: number | null,
   dependency: DependencyDescription
 ): string {
@@ -560,15 +559,9 @@ export function dependenciesRuleDefaultErrorMessage(
     return elementTypesNoRulesMatchedMessage(dependency);
   }
 
-  const fromProperties = Object.keys(
-    (matchResult?.from ?? {}) as BaseElementSelectorData
-  );
-  const toProperties = Object.keys(
-    (matchResult?.to ?? {}) as BaseElementSelectorData
-  );
-  const dependencyProperties = Object.keys(
-    (matchResult?.dependency ?? {}) as DependencyDataSelectorData
-  );
+  const fromProperties = Object.keys(matchResult?.from ?? {});
+  const toProperties = Object.keys(matchResult?.to ?? {});
+  const dependencyProperties = Object.keys(matchResult?.dependency ?? {});
 
   const fromPart = fromProperties.length
     ? elementDescriptionMessageFromSelector(dependency.from, matchResult!.from)

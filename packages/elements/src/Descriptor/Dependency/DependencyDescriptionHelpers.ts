@@ -14,7 +14,7 @@ import {
 import type {
   DependencyKind,
   DependencyRelationshipType,
-  DependencyInfo,
+  DependencyInfoDescription,
   DependencyDescription,
 } from "./DependencyDescription.types";
 
@@ -62,7 +62,9 @@ export function isDependencyRelationshipDescription(
  * @param value The value to check.
  * @returns True if the value is a valid DependencyInfo object, false otherwise.
  */
-export function isDependencyInfo(value: unknown): value is DependencyInfo {
+export function isDependencyInfo(
+  value: unknown
+): value is DependencyInfoDescription {
   return (
     isObjectWithProperty(value, "source") &&
     isString(value.source) &&
