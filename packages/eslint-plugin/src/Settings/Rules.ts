@@ -336,24 +336,14 @@ export function rulesOptionsSchema({
   extraOptionsSchema?: Record<string, JsonSchemaObject>;
   isLegacy?: boolean;
 } = {}) {
-  const policySchema = isLegacy
+  const policiesSchema = isLegacy
     ? legacyPoliciesSchema(targetMatcherOptions)
     : {
         anyOf: [
-          legacyPoliciesSchema(targetMatcherOptions),
           dependencySelectorSchema,
+          backwardCompatibleEntitySelectorSchema,
         ],
       };
-
-  const policiesSchema = {
-    anyOf: [
-      policySchema,
-      {
-        type: "array",
-        items: policySchema,
-      },
-    ],
-  };
 
   const legacyMainKey = rulesMainKey(mainKey);
 
@@ -364,8 +354,8 @@ export function rulesOptionsSchema({
         disallow: policiesSchema,
       }
     : {
-        from: entitySelectorSchema,
-        to: entitySelectorSchema,
+        from: backwardCompatibleEntitySelectorSchema,
+        to: backwardCompatibleEntitySelectorSchema,
         dependency: dependencyInfoSelectorSchema,
         allow: policiesSchema,
         disallow: policiesSchema,

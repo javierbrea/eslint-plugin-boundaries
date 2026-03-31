@@ -10,6 +10,8 @@ import type {
   DependencySelectorNormalized,
   BackwardCompatibleDependencyInfoSelector,
   BackwardCompatibleDependencySelector,
+  DependencyInfoSelectorNormalized,
+  EntitySelectorNormalized,
 } from "@boundaries/elements";
 import type { ESLint, Linter, Rule } from "eslint";
 
@@ -551,8 +553,6 @@ export type RuleBaseOptions = {
   message?: string;
 };
 
-export type RulePolicyEntry = BackwardCompatibleEntitySelector;
-
 /**
  * Rule that defines allowed or disallowed dependencies between different element types.
  */
@@ -563,12 +563,26 @@ export type DependenciesRule = {
   /** Selectors of the target elements that are disallowed to be imported */
   to?: BackwardCompatibleEntitySelector;
   /** Selectors of the elements that are disallowed to be imported */
-  disallow?: BackwardCompatibleDependencySelector;
+  disallow?:
+    | BackwardCompatibleDependencySelector
+    | BackwardCompatibleEntitySelector;
   /** Selectors of the elements that are allowed to be imported */
-  allow?: BackwardCompatibleDependencySelector;
+  allow?:
+    | BackwardCompatibleDependencySelector
+    | BackwardCompatibleEntitySelector;
   /** Kind of import that the rule applies to (e.g., "type", "value") */
   importKind?: DependencyKind;
   /** Custom message for rule violations */
+  message?: string;
+};
+
+export type DependenciesRuleNormalized = {
+  dependency?: DependencyInfoSelectorNormalized;
+  from?: EntitySelectorNormalized;
+  to?: EntitySelectorNormalized;
+  disallow?: DependencySelectorNormalized | EntitySelectorNormalized;
+  allow?: DependencySelectorNormalized | EntitySelectorNormalized;
+  importKind?: DependencyKind;
   message?: string;
 };
 
