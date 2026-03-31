@@ -155,32 +155,116 @@ function mergeProperties<T>(
 function mergeElementSingleSelector(
   outer?: ElementSingleSelectorNormalized,
   entry?: ElementSingleSelectorNormalized
-): ElementSingleSelectorNormalized | undefined {}
+): ElementSingleSelectorNormalized | undefined {
+  if (!entry) {
+    return outer;
+  }
+  if (!outer) {
+    return entry;
+  }
+  const result = mergeProperties(outer, entry) as
+    | ElementSingleSelectorNormalized
+    | undefined;
+  if (result && isObject(outer.captured) && isObject(entry.captured)) {
+    result.captured = { ...outer.captured, ...entry.captured };
+  }
+  return result;
+}
 
 function mergeElementSelector(
   outer?: ElementSelectorNormalized,
   entry?: ElementSelectorNormalized
-): ElementSelectorNormalized | undefined {}
+): ElementSelectorNormalized | undefined {
+  if (!entry) {
+    return outer;
+  }
+  if (!outer) {
+    return entry;
+  }
+  return outer.flatMap((outerSelector) => {
+    return entry.map(
+      (entrySelector) =>
+        mergeElementSingleSelector(
+          outerSelector,
+          entrySelector
+        ) as ElementSingleSelectorNormalized
+    );
+  });
+}
 
 function mergeFileSingleSelector(
   outer?: FileSingleSelector,
   entry?: FileSingleSelector
-): FileSingleSelector | undefined {}
+): FileSingleSelector | undefined {
+  if (!entry) {
+    return outer;
+  }
+  if (!outer) {
+    return entry;
+  }
+  const result = mergeProperties(outer, entry) as
+    | FileSingleSelector
+    | undefined;
+  if (result && isObject(outer.captured) && isObject(entry.captured)) {
+    result.captured = { ...outer.captured, ...entry.captured };
+  }
+  return result;
+}
 
 function mergeFileSelector(
   outer?: FileSelectorNormalized,
   entry?: FileSelectorNormalized
-): FileSelectorNormalized | undefined {}
+): FileSelectorNormalized | undefined {
+  if (!entry) {
+    return outer;
+  }
+  if (!outer) {
+    return entry;
+  }
+  return outer.flatMap((outerSelector) => {
+    return entry.map(
+      (entrySelector) =>
+        mergeFileSingleSelector(
+          outerSelector,
+          entrySelector
+        ) as FileSingleSelector
+    );
+  });
+}
 
 function mergeOriginSingleSelector(
   outer?: OriginSingleSelector,
   entry?: OriginSingleSelector
-): OriginSingleSelector | undefined {}
+): OriginSingleSelector | undefined {
+  if (!entry) {
+    return outer;
+  }
+  if (!outer) {
+    return entry;
+  }
+  return mergeProperties(outer, entry) as OriginSingleSelector | undefined;
+}
 
 function mergeOriginSelector(
   outer?: OriginSelectorNormalized,
   entry?: OriginSelectorNormalized
-): OriginSelectorNormalized | undefined {}
+): OriginSelectorNormalized | undefined {
+  if (!entry) {
+    return outer;
+  }
+  if (!outer) {
+    return entry;
+  }
+  return outer.flatMap((outerSelector) => {
+    return entry.map(
+      (entrySelector) =>
+        mergeOriginSingleSelector(
+          outerSelector,
+          entrySelector
+        ) as OriginSingleSelector
+    );
+  });
+}
 
 /**
  * Merges two element selectors by merging their fields, with entry fields taking precedence over outer fields.
