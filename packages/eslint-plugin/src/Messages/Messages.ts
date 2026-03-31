@@ -3,9 +3,14 @@ import type {
   DependencyInfoDescription,
   DependencyInfoSingleSelector,
   DependencySingleSelectorMatchResult,
+  EntityDescription,
   ElementDescription,
+  ElementSingleSelector,
   ElementParent,
-  ElementSingleSelectorNormalized,
+  FileDescription,
+  FileSingleSelector,
+  OriginDescription,
+  OriginSingleSelector,
 } from "@boundaries/elements";
 
 import {
@@ -328,9 +333,9 @@ export function elementDescriptionMessage(
  * @param elementDescription - Element to describe.
  * @param selectorData - Selector data that determines which properties and captured keys to include in the description.
  */
-export function elementDescriptionMessageFromSelector(
+function elementDescriptionMessageFromSelector(
   elementDescription: ElementDescription | ElementParent,
-  selectorData: ElementSingleSelectorNormalized | null
+  selectorData: ElementSingleSelector | null
 ): string | null {
   if (!selectorData) {
     return null;
@@ -363,6 +368,243 @@ export function elementDescriptionMessageFromSelector(
     return null;
   }
   return `elements of ${joinWithCommasAndAnd(propertyFragments)}`;
+}
+
+/**
+ * Builds message fragments from a selector-driven list of file properties.
+ * @param fileDescription - File to describe.
+ * @param properties - List of file properties to include in the description.
+ * @param options - Additional options for handling specific properties like "captured".
+ * @returns List of formatted fragments describing the file.
+ */
+function buildFilePropertyFragments(
+  fileDescription: FileDescription,
+  properties: string[],
+  options: { capturedKeys?: string[]; includeNullValues: boolean }
+): string[] {
+  const includeNullValues = options.includeNullValues;
+  const fragments: string[] = [];
+
+  for (const propertyName of properties) {
+    const value = fileDescription[propertyName as keyof FileDescription];
+    if (shouldSkipFragmentValue(value, includeNullValues)) {
+      continue;
+    }
+
+    if (propertyName === "captured") {
+      fragments.push(
+        ...buildCapturedFragments(
+          value,
+          options?.capturedKeys,
+          includeNullValues
+        )
+      );
+      continue;
+    }
+
+    fragments.push(formatPropertyFragment(propertyName, value));
+  }
+
+  return fragments;
+}
+
+/**
+ * Describes file metadata using selected relevant properties.
+ * @param fileDescription - File metadata to describe.
+ * @param properties - List of file properties to include in the description.
+ * @param options - Formatting options.
+ * @returns Formatted message describing the file.
+ */
+function fileDescriptionMessage(
+  fileDescription: FileDescription,
+  properties: string[],
+  { includeNullValues = false }: { includeNullValues?: boolean } = {}
+): string {
+  const propertyFragments = buildFilePropertyFragments(
+    fileDescription,
+    properties,
+    {
+      includeNullValues,
+    }
+  );
+  if (!propertyFragments.length) {
+    return "";
+  }
+  return `file of ${joinWithCommasAndAnd(propertyFragments)}`;
+}
+
+/**
+ * Describes file metadata using selector-driven relevant properties.
+ * @param fileDescription - File metadata to describe.
+ * @param selectorData - Selector data that determines which file properties and captured keys to include.
+ * @returns Formatted message describing the file metadata.
+ */
+function fileDescriptionMessageFromSelector(
+  fileDescription: FileDescription,
+  selectorData: FileSingleSelector | null | undefined
+): string | null {
+  if (!selectorData) {
+    return null;
+  }
+  const properties = Object.keys(selectorData);
+  if (!properties.length) {
+    return null;
+  }
+  const capturedKeys = isObject(selectorData.captured)
+    ? Object.keys(selectorData.captured)
+    : undefined;
+  const propertyFragments = buildFilePropertyFragments(
+    fileDescription,
+    properties,
+    {
+      capturedKeys,
+      includeNullValues: true,
+    }
+  );
+  if (!propertyFragments.length) {
+    return null;
+  }
+  return `file of ${joinWithCommasAndAnd(propertyFragments)}`;
+}
+
+/**
+ * Builds message fragments from selected origin properties.
+ * @param originDescription - Origin metadata to describe.
+ * @param properties - List of origin properties to include.
+ * @param options - Formatting options.
+ * @returns List of formatted fragments describing origin.
+ */
+function buildOriginPropertyFragments(
+  originDescription: OriginDescription,
+  properties: string[],
+  options: { includeNullValues: boolean }
+): string[] {
+  const fragments: string[] = [];
+  for (const propertyName of properties) {
+    const value = originDescription[propertyName as keyof OriginDescription];
+    if (shouldSkipFragmentValue(value, options.includeNullValues)) {
+      continue;
+    }
+    fragments.push(formatPropertyFragment(propertyName, value));
+  }
+  return fragments;
+}
+
+/**
+ * Describes origin metadata using selected relevant properties.
+ * @param originDescription - Origin metadata to describe.
+ * @param properties - List of origin properties to include in the description.
+ * @param options - Formatting options.
+ * @returns Formatted message describing origin metadata.
+ */
+function originDescriptionMessage(
+  originDescription: OriginDescription,
+  properties: string[],
+  { includeNullValues = false }: { includeNullValues?: boolean } = {}
+): string {
+  const propertyFragments = buildOriginPropertyFragments(
+    originDescription,
+    properties,
+    {
+      includeNullValues,
+    }
+  );
+  if (!propertyFragments.length) {
+    return "";
+  }
+  return `origin of ${joinWithCommasAndAnd(propertyFragments)}`;
+}
+
+/**
+ * Describes origin metadata using selector-driven relevant properties.
+ * @param originDescription - Origin metadata to describe.
+ * @param selectorData - Selector data that determines which origin properties to include.
+ * @returns Formatted message describing origin metadata.
+ */
+function originDescriptionMessageFromSelector(
+  originDescription: OriginDescription,
+  selectorData: OriginSingleSelector | null | undefined
+): string | null {
+  if (!selectorData) {
+    return null;
+  }
+  const properties = Object.keys(selectorData);
+  if (!properties.length) {
+    return null;
+  }
+  const propertyFragments = buildOriginPropertyFragments(
+    originDescription,
+    properties,
+    {
+      includeNullValues: true,
+    }
+  );
+  if (!propertyFragments.length) {
+    return null;
+  }
+  return `origin of ${joinWithCommasAndAnd(propertyFragments)}`;
+}
+
+/**
+ * Describes entities using selector-driven relevant properties from element, file and origin.
+ * @param entityDescription - Entity metadata to describe.
+ * @param selectorData - Selector data determining which entity parts to include.
+ * @returns Formatted message describing the entity metadata.
+ */
+function entityDescriptionMessageFromSelector(
+  entityDescription: EntityDescription,
+  selectorData: DependencySingleSelectorMatchResult["from"] | null | undefined
+): string | null {
+  if (!selectorData) {
+    return null;
+  }
+
+  const descriptionFragments = [
+    elementDescriptionMessageFromSelector(
+      entityDescription.element,
+      selectorData.element ?? null
+    ),
+    fileDescriptionMessageFromSelector(
+      entityDescription.file,
+      selectorData.file
+    ),
+    originDescriptionMessageFromSelector(
+      entityDescription.origin,
+      selectorData.origin
+    ),
+  ].filter((fragment): fragment is string => !isNull(fragment));
+
+  if (!descriptionFragments.length) {
+    return null;
+  }
+
+  return `entities with ${joinWithCommasAndAnd(descriptionFragments)}`;
+}
+
+/**
+ * Describes entities for no-rule messages, including both element and file metadata when available.
+ * @param entityDescription - Entity metadata to describe.
+ * @param options - Formatting options.
+ * @param options.includeOrigin - Whether origin metadata should be appended.
+ * @returns Formatted message describing available entity metadata.
+ */
+function entityDescriptionMessageForNoRule(
+  entityDescription: EntityDescription,
+  { includeOrigin = false }: { includeOrigin?: boolean } = {}
+): string {
+  const descriptionFragments = [
+    elementDescriptionMessage(entityDescription.element, [
+      "type",
+      "category",
+      "captured",
+    ]),
+    fileDescriptionMessage(entityDescription.file, ["categories", "captured"]),
+    includeOrigin
+      ? originDescriptionMessage(entityDescription.origin, ["kind", "module"])
+      : "",
+  ].filter(Boolean);
+
+  return joinWithCommasAndAnd(descriptionFragments);
 }
 
 /**
@@ -409,7 +651,7 @@ function buildDependencyPropertyFragments(
  * @param properties - List of dependency metadata properties to include in the description.
  * @returns Formatted message describing the dependency metadata based on the selected properties.
  */
-export function dependencyDescriptionMessage(
+function dependencyDescriptionMessage(
   dependencyInfo: DependencyInfoDescription,
   properties: string[],
   options?: { includeNullValues?: boolean }
@@ -433,7 +675,7 @@ export function dependencyDescriptionMessage(
  * @param selectorData - Selector data that determines which properties and captured keys to include in the description.
  * @returns Formatted message describing the dependency metadata based on the selected properties.
  */
-export function dependencyDescriptionMessageFromSelector(
+function dependencyDescriptionMessageFromSelector(
   dependencyInfo: DependencyInfoDescription,
   selectorData: DependencyInfoSingleSelector | null
 ): string | null {
@@ -511,29 +753,25 @@ function resolveNoRulesMatchedMessage(
  * @param dependency - Dependency description used to derive message details.
  * @returns Human-readable fallback message for no-rules scenarios.
  */
-function elementTypesNoRulesMatchedMessage(
+function dependenciesNoRuleMatchedMessage(
   dependency: DependencyDescription
 ): string {
-  const fromDescription = elementDescriptionMessage(dependency.from, [
-    "type",
-    "category",
-    "captured",
-  ]);
-  const toDescription = elementDescriptionMessage(dependency.to, [
-    "type",
-    "category",
-    "captured",
-  ]);
-  const propertyToShowInDependency = dependency.dependency.module
-    ? "module"
-    : "source";
+  const fromDescription = entityDescriptionMessageForNoRule(dependency.from);
+  const toDescription = entityDescriptionMessageForNoRule(dependency.to, {
+    includeOrigin: true,
+  });
+  const legacyModule = (
+    dependency.dependency as DependencyInfoDescription & { module?: unknown }
+  ).module;
+  const propertyToShowInDependency =
+    !isUndefined(legacyModule) && !isNull(legacyModule) ? "module" : "source";
   const dependencyDescription = dependencyDescriptionMessage(
     dependency.dependency,
     [propertyToShowInDependency]
   );
   const originDescription = toDescription.length
     ? null
-    : elementDescriptionMessage(dependency.to, ["origin"]);
+    : originDescriptionMessage(dependency.to.origin, ["kind", "module"]);
 
   return resolveNoRulesMatchedMessage(
     fromDescription,
@@ -550,29 +788,25 @@ function elementTypesNoRulesMatchedMessage(
  * @param dependency - Described dependency that triggered the violation, used to extract element and dependency metadata for message construction.
  * @returns Formatted error message describing the violation based on the matching selector data.
  */
-export function dependenciesRuleDefaultErrorMessage(
+export function dependenciesRuleMatchedMessage(
   matchResult: DependencySingleSelectorMatchResult | null,
-  ruleIndex: number | null,
+  ruleIndex: number,
   dependency: DependencyDescription
 ): string {
-  if (isNull(ruleIndex)) {
-    return elementTypesNoRulesMatchedMessage(dependency);
-  }
-
   const fromProperties = Object.keys(matchResult?.from ?? {});
   const toProperties = Object.keys(matchResult?.to ?? {});
   const dependencyProperties = Object.keys(matchResult?.dependency ?? {});
 
   const fromPart = fromProperties.length
-    ? elementDescriptionMessageFromSelector(dependency.from, matchResult!.from)
+    ? entityDescriptionMessageFromSelector(dependency.from, matchResult!.from)
     : null;
   const toPart = toProperties.length
-    ? elementDescriptionMessageFromSelector(dependency.to, matchResult!.to)
+    ? entityDescriptionMessageFromSelector(dependency.to, matchResult!.to)
     : null;
   const dependencyPart = dependencyProperties.length
     ? dependencyDescriptionMessageFromSelector(
         dependency.dependency,
-        matchResult!.dependency
+        matchResult!.dependency ?? null
       )
     : null;
 
@@ -595,4 +829,22 @@ export function dependenciesRuleDefaultErrorMessage(
   }
 
   return `${capitalizeFirstLetter(message)}. Denied by rule at index ${ruleIndex}`;
+}
+
+/**
+ * Builds the default message for dependencies rule violations from the matching selector data.
+ * @param matchResult - Result of matching the dependency against the rule's selector, containing the relevant selector data for the from/to elements and the dependency metadata.
+ * @param ruleIndex - Index of the matching rule.
+ * @param dependency - Described dependency that triggered the violation, used to extract element and dependency metadata for message construction.
+ * @returns Formatted error message describing the violation based on the matching selector data.
+ */
+export function dependenciesRuleDefaultErrorMessage(
+  matchResult: DependencySingleSelectorMatchResult | null,
+  ruleIndex: number | null,
+  dependency: DependencyDescription
+): string {
+  if (isNull(ruleIndex)) {
+    return dependenciesNoRuleMatchedMessage(dependency);
+  }
+  return dependenciesRuleMatchedMessage(matchResult, ruleIndex, dependency);
 }

@@ -7,14 +7,13 @@ import {
   RULE_NAMES_MAP,
   isRuleShortName,
   isRuleName,
-  IMPORT_KINDS_MAP,
-  isImportKind,
+  DEPENDENCY_KINDS_MAP,
+  isDependencyKind,
   DEPENDENCY_NODE_KEYS_MAP,
   isDependencyNodeKey,
   SETTINGS_KEYS_MAP,
   isSettingsKey,
   ELEMENT_DESCRIPTOR_MODES_MAP,
-  isElementDescriptorMode,
   RULE_POLICIES_MAP,
   isRulePolicy,
 } from "./Config";
@@ -515,18 +514,19 @@ describe("Constants", () => {
     });
   });
 
-  describe("IMPORT_KINDS_MAP", () => {
+  describe("DEPENDENCY_KINDS_MAP", () => {
     it("should be defined as a string key/value map", () => {
-      expect(IMPORT_KINDS_MAP).toBeDefined();
-      expect(typeof IMPORT_KINDS_MAP).toBe("object");
+      expect(DEPENDENCY_KINDS_MAP).toBeDefined();
+      expect(typeof DEPENDENCY_KINDS_MAP).toBe("object");
 
-      Object.entries(IMPORT_KINDS_MAP).forEach(([key, value]) => {
+      Object.entries(DEPENDENCY_KINDS_MAP).forEach(([key, value]) => {
         expect(typeof key).toBe("string");
         expect(typeof value).toBe("string");
       });
 
-      expect(IMPORT_KINDS_MAP.TYPE).toBe("type");
-      expect(IMPORT_KINDS_MAP.VALUE).toBe("value");
+      expect(DEPENDENCY_KINDS_MAP.TYPE).toBe("type");
+      expect(DEPENDENCY_KINDS_MAP.VALUE).toBe("value");
+      expect(DEPENDENCY_KINDS_MAP.TYPE_OF).toBe("typeof");
     });
   });
 
@@ -665,25 +665,27 @@ describe("Type Guard Functions", () => {
     });
   });
 
-  describe("isImportKind", () => {
-    it("should return true for valid import kinds", () => {
-      expect(isImportKind("type")).toBe(true);
-      expect(isImportKind("value")).toBe(true);
+  describe("isDependencyKind", () => {
+    it("should return true for valid dependency kinds", () => {
+      expect(isDependencyKind("type")).toBe(true);
+      expect(isDependencyKind("value")).toBe(true);
+      expect(isDependencyKind("typeof")).toBe(true);
     });
 
-    it("should return false for invalid import kinds", () => {
-      expect(isImportKind("invalid")).toBe(false);
-      expect(isImportKind("TYPE")).toBe(false);
-      expect(isImportKind("VALUE")).toBe(false);
-      expect(isImportKind("")).toBe(false);
+    it("should return false for invalid dependency kinds", () => {
+      expect(isDependencyKind("invalid")).toBe(false);
+      expect(isDependencyKind("TYPE")).toBe(false);
+      expect(isDependencyKind("VALUE")).toBe(false);
+      expect(isDependencyKind("TYPEOF")).toBe(false);
+      expect(isDependencyKind("")).toBe(false);
     });
 
     it("should return false for non-string values", () => {
-      expect(isImportKind(null)).toBe(false);
-      expect(isImportKind(undefined)).toBe(false);
-      expect(isImportKind(123)).toBe(false);
-      expect(isImportKind({})).toBe(false);
-      expect(isImportKind([])).toBe(false);
+      expect(isDependencyKind(null)).toBe(false);
+      expect(isDependencyKind(undefined)).toBe(false);
+      expect(isDependencyKind(123)).toBe(false);
+      expect(isDependencyKind({})).toBe(false);
+      expect(isDependencyKind([])).toBe(false);
     });
   });
 
@@ -739,29 +741,6 @@ describe("Type Guard Functions", () => {
       expect(isSettingsKey(123)).toBe(false);
       expect(isSettingsKey({})).toBe(false);
       expect(isSettingsKey([])).toBe(false);
-    });
-  });
-
-  describe("isElementDescriptorMode", () => {
-    it("should return true for valid element descriptor modes", () => {
-      expect(isElementDescriptorMode("folder")).toBe(true);
-      expect(isElementDescriptorMode("file")).toBe(true);
-      expect(isElementDescriptorMode("full")).toBe(true);
-    });
-
-    it("should return false for invalid element descriptor modes", () => {
-      expect(isElementDescriptorMode("invalid")).toBe(false);
-      expect(isElementDescriptorMode("FOLDER")).toBe(false);
-      expect(isElementDescriptorMode("FILE")).toBe(false);
-      expect(isElementDescriptorMode("")).toBe(false);
-    });
-
-    it("should return false for non-string values", () => {
-      expect(isElementDescriptorMode(null)).toBe(false);
-      expect(isElementDescriptorMode(undefined)).toBe(false);
-      expect(isElementDescriptorMode(123)).toBe(false);
-      expect(isElementDescriptorMode({})).toBe(false);
-      expect(isElementDescriptorMode([])).toBe(false);
     });
   });
 
