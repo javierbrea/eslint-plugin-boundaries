@@ -10,6 +10,12 @@ import type {
   DependencySingleSelectorMatchResult,
   DependencySingleSelectorNormalized,
   DependencySelectorNormalized,
+  ElementSingleSelectorNormalized,
+  ElementSelectorNormalized,
+  FileSelectorNormalized,
+  FileSingleSelector,
+  OriginSingleSelector,
+  OriginSelectorNormalized,
 } from "@boundaries/elements";
 import {
   DEPENDENCY_RELATIONSHIPS_MAP,
@@ -146,6 +152,36 @@ function mergeProperties<T>(
   return isUndefined(entry) ? outer : entry;
 }
 
+function mergeElementSingleSelector(
+  outer?: ElementSingleSelectorNormalized,
+  entry?: ElementSingleSelectorNormalized
+): ElementSingleSelectorNormalized | undefined {}
+
+function mergeElementSelector(
+  outer?: ElementSelectorNormalized,
+  entry?: ElementSelectorNormalized
+): ElementSelectorNormalized | undefined {}
+
+function mergeFileSingleSelector(
+  outer?: FileSingleSelector,
+  entry?: FileSingleSelector
+): FileSingleSelector | undefined {}
+
+function mergeFileSelector(
+  outer?: FileSelectorNormalized,
+  entry?: FileSelectorNormalized
+): FileSelectorNormalized | undefined {}
+
+function mergeOriginSingleSelector(
+  outer?: OriginSingleSelector,
+  entry?: OriginSingleSelector
+): OriginSingleSelector | undefined {}
+
+function mergeOriginSelector(
+  outer?: OriginSelectorNormalized,
+  entry?: OriginSelectorNormalized
+): OriginSelectorNormalized | undefined {}
+
 /**
  * Merges two element selectors by merging their fields, with entry fields taking precedence over outer fields.
  * If both selectors have a `captured` field, they are merged separately to avoid losing any captured values.
@@ -154,16 +190,20 @@ function mergeEntitySingleSelector(
   outer: EntitySingleSelectorNormalized,
   entry: EntitySingleSelectorNormalized
 ): EntitySingleSelectorNormalized {
-  const result: EntitySingleSelectorNormalized = { ...outer, ...entry };
-  const captured = mergeProperties(outer.captured, entry.captured);
-  if (!isUndefined(captured)) {
-    result.captured = captured;
+  const merged: EntitySingleSelectorNormalized = {};
+  const mergedElement = mergeElementSelector(outer.element, entry.element);
+  if (mergedElement) {
+    merged.element = mergedElement;
   }
-  const parent = mergeProperties(outer.parent, entry.parent);
-  if (!isUndefined(parent)) {
-    result.parent = parent;
+  const mergedFile = mergeFileSelector(outer.file, entry.file);
+  if (mergedFile) {
+    merged.file = mergedFile;
   }
-  return result;
+  const mergedOrigin = mergeOriginSelector(outer.origin, entry.origin);
+  if (mergedOrigin) {
+    merged.origin = mergedOrigin;
+  }
+  return merged;
 }
 
 function mergeDependencyInfoSingleSelector(

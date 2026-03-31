@@ -7,3 +7,4 @@ export * from "./Shared";
 export * from "./Matcher";
 export * from "./File";
 export * from "./Matcher.types";
+export * from "./Origin";
