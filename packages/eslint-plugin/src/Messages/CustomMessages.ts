@@ -3,8 +3,8 @@ import type {
   DependencyDescription,
   ElementDescription,
   DependencySingleSelectorMatchResult,
+  OriginDescription,
 } from "@boundaries/elements";
-import { isElementDescription } from "@boundaries/elements";
 import Handlebars from "handlebars";
 
 import { isNull } from "../Shared";
@@ -69,33 +69,42 @@ function replaceObjectValuesInLegacyTemplate(
  *
  * @param element - Element or parent element that provides captured values.
  * @param importKind - Dependency kind (`value`, `type`, etc.).
- * @param dependencyMetadata - Extra dependency metadata for full elements.
+ * @param dependencyInfo - Extra dependency metadata for full elements.
  * @returns Normalized key/value map used during placeholder replacement.
  */
-export function elementPropertiesToReplaceInLegacyTemplate(
-  element: ElementDescription | ElementParent,
-  importKind: string,
-  dependencyMetadata?: DependencyDescription["dependency"]
-) {
-  if (isElementDescription(element)) {
-    const source = dependencyMetadata?.source || "";
-    const dependencyModule = dependencyMetadata?.module || "";
-    return {
-      ...element.captured,
-      type: element.type || "",
-      internalPath: element.internalPath || "",
-      source,
-      module: dependencyModule,
-      importKind: importKind || "",
-    };
-  }
+export function elementPropertiesToReplaceInLegacyTemplate({
+  element,
+  origin,
+  dependency,
+}: {
+  element: ElementDescription;
+  origin?: OriginDescription;
+  dependency?: DependencyDescription["dependency"];
+}) {
   return {
     ...element.captured,
     type: element.type || "",
+    internalPath: element.fileInternalPath || "",
+    source: dependency?.source || "",
+    module: origin?.module || "",
+    importKind: dependency?.kind || "",
+  };
+}
+
+export function parentPropertiesToReplaceInLegacyTemplate({
+  parent,
+  dependency,
+}: {
+  parent: ElementParent;
+  dependency?: DependencyDescription["dependency"];
+}) {
+  return {
+    ...parent.captured,
+    type: parent.type || "",
     internalPath: "",
     source: "",
     module: "",
-    importKind: importKind || "",
+    importKind: dependency?.kind || "",
   };
 }
 
@@ -137,11 +146,7 @@ function renderCustomMessageHandlebarsTemplate(
       !isNull(ruleIndex) && matchResult
         ? {
             index: ruleIndex,
-            selector: {
-              from: matchResult.from,
-              to: matchResult.to,
-              dependency: matchResult.dependency,
-            },
+            selector: matchResult,
           }
         : null,
   };
@@ -160,78 +165,65 @@ function replaceLegacyTemplateVariables(
   template: string,
   dependency: DependencyDescription
 ) {
+  const fromProperties = elementPropertiesToReplaceInLegacyTemplate({
+    element: dependency.from.element,
+    origin: dependency.from.origin,
+  });
+  const toProperties = elementPropertiesToReplaceInLegacyTemplate({
+    element: dependency.to.element,
+    origin: dependency.to.origin,
+    dependency: dependency.dependency,
+  });
   let replacedMessage = replaceObjectValuesInLegacyTemplate(
-    replaceObjectValuesInLegacyTemplate(
-      template,
-      elementPropertiesToReplaceInLegacyTemplate(
-        dependency.from,
-        dependency.dependency.kind
-      ),
-      "file"
-    ),
-    elementPropertiesToReplaceInLegacyTemplate(
-      dependency.to,
-      dependency.dependency.kind,
-      dependency.dependency
-    ),
+    replaceObjectValuesInLegacyTemplate(template, fromProperties, "file"),
+    toProperties,
     "dependency"
   );
   replacedMessage = replaceObjectValuesInLegacyTemplate(
     replaceObjectValuesInLegacyTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInLegacyTemplate(
-        dependency.from,
-        dependency.dependency.kind
-      ),
+      fromProperties,
       "from"
     ),
-    elementPropertiesToReplaceInLegacyTemplate(
-      dependency.to,
-      dependency.dependency.kind,
-      dependency.dependency
-    ),
+    toProperties,
     "target"
   );
-  if (dependency.from.parents?.[0]) {
+  if (dependency.from.element.parents?.[0]) {
+    const fromParentProperties = parentPropertiesToReplaceInLegacyTemplate({
+      parent: dependency.from.element.parents[0],
+      dependency: dependency.dependency,
+    });
     replacedMessage = replaceObjectValuesInLegacyTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInLegacyTemplate(
-        dependency.from.parents?.[0],
-        dependency.dependency.kind
-      ),
+      fromParentProperties,
       "file.parent"
     );
     replacedMessage = replaceObjectValuesInLegacyTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInLegacyTemplate(
-        dependency.from.parents?.[0],
-        dependency.dependency.kind
-      ),
+      fromParentProperties,
       "from.parent"
     );
   }
-  if (dependency.to.parents?.[0]) {
+  if (dependency.to.element.parents?.[0]) {
+    const toParentProperties = parentPropertiesToReplaceInLegacyTemplate({
+      parent: dependency.to.element.parents?.[0],
+      dependency: dependency.dependency,
+    });
     replacedMessage = replaceObjectValuesInLegacyTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInLegacyTemplate(
-        dependency.to.parents?.[0],
-        dependency.dependency.kind
-      ),
+      toParentProperties,
       "dependency.parent"
     );
     replacedMessage = replaceObjectValuesInLegacyTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInLegacyTemplate(
-        dependency.to.parents?.[0],
-        dependency.dependency.kind
-      ),
+      toParentProperties,
       "target.parent"
     );
   }
   return replaceObjectValuesInLegacyTemplate(
     replacedMessage,
     {
-      path: dependency.to.internalPath || "",
+      path: dependency.to.element.fileInternalPath || "",
       specifiers: dependency.dependency.specifiers?.join(", ") || "",
     },
     "report"
