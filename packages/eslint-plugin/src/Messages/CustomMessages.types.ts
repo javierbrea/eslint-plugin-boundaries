@@ -1,6 +1,8 @@
 import type {
   DependencyDescription,
   DependencySingleSelectorMatchResult,
+  ElementDescription,
+  ElementParent,
 } from "@boundaries/elements";
 
 export type CustomMessageTemplateRuleContext = {
@@ -13,11 +15,19 @@ export type CustomMessageTemplateRuleContext = {
 /** Context received by custom message templates */
 export type CustomMessageTemplateContext = {
   /** Information about the dependency importer element */
-  from: DependencyDescription["from"] | null;
+  from: ElementDescription & {
+    elementPath: string | null;
+    internalPath: string | null;
+    parents: ElementParent[];
+  } & DependencyDescription["from"];
   /** Information about the dependency target element */
-  to: DependencyDescription["to"] | null;
+  to: ElementDescription & {
+    elementPath: string | null;
+    internalPath: string | null;
+    parents: ElementParent[];
+  } & DependencyDescription["to"];
   /** Information about the dependency itself */
-  dependency: DependencyDescription["dependency"] | null;
+  dependency: DependencyDescription["dependency"];
   /** Context about the rule that matched the dependency, if any */
   rule: CustomMessageTemplateRuleContext;
 };

@@ -10,7 +10,8 @@ import type { RuleTesterSettings } from "../../support/helpers";
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
 const FOO_CODE = "export default {}";
-const ERROR_MESSAGE = "File does not match any element pattern";
+const ERROR_MESSAGE =
+  "File does not match any file pattern and does not belong to any known element";
 
 const runTest = (settings: RuleTesterSettings) => {
   const ruleTester = createRuleTester(settings);

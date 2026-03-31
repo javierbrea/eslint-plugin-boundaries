@@ -28,7 +28,7 @@ const noUnknownFilesRule: Rule.RuleModule = {
     return {
       Program: (node) => {
         context.report({
-          message: `File does not match any file pattern and does not belong to any known element.`,
+          message: `File does not match any file pattern and does not belong to any known element`,
           node: node,
         });
       },

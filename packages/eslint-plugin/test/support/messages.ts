@@ -33,7 +33,7 @@ export function externalNoRuleMessage({
   file: string;
   dep: string;
 }) {
-  return `There is no rule allowing dependencies from elements of type ${file} to elements of origin "external" with module "${dep}"`;
+  return `There is no rule allowing dependencies from elements of type ${file} to entities of origin "external" with module "${dep}"`;
 }
 
 export function noPrivateMessage({ dep }: { dep: string }) {

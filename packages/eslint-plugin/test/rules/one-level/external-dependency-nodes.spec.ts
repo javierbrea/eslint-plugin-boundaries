@@ -78,7 +78,7 @@ createRuleTester(settings).run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 1',
+            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -132,7 +132,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 1',
+            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -145,7 +145,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
+            'Dependencies with kind "value" and module "react" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -158,7 +158,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
+            'Dependencies with kind "value" and module "react" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -171,7 +171,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
+            'Dependencies with kind "value" and module "react" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -184,7 +184,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
+            'Dependencies with kind "value" and module "react" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -217,7 +217,7 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies with kind "type", module "react-router-dom" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
+            'Dependencies with kind "type", module "react-router-dom" and specifiers "Link" to entities of origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
           type: "Literal",
         },
       ],
@@ -230,7 +230,7 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 1',
+            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -290,7 +290,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "type", module "react-router-dom" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
+            'Dependencies with kind "type", module "react-router-dom" and specifiers "Link" to entities of origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
           type: "Literal",
         },
       ],
@@ -303,7 +303,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 1',
+            'Dependencies with kind "value", module "react-router-dom" and specifiers "Link" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -316,7 +316,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
+            'Dependencies with kind "value" and module "react" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -329,7 +329,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "type" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
+            'Dependencies with kind "type" and module "react" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -342,7 +342,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
+            'Dependencies with kind "value" and module "react" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -355,7 +355,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
+            'Dependencies with kind "value" and module "react" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -368,7 +368,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
+            'Dependencies with kind "value" and module "react" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
           type: "Literal",
         },
       ],

@@ -491,31 +491,6 @@ function buildOriginPropertyFragments(
 }
 
 /**
- * Describes origin metadata using selected relevant properties.
- * @param originDescription - Origin metadata to describe.
- * @param properties - List of origin properties to include in the description.
- * @param options - Formatting options.
- * @returns Formatted message describing origin metadata.
- */
-function originDescriptionMessage(
-  originDescription: OriginDescription,
-  properties: string[],
-  { includeNullValues = false }: { includeNullValues?: boolean } = {}
-): string {
-  const propertyFragments = buildOriginPropertyFragments(
-    originDescription,
-    properties,
-    {
-      includeNullValues,
-    }
-  );
-  if (!propertyFragments.length) {
-    return "";
-  }
-  return `origin of ${joinWithCommasAndAnd(propertyFragments)}`;
-}
-
-/**
  * Describes origin metadata using selector-driven relevant properties.
  * @param originDescription - Origin metadata to describe.
  * @param selectorData - Selector data that determines which origin properties to include.
@@ -542,69 +517,108 @@ function originDescriptionMessageFromSelector(
   if (!propertyFragments.length) {
     return null;
   }
-  return `origin of ${joinWithCommasAndAnd(propertyFragments)}`;
+  if (propertyFragments.length === 1 && properties[0] === "kind") {
+    return `origin ${formatPropertyValue(originDescription.kind)}`;
+  }
+  return `origin ${joinWithCommasAndAnd(propertyFragments)}`;
 }
 
 /**
  * Describes entities using selector-driven relevant properties from element, file and origin.
+ * When both file and element are present, the file is described first with "belonging to" linking to the element.
  * @param entityDescription - Entity metadata to describe.
  * @param selectorData - Selector data determining which entity parts to include.
  * @returns Formatted message describing the entity metadata.
  */
 function entityDescriptionMessageFromSelector(
   entityDescription: EntityDescription,
-  selectorData: DependencySingleSelectorMatchResult["from"] | null | undefined
+  selectorData: DependencySingleSelectorMatchResult["from"] | null | undefined,
+  { includeOrigin = true }: { includeOrigin?: boolean } = {}
 ): string | null {
   if (!selectorData) {
     return null;
   }
 
-  const descriptionFragments = [
-    elementDescriptionMessageFromSelector(
-      entityDescription.element,
-      selectorData.element ?? null
-    ),
-    fileDescriptionMessageFromSelector(
-      entityDescription.file,
-      selectorData.file
-    ),
-    originDescriptionMessageFromSelector(
-      entityDescription.origin,
-      selectorData.origin
-    ),
-  ].filter((fragment): fragment is string => !isNull(fragment));
+  const elementPart = elementDescriptionMessageFromSelector(
+    entityDescription.element,
+    selectorData.element ?? null
+  );
+  const filePart = fileDescriptionMessageFromSelector(
+    entityDescription.file,
+    selectorData.file
+  );
+  const originPart = includeOrigin
+    ? originDescriptionMessageFromSelector(
+        entityDescription.origin,
+        selectorData.origin
+      )
+    : null;
 
-  if (!descriptionFragments.length) {
+  if (!elementPart && !filePart && !originPart) {
     return null;
   }
 
-  return `entities with ${joinWithCommasAndAnd(descriptionFragments)}`;
+  let mainPart: string | null;
+  if (filePart && elementPart) {
+    mainPart = `${filePart} belonging to ${elementPart}`;
+  } else {
+    mainPart = filePart ?? elementPart;
+  }
+
+  if (mainPart && originPart) {
+    return `${mainPart} and ${originPart}`;
+  }
+  return mainPart ?? originPart;
+}
+
+/**
+ * Describes target-origin selector data as dependency metadata when building selector-based messages.
+ * Legacy selectors with only `to.origin.module` are rendered as dependency `module`.
+ * @param toSelectorData - Selector data from the target entity.
+ * @param dependency - Dependency description used to read actual values.
+ * @returns Formatted dependency metadata fragment derived from target origin selector data.
+ */
+function dependencyOriginFromToSelectorMessage(
+  toSelectorData: DependencySingleSelectorMatchResult["to"] | null | undefined,
+  dependency: DependencyDescription
+): string | null {
+  if (!toSelectorData?.origin) {
+    return null;
+  }
+
+  if (isUndefined(toSelectorData.origin.module)) {
+    return null;
+  }
+
+  if (shouldRenderDependencyValue(dependency.to.origin.module, false)) {
+    return formatPropertyFragment("module", dependency.to.origin.module);
+  }
+
+  return null;
 }
 
 /**
  * Describes entities for no-rule messages, including both element and file metadata when available.
+ * When both file and element are present, the file is described first with "belonging to" linking to the element.
  * @param entityDescription - Entity metadata to describe.
- * @param options - Formatting options.
- * @param options.includeOrigin - Whether origin metadata should be appended.
  * @returns Formatted message describing available entity metadata.
  */
 function entityDescriptionMessageForNoRule(
-  entityDescription: EntityDescription,
-  { includeOrigin = false }: { includeOrigin?: boolean } = {}
+  entityDescription: EntityDescription
 ): string {
-  const descriptionFragments = [
-    elementDescriptionMessage(entityDescription.element, [
-      "type",
-      "category",
-      "captured",
-    ]),
-    fileDescriptionMessage(entityDescription.file, ["categories", "captured"]),
-    includeOrigin
-      ? originDescriptionMessage(entityDescription.origin, ["kind", "module"])
-      : "",
-  ].filter(Boolean);
-
-  return joinWithCommasAndAnd(descriptionFragments);
+  const elementPart = elementDescriptionMessage(entityDescription.element, [
+    "type",
+    "category",
+    "captured",
+  ]);
+  const filePart = fileDescriptionMessage(entityDescription.file, [
+    "categories",
+    "captured",
+  ]);
+  if (filePart && elementPart) {
+    return `${filePart} belonging to ${elementPart}`;
+  }
+  return filePart || elementPart;
 }
 
 /**
@@ -670,37 +684,30 @@ function dependencyDescriptionMessage(
 }
 
 /**
- * Describes dependency metadata using selector-driven relevant properties.
+ * Builds dependency metadata fragments using selector-driven relevant properties.
  * @param dependencyInfo - Dependency metadata to describe.
- * @param selectorData - Selector data that determines which properties and captured keys to include in the description.
- * @returns Formatted message describing the dependency metadata based on the selected properties.
+ * @param selectorData - Selector data that determines which properties to include in the description.
+ * @returns Ordered list of dependency fragments.
  */
-function dependencyDescriptionMessageFromSelector(
+function dependencyDescriptionFragmentsFromSelector(
   dependencyInfo: DependencyInfoDescription,
   selectorData: DependencyInfoSingleSelector | null
-): string | null {
+): string[] {
   if (!selectorData) {
-    return null;
+    return [];
   }
   const properties = Object.keys(selectorData);
   if (!properties.length) {
-    return null;
+    return [];
   }
   const relationshipKeys = isObject(selectorData.relationship)
     ? (Object.keys(selectorData.relationship) as Array<"from" | "to">)
     : undefined;
-  const propertyFragments = buildDependencyPropertyFragments(
-    dependencyInfo,
-    properties,
-    {
-      relationshipKeys,
-      includeNullValues: true,
-    }
-  );
-  if (!propertyFragments.length) {
-    return null;
-  }
-  return joinWithCommasAndAnd(propertyFragments);
+
+  return buildDependencyPropertyFragments(dependencyInfo, properties, {
+    relationshipKeys,
+    includeNullValues: true,
+  });
 }
 
 /**
@@ -708,29 +715,21 @@ function dependencyDescriptionMessageFromSelector(
  * @param fromDescription - Description of the source element.
  * @param toDescription - Description of the target element.
  * @param dependencyDescription - Description of dependency metadata.
- * @param originDescription - Optional origin description when target details are not available.
  * @returns The most specific no-rules message that can be composed.
  */
 function resolveNoRulesMatchedMessage(
   fromDescription: string,
   toDescription: string,
-  dependencyDescription: string,
-  originDescription: string | null
+  dependencyDescription: string
 ): string {
   if (fromDescription && toDescription) {
     return `${NO_RULE_MESSAGE} from ${fromDescription} to ${toDescription}`;
-  }
-  if (fromDescription && dependencyDescription && originDescription) {
-    return `${NO_RULE_MESSAGE} from ${fromDescription} to ${originDescription} with ${dependencyDescription}`;
   }
   if (fromDescription && dependencyDescription) {
     return `${NO_RULE_MESSAGE} from ${fromDescription} with ${dependencyDescription}`;
   }
   if (toDescription && dependencyDescription) {
     return `${NO_RULE_MESSAGE} to ${toDescription} with ${dependencyDescription}`;
-  }
-  if (dependencyDescription && originDescription) {
-    return `${NO_RULE_MESSAGE} to ${originDescription} with ${dependencyDescription}`;
   }
   if (fromDescription) {
     return `${NO_RULE_MESSAGE} from ${fromDescription}`;
@@ -740,9 +739,6 @@ function resolveNoRulesMatchedMessage(
   }
   if (dependencyDescription) {
     return `${NO_RULE_MESSAGE} with ${dependencyDescription}`;
-  }
-  if (originDescription) {
-    return `${NO_RULE_MESSAGE} to ${originDescription}`;
   }
 
   return MESSAGE_ERROR;
@@ -757,27 +753,36 @@ function dependenciesNoRuleMatchedMessage(
   dependency: DependencyDescription
 ): string {
   const fromDescription = entityDescriptionMessageForNoRule(dependency.from);
-  const toDescription = entityDescriptionMessageForNoRule(dependency.to, {
-    includeOrigin: true,
-  });
-  const legacyModule = (
-    dependency.dependency as DependencyInfoDescription & { module?: unknown }
-  ).module;
-  const propertyToShowInDependency =
-    !isUndefined(legacyModule) && !isNull(legacyModule) ? "module" : "source";
-  const dependencyDescription = dependencyDescriptionMessage(
-    dependency.dependency,
-    [propertyToShowInDependency]
-  );
-  const originDescription = toDescription.length
-    ? null
-    : originDescriptionMessage(dependency.to.origin, ["kind", "module"]);
+  const toEntityDescription = entityDescriptionMessageForNoRule(dependency.to);
+  const targetOriginKind = dependency.to.origin.kind;
+  const targetOriginModule = dependency.to.origin.module;
+
+  const targetOriginDescription = shouldRenderDependencyValue(
+    targetOriginKind,
+    false
+  )
+    ? `origin ${formatPropertyValue(targetOriginKind)}${
+        shouldRenderDependencyValue(targetOriginModule, false)
+          ? ` with module ${formatPropertyValue(targetOriginModule)}`
+          : ""
+      }`
+    : "";
+
+  const toDescription =
+    toEntityDescription ||
+    (targetOriginDescription ? `entities of ${targetOriginDescription}` : "");
+
+  const dependencyDescription = shouldRenderDependencyValue(
+    targetOriginModule,
+    false
+  )
+    ? ""
+    : dependencyDescriptionMessage(dependency.dependency, ["source"]);
 
   return resolveNoRulesMatchedMessage(
     fromDescription,
     toDescription,
-    dependencyDescription,
-    originDescription
+    dependencyDescription
   );
 }
 
@@ -800,32 +805,58 @@ export function dependenciesRuleMatchedMessage(
   const fromPart = fromProperties.length
     ? entityDescriptionMessageFromSelector(dependency.from, matchResult!.from)
     : null;
-  const toPart = toProperties.length
-    ? entityDescriptionMessageFromSelector(dependency.to, matchResult!.to)
+  const toEntityPart = toProperties.length
+    ? entityDescriptionMessageFromSelector(dependency.to, matchResult!.to, {
+        includeOrigin: false,
+      })
     : null;
-  const dependencyPart = dependencyProperties.length
-    ? dependencyDescriptionMessageFromSelector(
+  const toOriginPart = shouldRenderDependencyValue(
+    matchResult?.to?.origin?.kind,
+    false
+  )
+    ? `entities of origin ${formatPropertyValue(dependency.to.origin.kind)}`
+    : null;
+  const toPart = toEntityPart ?? toOriginPart;
+  const dependencyFragments = dependencyProperties.length
+    ? dependencyDescriptionFragmentsFromSelector(
         dependency.dependency,
         matchResult!.dependency ?? null
       )
-    : null;
+    : [];
+  const dependencyToOriginPart = dependencyOriginFromToSelectorMessage(
+    matchResult?.to,
+    dependency
+  );
+
+  if (dependencyToOriginPart) {
+    const specifiersIndex = dependencyFragments.findIndex((fragment) =>
+      fragment.startsWith("specifiers ")
+    );
+    if (specifiersIndex === -1) {
+      dependencyFragments.push(dependencyToOriginPart);
+    } else {
+      dependencyFragments.splice(specifiersIndex, 0, dependencyToOriginPart);
+    }
+  }
+
+  const effectiveDependencyPart = joinWithCommasAndAnd(dependencyFragments);
 
   let message = MESSAGE_ERROR;
 
-  if (dependencyPart && toPart && fromPart) {
-    message = `Dependencies with ${dependencyPart} to ${toPart} are not allowed in ${fromPart}`;
-  } else if (dependencyPart && toPart) {
-    message = `Dependencies with ${dependencyPart} to ${toPart} are not allowed`;
-  } else if (dependencyPart && fromPart) {
-    message = `Dependencies with ${dependencyPart} are not allowed in ${fromPart}`;
+  if (effectiveDependencyPart && toPart && fromPart) {
+    message = `Dependencies with ${effectiveDependencyPart} to ${toPart} are not allowed in ${fromPart}`;
+  } else if (effectiveDependencyPart && toPart) {
+    message = `Dependencies with ${effectiveDependencyPart} to ${toPart} are not allowed`;
+  } else if (effectiveDependencyPart && fromPart) {
+    message = `Dependencies with ${effectiveDependencyPart} are not allowed in ${fromPart}`;
   } else if (toPart && fromPart) {
     message = `Dependencies to ${toPart} are not allowed in ${fromPart}`;
   } else if (toPart) {
     message = `Dependencies to ${toPart} are not allowed`;
   } else if (fromPart) {
     message = `Dependencies are not allowed in ${fromPart}`;
-  } else if (dependencyPart) {
-    message = `Dependencies with ${dependencyPart} are not allowed`;
+  } else if (effectiveDependencyPart) {
+    message = `Dependencies with ${effectiveDependencyPart} are not allowed`;
   }
 
   return `${capitalizeFirstLetter(message)}. Denied by rule at index ${ruleIndex}`;

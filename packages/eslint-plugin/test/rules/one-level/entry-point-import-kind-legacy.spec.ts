@@ -167,9 +167,9 @@ runTest(
     },
   ],
   {
-    0: 'Dependencies with kind "type" to elements of type "helpers" and internalPath "main.js" are not allowed. Denied by rule at index 1',
-    1: 'Dependencies with kind "value" to elements of type "components" and internalPath "Component.js" are not allowed. Denied by rule at index 3',
-    2: 'Dependencies with kind "value" to elements of type "modules" and internalPath "index.js" are not allowed. Denied by rule at index 4',
-    3: 'Dependencies with kind "type" to elements of type "modules" and internalPath "index.js" are not allowed. Denied by rule at index 4',
+    0: 'Dependencies with kind "type" to elements of type "helpers" and fileInternalPath "main.js" are not allowed. Denied by rule at index 1',
+    1: 'Dependencies with kind "value" to elements of type "components" and fileInternalPath "Component.js" are not allowed. Denied by rule at index 3',
+    2: 'Dependencies with kind "value" to elements of type "modules" and fileInternalPath "index.js" are not allowed. Denied by rule at index 4',
+    3: 'Dependencies with kind "type" to elements of type "modules" and fileInternalPath "index.js" are not allowed. Denied by rule at index 4',
   }
 );

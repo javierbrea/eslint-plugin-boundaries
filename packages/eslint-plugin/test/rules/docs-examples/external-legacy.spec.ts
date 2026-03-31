@@ -100,7 +100,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "helpers", category "data" and elementName "parse" to elements of origin "external" with module "react"',
+            'There is no rule allowing dependencies from elements of type "helpers", category "data" and elementName "parse" to entities of origin "external" with module "react"',
           type: "Literal",
         },
       ],
@@ -113,7 +113,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "helpers", category "data" and elementName "parse" to elements of origin "external" with module "react"',
+            'There is no rule allowing dependencies from elements of type "helpers", category "data" and elementName "parse" to entities of origin "external" with module "react"',
           type: "Literal",
         },
       ],
@@ -126,7 +126,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "components", family "atoms" and elementName "atom-a" to elements of origin "external" with module "moment"',
+            'There is no rule allowing dependencies from elements of type "components", family "atoms" and elementName "atom-a" to entities of origin "external" with module "moment"',
           type: "Literal",
         },
       ],
@@ -141,7 +141,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies with module "@material-ui/icons" to elements of origin "external" are not allowed in elements of type "components" and family "molecules". Denied by rule at index 2',
+            'Dependencies with module "@material-ui/icons" to entities of origin "external" are not allowed in elements of type "components" and family "molecules". Denied by rule at index 2',
           type: "Literal",
         },
       ],
@@ -154,7 +154,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of origin "external" with module "react-router-dom"',
+            'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to entities of origin "external" with module "react-router-dom"',
           type: "Literal",
         },
       ],

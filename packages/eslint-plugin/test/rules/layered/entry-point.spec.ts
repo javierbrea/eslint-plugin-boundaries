@@ -61,7 +61,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies to elements of type "modules", elementName "module-a" and internalPath "helpers.js" are not allowed. Denied by rule at index 1',
+            'Dependencies to elements of type "modules", elementName "module-a" and fileInternalPath "helpers.js" are not allowed. Denied by rule at index 1',
           type: "Literal",
         },
       ],
@@ -73,7 +73,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies to elements of type "modules", elementName "module-a" and internalPath "ComponentA.js" are not allowed. Denied by rule at index 1',
+            'Dependencies to elements of type "modules", elementName "module-a" and fileInternalPath "ComponentA.js" are not allowed. Denied by rule at index 1',
           type: "Literal",
         },
       ],

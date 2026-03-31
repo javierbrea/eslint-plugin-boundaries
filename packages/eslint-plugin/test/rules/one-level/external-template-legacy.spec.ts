@@ -96,7 +96,7 @@ runTest(
     },
   ],
   {
-    0: 'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of origin "external" with module "@module-helpers/module-b"',
-    1: 'There is no rule allowing dependencies from elements of type "modules" and elementName "ModuleC" to elements of origin "external" with module "@module-helpers/all"',
+    0: 'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to entities of origin "external" with module "@module-helpers/module-b"',
+    1: 'There is no rule allowing dependencies from elements of type "modules" and elementName "ModuleC" to entities of origin "external" with module "@module-helpers/all"',
   }
 );

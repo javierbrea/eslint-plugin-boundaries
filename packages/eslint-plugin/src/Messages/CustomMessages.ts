@@ -7,7 +7,7 @@ import type {
 } from "@boundaries/elements";
 import Handlebars from "handlebars";
 
-import { isNull } from "../Shared";
+import { isArray, isNull, isUndefined } from "../Shared";
 
 import type { CustomMessageTemplateContext } from "./CustomMessages.types";
 
@@ -138,9 +138,39 @@ function renderCustomMessageHandlebarsTemplate(
   if (!hasHandlebarsTemplate(template)) {
     return template;
   }
+  const fromParents = isArray(dependency.from.element.parents)
+    ? dependency.from.element.parents.map((parent) => ({
+        ...parent,
+        elementPath: parent.path,
+      }))
+    : dependency.from.element.parents;
+  const toParents = isArray(dependency.to.element.parents)
+    ? dependency.to.element.parents.map((parent) => ({
+        ...parent,
+        elementPath: parent.path,
+      }))
+    : dependency.to.element.parents;
   const context: CustomMessageTemplateContext = {
-    from: dependency.from,
-    to: dependency.to,
+    from: {
+      ...dependency.from.element, //V6 backwards compatibility: expose element properties at the root of the "from" context
+      elementPath: dependency.from.element.path,
+      internalPath: dependency.from.element.fileInternalPath,
+      parents: fromParents,
+      ...(isUndefined(dependency.from.origin.kind)
+        ? {}
+        : { origin: dependency.from.origin.kind }),
+      ...dependency.from,
+    },
+    to: {
+      ...dependency.to.element, //V6 backwards compatibility: expose element properties at the root of the "to" context
+      elementPath: dependency.to.element.path,
+      internalPath: dependency.to.element.fileInternalPath,
+      parents: toParents,
+      ...(isUndefined(dependency.to.origin.kind)
+        ? {}
+        : { origin: dependency.to.origin.kind }),
+      ...dependency.to,
+    },
     dependency: dependency.dependency,
     rule:
       !isNull(ruleIndex) && matchResult
