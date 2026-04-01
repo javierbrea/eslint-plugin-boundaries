@@ -308,6 +308,7 @@ function replaceLegacyTemplateVariables(
   return replaceObjectValuesInLegacyTemplate(
     replacedMessage,
     {
+      // TODO: Change also by dependency.dependency.moduleInternalPath when available
       path: dependency.to.element.fileInternalPath || "",
       specifiers: dependency.dependency.specifiers?.join(", ") || "",
     },

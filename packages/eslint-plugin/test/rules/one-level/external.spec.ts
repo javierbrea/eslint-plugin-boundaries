@@ -436,7 +436,7 @@ runTest(
     5: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to entities of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
     6: 'Dependencies with module "foo-library" and specifiers "Link", "Router" to entities of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
     7: 'Dependencies with module "@material-ui/core" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
-    8: 'Dependencies with module "react-router-dom" to entities of origin "external" and fileInternalPath "/var/foo" are not allowed in elements of type "modules". Denied by rule at index 2',
+    8: 'Dependencies with source "react-router-dom/var/foo" and module "react-router-dom" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
   }
 );
 
@@ -483,7 +483,7 @@ runTest(
     5: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to entities of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
     6: 'Dependencies with module "foo-library" and specifiers "Link", "Router" to entities of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
     7: 'Dependencies with module "@material-ui/core" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
-    8: 'Dependencies with module "react-router-dom" to entities of origin "external" and fileInternalPath "/var/foo" are not allowed in elements of type "modules". Denied by rule at index 2',
+    8: 'Dependencies with source "react-router-dom/var/foo" and module "react-router-dom" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
   }
 );
 
@@ -527,7 +527,7 @@ runTest(
     5: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to entities of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
     6: 'Dependencies with module "foo-library" and specifiers "Link", "Router" to entities of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
     7: 'Dependencies with module "@material-ui/core" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
-    8: 'Dependencies with module "react-router-dom" to entities of origin "external" and fileInternalPath "/var/foo" are not allowed in elements of type "modules". Denied by rule at index 2',
+    8: 'Dependencies with source "react-router-dom/var/foo" and module "react-router-dom" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
   }
 );
 

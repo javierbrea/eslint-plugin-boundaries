@@ -400,8 +400,8 @@ runTest(
     6: 'Dependencies with kind "value", module "foo-library" and specifiers "Link", "Router" to entities of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
     7: 'Dependencies with kind "type" and module "@material-ui/core" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
     8: 'Dependencies with kind "value" and module "@material-ui/core" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
-    9: 'Dependencies with kind "value" and module "react-router-dom" to entities of origin "external" and fileInternalPath "/var/foo" are not allowed in elements of type "modules". Denied by rule at index 2',
-    10: 'Dependencies with kind "type" and module "react-router-dom" to entities of origin "external" and fileInternalPath "/var/foo" are not allowed in elements of type "modules". Denied by rule at index 2',
+    9: 'Dependencies with kind "value", source "react-router-dom/var/foo" and module "react-router-dom" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
+    10: 'Dependencies with kind "type", source "react-router-dom/var/foo" and module "react-router-dom" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
     11: 'Dependencies with kind "type" and module "@material-ui/icons" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
     12: 'Dependencies with kind "type" and module "@material-ui/icons" to entities of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
   }

@@ -352,7 +352,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "type" to elements of type "helpers" and elementName "helper-a" are not allowed in elements of type "modules". Denied by rule at index 3',
+            'Dependencies with kind "type" to elements of type "helpers". Denied by rule at index 3',
           type: "Literal",
         },
       ],
