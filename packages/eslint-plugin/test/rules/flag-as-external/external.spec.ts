@@ -136,7 +136,7 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to entities of origin "external" with module "package-b"',
+              'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to entities of origin "external" with module "package-b" being elements of type "helpers" and elementName "helper-b"',
             type: "Literal",
           },
         ],
@@ -239,7 +239,7 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "components", package "a" and elementName "component-a" to entities of origin "external" with module "package-b"',
+              'There is no rule allowing dependencies from elements of type "components", package "a" and elementName "component-a" to entities of origin "external" with module "package-b" being elements of type "helpers", package "b" and elementName "helper-b"',
             type: "Literal",
           },
         ],

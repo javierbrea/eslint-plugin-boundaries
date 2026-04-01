@@ -758,6 +758,7 @@ function dependenciesNoRuleMatchedMessage(
   const toEntityDescription = entityDescriptionMessageForNoRule(dependency.to);
   const targetOriginKind = dependency.to.origin.kind;
   const targetOriginModule = dependency.to.origin.module;
+  const isExternalOrigin = targetOriginKind === "external";
 
   const targetOriginDescription = shouldRenderDependencyValue(
     targetOriginKind,
@@ -770,9 +771,13 @@ function dependenciesNoRuleMatchedMessage(
       }`
     : "";
 
-  const toDescription =
+  let toDescription =
     toEntityDescription ||
     (targetOriginDescription ? `entities of ${targetOriginDescription}` : "");
+
+  if (toEntityDescription && targetOriginDescription && isExternalOrigin) {
+    toDescription = `entities of ${targetOriginDescription} being ${toEntityDescription}`;
+  }
 
   const dependencyDescription = shouldRenderDependencyValue(
     targetOriginModule,

@@ -6,7 +6,10 @@ import {
   pathResolvers,
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
-import { externalNoRuleMessage } from "../../support/messages";
+import {
+  externalNoRuleMessage,
+  externalNoRuleMessage2,
+} from "../../support/messages";
 
 const { absoluteFilePath } = pathResolvers("flag-as-external");
 
@@ -140,9 +143,9 @@ const testOutsideRootPath = () => {
         options: [{ default: "disallow" }],
         errors: [
           {
-            message: externalNoRuleMessage({
+            message: externalNoRuleMessage2({
               file: '"components" and elementName "component-a"',
-              dep: "package-b",
+              dep: '"package-b" being elements of type "helpers" and elementName "helper-b"',
             }),
             type: "Literal",
           },
@@ -247,9 +250,9 @@ const testCustomSourcePatterns = () => {
         options: [{ default: "disallow" }],
         errors: [
           {
-            message: externalNoRuleMessage({
+            message: externalNoRuleMessage2({
               file: '"components", package "a" and elementName "component-a"',
-              dep: "package-b",
+              dep: '"package-b" being elements of type "helpers", package "b" and elementName "helper-b"',
             }),
             type: "Literal",
           },

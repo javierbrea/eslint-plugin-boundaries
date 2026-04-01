@@ -215,7 +215,7 @@ describe("Messages", () => {
       const dependency = createDependencyDescription();
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from file of categories "ui", "feature" and scope "frontend" belonging to elements of type "component", category "ui" and family "atoms" to file of categories "shared", "data" and team "platform" belonging to elements of type "helper", category "data" and domain "api"'
+        'There is no rule allowing dependencies from file of categories "ui", "feature" and scope "frontend" belonging to elements of type "component", category "ui" and family "atoms" to entities of origin "external" with module "@scope/helpers" being file of categories "shared", "data" and team "platform" belonging to elements of type "helper", category "data" and domain "api"'
       );
     });
 
@@ -254,7 +254,7 @@ describe("Messages", () => {
       });
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from file of categories "ui", "feature" and scope "frontend" to file of categories "shared" and team "platform"'
+        'There is no rule allowing dependencies from file of categories "ui", "feature" and scope "frontend" to entities of origin "external" with module "@scope/helpers" being file of categories "shared" and team "platform"'
       );
     });
 
