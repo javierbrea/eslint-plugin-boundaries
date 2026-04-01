@@ -42,7 +42,7 @@ describe("MatchersCache", () => {
     });
 
     expect(key).toBe(
-      "|:config:|true|src/**|dist/**|true|/root|true|false|true|@external/*|:elements:|src/components/*.tsx|name|component|file|src|baseName|:files:|"
+      "|:config:|true|src/**|dist/**|true|/root|true|false|true|@external/*|:elements:|src/components/*.tsx|name|component|ui|file|src|baseName|:files:|"
     );
   });
 });

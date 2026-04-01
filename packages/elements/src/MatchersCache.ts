@@ -47,7 +47,7 @@ export class MatchersCache extends CacheManager<
         const baseCaptureKey = descriptor.baseCapture
           ? descriptor.baseCapture.join(",")
           : "no-base-capture";
-        return `${this._getBaseDescriptorsHash(descriptor)}|${descriptor.type}|${descriptor.mode}|${descriptor.basePattern}|${baseCaptureKey}`;
+        return `${this._getBaseDescriptorsHash(descriptor)}|${descriptor.type}|${descriptor.category}|${descriptor.mode}|${descriptor.basePattern}|${baseCaptureKey}`;
       })
       .join(",");
   }
