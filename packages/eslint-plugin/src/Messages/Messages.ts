@@ -590,7 +590,7 @@ function dependencyOriginFromToSelectorMessage(
     return null;
   }
 
-  if (shouldRenderDependencyValue(dependency.to.origin.module, false)) {
+  if (shouldRenderDependencyValue(dependency.to.origin.module, true)) {
     return formatPropertyFragment("module", dependency.to.origin.module);
   }
 
@@ -812,7 +812,7 @@ export function dependenciesRuleMatchedMessage(
     : null;
   const toOriginPart = shouldRenderDependencyValue(
     matchResult?.to?.origin?.kind,
-    false
+    true
   )
     ? `entities of origin ${formatPropertyValue(dependency.to.origin.kind)}`
     : null;

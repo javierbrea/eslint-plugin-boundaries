@@ -1,3 +1,4 @@
+import type { MicromatchPatternNullable } from "../../Shared";
 import {
   isArray,
   isUndefined,
@@ -109,6 +110,8 @@ export function isEntitySelector(
 function normalizeBackwardCompatibleElementSingleSelectorToEntitySingleSelector(
   selector: BackwardCompatibleElementSingleSelector
 ): EntitySingleSelectorNormalized[] {
+  let originalSelectorPathProperty: MicromatchPatternNullable | undefined =
+    undefined;
   const toEntitySelectors = (
     sourceElementSelector: ElementSingleSelectorNormalized,
     sourceOrigin?: LegacyElementSingleObjectSelector["origin"]
@@ -122,8 +125,9 @@ function normalizeBackwardCompatibleElementSingleSelectorToEntitySingleSelector(
     const elementEntitySelector: EntitySingleSelectorNormalized = {};
     if (Object.keys(sourceElementSelector).length > 0) {
       elementEntitySelector.element = [sourceElementSelector];
-      if (!isUndefined(sourceElementSelector.path)) {
-        elementEntitySelector.element[0].filePath = sourceElementSelector.path;
+      if (!isUndefined(originalSelectorPathProperty)) {
+        elementEntitySelector.element[0].filePath =
+          originalSelectorPathProperty;
       }
     }
     if (!isUndefined(baseOrigin)) {
@@ -142,6 +146,7 @@ function normalizeBackwardCompatibleElementSingleSelectorToEntitySingleSelector(
     );
   }
 
+  originalSelectorPathProperty = selector.path;
   if (
     !isLegacyElementSingleObjectSelector(selector) &&
     isElementSingleSelector(selector)
