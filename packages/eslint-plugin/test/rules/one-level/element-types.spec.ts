@@ -1611,7 +1611,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of elementPath "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of path "null" are not allowed. Denied by rule at index 0',
             type: "Literal",
           },
         ],
@@ -1739,7 +1739,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of path "null", internalPath "null", elementPath "null", parent "null", type "null", category "null" and captured "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of path "null", type "null", category "null", captured "null", fileInternalPath "null", filePath "null" and parent "null" are not allowed. Denied by rule at index 0',
             type: "Literal",
           },
         ],

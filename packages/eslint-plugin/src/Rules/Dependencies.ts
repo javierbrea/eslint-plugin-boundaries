@@ -745,18 +745,21 @@ export default function getDependencyRule(
       const checkUnknownLocals = options?.checkUnknownLocals ?? false;
       const checkInternals = options?.checkInternals ?? false;
 
+      const isLocalDependency = dependency.to.origin.kind === ORIGINS_MAP.LOCAL;
+      const isUnknownLocalDependency =
+        isLocalDependency &&
+        dependency.to.file.isUnknown &&
+        dependency.to.element.isUnknown;
+      const isInternalDependency =
+        dependency.dependency.relationship.to ===
+        DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL;
+
       if (
         !dependency.to.file.isIgnored &&
-        (checkAllOrigins || dependency.to.origin.kind === ORIGINS_MAP.LOCAL) &&
-        (checkUnknownLocals ||
-          (dependency.to.origin.kind === ORIGINS_MAP.LOCAL &&
-            (!dependency.to.file.isUnknown ||
-              !dependency.to.element.isUnknown))) &&
-        (checkInternals ||
-          !(
-            dependency.dependency.relationship.to ===
-            DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL
-          ))
+        !dependency.from.file.isIgnored &&
+        (checkAllOrigins || isLocalDependency) &&
+        (checkUnknownLocals || !isUnknownLocalDependency) &&
+        (checkInternals || !isInternalDependency)
       ) {
         const rules = options?.rules ?? [];
         evaluateRulesAndReport({
