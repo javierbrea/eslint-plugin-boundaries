@@ -59,7 +59,8 @@
     "lint:fix": "eslint . --fix",
     "serve:unit:report": "serve --config ./serve.test-unit-report.json",
     "test": "jest",
-    "test:unit": "pnpm test"
+    "test:unit": "pnpm test",
+    "test:unit:debug": "ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 pnpm test:unit"
   },
   "peerDependencies": {
     "eslint": ">=6.0.0"

@@ -12,6 +12,7 @@ import {
 } from "../../support/messages";
 
 const rule = ruleFactory();
+let describeCounter = 0;
 
 const runTest = (
   settings: RuleTesterSettings,
@@ -23,9 +24,10 @@ const runTest = (
   },
   errorMessages: Record<number, string> = {}
 ) => {
+  describeCounter++;
   const ruleTester = createRuleTester(settings);
 
-  ruleTester.run(RULE, rule, {
+  ruleTester.run(`${RULE} - ${describeCounter}`, rule, {
     valid: [
       // helpers can import helpers
       {
@@ -693,9 +695,10 @@ const testPrivate = (
   },
   errorMessages: Record<number, string> = {}
 ) => {
+  describeCounter++;
   const ruleTester = createRuleTester(settings);
 
-  ruleTester.run(RULE, rule, {
+  ruleTester.run(`${RULE} - ${describeCounter}`, rule, {
     valid: [
       // private helpers can import helpers
       {
@@ -1239,8 +1242,8 @@ testPrivate(
     2: 'Dependencies to elements of type "components" and category "molecules" are not allowed in elements of type "components" and category "atoms". Denied by rule at index 2',
     3: 'Dependencies to elements of type "components" and category "molecules" are not allowed in elements of type "components" and category "atoms". Denied by rule at index 2',
     4: 'Dependencies to elements of type "components" and category "layouts" are not allowed in elements of type "components" and category "molecules". Denied by rule at index 3',
-    5: 'Dependencies to elements of type "modules", domain "domain-a" and elementName "module-a" are not allowed in elements of type "components" and category "molecules". Denied by rule at index 4',
-    6: 'Dependencies to elements of type "modules", domain "domain-a", ancestorsPaths "module-a" and elementName "module-c" are not allowed in elements of type "components" and category "layouts". Denied by rule at index 4',
+    5: 'Dependencies to elements of type "modules" are not allowed in elements of type "components" and category "molecules". Denied by rule at index 4',
+    6: 'Dependencies to elements of type "modules" are not allowed in elements of type "components" and category "layouts". Denied by rule at index 4',
     7: 'Dependencies to elements of type "components" and category "molecules" are not allowed in elements of type "modules" and domain "pages". Denied by rule at index 6',
     8: 'Dependencies to elements of type "modules" and domain "domain-a" are not allowed in elements of type "modules" and domain "pages". Denied by rule at index 5',
     9: 'Dependencies to elements of type "components" and category "molecules" are not allowed in elements of type "modules" and domain "domain-a". Denied by rule at index 7',

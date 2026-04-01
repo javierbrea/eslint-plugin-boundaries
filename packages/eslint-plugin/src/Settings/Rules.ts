@@ -51,7 +51,7 @@ const defaultExtraOptionsSchema = {
 
 /** Schema for validating a micromatch pattern or array of patterns that can also be null. */
 const micromatchPatternNullableSchema = {
-  oneOf: [
+  anyOf: [
     { type: ["string", "null"] },
     { type: "array", items: { type: ["string", "null"] } },
   ],
@@ -80,7 +80,7 @@ const dependencyInfoSingleSelectorSchema = {
 };
 
 const dependencyInfoSelectorSchema = {
-  oneOf: [
+  anyOf: [
     dependencyInfoSingleSelectorSchema,
     {
       type: "array",
@@ -91,11 +91,11 @@ const dependencyInfoSelectorSchema = {
 
 const capturedValuesSingleSelectorSchema = {
   type: "object",
-  additionalProperties: micromatchPatternNullableSchema,
+  additionalProperties: true,
 };
 
 const capturedValuesSelectorSchema = {
-  oneOf: [
+  anyOf: [
     {
       type: "null",
     },
@@ -341,6 +341,10 @@ export function rulesOptionsSchema({
     : {
         anyOf: [
           dependencySelectorSchema,
+          {
+            type: "array",
+            items: dependencySelectorSchema,
+          },
           backwardCompatibleEntitySelectorSchema,
         ],
       };

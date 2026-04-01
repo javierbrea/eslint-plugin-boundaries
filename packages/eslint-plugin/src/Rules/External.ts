@@ -1,5 +1,6 @@
 import { ORIGINS_MAP } from "@boundaries/elements";
 import type {
+  DependencyInfoSelector,
   DependencySelector,
   DependencySingleSelector,
 } from "@boundaries/elements";
@@ -16,7 +17,6 @@ import {
   isString,
   isArray,
   isObject,
-  isNullish,
   SETTINGS,
   RULE_NAMES_MAP,
 } from "../Shared";
@@ -53,22 +53,27 @@ function buildSelectorFromLegacySelectorWithOptions(
 ): DependencySingleSelector {
   const moduleSelector = selector[0];
   const selectorOptions = selector[1];
-  const hasPathSelector = !isNullish(selectorOptions.path);
+  const dependencyInfoSelector: DependencyInfoSelector = {};
+
+  if (selectorOptions.specifiers) {
+    dependencyInfoSelector.specifiers = selectorOptions.specifiers;
+  }
+  if (selectorOptions.path) {
+    // Workaround to maintain backward compatibility. Now we have not any property with the internalPath of core or external modules. The source must be used instead
+    // TODO: Use dependency.moduleInternalPath or similar instead of source and update the legacy selector syntax to reflect this change
+    dependencyInfoSelector.source = isString(selectorOptions.path)
+      ? `**/${selectorOptions.path}`.replaceAll("//", "/")
+      : selectorOptions.path.map((p) => `**/${p}`.replaceAll("//", "/"));
+  }
+
   return {
     to: {
       origin: {
         kind: [ORIGINS_MAP.EXTERNAL, ORIGINS_MAP.CORE],
         module: moduleSelector,
       },
-      ...(hasPathSelector ? { internalPath: selectorOptions.path } : {}),
     },
-    dependency: {
-      ...(selectorOptions.specifiers
-        ? {
-            specifiers: selectorOptions.specifiers,
-          }
-        : {}),
-    },
+    dependency: dependencyInfoSelector,
   };
 }
 
