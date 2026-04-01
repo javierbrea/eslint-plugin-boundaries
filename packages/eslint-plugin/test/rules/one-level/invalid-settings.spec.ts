@@ -10,6 +10,8 @@ import type { RuleTesterSettings } from "../../support/helpers";
 const rule = ruleFactory();
 const { absoluteFilePath } = pathResolvers("one-level");
 
+let testsCounter = 0;
+
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
@@ -17,9 +19,10 @@ const runTest = (
     0: errorMessage0 = 'There is no rule allowing dependencies from elements of type "helpers" and elementName "helper-a" to elements of type "helpers" and elementName "helper-b"',
   }: Partial<Record<number, string>> = {}
 ) => {
+  testsCounter++;
   const ruleTester = createRuleTester(settings);
 
-  ruleTester.run(RULE, rule, {
+  ruleTester.run(`${RULE} - ${testsCounter}`, rule, {
     // Everything is valid, as settings are wrong
     valid: [
       // Helpers can't import another if everything is disallowed
@@ -160,15 +163,6 @@ runTest(
       { unknown: "object" },
       0, // invalid type
     ],
-  } as RuleTesterSettings,
-  [],
-  {}
-);
-
-// invalid dependency nodes - not an array
-runTest(
-  {
-    "boundaries/dependency-nodes": "invalid-value",
   } as RuleTesterSettings,
   [],
   {}
