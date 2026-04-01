@@ -90,6 +90,7 @@ const normalizeRuleOptions = (
     allow: normalizeRulePolicy(rule.allow),
     disallow: normalizeRulePolicy(rule.disallow),
   };
+
   normalizedRulesMap.set(rule, normalizedRule);
   return normalizedRule;
 };
@@ -476,7 +477,9 @@ function evaluatePolicyEntries({
       legacyImportKind
     );
     const result = safeMatch(dep, matcher, dependencySelector, templateData);
-    return result;
+    if (result) {
+      return result;
+    }
   }
   return null;
 }
