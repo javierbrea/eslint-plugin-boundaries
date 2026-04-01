@@ -20,7 +20,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
   rule,
   {
     valid: [
-      /* {
+      {
         filename: absoluteFilePath(
           "components/molecules/molecule-a/MoleculeA.js"
         ),
@@ -46,7 +46,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             ],
           },
         ],
-      }, */
+      },
       {
         filename: absoluteFilePath(
           "components/molecules/molecule-a/MoleculeA.js"
@@ -78,7 +78,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
       },
     ],
     invalid: [
-      /* {
+      {
         filename: absoluteFilePath(
           "components/molecules/molecule-a/MoleculeA.js"
         ),
@@ -147,7 +147,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
             type: "Literal",
           },
         ],
-      }, */
+      },
     ],
   }
 );

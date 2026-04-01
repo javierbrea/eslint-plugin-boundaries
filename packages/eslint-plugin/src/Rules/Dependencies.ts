@@ -12,6 +12,8 @@ import type {
   DependencySelectorNormalized,
   ElementSingleSelectorNormalized,
   ElementSelectorNormalized,
+  ParentElementSingleSelector,
+  ParentElementSelectorNormalized,
   FileSelectorNormalized,
   FileSingleSelector,
   OriginSingleSelector,
@@ -169,7 +171,57 @@ function mergeElementSingleSelector(
   if (result && isObject(outer.captured) && isObject(entry.captured)) {
     result.captured = { ...outer.captured, ...entry.captured };
   }
+  const parent = mergeParentSelector(outer.parent, entry.parent);
+  if (result && parent) {
+    result.parent = parent;
+  }
   return result;
+}
+
+function mergeParentSingleSelector(
+  outer?: ParentElementSingleSelector,
+  entry?: ParentElementSingleSelector
+): ParentElementSingleSelector | undefined {
+  if (!entry) {
+    return outer;
+  }
+  if (!outer) {
+    return entry;
+  }
+  const result = mergeProperties(outer, entry) as
+    | ParentElementSingleSelector
+    | undefined;
+  if (result && isObject(outer.captured) && isObject(entry.captured)) {
+    result.captured = { ...outer.captured, ...entry.captured };
+  }
+  return result;
+}
+
+function mergeParentSelector(
+  outer?: ParentElementSelectorNormalized | null,
+  entry?: ParentElementSelectorNormalized | null
+): ParentElementSelectorNormalized | null | undefined {
+  if (isNull(entry)) {
+    return entry;
+  }
+  if (isNull(outer)) {
+    return isUndefined(entry) ? outer : entry;
+  }
+  if (!entry) {
+    return outer;
+  }
+  if (!outer) {
+    return entry;
+  }
+  return outer.flatMap((outerSelector) => {
+    return entry.map(
+      (entrySelector) =>
+        mergeParentSingleSelector(
+          outerSelector,
+          entrySelector
+        ) as ParentElementSingleSelector
+    );
+  });
 }
 
 function mergeElementSelector(
