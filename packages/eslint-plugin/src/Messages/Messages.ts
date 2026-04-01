@@ -112,9 +112,6 @@ function buildElementPropertyFragments(
     }
 
     const value = getElementPropertyValue(elementDescription, propertyName);
-    if (shouldSkipFragmentValue(value, includeNullValues)) {
-      continue;
-    }
 
     if (propertyName === "captured") {
       fragments.push(
@@ -124,6 +121,10 @@ function buildElementPropertyFragments(
           includeNullValues
         )
       );
+      continue;
+    }
+
+    if (shouldSkipFragmentValue(value, includeNullValues)) {
       continue;
     }
 
@@ -387,9 +388,6 @@ function buildFilePropertyFragments(
 
   for (const propertyName of properties) {
     const value = fileDescription[propertyName as keyof FileDescription];
-    if (shouldSkipFragmentValue(value, includeNullValues)) {
-      continue;
-    }
 
     if (propertyName === "captured") {
       fragments.push(
@@ -399,6 +397,10 @@ function buildFilePropertyFragments(
           includeNullValues
         )
       );
+      continue;
+    }
+
+    if (shouldSkipFragmentValue(value, includeNullValues)) {
       continue;
     }
 
