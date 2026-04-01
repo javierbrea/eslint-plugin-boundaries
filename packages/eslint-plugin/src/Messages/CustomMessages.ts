@@ -3,13 +3,18 @@ import type {
   DependencyDescription,
   ElementDescription,
   DependencySingleSelectorMatchResult,
+  EntitySingleSelectorMatchResult,
   OriginDescription,
 } from "@boundaries/elements";
 import Handlebars from "handlebars";
 
 import { isArray, isNull, isUndefined } from "../Shared";
 
-import type { CustomMessageTemplateContext } from "./CustomMessages.types";
+import type {
+  CustomMessageTemplateContext,
+  CustomMessageTemplateRuleEntitySelectorContext,
+  CustomMessageTemplateRuleSelectorContext,
+} from "./CustomMessages.types";
 
 /** Regular expression to detect Handlebars expressions in custom message templates */
 const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^{}\s][^{}]*}}/;
@@ -119,6 +124,59 @@ function hasHandlebarsTemplate(template: string) {
 }
 
 /**
+ * Extends dependency entity context used by custom message templates.
+ *
+ * For backward compatibility with V6 dependency selectors, properties from
+ * `entity.element` are also exposed at the root level (`from`/`to`), while
+ * preserving the nested structure.
+ */
+function extendDependencyEntityContextForTemplate(
+  entityContext: DependencyDescription["from"],
+  parents: ElementParent[]
+): CustomMessageTemplateContext["from"];
+function extendDependencyEntityContextForTemplate(
+  entityContext: DependencyDescription["to"],
+  parents: ElementParent[]
+): CustomMessageTemplateContext["to"];
+function extendDependencyEntityContextForTemplate(
+  entityContext: DependencyDescription["from"] | DependencyDescription["to"],
+  parents: ElementParent[]
+) {
+  return {
+    ...entityContext.element,
+    elementPath: entityContext.element.path,
+    internalPath: entityContext.element.fileInternalPath,
+    parents,
+    ...(isUndefined(entityContext.origin.kind)
+      ? {}
+      : { origin: entityContext.origin.kind }),
+    ...entityContext,
+  };
+}
+
+/**
+ * Extends a selector entity context used in `rule.selector` templates.
+ *
+ * For backward compatibility with V6 dependency selectors, properties from
+ * `entity.element` are also exposed at the root level (for example
+ * `rule.selector.from.type`) besides `rule.selector.from.element.type`.
+ */
+function extendRuleEntitySelectorContextForTemplate(
+  entityContext: EntitySingleSelectorMatchResult
+): CustomMessageTemplateRuleEntitySelectorContext {
+  return {
+    ...entityContext.element,
+    ...(isUndefined(entityContext.element?.filePath)
+      ? {}
+      : { elementPath: entityContext.element.filePath }),
+    ...(isUndefined(entityContext.element?.fileInternalPath)
+      ? {}
+      : { internalPath: entityContext.element.fileInternalPath }),
+    ...entityContext,
+  };
+}
+
+/**
  * Renders Handlebars expressions in a custom message template.
  *
  * If the template does not contain Handlebars expressions, it is returned as-is.
@@ -150,33 +208,30 @@ function renderCustomMessageHandlebarsTemplate(
         elementPath: parent.path,
       }))
     : dependency.to.element.parents;
+  const ruleSelector: CustomMessageTemplateRuleSelectorContext =
+    !isNull(ruleIndex) && matchResult
+      ? {
+          ...matchResult,
+          from: matchResult.from
+            ? extendRuleEntitySelectorContextForTemplate(matchResult.from)
+            : undefined,
+          to: matchResult.to
+            ? extendRuleEntitySelectorContextForTemplate(matchResult.to)
+            : undefined,
+        }
+      : null;
   const context: CustomMessageTemplateContext = {
-    from: {
-      ...dependency.from.element, //V6 backwards compatibility: expose element properties at the root of the "from" context
-      elementPath: dependency.from.element.path,
-      internalPath: dependency.from.element.fileInternalPath,
-      parents: fromParents,
-      ...(isUndefined(dependency.from.origin.kind)
-        ? {}
-        : { origin: dependency.from.origin.kind }),
-      ...dependency.from,
-    },
-    to: {
-      ...dependency.to.element, //V6 backwards compatibility: expose element properties at the root of the "to" context
-      elementPath: dependency.to.element.path,
-      internalPath: dependency.to.element.fileInternalPath,
-      parents: toParents,
-      ...(isUndefined(dependency.to.origin.kind)
-        ? {}
-        : { origin: dependency.to.origin.kind }),
-      ...dependency.to,
-    },
+    from: extendDependencyEntityContextForTemplate(
+      dependency.from,
+      fromParents
+    ),
+    to: extendDependencyEntityContextForTemplate(dependency.to, toParents),
     dependency: dependency.dependency,
     rule:
       !isNull(ruleIndex) && matchResult
         ? {
             index: ruleIndex,
-            selector: matchResult,
+            selector: ruleSelector,
           }
         : null,
   };

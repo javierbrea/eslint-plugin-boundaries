@@ -326,11 +326,11 @@ describe("CustomMessages", () => {
       };
 
       const template =
-        "{{from.element.type}} -> {{to.element.type}} (rule {{rule.index}}:{{rule.selector.dependency.kind}})";
+        "{{from.element.type}} -> {{to.element.type}} (rule {{rule.index}}:{{rule.selector.from.type}}/{{rule.selector.from.element.type}}:{{rule.selector.dependency.kind}})";
 
       expect(
         customErrorMessage(template, dependencyDescription, 2, matchResult)
-      ).toBe("component -> helper (rule 2:type)");
+      ).toBe("component -> helper (rule 2:component/component:type)");
     });
 
     it("renders handlebars with null rule context when rule data is missing", () => {
