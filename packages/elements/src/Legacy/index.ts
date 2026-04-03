@@ -1,1 +1,1 @@
-export * from "./SelectorHelpers";
+export * from "./TemplateHelpers";

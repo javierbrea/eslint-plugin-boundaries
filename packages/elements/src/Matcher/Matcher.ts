@@ -185,10 +185,10 @@ export class Matcher {
     const description = this._descriptors.describeDependency(dependencyData);
     const matcherOptions = {
       ...options,
-      extraTemplateData: {
-        ...getLegacyDependencySelectorExtraTemplateData(description),
-        ...options?.extraTemplateData,
-      },
+      extraTemplateData: getLegacyDependencySelectorExtraTemplateData(
+        description,
+        options?.extraTemplateData
+      ),
     };
 
     return this._dependenciesMatcher.isDependencyMatch(
@@ -322,10 +322,10 @@ export class Matcher {
     const description = this._descriptors.describeDependency(dependencyData);
     const matcherOptions = {
       ...options,
-      extraTemplateData: {
-        ...getLegacyDependencySelectorExtraTemplateData(description),
-        ...options?.extraTemplateData,
-      },
+      extraTemplateData: getLegacyDependencySelectorExtraTemplateData(
+        description,
+        options?.extraTemplateData
+      ),
     };
 
     return this._dependenciesMatcher.getSelectorMatching(
@@ -399,10 +399,10 @@ export class Matcher {
   ): DependencySingleSelectorMatchResult | null {
     const matcherOptions = {
       ...options,
-      extraTemplateData: {
-        ...getLegacyDependencySelectorExtraTemplateData(description),
-        ...options?.extraTemplateData,
-      },
+      extraTemplateData: getLegacyDependencySelectorExtraTemplateData(
+        description,
+        options?.extraTemplateData
+      ),
     };
 
     return this._dependenciesMatcher.getSelectorMatching(

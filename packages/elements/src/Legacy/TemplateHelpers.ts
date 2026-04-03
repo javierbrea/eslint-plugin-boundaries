@@ -4,7 +4,7 @@ import type {
   EntityDescription,
 } from "../Descriptor";
 import type { TemplateData } from "../Matcher";
-import { isArray, isUndefined } from "../Shared";
+import { isArray, isUndefined, isObject } from "../Shared";
 /**
  * Returns legacy aliases for an element description to keep old templates working.
  *
@@ -14,7 +14,7 @@ import { isArray, isUndefined } from "../Shared";
  * - `parents[].path` -> `parents[].elementPath`
  * - `origin.kind` -> `origin` (only when provided)
  */
-function getLegacyElementTemplateData(
+function getLegacyElementSelectorTemplateData(
   element: ElementDescription,
   originKind?: EntityDescription["origin"]["kind"]
 ): TemplateData {
@@ -42,7 +42,10 @@ export function getLegacyEntitySelectorExtraTemplateData(
   entity: EntityDescription
 ): TemplateData {
   return {
-    element: getLegacyElementTemplateData(entity.element, entity.origin.kind),
+    element: getLegacyElementSelectorTemplateData(
+      entity.element,
+      entity.origin.kind
+    ),
     file: entity.file,
     origin: entity.origin,
   };
@@ -55,7 +58,7 @@ export function getLegacyElementSelectorExtraTemplateData(
   element: ElementDescription
 ): TemplateData {
   return {
-    element: getLegacyElementTemplateData(element),
+    element: getLegacyElementSelectorTemplateData(element),
   };
 }
 
@@ -63,35 +66,50 @@ export function getLegacyElementSelectorExtraTemplateData(
  * Builds extra template data with legacy aliases for dependency selector matching.
  */
 export function getLegacyDependencySelectorExtraTemplateData(
-  dependency: DependencyDescription
+  dependency: DependencyDescription,
+  extraTemplateData?: TemplateData
 ): TemplateData {
+  const optionsFromExtraTemplateData = isObject(extraTemplateData?.from)
+    ? extraTemplateData?.from
+    : {};
+  const optionsToExtraTemplateData = isObject(extraTemplateData?.to)
+    ? extraTemplateData?.to
+    : {};
+  const dependencyExtraTemplateData = isObject(extraTemplateData?.dependency)
+    ? extraTemplateData?.dependency
+    : {};
+
   const fromFile = dependency.from.file;
-  const fromElement = getLegacyElementTemplateData(
+  const fromElement = getLegacyElementSelectorTemplateData(
     dependency.from.element,
     dependency.from.origin.kind
   );
   const toFile = dependency.to.file;
-  const toElement = getLegacyElementTemplateData(
+  const toElement = getLegacyElementSelectorTemplateData(
     dependency.to.element,
     dependency.to.origin.kind
   );
 
   return {
+    ...extraTemplateData,
     from: {
       ...fromElement,
       ...dependency.from,
       element: fromElement,
       file: fromFile,
+      ...optionsFromExtraTemplateData,
     },
     to: {
       ...toElement,
       ...dependency.to,
       element: toElement,
       file: toFile,
+      ...optionsToExtraTemplateData,
     },
     dependency: {
       ...dependency.dependency,
       module: dependency.to.origin.module,
+      ...dependencyExtraTemplateData,
     },
   };
 }

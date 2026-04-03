@@ -13,15 +13,17 @@ import {
 
 const rule = ruleFactory();
 const { absoluteFilePath } = pathResolvers("one-level");
+let testCounter = 0;
 
 const testCapture = (
   settings: RuleTesterSettings,
   options: unknown[],
   errorMessages: Record<number, string>
 ) => {
+  testCounter++;
   const ruleTester = createRuleTester(settings);
 
-  ruleTester.run(RULE, rule, {
+  ruleTester.run(`${RULE} - template - ${testCounter}`, rule, {
     valid: [
       // Components can import helper-a
       {
