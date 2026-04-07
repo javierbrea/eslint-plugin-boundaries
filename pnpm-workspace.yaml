@@ -1,5 +1,13 @@
 packages:
-  - "packages/*"
-  - "support/*"
-  - "test/*"
-minimumReleaseAge: 2880 # 2 days
+  - packages/*
+  - support/*
+  - test/*
+
+minimumReleaseAge: 2880
+
+onlyBuiltDependencies:
+  - core-js
+  - core-js-pure
+  - esbuild
+  - nx
+  - unrs-resolver

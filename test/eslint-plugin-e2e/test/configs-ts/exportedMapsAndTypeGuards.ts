@@ -7,8 +7,6 @@ import {
   RULE_NAMES_MAP,
   isRuleShortName,
   isRuleName,
-  IMPORT_KINDS_MAP,
-  isImportKind,
   isDependencyKind,
   DEPENDENCY_KINDS_MAP,
   DEPENDENCY_NODE_KEYS_MAP,
@@ -16,16 +14,12 @@ import {
   SETTINGS_KEYS_MAP,
   isSettingsKey,
   ELEMENT_DESCRIPTOR_MODES_MAP,
-  isElementDescriptorMode,
   RULE_POLICIES_MAP,
   isRulePolicy,
   FlagAsExternalOptions,
   isElementSelector,
-  isElementsSelector,
   DependenciesRuleOptions,
   DependenciesRule,
-  ElementTypesRuleOptions,
-  ElementTypesRule,
 } from "@boundaries/eslint-plugin/config";
 import type {
   RulePolicy,
@@ -60,7 +54,7 @@ const debugOptions: DebugSetting = {
     violations: true,
   },
   filter: {
-    files: [{ type: "components" }],
+    files: [{ categories: "components" }],
   },
 };
 
@@ -97,7 +91,7 @@ export const boundariesLegacyConfig = createConfig(
           rules: [
             {
               from: ["internal", "external"],
-              importKind: IMPORT_KINDS_MAP.TYPE,
+              importKind: DEPENDENCY_KINDS_MAP.TYPE,
             },
             {
               from: [{ type: "components" }],
@@ -167,7 +161,7 @@ export const boundariesConfig = createConfig(
           rules: [
             {
               from: ["internal", "external"],
-              importKind: IMPORT_KINDS_MAP.TYPE,
+              importKind: DEPENDENCY_KINDS_MAP.TYPE,
             },
             {
               from: [{ type: "components" }],

@@ -7,7 +7,7 @@ import type {
   Settings,
   Rules,
   ElementDescriptor,
-  ElementSelectorWithOptions,
+  LegacySimpleElementSingleSelectorByTypeWithOptions,
   AliasSetting,
 } from "@boundaries/eslint-plugin";
 
@@ -34,10 +34,8 @@ const allowComponentsFromModules: DependenciesRule = {
   allow: [{ to: { type: "component" } }],
 };
 
-const componentToComponentRuleAllowMatcher: ElementSelectorWithOptions = [
-  "component",
-  { name: "foo" },
-];
+const componentToComponentRuleAllowMatcher: LegacySimpleElementSingleSelectorByTypeWithOptions =
+  ["component", { name: "foo" }];
 
 const componentToComponentRuleElementSelectors = [
   "component",

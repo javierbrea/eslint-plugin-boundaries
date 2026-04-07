@@ -1,13 +1,13 @@
 import type {
   ElementDescriptors,
   IgnoreSetting,
-  ElementTypesRule,
-  ElementTypesRuleOptions,
+  DependenciesRule,
+  DependenciesRuleOptions,
   Config,
   Settings,
   Rules,
   ElementDescriptor,
-  ElementSelectorWithOptions,
+  LegacySimpleElementSingleSelectorByTypeWithOptions,
   AliasSetting,
 } from "@boundaries/eslint-plugin";
 
@@ -28,22 +28,20 @@ const elementsMapping: ElementDescriptors = [
 
 const ignoreSetting: IgnoreSetting = ["**/ignored/**/*.js"];
 
-const allowComponentsFromModules: ElementTypesRule = {
+const allowComponentsFromModules: DependenciesRule = {
   from: "module",
   allow: ["component"],
 };
 
-const componentToComponentRuleAllowMatcher: ElementSelectorWithOptions = [
-  "component",
-  { name: "foo" },
-];
+const componentToComponentRuleAllowMatcher: LegacySimpleElementSingleSelectorByTypeWithOptions =
+  ["component", { name: "foo" }];
 
 const componentToComponentRuleElementSelectors = [
   "component",
   componentToComponentRuleAllowMatcher,
 ];
 
-const elementTypesRuleOptions: ElementTypesRuleOptions = {
+const elementTypesRuleOptions: DependenciesRuleOptions = {
   default: "disallow",
   rules: [
     allowComponentsFromModules,

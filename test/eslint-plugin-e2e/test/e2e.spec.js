@@ -1,5 +1,5 @@
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import chalk from "chalk";
 
@@ -609,7 +609,9 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/no-unknown-files" &&
-                msg.message.includes("File does not match any element pattern")
+                msg.message.includes(
+                  "File does not match any file pattern and does not belong to any known element"
+                )
             )
           );
         }
