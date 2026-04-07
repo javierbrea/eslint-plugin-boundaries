@@ -9,7 +9,6 @@ import type {
   EntitySingleSelectorNormalized,
   DependencySingleSelectorMatchResult,
   DependencySingleSelectorNormalized,
-  DependencySelectorNormalized,
   ElementSingleSelectorNormalized,
   ElementSelectorNormalized,
   ParentElementSingleSelector,
@@ -56,9 +55,14 @@ import {
 
 import { dependencyRule } from "./Support";
 
+type DependenciesRulePrecomputed = DependenciesRuleNormalized & {
+  precomputedAllow?: DependencySingleSelectorNormalized[];
+  precomputedDisallow?: DependencySingleSelectorNormalized[];
+};
+
 const normalizedRulesMap = new WeakMap<
   DependenciesRule,
-  DependenciesRuleNormalized
+  DependenciesRulePrecomputed
 >();
 
 const normalizeRulePolicy = (
@@ -77,7 +81,7 @@ const normalizeRulePolicy = (
 
 const normalizeRuleOptions = (
   rule: DependenciesRule
-): DependenciesRuleNormalized => {
+): DependenciesRulePrecomputed => {
   if (normalizedRulesMap.has(rule)) {
     return normalizedRulesMap.get(rule)!;
   }
@@ -93,8 +97,33 @@ const normalizeRuleOptions = (
     disallow: normalizeRulePolicy(rule.disallow),
   };
 
-  normalizedRulesMap.set(rule, normalizedRule);
-  return normalizedRule;
+  const precomputedAllow = normalizedRule.allow?.map((entry) =>
+    buildEntrySelector(
+      normalizedRule.from,
+      normalizedRule.to,
+      normalizedRule.dependency,
+      entry,
+      rule.importKind /* legacy importKind for backward compatibility */
+    )
+  );
+  const precomputedDisallow = normalizedRule.disallow?.map((entry) =>
+    buildEntrySelector(
+      normalizedRule.from,
+      normalizedRule.to,
+      normalizedRule.dependency,
+      entry,
+      rule.importKind /* legacy importKind for backward compatibility */
+    )
+  );
+
+  const precomputedRule: DependenciesRulePrecomputed = {
+    ...normalizedRule,
+    precomputedAllow,
+    precomputedDisallow,
+  };
+
+  normalizedRulesMap.set(rule, precomputedRule);
+  return precomputedRule;
 };
 
 /**
@@ -489,46 +518,27 @@ function safeMatch(
 }
 
 /**
- * Iterates the entries of a single policy value returning the first match, or null.
+ * Iterates precomputed selectors of a policy returning the first match, or null.
  * @param options - The rule options object containing the policy entries and outer selectors.
- * @param options.policy - The policy value, which can be a single entry or an array of entries.
- * @param options.outerFrom - The outer `from` selector defined at the rule level, to be merged with each entry.
- * @param options.outerTo - The outer `to` selector defined at the rule level, to be merged with each entry.
- * @param options.outerDependency - The outer `dependency` selector defined at the rule level, to be merged with each entry.
+ * @param options.selectors - Precomputed dependency selectors for the policy.
  * @param options.dep - The dependency description under evaluation.
  * @param options.matcher - The elements matcher instance used to evaluate matches.
  * @param options.templateData - The template data object containing captured values for template rendering.
- * @param options.legacyImportKind - The legacy import kind at rule level, if applicable.
- * @returns The match result from the first matching entry, or null if no entries matched.
+ * @returns The match result from the first matching selector, or null if no selectors matched.
  */
 function evaluatePolicyEntries({
-  policy,
-  outerFrom,
-  outerTo,
-  outerDependency,
+  selectors,
   dep,
   matcher,
   templateData,
-  legacyImportKind,
 }: {
-  policy: DependencySelectorNormalized | EntitySelectorNormalized;
-  outerFrom: EntitySelectorNormalized | undefined;
-  outerTo: EntitySelectorNormalized | undefined;
-  outerDependency: DependencyInfoSelectorNormalized | undefined;
+  selectors: DependencySingleSelectorNormalized[];
   dep: DependencyDescription;
   matcher: Matcher;
   templateData: TemplateData;
-  legacyImportKind?: DependencyKind;
 }): DependencySingleSelectorMatchResult | null {
-  for (const entry of policy) {
-    const dependencySelector = buildEntrySelector(
-      outerFrom,
-      outerTo,
-      outerDependency,
-      entry,
-      legacyImportKind
-    );
-    const result = safeMatch(dep, matcher, dependencySelector, templateData);
+  for (const selector of selectors) {
+    const result = safeMatch(dep, matcher, selector, templateData);
     if (result) {
       return result;
     }
@@ -603,22 +613,14 @@ export function evaluateRules(
     );
 
     const normalizedRule = normalizeRuleOptions(rule);
-    const outerFrom = normalizedRule.from;
-    const outerTo = normalizedRule.to;
-    const outerDependency = normalizedRule.dependency;
 
     let denyMatched = false;
-    if (normalizedRule.disallow) {
+    if (normalizedRule.precomputedDisallow) {
       const denyMatch = evaluatePolicyEntries({
-        policy: normalizedRule.disallow,
-        outerFrom,
-        outerTo,
-        outerDependency,
+        selectors: normalizedRule.precomputedDisallow,
         dep,
         matcher,
         templateData,
-        legacyImportKind:
-          rule.importKind /* legacy importKind for backward compatibility */,
       });
       if (denyMatch) {
         allowed = false;
@@ -629,17 +631,12 @@ export function evaluateRules(
     }
 
     // Allow is only evaluated when disallow/deny did not match for this rule
-    if (!denyMatched && normalizedRule.allow) {
+    if (!denyMatched && normalizedRule.precomputedAllow) {
       const allowMatch = evaluatePolicyEntries({
-        policy: normalizedRule.allow,
-        outerFrom,
-        outerTo,
-        outerDependency,
+        selectors: normalizedRule.precomputedAllow,
         dep,
         matcher,
         templateData,
-        legacyImportKind:
-          rule.importKind /* legacy importKind for backward compatibility */,
       });
       if (allowMatch) {
         allowed = true;
