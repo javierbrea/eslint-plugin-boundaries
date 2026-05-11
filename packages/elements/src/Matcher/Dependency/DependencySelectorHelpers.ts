@@ -235,9 +235,12 @@ function addModuleToEntitySelectorNormalized(
   return legacyItems.flatMap(({ module: modulePattern }) =>
     baseEntitySelectors.map((single) => ({
       ...single,
-      origin: single.origin
-        ? single.origin.map((origin) => ({ ...origin, module: modulePattern }))
-        : [{ module: modulePattern }],
+      module: single.module
+        ? single.module.map((moduleDescription) => ({
+            ...moduleDescription,
+            source: modulePattern,
+          }))
+        : [{ source: modulePattern }],
     }))
   );
 }

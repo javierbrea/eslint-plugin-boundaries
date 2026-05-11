@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "docusaurus": "docusaurus",
-    "start": "docusaurus start",
+    "start": "cross-env NODE_ENV=development docusaurus start",
     "serve": "docusaurus serve",
     "swizzle": "docusaurus swizzle",
     "clear": "docusaurus clear",

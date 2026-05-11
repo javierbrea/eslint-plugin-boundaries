@@ -2,7 +2,7 @@ import { CacheManager, CacheManagerDisabled } from "../../Cache";
 import type { DescriptorOptionsNormalized } from "../../Config";
 import type { ElementsDescriptor } from "../Element";
 import type { FilesDescriptor } from "../File";
-import type { OriginsDescriptor } from "../Origin";
+import type { ModulesDescriptor } from "../Module";
 
 import type { EntityDescription } from "./EntityDescription.types";
 import type { EntitiesDescriptorSerializedCache } from "./EntityDescriptor.types";
@@ -25,7 +25,7 @@ export class EntitiesDescriptor {
 
   private readonly _elementsDescriptor: ElementsDescriptor;
   private readonly _filesDescriptor: FilesDescriptor;
-  private readonly _originsDescriptor: OriginsDescriptor;
+  private readonly _modulesDescriptor: ModulesDescriptor;
 
   /**
    * The configuration options for this descriptor.
@@ -37,12 +37,12 @@ export class EntitiesDescriptor {
   constructor(
     elementsDescriptor: ElementsDescriptor,
     filesDescriptor: FilesDescriptor,
-    originsDescriptor: OriginsDescriptor,
+    modulesDescriptor: ModulesDescriptor,
     config: DescriptorOptionsNormalized
   ) {
     this._elementsDescriptor = elementsDescriptor;
     this._filesDescriptor = filesDescriptor;
-    this._originsDescriptor = originsDescriptor;
+    this._modulesDescriptor = modulesDescriptor;
     this._config = config;
     this._descriptionsCache = this._config.cache
       ? new CacheManager<string, EntityDescription>()
@@ -90,7 +90,7 @@ export class EntitiesDescriptor {
     const elementDescription =
       this._elementsDescriptor.describeElement(filePath);
     const fileDescription = this._filesDescriptor.describeFile(filePath);
-    const originDescription = this._originsDescriptor.describeOrigin(
+    const moduleDescription = this._modulesDescriptor.describeModule(
       filePath,
       source
     );
@@ -98,7 +98,7 @@ export class EntitiesDescriptor {
     const entityDescription: EntityDescription = {
       element: elementDescription,
       file: fileDescription,
-      origin: originDescription,
+      module: moduleDescription,
     };
 
     this._descriptionsCache.set(cacheKey, entityDescription);

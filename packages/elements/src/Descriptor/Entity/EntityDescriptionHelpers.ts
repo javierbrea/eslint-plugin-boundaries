@@ -15,7 +15,7 @@ export function isEntityDescription(
   return (
     isObjectWithProperty(value, "element") &&
     isObjectWithProperty(value, "file") &&
-    isObjectWithProperty(value, "origin") &&
+    isObjectWithProperty(value, "module") &&
     isElementDescription(value.element) &&
     isFileDescription(value.file)
   );

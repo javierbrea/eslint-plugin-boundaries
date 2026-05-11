@@ -1,7 +1,7 @@
 import Handlebars from "handlebars";
 
 import type { MatchersOptionsNormalized } from "../../Config";
-import type { BaseDescription, OriginDescription } from "../../Descriptor";
+import type { BaseDescription, ModuleDescription } from "../../Descriptor";
 import {
   isArray,
   isObjectWithProperty,
@@ -15,7 +15,7 @@ import type {
   MicromatchMatchableValue,
 } from "../../Shared";
 import type { ElementSingleSelector } from "../Element";
-import type { OriginSelector } from "../Origin";
+import type { ModuleSelector } from "../Module";
 
 import type { TemplateData } from "./BaseMatcher.types";
 import type { Micromatch } from "./Micromatch";
@@ -24,7 +24,7 @@ const LEGACY_TEMPLATE_REGEX = /\$\{([^}]+)\}/g;
 const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^{}\s][^{}]*}}/;
 
 /**
- * Base matcher class to determine if elements or dependencies match a given selector.
+ * Base matcher class to determine if objects match a given selector.
  */
 export class BaseElementsMatcher {
   /**
@@ -193,27 +193,27 @@ export class BaseElementsMatcher {
   /**
    * Whether the given element key matches the selector key as booleans.
    * @param param0 The parameters object.
-   * @returns Whether the element key matches the selector key.
+   * @returns Whether the object key matches the selector key.
    */
-  protected isElementKeyBooleanMatch<
-    T extends BaseDescription | OriginDescription,
-    S extends ElementSingleSelector | OriginSelector,
+  protected isObjectKeyBooleanMatch<
+    T extends BaseDescription | ModuleDescription,
+    S extends ElementSingleSelector | ModuleSelector,
   >({
-    /** The element to check. */
-    element,
+    /** The object to check. */
+    object,
     /** The selector to check against. */
     selector,
-    /** The key of the element to check. */
-    elementKey,
+    /** The key of the object to check. */
+    objectKey,
     /** The key of the selector to check against. */
     selectorKey,
   }: {
-    /** The element to check. */
-    element: T;
+    /** The object to check. */
+    object: T;
     /** The selector to check against. */
     selector: S;
-    /** The key of the element to check. */
-    elementKey: keyof T;
+    /** The key of the object to check. */
+    objectKey: keyof T;
     /** The key of the selector to check against. */
     selectorKey: keyof S;
   }): boolean {
@@ -221,43 +221,43 @@ export class BaseElementsMatcher {
     if (!(selectorKey in selector) || isUndefined(selector[selectorKey])) {
       return true;
     }
-    // The selector key exists in the selector, but it does not exist in the element. No match.
-    // istanbul ignore next - This case should not happen due to element validations, but we guard against it anyway.
-    if (!(elementKey in element)) {
+    // The selector key exists in the selector, but it does not exist in the object. No match.
+    // istanbul ignore next - This case should not happen due to object validations, but we guard against it anyway.
+    if (!(objectKey in object)) {
       return false;
     }
     // Both values must be booleans to match.
-    if (!isBoolean(selector[selectorKey]) || !isBoolean(element[elementKey])) {
+    if (!isBoolean(selector[selectorKey]) || !isBoolean(object[objectKey])) {
       return false;
     }
     return (
-      (selector[selectorKey] as boolean) === (element[elementKey] as boolean)
+      (selector[selectorKey] as boolean) === (object[objectKey] as boolean)
     );
   }
 
   /**
-   * Whether the given element key matches the selector key using micromatch.
+   * Whether the given object key matches the selector key using micromatch.
    * @param param0 The parameters object.
-   * @returns Whether the element key matches the selector key.
+   * @returns Whether the object key matches the selector key.
    */
-  protected isElementKeyMicromatchMatch<
-    T extends BaseDescription | OriginDescription,
-    S extends ElementSingleSelector | OriginSelector,
+  protected isObjectKeyMicromatchMatch<
+    T extends BaseDescription | ModuleDescription,
+    S extends ElementSingleSelector | ModuleSelector,
     K extends keyof T,
   >({
-    element,
+    object,
     selector,
-    elementKey,
+    objectKey,
     selectorKey,
     selectorValue,
     templateData,
   }: {
-    /** The element to check. */
-    element: T & Record<K, MicromatchMatchableValue>;
+    /** The object to check. */
+    object: T & Record<K, MicromatchMatchableValue>;
     /** The selector to check against. */
     selector: S;
-    /** The key of the element to check. */
-    elementKey: K;
+    /** The key of the object to check. */
+    objectKey: K;
     /** The key of the selector to check against. */
     selectorKey: keyof S;
     /** The value of the selector key to check against. */
@@ -270,18 +270,18 @@ export class BaseElementsMatcher {
       return true;
     }
     // Undefined selector values do not match anything.
-    // The selector key exists in the selector, but it does not exist in the element. No match.
+    // The selector key exists in the selector, but it does not exist in the object. No match.
     /* istanbul ignore next - This cases should not happen due to selector validations, but we guard against it anyway. */
-    if (!isObjectWithProperty(element, String(elementKey))) {
+    if (!isObjectWithProperty(object, String(objectKey))) {
       return false;
     }
 
-    const elementValue = element[elementKey];
+    const objectValue = object[objectKey];
 
     return this.isTemplateMicromatchMatch(
       selectorValue,
       templateData,
-      elementValue
+      objectValue
     );
   }
 }

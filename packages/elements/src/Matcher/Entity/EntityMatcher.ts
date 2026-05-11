@@ -3,7 +3,7 @@ import type { EntityDescription } from "../../Descriptor";
 import { isNull, isUndefined } from "../../Shared";
 import type { ElementsMatcher } from "../Element";
 import type { FilesMatcher } from "../File";
-import type { OriginsMatcher } from "../Origin";
+import type { ModulesMatcher } from "../Module";
 import { BaseElementsMatcher } from "../Shared";
 import type { TemplateData, MatcherOptions, Micromatch } from "../Shared";
 
@@ -26,7 +26,7 @@ export class EntitiesMatcher extends BaseElementsMatcher {
    */
   private readonly _elementsMatcher: ElementsMatcher;
   private readonly _filesMatcher: FilesMatcher;
-  private readonly _originsMatcher: OriginsMatcher;
+  private readonly _modulesMatcher: ModulesMatcher;
 
   /**
    * Creates a new EntitiesMatcher.
@@ -38,14 +38,14 @@ export class EntitiesMatcher extends BaseElementsMatcher {
   constructor(
     elementsMatcher: ElementsMatcher,
     filesMatcher: FilesMatcher,
-    originsMatcher: OriginsMatcher,
+    modulesMatcher: ModulesMatcher,
     config: MatchersOptionsNormalized,
     micromatch: Micromatch
   ) {
     super(config, micromatch);
     this._elementsMatcher = elementsMatcher;
     this._filesMatcher = filesMatcher;
-    this._originsMatcher = originsMatcher;
+    this._modulesMatcher = modulesMatcher;
   }
 
   /**
@@ -74,11 +74,11 @@ export class EntitiesMatcher extends BaseElementsMatcher {
       : this._filesMatcher.getSelectorMatching(entity.file, selector.file, {
           extraTemplateData: templateData,
         });
-    const originSelectorMatching = isUndefined(selector.origin)
+    const moduleSelectorMatching = isUndefined(selector.module)
       ? undefined
-      : this._originsMatcher.getSelectorMatching(
-          entity.origin,
-          selector.origin,
+      : this._modulesMatcher.getSelectorMatching(
+          entity.module,
+          selector.module,
           {
             extraTemplateData: templateData,
           }
@@ -91,14 +91,14 @@ export class EntitiesMatcher extends BaseElementsMatcher {
     if (fileSelectorMatching) {
       selectorResult.file = fileSelectorMatching;
     }
-    if (originSelectorMatching) {
-      selectorResult.origin = originSelectorMatching;
+    if (moduleSelectorMatching) {
+      selectorResult.module = moduleSelectorMatching;
     }
 
     const isMatch = Boolean(
       (selector.element ? elementSelectorMatching : true) &&
         (selector.file ? fileSelectorMatching : true) &&
-        (selector.origin ? originSelectorMatching : true)
+        (selector.module ? moduleSelectorMatching : true)
     );
 
     return {
@@ -123,13 +123,13 @@ export class EntitiesMatcher extends BaseElementsMatcher {
 
     const elementExtraData = extraTemplateData.element || {};
     const fileExtraData = extraTemplateData.file || {};
-    const originExtraData = extraTemplateData.origin || {};
+    const moduleExtraData = extraTemplateData.module || {};
 
     const templateData: TemplateData = {
       ...extraTemplateData,
       element: { ...entity.element, ...elementExtraData },
       file: { ...entity.file, ...fileExtraData },
-      origin: { ...entity.origin, ...originExtraData },
+      module: { ...entity.module, ...moduleExtraData },
     };
 
     for (const selectorData of normalizedSelector) {

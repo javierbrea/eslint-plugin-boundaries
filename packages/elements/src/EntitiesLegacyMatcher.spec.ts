@@ -1088,7 +1088,7 @@ describe("Entities Legacy Matcher", () => {
         },
         expected: true,
         expectedMatch: {
-          to: { origin: "local" },
+          to: { module: { origin: "local" } },
         },
       },
       // Category tests

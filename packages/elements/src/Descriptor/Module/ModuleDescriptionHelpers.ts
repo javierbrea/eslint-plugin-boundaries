@@ -1,7 +1,7 @@
 import { isObjectWithAnyOfProperties } from "../../Shared";
 
-import type { OriginDescription } from "./OriginDescription.types";
-import { ORIGINS_SET } from "./OriginDescription.types";
+import type { ModuleDescription } from "./ModuleDescription.types";
+import { ORIGINS_SET } from "./ModuleDescription.types";
 
 /**
  * Determines if the given value is an OriginDescription.
@@ -10,9 +10,9 @@ import { ORIGINS_SET } from "./OriginDescription.types";
  */
 export function isOriginDescription(
   value: unknown
-): value is OriginDescription {
+): value is ModuleDescription {
   return (
-    isObjectWithAnyOfProperties(value, ["kind", "module"]) &&
-    ORIGINS_SET.has(value.kind as OriginDescription["kind"])
+    isObjectWithAnyOfProperties(value, ["origin", "source", "internalPath"]) &&
+    ORIGINS_SET.has(value.origin as ModuleDescription["origin"])
   );
 }

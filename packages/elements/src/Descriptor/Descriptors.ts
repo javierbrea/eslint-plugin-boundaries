@@ -16,8 +16,8 @@ import { EntitiesDescriptor } from "./Entity";
 import type { EntityDescription } from "./Entity";
 import type { FileDescription } from "./File";
 import { FilesDescriptor } from "./File";
-import { OriginsDescriptor } from "./Origin";
-import type { OriginDescription } from "./Origin";
+import { ModulesDescriptor } from "./Module";
+import type { ModuleDescription } from "./Module";
 
 /**
  * Class with methods to describe files, elements, entities, and dependencies between them.
@@ -27,7 +27,7 @@ export class Descriptors {
   private readonly _filesDescriptor: FilesDescriptor;
   private readonly _dependenciesDescriptor: DependenciesDescriptor;
   private readonly _entitiesDescriptor: EntitiesDescriptor;
-  private readonly _originsDescriptor: OriginsDescriptor;
+  private readonly _modulesDescriptor: ModulesDescriptor;
 
   /** Creates a new DescriptorsManager instance
    * @param descriptors The descriptors.
@@ -49,11 +49,11 @@ export class Descriptors {
       config,
       micromatch
     );
-    this._originsDescriptor = new OriginsDescriptor(config, micromatch);
+    this._modulesDescriptor = new ModulesDescriptor(config, micromatch);
     this._entitiesDescriptor = new EntitiesDescriptor(
       this._elementsDescriptor,
       this._filesDescriptor,
-      this._originsDescriptor,
+      this._modulesDescriptor,
       config
     );
     this._dependenciesDescriptor = new DependenciesDescriptor(
@@ -72,7 +72,7 @@ export class Descriptors {
       files: this._filesDescriptor.serializeCache(),
       entities: this._entitiesDescriptor.serializeCache(),
       dependencies: this._dependenciesDescriptor.serializeCache(),
-      origins: this._originsDescriptor.serializeCache(),
+      modules: this._modulesDescriptor.serializeCache(),
     };
   }
 
@@ -89,7 +89,7 @@ export class Descriptors {
     this._dependenciesDescriptor.setCacheFromSerialized(
       serializedCache.dependencies
     );
-    this._originsDescriptor.setCacheFromSerialized(serializedCache.origins);
+    this._modulesDescriptor.setCacheFromSerialized(serializedCache.modules);
   }
 
   /**
@@ -100,7 +100,7 @@ export class Descriptors {
     this._filesDescriptor.clearCache();
     this._entitiesDescriptor.clearCache();
     this._dependenciesDescriptor.clearCache();
-    this._originsDescriptor.clearCache();
+    this._modulesDescriptor.clearCache();
   }
 
   /**
@@ -132,13 +132,13 @@ export class Descriptors {
   }
 
   /**
-   * Describes the origin of a file given its path and the path of the importer file.
+   * Describes a module given its path and the path of the importer file.
    * @param filePath The path of the file to describe.
    * @param source The optional dependency source (e.g., the importer file path) to use for describing the origin of the entity being imported.
-   * @returns The description of the file's origin.
+   * @returns The description of the module.
    */
-  public describeOrigin(filePath?: string, source?: string): OriginDescription {
-    return this._originsDescriptor.describeOrigin(filePath, source);
+  public describeModule(filePath?: string, source?: string): ModuleDescription {
+    return this._modulesDescriptor.describeModule(filePath, source);
   }
 
   /**

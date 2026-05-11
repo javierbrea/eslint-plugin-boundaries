@@ -46,10 +46,10 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: ElementSingleSelector,
     templateData: TemplateData
   ): boolean {
-    return this.isElementKeyMicromatchMatch({
-      element,
+    return this.isObjectKeyMicromatchMatch({
+      object: element,
       selector,
-      elementKey: "type",
+      objectKey: "type",
       selectorKey: "type",
       selectorValue: selector.type,
       templateData,
@@ -68,10 +68,10 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: ElementSingleSelector,
     templateData: TemplateData
   ): boolean {
-    return this.isElementKeyMicromatchMatch({
-      element,
+    return this.isObjectKeyMicromatchMatch({
+      object: element,
       selector,
-      elementKey: "path",
+      objectKey: "path",
       selectorKey: "path",
       selectorValue: selector.path,
       templateData,
@@ -90,10 +90,10 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: ElementSingleSelector,
     templateData: TemplateData
   ): boolean {
-    return this.isElementKeyMicromatchMatch({
-      element,
+    return this.isObjectKeyMicromatchMatch({
+      object: element,
       selector,
-      elementKey: "fileInternalPath",
+      objectKey: "fileInternalPath",
       selectorKey: "fileInternalPath",
       selectorValue: selector.fileInternalPath,
       templateData,
@@ -327,10 +327,10 @@ export class ElementsMatcher extends BaseElementsMatcher {
     element: ElementDescription,
     selector: ElementSingleSelectorNormalized
   ): boolean {
-    return this.isElementKeyBooleanMatch({
-      element,
+    return this.isObjectKeyBooleanMatch({
+      object: element,
       selector,
-      elementKey: "isIgnored",
+      objectKey: "isIgnored",
       selectorKey: "isIgnored",
     });
   }
@@ -345,10 +345,10 @@ export class ElementsMatcher extends BaseElementsMatcher {
     element: ElementDescription,
     selector: ElementSingleSelectorNormalized
   ): boolean {
-    return this.isElementKeyBooleanMatch({
-      element,
+    return this.isObjectKeyBooleanMatch({
+      object: element,
       selector,
-      elementKey: "isUnknown",
+      objectKey: "isUnknown",
       selectorKey: "isUnknown",
     });
   }
@@ -365,10 +365,10 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: ElementSingleSelector,
     templateData: TemplateData
   ): boolean {
-    return this.isElementKeyMicromatchMatch({
-      element,
+    return this.isObjectKeyMicromatchMatch({
+      object: element,
       selector,
-      elementKey: "category",
+      objectKey: "category",
       selectorKey: "category",
       selectorValue: selector.category,
       templateData,
@@ -388,10 +388,10 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: ElementSingleSelector,
     templateData: TemplateData
   ): boolean {
-    return this.isElementKeyMicromatchMatch({
-      element,
+    return this.isObjectKeyMicromatchMatch({
+      object: element,
       selector,
-      elementKey: "filePath",
+      objectKey: "filePath",
       selectorKey: "filePath",
       selectorValue: selector.filePath,
       templateData,

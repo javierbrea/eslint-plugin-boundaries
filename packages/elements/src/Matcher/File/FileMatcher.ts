@@ -33,10 +33,10 @@ export class FilesMatcher extends BaseElementsMatcher {
     selector: FileSingleSelector,
     templateData: TemplateData
   ): boolean {
-    return this.isElementKeyMicromatchMatch({
-      element: file,
+    return this.isObjectKeyMicromatchMatch({
+      object: file,
       selector,
-      elementKey: "path",
+      objectKey: "path",
       selectorKey: "path",
       selectorValue: selector.path,
       templateData,
@@ -155,10 +155,10 @@ export class FilesMatcher extends BaseElementsMatcher {
     file: FileDescription,
     selector: FileSingleSelector
   ): boolean {
-    return this.isElementKeyBooleanMatch({
-      element: file,
+    return this.isObjectKeyBooleanMatch({
+      object: file,
       selector,
-      elementKey: "isIgnored",
+      objectKey: "isIgnored",
       selectorKey: "isIgnored",
     });
   }
@@ -173,10 +173,10 @@ export class FilesMatcher extends BaseElementsMatcher {
     file: FileDescription,
     selector: FileSingleSelector
   ): boolean {
-    return this.isElementKeyBooleanMatch({
-      element: file,
+    return this.isObjectKeyBooleanMatch({
+      object: file,
       selector,
-      elementKey: "isUnknown",
+      objectKey: "isUnknown",
       selectorKey: "isUnknown",
     });
   }

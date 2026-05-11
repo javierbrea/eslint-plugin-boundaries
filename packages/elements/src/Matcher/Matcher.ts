@@ -7,7 +7,7 @@ import type {
   ElementDescription,
   DependencyDescription,
   EntityDescription,
-  OriginDescription,
+  ModuleDescription,
   DescriptorsConfig,
 } from "../Descriptor";
 import { Descriptors } from "../Descriptor";
@@ -34,8 +34,8 @@ import type {
 } from "./Entity";
 import { FilesMatcher } from "./File";
 import type { MatcherSerializedCache } from "./Matcher.types";
-import type { OriginSelector } from "./Origin";
-import { OriginsMatcher } from "./Origin";
+import type { ModuleSelector } from "./Module";
+import { ModulesMatcher } from "./Module";
 import type {
   Micromatch,
   MatcherOptions,
@@ -49,7 +49,7 @@ export class Matcher {
   private readonly _elementsMatcher: ElementsMatcher;
   private readonly _filesMatcher: FilesMatcher;
   private readonly _entitiesMatcher: EntitiesMatcher;
-  private readonly _originsMatcher: OriginsMatcher;
+  private readonly _modulesMatcher: ModulesMatcher;
   private readonly _dependenciesMatcher: DependenciesMatcher;
   private readonly _originalDescriptors: DescriptorsConfig;
   private readonly _descriptorOptions: DescriptorOptionsNormalized;
@@ -88,11 +88,11 @@ export class Matcher {
     // end of getDescriptors method
     this._elementsMatcher = new ElementsMatcher(matchersOptions, micromatch);
     this._filesMatcher = new FilesMatcher(matchersOptions, micromatch);
-    this._originsMatcher = new OriginsMatcher(matchersOptions, micromatch);
+    this._modulesMatcher = new ModulesMatcher(matchersOptions, micromatch);
     this._entitiesMatcher = new EntitiesMatcher(
       this._elementsMatcher,
       this._filesMatcher,
-      this._originsMatcher,
+      this._modulesMatcher,
       matchersOptions,
       micromatch
     );
@@ -133,13 +133,13 @@ export class Matcher {
   }
 
   /**
-   * Describes the origin of a file given its path and the path of the importer file.
+   * Describes the module of a file given its path and the path of the importer file.
    * @param filePath The path of the file to describe.
-   * @param source The optional dependency source (e.g., the importer file path) to use for describing the origin of the entity being imported.
-   * @returns The description of the file's origin.
+   * @param source The optional dependency source (e.g., the importer file path) to use for describing the module of the entity being imported.
+   * @returns The description of the file's module.
    */
-  public describeOrigin(filePath?: string, source?: string) {
-    return this._descriptors.describeOrigin(filePath, source);
+  public describeModule(filePath?: string, source?: string) {
+    return this._descriptors.describeModule(filePath, source);
   }
 
   /**
@@ -234,18 +234,18 @@ export class Matcher {
    * @param filePath The file path of the origin
    * @param selector The selector to match against
    * @param options Extra matcher options
-   * @returns True if the origin matches the selector, false otherwise
+   * @returns True if the module matches the selector, false otherwise
    */
-  public isOriginMatch(
+  public isModuleMatch(
     filePath: string,
-    selector: OriginSelector,
+    selector: ModuleSelector,
     options?: EntityMatcherOptions
   ): boolean {
-    const description = this._descriptors.describeOrigin(
+    const description = this._descriptors.describeModule(
       filePath,
       options?.source
     );
-    return this._originsMatcher.isOriginMatch(description, selector, options);
+    return this._modulesMatcher.isModuleMatch(description, selector, options);
   }
 
   /**
@@ -340,18 +340,18 @@ export class Matcher {
    * @param filePath The file path of the origin
    * @param selector The selector to match against
    * @param options Extra options for matching
-   * @returns The matching origin result or null if no match is found
+   * @returns The matching module result or null if no match is found
    */
-  public getOriginSelectorMatching(
+  public getModuleSelectorMatching(
     filePath: string,
-    selector: OriginSelector,
+    selector: ModuleSelector,
     options?: EntityMatcherOptions
   ) {
-    const description = this._descriptors.describeOrigin(
+    const description = this._descriptors.describeModule(
       filePath,
       options?.source
     );
-    return this._originsMatcher.getSelectorMatching(
+    return this._modulesMatcher.getSelectorMatching(
       description,
       selector,
       options
@@ -439,12 +439,12 @@ export class Matcher {
     );
   }
 
-  public getOriginSelectorMatchingDescription(
-    description: OriginDescription,
-    selector: OriginSelector,
+  public getModuleSelectorMatchingDescription(
+    description: ModuleDescription,
+    selector: ModuleSelector,
     options?: EntityMatcherOptions
   ) {
-    return this._originsMatcher.getSelectorMatching(
+    return this._modulesMatcher.getSelectorMatching(
       description,
       selector,
       options

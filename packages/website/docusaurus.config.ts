@@ -3,6 +3,8 @@ import type * as Preset from "@docusaurus/preset-classic";
 import type { Config } from "@docusaurus/types";
 import { themes as prismThemes } from "prism-react-renderer";
 
+const IS_DEV = process.env.NODE_ENV === "development";
+
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
@@ -74,6 +76,19 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"],
   },
+  plugins: [
+    () => ({
+      name: "custom-webpack-config",
+      configureWebpack(_config, isServer) {
+        if (!isServer && IS_DEV) {
+          return {
+            devtool: "source-map", // Generate source maps for client-side code to improve debugging experience in the browser, but avoid doing it for server-side code to prevent potential issues with Node.js and Docusaurus' server-side rendering.
+          };
+        }
+        return {};
+      },
+    }),
+  ],
   presets: [
     [
       "classic",

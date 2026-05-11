@@ -6,4 +6,4 @@ export * from "./File";
 export * from "./Shared";
 export * from "./Matcher";
 export * from "./Matcher.types";
-export * from "./Origin";
+export * from "./Module";

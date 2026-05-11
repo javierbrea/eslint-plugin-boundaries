@@ -8,24 +8,24 @@ import type { Micromatch } from "../../Matcher";
 import { normalizePath, isNullish } from "../../Shared";
 import type { MicromatchPattern } from "../../Shared";
 
-import type { OriginDescription } from "./OriginDescription.types";
-import { ORIGINS_MAP } from "./OriginDescription.types";
-import type { OriginsDescriptorSerializedCache } from "./OriginDescriptor.types";
+import type { ModuleDescription } from "./ModuleDescription.types";
+import { ORIGINS_MAP } from "./ModuleDescription.types";
+import type { ModulesDescriptorSerializedCache } from "./ModuleDescriptor.types";
 
 const SCOPED_PACKAGE_REGEX = /^@[^/]*\/?[^/]+/;
 const EXTERNAL_PATH_REGEX = /^\w/;
 
 /**
- * Class describing entity origins.
+ * Class describing entity modules.
  */
-export class OriginsDescriptor {
+export class ModulesDescriptor {
   private _mod: typeof Mod | null = null;
   /**
-   * Cache to store previously described origins.
+   * Cache to store previously described modules.
    */
   private readonly _descriptionsCache:
-    | CacheManager<string, OriginDescription>
-    | CacheManagerDisabled<string, OriginDescription>;
+    | CacheManager<string, ModuleDescription>
+    | CacheManagerDisabled<string, ModuleDescription>;
 
   /**
    * Configuration instance for this descriptor.
@@ -47,8 +47,8 @@ export class OriginsDescriptor {
     this._micromatch = micromatch;
     this._config = configOptions;
     this._descriptionsCache = this._config.cache
-      ? new CacheManager<string, OriginDescription>()
-      : new CacheManagerDisabled<string, OriginDescription>();
+      ? new CacheManager<string, ModuleDescription>()
+      : new CacheManagerDisabled<string, ModuleDescription>();
     this._loadModuleInNode();
   }
 
@@ -210,7 +210,7 @@ export class OriginsDescriptor {
    * Serializes the origins cache to a plain object.
    * @returns The serialized origins cache.
    */
-  public serializeCache(): OriginsDescriptorSerializedCache {
+  public serializeCache(): ModulesDescriptorSerializedCache {
     return {
       descriptions: this._descriptionsCache.serialize(),
     };
@@ -221,7 +221,7 @@ export class OriginsDescriptor {
    * @param serializedCache The serialized origins cache.
    */
   public setCacheFromSerialized(
-    serializedCache: OriginsDescriptorSerializedCache
+    serializedCache: ModulesDescriptorSerializedCache
   ): void {
     this._descriptionsCache.setFromSerialized(serializedCache.descriptions);
   }
@@ -247,18 +247,23 @@ export class OriginsDescriptor {
   }
 
   /**
-   * Gets the origin description for a given relative path and source.
+   * Gets the module description for a given relative path and source.
    * @param relativePath The relative path of the file.
    * @param dependencySource The source of the dependency (e.g., the import statement or require call).
-   * @returns The description of the file's origin.
+   * @returns The description of the file's module.
    */
-  private _getDependencyOrigin(
+  private _getDependencyModuleDescription(
     isOutsideRootPath: boolean,
     dependencySource: string,
     relativePath?: string
-  ): OriginDescription {
+  ): ModuleDescription {
     const baseDependencySource =
       this._getExternalOrCoreSourceModule(dependencySource);
+    const moduleInternalPath = dependencySource.startsWith(
+      `${baseDependencySource}/`
+    )
+      ? dependencySource.slice(baseDependencySource.length + 1)
+      : null;
 
     // Determine if the dependency source is a core module
     const isCore = this._dependencySourceIsCoreModule(
@@ -268,8 +273,9 @@ export class OriginsDescriptor {
 
     if (isCore) {
       return {
-        kind: ORIGINS_MAP.CORE,
-        module: baseDependencySource,
+        origin: ORIGINS_MAP.CORE,
+        source: baseDependencySource,
+        internalPath: moduleInternalPath,
       };
     }
 
@@ -281,40 +287,44 @@ export class OriginsDescriptor {
 
     if (isExternal) {
       return {
-        kind: ORIGINS_MAP.EXTERNAL,
-        module: baseDependencySource,
+        origin: ORIGINS_MAP.EXTERNAL,
+        source: baseDependencySource,
+        internalPath: moduleInternalPath,
       };
     }
 
     return {
-      kind: ORIGINS_MAP.LOCAL,
-      module: null,
+      origin: ORIGINS_MAP.LOCAL,
+      source: null,
+      internalPath: null,
     };
   }
 
   /**
-   * Gets the origin description for a file that is not imported as a dependency.
+   * Gets the module description for a file that is not imported as a dependency.
    * @param isOutsideRootPath Indicates if the file is outside the configured root path.
    * @param relativePath The relative path of the file.
-   * @returns The description of the file's origin.
+   * @returns The description of the file's module.
    */
-  private _getFileOrigin(
+  private _getFileModuleDescription(
     isOutsideRootPath: boolean,
     relativePath?: string
-  ): OriginDescription {
+  ): ModuleDescription {
     const isExternal = this._isExternal(
       relativePath || null,
       isOutsideRootPath
     );
     if (isExternal) {
       return {
-        kind: ORIGINS_MAP.EXTERNAL,
-        module: null,
+        origin: ORIGINS_MAP.EXTERNAL,
+        source: null,
+        internalPath: null,
       };
     }
     return {
-      kind: ORIGINS_MAP.LOCAL,
-      module: null,
+      origin: ORIGINS_MAP.LOCAL,
+      source: null,
+      internalPath: null,
     };
   }
 
@@ -323,26 +333,30 @@ export class OriginsDescriptor {
    * @param relativePath The relative path of the file.
    * @param source The source of the dependency (e.g., the import statement or require call).
    * @param isOutsideRootPath Whether the file path is outside the configured root path.
-   * @returns The description of the file's origin.
+   * @returns The description of the file's module.
    */
-  private _getOriginDescription(
+  private _getModuleDescription(
     isOutsideRootPath: boolean,
     relativePath?: string,
     source?: string
-  ): OriginDescription {
+  ): ModuleDescription {
     if (source) {
-      return this._getDependencyOrigin(isOutsideRootPath, source, relativePath);
+      return this._getDependencyModuleDescription(
+        isOutsideRootPath,
+        source,
+        relativePath
+      );
     }
-    return this._getFileOrigin(isOutsideRootPath, relativePath);
+    return this._getFileModuleDescription(isOutsideRootPath, relativePath);
   }
 
   /**
-   * Describes the origin of a file path given its dependency source and the file path itself.
+   * Describes the module of a file path given its dependency source and the file path itself.
    * @param filePath The absolute path of the file to describe
    * @param source The source of the dependency (e.g., the import statement or require call)
-   * @returns The description of the file's origin, including its origin, and module if applicable
+   * @returns The description of the file's module, including its origin, and module if applicable
    */
-  public describeOrigin(filePath?: string, source?: string): OriginDescription {
+  public describeModule(filePath?: string, source?: string): ModuleDescription {
     const cacheKey = `${filePath}::${source}`;
     if (this._descriptionsCache.has(cacheKey)) {
       return this._descriptionsCache.get(cacheKey)!;
@@ -355,12 +369,12 @@ export class OriginsDescriptor {
       normalizedFilePath && this._config.rootPath
         ? this._toRelativePath(normalizedFilePath)
         : normalizedFilePath;
-    const originDescription = this._getOriginDescription(
+    const moduleDescription = this._getModuleDescription(
       isOutsideRootPath,
       relativePath,
       source
     );
-    this._descriptionsCache.set(cacheKey, originDescription);
-    return originDescription;
+    this._descriptionsCache.set(cacheKey, moduleDescription);
+    return moduleDescription;
   }
 }

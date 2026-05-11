@@ -680,9 +680,10 @@ describe("Elements Descriptors", () => {
             type: "component",
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         to: {
@@ -697,9 +698,10 @@ describe("Elements Descriptors", () => {
             type: null,
             isUnknown: true,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         dependency: {
@@ -738,9 +740,10 @@ describe("Elements Descriptors", () => {
             type: null,
             isUnknown: true,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         to: {
@@ -755,9 +758,10 @@ describe("Elements Descriptors", () => {
             fileInternalPath: null,
             parents: [],
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         dependency: {
@@ -796,9 +800,10 @@ describe("Elements Descriptors", () => {
             type: null,
             isUnknown: true,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         to: {
@@ -813,9 +818,10 @@ describe("Elements Descriptors", () => {
             type: null,
             isUnknown: true,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         dependency: {
@@ -855,9 +861,10 @@ describe("Elements Descriptors", () => {
             path: "/project/src/components/Button.tsx",
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         to: {
@@ -877,9 +884,10 @@ describe("Elements Descriptors", () => {
             path: "/project/src/utils/math/math.test.ts",
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         dependency: {
@@ -918,9 +926,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         to: {
@@ -935,9 +944,10 @@ describe("Elements Descriptors", () => {
             isIgnored: true,
             isUnknown: true,
           },
-          origin: {
-            kind: "external",
-            module: "react",
+          module: {
+            origin: "external",
+            source: "react",
+            internalPath: null,
           },
         },
         dependency: {
@@ -953,7 +963,7 @@ describe("Elements Descriptors", () => {
       expect(isKnownElementDescription(dependency.from.element)).toBe(true);
     });
 
-    it("should set null dependency module for external sources without package segment", () => {
+    it("should set empty module source for external sources without package segment", () => {
       const dependency = matcher.describeDependency({
         from: "/project/src/components/Button.tsx",
         to: "/project/node_modules/react/index.tsx",
@@ -963,9 +973,10 @@ describe("Elements Descriptors", () => {
       });
 
       expect(dependency.to).toMatchObject({
-        origin: {
-          kind: "external",
-          module: "",
+        module: {
+          origin: "external",
+          source: "",
+          internalPath: "react",
         },
         element: {
           filePath: "/project/node_modules/react/index.tsx",
@@ -973,8 +984,6 @@ describe("Elements Descriptors", () => {
           path: "/project/node_modules/react/index.tsx",
         },
       });
-      expect(dependency.dependency).toMatchObject({ source: "/react" });
-      expect(dependency.dependency).not.toHaveProperty("module");
     });
 
     it("should describe dependency to core elements correctly", () => {
@@ -998,9 +1007,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         to: {
@@ -1015,9 +1025,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: true,
           },
-          origin: {
-            kind: "core",
-            module: "fs",
+          module: {
+            origin: "core",
+            source: "fs",
+            internalPath: null,
           },
         },
         dependency: {
@@ -1063,9 +1074,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         to: {
@@ -1094,9 +1106,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         dependency: {
@@ -1144,9 +1157,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         to: {
@@ -1169,9 +1183,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         dependency: {
@@ -1219,9 +1234,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         to: {
@@ -1256,9 +1272,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         dependency: {
@@ -1312,9 +1329,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         to: {
@@ -1343,9 +1361,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         dependency: {
@@ -1399,9 +1418,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         to: {
@@ -1424,9 +1444,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         dependency: {
@@ -1485,9 +1506,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         to: {
@@ -1510,9 +1532,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         dependency: {
@@ -1572,9 +1595,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         to: {
@@ -1603,9 +1627,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         dependency: {
@@ -1659,9 +1684,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         to: {
@@ -1696,9 +1722,10 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             isUnknown: false,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
           },
         },
         dependency: {

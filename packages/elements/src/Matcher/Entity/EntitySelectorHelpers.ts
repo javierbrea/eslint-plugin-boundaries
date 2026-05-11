@@ -21,7 +21,7 @@ import {
   normalizeSingleElementSelector,
 } from "../Element";
 import { isFileSelector, normalizeFileSelector } from "../File";
-import { isOriginSelector, normalizeOriginSelector } from "../Origin";
+import { isModuleSelector, normalizeModuleSelector } from "../Module";
 
 import type {
   BackwardCompatibleEntitySelector,
@@ -70,7 +70,7 @@ export function isLegacyEntitySelector(
 export function isEntitySingleSelector(
   value: unknown
 ): value is EntitySingleSelector {
-  if (!isObjectWithAnyOfProperties(value, ["element", "file", "origin"])) {
+  if (!isObjectWithAnyOfProperties(value, ["element", "file", "module"])) {
     return false;
   }
 
@@ -78,10 +78,10 @@ export function isEntitySingleSelector(
     !isObjectWithProperty(value, "element") || isElementSelector(value.element);
   const fileIsValid =
     !isObjectWithProperty(value, "file") || isFileSelector(value.file);
-  const originIsValid =
-    !isObjectWithProperty(value, "origin") || isOriginSelector(value.origin);
+  const moduleIsValid =
+    !isObjectWithProperty(value, "module") || isModuleSelector(value.module);
 
-  return elementIsValid && fileIsValid && originIsValid;
+  return elementIsValid && fileIsValid && moduleIsValid;
 }
 
 /**
@@ -118,9 +118,9 @@ function normalizeBackwardCompatibleElementSingleSelectorToEntitySingleSelector(
   ): EntitySingleSelectorNormalized[] => {
     const selectors: EntitySingleSelectorNormalized[] = [];
 
-    const baseOrigin = isUndefined(sourceOrigin)
+    const baseModule = isUndefined(sourceOrigin)
       ? undefined
-      : { kind: sourceOrigin };
+      : { origin: sourceOrigin };
 
     const elementEntitySelector: EntitySingleSelectorNormalized = {};
     if (Object.keys(sourceElementSelector).length > 0) {
@@ -130,8 +130,8 @@ function normalizeBackwardCompatibleElementSingleSelectorToEntitySingleSelector(
           originalSelectorPathProperty;
       }
     }
-    if (!isUndefined(baseOrigin)) {
-      elementEntitySelector.origin = [baseOrigin];
+    if (!isUndefined(baseModule)) {
+      elementEntitySelector.module = [baseModule];
     }
     if (Object.keys(elementEntitySelector).length > 0) {
       selectors.push(elementEntitySelector);
@@ -176,8 +176,8 @@ export function normalizeSingleEntitySelector(
     if (!isUndefined(selector.file)) {
       baseSelector.file = normalizeFileSelector(selector.file);
     }
-    if (!isUndefined(selector.origin)) {
-      baseSelector.origin = normalizeOriginSelector(selector.origin);
+    if (!isUndefined(selector.module)) {
+      baseSelector.module = normalizeModuleSelector(selector.module);
     }
     return [baseSelector];
   }

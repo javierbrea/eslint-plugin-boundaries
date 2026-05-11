@@ -4,7 +4,7 @@ import type {
   LegacyElementSelector,
 } from "../Element";
 import type { FileSelector, FileSelectorNormalized } from "../File";
-import type { OriginSelector, OriginSelectorNormalized } from "../Origin";
+import type { ModuleSelector, ModuleSelectorNormalized } from "../Module";
 
 /**
  * Legacy selector for an entity, which can contain element selectors in any legacy format.
@@ -15,8 +15,8 @@ export type LegacyEntitySingleSelector =
       element?: LegacyElementSelector | ElementSelector;
       /** The file associated with this entity, or undefined to ignore the file in the matching process */
       file?: FileSelector;
-      /** The origin associated with this entity, or undefined to ignore the origin in the matching process */
-      origin?: OriginSelector;
+      /** The module associated with this entity, or undefined to ignore the module in the matching process */
+      module?: ModuleSelector;
     }
   | LegacyElementSelector
   | ElementSelector;
@@ -32,8 +32,8 @@ export type EntitySingleSelector = {
   element?: ElementSelector;
   /** The file associated with this entity, or undefined to ignore the file in the matching process */
   file?: FileSelector;
-  /** The origin associated with this entity, or undefined to ignore the origin in the matching process */
-  origin?: OriginSelector;
+  /** The module associated with this entity, or undefined to ignore the module in the matching process */
+  module?: ModuleSelector;
 };
 
 /** Selector for an entity, which is the main unit under analysis */
@@ -54,8 +54,8 @@ export type EntitySingleSelectorNormalized = {
   element?: ElementSelectorNormalized;
   /** The file associated with this entity, or undefined to ignore the file in the matching process */
   file?: FileSelectorNormalized;
-  /** The origin associated with this entity, or undefined to ignore the origin in the matching process */
-  origin?: OriginSelectorNormalized;
+  /** The module associated with this entity, or undefined to ignore the module in the matching process */
+  module?: ModuleSelectorNormalized;
 };
 
 /** Normalized selector for an entity, being always an array of single selectors */

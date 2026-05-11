@@ -12,11 +12,11 @@ import { isArray, isUndefined, isObject } from "../Shared";
  * - `path` -> `elementPath`
  * - `fileInternalPath` -> `internalPath`
  * - `parents[].path` -> `parents[].elementPath`
- * - `origin.kind` -> `origin` (only when provided)
+ * - `module.origin` -> `origin` (only when provided)
  */
 function getLegacyElementSelectorTemplateData(
   element: ElementDescription,
-  originKind?: EntityDescription["origin"]["kind"]
+  origin?: EntityDescription["module"]["origin"]
 ): TemplateData {
   const parents = isArray(element.parents)
     ? element.parents.map((parent) => ({
@@ -31,7 +31,7 @@ function getLegacyElementSelectorTemplateData(
     elementPath: element.path,
     internalPath: element.fileInternalPath,
     parents,
-    ...(isUndefined(originKind) ? {} : { origin: originKind }),
+    ...(isUndefined(origin) ? {} : { origin: origin }),
   };
 }
 
@@ -44,10 +44,10 @@ export function getLegacyEntitySelectorExtraTemplateData(
   return {
     element: getLegacyElementSelectorTemplateData(
       entity.element,
-      entity.origin.kind
+      entity.module.origin
     ),
     file: entity.file,
-    origin: entity.origin,
+    origin: entity.module,
   };
 }
 
@@ -82,12 +82,12 @@ export function getLegacyDependencySelectorExtraTemplateData(
   const fromFile = dependency.from.file;
   const fromElement = getLegacyElementSelectorTemplateData(
     dependency.from.element,
-    dependency.from.origin.kind
+    dependency.from.module.origin
   );
   const toFile = dependency.to.file;
   const toElement = getLegacyElementSelectorTemplateData(
     dependency.to.element,
-    dependency.to.origin.kind
+    dependency.to.module.origin
   );
 
   return {
@@ -108,7 +108,7 @@ export function getLegacyDependencySelectorExtraTemplateData(
     },
     dependency: {
       ...dependency.dependency,
-      module: dependency.to.origin.module,
+      origin: dependency.to.module.origin,
       ...dependencyExtraTemplateData,
     },
   };

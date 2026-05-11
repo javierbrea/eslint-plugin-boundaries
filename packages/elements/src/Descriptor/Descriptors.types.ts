@@ -5,7 +5,7 @@ import type {
 } from "./Element";
 import type { EntitiesDescriptorSerializedCache } from "./Entity";
 import type { FileDescriptors, FilesDescriptorSerializedCache } from "./File";
-import type { OriginsDescriptorSerializedCache } from "./Origin";
+import type { ModulesDescriptorSerializedCache } from "./Module";
 
 /**
  * Descriptors for elements and files, which can be used to describe the structure of a project.
@@ -29,6 +29,6 @@ export type DescriptorsSerializedCache = {
   entities: EntitiesDescriptorSerializedCache;
   /** Serialized dependencies cache */
   dependencies: DependencyDescriptorSerializedCache;
-  /** Serialized origins cache */
-  origins: OriginsDescriptorSerializedCache;
+  /** Serialized modules cache */
+  modules: ModulesDescriptorSerializedCache;
 };

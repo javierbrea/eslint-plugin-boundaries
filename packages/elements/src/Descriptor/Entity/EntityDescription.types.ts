@@ -1,6 +1,6 @@
 import type { ElementDescription } from "../Element";
 import type { FileDescription } from "../File";
-import type { OriginDescription } from "../Origin";
+import type { ModuleDescription } from "../Module";
 
 /** Description of an entity, which is the main unit under analysis */
 export type EntityDescription = {
@@ -8,6 +8,6 @@ export type EntityDescription = {
   element: ElementDescription;
   /** The entity file */
   file: FileDescription;
-  /** Origin of the entity, either local, external, or core (built-in module) */
-  origin: OriginDescription;
+  /** Module of the entity, either local, external, or core (built-in module) */
+  module: ModuleDescription;
 };
