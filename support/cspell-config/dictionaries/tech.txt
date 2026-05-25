@@ -1,5 +1,6 @@
 BRDA
 coverallsapp
+GHSA
 Diátaxis
 Infima
 jsboundaries

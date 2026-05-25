@@ -11,3 +11,6 @@ onlyBuiltDependencies:
   - esbuild
   - nx
   - unrs-resolver
+minimumReleaseAgeExclude:
+  # Renovate security update: handlebars@4.7.9
+  - handlebars@4.7.9
