@@ -6,6 +6,7 @@ import type { CapturedValues } from "../Shared";
 
 import type {
   ElementDescription,
+  ElementParent,
   UnknownElementDescription,
 } from "./ElementDescription.types";
 import { isKnownElementDescription } from "./ElementDescriptionHelpers";
@@ -22,7 +23,7 @@ const UNKNOWN_ELEMENT: UnknownElementDescription = {
   fileInternalPath: null,
   filePath: null,
   parents: [],
-  type: null,
+  types: null,
   category: null,
   captured: null,
   isIgnored: false,
@@ -67,19 +68,25 @@ export class ElementsDescriptor {
   /** Micromatch instance for path matching */
   private readonly _micromatch: Micromatch;
 
+  /** Whether single-type matching is enabled (only first matching type is kept) */
+  private readonly _singleType: boolean;
+
   /**
    * The configuration options for this descriptor.
    * @param elementDescriptors The element descriptors.
    * @param configOptions The configuration options.
    * @param globalCache The global cache for various caching needs.
    * @param micromatch The micromatch instance for path matching.
+   * @param singleType Whether single-type matching is enabled.
    */
   constructor(
     elementDescriptors: ElementDescriptors,
     configOptions: DescriptorOptionsNormalized,
-    micromatch: Micromatch
+    micromatch: Micromatch,
+    singleType: boolean = false
   ) {
     this._micromatch = micromatch;
+    this._singleType = singleType;
     this._elementDescriptors = elementDescriptors;
     this._validateDescriptors(elementDescriptors);
     this._config = configOptions;
@@ -342,12 +349,12 @@ export class ElementsDescriptor {
       };
     }
 
-    const parents: UnknownElementDescription["parents"] = [];
+    const parents: ElementParent[] = [];
     const elementResult: ElementDescription = {
       filePath: filePath, // For backward compatibility with legacy mode "file", where filePath was used to store the path of the element. --- IGNORE ---
       path: filePath,
       fileInternalPath: null,
-      type: null,
+      types: null,
       category: null,
       captured: null,
       isIgnored: false,
@@ -377,7 +384,8 @@ export class ElementsDescriptor {
         patternUsed: string;
       },
       currentPathSegments: string[],
-      elementPaths: string[]
+      elementPaths: string[],
+      isMainElementLevel: boolean
     ) => {
       const { capture, baseCapture, useFullPathMatch, patternUsed } = matchInfo;
 
@@ -400,12 +408,14 @@ export class ElementsDescriptor {
         ? filePath
         : this._getElementPath(patternUsed, currentPathSegments, elementPaths);
 
-      if (!elementResult.type && !elementResult.category) {
+      if (!elementResult.types && !elementResult.category) {
         const isFolderMode =
           !elementDescriptor.mode ||
           elementDescriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
         // It is the main element
-        elementResult.type = elementDescriptor.type || null;
+        elementResult.types = elementDescriptor.type
+          ? [elementDescriptor.type]
+          : null;
         elementResult.category = elementDescriptor.category || null;
         elementResult.isUnknown = false;
         elementResult.path = elementPath;
@@ -414,14 +424,30 @@ export class ElementsDescriptor {
           isFolderMode || filePath !== elementPath // Defensive check to ensure we don't return an empty string if filePath and elementPath are the same. This should not happen.
             ? filePath.replace(`${elementPath}/`, "")
             : filePath.split("/").pop() || filePath; // Extra defensive check to ensure we don't return an empty string if filePath is a single segment. This should not happen either, but we want to be safe.
+      } else if (isMainElementLevel && !this._singleType) {
+        // Multi-type: additional type at same path level
+        if (elementDescriptor.type && isArray(elementResult.types)) {
+          elementResult.types = [
+            ...elementResult.types,
+            elementDescriptor.type,
+          ];
+        }
       } else {
         // It is a parent element, because we have already matched the main one
-        parents.push({
-          type: elementDescriptor.type || null,
-          category: elementDescriptor.category || null,
-          path: elementPath,
-          captured: capturedValues,
-        });
+        const lastParent = parents[parents.length - 1];
+        if (lastParent && lastParent.path === elementPath) {
+          // Multi-type: accumulate additional type at same parent path level
+          if (elementDescriptor.type && isArray(lastParent.types)) {
+            lastParent.types = [...lastParent.types, elementDescriptor.type];
+          }
+        } else {
+          parents.push({
+            types: elementDescriptor.type ? [elementDescriptor.type] : null,
+            category: elementDescriptor.category || null,
+            path: elementPath,
+            captured: capturedValues,
+          });
+        }
       }
     };
 
@@ -432,7 +458,9 @@ export class ElementsDescriptor {
 
       // Main element is considered matched when either type or category is set.
       const alreadyHasMainElement =
-        Boolean(elementResult.type) || Boolean(elementResult.category);
+        Boolean(elementResult.types) || Boolean(elementResult.category);
+
+      let matchFoundAtThisLevel = false;
 
       for (const elementDescriptor of this._elementDescriptors) {
         const match = this._fileDescriptorMatch({
@@ -448,14 +476,21 @@ export class ElementsDescriptor {
             elementDescriptor,
             match,
             state.pathSegmentsAccumulator,
-            pathSegments
+            pathSegments,
+            !alreadyHasMainElement
           );
-          state.pathSegmentsAccumulator = [];
-          state.lastPathSegmentMatching = i + 1;
+          matchFoundAtThisLevel = true;
 
-          // Break out of the inner loop since we found a match
-          break;
+          if (this._singleType) {
+            // Break out of the inner loop since we found a match
+            break;
+          }
         }
+      }
+
+      if (matchFoundAtThisLevel) {
+        state.pathSegmentsAccumulator = [];
+        state.lastPathSegmentMatching = i + 1;
       }
     }
 

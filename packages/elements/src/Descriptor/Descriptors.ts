@@ -42,7 +42,8 @@ export class Descriptors {
     this._elementsDescriptor = new ElementsDescriptor(
       descriptors.elements || [],
       config,
-      micromatch
+      micromatch,
+      descriptors.elementsSingleType ?? false
     );
     this._filesDescriptor = new FilesDescriptor(
       descriptors.files || [],

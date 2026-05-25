@@ -138,6 +138,7 @@ export function isElementSingleSelector(
   return (
     isObjectWithAnyOfProperties(value, [
       "type",
+      "types",
       "parent",
       "category",
       "fileInternalPath",
@@ -292,6 +293,9 @@ export function normalizeSingleElementSelector(
 ): ElementSingleSelectorNormalized {
   if (isLegacyElementSingleSelector(selector)) {
     return normalizeLegacyElementSingleSelector(selector);
+  }
+  if (!isElementSingleSelector(selector)) {
+    throw new Error("Invalid element selector");
   }
   return normalizeParentInElementSingleSelector(selector);
 }

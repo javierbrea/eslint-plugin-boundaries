@@ -155,10 +155,14 @@ export class Matcher {
     options?: MatcherOptions
   ): boolean {
     const description = this._descriptors.describeElement(filePath);
+    const moduleDescription = this._descriptors.describeModule(filePath);
     const matcherOptions = {
       ...options,
       extraTemplateData: {
-        ...getLegacyElementSelectorExtraTemplateData(description),
+        ...getLegacyElementSelectorExtraTemplateData(
+          description,
+          moduleDescription
+        ),
         ...options?.extraTemplateData,
       },
     };
@@ -292,10 +296,14 @@ export class Matcher {
     options?: MatcherOptions
   ) {
     const description = this._descriptors.describeElement(filePath);
+    const moduleDescription = this._descriptors.describeModule(filePath);
     const matcherOptions = {
       ...options,
       extraTemplateData: {
-        ...getLegacyElementSelectorExtraTemplateData(description),
+        ...getLegacyElementSelectorExtraTemplateData(
+          description,
+          moduleDescription
+        ),
         ...options?.extraTemplateData,
       },
     };

@@ -209,7 +209,7 @@ describe("Elements Descriptors", () => {
       );
 
       expect(element).toEqual({
-        type: "component",
+        types: ["component"],
         category: "react",
         captured: {
           fileName: "Button",
@@ -241,7 +241,7 @@ describe("Elements Descriptors", () => {
       );
 
       expect(element).toEqual({
-        type: "component",
+        types: ["component"],
         category: "react",
         captured: {
           fileName: "Button",
@@ -263,7 +263,7 @@ describe("Elements Descriptors", () => {
       );
 
       expect(element).toEqual({
-        type: "test",
+        types: ["test"],
         category: "business-logic",
         captured: {
           elementName: "math",
@@ -289,7 +289,7 @@ describe("Elements Descriptors", () => {
       );
 
       expect(element).toEqual({
-        type: null,
+        types: null,
         category: "business-logic",
         captured: null,
         path: "/project/src/modules/user",
@@ -309,7 +309,7 @@ describe("Elements Descriptors", () => {
       );
 
       expect(element).toEqual({
-        type: "service",
+        types: ["service"],
         category: null,
         captured: {
           baseFolder: "/project",
@@ -331,7 +331,7 @@ describe("Elements Descriptors", () => {
       const element = matcher.describeElement("/project/src/misc/other.ts");
 
       expect(element).toEqual({
-        type: null,
+        types: null,
         category: null,
         captured: null,
         filePath: null,
@@ -351,7 +351,7 @@ describe("Elements Descriptors", () => {
       );
 
       expect(element).toEqual({
-        type: "utility",
+        types: ["utility"],
         category: null,
         captured: null,
         isIgnored: false,
@@ -371,7 +371,7 @@ describe("Elements Descriptors", () => {
       );
 
       expect(element).toEqual({
-        type: null,
+        types: null,
         category: "business-logic",
         captured: null,
         isIgnored: false,
@@ -382,13 +382,13 @@ describe("Elements Descriptors", () => {
         isUnknown: false,
         parents: [
           {
-            type: null,
+            types: null,
             captured: null,
             category: "business-logic",
             path: "/project/src/foo/var/modules/notification",
           },
           {
-            type: "foo",
+            types: ["foo"],
             captured: null,
             category: null,
             path: "/project/src/foo/var",
@@ -406,7 +406,7 @@ describe("Elements Descriptors", () => {
       );
 
       expect(element).toEqual({
-        type: "utility",
+        types: ["utility"],
         category: null,
         isIgnored: false,
         captured: null,
@@ -427,7 +427,7 @@ describe("Elements Descriptors", () => {
       );
 
       expect(element).toEqual({
-        type: null,
+        types: null,
         category: null,
         captured: null,
         filePath: "/project/node_modules/react/index.tsx",
@@ -447,7 +447,7 @@ describe("Elements Descriptors", () => {
       );
 
       expect(element).toEqual({
-        type: null,
+        types: null,
         category: null,
         captured: null,
         filePath: "/project/node_modules/@mui/icons-material/index.tsx",
@@ -467,7 +467,7 @@ describe("Elements Descriptors", () => {
       );
 
       expect(element).toEqual({
-        type: null,
+        types: null,
         category: null,
         captured: null,
         filePath: "/project/node_modules/@mui/icons-material/index.tsx",
@@ -484,7 +484,7 @@ describe("Elements Descriptors", () => {
       const element = describeDependencyTarget("react");
 
       expect(element).toEqual({
-        type: null,
+        types: null,
         category: null,
         captured: null,
         filePath: null,
@@ -501,7 +501,7 @@ describe("Elements Descriptors", () => {
       const element = describeDependencyTarget("node:fs");
 
       expect(element).toEqual({
-        type: null,
+        types: null,
         category: null,
         captured: null,
         filePath: null,
@@ -518,7 +518,7 @@ describe("Elements Descriptors", () => {
       const element = describeDependencyTarget("fs");
 
       expect(element).toEqual({
-        type: null,
+        types: null,
         category: null,
         captured: null,
         filePath: null,
@@ -677,7 +677,7 @@ describe("Elements Descriptors", () => {
             isIgnored: false,
             parents: [],
             path: "/project/src/components/Button.tsx",
-            type: "component",
+            types: ["component"],
             isUnknown: false,
           },
           module: {
@@ -695,7 +695,7 @@ describe("Elements Descriptors", () => {
             category: null,
             path: null,
             isIgnored: false,
-            type: null,
+            types: null,
             isUnknown: true,
           },
           module: {
@@ -737,7 +737,7 @@ describe("Elements Descriptors", () => {
             captured: null,
             path: null,
             isIgnored: false,
-            type: null,
+            types: null,
             isUnknown: true,
           },
           module: {
@@ -753,7 +753,7 @@ describe("Elements Descriptors", () => {
             filePath: null,
             path: null,
             isIgnored: false,
-            type: null,
+            types: null,
             isUnknown: true,
             fileInternalPath: null,
             parents: [],
@@ -797,7 +797,7 @@ describe("Elements Descriptors", () => {
             captured: null,
             isIgnored: true,
             path: "/var/var/Baz.ts",
-            type: null,
+            types: null,
             isUnknown: true,
           },
           module: {
@@ -815,7 +815,7 @@ describe("Elements Descriptors", () => {
             category: null,
             isIgnored: true,
             path: "/var/bar/Baz.ts",
-            type: null,
+            types: null,
             isUnknown: true,
           },
           module: {
@@ -851,7 +851,7 @@ describe("Elements Descriptors", () => {
       expect(dependency).toMatchObject({
         from: {
           element: {
-            type: "component",
+            types: ["component"],
             category: "react",
             captured: { fileName: "Button" },
             filePath: "/project/src/components/Button.tsx",
@@ -869,7 +869,7 @@ describe("Elements Descriptors", () => {
         },
         to: {
           element: {
-            type: "test",
+            types: ["test"],
             category: "business-logic",
             isIgnored: false,
             captured: {
@@ -922,7 +922,7 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "Button.tsx",
             parents: [],
             path: "/project/src/components/Button.tsx",
-            type: "component",
+            types: ["component"],
             isIgnored: false,
             isUnknown: false,
           },
@@ -940,7 +940,7 @@ describe("Elements Descriptors", () => {
             category: null,
             path: "/project/node_modules/react/index.tsx",
             fileInternalPath: null,
-            type: null,
+            types: null,
             isIgnored: true,
             isUnknown: true,
           },
@@ -1003,7 +1003,7 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "Button.tsx",
             parents: [],
             path: "/project/src/components/Button.tsx",
-            type: "component",
+            types: ["component"],
             isIgnored: false,
             isUnknown: false,
           },
@@ -1021,7 +1021,7 @@ describe("Elements Descriptors", () => {
             parents: [],
             category: null,
             path: null,
-            type: null,
+            types: null,
             isIgnored: false,
             isUnknown: true,
           },
@@ -1056,7 +1056,7 @@ describe("Elements Descriptors", () => {
       expect(dependency).toMatchObject({
         from: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification",
@@ -1065,7 +1065,7 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "NotificationService.ts",
             parents: [
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1082,7 +1082,7 @@ describe("Elements Descriptors", () => {
         },
         to: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification/modules/email",
@@ -1091,13 +1091,13 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "EmailService.ts",
             parents: [
               {
-                type: null,
+                types: null,
                 captured: null,
                 category: "business-logic",
                 path: "/project/src/foo/var/modules/notification",
               },
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1139,7 +1139,7 @@ describe("Elements Descriptors", () => {
       expect(dependency).toMatchObject({
         from: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification",
@@ -1148,7 +1148,7 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "NotificationService.ts",
             parents: [
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1165,7 +1165,7 @@ describe("Elements Descriptors", () => {
         },
         to: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification",
@@ -1174,7 +1174,7 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "EmailService.ts",
             parents: [
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1216,7 +1216,7 @@ describe("Elements Descriptors", () => {
       expect(dependency).toMatchObject({
         from: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification",
@@ -1225,7 +1225,7 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "NotificationService.ts",
             parents: [
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1242,7 +1242,7 @@ describe("Elements Descriptors", () => {
         },
         to: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification/modules/email/modules/send",
@@ -1251,19 +1251,19 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "SendService.ts",
             parents: [
               {
-                type: null,
+                types: null,
                 captured: null,
                 category: "business-logic",
                 path: "/project/src/foo/var/modules/notification/modules/email",
               },
               {
-                type: null,
+                types: null,
                 captured: null,
                 category: "business-logic",
                 path: "/project/src/foo/var/modules/notification",
               },
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1305,7 +1305,7 @@ describe("Elements Descriptors", () => {
       expect(dependency).toMatchObject({
         from: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification/modules/phone",
@@ -1314,13 +1314,13 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "PhoneService.ts",
             parents: [
               {
-                type: null,
+                types: null,
                 captured: null,
                 category: "business-logic",
                 path: "/project/src/foo/var/modules/notification",
               },
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1337,7 +1337,7 @@ describe("Elements Descriptors", () => {
         },
         to: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification/modules/email",
@@ -1346,13 +1346,13 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "EmailService.ts",
             parents: [
               {
-                type: null,
+                types: null,
                 captured: null,
                 category: "business-logic",
                 path: "/project/src/foo/var/modules/notification",
               },
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1394,7 +1394,7 @@ describe("Elements Descriptors", () => {
       expect(dependency).toMatchObject({
         from: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification/modules/email",
@@ -1403,13 +1403,13 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "EmailService.ts",
             parents: [
               {
-                type: null,
+                types: null,
                 captured: null,
                 category: "business-logic",
                 path: "/project/src/foo/var/modules/notification",
               },
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1426,7 +1426,7 @@ describe("Elements Descriptors", () => {
         },
         to: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification",
@@ -1435,7 +1435,7 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "NotificationService.ts",
             parents: [
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1476,7 +1476,7 @@ describe("Elements Descriptors", () => {
       expect(dependency).toMatchObject({
         from: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification/modules/email/modules/send",
@@ -1485,19 +1485,19 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "SendService.ts",
             parents: [
               {
-                type: null,
+                types: null,
                 captured: null,
                 category: "business-logic",
                 path: "/project/src/foo/var/modules/notification/modules/email",
               },
               {
-                type: null,
+                types: null,
                 captured: null,
                 category: "business-logic",
                 path: "/project/src/foo/var/modules/notification",
               },
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1514,7 +1514,7 @@ describe("Elements Descriptors", () => {
         },
         to: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification",
@@ -1523,7 +1523,7 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "NotificationService.ts",
             parents: [
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1565,7 +1565,7 @@ describe("Elements Descriptors", () => {
       expect(dependency).toMatchObject({
         from: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification/modules/phone/modules/sms",
@@ -1577,16 +1577,16 @@ describe("Elements Descriptors", () => {
                 captured: null,
                 category: "business-logic",
                 path: "/project/src/foo/var/modules/notification/modules/phone",
-                type: null,
+                types: null,
               },
               {
-                type: null,
+                types: null,
                 captured: null,
                 category: "business-logic",
                 path: "/project/src/foo/var/modules/notification",
               },
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1603,7 +1603,7 @@ describe("Elements Descriptors", () => {
         },
         to: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification/modules/email",
@@ -1612,13 +1612,13 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "EmailService.ts",
             parents: [
               {
-                type: null,
+                types: null,
                 captured: null,
                 category: "business-logic",
                 path: "/project/src/foo/var/modules/notification",
               },
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1660,7 +1660,7 @@ describe("Elements Descriptors", () => {
       expect(dependency).toMatchObject({
         from: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification/modules/email",
@@ -1669,13 +1669,13 @@ describe("Elements Descriptors", () => {
             fileInternalPath: "EmailService.ts",
             parents: [
               {
-                type: null,
+                types: null,
                 captured: null,
                 category: "business-logic",
                 path: "/project/src/foo/var/modules/notification",
               },
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1692,7 +1692,7 @@ describe("Elements Descriptors", () => {
         },
         to: {
           element: {
-            type: null,
+            types: null,
             category: "business-logic",
             captured: null,
             path: "/project/src/foo/var/modules/notification/modules/phone/modules/sms",
@@ -1704,16 +1704,16 @@ describe("Elements Descriptors", () => {
                 captured: null,
                 category: "business-logic",
                 path: "/project/src/foo/var/modules/notification/modules/phone",
-                type: null,
+                types: null,
               },
               {
-                type: null,
+                types: null,
                 captured: null,
                 category: "business-logic",
                 path: "/project/src/foo/var/modules/notification",
               },
               {
-                type: "foo",
+                types: ["foo"],
                 captured: null,
                 category: null,
                 path: "/project/src/foo/var",
@@ -1767,7 +1767,7 @@ describe("Elements Descriptors", () => {
 
         expect(element).toEqual(
           expect.objectContaining({
-            type: "component",
+            types: ["component"],
             captured: { componentName: "Button" },
             isUnknown: false,
           })
@@ -1795,7 +1795,7 @@ describe("Elements Descriptors", () => {
 
         expect(element).toEqual(
           expect.objectContaining({
-            type: "model",
+            types: ["model"],
             isUnknown: false,
           })
         );
@@ -1824,7 +1824,7 @@ describe("Elements Descriptors", () => {
 
         expect(element).toEqual(
           expect.objectContaining({
-            type: "service",
+            types: ["service"],
             captured: { serviceName: "auth" },
             path: "src/services/auth",
             filePath: "src/services/auth/AuthService.ts",
@@ -1856,7 +1856,7 @@ describe("Elements Descriptors", () => {
 
         expect(element).toEqual(
           expect.objectContaining({
-            type: "module",
+            types: ["module"],
             captured: { moduleName: "billing" },
             isUnknown: false,
           })
@@ -1885,7 +1885,7 @@ describe("Elements Descriptors", () => {
 
         expect(element).toEqual(
           expect.objectContaining({
-            type: "helper",
+            types: ["helper"],
             isUnknown: false,
           })
         );
@@ -1912,7 +1912,7 @@ describe("Elements Descriptors", () => {
 
         expect(element).toEqual(
           expect.objectContaining({
-            type: null,
+            types: null,
             isUnknown: true,
           })
         );
@@ -1939,7 +1939,7 @@ describe("Elements Descriptors", () => {
 
         expect(element).toEqual(
           expect.objectContaining({
-            type: null,
+            types: null,
             isUnknown: true,
           })
         );
@@ -1968,7 +1968,7 @@ describe("Elements Descriptors", () => {
 
         expect(element).toEqual(
           expect.objectContaining({
-            type: "shared",
+            types: ["shared"],
             path: "/monorepo/packages/shared/src/utils/format.util.ts",
             isUnknown: false,
           })
@@ -1997,7 +1997,7 @@ describe("Elements Descriptors", () => {
 
         expect(element).toEqual(
           expect.objectContaining({
-            type: "package",
+            types: ["package"],
             captured: { packageName: "utils" },
             isUnknown: false,
           })

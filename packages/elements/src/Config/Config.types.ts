@@ -1,24 +1,24 @@
 import type { MicromatchPattern } from "../Shared";
 
 /**
- * Configuration options for categorizing dependencies as external or local.
+ * Configuration options for categorizing entities as external or local.
  */
 export type FlagAsExternalOptions = {
-  /** When true, non-relative dependencies whose path cannot be resolved are categorized as external (default: true) */
+  /** When true, non-relative entities whose path cannot be resolved are categorized as external (default: true) */
   unresolvableAlias?: boolean;
   /** When true, non-relative paths that include node_modules are categorized as external (default: true) */
   inNodeModules?: boolean;
-  /** When true, dependencies whose resolved path is outside the configured root path are categorized as external (default: false) */
+  /** When true, entities whose resolved path is outside the configured root path are categorized as external (default: false) */
   outsideRootPath?: boolean;
-  /** List of patterns (using micromatch syntax) that, when matching the source of the dependency, categorize it as external (default: []) */
+  /** List of patterns (using micromatch syntax) that, when matching the source of the entity, categorize it as external (default: []) */
   customSourcePatterns?: MicromatchPattern;
 };
 
 /** Configuration options for the Config class */
 export type ConfigOptions = {
-  /** An array of path patterns to include when resolving elements. Defaults to all files if not specified */
+  /** An array of path patterns to include when resolving entities. Defaults to all files if not specified */
   includePaths?: MicromatchPattern;
-  /** An array of path patterns to ignore when resolving elements */
+  /** An array of path patterns to ignore when resolving entities */
   ignorePaths?: MicromatchPattern;
   /**
    * Whether to enable legacy template support (default: true)
@@ -27,9 +27,9 @@ export type ConfigOptions = {
   legacyTemplates?: boolean;
   /** Whether to enable caching */
   cache?: boolean;
-  /** Configuration for categorizing dependencies as external or local */
+  /** Configuration for categorizing entities as external or local */
   flagAsExternal?: FlagAsExternalOptions;
-  /** Root path of the project, used for determining if dependencies are outside the project */
+  /** Root path of the project, used for determining if entities are outside the project */
   rootPath?: string;
 };
 
@@ -38,9 +38,9 @@ export type FlagAsExternalOptionsNormalized = {
   unresolvableAlias: boolean;
   /** When true, non-relative paths that include node_modules are categorized as external */
   inNodeModules: boolean;
-  /** When true, dependencies whose resolved path is outside the configured root path are categorized as external */
+  /** When true, entities whose resolved path is outside the configured root path are categorized as external */
   outsideRootPath: boolean;
-  /** List of patterns (using micromatch syntax) that, when matching the source of the dependency, categorize it as external */
+  /** List of patterns (using micromatch syntax) that, when matching the source of the entity, categorize it as external */
   customSourcePatterns: string[];
 };
 
@@ -52,9 +52,9 @@ export type ConfigOptionsNormalized = Omit<
   legacyTemplates: boolean;
   /** Cache configuration options */
   cache: boolean;
-  /** Configuration for categorizing dependencies as external or local */
+  /** Configuration for categorizing entities as external or local */
   flagAsExternal: FlagAsExternalOptionsNormalized;
-  /** Root path of the project, already normalized, and finishing with a slash, used for determining if dependencies are outside the project */
+  /** Root path of the project, already normalized, and finishing with a slash, used for determining if entities are outside the project */
   rootPath: string | undefined;
 };
 

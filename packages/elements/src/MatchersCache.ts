@@ -87,9 +87,12 @@ export class MatchersCache extends CacheManager<
     const elementDescriptorsHash = this._getElementDescriptorsHash(
       descriptors.elements || []
     );
+    const elementsSingleType = descriptors.elementsSingleType
+      ? "true"
+      : "false";
     const fileDescriptorsHash = this._getFileDescriptorsHash(
       descriptors.files || []
     );
-    return `|:config:|${configHash}|:elements:|${elementDescriptorsHash}|:files:|${fileDescriptorsHash}`;
+    return `|:config:|${configHash}|:elements:|${elementDescriptorsHash}|:elementsSingleType:|${elementsSingleType}|:files:|${fileDescriptorsHash}`;
   }
 }

@@ -155,7 +155,10 @@ function normalizeBackwardCompatibleElementSingleSelectorToEntitySingleSelector(
   }
 
   const { origin, ...rest } = selector;
-  const elementSelector = normalizeSingleElementSelector(rest);
+  const elementSelector: ElementSingleSelectorNormalized =
+    Object.keys(rest).length === 0
+      ? (rest as ElementSingleSelectorNormalized)
+      : normalizeSingleElementSelector(rest);
 
   return toEntitySelectors(elementSelector, origin);
 }

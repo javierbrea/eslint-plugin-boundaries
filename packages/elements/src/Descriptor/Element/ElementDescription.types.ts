@@ -3,14 +3,15 @@ import type {
   BaseIgnoredDescription,
   BaseKnownDescription,
   BaseUnknownDescription,
+  CapturedValues,
 } from "../Shared/BaseDescription.types";
 
 /**
  * Base element properties related to captured values
  */
 export type ElementDescription = BaseDescription & {
-  /** Type of the element */
-  type: string | null;
+  /** All types of the element. Contains multiple types unless elementsSingleType is enabled. */
+  types: string[] | null;
   /**
    * Category of the element
    * @deprecated This property is deprecated and will be removed in future versions.
@@ -30,10 +31,19 @@ export type ElementDescription = BaseDescription & {
 /**
  * Parent elements
  */
-export type ElementParent = Pick<
-  ElementDescription,
-  "type" | "category" | "path" | "captured"
->;
+export type ElementParent = {
+  /** All types of the parent element. Contains multiple types unless elementsSingleType is enabled. */
+  types: string[] | null;
+  /**
+   * Category of the parent element
+   * @deprecated This property is deprecated and will be removed in future versions.
+   */
+  category: string | null;
+  /** Path of the parent element */
+  path: string | null;
+  /** Captured values from the parent element's descriptor pattern */
+  captured: CapturedValues | null;
+};
 
 /**
  * Description of an ignored element
@@ -42,8 +52,8 @@ export type IgnoredElementDescription = ElementDescription &
   BaseIgnoredDescription & {
     /** Path of an ignored element is null, because it can't be resolved to any descriptor */
     path: null;
-    /** Type of the element */
-    type: null;
+    /** Types of the element */
+    types: null;
     /** Category of the element */
     category: null;
     /** File internal path of an ignored element is null, because it can't be resolved to any descriptor */
@@ -61,8 +71,8 @@ export type UnknownElementDescription = ElementDescription &
     path: null;
     /** File internal path of an unknown element is null, because it can't be resolved to any descriptor */
     fileInternalPath: null;
-    /** Type of the element. For unknown elements, the type is null because it can't be determined without a matching descriptor. */
-    type: null;
+    /** Types of the element. For unknown elements, the types is null because it can't be determined without a matching descriptor. */
+    types: null;
     /** Category of the element. For unknown elements, the category is null because it can't be determined without a matching descriptor. */
     category: null;
     /** Parent elements. For unknown elements, parents are an empty array because the element can't be resolved to any descriptor, so we have no information about its parents. */
@@ -79,9 +89,9 @@ export type KnownElementDescription = ElementDescription &
     /** File internal path of a known element */
     fileInternalPath: string;
     /**
-     * Type of the element
+     * All types of the element
      **/
-    type: string | null; // TODO: This should be always string when legacy category property is removed
+    types: string[] | null; // TODO: This should be always string[] when legacy category property is removed
     /** filePath is always string for known elements*/
     filePath: string;
     /** Parent elements. For known elements, parents is an array of parent descriptions, which may be empty if the element has no parents. */

@@ -23,7 +23,7 @@ export function isElementDescription(
 ): value is ElementDescription {
   return (
     isBaseDescription(value) &&
-    isObjectWithProperty(value, "type") &&
+    isObjectWithProperty(value, "types") &&
     isObjectWithProperty(value, "parents")
   );
 }

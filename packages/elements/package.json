@@ -53,6 +53,7 @@
     "lint:fix": "eslint . --fix",
     "serve:mutation:report": "serve --config ./serve.test-mutation-report.json",
     "serve:unit:report": "serve --config ./serve.test-unit-report.json",
+    "test": "pnpm test:unit",
     "test:unit": "jest",
     "test:mutation": "stryker run"
   },

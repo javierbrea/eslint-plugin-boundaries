@@ -124,7 +124,7 @@ describe("Entities Legacy Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { type: "component" },
+        selector: { types: "component" },
         expected: true,
       },
       {
@@ -134,24 +134,39 @@ describe("Entities Legacy Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { type: ["foo", "{{ element.type }}"] },
+        selector: { type: "{{ element.types.[0] }}" },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { types: "{{ element.types.[0] }}" },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { types: ["foo", "{{ element.types.[0] }}"] },
         expected: true,
       },
       {
         filePath: "/project/src/components/Button.tsx",
         selector: {
-          type: ["foo", "{{ element.type }}", "{{ element.type }}", ""],
+          types: [
+            "foo",
+            "{{ element.types.[0] }}",
+            "{{ element.types.[0] }}",
+            "",
+          ],
         },
         expected: true,
       },
       {
         filePath: "/project/src/components/Button.tsx",
         selector: [
-          { type: ["foo", "{{ foo.type }}"] },
-          { type: ["foo", "{{ element.type }}"] },
+          { types: ["foo", "{{ foo.type }}"] },
+          { types: ["foo", "{{ element.types.[0] }}"] },
         ],
         expected: true,
-        expectedMatch: { type: ["foo", "{{ element.type }}"] },
+        expectedMatch: { types: ["foo", "{{ element.types.[0] }}"] },
       },
       {
         filePath: "/project/src/components/Button.tsx",
@@ -161,15 +176,15 @@ describe("Entities Legacy Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: ["foo", "{{ element.type }}"],
+        selector: ["foo", "{{ element.types.[0] }}"],
         expected: true,
-        expectedMatch: { type: "{{ element.type }}" },
+        expectedMatch: { type: "{{ element.types.[0] }}" },
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: "{{ element.type }}",
+        selector: "{{ element.types.[0] }}",
         expected: true,
-        expectedMatch: { type: "{{ element.type }}" },
+        expectedMatch: { type: "{{ element.types.[0] }}" },
       },
       {
         filePath: "/project/src/components/Button.tsx",
@@ -199,9 +214,9 @@ describe("Entities Legacy Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: "${element.type}",
+        selector: "${element.types.[0]}",
         expected: true,
-        expectedMatch: { type: "${element.type}" },
+        expectedMatch: { type: "${element.types.[0]}" },
       },
       {
         filePath: "/project/src/components/Button.tsx",
@@ -210,7 +225,38 @@ describe("Entities Legacy Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
+        selector: { types: "foo" },
+        expected: false,
+      },
+      // Singular type selector: matches against first type only
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { type: "component" },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
         selector: { type: "foo" },
+        expected: false,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { type: "{{ element.type }}" },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { type: "{{ element.types.[0] }}" },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { type: "component", types: "component" },
+        expected: true,
+      },
+      {
+        filePath: "/project/src/components/Button.tsx",
+        selector: { type: "foo", types: "component" },
         expected: false,
       },
       {
@@ -231,17 +277,17 @@ describe("Entities Legacy Matcher", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { type: "component", category: "react" },
+        selector: { types: "component", category: "react" },
         expected: true,
       },
       {
         filePath: "/project/src/components/Button.tsx",
         selector: [
-          { type: "component" },
-          { type: "component", category: "react" },
+          { types: "component" },
+          { types: "component", category: "react" },
         ],
         expected: true,
-        expectedMatch: { type: "component" }, // NOTE: First match wins
+        expectedMatch: { types: "component" }, // NOTE: First match wins
       },
       {
         filePath: "/project/src/components/Button.tsx",
@@ -296,7 +342,7 @@ describe("Entities Legacy Matcher", () => {
       {
         filePath: "/project/src/components/Button.tsx",
         selector: {
-          type: "component",
+          types: "component",
           category: "react",
           origin: "local",
           isIgnored: false,
@@ -306,7 +352,7 @@ describe("Entities Legacy Matcher", () => {
       {
         filePath: "/project/src/components/Button.tsx",
         selector: {
-          type: "component",
+          types: "component",
           category: "react",
           origin: "local",
           isIgnored: true,
@@ -316,21 +362,21 @@ describe("Entities Legacy Matcher", () => {
       {
         filePath: "/project/src/components/Button.tsx",
         selector: {
-          type: [],
+          types: [],
         },
         expected: false,
       },
       {
         filePath: "/project/src/components/Button.tsx",
         selector: {
-          type: [undefined],
+          types: [undefined],
         } as unknown as ElementSelector,
         expected: false,
       },
       {
         filePath: "/project/src/components/Button.tsx",
         selector: {
-          type: "component",
+          types: "component",
           category: "react",
           origin: "local",
           internalPath: "foo",
@@ -340,7 +386,7 @@ describe("Entities Legacy Matcher", () => {
       {
         filePath: "/project/src/components/Button.tsx",
         selector: {
-          type: "component",
+          types: "component",
           category: "react",
           origin: "local",
           internalPath: "**/Button.tsx",
@@ -350,7 +396,7 @@ describe("Entities Legacy Matcher", () => {
       {
         filePath: "/project/src/components/Button.tsx",
         selector: {
-          type: "component",
+          types: "component",
           category: "react",
           origin: "local",
           internalPath: "Button.tsx",
@@ -570,6 +616,31 @@ describe("Entities Legacy Matcher", () => {
         selector: { parent: { type: null } },
         expected: true,
       },
+      // Parent types (plural) selector: matches against all parent types
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
+        selector: { parent: { types: null } },
+        expected: true,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+        selector: { parent: { types: null } },
+        expected: true,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+        selector: { parent: { types: "foo" } },
+        expected: false,
+      },
+      {
+        filePath:
+          "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
+        selector: { parent: { type: null, types: null } },
+        expected: true,
+      },
       {
         filePath:
           "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
@@ -701,7 +772,7 @@ describe("Entities Legacy Matcher", () => {
       }
     );
 
-    it.skip("should throw an error when using invalid selector", () => {
+    it("should throw an error when using invalid selector", () => {
       const invalidSelector = { foo: "var" } as unknown as ElementSelector;
 
       expect(() =>
@@ -712,14 +783,14 @@ describe("Entities Legacy Matcher", () => {
       ).toThrow();
     });
 
-    it.skip("should throw an error when using invalid description", () => {
+    it("should throw an error when using invalid description", () => {
       const invalidDescription = {
         foo: "var",
       } as unknown as ElementDescription;
 
       expect(() =>
         matcher.getElementSelectorMatchingDescription(invalidDescription, {
-          type: "foo",
+          types: "foo",
         })
       ).toThrow();
     });
@@ -736,7 +807,7 @@ describe("Entities Legacy Matcher", () => {
     it("should match using legacy string selector with template", () => {
       const result = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
-        "{{ element.type }}"
+        "{{ element.types.[0] }}"
       );
 
       expect(result).toBe(true);
@@ -745,7 +816,7 @@ describe("Entities Legacy Matcher", () => {
     it("should match using legacy string selector with legacy template", () => {
       const result = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
-        "${ element.type }"
+        "${ element.types.[0] }"
       );
 
       expect(result).toBe(true);
@@ -773,14 +844,14 @@ describe("Entities Legacy Matcher", () => {
 
       const result = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
-        "${ element.type }"
+        "${ element.types.[0] }"
       );
 
       expect(result).toBe(false);
 
       const newTemplateResult = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
-        "{{ element.type }}"
+        "{{ element.types.[0] }}"
       );
 
       expect(newTemplateResult).toBe(true);
@@ -816,7 +887,7 @@ describe("Entities Legacy Matcher", () => {
       expect(result).toBe(true);
     });
 
-    it.skip("should throw an error when using invalid selector in isElementMatch", () => {
+    it("should throw an error when using invalid selector in isElementMatch", () => {
       const invalidSelector = {
         var: "baz",
       } as unknown as ElementSelector;
@@ -840,7 +911,7 @@ describe("Entities Legacy Matcher", () => {
       const result = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
         {
-          type: "component",
+          types: "component",
           category: "react",
           // origin: "local", TODO: Uncomment
         }
@@ -854,7 +925,7 @@ describe("Entities Legacy Matcher", () => {
       const result2 = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
         {
-          type: "component",
+          types: "component",
           category: "react",
           // origin: "local", TODO: Uncomment
         }
@@ -866,7 +937,7 @@ describe("Entities Legacy Matcher", () => {
 
     it("should call again to micromatch after clearing cache", () => {
       matcher.isElementMatch("/project/src/components/Button.tsx", {
-        type: "component",
+        types: "component",
       });
 
       expect(micromatchSpy).toHaveBeenCalled();
@@ -874,7 +945,7 @@ describe("Entities Legacy Matcher", () => {
       jest.clearAllMocks();
 
       matcher.isElementMatch("/project/src/components/Button.tsx", {
-        type: "component",
+        types: "component",
       });
 
       expect(micromatchSpy).not.toHaveBeenCalled();
@@ -882,7 +953,7 @@ describe("Entities Legacy Matcher", () => {
       elements.clearCache();
 
       matcher.isElementMatch("/project/src/components/Button.tsx", {
-        type: "component",
+        types: "component",
       });
 
       expect(micromatchSpy).toHaveBeenCalled();
@@ -901,7 +972,7 @@ describe("Entities Legacy Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { type: "component" },
+          from: { types: "component" },
         },
         expected: true,
       },
@@ -914,27 +985,11 @@ describe("Entities Legacy Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: "{{ from.type }}",
-        },
-        expected: true,
-        expectedMatch: {
-          from: { type: "{{ from.type }}" },
-        },
-      },
-      {
-        dependency: {
-          from: "/project/src/components/Button.tsx",
-          to: "/project/src/bar/Baz.ts",
-          source: "project/bar",
-          kind: "type",
-          nodeKind: "ImportDeclaration",
-        },
-        selector: {
-          from: "${ from.type }",
+          from: "{{ from.types.[0] }}",
         },
         expected: true,
         expectedMatch: {
-          from: { type: "${ from.type }" },
+          from: { type: "{{ from.types.[0] }}" },
         },
       },
       {
@@ -946,7 +1001,23 @@ describe("Entities Legacy Matcher", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { type: "foo" },
+          from: "${ from.types.[0] }",
+        },
+        expected: true,
+        expectedMatch: {
+          from: { type: "${ from.types.[0] }" },
+        },
+      },
+      {
+        dependency: {
+          from: "/project/src/components/Button.tsx",
+          to: "/project/src/bar/Baz.ts",
+          source: "project/bar",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+        },
+        selector: {
+          from: { types: "foo" },
         },
         expected: false,
       },
@@ -1182,7 +1253,7 @@ describe("Entities Legacy Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { type: "{{ to.type }}" },
+          to: { types: "{{ to.types.[0] }}" },
         },
         expected: true,
       },
@@ -1196,7 +1267,7 @@ describe("Entities Legacy Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          from: { type: "{{ from.type }}" },
+          from: { type: "{{ from.types.[0] }}" },
         },
         expected: true,
       },
@@ -1212,7 +1283,7 @@ describe("Entities Legacy Matcher", () => {
         },
         selector: {
           from: {
-            type: "{{ from.type }}",
+            types: "{{ from.types.[0] }}",
             captured: { root: "{{ from.captured.root }}" },
           },
           to: { path: "{{ to.path }}" },
@@ -1331,7 +1402,7 @@ describe("Entities Legacy Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { type: "{{ to.type }}", internalPath: "**/Button.tsx" },
+          to: { types: "{{ to.types.[0] }}", internalPath: "**/Button.tsx" },
         },
         expected: true,
       },
@@ -1345,7 +1416,10 @@ describe("Entities Legacy Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { type: "{{ to.type }}", internalPath: ["foo", "**/Button.tsx"] },
+          to: {
+            types: "{{ to.types.[0] }}",
+            internalPath: ["foo", "**/Button.tsx"],
+          },
         },
         expected: true,
       },
@@ -2015,7 +2089,7 @@ describe("Entities Legacy Matcher", () => {
           // @ts-expect-error: Testing invalid description
           {},
           {
-            from: { type: "component" },
+            from: { types: "component" },
             to: { var: "baz" },
           }
         )
@@ -2053,7 +2127,7 @@ describe("Entities Legacy Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
+          from: { types: "component" },
         }
       );
 
@@ -2072,7 +2146,7 @@ describe("Entities Legacy Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
+          from: { types: "component" },
         }
       );
 
@@ -2091,7 +2165,7 @@ describe("Entities Legacy Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
+          from: { types: "component" },
         }
       );
 
@@ -2110,7 +2184,7 @@ describe("Entities Legacy Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
+          from: { types: "component" },
         }
       );
 
@@ -2129,7 +2203,7 @@ describe("Entities Legacy Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
+          from: { types: "component" },
         }
       );
 
@@ -2147,7 +2221,7 @@ describe("Entities Legacy Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
+          from: { types: "component" },
         }
       );
 
@@ -2166,8 +2240,8 @@ describe("Entities Legacy Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
-          to: { type: "component" }, // Same as from, it should not normalize again
+          from: { types: "component" },
+          to: { types: "component" }, // Same as from, it should not normalize again
         }
       );
 
@@ -2186,8 +2260,8 @@ describe("Entities Legacy Matcher", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { type: "component" },
-          to: { type: "component" },
+          from: { types: "component" },
+          to: { types: "component" },
         }
       );
 

@@ -1,5 +1,6 @@
 import type { MatchersOptionsNormalized } from "../../Config";
 import type { ElementDescription } from "../../Descriptor";
+import { isElementDescription } from "../../Descriptor";
 import type { MicromatchPatternNullable } from "../../Shared";
 import {
   isArray,
@@ -35,6 +36,28 @@ export class ElementsMatcher extends BaseElementsMatcher {
   }
 
   /**
+   * Whether the given element first type matches the selector type (singular).
+   * @param element The element to check.
+   * @param selector The selector to check against.
+   * @param templateData The data to use for replace in selector value
+   * @returns Whether the element first type matches the selector type.
+   */
+  private _isSingleTypeMatch(
+    element: ElementDescription,
+    selector: ElementSingleSelector,
+    templateData: TemplateData
+  ): boolean {
+    if (isUndefined(selector.type)) {
+      return true;
+    }
+    return this.isTemplateMicromatchMatch(
+      selector.type,
+      templateData,
+      element.types?.[0] ?? null
+    );
+  }
+
+  /**
    * Whether the given element type matches the selector type.
    * @param element The element to check.
    * @param selector The selector to check against.
@@ -49,9 +72,9 @@ export class ElementsMatcher extends BaseElementsMatcher {
     return this.isObjectKeyMicromatchMatch({
       object: element,
       selector,
-      objectKey: "type",
-      selectorKey: "type",
-      selectorValue: selector.type,
+      objectKey: "types",
+      selectorKey: "types",
+      selectorValue: selector.types,
       templateData,
     });
   }
@@ -246,7 +269,18 @@ export class ElementsMatcher extends BaseElementsMatcher {
       !this.isTemplateMicromatchMatch(
         selector.type,
         templateData,
-        firstParent.type
+        firstParent.types?.[0] ?? null
+      )
+    ) {
+      return false;
+    }
+
+    if (
+      !isUndefined(selector.types) &&
+      !this.isTemplateMicromatchMatch(
+        selector.types,
+        templateData,
+        firstParent.types
       )
     ) {
       return false;
@@ -419,6 +453,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
       // Order checks by likelihood of failing for better short-circuiting
       // Most restrictive checks first to fail fast
       if (
+        !this._isSingleTypeMatch(element, selectorData, templateData) ||
         !this._isTypeMatch(element, selectorData, templateData) ||
         !this._isCategoryMatch(element, selectorData, templateData) ||
         !this._isIgnoredMatch(element, selectorData) ||
@@ -468,6 +503,9 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: BackwardCompatibleElementSelector,
     { extraTemplateData = {} }: MatcherOptions = {}
   ): ElementSingleSelectorMatchResult | null {
+    if (!isElementDescription(element)) {
+      throw new Error("Invalid element description");
+    }
     const selectorsData = normalizeElementSelector(selector);
     return this._getSelectorMatching(element, selectorsData, extraTemplateData);
   }

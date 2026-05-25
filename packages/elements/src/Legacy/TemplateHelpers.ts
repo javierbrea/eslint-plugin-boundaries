@@ -2,6 +2,7 @@ import type {
   DependencyDescription,
   ElementDescription,
   EntityDescription,
+  ModuleDescription,
 } from "../Descriptor";
 import type { TemplateData } from "../Matcher";
 import { isArray, isUndefined, isObject } from "../Shared";
@@ -16,22 +17,25 @@ import { isArray, isUndefined, isObject } from "../Shared";
  */
 function getLegacyElementSelectorTemplateData(
   element: ElementDescription,
-  origin?: EntityDescription["module"]["origin"]
+  moduleDescription?: ModuleDescription
 ): TemplateData {
   const parents = isArray(element.parents)
     ? element.parents.map((parent) => ({
         ...parent,
+        type: parent.types?.[0] ?? null,
         elementPath: parent.path,
       }))
     : element.parents;
 
   return {
     ...element,
-    // TODO: How to make "path" backward compatible, because before it was the file path, and now it is the element path?
+    type: element.types?.[0] ?? null,
     elementPath: element.path,
-    internalPath: element.fileInternalPath,
+    internalPath: moduleDescription?.internalPath || element.fileInternalPath,
     parents,
-    ...(isUndefined(origin) ? {} : { origin: origin }),
+    ...(isUndefined(moduleDescription?.origin)
+      ? {}
+      : { origin: moduleDescription?.origin }),
   };
 }
 
@@ -44,7 +48,7 @@ export function getLegacyEntitySelectorExtraTemplateData(
   return {
     element: getLegacyElementSelectorTemplateData(
       entity.element,
-      entity.module.origin
+      entity.module
     ),
     file: entity.file,
     origin: entity.module,
@@ -55,10 +59,11 @@ export function getLegacyEntitySelectorExtraTemplateData(
  * Builds extra template data with legacy aliases for element selector matching.
  */
 export function getLegacyElementSelectorExtraTemplateData(
-  element: ElementDescription
+  element: ElementDescription,
+  moduleDescription?: ModuleDescription
 ): TemplateData {
   return {
-    element: getLegacyElementSelectorTemplateData(element),
+    element: getLegacyElementSelectorTemplateData(element, moduleDescription),
   };
 }
 
@@ -82,12 +87,12 @@ export function getLegacyDependencySelectorExtraTemplateData(
   const fromFile = dependency.from.file;
   const fromElement = getLegacyElementSelectorTemplateData(
     dependency.from.element,
-    dependency.from.module.origin
+    dependency.from.module
   );
   const toFile = dependency.to.file;
   const toElement = getLegacyElementSelectorTemplateData(
     dependency.to.element,
-    dependency.to.module.origin
+    dependency.to.module
   );
 
   return {

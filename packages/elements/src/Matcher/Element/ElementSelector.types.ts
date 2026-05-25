@@ -10,6 +10,8 @@ export type ParentElementSingleSelector = Pick<
 > & {
   /** Type of the first parent element */
   type?: MicromatchPatternNullable;
+  /** Types of the parent element */
+  types?: MicromatchPatternNullable;
   /*
    * Legacy category field for backward compatibility. This will be removed in future versions
    */
@@ -76,8 +78,10 @@ export type LegacyElementSimpleSelector =
  * Selector for base elements, including captured values for dynamic matching.
  */
 export type ElementSingleSelector = BaseSingleSelector & {
-  /** Type of the element */
+  /** Type of the element. Matches the first type only */
   type?: MicromatchPatternNullable;
+  /** Types of the element */
+  types?: MicromatchPatternNullable;
   /*
    * Legacy category field for backward compatibility. This will be removed in future versions in favor of using the `category` field in file selectors
    * @deprecated Use the `category` field in file selectors instead.

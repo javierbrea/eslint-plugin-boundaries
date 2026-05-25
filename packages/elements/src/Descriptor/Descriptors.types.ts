@@ -15,6 +15,8 @@ export type DescriptorsConfig = {
   elements?: ElementDescriptors;
   /** Optional file descriptors. If not provided, only element descriptors will be used to describe the files in the project. */
   files?: FileDescriptors;
+  /** When true, only the first matching descriptor's type is used at each path level. When false (default), an element can match multiple type descriptors at the same path level, accumulating all matched types in the `types` array. */
+  elementsSingleType?: boolean;
 };
 
 /**
