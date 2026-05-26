@@ -61,17 +61,17 @@ const elementDescriptors = [
 Given this configuration, the plugin will analyze your project in runtime and classify dependencies, providing lots of useful metadata about the files and their relationships. For example:
 
 ```javascript
-// When analyzing a dependency in src/controllers/controller-a.js
+// When analyzing a dependency in src/controllers/controller-a/index.js
 {
   from: {
-    path: "src/controllers/controller-a.js",
+    path: "src/controllers/controller-a/index.js",
     type: "controller",
     category: null,
     captured: { elementName: "controller-a" },
     origin: "local",
   },
   to: {
-    path: "src/views/view-a.js",
+    path: "src/views/view-a/index.js",
     type: "view",
     category: null,
     captured: { elementName: "view-a" },
@@ -79,7 +79,7 @@ Given this configuration, the plugin will analyze your project in runtime and cl
   },
   dependency: {
     kind: "value",
-    source: "@views/view-a.js",
+    source: "@views/view-a",
     specifiers: ["ViewA"],
   }
 }
@@ -150,9 +150,9 @@ const dependencyRules = [
 When a file violates a dependencies rule, ESLint will report an error:
 
 ```javascript
-// In src/models/model-a.js
+// In src/models/model-a/index.js
 
-import View  from '../views/view-a';
+import View  from '../../views/view-a';
 
 /* ❌ Error: Importing elements of type 'views'
 is not allowed in elements of type 'models'.
