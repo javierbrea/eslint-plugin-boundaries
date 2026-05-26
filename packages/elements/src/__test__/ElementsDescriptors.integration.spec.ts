@@ -1,6 +1,6 @@
 import micromatch from "micromatch";
 
-import type { Matcher } from "./index";
+import type { Matcher } from "../index";
 import {
   Elements,
   isIgnoredElementDescription,
@@ -9,9 +9,9 @@ import {
   isElementDescription,
   isDependencyDescription,
   isDependencyWithInternalRelationship,
-} from "./index";
+} from "../index";
 
-describe("Elements Descriptors", () => {
+describe("Elements Descriptors | Integration", () => {
   let matcher: Matcher;
   let elements: Elements;
   let micromatchSpy: jest.SpyInstance;

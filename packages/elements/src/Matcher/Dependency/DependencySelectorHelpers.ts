@@ -217,13 +217,20 @@ function addModuleToEntitySelectorNormalized(
   entitySelector: EntitySelectorNormalized | undefined,
   legacyDependencySelector: LegacyDependencySingleSelector["dependency"]
 ): EntitySelectorNormalized {
-  const legacyItems = (
-    isArray(legacyDependencySelector)
-      ? legacyDependencySelector
-      : legacyDependencySelector !== undefined
-        ? [legacyDependencySelector]
-        : []
-  ).filter(isLegacyDependencyInfoSingleSelector);
+  let dependencyItems: BackwardCompatibleDependencyInfoSingleSelector[];
+
+  /* istanbul ignore next -- Defensive: the only caller decomposes arrays before calling */
+  if (isArray(legacyDependencySelector)) {
+    dependencyItems = legacyDependencySelector;
+  } else if (legacyDependencySelector !== undefined) {
+    dependencyItems = [legacyDependencySelector];
+  } else {
+    dependencyItems = [];
+  }
+
+  const legacyItems = dependencyItems.filter(
+    isLegacyDependencyInfoSingleSelector
+  );
 
   if (legacyItems.length === 0) {
     return entitySelector ?? [];

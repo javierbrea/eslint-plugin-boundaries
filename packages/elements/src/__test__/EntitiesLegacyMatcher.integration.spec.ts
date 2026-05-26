@@ -12,15 +12,15 @@ import type {
   BackwardCompatibleEntitySelector,
   BackwardCompatibleElementSelector,
   ElementSelectorNormalized,
-} from "./index";
+} from "../index";
 import {
   normalizeDependencySelector,
   normalizeEntitySelector,
   Elements,
   normalizeElementSelector,
-} from "./index";
+} from "../index";
 
-describe("Entities Legacy Matcher", () => {
+describe("Entities Legacy Matcher | Integration", () => {
   let matcher: Matcher;
   let elements: Elements;
   let micromatchSpy: jest.SpyInstance;

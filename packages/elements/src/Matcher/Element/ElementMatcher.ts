@@ -334,6 +334,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: ElementSingleSelectorNormalized,
     templateData: TemplateData
   ): ParentElementSingleSelector | null | undefined {
+    // istanbul ignore next -- defensive check, caller already handles undefined parent
     if (isUndefined(selector.parent)) {
       return undefined;
     }
