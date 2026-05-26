@@ -5,11 +5,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
-### Added
-### Changed
-### Fixed
-### Removed
+
 ### Breaking Changes
+
+- feat: `getMatcher` now accepts a `DescriptorsConfig` object instead of an `ElementDescriptor[]` array. The first argument changed from a flat array to an object with optional `elements`, `files`, and `elementsSingleType` properties. Existing code must wrap the array: `getMatcher([...])` → `getMatcher({ elements: [...] })`.
+- feat: `DependencyDescription.from` and `DependencyDescription.to` are now `EntityDescription` objects (containing `element`, `file`, and `module` sub-objects) instead of flat `ElementDescription` objects. Code accessing properties like `description.from.type` must change to `description.from.element.types[0]`.
+- feat: `ElementDescription.type` (single string) has been replaced by `types` (string array). Elements can now match multiple type descriptors at the same path level. Element selectors still support `type` (matches first type) for backward compatibility, but `types` is the canonical property.
+- feat: `origin`, `elementPath`, and `internalPath` have been moved out of element descriptions and selectors. `origin` and `internalPath` are now in `ModuleDescription` / module selectors. `elementPath` has been renamed to `path` in element descriptions. These properties still work in element selectors through legacy backward compatibility, but their canonical location is now in entity selectors with `module` and `file` sub-selectors.
+- feat: `ElementDescription.category` is now deprecated. It is still present for backward compatibility but will be removed in a future version. Use file descriptor `categories` instead for more flexible file categorization.
+- feat: The serialized cache format has changed. `DescriptorsSerializedCache` now includes 5 separate sub-caches (`elements`, `files`, `entities`, `dependencies`, `modules`). Serialized caches from v2 are incompatible and must be regenerated.
+- feat: The `module` property in dependency metadata selectors (`dependency.module`) is now deprecated. Use `to.module.source` via entity selectors to match the base module name instead.
+
+### Added
+
+- feat: Add file descriptors system. A new `files` property in `DescriptorsConfig` allows categorizing files independently from elements. `FileDescriptor` supports `pattern`, `category`, and `capture` properties. `FileDescription` provides `path`, `categories`, `captured`, `isIgnored`, and `isUnknown` fields.
+- feat: Add entity abstraction layer. New `EntityDescription` type combines `element`, `file`, and `module` descriptions into a unified representation. New matcher methods: `describeEntity()`, `isEntityMatch()`, `getEntitySelectorMatching()`, `getEntitySelectorMatchingDescription()`.
+- feat: Add module origin system. New `ModuleDescription` type with `origin` (`"local"` | `"external"` | `"core"`), `source`, and `internalPath` properties. New matcher methods: `describeModule()`, `isModuleMatch()`, `getModuleSelectorMatching()`, `getModuleSelectorMatchingDescription()`.
+- feat: Add multi-type elements support. Elements can now match multiple type descriptors at the same path level. Behavior is controlled by the `elementsSingleType` option in `DescriptorsConfig` (default: `false` — multi-type mode).
+- feat: Add new selector types: `EntitySelector` with `element`, `file`, and `module` sub-selectors; `FileSelector` with `path`, `categories`, `captured`, `isIgnored`, and `isUnknown`; `ModuleSelector` with `origin`, `source`, and `internalPath`.
+- feat: Add `EntityMatcherOptions` type extending `MatcherOptions` with an optional `source` property for entity and module matching.
+
+### Changed
+
+- refactor: Reorganize internal architecture into domain-based module structure (Element, File, Entity, Module, Dependency) for better separation of concerns.
+- refactor: Enhance cache system to support 5 separate descriptor type caches for improved granularity.
 
 ## [2.0.1] - 2026-03-30
 
