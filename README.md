@@ -92,8 +92,8 @@ Define your dependency rules:
 Now ESLint will catch violations:
 
 ```javascript
-// In src/models/model.js
-import View from "../views/view"; // ❌ Error: Architectural boundary violated
+// In src/models/model/index.js
+import View from "../../views/view"; // ❌ Error: Architectural boundary violated
 ```
 
 ## Contributing

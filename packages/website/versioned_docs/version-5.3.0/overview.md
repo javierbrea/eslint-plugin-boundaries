@@ -78,9 +78,9 @@ const dependencyRules = [
 When a file violates a dependencies rule, ESLint will report an error:
 
 ```javascript
-// In src/models/model-a.js
+// In src/models/model-a/index.js
 
-import View  from '../views/view-a'; /* ❌ Error: Importing elements of type
+import View  from '../../views/view-a'; /* ❌ Error: Importing elements of type
 'views' is not allowed in elements of type 'models'. Disallowed in rule 3 */
 ```
 
