@@ -12,7 +12,7 @@ import {
 type EntityDescriptionOverrides = {
   element?: Partial<EntityDescription["element"]>;
   file?: Partial<EntityDescription["file"]>;
-  origin?: Partial<EntityDescription["origin"]>;
+  module?: Partial<EntityDescription["module"]>;
 };
 
 type DependencyDescriptionOverrides = {
@@ -27,7 +27,7 @@ function createEntityDescription(
   return {
     element: {
       path: "/repo/src/default/index.ts",
-      type: "default",
+      types: ["default"],
       category: null,
       filePath: "/repo/src/default/index.ts",
       fileInternalPath: "index.ts",
@@ -45,10 +45,11 @@ function createEntityDescription(
       isUnknown: false,
       ...values.file,
     },
-    origin: {
-      kind: "local",
-      module: null,
-      ...values.origin,
+    module: {
+      origin: "local",
+      source: null,
+      internalPath: null,
+      ...values.module,
     },
   };
 }
@@ -59,7 +60,7 @@ function createDependencyDescription(
   const fromDefaults: EntityDescriptionOverrides = {
     element: {
       path: "/repo/src/components/button/index.ts",
-      type: "component",
+      types: ["component"],
       category: "ui",
       filePath: "/repo/src/components/button/index.ts",
       fileInternalPath: "index.ts",
@@ -74,16 +75,17 @@ function createDependencyDescription(
         scope: "frontend",
       },
     },
-    origin: {
-      kind: "local",
-      module: null,
+    module: {
+      origin: "local",
+      source: null,
+      internalPath: null,
     },
   };
 
   const toDefaults: EntityDescriptionOverrides = {
     element: {
       path: "/repo/src/helpers/fetcher.ts",
-      type: "helper",
+      types: ["helper"],
       category: "data",
       filePath: "/repo/src/helpers/fetcher.ts",
       fileInternalPath: "fetcher.ts",
@@ -98,9 +100,10 @@ function createDependencyDescription(
         team: "platform",
       },
     },
-    origin: {
-      kind: "external",
-      module: "@scope/helpers",
+    module: {
+      origin: "external",
+      source: "@scope/helpers",
+      internalPath: null,
     },
   };
 
@@ -125,9 +128,9 @@ function createDependencyDescription(
         ...fromDefaults.file,
         ...values.from?.file,
       },
-      origin: {
-        ...fromDefaults.origin,
-        ...values.from?.origin,
+      module: {
+        ...fromDefaults.module,
+        ...values.from?.module,
       },
     }),
     to: createEntityDescription({
@@ -139,9 +142,9 @@ function createDependencyDescription(
         ...toDefaults.file,
         ...values.to?.file,
       },
-      origin: {
-        ...toDefaults.origin,
-        ...values.to?.origin,
+      module: {
+        ...toDefaults.module,
+        ...values.to?.module,
       },
     }),
     dependency: {
@@ -158,7 +161,7 @@ describe("Messages", () => {
       const matchResult: DependencySingleSelectorMatchResult = {
         from: {
           element: {
-            type: "component",
+            types: ["component"],
             category: "ui",
             captured: {
               family: "*",
@@ -170,13 +173,13 @@ describe("Messages", () => {
               scope: "*",
             },
           },
-          origin: {
-            kind: "local",
+          module: {
+            origin: "local",
           },
         },
         to: {
           element: {
-            type: "helper",
+            types: ["helper"],
             captured: {
               domain: "*",
             },
@@ -187,9 +190,9 @@ describe("Messages", () => {
               team: "*",
             },
           },
-          origin: {
-            kind: "external",
-            module: "@scope/helpers",
+          module: {
+            origin: "external",
+            source: "@scope/helpers",
           },
         },
         dependency: {
@@ -205,7 +208,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 2, dependency)).toBe(
-        'Dependencies with source "@scope/helpers", kind "type", nodeKind "ImportDeclaration", relationship from "sibling", relationship to "sibling", module "@scope/helpers" and specifiers "Fetcher", "FetcherConfig" to file of categories "shared", "data" and team "platform" belonging to elements of type "helper" and domain "api" are not allowed in file of categories "ui", "feature" and scope "frontend" belonging to elements of type "component", category "ui" and family "atoms" and origin "local". Denied by rule at index 2'
+        'Dependencies with source "@scope/helpers", kind "type", nodeKind "ImportDeclaration", relationship from "sibling", relationship to "sibling", source "@scope/helpers" and specifiers "Fetcher", "FetcherConfig" to file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper" and captured values: domain="api" are not allowed in file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" and module with origin "local". Denied by rule at index 2'
       );
     });
   });
@@ -215,7 +218,7 @@ describe("Messages", () => {
       const dependency = createDependencyDescription();
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from file of categories "ui", "feature" and scope "frontend" belonging to elements of type "component", category "ui" and family "atoms" to entities of origin "external" with module "@scope/helpers" being file of categories "shared", "data" and team "platform" belonging to elements of type "helper", category "data" and domain "api"'
+        'There is no rule allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" to entities of module with origin "external" and source "@scope/helpers" being file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper", category "data" and captured values: domain="api"'
       );
     });
 
@@ -223,7 +226,7 @@ describe("Messages", () => {
       const dependency = createDependencyDescription({
         from: {
           element: {
-            type: null,
+            types: null,
             category: null,
             captured: null,
           },
@@ -236,7 +239,7 @@ describe("Messages", () => {
         },
         to: {
           element: {
-            type: null,
+            types: null,
             category: null,
             captured: null,
           },
@@ -246,15 +249,15 @@ describe("Messages", () => {
               team: "platform",
             },
           },
-          origin: {
-            kind: "external",
-            module: "@scope/helpers",
+          module: {
+            origin: "external",
+            source: "@scope/helpers",
           },
         },
       });
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from file of categories "ui", "feature" and scope "frontend" to entities of origin "external" with module "@scope/helpers" being file of categories "shared" and team "platform"'
+        'There is no rule allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" to entities of module with origin "external" and source "@scope/helpers" being file of category "shared" and captured values: team="platform"'
       );
     });
 
@@ -262,7 +265,7 @@ describe("Messages", () => {
       const dependency = createDependencyDescription({
         from: {
           element: {
-            type: "component",
+            types: ["component"],
             category: "ui",
             captured: {
               family: "atoms",
@@ -275,7 +278,7 @@ describe("Messages", () => {
         },
         to: {
           element: {
-            type: "helper",
+            types: ["helper"],
             category: "data",
             captured: {
               domain: "api",
@@ -285,15 +288,15 @@ describe("Messages", () => {
             categories: null,
             captured: null,
           },
-          origin: {
-            kind: "local",
-            module: null,
+          module: {
+            origin: "local",
+            source: null,
           },
         },
       });
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from elements of type "component", category "ui" and family "atoms" to elements of type "helper", category "data" and domain "api"'
+        'There is no rule allowing dependencies from elements of type "component", category "ui" and captured values: family="atoms" to elements of type "helper", category "data" and captured values: domain="api"'
       );
     });
 
@@ -309,7 +312,7 @@ describe("Messages", () => {
         },
         to: {
           element: {
-            type: null,
+            types: null,
             category: null,
             captured: null,
           },
@@ -317,15 +320,15 @@ describe("Messages", () => {
             categories: null,
             captured: null,
           },
-          origin: {
-            kind: "external",
-            module: "@scope/helpers",
+          module: {
+            origin: "external",
+            source: "@scope/helpers",
           },
         },
       });
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from file of categories "ui", "feature" and scope "frontend" belonging to elements of type "component", category "ui" and family "atoms" to entities of origin "external" with module "@scope/helpers"'
+        'There is no rule allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" to entities of module with origin "external" and source "@scope/helpers"'
       );
     });
   });

@@ -15,8 +15,8 @@ import type {
   ParentElementSelectorNormalized,
   FileSelectorNormalized,
   FileSingleSelector,
-  OriginSingleSelector,
-  OriginSelectorNormalized,
+  ModuleSingleSelector,
+  ModuleSelectorNormalized,
 } from "@boundaries/elements";
 import {
   DEPENDENCY_RELATIONSHIPS_MAP,
@@ -314,23 +314,23 @@ function mergeFileSelector(
   });
 }
 
-function mergeOriginSingleSelector(
-  outer?: OriginSingleSelector,
-  entry?: OriginSingleSelector
-): OriginSingleSelector | undefined {
+function mergeModuleSingleSelector(
+  outer?: ModuleSingleSelector,
+  entry?: ModuleSingleSelector
+): ModuleSingleSelector | undefined {
   if (!entry) {
     return outer;
   }
   if (!outer) {
     return entry;
   }
-  return mergeProperties(outer, entry) as OriginSingleSelector | undefined;
+  return mergeProperties(outer, entry) as ModuleSingleSelector | undefined;
 }
 
-function mergeOriginSelector(
-  outer?: OriginSelectorNormalized,
-  entry?: OriginSelectorNormalized
-): OriginSelectorNormalized | undefined {
+function mergeModuleSelector(
+  outer?: ModuleSelectorNormalized,
+  entry?: ModuleSelectorNormalized
+): ModuleSelectorNormalized | undefined {
   if (!entry) {
     return outer;
   }
@@ -340,10 +340,10 @@ function mergeOriginSelector(
   return outer.flatMap((outerSelector) => {
     return entry.map(
       (entrySelector) =>
-        mergeOriginSingleSelector(
+        mergeModuleSingleSelector(
           outerSelector,
           entrySelector
-        ) as OriginSingleSelector
+        ) as ModuleSingleSelector
     );
   });
 }
@@ -365,9 +365,9 @@ function mergeEntitySingleSelector(
   if (mergedFile) {
     merged.file = mergedFile;
   }
-  const mergedOrigin = mergeOriginSelector(outer.origin, entry.origin);
-  if (mergedOrigin) {
-    merged.origin = mergedOrigin;
+  const mergedModule = mergeModuleSelector(outer.module, entry.module);
+  if (mergedModule) {
+    merged.module = mergedModule;
   }
   return merged;
 }
@@ -797,7 +797,8 @@ export default function getDependencyRule(
       const checkUnknownLocals = options?.checkUnknownLocals ?? false;
       const checkInternals = options?.checkInternals ?? false;
 
-      const isLocalDependency = dependency.to.origin.kind === ORIGINS_MAP.LOCAL;
+      const isLocalDependency =
+        dependency.to.module.origin === ORIGINS_MAP.LOCAL;
       const isUnknownLocalDependency =
         isLocalDependency &&
         dependency.to.file.isUnknown &&

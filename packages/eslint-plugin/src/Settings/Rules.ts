@@ -224,11 +224,32 @@ const originSelectorSchema = {
   ],
 };
 
+const moduleSingleSelectorSchema = {
+  type: "object",
+  properties: {
+    origin: micromatchPatternNullableSchema,
+    source: micromatchPatternNullableSchema,
+    internalPath: micromatchPatternNullableSchema,
+  },
+  additionalProperties: false,
+};
+
+const moduleSelectorSchema = {
+  oneOf: [
+    moduleSingleSelectorSchema,
+    {
+      type: "array",
+      items: moduleSingleSelectorSchema,
+    },
+  ],
+};
+
 const entitySingleSelectorSchema = {
   type: "object",
   properties: {
     element: elementSelectorSchema,
     file: fileSelectorSchema,
+    module: moduleSelectorSchema,
     origin: originSelectorSchema,
   },
   additionalProperties: false,

@@ -68,9 +68,9 @@ function buildSelectorFromLegacySelectorWithOptions(
 
   return {
     to: {
-      origin: {
-        kind: [ORIGINS_MAP.EXTERNAL, ORIGINS_MAP.CORE],
-        module: moduleSelector,
+      module: {
+        origin: [ORIGINS_MAP.EXTERNAL, ORIGINS_MAP.CORE],
+        source: moduleSelector,
       },
     },
     dependency: dependencyInfoSelector,
@@ -93,9 +93,9 @@ function modifySelectors(
   if (isString(selectors)) {
     return {
       to: {
-        origin: {
-          kind: originsToMatch,
-          module: selectors,
+        module: {
+          origin: originsToMatch,
+          source: selectors,
         },
       },
     };
@@ -105,7 +105,7 @@ function modifySelectors(
       return buildSelectorFromLegacySelectorWithOptions(selector);
     }
     return {
-      to: { origin: { kind: originsToMatch, module: selector } },
+      to: { module: { origin: originsToMatch, source: selector } },
     };
   });
 }
@@ -167,7 +167,7 @@ export default dependencyRule<ExternalRuleOptions>(
     // TODO: validate and warn about legacy usage
     // validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL, "from");
 
-    const origin = dependency.to.origin.kind;
+    const origin = dependency.to.module.origin;
     if (origin === ORIGINS_MAP.EXTERNAL || origin === ORIGINS_MAP.CORE) {
       const rules = transformToDependenciesRules(options?.rules ?? []);
       evaluateRulesAndReport({

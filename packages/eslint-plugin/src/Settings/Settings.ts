@@ -6,7 +6,6 @@ import type {
   ElementDescriptor,
   FlagAsExternalOptions,
   DependencySelectorNormalized,
-  FileSingleSelector,
   FileDescriptor,
 } from "@boundaries/elements";
 import {
@@ -14,6 +13,8 @@ import {
   isFileDescriptor,
   isDependencySelector,
   normalizeDependencySelector,
+  isEntitySelector,
+  normalizeEntitySelector,
   isFileSelector,
   normalizeFileSelector,
 } from "@boundaries/elements";
@@ -179,6 +180,9 @@ export function validateDebugFilterSelectors(
   if (isUndefined(value)) {
     return undefined;
   }
+  if (filterName === "files" && isEntitySelector(value)) {
+    return normalizeEntitySelector(value);
+  }
   if (isFileSelector(value)) {
     return normalizeFileSelector(value);
   }
@@ -195,9 +199,7 @@ export function validateDebugFilterSelectors(
  * @param value - Raw `debug.filter.files` setting value.
  * @returns Valid files filter selectors.
  */
-export function validateDebugFilesFilter(
-  value: unknown
-): FileSingleSelector[] | undefined {
+export function validateDebugFilesFilter(value: unknown) {
   return validateDebugFilterSelectors(value, "files");
 }
 

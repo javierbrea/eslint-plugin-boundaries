@@ -319,8 +319,8 @@ export type RootPathSetting = string;
 export type AliasSetting = Record<string, string>;
 
 export type DebugFilterSetting = {
-  /** File selectors used to filter file debug messages */
-  files?: FileSelector;
+  /** File or entity selectors used to filter file debug messages */
+  files?: FileSelector | BackwardCompatibleEntitySelector;
   /** Dependency selectors used to filter dependency debug messages */
   dependencies?: BackwardCompatibleEntitySelector;
 };
@@ -358,8 +358,8 @@ export type DebugSettingNormalized = {
   };
   /** Debug filters **/
   filter: {
-    /** File selectors used to filter file debug messages */
-    files?: FileSelectorNormalized;
+    /** File or entity selectors used to filter file debug messages */
+    files?: FileSelectorNormalized | EntitySelectorNormalized;
     /** Dependency selectors used to filter dependency debug messages */
     dependencies?: DependencySelectorNormalized;
   };

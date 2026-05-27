@@ -73,7 +73,7 @@ const createMatcher = (result: unknown): Matcher =>
 const createFileDescription = (path: string): EntityDescription => ({
   element: {
     path,
-    type: "components",
+    types: ["components"],
     category: null,
     filePath: path,
     fileInternalPath: "Component.ts",
@@ -89,9 +89,10 @@ const createFileDescription = (path: string): EntityDescription => ({
     isIgnored: false,
     isUnknown: false,
   },
-  origin: {
-    kind: "local",
-    module: null,
+  module: {
+    origin: "local",
+    source: null,
+    internalPath: null,
   },
 });
 

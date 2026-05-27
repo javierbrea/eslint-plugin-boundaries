@@ -89,7 +89,7 @@ export default dependencyRule<EntryPointRuleOptions>(
 
     if (
       !dependency.to.file.isIgnored &&
-      dependency.to.element.type &&
+      dependency.to.element.types &&
       dependency.dependency.relationship.to !==
         DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL
     ) {

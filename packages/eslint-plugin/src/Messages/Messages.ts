@@ -9,8 +9,8 @@ import type {
   ElementParent,
   FileDescription,
   FileSingleSelector,
-  OriginDescription,
-  OriginSingleSelector,
+  ModuleDescription,
+  ModuleSingleSelector,
 } from "@boundaries/elements";
 
 import {
@@ -128,6 +128,12 @@ function buildElementPropertyFragments(
       continue;
     }
 
+    if (propertyName === "type" || propertyName === "types") {
+      const label = isArray(value) && value.length > 1 ? "types" : "type";
+      fragments.push(formatPropertyFragment(label, value));
+      continue;
+    }
+
     fragments.push(formatPropertyFragment(propertyName, value));
   }
 
@@ -185,6 +191,9 @@ function getElementPropertyValue(
   elementDescription: ElementDescription | ElementParent,
   propertyName: string
 ): unknown {
+  if (propertyName === "type") {
+    return elementDescription.types;
+  }
   return elementDescription[propertyName as keyof typeof elementDescription];
 }
 
@@ -217,7 +226,7 @@ function buildCapturedFragments(
     return includeNullValues ? [`captured ${quote(null)}`] : [];
   }
 
-  const fragments: string[] = [];
+  const entries: string[] = [];
   const keys = capturedKeys ?? Object.keys(value);
 
   for (const capturedKey of keys) {
@@ -225,10 +234,14 @@ function buildCapturedFragments(
     if (isUndefined(capturedValue)) {
       continue;
     }
-    fragments.push(`${capturedKey} ${formatPropertyValue(capturedValue)}`);
+    entries.push(`${capturedKey}=${formatPropertyValue(capturedValue)}`);
   }
 
-  return fragments;
+  if (!entries.length) {
+    return [];
+  }
+
+  return [`captured values: ${entries.join(", ")}`];
 }
 
 /**
@@ -404,6 +417,13 @@ function buildFilePropertyFragments(
       continue;
     }
 
+    if (propertyName === "categories") {
+      const label =
+        isArray(value) && value.length > 1 ? "categories" : "category";
+      fragments.push(formatPropertyFragment(label, value));
+      continue;
+    }
+
     fragments.push(formatPropertyFragment(propertyName, value));
   }
 
@@ -470,20 +490,20 @@ function fileDescriptionMessageFromSelector(
 }
 
 /**
- * Builds message fragments from selected origin properties.
- * @param originDescription - Origin metadata to describe.
- * @param properties - List of origin properties to include.
+ * Builds message fragments from selected module properties.
+ * @param moduleDescription - Module metadata to describe.
+ * @param properties - List of module properties to include.
  * @param options - Formatting options.
- * @returns List of formatted fragments describing origin.
+ * @returns List of formatted fragments describing module.
  */
-function buildOriginPropertyFragments(
-  originDescription: OriginDescription,
+function buildModulePropertyFragments(
+  moduleDescription: ModuleDescription,
   properties: string[],
   options: { includeNullValues: boolean }
 ): string[] {
   const fragments: string[] = [];
   for (const propertyName of properties) {
-    const value = originDescription[propertyName as keyof OriginDescription];
+    const value = moduleDescription[propertyName as keyof ModuleDescription];
     if (shouldSkipFragmentValue(value, options.includeNullValues)) {
       continue;
     }
@@ -493,14 +513,14 @@ function buildOriginPropertyFragments(
 }
 
 /**
- * Describes origin metadata using selector-driven relevant properties.
- * @param originDescription - Origin metadata to describe.
- * @param selectorData - Selector data that determines which origin properties to include.
- * @returns Formatted message describing origin metadata.
+ * Describes module metadata using selector-driven relevant properties.
+ * @param moduleDescription - Module metadata to describe.
+ * @param selectorData - Selector data that determines which module properties to include.
+ * @returns Formatted message describing module metadata.
  */
-function originDescriptionMessageFromSelector(
-  originDescription: OriginDescription,
-  selectorData: OriginSingleSelector | null | undefined
+function moduleDescriptionMessageFromSelector(
+  moduleDescription: ModuleDescription,
+  selectorData: ModuleSingleSelector | null | undefined
 ): string | null {
   if (!selectorData) {
     return null;
@@ -509,8 +529,8 @@ function originDescriptionMessageFromSelector(
   if (!properties.length) {
     return null;
   }
-  const propertyFragments = buildOriginPropertyFragments(
-    originDescription,
+  const propertyFragments = buildModulePropertyFragments(
+    moduleDescription,
     properties,
     {
       includeNullValues: true,
@@ -519,14 +539,11 @@ function originDescriptionMessageFromSelector(
   if (!propertyFragments.length) {
     return null;
   }
-  if (propertyFragments.length === 1 && properties[0] === "kind") {
-    return `origin ${formatPropertyValue(originDescription.kind)}`;
-  }
-  return `origin ${joinWithCommasAndAnd(propertyFragments)}`;
+  return `module with ${joinWithCommasAndAnd(propertyFragments)}`;
 }
 
 /**
- * Describes entities using selector-driven relevant properties from element, file and origin.
+ * Describes entities using selector-driven relevant properties from element, file and module.
  * When both file and element are present, the file is described first with "belonging to" linking to the element.
  * @param entityDescription - Entity metadata to describe.
  * @param selectorData - Selector data determining which entity parts to include.
@@ -535,7 +552,7 @@ function originDescriptionMessageFromSelector(
 function entityDescriptionMessageFromSelector(
   entityDescription: EntityDescription,
   selectorData: DependencySingleSelectorMatchResult["from"] | null | undefined,
-  { includeOrigin = true }: { includeOrigin?: boolean } = {}
+  { includeModule = true }: { includeModule?: boolean } = {}
 ): string | null {
   if (!selectorData) {
     return null;
@@ -549,14 +566,14 @@ function entityDescriptionMessageFromSelector(
     entityDescription.file,
     selectorData.file
   );
-  const originPart = includeOrigin
-    ? originDescriptionMessageFromSelector(
-        entityDescription.origin,
-        selectorData.origin
+  const modulePart = includeModule
+    ? moduleDescriptionMessageFromSelector(
+        entityDescription.module,
+        selectorData.module
       )
     : null;
 
-  if (!elementPart && !filePart && !originPart) {
+  if (!elementPart && !filePart && !modulePart) {
     return null;
   }
 
@@ -567,33 +584,33 @@ function entityDescriptionMessageFromSelector(
     mainPart = filePart ?? elementPart;
   }
 
-  if (mainPart && originPart) {
-    return `${mainPart} and ${originPart}`;
+  if (mainPart && modulePart) {
+    return `${mainPart} and ${modulePart}`;
   }
-  return mainPart ?? originPart;
+  return mainPart ?? modulePart;
 }
 
 /**
- * Describes target-origin selector data as dependency metadata when building selector-based messages.
- * Legacy selectors with only `to.origin.module` are rendered as dependency `module`.
+ * Describes target-module selector data as dependency metadata when building selector-based messages.
+ * Legacy selectors with only `to.module.source` are rendered as dependency `source`.
  * @param toSelectorData - Selector data from the target entity.
  * @param dependency - Dependency description used to read actual values.
- * @returns Formatted dependency metadata fragment derived from target origin selector data.
+ * @returns Formatted dependency metadata fragment derived from target module selector data.
  */
-function dependencyOriginFromToSelectorMessage(
+function dependencySourceFromToSelectorMessage(
   toSelectorData: DependencySingleSelectorMatchResult["to"] | null | undefined,
   dependency: DependencyDescription
 ): string | null {
-  if (!toSelectorData?.origin) {
+  if (!toSelectorData?.module) {
     return null;
   }
 
-  if (isUndefined(toSelectorData.origin.module)) {
+  if (isUndefined(toSelectorData.module.source)) {
     return null;
   }
 
-  if (shouldRenderDependencyValue(dependency.to.origin.module, true)) {
-    return formatPropertyFragment("module", dependency.to.origin.module);
+  if (shouldRenderDependencyValue(dependency.to.module.source, true)) {
+    return formatPropertyFragment("source", dependency.to.module.source);
   }
 
   return null;
@@ -756,31 +773,31 @@ function dependenciesNoRuleMatchedMessage(
 ): string {
   const fromDescription = entityDescriptionMessageForNoRule(dependency.from);
   const toEntityDescription = entityDescriptionMessageForNoRule(dependency.to);
-  const targetOriginKind = dependency.to.origin.kind;
-  const targetOriginModule = dependency.to.origin.module;
-  const isExternalOrigin = targetOriginKind === "external";
+  const targetModuleOrigin = dependency.to.module.origin;
+  const targetModuleSource = dependency.to.module.source;
+  const isExternalOrigin = targetModuleOrigin === "external";
 
-  const targetOriginDescription = shouldRenderDependencyValue(
-    targetOriginKind,
+  const targetModuleDescription = shouldRenderDependencyValue(
+    targetModuleOrigin,
     false
   )
-    ? `origin ${formatPropertyValue(targetOriginKind)}${
-        shouldRenderDependencyValue(targetOriginModule, false)
-          ? ` with module ${formatPropertyValue(targetOriginModule)}`
+    ? `module with origin ${formatPropertyValue(targetModuleOrigin)}${
+        shouldRenderDependencyValue(targetModuleSource, false)
+          ? ` and source ${formatPropertyValue(targetModuleSource)}`
           : ""
       }`
     : "";
 
   let toDescription =
     toEntityDescription ||
-    (targetOriginDescription ? `entities of ${targetOriginDescription}` : "");
+    (targetModuleDescription ? `entities of ${targetModuleDescription}` : "");
 
-  if (toEntityDescription && targetOriginDescription && isExternalOrigin) {
-    toDescription = `entities of ${targetOriginDescription} being ${toEntityDescription}`;
+  if (toEntityDescription && targetModuleDescription && isExternalOrigin) {
+    toDescription = `entities of ${targetModuleDescription} being ${toEntityDescription}`;
   }
 
   const dependencyDescription = shouldRenderDependencyValue(
-    targetOriginModule,
+    targetModuleSource,
     false
   )
     ? ""
@@ -814,35 +831,35 @@ export function dependenciesRuleMatchedMessage(
     : null;
   const toEntityPart = toProperties.length
     ? entityDescriptionMessageFromSelector(dependency.to, matchResult!.to, {
-        includeOrigin: false,
+        includeModule: false,
       })
     : null;
-  const toOriginPart = shouldRenderDependencyValue(
-    matchResult?.to?.origin?.kind,
+  const toModulePart = shouldRenderDependencyValue(
+    matchResult?.to?.module?.origin,
     true
   )
-    ? `entities of origin ${formatPropertyValue(dependency.to.origin.kind)}`
+    ? `entities of module with origin ${formatPropertyValue(dependency.to.module.origin)}`
     : null;
-  const toPart = toEntityPart ?? toOriginPart;
+  const toPart = toEntityPart ?? toModulePart;
   const dependencyFragments = dependencyProperties.length
     ? dependencyDescriptionFragmentsFromSelector(
         dependency.dependency,
         matchResult!.dependency ?? null
       )
     : [];
-  const dependencyToOriginPart = dependencyOriginFromToSelectorMessage(
+  const dependencyToSourcePart = dependencySourceFromToSelectorMessage(
     matchResult?.to,
     dependency
   );
 
-  if (dependencyToOriginPart) {
+  if (dependencyToSourcePart) {
     const specifiersIndex = dependencyFragments.findIndex((fragment) =>
       fragment.startsWith("specifiers ")
     );
     if (specifiersIndex === -1) {
-      dependencyFragments.push(dependencyToOriginPart);
+      dependencyFragments.push(dependencyToSourcePart);
     } else {
-      dependencyFragments.splice(specifiersIndex, 0, dependencyToOriginPart);
+      dependencyFragments.splice(specifiersIndex, 0, dependencyToSourcePart);
     }
   }
 

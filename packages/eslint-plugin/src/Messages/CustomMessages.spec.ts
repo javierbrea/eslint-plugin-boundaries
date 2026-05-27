@@ -16,7 +16,7 @@ import {
 type EntityDescriptionOverrides = {
   element?: Partial<EntityDescription["element"]>;
   file?: Partial<EntityDescription["file"]>;
-  origin?: Partial<EntityDescription["origin"]>;
+  module?: Partial<EntityDescription["module"]>;
 };
 
 type DependencyDescriptionOverrides = {
@@ -27,7 +27,7 @@ type DependencyDescriptionOverrides = {
 
 const importerParent: ElementParent = {
   path: "/repo/src/domain",
-  type: "domain",
+  types: ["domain"],
   category: "business",
   captured: {
     layer: "domain",
@@ -36,7 +36,7 @@ const importerParent: ElementParent = {
 
 const targetParent: ElementParent = {
   path: "/repo/src/shared",
-  type: "shared",
+  types: ["shared"],
   category: "common",
   captured: {
     layer: "shared",
@@ -49,7 +49,7 @@ function createEntityDescription(
   return {
     element: {
       path: "/repo/src/default/index.ts",
-      type: "default",
+      types: ["default"],
       category: null,
       filePath: "/repo/src/default/index.ts",
       fileInternalPath: "index.ts",
@@ -67,10 +67,11 @@ function createEntityDescription(
       isUnknown: false,
       ...values.file,
     },
-    origin: {
-      kind: "local",
-      module: null,
-      ...values.origin,
+    module: {
+      origin: "local",
+      source: null,
+      internalPath: null,
+      ...values.module,
     },
   };
 }
@@ -82,7 +83,7 @@ function createDependencyDescription(
     from: createEntityDescription({
       element: {
         path: "/repo/src/components/button/index.ts",
-        type: "component",
+        types: ["component"],
         category: "ui",
         filePath: "/repo/src/components/button/index.ts",
         fileInternalPath: "index.ts",
@@ -100,16 +101,17 @@ function createDependencyDescription(
         },
         ...values.from?.file,
       },
-      origin: {
-        kind: "local",
-        module: null,
-        ...values.from?.origin,
+      module: {
+        origin: "local",
+        source: null,
+        internalPath: null,
+        ...values.from?.module,
       },
     }),
     to: createEntityDescription({
       element: {
         path: "/repo/src/helpers/fetcher.ts",
-        type: "helper",
+        types: ["helper"],
         category: "data",
         filePath: "/repo/src/helpers/fetcher.ts",
         fileInternalPath: "fetcher.ts",
@@ -127,10 +129,11 @@ function createDependencyDescription(
         },
         ...values.to?.file,
       },
-      origin: {
-        kind: "external",
-        module: "@scope/helpers",
-        ...values.to?.origin,
+      module: {
+        origin: "external",
+        source: "@scope/helpers",
+        internalPath: null,
+        ...values.to?.module,
       },
     }),
     dependency: {
@@ -178,7 +181,7 @@ describe("CustomMessages", () => {
       expect(
         elementPropertiesToReplaceInLegacyTemplate({
           element: dependencyDescription.from.element,
-          origin: dependencyDescription.from.origin,
+          module: dependencyDescription.from.module,
           dependency: dependencyDescription.dependency,
         })
       ).toEqual({
@@ -195,7 +198,7 @@ describe("CustomMessages", () => {
       expect(
         elementPropertiesToReplaceInLegacyTemplate({
           element: dependencyDescription.to.element,
-          origin: dependencyDescription.to.origin,
+          module: dependencyDescription.to.module,
           dependency: dependencyDescription.dependency,
         })
       ).toEqual({
@@ -227,7 +230,7 @@ describe("CustomMessages", () => {
       const elementWithNullableProperties = {
         ...dependencyDescription.from.element,
         captured: null,
-        type: null,
+        types: null,
         fileInternalPath: null,
       } as unknown as ElementDescription;
 
@@ -240,9 +243,10 @@ describe("CustomMessages", () => {
       expect(
         elementPropertiesToReplaceInLegacyTemplate({
           element: elementWithNullableProperties,
-          origin: {
-            kind: "external",
-            module: null,
+          module: {
+            origin: "external",
+            source: null,
+            internalPath: null,
           },
           dependency: dependencyWithNullableProperties,
         })
@@ -279,7 +283,7 @@ describe("CustomMessages", () => {
       const parentWithNullableProperties = {
         ...importerParent,
         captured: null,
-        type: null,
+        types: null,
       } as unknown as ElementParent;
 
       expect(

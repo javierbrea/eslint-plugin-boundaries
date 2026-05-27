@@ -34,7 +34,7 @@ function errorMessage(
   }
   return `Dependency is private of ${elementDescriptionMessage(
     privateParent,
-    ["type", "category", "captured"],
+    ["types", "category", "captured"],
     { singleElement: true }
   )}`;
 }
@@ -62,8 +62,8 @@ export default dependencyRule<NoPrivateOptions>(
     warnMigrationToDependencies(RULE_NAMES_MAP.NO_PRIVATE);
     if (
       !dependency.to.element.isIgnored &&
-      dependency.to.origin.kind === ORIGINS_MAP.LOCAL &&
-      dependency.to.element.type &&
+      dependency.to.module.origin === ORIGINS_MAP.LOCAL &&
+      dependency.to.element.types &&
       dependency.to.element.parents.length &&
       dependency.dependency.relationship.to !==
         DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL &&

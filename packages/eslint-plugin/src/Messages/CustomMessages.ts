@@ -4,7 +4,7 @@ import type {
   ElementDescription,
   DependencySingleSelectorMatchResult,
   EntitySingleSelectorMatchResult,
-  OriginDescription,
+  ModuleDescription,
 } from "@boundaries/elements";
 import Handlebars from "handlebars";
 
@@ -79,19 +79,19 @@ function replaceObjectValuesInLegacyTemplate(
  */
 export function elementPropertiesToReplaceInLegacyTemplate({
   element,
-  origin,
+  module: moduleName,
   dependency,
 }: {
   element: ElementDescription;
-  origin?: OriginDescription;
+  module?: ModuleDescription;
   dependency?: DependencyDescription["dependency"];
 }) {
   return {
     ...element.captured,
-    type: element.type || "",
+    type: element.types?.[0] || "",
     internalPath: element.fileInternalPath || "",
     source: dependency?.source || "",
-    module: origin?.module || "",
+    module: moduleName?.source || "",
     importKind: dependency?.kind || "",
   };
 }
@@ -105,7 +105,7 @@ export function parentPropertiesToReplaceInLegacyTemplate({
 }) {
   return {
     ...parent.captured,
-    type: parent.type || "",
+    type: parent.types?.[0] || "",
     internalPath: "",
     source: "",
     module: "",
@@ -144,13 +144,18 @@ function extendDependencyEntityContextForTemplate(
 ) {
   return {
     ...entityContext.element,
+    type: entityContext.element.types?.[0],
     elementPath: entityContext.element.path,
     internalPath: entityContext.element.fileInternalPath,
     parents,
-    ...(isUndefined(entityContext.origin.kind)
+    ...(isUndefined(entityContext.module.origin)
       ? {}
-      : { origin: entityContext.origin.kind }),
+      : { origin: entityContext.module.origin }),
     ...entityContext,
+    element: {
+      ...entityContext.element,
+      type: entityContext.element.types?.[0],
+    },
   };
 }
 
@@ -252,11 +257,11 @@ function replaceLegacyTemplateVariables(
 ) {
   const fromProperties = elementPropertiesToReplaceInLegacyTemplate({
     element: dependency.from.element,
-    origin: dependency.from.origin,
+    module: dependency.from.module,
   });
   const toProperties = elementPropertiesToReplaceInLegacyTemplate({
     element: dependency.to.element,
-    origin: dependency.to.origin,
+    module: dependency.to.module,
     dependency: dependency.dependency,
   });
   let replacedMessage = replaceObjectValuesInLegacyTemplate(

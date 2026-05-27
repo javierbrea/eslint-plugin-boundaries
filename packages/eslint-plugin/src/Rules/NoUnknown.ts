@@ -14,7 +14,7 @@ export default dependencyRule(
   function ({ dependency, node, context }) {
     if (
       !dependency.to.element.isIgnored &&
-      dependency.to.origin.kind === ORIGINS_MAP.LOCAL &&
+      dependency.to.module.origin === ORIGINS_MAP.LOCAL &&
       dependency.to.element.isUnknown
     ) {
       context.report({
