@@ -120,10 +120,7 @@ export class FilesDescriptor {
    * @returns True if the file path is outside the root path, false otherwise.
    */
   private _isOutsideRootPath(filePath: string): boolean {
-    if (!this._config.rootPath) {
-      return false;
-    }
-    return !filePath.startsWith(this._config.rootPath);
+    return !filePath.startsWith(this._config.rootPath!);
   }
 
   /**
@@ -308,7 +305,7 @@ export class FilesDescriptor {
       );
 
       fileResult.categories = isArray(fileResult.categories)
-        ? [...fileResult.categories, ...fileDescriptor.category]
+        ? [...fileResult.categories, fileDescriptor.category]
         : [fileDescriptor.category];
 
       fileResult.isUnknown = false;

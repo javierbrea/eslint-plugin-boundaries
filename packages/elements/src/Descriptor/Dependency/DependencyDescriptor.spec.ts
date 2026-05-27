@@ -626,6 +626,62 @@ describe("DependenciesDescriptor", () => {
         });
       });
 
+      it("should return null relationships when to entity is null", () => {
+        const fromEntity = createEntityDescription({ path: "/A" });
+        const entitiesDescriptor = createEntitiesDescriptorMock({
+          describeEntity: jest
+            .fn()
+            .mockReturnValueOnce(fromEntity)
+            .mockReturnValueOnce(null),
+        });
+        const descriptor = new DependenciesDescriptor(
+          entitiesDescriptor,
+          createConfig()
+        );
+
+        const result = descriptor.describeDependency({
+          from: "/A",
+          to: "/B",
+          source: "./B",
+          kind: DEPENDENCY_KINDS_MAP.VALUE,
+        });
+
+        expect(result.dependency.relationship).toEqual({
+          from: null,
+          to: null,
+        });
+      });
+
+      it("should handle element with null parents", () => {
+        const fromEntity = createEntityDescription({
+          path: "/A",
+          parents: null as unknown as [],
+        });
+        const toEntity = createEntityDescription({
+          path: "/B",
+          parents: [createParent({ path: "/C" })],
+        });
+        const entitiesDescriptor = createEntitiesDescriptorMock({
+          describeEntity: jest
+            .fn()
+            .mockReturnValueOnce(fromEntity)
+            .mockReturnValueOnce(toEntity),
+        });
+        const descriptor = new DependenciesDescriptor(
+          entitiesDescriptor,
+          createConfig()
+        );
+
+        expect(() =>
+          descriptor.describeDependency({
+            from: "/A",
+            to: "/B",
+            source: "./B",
+            kind: DEPENDENCY_KINDS_MAP.VALUE,
+          })
+        ).toThrow();
+      });
+
       it("should return null relationships when elements have no hierarchical relationship", () => {
         const fromEntity = createEntityDescription({
           path: "/X",

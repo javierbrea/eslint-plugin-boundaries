@@ -510,6 +510,38 @@ describe("ElementsDescriptor", () => {
         expect(result.isUnknown).toBe(false);
         expect(result.types).toEqual(["component"]);
       });
+
+      it("should not accumulate types at main level when main matched with category only", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "shared/*/**/*::shared/Button/index.ts": ["Button"],
+          }),
+          makeRe: jest.fn().mockReturnValue(/^shared\/[^/]+$/),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "shared/*",
+            type: undefined,
+            category: "ui",
+          }),
+          createDescriptor({
+            pattern: "shared/*",
+            type: "component",
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const result = descriptor.describeElement("shared/Button/index.ts");
+
+        expect(result.isUnknown).toBe(false);
+        expect(result.category).toBe("ui");
+        expect(result.types).toBeNull();
+      });
     });
 
     describe("parent elements", () => {
@@ -553,6 +585,100 @@ describe("ElementsDescriptor", () => {
 
         expect(result.isUnknown).toBe(false);
         expect(result.parents.length).toBeGreaterThanOrEqual(0);
+      });
+
+      it("should accumulate multiple types on the same parent path when multiple descriptors match", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "components/*/**/*::components/Button/index.ts": [
+              "Button",
+              "",
+              "index.ts",
+            ],
+            "modules/*::modules/ui": ["ui"],
+          }),
+          makeRe: createMakeReLookup({
+            "components/*": /^components\/[^/]+$/,
+            "modules/*": /^modules\/[^/]+$/,
+          }),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "components/*",
+            type: "component",
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: "module",
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: "feature",
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const result = descriptor.describeElement(
+          "modules/ui/components/Button/index.ts"
+        );
+
+        expect(result.isUnknown).toBe(false);
+        expect(result.parents).toHaveLength(1);
+        expect(result.parents[0].path).toBe("modules/ui");
+        expect(result.parents[0].types).toEqual(["module", "feature"]);
+      });
+
+      it("should not accumulate types on a category-only parent", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "components/*/**/*::components/Button/index.ts": [
+              "Button",
+              "",
+              "index.ts",
+            ],
+            "modules/*::modules/ui": ["ui"],
+          }),
+          makeRe: createMakeReLookup({
+            "components/*": /^components\/[^/]+$/,
+            "modules/*": /^modules\/[^/]+$/,
+          }),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "components/*",
+            type: "component",
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: undefined,
+            category: "area",
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: "feature",
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const result = descriptor.describeElement(
+          "modules/ui/components/Button/index.ts"
+        );
+
+        expect(result.isUnknown).toBe(false);
+        expect(result.parents).toHaveLength(1);
+        expect(result.parents[0].path).toBe("modules/ui");
+        expect(result.parents[0].category).toBe("area");
+        expect(result.parents[0].types).toBeNull();
       });
     });
 

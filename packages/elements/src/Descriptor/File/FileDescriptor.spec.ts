@@ -230,6 +230,32 @@ describe("FilesDescriptor", () => {
     });
 
     describe("path inclusion", () => {
+      it("should include path when both includePaths and ignorePaths are set and path is included but not ignored", () => {
+        const isMatchMock = jest
+          .fn()
+          .mockReturnValueOnce(true)
+          .mockReturnValueOnce(false);
+        const micromatch = createMicromatchMock({
+          isMatch: isMatchMock,
+          capture: jest.fn().mockReturnValue(["match"]),
+        });
+        const config = createConfig({
+          rootPath: undefined,
+          includePaths: ["src/**"],
+          ignorePaths: ["src/vendor/**"],
+        });
+        const descriptor = new FilesDescriptor(
+          [createFileDescriptor()],
+          config,
+          micromatch
+        );
+
+        const result = descriptor.describeFile("src/components/Foo.ts");
+
+        expect(result.isIgnored).toBe(false);
+        expect(result.isUnknown).toBe(false);
+      });
+
       it("should include all paths when neither includePaths nor ignorePaths are set", () => {
         const micromatch = createMicromatchMock({
           capture: jest.fn().mockReturnValue(["components", "Foo"]),
@@ -355,6 +381,65 @@ describe("FilesDescriptor", () => {
 
         expect(result.categories).toEqual(["source"]);
         expect(captureMock).toHaveBeenCalledTimes(2);
+      });
+
+      it("should accumulate categories from multiple matching descriptors without basePattern", () => {
+        const micromatch = createMicromatchMock({
+          capture: jest.fn().mockReturnValue(["match"]),
+        });
+        const config = createConfig({ rootPath: undefined });
+        const descriptors: FileDescriptors = [
+          createFileDescriptor({
+            pattern: "src/**/*.ts",
+            category: "source",
+          }),
+          createFileDescriptor({
+            pattern: "src/**/*.ts",
+            category: "typescript",
+          }),
+        ];
+        const descriptor = new FilesDescriptor(descriptors, config, micromatch);
+
+        const result = descriptor.describeFile("src/file.ts");
+
+        expect(result.categories).toEqual(["source", "typescript"]);
+      });
+
+      it("should merge captured values from multiple matching descriptors without basePattern", () => {
+        const captureMock = jest
+          .fn()
+          .mockReturnValueOnce(["components", "restPath1", "Button"])
+          .mockReturnValueOnce(["views", "restPath2", "Main"]);
+        const micromatch = createMicromatchMock({
+          capture: captureMock,
+        });
+        const config = createConfig({ rootPath: undefined });
+        const descriptors: FileDescriptors = [
+          createFileDescriptor({
+            pattern: "(*).ts",
+            category: "first",
+            basePattern: "src/(*)",
+            baseCapture: ["folder"],
+            capture: ["name"],
+          }),
+          createFileDescriptor({
+            pattern: "(*).ts",
+            category: "second",
+            basePattern: "lib/(*)",
+            baseCapture: ["libFolder"],
+            capture: ["libName"],
+          }),
+        ];
+        const descriptor = new FilesDescriptor(descriptors, config, micromatch);
+
+        const result = descriptor.describeFile("src/components/Button.ts");
+
+        expect(result.categories).toEqual(["first"]);
+        expect(result.captured).toEqual({
+          folder: "components",
+          restOfPath: "restPath1",
+          name: "Button",
+        });
       });
     });
 

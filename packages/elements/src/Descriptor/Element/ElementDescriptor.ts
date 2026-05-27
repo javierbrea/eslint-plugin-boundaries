@@ -141,10 +141,7 @@ export class ElementsDescriptor {
    * @returns True if the file path is outside the root path, false otherwise.
    */
   private _isOutsideRootPath(filePath: string): boolean {
-    if (!this._config.rootPath) {
-      return false;
-    }
-    return !filePath.startsWith(this._config.rootPath);
+    return !filePath.startsWith(this._config.rootPath!);
   }
 
   /**
@@ -423,7 +420,9 @@ export class ElementsDescriptor {
         elementResult.fileInternalPath =
           isFolderMode || filePath !== elementPath // Defensive check to ensure we don't return an empty string if filePath and elementPath are the same. This should not happen.
             ? filePath.replace(`${elementPath}/`, "")
-            : filePath.split("/").pop() || filePath; // Extra defensive check to ensure we don't return an empty string if filePath is a single segment. This should not happen either, but we want to be safe.
+            : filePath.split("/").pop() ||
+              // istanbul ignore next -- Ensures non-empty string if filePath were a single segment. Unreachable: filePath is guaranteed non-empty, so split("/").pop() always returns a truthy string
+              filePath;
       } else if (isMainElementLevel && !this._singleType) {
         // Multi-type: additional type at same path level
         if (elementDescriptor.type && isArray(elementResult.types)) {
