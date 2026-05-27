@@ -128,7 +128,7 @@ export class Matcher {
    * @param source The optional dependency source (e.g., the importer file path) to use for describing the origin of the entity being imported.
    * @returns The description of the entity.
    */
-  public describeEntity(filePath: string, source?: string) {
+  public describeEntity(filePath?: string, source?: string) {
     return this._descriptors.describeEntity(filePath, source);
   }
 

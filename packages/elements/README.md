@@ -811,7 +811,7 @@ elements.setCacheFromSerialized(cache);
 Returns a detailed [entity description](#describing-entities) combining element, file, and module information.
 
 - __Parameters__:
-  - `filePath`: `string` — The path of the file to describe.
+  - `filePath`: `string` — Optional. The path of the file to describe.
   - `source`: `string` — Optional. The dependency source string for determining module origin.
 - __Returns__: `EntityDescription`
 
