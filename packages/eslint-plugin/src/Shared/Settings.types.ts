@@ -157,6 +157,7 @@ export type DependencyNodeSelector = {
 export const SETTINGS = {
   // settings
   ELEMENTS: `${PLUGIN_NAME}/elements`,
+  ELEMENTS_SINGLE_TYPE: `${PLUGIN_NAME}/elements-single-type`,
   IGNORE: `${PLUGIN_NAME}/ignore`,
   INCLUDE: `${PLUGIN_NAME}/include`,
   ROOT_PATH: `${PLUGIN_NAME}/root-path`,
@@ -256,6 +257,7 @@ export const SETTINGS = {
  */
 export const SETTINGS_KEYS_MAP = {
   ELEMENTS: SETTINGS.ELEMENTS,
+  ELEMENTS_SINGLE_TYPE: SETTINGS.ELEMENTS_SINGLE_TYPE,
   FILES: SETTINGS.FILES,
   IGNORE: SETTINGS.IGNORE,
   INCLUDE: SETTINGS.INCLUDE,
@@ -376,6 +378,12 @@ export type Settings = {
   [SETTINGS_KEYS_MAP.ELEMENTS]?: ElementDescriptors;
 
   /**
+   * When `true`, each element is assigned only the first matching element descriptor's type.
+   * When `false` (default), elements accumulate all matching descriptor types.
+   */
+  [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]?: boolean;
+
+  /**
    * File descriptors to define specific file patterns and their associated metadata.
    * Each file descriptor includes a category and a pattern to match files, along with optional settings.
    */
@@ -433,6 +441,8 @@ export type Settings = {
 export type SettingsNormalized = {
   /** Element descriptors */
   elementDescriptors: ElementDescriptors;
+  /** Whether each element should be assigned only the first matching descriptor's type */
+  elementsSingleType: boolean;
   /** File descriptors */
   fileDescriptors: FileDescriptors;
   /** List of glob patterns to ignore when analyzing dependencies */

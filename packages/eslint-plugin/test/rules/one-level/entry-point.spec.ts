@@ -221,10 +221,10 @@ runTest(
     },
   ],
   [
-    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
-    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-a"',
-    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-a"',
-    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "components" and captured values: elementName="component-b"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "helpers" and captured values: elementName="helper-a"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "helpers" and captured values: elementName="helper-a"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "components" and captured values: elementName="component-b"',
   ]
 );
 
@@ -252,10 +252,10 @@ runTest(
     },
   ],
   [
-    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
-    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-a"',
-    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-a"',
-    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "components" and captured values: elementName="component-b"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "helpers" and captured values: elementName="helper-a"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "helpers" and captured values: elementName="helper-a"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "components" and captured values: elementName="component-b"',
   ]
 );
 
@@ -283,10 +283,10 @@ runTest(
     },
   ],
   [
-    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
-    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-a"',
-    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-a"',
-    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "components" and captured values: elementName="component-b"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "helpers" and captured values: elementName="helper-a"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "helpers" and captured values: elementName="helper-a"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "components" and captured values: elementName="component-b"',
   ]
 );
 
@@ -326,7 +326,7 @@ runTest(
     },
   ],
   [
-    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "components" and captured values: elementName="component-b"',
     'Dependencies to elements of type "helpers" and fileInternalPath "index.js" are not allowed. Denied by rule at index 0',
     'Dependencies to elements of type "helpers" and fileInternalPath "index.js" are not allowed. Denied by rule at index 0',
     'Dependencies to elements of type "components" and fileInternalPath "main.js" are not allowed. Denied by rule at index 2',
@@ -365,8 +365,8 @@ testCapture(
     },
   ],
   [
-    'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-b"',
-    'Dependencies to elements of type "helpers", elementName "helper-a" and fileInternalPath "main.js" are not allowed. Denied by rule at index 1',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "helpers" and captured values: elementName="helper-b"',
+    'Dependencies to elements of type "helpers", captured values: elementName="helper-a" and fileInternalPath "main.js" are not allowed. Denied by rule at index 1',
   ]
 );
 

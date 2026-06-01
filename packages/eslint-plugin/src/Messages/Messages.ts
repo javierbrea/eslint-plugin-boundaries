@@ -600,20 +600,31 @@ function entityDescriptionMessageFromSelector(
 function dependencySourceFromToSelectorMessage(
   toSelectorData: DependencySingleSelectorMatchResult["to"] | null | undefined,
   dependency: DependencyDescription
-): string | null {
+): string[] {
   if (!toSelectorData?.module) {
-    return null;
+    return [];
   }
-
-  if (isUndefined(toSelectorData.module.source)) {
-    return null;
+  const fragments: string[] = [];
+  if (
+    !isUndefined(toSelectorData.module.source) &&
+    shouldRenderDependencyValue(dependency.to.module.source, true)
+  ) {
+    fragments.push(
+      formatPropertyFragment("module source", dependency.to.module.source)
+    );
   }
-
-  if (shouldRenderDependencyValue(dependency.to.module.source, true)) {
-    return formatPropertyFragment("source", dependency.to.module.source);
+  if (
+    !isUndefined(toSelectorData.module.internalPath) &&
+    shouldRenderDependencyValue(dependency.to.module.internalPath, true)
+  ) {
+    fragments.push(
+      formatPropertyFragment(
+        "module internalPath",
+        dependency.to.module.internalPath
+      )
+    );
   }
-
-  return null;
+  return fragments;
 }
 
 /**
@@ -783,7 +794,7 @@ function dependenciesNoRuleMatchedMessage(
   )
     ? `module with origin ${formatPropertyValue(targetModuleOrigin)}${
         shouldRenderDependencyValue(targetModuleSource, false)
-          ? ` and source ${formatPropertyValue(targetModuleSource)}`
+          ? ` and module source ${formatPropertyValue(targetModuleSource)}`
           : ""
       }`
     : "";
@@ -847,19 +858,23 @@ export function dependenciesRuleMatchedMessage(
         matchResult!.dependency ?? null
       )
     : [];
-  const dependencyToSourcePart = dependencySourceFromToSelectorMessage(
+  const dependencyToSourceFragments = dependencySourceFromToSelectorMessage(
     matchResult?.to,
     dependency
   );
 
-  if (dependencyToSourcePart) {
+  if (dependencyToSourceFragments.length) {
     const specifiersIndex = dependencyFragments.findIndex((fragment) =>
       fragment.startsWith("specifiers ")
     );
     if (specifiersIndex === -1) {
-      dependencyFragments.push(dependencyToSourcePart);
+      dependencyFragments.push(...dependencyToSourceFragments);
     } else {
-      dependencyFragments.splice(specifiersIndex, 0, dependencyToSourcePart);
+      dependencyFragments.splice(
+        specifiersIndex,
+        0,
+        ...dependencyToSourceFragments
+      );
     }
   }
 

@@ -3,6 +3,7 @@ import type {
   DependencyInfoSelector,
   DependencySelector,
   DependencySingleSelector,
+  ModuleSingleSelector,
 } from "@boundaries/elements";
 
 import { rulesOptionsSchema, warnMigrationToDependencies } from "../Settings";
@@ -44,6 +45,20 @@ function isExternalLibrarySelectorWithOptions(
 }
 
 /**
+ * Strips the leading slash from a path so it matches the normalized `module.internalPath`
+ * value exposed by the elements package.
+ *
+ * @param path The raw path option supplied by the user.
+ * @returns The path without a leading slash, or the original value when not a string.
+ */
+function normalizeInternalPath<T>(path: T): T {
+  if (isString(path) && path.startsWith("/")) {
+    return path.slice(1) as T;
+  }
+  return path;
+}
+
+/**
  * Builds a dependency selector from a legacy external selector using tuple syntax with options.
  * @param selector The external library selector in legacy format with options.
  * @returns The corresponding dependency selector compatible with `dependencies` rule evaluator.
@@ -54,27 +69,29 @@ function buildSelectorFromLegacySelectorWithOptions(
   const moduleSelector = selector[0];
   const selectorOptions = selector[1];
   const dependencyInfoSelector: DependencyInfoSelector = {};
+  const moduleSingleSelector: ModuleSingleSelector = {
+    origin: [ORIGINS_MAP.EXTERNAL, ORIGINS_MAP.CORE],
+    source: moduleSelector,
+  };
 
   if (selectorOptions.specifiers) {
     dependencyInfoSelector.specifiers = selectorOptions.specifiers;
   }
   if (selectorOptions.path) {
-    // Workaround to maintain backward compatibility. Now we have not any property with the internalPath of core or external modules. The source must be used instead
-    // TODO: Use dependency.moduleInternalPath or similar instead of source and update the legacy selector syntax to reflect this change
-    dependencyInfoSelector.source = isString(selectorOptions.path)
-      ? `**/${selectorOptions.path}`.replaceAll("//", "/")
-      : selectorOptions.path.map((p) => `**/${p}`.replaceAll("//", "/"));
+    moduleSingleSelector.internalPath = isString(selectorOptions.path)
+      ? normalizeInternalPath(selectorOptions.path)
+      : selectorOptions.path.map(normalizeInternalPath);
   }
 
-  return {
+  const result: DependencySingleSelector = {
     to: {
-      module: {
-        origin: [ORIGINS_MAP.EXTERNAL, ORIGINS_MAP.CORE],
-        source: moduleSelector,
-      },
+      module: moduleSingleSelector,
     },
-    dependency: dependencyInfoSelector,
   };
+  if (dependencyInfoSelector.specifiers) {
+    result.dependency = dependencyInfoSelector;
+  }
+  return result;
 }
 
 /**

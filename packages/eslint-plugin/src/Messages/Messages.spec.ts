@@ -208,7 +208,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 2, dependency)).toBe(
-        'Dependencies with source "@scope/helpers", kind "type", nodeKind "ImportDeclaration", relationship from "sibling", relationship to "sibling", source "@scope/helpers" and specifiers "Fetcher", "FetcherConfig" to file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper" and captured values: domain="api" are not allowed in file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" and module with origin "local". Denied by rule at index 2'
+        'Dependencies with source "@scope/helpers", kind "type", nodeKind "ImportDeclaration", relationship from "sibling", relationship to "sibling", module source "@scope/helpers" and specifiers "Fetcher", "FetcherConfig" to file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper" and captured values: domain="api" are not allowed in file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" and module with origin "local". Denied by rule at index 2'
       );
     });
   });
@@ -218,7 +218,7 @@ describe("Messages", () => {
       const dependency = createDependencyDescription();
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" to entities of module with origin "external" and source "@scope/helpers" being file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper", category "data" and captured values: domain="api"'
+        'There is no rule allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" to entities of module with origin "external" and module source "@scope/helpers" being file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper", category "data" and captured values: domain="api"'
       );
     });
 
@@ -257,7 +257,7 @@ describe("Messages", () => {
       });
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" to entities of module with origin "external" and source "@scope/helpers" being file of category "shared" and captured values: team="platform"'
+        'There is no rule allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" to entities of module with origin "external" and module source "@scope/helpers" being file of category "shared" and captured values: team="platform"'
       );
     });
 
@@ -328,7 +328,7 @@ describe("Messages", () => {
       });
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" to entities of module with origin "external" and source "@scope/helpers"'
+        'There is no rule allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" to entities of module with origin "external" and module source "@scope/helpers"'
       );
     });
   });

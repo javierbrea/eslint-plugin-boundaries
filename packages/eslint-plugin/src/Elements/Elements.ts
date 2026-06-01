@@ -23,7 +23,11 @@ const elements = new Elements();
  */
 export function getElementsMatcher(settings: SettingsNormalized): Matcher {
   const elementsMatcher = elements.getMatcher(
-    { elements: settings.elementDescriptors, files: settings.fileDescriptors },
+    {
+      elements: settings.elementDescriptors,
+      files: settings.fileDescriptors,
+      elementsSingleType: settings.elementsSingleType,
+    },
     {
       ignorePaths: settings.ignorePaths,
       includePaths: settings.includePaths,

@@ -239,15 +239,15 @@ runTest(
   ],
   pathResolvers("two-levels"),
   [
-    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-b" to elements of type "helpers" and elementName "helper-b"',
-    'Dependencies to elements of type "helpers", elementName "helper-a" and fileInternalPath "main.js" are not allowed. Denied by rule at index 1',
-    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "components", category "atoms" and elementName "atom-b"',
-    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "components", category "molecules" and elementName "molecule-b"',
-    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "components", category "layouts" and elementName "layout-a"',
-    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "modules", domain "domain-a" and elementName "module-a"',
-    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "modules", domain "domain-a" and elementName "module-a"',
-    'Dependencies to elements of type "modules", domain "pages" and fileInternalPath "ModuleA.js" are not allowed. Denied by rule at index 7',
-    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "modules", domain "pages" and elementName "page-a"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: category="atoms", elementName="atom-b" to elements of type "helpers" and captured values: elementName="helper-b"',
+    'Dependencies to elements of type "helpers", captured values: elementName="helper-a" and fileInternalPath "main.js" are not allowed. Denied by rule at index 1',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: category="atoms", elementName="atom-a" to elements of type "components" and captured values: category="atoms", elementName="atom-b"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: category="atoms", elementName="atom-a" to elements of type "components" and captured values: category="molecules", elementName="molecule-b"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: category="atoms", elementName="atom-a" to elements of type "components" and captured values: category="layouts", elementName="layout-a"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: category="atoms", elementName="atom-a" to elements of type "modules" and captured values: domain="domain-a", elementName="module-a"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: category="atoms", elementName="atom-a" to elements of type "modules" and captured values: domain="domain-a", elementName="module-a"',
+    'Dependencies to elements of type "modules", captured values: domain="pages" and fileInternalPath "ModuleA.js" are not allowed. Denied by rule at index 7',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: category="atoms", elementName="atom-a" to elements of type "modules" and captured values: domain="pages", elementName="page-a"',
   ]
 );
 
@@ -295,14 +295,14 @@ runTest(
   ],
   pathResolvers("two-levels-with-private"),
   [
-    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-b" to elements of type "helpers" and elementName "helper-b"',
-    'Dependencies to elements of type "helpers", elementName "helper-a" and fileInternalPath "main.js" are not allowed. Denied by rule at index 1',
-    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "components", category "atoms" and elementName "atom-b"',
-    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "components", category "molecules" and elementName "molecule-b"',
-    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "components", category "layouts" and elementName "layout-a"',
-    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "modules", domain "domain-a" and elementName "module-a"',
-    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "modules", domain "domain-a" and elementName "module-a"',
-    'Dependencies to elements of type "modules", domain "pages" and fileInternalPath "ModuleA.js" are not allowed. Denied by rule at index 7',
-    'There is no rule allowing dependencies from elements of type "components", category "atoms" and elementName "atom-a" to elements of type "modules", domain "pages" and elementName "page-a"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: category="atoms", elementName="atom-b" to elements of type "helpers" and captured values: elementName="helper-b"',
+    'Dependencies to elements of type "helpers", captured values: elementName="helper-a" and fileInternalPath "main.js" are not allowed. Denied by rule at index 1',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: category="atoms", elementName="atom-a" to elements of type "components" and captured values: category="atoms", elementName="atom-b"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: category="atoms", elementName="atom-a" to elements of type "components" and captured values: category="molecules", elementName="molecule-b"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: category="atoms", elementName="atom-a" to elements of type "components" and captured values: category="layouts", elementName="layout-a"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: category="atoms", elementName="atom-a" to elements of type "modules" and captured values: domain="domain-a", elementName="module-a"',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: category="atoms", elementName="atom-a" to elements of type "modules" and captured values: domain="domain-a", elementName="module-a"',
+    'Dependencies to elements of type "modules", captured values: domain="pages" and fileInternalPath "ModuleA.js" are not allowed. Denied by rule at index 7',
+    'There is no rule allowing dependencies from elements of type "components" and captured values: category="atoms", elementName="atom-a" to elements of type "modules" and captured values: domain="pages", elementName="page-a"',
   ]
 );

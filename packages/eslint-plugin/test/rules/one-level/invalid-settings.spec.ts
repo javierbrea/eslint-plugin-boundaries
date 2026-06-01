@@ -16,7 +16,7 @@ const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
   {
-    0: errorMessage0 = 'There is no rule allowing dependencies from elements of type "helpers" and elementName "helper-a" to elements of type "helpers" and elementName "helper-b"',
+    0: errorMessage0 = 'There is no rule allowing dependencies from elements of type "helpers" and captured values: elementName="helper-a" to elements of type "helpers" and captured values: elementName="helper-b"',
   }: Partial<Record<number, string>> = {}
 ) => {
   testsCounter++;

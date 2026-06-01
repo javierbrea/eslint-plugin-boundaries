@@ -56,7 +56,7 @@ const testDefaultSettings = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: '"helpers", package "a" and elementName "helper-a"',
+              file: '"helpers" and captured values: package="a", elementName="helper-a"',
               dep: "micromatch",
             }),
             type: "Literal",
@@ -71,7 +71,7 @@ const testDefaultSettings = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: '"helpers", package "a" and elementName "helper-a"',
+              file: '"helpers" and captured values: package="a", elementName="helper-a"',
               dep: "unknown-package-xyz",
             }),
             type: "Literal",
@@ -144,8 +144,8 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message: externalNoRuleMessage2({
-              file: '"components" and elementName "component-a"',
-              dep: '"package-b" being elements of type "helpers" and elementName "helper-b"',
+              file: '"components" and captured values: elementName="component-a"',
+              dep: '"package-b" being elements of type "helpers" and captured values: elementName="helper-b"',
             }),
             type: "Literal",
           },
@@ -165,7 +165,7 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message:
-              'Dependencies with module "package-b" to entities of origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
+              'Dependencies with module source "package-b" to entities of module with origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
             type: "Literal",
           },
         ],
@@ -178,7 +178,7 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: '"helpers" and elementName "helper-a"',
+              file: '"helpers" and captured values: elementName="helper-a"',
               dep: "micromatch",
             }),
             type: "Literal",
@@ -251,8 +251,8 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message: externalNoRuleMessage2({
-              file: '"components", package "a" and elementName "component-a"',
-              dep: '"package-b" being elements of type "helpers", package "b" and elementName "helper-b"',
+              file: '"components" and captured values: package="a", elementName="component-a"',
+              dep: '"package-b" being elements of type "helpers" and captured values: package="b", elementName="helper-b"',
             }),
             type: "Literal",
           },
@@ -272,7 +272,7 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message:
-              'Dependencies with module "package-b" to entities of origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
+              'Dependencies with module source "package-b" to entities of module with origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
             type: "Literal",
           },
         ],
@@ -285,7 +285,7 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: '"helpers", package "a" and elementName "helper-a"',
+              file: '"helpers" and captured values: package="a", elementName="helper-a"',
               dep: "micromatch",
             }),
             type: "Literal",
@@ -382,7 +382,7 @@ const testUnresolvableAliasDisabled = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: '"helpers", package "a" and elementName "helper-a"',
+              file: '"helpers" and captured values: package="a", elementName="helper-a"',
               dep: "micromatch",
             }),
             type: "Literal",
@@ -425,7 +425,7 @@ const testInvalidSettings = () => {
         errors: [
           {
             message: externalNoRuleMessage({
-              file: '"helpers", package "a" and elementName "helper-a"',
+              file: '"helpers" and captured values: package="a", elementName="helper-a"',
               dep: "eslint",
             }),
             type: "Literal",

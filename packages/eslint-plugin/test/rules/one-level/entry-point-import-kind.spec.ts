@@ -123,10 +123,10 @@ runTest(
     },
   ],
   {
-    0: 'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "helpers" and elementName "helper-a"',
-    1: 'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "components" and elementName "component-b"',
-    2: 'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "modules" and elementName "module-a"',
-    3: 'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of type "modules" and elementName "module-a"',
+    0: 'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "helpers" and captured values: elementName="helper-a"',
+    1: 'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "components" and captured values: elementName="component-b"',
+    2: 'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "modules" and captured values: elementName="module-a"',
+    3: 'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "modules" and captured values: elementName="module-a"',
   }
 );
 

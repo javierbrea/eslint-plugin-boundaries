@@ -143,7 +143,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of parent type "components" and elementName "molecule-c" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of parent type "components" and captured values: elementName="molecule-c" are not allowed. Denied by rule at index 0',
             type: "Literal",
           },
         ],

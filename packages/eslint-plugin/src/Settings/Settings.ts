@@ -638,6 +638,28 @@ function getNormalizedLegacyTemplates(legacyTemplates: unknown): boolean {
 }
 
 /**
+ * Normalizes elements-single-type setting, validating and applying defaults.
+ *
+ * @param elementsSingleType - Raw elements-single-type setting value.
+ * @returns Boolean value or default.
+ */
+function getNormalizedElementsSingleType(elementsSingleType: unknown): boolean {
+  if (isUndefined(elementsSingleType)) {
+    return false;
+  }
+
+  if (isBoolean(elementsSingleType)) {
+    return elementsSingleType;
+  }
+
+  warnOnce(
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE}' setting.`,
+    `The value should be a boolean. ${moreInfoSettingsLink()}`
+  );
+  return false;
+}
+
+/**
  * Normalizes cache setting, validating and applying defaults.
  *
  * @param cache - Raw cache setting value.
@@ -786,6 +808,10 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
     settings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]
   );
 
+  const elementsSingleType = getNormalizedElementsSingleType(
+    settings[SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]
+  );
+
   const cache = getNormalizedCache(settings[SETTINGS_KEYS_MAP.CACHE]);
 
   const flagAsExternal = getNormalizedFlagAsExternal(
@@ -798,6 +824,7 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
 
   const result: SettingsNormalized = {
     elementDescriptors,
+    elementsSingleType,
     fileDescriptors,
     ignorePaths,
     includePaths,

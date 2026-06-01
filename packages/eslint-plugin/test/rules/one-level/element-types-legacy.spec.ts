@@ -214,8 +214,8 @@ const runTest = (
               errorMessages,
               0,
               elementTypesNoRuleMessage({
-                file: '"helpers" and elementName "helper-a"',
-                dep: '"helpers" and elementName "helper-b"',
+                file: '"helpers" and captured values: elementName="helper-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
               })
             ),
             type: "Literal",
@@ -233,8 +233,8 @@ const runTest = (
               errorMessages,
               1,
               elementTypesNoRuleMessage({
-                file: '"helpers" and elementName "helper-a"',
-                dep: '"helpers" and elementName "helper-b"',
+                file: '"helpers" and captured values: elementName="helper-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
               })
             ),
             type: "Literal",
@@ -252,8 +252,8 @@ const runTest = (
               errorMessages,
               2,
               elementTypesNoRuleMessage({
-                file: '"helpers" and elementName "helper-a"',
-                dep: '"components" and elementName "component-a"',
+                file: '"helpers" and captured values: elementName="helper-a"',
+                dep: '"components" and captured values: elementName="component-a"',
               })
             ),
             type: "Literal",
@@ -271,8 +271,8 @@ const runTest = (
               errorMessages,
               3,
               elementTypesNoRuleMessage({
-                file: '"helpers" and elementName "helper-a"',
-                dep: '"modules" and elementName "module-a"',
+                file: '"helpers" and captured values: elementName="helper-a"',
+                dep: '"modules" and captured values: elementName="module-a"',
               })
             ),
             type: "Literal",
@@ -290,8 +290,8 @@ const runTest = (
               errorMessages,
               4,
               elementTypesNoRuleMessage({
-                file: '"components" and elementName "component-a"',
-                dep: '"modules" and elementName "module-a"',
+                file: '"components" and captured values: elementName="component-a"',
+                dep: '"modules" and captured values: elementName="module-a"',
               })
             ),
             type: "Literal",
@@ -354,8 +354,8 @@ const testCapture = (
               errorMessages,
               0,
               elementTypesNoRuleMessage({
-                file: '"components" and elementName "component-a"',
-                dep: '"helpers" and elementName "helper-b"',
+                file: '"components" and captured values: elementName="component-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
               })
             ),
             type: "Literal",
@@ -373,8 +373,8 @@ const testCapture = (
               errorMessages,
               1,
               elementTypesNoRuleMessage({
-                file: '"components" and elementName "component-a"',
-                dep: '"helpers" and elementName "helper-b"',
+                file: '"components" and captured values: elementName="component-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
               })
             ),
             type: "Literal",
@@ -392,8 +392,8 @@ const testCapture = (
               errorMessages,
               2,
               elementTypesNoRuleMessage({
-                file: '"components" and elementName "component-b"',
-                dep: '"components" and elementName "component-a"',
+                file: '"components" and captured values: elementName="component-b"',
+                dep: '"components" and captured values: elementName="component-a"',
               })
             ),
             type: "Literal",
@@ -411,8 +411,8 @@ const testCapture = (
               errorMessages,
               3,
               elementTypesNoRuleMessage({
-                file: '"modules" and elementName "module-a"',
-                dep: '"helpers" and elementName "helper-b"',
+                file: '"modules" and captured values: elementName="module-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
               })
             ),
             type: "Literal",
@@ -637,7 +637,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and elementName "component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
   }
 );
 
@@ -691,7 +691,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and elementName "component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
   }
 );
 
@@ -776,7 +776,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and elementName "component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
   }
 );
 
@@ -803,6 +803,6 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and elementName "component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
   }
 );

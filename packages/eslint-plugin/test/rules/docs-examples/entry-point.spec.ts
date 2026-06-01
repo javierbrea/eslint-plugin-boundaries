@@ -69,7 +69,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of type "components", family "atoms" and elementName "atom-a"',
+            'There is no rule allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to elements of type "components" and captured values: family="atoms", elementName="atom-a"',
           type: "Literal",
         },
       ],
@@ -82,7 +82,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of type "modules" and elementName "module-b"',
+            'There is no rule allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to elements of type "modules" and captured values: elementName="module-b"',
           type: "Literal",
         },
       ],

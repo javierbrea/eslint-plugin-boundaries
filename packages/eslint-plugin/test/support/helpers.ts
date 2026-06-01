@@ -45,6 +45,7 @@ export const SETTINGS: Record<string, RuleTesterSettings> = {
     },
   },
   oneLevel: {
+    "boundaries/elements-single-type": true,
     "boundaries/elements": [
       {
         type: "helpers",
@@ -73,6 +74,7 @@ export const SETTINGS: Record<string, RuleTesterSettings> = {
     },
   },
   twoLevels: {
+    "boundaries/elements-single-type": true,
     "boundaries/elements": [
       {
         type: "helpers",
@@ -100,6 +102,7 @@ export const SETTINGS: Record<string, RuleTesterSettings> = {
     },
   },
   twoLevelsWithPrivate: {
+    "boundaries/elements-single-type": true,
     "boundaries/elements": [
       {
         type: "helpers",
@@ -145,6 +148,7 @@ export const SETTINGS: Record<string, RuleTesterSettings> = {
     },
   },
   docsExamples: {
+    "boundaries/elements-single-type": true,
     "boundaries/elements": [
       {
         type: "helpers",
@@ -175,6 +179,7 @@ export const SETTINGS: Record<string, RuleTesterSettings> = {
     },
   },
   basePattern: {
+    "boundaries/elements-single-type": true,
     "boundaries/elements": [
       {
         type: "modules",
@@ -201,6 +206,7 @@ export const SETTINGS: Record<string, RuleTesterSettings> = {
     },
   },
   layered: {
+    "boundaries/elements-single-type": true,
     "boundaries/elements": [
       {
         type: "modules",
@@ -217,6 +223,7 @@ export const SETTINGS: Record<string, RuleTesterSettings> = {
     },
   },
   flagAsExternal: {
+    "boundaries/elements-single-type": true,
     "boundaries/elements": [
       {
         type: "helpers",

@@ -15,7 +15,7 @@ const options = [
   {
     default: "allow",
     message:
-      'Dependency is private of element of type "${dependency.parent.type}" and elementName "${dependency.parent.elementName}"',
+      'Dependency is private of element of type "${dependency.parent.type}" and captured values: elementName="${dependency.parent.elementName}"',
     rules: [
       {
         disallow: {
@@ -179,7 +179,7 @@ const runTest = (settings: RuleTesterSettings) => {
         errors: [
           {
             message:
-              'Dependency is private of element of type "components" and elementName "component-c"',
+              'Dependency is private of element of type "components" and captured values: elementName="component-c"',
             type: "Literal",
           },
         ],
@@ -192,7 +192,7 @@ const runTest = (settings: RuleTesterSettings) => {
         errors: [
           {
             message:
-              'Dependency is private of element of type "components" and elementName "component-a"',
+              'Dependency is private of element of type "components" and captured values: elementName="component-a"',
             type: "Literal",
           },
         ],
@@ -207,7 +207,7 @@ const runTest = (settings: RuleTesterSettings) => {
         errors: [
           {
             message:
-              'Dependency is private of element of type "helpers" and elementName "helper-a"',
+              'Dependency is private of element of type "helpers" and captured values: elementName="helper-a"',
             type: "Literal",
           },
         ],
@@ -220,7 +220,7 @@ const runTest = (settings: RuleTesterSettings) => {
         errors: [
           {
             message:
-              'Dependency is private of element of type "helpers" and elementName "helper-a"',
+              'Dependency is private of element of type "helpers" and captured values: elementName="helper-a"',
             type: "Literal",
           },
         ],

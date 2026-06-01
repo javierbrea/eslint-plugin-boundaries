@@ -60,8 +60,8 @@ const testDefaultSettings = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: '"helpers", package "a" and elementName "helper-a"',
-              dep: '"components", package "a" and elementName "component-a"',
+              file: '"helpers" and captured values: package="a", elementName="helper-a"',
+              dep: '"components" and captured values: package="a", elementName="component-a"',
             }),
             type: "Literal",
           },
@@ -87,8 +87,8 @@ const testDefaultSettings = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: '"components", package "a" and elementName "component-a"',
-              dep: '"helpers", package "b" and elementName "helper-b"',
+              file: '"components" and captured values: package="a", elementName="component-a"',
+              dep: '"helpers" and captured values: package="b", elementName="helper-b"',
             }),
             type: "Literal",
           },
@@ -151,8 +151,8 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: '"helpers" and elementName "helper-a"',
-              dep: '"components" and elementName "component-a"',
+              file: '"helpers" and captured values: elementName="helper-a"',
+              dep: '"components" and captured values: elementName="component-a"',
             }),
             type: "Literal",
           },
@@ -214,8 +214,8 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: '"helpers", package "a" and elementName "helper-a"',
-              dep: '"components", package "a" and elementName "component-a"',
+              file: '"helpers" and captured values: package="a", elementName="helper-a"',
+              dep: '"components" and captured values: package="a", elementName="component-a"',
             }),
             type: "Literal",
           },
