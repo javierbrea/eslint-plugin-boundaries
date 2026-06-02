@@ -188,9 +188,11 @@ function mergeElementSingleSelector(
   outer?: ElementSingleSelectorNormalized,
   entry?: ElementSingleSelectorNormalized
 ): ElementSingleSelectorNormalized | undefined {
+  /* istanbul ignore next -- Defensive: callers always pass a defined entry through flatMap; preserved for type safety */
   if (!entry) {
     return outer;
   }
+  /* istanbul ignore next -- Defensive: callers always pass a defined outer through flatMap; preserved for type safety */
   if (!outer) {
     return entry;
   }
@@ -211,9 +213,11 @@ function mergeParentSingleSelector(
   outer?: ParentElementSingleSelector,
   entry?: ParentElementSingleSelector
 ): ParentElementSingleSelector | undefined {
+  /* istanbul ignore next -- Defensive: callers always pass a defined entry through flatMap; preserved for type safety */
   if (!entry) {
     return outer;
   }
+  /* istanbul ignore next -- Defensive: callers always pass a defined outer through flatMap; preserved for type safety */
   if (!outer) {
     return entry;
   }
@@ -278,9 +282,11 @@ function mergeFileSingleSelector(
   outer?: FileSingleSelector,
   entry?: FileSingleSelector
 ): FileSingleSelector | undefined {
+  /* istanbul ignore next -- Defensive: callers always pass a defined entry through flatMap; preserved for type safety */
   if (!entry) {
     return outer;
   }
+  /* istanbul ignore next -- Defensive: callers always pass a defined outer through flatMap; preserved for type safety */
   if (!outer) {
     return entry;
   }
@@ -318,9 +324,11 @@ function mergeModuleSingleSelector(
   outer?: ModuleSingleSelector,
   entry?: ModuleSingleSelector
 ): ModuleSingleSelector | undefined {
+  /* istanbul ignore next -- Defensive: callers always pass a defined entry through flatMap; preserved for type safety */
   if (!entry) {
     return outer;
   }
+  /* istanbul ignore next -- Defensive: callers always pass a defined outer through flatMap; preserved for type safety */
   if (!outer) {
     return entry;
   }

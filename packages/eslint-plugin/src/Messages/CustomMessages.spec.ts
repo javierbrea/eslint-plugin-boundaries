@@ -353,5 +353,233 @@ describe("CustomMessages", () => {
         "no-rule"
       );
     });
+
+    it("omits origin in handlebars context when module origin is undefined", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          module: {
+            origin: undefined,
+            source: null,
+            internalPath: null,
+          } as unknown as DependencyDescription["from"]["module"],
+        },
+      });
+      const template =
+        "{{#if from.origin}}origin:{{from.origin}}{{else}}no-origin{{/if}}";
+
+      expect(customErrorMessage(template, dependency)).toBe("no-origin");
+    });
+
+    it("preserves non-array parents in handlebars context", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          element: {
+            path: "/repo/src/components/button/index.ts",
+            types: ["component"],
+            category: "ui",
+            filePath: "/repo/src/components/button/index.ts",
+            fileInternalPath: "index.ts",
+            captured: { family: "atoms" },
+            parents: null,
+            isIgnored: false,
+            isUnknown: false,
+          } as unknown as DependencyDescription["from"]["element"],
+        },
+        to: {
+          element: {
+            path: "/repo/src/helpers/fetcher.ts",
+            types: ["helper"],
+            category: "data",
+            filePath: "/repo/src/helpers/fetcher.ts",
+            fileInternalPath: "fetcher.ts",
+            captured: { domain: "api" },
+            parents: null,
+            isIgnored: false,
+            isUnknown: false,
+          } as unknown as DependencyDescription["to"]["element"],
+        },
+      });
+      const template =
+        "{{from.element.type}}->{{to.element.type}}|{{#if from.parents}}has{{else}}none{{/if}}";
+
+      expect(customErrorMessage(template, dependency)).toBe(
+        "component->helper|none"
+      );
+    });
+
+    it("handles match result with missing from and to selectors", () => {
+      const matchResult: DependencySingleSelectorMatchResult = {
+        dependency: { kind: "type" },
+      };
+      const template =
+        "rule:{{rule.index}}|from:{{#if rule.selector.from}}yes{{else}}no{{/if}}|to:{{#if rule.selector.to}}yes{{else}}no{{/if}}";
+
+      expect(
+        customErrorMessage(template, dependencyDescription, 5, matchResult)
+      ).toBe("rule:5|from:no|to:no");
+    });
+
+    it("exposes elementPath and internalPath in rule selector when filePath fields are defined", () => {
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: {
+            type: "component",
+            filePath: "/repo/src/components/button/index.ts",
+            fileInternalPath: "index.ts",
+          },
+        },
+        to: {
+          element: {
+            type: "helper",
+            filePath: "/repo/src/helpers/fetcher.ts",
+            fileInternalPath: "fetcher.ts",
+          },
+        },
+        dependency: { kind: "type" },
+      };
+      const template =
+        "{{rule.selector.from.elementPath}}|{{rule.selector.from.internalPath}}|{{rule.selector.to.elementPath}}|{{rule.selector.to.internalPath}}";
+
+      expect(
+        customErrorMessage(template, dependencyDescription, 1, matchResult)
+      ).toBe(
+        "/repo/src/components/button/index.ts|index.ts|/repo/src/helpers/fetcher.ts|fetcher.ts"
+      );
+    });
+
+    it("omits elementPath and internalPath in rule selector when filePath fields are undefined", () => {
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: {
+            type: "component",
+          },
+        },
+        to: {
+          element: {
+            type: "helper",
+          },
+        },
+        dependency: { kind: "type" },
+      };
+      const template =
+        "from-path:{{#if rule.selector.from.elementPath}}yes{{else}}no{{/if}}|from-internal:{{#if rule.selector.from.internalPath}}yes{{else}}no{{/if}}";
+
+      expect(
+        customErrorMessage(template, dependencyDescription, 1, matchResult)
+      ).toBe("from-path:no|from-internal:no");
+    });
+
+    it("skips parent legacy placeholders when from element has no parents", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          element: {
+            path: "/repo/src/components/button/index.ts",
+            types: ["component"],
+            category: "ui",
+            filePath: "/repo/src/components/button/index.ts",
+            fileInternalPath: "index.ts",
+            captured: { family: "atoms" },
+            parents: [],
+            isIgnored: false,
+            isUnknown: false,
+          },
+        },
+      });
+      const template = "${from.parent.layer}";
+
+      expect(customErrorMessage(template, dependency)).toBe(
+        "${from.parent.layer}"
+      );
+    });
+
+    it("skips parent legacy placeholders when to element has no parents", () => {
+      const dependency = createDependencyDescription({
+        to: {
+          element: {
+            path: "/repo/src/helpers/fetcher.ts",
+            types: ["helper"],
+            category: "data",
+            filePath: "/repo/src/helpers/fetcher.ts",
+            fileInternalPath: "fetcher.ts",
+            captured: { domain: "api" },
+            parents: [],
+            isIgnored: false,
+            isUnknown: false,
+          },
+        },
+      });
+      const template = "${dependency.parent.layer}";
+
+      expect(customErrorMessage(template, dependency)).toBe(
+        "${dependency.parent.layer}"
+      );
+    });
+
+    it("falls back to element fileInternalPath for report path when module internalPath is missing", () => {
+      const dependency = createDependencyDescription({
+        to: {
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
+          },
+        },
+      });
+      const template = "${report.path}";
+
+      expect(customErrorMessage(template, dependency)).toBe("fetcher.ts");
+    });
+
+    it("uses module internalPath for report path when present", () => {
+      const dependency = createDependencyDescription({
+        to: {
+          module: {
+            origin: "external",
+            source: "@scope/helpers",
+            internalPath: "nested/api.ts",
+          },
+        },
+      });
+      const template = "${report.path}";
+
+      expect(customErrorMessage(template, dependency)).toBe("nested/api.ts");
+    });
+
+    it("falls back to empty string for report path when no internal paths exist", () => {
+      const dependency = createDependencyDescription({
+        to: {
+          element: {
+            path: "/repo/src/helpers/fetcher.ts",
+            types: ["helper"],
+            category: "data",
+            filePath: "/repo/src/helpers/fetcher.ts",
+            fileInternalPath: null,
+            captured: { domain: "api" },
+            parents: [targetParent],
+            isIgnored: false,
+            isUnknown: false,
+          },
+          module: {
+            origin: "local",
+            source: null,
+            internalPath: null,
+          },
+        },
+      });
+      const template = "[${report.path}]";
+
+      expect(customErrorMessage(template, dependency)).toBe("[]");
+    });
+
+    it("falls back to empty string for report specifiers when missing", () => {
+      const dependency = createDependencyDescription({
+        dependency: {
+          specifiers: undefined,
+        } as unknown as Partial<DependencyDescription["dependency"]>,
+      });
+      const template = "[${report.specifiers}]";
+
+      expect(customErrorMessage(template, dependency)).toBe("[]");
+    });
   });
 });

@@ -299,7 +299,10 @@ function buildRelationshipFragments(
   includeNullValues: boolean
 ): string[] {
   const fragments: string[] = [];
-  for (const relationshipKey of relationshipKeys ?? ["from", "to"]) {
+  for (const relationshipKey of /* istanbul ignore next -- Defensive: callers always derive relationshipKeys from the selector */ relationshipKeys ?? [
+    "from",
+    "to",
+  ]) {
     const fragment = buildRelationshipFragment(
       relationship,
       relationshipKey,
@@ -554,6 +557,7 @@ function entityDescriptionMessageFromSelector(
   selectorData: DependencySingleSelectorMatchResult["from"] | null | undefined,
   { includeModule = true }: { includeModule?: boolean } = {}
 ): string | null {
+  /* istanbul ignore next -- Defensive: callers always guard with selector key length > 0 */
   if (!selectorData) {
     return null;
   }
@@ -723,10 +727,12 @@ function dependencyDescriptionFragmentsFromSelector(
   dependencyInfo: DependencyInfoDescription,
   selectorData: DependencyInfoSingleSelector | null
 ): string[] {
+  /* istanbul ignore next -- Defensive: caller only invokes when the selector has at least one key */
   if (!selectorData) {
     return [];
   }
   const properties = Object.keys(selectorData);
+  /* istanbul ignore next -- Defensive: caller only invokes when the selector has at least one key */
   if (!properties.length) {
     return [];
   }
@@ -855,6 +861,7 @@ export function dependenciesRuleMatchedMessage(
   const dependencyFragments = dependencyProperties.length
     ? dependencyDescriptionFragmentsFromSelector(
         dependency.dependency,
+        /* istanbul ignore next -- Defensive: dependencyProperties.length guard ensures matchResult.dependency is defined */
         matchResult!.dependency ?? null
       )
     : [];
