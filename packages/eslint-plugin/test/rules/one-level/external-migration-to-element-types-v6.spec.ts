@@ -456,8 +456,8 @@ runTest(
         {
           from: { type: "modules" },
           disallow: {
-            to: { origin: "external" },
-            dependency: { module: "react-router-dom", source: "**/var/*" },
+            to: { origin: "external", internalPath: "/var/*" },
+            dependency: { module: "react-router-dom" },
           },
         },
       ],
@@ -472,7 +472,7 @@ runTest(
     5: 'Dependencies with module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by rule at index 1',
     6: 'Dependencies with module source "foo-library" and specifiers "Link", "Router" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by rule at index 1',
     7: 'Dependencies with module source "@material-ui/core" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by rule at index 3',
-    8: 'Dependencies with source "react-router-dom/var/foo" and module source "react-router-dom" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by rule at index 5',
+    8: 'Dependencies with module source "react-router-dom" and module internalPath "var/foo" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by rule at index 5',
   }
 );
 
@@ -529,8 +529,8 @@ runTest(
         {
           from: { type: "modules" },
           disallow: {
-            to: { origin: "external" },
-            dependency: { module: "react-router-*", source: "**/var/*" },
+            to: { origin: "external", internalPath: "/var/foo" },
+            dependency: { module: "react-router-*" },
           },
         },
         {
@@ -552,7 +552,7 @@ runTest(
     5: 'Dependencies with module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by rule at index 1',
     6: 'Dependencies with module source "foo-library" and specifiers "Link", "Router" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by rule at index 1',
     7: 'Dependencies with module source "@material-ui/core" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by rule at index 3',
-    8: 'Dependencies with source "react-router-dom/var/foo" and module source "react-router-dom" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by rule at index 5',
+    8: 'Dependencies with module source "react-router-dom" and module internalPath "var/foo" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by rule at index 5',
   }
 );
 
@@ -609,8 +609,8 @@ runTest(
         {
           from: { type: "m*" },
           disallow: {
-            to: { origin: "external" },
-            dependency: { module: "react-*", source: "**/var/*" },
+            to: { origin: "external", internalPath: "/var/f*" },
+            dependency: { module: "react-*" },
           },
         },
         {
@@ -632,7 +632,7 @@ runTest(
     5: 'Dependencies with module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by rule at index 1',
     6: 'Dependencies with module source "foo-library" and specifiers "Link", "Router" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by rule at index 1',
     7: 'Dependencies with module source "@material-ui/core" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by rule at index 3',
-    8: 'Dependencies with source "react-router-dom/var/foo" and module source "react-router-dom" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by rule at index 5',
+    8: 'Dependencies with module source "react-router-dom" and module internalPath "var/foo" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by rule at index 5',
   }
 );
 
@@ -689,8 +689,8 @@ runTest(
         {
           from: { type: "modules" },
           disallow: {
-            to: { origin: "external" },
-            dependency: { module: "react-router-dom", source: "**/var/*" },
+            to: { origin: "external", internalPath: ["/var/foo", "fake"] },
+            dependency: { module: "react-router-dom" },
           },
           message: "Do not import ${report.path} from RDD in modules",
         },
@@ -774,8 +774,8 @@ runTest(
         {
           from: { type: "modules" },
           disallow: {
-            to: { origin: "external" },
-            dependency: { module: "react-router-dom", source: ["**/var/*"] },
+            to: { origin: "external", internalPath: "/var/foo" },
+            dependency: { module: "react-router-dom" },
           },
         },
         {

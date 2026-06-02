@@ -451,7 +451,7 @@ runTest(
           from: { type: "modules" },
           disallow: [["react-router-dom", { path: ["/var/foo", "fake"] }]],
           message:
-            "Do not import {{ dependency.kind }} {{ report.path }} from RDD in modules",
+            "Do not import {{ dependency.kind }} ${report.path} from RDD in modules",
           importKind: "*",
         },
         {
@@ -472,8 +472,8 @@ runTest(
     6: 'Dependencies with kind "value", module source "foo-library" and specifiers "Link", "Router" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by rule at index 1',
     7: 'There is no rule allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to entities of module with origin "external" and module source "@material-ui/core"',
     8: 'There is no rule allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to entities of module with origin "external" and module source "@material-ui/core"',
-    9: "Do not import value  from RDD in modules",
-    10: "Do not import type  from RDD in modules",
+    9: "Do not import value var/foo from RDD in modules",
+    10: "Do not import type var/foo from RDD in modules",
     11: 'There is no rule allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to entities of module with origin "external" and module source "@material-ui/icons"',
     12: 'There is no rule allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to entities of module with origin "external" and module source "@material-ui/icons"',
   }

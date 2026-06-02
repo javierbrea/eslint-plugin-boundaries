@@ -99,13 +99,41 @@ export function isEntitySelector(
 }
 
 /**
+ * Strips a leading "/" from a micromatch pattern (or each entry in an array of patterns).
+ * v6 stored external internalPath with a leading slash on `element.fileInternalPath`; v7
+ * stores it without leading slash on `module.internalPath`. When mapping legacy selectors
+ * to the new module-based location we normalize accordingly so user patterns keep matching.
+ */
+function stripLeadingSlash(
+  pattern: MicromatchPatternNullable
+): MicromatchPatternNullable {
+  const stripOne = (entry: string | null): string | null => {
+    if (entry === null) {
+      return null;
+    }
+    return entry.startsWith("/") ? entry.slice(1) : entry;
+  };
+  if (isArray(pattern)) {
+    return pattern.map(stripOne);
+  }
+  return stripOne(pattern);
+}
+
+/**
  * Converts a legacy element single selector into the equivalent entity single selector.
  *
  * Legacy properties are mapped to the new model as follows:
- * - `origin` -> `origin.kind`
+ * - `origin` -> `module.origin`
  * - `elementPath` -> `element.path`
- * - `internalPath` -> `element.fileInternalPath`
+ * - `internalPath` -> `element.fileInternalPath` -> `module.internalPath` (with leading slash stripped to preserve matching with legacy patterns)
  * - `parent.elementPath` -> `element.parent.path`
+ *
+ * When the legacy selector contains `internalPath`, a second OR entry is appended that
+ * routes `internalPath` to `module.internalPath` instead. In v7 external entities no
+ * longer have an `element`, so the v6 mapping to `element.fileInternalPath` never
+ * matched externals. The extra entry preserves the rest of the legacy constraints as
+ * AND, so it only relaxes matching for entities that lack the discarded element
+ * constraints (i.e. externals when only `internalPath`/`origin` are present).
  */
 function normalizeBackwardCompatibleElementSingleSelectorToEntitySingleSelector(
   selector: BackwardCompatibleElementSingleSelector
@@ -160,7 +188,33 @@ function normalizeBackwardCompatibleElementSingleSelectorToEntitySingleSelector(
       ? (rest as ElementSingleSelectorNormalized)
       : normalizeSingleElementSelector(rest);
 
-  return toEntitySelectors(elementSelector, origin);
+  const baseResult = toEntitySelectors(elementSelector, origin);
+
+  const legacyInternalPath = (selector as LegacyElementSingleObjectSelector)
+    .internalPath;
+  if (!isUndefined(legacyInternalPath)) {
+    const moduleFallbackEntry: EntitySingleSelectorNormalized = {};
+    const elementWithoutFileInternalPath: ElementSingleSelectorNormalized = {
+      ...elementSelector,
+    };
+    delete elementWithoutFileInternalPath.fileInternalPath;
+
+    if (Object.keys(elementWithoutFileInternalPath).length > 0) {
+      moduleFallbackEntry.element = [elementWithoutFileInternalPath];
+      if (!isUndefined(originalSelectorPathProperty)) {
+        moduleFallbackEntry.element[0].filePath = originalSelectorPathProperty;
+      }
+    }
+    moduleFallbackEntry.module = [
+      {
+        ...(isUndefined(origin) ? {} : { origin }),
+        internalPath: stripLeadingSlash(legacyInternalPath),
+      },
+    ];
+    baseResult.push(moduleFallbackEntry);
+  }
+
+  return baseResult;
 }
 
 /**

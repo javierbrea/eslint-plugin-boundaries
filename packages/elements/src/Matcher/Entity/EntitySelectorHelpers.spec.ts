@@ -417,6 +417,10 @@ describe("EntitySelectorHelpers", () => {
         {
           element: [{ type: "component", fileInternalPath: "index.ts" }],
         },
+        {
+          element: [{ type: "component" }],
+          module: [{ internalPath: "index.ts" }],
+        },
       ]);
     });
 

@@ -23,9 +23,7 @@ export type ElementDescription = BaseDescription & {
    */
   filePath: string | null;
   /**
-   * Internal path of the file relative to the element it belongs to, or null in case it has not related file
-   * @deprecated Kept only to resolve the legacy `element.internalPath` selector key, which conceptually now belongs to the file/module description (see `module.internalPath`). It will be removed in future versions.
-   * TODO: Remove once the legacy `internalPath` selector key is dropped and consumers migrate to file/module-level paths.
+   * Internal path of the file relative to the element it belongs to, or null in case it has not related file.
    */
   fileInternalPath: string | null;
   /** Parent elements */

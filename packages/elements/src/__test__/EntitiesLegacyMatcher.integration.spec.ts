@@ -323,16 +323,19 @@ describe("Entities Legacy Matcher | Integration", () => {
         filePath: "/project/src/components/Button.tsx",
         selector: { internalPath: "Button.tsx" },
         expected: true,
+        expectedMatch: { element: { fileInternalPath: "Button.tsx" } },
       },
       {
         filePath: "/project/src/components/Button.tsx",
         selector: { internalPath: "Button.*" },
         expected: true,
+        expectedMatch: { element: { fileInternalPath: "Button.*" } },
       },
       {
         filePath: "/project/src/components/Button.tsx",
         selector: { internalPath: ["*.*"] },
         expected: true,
+        expectedMatch: { element: { fileInternalPath: ["*.*"] } },
       },
       {
         filePath: "/project/src/components/Button.tsx",
@@ -392,6 +395,14 @@ describe("Entities Legacy Matcher | Integration", () => {
           internalPath: "**/Button.tsx",
         },
         expected: true,
+        expectedMatch: {
+          element: {
+            types: "component",
+            category: "react",
+            fileInternalPath: "**/Button.tsx",
+          },
+          module: { origin: "local" },
+        },
       },
       {
         filePath: "/project/src/components/Button.tsx",
@@ -402,6 +413,14 @@ describe("Entities Legacy Matcher | Integration", () => {
           internalPath: "Button.tsx",
         },
         expected: true,
+        expectedMatch: {
+          element: {
+            types: "component",
+            category: "react",
+            fileInternalPath: "Button.tsx",
+          },
+          module: { origin: "local" },
+        },
       },
       {
         filePath: "/project/src/components/Button.tsx",
@@ -555,6 +574,7 @@ describe("Entities Legacy Matcher | Integration", () => {
         filePath: "/project/src/modules/user/foo.ts",
         selector: { internalPath: "foo.ts" },
         expected: true,
+        expectedMatch: { element: { fileInternalPath: "foo.ts" } },
       },
       {
         filePath: "/project/src/modules/user/foo.ts",
@@ -1405,6 +1425,14 @@ describe("Entities Legacy Matcher | Integration", () => {
           to: { types: "{{ to.types.[0] }}", internalPath: "**/Button.tsx" },
         },
         expected: true,
+        expectedMatch: {
+          to: {
+            element: {
+              types: "{{ to.types.[0] }}",
+              fileInternalPath: "**/Button.tsx",
+            },
+          },
+        },
       },
       {
         dependency: {
@@ -1422,6 +1450,14 @@ describe("Entities Legacy Matcher | Integration", () => {
           },
         },
         expected: true,
+        expectedMatch: {
+          to: {
+            element: {
+              types: "{{ to.types.[0] }}",
+              fileInternalPath: ["foo", "**/Button.tsx"],
+            },
+          },
+        },
       },
       {
         dependency: {
