@@ -37,6 +37,7 @@ const createSettings = (
     rootPath: process.cwd(),
     dependencyNodes: [],
     legacyTemplates: true,
+    elementsSingleType: false,
     cache: true,
     flagAsExternal: {},
     debug: {
