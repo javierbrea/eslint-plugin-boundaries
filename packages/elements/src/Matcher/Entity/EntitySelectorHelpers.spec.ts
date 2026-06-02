@@ -475,6 +475,102 @@ describe("EntitySelectorHelpers", () => {
       ]);
     });
 
+    it("should normalize a legacy element object selector with internalPath as array including a leading slash entry and null", () => {
+      const result = normalizeSingleEntitySelector({
+        type: "component",
+        internalPath: ["/index.ts", "lib/**", null],
+      });
+
+      expect(result).toEqual([
+        {
+          element: [
+            {
+              type: "component",
+              fileInternalPath: ["/index.ts", "lib/**", null],
+            },
+          ],
+        },
+        {
+          element: [{ type: "component" }],
+          module: [{ internalPath: ["index.ts", "lib/**", null] }],
+        },
+      ]);
+    });
+
+    it("should normalize a legacy element object selector with internalPath set to null", () => {
+      const result = normalizeSingleEntitySelector({
+        type: "component",
+        internalPath: null,
+      });
+
+      expect(result).toEqual([
+        {
+          element: [{ type: "component", fileInternalPath: null }],
+        },
+        {
+          element: [{ type: "component" }],
+          module: [{ internalPath: null }],
+        },
+      ]);
+    });
+
+    it("should propagate the legacy path property to the fallback element selector when combined with internalPath", () => {
+      const result = normalizeSingleEntitySelector({
+        type: "component",
+        internalPath: "/index.ts",
+        path: "foo/**",
+      });
+
+      expect(result).toEqual([
+        {
+          element: [
+            {
+              type: "component",
+              path: "foo/**",
+              fileInternalPath: "/index.ts",
+              filePath: "foo/**",
+            },
+          ],
+        },
+        {
+          element: [{ type: "component", path: "foo/**", filePath: "foo/**" }],
+          module: [{ internalPath: "index.ts" }],
+        },
+      ]);
+    });
+
+    it("should normalize a legacy element object selector with internalPath only without element fallback constraints", () => {
+      const result = normalizeSingleEntitySelector({
+        internalPath: "/index.ts",
+      });
+
+      expect(result).toEqual([
+        {
+          element: [{ fileInternalPath: "/index.ts" }],
+        },
+        {
+          module: [{ internalPath: "index.ts" }],
+        },
+      ]);
+    });
+
+    it("should normalize a legacy element object selector with internalPath and origin only", () => {
+      const result = normalizeSingleEntitySelector({
+        origin: "local",
+        internalPath: "/index.ts",
+      });
+
+      expect(result).toEqual([
+        {
+          element: [{ fileInternalPath: "/index.ts" }],
+          module: [{ origin: "local" }],
+        },
+        {
+          module: [{ origin: "local", internalPath: "index.ts" }],
+        },
+      ]);
+    });
+
     it("should throw an error for an invalid selector", () => {
       expect(() =>
         normalizeSingleEntitySelector(
@@ -553,10 +649,8 @@ describe("EntitySelectorHelpers", () => {
 
     it("should throw an error for an invalid selector in an array", () => {
       expect(() =>
-        normalizeEntitySelector([
-          // @ts-expect-error Testing invalid input
-          42,
-        ])
+        // @ts-expect-error Testing invalid input
+        normalizeEntitySelector([42])
       ).toThrow();
     });
   });

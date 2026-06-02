@@ -666,6 +666,7 @@ describe("ElementSelectorHelpers", () => {
     });
 
     it("should convert a single-element array with a string", () => {
+      // @ts-expect-error Testing invalid input: single-element array is not a valid tuple
       const selector: LegacySimpleElementSingleSelector = ["components"];
 
       expect(normalizeLegacySimpleElementSingleSelector(selector)).toEqual({

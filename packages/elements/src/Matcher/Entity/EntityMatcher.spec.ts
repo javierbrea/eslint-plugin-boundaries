@@ -62,7 +62,7 @@ describe("EntitiesMatcher", () => {
       category: null,
       filePath: null,
       fileInternalPath: null,
-      parent: null,
+      parents: [],
       ...overrides,
     };
   }
@@ -148,12 +148,12 @@ describe("EntitiesMatcher", () => {
 
     it("should return match result when file selector matches", () => {
       const entity = createEntityDescription();
-      const fileSelector = [{ filePath: "**/*.ts" }];
+      const fileSelector = [{ path: "**/*.ts" }];
       const normalizedSelector: EntitySingleSelectorNormalized[] = [
         { file: fileSelector },
       ];
       mockedNormalizeEntitySelector.mockReturnValue(normalizedSelector);
-      const fileMatchResult: FileSingleSelector = { filePath: "**/*.ts" };
+      const fileMatchResult: FileSingleSelector = { path: "**/*.ts" };
       mockFilesMatcher.getSelectorMatching.mockReturnValue(fileMatchResult);
 
       const result = matcher.getSelectorMatching(entity, {
@@ -185,7 +185,7 @@ describe("EntitiesMatcher", () => {
       const normalizedSelector: EntitySingleSelectorNormalized[] = [
         {
           element: [{ type: "component" }],
-          file: [{ filePath: "**/*.ts" }],
+          file: [{ path: "**/*.ts" }],
           module: [{ origin: "local" }],
         },
       ];
@@ -193,7 +193,7 @@ describe("EntitiesMatcher", () => {
       const elementMatchResult: ElementSingleSelectorMatchResult = {
         type: "component",
       };
-      const fileMatchResult: FileSingleSelector = { filePath: "**/*.ts" };
+      const fileMatchResult: FileSingleSelector = { path: "**/*.ts" };
       const moduleMatchResult: ModuleSingleSelector = { origin: "local" };
       mockElementsMatcher.getSelectorMatching.mockReturnValue(
         elementMatchResult
@@ -203,7 +203,7 @@ describe("EntitiesMatcher", () => {
 
       const result = matcher.getSelectorMatching(entity, {
         element: [{ type: "component" }],
-        file: [{ filePath: "**/*.ts" }],
+        file: [{ path: "**/*.ts" }],
         module: [{ origin: "local" }],
       });
 
@@ -234,7 +234,7 @@ describe("EntitiesMatcher", () => {
       const normalizedSelector: EntitySingleSelectorNormalized[] = [
         {
           element: [{ type: "component" }],
-          file: [{ filePath: "**/*.css" }],
+          file: [{ path: "**/*.css" }],
         },
       ];
       mockedNormalizeEntitySelector.mockReturnValue(normalizedSelector);
@@ -245,7 +245,7 @@ describe("EntitiesMatcher", () => {
 
       const result = matcher.getSelectorMatching(entity, {
         element: [{ type: "component" }],
-        file: [{ filePath: "**/*.css" }],
+        file: [{ path: "**/*.css" }],
       });
 
       expect(result).toBeNull();
@@ -411,16 +411,16 @@ describe("EntitiesMatcher", () => {
     it("should pass entity data merged with extraTemplateData to file matcher", () => {
       const entity = createEntityDescription();
       const normalizedSelector: EntitySingleSelectorNormalized[] = [
-        { file: [{ filePath: "**/*.ts" }] },
+        { file: [{ path: "**/*.ts" }] },
       ];
       mockedNormalizeEntitySelector.mockReturnValue(normalizedSelector);
       mockFilesMatcher.getSelectorMatching.mockReturnValue({
-        filePath: "**/*.ts",
+        path: "**/*.ts",
       });
 
       matcher.getSelectorMatching(
         entity,
-        { file: [{ filePath: "**/*.ts" }] },
+        { file: [{ path: "**/*.ts" }] },
         {
           extraTemplateData: { file: { customProp: "value" } },
         }

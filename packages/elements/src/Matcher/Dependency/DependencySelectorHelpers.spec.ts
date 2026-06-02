@@ -739,12 +739,9 @@ describe("DependencySelectorHelpers", () => {
     });
 
     it("should throw for an invalid selector", () => {
-      expect(() =>
-        normalizeSingleDependencyInfoSelector(
-          // @ts-expect-error Testing invalid input
-          {}
-        )
-      ).toThrow("Invalid dependency information selector");
+      expect(() => normalizeSingleDependencyInfoSelector({})).toThrow(
+        "Invalid dependency information selector"
+      );
     });
   });
 

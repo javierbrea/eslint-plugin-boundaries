@@ -119,7 +119,7 @@ describe("DependenciesMatcher", () => {
       const dependency = createDependencyDescription();
       const fromSelector = [{ element: { type: "component" } }];
       const normalizedSelector: DependencySingleSelectorNormalized = {
-        from: fromSelector as DependencySingleSelectorNormalized["from"],
+        from: fromSelector as unknown as DependencySingleSelectorNormalized["from"],
       };
       mockedNormalizeDependencySelector.mockReturnValue([normalizedSelector]);
       const entityMatchResult: EntitySingleSelectorMatchResult = {
@@ -141,7 +141,7 @@ describe("DependenciesMatcher", () => {
       const dependency = createDependencyDescription();
       const toSelector = [{ element: { type: "helper" } }];
       const normalizedSelector: DependencySingleSelectorNormalized = {
-        to: toSelector as DependencySingleSelectorNormalized["to"],
+        to: toSelector as unknown as DependencySingleSelectorNormalized["to"],
       };
       mockedNormalizeDependencySelector.mockReturnValue([normalizedSelector]);
       const entityMatchResult: EntitySingleSelectorMatchResult = {
@@ -163,7 +163,7 @@ describe("DependenciesMatcher", () => {
       const dependency = createDependencyDescription();
       const fromSelector = [{ element: { type: "component" } }];
       const normalizedSelector: DependencySingleSelectorNormalized = {
-        from: fromSelector as DependencySingleSelectorNormalized["from"],
+        from: fromSelector as unknown as DependencySingleSelectorNormalized["from"],
       };
       mockedNormalizeDependencySelector.mockReturnValue([normalizedSelector]);
       entitiesMatcher.getSelectorMatching.mockReturnValue(null);
@@ -177,7 +177,7 @@ describe("DependenciesMatcher", () => {
       const dependency = createDependencyDescription();
       const toSelector = [{ element: { type: "helper" } }];
       const normalizedSelector: DependencySingleSelectorNormalized = {
-        to: toSelector as DependencySingleSelectorNormalized["to"],
+        to: toSelector as unknown as DependencySingleSelectorNormalized["to"],
       };
       mockedNormalizeDependencySelector.mockReturnValue([normalizedSelector]);
       entitiesMatcher.getSelectorMatching.mockReturnValue(null);
@@ -227,8 +227,8 @@ describe("DependenciesMatcher", () => {
         { kind: "value" },
       ];
       const normalizedSelector: DependencySingleSelectorNormalized = {
-        from: fromSelector as DependencySingleSelectorNormalized["from"],
-        to: toSelector as DependencySingleSelectorNormalized["to"],
+        from: fromSelector as unknown as DependencySingleSelectorNormalized["from"],
+        to: toSelector as unknown as DependencySingleSelectorNormalized["to"],
         dependency: dependencySelector,
       };
       mockedNormalizeDependencySelector.mockReturnValue([normalizedSelector]);
@@ -258,8 +258,8 @@ describe("DependenciesMatcher", () => {
       const fromSelector = [{ element: { type: "component" } }];
       const toSelector = [{ element: { type: "helper" } }];
       const normalizedSelector: DependencySingleSelectorNormalized = {
-        from: fromSelector as DependencySingleSelectorNormalized["from"],
-        to: toSelector as DependencySingleSelectorNormalized["to"],
+        from: fromSelector as unknown as DependencySingleSelectorNormalized["from"],
+        to: toSelector as unknown as DependencySingleSelectorNormalized["to"],
       };
       mockedNormalizeDependencySelector.mockReturnValue([normalizedSelector]);
       const fromMatchResult: EntitySingleSelectorMatchResult = {
@@ -279,12 +279,12 @@ describe("DependenciesMatcher", () => {
       const firstSelector: DependencySingleSelectorNormalized = {
         from: [
           { element: { type: "wrong" } },
-        ] as DependencySingleSelectorNormalized["from"],
+        ] as unknown as DependencySingleSelectorNormalized["from"],
       };
       const secondSelector: DependencySingleSelectorNormalized = {
         from: [
           { element: { type: "component" } },
-        ] as DependencySingleSelectorNormalized["from"],
+        ] as unknown as DependencySingleSelectorNormalized["from"],
       };
       mockedNormalizeDependencySelector.mockReturnValue([
         firstSelector,
@@ -305,10 +305,10 @@ describe("DependenciesMatcher", () => {
     it("should build template data with from, to, and dependency information", () => {
       const fromEntity = createEntityDescription({
         element: { type: "component", internalPath: null },
-      } as Partial<EntityDescription>);
+      } as unknown as Partial<EntityDescription>);
       const toEntity = createEntityDescription({
         element: { type: "helper", internalPath: null },
-      } as Partial<EntityDescription>);
+      } as unknown as Partial<EntityDescription>);
       const dependencyInfo = createDependencyInfo({ kind: "value" });
       const dependency = createDependencyDescription({
         from: fromEntity,
@@ -317,7 +317,7 @@ describe("DependenciesMatcher", () => {
       });
       const fromSelector = [{ element: { type: "component" } }];
       const normalizedSelector: DependencySingleSelectorNormalized = {
-        from: fromSelector as DependencySingleSelectorNormalized["from"],
+        from: fromSelector as unknown as DependencySingleSelectorNormalized["from"],
       };
       mockedNormalizeDependencySelector.mockReturnValue([normalizedSelector]);
       entitiesMatcher.getSelectorMatching.mockReturnValue(null);
@@ -341,7 +341,7 @@ describe("DependenciesMatcher", () => {
       const dependency = createDependencyDescription();
       const fromSelector = [{ element: { type: "component" } }];
       const normalizedSelector: DependencySingleSelectorNormalized = {
-        from: fromSelector as DependencySingleSelectorNormalized["from"],
+        from: fromSelector as unknown as DependencySingleSelectorNormalized["from"],
       };
       mockedNormalizeDependencySelector.mockReturnValue([normalizedSelector]);
       entitiesMatcher.getSelectorMatching.mockReturnValue(null);
@@ -374,7 +374,7 @@ describe("DependenciesMatcher", () => {
       const dependency = createDependencyDescription();
       const fromSelector = [{ element: { type: "component" } }];
       const normalizedSelector: DependencySingleSelectorNormalized = {
-        from: fromSelector as DependencySingleSelectorNormalized["from"],
+        from: fromSelector as unknown as DependencySingleSelectorNormalized["from"],
       };
       mockedNormalizeDependencySelector.mockReturnValue([normalizedSelector]);
       entitiesMatcher.getSelectorMatching.mockReturnValue(null);
@@ -681,7 +681,7 @@ describe("DependenciesMatcher", () => {
       const dependency = createDependencyDescription();
       const fromSelector = [{ element: { type: "wrong" } }];
       const normalizedSelector: DependencySingleSelectorNormalized = {
-        from: fromSelector as DependencySingleSelectorNormalized["from"],
+        from: fromSelector as unknown as DependencySingleSelectorNormalized["from"],
       };
       mockedNormalizeDependencySelector.mockReturnValue([normalizedSelector]);
       entitiesMatcher.getSelectorMatching.mockReturnValue(null);
@@ -696,7 +696,7 @@ describe("DependenciesMatcher", () => {
       const firstSelector: DependencySingleSelectorNormalized = {
         from: [
           { element: { type: "wrong" } },
-        ] as DependencySingleSelectorNormalized["from"],
+        ] as unknown as DependencySingleSelectorNormalized["from"],
       };
       const secondSelector: DependencySingleSelectorNormalized = {};
       mockedNormalizeDependencySelector.mockReturnValue([
@@ -716,12 +716,12 @@ describe("DependenciesMatcher", () => {
         {
           from: [
             { element: { type: "wrong1" } },
-          ] as DependencySingleSelectorNormalized["from"],
+          ] as unknown as DependencySingleSelectorNormalized["from"],
         },
         {
           from: [
             { element: { type: "wrong2" } },
-          ] as DependencySingleSelectorNormalized["from"],
+          ] as unknown as DependencySingleSelectorNormalized["from"],
         },
       ];
       mockedNormalizeDependencySelector.mockReturnValue(selectors);

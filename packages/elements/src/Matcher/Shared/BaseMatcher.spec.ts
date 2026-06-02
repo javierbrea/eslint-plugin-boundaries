@@ -585,9 +585,8 @@ describe("BaseElementsMatcher", () => {
           isUnknown: false,
         } as BaseDescription,
         selector: {
-          // @ts-expect-error Testing non-boolean selector value
           isIgnored: "true",
-        } as ElementSingleSelector,
+        } as unknown as ElementSingleSelector,
         objectKey: "isIgnored" as keyof BaseDescription,
         selectorKey: "isIgnored" as keyof ElementSingleSelector,
       });
@@ -602,10 +601,9 @@ describe("BaseElementsMatcher", () => {
         object: {
           path: "/path",
           captured: null,
-          // @ts-expect-error Testing non-boolean object value
           isIgnored: "false",
           isUnknown: false,
-        } as BaseDescription,
+        } as unknown as BaseDescription,
         selector: { isIgnored: true } as ElementSingleSelector,
         objectKey: "isIgnored" as keyof BaseDescription,
         selectorKey: "isIgnored" as keyof ElementSingleSelector,
