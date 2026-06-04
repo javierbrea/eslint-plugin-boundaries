@@ -26,6 +26,7 @@ import {
   SETTINGS,
   SETTINGS_KEYS_MAP,
   LEGACY_TEMPLATES_DEFAULT,
+  ELEMENTS_SINGLE_TYPE_DEFAULT,
   CACHE_DEFAULT,
   DEPENDENCY_NODE_KEYS_MAP,
 } from "../Shared/Settings.types";
@@ -645,7 +646,7 @@ function getNormalizedLegacyTemplates(legacyTemplates: unknown): boolean {
  */
 function getNormalizedElementsSingleType(elementsSingleType: unknown): boolean {
   if (isUndefined(elementsSingleType)) {
-    return false;
+    return ELEMENTS_SINGLE_TYPE_DEFAULT;
   }
 
   if (isBoolean(elementsSingleType)) {
@@ -656,7 +657,7 @@ function getNormalizedElementsSingleType(elementsSingleType: unknown): boolean {
     `Please provide a valid value in '${SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE}' setting.`,
     `The value should be a boolean. ${moreInfoSettingsLink()}`
   );
-  return false;
+  return ELEMENTS_SINGLE_TYPE_DEFAULT;
 }
 
 /**

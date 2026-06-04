@@ -11,6 +11,7 @@ import { warnOnce } from "../Debug";
 import {
   CACHE_DEFAULT,
   DEPENDENCY_NODE_KEYS_MAP,
+  ELEMENTS_SINGLE_TYPE_DEFAULT,
   LEGACY_TEMPLATES_DEFAULT,
   SETTINGS,
   SETTINGS_KEYS_MAP,
@@ -606,7 +607,7 @@ describe("Settings/Settings", () => {
         );
 
         expect(result.legacyTemplates).toBe(LEGACY_TEMPLATES_DEFAULT);
-        expect(result.elementsSingleType).toBe(false);
+        expect(result.elementsSingleType).toBe(ELEMENTS_SINGLE_TYPE_DEFAULT);
         expect(result.cache).toBe(CACHE_DEFAULT);
       });
 
@@ -615,13 +616,13 @@ describe("Settings/Settings", () => {
           buildContext({
             [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
             [SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]: false,
-            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]: true,
+            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]: false,
             [SETTINGS_KEYS_MAP.CACHE]: false,
           })
         );
 
         expect(result.legacyTemplates).toBe(false);
-        expect(result.elementsSingleType).toBe(true);
+        expect(result.elementsSingleType).toBe(false);
         expect(result.cache).toBe(false);
       });
 
@@ -636,7 +637,7 @@ describe("Settings/Settings", () => {
         );
 
         expect(result.legacyTemplates).toBe(LEGACY_TEMPLATES_DEFAULT);
-        expect(result.elementsSingleType).toBe(false);
+        expect(result.elementsSingleType).toBe(ELEMENTS_SINGLE_TYPE_DEFAULT);
         expect(result.cache).toBe(CACHE_DEFAULT);
         expect(mockedWarnOnce).toHaveBeenCalledWith(
           expect.stringContaining(SETTINGS_KEYS_MAP.LEGACY_TEMPLATES),

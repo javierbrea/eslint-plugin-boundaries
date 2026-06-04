@@ -280,6 +280,11 @@ export const SETTINGS_KEYS_MAP = {
 export const LEGACY_TEMPLATES_DEFAULT = true as const;
 
 /**
+ * Default value for the elements single type setting.
+ */
+export const ELEMENTS_SINGLE_TYPE_DEFAULT = true as const;
+
+/**
  * Default value for the cache setting.
  */
 export const CACHE_DEFAULT = true as const;

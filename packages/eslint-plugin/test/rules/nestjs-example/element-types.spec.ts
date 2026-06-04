@@ -406,7 +406,6 @@ const ruleOptions = [
 
 runTest(
   {
-    "boundaries/elements-single-type": true,
     "boundaries/elements": [
       {
         type: "main",
@@ -476,7 +475,6 @@ runTest(
 
 runTest(
   {
-    "boundaries/elements-single-type": true,
     "boundaries/elements": [
       {
         type: "main",
@@ -557,7 +555,6 @@ runTest(
 
 runTest(
   {
-    "boundaries/elements-single-type": true,
     "boundaries/elements": [
       {
         type: "main",
