@@ -5,11 +5,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
+
 ### Added
+
+- feat(#348): Add `boundaries/files` setting to define file descriptors, which allow categorizing files independently from the elements they belong to. Each file descriptor supports `pattern`, `category` and `capture` properties, and the resulting file categories and captured values can be matched in rule selectors and used in custom message templates.
+- feat(#348): Add support for multi-type elements. Files can now match multiple element descriptors at the same path level, so a single element can have multiple types. This behavior is disabled by default to preserve backward compatibility, and can be enabled by setting the new `boundaries/elements-single-type` setting to `false`. Element selectors now support a `types` property matching any of the element types, while `type` keeps matching the first one.
+- feat: Support entity selectors in rules. The `from` and `to` properties of rule selectors now accept objects with `element`, `file` and `module` sub-selectors, allowing to match by element properties (`type`, `types`, `captured`, `parent`, etc.), file properties (`path`, `categories`, `captured`, etc.) and module properties (`origin`, `source`, `internalPath`). Legacy flat element selectors keep working and are converted internally.
+- feat: Add module descriptions to dependencies. The module a dependency resolves to is now described by its `origin` (`"local"`, `"external"` or `"core"`), `source` and `internalPath` properties, which can be matched through the `module` sub-selector in any rule, not only in the deprecated `external` rule.
+- feat: Add new data to custom message templates. The `from` and `to` template properties now expose `element`, `file` and `module` objects, enabling template variables such as `{{from.element.types}}`, `{{to.file.categories}}`, `{{to.module.origin}}` or `{{to.module.source}}`. Templates using the previous data (`{{from.type}}`, `{{from.elementPath}}`, `{{from.internalPath}}`, `{{from.origin}}`, etc.) keep working for backward compatibility.
+
 ### Changed
-### Fixed
-### Removed
+
+- feat(#348): Upgrade the internal `@boundaries/elements` library to v3, which reorganizes file analysis around entities composed of an element, a file and a module description, and adds file descriptors, module origins and multi-type elements. All of its breaking changes are absorbed by the plugin: legacy selector properties (`type`, `category`, `captured`, `elementPath`, `internalPath`, `origin`), including `internalPath` matching the internal path of external modules, and v6 custom message template data keep working without configuration changes.
+- feat: Improve default error messages to include the new entity information. Captured values are now formatted as `captured values: key="value"`, the module of external dependencies is reported as `module with origin "external" and module source "..."`, and elements with multiple types report all of them. If you rely on exact report messages (e.g., in snapshots or CI assertions), you may need to update them.
+- feat(#348): The `no-unknown-files` rule now takes file descriptors into account: a file is reported only when it does not match any file descriptor pattern and does not belong to any known element. The report message changed from "File does not match any element pattern" to "File does not match any file pattern and does not belong to any known element".
+- feat: Improve performance by caching the result of merging rule policies.
+- feat: Deprecate the `category` property in element descriptors and element selectors in favor of file descriptor categories, which allow assigning multiple categories to different files within the same element. It keeps working for backward compatibility, but will be removed in a future major version.
+- feat: Deprecate the `module` property in dependency metadata selectors (`dependency.module`) in favor of matching the module source through entity selectors (`to.module.source`). It keeps working for backward compatibility.
+- feat: Debug output now prints the full entity description (element, file and module) of each file, and the `files` filter of the `boundaries/debug` setting accepts both file selectors and entity selectors.
+
 ### Breaking Changes
+
+- feat: Remove some TypeScript exports from the public API: the `ElementTypesRule`, `ElementTypesRuleOptions`, `ElementSelectors`, `ElementsSelector` and `ElementSelectorWithOptions` types, the `isElementsSelector`, `isElementDescriptorMode` and `isImportKind` type guards, and the deprecated `IMPORT_KINDS_MAP` constant. Use `DependenciesRule`, `DependenciesRuleOptions`, `ElementSelector`, `isDependencyKind` and `DEPENDENCY_KINDS_MAP` instead. This only affects TypeScript users importing these types; the deprecated `element-types` rule name itself keeps working with a deprecation warning.
 
 ## [6.0.2] - 2026-03-30
 
