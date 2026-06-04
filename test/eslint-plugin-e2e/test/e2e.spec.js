@@ -689,7 +689,9 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/external" &&
-                msg.message.includes('type "component" and name "component-a"')
+                msg.message.includes(
+                  'type "component" and captured values: name="component-a"'
+                )
             )
           );
         }
@@ -707,7 +709,9 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/external" &&
-                msg.message.includes('type "helper" and name "helper-a"')
+                msg.message.includes(
+                  'type "helper" and captured values: name="helper-a"'
+                )
             )
           );
         }
@@ -725,7 +729,9 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/external" &&
-                msg.message.includes('type "helper" and name "helper-a"')
+                msg.message.includes(
+                  'type "helper" and captured values: name="helper-a"'
+                )
             )
           );
         }
