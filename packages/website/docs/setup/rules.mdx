@@ -29,13 +29,15 @@ import CodeDiff from '@site/src/components/CodeDiff';
 
 Rules define to which dependencies they apply and what is allowed or disallowed. This configuration uses **[dependency selectors](./selectors.md)** to match specific dependencies and provide a high level of customization for your architectural rules.
 
-## Main Rules Format
+## Rule Format
 
-The main rules ([`dependencies`](../rules/dependencies.md), [`external`](../rules/external.mdx) and [`entry-point`](../rules/entry-point.mdx)) share a common configuration format.
+[`boundaries/dependencies`](../rules/dependencies.md) is the canonical rule for restricting dependencies between elements. This page documents its configuration format.
 
-Rules work by setting an `allow` or `disallow` default value, then providing an array of rules that override that default.
+The deprecated rules [`boundaries/external`](../rules/external.mdx) and [`boundaries/entry-point`](../rules/entry-point.mdx) accept a similar format, but `boundaries/dependencies` now covers their use cases. See their pages, and the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx), for how to migrate.
 
-:::info
+Rules work by setting an `allow` or `disallow` default policy, then providing an array of rules that override that default.
+
+:::warning Rule precedence
 Each matching rule overrides previous values, so the **final result is determined by the last matching rule**.
 :::
 
@@ -45,28 +47,24 @@ Each matching rule overrides previous values, so the **final result is determine
 export default [{
   rules: {
     "boundaries/dependencies": [2, {
-      // Default policy
+      // Default policy when no rule matches
       default: "allow",
-      
-      // Optional custom message
-      message: "{{from.type}} is not allowed to depend on {{to.type}}",
-      
+
+      // Optional custom message (overridable per rule)
+      message: "{{from.element.types}} is not allowed to depend on {{to.element.types}}",
+
       // Array of rules
       rules: [
         {
-          from: {
-            type: "helper"
-          },
+          from: { element: { type: "helper" } },
           disallow: {
-            to: {
-              type: ["module", "component"]
-            }
+            to: { element: { type: ["module", "component"] } }
           },
-          message: "Helpers must not import module or component"
+          message: "Helpers must not import modules or components"
         },
         {
           dependency: { kind: "type" },
-          disallow: { from: { type: ["helper"] } },
+          disallow: { from: { element: { type: "helper" } } },
           message: "Helpers cannot import types"
         }
       ]
@@ -75,40 +73,74 @@ export default [{
 }]
 ```
 
-:::info Important
-- All rules are evaluated, and the final result is from the last matching rule
-- If a rule has both `allow` and `disallow` properties, `disallow` takes priority
-- Each rule's result will be "allow" or "disallow", producing an ESLint error accordingly
+:::warning How rules combine
+- All rules are evaluated, and the final result comes from the last matching rule.
+- If a rule has both `allow` and `disallow` properties and both match, `disallow` takes priority.
+- Each rule resolves to `"allow"` or `"disallow"`, producing an ESLint error when the result is `"disallow"`.
 :::
 
 ## Rule Properties
 
 ### `from` / `to`
 
-**Type:** `<element selector>` or `<array of element selectors>` (see [Element Selectors documentation](./selectors.md#element-selectors))
+**Type:** [entity selector](./selectors.md) `{ element?, file?, module? }` (or an array of them for OR), with backward-compatible flat element selectors also accepted.
 
 Determines when the rule applies:
-- **`from`** - The rule applies if the file being analyzed matches this [element selector](./selectors.md#element-selectors)
-- **`to`** - The rule applies if the dependency being imported matches this [element selector](./selectors.md#element-selectors)
+- **`from`** - The rule applies when the file being analyzed matches this selector.
+- **`to`** - The rule applies when the imported dependency matches this selector.
+
+An [entity selector](./selectors.md) describes one file along three independent dimensions, each optional:
+
+- **`element`** - the architectural element the file belongs to (`type`, `types`, `captured`, `path`, `fileInternalPath`, `parent`...). See [Selectors](./selectors.md).
+- **`file`** - the file itself, categorized by [file descriptors](./files.md) (`categories`, `captured`, `path`).
+- **`module`** - the resolved module of the dependency (`origin`, `source`, `internalPath`). This is the dimension to use for external dependencies.
+
+A selector matches only when every sub-selector you provide matches (an omitted sub-selector matches anything).
 
 ```js
-// Rule applies to files that are described as controllers
+// Files inside "helper" elements
 {
-  from: { type: "controller" }
+  from: {
+    element: { type: "helper" }
+  }
 }
 
-// Rule applies to dependencies that are either:
-// components of family "atoms" or helpers
+// Test files inside "component" elements (element AND file must match)
+{
+  from: {
+    element: { type: "component" },
+    file: { categories: "test" }
+  }
+}
+
+// External React imports (matched on the module dimension)
+{
+  to: {
+    module: { origin: "external", source: "react" }
+  }
+}
+
+// Dependencies that are components of family "atoms" OR any test file
 {
   to: [
-    { type: "component", captured: { family: "atoms" } },
-    { category: "test"}
+    { element: { type: "component", captured: { family: "atoms" } } },
+    { file: { categories: "test" } }
   ]
 }
 ```
 
+:::note Flat element selectors are still supported
+A flat element selector at the top level — for example `from: { type: "helper" }` — keeps working and is converted internally to `from: { element: { type: "helper" } }`. Prefer the entity selector form to access `file` and `module` matching. See [Selectors](./selectors.md) for the full property reference.
+:::
+
+:::warning Deprecated
+The element-level `category` selector (for example `to: { category: "test" }`) is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[file categories](./selectors.md)** instead: `to: { file: { categories: "test" } }`.
+
+It keeps working without changes; categorize files with the [`boundaries/files`](./settings.md#boundariesfiles) setting and match them via the `file` sub-selector. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx).
+:::
+
 :::warning
-The `target` property is an alias for `to` and is still supported for backward compatibility but is deprecated. Use `to` for clarity.
+The `target` property is a deprecated alias for `to`. It still works, but use `to` for clarity.
 :::
 
 :::info
@@ -119,17 +151,21 @@ Read the ["How rules match dependencies" section](#how-rules-match-dependencies)
 
 **Type:** `<dependency metadata selector>` (see [Dependency Selectors documentation](./selectors.md#dependency-metadata-selectors))
 
-This property allows matching specific dependencies based on their metadata (e.g. import kind, relationship type). It can be used in combination with `from` and `to` to create more specific rules.
+This property matches dependencies by their metadata (for example import kind or relationship type). Combine it with `from` and `to` to create more specific rules.
 
 ```js
 // Rule applies to dependencies that are type imports (e.g. TypeScript type imports)
-// to "shared" elements, regardless of the type of the importing file
+// to "helper" elements, regardless of the type of the importing file
 {
   dependency: { kind: "type" },
-  to: { type: "shared" },
-  allow: { from: { type: "*" } },
+  to: { element: { type: "helper" } },
+  allow: { from: { element: { type: "*" } } },
 }
 ```
+
+:::warning Deprecated
+The `dependency.module` selector is kept for backward compatibility but is deprecated. Use **`to.module.source`** via the entity selector instead — for example `to: { module: { origin: ["external", "core"], source: "react" } }`. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx).
+:::
 
 :::info
 Read the ["How rules match dependencies" section](#how-rules-match-dependencies) below for a detailed explanation of how `from`, `to`, and `dependency` properties are combined to determine if a rule matches a specific dependency.
@@ -148,16 +184,16 @@ Other rules may expect different formats (e.g. file path patterns for the `entry
 Determines whether the matched dependencies are allowed or disallowed. Each rule must have either an `allow` or `disallow` property (or both, in which case `disallow` takes precedence).
 
 ```js
-// Controllers can import models and views
+// Components can import helpers and other components
 {
-  from: { type: "controller" },
-  allow: { to: { type: ["model", "view"] } }
+  from: { element: { type: "component" } },
+  allow: { to: { element: { type: ["helper", "component"] } } }
 }
 
-// Models cannot import anything other than other models
+// Helpers cannot import anything other than other helpers
 {
-  from: { type: "model" },
-  disallow: { to: { type: "!model" } }
+  from: { element: { type: "helper" } },
+  disallow: { to: { element: { type: "!helper" } } }
 }
 
 // Any file can import other files of the same element (internal dependencies)
@@ -165,10 +201,10 @@ Determines whether the matched dependencies are allowed or disallowed. Each rule
   allow: { dependency: { relationship: { to: "internal" } } }
 }
 
-// Any file can import shared files, but only if it's a type dependency (e.g. TypeScript type imports)
+// Any file can import helpers, but only as a type dependency (e.g. TypeScript type imports)
 {
   allow: {
-    to: { type: "shared" },
+    to: { element: { type: "helper" } },
     dependency: { kind: "type" }
   }
 }
@@ -198,54 +234,77 @@ You can define a custom message at the top level of the rule configuration, whic
 
 #### Message Templating
 
-Custom error messages use Handlebars templates to dynamically insert information about the dependency violation.
+Custom error messages use Handlebars templates to insert information about the dependency violation. The data tree mirrors the [runtime descriptions](./classification.md) of the dependency: each side (`from` and `to`) exposes the `element`, `file`, and `module` sub-objects.
 
 **Example:**
 
 ```js
-// If the error is produced by a file with type "component" and category as "atom"
-// importing a dependency with category "molecule", the message becomes:
-// "components of category atom are not allowed to import molecules"
+// When a "component" element imports a file categorized as "test", the message becomes:
+// "component cannot import files categorized as: test"
 {
-  "message": "{{from.type}}s of category {{from.category}}s are not allowed to import {{to.category}}s"
+  "message": "{{from.element.types}} cannot import files categorized as: {{to.file.categories}}"
 }
 ```
 
 ##### Template Context
 
-Next variables are available in the Handlebars template context for custom messages:
+The Handlebars context for custom messages has these top-level variables:
 
-* `from` - The element importing the dependency
-* `to` - The element being imported
-* `dependency` - Information about the dependency itself (kind, specifiers, relationship)
-* `rule` - The rule that produced the error. `null` if the error is not associated with a specific rule (e.g. default policy violation)
-  * `index` - The index of the rule that produced the error.
-  * `selector` - The selector of the rule that matched the dependency.
-    * `from` - The `from` selector of the rule that matched the importing element
-    * `to` - The `to` selector of the rule that matched the imported element
-    * `dependency` - The `dependency` selector of the rule that matched the dependency metadata (e.g. import kind, relationship)
+* `from` - The entity importing the dependency.
+* `to` - The entity being imported.
+* `dependency` - Metadata about the dependency itself.
+* `rule` - The rule that produced the error, or `null` when the error comes from the default policy (no rule matched).
+
+Both `from` and `to` carry the full entity data tree. These are the canonical paths:
+
+| Variable | Type | Notes |
+|---|---|---|
+| `{{from.element.types}}` | array | All matched element types |
+| `{{from.element.types.[0]}}` | string | First element type |
+| `{{from.element.captured.X}}` | string | Captured value `X` from the `from` element |
+| `{{from.element.path}}` | string | Element path |
+| `{{from.element.fileInternalPath}}` | string | File path relative to its element |
+| `{{from.element.parents.[0].types.[0]}}` | string | First parent's first type |
+| `{{from.file.categories}}` | array | File categories from [file descriptors](./files.md) |
+| `{{from.file.captured.X}}` | string | Captured value `X` from the `from` file descriptors |
+| `{{from.module.origin}}` | string | `"local"`, `"external"`, or `"core"` |
+| `{{from.module.source}}` | string | Base module/package name (e.g. `"react"`), `null` for local |
+| `{{from.module.internalPath}}` | string | Sub-path inside an external/core module |
+| `{{to.*}}` | — | Same structure as `from`, for the imported entity |
+| `{{dependency.kind}}` | string | `"value"`, `"type"`, or `"typeof"` |
+| `{{dependency.source}}` | string | Literal import/export source string |
+| `{{dependency.specifiers}}` | array | Imported/exported specifier names |
+| `{{dependency.relationship.from}}` / `{{dependency.relationship.to}}` | string | Relationship between the two elements |
+| `{{rule.index}}` | number | Index of the matching rule (`null` for default policy) |
+| `{{rule.selector.from.element.type}}` / `{{rule.selector.to.element.type}}` | string | Element selector of the matching rule |
+
+Use Handlebars bracket notation to read array items, for example `{{from.element.types.[0]}}` for the first type.
 
 :::tip
-For the complete API reference of all available properties in `from`, `to`, and `dependency`, see [Elements → Runtime Description Properties](./elements.md#runtime-description-properties).
-
-For the complete API reference of all available properties in `rule.selector`, see [Selectors -> Dependency Selectors](./selectors.md#dependency-selectors).
+For the complete property reference of `from`, `to`, and `dependency`, see [Classification](./classification.md) and its per-layer tables ([element](./elements.md#element-description), [file](./files.md#file-description), [module](./modules.md#module-description)). For `rule.selector`, see [Selectors → Dependency Selectors](./selectors.md#dependency-selectors).
 :::
 
 **Usage in templates:**
 
 ```js
 {
-  // Access importing/imported element properties
-  "message": "Elements of type {{from.type}} cannot import from type {{to.type}}",
-  
+  // Access importing/imported element types
+  "message": "Elements of type {{from.element.types}} cannot import type {{to.element.types}}",
+
   // Access captured values
-  "message": "Module {{from.captured.elementName}} cannot import {{to.captured.family}} components",
-  
+  "message": "Module {{from.element.captured.elementName}} cannot import {{to.element.captured.family}} components",
+
+  // Access file categories
+  "message": "{{from.element.types}} cannot import {{to.file.categories}} files",
+
+  // Access the resolved module of the dependency
+  "message": "Importing {{to.module.source}} ({{to.module.origin}}) is not allowed here",
+
   // Access dependency information
-  "message": "Cannot import {{dependency.kind}} from {{to.type}}",
+  "message": "Cannot import {{dependency.kind}} from {{to.element.types}}",
 
   // Access rule information
-  "message": "Rule at index {{rule.index}} matched with from.type={{rule.selector.from.type}} and to.type={{rule.selector.to.type}}"
+  "message": "Denied by rule at index {{rule.index}} (from {{rule.selector.from.element.type}} to {{rule.selector.to.element.type}})"
 }
 ```
 
@@ -253,7 +312,22 @@ For the complete API reference of all available properties in `rule.selector`, s
 Missing properties in Handlebars templates resolve to an empty string.
 :::
 
-##### Legacy Message Templates
+##### Legacy flat aliases (still work)
+
+For backward compatibility, each side also exposes V6 flat fields at the `from`/`to` root. These keep working but the nested paths above are preferred:
+
+| Legacy alias | Canonical V7 path |
+|---|---|
+| `{{from.type}}` | `{{from.element.types.[0]}}` |
+| `{{from.captured.X}}` | `{{from.element.captured.X}}` |
+| `{{from.elementPath}}` | `{{from.element.path}}` |
+| `{{from.internalPath}}` | `{{from.element.fileInternalPath}}` |
+| `{{from.origin}}` | `{{from.module.origin}}` |
+| `{{from.parents.[0].type}}` | `{{from.element.parents.[0].types.[0]}}` |
+
+:::warning Deprecated
+`{{from.category}}` / `{{to.category}}` resolve the deprecated element-level `category` field. They still work, but use **file categories** (`{{from.file.categories}}` / `{{to.file.categories}}`) instead. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx).
+:::
 
 :::info Backwards Compatibility
 Legacy message templates using `${...}` syntax are still supported but deprecated. For migration guidance, see [Legacy Message Templates](#legacy-message-templates) below.
@@ -289,29 +363,29 @@ When both rule-level `importKind` and dependency-level `kind` are defined, depen
 ```js
 // Components can import helpers as values
 {
-  from: { type: "component" },
-  allow: { to: { type: "helper" } },
+  from: { element: { type: "component" } },
+  allow: { to: { element: { type: "helper" } } },
   importKind: "value"
 }
 
 // Components cannot import helper types
 {
-  from: { type: "component" },
-  disallow: { to: { type: "helper" } },
+  from: { element: { type: "component" } },
+  disallow: { to: { element: { type: "helper" } } },
   importKind: "type"
 }
 
-// Services can import models as values or types
+// Modules can import helpers as values or types
 {
-  from: { type: "service" },
-  allow: { to: { type: "model" } },
+  from: { element: { type: "module" } },
+  allow: { to: { element: { type: "helper" } } },
   importKind: ["value", "type"]
 }
 
-// Controllers can import models as any import kind
+// Modules can import components as any import kind
 {
-  from: { type: "controller" },
-  allow: { to: { type: "model" } },
+  from: { element: { type: "module" } },
+  allow: { to: { element: { type: "component" } } },
   importKind: "*"
 }
 ```
@@ -322,9 +396,9 @@ When both rule-level `importKind` and dependency-level `kind` are defined, depen
 <CodeDiff language="javascript">{`
 . // Components can import helpers as values
 . {
-.   from: { type: "component" },
+.   from: { element: { type: "component" } },
 .   allow: {
-.     to: { type: "helper" },
+.     to: { element: { type: "helper" } },
 +     dependency: { kind: "value" }
 .   },
 -   importKind: "value"
@@ -332,29 +406,29 @@ When both rule-level `importKind` and dependency-level `kind` are defined, depen
 
 . // Components cannot import helper types
 . {
-.   from: { type: "component" },
+.   from: { element: { type: "component" } },
 .   disallow: {
-.     to: { type: "helper" },
+.     to: { element: { type: "helper" } },
 +     dependency: { kind: "type" }
 .   }
 -   importKind: "type"
 . }
 
-. // Services can import models as values or types
+. // Modules can import helpers as values or types
 . {
-.   from: { type: "service" },
+.   from: { element: { type: "module" } },
 .   allow: {
-.     to: { type: "model" },
+.     to: { element: { type: "helper" } },
 +     dependency: { kind: ["value", "type"] }
 .   }
 -   importKind: ["value", "type"]
 . }
 .
-. // Controllers can import models as any import kind
+. // Modules can import components as any import kind
 . {
-.   from: { type: "controller" },
-.   allow: { 
-.     to: { type: "model" },
+.   from: { element: { type: "module" } },
+.   allow: {
+.     to: { element: { type: "component" } },
 +     dependency: { kind: "*" }
 .   },
 -   importKind: "*"
@@ -376,21 +450,21 @@ Rules are evaluated sequentially, and each matching rule can override previous r
     // If this matches: result is "allow"
     // Components can import helpers
     {
-      from: { type: "component" },
-      allow: { to: { type: "helper" } }
+      from: { element: { type: "component" } },
+      allow: { to: { element: { type: "helper" } } }
     },
     // If this also matches: result is "disallow" (overrides previous).
-    // Component family "atoms" cannot import "api" helpers
+    // Component family "atoms" cannot import "data" helpers
     {
-      from: { type: "component", captured: { family: "atoms" } },
-      disallow: { to: { type: "helper", captured: { domain: "api" } } },
+      from: { element: { type: "component", captured: { family: "atoms" } } },
+      disallow: { to: { element: { type: "helper", captured: { family: "data" } } } },
     },
     // If this also matches: result is "allow" (overrides previous).
-    // Component family "atoms" can import "api/fetcher" helper, in exception to previous rule
+    // Component family "atoms" can import the "data/sort" helper, in exception to previous rule
     {
-      from: { type: "component", captured: { family: "atoms" } },
+      from: { element: { type: "component", captured: { family: "atoms" } } },
       allow: {
-        to: { type: "helper", captured: { domain: "api", elementName: "fetcher" } }
+        to: { element: { type: "helper", captured: { family: "data" }, fileInternalPath: "sort.js" } }
       }
     }
   ]
@@ -403,36 +477,39 @@ Rule order matters: Place more specific rules after more general rules so they c
 
 ## How rules match dependencies
 
-Rules match dependencies based on the properties of the importing file, the imported file, and the dependency itself. These properties are available in the **[runtime description](./elements.md#runtime-description-properties)** of each element and dependency.
+Rules match dependencies based on the properties of the importing file, the imported file, and the dependency itself. These properties are available in the **[runtime description](./classification.md)** of each entity and dependency.
 
 ### Combining selectors
 
-**The `from`, `to`, and `dependency` selectors in your rules are combined with the properties of the `allow` and `disallow` objects to build a dependency selector** that will determine if the rule matches a specific dependency. For example, if you have a rule like this:
+**The `from`, `to`, and `dependency` selectors in your rules are combined with the properties of the `allow` and `disallow` objects to build a dependency selector** that determines if the rule matches a specific dependency. For example, if you have a rule like this:
 
 ```js
 {
-  from: { type: "view" },
+  from: { element: { type: "component" } },
   allow: {
-    to: { type: "model" },
+    to: { element: { type: "helper" } },
     dependency: { kind: "value" }
   }
 }
 ```
 
-This rule will allow a dependency if all of the following conditions are met:
+This rule allows a dependency when all of the following conditions are met:
 
-- The importing file is described as a "view" element
-- The imported file is described as a "model" element
+- The importing file is described as a "component" element
+- The imported file is described as a "helper" element
 - The dependency is a value import (not a type import)
 
 You can combine `from`, `to`, and `dependency` properties both at the rule level and inside `allow`/`disallow` to create more specific selectors. For example:
 
 ```js
 {
-  from: { type: "view" },
+  from: { element: { type: "component" } },
   dependency: { kind: "value" },
   disallow: {
-    to: [{ type: ["model", "controller"] }, { category: "test" }],
+    to: [
+      { element: { type: ["helper", "module"] } },
+      { file: { categories: "test" } }
+    ],
   },
 }
 ```
@@ -443,29 +520,27 @@ The plugin is very flexible and allows you to define rules in the way that makes
 
 ### Merging OR conditions (arrays)
 
-When using arrays to define OR conditions, the properties are merged together as well for each item in the arrays.
+When using arrays to define OR conditions, the properties are merged together for each item in the arrays.
 
-For example, the nex rule will apply both to dependencies:
+For example, the next rule applies to dependencies whose importing file is either:
 
-- `from` type "view" and having a parent with type "module"
-- `from` category "test", elementPath matching `**/*.spec.js`, and having a parent with type module
+- a "component" element with a parent of type "module", or
+- a test file (`file.categories` includes "test") with a parent of type "module".
 
 ```js
 {
   from: [
-    { type: "view" },
-    { category: "test", elementPath: "**/*.spec.js" }
+    { element: { type: "component" } },
+    { file: { categories: "test" } }
   ],
   allow: {
     from: {
-      parent: {
-        type: "module",
+      element: {
+        parent: { type: "module" }
       }
     },
     dependency: {
-      relationship: {
-        to: "parent"
-      }
+      relationship: { to: "parent" }
     }
   },
 }
@@ -473,21 +548,21 @@ For example, the nex rule will apply both to dependencies:
 
 ### Using the same property at rule level and in policy level
 
-**When the same property is defined both at the rule level and inside `allow`/`disallow`, they are also merged together to create the final selector**, giving precedence to the properties defined inside `allow`/`disallow`. For example, in the next rule:
+**When the same property is defined both at the rule level and inside `allow`/`disallow`, they are merged together to create the final selector**, giving precedence to the properties defined inside `allow`/`disallow`. For example, in the next rule:
 
-- `allow` will only apply to dependencies that are from "view" elements with elementName "view-a", to models.
-- `disallow` will only apply to dependencies that are from "view" elements with elementName "view-b", to model elements with elementName "model-a".
+- `allow` only applies to dependencies from "component" elements with `elementName` "component-a", to any helper.
+- `disallow` only applies to dependencies from "component" elements with `elementName` "component-b", to helpers with `elementName` "helper-a".
 
 ```js
 {
-  from: { type: "view" },
+  from: { element: { type: "component" } },
   allow: {
-    from: { captured: { elementName: "view-a" } },
-    to: { type: "model" },
+    from: { element: { captured: { elementName: "component-a" } } },
+    to: { element: { type: "helper" } },
   },
   disallow: {
-    from: { captured: { elementName: "view-b" } },
-    to: { type: "model", captured: { elementName: "model-a" } },
+    from: { element: { captured: { elementName: "component-b" } } },
+    to: { element: { type: "helper", captured: { elementName: "helper-a" } } },
   }
 }
 ```
@@ -496,105 +571,128 @@ For example, the nex rule will apply both to dependencies:
 
 When using nested properties like `parent`, `captured` or `relationship`, the properties are merged together as well. For example, in the next rule:
 
-- `allow` applies to elements with element name "view-a" that are in the "users" domain, importing any model.
+- `allow` applies to components with `elementName` "component-a" and `family` "atoms", importing any helper.
 
 ```js
 {
-  from: { 
-    captured: { elementName: "view-a" },
+  from: {
+    element: { captured: { elementName: "component-a" } },
   },
   allow: {
-    to: { type: "model" },
-    from: { captured: { domain: "users" } },
+    to: { element: { type: "helper" } },
+    from: { element: { captured: { family: "atoms" } } },
   },
 }
 ```
 
 :::warning
-Extending nested properties is not supported when using arrays (OR conditions)
+Extending nested properties is not supported when using arrays (OR conditions).
 :::
 
-For example, in the next rule, the `allow` properties will not be merged together, and the rule will allow anything with domain "users" to import any model, because the `allow` policy takes precedence over the selectors at rule level, and it will override the `from.captured` value at rule level instead of merging with it.
+For example, in the next rule the `allow` selector is not merged with the rule-level selector. The rule allows anything with `family` "atoms" to import any helper, because the `allow` policy takes precedence over the rule-level selectors and overrides the `from.element.captured` value instead of merging with it.
 
 ```js
 {
   from: {
     // Arrays in nested properties are not merged
-    captured: [{ elementName: "view-a" }], 
+    element: { captured: [{ elementName: "component-a" }] },
   },
   allow: {
-    to: { type: "model" },
-    from: { captured: { domain: "users" } }, // Only this will be applied
+    to: { element: { type: "helper" } },
+    from: { element: { captured: { family: "atoms" } } }, // Only this is applied
   },
 }
 ```
 
 ## Complete Example
 
-Just to illustrate the high level of customization that the plugin supports, here is an example of advanced options for the `boundaries/dependencies` rule:
+To illustrate the level of customization the plugin supports, here is a fully commented `boundaries/dependencies` rule that uses entity selectors, file categories, and module matching. It assumes the canonical demo setup:
+
+```js
+settings: {
+  "boundaries/elements": [
+    { type: "helper", pattern: "helpers/*", capture: ["family"] },
+    { type: "component", pattern: "components/*/*", capture: ["family", "elementName"] },
+    { type: "module", pattern: "modules/*", capture: ["elementName"] }
+  ],
+  "boundaries/files": [
+    { pattern: "**/*.spec.js", category: "test" },
+    { pattern: "**/*.css", category: "style" }
+  ]
+}
+```
 
 ```js
 export default [{
   rules: {
     "boundaries/dependencies": [2, {
-      // disallow importing any element by default
+      // Disallow every dependency by default
       default: "disallow",
       rules: [
         {
-          // allow importing helpers from helpers
-          from: { type: "helper" },
-          allow: { to: { type: "helper" } }
+          // Helpers can import other helpers
+          from: { element: { type: "helper" } },
+          allow: { to: { element: { type: "helper" } } }
         },
         {
-          // when file is inside an element of type "component"
-          from: { type: "component" },
+          // Components can import...
+          from: { element: { type: "component" } },
           allow: {
             to: [
-              // allow importing components of the same family
-              { type: "component", captured: { family: "{{from.family}}" } },
-                // allow importing helpers with domain "data"
-              { type: "helper", captured: { domain: "data" } }
+              // ...components of the same family (templated from the importing element)...
+              { element: { type: "component", captured: { family: "{{from.element.captured.family}}" } } },
+              // ...and helpers of the "data" family
+              { element: { type: "helper", captured: { family: "data" } } }
             ]
           }
         },
         {
-          // when component has family "molecule"
-          from: { type: "component", captured: { family: "molecule" } },
+          // Components of family "molecules" can import components of family "atoms"
+          from: { element: { type: "component", captured: { family: "molecules" } } },
           allow: {
-            // allow importing components with family "atom"
-            to: { type: "component", captured: { family: "atom" } },
+            to: { element: { type: "component", captured: { family: "atoms" } } },
           },
         },
         {
-          // when component has family "atom"
-          from: { type: "component", captured: { family: "atom" } },
+          // Components of family "atoms" cannot import "data" helpers
+          from: { element: { type: "component", captured: { family: "atoms" } } },
           disallow: {
-            // disallow importing helpers with domain "data"
-            to: { type: "helper", captured: { domain: "data" } }
+            to: { element: { type: "helper", captured: { family: "data" } } }
           },
           // Custom message only for this specific error
           message: "Atom components can't import data helpers"
         },
         {
-          // when file is inside a module
-          from: { type: "module" },
+          // No file may import a test file
+          disallow: { to: { file: { categories: "test" } } },
+          message: "Do not import test files ({{to.file.categories}}) from production code"
+        },
+        {
+          // Modules can import any component or helper
+          from: { element: { type: "module" } },
           allow: {
-            // allow importing any type of component or helper
-            to: { type: ["helper", "component"] }
+            to: { element: { type: ["helper", "component"] } }
           }
         },
         {
-          // when module name starts by "page-"
-          from: { type: "module", captured: { elementName: "page-*" } },
+          // Modules cannot import external state libraries directly
+          from: { element: { type: "module" } },
           disallow: {
-            // disallow importing any type of component not being of family layout
-            to: { type: "component", captured: { family: "!layout" } },
+            to: { module: { origin: "external", source: "redux" } }
+          },
+          message: "Modules must not import {{to.module.source}} directly"
+        },
+        {
+          // Modules whose name starts with "page-" can only import layout components
+          from: { element: { type: "module", captured: { elementName: "page-*" } } },
+          disallow: {
+            to: { element: { type: "component", captured: { family: "!layout" } } },
           },
           // Custom message only for this specific error
           message: `
-            Modules with name starting by 'page-' only can import layout components.
-            You tried to import a component of family {{to.captured.family}}
-            from a module with name {{from.captured.elementName}}
+            Modules with a name starting by 'page-' can only import layout components.
+            You tried to import a component of family {{to.element.captured.family}}
+            from a module named {{from.element.captured.elementName}}
           `
         }
       ]
@@ -606,7 +704,9 @@ export default [{
 ## Legacy Message Templates
 
 :::warning Deprecated
-Legacy message template syntax using `${...}` is deprecated and will be removed in a future major version. It is strongly recommended to migrate to Handlebars templates using `{{...}}` syntax.
+Legacy message template syntax using `${...}` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[Handlebars templates](#message-templating)** (`{{...}}`) instead.
+
+It keeps working without changes. Using `${...}` in a message does not print a deprecation warning, and the [`boundaries/legacy-templates`](./settings.md#boundarieslegacy-templates) setting does not affect it — that setting only controls legacy templating in selectors, not in custom messages.
 :::
 
 ### Backward Compatibility
@@ -632,7 +732,7 @@ Legacy templates use `${...}` syntax with flattened property access and addition
   - All captured values from the element pattern
 - `${from.*}` and `${target.*}` - Alternative legacy aliases
 - `${file.parent.*}`, `${from.parent.*}`, `${dependency.parent.*}`, `${target.parent.*}` - Parent element properties
-- `${report.*}` - Rule-specific metadata (when provided by the rule)
+- `${report.*}` - Dependency metadata: `${report.path}` is the target's internal path, `${report.specifiers}` is the comma-separated list of imported specifiers
 
 **Example:**
 
@@ -654,15 +754,22 @@ To migrate from legacy templates to Handlebars:
 
 <CodeDiff language="javascript">{`
 - "$\{file.type} cannot import $\{dependency.type}"
-+ "{{from.type}} cannot import {{to.type}}"
++ "{{from.element.types.[0]}} cannot import {{to.element.types.[0]}}"
 . 
-- "$\{file.type} with name $\{file.elementName} cannot import $\{dependency.domain}"
-+ "{{from.type}} with name {{from.captured.elementName}} cannot import {{to.captured.domain}}"
+- "$\{file.type} with name $\{file.elementName} cannot import $\{dependency.family}"
++ "{{from.element.types.[0]}} with name {{from.element.captured.elementName}} cannot import {{to.element.captured.family}}"
 . 
 - "$\{file.type} in $\{file.parent.type} cannot import $\{dependency.type}"
-+ "{{from.type}} in {{from.parents.0.type}} cannot import {{to.type}}"
++ "{{from.element.types.[0]}} in {{from.element.parents.[0].types.[0]}} cannot import {{to.element.types.[0]}}"
 `}</CodeDiff>
 
 :::tip Migration Guide
-For detailed migration conversion table, see the [v5 to v6 migration guide](../releases/migration-guides/v5-to-v6.mdx#templates-in-custom-messages).
+For a detailed migration conversion table, see the [v5 to v6 migration guide](../releases/migration-guides/v5-to-v6.mdx#templates-in-custom-messages).
 :::
+
+## Next Steps
+
+- [Selectors](./selectors.md) - the full reference for element, file, module, and entity selectors used in `from`/`to`.
+- [Settings](./settings.md) - configure [`boundaries/files`](./settings.md#boundariesfiles), [`boundaries/elements-single-type`](./settings.md#boundarieselements-single-type), and the other plugin settings.
+- [`boundaries/dependencies` rule](../rules/dependencies.md) - the rule reference, with project structure and example diagnostics.
+- [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) - migrate legacy selectors, templates, and deprecated rules.

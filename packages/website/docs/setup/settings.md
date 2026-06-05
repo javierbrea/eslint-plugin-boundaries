@@ -31,26 +31,72 @@ This section provides a complete reference of all available global settings for 
 
 **Required:** Yes (for rules to work)
 
-Defines **[element descriptors](./elements.md)** to recognize each file in the project as part of one of the defined element. All rules need this setting to be configured properly.
+Defines **[element descriptors](./elements.md)** that recognize each file in the project as part of one of the defined elements. All rules need this setting to be configured properly.
 
 ```js
 export default [{
   settings: {
     "boundaries/elements": [
-      {
-        type: "helper",
-        pattern: "helpers/*/*.js",
-        mode: "file",
-        capture: ["family", "elementName"]
-      }
+      { type: "helper", pattern: "helpers/*", capture: ["family"] },
+      { type: "component", pattern: "components/*/*", capture: ["family", "elementName"] },
+      { type: "module", pattern: "modules/*", capture: ["elementName"] }
     ]
   }
 }]
 ```
 
+See the [Element Descriptors](./elements.md) section for every descriptor property, including `pattern`, `type`, `capture`, `basePattern`, and `baseCapture`.
+
+## `boundaries/files`
+
+**Type:** `<array of file descriptors>` - see **[File Descriptors documentation](./files.md)**
+
+**Default:** `[]`
+
+Defines **[file descriptors](./files.md)** that categorize files independently of the elements they belong to. The resulting categories appear at runtime as `file.categories` and can be matched in rules with the [`file` selector](./selectors.md) and used in [message templates](./rules.mdx#message-templating) (for example, `{{to.file.categories}}`). This is the recommended replacement for the deprecated element-descriptor `category` property.
+
+```js
+export default [{
+  settings: {
+    "boundaries/files": [
+      { pattern: "**/*.spec.js", category: "test" },
+      { pattern: "**/*.css", category: "style" }
+    ]
+  }
+}]
+```
+
+See the [Files](./files.md) section for the full reference, including how [categories accumulate](./files.md#category-accumulation) across matching descriptors and the migration from the deprecated element `category` property.
+
+## `boundaries/elements-single-type`
+
+**Type:** `<boolean>`
+
+**Default:** `true` <small>(single-type, backward compatible)</small>
+
+Controls whether an element can have multiple [types](./elements.md#multi-type-elements).
+
+- When `true` (default), each element keeps only the **first** matching descriptor's type. This matches the historical single-type behavior.
+- When `false`, an element accumulates **all** descriptor types that match at the same path level, in descriptor order. The element's `types` array then holds every matched type.
+
+```js
+export default [{
+  settings: {
+    // Opt in to multi-type elements
+    "boundaries/elements-single-type": false
+  }
+}]
+```
+
+:::warning
+The plugin defaults this setting to `true` (single-type) for backward compatibility. The underlying `@boundaries/elements` library defaults to `false` (multi-type). They are deliberately opposite — the plugin overrides the library default so that existing configs keep behaving the same. Set `boundaries/elements-single-type: false` to opt in to multi-type matching.
+:::
+
+See [Multi-type Elements](./elements.md#multi-type-elements) for an example and the accumulation rules.
+
 ## `boundaries/include`
 
-**Type:** `<array of strings>`
+**Type:** `<string | string[]>`
 
 **Default:** All files included
 
@@ -66,7 +112,7 @@ export default [{
 
 ## `boundaries/ignore`
 
-**Type:** `<array of strings>`
+**Type:** `<string | string[]>`
 
 **Default:** No files ignored
 
@@ -88,9 +134,9 @@ The `boundaries/ignore` option has precedence over `boundaries/include`. If you 
 
 **Type:** `<array of strings>`
 
-**Default:** `["import", "require", "export", "dynamic-import"]`
+**Default:** `["import", "export", "require", "dynamic-import"]`
 
-Modifies which built-in dependency nodes are analyzed. By default, all next nodes are analyzed:
+Modifies which built-in dependency nodes are analyzed. By default, all of the following nodes are analyzed:
 
 **Available values:**
 
@@ -125,7 +171,7 @@ Defines custom dependency nodes to analyze beyond the built-in ones. All plugin 
 
 - **`selector`** - The [esquery selector](https://github.com/estools/esquery) for the `Literal` node where the dependency source is defined
 - **`name`** (optional) - A name for the custom node, so you can **use it in rules configuration using `dependency.nodeKind`** (e.g., to forbid or allow this kind of dependency node in some rules or to use it in custom messages templates variables)
-- **`kind`** -Assigns the **`dependency.kind` property in dependency descriptions**, which you can use in rules configuration or custom messages templates to target specific dependency kinds. Possible values are `"value"`, `"type"` or `"typeof"`. 
+- **`kind`** - Assigns the **`dependency.kind` property in dependency descriptions**, which you can use in rules configuration or custom message templates to target specific dependency kinds. Possible values are `"value"`, `"type"`, or `"typeof"`.
 
 :::warning
 The `name` property is optional for the moment, but if you don't provide it, the plugin will not be able to identify the node kind of the dependency in rules configuration or custom messages templates, so it will be treated as a generic dependency without a specific node kind. If you want to use the custom node in rules configuration or custom messages templates, make sure to provide a unique name for it.
@@ -162,7 +208,7 @@ export default [{
 
 Defines the root path of the project. By default, the plugin uses the current working directory.
 
-**When to use:** This setting is useful when executing the lint command from a different path than the project root, which may produce unexpected results with `basePattern` or `full` mode in element descriptors.
+**When to use:** This setting is useful when executing the lint command from a different path than the project root, which may otherwise produce unexpected results when matching `basePattern` in element descriptors or classifying module origins.
 
 **Example with ESM:**
 
@@ -190,16 +236,14 @@ The path should be absolute and resolved before passing it to the plugin. Otherw
 
 :::note Pattern Matching with rootPath
 
-Matching patterns in [element descriptors](./elements.md) must be **relative to the `rootPath`**. The plugin automatically converts absolute file paths to relative paths internally for pattern matching.
+Matching patterns in [element descriptors](./elements.md) are **relative to the `rootPath`**. The plugin automatically converts absolute file paths to relative paths internally for pattern matching.
 
-However, in **`file` and `folder` modes**, patterns are evaluated **right-to-left** (from the end of the path), which makes the relativity to `rootPath` less critical for most use cases. For example, a pattern like `*.model.ts` will match any file ending with `.model.ts` regardless of its location within `rootPath`.
-
-In **`full` mode**, patterns must match the complete relative path from `rootPath`. Files outside `rootPath` maintain their absolute paths and require absolute patterns to match.
+Because patterns are evaluated **right-to-left** (from the end of the path), the relativity to `rootPath` is less critical for most use cases. For example, a pattern like `helpers/*` will match a helper element regardless of where it lives within `rootPath`. The `rootPath` matters mainly for `basePattern` and for files outside the root, which keep their absolute paths.
 
 :::
 
 :::warning
-The `rootPath` setting may affect how the plugin assign the `origin` property for files outside the root path, categorizing them as `external` or `local`, but you can customize this behavior with the [`boundaries/flag-as-external` setting](#boundariesflag-as-external).
+The `rootPath` setting may affect the **[module origin](./modules.md)** assigned to dependencies resolved outside the root path, classifying them as `"external"` or `"local"`. You can customize this behavior with the [`boundaries/flag-as-external` setting](#boundariesflag-as-external). See [Modules → How settings influence origin](./modules.md#how-settings-influence-origin) for the full effect.
 :::
 
 ## `boundaries/cache`
@@ -237,7 +281,7 @@ export default [{
 }
 ```
 
-Defines custom rules for categorizing dependencies as external or local. By default, the plugin categorizes dependencies in `node_modules` and unresolvable imports as external. Use this setting to customize this behavior.
+Defines custom rules for categorizing a dependency's [module origin](./modules.md) as external or local. By default, the plugin categorizes dependencies in `node_modules` and unresolvable imports as external. Use this setting to customize this behavior. See [Modules → How settings influence origin](./modules.md#how-settings-influence-origin) for how each condition affects the resulting origin.
 
 :::tip
 This setting is especially useful in monorepo environments. Read the [Monorepo Setup guide](../guides/monorepo-setup.md) for detailed examples of different monorepo configurations using this setting.
@@ -257,6 +301,8 @@ All conditions are evaluated with **OR** logic: a dependency is categorized as e
 **Example - Treat inter-package imports as external in a monorepo:**
 
 ```js
+import { resolve } from "node:path";
+
 export default [{
   files: ["packages/app/**/*.js"],
   settings: {
@@ -345,16 +391,16 @@ export default [{
 }
 ```
 
-Enables debug traces and optionally filters them with **[Element or Dependency Selectors](../setup/selectors.md).**
+Enables debug traces and optionally filters them with [selectors](../setup/selectors.md). When enabled, debug prints the full runtime **entity** description (element, file, and module) for each analyzed file.
 
-- **`enabled`** `<boolean>` - Enables debug output when `true`.
+- **`enabled`** `<boolean>` - Enables debug output when `true`. Default `false`. Debug also turns on via the `ESLINT_PLUGIN_BOUNDARIES_DEBUG` environment variable.
 - **`messages`** `<object>` - Configures which message types to print (file descriptions, dependency descriptions, and rule violation descriptions). All are enabled by default.
   - **`files`** `<boolean>` - Prints file descriptions for each file analyzed.
   - **`dependencies`** `<boolean>` - Prints dependency descriptions for each dependency analyzed.
   - **`violations`** `<boolean>` - Prints rule violation descriptions for each rule violation detected.
-- **`filter`** `<object>` - Configures filters to apply to debug traces, using **[Element or Dependency Selectors](../setup/selectors.md)**. By default, no filters are applied, and all debug traces are printed when debug mode is enabled.
-  - **`filter.files`** [`<array of element selectors>`](../setup/selectors.md#element-selectors) - Filters file traces.
-  - **`filter.dependencies`** [`<array of dependency selectors>`](../setup/selectors.md#dependency-selectors) - Filters dependency traces.
+- **`filter`** `<object>` - Configures filters to apply to debug traces. See the sub-properties for the accepted selector types. By default, no filters are applied, and all debug traces are printed when debug mode is enabled.
+  - **`filter.files`** - Filters file traces. Accepts **both [file selectors](../setup/selectors.md) and [entity selectors](../setup/selectors.md)** (an array means OR).
+  - **`filter.dependencies`** - Filters dependency traces. Accepts [dependency selectors](../setup/selectors.md) — `{ from?, to?, dependency? }` objects (an array means OR).
 
 :::tip
 You can filter debug traces using selectors. See the **[Debugging guide](../guides/debugging.md)** for complete filtering examples.
@@ -363,12 +409,44 @@ You can filter debug traces using selectors. See the **[Debugging guide](../guid
 ## `boundaries/legacy-templates`
 
 **Type:** `<boolean>`
-**Default:** `true` <small>(will be `false` in next major version)</small>
 
-Whether to prioritize legacy `${}` templates syntax in selectors over the new Handlebars syntax. When `true`, captured values in selectors will take precedence over Handlebars variables, so there is risk of conflicts between them if you are naming your captured values with any of the properties available in the [Elements Descriptions at runtime](./elements.md#runtime-description-properties) (like `path`, `category`, `origin`, etc.). Set it to `false` if that is not the case, to use the more powerful and flexible Handlebars syntax in all your templates without worrying about conflicts with captured values. Old templates will continue working as they are, without any change, regardless of this setting.
+**Default:** `true` <small>(will be `false` in a future major version)</small>
 
-This does not affect the syntax supported in custom messages templates, because old syntax does not have available the new Handlebars variables, so it will continue working as it is, while new templates will support the more powerful and flexible Handlebars syntax without any conflict with captured values.
+Whether to prioritize the legacy `${}` template syntax in selectors over the Handlebars `{{}}` syntax.
+
+When `true`, captured values are injected at the top level of the template data, so they take precedence over the built-in legacy aliases. There is a risk of conflict if you name a captured value the same as one of those aliases: `type`, `elementPath`, `internalPath`, `origin`, or `parents`. Set this to `false` to avoid the risk and use the Handlebars syntax in all your templates. Old templates keep working without changes regardless of this setting.
+
+This setting only affects selectors. It does not change the syntax available in custom message templates: the legacy syntax there does not expose the Handlebars variables, so it keeps working as-is, while new templates can use the full Handlebars data tree.
 
 :::tip Read more
-Read more about using templates in selectors in the [Selectors documentation](../setup/selectors.md#templating-in-selectors), and about using custom messages templates in the [Rules documentation](../setup/rules.mdx#message-templating).
+Read more about templating in selectors in the [Selectors documentation](../setup/selectors.md), and about message templates in the [Rules documentation](../setup/rules.mdx#message-templating).
 :::
+
+## Deprecated Settings
+
+The following settings are kept for backward compatibility. They still work, and migrating to their replacements is recommended.
+
+### `boundaries/types`
+
+:::warning Deprecated
+`boundaries/types` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`boundaries/elements`](#boundarieselements)** instead.
+:::
+
+It keeps working without changes; you will see a deprecation warning in your console. It is a legacy alias for `boundaries/elements` and is used only as a fallback when `boundaries/elements` is absent. Rename the key to migrate.
+
+### `boundaries/alias`
+
+:::warning Deprecated
+`boundaries/alias` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use the **[`import/resolver`](#importresolver)** settings instead.
+:::
+
+It was a path-alias map. Configure module resolution with `import/resolver`, which gives access to a wide ecosystem of resolvers. See the [Custom Resolvers](../guides/custom-resolvers.md) guide.
+
+## Next Steps
+
+- **[Elements](./elements.md)** - element descriptors in context.
+- **[Files](./files.md)** - file descriptor properties and category accumulation.
+- **[Selectors](./selectors.md)** - the selectors used by rules and debug filters.
+- **[Rules Configuration](./rules.mdx)** - message templates referenced by `legacy-templates`.
+- **[Debugging](../guides/debugging.md)** - debug filter examples.
+- **[Monorepo Setup](../guides/monorepo-setup.md)** - `flag-as-external` usage in monorepos.

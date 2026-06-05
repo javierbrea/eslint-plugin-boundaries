@@ -41,11 +41,39 @@ It ensures that __your architectural boundaries are respected by the elements in
 
 ## How It Works
 
-By default, it analyzes `import` statements, but it can also evaluate `require`, `exports` and dynamic imports (`import()`). You can further customize it to inspect any other AST node that creates a dependency, such as `jest.mock()`. See the [configuration guide for more details](./setup/settings.md).
+By default, it analyzes `import` and `export` statements, `require` calls, and dynamic `import()` expressions. You can customize it to inspect any other AST node that creates a dependency, such as `jest.mock()`. See the [configuration guide for more details](./setup/settings.md).
+
+For each dependency it finds, the plugin classifies both the file the dependency comes from and the module it points to. That classification is what your rules read to decide whether the dependency is allowed.
+
+## The Three Classification Layers
+
+The plugin classifies every file along three independent layers — and, for each dependency, the module it resolves to. You configure the first two; the third is derived for you. Rules then combine any of them to draw a boundary.
+
+| Layer | Describes | You configure? | Example |
+| --- | --- | --- | --- |
+| **element** | The architectural role a file plays. | Yes, with [element descriptors](./setup/elements.md). | `{ type: "controller", pattern: "controllers/*" }` |
+| **file** | A cross-cutting category of the file itself, independent of its element. | Yes, with [file descriptors](./setup/files.md). | `{ pattern: "**/*.spec.js", category: "test" }` |
+| **module** | Where the imported module resolves from. | No — derived from the import. | `import "react"` resolves to `origin: "external"` |
+
+- An **element** is a group of files the plugin treats as one architectural unit — usually a folder like `controllers/`. You map paths to a `type`, and every file under that path belongs to that element.
+- A **file** category is a label attached to the file on its own, such as `"test"` or `"style"`. It is independent of the element: the same file can be a controller *and* a test.
+- A **module** is the resolved target of a dependency. The plugin derives its [origin](./setup/modules.md) — `"local"` (your own files), `"external"` (a package), or `"core"` (a Node.js built-in) — so you can target third-party imports without naming each one.
+
+Because the layers are independent, a rule can mix them. A few boundaries you can express, each phrased as an outcome and mapped to the selector fragment that captures it:
+
+- **Models cannot import views** — `from: { element: { type: "model" } }`, `disallow: { to: { element: { type: "view" } } }`.
+- **No code may import test files** — `disallow: { to: { file: { categories: "test" } } }`.
+- **Only shared code may use the `axios` package** — `from: { element: { type: "!shared" } }`, `disallow: { to: { module: { source: "axios" } } }`.
+
+:::tip
+Layering is progressive. Start with elements and one rule, then add file categories and module matching when you need them. See [Classification](./setup/classification.md).
+:::
 
 ## Usage
 
-### 1. Define the Elements in Your Project through Configuration
+### 1. Define the Classification in Your Project through Configuration
+
+Map paths to element types, and optionally tag files with categories:
 
 ```javascript
 const elementDescriptors = [
@@ -54,40 +82,50 @@ const elementDescriptors = [
   { type: "view", pattern: "views/*" },
   { type: "shared", pattern: "shared/*" },
 ];
+
+const fileDescriptors = [
+  { pattern: "**/*.spec.js", category: "test" },
+];
 ```
 
-### 2. The Plugin Provides Descriptions for Each Dependency
+### 2. The Plugin Builds a Runtime Description for Each Dependency
 
-Given this configuration, the plugin will analyze your project in runtime and classify dependencies, providing lots of useful metadata about the files and their relationships. For example:
+Given this configuration, the plugin analyzes your project at runtime and describes each dependency. For both sides of a dependency (`from` and `to`), it builds the three layers: the `element` the file belongs to, the `file` itself, and the resolved `module`. For example:
 
 ```javascript
-// When analyzing a dependency in src/controllers/controller-a/index.js
+// Runtime description for a dependency in src/controllers/controller-a/index.js
 {
   from: {
-    path: "src/controllers/controller-a/index.js",
-    type: "controller",
-    category: null,
-    captured: { elementName: "controller-a" },
-    origin: "local",
+    element: {
+      types: ["controller"],
+      captured: { elementName: "controller-a" },
+    },
+    file: { categories: null },
+    module: { origin: "local" },
   },
   to: {
-    path: "src/views/view-a/index.js",
-    type: "view",
-    category: null,
-    captured: { elementName: "view-a" },
-    origin: "local",
+    element: {
+      types: ["view"],
+      captured: { elementName: "view-a" },
+    },
+    file: { categories: null },
+    module: { origin: "local" },
   },
   dependency: {
     kind: "value",
     source: "@views/view-a",
     specifiers: ["ViewA"],
-  }
+  },
 }
 ```
 
+:::tip
+This is a simplified view. See **[Classification](./setup/classification.md)** for the full list of properties available in each description.
+:::
+
 ### 3. Define your Rules Based on These Descriptions
 
-Based on these **[descriptions](./setup/elements.md#runtime-description-properties)**, you can define rules to allow or disallow dependencies between elements using **[selectors](./setup/selectors.md)**. For example:
+Based on these **[descriptions](./setup/classification.md)**, you can define rules to allow or disallow dependencies using **[selectors](./setup/selectors.md)**. For example:
 
 <div style={{textAlign: 'center', margin: '2rem 0'}}>
   ![Architecture Boundaries Diagram](./overview-schema.svg)
@@ -97,66 +135,51 @@ Based on these **[descriptions](./setup/elements.md#runtime-description-properti
 const dependencyRules = [
   // Allow controllers to depend on models and views
   {
-    from: {
-      type: "controller",
-    },
+    from: { element: { type: "controller" } },
     allow: {
-      to: { type: ["model", "view"] },
+      to: { element: { type: ["model", "view"] } },
     },
   },
   // Allow views to depend on models
   {
-    from: {
-      type: "view",
-    },
+    from: { element: { type: "view" } },
     allow: {
-      to: { type: "model" },
+      to: { element: { type: "model" } },
     },
   },
   // Disallow models to depend on anything other than other models
   {
-    from: {
-      type: "model",
-    },
+    from: { element: { type: "model" } },
     disallow: {
-      to: { type: "!model" },
+      to: { element: { type: "!model" } },
     },
   },
-  // Allow any file to depend on other files of the same element
+  // Disallow any element from importing a test file (a file layer match)
   {
-    allow: {
-      dependency: {
-        relationship: {
-          to: "internal",
-        },
-      }
-    },
-  },
-  // Allow any file to depend on shared files,
-  // but only if it's a type dependency (e.g. TypeScript type imports)
-  {
-    allow: {
-      to: { type: "shared" },
-      dependency: {
-        kind: "type",
-      },
+    disallow: {
+      to: { file: { categories: "test" } },
     },
   },
 ];
 ```
 
+:::note
+Selectors target an element's `type` here, but they can also target file categories and the resolved module's properties — see [Selectors](./setup/selectors.md). Flat selectors like `{ type: "controller" }` still work and are converted automatically; the `{ element: { ... } }` form is the recommended way to also match `file` and `module` details.
+:::
+
 ### 4. Get Instant Feedback
 
-When a file violates a dependencies rule, ESLint will report an error:
+When a file violates a dependencies rule, ESLint reports an error. For example, a model importing a view:
 
 ```javascript
-// In src/models/model-a/index.js
+// src/models/model-a/index.js
+import View from "../../views/view-a";
+```
 
-import View  from '../../views/view-a';
+ESLint reports:
 
-/* ❌ Error: Importing elements of type 'views'
-is not allowed in elements of type 'models'.
-Disallowed in rule 3 */
+```text
+error  Dependencies to elements of type "view" are not allowed in elements of type "model". Denied by rule at index 2  boundaries/dependencies
 ```
 
 ## Scope

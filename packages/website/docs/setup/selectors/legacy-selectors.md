@@ -2,7 +2,7 @@
 id: legacy-selectors
 title: Legacy Selector Syntax
 sidebar_label: Legacy Selectors
-description: Documentation for legacy selector formats (string and tuple syntax) in ESLint Plugin Boundaries.
+description: Reference for deprecated string and tuple selector formats in eslint-plugin-boundaries, with migration guidance to modern object-based and entity selectors.
 tags:
   - configuration
   - deprecated
@@ -14,26 +14,29 @@ keywords:
   - migration
   - string selector
   - tuple selector
-  - object-based selectors
+  - object selector
+  - entity selector
+  - file selector
+  - module selector
 ---
 
 # Legacy Selector Syntax
 
 :::warning Deprecated
-The selector formats documented on this page are **deprecated** and will be removed in a future major version. These formats still work but will show a deprecation warning in your console.
-
-**We strongly recommend migrating to the modern [object-based selector syntax](../selectors.md).** See the [v5 to v6 migration guide](../../releases/migration-guides/v5-to-v6.mdx) for detailed migration instructions and examples.
+The string and tuple selector formats on this page are kept for backward compatibility but are deprecated and will be removed in a future major version. Use the [object-based selector syntax](../selectors.md) instead.
 :::
+
+These formats keep working without changes. A runtime console warning for string and tuple selectors is planned but is not yet emitted, so existing configurations run silently. When you are ready to migrate, the [v6 to v7 migration guide](../../releases/migration-guides/v6-to-v7.mdx) covers the full transition, including the [entity selector](../selectors.md#entity-selectors) form.
 
 ## Overview
 
-Legacy selector formats were the original way to define element selectors in ESLint Plugin Boundaries. While these formats continue to work for backwards compatibility, they offer limited functionality compared to the modern object-based syntax.
+String and tuple selectors were the original way to match elements. They still work, but they can only match an element type and its captured values. The modern [object-based selectors](../selectors.md) — and especially the [entity selector](../selectors.md#entity-selectors) form — can also match a file's categories, a module's origin, and more.
 
-## String Selector Format
+## String selector format
 
 **Format:** `<string>`
 
-A simple [micromatch pattern](https://github.com/micromatch/micromatch) that matches against the element type.
+A [micromatch pattern](https://github.com/micromatch/micromatch) matched against the element type.
 
 ```js
 // Matches all helpers
@@ -49,30 +52,34 @@ A simple [micromatch pattern](https://github.com/micromatch/micromatch) that mat
 **Modern equivalent:**
 
 ```js
-// Single type
-{ type: "helper" }
+// Entity selector (canonical form)
+{ element: { type: "helper" } }
 
-// Multiple types (using array of selectors)
-[{ type: "helper" }, { type: "component" }]
+// Match multiple types with an array of selectors
+[{ element: { type: "helper" } }, { element: { type: "component" } }]
 
-// Pattern matching
-{ type: "*-component" }
+// Pattern matching on the type
+{ element: { type: "*-component" } }
 ```
 
-## Tuple Selector Format
+:::tip Why the `element` wrapper
+Wrapping the type in an `element` sub-selector turns it into a full [entity selector](../selectors.md#entity-selectors). The flat form `{ type: "helper" }` still works and is converted internally, but only the entity form lets you also match [`file.categories`](../selectors.md#file-sub-selector) and [`module.origin`/`module.source`](../selectors.md#module-sub-selector).
+:::
+
+## Tuple selector format
 
 **Format:** `[<string>, <capturedValuesObject>]`
 
-Matches when both the element type matches AND all specified captured properties match.
+Matches when both the element type matches **and** all the listed captured values match.
 
 ```js
-// Match helpers with domain "users"
-["helper", { domain: "users" }]
+// Match helpers captured in the "data" family
+["helper", { family: "data" }]
 
-// Match helpers with domain "users" or "admin"
-["helper", { domain: "users|admin" }]
+// Match helpers in the "data" OR "permissions" family
+["helper", { family: "data|permissions" }]
 
-// Match helpers where elementName starts with "parse"
+// Match helpers whose elementName starts with "parse"
 ["helper", { elementName: "parse*" }]
 ```
 
@@ -80,28 +87,49 @@ Matches when both the element type matches AND all specified captured properties
 
 ```js
 // Single captured property
-{ type: "helper", captured: { domain: "users" } }
+{ element: { type: "helper", captured: { family: "data" } } }
 
-// Pattern in captured values
-{ type: "helper", captured: { domain: "users|admin" } }
+// Micromatch pattern in a captured value
+{ element: { type: "helper", captured: { family: "data|permissions" } } }
 
 // Multiple captured conditions
-{ type: "helper", captured: { elementName: "parse*" } }
+{ element: { type: "helper", captured: { elementName: "parse*" } } }
 ```
 
-## Array of Legacy Selectors
+## Array of legacy selectors
 
-**Format:** `[<selector>, <selector>, ...]`
+When you provide an array of selectors, it matches if **any** selector in the array matches (OR logic).
 
-When an array of selectors is provided, it matches if ANY selector in the array matches (OR logic).
+### Array of strings
 
 ```js
 // Matches helper OR component
 ["helper", "component"]
+```
 
-// Matches data helper OR all component
+**Modern equivalent:**
+
+```js
+// OR within the type pattern
+{ element: { type: ["helper", "component"] } }
+
+// OR across selectors
 [
-  ["helper", { domain: "users" }],
+  { element: { type: "helper" } },
+  { element: { type: "component" } }
+]
+```
+
+:::note
+Both forms above match a `helper` or a `component`. Use the type-array form (`type: ["helper", "component"]`) when the only difference is the type. Use an array of selectors when the alternatives also differ in other properties (for example, a different `captured` value per type), since each selector can carry its own conditions.
+:::
+
+### Mixed array of strings and tuples
+
+```js
+// Match data helpers OR all components
+[
+  ["helper", { family: "data" }],
   "component"
 ]
 ```
@@ -109,31 +137,30 @@ When an array of selectors is provided, it matches if ANY selector in the array 
 **Modern equivalent:**
 
 ```js
-// Object-based selectors with OR logic in a property
-{ type: ["helper", "component" ] }
-
-// Array of object-based selectors with OR logic
 [
-  { type: "helper", captured: { domain: "users" } },
-  { type: "component" }
+  { element: { type: "helper", captured: { family: "data" } } },
+  { element: { type: "component" } }
 ]
 ```
 
-## Why Migrate?
+## Why migrate?
 
-The modern object-based selector syntax provides:
+The object-based and entity selector syntax gives you:
 
-- ✅ **Better readability** - Object properties are self-documenting
-- ✅ **Advanced features** - Access to properties like `origin`, `path`, `internalPath`, and more
-- ✅ **Type safety** - Better TypeScript support and IDE autocompletion
-- ✅ **Future-proof** - New features will only be added to object-based syntax
+- **Self-documenting selectors** — Object properties read clearly, especially in long rule lists.
+- **Entity matching** — Wrap element properties in `{ element: { ... } }` to also match [`file.categories`](../selectors.md#file-sub-selector) (file descriptors) and [`module.origin`/`module.source`](../selectors.md#module-sub-selector) (external and local module origin). These are only reachable through entity selectors.
+- **Richer element matching** — Object selectors support `element.type`, `element.path`, `element.fileInternalPath`, `element.captured`, `element.parent`, and the `isIgnored`/`isUnknown` flags.
+- **Type safety** — Better TypeScript support and editor autocompletion.
+- **Future features** — New capabilities are added to the object-based syntax only.
 
-## Migration Guide
+## Migration guide
 
-For comprehensive migration instructions and examples, see the **[v5 to v6 Migration Guide](../../releases/migration-guides/v5-to-v6.mdx)**.
+For step-by-step migration instructions and examples, see the [v6 to v7 migration guide](../../releases/migration-guides/v6-to-v7.mdx). If you are migrating from an earlier version, the [v5 to v6 migration guide](../../releases/migration-guides/v5-to-v6.mdx) covers the original move from string and tuple selectors to object selectors.
 
 ## See Also
 
-- [Object-Based Selectors](../selectors.md) - Modern selector documentation
-- [v5 to v6 Migration Guide](../../releases/migration-guides/v5-to-v6.mdx) - Step-by-step migration instructions
-- [Elements Configuration](../elements.md) - Understanding captured properties
+- [Selectors](../selectors.md) — modern object-based and entity selector reference.
+- [Rules](../rules.mdx) — where selectors are used in `from`/`to`/`dependency`.
+- [Settings](../settings.md) — configure `boundaries/files`, `boundaries/elements-single-type`, and `boundaries/legacy-templates`.
+- [Elements](../elements.md) — element descriptors and captured values.
+- [v6 to v7 Migration Guide](../../releases/migration-guides/v6-to-v7.mdx) — full migration instructions.

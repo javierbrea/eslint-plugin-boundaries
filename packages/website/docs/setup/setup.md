@@ -2,7 +2,7 @@
 id: setup
 label: Setup
 title: Setup Overview
-description: Setup instructions for ESLint Plugin Boundaries.
+description: Setup overview for ESLint Plugin Boundaries — elements, the entity model, selectors, and global settings.
 tags:
   - configuration
   - concepts
@@ -15,31 +15,57 @@ keywords:
   - setup overview
   - configuration
   - element descriptors
-  - element selectors
+  - entity model
+  - file descriptors
+  - selectors
   - plugin settings
 ---
 
 # Setup Overview
 
-The plugin architecture is built on three main concepts that work together:
+The plugin is built on a few concepts that work together. Start with elements, then layer the rest as your project grows.
 
-### Core Concepts
+## Core Concepts
 
-1. **[Element Descriptors](./elements.md)** - Define what types of elements exist in your project (components, modules, helpers, etc.) and how to recognize them based on file paths. Read more in the [Elements](./elements.md) section.
-2. **[Element Descriptions](./elements.md#runtime-description-properties)** - Based on the descriptors, the plugin assigns a description to each file and dependency in your project with properties such as `type`, `name`, `category`, `origin`, `path`, etc.
-2. **[Element Selectors](./selectors.md)** - Match specific elements in rules based on their description. Read more in the [Selectors](./selectors.md) section.
-3. **[Global Settings](./settings.md)** - Configure plugin behavior, define dependencies to analyze, and set include/ignore patterns. Read more in the [Global Settings](./settings.md) section and [Configuration Helpers](./eslint-integration.md).
+1. **[Classification](./classification.md)** - Classify your project along three layers: [elements](./elements.md) (the architectural pieces you define, such as components, modules or helpers), [files](./files.md) (cross-cutting categories such as tests or styles), and [modules](./modules.md) (where each import resolves from, derived automatically). Read more in the [Classification](./classification.md) section.
+2. **[Selectors](./selectors.md)** - Match specific elements, files or modules in rules based on their runtime description. Read more in the [Selectors](./selectors.md) section.
+3. **[Global Settings](./settings.md)** - Configure plugin behavior: which dependency nodes to analyze, include/ignore patterns, and more. Read more in the [Settings](./settings.md) section and [Configuration Helpers](./eslint-integration.md).
 
-### Workflow
+## The Entity Model
 
-The typical workflow when setting up the plugin involves three main steps:
+When the plugin analyzes a file, it builds a runtime description called an **entity** made of three independent layers: the **element** the file belongs to, the **file** classified on its own (its `categories`), and the **module** each dependency resolves to (`"local"`, `"external"`, or `"core"`). These layers let rules reason about a file along three axes at once.
 
-1. **Define your elements** using [element descriptors](./elements.md) in `boundaries/elements` setting
-2. **Configure rules** using [element selectors](./selectors.md) to specify which elements can interact with each other
-3. **Customize global settings** to include/ignore files, define dependency nodes, etc. You can use the helpers in the [Configuration Helpers](./eslint-integration.md) section to simplify this process.
+The [Classification](./classification.md) section is the full introduction to this model and links to a page for each layer: [Elements](./elements.md), [Files](./files.md), and [Modules](./modules.md).
 
-The plugin analyzes each file in your project and assigns it to an element based on your descriptors. Then, when checking dependencies (imports, requires, etc.), it uses your rules with element selectors to determine if the dependency is allowed.
+:::note
+You do not need all three layers to get started. Elements and one dependencies rule are enough for a working setup — see the [Quick Start](../quick-start.mdx). File descriptors and module matching are there when you need them.
+:::
+
+## Workflow
+
+The typical workflow when setting up the plugin has three steps:
+
+1. **Classify your files** using the [Classification](./classification.md) layers: define [elements](./elements.md) in the `boundaries/elements` setting, and optionally categorize files with [file descriptors](./files.md). The [module](./modules.md) layer is derived automatically.
+2. **Configure rules** using [selectors](./selectors.md) to specify which elements can interact with each other. Selectors can also match on file categories or module origins when you need them.
+3. **Customize global settings** to include or ignore files, define dependency nodes, categorize files, and more. The helpers in [Configuration Helpers](./eslint-integration.md) simplify this process.
+
+The plugin analyzes each file in your project and builds a runtime entity description — the element it belongs to, its file categories, and the module origin of each dependency. Your rules and their selectors then determine whether each dependency is allowed.
 
 :::tip Debug Mode
-Enable [debug mode](../guides/debugging.md) when first configuring the plugin to see which element is assigned to each file and what values are assigned to the [element descriptions](./elements.md).
+Enable [debug mode](../guides/debugging.md) when first configuring the plugin to see the full runtime entity description (element, file, and module) assigned to each file.
 :::
+
+:::info Custom error messages
+Rules can produce dynamic error messages using [message templates](./rules.mdx#message-templating), reading values such as `{{from.element.types}}`, `{{to.file.categories}}`, or `{{to.module.origin}}`.
+:::
+
+## Next Steps
+
+- **[Classification](./classification.md)** - the three layers (element, file, module) that describe every file.
+  - **[Elements](./elements.md)** - define the architectural elements your files belong to.
+  - **[Files](./files.md)** - categorize files across elements with file descriptors.
+  - **[Modules](./modules.md)** - understand module origin for external and core imports.
+- **[Selectors](./selectors.md)** - match elements, files, and modules in your rules.
+- **[Rules Configuration](./rules.mdx)** - write the dependency rules that enforce your architecture.
+- **[Settings](./settings.md)** - the full reference for every global setting.
+- **[Debugging](../guides/debugging.md)** - inspect the runtime descriptions the plugin assigns.

@@ -30,7 +30,15 @@ const sidebars: SidebarsConfig = {
       },
       collapsed: true,
       items: [
-        "setup/elements",
+        {
+          type: "category",
+          label: "Classification",
+          link: {
+            type: "doc",
+            id: "setup/classification",
+          },
+          items: ["setup/elements", "setup/files", "setup/modules"],
+        },
         {
           type: "category",
           label: "Selectors",
@@ -90,6 +98,7 @@ const sidebars: SidebarsConfig = {
           label: "Migration Guides",
           collapsed: false,
           items: [
+            "releases/migration-guides/v6-to-v7",
             "releases/migration-guides/v5-to-v6",
             "releases/migration-guides/v3-to-v4",
             "releases/migration-guides/v1-to-v2",

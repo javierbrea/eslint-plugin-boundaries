@@ -25,40 +25,48 @@ import CodeDiff from "@site/src/components/CodeDiff";
 
 > Enforce allowed external dependencies by **[element](../setup/elements.md)** type.
 
-## Rule Details
+:::warning Deprecated
+`boundaries/external` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`boundaries/dependencies`](./dependencies.md)** with the `to.module` sub-selector instead.
 
-This rule validates dependencies to external modules and allows or disallows them based on the element importing the module and the provided configuration. It helps maintain consistent dependency management across different architectural layers.
+It keeps working without changes; you will see a deprecation warning in your console:
 
-:::warning
-The boundaries set by this rule can also be achieved with the **[`boundaries/dependencies` rule](./dependencies.md)**, which allows you to specify allowed entry points directly in the rules by using the [`origin` and `source` selector properties](../setup/selectors.md). This legacy rule will continue working for now to give you more time to migrate your configuration, but it is recommended to migrate to `boundaries/dependencies` as soon as possible, as this rule will eventually be removed in oncoming major versions.
+```text
+Rule "boundaries/external" is deprecated and will be removed in future versions. Please migrate to the "boundaries/dependencies" rule with appropriate selectors.
+```
 
-Read the **[migration guide below](#migration-to-boundariesdependencies)** for more details and examples on how to migrate your configuration.
+Read the **[migration guide below](#migration-to-boundariesdependencies)** for conversion examples, and the **[v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx)** for the full picture.
 :::
 
+## Rule Details
+
+This rule validates dependencies to external and core modules. It allows or disallows them based on the element importing the module and the provided configuration.
 
 ## Options
 
 
 ```
 "boundaries/external":
-  [<enabled>, { "default": <string>, "message": <string>, "rules": <object> }]
+  [<severity>, { "default": <string>, "message": <string>, "rules": <object> }]
 ```
 
 
-**Configuration properties:**
+The first item in the array is the ESLint severity (`0` = off, `1` = warning, `2` = error). The second item is the options object:
 
-- `enabled`: Enables the rule. `0` = off, `1` = warning, `2` = error
 - `default`: `"allow"` or `"disallow"`. Determines the default behavior for external imports that don't match any rule
 - `message`: Custom error message for rule violations. Note that **the default message provides detailed information about why the error occurred**, so only define a custom message if necessary. See [error messages](#error-messages) for more information
 - `rules`: An array of rule objects processed in order to determine whether an import should be allowed. Each rule object contains:
-  - `from`: **[`<element selectors>`](../setup/selectors.md)** - If the file being analyzed matches this selector, the rule will be evaluated. Otherwise, it is skipped
+  - `from`: **[`<entity selectors>`](../setup/selectors.md)** - If the file being analyzed matches this selector, the rule is evaluated. Otherwise, it is skipped. Accepts both legacy element selectors (for example `{ type: "helper" }`) and entity selectors (for example `{ element: { type: "helper" } }`)
   - `disallow`: **`<external module selectors>`** - If the imported external module matches this selector, the import is disallowed (can be overridden by a subsequent rule returning `"allow"`)
   - `allow`: **`<external module selectors>`** - If the imported external module matches this selector, the import is allowed (can be overridden by a subsequent rule returning `"disallow"`)
-  - `importKind`: `<string>` - Optional. Makes sense when using [TypeScript](../guides/typescript-support.md) only. If defined, the rule will only be evaluated for dependencies of the specified kind. Possible values: `"value"`, `"type"`, or `"typeof"`. If defined, the rule will only be evaluated for dependencies of the specified kind.
+  - _`importKind`_: `<string>` - Optional. Makes sense when using [TypeScript](../guides/typescript-support.md) only. If defined, the rule is only evaluated for dependencies of the specified kind. Possible values: `"value"`, `"type"`, or `"typeof"`
   - `message`: `<string>` - Custom error message for this specific rule. See [error messages](#error-messages) for more information
 
 :::warning
-You must provide at least one of `allow` or `disallow`, and `from` for each rule.
+Each rule requires `from` and at least one of `allow` or `disallow`.
+:::
+
+:::warning Deprecated
+The rule-level `importKind` option is deprecated. When you migrate to **[`boundaries/dependencies`](./dependencies.md)**, replace it with the `dependency.kind` selector property. See the **[v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx)** for details.
 :::
 
 
@@ -89,20 +97,20 @@ When using options:
 | `"foo-library"` | `import { Link } from "foo-library"` | ✅ |
 | `"foo-library"` | `import { Link, Foo } from "foo-library"` | ✅ |
 | `"foo-library"` | `import "another-library"` | ❌ |
-| `{ module: "foo-library", specifiers: ["Link"] }` | `import { Link } from "foo-library"` | ✅ |
-| `{ module: "foo-library", specifiers: ["Link"] }` | `import { Link, Foo } from "foo-library"` | ✅ |
-| `{ module: "foo-library", specifiers: ["Link"] }` | `import "foo-library"` | ❌ |
-| `{ module: "foo-library", specifiers: ["Link"] }` | `import { Foo } from "foo-library"` | ❌ |
-| `{ module: "foo-library", specifiers: ["Link"] }` | `import "another-library"` | ❌ |
-| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import { Link } from "foo-library"` | ✅ |
-| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import { Foo } from "foo-another-library"` | ✅ |
-| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import { Var, Foo } from "foo-library"` | ✅ |
-| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import "foo-library"` | ❌ |
-| `{ module: "foo-*", specifiers: ["L*", "F*"] }` | `import "another-library"` | ❌ |
-| `{ module: "foo-library", path: "/subpath" }` | `import "foo-library/subpath"` | ✅ |
-| `{ module: "foo-library", path: "/utils/*" }` | `import "foo-library/utils/helper"` | ✅ |
-| `{ module: "foo-library", path: "/utils/*" }` | `import "foo-library/utils"` | ❌ |
-| `{ module: "foo-library", path: ["/subpath", "/utils/*"] }` | `import "foo-library/another"` | ❌ |
+| `["foo-library", { specifiers: ["Link"] }]` | `import { Link } from "foo-library"` | ✅ |
+| `["foo-library", { specifiers: ["Link"] }]` | `import { Link, Foo } from "foo-library"` | ✅ |
+| `["foo-library", { specifiers: ["Link"] }]` | `import "foo-library"` | ❌ |
+| `["foo-library", { specifiers: ["Link"] }]` | `import { Foo } from "foo-library"` | ❌ |
+| `["foo-library", { specifiers: ["Link"] }]` | `import "another-library"` | ❌ |
+| `["foo-*", { specifiers: ["L*", "F*"] }]` | `import { Link } from "foo-library"` | ✅ |
+| `["foo-*", { specifiers: ["L*", "F*"] }]` | `import { Foo } from "foo-another-library"` | ✅ |
+| `["foo-*", { specifiers: ["L*", "F*"] }]` | `import { Var, Foo } from "foo-library"` | ✅ |
+| `["foo-*", { specifiers: ["L*", "F*"] }]` | `import "foo-library"` | ❌ |
+| `["foo-*", { specifiers: ["L*", "F*"] }]` | `import "another-library"` | ❌ |
+| `["foo-library", { path: "/subpath" }]` | `import "foo-library/subpath"` | ✅ |
+| `["foo-library", { path: "/utils/*" }]` | `import "foo-library/utils/helper"` | ✅ |
+| `["foo-library", { path: "/utils/*" }]` | `import "foo-library/utils"` | ❌ |
+| `["foo-library", { path: ["/subpath", "/utils/*"] }]` | `import "foo-library/another"` | ❌ |
 
 
 ### Configuration Example
@@ -121,6 +129,7 @@ When using options:
           // allow importing moment
           allow: ["moment"],
           // allow only importing types, not values (TypeScript only)
+          // note: importKind is deprecated, use dependency.kind after migrating
           importKind: "type"
         },
         {
@@ -148,9 +157,9 @@ When using options:
             // allow importing react
             "react",
             // allow importing useHistory, Switch and Route from react-router-dom
-            { module: "react-router-dom", specifiers: ["useHistory", "Switch", "Route"] },
+            ["react-router-dom", { specifiers: ["useHistory", "Switch", "Route"] }],
             // allow importing Menu icon and any icon starting with "Log" from @mui/icons-material
-            { module: "@mui/icons-material", path: ["/Menu", "/Log*"] }
+            ["@mui/icons-material", { path: ["/Menu", "/Log*"] }]
           ]
         }
       ]
@@ -211,20 +220,17 @@ src/
     "boundaries/elements": [
       {
         type: "helper",
-        pattern: "helpers/*/*.js",
-        mode: "file",
-        capture: ["family", "elementName"]
+        pattern: "helpers/*",
+        capture: ["family"]
       },
       {
         type: "component",
         pattern: "components/*/*",
-        mode: "folder",
         capture: ["family", "elementName"]
       },
       {
         type: "module",
         pattern: "modules/*",
-        mode: "folder",
         capture: ["elementName"]
       }
     ]
@@ -364,11 +370,11 @@ import Login from '@mui/icons-material/Login'
 
 This rule provides detailed error messages to help you understand and resolve violations.
 
-It uses the same default message format as [`boundaries/dependencies`](./dependencies.md#error-messages). Messages include information about the external dependency that is not allowed, such as the `module` and, when applicable, `specifiers` and internal path details (read [Element Descriptions](../setup/elements.md#runtime-description-properties) for more information on how elements are described).
+It uses the same default message format as [`boundaries/dependencies`](./dependencies.md#error-messages). Messages include information about the external dependency that is not allowed, such as the module origin and source and, when applicable, the import specifiers and internal path details (read [Classification](../setup/classification.md) for more information on how files and modules are described).
 
 For example:
 
-`Dependencies with module "react" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0`
+`Dependencies with module source "react" to entities of module with origin "external" are not allowed in elements of type "helper". Denied by rule at index 0`
 
 ### Custom Messages with Templates
 
@@ -381,19 +387,19 @@ You can customize error messages globally or for specific rules. See [Rules Conf
 This rule populates the `report` object with rule-specific metadata, but only when using [legacy message templates syntax](../setup/rules.mdx#legacy-message-templates). The following properties are available in the `report` object for legacy templates:
 
 - `${report.specifiers}`: Comma-separated matching import/export specifiers, when the violation is about specifiers. Modern templates should use `{{dependency.specifiers}}` instead.
-- `${report.path}`: Matching internal import path, when the violation is about a path rule. Modern templates should use `{{to.internalPath}}` instead.
+- `${report.path}`: Matching internal import path, when the violation is about a path rule. Modern templates should use `{{to.module.internalPath}}` instead (the subpath inside the external module).
 
 When neither condition applies, `report` contains no properties.
 
 ## Migration to `boundaries/dependencies`
 
-The restrictions enforced by this rule can also be achieved with the more flexible and powerful `boundaries/dependencies` rule, which allows you to specify allowed relationships directly in the rules by using the `origin`, `source`, `module`, `internalPath` and `specifiers` selector properties. It is recommended to migrate your configuration to `boundaries/dependencies` as soon as possible, as this legacy rule will eventually be removed in oncoming major versions.
+The restrictions enforced by this rule can also be achieved with the `boundaries/dependencies` rule, which lets you match external dependencies directly using the [`to.module` sub-selector](../setup/selectors.md) properties (`origin`, `source`, and `internalPath`) together with the `dependency.specifiers` metadata selector. The [module](../setup/modules.md) layer explains how the plugin classifies each import's origin and source. It is recommended to migrate your configuration to `boundaries/dependencies` as soon as possible, as this rule will be removed in a future major version.
 
 :::warning
 You need to set the `checkAllOrigins` option to `true` in your `boundaries/dependencies` configuration to make sure that dependencies from external origins are also checked, as by default `boundaries/dependencies` only checks dependencies between local known elements.
 :::
 
-Here you have an example of how to migrate a configuration from `boundaries/external` to `boundaries/dependencies`:
+The following example shows how to migrate a configuration from `boundaries/external` to `boundaries/dependencies`:
 
 <CodeDiff language="javascript">{`
 . {
@@ -407,40 +413,39 @@ Here you have an example of how to migrate a configuration from `boundaries/exte
 -           from: "helper",
 -           allow: ["moment"],
 -           importKind: "type"
--         }
+-         },
 +         {
-+           from: { type: "helper" },
++           from: { element: { type: "helper" } },
 +           allow: {
 +             to: {
-+               origin: "external",
++               module: {
++                 origin: ["external", "core"],
++                 source: "moment"
++               }
 +             },
-+             dependency: {
-+               module: "moment",
-+               kind: "type"
-+             },
++             dependency: { kind: "type" }
 +           }
-+         }
++         },
 -         {
 -           from: "helper",
--           allow:  [
--             "@mui/material",
--             {
--               path: "Autocomplete",
+-           allow: [
+-             ["@mui/material", {
+-               path: "/Autocomplete",
 -               specifiers: ["useAutocomplete"]
--             }
+-             }]
 -           ]
 -         }
 +         {
-+           from: { type: "helper" },
++           from: { element: { type: "helper" } },
 +           allow: {
 +             to: {
-+               origin: "external",
-+               internalPath: "Autocomplete",
++               module: {
++                 origin: ["external", "core"],
++                 source: "@mui/material",
++                 internalPath: "Autocomplete"
++               }
 +             },
-+             dependency: {
-+               module: "@mui/material",
-+               specifiers: ["useAutocomplete"]
-+             },
++             dependency: { specifiers: ["useAutocomplete"] }
 +           }
 +         }
 .       ]
@@ -452,10 +457,11 @@ Here you have an example of how to migrate a configuration from `boundaries/exte
 ## Further Reading
 
 
-Read next sections to learn more about related topics:
+Learn more about related topics:
 
 
 * [Defining Elements](../setup/elements.md) - Learn how to define architectural elements in your project
-* [Element Selectors](../setup/selectors.md) - Learn how to define and use element selectors in your rules
+* [Selectors](../setup/selectors.md) - Learn how to use element, file, and module selectors (the `to.module` sub-selector matches external dependencies)
 * [Rules Configuration](../setup/rules.mdx) - Learn how to configure common rule options
 * [Global Settings](../setup/settings.md) - Learn about global settings that affect all rules
+* [Migrating from v6 to v7](../releases/migration-guides/v6-to-v7.mdx) - Migrate deprecated rules to `boundaries/dependencies`

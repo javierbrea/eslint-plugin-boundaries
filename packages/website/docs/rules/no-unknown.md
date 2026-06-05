@@ -18,31 +18,33 @@ keywords:
 
 # no-unknown
 
-> Prevent importing unknown **[elements](../setup/elements.md)** from known **[elements](../setup/elements.md)**.
+> Prevent dependencies to locally-resolved files that do not match any **[element](../setup/elements.md)** descriptor.
 
 ## Rule Details
 
-This rule validates dependencies to local files. If the imported file is not recognized as any of the **[elements defined in settings](../setup/elements.md)**, the dependency will be reported as an error when importing from a known element.
+This rule validates dependencies to local files. If the dependency's target does not match any **[element descriptor](../setup/elements.md)** (its element is unknown) and the dependency has local origin, it is reported as an error.
 
-:::info
-This rule helps ensure that all files used in your project are properly categorized as elements, preventing unstructured dependencies.
+The rule analyzes any source file that the plugin recognizes — a file that matches at least one element descriptor or one [file descriptor](../setup/files.md). It does not analyze files that are both element-unknown and file-unknown, or files that are ignored.
+
+:::note
+The rule reports based on the target's **element**: a dependency is flagged when the target matches no element descriptor. A file matched only by a [file descriptor](../setup/files.md) (`boundaries/files`) is still an unknown element, so importing it is reported by this rule.
 :::
 
 :::tip
-The restriction set by this rule can also be achieved with the **[`boundaries/dependencies` rule](./dependencies.md)**, which allows you to specify rules based on the `isUnknown` property of the [elements selector](../setup/selectors.md), but it is provided as a shortcut for this common use case. You can choose to use either this specific rule or the `boundaries/dependencies` for more granularity and flexibility based on your preference and needs.
+The restriction set by this rule can also be achieved with the **[`boundaries/dependencies` rule](./dependencies.md)**, which lets you specify rules based on the `isUnknown` property of the [`element` sub-selector](../setup/selectors.md). This rule is provided as a shortcut for this common use case.
 
-Read [replacement with `boundaries/dependencies`](#replacement-with-boundariesdependencies) section below for more details and examples.
+Note that the two are not strictly equivalent. By default, `boundaries/dependencies` skips a target only when **both** its file and its element are unknown, while `no-unknown` looks only at the element. So a target that is **both file-unknown and element-unknown** is reported by `no-unknown`, but skipped by `boundaries/dependencies` unless you set `checkUnknownLocals: true`. A target matched by a [file descriptor](../setup/files.md) (known file, unknown element) is treated the **same** by both rules: since its file is known, `boundaries/dependencies` does not skip it, so both rules report it.
+
+Read the [replacement with `boundaries/dependencies`](#replacing-this-rule-with-boundariesdependencies) section below for more details and examples.
 :::
 
 ## Options
 
-```
-"boundaries/no-unknown": [<enabled>]
+```text
+"boundaries/no-unknown": [<severity>]
 ```
 
-**Configuration properties:**
-
-- `enabled`: Enables the rule. `0` = off, `1` = warning, `2` = error
+This rule has no options. The only value is the ESLint severity: `0` = off, `1` = warning, `2` = error.
 
 ### Configuration Example
 
@@ -89,14 +91,12 @@ src/
     "boundaries/elements": [
       {
         type: "helper",
-        pattern: "helpers/*/*.js",
-        mode: "file",
-        capture: ["family", "elementName"]
+        pattern: "helpers/*",
+        capture: ["family"]
       },
       {
         type: "component",
         pattern: "components/*/*",
-        mode: "folder",
         capture: ["family", "elementName"]
       }
     ]
@@ -138,12 +138,20 @@ Unknown files importing other unknown files:
 import foo from './foo'
 ```
 
-## Replacement with `boundaries/dependencies`
+## Error Messages
 
-You can achieve the same result by using the [`boundaries/dependencies` rule](./dependencies.md) and specifying rules based on the `isUnknown` property of the [elements selector](../setup/selectors.md).
+Default error message:
+
+```text
+Dependencies to unknown elements are not allowed
+```
+
+## Replacing this rule with `boundaries/dependencies`
+
+You can achieve the same result with the [`boundaries/dependencies` rule](./dependencies.md) by specifying rules based on the `isUnknown` property of the [`element` sub-selector](../setup/selectors.md).
 
 :::warning
-You need to set the `checkUnknownLocals` option to `true` in your `boundaries/dependencies` configuration to make sure that dependencies from unknown local files are also checked, as by default `boundaries/dependencies` only checks dependencies between local known elements.
+Set the `checkUnknownLocals` option to `true` in your `boundaries/dependencies` configuration so dependencies to unknown local elements are also checked. By default `boundaries/dependencies` only checks dependencies between local known elements.
 :::
 
 ```js
@@ -156,17 +164,17 @@ You need to set the `checkUnknownLocals` option to `true` in your `boundaries/de
         default: "allow",
         rules: [
           {
-            from: { isUnknown: false },
+            from: { element: { isUnknown: false } },
             disallow: {
-              to: { isUnknown: true }
+              to: { element: { isUnknown: true } }
             }
           },
           // Or use more granular rules to allow some specific dependencies
-          // to unknown files, for example:
+          // to unknown elements, for example:
           {
-            from: { type: "helper" },
+            from: { element: { type: "helper" } },
             allow: {
-              to: { isUnknown: true }
+              to: { element: { isUnknown: true } }
             }
           }
         ]
@@ -176,9 +184,15 @@ You need to set the `checkUnknownLocals` option to `true` in your `boundaries/de
 }
 ```
 
+:::note
+The flat form (`{ isUnknown: false }`) still works and is converted internally to the entity selector form. Prefer `{ element: { isUnknown: false } }` in new configurations for consistency with [entity selectors](../setup/selectors.md).
+:::
+
 ## Further Reading
 
 Read next sections to learn more about related topics:
 
 * [Defining Elements](../setup/elements.md) - Learn how to define architectural elements in your project
+* [Selectors](../setup/selectors.md) - Learn about element, file, and module selectors used in rules
+* [Rules Configuration](../setup/rules.mdx) - Learn about rule options and dependency selectors
 * [Global Settings](../setup/settings.md) - Learn about global settings that affect all rules

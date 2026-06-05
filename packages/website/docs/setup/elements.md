@@ -11,7 +11,9 @@ keywords:
   - JavaScript
   - TypeScript
   - element descriptors
-  - dependencies
+  - file descriptors
+  - multi-type elements
+  - entity model
   - captured values
   - runtime descriptions
   - patterns
@@ -21,249 +23,141 @@ keywords:
   - dependency constraints
 ---
 
-# Elements
+# Element Descriptors
 
-Element descriptors are the foundation of the plugin. **They define how to classify files in your project as part of known architectural elements.**
+Elements are the first of the three [classification](./classification.md) layers, and the one most projects start with. **An element is the architectural piece a file belongs to** — usually a folder, such as `components/Button/` or `helpers/data/`. Element descriptors define how to recognize those pieces from file paths.
+
+The other two layers describe a file from different angles: its kind (see [Files](./files.md)) and where its imports resolve to (see [Modules](./modules.md)). This page covers the element layer.
 
 ## Defining Element Descriptors
 
 Element descriptors are configured in the `boundaries/elements` setting as an array of objects. Each descriptor defines:
 
-- **What type and/or category** of element it represents or belongs to.
-- **What pattern** to match in file paths
-- **What values** to capture from those paths
+- **What type** of element it represents.
+- **What pattern** to match against file paths.
+- **What values** to capture from those paths.
 
 ```javascript
 export default [{
   settings: {
     "boundaries/elements": [
-      {
-        type: "helper",
-        pattern: "helpers/*/*.js",
-        mode: "file",
-        capture: ["domain", "elementName"]
-      },
-      {
-        type: "component",
-        pattern: "components/*/*",
-        capture: ["family", "elementName"]
-      },
-      {
-        type: "module",
-        pattern: "module/*",
-        capture: ["elementName"]
-      }
+      { type: "helper", pattern: "helpers/*", capture: ["family"] },
+      { type: "component", pattern: "components/*/*", capture: ["family", "elementName"] },
+      { type: "module", pattern: "modules/*", capture: ["elementName"] }
     ]
   }
 }]
 ```
 
-## From Descriptors to Runtime Descriptions
+This is the running example used across the documentation. It maps to the following project structure:
 
-Element descriptors are configuration inputs. During analysis, the plugin transforms them into **runtime element descriptions**.
+```text
+src/
+├── components/
+│   ├── atoms/atom-a/{index.js, AtomA.js}
+│   └── molecules/molecule-a/{index.js, MoleculeA.js}
+├── helpers/
+│   ├── data/{sort.js, parse.js}
+│   └── permissions/roles.js
+└── modules/
+    ├── module-a/{index.js, ModuleA.js}
+    └── module-b/{index.js, ModuleB.js}
+```
 
-- These **element descriptions** include resolved properties such as `type`, `category`, `captured`, `parents`, `origin`, etc.
-- When a dependency is analyzed, the plugin builds a **dependency description** containing:
-  - `from`: Element description of the file being analyzed
-  - `to`: Element description of the imported target
-  - `dependency`: Dependency metadata (`kind`, `relationship`, `specifiers`, etc.)
+Here `helpers/data` and `helpers/permissions` are `helper` elements (with `captured.family` equal to `"data"` and `"permissions"`). Individual files inside an element are distinguished by their [`fileInternalPath`](#element-description).
 
-:::info
-Read the [Runtime Descriptions](#runtime-description-properties) for a detailed breakdown of all available properties in runtime descriptions.
+:::tip
+Read the [Selectors](./selectors.md) section to learn how to match these elements in rules, and [Captured Values Matching](./selectors.md#captured-values-matching) to use the values you capture here.
 :::
 
-These runtime descriptions are used in two key places:
-
-- [Selectors](./selectors.md): to match elements/dependencies in plugin rules.
-- [Rule custom messages](./rules.mdx#message): to render dynamic error messages.
-
+During analysis, the plugin transforms descriptors into a runtime **element description** — the element layer of an [entity](./classification.md). It carries the element's `types`, `path`, `captured` values, and `parents`. See [Element Description](#element-description) for the full breakdown, and [Classification](./classification.md#what-the-plugin-sees) for how it combines with the file and module layers.
 
 ## Element Descriptor Properties
+
+### `pattern` (required)
+
+**Type:** `<string> | <array of strings>`
+
+A [micromatch pattern](https://github.com/micromatch/micromatch) to match against file paths. An array means OR — the first matching pattern wins.
+
+:::warning
+By default, the plugin matches patterns progressively from the **right side** of each file path. You only need to define the last part of the path you want to match, not the full path from the project root.
+:::
+
+**Example:** Given a path `src/helpers/data/parse.js`, the plugin tries to match, in order:
+
+- `parse.js`
+- `data/parse.js`
+- `helpers/data/parse.js`
+- and so on…
+
+Once a pattern matches, the plugin assigns the corresponding element, then keeps searching at higher path levels for [parent elements](#hierarchical-elements) using the same logic until the full path has been analyzed.
+
+```js
+{ type: "helper", pattern: "helpers/*", capture: ["family"] }
+```
 
 ### `type` (optional)
 
 **Type:** `<string>`
 
-The element type to be assigned to files or imports matching the pattern.
+The element type assigned to files matching the pattern (for example, `"component"`). It is stored in the element's [`types`](#element-description) array.
 
 ```js
-{
-  type: "helper"
-}
+{ type: "helper" }
 ```
+
+:::warning
+Each descriptor must define at least one of `type` or `category`. Descriptors without a valid `pattern` and one of these are filtered out with a warning.
+:::
 
 ### `category` (optional)
 
+:::warning Deprecated
+`category` in element descriptors is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[file descriptor categories](./files.md)** instead.
+:::
+
 **Type:** `<string>`
 
-The element category to be assigned to files or imports matching the pattern.
+It keeps working without changes. File descriptors are a better fit because they categorize files independently of elements — one element can contain files in several categories, and a file can have several categories at once.
 
-```js
-{
-  category: "helper"
-}
-```
+To migrate, move the category from the element descriptor to a [file descriptor](./files.md):
 
-:::warning
-You have to define at least one of `type` or `category` in your element descriptors. The `type` and `category` properties are independent. You can define descriptors with only `type`, only `category`, or both. The plugin will assign whatever properties are defined in the matched descriptor.
-:::
+| Legacy (element descriptor) | Recommended (file descriptor) |
+| --- | --- |
+| `{ type: "helper", category: "helper", pattern: "helpers/*" }` | `{ type: "helper", pattern: "helpers/*" }` plus `boundaries/files`: `{ pattern: "helpers/**", category: "helper" }` |
 
-### `pattern` (required)
-
-**Type:** `<string> | <array>`
-
-A [micromatch pattern](https://github.com/micromatch/micromatch) to match against file paths.
-
-:::warning
-By default, the plugin matches patterns progressively from the right side of each file path. This means you only need to define the last part of the path you want to match, not the full path from the project root (unless using `mode: "full"`).
-:::
-
-**Example:** Given a path `src/helpers/awesome-helper/index.js`:
-- First tries to match `index.js`
-- Then `awesome-helper/index.js`
-- Then `helpers/awesome-helper/index.js`
-- And so on...
-
-Once a pattern matches, the plugin assigns the corresponding element and continues searching for parent elements using the same logic until the full path has been analyzed.
-
-This behavior can be disabled by setting `mode` to `full`.
-
-```js
-{
-  type: "helper",
-  category: "test",
-  pattern: "helpers/*/*.spec.js"
-}
-```
-
-### `mode` (optional)
-
-**Type:** `<string>` - One of: `"file"` | `"folder"` | `"full"`
-
-**Default:** `"folder"`
-
-Controls how the pattern matching works:
-
-- **`folder`** (default): When analyzing a file path, the element is assigned to the first parent folder matching the pattern. Any file within that folder is considered part of the element. In practice, it's like adding `**/*` to your pattern.
-
-  A pattern like `models/*` would match:
-  - `src/models/user.js` (assigns element `model` to `user.js` file)
-  - `src/modules/foo/bar.js` (assigns element `model` to `bar.js` file)
-
-- **`file`**: The pattern is not modified, but the plugin still tries to match the last part of the path. So, a pattern like `*.model.js` would match:
-  - `src/foo.model.js`
-  - `src/modules/foo/foo.model.js`
-  - `src/modules/foo/models/foo.model.js`
-
-- **`full`**: The pattern only matches against the complete file path from the project root. You must provide patterns matching from the base project path. To match `src/modules/foo/foo.model.js` you need patterns like:
-  - `**/*.model.js`
-  - `**/*/*.model.js`
-  - `src/*/*/*.model.js`
-
-:::note Pattern Matching Modes and rootPath
-
-Patterns in element descriptors are **relative to [`rootPath`](./settings.md#boundariesroot-path)** (which defaults to the current working directory).
-
-The pattern matching behavior differs significantly across modes:
-
-**Example:** Consider a file at `packages/app/src/models/user.model.ts`
-
-With `rootPath` set to `packages/app`:
-
-```js
-// file mode - matches right-to-left from end of path
-{
-  type: "model",
-  pattern: "*.model.ts",
-  mode: "file"
-}
-// ✅ Matches! Pattern matches the filename ending
-
-// folder mode - matches folder, adds **/* internally  
-{
-  type: "model",
-  pattern: "models/*",
-  mode: "folder"
-}
-// ✅ Matches! Right-to-left finds "models/user" folder
-
-// full mode - requires complete path match from rootPath
-{
-  type: "model",
-  pattern: "src/models/*.model.ts",
-  mode: "full"
-}
-// ✅ Matches! Full relative path from rootPath matches
-
-// full mode with incomplete pattern
-{
-  type: "model",
-  pattern: "models/*.model.ts",
-  mode: "full"
-}
-// ❌ Doesn't match - missing "src/" prefix in pattern
-```
-
-**Key takeaway:** In `file` and `folder` modes, right-to-left evaluation makes patterns more flexible. In `full` mode, you must specify the complete path relative to `rootPath` (unless the file is outside `rootPath`, in which case absolute paths are used. Read the [Settings](./settings.md#boundariesroot-path) documentation for more details on this behavior).
-
-:::
+See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) for full details.
 
 ### `capture` (optional)
 
-**Type:** `<array>`
+**Type:** `<array of strings>`
 
-A powerful feature that allows capturing values from path fragments to use later in rules configuration. Uses [micromatch capture feature](https://github.com/micromatch/micromatch#capture) under the hood.
+Captures named values from path fragments so you can reference them later in [rule selectors](./selectors.md). Uses the [micromatch capture feature](https://github.com/micromatch/micromatch#capture) under the hood.
 
-Each captured value is stored in an object with the key from the `capture` array at the same index as the captured fragment.
-
-**Example:**
+Each captured fragment is stored under the key from the `capture` array at the same index.
 
 ```js
-{
-  type: "helper",
-  pattern: "*/helpers/*.js",
-  capture: ["domain", "elementName"]
-}
+{ type: "component", pattern: "components/*/*", capture: ["family", "elementName"] }
 ```
 
-For a path `users/helpers/parsers.js`, this captures:
+For a path `components/atoms/atom-a/AtomA.js`, this captures:
+
 ```js
-{
-  domain: "users",
-  elementName: "parsers"
-}
+{ family: "atoms", elementName: "atom-a" }
 ```
 
 :::tip
-These captured values can then be used in [element selectors](./selectors.md#captured-values-matching) to create more specific and dynamic rules.
+Captured values can be used in [element selectors](./selectors.md) to create more specific, dynamic rules.
 :::
 
 ### `basePattern` (optional)
 
 **Type:** `<string>`
 
-A [micromatch pattern](https://github.com/micromatch/micromatch) that the left side of the element path must also match from the project root.
+A [micromatch pattern](https://github.com/micromatch/micromatch) that the **left side** of the path (from the project root) must also match. Use it when `pattern` only covers the right side of the path but you also need to capture values from earlier path segments (see `baseCapture`).
 
-This option is useful when using `mode` with `file` or `folder` values, but you also need to capture fragments from other parts of the full path (see `baseCapture` below).
-
-The effective pattern becomes: `[basePattern]/**/[pattern]`
-
-```js
-{
-  type: "component",
-  pattern: "*/component.js",
-  basePattern: "src/modules/*",
-  baseCapture: ["moduleName"]
-}
-```
-
-### `baseCapture` (optional)
-
-**Type:** `<array>`
-
-Works like `capture`, but for the `basePattern`. Allows capturing values from the base pattern portion of the path.
-
-All keys from both `capture` and `baseCapture` can be used in rules configuration.
+The effective pattern becomes `[basePattern]/**/[pattern]`.
 
 ```js
 {
@@ -275,125 +169,150 @@ All keys from both `capture` and `baseCapture` can be used in rules configuratio
 }
 ```
 
-For a path `src/modules/auth/components/LoginForm`, this captures:
+### `baseCapture` (optional)
+
+**Type:** `<array of strings>`
+
+Works like `capture`, but for `basePattern`. Both arrays' keys are available in rules.
+
+For a path `src/modules/auth/components/login-form` with the descriptor above, this captures:
+
 ```js
-{
-  moduleName: "auth",
-  componentName: "LoginForm"
-}
+{ moduleName: "auth", componentName: "login-form" }
 ```
 
 :::warning
-Be careful to avoid overlapping captures between `capture` and `baseCapture`. Each key must be unique across both arrays. In case of duplicates, the values from `capture` take precedence.
+Keep keys unique across `capture` and `baseCapture`. On a name collision, the value from `capture` wins.
 :::
 
 ## Element Matching Order
 
 :::danger
-Element descriptors are evaluated in array order. The plugin assigns the element from the **first matching pattern**.
+Element descriptors are evaluated in **array order**. The descriptor order determines the primary type: the first matching descriptor at a path level sets `types[0]`.
 :::
 
-**Best Practice:** Sort element descriptors from most specific to least specific patterns.
+With the default single-type behavior (`boundaries/elements-single-type: true`), only the first matching descriptor at a path level applies. With [multi-type](#multi-type-elements) enabled (`boundaries/elements-single-type: false`), every descriptor that matches the same path level contributes a type, in descriptor order.
+
+**Best practice:** Sort descriptors from most specific to least specific.
 
 ```js
 "boundaries/elements": [
   // Most specific first
-  {
-    type: "react-component",
-    pattern: "components/*/Component.tsx",
-    mode: "file",
-  },
+  { type: "react-component", pattern: "components/*/Component.tsx" },
   // Less specific patterns after
-  {
-    type: "component",
-    category: "test",
-    pattern: "components/*/*.spec.tsx",
-    mode: "file",
-  },
-  // Less specific patterns after
-  {
-    type: "component",
-    pattern: "components/*"
-  },
+  { type: "component", pattern: "components/*" }
 ]
 ```
 
 ## Hierarchical Elements
 
-The plugin supports elements being children of other elements. This relationship can be used later in the rules to restrict access to elements based on their relationship (e.g., only allow importing from child elements).
+The plugin supports elements being children of other elements. This relationship can be used in rules to restrict access based on the relationship (for example, only allow importing from child elements).
 
-When analyzing a path, it continues searching for parent elements after finding the first match.
-
-**Example:**
+After finding the first match, the plugin keeps searching at higher path levels for parent elements.
 
 ```js
 "boundaries/elements": [
-  {
-    type: "component",
-    pattern: "components/*",
-    capture: ["componentName"]
-  },
-  {
-    type: "module",
-    pattern: "modules/*",
-    capture: ["moduleName"]
-  }
+  { type: "component", pattern: "components/*", capture: ["componentName"] },
+  { type: "module", pattern: "modules/*", capture: ["moduleName"] }
 ]
 ```
 
-For path `src/modules/auth/components/LoginForm/index.js`:
-1. First matches `component` type (LoginForm)
-2. Continues and matches `module` type (auth) as parent
+For path `src/modules/auth/components/login-form/index.js`:
+
+1. First matches the `component` element (`login-form`).
+2. Continues and matches the `module` element (`auth`) as its parent.
+
+Parents are listed in `element.parents`, nearest first. See [Element Description](#element-description).
+
+## Multi-type Elements
+
+By default, each element gets a single type. You can opt in to letting an element have **multiple types** at once, which is useful when the same files belong to more than one architectural concept.
+
+The element's matched types are exposed as the `types` array. The `type` selector matches only the first type (`types[0]`); the `types` selector matches any type in the array.
+
+To enable multi-type matching, set [`boundaries/elements-single-type`](./settings.md#boundarieselements-single-type) to `false`:
+
+```js
+export default [{
+  settings: {
+    "boundaries/elements-single-type": false,
+    "boundaries/elements": [
+      { type: "component", pattern: "shared/*" },
+      { type: "shared", pattern: "shared/*" }
+    ]
+  }
+}]
+```
+
+With this configuration, a file under `shared/*` matches both descriptors at the same path level, so its element has `types: ["component", "shared"]`. The types accumulate in descriptor declaration order.
+
+:::warning
+Multi-type matching is **off by default** in the plugin: `boundaries/elements-single-type` defaults to `true` for backward compatibility. Set it to `false` to opt in. See the [setting reference](./settings.md#boundarieselements-single-type) for the full details, including how this default differs from the underlying library.
+:::
+
+Two descriptors match "at the same path level" when they resolve to the same element `path` (the same matched folder). Parents accumulate types the same way. A descriptor that matched with only a deprecated `category` (no `type`) leaves `types` as `null` and does not accumulate later types.
+
+## File Descriptors
+
+File descriptors categorize files independently of the element they belong to. They now have their own page — see **[Files](./files.md)** for the concept, descriptor properties, and how categories accumulate.
+
+## Element Descriptor `mode`
+
+:::warning Deprecated
+`mode` is kept for backward compatibility but is deprecated and will be removed in a future major version. Element descriptors now always use folder-like matching, and file classification use cases are covered by **[file descriptors](./files.md)**.
+:::
+
+**Type:** `<string>` — one of `"folder"` | `"file"` | `"full"`. **Default:** `"folder"`.
+
+It keeps working without changes. `mode` controlled how a pattern was interpreted:
+
+- **`folder`** (default): the element is a folder. The pattern is expanded internally (effectively adding `/**/*`), so any file under the matched folder belongs to the element. This is the standard behavior — you no longer need to set it.
+- **`file`**: the element is the file itself, matched right-to-left without the folder expansion. Use cases that classified individual files this way are now better expressed with [file descriptors](./files.md) and their categories.
+- **`full`**: the pattern must match the **entire** file path (relative to [`rootPath`](./settings.md#boundariesroot-path)). It still works and currently has no direct replacement.
+
+If you have configs that relied on `mode: "file"` to classify files, migrate them to file descriptors. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx).
+
+## Element Description
+
+The plugin resolves each file to a runtime **element description** — the element layer of an [entity](./classification.md). It is accessed as `from.element` / `to.element`, used by [selectors](./selectors.md) to match dependencies and by [message templates](./rules.mdx#message-templating) to render dynamic error messages.
+
+The other two layers have their own tables: [File description](./files.md#file-description) (`categories`) and [Module description](./modules.md#module-description) (`origin`, `source`). See [Classification](./classification.md#what-the-plugin-sees) for how the three combine into one entity.
+
+Properties:
+
+- **`types`** `<array of strings | null>` - All element types matched at the main path level (see [multi-type](#multi-type-elements)), or `null` when the file matches no element descriptor.
+- **`path`** `<string | null>` - Path of the element (the matched folder or file). Relative to [`rootPath`](./settings.md#boundariesroot-path) when inside it, absolute when outside, or `null` for unknown elements.
+- **`fileInternalPath`** `<string | null>` - Path of the file relative to its element path, or `null` for unknown elements.
+- **`captured`** `<object | null>` - Captured values from the matched descriptor, or `null` when there are none.
+- **`parents`** `<array>` - Ancestor elements, nearest first. Each parent has:
+  - **`types`** `<array of strings | null>` - Parent element types.
+  - **`path`** `<string | null>` - Parent element path.
+  - **`captured`** `<object | null>` - Parent captured values.
+- **`isIgnored`** `<boolean>` - `true` when the file is excluded by [ignore/include](./settings.md#boundariesignore) settings.
+- **`isUnknown`** `<boolean>` - `true` when the file matches no element descriptor.
+
+:::note Deprecated element properties
+The following remain available for backward compatibility but are deprecated:
+
+- *`type`* `<string | null>` - Alias for `types[0]`. Use `types`.
+- *`category`* `<string | null>` - Deprecated element category. Use `file.categories`.
+- *`elementPath`* `<string | null>` - Legacy alias for `path`.
+- *`filePath`* `<string | null>` - Legacy alias kept for the deprecated `mode: "file"`.
+- *`internalPath`* - Legacy alias; in V7 it maps to `fileInternalPath` for local elements and to `module.internalPath` for external modules.
+
+Parent elements expose the matching legacy aliases (`type`, `category`, `elementPath`).
+:::
 
 ## Runtime Description Properties
 
-Based on the element descriptors, the plugin builds runtime descriptions for each dependency. These descriptions contains:
+An element description is one layer of the runtime **entity** the plugin builds for each file. The other layers — the file and the module — are documented with their own layers: see [File description](./files.md#file-description) (`categories`) and [Module description](./modules.md#module-description) (`origin`, `source`, `internalPath`).
 
-* `from`: Element description of the file being analyzed
-* `to`: Element description of the imported target
-* `dependency`: Dependency metadata (`kind`, `relationship`, `specifiers`, etc.)
+For the combined entity and the dependency description (`kind`, `relationship`, `specifiers`), see [Classification](./classification.md).
 
-### Element Description (`from` / `to`)
+## Next Steps
 
-Element descriptions contain the following properties:
-
-- **`path`**: <small>`<string | null>`</small> - Path of the element. It can be:
-  * Relative to the [rootPath](../setup/settings.md#boundariesroot-path) when the file is within it.
-  * Absolute path if the element is outside the root path
-  * `null`, when the dependency source can't be resolved to any file.
-- **`elementPath`**: <small>`<string | null>`</small> - Path of the element assigned to the file according to the descriptor. It is relative to the project root path (see [Settings](../setup/settings.md#boundariesroot-path)), or `null` if the file doesn't match any element descriptor
-- **`internalPath`**: <small>`<string | null>`</small> - Path of the file relative to the element path (or `null` if the file doesn't match any element descriptor)
-- **`type`**: <small>`<string | null>`</small> - Element type according to the matched descriptor (or `null` if the descriptor doesn't define a type or there's no match)
-- **`category`**: <small>`<string | null>`</small> - Element category according to the matched descriptor (or `null` if the descriptor doesn't define a category or there's no match)
-- **`captured`**: <small>`<object | null>`</small> - Object with captured values from descriptors (or `null` if there are no captures or no match)
-- **`parents`**: <small>`<array | null>`</small> - Array of parent elements (or `null`). Each parent contains:
-  - **`type`**: <small>`<string | null>`</small> - Parent element type. `null` if the descriptor doesn't define a type.
-  - **`category`**: <small>`<string | null>`</small> - Parent element category. `null` if the descriptor doesn't define a category.
-  - **`elementPath`**: <small>`<string>`</small> - Parent element path
-  - **`captured`**: <small>`<object>`</small> - Captured values for the parent element
-- **`origin`**: <small>`<"local" | "external" | "core" | null>`</small> - Origin of the element, or `null` when the dependency source can't be resolved to any file.
-- **`isIgnored`**: <small>`<boolean>`</small> - True when the file is ignored due to ignore patterns in the [settings](../setup/settings.md#boundariesignore).
-- **`isUnknown`**: <small>`<boolean>`</small> - True when the file or dependency doesn't match any element descriptor.
-
-### Dependency Description (`dependency`)
-
-- **`source`**: <small>`<string>`</small> - The source string of the dependency as it appears in the code (e.g. import source)
-- **`module`**: <small>`<string | null>`</small> - The base source without any path modifiers when the dependency is external or a Node.js core dependency (e.g. package name in `node_modules`), or `null` for local dependencies
-- **`kind`**: <small>`"value" | "type" | "typeof"`</small>
-- **`nodeKind`**: <small>`<string | null>`</small> - AST node kind creating the dependency (or `null`)
-- **`specifiers`**: <small>`<array | null>`</small> - imported/exported specifiers array (or `null`)
-- **`relationship.from`**: <small>`<string | null>`</small> - relation from importer perspective (or `null`). Possible values:
-  - `"internal"` - The dependency is internal to the element
-  - `"child"` - The dependency is a child of the element
-  - `"descendant"` - The dependency is a descendant of the element
-  - `"sibling"` - The dependency is a sibling of the element (both have the same parent)
-  - `"parent"` - The dependency is a parent of the element
-  - `"uncle"` - The dependency is an uncle of the element
-  - `"nephew"` - The dependency is a nephew of the element
-  - `"ancestor"` - The dependency is an ancestor of the element
-- **`relationship.to`**: relation from imported element perspective (or `null`). Possible values are the inverse of `relationship.from`:
-  - `"internal"` ↔ `"internal"`
-  - `"child"` ↔ `"parent"`
-  - `"descendant"` ↔ `"ancestor"`
-  - `"sibling"` ↔ `"sibling"`
-  - `"uncle"` ↔ `"nephew"`
+- **[Files](./files.md)** - categorize files across elements with file descriptors.
+- **[Modules](./modules.md)** - understand module origin for external and core imports.
+- **[Selectors](./selectors.md)** - match elements, files, and modules in your rules.
+- **[Rules Configuration](./rules.mdx)** - write dependency rules that enforce your architecture.
+- **[Settings](./settings.md)** - the full reference for `boundaries/files`, `boundaries/elements-single-type`, and every other global setting.

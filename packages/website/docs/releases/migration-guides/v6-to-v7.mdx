@@ -1,0 +1,368 @@
+---
+id: v6-to-v7
+title: Migration Guide from v6 to v7
+sidebar_label: v6 to v7
+description: Guide to migrating ESLint Plugin Boundaries from version 6 to version 7, introducing the entity model with file descriptors, multi-type elements, and module selectors.
+tags:
+  - configuration
+  - migration
+keywords:
+  - eslint-plugin-boundaries
+  - migration
+  - update
+  - migration guide
+  - release
+  - v6
+  - v7
+  - entity model
+  - file descriptors
+  - multi-type elements
+  - module selectors
+  - entity selectors
+  - file categories
+---
+
+import CodeDiff from "@site/src/components/CodeDiff";
+
+# Migrating from v6.x to v7.x
+
+## Overview
+
+Version 7.0.0 introduces the **entity model**: every file is now described along three independent dimensions — its **[element](../../setup/elements.md)** (the architectural unit it belongs to), its **[file](../../setup/files.md)** (categorized on its own), and the **[module](../../setup/modules.md)** each dependency resolves to. This unlocks multi-dimensional classification: multiple types per element, file-level categories, and matching by module origin.
+
+**There are no breaking configuration changes for plugin users.** You can upgrade with **zero config changes** and keep your v6 setup exactly as it is. Every new feature is additive, and every deprecated pattern keeps working — you migrate at your own pace, one step at a time, with each step delivering immediate value.
+
+Main changes include:
+
+- **[The new entity model](#the-new-entity-model)** — element + file + module
+- **[File descriptors (`boundaries/files`)](#file-descriptors)** — categorize files independently of elements
+- **[Multi-type elements (`boundaries/elements-single-type`)](#multi-type-elements)** — opt-in
+- **[Entity selectors in `from` / `to`](#entity-selectors)** — match by element, file, and module
+- **[Module selectors (`to.module.*`)](#module-selectors)** — match dependencies by origin and source
+- **[Deprecated: `category` in element descriptors and selectors](#deprecated-category-in-elements)** — use file categories
+- **[Deprecated: `dependency.module`](#deprecated-dependency-module)** — use `to.module.source`
+- **[New custom message template data](#new-template-data)** — `element` / `file` / `module` template objects
+- **[`no-unknown-files` behavior change](#no-unknown-files-behavior-change)** — now considers file descriptors
+- **[TypeScript-only breaking changes](#typescript-only-breaking-changes)** — removed type exports (TS users only)
+
+:::info Backwards Compatibility
+Your v6 configuration keeps working without changes. Legacy element selectors, the deprecated `category` and `dependency.module` properties, legacy `${ }` templates, and the v6 rule names continue to work in v7 and produce the same results. Some of them — legacy `${ }` templates and the deprecated rule names — print a deprecation warning in your console.
+:::
+
+## Upgrade in 5 minutes {#upgrade-in-5-minutes}
+
+Install the new major version:
+
+```bash
+npm install --save-dev eslint-plugin-boundaries@7
+```
+
+Run ESLint. With an unchanged v6 configuration, your boundaries are enforced exactly as before. A few things may differ in the output:
+
+- **Deprecation warnings from the preset.** The `recommended` and `strict` presets still enable the deprecated `boundaries/element-types`, `boundaries/entry-point`, and `boundaries/external` rules alongside `boundaries/dependencies`, so you may see one-time deprecation warnings in your console. They are harmless and do not change your results. To silence them, override the deprecated rule keys (for example `"boundaries/element-types": 0`). See **[ESLint Integration](../../setup/eslint-integration.md)** for details.
+- **Legacy `${ }` template warnings.** If your **selector values** (`from` / `to` / `dependency` and `allow` / `disallow`) use the legacy `${ }` syntax, you will keep seeing the v6 deprecation warning. Using `${ }` in a custom `message` does **not** trigger this warning. See [New custom message template data](#new-template-data).
+
+One behavior change can affect automated checks even with no config change:
+
+:::warning Default report messages changed
+The default error messages now include the new entity information (captured values are formatted as `captured values: key="value"`, external dependencies report their module origin and source, and multi-type elements list all of their types). If you assert exact report strings — for example in snapshots or CI — re-record those assertions after upgrading.
+:::
+
+The `no-unknown-files` rule also reports a new message and now takes file descriptors into account — see [its section below](#no-unknown-files-behavior-change).
+
+That is the whole required upgrade. Everything that follows is **optional, incremental adoption**.
+
+## The new entity model {#the-new-entity-model}
+
+In v6, each file was described by a single flat element. In v7, each file is described by an **entity** — a combination of three independent sub-descriptions:
+
+- **element** — the architectural unit the file belongs to, with one or more `types`.
+- **file** — the file categorized on its own, with one or more `categories`.
+- **module** — where a dependency resolves to: its `origin` (`"local"`, `"external"`, or `"core"`), `source`, and `internalPath`.
+
+The same file can be element type `"component"`, file category `"test"`, and module origin `"local"` all at once. These three axes are independent, so you can classify and match files much more precisely than before.
+
+:::info
+Read more about the entity model and runtime descriptions in the **[Classification](../../setup/classification.md)** documentation.
+:::
+
+The next sections walk through adopting each part of the model. Throughout the guide we use this house architecture (`helper`, `component`, `module` elements):
+
+```js
+settings: {
+  "boundaries/elements": [
+    { type: "helper", pattern: "helpers/*", capture: ["family"] },
+    { type: "component", pattern: "components/*/*", capture: ["family", "elementName"] },
+    { type: "module", pattern: "modules/*", capture: ["elementName"] },
+  ],
+}
+```
+
+## File descriptors {#file-descriptors}
+
+The new **[`boundaries/files`](../../setup/settings.md)** setting defines **file descriptors** that categorize files independently of the elements they belong to. Each file descriptor has a `pattern`, a `category`, and optional `capture` names. A single file can match several descriptors, so it can carry multiple `categories`.
+
+This is purely additive — adding `boundaries/files` does not change any existing element behavior.
+
+<CodeDiff language="javascript">{`
+. settings: {
+.   "boundaries/elements": [
+.     { type: "helper", pattern: "helpers/*", capture: ["family"] },
+.     { type: "component", pattern: "components/*/*", capture: ["family", "elementName"] },
+.     { type: "module", pattern: "modules/*", capture: ["elementName"] },
+.   ],
++   "boundaries/files": [
++     { pattern: "**/*.spec.js", category: "test" },
++     { pattern: "**/*.css", category: "style" },
++   ],
+. },
+`}</CodeDiff>
+
+Once configured, file categories are matchable through the **[`file` sub-selector](../../setup/selectors.md)** (`file.categories`) and usable in custom message templates (`{{to.file.categories}}`).
+
+:::info
+Read more about file descriptors in the **[Files](../../setup/files.md)** documentation and about matching file categories in the **[Selectors](../../setup/selectors.md)** documentation.
+:::
+
+## Multi-type elements {#multi-type-elements}
+
+A file can now match multiple element descriptors at the same path level, so a single element can have multiple `types`. This is controlled by the new **[`boundaries/elements-single-type`](../../setup/settings.md)** setting.
+
+The setting **defaults to `true` (single-type)** to preserve v6 behavior: each element keeps only the **first** matching descriptor's type. Nothing changes unless you opt in by setting it to `false`, which makes elements accumulate **all** matching types into the `types` array.
+
+:::note `type` vs `types`
+`type` (singular) matches an element's **first** type and keeps working everywhere. `types` is the new array of all types an element matches. Use `type` when an element has a single type; use `types` to match any of several types on a multi-type element.
+:::
+
+<CodeDiff language="javascript">{`
+. settings: {
++   "boundaries/elements-single-type": false,
+.   "boundaries/elements": [
+.     { type: "component", pattern: "components/*/*", capture: ["family", "elementName"] },
++     { type: "shared", pattern: "components/shared/*", capture: ["elementName"] },
+.   ],
+. },
+`}</CodeDiff>
+
+With the configuration above, a file under `components/shared/*` matches both descriptors at the same path level, so its `types` becomes `["component", "shared"]`. A selector with `{ types: "shared" }` matches it, while `{ type: "shared" }` (first type only) does not.
+
+:::info
+Read more about multi-type elements in the **[Elements](../../setup/elements.md)** documentation and about the `types` selector property in the **[Selectors](../../setup/selectors.md)** documentation.
+:::
+
+## Entity selectors {#entity-selectors}
+
+The `from` and `to` properties of rule selectors now accept **entity selectors** with `element`, `file`, and `module` sub-selectors. This lets a single rule match by element properties (`type`, `types`, `captured`, `parent`, …), file properties (`path`, `categories`, `captured`, …), and module properties (`origin`, `source`, `internalPath`) together. Within one entity selector, all provided sub-selectors must match.
+
+:::warning Deprecated
+Legacy flat element selectors (`"component"`, `{ type: "component" }`, `["component", { ... }]`) are kept for backward compatibility. They keep working without changes and are converted internally. Prefer the entity selector form `{ element: { type: "component" } }` to gain access to `file` and `module` matching.
+:::
+
+Wrapping a flat element selector in `{ element: ... }` is **recommended, not required** — it is not a breaking change. The example below adopts entity selectors and uses the new `file` sub-selector to scope a rule to test files only:
+
+<CodeDiff language="javascript">{`
+. rules: {
+.   "boundaries/dependencies": [2, {
+.     default: "disallow",
+.     rules: [
+.       {
+-         from: { type: "component" },
++         from: { element: { type: "component" } },
+.         allow: [
+-           { to: { type: "helper" } },
++           { to: { element: { type: "helper" } } },
+.         ],
+.       },
++       {
++         from: { file: { categories: "test" } },
++         allow: [
++           { to: { element: { type: "module" } } },
++         ],
++       },
+.     ],
+.   }],
+. },
+`}</CodeDiff>
+
+:::info
+Read more about entity selectors and their `element` / `file` / `module` sub-selectors in the **[Selectors](../../setup/selectors.md)** documentation.
+:::
+
+## Module selectors {#module-selectors}
+
+Every dependency now carries a **module** description: its `origin` (`"local"`, `"external"`, or `"core"`), its `source` (the base package name), and its `internalPath` (the sub-path within the package). You can match these through the **[`module` sub-selector](../../setup/selectors.md)** in any rule — not only in the deprecated `external` rule.
+
+This is the canonical way to control dependencies on external and core libraries with the `boundaries/dependencies` rule.
+
+:::warning
+By default, `boundaries/dependencies` only checks dependencies whose target module origin is `"local"`. To also check `"external"` and `"core"` dependencies, set the `checkAllOrigins` option to `true`.
+:::
+
+<CodeDiff language="javascript">{`
+. rules: {
+.   "boundaries/dependencies": [2, {
++     checkAllOrigins: true,
+.     default: "disallow",
+.     rules: [
+.       {
+.         from: { element: { type: "helper" } },
++         disallow: {
++           to: { module: { origin: ["external", "core"], source: "react" } },
++         },
+.       },
+.     ],
+.   }],
+. },
+`}</CodeDiff>
+
+:::info
+Read more about module origins in the **[Modules](../../setup/modules.md)** documentation, and about the `module` sub-selector in the **[Selectors](../../setup/selectors.md)** documentation. For migrating the deprecated `external` rule, see its **[migration example](../../rules/external.mdx#migration-to-boundariesdependencies)**.
+:::
+
+## Deprecated: `category` in element descriptors and selectors {#deprecated-category-in-elements}
+
+The `category` property in element descriptors and element selectors is deprecated.
+
+:::warning Deprecated
+`category` in element descriptors and element selectors is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[file descriptor categories](#file-descriptors)** (`file.categories`) instead.
+:::
+
+It keeps working without changes. File descriptors are a more flexible replacement: instead of a single category for the whole element, you assign categories to different files within the same element through `boundaries/files`, and a file can hold multiple categories.
+
+### Conversion table
+
+| Legacy | New |
+|--------|-----|
+| `"boundaries/elements": [{ category: "helper", pattern: "helpers/*" }]` | `"boundaries/elements": [{ type: "helper", pattern: "helpers/*" }]` + `"boundaries/files": [{ category: "helper", pattern: "helpers/**" }]` |
+| `from: { category: "helper" }` | `from: { file: { categories: "helper" } }` |
+
+<CodeDiff language="javascript">{`
+. settings: {
+.   "boundaries/elements": [
+-     { category: "helper", pattern: "helpers/*" },
++     { type: "helper", pattern: "helpers/*", capture: ["family"] },
+.   ],
++   "boundaries/files": [
++     { category: "helper", pattern: "helpers/**" },
++   ],
+. },
+`}</CodeDiff>
+
+:::info
+Read more about file descriptors in the **[Files](../../setup/files.md)** documentation and about the `file` selector in the **[Selectors](../../setup/selectors.md)** documentation.
+:::
+
+## Deprecated: `dependency.module` {#deprecated-dependency-module}
+
+The `module` property in dependency metadata selectors (`dependency.module`) is deprecated.
+
+:::warning Deprecated
+`dependency.module` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`to.module.source`](#module-selectors)** via entity selectors instead.
+:::
+
+It keeps working without changes; the new form matches the base module name through the `module` sub-selector, which also gives you access to `origin` and `internalPath`.
+
+### Conversion table
+
+| Legacy | New |
+|--------|-----|
+| `dependency: { module: "react" }` | `to: { module: { source: "react" } }` |
+
+<CodeDiff language="javascript">{`
+. {
+.   from: { element: { type: "helper" } },
+.   disallow: {
+-     dependency: { module: "react" },
++     to: { module: { origin: ["external", "core"], source: "react" } },
+.   },
+. },
+`}</CodeDiff>
+
+:::info
+Read more about the `module` sub-selector in the **[Selectors](../../setup/selectors.md)** documentation.
+:::
+
+## New custom message template data {#new-template-data}
+
+The `from` and `to` template properties now expose `element`, `file`, and `module` objects, so custom messages can reference the full entity. New template variables include `{{from.element.types}}`, `{{to.file.categories}}`, `{{to.module.origin}}`, and `{{to.module.source}}`.
+
+The previous template data (`{{from.type}}`, `{{from.elementPath}}`, `{{from.internalPath}}`, `{{from.origin}}`, and so on) keeps working for backward compatibility.
+
+### Conversion table
+
+| Legacy | New |
+|--------|-----|
+| `{{from.type}}` | `{{from.element.types.[0]}}` |
+| `{{to.type}}` | `{{to.element.types.[0]}}` |
+| `{{to.origin}}` | `{{to.module.origin}}` |
+| `{{dependency.module}}` | `{{to.module.source}}` |
+
+The flat `{{from.type}}` is the **first** matched type, so it maps to `{{from.element.types.[0]}}`. If you want the whole list of types, use the new `{{from.element.types}}` array instead.
+
+<CodeDiff language="javascript">{`
+- "{{from.type}} cannot import {{to.type}}"
++ "{{from.element.types.[0]}} cannot import {{to.element.types.[0]}}"
+. 
+- "{{from.type}} cannot import external module {{dependency.module}}"
++ "{{from.element.types.[0]}} cannot import external module {{to.module.source}}"
+`}</CodeDiff>
+
+:::tip
+The legacy `${ }` template syntax also keeps working in custom messages. Using `${ }` in a message does not print a deprecation warning, and the **[`boundaries/legacy-templates`](../../setup/settings.md#boundarieslegacy-templates)** setting does not affect it — that setting only controls legacy templating in selectors, not in custom messages. For migrating `${ }` templates, see the Legacy Message Templates section in the **[rules documentation](../../setup/rules.mdx#legacy-message-templates)**.
+:::
+
+## `no-unknown-files` behavior change {#no-unknown-files-behavior-change}
+
+The **[`no-unknown-files`](../../rules/no-unknown-files.md)** rule now takes file descriptors into account. A file is reported only when it does **not** match any file descriptor pattern **and** does not belong to any known element. Files that match a `boundaries/files` pattern are now accepted, even if they belong to no element.
+
+The default report message changed accordingly:
+
+```text
+File does not match any file pattern and does not belong to any known element
+```
+
+In v6 the message was `File does not match any element pattern`. If you assert this message in snapshots or tests, update those assertions.
+
+## TypeScript-only breaking changes {#typescript-only-breaking-changes}
+
+These changes affect **only TypeScript users importing internal types** from the package. Configuration is unaffected.
+
+The following exports were removed from the public API. Use the listed replacements:
+
+| Removed | Replacement |
+|---------|-------------|
+| `ElementTypesRule` | `DependenciesRule` |
+| `ElementTypesRuleOptions` | `DependenciesRuleOptions` |
+| `ElementSelectors` | `ElementSelector` |
+| `ElementsSelector` | `ElementSelector` |
+| `ElementSelectorWithOptions` | `ElementSelector` |
+| `isElementsSelector` | `isElementSelector` |
+| `isElementDescriptorMode` | _(removed; no replacement needed)_ |
+| `isImportKind` | `isDependencyKind` |
+| `IMPORT_KINDS_MAP` | `DEPENDENCY_KINDS_MAP` |
+
+:::note
+The deprecated `boundaries/element-types` **rule name** itself keeps working (with a deprecation warning); only the TypeScript types listed above were removed.
+:::
+
+## Why Migrate?
+
+While your v6 configuration keeps working, adopting the entity model brings real benefits:
+
+- ✅ **Multi-dimensional classification** — describe each file by its element, its file category, and its module origin, independently.
+- ✅ **Multiple types per element** — model files that legitimately belong to more than one architectural role.
+- ✅ **File categories independent of elements** — categorize files (tests, styles, …) across element boundaries with `boundaries/files`.
+- ✅ **Precise module matching** — control external and core dependencies directly in `boundaries/dependencies` with `to.module.*`.
+- ✅ **Richer messages** — reference the full entity in custom messages with `element`, `file`, and `module` template data.
+- ✅ **Future-proof** — new capabilities are added to the entity model and entity selectors.
+
+## Need Help?
+
+- See **[Classification](../../setup/classification.md)** for the entity model
+- See **[Elements](../../setup/elements.md)** for elements and multi-type elements
+- See **[Files](../../setup/files.md)** for file descriptors and file categories
+- See **[Modules](../../setup/modules.md)** for module origin, source, and internal path
+- See **[Selectors](../../setup/selectors.md)** for entity, file, and module selectors
+- See **[Settings](../../setup/settings.md)** for `boundaries/files` and `boundaries/elements-single-type`
+- See the **[`boundaries/dependencies` rule](../../rules/dependencies.md)** for full rule documentation
+- Open an issue on **[GitHub](https://github.com/javierbrea/eslint-plugin-boundaries/issues)** if you need assistance
