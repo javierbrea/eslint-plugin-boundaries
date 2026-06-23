@@ -394,10 +394,9 @@ function getNormalizedElementDescriptors(
   const rawElements = elements || legacyTypes;
 
   if (!rawElements || !isArray(rawElements) || !rawElements.length) {
-    warnOnce(
-      `Please provide element descriptors using the '${ELEMENTS}' setting.`,
-      moreInfoSettingsLink()
-    );
+    // Element descriptors are optional on their own: the file layer can be the
+    // only configured classification. The "no classification at all" case is
+    // warned once in `getSettings`, where both layers are known.
     return [];
   }
 
@@ -788,6 +787,15 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
   const fileDescriptors = getNormalizedFileDescriptors(
     settings[SETTINGS_KEYS_MAP.FILES]
   );
+
+  // At least one classification layer is required. Elements and files are each
+  // optional on their own, so only warn when neither layer is configured.
+  if (!elementDescriptors.length && !fileDescriptors.length) {
+    warnOnce(
+      `Please provide element descriptors using the '${ELEMENTS}' setting, or file descriptors using the '${SETTINGS_KEYS_MAP.FILES}' setting.`,
+      moreInfoSettingsLink()
+    );
+  }
 
   const dependencyNodes = getNormalizedDependencyNodes(
     settings[DEPENDENCY_NODES]

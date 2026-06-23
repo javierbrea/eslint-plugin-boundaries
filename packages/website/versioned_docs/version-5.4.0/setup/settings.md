@@ -171,7 +171,7 @@ export default [{
 The path should be absolute and resolved before passing it to the plugin. Otherwise, it will be resolved using the current working directory.
 :::
 
-:::note Pattern Matching with rootPath
+:::note[Pattern Matching with rootPath]
 
 Matching patterns in element descriptors must be **relative to the `rootPath`**. The plugin automatically converts absolute file paths to relative paths internally for pattern matching.
 

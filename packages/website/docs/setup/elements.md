@@ -25,7 +25,7 @@ keywords:
 
 # Element Descriptors
 
-Elements are the first of the three [classification](./classification.md) layers, and the one most projects start with. **An element is the architectural piece a file belongs to** — usually a folder, such as `components/Button/` or `helpers/data/`. Element descriptors define how to recognize those pieces from file paths.
+Elements are one of the three [classification](./classification.md) layers. **An element is the architectural piece a file belongs to** — usually a folder, such as `components/Button/` or `helpers/data/`. Element descriptors define how to recognize those pieces from file paths.
 
 The other two layers describe a file from different angles: its kind (see [Files](./files.md)) and where its imports resolve to (see [Modules](./modules.md)). This page covers the element layer.
 
@@ -113,7 +113,7 @@ Each descriptor must define at least one of `type` or `category`. Descriptors wi
 
 ### `category` (optional)
 
-:::warning Deprecated
+:::warning[Deprecated]
 `category` in element descriptors is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[file descriptor categories](./files.md)** instead.
 :::
 
@@ -252,13 +252,9 @@ Multi-type matching is **off by default** in the plugin: `boundaries/elements-si
 
 Two descriptors match "at the same path level" when they resolve to the same element `path` (the same matched folder). Parents accumulate types the same way. A descriptor that matched with only a deprecated `category` (no `type`) leaves `types` as `null` and does not accumulate later types.
 
-## File Descriptors
-
-File descriptors categorize files independently of the element they belong to. They now have their own page — see **[Files](./files.md)** for the concept, descriptor properties, and how categories accumulate.
-
 ## Element Descriptor `mode`
 
-:::warning Deprecated
+:::warning[Deprecated]
 `mode` is kept for backward compatibility but is deprecated and will be removed in a future major version. Element descriptors now always use folder-like matching, and file classification use cases are covered by **[file descriptors](./files.md)**.
 :::
 
@@ -291,7 +287,7 @@ Properties:
 - **`isIgnored`** `<boolean>` - `true` when the file is excluded by [ignore/include](./settings.md#boundariesignore) settings.
 - **`isUnknown`** `<boolean>` - `true` when the file matches no element descriptor.
 
-:::note Deprecated element properties
+:::note[Deprecated element properties]
 The following remain available for backward compatibility but are deprecated:
 
 - *`type`* `<string | null>` - Alias for `types[0]`. Use `types`.

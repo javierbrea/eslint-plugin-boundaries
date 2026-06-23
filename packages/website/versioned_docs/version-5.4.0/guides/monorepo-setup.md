@@ -50,7 +50,7 @@ It is also important the path where ESlint is executed from, as the `files` patt
 
 Remember: Even when splitting the eslint configuration per-package, the `files` property is relative to where ESLint is executed (usually the repository root), **not** to the config file location.
 
-:::info Adapting examples if ESLint is run from package directories
+:::info[Adapting examples if ESLint is run from package directories]
 All examples in this page **assume eslint is executed from the monorepo root**, so all `files` patterns are relative to that path, but you can easily adapt them if eslint is run from each package directory by changing the `files` patterns accordingly:
 
 - If ESLint runs from monorepo root:
@@ -210,7 +210,7 @@ import { formatDate } from '@myorg/shared';
 import { map } from 'lodash';
 ```
 
-:::tip Use external rules to enforce constraints across packages
+:::tip[Use external rules to enforce constraints across packages]
 You can still use the [`boundaries/external`](../rules/dependencies.md) rule to enforce constraints on inter-package dependencies treated as external. For example, you can prevent certain packages from importing others by defining rules based on the external import patterns.
 :::
 
@@ -278,7 +278,7 @@ import { InternalUtil } from '@monorepo/shared/internal-utils';
 import { map } from 'lodash';
 ```
 
-:::info Why This Works
+:::info[Why This Works]
 With `outsideRootPath: false`, imports from `packages/shared` are categorized as **local** dependencies. This allows the plugin to:
 1. Match them against your element patterns
 2. Apply boundary rules between packages

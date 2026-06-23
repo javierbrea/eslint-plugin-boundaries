@@ -29,9 +29,9 @@ This section provides a complete reference of all available global settings for 
 
 **Type:** `<array of element descriptors>` - see **[Element Descriptors documentation](./elements.md)**
 
-**Required:** Yes (for rules to work)
+**Required:** No, but at least one classification layer must be configured — this setting or [`boundaries/files`](#boundariesfiles).
 
-Defines **[element descriptors](./elements.md)** that recognize each file in the project as part of one of the defined elements. All rules need this setting to be configured properly.
+Defines **[element descriptors](./elements.md)** that recognize each file in the project as part of one of the defined elements. Rules need at least one classification layer to be configured: `boundaries/elements`, [`boundaries/files`](#boundariesfiles), or both.
 
 ```js
 export default [{
@@ -52,6 +52,8 @@ See the [Element Descriptors](./elements.md) section for every descriptor proper
 **Type:** `<array of file descriptors>` - see **[File Descriptors documentation](./files.md)**
 
 **Default:** `[]`
+
+**Required:** No, but it can be the only classification layer you configure instead of [`boundaries/elements`](#boundarieselements).
 
 Defines **[file descriptors](./files.md)** that categorize files independently of the elements they belong to. The resulting categories appear at runtime as `file.categories` and can be matched in rules with the [`file` selector](./selectors.md) and used in [message templates](./rules.mdx#message-templating) (for example, `{{to.file.categories}}`). This is the recommended replacement for the deprecated element-descriptor `category` property.
 
@@ -234,7 +236,7 @@ You can provide either an absolute path or a relative path to the project root i
 The path should be absolute and resolved before passing it to the plugin. Otherwise, it will be resolved using the current working directory.
 :::
 
-:::note Pattern Matching with rootPath
+:::note[Pattern Matching with rootPath]
 
 Matching patterns in [element descriptors](./elements.md) are **relative to the `rootPath`**. The plugin automatically converts absolute file paths to relative paths internally for pattern matching.
 
@@ -418,7 +420,7 @@ When `true`, captured values are injected at the top level of the template data,
 
 This setting only affects selectors. It does not change the syntax available in custom message templates: the legacy syntax there does not expose the Handlebars variables, so it keeps working as-is, while new templates can use the full Handlebars data tree.
 
-:::tip Read more
+:::tip[Read more]
 Read more about templating in selectors in the [Selectors documentation](../setup/selectors.md), and about message templates in the [Rules documentation](../setup/rules.mdx#message-templating).
 :::
 
@@ -428,7 +430,7 @@ The following settings are kept for backward compatibility. They still work, and
 
 ### `boundaries/types`
 
-:::warning Deprecated
+:::warning[Deprecated]
 `boundaries/types` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`boundaries/elements`](#boundarieselements)** instead.
 :::
 
@@ -436,7 +438,7 @@ It keeps working without changes; you will see a deprecation warning in your con
 
 ### `boundaries/alias`
 
-:::warning Deprecated
+:::warning[Deprecated]
 `boundaries/alias` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use the **[`import/resolver`](#importresolver)** settings instead.
 :::
 

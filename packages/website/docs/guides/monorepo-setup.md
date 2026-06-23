@@ -31,7 +31,7 @@ When a file does `import { x } from "@myorg/shared"`, the plugin resolves that i
 - **External**: npm packages in `node_modules` and unresolvable imports
 - **Local**: all other resolved file paths within your project
 
-:::info Why does this matter?
+:::info[Why does this matter?]
 
 Use the [`module.origin` sub-selector](../setup/selectors.md#module-sub-selector) in your rules to target dependencies based on their classification as `"local"` or `"external"`, and decide whether a rule applies to dependencies from all origins or only local ones.
 
@@ -43,7 +43,7 @@ By default, the [`dependencies`](../rules/dependencies.md) rule only evaluates *
 
 The `checkAllOrigins` option (default `false`) extends the `dependencies` rule to also evaluate external and core dependencies. Set it to `true` when you want a single rule to govern both local and external inter-package imports.
 
-:::warning Deprecated
+:::warning[Deprecated]
 The [`external`](../rules/external.mdx) rule is kept for backward compatibility but is deprecated and will be removed in a future major version. Use the [`dependencies`](../rules/dependencies.md) rule with `checkAllOrigins: true` and a [`module` sub-selector](../setup/selectors.md#module-sub-selector) instead.
 :::
 
@@ -58,7 +58,7 @@ In a monorepo, you might want different behavior:
 The [`boundaries/flag-as-external`](../setup/settings.md#boundariesflag-as-external) setting gives you full control over this categorization.
 
 
-:::tip Fully customizable
+:::tip[Fully customizable]
 
 You can control both the categorization of inter-package dependencies (external vs local) and also if the `dependencies` rule should check dependencies from all origins or only local ones, allowing you to mix and match different approaches in the same monorepo.
 
@@ -73,7 +73,7 @@ The path where ESLint is executed from also matters, because the `files` pattern
 
 Remember: Even when splitting the eslint configuration per-package, the `files` property is relative to where ESLint is executed (usually the repository root), **not** to the config file location.
 
-:::info Adapting examples if ESLint is run from package directories
+:::info[Adapting examples if ESLint is run from package directories]
 All examples in this page **assume eslint is executed from the monorepo root**, so all `files` patterns are relative to that path, but you can easily adapt them if eslint is run from each package directory by changing the `files` patterns accordingly:
 
 - If ESLint runs from monorepo root:
@@ -233,7 +233,7 @@ import { formatDate } from '@myorg/shared';
 import { map } from 'lodash';
 ```
 
-:::tip Use the `module` sub-selector to target inter-package dependencies
+:::tip[Use the `module` sub-selector to target inter-package dependencies]
 Use the [`module` sub-selector](../setup/selectors.md#module-sub-selector) in a rule's `to` to match dependencies by origin. For example, `to: { module: { origin: "external" } }` matches all external dependencies. To target only `@myorg/` packages: `to: { module: { origin: "external", source: "@myorg/*" } }`. See [Selectors](../setup/selectors.md#module-sub-selector) for the full reference.
 :::
 
@@ -301,7 +301,7 @@ import { InternalUtil } from '@monorepo/shared/internal-utils';
 import { map } from 'lodash';
 ```
 
-:::info Why This Works
+:::info[Why This Works]
 With `outsideRootPath: false`, imports from `packages/shared` are categorized as **local** dependencies. This allows the plugin to:
 1. Match them against your element patterns
 2. Apply boundary rules between packages

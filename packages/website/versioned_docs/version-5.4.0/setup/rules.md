@@ -57,7 +57,7 @@ export default [{
 }]
 ```
 
-:::info Important
+:::info[Important]
 - All rules are evaluated, and the final result is from the last matching rule
 - If a rule has both `allow` and `disallow` properties, `disallow` takes priority
 - Each rule's result will be "allow" or "disallow", producing an ESLint error accordingly

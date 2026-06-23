@@ -37,7 +37,7 @@ The deprecated rules [`boundaries/external`](../rules/external.mdx) and [`bounda
 
 Rules work by setting an `allow` or `disallow` default policy, then providing an array of rules that override that default.
 
-:::warning Rule precedence
+:::warning[Rule precedence]
 Each matching rule overrides previous values, so the **final result is determined by the last matching rule**.
 :::
 
@@ -73,7 +73,7 @@ export default [{
 }]
 ```
 
-:::warning How rules combine
+:::warning[How rules combine]
 - All rules are evaluated, and the final result comes from the last matching rule.
 - If a rule has both `allow` and `disallow` properties and both match, `disallow` takes priority.
 - Each rule resolves to `"allow"` or `"disallow"`, producing an ESLint error when the result is `"disallow"`.
@@ -129,11 +129,11 @@ A selector matches only when every sub-selector you provide matches (an omitted 
 }
 ```
 
-:::note Flat element selectors are still supported
+:::note[Flat element selectors are still supported]
 A flat element selector at the top level — for example `from: { type: "helper" }` — keeps working and is converted internally to `from: { element: { type: "helper" } }`. Prefer the entity selector form to access `file` and `module` matching. See [Selectors](./selectors.md) for the full property reference.
 :::
 
-:::warning Deprecated
+:::warning[Deprecated]
 The element-level `category` selector (for example `to: { category: "test" }`) is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[file categories](./selectors.md)** instead: `to: { file: { categories: "test" } }`.
 
 It keeps working without changes; categorize files with the [`boundaries/files`](./settings.md#boundariesfiles) setting and match them via the `file` sub-selector. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx).
@@ -163,7 +163,7 @@ This property matches dependencies by their metadata (for example import kind or
 }
 ```
 
-:::warning Deprecated
+:::warning[Deprecated]
 The `dependency.module` selector is kept for backward compatibility but is deprecated. Use **`to.module.source`** via the entity selector instead — for example `to: { module: { origin: ["external", "core"], source: "react" } }`. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx).
 :::
 
@@ -325,11 +325,11 @@ For backward compatibility, each side also exposes V6 flat fields at the `from`/
 | `{{from.origin}}` | `{{from.module.origin}}` |
 | `{{from.parents.[0].type}}` | `{{from.element.parents.[0].types.[0]}}` |
 
-:::warning Deprecated
+:::warning[Deprecated]
 `{{from.category}}` / `{{to.category}}` resolve the deprecated element-level `category` field. They still work, but use **file categories** (`{{from.file.categories}}` / `{{to.file.categories}}`) instead. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx).
 :::
 
-:::info Backwards Compatibility
+:::info[Backwards Compatibility]
 Legacy message templates using `${...}` syntax are still supported but deprecated. For migration guidance, see [Legacy Message Templates](#legacy-message-templates) below.
 :::
 
@@ -343,7 +343,7 @@ Legacy message templates using `${...}` syntax are still supported but deprecate
 
 Specifies whether the rule applies based on how the dependency is imported.
 
-:::warning Deprecated in v6
+:::warning[Deprecated in v6]
 Rule-level `importKind` is kept for backward compatibility but is deprecated.
 
 Prefer using dependency metadata selectors instead: `dependency.kind`
@@ -703,7 +703,7 @@ export default [{
 
 ## Legacy Message Templates
 
-:::warning Deprecated
+:::warning[Deprecated]
 Legacy message template syntax using `${...}` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[Handlebars templates](#message-templating)** (`{{...}}`) instead.
 
 It keeps working without changes. Using `${...}` in a message does not print a deprecation warning, and the [`boundaries/legacy-templates`](./settings.md#boundarieslegacy-templates) setting does not affect it — that setting only controls legacy templating in selectors, not in custom messages.
@@ -763,7 +763,7 @@ To migrate from legacy templates to Handlebars:
 + "{{from.element.types.[0]}} in {{from.element.parents.[0].types.[0]}} cannot import {{to.element.types.[0]}}"
 `}</CodeDiff>
 
-:::tip Migration Guide
+:::tip[Migration Guide]
 For a detailed migration conversion table, see the [v5 to v6 migration guide](../releases/migration-guides/v5-to-v6.mdx#templates-in-custom-messages).
 :::
 

@@ -43,7 +43,7 @@ Example selector matching a runtime dependency to a service:
 }
 ```
 
-:::info Legacy Selector Formats
+:::info[Legacy Selector Formats]
 This page covers the modern **object-based selector syntax**. If you're using older selector formats (strings or tuples), please refer to the [Legacy Selectors](./selectors/legacy-selectors.md) page and consider migrating to the object-based syntax for better functionality and future compatibility.
 :::
 

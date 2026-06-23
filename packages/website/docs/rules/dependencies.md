@@ -20,6 +20,12 @@ keywords:
 
 > Enforce allowed dependencies between **[elements](../setup/elements.md)** in your project.
 
+`boundaries/dependencies` is the canonical rule for restricting dependencies between [elements](../setup/elements.md). This page documents the specifics of this rule, such as its options, error messages, and examples.
+
+:::info[Rule configuration]
+The shared configuration format for rules — the `rules` array, `allow`/`disallow` policies, [selectors](../setup/selectors.md), and custom message templates — is documented in **[Rules Configuration](../setup/rules.mdx)**. Read that page first to learn how to configure this rule.
+:::
+
 ## Rule Details
 
 This rule evaluates dependencies between elements. By default it checks only local-origin dependencies to known, non-internal targets. A dependency is skipped when its target is external or core, when its target element is unknown, or when it is internal to the same element. Use `checkAllOrigins`, `checkUnknownLocals`, and `checkInternals` to broaden coverage.
@@ -65,11 +71,11 @@ The first element is the ESLint severity (`0` = off, `1` = warning, `2` = error)
 You must provide at least one of `allow` or `disallow` for each rule.
 :::
 
-:::tip Match a specific import kind
+:::tip[Match a specific import kind]
 Use the `dependency.kind` property to evaluate only dependencies of a given kind: `"value"`, `"type"`, or `"typeof"`. This is useful in [TypeScript](../guides/typescript-support.md) projects, for example to allow type-only imports while disallowing value imports. See [Selectors](../setup/selectors.md) for the full dependency selector reference.
 :::
 
-:::tip Check external dependencies with this rule
+:::tip[Check external dependencies with this rule]
 Set `checkAllOrigins` to `true` to evaluate dependencies from all origins (external and core), not only local ones. You can then target external modules through the `module` sub-selector. This lets you enforce external dependency boundaries in this rule instead of the deprecated [`boundaries/external` rule](../rules/external.mdx):
 
 ```js
@@ -154,7 +160,7 @@ This example uses the entity selector form (`{ element: { ... } }`). It locates 
 Flat element selectors such as `from: { type: "helper" }` still work and are converted internally to the entity selector form. Prefer `from: { element: { type: "helper" } }` in new configurations for access to `file` and `module` matching. See [Selectors](../setup/selectors.md).
 :::
 
-:::warning Deprecated
+:::warning[Deprecated]
 `{{ family }}` (a shorthand that reads captured values from the root of the template data) relies on `boundaries/legacy-templates` being `true`, which is the current default. Prefer the canonical form `{{ from.element.captured.family }}`. Read more about [message and selector templating](../setup/rules.mdx) and the [`boundaries/legacy-templates` setting](../setup/settings.md).
 :::
 

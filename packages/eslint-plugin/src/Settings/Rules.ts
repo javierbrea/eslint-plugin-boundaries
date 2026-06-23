@@ -575,12 +575,71 @@ const RULE_NAMES_WITH_ENTITY_ALLOW_DISALLOW: RuleName[] = [
 ];
 
 /**
- * Determines whether a rule contains legacy template syntax (`${...}`)
- * in any of its selector fields.
+ * Determines whether any of a rule's selector fields satisfies a predicate.
  *
  * `allow`/`disallow` are only scanned for `dependencies`/`element-types` rules
  * because in other rules those fields hold external library names or file globs
  * that legitimately use string syntax.
+ *
+ * @param rule - Single rule entry to inspect.
+ * @param ruleName - The full rule name, used to decide whether `allow`/`disallow` should be scanned.
+ * @param predicate - Predicate evaluated against each selector field value.
+ * @returns True if any scanned selector field satisfies the predicate, false otherwise.
+ */
+function ruleSelectorFieldMatches(
+  rule: RuleOptionsRules,
+  ruleName: RuleName,
+  predicate: (value: unknown) => boolean
+): boolean {
+  const ruleRecord = rule as unknown as Record<string, unknown>;
+
+  for (const field of ALWAYS_SCANNED_SELECTOR_FIELDS) {
+    const value = ruleRecord[field];
+    if (!isUndefined(value) && predicate(value)) {
+      return true;
+    }
+  }
+
+  if (RULE_NAMES_WITH_ENTITY_ALLOW_DISALLOW.includes(ruleName)) {
+    for (const field of ["allow", "disallow"] as const) {
+      const value = ruleRecord[field];
+      if (!isUndefined(value) && predicate(value)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Determines whether a value uses the legacy string or tuple selector syntax.
+ *
+ * Legacy selectors are a string matcher (e.g. `"helper"`), a tuple
+ * `[matcher, capturedValues]` (e.g. `["helper", { family: "data" }]`), or an
+ * array of either. Modern object-based selectors (`{ element: { ... } }`) are
+ * objects and therefore never match.
+ *
+ * @param value - Selector field value to inspect.
+ * @returns True if the value uses legacy string or tuple selector syntax, false otherwise.
+ */
+function isLegacySelectorValue(value: unknown): boolean {
+  if (isString(value)) {
+    return true;
+  }
+
+  if (isArray(value)) {
+    return value.some(
+      (item) => isString(item) || (isArray(item) && isString(item[0]))
+    );
+  }
+
+  return false;
+}
+
+/**
+ * Determines whether a rule contains legacy template syntax (`${...}`)
+ * in any of its selector fields.
  *
  * @param rule - Single rule entry to inspect.
  * @param ruleName - The full rule name, used to decide whether `allow`/`disallow` should be scanned.
@@ -590,31 +649,24 @@ function ruleHasLegacyTemplateSyntax(
   rule: RuleOptionsRules,
   ruleName: RuleName
 ): boolean {
-  const ruleRecord = rule as unknown as Record<string, unknown>;
+  return ruleSelectorFieldMatches(rule, ruleName, (value) =>
+    detectLegacyTemplateSyntax(value as MicromatchPatternNullable)
+  );
+}
 
-  for (const field of ALWAYS_SCANNED_SELECTOR_FIELDS) {
-    const value = ruleRecord[field];
-    if (
-      !isUndefined(value) &&
-      detectLegacyTemplateSyntax(value as MicromatchPatternNullable)
-    ) {
-      return true;
-    }
-  }
-
-  if (RULE_NAMES_WITH_ENTITY_ALLOW_DISALLOW.includes(ruleName)) {
-    for (const field of ["allow", "disallow"] as const) {
-      const value = ruleRecord[field];
-      if (
-        !isUndefined(value) &&
-        detectLegacyTemplateSyntax(value as MicromatchPatternNullable)
-      ) {
-        return true;
-      }
-    }
-  }
-
-  return false;
+/**
+ * Determines whether a rule contains legacy string or tuple selector syntax
+ * in any of its selector fields.
+ *
+ * @param rule - Single rule entry to inspect.
+ * @param ruleName - The full rule name, used to decide whether `allow`/`disallow` should be scanned.
+ * @returns True if any selector field uses legacy string or tuple syntax, false otherwise.
+ */
+function ruleHasLegacySelectorSyntax(
+  rule: RuleOptionsRules,
+  ruleName: RuleName
+): boolean {
+  return ruleSelectorFieldMatches(rule, ruleName, isLegacySelectorValue);
 }
 
 /**
@@ -635,6 +687,10 @@ function collectRuleWarningIndexes(
   };
 
   for (const [index, rule] of rules.entries()) {
+    if (ruleHasLegacySelectorSyntax(rule, ruleName)) {
+      indexes.rulesWithLegacySelector.push(index);
+    }
+
     if (ruleHasLegacyTemplateSyntax(rule, ruleName)) {
       indexes.rulesWithLegacyTemplate.push(index);
     }
@@ -673,7 +729,6 @@ export function validateAndWarnRuleOptions(
     rulesWithDeprecatedImportKind,
   } = collectRuleWarningIndexes(options.rules, ruleName);
 
-  /* istanbul ignore next -- TODO: Legacy selector detection is not implemented yet; collectRuleWarningIndexes never populates rulesWithLegacySelector */
   if (rulesWithLegacySelector.length > 0) {
     warnOnce(
       `[${ruleName}] Detected legacy selector syntax in ${

@@ -24,7 +24,7 @@ import CodeDiff from "@site/src/components/CodeDiff";
 
 > Prevent importing private **[elements](../setup/elements.md)** of another element.
 
-:::warning Deprecated
+:::warning[Deprecated]
 `boundaries/no-private` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`boundaries/dependencies`](./dependencies.md)** instead.
 
 It keeps working without changes; you will see a deprecation warning in your console:
@@ -266,7 +266,7 @@ The following example shows how to migrate a configuration from `boundaries/no-p
 You can also express the same intent with the [`relationship` dependency metadata selector](../setup/selectors.md) instead of selecting parents: disallow importing `descendant` elements, then re-allow `child`, `sibling`, and `uncle`. Both forms keep the default policy as `"allow"`, so ordinary dependencies are never blocked. Selecting a nested target via `to.element.parent` (as above) matches `no-private` most closely, because `no-private` only fires when the imported element actually has a parent.
 :::
 
-:::tip Bonus: More specific rules with `boundaries/dependencies`
+:::tip[Bonus: More specific rules with `boundaries/dependencies`]
 With `boundaries/dependencies` you can also define more specific rules that were not possible with `no-private`, such as allowing only certain elements to import their siblings or uncles, while disallowing it for others.
 :::
 

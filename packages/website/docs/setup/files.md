@@ -150,7 +150,11 @@ The `categories` selector matches if **any** of the file's categories matches th
 
 The [`no-unknown-files`](../rules/no-unknown-files.md) rule reports files that the plugin does not recognize. A file is reported only when it belongs to no known element **and** matches no file descriptor.
 
-This means defining a file descriptor makes the matching files **known**: a file that matches any `boundaries/files` pattern is no longer flagged, even if it belongs to no element. The default message reflects both layers:
+This means defining a file descriptor makes the matching files **known**: a file that matches any `boundaries/files` pattern is no longer flagged, even if it belongs to no element.
+
+This behavior also preserves backward compatibility: configurations that classified files such as tests or styles through element descriptors (the deprecated [`mode: "file"`](./elements.md#element-descriptor-mode) or element [`category`](./elements.md#category-optional)) and have since moved them to file descriptors keep passing the rule, instead of being newly reported as unknown.
+
+The default message reflects both layers:
 
 ```text
 File does not match any file pattern and does not belong to any known element
@@ -162,7 +166,7 @@ See [`no-unknown-files`](../rules/no-unknown-files.md) for the full rule referen
 
 File categories are the recommended replacement for the deprecated [`category` property in element descriptors](./elements.md#category-optional).
 
-:::warning Deprecated
+:::warning[Deprecated]
 `category` in element descriptors is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **file descriptor categories** (`file.categories`) instead.
 :::
 

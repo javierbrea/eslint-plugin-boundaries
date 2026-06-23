@@ -75,9 +75,9 @@ export default [
 
 ## 3. Define your Elements
 
-The plugin needs to identify the elements in your project. To do so, define your elements using the [`boundaries/elements` setting](./setup/elements.md).
+Elements classify a project by the architectural piece each file belongs to. Define them using the [`boundaries/elements` setting](./setup/elements.md).
 
-These patterns determine how each file or dependency is classified.
+These patterns determine how each file or dependency is classified. This step is optional on its own — as the [next step](#4-categorize-your-files-optional) explains, you only need to define **at least one** classification layer, elements or files.
 
 :::tip
 Read the **[Elements](./setup/elements.md)** section for guidance on how to define the patterns for the elements in your project.
@@ -134,7 +134,76 @@ Read the **[Elements](./setup/elements.md)** section for guidance on how to defi
 This is only a basic example of configuration. The plugin can also capture path fragments from element paths so you can reuse them in rule selectors. Read **[Elements](./setup/elements.md)** to learn the full range of descriptor options.
 :::
 
-## 4. Apply Predefined Rules
+## 4. Categorize your Files (Optional)
+
+This step is optional. The plugin needs at least one classification layer to work, so you only have to define **either** [elements](./setup/elements.md) **or** file descriptors — the previous step is optional too, and defining both is not required.
+
+While elements group files into architectural units (usually folders, such as `components/Button/`), file descriptors classify each file **on its own**, independently of the element it belongs to. They answer the question "what kind of file is this?" — a test, a style, a story — regardless of where it lives. Define them with the [`boundaries/files` setting](./setup/files.md).
+
+<Tabs>
+<TabItem value="JavaScript">
+
+<CodeDiff language="javascript">{`
+. import boundaries from "eslint-plugin-boundaries";
+
+. export default [
+.   {
+.     plugins: {
+.       boundaries,
+.     },
+.     settings: {
+.       "boundaries/elements": [
+.         { type: "helper", pattern: "helpers/*" },
+.         { type: "component", pattern: "components/*/*" },
+.         { type: "module", pattern: "modules/*" }
+.       ],
++       "boundaries/files": [
++         { pattern: "**/*.spec.js", category: "test" },
++         { pattern: "**/*.css", category: "style" }
++       ],
+.     },
+.   }
+. ];
+`}</CodeDiff>
+
+</TabItem>
+<TabItem value="TypeScript">
+
+<CodeDiff language="typescript">{`
+. import boundaries, { Config, Settings } from "eslint-plugin-boundaries";
+
+. export default [
+.   {
+.     plugins: {
+.       boundaries,
+.     },
+.     settings: {
+.       "boundaries/elements": [
+.         { type: "helper", pattern: "helpers/*" },
+.         { type: "component", pattern: "components/*/*" },
+.         { type: "module", pattern: "modules/*" }
+.       ],
++       "boundaries/files": [
++         { pattern: "**/*.spec.js", category: "test" },
++         { pattern: "**/*.css", category: "style" }
++       ],
+.     } satisfies Settings,
+.   } satisfies Config
+. ];
+`}</CodeDiff>
+
+</TabItem>
+</Tabs>
+
+:::info
+File categories are independent from elements, so the same file can be element type `component` **and** file category `test` at the same time. Unlike element types, every matching descriptor contributes its category, so a file can carry several at once. Read **[Files](./setup/files.md)** to learn the full range of file descriptor options.
+:::
+
+:::note
+The rest of this guide keeps these file descriptors so you can see the `file` layer matched in a rule. If you skip this optional step, simply omit the `boundaries/files` setting and any rule that targets `file`.
+:::
+
+## 5. Apply Predefined Rules
 
 Apply one of the [predefined rule configurations](./setup/eslint-integration.md) as a starting point by extending it in your `rules` section.
 
@@ -163,6 +232,10 @@ The `recommended` config includes some deprecated rule aliases, so you may see d
 .         { type: "component", pattern: "components/*/*" },
 .         { type: "module", pattern: "modules/*" }
 .       ],
+.       "boundaries/files": [
+.         { pattern: "**/*.spec.js", category: "test" },
+.         { pattern: "**/*.css", category: "style" }
+.       ],
 .     },
 +     rules: {
 +       ...boundaries.configs.recommended.rules,
@@ -188,6 +261,10 @@ The `recommended` config includes some deprecated rule aliases, so you may see d
 .         { type: "component", pattern: "components/*/*" },
 .         { type: "module", pattern: "modules/*" }
 .       ],
+.       "boundaries/files": [
+.         { pattern: "**/*.spec.js", category: "test" },
+.         { pattern: "**/*.css", category: "style" }
+.       ],
 .     } satisfies Settings,
 +     rules: {
 +       ...boundaries.configs.recommended.rules,
@@ -199,7 +276,7 @@ The `recommended` config includes some deprecated rule aliases, so you may see d
 </TabItem>
 </Tabs>
 
-## 5. Set Dependency Rules
+## 6. Set Dependency Rules
 
 Now you can define your own dependency rules by using the [`boundaries/dependencies` rule](./rules/dependencies.md).
 
@@ -228,6 +305,10 @@ You can customize the error messages reported by rules using **[message template
 .        { type: "component", pattern: "components/*/*" },
 .        { type: "module", pattern: "modules/*" }
 .      ],
+.      "boundaries/files": [
+.        { pattern: "**/*.spec.js", category: "test" },
+.        { pattern: "**/*.css", category: "style" }
+.      ],
 .    },
 .    rules: {
 .      ...boundaries.configs.recommended.rules,
@@ -241,6 +322,10 @@ You can customize the error messages reported by rules using **[message template
 +          {
 +            from: { element: { type: "module" } },
 +            allow: { to: { element: { type: ["component", "helper"] } } }
++          },
++          {
++            // No element may import a test file, whatever element it belongs to
++            disallow: { to: { file: { categories: "test" } } }
 +          }
 +        ]
 +      }]
@@ -266,6 +351,10 @@ You can customize the error messages reported by rules using **[message template
 .        { type: "component", pattern: "components/*/*" },
 .        { type: "module", pattern: "modules/*" }
 .      ],
+.      "boundaries/files": [
+.        { pattern: "**/*.spec.js", category: "test" },
+.        { pattern: "**/*.css", category: "style" }
+.      ],
 .    } satisfies Settings,
 .    rules: {
 .      ...boundaries.configs.recommended.rules,
@@ -279,6 +368,10 @@ You can customize the error messages reported by rules using **[message template
 +          {
 +            from: { element: { type: "module" } },
 +            allow: { to: { element: { type: ["component", "helper"] } } }
++          },
++          {
++            // No element may import a test file, whatever element it belongs to
++            disallow: { to: { file: { categories: "test" } } }
 +          }
 +        ]
 +      }]
@@ -291,10 +384,14 @@ You can customize the error messages reported by rules using **[message template
 </Tabs>
 
 :::note
+The last rule targets the `file` layer instead of the `element` layer: `{ file: { categories: "test" } }` matches any file carrying the `test` category defined in step 4, regardless of the element it belongs to.
+:::
+
+:::note
 Flat selectors like `{ type: "component" }` still work and are converted automatically. The `{ element: { type: "component" } }` form shown here is the recommended way to also match a file's category or the resolved module — see **[Selectors](./setup/selectors.md)**.
 :::
 
-## 6. Next Steps
+## 7. Next Steps
 
 You are all set! Now you can start enforcing architectural boundaries in your project 🎉
 
@@ -302,6 +399,7 @@ From here you can:
 
 * Explore the **[Setup section](./setup/setup.md)** to learn:
   * How to **[assign Elements](./setup/elements.md)**.
+  * How to **[categorize Files](./setup/files.md)**.
   * How to **[use Selectors](./setup/selectors.md)**.
   * How to **[define Dependency Rules](./setup/rules.mdx)**.
   * How to **[customize Global Settings](./setup/settings.md)**.

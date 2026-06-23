@@ -22,11 +22,11 @@ keywords:
 
 # Legacy Selector Syntax
 
-:::warning Deprecated
+:::warning[Deprecated]
 The string and tuple selector formats on this page are kept for backward compatibility but are deprecated and will be removed in a future major version. Use the [object-based selector syntax](../selectors.md) instead.
 :::
 
-These formats keep working without changes. A runtime console warning for string and tuple selectors is planned but is not yet emitted, so existing configurations run silently. When you are ready to migrate, the [v6 to v7 migration guide](../../releases/migration-guides/v6-to-v7.mdx) covers the full transition, including the [entity selector](../selectors.md#entity-selectors) form.
+These formats keep working without changes, but when a rule uses them the plugin emits a one-time runtime console warning encouraging migration to object-based selectors. When you are ready to migrate, the [v6 to v7 migration guide](../../releases/migration-guides/v6-to-v7.mdx) covers the full transition, including the [entity selector](../selectors.md#entity-selectors) form.
 
 ## Overview
 
@@ -62,7 +62,7 @@ A [micromatch pattern](https://github.com/micromatch/micromatch) matched against
 { element: { type: "*-component" } }
 ```
 
-:::tip Why the `element` wrapper
+:::tip[Why the `element` wrapper]
 Wrapping the type in an `element` sub-selector turns it into a full [entity selector](../selectors.md#entity-selectors). The flat form `{ type: "helper" }` still works and is converted internally, but only the entity form lets you also match [`file.categories`](../selectors.md#file-sub-selector) and [`module.origin`/`module.source`](../selectors.md#module-sub-selector).
 :::
 

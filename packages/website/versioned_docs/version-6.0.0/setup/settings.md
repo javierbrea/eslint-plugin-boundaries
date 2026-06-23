@@ -188,7 +188,7 @@ You can provide either an absolute path or a relative path to the project root i
 The path should be absolute and resolved before passing it to the plugin. Otherwise, it will be resolved using the current working directory.
 :::
 
-:::note Pattern Matching with rootPath
+:::note[Pattern Matching with rootPath]
 
 Matching patterns in [element descriptors](./elements.md) must be **relative to the `rootPath`**. The plugin automatically converts absolute file paths to relative paths internally for pattern matching.
 
@@ -369,6 +369,6 @@ Whether to prioritize legacy `${}` templates syntax in selectors over the new Ha
 
 This does not affect the syntax supported in custom messages templates, because old syntax does not have available the new Handlebars variables, so it will continue working as it is, while new templates will support the more powerful and flexible Handlebars syntax without any conflict with captured values.
 
-:::tip Read more
+:::tip[Read more]
 Read more about using templates in selectors in the [Selectors documentation](../setup/selectors.md#templating-in-selectors), and about using custom messages templates in the [Rules documentation](../setup/rules.mdx#message-templating).
 :::

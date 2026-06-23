@@ -25,7 +25,7 @@ import CodeDiff from "@site/src/components/CodeDiff";
 
 > Enforce allowed external dependencies by **[element](../setup/elements.md)** type.
 
-:::warning Deprecated
+:::warning[Deprecated]
 `boundaries/external` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`boundaries/dependencies`](./dependencies.md)** with the `to.module` sub-selector instead.
 
 It keeps working without changes; you will see a deprecation warning in your console:
@@ -65,7 +65,7 @@ The first item in the array is the ESLint severity (`0` = off, `1` = warning, `2
 Each rule requires `from` and at least one of `allow` or `disallow`.
 :::
 
-:::warning Deprecated
+:::warning[Deprecated]
 The rule-level `importKind` option is deprecated. When you migrate to **[`boundaries/dependencies`](./dependencies.md)**, replace it with the `dependency.kind` selector property. See the **[v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx)** for details.
 :::
 

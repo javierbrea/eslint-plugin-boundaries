@@ -19,15 +19,19 @@ keywords:
 
 # Rules Overview
 
-ESLint Plugin Boundaries provides a suite of rules that work together to enforce architectural boundaries in your codebase. The main rule, `boundaries/dependencies`, lets you control which [elements](../setup/elements.md) can depend on which (for example, components importing helpers). The other rules complement it: they catch files that do not belong to your architecture, dependencies on unknown elements, and dependencies on ignored files.
+ESLint Plugin Boundaries provides a suite of rules that work together to enforce architectural boundaries in your codebase. The main rule, [`boundaries/dependencies`](./dependencies.md), is the canonical rule for restricting dependencies between [elements](../setup/elements.md) (for example, components importing helpers). The other rules complement it: they catch files that do not belong to your architecture, dependencies on unknown elements, and dependencies on ignored files.
 
 The plugin ships four active rules, plus several deprecated rules kept for backward compatibility. The active rules are described first; the deprecated rules are listed at the end with migration guidance.
+
+:::info[Rule configuration]
+This page lists the available rules and links to each rule's reference. The shared configuration format for rules — the `rules` array, `allow`/`disallow` policies, [selectors](../setup/selectors.md), and custom message templates — is documented in **[Rules Configuration](../setup/rules.mdx)**. Read that page first to learn how to configure any rule.
+:::
 
 Here are the rules provided by the plugin:
 
 ## dependencies
 
-This rule ensures that dependencies between the [elements](../setup/elements.md) in your project follow the constraints you have defined.
+`boundaries/dependencies` is the canonical rule for restricting dependencies between [elements](../setup/elements.md). It ensures that dependencies between the elements in your project follow the constraints you have defined.
 
 Example:
 
@@ -67,7 +71,7 @@ The following rules are deprecated and emit a one-time deprecation warning in yo
 
 `boundaries/element-types` is a deprecated alias for [`boundaries/dependencies`](./dependencies.md). It has identical behavior and options.
 
-:::warning Deprecated
+:::warning[Deprecated]
 `boundaries/element-types` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`boundaries/dependencies`](./dependencies.md)** instead.
 :::
 
@@ -77,7 +81,7 @@ It keeps working without changes; you will see a deprecation warning in your con
 
 This rule ensures that elements cannot import files from another element except through the defined entry point for that type.
 
-:::warning Deprecated
+:::warning[Deprecated]
 `boundaries/entry-point` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`boundaries/dependencies`](./dependencies.md)** instead.
 :::
 
@@ -89,7 +93,7 @@ See the [documentation for the `boundaries/entry-point` rule](./entry-point.mdx)
 
 This rule checks which external dependencies can be used by each element. For example, you can configure that "helpers" cannot import `react`, that "components" cannot import `react-router-dom`, or that modules cannot import `{ Link }` from `react-router-dom`.
 
-:::warning Deprecated
+:::warning[Deprecated]
 `boundaries/external` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`boundaries/dependencies`](./dependencies.md)** instead.
 :::
 
@@ -101,7 +105,7 @@ See the [documentation for the `boundaries/external` rule](./external.mdx) for m
 
 This rule ensures that elements cannot import the children of another element. When element B is a child of element A, B becomes a "private" element of A, and only A is allowed to use it.
 
-:::warning Deprecated
+:::warning[Deprecated]
 `boundaries/no-private` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`boundaries/dependencies`](./dependencies.md)** instead.
 :::
 

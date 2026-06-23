@@ -28,7 +28,7 @@ The plugin includes two predefined configurations to get started quickly.
 
 ### Recommended Config
 
-:::tip Usage
+:::tip[Usage]
 **Best for:** Applying the plugin to an existing project
 :::
 
@@ -64,7 +64,7 @@ export default [{
 
 Both `recommended` and `strict` also enable [`boundaries/element-types`](../rules/dependencies.md), [`boundaries/entry-point`](../rules/entry-point.mdx), and [`boundaries/external`](../rules/external.mdx) at severity `2`. These rules are deprecated in favor of [`boundaries/dependencies`](../rules/dependencies.md).
 
-:::warning Deprecated rules in the presets
+:::warning[Deprecated rules in the presets]
 `boundaries/element-types`, `boundaries/entry-point`, and `boundaries/external` are kept for backward compatibility but are deprecated and will be removed in a future major version. They keep working; each prints a one-time deprecation warning in your console.
 
 When you spread `...recommended.rules` (or `...strict.rules`), these rules are enabled. With empty options they produce no extra errors, so the preset is safe to start with. To remove the warnings and rely only on the canonical rule, override them:
@@ -84,7 +84,7 @@ See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) fo
 
 ### Strict Config
 
-:::tip Usage
+:::tip[Usage]
 **Best for:** New projects or enforcing full compliance
 :::
 
@@ -120,7 +120,7 @@ export default [{
 Because `strict` inherits the rules from `recommended`, it also enables the deprecated `boundaries/element-types`, `boundaries/entry-point`, and `boundaries/external` rules. See [Deprecated rules in the presets](#deprecated-rules-in-the-presets) for how to disable them.
 :::
 
-:::warning `no-private` stays disabled in strict
+:::warning[`no-private` stays disabled in strict]
 `strict` does not enable `boundaries/no-private`; it remains disabled even when enforcing full compliance. The `no-private` rule is deprecated. To restrict access to private elements, use [`boundaries/dependencies`](../rules/no-private.mdx#migration-to-boundariesdependencies) with relationship selectors instead.
 :::
 

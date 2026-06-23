@@ -26,21 +26,21 @@ Selectors describe which files a rule applies to. You write them in the `from`, 
 
 The top-level selector for `from` and `to` is the **entity selector**. An entity is the unit the plugin analyzes — one file described along three independent axes: its **element**, its **file** classification, and the **module** it resolves to. An entity selector lets you match any combination of those axes.
 
-The smallest selector matches a single element type:
+The smallest selector targets a single axis — for example, one element type:
 
 ```js
 { element: { type: "helper" } }
 ```
 
-That selector matches any file belonging to a `helper` element. From there you can add more conditions to narrow the match.
+That selector matches any file belonging to a `helper` element. You could just as well match a single `file` category or `module` origin instead; no axis takes precedence over the others. From there you can add more conditions to narrow the match.
 
-:::note Legacy flat selectors
+:::note[Legacy flat selectors]
 Earlier versions accepted flat element selectors such as `{ type: "helper" }` (without the `element` wrapper) and bare strings like `"helper"`. They still work and are converted internally, so existing configurations keep running. For new rules, prefer the entity selector form so you can also match against `file` and `module`. The string and tuple formats are documented on the [Legacy Selectors](./selectors/legacy-selectors.md) page.
 :::
 
 ## How matching works
 
-1. You define [element descriptors](./elements.md) (and optionally [file descriptors](./files.md)) in your settings.
+1. You define [element descriptors](./elements.md) and/or [file descriptors](./files.md) in your settings — at least one of the two.
 2. During analysis, the plugin builds a [runtime description](./classification.md) for each file: its element, its file categories, and the module it resolves to.
 3. Selectors in your rules match against those descriptions to decide whether a rule applies.
 
@@ -112,7 +112,7 @@ Match the [element](./elements.md) a file belongs to. All values are [micromatch
 
 #### Matching by type
 
-A file can belong to more than one element type at the same path level. When [multi-type elements](./settings.md#boundarieselements-single-type) are enabled (`boundaries/elements-single-type: false`), the runtime description carries every matching type in a `types` array. By default the plugin keeps a single type for backward compatibility, so most projects have a one-element `types` array.
+A file can belong to more than one element type at the same path level. When [multi-type elements](./settings.md#boundarieselements-single-type) are enabled (`boundaries/elements-single-type: false`), the runtime description carries every matching type in a `types` array. By default the plugin keeps a single type for backward compatibility, so an element's `types` array usually holds a single type.
 
 The `type` selector property matches the element's **first** type — `types[0]`:
 
@@ -134,7 +134,7 @@ With single-type elements (the default), each element has exactly one type, so `
 
 The following element selector properties still work but are kept only for backward compatibility. They will be removed in a future major version.
 
-:::warning Deprecated
+:::warning[Deprecated]
 **`category`** on an element selector is deprecated. Use the [`file` sub-selector](#file-sub-selector) with [`categories`](./files.md) instead.
 :::
 
@@ -144,7 +144,7 @@ It keeps working without changes. The replacement is a [file descriptor](./files
 | --- | --- |
 | `{ element: { category: "test" } }` | `{ file: { categories: "test" } }` |
 
-:::warning Deprecated
+:::warning[Deprecated]
 **`origin`** on an element selector is deprecated. Use the [`module` sub-selector](#module-sub-selector) with [`origin`](#module-sub-selector) instead.
 :::
 
@@ -154,11 +154,11 @@ Module origin describes where an imported module comes from, so it now lives on 
 | --- | --- |
 | `{ element: { origin: "external" } }` | `{ module: { origin: "external" } }` |
 
-:::warning Deprecated
+:::warning[Deprecated]
 **`elementPath`** on an element selector is a legacy alias for **`path`**. Use `path` instead.
 :::
 
-:::warning Deprecated
+:::warning[Deprecated]
 **`internalPath`** and **`filePath`** on an element selector are legacy properties. Use **`fileInternalPath`** to match the file path within a local element, or the [`module` sub-selector](#module-sub-selector) **`internalPath`** to match the path within an external or core module.
 :::
 
@@ -273,7 +273,7 @@ Relationship values are: `internal`, `child`, `descendant`, `sibling`, `parent`,
 }
 ```
 
-:::warning Deprecated
+:::warning[Deprecated]
 The **`module`** property on a dependency metadata selector is deprecated. Use the [`module` sub-selector](#module-sub-selector) with **`source`** in `to` instead.
 :::
 
@@ -437,7 +437,7 @@ A parent selector supports these properties:
 { element: { parent: null } }
 ```
 
-:::warning Deprecated
+:::warning[Deprecated]
 **`elementPath`** on a parent selector is a legacy alias for **`path`**. Use `path` instead.
 :::
 
@@ -522,7 +522,7 @@ When [`boundaries/legacy-templates`](./settings.md#boundarieslegacy-templates) i
 
 ### Legacy template syntax
 
-:::warning Deprecated
+:::warning[Deprecated]
 The legacy template syntax `${ property }` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use the modern `{{ property }}` syntax instead.
 :::
 

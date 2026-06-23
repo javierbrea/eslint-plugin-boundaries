@@ -6,7 +6,11 @@ import type {
   ModuleSingleSelector,
 } from "@boundaries/elements";
 
-import { rulesOptionsSchema, warnMigrationToDependencies } from "../Settings";
+import {
+  rulesOptionsSchema,
+  warnMigrationToDependencies,
+  validateAndWarnRuleOptions,
+} from "../Settings";
 import type {
   ExternalRuleOptions,
   ExternalRule,
@@ -180,9 +184,9 @@ export default dependencyRule<ExternalRuleOptions>(
   },
   function ({ dependency, node, context, settings, options }) {
     warnMigrationToDependencies(RULE_NAMES_MAP.EXTERNAL);
-    // Validate and warn about legacy selector syntax
-    // TODO: validate and warn about legacy usage
-    // validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL, "from");
+    // Validate and warn about deprecated rule option syntax (legacy
+    // selectors, legacy templates, and rule-level importKind).
+    validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL);
 
     const origin = dependency.to.module.origin;
     if (origin === ORIGINS_MAP.EXTERNAL || origin === ORIGINS_MAP.CORE) {

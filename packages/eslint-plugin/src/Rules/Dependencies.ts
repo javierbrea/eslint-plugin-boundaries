@@ -36,7 +36,11 @@ import {
   dependenciesRuleDefaultErrorMessage,
   customErrorMessage,
 } from "../Messages";
-import { rulesOptionsSchema, migrationToV6GuideLink } from "../Settings";
+import {
+  rulesOptionsSchema,
+  migrationToV6GuideLink,
+  validateAndWarnRuleOptions,
+} from "../Settings";
 import type {
   RuleOptionsWithRules,
   DependenciesRuleOptions,
@@ -797,9 +801,9 @@ export default function getDependencyRule(
           migrationToV6GuideLink("rule-element-types-renamed-to-dependencies")
         );
       }
-      // Validate and warn about legacy selector syntax
-      // TODO: Warn legacy syntax
-      // validateAndWarnRuleOptions(options, ruleName, "from");
+      // Validate and warn about deprecated rule option syntax (legacy
+      // selectors, legacy templates, and rule-level importKind).
+      validateAndWarnRuleOptions(options, ruleName);
 
       const checkAllOrigins = options?.checkAllOrigins ?? false;
       const checkUnknownLocals = options?.checkUnknownLocals ?? false;

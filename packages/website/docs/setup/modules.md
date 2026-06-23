@@ -50,7 +50,7 @@ import path from "node:path";       // origin: "core"
 ```
 
 :::note
-Origin is computed per import, so the same package can be `external` in one place and `local` in another if your settings classify it differently. The defaults above are configurable — see [How settings influence origin](#how-settings-influence-origin).
+The plugin computes `origin` for each import from how that import resolves and from your settings, not from the package name alone. The defaults above are configurable — see [How settings influence origin](#how-settings-influence-origin).
 :::
 
 ### Monorepo workspace imports

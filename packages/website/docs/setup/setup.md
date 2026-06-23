@@ -38,24 +38,24 @@ When the plugin analyzes a file, it builds a runtime description called an **ent
 The [Classification](./classification.md) section is the full introduction to this model and links to a page for each layer: [Elements](./elements.md), [Files](./files.md), and [Modules](./modules.md).
 
 :::note
-You do not need all three layers to get started. Elements and one dependencies rule are enough for a working setup — see the [Quick Start](../quick-start.mdx). File descriptors and module matching are there when you need them.
+You do not need all three layers to get started. One classification layer — elements or file descriptors — plus one dependencies rule is enough for a working setup; see the [Quick Start](../quick-start.mdx). The remaining layers are there when you need them.
 :::
 
 ## Workflow
 
 The typical workflow when setting up the plugin has three steps:
 
-1. **Classify your files** using the [Classification](./classification.md) layers: define [elements](./elements.md) in the `boundaries/elements` setting, and optionally categorize files with [file descriptors](./files.md). The [module](./modules.md) layer is derived automatically.
+1. **Classify your files** using the [Classification](./classification.md) layers: define [elements](./elements.md) in the `boundaries/elements` setting, categorize files with [file descriptors](./files.md) in the `boundaries/files` setting, or both — at least one of the two. The [module](./modules.md) layer is derived automatically.
 2. **Configure rules** using [selectors](./selectors.md) to specify which elements can interact with each other. Selectors can also match on file categories or module origins when you need them.
 3. **Customize global settings** to include or ignore files, define dependency nodes, categorize files, and more. The helpers in [Configuration Helpers](./eslint-integration.md) simplify this process.
 
 The plugin analyzes each file in your project and builds a runtime entity description — the element it belongs to, its file categories, and the module origin of each dependency. Your rules and their selectors then determine whether each dependency is allowed.
 
-:::tip Debug Mode
+:::tip[Debug Mode]
 Enable [debug mode](../guides/debugging.md) when first configuring the plugin to see the full runtime entity description (element, file, and module) assigned to each file.
 :::
 
-:::info Custom error messages
+:::info[Custom error messages]
 Rules can produce dynamic error messages using [message templates](./rules.mdx#message-templating), reading values such as `{{from.element.types}}`, `{{to.file.categories}}`, or `{{to.module.origin}}`.
 :::
 

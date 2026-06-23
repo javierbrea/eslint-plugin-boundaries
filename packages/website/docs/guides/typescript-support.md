@@ -149,7 +149,7 @@ In addition to the main `Config` type, the plugin exports individual subtypes fo
 
 The deprecated-rule option types (`EntryPointRule`, `EntryPointRuleOptions`, `ExternalRule`, `ExternalRuleOptions`, `NoPrivateOptions`) and constants/guards (`SETTINGS_KEYS_MAP`, `RULE_NAMES_MAP`, `DEPENDENCY_KINDS_MAP`, `isSettingsKey`, `isDependencyKind`, and more) are also exported. See the package types for the complete list.
 
-:::note `FileDescriptor` lives in `@boundaries/elements`
+:::note[`FileDescriptor` lives in `@boundaries/elements`]
 `FileDescriptor` and `FileDescriptors` are not re-exported from `eslint-plugin-boundaries`. The `Settings` type uses them internally to type the [`boundaries/files`](../setup/settings.md#boundariesfiles) key, but to type a descriptor entry yourself, import it from `@boundaries/elements`:
 
 ```ts
@@ -204,11 +204,11 @@ const config: Config = {
 };
 ```
 
-:::note Entity selectors
+:::note[Entity selectors]
 The example above uses [entity selectors](../setup/selectors.md) (`from: { element: { type: "..." } }`). Flat element selectors (`from: { type: "..." }`) still work and are converted internally, but the entity selector form also gives you access to `file` and `module` matching.
 :::
 
-:::warning TypeScript breaking changes from v6
+:::warning[TypeScript breaking changes from v6]
 If you are upgrading from v6, the following type exports were removed: `ElementTypesRule`, `ElementTypesRuleOptions`, `ElementSelectors`, `ElementsSelector`, `ElementSelectorWithOptions`, the guards `isElementsSelector`, `isElementDescriptorMode`, `isImportKind`, and the constant `IMPORT_KINDS_MAP`. Replace them with `DependenciesRule`, `DependenciesRuleOptions`, `ElementSelector`, `isDependencyKind`, and `DEPENDENCY_KINDS_MAP`. The deprecated `ImportKind` type still exists but prefer `DependencyKind`. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) for details.
 :::
 

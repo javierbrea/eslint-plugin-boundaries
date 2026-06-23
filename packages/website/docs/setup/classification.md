@@ -34,7 +34,7 @@ Together these three layers form an **entity** — the unit the plugin analyzes.
 
 An element is a group of files the plugin treats as one architectural unit — usually a folder. You declare elements in the `boundaries/elements` setting, assigning each a `type` and a `pattern` that matches its files. The plugin can also capture path fragments (a component's name, a helper's family) for use in rules.
 
-This is the layer most projects start with: define your `helper`, `component`, and `module` elements, then write rules about which may depend on which.
+Define your `helper`, `component`, and `module` elements, then write rules about which may depend on which.
 
 ```js
 "boundaries/elements": [
@@ -50,7 +50,7 @@ Read **[Elements](./elements.md)** for descriptor properties, matching order, hi
 
 The file layer answers a different question than the element layer: not *which element does this file belong to?* but *what kind of file is this, on its own?* You declare file categories in the `boundaries/files` setting. A file descriptor assigns a `category` to every file matching its `pattern`.
 
-This layer is for cross-cutting file kinds — tests, styles, stories — that appear inside many different elements. Categories accumulate, so one file can carry several at once.
+This layer is for cross-cutting file kinds — tests, styles, stories — that appear inside many different elements. Categories accumulate, so one file can carry several at once. Like element descriptors, file descriptors can also `capture` named path fragments for use in rules, exposed at runtime as `file.captured`.
 
 ```js
 "boundaries/files": [
@@ -84,7 +84,7 @@ The three layers are independent, so the right one depends on the question you a
 | Group code by architectural role (components, helpers, modules) | Elements | [`boundaries/elements`](./elements.md) |
 | Tag files across elements (tests, styles, stories) | File categories | [`boundaries/files`](./files.md) |
 | Control imports of external packages or Node.js core modules | Modules | derived automatically; see [Modules](./modules.md) |
-| Capture path fragments (element name, family) for dynamic rules | Element captured values | [`boundaries/elements`](./elements.md) |
+| Capture path fragments (element name, family) for dynamic rules | Element or file captured values | [`boundaries/elements`](./elements.md) / [`boundaries/files`](./files.md) |
 | Match files by both their element and their kind at once | All three, via entity selectors | [Selectors](./selectors.md) |
 
 You rarely use a single layer in isolation. A typical rule combines them: *components may import test files only from helpers*, for example, mixes the element layer with the file layer.
@@ -147,16 +147,6 @@ The `dependency` part of a dependency description carries metadata about the rel
   - `"descendant"` ↔ `"ancestor"`
   - `"sibling"` ↔ `"sibling"`
   - `"uncle"` ↔ `"nephew"`
-
-:::warning Deprecated
-The `dependency.module` selector is deprecated. It keeps working without changes, but it is no longer part of the documented dependency description schema. Use **[`to.module.source`](./modules.md#module-description)** via the entity selector instead.
-
-| Legacy | Recommended |
-| --- | --- |
-| `dependency: { module: "react" }` | `to: { module: { source: "react" } }` |
-
-See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx).
-:::
 
 ## Combining layers in a rule
 

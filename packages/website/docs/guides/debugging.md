@@ -113,7 +113,7 @@ export default [{
 }];
 ```
 
-:::note Entity selectors in `filter.files`
+:::note[Entity selectors in `filter.files`]
 `filter.files` accepts entity selectors, so you can filter by element type (`{ element: { type: "component" } }`), file category (`{ file: { categories: "test" } }`), or module origin (`{ module: { origin: "external" } }`). A bare flat element selector such as `{ type: "component" }` still works and is converted internally, but prefer the entity selector form. See [Selectors](../setup/selectors.md).
 :::
 
@@ -257,7 +257,7 @@ When debug mode is enabled, you'll see **[descriptions of files, dependencies, a
 }
 ```
 
-:::note Reading the entity output
+:::note[Reading the entity output]
 Local source files carry their classification in `element` (the architectural element and its `types`) and in `file` (its `categories`, from [file descriptors](../setup/files.md)). `module` is `{ "origin": "local", "source": null, "internalPath": null }`. For imported external or core dependencies, `element` and `file` are usually unknown — the meaningful classification lives in `module` (`origin`, `source`, `internalPath`). When no [`boundaries/files`](../setup/settings.md#boundariesfiles) descriptors match a file, its `file.categories` is `null`.
 :::
 

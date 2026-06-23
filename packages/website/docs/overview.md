@@ -27,7 +27,7 @@ JS Boundaries is a project that provides a set of tools to help you enforce arch
 
 ---
 
-:::info Robert C. Martin's quote
+:::info[Robert C. Martin's quote]
 **"Software architecture is the art of drawing lines that I call boundaries. Those boundaries separate software elements from one another, and restrict those on one side from knowing about those on the other."**
 
 [*Clean Architecture: A Craftsman's Guide to Software Structure and Design*](https://www.oreilly.com/library/view/clean-architecture-a/9780134494272/)
@@ -51,11 +51,11 @@ The plugin classifies every file along three independent layers — and, for eac
 
 | Layer | Describes | You configure? | Example |
 | --- | --- | --- | --- |
-| **element** | The architectural role a file plays. | Yes, with [element descriptors](./setup/elements.md). | `{ type: "controller", pattern: "controllers/*" }` |
+| **element** | The architectural role a file plays. Usually based on the folder it is in. | Yes, with [element descriptors](./setup/elements.md). | `{ type: "controller", pattern: "controllers/*" }` |
 | **file** | A cross-cutting category of the file itself, independent of its element. | Yes, with [file descriptors](./setup/files.md). | `{ pattern: "**/*.spec.js", category: "test" }` |
-| **module** | Where the imported module resolves from. | No — derived from the import. | `import "react"` resolves to `origin: "external"` |
+| **module** | Where the imported module resolves from. | No — derived from the import. | `import "react"` resolves to `module.origin: "external"` |
 
-- An **element** is a group of files the plugin treats as one architectural unit — usually a folder like `controllers/`. You map paths to a `type`, and every file under that path belongs to that element.
+- An **element** is a group of files the plugin treats as one architectural unit — usually a folder like `controllers/*`. You map paths to a `type`, and every file under that path belongs to that element.
 - A **file** category is a label attached to the file on its own, such as `"test"` or `"style"`. It is independent of the element: the same file can be a controller *and* a test.
 - A **module** is the resolved target of a dependency. The plugin derives its [origin](./setup/modules.md) — `"local"` (your own files), `"external"` (a package), or `"core"` (a Node.js built-in) — so you can target third-party imports without naming each one.
 
@@ -66,14 +66,14 @@ Because the layers are independent, a rule can mix them. A few boundaries you ca
 - **Only shared code may use the `axios` package** — `from: { element: { type: "!shared" } }`, `disallow: { to: { module: { source: "axios" } } }`.
 
 :::tip
-Layering is progressive. Start with elements and one rule, then add file categories and module matching when you need them. See [Classification](./setup/classification.md).
+Layering is progressive. Start with one classification layer — elements or files — and one rule, then add the remaining layers when you need them. You only need to configure one of the two; the rest is optional. See [Classification](./setup/classification.md).
 :::
 
 ## Usage
 
 ### 1. Define the Classification in Your Project through Configuration
 
-Map paths to element types, and optionally tag files with categories:
+Map paths to element types, tag files with categories, or both — you only need one of the two layers:
 
 ```javascript
 const elementDescriptors = [

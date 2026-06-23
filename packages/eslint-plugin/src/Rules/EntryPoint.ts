@@ -3,7 +3,11 @@ import {
   DEPENDENCY_RELATIONSHIPS_MAP,
 } from "@boundaries/elements";
 
-import { rulesOptionsSchema, warnMigrationToDependencies } from "../Settings";
+import {
+  rulesOptionsSchema,
+  warnMigrationToDependencies,
+  validateAndWarnRuleOptions,
+} from "../Settings";
 import type {
   EntryPointRuleOptions,
   EntryPointRule,
@@ -83,9 +87,9 @@ export default dependencyRule<EntryPointRuleOptions>(
   },
   function ({ dependency, node, context, settings, options }) {
     warnMigrationToDependencies(RULE_NAMES_MAP.ENTRY_POINT);
-    // Validate and warn about legacy selector syntax
-    // TODO: Warn about legacy usage
-    // validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, "target");
+    // Validate and warn about deprecated rule option syntax (legacy
+    // selectors, legacy templates, and rule-level importKind).
+    validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT);
 
     if (
       !dependency.to.file.isIgnored &&

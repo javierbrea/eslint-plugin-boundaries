@@ -153,6 +153,11 @@ describe("Settings/Rules", () => {
   });
 
   describe("validateAndWarnRuleOptions", () => {
+    // Modern object-based selectors used as a neutral baseline that triggers
+    // no warning, so each test can isolate the deprecation it exercises.
+    const modernFrom = { element: { type: "a" } };
+    const modernTo = { element: { type: "b" } };
+
     it("does nothing when options are undefined", () => {
       validateAndWarnRuleOptions(undefined, RULE_NAMES_MAP.DEPENDENCIES);
 
@@ -177,17 +182,44 @@ describe("Settings/Rules", () => {
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
 
+    it("does not warn when no rule uses deprecated syntax", () => {
+      const options = {
+        rules: [
+          { from: modernFrom, to: modernTo } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+
+    it("does not flag an array of modern object selectors as legacy", () => {
+      const options = {
+        rules: [
+          {
+            from: [{ element: { type: "a" } }, { element: { type: "b" } }],
+            to: modernTo,
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+
     it("warns once about deprecated rule-level importKind and includes affected indices", () => {
       const rules: RuleOptionsRules[] = [
-        { from: "a", allow: ["b"] } as unknown as RuleOptionsRules,
+        { from: modernFrom, to: modernTo } as unknown as RuleOptionsRules,
         {
-          from: "a",
-          allow: ["b"],
+          from: modernFrom,
+          to: modernTo,
           importKind: "type",
         } as unknown as RuleOptionsRules,
         {
-          from: "a",
-          allow: ["b"],
+          from: modernFrom,
+          to: modernTo,
           importKind: "value",
         } as unknown as RuleOptionsRules,
       ];
@@ -207,8 +239,8 @@ describe("Settings/Rules", () => {
       const options = {
         rules: [
           {
-            from: "a",
-            allow: ["b"],
+            from: modernFrom,
+            to: modernTo,
             importKind: "type",
           } as unknown as RuleOptionsRules,
         ],
@@ -220,20 +252,189 @@ describe("Settings/Rules", () => {
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
     });
 
-    it("does not warn when no rule uses deprecated syntax", () => {
+    it("warns about legacy string selector syntax in `from` for the dependencies rule", () => {
       const options = {
-        rules: [{ from: "a", allow: ["b"] } as unknown as RuleOptionsRules],
+        rules: [
+          { from: "helper", to: modernTo } as unknown as RuleOptionsRules,
+        ],
       } as unknown as RuleOptionsWithRules;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
 
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("legacy selector syntax"),
+        expect.stringContaining("object-based selectors")
+      );
+      expect(mockedWarnOnce.mock.calls[0][0]).toContain("indices: 0");
+    });
+
+    it("warns about legacy tuple selector syntax in `from`", () => {
+      const options = {
+        rules: [
+          {
+            from: ["helper", { family: "data" }],
+            to: modernTo,
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("legacy selector syntax"),
+        expect.any(String)
+      );
+    });
+
+    it("warns about an array of legacy string selectors", () => {
+      const options = {
+        rules: [
+          {
+            from: ["helper", "component"],
+            to: modernTo,
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("legacy selector syntax"),
+        expect.any(String)
+      );
+    });
+
+    it("warns about an array of legacy tuple selectors", () => {
+      const options = {
+        rules: [
+          {
+            from: [["helper", { family: "data" }], "component"],
+            to: modernTo,
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("legacy selector syntax"),
+        expect.any(String)
+      );
+    });
+
+    it("detects legacy string selector in `allow` for the dependencies rule", () => {
+      const options = {
+        rules: [
+          {
+            from: modernFrom,
+            allow: ["helpers"],
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("legacy selector syntax"),
+        expect.any(String)
+      );
+    });
+
+    it("detects legacy selector in `disallow` for the element-types rule", () => {
+      const options = {
+        rules: [
+          {
+            from: modernFrom,
+            disallow: ["helpers"],
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ELEMENT_TYPES);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("legacy selector syntax"),
+        expect.any(String)
+      );
+    });
+
+    it("detects legacy string selector in `target` for the entry-point rule", () => {
+      const options = {
+        rules: [
+          {
+            target: "components",
+            allow: ["**/index.ts"],
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("legacy selector syntax"),
+        expect.any(String)
+      );
+    });
+
+    it("does NOT flag `allow`/`disallow` as legacy selectors for the external rule (external lib names)", () => {
+      const options = {
+        rules: [
+          {
+            from: modernFrom,
+            allow: ["lodash"],
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL);
+
       expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+
+    it("does NOT flag `allow`/`disallow` as legacy selectors for the entry-point rule (file globs)", () => {
+      const options = {
+        rules: [
+          {
+            target: { element: { type: "a" } },
+            allow: ["**/index.ts"],
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT);
+
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+
+    it("aggregates indices of multiple rules with legacy selectors", () => {
+      const options = {
+        rules: [
+          { from: "helper", to: modernTo } as unknown as RuleOptionsRules,
+          { from: modernFrom, to: modernTo } as unknown as RuleOptionsRules,
+          { from: "component", to: modernTo } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce.mock.calls[0][0]).toContain("0, 2");
     });
 
     it("warns about legacy template syntax in `from` for the dependencies rule", () => {
       const options = {
         rules: [
-          { from: "Comp${name}", allow: ["b"] } as unknown as RuleOptionsRules,
+          {
+            from: { element: { type: "Comp${name}" } },
+            to: modernTo,
+          } as unknown as RuleOptionsRules,
         ],
       } as unknown as RuleOptionsWithRules;
 
@@ -252,7 +453,6 @@ describe("Settings/Rules", () => {
         rules: [
           {
             to: { element: { path: "x/${cat}" } },
-            allow: ["b"],
           } as unknown as RuleOptionsRules,
         ],
       } as unknown as RuleOptionsWithRules;
@@ -270,9 +470,8 @@ describe("Settings/Rules", () => {
       const options = {
         rules: [
           {
-            from: "a",
+            from: modernFrom,
             dependency: { kind: "value-${kind}" },
-            allow: ["b"],
           } as unknown as RuleOptionsRules,
         ],
       } as unknown as RuleOptionsWithRules;
@@ -290,7 +489,7 @@ describe("Settings/Rules", () => {
       const options = {
         rules: [
           {
-            from: "a",
+            from: modernFrom,
             allow: ["b/${captured}"],
           } as unknown as RuleOptionsRules,
         ],
@@ -298,18 +497,20 @@ describe("Settings/Rules", () => {
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
 
-      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
-      expect(mockedWarnOnce).toHaveBeenCalledWith(
-        expect.stringContaining("legacy template syntax ${...}"),
-        expect.any(String)
-      );
+      // A legacy string array in `allow` is also a legacy selector, so it
+      // additionally triggers the legacy-selector warning; assert the template
+      // warning is present among the emitted warnings.
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes("legacy template syntax ${...}"))
+      ).toBe(true);
     });
 
     it("detects legacy template syntax in `disallow` for the element-types rule", () => {
       const options = {
         rules: [
           {
-            from: "a",
+            from: modernFrom,
             disallow: ["x/${y}"],
           } as unknown as RuleOptionsRules,
         ],
@@ -317,18 +518,17 @@ describe("Settings/Rules", () => {
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ELEMENT_TYPES);
 
-      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
-      expect(mockedWarnOnce).toHaveBeenCalledWith(
-        expect.stringContaining("legacy template syntax ${...}"),
-        expect.any(String)
-      );
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes("legacy template syntax ${...}"))
+      ).toBe(true);
     });
 
-    it("does NOT scan `allow`/`disallow` for the external rule (external lib names)", () => {
+    it("does NOT scan `allow`/`disallow` templates for the external rule (external lib names)", () => {
       const options = {
         rules: [
           {
-            from: "a",
+            from: modernFrom,
             disallow: ["lodash/${sub}"],
           } as unknown as RuleOptionsRules,
         ],
@@ -339,11 +539,11 @@ describe("Settings/Rules", () => {
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
 
-    it("does NOT scan `allow`/`disallow` for the entry-point rule (file globs)", () => {
+    it("does NOT scan `allow`/`disallow` templates for the entry-point rule (file globs)", () => {
       const options = {
         rules: [
           {
-            target: "a",
+            target: { element: { type: "a" } },
             disallow: ["**/${private}/**"],
           } as unknown as RuleOptionsRules,
         ],
@@ -358,7 +558,7 @@ describe("Settings/Rules", () => {
       const options = {
         rules: [
           {
-            target: "Comp${x}",
+            target: { element: { type: "Comp${x}" } },
             allow: ["**/index.ts"],
           } as unknown as RuleOptionsRules,
         ],
@@ -376,9 +576,15 @@ describe("Settings/Rules", () => {
     it("aggregates indices of multiple rules with legacy template syntax", () => {
       const options = {
         rules: [
-          { from: "a${b}", allow: ["c"] } as unknown as RuleOptionsRules,
-          { from: "a", allow: ["c"] } as unknown as RuleOptionsRules,
-          { from: "x", allow: ["y${z}"] } as unknown as RuleOptionsRules,
+          {
+            from: { element: { type: "a${b}" } },
+            to: modernTo,
+          } as unknown as RuleOptionsRules,
+          { from: modernFrom, to: modernTo } as unknown as RuleOptionsRules,
+          {
+            from: modernFrom,
+            dependency: { kind: "y${z}" },
+          } as unknown as RuleOptionsRules,
         ],
       } as unknown as RuleOptionsWithRules;
 
@@ -392,8 +598,8 @@ describe("Settings/Rules", () => {
       const options = {
         rules: [
           {
-            from: "a${b}",
-            allow: ["c"],
+            from: { element: { type: "a${b}" } },
+            to: modernTo,
             importKind: "type",
           } as unknown as RuleOptionsRules,
         ],

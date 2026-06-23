@@ -30,13 +30,13 @@ To handle this, eslint-plugin-boundaries reuses the resolver infrastructure of [
 
 The plugin uses `eslint-module-utils/resolve` internally. Configure module resolution with the `import/resolver` setting, and eslint-plugin-boundaries respects those same resolution rules.
 
-:::warning Deprecated
+:::warning[Deprecated]
 `boundaries/alias` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`import/resolver`](../setup/settings.md#importresolver)** instead.
 :::
 
 It keeps working without changes; you will see a deprecation warning in your console. Migrate by moving your path aliases from `boundaries/alias` to a resolver configuration (for example, the [Alias Resolver](#alias-resolver) shown below).
 
-:::note Resolution affects module origin
+:::note[Resolution affects module origin]
 The resolver outcome decides each dependency's [module origin](../setup/modules.md#module-origins). A resolved import that points inside your project is classified as `"local"`; one resolved into `node_modules` is `"external"`. When no configured resolver can resolve an import, the plugin classifies it as `"external"` by default (`unresolvableAlias`, see [`boundaries/flag-as-external`](../setup/settings.md#boundariesflag-as-external)). Configuring the right resolver avoids false positives in rules that match on `to.module.origin`.
 :::
 

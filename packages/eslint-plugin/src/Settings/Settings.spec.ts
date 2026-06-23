@@ -280,11 +280,20 @@ describe("Settings/Settings", () => {
     });
 
     describe("elementDescriptors", () => {
-      it("warns and returns an empty array when no descriptors are provided", () => {
+      it("returns an empty array when no element descriptors are provided", () => {
         const result = getSettings(buildContext({}));
 
         expect(result.elementDescriptors).toEqual([]);
-        expect(mockedWarnOnce).toHaveBeenCalledWith(
+      });
+
+      it("does not warn about missing element descriptors when file descriptors are provided", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.FILES]: [validFileDescriptor],
+          })
+        );
+
+        expect(mockedWarnOnce).not.toHaveBeenCalledWith(
           expect.stringContaining(SETTINGS.ELEMENTS),
           expect.any(String)
         );
@@ -385,6 +394,47 @@ describe("Settings/Settings", () => {
         expect(mockedWarnOnce).toHaveBeenCalledWith(
           expect.stringContaining("file descriptors"),
           expect.stringContaining(JSON.stringify([invalidFileDescriptor]))
+        );
+      });
+    });
+
+    describe("classification layers", () => {
+      it("warns when neither element nor file descriptors are provided", () => {
+        getSettings(buildContext({}));
+
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining(SETTINGS.ELEMENTS),
+          expect.any(String)
+        );
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining(SETTINGS.FILES),
+          expect.any(String)
+        );
+      });
+
+      it("does not warn when only element descriptors are provided", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+          })
+        );
+
+        expect(mockedWarnOnce).not.toHaveBeenCalledWith(
+          expect.stringContaining(SETTINGS.FILES),
+          expect.any(String)
+        );
+      });
+
+      it("does not warn when only file descriptors are provided", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.FILES]: [validFileDescriptor],
+          })
+        );
+
+        expect(mockedWarnOnce).not.toHaveBeenCalledWith(
+          expect.stringContaining(SETTINGS.ELEMENTS),
+          expect.any(String)
         );
       });
     });

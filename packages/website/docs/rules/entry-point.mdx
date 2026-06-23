@@ -24,7 +24,7 @@ import CodeDiff from "@site/src/components/CodeDiff";
 
 > Enforce entry point restrictions for **[elements](../setup/elements.md)** in your project.
 
-:::warning Deprecated
+:::warning[Deprecated]
 `boundaries/entry-point` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`boundaries/dependencies`](./dependencies.md)** instead.
 
 It keeps working without changes; you will see a deprecation warning in your console:
@@ -62,7 +62,7 @@ The first item in the array is the ESLint severity (`0` = off, `1` = warning, `2
 Each rule requires `target` and at least one of `allow` or `disallow`.
 :::
 
-:::warning Deprecated
+:::warning[Deprecated]
 The rule-level `importKind` option is deprecated. When you migrate to **[`boundaries/dependencies`](./dependencies.md)**, replace it with the `dependency.kind` selector property. See the **[v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx)** for details.
 :::
 
@@ -310,7 +310,7 @@ The following example shows how to migrate a configuration from `boundaries/entr
 
 Read more about entity selectors and the `fileInternalPath` property in the **[Selectors](../setup/selectors.md)** documentation, and see the **[v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx)** for the complete migration.
 
-:::tip Bonus: Allowing different entry points based on the importer element
+:::tip[Bonus: Allowing different entry points based on the importer element]
 With `boundaries/dependencies` you can also define rules to allow different entry points depending on the importer element, which was not possible with the `entry-point` rule. For example, you could allow importing `index.js` from components but only allow importing `main.js` from modules.
 :::
 
