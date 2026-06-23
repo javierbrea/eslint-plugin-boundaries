@@ -146,21 +146,9 @@ In addition to the main `Config` type, the plugin exports individual subtypes fo
 - `CapturedValuesSelector` - captured-values selector.
 - `DependencyNodeKey`, `DependencyNodeSelector` - dependency-node configuration.
 - `IgnoreSetting`, `IncludeSetting`, `RootPathSetting`, `DebugSetting`, `SettingsKey` - other [settings](../setup/settings.md) types.
+- `FileDescriptor`, `FileDescriptors` - an entry (or array) of the [`boundaries/files`](../setup/settings.md#boundariesfiles) setting.
 
-The deprecated-rule option types (`EntryPointRule`, `EntryPointRuleOptions`, `ExternalRule`, `ExternalRuleOptions`, `NoPrivateOptions`) and constants/guards (`SETTINGS_KEYS_MAP`, `RULE_NAMES_MAP`, `DEPENDENCY_KINDS_MAP`, `isSettingsKey`, `isDependencyKind`, and more) are also exported. See the package types for the complete list.
-
-:::note[`FileDescriptor` lives in `@boundaries/elements`]
-`FileDescriptor` and `FileDescriptors` are not re-exported from `eslint-plugin-boundaries`. The `Settings` type uses them internally to type the [`boundaries/files`](../setup/settings.md#boundariesfiles) key, but to type a descriptor entry yourself, import it from `@boundaries/elements`:
-
-```ts
-import type { FileDescriptor } from "@boundaries/elements";
-
-const fileDescriptor: FileDescriptor = {
-  pattern: "**/*.spec.js",
-  category: "test",
-};
-```
-:::
+The deprecated-rule option types (`EntryPointRule`, `EntryPointRuleOptions`, `ExternalRule`, `ExternalRuleOptions`, `NoPrivateOptions`) and constants/guards (`SETTINGS_KEYS_MAP`, `RULE_NAMES_MAP`, `DEPENDENCY_KINDS_MAP`, `isSettingsKey`, `isDependencyKind`, `isFileDescriptor`, and more) are also exported. See the package types for the complete list.
 
 This modular approach lets you import only what you need while keeping autocomplete and type checking:
 

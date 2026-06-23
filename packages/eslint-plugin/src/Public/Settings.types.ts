@@ -2,7 +2,10 @@ export { DEPENDENCY_KINDS_MAP, isDependencyKind } from "@boundaries/elements";
 export type {
   ElementDescriptor,
   ElementDescriptors,
+  FileDescriptor,
+  FileDescriptors,
 } from "@boundaries/elements";
+export { isFileDescriptor } from "@boundaries/elements";
 export type { ElementDescriptorMode } from "@boundaries/elements";
 export { ELEMENT_DESCRIPTOR_MODES_MAP } from "@boundaries/elements";
 
