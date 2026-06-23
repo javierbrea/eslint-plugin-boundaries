@@ -832,6 +832,249 @@ describe("ElementsDescriptor", () => {
         expect(first).toBe(second);
       });
     });
+
+    describe("folder-level caching", () => {
+      it("should reuse the folder-stable base for sibling files, recomputing only fileInternalPath", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "components/*/**/*::components/Button/index.ts": ["Button"],
+          }),
+          makeRe: jest.fn().mockReturnValue(/^components\/[^/]+$/),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "components/*",
+            type: "component",
+            capture: ["componentName"],
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        // Populate the folder base from the first file.
+        descriptor.describeElement("components/Button/index.ts");
+        // The sibling has no capture lookup entry; a correct result proves the
+        // folder base was reused instead of running the matching loop again.
+        const second = descriptor.describeElement(
+          "components/Button/styles.css"
+        );
+
+        expect(second.path).toBe("components/Button");
+        expect(second.types).toEqual(["component"]);
+        expect(second.captured).toEqual({ componentName: "Button" });
+        expect(second.fileInternalPath).toBe("styles.css");
+        expect(second.filePath).toBe("components/Button/styles.css");
+      });
+
+      it("should not run the matching loop for sibling files, and recompute it after clearCache", () => {
+        const captureMock = createCaptureLookup({
+          "components/*/**/*::components/Button/index.ts": ["Button"],
+        });
+        const micromatch = createMicromatchMock({
+          capture: captureMock,
+          makeRe: jest.fn().mockReturnValue(/^components\/[^/]+$/),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({ pattern: "components/*", type: "component" }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        descriptor.describeElement("components/Button/index.ts");
+        const callsAfterFirst = captureMock.mock.calls.length;
+
+        expect(callsAfterFirst).toBeGreaterThan(0);
+
+        descriptor.describeElement("components/Button/styles.ts");
+
+        expect(captureMock).toHaveBeenCalledTimes(callsAfterFirst);
+
+        descriptor.clearCache();
+        descriptor.describeElement("components/Button/index.ts");
+
+        expect(captureMock.mock.calls.length).toBeGreaterThan(callsAfterFirst);
+      });
+
+      it("should evaluate isIgnored per file over a shared folder base", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "components/*/**/*::components/Button/index.ts": ["Button"],
+          }),
+          makeRe: jest.fn().mockReturnValue(/^components\/[^/]+$/),
+          isMatch: jest.fn((path: string) => path.endsWith(".test.ts")),
+        });
+        const config = createConfig({ ignorePaths: ["**/*.test.ts"] });
+        const descriptors: ElementDescriptors = [
+          createDescriptor({ pattern: "components/*", type: "component" }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const known = descriptor.describeElement("components/Button/index.ts");
+        const ignored = descriptor.describeElement(
+          "components/Button/Button.test.ts"
+        );
+
+        expect(known.isIgnored).toBe(false);
+        expect(known.types).toEqual(["component"]);
+
+        expect(ignored.isIgnored).toBe(true);
+        expect(ignored.isUnknown).toBe(true);
+        expect(ignored.path).toBe("components/Button/Button.test.ts");
+      });
+
+      it("should mark all sibling files as unknown when the folder matches no descriptor", () => {
+        const micromatch = createMicromatchMock();
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({ pattern: "components/*", type: "component" }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const first = descriptor.describeElement("unknown/folder/a.ts");
+        const second = descriptor.describeElement("unknown/folder/b.ts");
+
+        expect(first.isUnknown).toBe(true);
+        expect(first.path).toBeNull();
+        expect(second.isUnknown).toBe(true);
+        expect(second.path).toBeNull();
+      });
+
+      it("should handle files at the project root (no folder segment)", () => {
+        const micromatch = createMicromatchMock();
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({ pattern: "components/*", type: "component" }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const first = descriptor.describeElement("a.ts");
+        const second = descriptor.describeElement("b.ts");
+
+        expect(first.isUnknown).toBe(true);
+        expect(second.isUnknown).toBe(true);
+      });
+    });
+
+    describe("folder caching disabled for file and full modes", () => {
+      it("should match sibling files independently when a descriptor uses file mode", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "services/*.service.ts::services/auth.service.ts": ["auth"],
+          }),
+          makeRe: jest.fn().mockReturnValue(/^services\/[^/]+\.service\.ts$/),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "services/*.service.ts",
+            type: "service",
+            mode: "file",
+            capture: ["serviceName"],
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const matched = descriptor.describeElement("services/auth.service.ts");
+        // No lookup entry for the sibling: because folder caching is disabled it is
+        // matched independently and stays unknown.
+        const sibling = descriptor.describeElement("services/auth.helper.ts");
+
+        expect(matched.isUnknown).toBe(false);
+        expect(matched.types).toEqual(["service"]);
+        expect(sibling.isUnknown).toBe(true);
+      });
+
+      it("should keep running the matching loop for every file when a full-mode descriptor is present", () => {
+        const captureMock = createCaptureLookup({
+          "components/*/**/*::components/Button/index.ts": ["Button"],
+          "components/*/**/*::components/Button/styles.ts": ["Button"],
+        });
+        const micromatch = createMicromatchMock({
+          capture: captureMock,
+          makeRe: jest.fn().mockReturnValue(/^components\/[^/]+$/),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({ pattern: "components/*", type: "component" }),
+          createDescriptor({
+            pattern: "src/modules/*/index.ts",
+            type: "module",
+            mode: "full",
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const first = descriptor.describeElement("components/Button/index.ts");
+        const callsAfterFirst = captureMock.mock.calls.length;
+        const second = descriptor.describeElement(
+          "components/Button/styles.ts"
+        );
+
+        expect(first.types).toEqual(["component"]);
+        expect(first.fileInternalPath).toBe("index.ts");
+        expect(second.types).toEqual(["component"]);
+        expect(second.fileInternalPath).toBe("styles.ts");
+        // Folder caching is disabled, so the sibling triggers the matching loop again.
+        expect(captureMock.mock.calls.length).toBeGreaterThan(callsAfterFirst);
+      });
+    });
+
+    describe("cache key normalization", () => {
+      it("should share a cache entry for absolute and relative forms of the same path", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "components/*/**/*::components/Button/index.ts": ["Button"],
+          }),
+          makeRe: jest.fn().mockReturnValue(/^components\/[^/]+$/),
+        });
+        const config = createConfig({ rootPath: "/root/project/" });
+        const descriptors: ElementDescriptors = [
+          createDescriptor({ pattern: "components/*", type: "component" }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const fromAbsolute = descriptor.describeElement(
+          "/root/project/components/Button/index.ts"
+        );
+        const fromRelative = descriptor.describeElement(
+          "components/Button/index.ts"
+        );
+
+        expect(fromAbsolute).toBe(fromRelative);
+      });
+    });
   });
 
   describe("serializeCache", () => {

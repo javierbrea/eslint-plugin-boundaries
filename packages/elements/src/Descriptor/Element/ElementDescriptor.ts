@@ -56,6 +56,24 @@ export class ElementsDescriptor {
     | CacheManagerDisabled<string, ElementDescription>;
 
   /**
+   * Cache storing the folder-stable base description for each folder.
+   * Multiple files in the same folder share the same base (path, types, category,
+   * captured, parents), so it is computed once per folder and extended per file with
+   * the file-specific fields (fileInternalPath, isIgnored).
+   */
+  private readonly _folderDescriptionsCache:
+    | CacheManager<string, ElementDescription>
+    | CacheManagerDisabled<string, ElementDescription>;
+
+  /**
+   * Whether the folder-level cache can be used. It is only sound when no descriptor
+   * relies on the file name to match, i.e. no descriptor uses the deprecated "file" or
+   * "full" modes. In those modes a sibling file could match a different descriptor, so
+   * the description is not folder-deterministic and the per-file path must be used.
+   */
+  private readonly _canCacheByFolder: boolean;
+
+  /**
    * Configuration instance for this descriptor.
    */
   private readonly _config: DescriptorOptionsNormalized;
@@ -93,6 +111,16 @@ export class ElementsDescriptor {
     this._descriptionsCache = this._config.cache
       ? new CacheManager<string, ElementDescription>()
       : new CacheManagerDisabled<string, ElementDescription>();
+    this._canCacheByFolder =
+      this._config.cache &&
+      !elementDescriptors.some(
+        (descriptor) =>
+          descriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FILE ||
+          descriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FULL
+      );
+    this._folderDescriptionsCache = this._canCacheByFolder
+      ? new CacheManager<string, ElementDescription>()
+      : new CacheManagerDisabled<string, ElementDescription>();
   }
 
   /**
@@ -118,6 +146,7 @@ export class ElementsDescriptor {
    */
   public clearCache(): void {
     this._descriptionsCache.clear();
+    this._folderDescriptionsCache.clear();
   }
 
   /**
@@ -507,21 +536,95 @@ export class ElementsDescriptor {
   }
 
   /**
+   * Gets the folder key used to cache the folder-stable base description.
+   * @param relativePath The relative file path.
+   * @returns The folder portion of the path (everything but the last segment, empty for a file at the root).
+   */
+  private _getFolderKey(relativePath: string): string {
+    const lastSeparatorIndex = relativePath.lastIndexOf("/");
+    return lastSeparatorIndex === -1
+      ? ""
+      : relativePath.slice(0, lastSeparatorIndex);
+  }
+
+  /**
+   * Gets the file path relative to its element folder.
+   * This is only used in the folder-cacheable branch, where all descriptors are in
+   * folder mode, so the element path is always a folder containing the file.
+   * @param relativePath The relative file path.
+   * @param elementPath The matched element path.
+   * @returns The file path relative to the element folder.
+   */
+  private _getFileInternalPath(
+    relativePath: string,
+    elementPath: string | null
+  ): string {
+    return relativePath.replace(`${elementPath}/`, "");
+  }
+
+  /**
+   * Describes an element reusing a folder-level cache.
+   * The folder-stable base (path, types, category, captured, parents) is computed once
+   * per folder and extended per file with the file-specific fields.
+   * @param relativePath The relative file path.
+   * @returns The description of the element.
+   */
+  private _describeElementWithFolderCache(
+    relativePath: string
+  ): ElementDescription {
+    // isIgnored depends on the full file path, so it must be evaluated per file before
+    // touching the folder base.
+    if (!this._pathIsIncluded(relativePath)) {
+      return {
+        ...UNKNOWN_ELEMENT,
+        filePath: relativePath,
+        path: relativePath,
+        isIgnored: true,
+      };
+    }
+
+    const folderKey = this._getFolderKey(relativePath);
+    let base = this._folderDescriptionsCache.get(folderKey);
+    if (base === undefined) {
+      // relativePath is guaranteed included here, so _describeElement returns either a
+      // known element or the unknown shape ({ ...UNKNOWN_ELEMENT, path: null }), never
+      // the "ignored" shape. The base is computed from the first included file in the
+      // folder.
+      base = this._describeElement(relativePath);
+      this._folderDescriptionsCache.set(folderKey, base);
+    }
+
+    // A folder matching no descriptor is file-independent in folder-only mode.
+    if (base.isUnknown) {
+      return base;
+    }
+
+    return {
+      ...base,
+      filePath: relativePath,
+      fileInternalPath: this._getFileInternalPath(relativePath, base.path),
+    };
+  }
+
+  /**
    * Describes the element of a file given its path.
    * @param filePath The path of the dependency target file, if known. Can be absolute if rootPath is configured, or relative if not.
    * @returns The description of the dependency element.
    */
   public describeElement(filePath: string | undefined): ElementDescription {
-    const cacheKey = `${filePath}`;
-    if (this._descriptionsCache.has(cacheKey)) {
-      return this._descriptionsCache.get(cacheKey)!;
-    }
     const normalizedFilePath = filePath ? normalizePath(filePath) : filePath;
     const relativePath =
       normalizedFilePath && this._config.rootPath
         ? this._toRelativePath(normalizedFilePath)
         : normalizedFilePath;
-    const description = this._describeElement(relativePath);
+    const cacheKey = `${relativePath}`;
+    if (this._descriptionsCache.has(cacheKey)) {
+      return this._descriptionsCache.get(cacheKey)!;
+    }
+    const description =
+      this._canCacheByFolder && relativePath
+        ? this._describeElementWithFolderCache(relativePath)
+        : this._describeElement(relativePath);
     this._descriptionsCache.set(cacheKey, description);
     return description;
   }
