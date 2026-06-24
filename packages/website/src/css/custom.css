@@ -129,6 +129,35 @@
   display: inline-block;
 }
 
+/* Announcement bar */
+
+.theme-announcement-bar {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  position: relative;
+  min-height: 40px;
+}
+
+[class*='announcementBar_'][role='banner'] {
+  flex: 1;
+  text-align: center;
+  padding-right: 40px;
+  padding-left: 40px; 
+}
+
+[class*='announcementBar_'][role='banner'] button {
+  position: absolute !important;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
 /* Search bar */
 
 [data-theme='light'] .DocSearch-Button {

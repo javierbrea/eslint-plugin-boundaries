@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - feat: Support entity selectors in rules. The `from` and `to` properties of rule selectors now accept objects with `element`, `file` and `module` sub-selectors, allowing to match by element properties (`type`, `types`, `captured`, `parent`, etc.), file properties (`path`, `categories`, `captured`, etc.) and module properties (`origin`, `source`, `internalPath`). Legacy flat element selectors keep working and are converted internally.
 - feat: Add module descriptions to dependencies. The module a dependency resolves to is now described by its `origin` (`"local"`, `"external"` or `"core"`), `source` and `internalPath` properties, which can be matched through the `module` sub-selector in any rule, not only in the deprecated `external` rule.
 - feat: Add new data to custom message templates. The `from` and `to` template properties now expose `element`, `file` and `module` objects, enabling template variables such as `{{from.element.types}}`, `{{to.file.categories}}`, `{{to.module.origin}}` or `{{to.module.source}}`. Templates using the previous data (`{{from.type}}`, `{{from.elementPath}}`, `{{from.internalPath}}`, `{{from.origin}}`, etc.) keep working for backward compatibility.
+- feat: Support the `partialMatch` option in `boundaries/elements` descriptors (default: `true`). Set `partialMatch: false` to match the pattern against the full file path from the project root instead of a suffix. It is the recommended replacement for the deprecated `mode: "full"`.
 
 ### Changed
 

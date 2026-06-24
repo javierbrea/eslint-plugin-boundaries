@@ -38,7 +38,12 @@ import type {
   SettingsKey,
 } from "../Shared/Settings.types";
 
-import { migrationToV2GuideLink, moreInfoSettingsLink } from "./Docs";
+import {
+  migrationToV2GuideLink,
+  migrationToV7GuideLink,
+  moreInfoElementsLink,
+  moreInfoSettingsLink,
+} from "./Docs";
 
 const {
   TYPES,
@@ -413,6 +418,43 @@ function getNormalizedElementDescriptors(
     warnOnce(
       `Some element descriptors are invalid and will be ignored.`,
       `Invalid descriptors:\n${JSON.stringify(invalidDescriptors)}.\n${moreInfoSettingsLink()}`
+    );
+  }
+
+  // cspell:ignore partialmatch -- documentation anchor for the partialMatch option
+  if (validElementDescriptors.some((d) => d.mode !== undefined)) {
+    warnOnce(
+      `The 'mode' option in element descriptors is deprecated and will be removed in a future major version.`,
+      `Use 'partialMatch: false' instead of 'mode: "full"'. Remove 'mode: "folder"' (it is the default). ${migrationToV7GuideLink()}`
+    );
+  }
+
+  const conflictingDescriptors = validElementDescriptors.filter(
+    (d) => d.partialMatch === false && d.mode !== undefined
+  );
+  if (conflictingDescriptors.length > 0) {
+    warnOnce(
+      `The 'mode' option has no effect when 'partialMatch: false' is set.`,
+      `Remove 'mode' from these element descriptors: ${JSON.stringify(
+        conflictingDescriptors.map((d) => d.pattern)
+      )}. ${moreInfoElementsLink("partialmatch-optional")}`
+    );
+  }
+
+  const FILE_EXTENSION_RE = /\.[a-zA-Z0-9]+/;
+  const fileLikeDescriptors = validElementDescriptors.filter((d) => {
+    const isEffectiveFolderMode =
+      d.partialMatch === false || !d.mode || d.mode === "folder";
+    if (!isEffectiveFolderMode) return false;
+    const patterns = Array.isArray(d.pattern) ? d.pattern : [d.pattern];
+    return patterns.some((p) => FILE_EXTENSION_RE.test(p.split("/").pop()!));
+  });
+  if (fileLikeDescriptors.length > 0) {
+    warnOnce(
+      `Some element descriptors appear to use file patterns.`,
+      `Element patterns match folders, not individual files. For file classification, use file descriptors ('boundaries/files'). Affected patterns: ${JSON.stringify(
+        fileLikeDescriptors.map((d) => d.pattern)
+      )}. ${moreInfoElementsLink("partialmatch-optional")}`
     );
   }
 

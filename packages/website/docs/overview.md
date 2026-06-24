@@ -55,8 +55,8 @@ The plugin classifies every file along three independent layers — and, for eac
 | **file** | A cross-cutting category of the file itself, independent of its element. | Yes, with [file descriptors](./setup/files.md). | `{ pattern: "**/*.spec.js", category: "test" }` |
 | **module** | Where the imported module resolves from. | No — derived from the import. | `import "react"` resolves to `module.origin: "external"` |
 
-- An **element** is a group of files the plugin treats as one architectural unit — usually a folder like `controllers/*`. You map paths to a `type`, and every file under that path belongs to that element.
-- A **file** category is a label attached to the file on its own, such as `"test"` or `"style"`. It is independent of the element: the same file can be a controller *and* a test.
+- An **element** is a group of files the plugin treats as one architectural unit — always a folder, like `controllers/*`. Element patterns match folder paths; they should not include file extensions. You map paths to a `type`, and every file under that folder belongs to that element.
+- A **file** category is a label attached to the file on its own, such as `"test"` or `"style"`. File patterns can match individual files (e.g. `**/*.spec.js`). A file is independent of the element: the same file can be a controller *and* a test.
 - A **module** is the resolved target of a dependency. The plugin derives its [origin](./setup/modules.md) — `"local"` (your own files), `"external"` (a package), or `"core"` (a Node.js built-in) — so you can target third-party imports without naming each one.
 
 Because the layers are independent, a rule can mix them. A few boundaries you can express, each phrased as an outcome and mapped to the selector fragment that captures it:
@@ -164,7 +164,7 @@ const dependencyRules = [
 ```
 
 :::note
-Selectors target an element's `type` here, but they can also target file categories and the resolved module's properties — see [Selectors](./setup/selectors.md). Flat selectors like `{ type: "controller" }` still work and are converted automatically; the `{ element: { ... } }` form is the recommended way to also match `file` and `module` details.
+This is a very simplified view. See **[Selectors](./setup/selectors.md)** for the full syntax and capabilities of selectors, and **[Rules](./setup/rules.mdx)** for the full list of rule properties.
 :::
 
 ### 4. Get Instant Feedback
@@ -195,4 +195,3 @@ This plugin is not a replacement for [eslint-plugin-import](https://www.npmjs.co
 :::tip
 Read the [Quick Start Guide](./quick-start.mdx) for step-by-step instructions on setting up the plugin in your project.
 :::
-

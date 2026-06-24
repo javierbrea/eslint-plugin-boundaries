@@ -36,7 +36,7 @@ function buildContext(settings: Record<string, unknown>): Rule.RuleContext {
   return { settings } as unknown as Rule.RuleContext;
 }
 
-const validElementDescriptor = { pattern: "src/**/*.ts", type: "service" };
+const validElementDescriptor = { pattern: "src/services/*", type: "service" };
 const invalidElementDescriptor = { pattern: "src/**/*.ts" };
 const validFileDescriptor = { pattern: "src/**", category: "component" };
 const invalidFileDescriptor = { pattern: "src/**" };
@@ -338,6 +338,70 @@ describe("Settings/Settings", () => {
               { match: SETTINGS.VALID_MODES[0], ...invalidElementDescriptor },
             ])
           )
+        );
+      });
+
+      it("warns when any element descriptor uses the deprecated 'mode' option", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [
+              { ...validElementDescriptor, mode: "folder" },
+            ],
+          })
+        );
+
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining("deprecated"),
+          expect.stringContaining("partialMatch")
+        );
+      });
+
+      it("warns that mode has no effect when partialMatch is false", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [
+              {
+                ...validElementDescriptor,
+                mode: "full",
+                partialMatch: false,
+              },
+            ],
+          })
+        );
+
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining("no effect"),
+          expect.stringContaining("mode")
+        );
+      });
+
+      it("warns when an element descriptor uses a file-like pattern in folder mode", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [
+              { pattern: "components/**/*.ts", type: "component" },
+            ],
+          })
+        );
+
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining("file patterns"),
+          expect.stringContaining("folders")
+        );
+      });
+
+      it("does not warn about file-like patterns when the pattern has no extension in the last segment", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [
+              { pattern: "components/*", type: "component" },
+            ],
+          })
+        );
+
+        expect(mockedWarnOnce).not.toHaveBeenCalledWith(
+          expect.stringContaining("file patterns"),
+          expect.any(String)
         );
       });
     });

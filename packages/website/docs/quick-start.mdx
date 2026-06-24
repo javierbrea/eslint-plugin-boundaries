@@ -134,6 +134,10 @@ Read the **[Elements](./setup/elements.md)** section for guidance on how to defi
 This is only a basic example of configuration. The plugin can also capture path fragments from element paths so you can reuse them in rule selectors. Read **[Elements](./setup/elements.md)** to learn the full range of descriptor options.
 :::
 
+:::note
+Element patterns match **folders** (e.g. `components/*/*`), not individual files. To classify files by kind — tests, styles, stories — use [file descriptors](./setup/files.md) in `boundaries/files`, as shown in the next step.
+:::
+
 ## 4. Categorize your Files (Optional)
 
 This step is optional. The plugin needs at least one classification layer to work, so you only have to define **either** [elements](./setup/elements.md) **or** file descriptors — the previous step is optional too, and defining both is not required.

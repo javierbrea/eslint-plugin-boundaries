@@ -81,7 +81,11 @@ During analysis, the plugin transforms descriptors into a runtime **element desc
 A [micromatch pattern](https://github.com/micromatch/micromatch) to match against file paths. An array means OR — the first matching pattern wins.
 
 :::warning
-By default, the plugin matches patterns progressively from the **right side** of each file path. You only need to define the last part of the path you want to match, not the full path from the project root.
+By default, the plugin matches patterns progressively from the **right side** of each file path. You only need to define the last part of the path you want to match, not the full path from the project root. To change this behavior, see [`partialMatch`](#partialmatch-optional).
+:::
+
+:::warning
+Element patterns should match **folders**, not individual files. Do not include file extensions in element patterns. To classify individual files by kind, use [file descriptors](./files.md).
 :::
 
 **Example:** Given a path `src/helpers/data/parse.js`, the plugin tries to match, in order:
@@ -96,6 +100,17 @@ Once a pattern matches, the plugin assigns the corresponding element, then keeps
 ```js
 { type: "helper", pattern: "helpers/*", capture: ["family"] }
 ```
+
+<details>
+<summary>Why is partial (right-to-left) matching the default?</summary>
+
+The default matching appends `/**/*` to the pattern and tests it against progressively longer path suffixes. This behaves like an implicit `**/` prefix: `components/*` matches `src/components/Button`, `packages/ui/src/components/Button`, and any other path that ends in `components/<something>` — without you having to write the full prefix.
+
+The main benefit is in captures. With `pattern: "components/*", capture: ["componentName"]`, the captured slot maps directly to the folder you care about. No throwaway wildcard is needed for the path prefix. If you also need a value from the left side of the path (e.g. the module that contains the component), use `basePattern` and `baseCapture` for that segment.
+
+This is the default only for backward compatibility, and it is exposed through the [`partialMatch`](#partialmatch-optional) option. Set [`partialMatch: false`](#partialmatch-optional) when the pattern must be anchored at the project root — for example to distinguish two `components/` trees that live under different parent folders. Note that [file descriptors](./files.md) always match the full path, with no equivalent option.
+
+</details>
 
 ### `type` (optional)
 
@@ -185,6 +200,56 @@ For a path `src/modules/auth/components/login-form` with the descriptor above, t
 Keep keys unique across `capture` and `baseCapture`. On a name collision, the value from `capture` wins.
 :::
 
+### `partialMatch` (optional)
+
+**Type:** `<boolean>`. **Default:** `true`.
+
+When `true` (the default), the pattern only needs to match a **suffix** of the file path, using right-to-left incremental accumulation: `components/*` matches `src/components/Button`, `packages/ui/src/components/Button`, and any other path ending in `components/<something>`, without writing the full prefix.
+
+When set to `false`, the pattern is matched against the **full file path** from the project root (relative to [`rootPath`](./settings.md#boundariesroot-path)). Unlike the deprecated `mode: "full"`, the descriptor still uses **folder semantics**: the pattern is expanded with `/**/*` internally, and the resolved element `path` is the matched folder prefix, not the full file path. `fileInternalPath` is computed the same way as in folder mode. When `partialMatch: false` is set, `mode` has no effect.
+
+| | `partialMatch: true` (default) | `partialMatch: false` | `mode: "full"` (deprecated) |
+|---|---|---|---|
+| Pattern suffix | `/**/*` appended | `/**/*` appended | none |
+| Match target | Right-to-left accumulated segments | Full file path | Full file path |
+| Element `path` | Matched folder | Matched folder prefix | Full file path |
+
+:::info
+`partialMatch` defaults to `true` for backward compatibility. It will most likely default to `false` in a future major version, and eventually be removed — requiring the full pattern is more intuitive and is already how [file descriptors](./files.md) match. Prefer setting `partialMatch: false` and writing the full path from the project root when you can.
+:::
+
+Use `partialMatch: false` when the pattern must be anchored at the project root — for example to distinguish two `components/` trees that live under different parent folders. With it set, the pattern must specify the full path from the project root; relative patterns that omit the root prefix will not match.
+
+```js
+{
+  type: "component",
+  pattern: "src/ui/components/*",
+  partialMatch: false,
+  capture: ["componentName"]
+}
+```
+
+For a file at `src/ui/components/Button/index.tsx`:
+- Matches because the full path satisfies `src/ui/components/*/**/*`.
+- `element.path` is `src/ui/components/Button`.
+- `fileInternalPath` is `index.tsx`.
+
+### `mode` (optional)
+
+:::warning[Deprecated]
+`mode` is kept for backward compatibility but is deprecated and will be removed in a future major version. Element descriptors now always use folder-like matching, and file classification use cases are covered by **[file descriptors](./files.md)**.
+:::
+
+**Type:** `<string>` — one of `"folder"` | `"file"` | `"full"`. **Default:** `"folder"`.
+
+It keeps working without changes. `mode` controlled how a pattern was interpreted:
+
+- **`folder`** (default): the element is a folder. The pattern is expanded internally (effectively adding `/**/*`), so any file under the matched folder belongs to the element. This is the standard behavior — you no longer need to set it.
+- **`file`**: the element is the file itself, matched right-to-left without the folder expansion. Use cases that classified individual files this way are now better expressed with [file descriptors](./files.md) and their categories.
+- **`full`**: the pattern must match the **entire** file path (relative to [`rootPath`](./settings.md#boundariesroot-path)). It still works. The recommended replacement is [`partialMatch: false`](#partialmatch-optional), which provides the same full-path matching but preserves folder semantics for the element `path`.
+
+If you have configs that relied on `mode: "file"` to classify files, migrate them to file descriptors. If you used `mode: "full"`, migrate to `partialMatch: false`. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx).
+
 ## Element Matching Order
 
 :::danger
@@ -253,22 +318,6 @@ Multi-type matching is **off by default** in the plugin: `boundaries/elements-si
 :::
 
 Two descriptors match "at the same path level" when they resolve to the same element `path` (the same matched folder). Parents accumulate types the same way. A descriptor that matched with only a deprecated `category` (no `type`) leaves `types` as `null` and does not accumulate later types.
-
-## Element Descriptor `mode`
-
-:::warning[Deprecated]
-`mode` is kept for backward compatibility but is deprecated and will be removed in a future major version. Element descriptors now always use folder-like matching, and file classification use cases are covered by **[file descriptors](./files.md)**.
-:::
-
-**Type:** `<string>` — one of `"folder"` | `"file"` | `"full"`. **Default:** `"folder"`.
-
-It keeps working without changes. `mode` controlled how a pattern was interpreted:
-
-- **`folder`** (default): the element is a folder. The pattern is expanded internally (effectively adding `/**/*`), so any file under the matched folder belongs to the element. This is the standard behavior — you no longer need to set it.
-- **`file`**: the element is the file itself, matched right-to-left without the folder expansion. Use cases that classified individual files this way are now better expressed with [file descriptors](./files.md) and their categories.
-- **`full`**: the pattern must match the **entire** file path (relative to [`rootPath`](./settings.md#boundariesroot-path)). It still works and currently has no direct replacement.
-
-If you have configs that relied on `mode: "file"` to classify files, migrate them to file descriptors. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx).
 
 ## Element Description
 

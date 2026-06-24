@@ -1392,4 +1392,233 @@ describe("ElementsDescriptor", () => {
       expect(result.types).toEqual(["component"]);
     });
   });
+
+  describe("partialMatch: true (default)", () => {
+    it("should match a suffix of the path, ignoring the left-side prefix", () => {
+      const micromatch = createMicromatchMock({
+        capture: createCaptureLookup({
+          "components/*/**/*::components/Button/index.ts": ["Button"],
+        }),
+        makeRe: createMakeReLookup({
+          "components/*": /^components\/[^/]+$/,
+        }),
+      });
+      const config = createConfig();
+      const descriptors: ElementDescriptors = [
+        createDescriptor({
+          pattern: "components/*",
+          type: "component",
+          partialMatch: true,
+        }),
+      ];
+      const descriptor = new ElementsDescriptor(
+        descriptors,
+        config,
+        micromatch
+      );
+
+      const result = descriptor.describeElement(
+        "src/features/components/Button/index.ts"
+      );
+
+      expect(result.isUnknown).toBe(false);
+      expect(result.types).toEqual(["component"]);
+      // The "src/features/" prefix is ignored: the pattern matches the suffix.
+      expect(result.path).toBe("src/features/components/Button");
+      expect(result.fileInternalPath).toBe("index.ts");
+    });
+  });
+
+  describe("partialMatch: false", () => {
+    it("should resolve element path to folder prefix (not full file path)", () => {
+      // Capture fires when full filePath is matched against pattern/**/*
+      const micromatch = createMicromatchMock({
+        capture: createCaptureLookup({
+          "src/components/*/**/*::src/components/Button/index.ts": [
+            "Button",
+            "index.ts",
+          ],
+        }),
+        makeRe: createMakeReLookup({
+          "src/components/*": /^src\/components\/[^/]+$/,
+        }),
+      });
+      const config = createConfig();
+      const descriptors: ElementDescriptors = [
+        createDescriptor({
+          pattern: "src/components/*",
+          type: "component",
+          partialMatch: false,
+        }),
+      ];
+      const descriptor = new ElementsDescriptor(
+        descriptors,
+        config,
+        micromatch
+      );
+
+      const result = descriptor.describeElement(
+        "src/components/Button/index.ts"
+      );
+
+      expect(result.isUnknown).toBe(false);
+      expect(result.types).toEqual(["component"]);
+      expect(result.path).toBe("src/components/Button");
+    });
+
+    it("should compute fileInternalPath in folder mode (not the full file path)", () => {
+      const micromatch = createMicromatchMock({
+        capture: createCaptureLookup({
+          "src/components/*/**/*::src/components/Button/index.ts": [
+            "Button",
+            "index.ts",
+          ],
+        }),
+        makeRe: createMakeReLookup({
+          "src/components/*": /^src\/components\/[^/]+$/,
+        }),
+      });
+      const config = createConfig();
+      const descriptors: ElementDescriptors = [
+        createDescriptor({
+          pattern: "src/components/*",
+          type: "component",
+          partialMatch: false,
+        }),
+      ];
+      const descriptor = new ElementsDescriptor(
+        descriptors,
+        config,
+        micromatch
+      );
+
+      const result = descriptor.describeElement(
+        "src/components/Button/index.ts"
+      );
+
+      expect(result.path).toBe("src/components/Button");
+      expect(result.fileInternalPath).toBe("index.ts");
+    });
+
+    it("should ignore mode when partialMatch is false and still use folder element path", () => {
+      // mode: "full" would set elementPath = filePath, but partialMatch: false overrides that
+      const micromatch = createMicromatchMock({
+        capture: createCaptureLookup({
+          "src/components/*/**/*::src/components/Button/index.ts": [
+            "Button",
+            "index.ts",
+          ],
+        }),
+        makeRe: createMakeReLookup({
+          "src/components/*": /^src\/components\/[^/]+$/,
+        }),
+      });
+      const config = createConfig();
+      const descriptors: ElementDescriptors = [
+        createDescriptor({
+          pattern: "src/components/*",
+          type: "component",
+          partialMatch: false,
+          mode: "full",
+        }),
+      ];
+      const descriptor = new ElementsDescriptor(
+        descriptors,
+        config,
+        micromatch
+      );
+
+      const result = descriptor.describeElement(
+        "src/components/Button/index.ts"
+      );
+
+      // element path must be the folder, not the full file path
+      expect(result.path).toBe("src/components/Button");
+      expect(result.fileInternalPath).toBe("index.ts");
+    });
+
+    it("should enable folder-level cache (second file in same folder reuses base)", () => {
+      const micromatch = createMicromatchMock({
+        capture: createCaptureLookup({
+          "src/components/*/**/*::src/components/Button/index.ts": [
+            "Button",
+            "index.ts",
+          ],
+          "src/components/*/**/*::src/components/Button/Button.ts": [
+            "Button",
+            "Button.ts",
+          ],
+        }),
+        makeRe: createMakeReLookup({
+          "src/components/*": /^src\/components\/[^/]+$/,
+        }),
+      });
+      const config = createConfig({ cache: true });
+      const descriptors: ElementDescriptors = [
+        createDescriptor({
+          pattern: "src/components/*",
+          type: "component",
+          partialMatch: false,
+        }),
+      ];
+      const descriptor = new ElementsDescriptor(
+        descriptors,
+        config,
+        micromatch
+      );
+
+      const result1 = descriptor.describeElement(
+        "src/components/Button/index.ts"
+      );
+      const result2 = descriptor.describeElement(
+        "src/components/Button/Button.ts"
+      );
+
+      expect(result1.path).toBe("src/components/Button");
+      expect(result2.path).toBe("src/components/Button");
+      // Both resolve to the same element folder
+      expect(result1.fileInternalPath).toBe("index.ts");
+      expect(result2.fileInternalPath).toBe("Button.ts");
+    });
+
+    it("should not add a duplicate parent when the root-anchored pattern also matches at a deeper iteration", () => {
+      // capture returns the full-path match for the main element
+      // (partialMatch: false, !alreadyMatched) and also a partial match at the iteration
+      // where segments accumulate "src/components/Button" (would produce a duplicate parent).
+      const micromatch = createMicromatchMock({
+        capture: createCaptureLookup({
+          "src/components/*/**/*::src/components/Button/index.ts": [
+            "Button",
+            "index.ts",
+          ],
+          "src/components/*::src/components/Button": ["Button"],
+        }),
+        makeRe: createMakeReLookup({
+          "src/components/*": /^src\/components\/[^/]+$/,
+        }),
+      });
+      const config = createConfig();
+      const descriptors: ElementDescriptors = [
+        createDescriptor({
+          pattern: "src/components/*",
+          type: "component",
+          partialMatch: false,
+        }),
+      ];
+      const descriptor = new ElementsDescriptor(
+        descriptors,
+        config,
+        micromatch
+      );
+
+      const result = descriptor.describeElement(
+        "src/components/Button/index.ts"
+      );
+
+      expect(result.types).toEqual(["component"]);
+      expect(result.path).toBe("src/components/Button");
+      // No duplicate parent with the same path as the main element
+      expect(result.parents).toHaveLength(0);
+    });
+  });
 });

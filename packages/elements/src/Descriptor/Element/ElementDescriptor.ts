@@ -268,6 +268,32 @@ export class ElementsDescriptor {
   }
 
   /**
+   * Gets the element folder path for a `partialMatch: false` descriptor.
+   * Walks `filePath` from the project root and returns the first prefix that satisfies
+   * `basePattern`. This gives the folder path rather than the full file path.
+   * @param basePattern The raw element pattern WITHOUT the `/**\/*` suffix.
+   * @param filePath The full file path relative to rootPath.
+   * @returns The folder path prefix that the pattern matches.
+   */
+  private _getFullFolderMatchElementPath(
+    basePattern: string,
+    filePath: string
+  ): string {
+    const elementPathRegexp = this._micromatch.makeRe(basePattern);
+    const segments = filePath.split("/");
+    const accumulated: string[] = [];
+    for (const segment of segments) {
+      accumulated.push(segment);
+      if (elementPathRegexp.test(accumulated.join("/"))) {
+        return accumulated.join("/");
+      }
+    }
+    // Defensive fallback — unreachable when the pattern already matched the file.
+    // istanbul ignore next
+    return filePath;
+  }
+
+  /**
    * Determines if an element descriptor matches the given parameters in the provided path.
    * @param options The options for matching the descriptor.
    * @returns The result of the match, including whether it matched and any captured values.
@@ -304,6 +330,7 @@ export class ElementsDescriptor {
     patternUsed?: string;
   } {
     const isFolderMode =
+      elementDescriptor.partialMatch === false ||
       !elementDescriptor.mode ||
       elementDescriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
     const patterns = isArray(elementDescriptor.pattern)
@@ -313,13 +340,16 @@ export class ElementsDescriptor {
     for (const pattern of patterns) {
       const useFullPathMatch =
         elementDescriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FULL &&
+        elementDescriptor.partialMatch !== false &&
         !alreadyMatched;
       const effectivePattern =
         isFolderMode && !alreadyMatched ? `${pattern}/**/*` : pattern;
 
-      const targetPath = useFullPathMatch
-        ? filePath
-        : currentPathSegments.join("/");
+      const targetPath =
+        useFullPathMatch ||
+        (elementDescriptor.partialMatch === false && !alreadyMatched)
+          ? filePath
+          : currentPathSegments.join("/");
 
       let baseCapture: string[] | null = null;
       let hasCapture = true;
@@ -432,10 +462,17 @@ export class ElementsDescriptor {
 
       const elementPath = useFullPathMatch
         ? filePath
-        : this._getElementPath(patternUsed, currentPathSegments, elementPaths);
+        : elementDescriptor.partialMatch === false && isMainElementLevel
+          ? this._getFullFolderMatchElementPath(patternUsed, filePath)
+          : this._getElementPath(
+              patternUsed,
+              currentPathSegments,
+              elementPaths
+            );
 
       if (!elementResult.types && !elementResult.category) {
         const isFolderMode =
+          elementDescriptor.partialMatch === false ||
           !elementDescriptor.mode ||
           elementDescriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
         // It is the main element
@@ -466,8 +503,11 @@ export class ElementsDescriptor {
             ...capturedValues,
           };
         }
-      } else {
-        // It is a parent element, because we have already matched the main one
+      } else if (elementPath !== elementResult.path) {
+        // It is a parent element, because we have already matched the main one.
+        // Skip when the resolved path equals the main element's path — this prevents
+        // self-duplication when a root-anchored `partialMatch: false` pattern also matches
+        // the accumulated suffix segments at a deeper iteration.
         const lastParent = parents[parents.length - 1];
         if (lastParent && lastParent.path === elementPath) {
           // Multi-type: accumulate additional type at same parent path level

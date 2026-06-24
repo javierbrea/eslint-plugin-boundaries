@@ -41,6 +41,7 @@ Main changes include:
 - **[Module selectors (`to.module.*`)](#module-selectors)** — match dependencies by origin and source
 - **[Deprecated: `category` in element descriptors and selectors](#deprecated-category-in-element-descriptors-and-selectors)** — use file categories
 - **[Deprecated: `dependency.module`](#deprecated-dependencymodule)** — use `to.module.source`
+- **[Deprecated: `mode` in element descriptors](#deprecated-mode-in-element-descriptors)** — use `partialMatch: false` instead of `mode: "full"`
 - **[New custom message template data](#new-custom-message-template-data)** — `element` / `file` / `module` template objects
 - **[`no-unknown-files` behavior change](#no-unknown-files-behavior-change)** — now considers file descriptors
 - **[TypeScript-only breaking changes](#typescript-only-breaking-changes)** — removed type exports (TS users only)
@@ -343,6 +344,63 @@ The following exports were removed from the public API. Use the listed replaceme
 
 :::note
 The deprecated `boundaries/element-types` **rule name** itself keeps working (with a deprecation warning); only the TypeScript types listed above were removed.
+:::
+
+## Deprecated: `mode` in element descriptors
+
+The `mode` property in element descriptors is deprecated.
+
+:::warning[Deprecated]
+`mode` in element descriptors is kept for backward compatibility but is deprecated and will be removed in a future major version. Remove `mode: "folder"` (it is the default), migrate `mode: "file"` to file descriptors, and migrate `mode: "full"` to `partialMatch: false`.
+:::
+
+### Removing `mode: "folder"`
+
+`"folder"` is the default mode. Simply remove the `mode` property:
+
+<CodeDiff language="javascript">{`
+. "boundaries/elements": [
+-   { type: "module", pattern: "modules/*", mode: "folder" },
++   { type: "module", pattern: "modules/*" },
+. ],
+`}</CodeDiff>
+
+### Migrating from `mode: "file"`
+
+`mode: "file"` treated the element as the matched file itself. Migrate to [file descriptors](../../setup/files.md) with the [`boundaries/files`](../../setup/settings.md) setting:
+
+<CodeDiff language="javascript">{`
+. "boundaries/elements": [
+-   { type: "entry", pattern: "*/index.js", mode: "file" },
+. ],
++ "boundaries/files": [
++   { pattern: "**/index.js", category: "entry" },
++ ],
+`}</CodeDiff>
+
+### Migrating from `mode: "full"` to `partialMatch: false`
+
+`mode: "full"` matched the raw pattern against the entire file path, treating the element as a file (element `path` equalled the full file path). The replacement is `partialMatch: false`, which provides full-path matching with **folder semantics**: the pattern receives a `/**/*` suffix internally, and the element `path` is the matched folder prefix.
+
+Because `mode: "full"` used file paths and `partialMatch: false` uses folder paths, the pattern must be updated:
+
+| | `mode: "full"` (legacy) | `partialMatch: false` (new) |
+|---|---|---|
+| Pattern targets | Full file path | Folder prefix |
+| `element.path` result | Full file path | Matched folder |
+| Example pattern | `src/pages/*/index.tsx` | `src/pages/*` |
+
+<CodeDiff language="javascript">{`
+. "boundaries/elements": [
+-   { type: "page", pattern: "src/pages/*/index.tsx", mode: "full" },
++   { type: "page", pattern: "src/pages/*", partialMatch: false },
+. ],
+`}</CodeDiff>
+
+With the new descriptor, any file under `src/pages/<something>/` is classified as a `page` element, and `element.path` is `src/pages/<something>` — the folder, not the file. This is the recommended representation for element-level classification.
+
+:::info
+Read more about `partialMatch` in the **[Elements](../../setup/elements.md#partialmatch-optional)** documentation.
 :::
 
 ## Why Migrate?

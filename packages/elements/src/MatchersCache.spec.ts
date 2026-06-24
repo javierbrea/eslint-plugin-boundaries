@@ -64,7 +64,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toBe(
-        "|:config:|true|src/**|dist/**|true|/root|true|false|true|@external/*|:elements:|src/components/*.tsx|name|component|ui|file|src|baseName|:elementsSingleType:|false|:files:|"
+        "|:config:|true|src/**|dist/**|true|/root|true|false|true|@external/*|:elements:|src/components/*.tsx|name|component|ui|file|src|baseName|undefined|:elementsSingleType:|false|:files:|"
       );
     });
 
@@ -109,7 +109,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "src/services/*.ts|no-capture|service|core|folder|src|base"
+        "src/services/*.ts|no-capture|service|core|folder|src|base|undefined"
       );
     });
 
@@ -132,7 +132,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "src/utils/*.ts|name|util|shared|file|src|no-base-capture"
+        "src/utils/*.ts|name|util|shared|file|src|no-base-capture|undefined"
       );
     });
 
@@ -156,8 +156,52 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "src/modules/*/*.ts|module,file|module|feature|folder|src|root,sub"
+        "src/modules/*/*.ts|module,file|module|feature|folder|src|root,sub|undefined"
       );
+    });
+
+    it("should include partialMatch: false in the hash", () => {
+      const config = createConfig();
+      const elements = [
+        {
+          type: "component",
+          category: "ui",
+          pattern: "src/components/*.tsx",
+          partialMatch: false,
+        },
+      ] as unknown as ElementDescriptors;
+
+      const key = matchersCache.getKey({
+        config,
+        descriptors: { elements },
+      });
+
+      expect(key).toContain(
+        "src/components/*.tsx|no-capture|component|ui|undefined|undefined|no-base-capture|false"
+      );
+    });
+
+    it("should produce a distinct key when partialMatch differs", () => {
+      const config = createConfig();
+      const makeElements = (partialMatch: boolean) =>
+        [
+          {
+            type: "component",
+            pattern: "src/components/*",
+            partialMatch,
+          },
+        ] as unknown as ElementDescriptors;
+
+      const key1 = matchersCache.getKey({
+        config,
+        descriptors: { elements: makeElements(false) },
+      });
+      const key2 = matchersCache.getKey({
+        config,
+        descriptors: { elements: makeElements(true) },
+      });
+
+      expect(key1).not.toBe(key2);
     });
 
     it("should join multiple element descriptors with comma", () => {
@@ -189,7 +233,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "|:elements:|src/components/*.tsx|name|component|ui|file|src|base,src/services/*.ts|svc|service|core|folder|lib|root|:elementsSingleType:|"
+        "|:elements:|src/components/*.tsx|name|component|ui|file|src|base|undefined,src/services/*.ts|svc|service|core|folder|lib|root|undefined|:elementsSingleType:|"
       );
     });
   });

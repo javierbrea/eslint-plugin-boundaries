@@ -89,8 +89,8 @@ const matcher = elements.getMatcher({
     { type: "service", pattern: "src/services/*.ts", mode: "file", capture: ["name"] },
   ],
   files: [
-    { pattern: "*.spec.ts", category: "test" },
-    { pattern: "*.controller.ts", category: "controller" },
+    { pattern: "**/*.spec.ts", category: "test" },
+    { pattern: "**/*.controller.ts", category: "controller" },
   ],
 });
 
@@ -248,9 +248,9 @@ const matcher = elements.getMatcher({
     { type: "module", pattern: "src/modules/*", mode: "folder" },
   ],
   files: [
-    { pattern: "*.controller.ts", category: "controller", capture: ["name"] },
-    { pattern: "*.service.ts", category: "service", capture: ["name"] },
-    { pattern: "*.model.ts", category: "model", capture: ["name"] },
+    { pattern: "**/*.controller.ts", category: "controller", capture: ["name"] },
+    { pattern: "**/*.service.ts", category: "service", capture: ["name"] },
+    { pattern: "**/*.model.ts", category: "model", capture: ["name"] },
   ],
 });
 ```
@@ -279,6 +279,7 @@ Element descriptors define how files are identified and categorized into archite
   - `"folder"`: Matches the first folder matching the pattern. The library will add `**/*` to the given pattern for matching files, because it needs to know exactly which folder has to be considered the element. So, you have to provide patterns matching the folder being the element, not the files directly.
   - `"file"`: Matches files directly, but still matches progressively from the right. The provided pattern will not be modified.
   - `"full"`: Matches the complete path.
+- **`partialMatch`** (`boolean`): Whether the pattern is allowed to match only a suffix of the file path (default: `true`). When `true`, the pattern is matched right-to-left, so it only needs to match the end of the path (`components/*` matches any path ending in `components/<something>`). When `false`, the pattern is matched against the full file path from the project root, while keeping folder semantics (the element `path` is the matched folder prefix). It defaults to `true` for backward compatibility, but will most likely default to `false` in a future major version and eventually be removed, because requiring the full pattern is more intuitive and is already how file descriptors match. When `false`, the `mode` option has no effect.
 - **`basePattern`** (`string`): Additional pattern that must match from the project root. Use it when using `file` or `folder` modes and you want to capture fragments from the rest of the path.
 - **`capture`** (`string[]`): Array of keys to capture path fragments
 - **`baseCapture`** (`string[]`): Array of keys to capture fragments from `basePattern`. If the same key is defined in both `capture` and `baseCapture`, the value from `capture` takes precedence.
@@ -287,7 +288,7 @@ Element descriptors define how files are identified and categorized into archite
 
 File descriptors allow categorizing individual files independently from the element they belong to. This provides more granular control over file classification within elements. Each descriptor is an object with the following properties:
 
-- **`pattern`** (`string | string[]`): Micromatch pattern(s) to match file paths. Patterns match progressively from the right (like element descriptors in `file` mode).
+- **`pattern`** (`string | string[]`): Micromatch pattern(s) to match file paths. Each pattern is matched against the **full file path** in a single pass (there is no right-to-left accumulation, and no option to change it). Use `**/` to match files at any depth — for example `**/*.spec.ts` rather than `*.spec.ts`.
 - **`category`** (`string`): The category to assign to matching files (e.g., `"controller"`, `"service"`, `"model"`).
 - **`capture`** (`string[]`): Array of keys to capture path fragments from the pattern.
 
@@ -297,9 +298,9 @@ const matcher = elements.getMatcher({
     { type: "module", pattern: "src/modules/*", mode: "folder", capture: ["moduleName"] },
   ],
   files: [
-    { pattern: "*.controller.ts", category: "controller", capture: ["name"] },
-    { pattern: "*.service.ts", category: "service", capture: ["name"] },
-    { pattern: "*.spec.ts", category: "test", capture: ["name"] },
+    { pattern: "**/*.controller.ts", category: "controller", capture: ["name"] },
+    { pattern: "**/*.service.ts", category: "service", capture: ["name"] },
+    { pattern: "**/*.spec.ts", category: "test", capture: ["name"] },
   ],
 });
 ```
@@ -772,7 +773,7 @@ const matcher = elements.getMatcher({
     { type: "component", pattern: "src/components/*", mode: "folder" },
   ],
   files: [
-    { pattern: "*.spec.ts", category: "test" },
+    { pattern: "**/*.spec.ts", category: "test" },
   ],
 });
 ```

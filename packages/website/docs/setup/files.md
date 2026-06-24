@@ -152,7 +152,7 @@ The [`no-unknown-files`](../rules/no-unknown-files.md) rule reports files that t
 
 This means defining a file descriptor makes the matching files **known**: a file that matches any `boundaries/files` pattern is no longer flagged, even if it belongs to no element.
 
-This behavior also preserves backward compatibility: configurations that classified files such as tests or styles through element descriptors (the deprecated [`mode: "file"`](./elements.md#element-descriptor-mode) or element [`category`](./elements.md#category-optional)) and have since moved them to file descriptors keep passing the rule, instead of being newly reported as unknown.
+This behavior also preserves backward compatibility: configurations that classified files such as tests or styles through element descriptors (the deprecated [`mode: "file"`](./elements.md#mode-optional) or element [`category`](./elements.md#category-optional)) and have since moved them to file descriptors keep passing the rule, instead of being newly reported as unknown.
 
 The default message reflects both layers:
 

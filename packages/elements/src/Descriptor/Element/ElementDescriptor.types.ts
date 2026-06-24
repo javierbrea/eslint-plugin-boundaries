@@ -35,7 +35,7 @@ export type ElementDescriptor = BaseDescriptor & {
 
   /**
    * The mode to interpret the pattern in the descriptor. It can be "folder", "file", or "full".
-   * @deprecated The mode property is deprecated and will be removed in future versions. For file descriptors, the mode is always "file". For element descriptors, the mode is always "folder". Use the `requireFullMatch` property in element descriptors to require full path matching instead.
+   * @deprecated The mode property is deprecated and will be removed in future versions. For file descriptors, the mode is always "file". For element descriptors, the mode is always "folder". Use `partialMatch: false` in element descriptors to require full path matching instead.
    */
   mode?: ElementDescriptorMode;
   /**
@@ -49,6 +49,26 @@ export type ElementDescriptor = BaseDescriptor & {
    * The captured values will be merged with the ones from the capture option. If the same name is used in both captures, the value from capture will take precedence.
    */
   baseCapture?: string[];
+  /**
+   * Whether the pattern is allowed to match only a suffix of the file path.
+   *
+   * When `true` (the default), the pattern is matched using right-to-left incremental
+   * segment accumulation, so it only needs to match the end of the path: `components/*`
+   * matches `src/components/Button`, `packages/ui/src/components/Button`, and any other
+   * path ending in `components/<something>`, without writing the full prefix.
+   *
+   * When `false`, the pattern is matched against the full file path from the project root
+   * (relative to `rootPath`). The pattern is still expanded with `/**\/*` (folder
+   * semantics), so the resolved element `path` is the matched folder prefix, not the full
+   * file path, and `fileInternalPath` is computed the same way as in folder mode. When set
+   * to `false`, the `mode` option has no effect.
+   *
+   * This option defaults to `true` for backward compatibility. It will most likely default
+   * to `false` in a future major version, and eventually be removed, because matching the
+   * full pattern is more intuitive and is already the behavior of file descriptors (which
+   * have no equivalent option).
+   */
+  partialMatch?: boolean;
 };
 
 /**

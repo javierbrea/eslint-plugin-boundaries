@@ -102,10 +102,28 @@ export function migrationToV2GuideLink(anchor?: string): string {
 }
 
 /**
+ * Returns a migration guide link for upgrading from version 6 to version 7.
+ * @param anchor - Optional anchor to a specific section in the migration guide.
+ * @returns A message containing the migration guide URL for upgrading from version 6 to version 7.
+ */
+export function migrationToV7GuideLink(anchor?: string): string {
+  return migrationGuideLink("6", "7", anchor);
+}
+
+/**
  * Returns a settings information link for the plugin settings documentation.
  * @param anchor - Optional anchor to a specific section in the settings documentation.
  * @returns A message containing the settings information URL for the plugin settings documentation.
  */
 export function moreInfoSettingsLink(anchor?: string): string {
   return moreInfoLink(`setup/settings`, anchor);
+}
+
+/**
+ * Returns a "more info" message linking to the element descriptors documentation page.
+ * @param anchor - Optional anchor to a specific section in the documentation page.
+ * @returns A message containing the elements documentation URL.
+ */
+export function moreInfoElementsLink(anchor?: string): string {
+  return moreInfoLink("setup/elements", anchor);
 }
