@@ -246,6 +246,8 @@ export default [{
 
 With this configuration, a file under `shared/*` matches both descriptors at the same path level, so its element has `types: ["component", "shared"]`. The types accumulate in descriptor declaration order.
 
+When multiple descriptors match at the same path level, their `captured` values are **merged** into a single object. On a key collision across descriptors, the last matching descriptor wins (i.e., later descriptors in the array override earlier ones). This applies to the main element and to each parent element independently.
+
 :::warning
 Multi-type matching is **off by default** in the plugin: `boundaries/elements-single-type` defaults to `true` for backward compatibility. Set it to `false` to opt in. See the [setting reference](./settings.md#boundarieselements-single-type) for the full details, including how this default differs from the underlying library.
 :::

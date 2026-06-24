@@ -1,7 +1,7 @@
 import { CacheManager, CacheManagerDisabled } from "../../Cache";
 import type { DescriptorOptionsNormalized } from "../../Config";
 import type { Micromatch } from "../../Matcher";
-import { isArray, normalizePath } from "../../Shared";
+import { isArray, isObject, normalizePath } from "../../Shared";
 import type { CapturedValues } from "../Shared";
 
 import type {
@@ -460,6 +460,12 @@ export class ElementsDescriptor {
             elementDescriptor.type,
           ];
         }
+        if (isObject(capturedValues)) {
+          elementResult.captured = {
+            ...(elementResult.captured || {}),
+            ...capturedValues,
+          };
+        }
       } else {
         // It is a parent element, because we have already matched the main one
         const lastParent = parents[parents.length - 1];
@@ -467,6 +473,12 @@ export class ElementsDescriptor {
           // Multi-type: accumulate additional type at same parent path level
           if (elementDescriptor.type && isArray(lastParent.types)) {
             lastParent.types = [...lastParent.types, elementDescriptor.type];
+          }
+          if (isObject(capturedValues)) {
+            lastParent.captured = {
+              ...(lastParent.captured || {}),
+              ...capturedValues,
+            };
           }
         } else {
           parents.push({
