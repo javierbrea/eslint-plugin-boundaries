@@ -740,6 +740,24 @@ describe("Settings/Rules", () => {
         messages.some((m) => m.includes('deprecated "dependency.module"'))
       ).toBe(false);
     });
+
+    it("does not warn about 'dependency.module' when dependency is a non-object primitive", () => {
+      const options = {
+        rules: [
+          {
+            from: modernFrom,
+            dependency: null,
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes('deprecated "dependency.module"'))
+      ).toBe(false);
+    });
   });
 
   describe("deprecated internalPath in element selectors", () => {
@@ -807,6 +825,42 @@ describe("Settings/Rules", () => {
           {
             from: modernFrom,
             to: modernTo,
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes('"internalPath" in element selectors'))
+      ).toBe(false);
+    });
+
+    it("warns when internalPath appears in an array of element selectors inside a modern entity selector", () => {
+      const options = {
+        rules: [
+          {
+            from: modernFrom,
+            to: { element: [{ internalPath: "src/**" }, { type: "b" }] },
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes('"internalPath" in element selectors'))
+      ).toBe(true);
+    });
+
+    it("does not warn when the element sub-selector value is a non-object primitive", () => {
+      const options = {
+        rules: [
+          {
+            from: modernFrom,
+            to: { element: null },
           } as unknown as RuleOptionsRules,
         ],
       } as unknown as RuleOptionsWithRules;
