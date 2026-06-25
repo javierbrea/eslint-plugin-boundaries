@@ -18,6 +18,7 @@ import {
 } from "../Shared/Settings.types";
 
 import {
+  deprecateAlias,
   deprecateTypes,
   getSettings,
   isDependencyNodeKey,
@@ -207,6 +208,22 @@ describe("Settings/Settings", () => {
     });
   });
 
+  describe("deprecateAlias", () => {
+    it("does not warn when the value is falsy", () => {
+      deprecateAlias(undefined);
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+
+    it("warns when the value is truthy", () => {
+      deprecateAlias({ "@components": "src/components" });
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining(SETTINGS.ALIAS),
+        expect.stringContaining("import/resolver")
+      );
+    });
+  });
+
   describe("validateDebugFilterSelectors", () => {
     it("returns undefined when value is undefined", () => {
       expect(validateDebugFilterSelectors(undefined, "files")).toBeUndefined();
@@ -353,6 +370,34 @@ describe("Settings/Settings", () => {
         expect(mockedWarnOnce).toHaveBeenCalledWith(
           expect.stringContaining("deprecated"),
           expect.stringContaining("partialMatch")
+        );
+      });
+
+      it("warns when any element descriptor uses the deprecated 'category' option", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [
+              { ...validElementDescriptor, category: "domain" },
+            ],
+          })
+        );
+
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining("'category' option in element descriptors"),
+          expect.stringContaining(SETTINGS_KEYS_MAP.FILES)
+        );
+      });
+
+      it("does not warn about deprecated 'category' option when no descriptor uses it", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+          })
+        );
+
+        expect(mockedWarnOnce).not.toHaveBeenCalledWith(
+          expect.stringContaining("'category' option in element descriptors"),
+          expect.any(String)
         );
       });
 
@@ -764,6 +809,53 @@ describe("Settings/Settings", () => {
         expect(mockedWarnOnce).toHaveBeenCalledWith(
           expect.stringContaining(SETTINGS_KEYS_MAP.CACHE),
           expect.stringContaining("boolean")
+        );
+      });
+
+      it("warns about deprecation when legacyTemplates is explicitly true", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]: true,
+          })
+        );
+
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining(
+            `'${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting is deprecated`
+          ),
+          expect.stringContaining("{{...}}")
+        );
+      });
+
+      it("does not warn about deprecation when legacyTemplates is undefined", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+          })
+        );
+
+        expect(mockedWarnOnce).not.toHaveBeenCalledWith(
+          expect.stringContaining(
+            `'${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting is deprecated`
+          ),
+          expect.any(String)
+        );
+      });
+
+      it("does not warn about deprecation when legacyTemplates is explicitly false", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]: false,
+          })
+        );
+
+        expect(mockedWarnOnce).not.toHaveBeenCalledWith(
+          expect.stringContaining(
+            `'${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting is deprecated`
+          ),
+          expect.any(String)
         );
       });
     });

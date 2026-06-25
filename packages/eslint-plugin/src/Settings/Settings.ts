@@ -40,6 +40,7 @@ import type {
 
 import {
   migrationToV2GuideLink,
+  migrationToV6GuideLink,
   migrationToV7GuideLink,
   moreInfoElementsLink,
   moreInfoSettingsLink,
@@ -168,6 +169,21 @@ export function deprecateTypes(types: unknown) {
     warnOnce(
       `'${TYPES}' setting is deprecated.`,
       `Please use '${ELEMENTS}' instead. ${migrationToV2GuideLink()}`
+    );
+  }
+}
+
+/**
+ * Emits deprecation warning for legacy `alias` setting.
+ *
+ * @param alias - Legacy alias setting value when present.
+ */
+export function deprecateAlias(alias: unknown) {
+  // cspell:ignore boundariesalias -- documentation anchor for the boundaries/alias setting
+  if (alias) {
+    warnOnce(
+      `'${SETTINGS_KEYS_MAP.ALIAS}' setting is deprecated.`,
+      `Configure path aliases using 'import/resolver' settings instead. ${moreInfoSettingsLink("boundariesalias")}`
     );
   }
 }
@@ -429,6 +445,17 @@ function getNormalizedElementDescriptors(
     );
   }
 
+  if (
+    validElementDescriptors.some(
+      (d) => (d as unknown as Record<string, unknown>).category !== undefined
+    )
+  ) {
+    warnOnce(
+      `The 'category' option in element descriptors is deprecated and will be removed in a future major version.`,
+      `Use the 'category' property in file descriptors ('${SETTINGS_KEYS_MAP.FILES}') instead. ${migrationToV7GuideLink("deprecated-category-in-element-descriptors-and-selectors")}`
+    );
+  }
+
   const conflictingDescriptors = validElementDescriptors.filter(
     (d) => d.partialMatch === false && d.mode !== undefined
   );
@@ -669,6 +696,12 @@ function getNormalizedLegacyTemplates(legacyTemplates: unknown): boolean {
   }
 
   if (isBoolean(legacyTemplates)) {
+    if (legacyTemplates === true) {
+      warnOnce(
+        `'${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting is deprecated.`,
+        `The legacy \${...} template syntax will not be supported in the next major version. Migrate to the {{...}} Handlebars syntax. ${migrationToV6GuideLink("new-template-syntax")}`
+      );
+    }
     return legacyTemplates;
   }
 
@@ -819,6 +852,8 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
   }
 
   const settings = context.settings;
+
+  deprecateAlias(settings[SETTINGS_KEYS_MAP.ALIAS]);
 
   // Normalize all settings from raw values
   const elementDescriptors = getNormalizedElementDescriptors(

@@ -614,6 +614,210 @@ describe("Settings/Rules", () => {
       );
       expect(messages.some((m) => m.includes('"importKind"'))).toBe(true);
     });
+
+    it("warns about deprecated v7 selector property 'category' in `from`", () => {
+      const options = {
+        rules: [
+          {
+            from: { element: { category: "domain" } },
+            to: modernTo,
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "deprecated selector properties (category, elementPath, filePath)"
+        ),
+        expect.stringContaining("deprecated-element-selector-properties")
+      );
+      expect(mockedWarnOnce.mock.calls[0][0]).toContain("indices: 0");
+    });
+
+    it("detects deprecated v7 selector property 'elementPath' nested in `to`", () => {
+      const options = {
+        rules: [
+          {
+            from: modernFrom,
+            to: { element: { elementPath: "src/**" } },
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes("deprecated selector properties"))
+      ).toBe(true);
+    });
+
+    it("detects deprecated v7 selector property 'filePath' nested in `to`", () => {
+      const options = {
+        rules: [
+          {
+            from: modernFrom,
+            to: { file: { filePath: "src/**" } },
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes("deprecated selector properties"))
+      ).toBe(true);
+    });
+
+    it("does not warn about deprecated v7 selector properties when none are used", () => {
+      const options = {
+        rules: [
+          { from: modernFrom, to: modernTo } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+
+    it("warns about deprecated 'dependency.module' property", () => {
+      const options = {
+        rules: [
+          {
+            from: modernFrom,
+            dependency: { module: "lodash" },
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining('deprecated "dependency.module" property'),
+        expect.stringContaining('"to.module.source"')
+      );
+      expect(
+        mockedWarnOnce.mock.calls.some((call) => call[0].includes("indices: 0"))
+      ).toBe(true);
+    });
+
+    it("detects deprecated 'module' property in an array of dependency selectors", () => {
+      const options = {
+        rules: [
+          {
+            from: modernFrom,
+            dependency: [{ kind: "value" }, { module: "lodash" }],
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes('deprecated "dependency.module"'))
+      ).toBe(true);
+    });
+
+    it("does not warn about 'dependency.module' when the dependency selector omits it", () => {
+      const options = {
+        rules: [
+          {
+            from: modernFrom,
+            dependency: { kind: "value" },
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes('deprecated "dependency.module"'))
+      ).toBe(false);
+    });
+  });
+
+  describe("deprecated internalPath in element selectors", () => {
+    const modernFrom = { element: { type: "a" } };
+    const modernTo = { element: { type: "b" } };
+
+    it("warns when internalPath appears on a flat element selector at entity level", () => {
+      const options = {
+        rules: [
+          {
+            from: { type: "helper", internalPath: "src/**" },
+            to: modernTo,
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining('"internalPath" in element selectors'),
+        expect.stringContaining("fileInternalPath")
+      );
+      expect(mockedWarnOnce.mock.calls[0][0]).toContain("indices: 0");
+    });
+
+    it("warns when internalPath appears inside an element sub-selector of a modern entity selector", () => {
+      const options = {
+        rules: [
+          {
+            from: modernFrom,
+            to: { element: { internalPath: "src/**" } },
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes('"internalPath" in element selectors'))
+      ).toBe(true);
+    });
+
+    it("does not warn when internalPath appears inside a module sub-selector (modern usage)", () => {
+      const options = {
+        rules: [
+          {
+            from: modernFrom,
+            to: { module: { internalPath: "dist/**" } },
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes('"internalPath" in element selectors'))
+      ).toBe(false);
+    });
+
+    it("does not warn when no internalPath is present", () => {
+      const options = {
+        rules: [
+          {
+            from: modernFrom,
+            to: modernTo,
+          } as unknown as RuleOptionsRules,
+        ],
+      } as unknown as RuleOptionsWithRules;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES);
+
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes('"internalPath" in element selectors'))
+      ).toBe(false);
+    });
   });
 
   describe("legacyPoliciesSchema", () => {

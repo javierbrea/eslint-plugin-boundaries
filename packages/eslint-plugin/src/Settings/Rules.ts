@@ -30,6 +30,7 @@ import type {
 import {
   getRuleDocsPath,
   migrationToV6GuideLink,
+  migrationToV7GuideLink,
   moreInfoSettingsLink,
   moreInfoLink,
 } from "./Docs";
@@ -560,6 +561,9 @@ type RuleWarningIndexes = {
   rulesWithLegacySelector: number[];
   rulesWithLegacyTemplate: number[];
   rulesWithDeprecatedImportKind: number[];
+  rulesWithDeprecatedV7SelectorProps: number[];
+  rulesWithDeprecatedDependencyModule: number[];
+  rulesWithDeprecatedInternalPath: number[];
 };
 
 const ALWAYS_SCANNED_SELECTOR_FIELDS = [
@@ -637,6 +641,112 @@ function isLegacySelectorValue(value: unknown): boolean {
   return false;
 }
 
+const DEPRECATED_V7_ELEMENT_SELECTOR_PROPS = [
+  "category",
+  "elementPath",
+  "filePath",
+] as const;
+
+/**
+ * Recursively determines whether a value contains any deprecated v7 element
+ * selector property (`category`, `elementPath`, `filePath`).
+ *
+ * @param value - Value to inspect.
+ * @returns True if a deprecated v7 selector property was detected, false otherwise.
+ */
+function hasDeprecatedV7SelectorProp(value: unknown): boolean {
+  if (isArray(value)) {
+    return value.some(hasDeprecatedV7SelectorProp);
+  }
+  if (!isObject(value)) {
+    return false;
+  }
+  for (const prop of DEPRECATED_V7_ELEMENT_SELECTOR_PROPS) {
+    if (
+      prop in value &&
+      !isUndefined((value as Record<string, unknown>)[prop])
+    ) {
+      return true;
+    }
+  }
+  return Object.values(value as Record<string, unknown>).some(
+    hasDeprecatedV7SelectorProp
+  );
+}
+
+/**
+ * Recursively determines whether a value contains the deprecated `module`
+ * property used in dependency info selectors.
+ *
+ * @param value - Value to inspect.
+ * @returns True if a deprecated `module` property was detected, false otherwise.
+ */
+function hasDeprecatedDependencyModuleProp(value: unknown): boolean {
+  if (isArray(value)) {
+    return value.some(hasDeprecatedDependencyModuleProp);
+  }
+  if (!isObject(value)) {
+    return false;
+  }
+  return (
+    "module" in value &&
+    !isUndefined((value as Record<string, unknown>)["module"])
+  );
+}
+
+/**
+ * Returns true when a value used in an element-selector context contains
+ * the deprecated `internalPath` property (→ `fileInternalPath`).
+ *
+ * @param value - Element selector or array of element selectors to inspect.
+ * @returns True if any element selector object has `internalPath` set.
+ */
+function elementSelectorHasDeprecatedInternalPath(value: unknown): boolean {
+  if (isArray(value)) {
+    return value.some(elementSelectorHasDeprecatedInternalPath);
+  }
+  if (!isObject(value)) {
+    return false;
+  }
+  return (
+    "internalPath" in value &&
+    !isUndefined((value as Record<string, unknown>)["internalPath"])
+  );
+}
+
+/**
+ * Context-aware scan for deprecated `internalPath` in entity-selector values.
+ *
+ * `internalPath` on a flat element selector (legacy v7) is deprecated; use
+ * `fileInternalPath` or the `module` sub-selector instead.
+ * `internalPath` inside a `module` sub-selector is modern and must NOT be flagged.
+ *
+ * @param value - Entity selector or array of entity selectors to inspect.
+ * @returns True if a deprecated element-level `internalPath` is detected.
+ */
+function entitySelectorHasDeprecatedInternalPath(value: unknown): boolean {
+  if (isArray(value)) {
+    return value.some(entitySelectorHasDeprecatedInternalPath);
+  }
+  if (!isObject(value)) {
+    return false;
+  }
+  const record = value as Record<string, unknown>;
+  // Flat element selector at entity level (no entity sub-selector keys present).
+  const hasEntitySubKey =
+    !isUndefined(record["element"]) ||
+    !isUndefined(record["file"]) ||
+    !isUndefined(record["module"]);
+  if (!hasEntitySubKey) {
+    return "internalPath" in record && !isUndefined(record["internalPath"]);
+  }
+  // Modern entity selector — only descend into `element`; `module.internalPath` is valid.
+  if (!isUndefined(record["element"])) {
+    return elementSelectorHasDeprecatedInternalPath(record["element"]);
+  }
+  return false;
+}
+
 /**
  * Determines whether a rule contains legacy template syntax (`${...}`)
  * in any of its selector fields.
@@ -684,6 +794,9 @@ function collectRuleWarningIndexes(
     rulesWithLegacySelector: [],
     rulesWithLegacyTemplate: [],
     rulesWithDeprecatedImportKind: [],
+    rulesWithDeprecatedV7SelectorProps: [],
+    rulesWithDeprecatedDependencyModule: [],
+    rulesWithDeprecatedInternalPath: [],
   };
 
   for (const [index, rule] of rules.entries()) {
@@ -697,6 +810,28 @@ function collectRuleWarningIndexes(
 
     if (!isUndefined(rule.importKind)) {
       indexes.rulesWithDeprecatedImportKind.push(index);
+    }
+
+    if (ruleSelectorFieldMatches(rule, ruleName, hasDeprecatedV7SelectorProp)) {
+      indexes.rulesWithDeprecatedV7SelectorProps.push(index);
+    }
+
+    const ruleRecord = rule as unknown as Record<string, unknown>;
+    if (
+      !isUndefined(ruleRecord["dependency"]) &&
+      hasDeprecatedDependencyModuleProp(ruleRecord["dependency"])
+    ) {
+      indexes.rulesWithDeprecatedDependencyModule.push(index);
+    }
+
+    if (
+      ruleSelectorFieldMatches(
+        rule,
+        ruleName,
+        entitySelectorHasDeprecatedInternalPath
+      )
+    ) {
+      indexes.rulesWithDeprecatedInternalPath.push(index);
     }
   }
 
@@ -727,6 +862,9 @@ export function validateAndWarnRuleOptions(
     rulesWithLegacySelector,
     rulesWithLegacyTemplate,
     rulesWithDeprecatedImportKind,
+    rulesWithDeprecatedV7SelectorProps,
+    rulesWithDeprecatedDependencyModule,
+    rulesWithDeprecatedInternalPath,
   } = collectRuleWarningIndexes(options.rules, ruleName);
 
   if (rulesWithLegacySelector.length > 0) {
@@ -753,6 +891,34 @@ export function validateAndWarnRuleOptions(
         rulesWithDeprecatedImportKind.length
       } rule(s) at indices: ${rulesWithDeprecatedImportKind.join(", ")}.`,
       `Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence. ${migrationToV6GuideLink("rule-level-importkind-is-deprecated")}`
+    );
+  }
+
+  if (rulesWithDeprecatedV7SelectorProps.length > 0) {
+    warnOnce(
+      `[${ruleName}] Detected deprecated selector properties (category, elementPath, filePath) in ${
+        rulesWithDeprecatedV7SelectorProps.length
+      } rule(s) at indices: ${rulesWithDeprecatedV7SelectorProps.join(", ")}.`,
+      `Rename elementPath → path, filePath → fileInternalPath, and remove category (use file descriptors instead). ${moreInfoLink("setup/selectors", "deprecated-element-selector-properties")}`
+    );
+  }
+
+  if (rulesWithDeprecatedDependencyModule.length > 0) {
+    // cspell:ignore dependencymodule -- documentation anchor for the deprecated dependency.module property
+    warnOnce(
+      `[${ruleName}] Detected deprecated "dependency.module" property in ${
+        rulesWithDeprecatedDependencyModule.length
+      } rule(s) at indices: ${rulesWithDeprecatedDependencyModule.join(", ")}.`,
+      `Use "to.module.source" instead. ${migrationToV7GuideLink("deprecated-dependencymodule")}`
+    );
+  }
+
+  if (rulesWithDeprecatedInternalPath.length > 0) {
+    warnOnce(
+      `[${ruleName}] Detected deprecated "internalPath" in element selectors in ${
+        rulesWithDeprecatedInternalPath.length
+      } rule(s) at indices: ${rulesWithDeprecatedInternalPath.join(", ")}.`,
+      `Use "fileInternalPath" for local element paths, or the module sub-selector "internalPath" for external modules. ${moreInfoLink("setup/selectors", "deprecated-element-selector-properties")}`
     );
   }
 }
