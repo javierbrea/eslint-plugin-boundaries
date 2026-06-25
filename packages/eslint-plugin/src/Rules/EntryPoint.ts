@@ -89,7 +89,11 @@ export default dependencyRule<EntryPointRuleOptions>(
     warnMigrationToDependencies(RULE_NAMES_MAP.ENTRY_POINT);
     // Validate and warn about deprecated rule option syntax (legacy
     // selectors, legacy templates, and rule-level importKind).
-    validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT);
+    validateAndWarnRuleOptions(
+      options,
+      RULE_NAMES_MAP.ENTRY_POINT,
+      settings.disableLegacyWarnings
+    );
 
     if (
       !dependency.to.file.isIgnored &&

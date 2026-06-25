@@ -11,6 +11,7 @@ import { warnOnce } from "../Debug";
 import {
   CACHE_DEFAULT,
   DEPENDENCY_NODE_KEYS_MAP,
+  DISABLE_LEGACY_WARNINGS_DEFAULT,
   ELEMENTS_SINGLE_TYPE_DEFAULT,
   LEGACY_TEMPLATES_DEFAULT,
   SETTINGS,
@@ -194,12 +195,12 @@ describe("Settings/Settings", () => {
 
   describe("deprecateTypes", () => {
     it("does not warn when the value is falsy", () => {
-      deprecateTypes(undefined);
+      deprecateTypes(undefined, false);
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
 
     it("warns when the value is truthy", () => {
-      deprecateTypes([validElementDescriptor]);
+      deprecateTypes([validElementDescriptor], false);
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
         expect.stringContaining(SETTINGS.TYPES),
@@ -210,12 +211,12 @@ describe("Settings/Settings", () => {
 
   describe("deprecateAlias", () => {
     it("does not warn when the value is falsy", () => {
-      deprecateAlias(undefined);
+      deprecateAlias(undefined, false);
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
 
     it("warns when the value is truthy", () => {
-      deprecateAlias({ "@components": "src/components" });
+      deprecateAlias({ "@components": "src/components" }, false);
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
         expect.stringContaining(SETTINGS.ALIAS),
@@ -923,7 +924,7 @@ describe("Settings/Settings", () => {
         );
 
         expect(result.flagAsExternal).toEqual(defaults);
-        expect(mockedWarnOnce).not.toHaveBeenCalled();
+        expect(mockedWarnOnce).toHaveBeenCalledTimes(1); // performance tip only
       });
 
       it("warns once per invalid field and keeps defaults for the bad ones", () => {
@@ -1041,7 +1042,7 @@ describe("Settings/Settings", () => {
         );
 
         expect(result.debug.messages).toEqual(defaults.messages);
-        expect(mockedWarnOnce).not.toHaveBeenCalled();
+        expect(mockedWarnOnce).toHaveBeenCalledTimes(1); // performance tip only
       });
 
       it("applies partial 'messages' overrides and warns about invalid flags", () => {
@@ -1175,6 +1176,137 @@ describe("Settings/Settings", () => {
           expect.stringContaining(SETTINGS_KEYS_MAP.ROOT_PATH),
           expect.stringContaining("string")
         );
+      });
+    });
+
+    describe("disableLegacyWarnings", () => {
+      it("returns false by default when the setting is absent", () => {
+        const result = getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+          })
+        );
+
+        expect(result.disableLegacyWarnings).toBe(
+          DISABLE_LEGACY_WARNINGS_DEFAULT
+        );
+        expect(result.disableLegacyWarnings).toBe(false);
+      });
+
+      it("returns true when explicitly set to true", () => {
+        const result = getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]: true,
+          })
+        );
+
+        expect(result.disableLegacyWarnings).toBe(true);
+      });
+
+      it("warns and returns false when the value is not a boolean", () => {
+        const result = getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]: "yes",
+          })
+        );
+
+        expect(result.disableLegacyWarnings).toBe(false);
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining(SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS),
+          expect.stringContaining("boolean")
+        );
+      });
+
+      it("skips all legacy deprecation warnings when set to true with boundaries/types", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.TYPES]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]: true,
+          })
+        );
+
+        const calls = mockedWarnOnce.mock.calls.map((c) => c[0]);
+        expect(calls.some((m) => m.includes(SETTINGS.TYPES))).toBe(false);
+      });
+
+      it("skips all legacy deprecation warnings when set to true with boundaries/alias", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.ALIAS]: { "@comp": "src/components" },
+            [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]: true,
+          })
+        );
+
+        const calls = mockedWarnOnce.mock.calls.map((c) => c[0]);
+        expect(calls.some((m) => m.includes(SETTINGS.ALIAS))).toBe(false);
+      });
+
+      it("skips all legacy deprecation warnings when set to true with legacyTemplates: true", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]: true,
+            [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]: true,
+          })
+        );
+
+        const calls = mockedWarnOnce.mock.calls.map((c) => c[0]);
+        expect(
+          calls.some((m) => m.includes(SETTINGS_KEYS_MAP.LEGACY_TEMPLATES))
+        ).toBe(false);
+      });
+
+      it("skips the mode deprecation .some() check when set to true with deprecated mode in element descriptors", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [
+              { ...validElementDescriptor, mode: "folder" },
+            ],
+            [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]: true,
+          })
+        );
+
+        const calls = mockedWarnOnce.mock.calls.map((c) => c[0]);
+        expect(calls.some((m) => m.includes("mode"))).toBe(false);
+      });
+
+      it("emits the performance tip when disableLegacyWarnings is false, even without legacy patterns", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+          })
+        );
+
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining("Performance tip"),
+          expect.stringContaining(SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS)
+        );
+      });
+
+      it("emits the performance tip when legacy patterns are present and disableLegacyWarnings is false", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.TYPES]: [validElementDescriptor],
+          })
+        );
+
+        const calls = mockedWarnOnce.mock.calls.map((c) => c[0]);
+        expect(calls.some((m) => m.includes("Performance tip"))).toBe(true);
+      });
+
+      it("does not emit the performance tip when disableLegacyWarnings is true", () => {
+        getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.TYPES]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]: true,
+          })
+        );
+
+        const calls = mockedWarnOnce.mock.calls.map((c) => c[0]);
+        expect(calls.some((m) => m.includes("Performance tip"))).toBe(false);
       });
     });
   });

@@ -39,6 +39,7 @@ const createSettings = (
     legacyTemplates: true,
     elementsSingleType: false,
     cache: true,
+    disableLegacyWarnings: false,
     flagAsExternal: {},
     debug: {
       enabled: true,

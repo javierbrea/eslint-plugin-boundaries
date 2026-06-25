@@ -424,6 +424,32 @@ This setting only affects selectors. It does not change the syntax available in 
 Read more about templating in selectors in the [Selectors documentation](../setup/selectors.md), and about message templates in the [Rules documentation](../setup/rules.mdx#message-templating).
 :::
 
+## `boundaries/disable-legacy-warnings`
+
+**Type:** `<boolean>`
+
+**Default:** `false`
+
+When `true`, skips all legacy-pattern detection work and suppresses the associated runtime deprecation warnings, reducing overhead at lint time. Specifically, the plugin will no longer:
+
+- Check element descriptors for deprecated `mode` and `category` fields.
+- Scan rule options for deprecated string/tuple selector syntax, legacy templates, and other deprecated rule properties.
+- Emit deprecation notices for `boundaries/types`, `boundaries/alias`, and similar legacy patterns.
+
+While this setting is `false`, the plugin emits a one-time "Performance tip" console notice directing you to enable it. Once all legacy patterns have been removed from your configuration, set this to `true` to eliminate the detection overhead entirely.
+
+```js
+export default [{
+  settings: {
+    "boundaries/disable-legacy-warnings": true
+  }
+}]
+```
+
+:::warning[Temporary setting]
+This setting is temporary. It will be removed in a future major version once legacy support is fully dropped. Enable it now to eliminate detection overhead, then remove it when that major version arrives.
+:::
+
 ## Deprecated Settings
 
 The following settings are kept for backward compatibility. They still work, and migrating to their replacements is recommended.

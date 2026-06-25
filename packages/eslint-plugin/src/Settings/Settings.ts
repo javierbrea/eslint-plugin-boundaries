@@ -28,6 +28,7 @@ import {
   LEGACY_TEMPLATES_DEFAULT,
   ELEMENTS_SINGLE_TYPE_DEFAULT,
   CACHE_DEFAULT,
+  DISABLE_LEGACY_WARNINGS_DEFAULT,
   DEPENDENCY_NODE_KEYS_MAP,
 } from "../Shared/Settings.types";
 import type {
@@ -163,29 +164,41 @@ export function isValidDependencyNodeSelector(
  * Emits deprecation warning for legacy `types` setting.
  *
  * @param types - Legacy types setting value when present.
+ * @param disableLegacyWarnings - When `true`, skips detection and warning entirely.
+ * @returns `true` when a legacy pattern was present.
  */
-export function deprecateTypes(types: unknown) {
-  if (types) {
-    warnOnce(
-      `'${TYPES}' setting is deprecated.`,
-      `Please use '${ELEMENTS}' instead. ${migrationToV2GuideLink()}`
-    );
-  }
+export function deprecateTypes(
+  types: unknown,
+  disableLegacyWarnings: boolean
+): boolean {
+  if (disableLegacyWarnings) return false;
+  if (!types) return false;
+  warnOnce(
+    `'${TYPES}' setting is deprecated.`,
+    `Please use '${ELEMENTS}' instead. ${migrationToV2GuideLink()}`
+  );
+  return true;
 }
 
 /**
  * Emits deprecation warning for legacy `alias` setting.
  *
  * @param alias - Legacy alias setting value when present.
+ * @param disableLegacyWarnings - When `true`, skips detection and warning entirely.
+ * @returns `true` when a legacy pattern was present.
  */
-export function deprecateAlias(alias: unknown) {
+export function deprecateAlias(
+  alias: unknown,
+  disableLegacyWarnings: boolean
+): boolean {
+  if (disableLegacyWarnings) return false;
   // cspell:ignore boundariesalias -- documentation anchor for the boundaries/alias setting
-  if (alias) {
-    warnOnce(
-      `'${SETTINGS_KEYS_MAP.ALIAS}' setting is deprecated.`,
-      `Configure path aliases using 'import/resolver' settings instead. ${moreInfoSettingsLink("boundariesalias")}`
-    );
-  }
+  if (!alias) return false;
+  warnOnce(
+    `'${SETTINGS_KEYS_MAP.ALIAS}' setting is deprecated.`,
+    `Configure path aliases using 'import/resolver' settings instead. ${moreInfoSettingsLink("boundariesalias")}`
+  );
+  return true;
 }
 
 /**
@@ -405,20 +418,22 @@ function getNormalizedDebug(debug: unknown): DebugSettingNormalized {
  *
  * @param elements - Raw element descriptors from settings.
  * @param legacyTypes - Fallback legacy types setting for backward compatibility.
- * @returns Filtered array of valid element descriptors.
+ * @param disableLegacyWarnings - When `true`, skips all legacy deprecation detection and warnings.
+ * @returns Filtered array of valid element descriptors and whether a legacy pattern was detected.
  */
 function getNormalizedElementDescriptors(
   elements: unknown,
-  legacyTypes: unknown
-): ElementDescriptor[] {
-  deprecateTypes(legacyTypes);
+  legacyTypes: unknown,
+  disableLegacyWarnings: boolean
+): { descriptors: ElementDescriptor[]; legacyDetected: boolean } {
+  const typesLegacy = deprecateTypes(legacyTypes, disableLegacyWarnings);
   const rawElements = elements || legacyTypes;
 
   if (!rawElements || !isArray(rawElements) || !rawElements.length) {
     // Element descriptors are optional on their own: the file layer can be the
     // only configured classification. The "no classification at all" case is
     // warned once in `getSettings`, where both layers are known.
-    return [];
+    return { descriptors: [], legacyDetected: typesLegacy };
   }
 
   const elementDescriptors = transformLegacyTypes(
@@ -437,23 +452,29 @@ function getNormalizedElementDescriptors(
     );
   }
 
-  // cspell:ignore partialmatch -- documentation anchor for the partialMatch option
-  if (validElementDescriptors.some((d) => d.mode !== undefined)) {
-    warnOnce(
-      `The 'mode' option in element descriptors is deprecated and will be removed in a future major version.`,
-      `Use 'partialMatch: false' instead of 'mode: "full"'. Remove 'mode: "folder"' (it is the default). ${migrationToV7GuideLink()}`
-    );
-  }
+  let legacyDetected = typesLegacy;
 
-  if (
-    validElementDescriptors.some(
-      (d) => (d as unknown as Record<string, unknown>).category !== undefined
-    )
-  ) {
-    warnOnce(
-      `The 'category' option in element descriptors is deprecated and will be removed in a future major version.`,
-      `Use the 'category' property in file descriptors ('${SETTINGS_KEYS_MAP.FILES}') instead. ${migrationToV7GuideLink("deprecated-category-in-element-descriptors-and-selectors")}`
-    );
+  if (!disableLegacyWarnings) {
+    // cspell:ignore partialmatch -- documentation anchor for the partialMatch option
+    if (validElementDescriptors.some((d) => d.mode !== undefined)) {
+      warnOnce(
+        `The 'mode' option in element descriptors is deprecated and will be removed in a future major version.`,
+        `Use 'partialMatch: false' instead of 'mode: "full"'. Remove 'mode: "folder"' (it is the default). ${migrationToV7GuideLink()}`
+      );
+      legacyDetected = true;
+    }
+
+    if (
+      validElementDescriptors.some(
+        (d) => (d as unknown as Record<string, unknown>).category !== undefined
+      )
+    ) {
+      warnOnce(
+        `The 'category' option in element descriptors is deprecated and will be removed in a future major version.`,
+        `Use the 'category' property in file descriptors ('${SETTINGS_KEYS_MAP.FILES}') instead. ${migrationToV7GuideLink("deprecated-category-in-element-descriptors-and-selectors")}`
+      );
+      legacyDetected = true;
+    }
   }
 
   const conflictingDescriptors = validElementDescriptors.filter(
@@ -485,7 +506,7 @@ function getNormalizedElementDescriptors(
     );
   }
 
-  return validElementDescriptors;
+  return { descriptors: validElementDescriptors, legacyDetected };
 }
 
 /**
@@ -688,28 +709,33 @@ function getNormalizedRootPath(rootPath: unknown): string {
  * Normalizes legacy templates setting, validating and applying defaults.
  *
  * @param legacyTemplates - Raw legacy templates setting value.
- * @returns Boolean value or default.
+ * @param disableLegacyWarnings - When `true`, skips the deprecation warning.
+ * @returns Normalized value and whether a legacy pattern was detected.
  */
-function getNormalizedLegacyTemplates(legacyTemplates: unknown): boolean {
+function getNormalizedLegacyTemplates(
+  legacyTemplates: unknown,
+  disableLegacyWarnings: boolean
+): { value: boolean; legacyDetected: boolean } {
   if (isUndefined(legacyTemplates)) {
-    return LEGACY_TEMPLATES_DEFAULT;
+    return { value: LEGACY_TEMPLATES_DEFAULT, legacyDetected: false };
   }
 
   if (isBoolean(legacyTemplates)) {
-    if (legacyTemplates === true) {
+    const legacyDetected = legacyTemplates === true;
+    if (legacyDetected && !disableLegacyWarnings) {
       warnOnce(
         `'${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting is deprecated.`,
         `The legacy \${...} template syntax will not be supported in the next major version. Migrate to the {{...}} Handlebars syntax. ${migrationToV6GuideLink("new-template-syntax")}`
       );
     }
-    return legacyTemplates;
+    return { value: legacyTemplates, legacyDetected };
   }
 
   warnOnce(
     `Please provide a valid value in '${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting.`,
     `The value should be a boolean. ${moreInfoSettingsLink()}`
   );
-  return LEGACY_TEMPLATES_DEFAULT;
+  return { value: LEGACY_TEMPLATES_DEFAULT, legacyDetected: false };
 }
 
 /**
@@ -732,6 +758,28 @@ function getNormalizedElementsSingleType(elementsSingleType: unknown): boolean {
     `The value should be a boolean. ${moreInfoSettingsLink()}`
   );
   return ELEMENTS_SINGLE_TYPE_DEFAULT;
+}
+
+/**
+ * Normalizes disable-legacy-warnings setting, validating and applying defaults.
+ *
+ * @param value - Raw disable-legacy-warnings setting value.
+ * @returns Boolean value or default (`false`).
+ */
+function getNormalizedDisableLegacyWarnings(value: unknown): boolean {
+  if (isUndefined(value)) {
+    return DISABLE_LEGACY_WARNINGS_DEFAULT;
+  }
+
+  if (isBoolean(value)) {
+    return value;
+  }
+
+  warnOnce(
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS}' setting.`,
+    `The value should be a boolean. ${moreInfoSettingsLink()}`
+  );
+  return DISABLE_LEGACY_WARNINGS_DEFAULT;
 }
 
 /**
@@ -853,12 +901,18 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
 
   const settings = context.settings;
 
-  deprecateAlias(settings[SETTINGS_KEYS_MAP.ALIAS]);
+  // Must be resolved first so it can be passed to all legacy-detecting helpers.
+  const disableLegacyWarnings = getNormalizedDisableLegacyWarnings(
+    settings[SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]
+  );
+
+  deprecateAlias(settings[SETTINGS_KEYS_MAP.ALIAS], disableLegacyWarnings);
 
   // Normalize all settings from raw values
-  const elementDescriptors = getNormalizedElementDescriptors(
+  const { descriptors: elementDescriptors } = getNormalizedElementDescriptors(
     settings[ELEMENTS],
-    settings[TYPES]
+    settings[TYPES],
+    disableLegacyWarnings
   );
 
   const fileDescriptors = getNormalizedFileDescriptors(
@@ -890,8 +944,9 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
     settings[SETTINGS_KEYS_MAP.INCLUDE]
   );
 
-  const legacyTemplates = getNormalizedLegacyTemplates(
-    settings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]
+  const { value: legacyTemplates } = getNormalizedLegacyTemplates(
+    settings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES],
+    disableLegacyWarnings
   );
 
   const elementsSingleType = getNormalizedElementsSingleType(
@@ -908,6 +963,13 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
 
   const rootPath = getNormalizedRootPath(settings[SETTINGS_KEYS_MAP.ROOT_PATH]);
 
+  if (!disableLegacyWarnings) {
+    warnOnce(
+      `Performance tip`,
+      `Set \`${SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS}: true\` to skip legacy-pattern detection and improve performance. This option will be removed in a future version when legacy support is dropped.`
+    );
+  }
+
   const result: SettingsNormalized = {
     elementDescriptors,
     elementsSingleType,
@@ -918,6 +980,7 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
     dependencyNodes: [...dependencyNodes, ...additionalDependencyNodes],
     legacyTemplates,
     cache,
+    disableLegacyWarnings,
     flagAsExternal,
     debug: debugSetting,
   };

@@ -186,7 +186,11 @@ export default dependencyRule<ExternalRuleOptions>(
     warnMigrationToDependencies(RULE_NAMES_MAP.EXTERNAL);
     // Validate and warn about deprecated rule option syntax (legacy
     // selectors, legacy templates, and rule-level importKind).
-    validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL);
+    validateAndWarnRuleOptions(
+      options,
+      RULE_NAMES_MAP.EXTERNAL,
+      settings.disableLegacyWarnings
+    );
 
     const origin = dependency.to.module.origin;
     if (origin === ORIGINS_MAP.EXTERNAL || origin === ORIGINS_MAP.CORE) {

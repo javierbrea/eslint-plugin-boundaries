@@ -165,6 +165,7 @@ export const SETTINGS = {
   ADDITIONAL_DEPENDENCY_NODES: `${PLUGIN_NAME}/additional-dependency-nodes`,
   LEGACY_TEMPLATES: `${PLUGIN_NAME}/legacy-templates`,
   CACHE: `${PLUGIN_NAME}/cache`,
+  DISABLE_LEGACY_WARNINGS: `${PLUGIN_NAME}/disable-legacy-warnings`,
   FLAG_AS_EXTERNAL: `${PLUGIN_NAME}/flag-as-external`,
   DEBUG_SETTING: `${PLUGIN_NAME}/debug`,
 
@@ -270,6 +271,7 @@ export const SETTINGS_KEYS_MAP = {
   /** @deprecated Use import/resolver settings instead */
   ALIAS: SETTINGS.ALIAS,
   CACHE: SETTINGS.CACHE,
+  DISABLE_LEGACY_WARNINGS: SETTINGS.DISABLE_LEGACY_WARNINGS,
   FLAG_AS_EXTERNAL: SETTINGS.FLAG_AS_EXTERNAL,
   DEBUG: SETTINGS.DEBUG_SETTING,
 } as const;
@@ -278,6 +280,11 @@ export const SETTINGS_KEYS_MAP = {
  * Default value for the legacy templates setting.
  */
 export const LEGACY_TEMPLATES_DEFAULT = true as const;
+
+/**
+ * Default value for the disable-legacy-warnings setting.
+ */
+export const DISABLE_LEGACY_WARNINGS_DEFAULT = false as const;
 
 /**
  * Default value for the elements single type setting.
@@ -433,6 +440,8 @@ export type Settings = {
   [SETTINGS_KEYS_MAP.ALIAS]?: AliasSetting;
   /** Whether to enable caching for the plugin analysis */
   [SETTINGS_KEYS_MAP.CACHE]?: boolean;
+  /** When `true`, skips all legacy-pattern detection and suppresses deprecation warnings. Temporary option; will be removed when legacy support is dropped. */
+  [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]?: boolean;
   /** Configuration for categorizing dependencies as external or local */
   [SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]?: FlagAsExternalOptions;
   /** Debug configuration for tracing files and dependencies */
@@ -462,6 +471,8 @@ export type SettingsNormalized = {
   legacyTemplates: boolean;
   /** Whether caching is enabled */
   cache: boolean;
+  /** Whether to skip all legacy-pattern detection and warning calls */
+  disableLegacyWarnings: boolean;
   /** Configuration for categorizing dependencies as external or local */
   flagAsExternal: FlagAsExternalOptions;
   /** Debug configuration */

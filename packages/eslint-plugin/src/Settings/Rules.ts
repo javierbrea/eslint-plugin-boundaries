@@ -786,7 +786,7 @@ function ruleHasLegacySelectorSyntax(
  * @param ruleName - Rule name used to scope `allow`/`disallow` scanning.
  * @returns Rule indices grouped by deprecated syntax type.
  */
-function collectRuleWarningIndexes(
+export function collectRuleWarningIndexes(
   rules: RuleOptionsRules[],
   ruleName: RuleName
 ): RuleWarningIndexes {
@@ -846,7 +846,8 @@ function collectRuleWarningIndexes(
  */
 export function validateAndWarnRuleOptions(
   options: RuleOptionsWithRules | undefined,
-  ruleName: RuleName
+  ruleName: RuleName,
+  disableLegacyWarnings: boolean
 ): void {
   if (!options || trackedWarnedRuleOptions.has(options)) {
     return;
@@ -857,6 +858,10 @@ export function validateAndWarnRuleOptions(
   }
 
   trackedWarnedRuleOptions.add(options);
+
+  if (disableLegacyWarnings) {
+    return;
+  }
 
   const {
     rulesWithLegacySelector,

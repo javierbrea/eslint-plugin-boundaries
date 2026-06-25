@@ -45,6 +45,7 @@ Main changes include:
 - **[New custom message template data](#new-custom-message-template-data)** — `element` / `file` / `module` template objects
 - **[`no-unknown-files` behavior change](#no-unknown-files-behavior-change)** — now considers file descriptors
 - **[TypeScript-only breaking changes](#typescript-only-breaking-changes)** — removed type exports (TS users only)
+- **[Once fully migrated](#once-fully-migrated)** — set `boundaries/disable-legacy-warnings: true` to skip legacy detection and silence the performance tip
 
 :::info[Backwards Compatibility]
 Your v6 configuration keeps working without changes. Legacy element selectors, the deprecated `category` and `dependency.module` properties, legacy `${ }` templates, and the v6 rule names continue to work in v7 and produce the same results. Some of them — legacy `${ }` templates and the deprecated rule names — print a deprecation warning in your console.
@@ -401,6 +402,24 @@ With the new descriptor, any file under `src/pages/<something>/` is classified a
 
 :::info
 Read more about `partialMatch` in the **[Elements](../../setup/elements.md#partialmatch-optional)** documentation.
+:::
+
+## Once Fully Migrated
+
+The plugin performs a one-time detection of legacy patterns on every lint pass. This is useful while migrating, but once you have completed all the steps above, it is no longer necessary and can be disabled for performance.
+
+Set `boundaries/disable-legacy-warnings` to `true` to skip that detection work entirely and silence the one-time "Performance tip" console notice:
+
+```js
+export default [{
+  settings: {
+    "boundaries/disable-legacy-warnings": true
+  }
+}]
+```
+
+:::warning[Temporary setting]
+This setting is temporary and will be removed once legacy support is fully dropped in a future major version. Enable it now to eliminate detection overhead, then simply remove it when that version arrives.
 :::
 
 ## Why Migrate?
