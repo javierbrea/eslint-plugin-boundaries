@@ -18,20 +18,18 @@ export default {
   },
   /** @type {import('@boundaries/eslint-plugin').Rules} */
   rules: {
-    "boundaries/dependencies": [
+    "boundaries/element-types": [
       "error",
       {
         default: "disallow",
         rules: [
           {
             from: {
-              element: {
-                type: "module",
-              },
+              type: "module",
             },
             allow: [
               {
-                to: { element: { type: "component" } },
+                to: { type: "component" },
               },
             ],
           },

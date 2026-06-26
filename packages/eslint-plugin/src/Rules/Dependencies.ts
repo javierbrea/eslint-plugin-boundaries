@@ -624,6 +624,8 @@ export function evaluateRules(
       settings.legacyTemplates
     );
 
+    // TODO: Rules normalization could be done once at rule registration time instead of on every evaluation, but it would require a more complex implementation to handle dynamic settings changes and avoid memory leaks.
+    // TODO: Check whether the rule is always the same object reference for the same rule, or if it can be a new object on every evaluation. If it's always the same reference, we could normalize once and cache it in a WeakMap.
     const normalizedRule = normalizeRuleOptions(rule);
 
     let denyMatched = false;

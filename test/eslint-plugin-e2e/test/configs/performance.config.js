@@ -8,44 +8,54 @@ const STRESS_ELEMENT_TYPES_RULES = Array.from({ length: 15 }, (_, index) => {
 
   return {
     from: {
-      type: "feature",
-      captured: {
-        domain: `domain-${domainNumber}`,
-        layer: `layer-${layerNumber}`,
+      element: {
+        type: "feature",
+        captured: {
+          domain: `domain-${domainNumber}`,
+          layer: `layer-${layerNumber}`,
+        },
       },
     },
     disallow: [
       {
         to: {
-          type: "feature",
-          captured: {
-            domain: `domain-{${domainNumber},${nextDomainNumber},{{ from.captured.domain }}`,
-            layer: "layer-*",
-            feature: `feature-{${featureNumber},{{ from.captured.feature }}`,
+          element: {
+            type: "feature",
+            captured: {
+              domain: `domain-{${domainNumber},${nextDomainNumber},{{ from.element.captured.domain }}`,
+              layer: "layer-*",
+              feature: `feature-{${featureNumber},{{ from.element.captured.feature }}`,
+            },
           },
         },
       },
       {
         to: {
-          type: "scenario",
-          captured: {
-            group: "boundaries,external,{{ from.captured.feature }}",
+          element: {
+            type: "scenario",
+            captured: {
+              group: "boundaries,external,{{ from.element.captured.feature }}",
+            },
           },
         },
       },
       {
         to: {
-          type: "library",
-          captured: {
-            library: "shared,legacy,{{ from.captured.domain }}",
+          element: {
+            type: "library",
+            captured: {
+              library: "shared,legacy,{{ from.element.captured.domain }}",
+            },
           },
         },
       },
       {
         to: {
-          type: "app",
-          captured: {
-            app: "main,admin,{{ from.captured.layer }}",
+          element: {
+            type: "app",
+            captured: {
+              app: "main,admin,{{ from.element.captured.layer }}",
+            },
           },
         },
       },
@@ -53,7 +63,7 @@ const STRESS_ELEMENT_TYPES_RULES = Array.from({ length: 15 }, (_, index) => {
     message:
       "stress rule " +
       (index + 1) +
-      " evaluated for {{ from.captured.domain }}/{{ from.captured.layer }}/{{ from.captured.feature }}",
+      " evaluated for {{ from.element.captured.domain }}/{{ from.element.captured.layer }}/{{ from.element.captured.feature }}",
   };
 });
 
@@ -112,6 +122,7 @@ export default [
           name: "jest-mock",
         },
       ],
+      "boundaries/disable-legacy-warnings": true,
       "boundaries/root-path": ".",
       "boundaries/cache": true,
       "boundaries/flag-as-external": {
@@ -128,13 +139,15 @@ export default [
           checkAllOrigins: true,
           default: "allow",
           message:
-            "dependencies violation: {{ from.type }} -> {{ to.type }} through {{ dependency.source }}",
+            "dependencies violation: {{ from.element.types.[0] }} -> {{ to.element.types.[0] }} through {{ dependency.source }}",
           rules: [
             {
               disallow: {
                 to: {
-                  parent: {
-                    type: "*",
+                  element: {
+                    parent: {
+                      type: "*",
+                    },
                   },
                 },
               },
@@ -150,12 +163,16 @@ export default [
             },
             {
               to: {
-                type: "library-private",
-                internalPath: "!index.js",
+                element: {
+                  type: "library-private",
+                  fileInternalPath: "!index.js",
+                },
               },
               disallow: {
                 from: {
-                  type: "*",
+                  element: {
+                    type: "*",
+                  },
                 },
               },
               message:
@@ -163,26 +180,28 @@ export default [
             },
             {
               from: {
-                type: "scenario",
-                captured: {
-                  group: "external",
+                element: {
+                  type: "scenario",
+                  captured: {
+                    group: "external",
+                  },
                 },
               },
               disallow: [
                 {
                   to: {
-                    origin: "external",
-                  },
-                  dependency: {
-                    module: ["chalk", "eslint"],
+                    module: {
+                      origin: "external",
+                      source: ["chalk", "eslint"],
+                    },
                   },
                 },
                 {
                   to: {
-                    origin: "core",
-                  },
-                  dependency: {
-                    module: ["node:fs", "node:path"],
+                    module: {
+                      origin: "core",
+                      source: ["node:fs", "node:path"],
+                    },
                   },
                 },
               ],
@@ -191,14 +210,18 @@ export default [
             },
             {
               from: {
-                type: "scenario",
-                captured: {
-                  group: "boundaries",
+                element: {
+                  type: "scenario",
+                  captured: {
+                    group: "boundaries",
+                  },
                 },
               },
               disallow: {
                 to: {
-                  type: ["feature", "library"],
+                  element: {
+                    type: ["feature", "library"],
+                  },
                 },
               },
               message:
@@ -206,49 +229,57 @@ export default [
             },
             {
               from: {
-                type: "feature",
-                captured: {
-                  domain: "domain-10",
-                  layer: "layer-10",
-                  feature: "feature-05",
+                element: {
+                  type: "feature",
+                  captured: {
+                    domain: "domain-10",
+                    layer: "layer-10",
+                    feature: "feature-05",
+                  },
                 },
               },
               disallow: [
                 {
                   to: {
-                    type: "feature",
-                    captured: {
-                      domain: "domain-01",
-                      layer: "layer-10",
+                    element: {
+                      type: "feature",
+                      captured: {
+                        domain: "domain-01",
+                        layer: "layer-10",
+                      },
                     },
                   },
                 },
               ],
               message:
-                "cross-domain import blocked from {{ from.captured.domain }} to {{ to.captured.domain }}",
+                "cross-domain import blocked from {{ from.element.captured.domain }} to {{ to.element.captured.domain }}",
             },
             {
               from: {
-                type: "feature",
-                captured: {
-                  domain: "domain-09",
-                  layer: "layer-09",
-                  feature: "feature-02",
+                element: {
+                  type: "feature",
+                  captured: {
+                    domain: "domain-09",
+                    layer: "layer-09",
+                    feature: "feature-02",
+                  },
                 },
               },
               disallow: [
                 {
                   to: {
-                    type: "feature",
-                    captured: {
-                      domain: "domain-02",
-                      feature: "feature-02",
+                    element: {
+                      type: "feature",
+                      captured: {
+                        domain: "domain-02",
+                        feature: "feature-02",
+                      },
                     },
                   },
                 },
               ],
               message:
-                "cross-domain import blocked from {{ from.captured.domain }} to {{ to.captured.domain }}",
+                "cross-domain import blocked from {{ from.element.captured.domain }} to {{ to.element.captured.domain }}",
             },
             ...STRESS_ELEMENT_TYPES_RULES,
           ],
