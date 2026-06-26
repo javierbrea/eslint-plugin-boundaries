@@ -63,8 +63,8 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       items: [
         "rules/dependencies",
-        "rules/no-unknown",
-        "rules/no-ignored",
+        "rules/no-unknown-dependencies",
+        "rules/no-ignored-dependencies",
         "rules/no-unknown-files",
         {
           type: "category",

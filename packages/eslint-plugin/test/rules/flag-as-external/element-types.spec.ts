@@ -1,5 +1,5 @@
 import ruleFactory from "../../../src/Rules/Dependencies";
-import noUnknownRule from "../../../src/Rules/NoUnknown";
+import getNoUnknownDependenciesRule from "../../../src/Rules/NoUnknown";
 import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
@@ -10,6 +10,7 @@ import type { RuleTesterSettings } from "../../support/helpers";
 import { elementTypesNoRuleMessage } from "../../support/messages";
 
 const rule = ruleFactory();
+const noUnknownRule = getNoUnknownDependenciesRule();
 
 const { absoluteFilePath } = pathResolvers("flag-as-external");
 

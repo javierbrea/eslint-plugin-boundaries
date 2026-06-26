@@ -4,7 +4,7 @@ import { warnOnce } from "../../Debug";
 import { entityDescription, dependencyDescription } from "../../Elements";
 import type { EslintLiteralNode } from "../../Elements";
 import { getSettings, moreInfoSettingsLink } from "../../Settings";
-import type { RuleOptionsWithRules, RuleMetaDefinition } from "../../Shared";
+import type { RuleOptions, RuleMetaDefinition } from "../../Shared";
 import { SETTINGS, isString } from "../../Shared";
 
 import type {
@@ -23,7 +23,7 @@ const { ADDITIONAL_DEPENDENCY_NODES } = SETTINGS;
  * @param ruleOptions - Optional behavior flags for validation and rule shape.
  * @returns ESLint rule module ready to be exported by concrete rules.
  */
-export function dependencyRule<Options extends RuleOptionsWithRules>(
+export function dependencyRule<Options extends RuleOptions>(
   ruleMeta: RuleMetaDefinition,
   rule: DependencyRuleRunner<Options>,
   ruleOptions: DependencyRuleOptions = {}

@@ -201,9 +201,9 @@ export default [
             "no-private violation from ${file.type} to ${dependency.source}",
         },
       ],
-      "boundaries/no-unknown": ["error"],
+      "boundaries/no-unknown-dependencies": ["error"],
       "boundaries/no-unknown-files": ["error"],
-      "boundaries/no-ignored": ["error"],
+      "boundaries/no-ignored-dependencies": ["error"],
     },
   },
 ];

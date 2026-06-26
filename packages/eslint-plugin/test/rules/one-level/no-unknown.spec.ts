@@ -1,4 +1,4 @@
-import rule from "../../../src/Rules/NoUnknown";
+import getRule from "../../../src/Rules/NoUnknown";
 import { NO_UNKNOWN as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
@@ -6,6 +6,8 @@ import {
   pathResolvers,
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
+
+const rule = getRule();
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 

@@ -32,7 +32,7 @@ The plugin includes two predefined configurations to get started quickly.
 **Best for:** Applying the plugin to an existing project
 :::
 
-The `recommended` config keeps `boundaries/no-unknown`, `boundaries/no-unknown-files`, `boundaries/no-ignored`, and `boundaries/no-private` disabled. This lets parts of the project stay outside your architectural elements, so you can adopt the plugin progressively.
+The `recommended` config keeps `boundaries/no-unknown-dependencies`, `boundaries/no-unknown-files`, `boundaries/no-ignored-dependencies`, and `boundaries/no-private` disabled. This lets parts of the project stay outside your architectural elements, so you can adopt the plugin progressively.
 
 ```js
 import boundaries from "eslint-plugin-boundaries";
@@ -88,7 +88,7 @@ See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) fo
 **Best for:** New projects or enforcing full compliance
 :::
 
-The `strict` config extends `recommended` and additionally enables `boundaries/no-unknown`, `boundaries/no-unknown-files`, and `boundaries/no-ignored` at severity `2`. This ensures every file in the project is recognized by your architecture boundaries.
+The `strict` config extends `recommended` and additionally enables `boundaries/no-unknown-dependencies`, `boundaries/no-unknown-files`, and `boundaries/no-ignored-dependencies` at severity `2`. This ensures every file in the project is recognized by your architecture boundaries.
 
 ```js
 import boundaries from "eslint-plugin-boundaries";
@@ -171,7 +171,7 @@ const config = createConfig({
   rules: {
     ...recommended.rules,
     "custom-boundaries/dependencies": [2, { default: "disallow" }], // Renamed prefix
-    "boundaries/no-unknown": 0, // Original prefix still works
+    "boundaries/no-unknown-dependencies": 0, // Original prefix still works
   }
 }, "custom-boundaries");
 

@@ -44,6 +44,8 @@ Main changes include:
 - **[Deprecated: `mode` in element descriptors](#deprecated-mode-in-element-descriptors)** — use `partialMatch: false` instead of `mode: "full"`
 - **[New custom message template data](#new-custom-message-template-data)** — `element` / `file` / `module` template objects
 - **[`no-unknown-files` behavior change](#no-unknown-files-behavior-change)** — now considers file descriptors
+- **[`no-unknown` renamed to `no-unknown-dependencies`](#no-unknown-renamed-to-no-unknown-dependencies)** — file-aware, with new options
+- **[`no-ignored` renamed to `no-ignored-dependencies`](#no-ignored-renamed-to-no-ignored-dependencies)** — rule name change only
 - **[TypeScript-only breaking changes](#typescript-only-breaking-changes)** — removed type exports (TS users only)
 - **[Once fully migrated](#once-fully-migrated)** — set `boundaries/disable-legacy-warnings: true` to skip legacy detection and silence the performance tip
 
@@ -324,6 +326,49 @@ File does not match any file pattern and does not belong to any known element
 ```
 
 In v6 the message was `File does not match any element pattern`. If you assert this message in snapshots or tests, update those assertions.
+
+## `no-unknown` renamed to `no-unknown-dependencies`
+
+The `boundaries/no-unknown` rule has been renamed to **[`boundaries/no-unknown-dependencies`](../../rules/no-unknown-dependencies.md)** and is now aware of [file descriptors](../../setup/files.md).
+
+:::warning[Deprecated]
+The `boundaries/no-unknown` rule name is kept for backward compatibility but is deprecated. Using it prints a one-time rename warning and it will be removed in a future major version. Rename the rule key to `boundaries/no-unknown-dependencies`; the behavior is identical with the default options.
+:::
+
+The rule now reports a dependency when its target is an unknown element **or** an unknown file, controlled by two new options:
+
+| Option | Default | Effect |
+|--------|---------|--------|
+| `allowUnknownElements` | `false` | When `true`, dependencies to unknown elements are allowed (element axis disabled). |
+| `allowUnknownFiles` | `true` | When `true`, dependencies to unknown files are allowed (file axis disabled). |
+
+The default `allowUnknownFiles: true` keeps the **v6 behavior**: the rule reports only when the target element is unknown, exactly as `no-unknown` did. You opt into file checking by setting `allowUnknownFiles: false`.
+
+<CodeDiff language="javascript">{`
+  rules: {
+-   "boundaries/no-unknown": [2]
++   "boundaries/no-unknown-dependencies": [2]
+  }
+`}</CodeDiff>
+
+:::tip[Projects using only file descriptors]
+If you classify your project with `boundaries/files` instead of elements, set `allowUnknownElements: true` and `allowUnknownFiles: false` so the rule judges targets purely by their file descriptor.
+:::
+
+## `no-ignored` renamed to `no-ignored-dependencies`
+
+The `boundaries/no-ignored` rule has been renamed to **[`boundaries/no-ignored-dependencies`](../../rules/no-ignored-dependencies.md)**. This is a **name change only** — its behavior and (lack of) options are unchanged.
+
+:::warning[Deprecated]
+The `boundaries/no-ignored` rule name is kept for backward compatibility but is deprecated. Using it prints a one-time rename warning and it will be removed in a future major version. Rename the rule key to `boundaries/no-ignored-dependencies`.
+:::
+
+<CodeDiff language="javascript">{`
+  rules: {
+-   "boundaries/no-ignored": [2]
++   "boundaries/no-ignored-dependencies": [2]
+  }
+`}</CodeDiff>
 
 ## TypeScript-only breaking changes
 

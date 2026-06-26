@@ -1,0 +1,171 @@
+import ruleFactory from "../../../src/Rules/Dependencies";
+import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
+import {
+  SETTINGS,
+  createRuleTester,
+  pathResolvers,
+} from "../../support/helpers";
+
+const rule = ruleFactory();
+const { absoluteFilePath } = pathResolvers("docs-examples");
+
+const settings = SETTINGS.docsExamplesV7;
+
+const options = [
+  {
+    // disallow all external imports by default
+    checkAllOrigins: true,
+    default: "disallow",
+    rules: [
+      {
+        // from helper elements
+        from: { file: { categories: "helpers" } },
+        // allow importing moment
+        allow: [{ to: { module: { origin: "external", source: "moment" } } }],
+      },
+      {
+        // from component elements
+        from: { element: { type: "components" } },
+        allow: [
+          // allow importing react
+          { to: { module: { origin: "external", source: "react" } } },
+          // allow importing any @material-ui module
+          { to: { module: { origin: "external", source: "@material-ui/*" } } },
+        ],
+      },
+      {
+        // from components of family "molecules"
+        from: {
+          element: { type: "components", captured: { family: "molecules" } },
+        },
+        disallow: [
+          // disallow importing  @material-ui/icons
+          {
+            to: {
+              module: { origin: "external", source: "@material-ui/icons" },
+            },
+          },
+        ],
+      },
+      {
+        // from modules
+        from: { element: { type: "modules" } },
+        allow: [
+          // allow importing react
+          { to: { module: { origin: "external", source: "react" } } },
+          // allow importing useHistory, Switch and Route from react-router-dom
+          {
+            to: { module: { origin: "external", source: "react-router-dom" } },
+            dependency: { specifiers: ["useHistory", "Switch", "Route"] },
+          },
+        ],
+      },
+    ],
+  },
+];
+
+const ruleTester = createRuleTester(settings);
+
+ruleTester.run(RULE, rule, {
+  valid: [
+    // Helpers can import moment
+    {
+      filename: absoluteFilePath("helpers/data/parse.js"),
+      code: "import moment from 'moment'",
+      options,
+    },
+    // Components can import react
+    {
+      filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
+      code: "import React from 'react'",
+      options,
+    },
+    // Components can import @material-ui/core
+    {
+      filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
+      code: "import { Button } from '@material-ui/core'",
+      options,
+    },
+    // Modules can import react
+    {
+      filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+      code: "import React from 'react'",
+      options,
+    },
+    // Modules can import `useHistory` from `react-router-dom`
+    {
+      filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+      code: "import { useHistory } from 'react-router-dom'",
+      options,
+    },
+  ],
+  invalid: [
+    // Helpers can't import react
+    {
+      filename: absoluteFilePath("helpers/data/parse.js"),
+      code: "import React from 'react'",
+      options,
+      errors: [
+        {
+          message:
+            'There is no rule allowing dependencies from file of category "helpers" and captured values: restOfPath="test/fixtures/docs-examples", category="data", elementName="parse" to entities of module with origin "external" and module source "react"',
+          type: "Literal",
+        },
+      ],
+    },
+    // Helpers can't import specifier from react
+    {
+      filename: absoluteFilePath("helpers/data/parse.js"),
+      code: "import { useMemo } from 'react'",
+      options,
+      errors: [
+        {
+          message:
+            'There is no rule allowing dependencies from file of category "helpers" and captured values: restOfPath="test/fixtures/docs-examples", category="data", elementName="parse" to entities of module with origin "external" and module source "react"',
+          type: "Literal",
+        },
+      ],
+    },
+    // Components can't import `moment`
+    {
+      filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
+      code: "import moment from 'moment'",
+      options,
+      errors: [
+        {
+          message:
+            'There is no rule allowing dependencies from elements of type "components" and captured values: family="atoms", elementName="atom-a" to entities of module with origin "external" and module source "moment"',
+          type: "Literal",
+        },
+      ],
+    },
+    // Components of family "molecules" can't import `@material-ui/icons`
+    {
+      filename: absoluteFilePath(
+        "components/molecules/molecule-a/MoleculeA.js"
+      ),
+      code: "import { Info } from '@material-ui/icons'",
+      options,
+      errors: [
+        {
+          message:
+            'Dependencies with module source "@material-ui/icons" to entities of module with origin "external" are not allowed in elements of type "components" and captured values: family="molecules". Denied by rule at index 2',
+          type: "Literal",
+        },
+      ],
+    },
+    // Modules can't import `withRouter` from `react-router-dom`
+    {
+      filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+      code: "import { withRouter } from 'react-router-dom'",
+      options,
+      errors: [
+        {
+          message:
+            'There is no rule allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to entities of module with origin "external" and module source "react-router-dom"',
+          type: "Literal",
+        },
+      ],
+    },
+  ],
+});

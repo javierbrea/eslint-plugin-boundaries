@@ -182,9 +182,9 @@ export default [
         },
       ],
 
-      "local-rules/boundaries/no-unknown": [2],
+      "local-rules/boundaries/no-unknown-dependencies": [2],
       "local-rules/boundaries/no-unknown-files": [2],
-      "local-rules/boundaries/no-ignored": [2], */
+      "local-rules/boundaries/no-ignored-dependencies": [2], */
     },
   },
   {

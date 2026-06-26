@@ -151,9 +151,11 @@ describe("createConfig", () => {
           "boundaries/element-types": [2, { default: "disallow" }],
           "boundaries/entry-point": [1],
           "boundaries/external": [2, { forbid: ["lodash"] }],
+          "boundaries/no-ignored-dependencies": [0],
           "boundaries/no-ignored": [0],
           "boundaries/no-private": [2, { allowUncles: false }],
           "boundaries/no-unknown-files": [1],
+          "boundaries/no-unknown-dependencies": [2],
           "boundaries/no-unknown": [2],
         },
       };
@@ -165,9 +167,11 @@ describe("createConfig", () => {
         "myBoundaries/element-types": [2, { default: "disallow" }],
         "myBoundaries/entry-point": [1],
         "myBoundaries/external": [2, { forbid: ["lodash"] }],
+        "myBoundaries/no-ignored-dependencies": [0],
         "myBoundaries/no-ignored": [0],
         "myBoundaries/no-private": [2, { allowUncles: false }],
         "myBoundaries/no-unknown-files": [1],
+        "myBoundaries/no-unknown-dependencies": [2],
         "myBoundaries/no-unknown": [2],
       });
     });
@@ -485,9 +489,15 @@ describe("Constants", () => {
       expect(RULE_SHORT_NAMES_MAP.ELEMENT_TYPES).toBe("element-types");
       expect(RULE_SHORT_NAMES_MAP.ENTRY_POINT).toBe("entry-point");
       expect(RULE_SHORT_NAMES_MAP.EXTERNAL).toBe("external");
+      expect(RULE_SHORT_NAMES_MAP.NO_IGNORED_DEPENDENCIES).toBe(
+        "no-ignored-dependencies"
+      );
       expect(RULE_SHORT_NAMES_MAP.NO_IGNORED).toBe("no-ignored");
       expect(RULE_SHORT_NAMES_MAP.NO_PRIVATE).toBe("no-private");
       expect(RULE_SHORT_NAMES_MAP.NO_UNKNOWN_FILES).toBe("no-unknown-files");
+      expect(RULE_SHORT_NAMES_MAP.NO_UNKNOWN_DEPENDENCIES).toBe(
+        "no-unknown-dependencies"
+      );
       expect(RULE_SHORT_NAMES_MAP.NO_UNKNOWN).toBe("no-unknown");
     });
   });
@@ -505,10 +515,16 @@ describe("Constants", () => {
       expect(RULE_NAMES_MAP.ELEMENT_TYPES).toBe("boundaries/element-types");
       expect(RULE_NAMES_MAP.ENTRY_POINT).toBe("boundaries/entry-point");
       expect(RULE_NAMES_MAP.EXTERNAL).toBe("boundaries/external");
+      expect(RULE_NAMES_MAP.NO_IGNORED_DEPENDENCIES).toBe(
+        "boundaries/no-ignored-dependencies"
+      );
       expect(RULE_NAMES_MAP.NO_IGNORED).toBe("boundaries/no-ignored");
       expect(RULE_NAMES_MAP.NO_PRIVATE).toBe("boundaries/no-private");
       expect(RULE_NAMES_MAP.NO_UNKNOWN_FILES).toBe(
         "boundaries/no-unknown-files"
+      );
+      expect(RULE_NAMES_MAP.NO_UNKNOWN_DEPENDENCIES).toBe(
+        "boundaries/no-unknown-dependencies"
       );
       expect(RULE_NAMES_MAP.NO_UNKNOWN).toBe("boundaries/no-unknown");
     });
@@ -611,9 +627,11 @@ describe("Type Guard Functions", () => {
       expect(isRuleShortName("element-types")).toBe(true);
       expect(isRuleShortName("entry-point")).toBe(true);
       expect(isRuleShortName("external")).toBe(true);
+      expect(isRuleShortName("no-ignored-dependencies")).toBe(true);
       expect(isRuleShortName("no-ignored")).toBe(true);
       expect(isRuleShortName("no-private")).toBe(true);
       expect(isRuleShortName("no-unknown-files")).toBe(true);
+      expect(isRuleShortName("no-unknown-dependencies")).toBe(true);
       expect(isRuleShortName("no-unknown")).toBe(true);
     });
 
@@ -638,9 +656,11 @@ describe("Type Guard Functions", () => {
       expect(isRuleName("boundaries/element-types")).toBe(true);
       expect(isRuleName("boundaries/entry-point")).toBe(true);
       expect(isRuleName("boundaries/external")).toBe(true);
+      expect(isRuleName("boundaries/no-ignored-dependencies")).toBe(true);
       expect(isRuleName("boundaries/no-ignored")).toBe(true);
       expect(isRuleName("boundaries/no-private")).toBe(true);
       expect(isRuleName("boundaries/no-unknown-files")).toBe(true);
+      expect(isRuleName("boundaries/no-unknown-dependencies")).toBe(true);
       expect(isRuleName("boundaries/no-unknown")).toBe(true);
     });
 

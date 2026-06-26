@@ -669,9 +669,14 @@ function hasDeprecatedV7SelectorProp(value: unknown): boolean {
       return true;
     }
   }
-  return Object.values(value as Record<string, unknown>).some(
-    hasDeprecatedV7SelectorProp
-  );
+  // Do not recurse into `captured` — its keys are capture value names defined by
+  // the element pattern (e.g. `captured: { category: "atoms" }`) and must never
+  // be treated as deprecated selector properties.
+  const record = value as Record<string, unknown>;
+  return Object.entries(record)
+    .filter(([key]) => key !== "captured")
+    .map(([, val]) => val)
+    .some(hasDeprecatedV7SelectorProp);
 }
 
 /**

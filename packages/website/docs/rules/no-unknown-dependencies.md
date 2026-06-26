@@ -1,57 +1,79 @@
 ---
-id: no-unknown
-title: Rule no-unknown
-sidebar_label: No Unknown
-description: Documentation for the no-unknown rule in ESLint Plugin Boundaries.
+id: no-unknown-dependencies
+title: Rule no-unknown-dependencies
+sidebar_label: No Unknown Dependencies
+description: Documentation for the no-unknown-dependencies rule in ESLint Plugin Boundaries.
 tags:
   - rules
   - configuration
   - examples
 keywords:
   - eslint-plugin-boundaries
-  - no-unknown rule
+  - no-unknown-dependencies rule
   - unknown elements
+  - unknown files
   - import validation
   - architecture enforcement
   - import restrictions
 ---
 
-# no-unknown
+# no-unknown-dependencies
 
-> Prevent dependencies to locally-resolved files that do not match any **[element](../setup/elements.md)** descriptor.
+> Prevent dependencies to locally-resolved targets that are not recognized by any **[element](../setup/elements.md)** or **[file](../setup/files.md)** descriptor.
+
+:::info[Renamed rule]
+This rule was previously named `boundaries/no-unknown`. The old name still works but is **deprecated**: using it prints a one-time warning and it will be removed in a future major version. Update your configuration to `boundaries/no-unknown-dependencies`.
+:::
 
 ## Rule Details
 
-This rule validates dependencies to local files. If the dependency's target does not match any **[element descriptor](../setup/elements.md)** (its element is unknown) and the dependency has local origin, it is reported as an error.
+This rule validates dependencies to local files. A dependency is reported when its target is an **unknown element** or an **unknown file**, depending on the [options](#options). A target is an "unknown element" when it matches no [element descriptor](../setup/elements.md), and an "unknown file" when it matches no [file descriptor](../setup/files.md).
 
-The rule analyzes any source file that the plugin recognizes — a file that matches at least one element descriptor or one [file descriptor](../setup/files.md). It does not analyze files that are both element-unknown and file-unknown, or files that are ignored.
+The rule analyzes any source file that the plugin recognizes — a file that matches at least one element descriptor or one file descriptor. It does not analyze files that are both element-unknown and file-unknown, or files that are ignored.
 
-:::note
-The rule reports based on the target's **element**: a dependency is flagged when the target matches no element descriptor. A file matched only by a [file descriptor](../setup/files.md) (`boundaries/files`) is still an unknown element, so importing it is reported by this rule.
-:::
-
-:::tip
-The restriction set by this rule can also be achieved with the **[`boundaries/dependencies` rule](./dependencies.md)**, which lets you specify rules based on the `isUnknown` property of the [`element` sub-selector](../setup/selectors.md). This rule is provided as a shortcut for this common use case.
-
-Note that the two are not strictly equivalent. By default, `boundaries/dependencies` skips a target only when **both** its file and its element are unknown, while `no-unknown` looks only at the element. So a target that is **both file-unknown and element-unknown** is reported by `no-unknown`, but skipped by `boundaries/dependencies` unless you set `checkUnknownLocals: true`. A target matched by a [file descriptor](../setup/files.md) (known file, unknown element) is treated the **same** by both rules: since its file is known, `boundaries/dependencies` does not skip it, so both rules report it.
-
-Read the [replacement with `boundaries/dependencies`](#replacing-this-rule-with-boundariesdependencies) section below for more details and examples.
-:::
+By default (`allowUnknownElements: false`, `allowUnknownFiles: true`) the rule reports only when the target **element** is unknown, regardless of its file. This is the same behavior as the deprecated `boundaries/no-unknown` rule, so upgrading does not change results until you opt into file checking.
 
 ## Options
 
 ```text
-"boundaries/no-unknown": [<severity>]
+"boundaries/no-unknown-dependencies": [<severity>, <options>]
 ```
 
-This rule has no options. The only value is the ESLint severity: `0` = off, `1` = warning, `2` = error.
+The first value is the ESLint severity: `0` = off, `1` = warning, `2` = error. The optional second value is an options object:
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `allowUnknownElements` | `boolean` | `false` | When `true`, dependencies to unknown elements are allowed (the element axis is disabled). |
+| `allowUnknownFiles` | `boolean` | `true` | When `true`, dependencies to unknown files are allowed (the file axis is disabled). |
+
+A dependency is reported when:
+
+```text
+(target element is unknown AND allowUnknownElements is false)
+  OR
+(target file is unknown AND allowUnknownFiles is false)
+```
+
+The resulting behavior for each combination:
+
+| `allowUnknownElements` | `allowUnknownFiles` | Reports when |
+|---|---|---|
+| `false` (default) | `true` (default) | the target element is unknown (legacy behavior) |
+| `false` | `false` | the target element **or** file is unknown |
+| `true` | `false` | the target file is unknown |
+| `true` | `true` | never (rule effectively disabled) |
+
+:::tip[Projects using only file descriptors]
+If you classify your project with [`boundaries/files`](../setup/files.md) instead of elements, set `allowUnknownElements: true` and `allowUnknownFiles: false` so the rule judges targets purely by their file descriptor.
+:::
 
 ### Configuration Example
 
 ```js
 {
   rules: {
-    "boundaries/no-unknown": [2]
+    // Report unknown elements (default) and also unknown files
+    "boundaries/no-unknown-dependencies": [2, { allowUnknownFiles: false }]
   }
 }
 ```
@@ -140,10 +162,12 @@ import foo from './foo'
 
 ## Error Messages
 
-Default error message:
+The default message depends on which axes triggered the report:
 
 ```text
 Dependencies to unknown elements are not allowed
+Dependencies to unknown files are not allowed
+Dependencies to unknown elements and files are not allowed
 ```
 
 ## Replacing this rule with `boundaries/dependencies`
@@ -193,6 +217,7 @@ The flat form (`{ isUnknown: false }`) still works and is converted internally t
 Read next sections to learn more about related topics:
 
 * [Defining Elements](../setup/elements.md) - Learn how to define architectural elements in your project
+* [Defining Files](../setup/files.md) - Learn how to categorize files with file descriptors
 * [Selectors](../setup/selectors.md) - Learn about element, file, and module selectors used in rules
 * [Rules Configuration](../setup/rules.mdx) - Learn about rule options and dependency selectors
 * [Global Settings](../setup/settings.md) - Learn about global settings that affect all rules

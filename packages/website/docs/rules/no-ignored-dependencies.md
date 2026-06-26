@@ -1,15 +1,15 @@
 ---
-id: no-ignored
-title: Rule no-ignored
-sidebar_label: No Ignored
-description: Documentation for the no-ignored rule in ESLint Plugin Boundaries.
+id: no-ignored-dependencies
+title: Rule no-ignored-dependencies
+sidebar_label: No Ignored Dependencies
+description: Documentation for the no-ignored-dependencies rule in ESLint Plugin Boundaries.
 tags:
   - rules
   - configuration
   - examples
 keywords:
   - eslint-plugin-boundaries
-  - no-ignored rule
+  - no-ignored-dependencies rule
   - ignored files
   - boundaries/ignore
   - known elements
@@ -17,9 +17,13 @@ keywords:
   - import restrictions
 ---
 
-# no-ignored
+# no-ignored-dependencies
 
 > Prevent importing **[ignored files](../setup/settings.md#boundariesignore)** from recognized files.
+
+:::info[Renamed rule]
+This rule was previously named `boundaries/no-ignored`. The old name still works but is **deprecated**: using it prints a one-time warning and it will be removed in a future major version. Update your configuration to `boundaries/no-ignored-dependencies`.
+:::
 
 ## Rule Details
 
@@ -34,7 +38,7 @@ This rule is disabled in the `recommended` preset and enabled in the `strict` pr
 ## Options
 
 ```text
-"boundaries/no-ignored": [<severity>]
+"boundaries/no-ignored-dependencies": [<severity>]
 ```
 
 This rule has no options. The only value is the ESLint severity: `0` = off, `1` = warning, `2` = error.
@@ -44,7 +48,7 @@ This rule has no options. The only value is the ESLint severity: `0` = off, `1` 
 ```js
 {
   rules: {
-    "boundaries/no-ignored": [2]
+    "boundaries/no-ignored-dependencies": [2]
   }
 }
 ```

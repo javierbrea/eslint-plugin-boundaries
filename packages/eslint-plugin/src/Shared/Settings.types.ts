@@ -34,9 +34,13 @@ export const ELEMENT_TYPES = "element-types" as const;
 export const DEPENDENCIES = "dependencies" as const;
 export const ENTRY_POINT = "entry-point" as const;
 export const EXTERNAL = "external" as const;
+export const NO_IGNORED_DEPENDENCIES = "no-ignored-dependencies" as const;
+/** @deprecated Use NO_IGNORED_DEPENDENCIES instead */
 export const NO_IGNORED = "no-ignored" as const;
 export const NO_PRIVATE = "no-private" as const;
 export const NO_UNKNOWN_FILES = "no-unknown-files" as const;
+export const NO_UNKNOWN_DEPENDENCIES = "no-unknown-dependencies" as const;
+/** @deprecated Use NO_UNKNOWN_DEPENDENCIES instead */
 export const NO_UNKNOWN = "no-unknown" as const;
 
 /**
@@ -48,9 +52,13 @@ export const RULE_SHORT_NAMES_MAP = {
   DEPENDENCIES,
   ENTRY_POINT,
   EXTERNAL,
+  NO_IGNORED_DEPENDENCIES,
+  /** @deprecated Use NO_IGNORED_DEPENDENCIES instead */
   NO_IGNORED,
   NO_PRIVATE,
   NO_UNKNOWN_FILES,
+  NO_UNKNOWN_DEPENDENCIES,
+  /** @deprecated Use NO_UNKNOWN_DEPENDENCIES instead */
   NO_UNKNOWN,
 } as const;
 
@@ -59,9 +67,15 @@ const ELEMENT_TYPES_FULL = `${PLUGIN_NAME}/${ELEMENT_TYPES}` as const;
 const DEPENDENCIES_FULL = `${PLUGIN_NAME}/${DEPENDENCIES}` as const;
 const ENTRY_POINT_FULL = `${PLUGIN_NAME}/${ENTRY_POINT}` as const;
 const EXTERNAL_FULL = `${PLUGIN_NAME}/${EXTERNAL}` as const;
+const NO_IGNORED_DEPENDENCIES_FULL =
+  `${PLUGIN_NAME}/${NO_IGNORED_DEPENDENCIES}` as const;
+/** @deprecated Use NO_IGNORED_DEPENDENCIES_FULL instead */
 const NO_IGNORED_FULL = `${PLUGIN_NAME}/${NO_IGNORED}` as const;
 const NO_PRIVATE_FULL = `${PLUGIN_NAME}/${NO_PRIVATE}` as const;
 const NO_UNKNOWN_FILES_FULL = `${PLUGIN_NAME}/${NO_UNKNOWN_FILES}` as const;
+const NO_UNKNOWN_DEPENDENCIES_FULL =
+  `${PLUGIN_NAME}/${NO_UNKNOWN_DEPENDENCIES}` as const;
+/** @deprecated Use NO_UNKNOWN_DEPENDENCIES_FULL instead */
 const NO_UNKNOWN_FULL = `${PLUGIN_NAME}/${NO_UNKNOWN}` as const;
 
 /**
@@ -73,9 +87,13 @@ export const RULE_NAMES_MAP = {
   DEPENDENCIES: DEPENDENCIES_FULL,
   ENTRY_POINT: ENTRY_POINT_FULL,
   EXTERNAL: EXTERNAL_FULL,
+  NO_IGNORED_DEPENDENCIES: NO_IGNORED_DEPENDENCIES_FULL,
+  /** @deprecated Use NO_IGNORED_DEPENDENCIES instead */
   NO_IGNORED: NO_IGNORED_FULL,
   NO_PRIVATE: NO_PRIVATE_FULL,
   NO_UNKNOWN_FILES: NO_UNKNOWN_FILES_FULL,
+  NO_UNKNOWN_DEPENDENCIES: NO_UNKNOWN_DEPENDENCIES_FULL,
+  /** @deprecated Use NO_UNKNOWN_DEPENDENCIES instead */
   NO_UNKNOWN: NO_UNKNOWN_FULL,
 } as const;
 
@@ -179,9 +197,13 @@ export const SETTINGS = {
   RULE_DEPENDENCIES: `${PLUGIN_NAME}/${DEPENDENCIES}`,
   RULE_ENTRY_POINT: `${PLUGIN_NAME}/${ENTRY_POINT}`,
   RULE_EXTERNAL: `${PLUGIN_NAME}/${EXTERNAL}`,
+  RULE_NO_IGNORED_DEPENDENCIES: `${PLUGIN_NAME}/${NO_IGNORED_DEPENDENCIES}`,
+  /** @deprecated Use RULE_NO_IGNORED_DEPENDENCIES instead */
   RULE_NO_IGNORED: `${PLUGIN_NAME}/${NO_IGNORED}`,
   RULE_NO_PRIVATE: `${PLUGIN_NAME}/${NO_PRIVATE}`,
   RULE_NO_UNKNOWN_FILES: `${PLUGIN_NAME}/${NO_UNKNOWN_FILES}`,
+  RULE_NO_UNKNOWN_DEPENDENCIES: `${PLUGIN_NAME}/${NO_UNKNOWN_DEPENDENCIES}`,
+  /** @deprecated Use RULE_NO_UNKNOWN_DEPENDENCIES instead */
   RULE_NO_UNKNOWN: `${PLUGIN_NAME}/${NO_UNKNOWN}`,
 
   // deprecated settings
@@ -491,9 +513,11 @@ export type Rules<PluginName extends string = typeof PLUGIN_NAME> = {
     | typeof DEPENDENCIES
     | typeof ENTRY_POINT
     | typeof EXTERNAL
+    | typeof NO_IGNORED_DEPENDENCIES
     | typeof NO_IGNORED
     | typeof NO_PRIVATE
     | typeof NO_UNKNOWN_FILES
+    | typeof NO_UNKNOWN_DEPENDENCIES
     | typeof NO_UNKNOWN}`]?: K extends `${PluginName}/${typeof ELEMENT_TYPES}`
     ? Linter.RuleEntry<DependenciesRuleOptions[]>
     : K extends `${PluginName}/${typeof DEPENDENCIES}`
@@ -504,7 +528,11 @@ export type Rules<PluginName extends string = typeof PLUGIN_NAME> = {
           ? Linter.RuleEntry<ExternalRuleOptions[]>
           : K extends `${PluginName}/${typeof NO_PRIVATE}`
             ? Linter.RuleEntry<NoPrivateOptions[]>
-            : Linter.RuleEntry<never>;
+            : K extends `${PluginName}/${
+                  | typeof NO_UNKNOWN_DEPENDENCIES
+                  | typeof NO_UNKNOWN}`
+              ? Linter.RuleEntry<NoUnknownDependenciesOptions[]>
+              : Linter.RuleEntry<never>;
 };
 
 export type FlagAsExternalBooleanOptionKey =
@@ -727,12 +755,32 @@ export type NoPrivateOptions = {
   message?: string;
 };
 
+/**
+ * Options for the no-unknown-dependencies rule, which prevents dependencies to
+ * targets that are not recognized by any element or file descriptor.
+ *
+ * A dependency is reported when its target is an unknown element OR an unknown file.
+ * Each option, when set to `true`, disables ("allows") that kind of unknown target.
+ * With the defaults (`allowUnknownElements: false`, `allowUnknownFiles: true`) the rule
+ * reports only when the target element is unknown, preserving the behavior of the
+ * deprecated `no-unknown` rule.
+ */
+export type NoUnknownDependenciesOptions = {
+  /** When `true`, dependencies to unknown files (not matching any file descriptor) are allowed. (default: `true`) */
+  allowUnknownFiles?: boolean;
+  /** When `true`, dependencies to unknown elements (not matching any element descriptor) are allowed. (default: `false`) */
+  allowUnknownElements?: boolean;
+};
+
 export type RuleOptionsWithRules =
   | ExternalRuleOptions
   | EntryPointRuleOptions
   | DependenciesRuleOptions;
 
-export type RuleOptions = RuleOptionsWithRules | NoPrivateOptions;
+export type RuleOptions =
+  | RuleOptionsWithRules
+  | NoPrivateOptions
+  | NoUnknownDependenciesOptions;
 
 export type RuleOptionsRules = ExternalRule | EntryPointRule | DependenciesRule;
 

@@ -132,10 +132,10 @@ function getPerformanceTest({ name, config, maxDurationMs, legacyRuleNames }) {
       );
 
       await runner.assert(
-        `performance config should include at least one no-unknown rule error`,
+        `performance config should include at least one no-unknown-dependencies rule error`,
         async () => {
           return allMessages.some(
-            (msg) => msg.ruleId === "boundaries/no-unknown"
+            (msg) => msg.ruleId === "boundaries/no-unknown-dependencies"
           );
         }
       );
@@ -591,7 +591,7 @@ const tests = [
             fileResult?.errorCount === 1 &&
             fileResult?.messages.some(
               (msg) =>
-                msg.ruleId === "boundaries/no-unknown" &&
+                msg.ruleId === "boundaries/no-unknown-dependencies" &&
                 msg.message.includes(
                   "Dependencies to unknown elements are not allowed"
                 )
@@ -625,7 +625,7 @@ const tests = [
             fileResult?.errorCount === 1 &&
             fileResult?.messages.some(
               (msg) =>
-                msg.ruleId === "boundaries/no-ignored" &&
+                msg.ruleId === "boundaries/no-ignored-dependencies" &&
                 msg.message.includes(
                   "Dependencies to ignored files are not allowed"
                 )

@@ -9,9 +9,9 @@ keywords:
   - rules
   - rules overview
   - dependencies
-  - no-unknown
+  - no-unknown-dependencies
   - no-unknown-files
-  - no-ignored
+  - no-ignored-dependencies
   - architecture enforcement
   - import restrictions
   - dependency constraints
@@ -47,21 +47,29 @@ This rule reports files that your architecture does not recognize at all. A file
 
 See the [documentation for the `boundaries/no-unknown-files` rule](./no-unknown-files.md) for more details.
 
-## no-unknown
+## no-unknown-dependencies
 
-This rule prevents known elements from importing local dependencies whose target does not match any [element descriptor](../setup/elements.md) (an unknown element). It helps maintain clear boundaries by preventing dependencies on unclassified parts of your project.
+This rule prevents known files from importing local dependencies whose target is not recognized by your architecture. A target is reported when it is an unknown element or an unknown file, controlled by the `allowUnknownElements` (default `false`) and `allowUnknownFiles` (default `true`) options. With the defaults it reports only unknown **elements**, matching the behavior of the former `no-unknown` rule.
 
-See the [documentation for the `boundaries/no-unknown` rule](./no-unknown.md) for more details.
+:::info[Renamed rule]
+This rule was previously named `boundaries/no-unknown`. The old name still works but is **deprecated** and prints a one-time warning. Update your configuration to `boundaries/no-unknown-dependencies`.
+:::
+
+See the [documentation for the `boundaries/no-unknown-dependencies` rule](./no-unknown-dependencies.md) for more details.
 
 :::tip
 The restriction set by this rule can also be achieved with the **[`boundaries/dependencies` rule](./dependencies.md)**, which lets you specify rules based on the `isUnknown` property of the [element selector](../setup/selectors.md). This rule is provided as a shortcut for this common use case. Use either this specific rule or `boundaries/dependencies` for more granularity, based on your needs.
 :::
 
-## no-ignored
+## no-ignored-dependencies
 
 This rule ensures that all known files can only import non-ignored files. It helps maintain the integrity of your architecture by preventing dependencies on files that are intentionally excluded from the architectural boundaries.
 
-See the [documentation for the `boundaries/no-ignored` rule](./no-ignored.md) for more details.
+:::info[Renamed rule]
+This rule was previously named `boundaries/no-ignored`. The old name still works but is **deprecated** and prints a one-time warning. Update your configuration to `boundaries/no-ignored-dependencies`.
+:::
+
+See the [documentation for the `boundaries/no-ignored-dependencies` rule](./no-ignored-dependencies.md) for more details.
 
 ## Deprecated rules
 

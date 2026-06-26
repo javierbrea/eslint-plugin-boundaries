@@ -19,6 +19,7 @@ export type {
   ExternalRule,
   ExternalRuleOptions,
   NoPrivateOptions,
+  NoUnknownDependenciesOptions,
   RuleShortName,
   RuleName,
 } from "../Shared";

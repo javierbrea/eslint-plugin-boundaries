@@ -1,0 +1,81 @@
+import rule from "../../../src/Rules/NoUnknownFiles";
+import { NO_UNKNOWN_FILES as RULE } from "../../../src/Shared";
+import {
+  SETTINGS,
+  createRuleTester,
+  pathResolvers,
+} from "../../support/helpers";
+import type { RuleTesterSettings } from "../../support/helpers";
+
+const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
+
+const FOO_CODE = "export default {}";
+const ERROR_MESSAGE =
+  "File does not match any file pattern and does not belong to any known element";
+
+const runTest = (settings: RuleTesterSettings) => {
+  const ruleTester = createRuleTester(settings);
+  ruleTester.run(RULE, rule, {
+    valid: [
+      // Components files are valid
+      {
+        filename: absoluteFilePath("components/component-a/index.js"),
+        code: FOO_CODE,
+      },
+      // Modules files are valid
+      {
+        filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+        code: FOO_CODE,
+      },
+      // Helpers files are valid
+      {
+        filename: absoluteFilePath("helpers/helper-a/index.js"),
+        code: FOO_CODE,
+      },
+      // Helpers non existent files are valid
+      {
+        filename: absoluteFilePath("helpers/non-existent/index.js"),
+        code: FOO_CODE,
+      },
+      // Ignored files are valid
+      {
+        filename: absoluteFilePath("foo/index.js"),
+        code: FOO_CODE,
+        settings: {
+          ...settings,
+          "boundaries/ignore": [codeFilePath("foo/*.js")],
+        },
+      },
+    ],
+    invalid: [
+      // Not under type folder
+      {
+        filename: absoluteFilePath("foo/index.js"),
+        code: FOO_CODE,
+        errors: [
+          {
+            message: ERROR_MESSAGE,
+            type: "Program",
+          },
+        ],
+      },
+      // Not under element folder
+      {
+        filename: absoluteFilePath("helpers/index.js"),
+        code: FOO_CODE,
+        errors: [
+          {
+            message: ERROR_MESSAGE,
+            type: "Program",
+          },
+        ],
+      },
+    ],
+  });
+};
+
+// deprecated settings
+runTest(SETTINGS.deprecated);
+
+// new settings
+runTest(SETTINGS.oneLevel);

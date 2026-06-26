@@ -3,3 +3,9 @@ https://jsboundaries.netlify.app/* https://www.jsboundaries.dev/:splat 301!
 
 # Redirects. Add specific rules when url changes are needed.
 # Format: /<from> /<to> <status>
+
+# The `no-unknown` rule was renamed to `no-unknown-dependencies` in v7.
+/docs/rules/no-unknown/ /docs/rules/no-unknown-dependencies/ 301!
+
+# The `no-ignored` rule was renamed to `no-ignored-dependencies` in v7.
+/docs/rules/no-ignored/ /docs/rules/no-ignored-dependencies/ 301!

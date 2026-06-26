@@ -1,4 +1,4 @@
-import rule from "../../../src/Rules/NoIgnored";
+import getRule from "../../../src/Rules/NoIgnored";
 import { NO_IGNORED as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
@@ -6,6 +6,8 @@ import {
   pathResolvers,
 } from "../../support/helpers";
 import type { RuleTesterSettings } from "../../support/helpers";
+
+const rule = getRule();
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 

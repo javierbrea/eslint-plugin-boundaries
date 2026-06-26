@@ -254,9 +254,9 @@ export default [
           ],
         },
       ],
-      "boundaries/no-unknown": ["error"],
+      "boundaries/no-unknown-dependencies": ["error"],
       "boundaries/no-unknown-files": ["error"],
-      "boundaries/no-ignored": ["error"],
+      "boundaries/no-ignored-dependencies": ["error"],
     },
   },
 ];

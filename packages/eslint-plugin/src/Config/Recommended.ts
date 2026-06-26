@@ -8,10 +8,10 @@ const {
   RULE_DEPENDENCIES,
   RULE_ENTRY_POINT,
   RULE_EXTERNAL,
-  RULE_NO_IGNORED,
+  RULE_NO_IGNORED_DEPENDENCIES,
   RULE_NO_PRIVATE,
   RULE_NO_UNKNOWN_FILES,
-  RULE_NO_UNKNOWN,
+  RULE_NO_UNKNOWN_DEPENDENCIES,
 } = SETTINGS;
 
 // TODO In next major version: Export also files, plugin, etc.
@@ -20,7 +20,7 @@ const {
  * Recommended configuration for eslint-plugin-boundaries.
  *
  * It is recommended for applying the plugin to an already existing project.
- * Rules `boundaries/no-unknown`, `boundaries/no-unknown-files` and `boundaries/no-ignored` are disabled,
+ * Rules `boundaries/no-unknown-dependencies`, `boundaries/no-unknown-files` and `boundaries/no-ignored-dependencies` are disabled,
  * so it allows to have parts of the project non-compliant with defined rules, allowing to refactor the code progressively.
  */
 const config: Config = {
@@ -29,10 +29,10 @@ const config: Config = {
     [RULE_DEPENDENCIES]: [2],
     [RULE_ENTRY_POINT]: [2],
     [RULE_EXTERNAL]: [2],
-    [RULE_NO_IGNORED]: 0,
+    [RULE_NO_IGNORED_DEPENDENCIES]: 0,
     [RULE_NO_PRIVATE]: 0,
     [RULE_NO_UNKNOWN_FILES]: 0,
-    [RULE_NO_UNKNOWN]: 0,
+    [RULE_NO_UNKNOWN_DEPENDENCIES]: 0,
   },
   settings: {
     [ELEMENTS]: [],
