@@ -5,6 +5,7 @@ jest.mock("../Debug", () => ({
 import { isAbsolute, resolve } from "path";
 
 import type { ElementDescriptor } from "@boundaries/elements";
+import { ELEMENT_DESCRIPTOR_MODES_MAP } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
 import { warnOnce } from "../Debug";
@@ -103,7 +104,7 @@ describe("Settings/Settings", () => {
       expect(transformLegacyTypes(["service"])).toEqual([
         {
           type: "service",
-          match: SETTINGS.VALID_MODES[0],
+          match: ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER,
           pattern: "service/*",
           capture: ["elementName"],
         },
@@ -117,7 +118,7 @@ describe("Settings/Settings", () => {
         {
           type: "service",
           pattern: "service/**",
-          match: SETTINGS.VALID_MODES[0],
+          match: ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER,
         },
       ]);
     });
@@ -328,7 +329,7 @@ describe("Settings/Settings", () => {
           {
             type: "service",
             pattern: "service/*",
-            match: SETTINGS.VALID_MODES[0],
+            match: ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER,
             capture: ["elementName"],
           },
         ]);
@@ -353,7 +354,10 @@ describe("Settings/Settings", () => {
           expect.stringContaining("invalid"),
           expect.stringContaining(
             JSON.stringify([
-              { match: SETTINGS.VALID_MODES[0], ...invalidElementDescriptor },
+              {
+                match: ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER,
+                ...invalidElementDescriptor,
+              },
             ])
           )
         );

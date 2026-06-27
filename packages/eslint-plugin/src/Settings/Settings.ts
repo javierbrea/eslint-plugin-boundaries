@@ -1,7 +1,6 @@
 import { isAbsolute, resolve } from "path";
 
 import type {
-  DependencyKind,
   ElementDescriptors,
   ElementDescriptor,
   FlagAsExternalOptions,
@@ -17,6 +16,8 @@ import {
   normalizeEntitySelector,
   isFileSelector,
   normalizeFileSelector,
+  ELEMENT_DESCRIPTOR_MODES_MAP,
+  isDependencyKind,
 } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
@@ -52,9 +53,7 @@ const {
   ELEMENTS,
   DEPENDENCY_NODES,
   ADDITIONAL_DEPENDENCY_NODES,
-  VALID_DEPENDENCY_NODE_KINDS,
   DEFAULT_DEPENDENCY_NODES,
-  VALID_MODES,
   ENV_ROOT_PATH,
 } = SETTINGS;
 
@@ -114,14 +113,14 @@ export function transformLegacyTypes(
     if (isLegacyElementDescriptorType(type)) {
       return {
         type: type,
-        match: VALID_MODES[0],
+        match: ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER,
         pattern: `${type}/*`,
         capture: ["elementName"],
       };
     }
     // default options
     return {
-      match: VALID_MODES[0],
+      match: ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER,
       ...type,
     };
   });
@@ -139,11 +138,7 @@ export function isValidDependencyNodeSelector(
   const isValidObject =
     isObject(selector) &&
     isString(selector.selector) &&
-    (!selector.kind ||
-      (isString(selector.kind) &&
-        VALID_DEPENDENCY_NODE_KINDS.includes(
-          selector.kind as DependencyKind
-        ))) &&
+    (!selector.kind || isDependencyKind(selector.kind)) &&
     (!selector.name || isString(selector.name));
 
   if (!isValidObject) {
@@ -492,7 +487,9 @@ function getNormalizedElementDescriptors(
   const FILE_EXTENSION_RE = /\.[a-zA-Z0-9]+/;
   const fileLikeDescriptors = validElementDescriptors.filter((d) => {
     const isEffectiveFolderMode =
-      d.partialMatch === false || !d.mode || d.mode === "folder";
+      d.partialMatch === false ||
+      !d.mode ||
+      d.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
     if (!isEffectiveFolderMode) return false;
     const patterns = Array.isArray(d.pattern) ? d.pattern : [d.pattern];
     return patterns.some((p) => FILE_EXTENSION_RE.test(p.split("/").pop()!));

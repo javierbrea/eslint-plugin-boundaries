@@ -1,3 +1,7 @@
+import {
+  ELEMENT_DESCRIPTOR_MODES_MAP,
+  DEPENDENCY_KINDS_MAP,
+} from "@boundaries/elements";
 import type {
   DependencyKind,
   ElementDescriptors,
@@ -212,9 +216,17 @@ export const SETTINGS = {
   FILES: `${PLUGIN_NAME}/files`,
 
   // elements settings properties,
-  VALID_MODES: ["folder", "file", "full"],
+  VALID_MODES: [
+    ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER,
+    ELEMENT_DESCRIPTOR_MODES_MAP.FILE,
+    ELEMENT_DESCRIPTOR_MODES_MAP.FULL,
+  ],
 
-  VALID_DEPENDENCY_NODE_KINDS: ["value", "type", "typeof"],
+  VALID_DEPENDENCY_NODE_KINDS: [
+    DEPENDENCY_KINDS_MAP.VALUE,
+    DEPENDENCY_KINDS_MAP.TYPE,
+    DEPENDENCY_KINDS_MAP.TYPE_OF,
+  ],
   DEFAULT_DEPENDENCY_NODES: {
     [DEPENDENCY_NODE_KEYS_MAP.REQUIRE]: [
       // Note: detects "require('source')"
