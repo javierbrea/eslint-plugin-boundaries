@@ -7,6 +7,7 @@ import type { DescriptorOptionsNormalized } from "../../Config";
 import type { Micromatch } from "../../Matcher";
 import { normalizePath, isNullish } from "../../Shared";
 import type { MicromatchPattern } from "../../Shared";
+import { PathHelper } from "../Shared";
 
 import type { ModuleDescription } from "./ModuleDescription.types";
 import { ORIGINS_MAP } from "./ModuleDescription.types";
@@ -35,6 +36,9 @@ export class ModulesDescriptor {
   /** Micromatch instance for path matching */
   private readonly _micromatch: Micromatch;
 
+  /** Shared path helper providing root-path utilities */
+  private readonly _pathHelper: PathHelper;
+
   /**
    * The configuration options for this descriptor.
    * @param configOptions The configuration options.
@@ -46,6 +50,7 @@ export class ModulesDescriptor {
   ) {
     this._micromatch = micromatch;
     this._config = configOptions;
+    this._pathHelper = new PathHelper(configOptions, micromatch);
     this._descriptionsCache = this._config.cache
       ? new CacheManager<string, ModuleDescription>()
       : new CacheManagerDisabled<string, ModuleDescription>();
@@ -124,18 +129,6 @@ export class ModulesDescriptor {
     }
     const [pkg] = dependencySource.split("/");
     return pkg;
-  }
-
-  /**
-   * Determines if a file path is outside the configured root path.
-   * @param filePath The file path to check.
-   * @returns True if the file path is outside the root path, false otherwise.
-   */
-  private _isOutsideRootPath(filePath: string): boolean {
-    if (!this._config.rootPath) {
-      return false;
-    }
-    return !filePath.startsWith(this._config.rootPath);
   }
 
   /**
@@ -231,19 +224,6 @@ export class ModulesDescriptor {
    */
   public clearCache(): void {
     this._descriptionsCache.clear();
-  }
-
-  /**
-   * Converts an absolute file path to a relative path if rootPath is configured.
-   * If rootPath is not configured, returns the path as-is (maintains backward compatibility).
-   * @param filePath The file path to convert (can be absolute or relative)
-   * @returns The relative path if rootPath is configured and path is absolute, otherwise the original path
-   */
-  private _toRelativePath(filePath: string): string {
-    if (!this._config.rootPath || this._isOutsideRootPath(filePath)) {
-      return filePath;
-    }
-    return filePath.replace(this._config.rootPath, "");
   }
 
   /**
@@ -363,11 +343,11 @@ export class ModulesDescriptor {
     }
     const normalizedFilePath = filePath ? normalizePath(filePath) : filePath;
     const isOutsideRootPath = normalizedFilePath
-      ? this._isOutsideRootPath(normalizedFilePath)
+      ? this._pathHelper.isOutsideRootPath(normalizedFilePath)
       : true;
     const relativePath =
       normalizedFilePath && this._config.rootPath
-        ? this._toRelativePath(normalizedFilePath)
+        ? this._pathHelper.toRelativePath(normalizedFilePath)
         : normalizedFilePath;
     const moduleDescription = this._getModuleDescription(
       isOutsideRootPath,

@@ -2,7 +2,7 @@ import { CacheManager, CacheManagerDisabled } from "../../Cache";
 import type { DescriptorOptionsNormalized } from "../../Config";
 import type { Micromatch } from "../../Matcher";
 import { isArray, isObject, normalizePath } from "../../Shared";
-import type { CapturedValues } from "../Shared";
+import { PathHelper } from "../Shared";
 
 import type {
   ElementDescription,
@@ -89,6 +89,9 @@ export class ElementsDescriptor {
   /** Whether single-type matching is enabled (only first matching type is kept) */
   private readonly _singleType: boolean;
 
+  /** Shared path helper providing root-path and include/ignore utilities */
+  private readonly _pathHelper: PathHelper;
+
   /**
    * The configuration options for this descriptor.
    * @param elementDescriptors The element descriptors.
@@ -108,6 +111,7 @@ export class ElementsDescriptor {
     this._elementDescriptors = elementDescriptors;
     this._validateDescriptors(elementDescriptors);
     this._config = configOptions;
+    this._pathHelper = new PathHelper(configOptions, micromatch);
     this._descriptionsCache = this._config.cache
       ? new CacheManager<string, ElementDescription>()
       : new CacheManagerDisabled<string, ElementDescription>();
@@ -162,80 +166,6 @@ export class ElementsDescriptor {
       }
       index++;
     }
-  }
-
-  /**
-   * Determines if a file path is outside the configured root path.
-   * @param filePath The file path to check.
-   * @returns True if the file path is outside the root path, false otherwise.
-   */
-  private _isOutsideRootPath(filePath: string): boolean {
-    return !filePath.startsWith(this._config.rootPath!);
-  }
-
-  /**
-   * Converts an absolute file path to a relative path if rootPath is configured.
-   * If rootPath is not configured, returns the path as-is (maintains backward compatibility).
-   * @param filePath The file path to convert (can be absolute or relative)
-   * @returns The relative path if rootPath is configured and path is absolute, otherwise the original path
-   */
-  private _toRelativePath(filePath: string): string {
-    if (!this._config.rootPath || this._isOutsideRootPath(filePath)) {
-      return filePath;
-    }
-    return filePath.replace(this._config.rootPath, "");
-  }
-
-  /**
-   * Determines if a given path is included based on the configuration.
-   * Uses caching for better performance on repeated calls.
-   * @param elementPath The element path to check.
-   * @param includeExternal Whether to include external files.
-   * @returns True if the path is included, false otherwise.
-   */
-  private _pathIsIncluded(elementPath: string): boolean {
-    let result: boolean;
-
-    if (this._config.includePaths && this._config.ignorePaths) {
-      const isIncluded = this._micromatch.isMatch(
-        elementPath,
-        this._config.includePaths
-      );
-      const isIgnored = this._micromatch.isMatch(
-        elementPath,
-        this._config.ignorePaths
-      );
-      result = isIncluded && !isIgnored;
-    } else if (this._config.includePaths) {
-      result = this._micromatch.isMatch(elementPath, this._config.includePaths);
-    } else if (this._config.ignorePaths) {
-      result = !this._micromatch.isMatch(elementPath, this._config.ignorePaths);
-    } else {
-      result = true;
-    }
-
-    return result;
-  }
-
-  /**
-   * Gets captured values from the captured array and capture configuration.
-   * @param captured The array of captured strings.
-   * @param captureConfig The configuration for capturing values.
-   * @returns The captured values as an object.
-   */
-  private _getCapturedValues(
-    captured: string[],
-    captureConfig?: string[]
-  ): CapturedValues | null {
-    if (!captureConfig) {
-      return null;
-    }
-    return captured.reduce((capturedValues, captureValue, index) => {
-      if (captureConfig[index]) {
-        capturedValues[captureConfig[index]] = captureValue;
-      }
-      return capturedValues;
-    }, {} as CapturedValues);
   }
 
   /**
@@ -396,7 +326,7 @@ export class ElementsDescriptor {
     }
 
     // Return ignored element if the path is not included in the configuration.
-    if (!this._pathIsIncluded(filePath)) {
+    if (!this._pathHelper.pathIsIncluded(filePath)) {
       return {
         ...UNKNOWN_ELEMENT,
         filePath: filePath,
@@ -445,14 +375,14 @@ export class ElementsDescriptor {
     ) => {
       const { capture, baseCapture, useFullPathMatch, patternUsed } = matchInfo;
 
-      let capturedValues = this._getCapturedValues(
+      let capturedValues = this._pathHelper.getCapturedValues(
         capture,
         elementDescriptor.capture
       );
 
       if (elementDescriptor.basePattern && baseCapture) {
         capturedValues = {
-          ...this._getCapturedValues(
+          ...this._pathHelper.getCapturedValues(
             baseCapture,
             elementDescriptor.baseCapture
           ),
@@ -626,7 +556,7 @@ export class ElementsDescriptor {
   ): ElementDescription {
     // isIgnored depends on the full file path, so it must be evaluated per file before
     // touching the folder base.
-    if (!this._pathIsIncluded(relativePath)) {
+    if (!this._pathHelper.pathIsIncluded(relativePath)) {
       return {
         ...UNKNOWN_ELEMENT,
         filePath: relativePath,
@@ -667,7 +597,7 @@ export class ElementsDescriptor {
     const normalizedFilePath = filePath ? normalizePath(filePath) : filePath;
     const relativePath =
       normalizedFilePath && this._config.rootPath
-        ? this._toRelativePath(normalizedFilePath)
+        ? this._pathHelper.toRelativePath(normalizedFilePath)
         : normalizedFilePath;
     const cacheKey = `${relativePath}`;
     if (this._descriptionsCache.has(cacheKey)) {
