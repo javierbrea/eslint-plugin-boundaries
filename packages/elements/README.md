@@ -85,8 +85,8 @@ const elements = new Elements();
 // Define your project structure
 const matcher = elements.getMatcher({
   elements: [
-    { type: "component", pattern: "src/components/*", mode: "folder", capture: ["name"] },
-    { type: "service", pattern: "src/services/*.ts", mode: "file", capture: ["name"] },
+    { type: "component", pattern: "src/components/*", capture: ["name"] },
+    { type: "service", pattern: "src/services/*.ts", capture: ["name"] },
   ],
   files: [
     { pattern: "**/*.spec.ts", category: "test" },
@@ -218,8 +218,8 @@ const elements = new Elements({
 > **Pattern Matching with `rootPath`:**
 > When `rootPath` **is configured**:
 > - **Matching patterns** in element descriptors are **relative to the `rootPath`**. The package automatically converts absolute paths to relative paths internally for pattern matching.
-> - In **`file` and `folder` modes**, patterns are evaluated **right-to-left** (from the end of the path), so the relativity to `rootPath` is typically less important. For example, a pattern like `*.model.ts` will match any file ending with `.model.ts` regardless of its location within `rootPath`.
-> - In **`full` mode**, patterns must match the complete relative path from `rootPath`. Files outside `rootPath` maintain their absolute paths and require absolute patterns to match.
+> - With **`partialMatch: true`** (the default), patterns are evaluated **right-to-left** (from the end of the path), so the relativity to `rootPath` is typically less important. For example, a pattern like `*.model.ts` will match any file ending with `.model.ts` regardless of its location within `rootPath`.
+> - With **`partialMatch: false`**, patterns must match the complete relative path from `rootPath`. Files outside `rootPath` maintain their absolute paths and require absolute patterns to match.
 
 ### Creating a Matcher
 
@@ -228,9 +228,11 @@ Use the `getMatcher` method to create a matcher with a descriptors configuration
 ```typescript
 const matcher = elements.getMatcher({
   elements: [
-    { type: "component", pattern: "src/components/*", mode: "folder" },
-    { type: "helper", pattern: "src/helpers/*.js", mode: "file" },
+    { type: "component", pattern: "src/components/*" },
   ],
+  files: [
+    { category: "helper", pattern: "src/helpers/*.js" },
+  ]
 });
 ```
 
@@ -245,7 +247,7 @@ You can combine element and file descriptors:
 ```typescript
 const matcher = elements.getMatcher({
   elements: [
-    { type: "module", pattern: "src/modules/*", mode: "folder" },
+    { type: "module", pattern: "src/modules/*" },
   ],
   files: [
     { pattern: "**/*.controller.ts", category: "controller", capture: ["name"] },
@@ -279,10 +281,10 @@ Element descriptors define how files are identified and categorized into archite
   - `"folder"`: Matches the first folder matching the pattern. The library will add `**/*` to the given pattern for matching files, because it needs to know exactly which folder has to be considered the element. So, you have to provide patterns matching the folder being the element, not the files directly.
   - `"file"`: Matches files directly, but still matches progressively from the right. The provided pattern will not be modified.
   - `"full"`: Matches the complete path.
-- **`partialMatch`** (`boolean`): Whether the pattern is allowed to match only a suffix of the file path (default: `true`). When `true`, the pattern is matched right-to-left, so it only needs to match the end of the path (`components/*` matches any path ending in `components/<something>`). When `false`, the pattern is matched against the full file path from the project root, while keeping folder semantics (the element `path` is the matched folder prefix). It defaults to `true` for backward compatibility, but will most likely default to `false` in a future major version and eventually be removed, because requiring the full pattern is more intuitive and is already how file descriptors match. When `false`, the `mode` option has no effect.
-- **`basePattern`** (`string`): Additional pattern that must match from the project root. Use it when using `file` or `folder` modes and you want to capture fragments from the rest of the path.
+- **`partialMatch`** (`boolean`): Whether the pattern is allowed to match only a suffix of the file path (default: `true`). When `true`, the pattern is matched right-to-left, so it only needs to match the end of the path (`components/*` matches any path ending in `components/<something>`). This means you only need wildcards in the path segments you want to capture — intermediate segments are traversed automatically. If you also need to capture values from the beginning (left side) of the path, complement with `basePattern` and `baseCapture`. When `false`, the pattern is matched against the full file path from the project root, while keeping folder semantics (the element `path` is the matched folder prefix). It defaults to `true` for backward compatibility, but will most likely default to `false` in a future major version and eventually be removed, because requiring the full pattern is more intuitive and is already how file descriptors match. When `false`, the `mode` option has no effect.
+- **`basePattern`** (`string`): Additional pattern that must match from the project root. Only useful when `partialMatch: true` (the default): use it when you want to capture values from the beginning (left side) of the path, without having to define wildcards for every intermediate path segment between the root and the right-side `pattern`.
 - **`capture`** (`string[]`): Array of keys to capture path fragments
-- **`baseCapture`** (`string[]`): Array of keys to capture fragments from `basePattern`. If the same key is defined in both `capture` and `baseCapture`, the value from `capture` takes precedence.
+- **`baseCapture`** (`string[]`): Array of keys to capture fragments from `basePattern`. Only useful together with `basePattern`, and therefore only when `partialMatch: true`. If the same key is defined in both `capture` and `baseCapture`, the value from `capture` takes precedence.
 
 ### File Descriptors
 
@@ -295,7 +297,7 @@ File descriptors allow categorizing individual files independently from the elem
 ```typescript
 const matcher = elements.getMatcher({
   elements: [
-    { type: "module", pattern: "src/modules/*", mode: "folder", capture: ["moduleName"] },
+    { type: "module", pattern: "src/modules/*", capture: ["moduleName"] },
   ],
   files: [
     { pattern: "**/*.controller.ts", category: "controller", capture: ["name"] },
@@ -582,16 +584,16 @@ const matcher = elements.getMatcher({
   elements: [
     {
       type: "component",
-      pattern: "src/modules/(*)/**/*.component.tsx",
-      capture: ["module", "elementName", "fileName"],
-      mode: "file"
+      pattern: "src/modules/*/components/*",
+      partialMatch: false,
+      capture: ["module", "componentName"]
     }
   ],
 });
 
 // Match components from specific module using template
 matcher.isElementMatch(
-  "src/modules/auth/LoginForm.component.tsx",
+  "src/modules/auth/components/login-form/LoginForm.tsx",
   { 
     type: "component",
     captured: { module: "{{ element.captured.module }}" }
@@ -600,12 +602,12 @@ matcher.isElementMatch(
 
 // Using captured array for OR logic
 matcher.isElementMatch(
-  "src/modules/auth/LoginForm.component.tsx",
+  "src/modules/auth/components/login-form/LoginForm.tsx",
   { 
     type: "component",
     captured: [
       { module: "auth" },
-      { module: "user", fileName: "UserProfile" },
+      { module: "user", componentName: "user-profile" },
     ]
   },
 );
@@ -711,7 +713,7 @@ The `flagAsExternal` configuration allows you to control how dependencies are ca
 
 #### Path Requirements with `rootPath`
 
-When `rootPath` is configured, the package needs absolute paths to correctly determine which files are outside the project root, but matching patterns must remain relative to `rootPath`, especially in `full` mode (because `file` and `folder` modes match progressively from the right, so they may be less affected by relativity).
+When `rootPath` is configured, the package needs absolute paths to correctly determine which files are outside the project root, but matching patterns must remain relative to `rootPath`, especially when `partialMatch: false` (because the default `partialMatch: true` matches progressively from the right, so it is typically less affected by relativity).
 
 ```typescript
 const elements = new Elements({
@@ -724,7 +726,7 @@ const elements = new Elements({
 // Matching patterns are relative to rootPath
 const matcher = elements.getMatcher({
   elements: [
-    { type: 'component', pattern: 'src/**/*.ts', mode: 'full' }, // Relative to /project/packages/app
+    { type: 'component', pattern: 'src/**/*.ts', partialMatch: false }, // Relative to /project/packages/app
   ],
 });
 
@@ -770,7 +772,7 @@ Creates a new matcher instance.
 ```ts
 const matcher = elements.getMatcher({
   elements: [
-    { type: "component", pattern: "src/components/*", mode: "folder" },
+    { type: "component", pattern: "src/components/*" },
   ],
   files: [
     { pattern: "**/*.spec.ts", category: "test" },
@@ -1326,11 +1328,11 @@ The `getMatcher` method now accepts a `DescriptorsConfig` object instead of a fl
 
 ```diff
 - const matcher = elements.getMatcher([
--   { type: "component", pattern: "src/components/*", mode: "folder" },
+-   { type: "component", pattern: "src/components/*" },
 - ]);
 + const matcher = elements.getMatcher({
 +   elements: [
-+     { type: "component", pattern: "src/components/*", mode: "folder" },
++     { type: "component", pattern: "src/components/*" },
 +   ],
 + });
 ```

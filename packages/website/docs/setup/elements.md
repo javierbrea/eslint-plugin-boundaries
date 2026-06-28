@@ -166,6 +166,23 @@ For a path `components/atoms/atom-a/AtomA.js`, this captures:
 Captured values can be used in [element selectors](./selectors.md) to create more specific, dynamic rules.
 :::
 
+:::tip[Combine with `partialMatch` for targeted captures]
+Because `partialMatch: true` (the default) matches from the right side of the path, you only need wildcards in the segments you actually want to capture — intermediate directories are traversed automatically. For example, `pattern: "components/*", capture: ["componentName"]` captures the component folder name from any path ending in `components/<something>`, without writing a prefix wildcard.
+
+If you also need a value from the **left** side of the path (for example, which module a component belongs to), add `basePattern` and `baseCapture` instead of expanding the `pattern` with extra wildcards:
+
+```js
+{
+  type: "component",
+  pattern: "components/*",
+  basePattern: "src/modules/*",
+  capture: ["componentName"],
+  baseCapture: ["module"]
+}
+// For src/modules/auth/components/login-form: captures { module: "auth", componentName: "login-form" }
+```
+:::
+
 ### `basePattern` (optional)
 
 **Type:** `<string>`
@@ -173,6 +190,10 @@ Captured values can be used in [element selectors](./selectors.md) to create mor
 A [micromatch pattern](https://github.com/micromatch/micromatch) that the **left side** of the path (from the project root) must also match. Use it when `pattern` only covers the right side of the path but you also need to capture values from earlier path segments (see `baseCapture`).
 
 The effective pattern becomes `[basePattern]/**/[pattern]`.
+
+:::info
+`basePattern` (and `baseCapture`) are only meaningful when `partialMatch: true` (the default). When `partialMatch: false`, the full path is already expressed in `pattern`, so there is no separate left side to constrain.
+:::
 
 ```js
 {
@@ -188,7 +209,7 @@ The effective pattern becomes `[basePattern]/**/[pattern]`.
 
 **Type:** `<array of strings>`
 
-Works like `capture`, but for `basePattern`. Both arrays' keys are available in rules.
+Works like `capture`, but for `basePattern`. Both arrays' keys are available in rules. Because it is the companion to `basePattern`, it is only applicable when `partialMatch: true`.
 
 For a path `src/modules/auth/components/login-form` with the descriptor above, this captures:
 
