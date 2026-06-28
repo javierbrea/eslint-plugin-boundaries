@@ -3,24 +3,13 @@
 import micromatch from "micromatch";
 
 import type {
-  ElementSelector,
   DependencyDescriptorOptions,
   DependencySingleSelector,
   Matcher,
-  LegacySimpleElementSingleSelectorByTypeWithOptions,
-  ElementDescription,
-  BackwardCompatibleEntitySelector,
-  BackwardCompatibleElementSelector,
-  ElementSelectorNormalized,
 } from "../index";
-import {
-  normalizeDependencySelector,
-  normalizeEntitySelector,
-  Elements,
-  normalizeElementSelector,
-} from "../index";
+import { normalizeDependencySelector, Elements } from "../index";
 
-describe("Entities Legacy Matcher | Integration", () => {
+describe("isDependencyMatch | Integration", () => {
   let matcher: Matcher;
   let elements: Elements;
   let micromatchSpy: jest.SpyInstance;
@@ -34,23 +23,12 @@ describe("Entities Legacy Matcher | Integration", () => {
       {
         elements: [
           {
+            // v7 folder-based element: all files under src/components/ are "component" elements
             type: "component",
-            category: "react",
-            pattern: "src/components/*.tsx",
-            mode: "file",
-            capture: ["fileName"],
+            pattern: "src/components",
           },
           {
-            type: "test",
-            category: "business-logic",
-            pattern: ["*/*.test.ts", "*/*.spec.ts"],
-            basePattern: "**/src/*",
-            mode: "file",
-            capture: ["elementName", "testFileName"],
-            baseCapture: ["root", "businessLogicArea"],
-          },
-          {
-            category: "business-logic",
+            type: "module",
             pattern: ["modules/*"],
             capture: ["moduleName"],
           },
@@ -59,12 +37,19 @@ describe("Entities Legacy Matcher | Integration", () => {
             pattern: ["foo/*"],
           },
           {
+            // partialMatch: false replaces deprecated mode: "full"
             type: "service",
-            pattern: ["**/src/services/*/*.ts"],
-            mode: "full",
-            capture: ["baseFolder", "serviceName", "serviceFileName"],
+            pattern: ["**/src/services/*"],
+            partialMatch: false,
+            capture: ["baseFolder", "serviceName"],
           },
-          { type: "utility", pattern: "src/utils/**/*.ts", mode: "file" },
+          { type: "utility", pattern: "src/utils" },
+        ],
+        files: [
+          { pattern: "**/*.tsx", category: "react" },
+          { pattern: "**/*.test.ts", category: "test" },
+          { pattern: "**/*.spec.ts", category: "test" },
+          { pattern: "**/modules/**", category: "business-logic" },
         ],
       },
       {
@@ -76,908 +61,6 @@ describe("Entities Legacy Matcher | Integration", () => {
 
   afterEach(() => {
     elements.clearCache();
-  });
-
-  describe("when matching entities using element selectors", () => {
-    // eslint-disable-next-line jest/prefer-ending-with-an-expect
-    it.each([
-      {
-        filePath: "/project/src/utils/__tests__/testUtil.ts",
-        selector: { isIgnored: true },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/utils/__tests__/testUtil.ts",
-        selector: { isIgnored: false },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/utils/__tests__/testUtil.ts",
-        selector: { isIgnored: "false" as unknown as boolean },
-        expected: false,
-      },
-      // Test captured array with ignored element (captured: null)
-      {
-        filePath: "/project/src/utils/__tests__/testUtil.ts",
-        selector: {
-          captured: [{ type: "test" }],
-        },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/misc/other.ts",
-        selector: { isUnknown: false },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/misc/other.ts",
-        selector: { isUnknown: true },
-        expected: true,
-      },
-      // Test captured array with unknown element (captured: null)
-      {
-        filePath: "/project/src/misc/other.ts",
-        selector: {
-          captured: [{ type: "foo" }],
-        },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { types: "component" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { type: "{{ element.type }}" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { type: "{{ element.types.[0] }}" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { types: "{{ element.types.[0] }}" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { types: ["foo", "{{ element.types.[0] }}"] },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          types: [
-            "foo",
-            "{{ element.types.[0] }}",
-            "{{ element.types.[0] }}",
-            "",
-          ],
-        },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: [
-          { types: ["foo", "{{ foo.type }}"] },
-          { types: ["foo", "{{ element.types.[0] }}"] },
-        ],
-        expected: true,
-        expectedMatch: { types: ["foo", "{{ element.types.[0] }}"] },
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: "component",
-        expected: true,
-        expectedMatch: { type: "component" },
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: ["foo", "{{ element.types.[0] }}"],
-        expected: true,
-        expectedMatch: { type: "{{ element.types.[0] }}" },
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: "{{ element.types.[0] }}",
-        expected: true,
-        expectedMatch: { type: "{{ element.types.[0] }}" },
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: "{{ foo }}",
-
-        expected: true,
-        expectedMatch: { type: "{{ foo }}" },
-        extraTemplateData: { foo: "component" },
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: ["{{ bar }}", "{{ foo }}"],
-
-        expected: true,
-        expectedMatch: { type: "{{ foo }}" },
-        extraTemplateData: { foo: "component" },
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: "{{ foo }}",
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: "{{ element.category }}",
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: "${element.types.[0]}",
-        expected: true,
-        expectedMatch: { type: "${element.types.[0]}" },
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: "${element.category}",
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { types: "foo" },
-        expected: false,
-      },
-      // Singular type selector: matches against first type only
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { type: "component" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { type: "foo" },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { type: "{{ element.type }}" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { type: "{{ element.types.[0] }}" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { type: "component", types: "component" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { type: "foo", types: "component" },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { category: "react" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: [{ category: "foo" }, { category: "react" }],
-        expected: true,
-        expectedMatch: { category: "react" },
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { category: "foo" },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { types: "component", category: "react" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: [
-          { types: "component" },
-          { types: "component", category: "react" },
-        ],
-        expected: true,
-        expectedMatch: { types: "component" }, // NOTE: First match wins
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { path: "/project/src/components/Button.tsx" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { path: "/project/src/components/**/*" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { path: "/project/src/foo/**/*" },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { elementPath: "/project/src/components/Button.tsx" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { elementPath: "/project/src/components/**/*" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { elementPath: "/project/src/foo/**/*" },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { internalPath: "Button.tsx" },
-        expected: true,
-        expectedMatch: { element: { fileInternalPath: "Button.tsx" } },
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { internalPath: "Button.*" },
-        expected: true,
-        expectedMatch: { element: { fileInternalPath: "Button.*" } },
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { internalPath: ["*.*"] },
-        expected: true,
-        expectedMatch: { element: { fileInternalPath: ["*.*"] } },
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { internalPath: "Foo.*" },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          types: "component",
-          category: "react",
-          origin: "local",
-          isIgnored: false,
-        },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          types: "component",
-          category: "react",
-          origin: "local",
-          isIgnored: true,
-        },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          types: [],
-        },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          types: [undefined],
-        } as unknown as ElementSelector,
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          types: "component",
-          category: "react",
-          origin: "local",
-          internalPath: "foo",
-        },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          types: "component",
-          category: "react",
-          origin: "local",
-          internalPath: "**/Button.tsx",
-        },
-        expected: true,
-        expectedMatch: {
-          element: {
-            types: "component",
-            category: "react",
-            fileInternalPath: "**/Button.tsx",
-          },
-          module: { origin: "local" },
-        },
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          types: "component",
-          category: "react",
-          origin: "local",
-          internalPath: "Button.tsx",
-        },
-        expected: true,
-        expectedMatch: {
-          element: {
-            types: "component",
-            category: "react",
-            fileInternalPath: "Button.tsx",
-          },
-          module: { origin: "local" },
-        },
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          captured: { fileName: "Button" },
-        },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          captured: {
-            fileName: "{{ element.captured.fileName }}",
-          },
-        },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          captured: {
-            fileName: "{{ element.captured.foo }}",
-          },
-        },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: ["component", { fileName: "Button" }],
-        expected: true,
-        expectedMatch: {
-          type: "component",
-          captured: { fileName: "Button" },
-        },
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          captured: {
-            fileName: ["foo", "Button"],
-          },
-        },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          captured: {
-            fileName: "Button",
-            foo: "bar",
-          },
-        },
-        expected: false,
-      },
-      // Array of captured values (OR logic)
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          captured: [{ fileName: "Button" }, { fileName: "Icon" }],
-        },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          captured: [{ fileName: "Icon" }, { fileName: "Button" }],
-        },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          captured: [{ fileName: "Icon" }, { fileName: "Card" }],
-        },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          captured: [{ fileName: "Button", foo: "bar" }, { fileName: "Icon" }],
-        },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          captured: [{ fileName: "Icon" }, { fileName: "Button" }],
-        },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          captured: [],
-        },
-        expected: false,
-      },
-      // Test with array captured when element has no captured values
-      {
-        filePath: "/project/src/utils/helpers/string.ts",
-        selector: {
-          captured: [{ type: "utility" }],
-        },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          captured: { fileName: "Foo" },
-        },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
-          captured: { fileName: "" },
-        },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/modules/user/foo.ts",
-        selector: { captured: { foo: "bar" } },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/modules/user/foo.ts",
-        selector: { captured: { foo: "" } },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/modules/user/foo.ts",
-        selector: { captured: { foo: [""] } },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/modules/user/foo.ts",
-        selector: { origin: "local" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/modules/user/foo.ts",
-        selector: { origin: ["local", "foo"] },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/modules/user/foo.ts",
-        selector: { origin: ["var", "foo"] },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/modules/user/foo.ts",
-        selector: { internalPath: "foo.ts" },
-        expected: true,
-        expectedMatch: { element: { fileInternalPath: "foo.ts" } },
-      },
-      {
-        filePath: "/project/src/modules/user/foo.ts",
-        selector: { parent: null },
-        expected: true,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: { parent: { category: "business-logic" } },
-        expected: true,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: {
-          parent: { elementPath: "{{ element.parents.0.elementPath }}" },
-        },
-        expected: true,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: { parent: { type: "foo" } },
-        expected: false,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: { parent: { type: null } },
-        expected: true,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: { parent: { elementPath: "foo" } },
-        expected: false,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: { parent: { elementPath: "**" } },
-        expected: true,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: { parent: { category: "foo" } },
-        expected: false,
-      },
-      {
-        filePath: "/project/src/misc/other.ts",
-        selector: { parent: { category: "business-logic" } },
-        expected: false,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: { parent: { type: null } },
-        expected: true,
-      },
-      // Parent types (plural) selector: matches against all parent types
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: { parent: { types: null } },
-        expected: true,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
-        selector: { parent: { types: null } },
-        expected: true,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
-        selector: { parent: { types: "foo" } },
-        expected: false,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/email/EmailService.ts",
-        selector: { parent: { type: null, types: null } },
-        expected: true,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: {
-          parent: {
-            captured: {
-              moduleName: "{{ element.parents.0.captured.moduleName }}",
-            },
-          },
-        },
-        expected: true,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: {
-          parent: null,
-        },
-        expected: false,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: {
-          parent: {
-            captured: [
-              { moduleName: "foo" },
-              { moduleName: "{{ element.parents.0.captured.moduleName }}" },
-            ],
-          },
-        },
-        expected: true,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: {
-          parent: {
-            captured: [],
-          },
-        },
-        expected: false,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: {
-          parent: {
-            captured: [{ moduleName: "foo" }, { moduleName: "bar" }],
-          },
-        },
-        expected: false,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: {
-          category: "business-logic",
-          parent: {
-            captured: {
-              moduleName: "{{ element.parents.0.captured.moduleName }}",
-            },
-          },
-        },
-        expected: true,
-      },
-    ])(
-      "should return $expected when checking if $filePath matches the selector $selector",
-      // @ts-expect-error: There is a problem with captured values because it is inferring undefined values in some objects, probably because we use different captured values in different test cases
-      ({
-        filePath,
-        expected,
-        selector,
-        extraTemplateData,
-        expectedMatch,
-      }: {
-        filePath: string;
-        expected: boolean;
-        selector: BackwardCompatibleEntitySelector;
-        extraTemplateData?: Record<string, unknown>;
-        expectedMatch?: BackwardCompatibleEntitySelector;
-      }) => {
-        const matchResult = extraTemplateData
-          ? matcher.isEntityMatch(filePath, selector, { extraTemplateData })
-          : matcher.isEntityMatch(filePath, selector);
-
-        const convertedSelector = normalizeEntitySelector(selector);
-
-        if (matchResult !== expected) {
-          console.error(
-            "Mismatch on:",
-            JSON.stringify(
-              {
-                filePath,
-                selector,
-                convertedSelector,
-                extraTemplateData,
-                expectedMatch,
-                description: matcher.describeEntity(filePath),
-              },
-              null,
-              2
-            )
-          );
-        }
-
-        expect(matchResult).toBe(expected);
-
-        if (expected) {
-          const selectorMatchingResult = matcher.getEntitySelectorMatching(
-            filePath,
-            selector,
-            extraTemplateData ? { extraTemplateData } : undefined
-          );
-
-          const convertedMatchingResult = selectorMatchingResult
-            ? normalizeEntitySelector(selectorMatchingResult)
-            : null;
-
-          const convertedExpectedSelector = normalizeEntitySelector(
-            expectedMatch || selector
-          );
-
-          // eslint-disable-next-line jest/no-conditional-expect
-          expect(convertedMatchingResult).toStrictEqual(
-            convertedExpectedSelector
-          );
-        }
-      }
-    );
-
-    it("should throw an error when using invalid selector", () => {
-      const invalidSelector = { foo: "var" } as unknown as ElementSelector;
-
-      expect(() =>
-        matcher.getElementSelectorMatchingDescription(
-          matcher.describeElement("/project/src/modules/user/foo.ts"),
-          invalidSelector
-        )
-      ).toThrow();
-    });
-
-    it("should throw an error when using invalid description", () => {
-      const invalidDescription = {
-        foo: "var",
-      } as unknown as ElementDescription;
-
-      expect(() =>
-        matcher.getElementSelectorMatchingDescription(invalidDescription, {
-          types: "foo",
-        })
-      ).toThrow();
-    });
-
-    it("should match using legacy string selector", () => {
-      const result = matcher.isElementMatch(
-        "/project/src/components/Button.tsx",
-        "component"
-      );
-
-      expect(result).toBe(true);
-    });
-
-    it("should match using legacy string selector with template", () => {
-      const result = matcher.isElementMatch(
-        "/project/src/components/Button.tsx",
-        "{{ element.types.[0] }}"
-      );
-
-      expect(result).toBe(true);
-    });
-
-    it("should match using legacy string selector with legacy template", () => {
-      const result = matcher.isElementMatch(
-        "/project/src/components/Button.tsx",
-        "${ element.types.[0] }"
-      );
-
-      expect(result).toBe(true);
-    });
-
-    it("should not match using legacy template with legacyTemplates disabled", () => {
-      matcher = elements.getMatcher(
-        {
-          elements: [
-            {
-              type: "component",
-              category: "react",
-              pattern: "src/components/*.tsx",
-              mode: "file",
-              capture: ["fileName"],
-            },
-          ],
-        },
-        {
-          includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],
-          ignorePaths: ["**/src/**/__tests__/**"],
-          legacyTemplates: false,
-        }
-      );
-
-      const result = matcher.isElementMatch(
-        "/project/src/components/Button.tsx",
-        "${ element.types.[0] }"
-      );
-
-      expect(result).toBe(false);
-
-      const newTemplateResult = matcher.isElementMatch(
-        "/project/src/components/Button.tsx",
-        "{{ element.types.[0] }}"
-      );
-
-      expect(newTemplateResult).toBe(true);
-    });
-
-    it("should match using legacy string selectors", () => {
-      const result = matcher.isElementMatch(
-        "/project/src/components/Button.tsx",
-        ["component", "foo"]
-      );
-
-      expect(result).toBe(true);
-    });
-
-    it("should match using legacy string selector with options", () => {
-      const result = matcher.isElementMatch(
-        "/project/src/components/Button.tsx",
-        ["component", { fileName: "Button" }]
-      );
-
-      expect(result).toBe(true);
-    });
-
-    it("should match using legacy string selectors with options", () => {
-      const result = matcher.isElementMatch(
-        "/project/src/components/Button.tsx",
-        [
-          ["component", { fileName: "Button" }],
-          ["foo", { fileName: "Foo" }],
-        ]
-      );
-
-      expect(result).toBe(true);
-    });
-
-    it("should throw an error when using invalid selector in isElementMatch", () => {
-      const invalidSelector = {
-        var: "baz",
-      } as unknown as ElementSelector;
-
-      expect(() =>
-        matcher.isElementMatch(
-          "/project/src/modules/user/foo.ts",
-          invalidSelector
-        )
-      ).toThrow();
-    });
-
-    it("should throw an error when using invalid selector in getSelectorMatchingDescription", () => {
-      expect(() =>
-        // @ts-expect-error: Testing invalid selector
-        matcher.getSelectorMatchingDescription({}, { var: "baz" })
-      ).toThrow();
-    });
-
-    it("should not call to micromatch after matching with same options", () => {
-      const result = matcher.isElementMatch(
-        "/project/src/components/Button.tsx",
-        {
-          types: "component",
-          category: "react",
-          // origin: "local", TODO: Uncomment
-        }
-      );
-
-      expect(micromatchSpy).toHaveBeenCalled();
-      expect(result).toBe(true);
-
-      micromatchSpy.mockClear();
-
-      const result2 = matcher.isElementMatch(
-        "/project/src/components/Button.tsx",
-        {
-          types: "component",
-          category: "react",
-          // origin: "local", TODO: Uncomment
-        }
-      );
-
-      expect(result2).toBe(true);
-      expect(micromatchSpy).not.toHaveBeenCalled();
-    });
-
-    it("should call again to micromatch after clearing cache", () => {
-      matcher.isElementMatch("/project/src/components/Button.tsx", {
-        types: "component",
-      });
-
-      expect(micromatchSpy).toHaveBeenCalled();
-
-      jest.clearAllMocks();
-
-      matcher.isElementMatch("/project/src/components/Button.tsx", {
-        types: "component",
-      });
-
-      expect(micromatchSpy).not.toHaveBeenCalled();
-
-      elements.clearCache();
-
-      matcher.isElementMatch("/project/src/components/Button.tsx", {
-        types: "component",
-      });
-
-      expect(micromatchSpy).toHaveBeenCalled();
-    });
   });
 
   describe("when matching dependencies using element selectors", () => {
@@ -992,7 +75,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { types: "component" },
+          from: { element: { types: "component" } },
         },
         expected: true,
       },
@@ -1005,27 +88,11 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: "{{ from.types.[0] }}",
-        },
-        expected: true,
-        expectedMatch: {
-          from: { type: "{{ from.types.[0] }}" },
-        },
-      },
-      {
-        dependency: {
-          from: "/project/src/components/Button.tsx",
-          to: "/project/src/bar/Baz.ts",
-          source: "project/bar",
-          kind: "type",
-          nodeKind: "ImportDeclaration",
-        },
-        selector: {
-          from: "${ from.types.[0] }",
+          from: { element: { type: "{{ from.types.[0] }}" } },
         },
         expected: true,
         expectedMatch: {
-          from: { type: "${ from.types.[0] }" },
+          from: { element: { type: "{{ from.types.[0] }}" } },
         },
       },
       {
@@ -1037,7 +104,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { types: "foo" },
+          from: { element: { types: "foo" } },
         },
         expected: false,
       },
@@ -1050,7 +117,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { parent: { category: "business-logic" } },
+          from: { element: { parent: { type: "module" } } },
         },
         expected: true,
       },
@@ -1064,9 +131,11 @@ describe("Entities Legacy Matcher | Integration", () => {
         },
         selector: {
           from: {
-            parent: {
-              captured: {
-                moduleName: "{{ from.parents.0.captured.moduleName }}",
+            element: {
+              parent: {
+                captured: {
+                  moduleName: "{{ from.parents.0.captured.moduleName }}",
+                },
               },
             },
           },
@@ -1082,7 +151,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { path: "/project/src/components/Button.tsx" },
+          from: { file: { path: "/project/src/components/Button.tsx" } },
         },
         expected: true,
       },
@@ -1095,7 +164,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { path: "foo" },
+          from: { file: { path: "foo" } },
         },
         expected: false,
       },
@@ -1108,7 +177,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { elementPath: "**/*" },
+          from: { element: { path: "**/*" } },
         },
         expected: true,
       },
@@ -1121,7 +190,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { elementPath: "foo" },
+          from: { element: { path: "foo" } },
         },
         expected: false,
       },
@@ -1134,7 +203,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { isIgnored: false },
+          from: { element: { isIgnored: false } },
         },
         expected: true,
       },
@@ -1147,7 +216,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          from: { isIgnored: true },
+          from: { element: { isIgnored: true } },
         },
         expected: false,
       },
@@ -1161,7 +230,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { origin: "foo" },
+          to: { module: { origin: "foo" } },
         },
         expected: false,
       },
@@ -1175,14 +244,14 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: [{ origin: "local" }, "var"],
+          to: [{ module: { origin: "local" } }, { element: { type: "var" } }],
         },
         expected: true,
         expectedMatch: {
           to: { module: { origin: "local" } },
         },
       },
-      // Category tests
+      // File category tests (replaces deprecated element category)
       {
         dependency: {
           from: "/project/src/components/Button.tsx",
@@ -1193,7 +262,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { category: "business-logic" },
+          to: { file: { categories: "test" } },
         },
         expected: true,
       },
@@ -1208,11 +277,11 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: "component",
+          to: { element: { type: "component" } },
         },
         expected: true,
         expectedMatch: {
-          to: { type: "component" },
+          to: { element: { type: "component" } },
         },
       },
       {
@@ -1225,40 +294,41 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: ["foo"],
+          to: [{ element: { type: "foo" } }],
         },
         expected: false,
       },
-      // Captured tests
+      // Captured tests using module element
       {
         dependency: {
-          to: "/project/src/components/Button.tsx",
-          from: "/project/src/utils/math/math.test.ts",
-          source: "../components/Button.tsx",
+          to: "/project/src/modules/user/foo.ts",
+          from: "/project/src/components/Button.tsx",
+          source: "../modules/user/foo.ts",
           kind: "type",
           nodeKind: "Import",
-          specifiers: ["calculateSum", "calculateAvg"],
+          specifiers: ["UserService"],
         },
         selector: {
-          to: ["component", { fileName: "Button" }],
+          to: { element: { type: "module", captured: { moduleName: "user" } } },
         },
         expected: true,
         expectedMatch: {
-          to: { type: "component", captured: { fileName: "Button" } },
+          to: { element: { type: "module", captured: { moduleName: "user" } } },
         },
       },
-      // Legacy options style
       {
         dependency: {
-          to: "/project/src/components/Button.tsx",
-          from: "/project/src/utils/math/math.test.ts",
-          source: "../components/Button.tsx",
+          to: "/project/src/modules/user/foo.ts",
+          from: "/project/src/components/Button.tsx",
+          source: "../modules/user/foo.ts",
           kind: "type",
           nodeKind: "Import",
-          specifiers: ["calculateSum", "calculateAvg"],
+          specifiers: ["UserService"],
         },
         selector: {
-          to: ["component", { fileName: "foo" }],
+          to: {
+            element: { type: "module", captured: { moduleName: "admin" } },
+          },
         },
         expected: false,
       },
@@ -1273,7 +343,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { types: "{{ to.types.[0] }}" },
+          to: { element: { types: "{{ to.types.[0] }}" } },
         },
         expected: true,
       },
@@ -1287,7 +357,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          from: { type: "{{ from.types.[0] }}" },
+          from: { element: { type: "{{ from.types.[0] }}" } },
         },
         expected: true,
       },
@@ -1303,10 +373,9 @@ describe("Entities Legacy Matcher | Integration", () => {
         },
         selector: {
           from: {
-            types: "{{ from.types.[0] }}",
-            captured: { root: "{{ from.captured.root }}" },
+            element: { types: "{{ from.types.[0] }}" },
           },
-          to: { path: "{{ to.path }}" },
+          to: { file: { path: "{{ to.file.path }}" } },
         },
         expected: true,
       },
@@ -1320,7 +389,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { path: "**/Foo.tsx" },
+          to: { file: { path: "**/Foo.tsx" } },
         },
         expected: false,
       },
@@ -1335,7 +404,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { elementPath: "**" },
+          to: { element: { path: "**" } },
         },
         expected: true,
       },
@@ -1349,7 +418,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { elementPath: "foo" },
+          to: { element: { path: "foo" } },
         },
         expected: false,
       },
@@ -1364,7 +433,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { isIgnored: false },
+          to: { element: { isIgnored: false } },
         },
         expected: true,
       },
@@ -1378,7 +447,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { isIgnored: true },
+          to: { element: { isIgnored: true } },
         },
         expected: false,
       },
@@ -1393,7 +462,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { isUnknown: false },
+          to: { element: { isUnknown: false } },
         },
         expected: true,
       },
@@ -1407,7 +476,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { isUnknown: true },
+          to: { element: { isUnknown: true } },
         },
         expected: false,
       },
@@ -1422,7 +491,12 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         selector: {
-          to: { types: "{{ to.types.[0] }}", internalPath: "**/Button.tsx" },
+          to: {
+            element: {
+              types: "{{ to.types.[0] }}",
+              fileInternalPath: "**/Button.tsx",
+            },
+          },
         },
         expected: true,
         expectedMatch: {
@@ -1445,8 +519,10 @@ describe("Entities Legacy Matcher | Integration", () => {
         },
         selector: {
           to: {
-            types: "{{ to.types.[0] }}",
-            internalPath: ["foo", "**/Button.tsx"],
+            element: {
+              types: "{{ to.types.[0] }}",
+              fileInternalPath: ["foo", "**/Button.tsx"],
+            },
           },
         },
         expected: true,
@@ -1468,7 +544,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { origin: ["external", "local"] },
+          to: { module: { origin: ["external", "local"] } },
           dependency: { source: "react" },
         },
         expected: true,
@@ -1495,7 +571,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { elementPath: "*" }, // Unknown element, so elementPath is not set
+          to: { element: { path: "*" } }, // Unknown element, so element path is not set
         },
         expected: false,
       },
@@ -1508,7 +584,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { isUnknown: true },
+          to: { element: { isUnknown: true } },
         },
         expected: true,
       },
@@ -1522,8 +598,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: { origin: ["external", "local"] },
-          dependency: { module: "react" },
+          to: { module: { origin: ["external", "local"], source: "react" } },
         },
         expected: true,
       },
@@ -1536,7 +611,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          dependency: { module: "foo" },
+          to: { module: { source: "foo" } },
         },
         expected: false,
       },
@@ -1549,10 +624,8 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          to: {
-            origin: ["external", "local"],
-          },
-          dependency: { module: "react", source: "react" },
+          to: { module: { origin: ["external", "local"], source: "react" } },
+          dependency: { source: "react" },
         },
         expected: true,
       },
@@ -1569,7 +642,7 @@ describe("Entities Legacy Matcher | Integration", () => {
         },
         expected: false,
       },
-      // Dependency metadata source/module tests
+      // Dependency metadata source tests
       {
         dependency: {
           from: "/project/src/components/Button.tsx",
@@ -1592,7 +665,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           nodeKind: "ImportDeclaration",
         },
         selector: {
-          dependency: { module: "react" },
+          to: { module: { source: "react" } },
         },
         expected: true,
       },
@@ -1604,12 +677,13 @@ describe("Entities Legacy Matcher | Integration", () => {
           kind: "type",
           nodeKind: "ImportDeclaration",
         },
-        selector: {
-          dependency: [{ source: "foo" }, { module: "react" }],
-        },
+        selector: [
+          { dependency: { source: "foo" } },
+          { to: { module: { source: "react" } } },
+        ],
         expected: true,
         expectedMatch: {
-          dependency: { module: "react" },
+          to: { module: { source: "react" } },
         },
       },
       {
@@ -1620,9 +694,10 @@ describe("Entities Legacy Matcher | Integration", () => {
           kind: "type",
           nodeKind: "ImportDeclaration",
         },
-        selector: {
-          dependency: [{ source: "foo" }, { module: "bar" }],
-        },
+        selector: [
+          { dependency: { source: "foo" } },
+          { to: { module: { source: "bar" } } },
+        ],
         expected: false,
       },
       // NodeKind tests
@@ -2038,7 +1113,7 @@ describe("Entities Legacy Matcher | Integration", () => {
       }
     );
 
-    it("should match using legacy string selector", () => {
+    it("should match using entity selector in from and to", () => {
       const result = matcher.isDependencyMatch(
         {
           from: "/project/src/components/Button.tsx",
@@ -2049,18 +1124,18 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: "component",
-          to: "service",
+          from: { element: { type: "component" } },
+          to: { element: { type: "service" } },
         }
       );
 
       expect(result).toBe(true);
     });
 
-    it("should match using legacy string selector with options", () => {
+    it("should match using entity selector with captured in from", () => {
       const result = matcher.isDependencyMatch(
         {
-          from: "/project/src/components/Button.tsx",
+          from: "/project/src/modules/user/foo.ts",
           to: "/project/src/utils/math/math.test.ts",
           source: "../utils/math/math.test.ts",
           kind: "value",
@@ -2068,7 +1143,9 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: ["component", { fileName: "Button" }],
+          from: {
+            element: { type: "module", captured: { moduleName: "user" } },
+          },
         }
       );
 
@@ -2125,8 +1202,8 @@ describe("Entities Legacy Matcher | Integration", () => {
           // @ts-expect-error: Testing invalid description
           {},
           {
-            from: { types: "component" },
-            to: { var: "baz" },
+            from: { element: { types: "component" } },
+            to: { element: { types: "foo" } },
           }
         )
       ).toThrow();
@@ -2163,7 +1240,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { types: "component" },
+          from: { element: { types: "component" } },
         }
       );
 
@@ -2182,7 +1259,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { types: "component" },
+          from: { element: { types: "component" } },
         }
       );
 
@@ -2201,7 +1278,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { types: "component" },
+          from: { element: { types: "component" } },
         }
       );
 
@@ -2220,7 +1297,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { types: "component" },
+          from: { element: { types: "component" } },
         }
       );
 
@@ -2239,7 +1316,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { types: "component" },
+          from: { element: { types: "component" } },
         }
       );
 
@@ -2257,7 +1334,7 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { types: "component" },
+          from: { element: { types: "component" } },
         }
       );
 
@@ -2276,8 +1353,8 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { types: "component" },
-          to: { types: "component" }, // Same as from, it should not normalize again
+          from: { element: { types: "component" } },
+          to: { element: { types: "component" } }, // Same as from, it should not normalize again
         }
       );
 
@@ -2296,54 +1373,12 @@ describe("Entities Legacy Matcher | Integration", () => {
           specifiers: ["calculateSum", "calculateAvg"],
         },
         {
-          from: { types: "component" },
-          to: { types: "component" },
+          from: { element: { types: "component" } },
+          to: { element: { types: "component" } },
         }
       );
 
       expect(micromatchSpy).toHaveBeenCalled();
     });
-  });
-
-  describe("normalizeElementsSelector public method", () => {
-    it.each([
-      {
-        selector: "component",
-        expected: [{ type: "component" }],
-      },
-      {
-        selector: [
-          "component",
-          { fileName: "Button" },
-        ] as LegacySimpleElementSingleSelectorByTypeWithOptions,
-        expected: [{ type: "component", captured: { fileName: "Button" } }],
-      },
-      {
-        selector: [
-          "component",
-          [
-            "foo",
-            { bar: "baz" },
-          ] as LegacySimpleElementSingleSelectorByTypeWithOptions,
-        ],
-        expected: [
-          { type: "component" },
-          { type: "foo", captured: { bar: "baz" } },
-        ],
-      },
-    ])(
-      "should normalize element selector $selector to $expected",
-      ({
-        selector,
-        expected,
-      }: {
-        selector: BackwardCompatibleElementSelector;
-        expected: ElementSelectorNormalized;
-      }) => {
-        const normalized = normalizeElementSelector(selector);
-
-        expect(normalized).toStrictEqual(expected);
-      }
-    );
   });
 });

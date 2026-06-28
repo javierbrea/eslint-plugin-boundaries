@@ -1074,6 +1074,68 @@ const mod = matcher.describeModule("react", "react");
 const result = matcher.getModuleSelectorMatchingDescription(mod, { origin: "external" });
 ```
 
+#### File Methods
+
+These methods operate on the file facet only. They are useful when you only need file-level information without element or module context.
+
+##### `describeFile`
+
+Returns a detailed description of a file given its path.
+
+- __Parameters__:
+  - `filePath`: `string` — The path of the file to describe.
+- __Returns__: `FileDescription`
+
+```ts
+const file = matcher.describeFile("src/modules/auth/auth.controller.ts");
+console.log(file.categories); // ["controller"]
+console.log(file.captured);   // { name: "auth" }
+console.log(file.isUnknown);  // false
+```
+
+##### `isFileMatch`
+
+Checks if a given path matches a file selector.
+
+- __Parameters__:
+  - `filePath`: `string` — The file path to check.
+  - `selector`: `FileSelector` — File selector or array of file selectors.
+  - `options`: `MatcherOptions` — Optional.
+- __Returns__: `boolean`
+
+```ts
+matcher.isFileMatch("src/modules/auth/auth.spec.ts", { categories: "test" }); // true
+```
+
+##### `getFileSelectorMatching`
+
+Returns the first matching file selector, or `null`.
+
+- __Parameters__:
+  - `filePath`: `string` — The file path to check.
+  - `selector`: `FileSelector` — File selector to match against.
+  - `options`: `MatcherOptions` — Optional.
+- __Returns__: `FileSingleSelector | null`
+
+```ts
+const result = matcher.getFileSelectorMatching("src/modules/auth/auth.spec.ts", [{ categories: "test" }]);
+```
+
+##### `getFileSelectorMatchingDescription`
+
+Matches a file description (from `describeFile`) against file selectors.
+
+- __Parameters__:
+  - `description`: `FileDescription` — The file description to match.
+  - `selector`: `FileSelector` — File selector to match against.
+  - `options`: `MatcherOptions` — Optional.
+- __Returns__: `FileSingleSelector | null`
+
+```ts
+const file = matcher.describeFile("src/modules/auth/auth.spec.ts");
+const result = matcher.getFileSelectorMatchingDescription(file, [{ categories: "test" }]);
+```
+
 #### Cache Methods
 
 ##### `clearCache`
@@ -1189,7 +1251,7 @@ Returned by `describeElement(filePath)`.
 
 #### File Description
 
-Returned by `describeEntity(filePath).file`.
+Returned by `describeFile(filePath)` or `describeEntity(filePath).file`.
 
 | Property | Type | Description |
 |---|---|---|

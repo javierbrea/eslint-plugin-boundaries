@@ -3,7 +3,7 @@ import micromatch from "micromatch";
 import type { Matcher } from "../index";
 import { Elements, isEntityDescription, isOriginDescription } from "../index";
 
-describe("Entity Descriptors | Integration", () => {
+describe("describeEntity | Integration", () => {
   let matcher: Matcher;
   let elements: Elements;
   let micromatchSpy: jest.SpyInstance;

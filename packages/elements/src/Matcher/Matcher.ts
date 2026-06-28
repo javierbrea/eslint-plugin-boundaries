@@ -7,6 +7,7 @@ import type {
   ElementDescription,
   DependencyDescription,
   EntityDescription,
+  FileDescription,
   ModuleDescription,
   DescriptorsConfig,
 } from "../Descriptor";
@@ -33,6 +34,7 @@ import type {
   EntitySingleSelectorMatchResult,
 } from "./Entity";
 import { FilesMatcher } from "./File";
+import type { FileSelector, FileSingleSelector } from "./File";
 import type { MatcherSerializedCache } from "./Matcher.types";
 import type { ModuleSelector } from "./Module";
 import { ModulesMatcher } from "./Module";
@@ -143,6 +145,15 @@ export class Matcher {
   }
 
   /**
+   * Returns the description of a file given its path.
+   * @param filePath The path of the file to describe.
+   * @returns The description of the file.
+   */
+  public describeFile(filePath: string) {
+    return this._descriptors.describeFile(filePath);
+  }
+
+  /**
    * Determines if an element matches a given selector.
    * @param filePath The file path of the element
    * @param selector The selector to match against
@@ -250,6 +261,22 @@ export class Matcher {
       options?.source
     );
     return this._modulesMatcher.isModuleMatch(description, selector, options);
+  }
+
+  /**
+   * Determines if a file matches a given selector.
+   * @param filePath The file path to check
+   * @param selector The selector to match against
+   * @param options Extra matcher options
+   * @returns True if the file matches the selector, false otherwise
+   */
+  public isFileMatch(
+    filePath: string,
+    selector: FileSelector,
+    options?: MatcherOptions
+  ): boolean {
+    const description = this._descriptors.describeFile(filePath);
+    return this._filesMatcher.isFileMatch(description, selector, options);
   }
 
   /**
@@ -367,6 +394,26 @@ export class Matcher {
   }
 
   /**
+   * Determines the selector matching for a file.
+   * @param filePath The file path to check
+   * @param selector The selector to match against
+   * @param options Extra options for matching
+   * @returns The matching file selector or null if no match is found
+   */
+  public getFileSelectorMatching(
+    filePath: string,
+    selector: FileSelector,
+    options?: MatcherOptions
+  ) {
+    const description = this._descriptors.describeFile(filePath);
+    return this._filesMatcher.getSelectorMatching(
+      description,
+      selector,
+      options
+    );
+  }
+
+  /**
    * Returns the first selector matching result for the given entity and selector.
    * @param description The entity description to check.
    * @param selector The selector to check against.
@@ -453,6 +500,25 @@ export class Matcher {
     options?: EntityMatcherOptions
   ) {
     return this._modulesMatcher.getSelectorMatching(
+      description,
+      selector,
+      options
+    );
+  }
+
+  /**
+   * Returns the first file selector matching result for the given file description.
+   * @param description The file description to check.
+   * @param selector The selector to check against.
+   * @param options Extra options for matching, such as templates data, etc.
+   * @returns The first matching selector result for the given description, or null if no match is found.
+   */
+  public getFileSelectorMatchingDescription(
+    description: FileDescription,
+    selector: FileSelector,
+    options?: MatcherOptions
+  ): FileSingleSelector | null {
+    return this._filesMatcher.getSelectorMatching(
       description,
       selector,
       options

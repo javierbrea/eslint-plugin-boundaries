@@ -7,6 +7,7 @@ import type {
   ElementDescription,
   DependencyDescription,
   EntityDescription,
+  FileDescription,
   ModuleDescription,
   DescriptorsConfig,
   DescriptorsSerializedCache,
@@ -25,6 +26,7 @@ import { ElementsMatcher } from "./Element";
 import { EntitiesMatcher } from "./Entity";
 import type { BackwardCompatibleEntitySelector } from "./Entity";
 import { FilesMatcher } from "./File";
+import type { FileSelector } from "./File";
 import { Matcher } from "./Matcher";
 import type { ModuleSelector } from "./Module";
 import { ModulesMatcher } from "./Module";
@@ -101,6 +103,14 @@ describe("Matcher", () => {
   const MOCK_DEPENDENCY_SELECTOR =
     "dependency" as unknown as BackwardCompatibleDependencySelector;
   const MOCK_MODULE_SELECTOR = "module" as unknown as ModuleSelector;
+  const MOCK_FILE_SELECTOR = { categories: "test" } as unknown as FileSelector;
+
+  const MOCK_FILE_DESCRIPTION = {
+    path: "src/components/Button/index.ts",
+    categories: ["component"],
+    isIgnored: false,
+    isUnknown: false,
+  } as unknown as FileDescription;
 
   const MOCK_LEGACY_ELEMENT_DATA = { element: { elementPath: "Button" } };
   const MOCK_LEGACY_ENTITY_DATA = { element: { elementPath: "Button" } };
@@ -116,6 +126,7 @@ describe("Matcher", () => {
     describeDependency: jest.Mock;
     describeEntity: jest.Mock;
     describeModule: jest.Mock;
+    describeFile: jest.Mock;
     clearCache: jest.Mock;
     serializeCache: jest.Mock;
     setCacheFromSerialized: jest.Mock;
@@ -123,6 +134,11 @@ describe("Matcher", () => {
 
   let elementsMatcherInstance: {
     isElementMatch: jest.Mock;
+    getSelectorMatching: jest.Mock;
+  };
+
+  let filesMatcherInstance: {
+    isFileMatch: jest.Mock;
     getSelectorMatching: jest.Mock;
   };
 
@@ -151,6 +167,7 @@ describe("Matcher", () => {
         .mockReturnValue(MOCK_DEPENDENCY_DESCRIPTION),
       describeEntity: jest.fn().mockReturnValue(MOCK_ENTITY_DESCRIPTION),
       describeModule: jest.fn().mockReturnValue(MOCK_MODULE_DESCRIPTION),
+      describeFile: jest.fn().mockReturnValue(MOCK_FILE_DESCRIPTION),
       clearCache: jest.fn(),
       serializeCache: jest
         .fn()
@@ -163,9 +180,9 @@ describe("Matcher", () => {
       getSelectorMatching: jest.fn().mockReturnValue(MOCK_MATCH_RESULT),
     };
 
-    const filesMatcherInstance = {
-      isFileMatch: jest.fn(),
-      getSelectorMatching: jest.fn(),
+    filesMatcherInstance = {
+      isFileMatch: jest.fn().mockReturnValue(true),
+      getSelectorMatching: jest.fn().mockReturnValue(MOCK_MATCH_RESULT),
     };
 
     modulesMatcherInstance = {
@@ -835,6 +852,146 @@ describe("Matcher", () => {
         MOCK_MODULE_SELECTOR,
         options
       );
+    });
+  });
+
+  describe("describeFile", () => {
+    it("should delegate to Descriptors and return the result", () => {
+      const result = matcher.describeFile(MOCK_FILE_PATH);
+
+      expect(descriptorsInstance.describeFile).toHaveBeenCalledWith(
+        MOCK_FILE_PATH
+      );
+      expect(result).toBe(MOCK_FILE_DESCRIPTION);
+    });
+  });
+
+  describe("isFileMatch", () => {
+    it("should describe file and delegate to FilesMatcher.isFileMatch", () => {
+      const result = matcher.isFileMatch(MOCK_FILE_PATH, MOCK_FILE_SELECTOR);
+
+      expect(descriptorsInstance.describeFile).toHaveBeenCalledWith(
+        MOCK_FILE_PATH
+      );
+      expect(filesMatcherInstance.isFileMatch).toHaveBeenCalledWith(
+        MOCK_FILE_DESCRIPTION,
+        MOCK_FILE_SELECTOR,
+        undefined
+      );
+      expect(result).toBe(true);
+    });
+
+    it("should pass options to FilesMatcher", () => {
+      const options = { extraTemplateData: { custom: "value" } };
+
+      matcher.isFileMatch(MOCK_FILE_PATH, MOCK_FILE_SELECTOR, options);
+
+      expect(filesMatcherInstance.isFileMatch).toHaveBeenCalledWith(
+        MOCK_FILE_DESCRIPTION,
+        MOCK_FILE_SELECTOR,
+        options
+      );
+    });
+
+    it("should return false when FilesMatcher returns false", () => {
+      filesMatcherInstance.isFileMatch.mockReturnValue(false);
+
+      const result = matcher.isFileMatch(MOCK_FILE_PATH, MOCK_FILE_SELECTOR);
+
+      expect(result).toBe(false);
+    });
+
+    it("should not apply any legacy template data enrichment", () => {
+      matcher.isFileMatch(MOCK_FILE_PATH, MOCK_FILE_SELECTOR);
+
+      expect(mockedGetLegacyElementExtra).not.toHaveBeenCalled();
+      expect(mockedGetLegacyEntityExtra).not.toHaveBeenCalled();
+      expect(mockedGetLegacyDependencyExtra).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getFileSelectorMatching", () => {
+    it("should describe file and delegate to FilesMatcher.getSelectorMatching", () => {
+      const result = matcher.getFileSelectorMatching(
+        MOCK_FILE_PATH,
+        MOCK_FILE_SELECTOR
+      );
+
+      expect(descriptorsInstance.describeFile).toHaveBeenCalledWith(
+        MOCK_FILE_PATH
+      );
+      expect(filesMatcherInstance.getSelectorMatching).toHaveBeenCalledWith(
+        MOCK_FILE_DESCRIPTION,
+        MOCK_FILE_SELECTOR,
+        undefined
+      );
+      expect(result).toBe(MOCK_MATCH_RESULT);
+    });
+
+    it("should pass options to FilesMatcher", () => {
+      const options = { extraTemplateData: { custom: "value" } };
+
+      matcher.getFileSelectorMatching(
+        MOCK_FILE_PATH,
+        MOCK_FILE_SELECTOR,
+        options
+      );
+
+      expect(filesMatcherInstance.getSelectorMatching).toHaveBeenCalledWith(
+        MOCK_FILE_DESCRIPTION,
+        MOCK_FILE_SELECTOR,
+        options
+      );
+    });
+
+    it("should not apply any legacy template data enrichment", () => {
+      matcher.getFileSelectorMatching(MOCK_FILE_PATH, MOCK_FILE_SELECTOR);
+
+      expect(mockedGetLegacyElementExtra).not.toHaveBeenCalled();
+      expect(mockedGetLegacyEntityExtra).not.toHaveBeenCalled();
+      expect(mockedGetLegacyDependencyExtra).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getFileSelectorMatchingDescription", () => {
+    it("should delegate directly to FilesMatcher.getSelectorMatching with the provided description", () => {
+      const result = matcher.getFileSelectorMatchingDescription(
+        MOCK_FILE_DESCRIPTION,
+        MOCK_FILE_SELECTOR
+      );
+
+      expect(filesMatcherInstance.getSelectorMatching).toHaveBeenCalledWith(
+        MOCK_FILE_DESCRIPTION,
+        MOCK_FILE_SELECTOR,
+        undefined
+      );
+      expect(result).toBe(MOCK_MATCH_RESULT);
+    });
+
+    it("should not call any describe method", () => {
+      descriptorsInstance.describeFile.mockClear();
+      descriptorsInstance.describeElement.mockClear();
+      descriptorsInstance.describeModule.mockClear();
+
+      matcher.getFileSelectorMatchingDescription(
+        MOCK_FILE_DESCRIPTION,
+        MOCK_FILE_SELECTOR
+      );
+
+      expect(descriptorsInstance.describeFile).not.toHaveBeenCalled();
+      expect(descriptorsInstance.describeElement).not.toHaveBeenCalled();
+      expect(descriptorsInstance.describeModule).not.toHaveBeenCalled();
+    });
+
+    it("should not apply any legacy template data enrichment", () => {
+      matcher.getFileSelectorMatchingDescription(
+        MOCK_FILE_DESCRIPTION,
+        MOCK_FILE_SELECTOR
+      );
+
+      expect(mockedGetLegacyElementExtra).not.toHaveBeenCalled();
+      expect(mockedGetLegacyEntityExtra).not.toHaveBeenCalled();
+      expect(mockedGetLegacyDependencyExtra).not.toHaveBeenCalled();
     });
   });
 

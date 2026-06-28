@@ -1,7 +1,7 @@
 import { Elements } from "../index";
 import type { Matcher } from "../index";
 
-describe("Elements FlagAsExternal configuration | Integration", () => {
+describe("flagAsExternal configuration | Integration", () => {
   let elements: Elements;
   let matcher: Matcher;
 
