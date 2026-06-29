@@ -1,3 +1,5 @@
+export * from "./ArrayQuery.types";
+export * from "./ArrayQuerySelectorHelpers";
 export * from "./BaseMatcher";
 export * from "./BaseMatcher.types";
 export * from "./BaseSelector.types";

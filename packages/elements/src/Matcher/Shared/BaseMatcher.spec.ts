@@ -4,6 +4,7 @@ import type { MicromatchPatternNullable } from "../../Shared";
 import type { ElementSingleSelector } from "../Element";
 import type { ModuleSelector } from "../Module";
 
+import type { ArrayQuery } from "./ArrayQuery.types";
 import { BaseElementsMatcher } from "./BaseMatcher";
 import type { TemplateData } from "./BaseMatcher.types";
 import { Micromatch } from "./Micromatch";
@@ -11,6 +12,14 @@ import { Micromatch } from "./Micromatch";
 jest.mock("./Micromatch");
 
 class TestableMatcher extends BaseElementsMatcher {
+  public callIsArrayQueryMatch<TElement, TMatcher>(
+    array: readonly TElement[] | null,
+    query: ArrayQuery<TMatcher>,
+    matchElement: (element: TElement, matcher: TMatcher) => boolean
+  ): boolean {
+    return this.isArrayQueryMatch(array, query, matchElement);
+  }
+
   public callGetRenderedTemplates(
     template: MicromatchPatternNullable,
     templateData: TemplateData
@@ -753,6 +762,277 @@ describe("BaseElementsMatcher", () => {
       });
 
       expect(result).toBe(true);
+    });
+  });
+
+  describe("isArrayQueryMatch", () => {
+    const eq = (element: string, pattern: string): boolean =>
+      element === pattern;
+
+    beforeEach(() => {
+      createMatcher();
+    });
+
+    describe("null array", () => {
+      it("returns false for null array with anyOf", () => {
+        expect(matcher.callIsArrayQueryMatch(null, { anyOf: ["a"] }, eq)).toBe(
+          false
+        );
+      });
+
+      it("returns false for null array with allOf", () => {
+        expect(matcher.callIsArrayQueryMatch(null, { allOf: ["a"] }, eq)).toBe(
+          false
+        );
+      });
+
+      it("returns false for null array with noneOf", () => {
+        expect(matcher.callIsArrayQueryMatch(null, { noneOf: ["a"] }, eq)).toBe(
+          false
+        );
+      });
+
+      it("returns false for null array with equalsTo", () => {
+        expect(matcher.callIsArrayQueryMatch(null, { equalsTo: [] }, eq)).toBe(
+          false
+        );
+      });
+
+      it("returns false for null array with hasLength", () => {
+        expect(matcher.callIsArrayQueryMatch(null, { hasLength: 0 }, eq)).toBe(
+          false
+        );
+      });
+
+      it("returns false for null array with atIndex", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(
+            null,
+            { atIndex: { index: 0, matches: "a" } },
+            eq
+          )
+        ).toBe(false);
+      });
+    });
+
+    describe("anyOf", () => {
+      it("returns true when an element matches", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(["a", "b"], { anyOf: ["b", "c"] }, eq)
+        ).toBe(true);
+      });
+
+      it("returns false when no element matches", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(["a", "b"], { anyOf: ["c", "d"] }, eq)
+        ).toBe(false);
+      });
+
+      it("returns false when anyOf is empty (some of [] is false)", () => {
+        expect(matcher.callIsArrayQueryMatch(["a"], { anyOf: [] }, eq)).toBe(
+          false
+        );
+      });
+    });
+
+    describe("allOf", () => {
+      it("returns true when all matchers find a matching element", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(
+            ["a", "b", "c"],
+            { allOf: ["a", "c"] },
+            eq
+          )
+        ).toBe(true);
+      });
+
+      it("returns false when one matcher finds no matching element", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(["a", "b"], { allOf: ["a", "c"] }, eq)
+        ).toBe(false);
+      });
+
+      it("returns true when allOf is empty (vacuously)", () => {
+        expect(matcher.callIsArrayQueryMatch(["a"], { allOf: [] }, eq)).toBe(
+          true
+        );
+      });
+    });
+
+    describe("noneOf", () => {
+      it("returns true when no element matches any forbidden matcher", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(["a", "b"], { noneOf: ["c", "d"] }, eq)
+        ).toBe(true);
+      });
+
+      it("returns false when an element matches a forbidden matcher", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(["a", "b"], { noneOf: ["b"] }, eq)
+        ).toBe(false);
+      });
+
+      it("returns true when noneOf is empty (nothing forbidden)", () => {
+        expect(matcher.callIsArrayQueryMatch(["a"], { noneOf: [] }, eq)).toBe(
+          true
+        );
+      });
+    });
+
+    describe("equalsTo", () => {
+      it("returns true for equal ordered arrays", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(
+            ["a", "b"],
+            { equalsTo: ["a", "b"] },
+            eq
+          )
+        ).toBe(true);
+      });
+
+      it("returns false for wrong order", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(
+            ["a", "b"],
+            { equalsTo: ["b", "a"] },
+            eq
+          )
+        ).toBe(false);
+      });
+
+      it("returns false for wrong length", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(
+            ["a", "b", "c"],
+            { equalsTo: ["a", "b"] },
+            eq
+          )
+        ).toBe(false);
+      });
+
+      it("returns true for empty array with equalsTo: []", () => {
+        expect(matcher.callIsArrayQueryMatch([], { equalsTo: [] }, eq)).toBe(
+          true
+        );
+      });
+    });
+
+    describe("atIndex", () => {
+      it("returns true for a positive in-range index", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(
+            ["a", "b", "c"],
+            { atIndex: { index: 1, matches: "b" } },
+            eq
+          )
+        ).toBe(true);
+      });
+
+      it("returns false when the element at a positive index does not match", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(
+            ["a", "b", "c"],
+            { atIndex: { index: 1, matches: "a" } },
+            eq
+          )
+        ).toBe(false);
+      });
+
+      it("returns false for a positive out-of-range index", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(
+            ["a"],
+            { atIndex: { index: 5, matches: "a" } },
+            eq
+          )
+        ).toBe(false);
+      });
+
+      it("returns true for index -1 (last element)", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(
+            ["a", "b", "c"],
+            { atIndex: { index: -1, matches: "c" } },
+            eq
+          )
+        ).toBe(true);
+      });
+
+      it("returns false for a negative out-of-range index", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(
+            ["a"],
+            { atIndex: { index: -5, matches: "a" } },
+            eq
+          )
+        ).toBe(false);
+      });
+
+      it("returns true when matches is an array and the element equals one of them", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(
+            ["a", "b", "c"],
+            { atIndex: { index: 1, matches: ["x", "b"] } },
+            eq
+          )
+        ).toBe(true);
+      });
+
+      it("returns false when matches is an array and the element equals none of them", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(
+            ["a", "b", "c"],
+            { atIndex: { index: 1, matches: ["x", "y"] } },
+            eq
+          )
+        ).toBe(false);
+      });
+    });
+
+    describe("hasLength", () => {
+      it("returns true when lengths match", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(["a", "b"], { hasLength: 2 }, eq)
+        ).toBe(true);
+      });
+
+      it("returns false when lengths do not match", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(["a", "b"], { hasLength: 3 }, eq)
+        ).toBe(false);
+      });
+    });
+
+    describe("aND combination", () => {
+      it("returns false when one operator fails even if others pass", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(
+            ["a", "b"],
+            { anyOf: ["a"], noneOf: ["b"] },
+            eq
+          )
+        ).toBe(false);
+      });
+
+      it("returns true when both operators pass", () => {
+        expect(
+          matcher.callIsArrayQueryMatch(
+            ["a", "b"],
+            { anyOf: ["a"], noneOf: ["c"] },
+            eq
+          )
+        ).toBe(true);
+      });
+    });
+
+    describe("empty query object", () => {
+      it("returns true for a non-null array with no constraints", () => {
+        expect(matcher.callIsArrayQueryMatch(["a", "b"], {}, eq)).toBe(true);
+      });
+
+      it("returns true for an empty array with no constraints", () => {
+        expect(matcher.callIsArrayQueryMatch([], {}, eq)).toBe(true);
+      });
     });
   });
 });

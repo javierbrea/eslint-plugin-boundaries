@@ -422,6 +422,12 @@ describe("ElementSelectorHelpers", () => {
       );
     });
 
+    it("should return true for an object with parents property (array query)", () => {
+      expect(
+        isElementSingleSelector({ parents: { anyOf: [{ type: "module" }] } })
+      ).toBe(true);
+    });
+
     it("should return true for an object with category property", () => {
       expect(isElementSingleSelector({ category: "ui" })).toBe(true);
     });

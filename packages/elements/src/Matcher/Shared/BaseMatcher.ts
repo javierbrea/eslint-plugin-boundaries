@@ -17,6 +17,7 @@ import type {
 import type { ElementSingleSelector } from "../Element";
 import type { ModuleSelector } from "../Module";
 
+import type { ArrayQuery } from "./ArrayQuery.types";
 import type { TemplateData } from "./BaseMatcher.types";
 import type { Micromatch } from "./Micromatch";
 
@@ -233,6 +234,83 @@ export class BaseElementsMatcher {
     return (
       (selector[selectorKey] as boolean) === (object[objectKey] as boolean)
     );
+  }
+
+  /**
+   * Generic array-query matcher. All present operators are AND-combined.
+   * @param array The target array from the description (may be null).
+   * @param query The array query object.
+   * @param matchElement Predicate matching one array element against one matcher.
+   * @returns Whether the array satisfies the query.
+   */
+  protected isArrayQueryMatch<TElement, TMatcher>(
+    array: readonly TElement[] | null,
+    query: ArrayQuery<TMatcher>,
+    matchElement: (element: TElement, matcher: TMatcher) => boolean
+  ): boolean {
+    if (isNull(array)) {
+      return false;
+    }
+
+    if (!isUndefined(query.hasLength) && array.length !== query.hasLength) {
+      return false;
+    }
+
+    if (
+      !isUndefined(query.anyOf) &&
+      !array.some((element) =>
+        query.anyOf!.some((matcher) => matchElement(element, matcher))
+      )
+    ) {
+      return false;
+    }
+
+    if (
+      !isUndefined(query.allOf) &&
+      !query.allOf.every((matcher) =>
+        array.some((element) => matchElement(element, matcher))
+      )
+    ) {
+      return false;
+    }
+
+    if (
+      !isUndefined(query.noneOf) &&
+      query.noneOf.some((matcher) =>
+        array.some((element) => matchElement(element, matcher))
+      )
+    ) {
+      return false;
+    }
+
+    if (!isUndefined(query.equalsTo)) {
+      if (array.length !== query.equalsTo.length) {
+        return false;
+      }
+      if (
+        !query.equalsTo.every((matcher, index) =>
+          matchElement(array[index], matcher)
+        )
+      ) {
+        return false;
+      }
+    }
+
+    if (!isUndefined(query.atIndex)) {
+      const { index, matches } = query.atIndex;
+      const resolvedIndex = index < 0 ? array.length + index : index;
+      if (resolvedIndex < 0 || resolvedIndex >= array.length) {
+        return false;
+      }
+      const matcherList = isArray(matches)
+        ? (matches as TMatcher[])
+        : [matches as TMatcher];
+      if (!matcherList.some((m) => matchElement(array[resolvedIndex], m))) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**

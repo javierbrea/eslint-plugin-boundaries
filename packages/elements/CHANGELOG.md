@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- feat: Array-valued selector properties accept a new array query object with `anyOf`, `allOf`, `noneOf`, `equalsTo` (ordered, exact length), `atIndex` (`{ index, matches }`, negative index supported), and `hasLength` operators (AND-combined). The `atIndex.matches` field accepts a single value or an array (OR semantics). Supported by `file` selector `categories` and `element` selector `types`.
+- feat: Add `element` selector `parents` property: an array query over the full ancestor chain (`parents[0]` is the closest parent). `parent` is unchanged and still matches the closest parent.
 - feat: Add file descriptors system. A new `files` property in `DescriptorsConfig` allows categorizing files independently from elements. `FileDescriptor` supports `pattern`, `category`, and `capture` properties. `FileDescription` provides `path`, `categories`, `captured`, `isIgnored`, and `isUnknown` fields.
 - feat: Add entity abstraction layer. New `EntityDescription` type combines `element`, `file`, and `module` descriptions into a unified representation. New matcher methods: `describeEntity()`, `isEntityMatch()`, `getEntitySelectorMatching()`, `getEntitySelectorMatchingDescription()`.
 - feat: Add file matcher methods to `Matcher`: `describeFile()`, `isFileMatch()`, `getFileSelectorMatching()`, and `getFileSelectorMatchingDescription()` to work with file descriptions and file selectors directly without going through the entity abstraction layer.

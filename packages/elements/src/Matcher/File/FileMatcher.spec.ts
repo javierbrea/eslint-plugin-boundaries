@@ -609,4 +609,245 @@ describe("FilesMatcher", () => {
       expect(result).toBe(true);
     });
   });
+
+  describe("categories array query", () => {
+    describe("anyOf", () => {
+      it("returns true when any category matches anyOf", () => {
+        const file = createFileDescription({
+          categories: ["components", "ui"],
+        });
+        const selector: FileSingleSelector = {
+          categories: { anyOf: ["ui", "api"] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(matcher.isFileMatch(file, selector)).toBe(true);
+      });
+
+      it("returns false when no category matches anyOf", () => {
+        const file = createFileDescription({ categories: ["components"] });
+        const selector: FileSingleSelector = {
+          categories: { anyOf: ["api", "services"] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockReturnValue(false);
+
+        expect(matcher.isFileMatch(file, selector)).toBe(false);
+      });
+    });
+
+    describe("allOf", () => {
+      it("returns true when all matchers find a matching category", () => {
+        const file = createFileDescription({
+          categories: ["components", "ui"],
+        });
+        const selector: FileSingleSelector = {
+          categories: { allOf: ["components", "ui"] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(matcher.isFileMatch(file, selector)).toBe(true);
+      });
+
+      it("returns false when a matcher finds no matching category", () => {
+        const file = createFileDescription({ categories: ["components"] });
+        const selector: FileSingleSelector = {
+          categories: { allOf: ["components", "ui"] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isFileMatch(file, selector)).toBe(false);
+      });
+    });
+
+    describe("noneOf", () => {
+      it("returns true when no category matches the forbidden list", () => {
+        const file = createFileDescription({ categories: ["components"] });
+        const selector: FileSingleSelector = {
+          categories: { noneOf: ["api", "services"] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockReturnValue(false);
+
+        expect(matcher.isFileMatch(file, selector)).toBe(true);
+      });
+
+      it("returns false when a category matches the forbidden list", () => {
+        const file = createFileDescription({
+          categories: ["components", "api"],
+        });
+        const selector: FileSingleSelector = {
+          categories: { noneOf: ["api"] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(matcher.isFileMatch(file, selector)).toBe(false);
+      });
+    });
+
+    describe("equalsTo", () => {
+      it("returns true for an ordered exact match", () => {
+        const file = createFileDescription({
+          categories: ["components", "ui"],
+        });
+        const selector: FileSingleSelector = {
+          categories: { equalsTo: ["components", "ui"] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(matcher.isFileMatch(file, selector)).toBe(true);
+      });
+
+      it("returns false for wrong order", () => {
+        const file = createFileDescription({
+          categories: ["components", "ui"],
+        });
+        const selector: FileSingleSelector = {
+          categories: { equalsTo: ["ui", "components"] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isFileMatch(file, selector)).toBe(false);
+      });
+    });
+
+    describe("hasLength", () => {
+      it("returns true when the categories array has the expected length", () => {
+        const file = createFileDescription({
+          categories: ["components", "ui"],
+        });
+        const selector: FileSingleSelector = { categories: { hasLength: 2 } };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+
+        expect(matcher.isFileMatch(file, selector)).toBe(true);
+      });
+
+      it("returns false when the categories array has a different length", () => {
+        const file = createFileDescription({ categories: ["components"] });
+        const selector: FileSingleSelector = { categories: { hasLength: 2 } };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+
+        expect(matcher.isFileMatch(file, selector)).toBe(false);
+      });
+    });
+
+    describe("atIndex", () => {
+      it("returns true when the category at the given index matches", () => {
+        const file = createFileDescription({
+          categories: ["components", "ui"],
+        });
+        const selector: FileSingleSelector = {
+          categories: { atIndex: { index: 1, matches: "ui" } },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isFileMatch(file, selector)).toBe(true);
+      });
+
+      it("returns true for index -1 (last element)", () => {
+        const file = createFileDescription({
+          categories: ["components", "ui"],
+        });
+        const selector: FileSingleSelector = {
+          categories: { atIndex: { index: -1, matches: "ui" } },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isFileMatch(file, selector)).toBe(true);
+      });
+
+      it("returns true when matches is an array and the category at index equals one", () => {
+        const file = createFileDescription({
+          categories: ["components", "ui"],
+        });
+        const selector: FileSingleSelector = {
+          categories: {
+            atIndex: { index: 0, matches: ["other", "components"] },
+          },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(matcher.isFileMatch(file, selector)).toBe(true);
+      });
+
+      it("returns false when matches is an array and the category at index equals none", () => {
+        const file = createFileDescription({
+          categories: ["components", "ui"],
+        });
+        const selector: FileSingleSelector = {
+          categories: { atIndex: { index: 0, matches: ["test", "style"] } },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(matcher.isFileMatch(file, selector)).toBe(false);
+      });
+    });
+
+    describe("null categories (ignored/unknown file)", () => {
+      it("returns false when file has null categories", () => {
+        const file = createFileDescription({ categories: null });
+        const selector: FileSingleSelector = {
+          categories: { anyOf: ["components"] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+
+        expect(matcher.isFileMatch(file, selector)).toBe(false);
+      });
+    });
+
+    describe("template pattern in anyOf", () => {
+      it("renders template variables before matching", () => {
+        const file = createFileDescription({ categories: ["components"] });
+        const selector: FileSingleSelector = {
+          categories: { anyOf: ["{{ category }}"] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        const result = matcher.isFileMatch(file, selector, {
+          extraTemplateData: { category: "components" },
+        });
+
+        expect(result).toBe(true);
+      });
+    });
+  });
 });

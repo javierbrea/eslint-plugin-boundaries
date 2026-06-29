@@ -88,11 +88,12 @@ The three sub-selectors are explained below.
 Match the [element](./elements.md) a file belongs to. All values are [micromatch pattern(s)](https://github.com/micromatch/micromatch) unless noted.
 
 - **`type`** — Matches the element's **first** type (`types[0]`). With single-type elements (the default), this is the only type, so `type` is all you need. <small>(`<string | string[] | null>`)</small>
-- **`types`** — Matches if the pattern matches **any** of the element's types. With single-type elements (the default), the element has a single type, so `types` and `type` behave the same. With [multi-type elements](./settings.md#boundarieselements-single-type) enabled, use `types` to match against the whole type array, not only the first type. <small>(`<string | string[] | null>`)</small>
+- **`types`** — Matches against the element's type array. Accepts a micromatch pattern (matches if any type matches) or an [array query object](#array-query-selectors) for richer constraints such as `allOf`, `noneOf`, and `hasLength`. <small>(`<string | string[] | null | ArrayQuery>`)</small>
 - **`path`** — Matches the element path. <small>(`<string | string[] | null>`)</small>
 - **`fileInternalPath`** — Matches the path of the file **within** its element (for example `index.js`). <small>(`<string | string[] | null>`)</small>
 - **`captured`** — Match [captured values](#captured-values-matching). <small>(`<object | object[] | null>`)</small>
-- **`parent`** — Match the element's [first parent](#parent-matching). <small>(`<object | object[] | null>`)</small>
+- **`parent`** — Match the element's [first parent](#parent-matching). `parent` always targets **only `parents[0]`** (the nearest enclosing element). <small>(`<object | object[] | null>`)</small>
+- **`parents`** — [Array query](#array-query-selectors) over the **full ancestor chain**. `parents[0]` is the closest parent; the last element is the outermost ancestor. The full `parents` array is always available in templates (e.g. `{{ element.parents.[0].types.[0] }}`). <small>(`<ArrayQuery<ParentSelector>>`)</small>
 - **`isIgnored`** — Whether the element is ignored. <small>(`<boolean>`)</small>
 - **`isUnknown`** — Whether the file matches no element descriptor. <small>(`<boolean>`)</small>
 
@@ -168,7 +169,7 @@ These deprecated properties are covered in full, with migration steps, in the [v
 
 Match the file itself, based on the [file descriptors](./files.md) you configure. File descriptors categorize files independently from the element they belong to — a single file can carry several categories.
 
-- **`categories`** — Matches if **any** of the file's categories matches the pattern. <small>(`<string | string[] | null>`)</small>
+- **`categories`** — Matches against the file's category array. Accepts a micromatch pattern (matches if any category matches) or an [array query object](#array-query-selectors) for richer constraints. <small>(`<string | string[] | null | ArrayQuery>`)</small>
 - **`path`** — Matches the file path. <small>(`<string | string[] | null>`)</small>
 - **`captured`** — Match [captured values](#captured-values-matching). <small>(`<object | object[] | null>`)</small>
 - **`isIgnored`** — Whether the file is ignored. <small>(`<boolean>`)</small>
@@ -418,24 +419,122 @@ When `captured` is an **array of objects**, the entity matches if **any** object
 }
 ```
 
-## Parent matching
+## Array query selectors
 
-The `parent` property on the element sub-selector matches the element's **first parent** (its nearest enclosing element). It accepts a single object, an array of objects (OR), or `null` (matches when the element has no parent).
+The `types` (element), `categories` (file), and `parents` (element) properties accept an **array query object** that gives you fine-grained control over how the target array is matched, beyond the simple "any element matches" logic of plain pattern strings.
 
-A parent selector supports these properties:
+All operators inside the same object are **AND-combined**. An absent operator places no constraint.
 
-- **`type`** — Matches the parent's **first** type. <small>(`<string | string[] | null>`)</small>
-- **`types`** — Matches if the pattern matches **any** of the parent's types. <small>(`<string | string[] | null>`)</small>
-- **`path`** — Matches the parent element path. <small>(`<string | string[] | null>`)</small>
-- **`captured`** — Match the parent's [captured values](#captured-values-matching). <small>(`<object | object[] | null>`)</small>
+| Operator | Shape | Matches when |
+| --- | --- | --- |
+| `anyOf` | `TMatcher[]` | At least one array element matches at least one of the matchers. An empty operand never matches. |
+| `allOf` | `TMatcher[]` | For every matcher, at least one array element matches it. An empty operand vacuously matches. |
+| `noneOf` | `TMatcher[]` | No array element matches any of the matchers. An empty operand always matches. |
+| `equalsTo` | `TMatcher[]` | Array length equals `N` **and** `array[i]` matches `matcher[i]` (ordered, exact length). |
+| `atIndex` | `{ index: number; matches: TMatcher \| TMatcher[] }` | Resolves the index (negative counts from end), then that element matches `matches`. When `matches` is an array, OR semantics apply — the element at that index must match at least one of the values. Out-of-range never matches. |
+| `hasLength` | `number` | The array length is exactly this value. |
+
+**Rules:**
+- When the target array is `null` (unknown/ignored element or file), the entire query returns `false`.
+- An empty query object `{}` returns `true` for any non-null array.
+- For `equalsTo`, order matters: `["a", "b"]` does not match `["b", "a"]`.
+- Negative `atIndex.index` counts from the end: `-1` = last element (e.g. outermost ancestor for `parents`).
+- All string matchers are micromatch patterns rendered as Handlebars templates before matching, like all other selector values.
+
+For `types` and `categories`, `TMatcher` is a string (micromatch pattern). For `parents`, `TMatcher` is a parent selector object (`type`, `types`, `path`, `category`, `captured`).
 
 ```js
-// Match elements whose first parent is a module
+// element.types: require exactly one type
+{ element: { types: { hasLength: 1 } } }
+
+// element.types: must have "component" but must NOT have "deprecated"
+{ element: { types: { allOf: ["component"], noneOf: ["deprecated"] } } }
+
+// file.categories: file has at least two categories
+{ file: { categories: { hasLength: 2 } } }
+
+// file.categories: none of these categories
+{ file: { categories: { noneOf: ["legacy", "deprecated"] } } }
+
+// element.parents: top-level element (no parents)
+{ element: { parents: { hasLength: 0 } } }
+
+// element.parents: closest parent (index 0) is a module
+{ element: { parents: { atIndex: { index: 0, matches: { type: "module" } } } } }
+
+// element.parents: outermost ancestor (index -1) is an app
+{ element: { parents: { atIndex: { index: -1, matches: { type: "app" } } } } }
+
+// element.parents: closest parent is a module OR an app (OR via array)
+{ element: { parents: { atIndex: { index: 0, matches: [{ type: "module" }, { type: "app" }] } } } }
+
+// file.categories: first category is "components" or "ui"
+{ file: { categories: { atIndex: { index: 0, matches: ["components", "ui"] } } } }
+
+// element.parents: ancestor chain in exact order (ordered, exact length)
+{ element: { parents: { equalsTo: [{ type: "module" }, { type: "app" }] } } }
+```
+
+:::note
+See [Parent matching](#parent-matching) for the full explanation of `parent` vs `parents`, including how to combine them and their template-data differences.
+:::
+
+## Parent matching
+
+Elements form a hierarchy: each element can be nested inside one or more enclosing elements. Two selector properties give you access to this ancestor chain: `parents` for full array query access, and `parent` as a shortcut for the common case of matching only the nearest ancestor.
+
+### Parent selector fields
+
+Both `parents` and `parent` work with **parent selector objects**. A parent selector supports these fields:
+
+- **`type`** — Matches the parent's **first** type (`types[0]`). <small>(`<string | string[] | null>`)</small>
+- **`types`** — Matches against the parent's type array. Accepts a micromatch pattern (matches if any type matches) or an [array query object](#array-query-selectors) for richer constraints such as `allOf` or `hasLength`. <small>(`<string | string[] | null | ArrayQuery>`)</small>
+- **`path`** — Matches the parent element path. <small>(`<string | string[] | null>`)</small>
+- **`captured`** — Matches the parent's [captured values](#captured-values-matching). <small>(`<object | object[] | null>`)</small>
+
+### `parents` — array query over the ancestor chain
+
+`parents` accepts an [array query object](#array-query-selectors) that matches against the full ancestor list. `parents[0]` is the **closest parent** (the immediately enclosing element); the last entry is the **outermost ancestor**.
+
+```js
+// Top-level element (no parents)
+{ element: { parents: { hasLength: 0 } } }
+
+// Closest parent is a module
+{ element: { parents: { atIndex: { index: 0, matches: { type: "module" } } } } }
+
+// Outermost ancestor is an app
+{ element: { parents: { atIndex: { index: -1, matches: { type: "app" } } } } }
+
+// Closest parent is a module OR an app
+{ element: { parents: { atIndex: { index: 0, matches: [{ type: "module" }, { type: "app" }] } } } }
+
+// At least one ancestor is a module
+{ element: { parents: { anyOf: [{ type: "module" }] } } }
+
+// No ancestor is deprecated
+{ element: { parents: { noneOf: [{ type: "deprecated" }] } } }
+
+// Ancestor chain has exactly two levels in this order (closest first)
+{ element: { parents: { equalsTo: [{ type: "module" }, { type: "app" }] } } }
+
+// Closest parent has BOTH "module" AND "lazy" types
+{ element: { parents: { atIndex: { index: 0, matches: { types: { allOf: ["module", "lazy"] } } } } } }
+```
+
+### `parent` — shortcut for the closest parent
+
+`parent` is a convenience that targets only `parents[0]` (the nearest enclosing element). It accepts a single parent selector object, an array of objects (OR), or `null` to match top-level elements with no parents.
+
+```js
+// Closest parent is a module
 { element: { parent: { type: "module" } } }
 
-// Match elements with no parent
+// Top-level element (equivalent to parents: { hasLength: 0 })
 { element: { parent: null } }
 ```
+
+`parent` and `parents` can be used in the same selector — they are AND-combined.
 
 :::warning[Deprecated]
 **`elementPath`** on a parent selector is a legacy alias for **`path`**. Use `path` instead.
@@ -449,12 +548,12 @@ Selector values support templates, so a rule can adapt to the file it is checkin
 
 The modern syntax uses Handlebars-style double curly braces. The data tree mirrors the [runtime descriptions](./classification.md), exposing the three entity sub-descriptions on each side:
 
-- **`{{ from.element.* }}`** / **`{{ to.element.* }}`** — element properties such as `{{ from.element.types }}`, `{{ from.element.captured.family }}`, `{{ from.element.path }}`.
+- **`{{ from.element.* }}`** / **`{{ to.element.* }}`** — element properties such as `{{ from.element.types }}`, `{{ from.element.captured.family }}`, `{{ from.element.path }}`, and `{{ from.element.parents.[0].types.[0] }}`.
 - **`{{ from.file.* }}`** / **`{{ to.file.* }}`** — file properties such as `{{ to.file.categories }}`.
 - **`{{ from.module.* }}`** / **`{{ to.module.* }}`** — module properties such as `{{ to.module.origin }}` and `{{ to.module.source }}`.
 - **`{{ dependency.* }}`** — properties of the dependency itself, such as `{{ dependency.kind }}` and `{{ dependency.specifiers }}`.
 
-Use the array index syntax to read a single entry, for example `{{ from.element.types.[0] }}`.
+Use the array index syntax to read a single entry, for example `{{ from.element.types.[0] }}` or `{{ from.element.parents.[0].captured.moduleName }}`.
 
 :::note
 Legacy flat aliases such as `{{ from.type }}` (equal to `{{ from.element.types.[0] }}`), `{{ from.elementPath }}`, and `{{ from.origin }}` keep working regardless of [`boundaries/legacy-templates`](./settings.md#boundarieslegacy-templates) — they are part of the template data and rendered like any other `{{ }}` path. What that setting governs in selectors is the legacy `${ }` syntax and the top-level captured-value shorthand (for example `{{ family }}` / `${ family }`), not these nested-path aliases. New rules should still prefer the nested paths above.

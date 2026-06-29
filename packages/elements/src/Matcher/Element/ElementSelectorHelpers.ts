@@ -140,6 +140,7 @@ export function isElementSingleSelector(
       "type",
       "types",
       "parent",
+      "parents",
       "category",
       "fileInternalPath",
     ]) || extendsSingleSelector<ElementSingleSelector>(value)

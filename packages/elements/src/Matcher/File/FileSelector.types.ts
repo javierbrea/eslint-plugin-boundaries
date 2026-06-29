@@ -1,12 +1,12 @@
 import type { MicromatchPatternNullable } from "../../Shared";
-import type { BaseSingleSelector } from "../Shared";
+import type { BaseSingleSelector, StringArrayQuery } from "../Shared";
 
 /**
  * Selector for files
  */
 export type FileSingleSelector = BaseSingleSelector & {
-  /** Categories of the file */
-  categories?: MicromatchPatternNullable;
+  /** Categories of the file. A micromatch pattern (OR) or an array query object. */
+  categories?: MicromatchPatternNullable | StringArrayQuery;
 };
 
 /**

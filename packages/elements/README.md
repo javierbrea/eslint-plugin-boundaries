@@ -470,10 +470,11 @@ matcher.isEntityMatch("src/modules/auth/auth.spec.ts", {
 **Element sub-selector** — matches against element description properties:
 
 - **`type`** (`string | string[]`): Micromatch pattern(s) for the element type. Matches the first type in the `types` array.
-- **`types`** (`string | string[]`): Micromatch pattern(s) for matching against all element types.
+- **`types`** (`string | string[] | ArrayQuery<string>`): Micromatch pattern(s) for matching against all element types, or an [array query object](#array-query-selectors) for richer matching (`anyOf`, `allOf`, `noneOf`, `equalsTo`, `atIndex`, `hasLength`).
 - **`path`** (`string | string[]`): Micromatch pattern(s) for the element path.
 - **`captured`** (`object | object[]`): Captured values selector. Object = AND logic (all keys must match). Array of objects = OR logic (any object can match).
-- **`parent`** (`object | null`): Selector for the first parent element. Set to `null` to match top-level elements with no parents. Supports `type`, `types`, `path`, and `captured`.
+- **`parent`** (`object | null`): Selector for the **first** (closest) parent element. Set to `null` to match top-level elements with no parents. Supports `type`, `types`, `path`, and `captured`. **Unchanged** — still matches only `parents[0]`.
+- **`parents`** (`ArrayQuery<ParentElementSingleSelector>`): [Array query](#array-query-selectors) over the **full ancestor chain**. `parents[0]` is the closest parent; the last element is the outermost ancestor. See [Array query selectors](#array-query-selectors) for operators.
 - **`fileInternalPath`** (`string | string[]`): Pattern(s) for the path of the file relative to the element.
 - **`isIgnored`** (`boolean`): Whether the element is ignored.
 - **`isUnknown`** (`boolean`): Whether no descriptor matched.
@@ -481,7 +482,7 @@ matcher.isEntityMatch("src/modules/auth/auth.spec.ts", {
 **File sub-selector** — matches against file description properties:
 
 - **`path`** (`string | string[]`): Micromatch pattern(s) for the file path.
-- **`categories`** (`string | string[]`): Micromatch pattern(s) for file categories.
+- **`categories`** (`string | string[] | ArrayQuery<string>`): Micromatch pattern(s) for file categories, or an [array query object](#array-query-selectors) for richer matching (`anyOf`, `allOf`, `noneOf`, `equalsTo`, `atIndex`, `hasLength`).
 - **`captured`** (`object | object[]`): Captured values selector (same semantics as element).
 - **`isIgnored`** (`boolean`): Whether the file is ignored.
 - **`isUnknown`** (`boolean`): Whether no file descriptor matched.
@@ -497,6 +498,92 @@ matcher.isEntityMatch("src/modules/auth/auth.spec.ts", {
 
 > [!NOTE]
 > For backward compatibility, entity selectors also accept flat element selectors (without the `element`/`file`/`module` nesting). Properties like `origin`, `elementPath`, and `internalPath` in flat selectors are automatically mapped to their new locations. See [Legacy Selectors](#legacy-selectors) for details.
+
+### Array Query Selectors
+
+The `types` (element), `categories` (file), and `parents` (element) selector properties accept an **array query object** in addition to the plain string / string-array form. An array query gives you fine-grained control over how the target array is matched.
+
+All operators present in the same object are **AND-combined**. An absent operator imposes no constraint.
+
+| Operator | Shape | Matches when |
+| --- | --- | --- |
+| `anyOf` | `TMatcher[]` | At least one array element matches at least one of the matchers. Empty operand never matches. |
+| `allOf` | `TMatcher[]` | For every matcher, at least one array element matches it. Empty operand vacuously matches. |
+| `noneOf` | `TMatcher[]` | No array element matches any of the matchers. Empty operand always matches. |
+| `equalsTo` | `TMatcher[]` | Array length equals `N` **and** `array[i]` matches `matcher[i]` (ordered, exact-length). |
+| `atIndex` | `{ index: number; matches: TMatcher \| TMatcher[] }` | Resolves the index (negative counts from end), then that element matches `matches`. When `matches` is an array, OR semantics apply — the element must satisfy at least one of the matchers. Out-of-range never matches. |
+| `hasLength` | `number` | The array length is exactly this value. |
+
+**Edge cases:**
+- When the target array is `null` (unknown/ignored element or file), the entire query returns `false`.
+- An empty query object `{}` returns `true` for any non-null array (no constraints).
+- For `equalsTo`, order matters: `["a", "b"]` does not match `["b", "a"]`.
+- Negative `atIndex.index` counts from the end: `-1` = last element (outermost ancestor for `parents`).
+- All string matchers are micromatch patterns and are rendered as Handlebars templates before matching, exactly like all other selector values.
+
+**`TMatcher` per property:**
+- `types` (element) / `categories` (file): `string` (a micromatch pattern)
+- `parents`: `ParentElementSingleSelector` — an object supporting `type`, `types` (accepts `StringArrayQuery`), `path`, `category`, and `captured`
+
+**Examples:**
+
+```typescript
+// element.types: require at least one of these types
+matcher.isEntityMatch(filePath, {
+  element: { types: { anyOf: ["component", "widget"] } },
+});
+
+// element.types: forbid certain types
+matcher.isEntityMatch(filePath, {
+  element: { types: { noneOf: ["ignored", "legacy"] } },
+});
+
+// file.categories: require both categories to be present
+matcher.isFileMatch(filePath, {
+  categories: { allOf: ["react", "test"] },
+});
+
+// file.categories: file has exactly one category
+matcher.isFileMatch(filePath, {
+  categories: { hasLength: 1 },
+});
+
+// element.parents: top-level element (no parents)
+matcher.isEntityMatch(filePath, {
+  element: { parents: { hasLength: 0 } },
+});
+
+// element.parents: closest parent (index 0) is a module
+matcher.isEntityMatch(filePath, {
+  element: { parents: { atIndex: { index: 0, matches: { type: "module" } } } },
+});
+
+// element.parents: outermost ancestor (index -1) is an app
+matcher.isEntityMatch(filePath, {
+  element: { parents: { atIndex: { index: -1, matches: { type: "app" } } } },
+});
+
+// element.parents: closest parent is a module OR an app (OR via array)
+matcher.isEntityMatch(filePath, {
+  element: {
+    parents: {
+      atIndex: { index: 0, matches: [{ type: "module" }, { type: "app" }] },
+    },
+  },
+});
+
+// file.categories: first category is "components" or "ui"
+matcher.isFileMatch(filePath, {
+  categories: { atIndex: { index: 0, matches: ["components", "ui"] } },
+});
+
+// element.parents: ancestor chain has exactly two levels in order
+matcher.isEntityMatch(filePath, {
+  element: {
+    parents: { equalsTo: [{ type: "module" }, { type: "app" }] },
+  },
+});
+```
 
 ### Matching Dependencies
 

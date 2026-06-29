@@ -58,6 +58,41 @@ const micromatchPatternNullableSchema = {
   ],
 };
 
+/** Schema for `atIndex.matches` — a single string pattern or array of string patterns (OR). */
+const atIndexMatchesSchema = {
+  anyOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+};
+
+/**
+ * Schema for an ArrayQuery over a string array (`categories`, `types`).
+ * All operators are optional and AND-combined when present.
+ */
+const stringArrayQuerySchema = {
+  type: "object",
+  properties: {
+    anyOf: { type: "array", items: { type: "string" } },
+    allOf: { type: "array", items: { type: "string" } },
+    noneOf: { type: "array", items: { type: "string" } },
+    equalsTo: { type: "array", items: { type: "string" } },
+    atIndex: {
+      type: "object",
+      properties: {
+        index: { type: "number" },
+        matches: atIndexMatchesSchema,
+      },
+      required: ["index", "matches"],
+      additionalProperties: false,
+    },
+    hasLength: { type: "number" },
+  },
+  additionalProperties: false,
+};
+
+/** Schema for a property that accepts either a micromatch pattern or a string array query. */
+const micromatchOrArrayQuerySchema = {
+  anyOf: [micromatchPatternNullableSchema, stringArrayQuerySchema],
+};
+
 const dependencyRelationshipSelectorSchema = {
   type: "object",
   properties: {
@@ -112,6 +147,13 @@ const parentElementSingleSelectorSchema = {
   type: "object",
   properties: {
     type: micromatchPatternNullableSchema,
+    // `types` accepts a micromatch pattern or an array query object.
+    // A simplified object schema is used here (no deep validation of the query structure)
+    // to avoid generating an overly large AJV validator that crashes V8's baseline JIT
+    // when this schema is embedded in parentsArrayQuerySchema five times over.
+    types: {
+      anyOf: [micromatchPatternNullableSchema, { type: "object" }],
+    },
     category: micromatchPatternNullableSchema,
     path: micromatchPatternNullableSchema,
     elementPath: micromatchPatternNullableSchema,
@@ -128,6 +170,35 @@ const parentElementSelectorSchema = {
   ],
 };
 
+/** Schema for an ArrayQuery over the parent ancestor chain (`element.parents`).
+ * Items use a simplified schema (`{ type: "object" }`) to avoid generating an
+ * overly large AJV validator that would crash V8's baseline JIT compiler. */
+const parentsArrayQuerySchema = {
+  type: "object",
+  properties: {
+    anyOf: { type: "array", items: { type: "object" } },
+    allOf: { type: "array", items: { type: "object" } },
+    noneOf: { type: "array", items: { type: "object" } },
+    equalsTo: { type: "array", items: { type: "object" } },
+    atIndex: {
+      type: "object",
+      properties: {
+        index: { type: "number" },
+        matches: {
+          anyOf: [
+            { type: "object" },
+            { type: "array", items: { type: "object" } },
+          ],
+        },
+      },
+      required: ["index", "matches"],
+      additionalProperties: false,
+    },
+    hasLength: { type: "number" },
+  },
+  additionalProperties: false,
+};
+
 const elementSingleSelectorSchema = {
   type: "object",
   properties: {
@@ -137,9 +208,11 @@ const elementSingleSelectorSchema = {
     elementInternalPath: micromatchPatternNullableSchema,
     fileInternalPath: micromatchPatternNullableSchema,
     type: micromatchPatternNullableSchema,
+    types: micromatchOrArrayQuerySchema,
     category: micromatchPatternNullableSchema,
     captured: capturedValuesSelectorSchema,
     parent: parentElementSelectorSchema,
+    parents: parentsArrayQuerySchema,
     origin: micromatchPatternNullableSchema,
     isIgnored: { type: "boolean" },
     isUnknown: { type: "boolean" },
@@ -162,7 +235,7 @@ const fileSingleSelectorSchema = {
   properties: {
     path: micromatchPatternNullableSchema,
     captured: capturedValuesSelectorSchema,
-    categories: micromatchPatternNullableSchema,
+    categories: micromatchOrArrayQuerySchema,
     isIgnored: { type: "boolean" },
     isUnknown: { type: "boolean" },
   },

@@ -920,4 +920,198 @@ describe("isEntityMatch | Integration", () => {
       expect(micromatchSpy).toHaveBeenCalled();
     });
   });
+
+  describe("parents array query", () => {
+    // /project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts
+    // has parents: [sms-module, phone-module, notification-module, foo-element]
+    // parents[0] is the closest parent (sms), parents[-1] is the outermost (foo)
+    const deepPath =
+      "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts";
+
+    it("anyOf: matches when any ancestor has the given type", () => {
+      expect(
+        matcher.isEntityMatch(deepPath, {
+          element: { parents: { anyOf: [{ type: "foo" }] } },
+        })
+      ).toBe(true);
+    });
+
+    it("anyOf: does not match when no ancestor has the given type", () => {
+      expect(
+        matcher.isEntityMatch(deepPath, {
+          element: { parents: { anyOf: [{ type: "service" }] } },
+        })
+      ).toBe(false);
+    });
+
+    it("noneOf: matches when the forbidden ancestor type is absent", () => {
+      expect(
+        matcher.isEntityMatch(deepPath, {
+          element: { parents: { noneOf: [{ type: "service" }] } },
+        })
+      ).toBe(true);
+    });
+
+    it("noneOf: does not match when the forbidden ancestor type is present", () => {
+      expect(
+        matcher.isEntityMatch(deepPath, {
+          element: { parents: { noneOf: [{ type: "module" }] } },
+        })
+      ).toBe(false);
+    });
+
+    it("hasLength: 0 matches top-level elements (no parents)", () => {
+      expect(
+        matcher.isEntityMatch("/project/src/components/Button.tsx", {
+          element: { parents: { hasLength: 0 } },
+        })
+      ).toBe(true);
+    });
+
+    it("hasLength: 0 does not match elements with parents", () => {
+      expect(
+        matcher.isEntityMatch(deepPath, {
+          element: { parents: { hasLength: 0 } },
+        })
+      ).toBe(false);
+    });
+
+    it("atIndex -1: matches the outermost ancestor type", () => {
+      expect(
+        matcher.isEntityMatch(deepPath, {
+          element: {
+            parents: { atIndex: { index: -1, matches: { type: "foo" } } },
+          },
+        })
+      ).toBe(true);
+    });
+
+    it("atIndex 0: matches the closest parent type", () => {
+      expect(
+        matcher.isEntityMatch(deepPath, {
+          element: {
+            parents: { atIndex: { index: 0, matches: { type: "module" } } },
+          },
+        })
+      ).toBe(true);
+    });
+
+    it("allOf: matches when all required ancestor types are present", () => {
+      expect(
+        matcher.isEntityMatch(deepPath, {
+          element: {
+            parents: { allOf: [{ type: "module" }, { type: "foo" }] },
+          },
+        })
+      ).toBe(true);
+    });
+
+    it("allOf: does not match when a required ancestor type is absent", () => {
+      expect(
+        matcher.isEntityMatch(deepPath, {
+          element: {
+            parents: { allOf: [{ type: "module" }, { type: "service" }] },
+          },
+        })
+      ).toBe(false);
+    });
+  });
+
+  describe("types array query", () => {
+    it("anyOf: matches when any type is in the list", () => {
+      expect(
+        matcher.isEntityMatch("/project/src/components/Button.tsx", {
+          element: { types: { anyOf: ["component", "service"] } },
+        })
+      ).toBe(true);
+    });
+
+    it("anyOf: does not match when no type is in the list", () => {
+      expect(
+        matcher.isEntityMatch("/project/src/components/Button.tsx", {
+          element: { types: { anyOf: ["service", "module"] } },
+        })
+      ).toBe(false);
+    });
+
+    it("allOf: matches when all required types are present", () => {
+      expect(
+        matcher.isEntityMatch("/project/src/components/Button.tsx", {
+          element: { types: { allOf: ["component"] } },
+        })
+      ).toBe(true);
+    });
+
+    it("allOf: does not match when a required type is missing", () => {
+      expect(
+        matcher.isEntityMatch("/project/src/components/Button.tsx", {
+          element: { types: { allOf: ["component", "service"] } },
+        })
+      ).toBe(false);
+    });
+
+    it("noneOf: matches when none of the forbidden types are present", () => {
+      expect(
+        matcher.isEntityMatch("/project/src/components/Button.tsx", {
+          element: { types: { noneOf: ["service", "module"] } },
+        })
+      ).toBe(true);
+    });
+
+    it("noneOf: does not match when a forbidden type is present", () => {
+      expect(
+        matcher.isEntityMatch("/project/src/components/Button.tsx", {
+          element: { types: { noneOf: ["component"] } },
+        })
+      ).toBe(false);
+    });
+
+    it("hasLength: matches when type count equals hasLength", () => {
+      expect(
+        matcher.isEntityMatch("/project/src/components/Button.tsx", {
+          element: { types: { hasLength: 1 } },
+        })
+      ).toBe(true);
+    });
+
+    it("hasLength: does not match when type count differs", () => {
+      expect(
+        matcher.isEntityMatch("/project/src/components/Button.tsx", {
+          element: { types: { hasLength: 2 } },
+        })
+      ).toBe(false);
+    });
+
+    it("atIndex: matches the type at index 0", () => {
+      expect(
+        matcher.isEntityMatch("/project/src/components/Button.tsx", {
+          element: { types: { atIndex: { index: 0, matches: "component" } } },
+        })
+      ).toBe(true);
+    });
+
+    it("atIndex: matches the last type using index -1", () => {
+      expect(
+        matcher.isEntityMatch("/project/src/components/Button.tsx", {
+          element: { types: { atIndex: { index: -1, matches: "component" } } },
+        })
+      ).toBe(true);
+    });
+
+    it("equalsTo: matches when types exactly equal the ordered list", () => {
+      expect(
+        matcher.isEntityMatch("/project/src/components/Button.tsx", {
+          element: { types: { equalsTo: ["component"] } },
+        })
+      ).toBe(true);
+    });
+
+    it("equalsTo: does not match when the list length differs", () => {
+      expect(
+        matcher.isEntityMatch("/project/src/components/Button.tsx", {
+          element: { types: { equalsTo: ["component", "extra"] } },
+        })
+      ).toBe(false);
+    });
+  });
 });

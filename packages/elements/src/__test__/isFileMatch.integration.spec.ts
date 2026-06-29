@@ -470,4 +470,104 @@ describe("isFileMatch | Integration", () => {
       expect(micromatchSpy).toHaveBeenCalled();
     });
   });
+
+  describe("categories array query", () => {
+    it("anyOf: matches when at least one category is in the list", () => {
+      expect(
+        matcher.isFileMatch("/project/src/modules/user/user.spec.ts", {
+          categories: { anyOf: ["spec", "unknown"] },
+        })
+      ).toBe(true);
+    });
+
+    it("anyOf: does not match when no category is in the list", () => {
+      expect(
+        matcher.isFileMatch("/project/src/modules/user/user.spec.ts", {
+          categories: { anyOf: ["react", "test"] },
+        })
+      ).toBe(false);
+    });
+
+    it("allOf: matches when all required categories are present", () => {
+      expect(
+        matcher.isFileMatch("/project/src/modules/user/user.spec.ts", {
+          categories: { allOf: ["spec", "module-file"] },
+        })
+      ).toBe(true);
+    });
+
+    it("allOf: does not match when a required category is missing", () => {
+      expect(
+        matcher.isFileMatch("/project/src/modules/user/user.spec.ts", {
+          categories: { allOf: ["spec", "react"] },
+        })
+      ).toBe(false);
+    });
+
+    it("noneOf: matches when none of the forbidden categories are present", () => {
+      expect(
+        matcher.isFileMatch("/project/src/components/Button.tsx", {
+          categories: { noneOf: ["spec", "module-file"] },
+        })
+      ).toBe(true);
+    });
+
+    it("noneOf: does not match when a forbidden category is present", () => {
+      expect(
+        matcher.isFileMatch("/project/src/components/Button.tsx", {
+          categories: { noneOf: ["react"] },
+        })
+      ).toBe(false);
+    });
+
+    it("hasLength: matches when category count equals hasLength", () => {
+      expect(
+        matcher.isFileMatch("/project/src/components/Button.tsx", {
+          categories: { hasLength: 1 },
+        })
+      ).toBe(true);
+    });
+
+    it("hasLength: does not match when category count differs", () => {
+      expect(
+        matcher.isFileMatch("/project/src/components/Button.tsx", {
+          categories: { hasLength: 3 },
+        })
+      ).toBe(false);
+    });
+
+    it("atIndex: matches the category at index 0", () => {
+      expect(
+        matcher.isFileMatch("/project/src/components/Button.tsx", {
+          categories: { atIndex: { index: 0, matches: "react" } },
+        })
+      ).toBe(true);
+    });
+
+    it("atIndex: matches the last category using index -1", () => {
+      // user.spec.ts categories = ["spec", "module-file"] — last is "module-file"
+      expect(
+        matcher.isFileMatch("/project/src/modules/user/user.spec.ts", {
+          categories: { atIndex: { index: -1, matches: "module-file" } },
+        })
+      ).toBe(true);
+    });
+
+    it("equalsTo: matches exact ordered categories", () => {
+      expect(
+        matcher.isFileMatch("/project/src/components/Button.tsx", {
+          categories: { equalsTo: ["react"] },
+        })
+      ).toBe(true);
+    });
+
+    it("equalsTo: does not match when order is wrong", () => {
+      // user.spec.ts categories = ["spec", "module-file"] — reversed order must fail
+      expect(
+        matcher.isFileMatch("/project/src/modules/user/user.spec.ts", {
+          categories: { equalsTo: ["module-file", "spec"] },
+        })
+      ).toBe(false);
+    });
+  });
 });

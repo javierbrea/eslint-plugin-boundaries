@@ -1,5 +1,10 @@
 import type { MicromatchPatternNullable } from "../../Shared";
-import type { BaseSingleSelector, CapturedValuesSelector } from "../Shared";
+import type {
+  ArrayQuery,
+  BaseSingleSelector,
+  CapturedValuesSelector,
+  StringArrayQuery,
+} from "../Shared";
 
 /**
  * Selector for matching a parent element
@@ -11,12 +16,15 @@ export type ParentElementSingleSelector = Pick<
   /** Type of the first parent element */
   type?: MicromatchPatternNullable;
   /** Types of the parent element */
-  types?: MicromatchPatternNullable;
+  types?: MicromatchPatternNullable | StringArrayQuery;
   /*
    * Legacy category field for backward compatibility. This will be removed in future versions
    */
   category?: MicromatchPatternNullable;
 };
+
+/** Array query over the element ancestor chain. parents[0] is the closest parent. */
+export type ParentElementArrayQuery = ArrayQuery<ParentElementSingleSelector>;
 
 /**
  * Legacy selectors are used for backward compatibility with previous versions of the plugin. They include additional properties that were used in the old selector format
@@ -80,8 +88,8 @@ export type LegacyElementSimpleSelector =
 export type ElementSingleSelector = BaseSingleSelector & {
   /** Type of the element. Matches the first type only */
   type?: MicromatchPatternNullable;
-  /** Types of the element */
-  types?: MicromatchPatternNullable;
+  /** Types of the element. A micromatch pattern (OR) or an array query object. */
+  types?: MicromatchPatternNullable | StringArrayQuery;
   /*
    * Legacy category field for backward compatibility. This will be removed in future versions in favor of using the `category` field in file selectors
    * @deprecated Use the `category` field in file selectors instead.
@@ -96,6 +104,13 @@ export type ElementSingleSelector = BaseSingleSelector & {
   filePath?: MicromatchPatternNullable; // For backward compatibility with legacy mode "file", where the element selector included filePath. --- IGNORE ---
   /** Selector for matching the first parent element */
   parent?: ParentElementSelector | null;
+  /**
+   * Query over the full parent ancestor chain (`element.parents`).
+   * `parents[0]` is the closest parent; the last element is the outermost ancestor.
+   * Use the array query operators (anyOf / allOf / noneOf / equalsTo / atIndex / hasLength).
+   * Unlike `parent`, this is a pure boolean filter and does not contribute captured values.
+   */
+  parents?: ParentElementArrayQuery;
 };
 
 /**

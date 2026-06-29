@@ -758,6 +758,73 @@ describe("ElementsMatcher", () => {
       expect(result).toBeNull();
     });
 
+    it("matches parent when types uses allOf and all required types are present", () => {
+      const element = createElementDescription({
+        parents: [createParent({ types: ["module", "lazy"] })],
+      });
+      const selector: ElementSingleSelectorNormalized = {
+        parent: [{ types: { allOf: ["module", "lazy"] } }],
+      };
+      mockedNormalizeElementSelector.mockReturnValue([selector]);
+      micromatch.isMatch.mockImplementation(
+        (val: string, pattern: string | string[]) => val === pattern
+      );
+
+      const result = matcher.getSelectorMatching(element, selector);
+
+      expect(result).toEqual({
+        parent: { types: { allOf: ["module", "lazy"] } },
+      });
+    });
+
+    it("does not match parent when types uses allOf and a required type is missing", () => {
+      const element = createElementDescription({
+        parents: [createParent({ types: ["module"] })],
+      });
+      const selector: ElementSingleSelectorNormalized = {
+        parent: [{ types: { allOf: ["module", "lazy"] } }],
+      };
+      mockedNormalizeElementSelector.mockReturnValue([selector]);
+      micromatch.isMatch.mockImplementation(
+        (val: string, pattern: string | string[]) => val === pattern
+      );
+
+      const result = matcher.getSelectorMatching(element, selector);
+
+      expect(result).toBeNull();
+    });
+
+    it("matches parent when types uses noneOf and none of the forbidden types are present", () => {
+      const element = createElementDescription({
+        parents: [createParent({ types: ["module"] })],
+      });
+      const selector: ElementSingleSelectorNormalized = {
+        parent: [{ types: { noneOf: ["deprecated", "legacy"] } }],
+      };
+      mockedNormalizeElementSelector.mockReturnValue([selector]);
+      micromatch.isMatch.mockReturnValue(false);
+
+      const result = matcher.getSelectorMatching(element, selector);
+
+      expect(result).toEqual({
+        parent: { types: { noneOf: ["deprecated", "legacy"] } },
+      });
+    });
+
+    it("matches parent when types uses hasLength and count matches", () => {
+      const element = createElementDescription({
+        parents: [createParent({ types: ["module", "lazy"] })],
+      });
+      const selector: ElementSingleSelectorNormalized = {
+        parent: [{ types: { hasLength: 2 } }],
+      };
+      mockedNormalizeElementSelector.mockReturnValue([selector]);
+
+      const result = matcher.getSelectorMatching(element, selector);
+
+      expect(result).toEqual({ parent: { types: { hasLength: 2 } } });
+    });
+
     it("should match parent path selector", () => {
       const element = createElementDescription({
         parents: [createParent({ path: "src/modules/auth" })],
@@ -1007,6 +1074,593 @@ describe("ElementsMatcher", () => {
       ]);
 
       expect(result).toBe(selector2);
+    });
+  });
+
+  describe("types array query", () => {
+    describe("anyOf", () => {
+      it("returns a match when any type matches anyOf", () => {
+        const element = createElementDescription({
+          types: ["component", "ui"],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { anyOf: ["ui", "service"] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns no match when no type is in anyOf", () => {
+        const element = createElementDescription({ types: ["component"] });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { anyOf: ["service", "api"] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockReturnValue(false);
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
+    });
+
+    describe("allOf", () => {
+      it("returns a match when all matchers find a matching type", () => {
+        const element = createElementDescription({
+          types: ["component", "ui"],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { allOf: ["component", "ui"] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns no match when a required type is missing", () => {
+        const element = createElementDescription({ types: ["component"] });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { allOf: ["component", "ui"] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
+    });
+
+    describe("noneOf", () => {
+      it("returns a match when no type matches the forbidden list", () => {
+        const element = createElementDescription({ types: ["component"] });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { noneOf: ["service", "api"] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockReturnValue(false);
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns no match when a forbidden type is present", () => {
+        const element = createElementDescription({
+          types: ["component", "service"],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { noneOf: ["service"] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
+    });
+
+    describe("equalsTo", () => {
+      it("returns a match for exact ordered types", () => {
+        const element = createElementDescription({
+          types: ["component", "ui"],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { equalsTo: ["component", "ui"] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns no match when order differs", () => {
+        const element = createElementDescription({
+          types: ["component", "ui"],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { equalsTo: ["ui", "component"] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
+    });
+
+    describe("hasLength", () => {
+      it("returns a match when the types array has the expected length", () => {
+        const element = createElementDescription({
+          types: ["component", "ui"],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { hasLength: 2 },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns no match when the types array has a different length", () => {
+        const element = createElementDescription({ types: ["component"] });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { hasLength: 2 },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
+    });
+
+    describe("atIndex", () => {
+      it("returns a match when the type at the given index matches", () => {
+        const element = createElementDescription({
+          types: ["component", "ui"],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { atIndex: { index: 1, matches: "ui" } },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns a match for index -1 (last element)", () => {
+        const element = createElementDescription({
+          types: ["component", "ui"],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { atIndex: { index: -1, matches: "ui" } },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns a match when matches is an array and the type at index equals one", () => {
+        const element = createElementDescription({
+          types: ["component", "ui"],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { atIndex: { index: 0, matches: ["helper", "component"] } },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns no match when matches is an array and the type at index equals none", () => {
+        const element = createElementDescription({
+          types: ["component", "ui"],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { atIndex: { index: 0, matches: ["helper", "service"] } },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
+    });
+
+    describe("null types (unknown/ignored element)", () => {
+      it("returns no match when element has null types", () => {
+        const element = createElementDescription({ types: null });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { anyOf: ["component"] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
+    });
+  });
+
+  describe("parent", () => {
+    it("returns a match when the first parent type matches the parent selector", () => {
+      const element = createElementDescription({
+        parents: [createParent({ types: ["module"] })],
+      });
+      const selector: ElementSingleSelectorNormalized = {
+        parent: [{ type: "module" }],
+      };
+      mockedNormalizeElementSelector.mockReturnValue([selector]);
+      micromatch.isMatch.mockReturnValue(true);
+
+      expect(matcher.isElementMatch(element, selector)).toBe(true);
+    });
+
+    it("returns no match when the first parent type does not match", () => {
+      const element = createElementDescription({
+        parents: [createParent({ types: ["module"] })],
+      });
+      const selector: ElementSingleSelectorNormalized = {
+        parent: [{ type: "service" }],
+      };
+      mockedNormalizeElementSelector.mockReturnValue([selector]);
+      micromatch.isMatch.mockReturnValue(false);
+
+      expect(matcher.isElementMatch(element, selector)).toBe(false);
+    });
+
+    it("returns a match for parent: null when element has no parents", () => {
+      const element = createElementDescription({ parents: [] });
+      const selector: ElementSingleSelectorNormalized = { parent: null };
+      mockedNormalizeElementSelector.mockReturnValue([selector]);
+
+      expect(matcher.isElementMatch(element, selector)).toBe(true);
+    });
+
+    it("returns no match for parent: null when element has parents", () => {
+      const element = createElementDescription({
+        parents: [createParent()],
+      });
+      const selector: ElementSingleSelectorNormalized = { parent: null };
+      mockedNormalizeElementSelector.mockReturnValue([selector]);
+
+      expect(matcher.isElementMatch(element, selector)).toBe(false);
+    });
+  });
+
+  describe("parents array query", () => {
+    describe("anyOf", () => {
+      it("returns a match when any ancestor matches the anyOf selector", () => {
+        const element = createElementDescription({
+          parents: [
+            createParent({ types: ["module"] }),
+            createParent({ types: ["app"] }),
+          ],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: { anyOf: [{ type: "app" }] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns no match when no ancestor matches anyOf", () => {
+        const element = createElementDescription({
+          parents: [createParent({ types: ["module"] })],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: { anyOf: [{ type: "app" }] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockReturnValue(false);
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
+    });
+
+    describe("allOf", () => {
+      it("returns a match when all matchers find a matching ancestor", () => {
+        const element = createElementDescription({
+          parents: [
+            createParent({ types: ["module"] }),
+            createParent({ types: ["app"] }),
+          ],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: { allOf: [{ type: "module" }, { type: "app" }] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns no match when a required ancestor type is missing", () => {
+        const element = createElementDescription({
+          parents: [createParent({ types: ["module"] })],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: { allOf: [{ type: "module" }, { type: "app" }] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
+    });
+
+    describe("noneOf", () => {
+      it("returns a match when no ancestor matches the forbidden selector", () => {
+        const element = createElementDescription({
+          parents: [createParent({ types: ["module"] })],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: { noneOf: [{ type: "app" }] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockReturnValue(false);
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns no match when a forbidden ancestor is present", () => {
+        const element = createElementDescription({
+          parents: [
+            createParent({ types: ["module"] }),
+            createParent({ types: ["app"] }),
+          ],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: { noneOf: [{ type: "app" }] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
+    });
+
+    describe("hasLength", () => {
+      it("returns a match for hasLength: 0 on a top-level element", () => {
+        const element = createElementDescription({ parents: [] });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: { hasLength: 0 },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns a match when ancestor count equals hasLength", () => {
+        const element = createElementDescription({
+          parents: [createParent(), createParent()],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: { hasLength: 2 },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns no match when ancestor count differs from hasLength", () => {
+        const element = createElementDescription({
+          parents: [createParent()],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: { hasLength: 2 },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
+    });
+
+    describe("atIndex", () => {
+      it("matches the outermost ancestor using index -1", () => {
+        const element = createElementDescription({
+          parents: [
+            createParent({ types: ["module"] }),
+            createParent({ types: ["app"] }),
+          ],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: { atIndex: { index: -1, matches: { type: "app" } } },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns no match when out-of-range index is used", () => {
+        const element = createElementDescription({
+          parents: [createParent({ types: ["module"] })],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: { atIndex: { index: 5, matches: { type: "module" } } },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
+
+      it("returns a match when matches is an array and the parent at index satisfies one selector", () => {
+        const element = createElementDescription({
+          parents: [
+            createParent({ types: ["module"] }),
+            createParent({ types: ["app"] }),
+          ],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: {
+            atIndex: {
+              index: 0,
+              matches: [{ type: "service" }, { type: "module" }],
+            },
+          },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns no match when matches is an array and the parent at index satisfies none", () => {
+        const element = createElementDescription({
+          parents: [
+            createParent({ types: ["module"] }),
+            createParent({ types: ["app"] }),
+          ],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: {
+            atIndex: {
+              index: 0,
+              matches: [{ type: "service" }, { type: "helper" }],
+            },
+          },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
+    });
+
+    describe("equalsTo", () => {
+      it("returns a match for exact ordered ancestor chain", () => {
+        const element = createElementDescription({
+          parents: [
+            createParent({ types: ["module"] }),
+            createParent({ types: ["app"] }),
+          ],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: {
+            equalsTo: [{ type: "module" }, { type: "app" }],
+          },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns no match for reversed ancestor order", () => {
+        const element = createElementDescription({
+          parents: [
+            createParent({ types: ["module"] }),
+            createParent({ types: ["app"] }),
+          ],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: {
+            equalsTo: [{ type: "app" }, { type: "module" }],
+          },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
+    });
+
+    describe("template inside parents matcher", () => {
+      it("renders template variables before matching parent type", () => {
+        const element = createElementDescription({
+          parents: [createParent({ types: ["module"] })],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parents: { anyOf: [{ type: "{{ parentType }}" }] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        const result = matcher.getSelectorMatching(element, selector, {
+          extraTemplateData: { parentType: "module" },
+        });
+
+        expect(result).not.toBeNull();
+      });
+    });
+
+    describe("parents and parent together", () => {
+      it("requires both parent and parents to match when both are specified", () => {
+        const element = createElementDescription({
+          parents: [
+            createParent({ types: ["module"] }),
+            createParent({ types: ["app"] }),
+          ],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parent: [{ type: "module" }],
+          parents: { hasLength: 2 },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) => val === pattern
+        );
+
+        expect(matcher.isElementMatch(element, selector)).toBe(true);
+      });
+
+      it("returns no match when parents passes but parent fails", () => {
+        const element = createElementDescription({
+          parents: [
+            createParent({ types: ["module"] }),
+            createParent({ types: ["app"] }),
+          ],
+        });
+        const selector: ElementSingleSelectorNormalized = {
+          parent: [{ type: "service" }],
+          parents: { hasLength: 2 },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockReturnValue(false);
+
+        expect(matcher.isElementMatch(element, selector)).toBe(false);
+      });
     });
   });
 });

@@ -1,5 +1,5 @@
 import type { MatchersOptionsNormalized } from "../../Config";
-import type { ElementDescription } from "../../Descriptor";
+import type { ElementDescription, ElementParent } from "../../Descriptor";
 import { isElementDescription } from "../../Descriptor";
 import type { MicromatchPatternNullable } from "../../Shared";
 import {
@@ -9,7 +9,7 @@ import {
   isUndefined,
   isNull,
 } from "../../Shared";
-import { BaseElementsMatcher } from "../Shared";
+import { BaseElementsMatcher, isArrayQuery } from "../Shared";
 import type { TemplateData, MatcherOptions, Micromatch } from "../Shared";
 
 import type { ElementSingleSelectorMatchResult } from "./ElementMatcher.types";
@@ -69,12 +69,27 @@ export class ElementsMatcher extends BaseElementsMatcher {
     selector: ElementSingleSelector,
     templateData: TemplateData
   ): boolean {
+    const typesSelector = selector.types;
+
+    if (isUndefined(typesSelector)) {
+      return true;
+    }
+
+    if (isArrayQuery(typesSelector)) {
+      return this.isArrayQueryMatch(
+        element.types,
+        typesSelector,
+        (type, pattern) =>
+          this.isTemplateMicromatchMatch(pattern, templateData, type)
+      );
+    }
+
     return this.isObjectKeyMicromatchMatch({
       object: element,
       selector,
       objectKey: "types",
       selectorKey: "types",
-      selectorValue: selector.types,
+      selectorValue: typesSelector,
       templateData,
     });
   }
@@ -240,6 +255,84 @@ export class ElementsMatcher extends BaseElementsMatcher {
   }
 
   /**
+   * Whether a specific parent element matches a parent single selector.
+   * Does not handle null selectors or the "first parent" lookup.
+   * @param parent The parent element to check.
+   * @param selector The parent selector to check against.
+   * @param templateData The data to use for replace in selector values.
+   * @returns Whether the parent matches the selector.
+   */
+  private _isParentMatch(
+    parent: ElementParent,
+    selector: ParentElementSingleSelector,
+    templateData: TemplateData
+  ): boolean {
+    if (
+      !isUndefined(selector.type) &&
+      !this.isTemplateMicromatchMatch(
+        selector.type,
+        templateData,
+        parent.types?.[0] ?? null
+      )
+    ) {
+      return false;
+    }
+
+    if (!isUndefined(selector.types)) {
+      if (isArrayQuery(selector.types)) {
+        if (
+          !this.isArrayQueryMatch(
+            parent.types,
+            selector.types,
+            (type, pattern) =>
+              this.isTemplateMicromatchMatch(pattern, templateData, type)
+          )
+        ) {
+          return false;
+        }
+      } else if (
+        !this.isTemplateMicromatchMatch(
+          selector.types,
+          templateData,
+          parent.types
+        )
+      ) {
+        return false;
+      }
+    }
+
+    if (
+      !isUndefined(selector.path) &&
+      !this.isTemplateMicromatchMatch(selector.path, templateData, parent.path)
+    ) {
+      return false;
+    }
+
+    if (
+      !isUndefined(selector.category) &&
+      !this.isTemplateMicromatchMatch(
+        selector.category,
+        templateData,
+        parent.category
+      )
+    ) {
+      return false;
+    }
+
+    if (
+      !this._isParentCapturedValuesMatch(
+        selector,
+        parent.captured,
+        templateData
+      )
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Whether the given element first parent matches the selector parent.
    * @param element The element to check.
    * @param selector The selector to check against.
@@ -264,61 +357,30 @@ export class ElementsMatcher extends BaseElementsMatcher {
       return false;
     }
 
-    if (
-      !isUndefined(selector.type) &&
-      !this.isTemplateMicromatchMatch(
-        selector.type,
-        templateData,
-        firstParent.types?.[0] ?? null
-      )
-    ) {
-      return false;
-    }
+    return this._isParentMatch(firstParent, selector, templateData);
+  }
 
-    if (
-      !isUndefined(selector.types) &&
-      !this.isTemplateMicromatchMatch(
-        selector.types,
-        templateData,
-        firstParent.types
-      )
-    ) {
-      return false;
+  /**
+   * Whether the element's full parent ancestor chain matches the `parents` array query.
+   * @param element The element to check.
+   * @param selector The normalized element selector.
+   * @param templateData The data to use for replace in selector values.
+   * @returns Whether the ancestor chain satisfies the query, or true if no `parents` selector is set.
+   */
+  private _isParentsMatch(
+    element: ElementDescription,
+    selector: ElementSingleSelectorNormalized,
+    templateData: TemplateData
+  ): boolean {
+    if (isUndefined(selector.parents)) {
+      return true;
     }
-
-    if (
-      !isUndefined(selector.path) &&
-      !this.isTemplateMicromatchMatch(
-        selector.path,
-        templateData,
-        firstParent.path
-      )
-    ) {
-      return false;
-    }
-
-    if (
-      !isUndefined(selector.category) &&
-      !this.isTemplateMicromatchMatch(
-        selector.category,
-        templateData,
-        firstParent.category
-      )
-    ) {
-      return false;
-    }
-
-    if (
-      !this._isParentCapturedValuesMatch(
-        selector,
-        firstParent.captured,
-        templateData
-      )
-    ) {
-      return false;
-    }
-
-    return true;
+    return this.isArrayQueryMatch(
+      element.parents,
+      selector.parents,
+      (parent, parentSelector) =>
+        this._isParentMatch(parent, parentSelector, templateData)
+    );
   }
 
   /**
@@ -462,6 +524,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
         !this._isPathMatch(element, selectorData, templateData) ||
         !this._isFilePathMatch(element, selectorData, templateData) ||
         !this._isFileInternalPathMatch(element, selectorData, templateData) ||
+        !this._isParentsMatch(element, selectorData, templateData) ||
         !this._isCapturedValuesMatch(element, selectorData, templateData)
       ) {
         continue; // Early exit on first failed condition
