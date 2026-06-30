@@ -36,5 +36,26 @@ export type ArrayQuery<TMatcher> = {
   hasLength?: number;
 };
 
+/**
+ * Template-array operand item used inside `anyOf` / `allOf` / `noneOf`.
+ * Its `expand` template is resolved against the template data to a raw string array
+ * (or single string), whose values are spread in place as additional matchers.
+ */
+export type ArrayQueryExpandItem = {
+  /** A single Handlebars expression (e.g. "{{ from.element.types }}") resolving to a string array. */
+  expand: string;
+};
+
+/** Matcher item for a string array query: a micromatch pattern or an expand item. */
+export type StringArrayQueryMatcher = string | ArrayQueryExpandItem;
+
 /** Array query over a string array (file `categories`, element `types`). */
-export type StringArrayQuery = ArrayQuery<string>;
+export type StringArrayQuery = {
+  /** anyOf/allOf/noneOf items may be micromatch patterns or `{ expand }` items. */
+  anyOf?: StringArrayQueryMatcher[];
+  allOf?: StringArrayQueryMatcher[];
+  noneOf?: StringArrayQueryMatcher[];
+  equalsTo?: string[];
+  atIndex?: ArrayQueryAtIndex<string>;
+  hasLength?: number;
+};

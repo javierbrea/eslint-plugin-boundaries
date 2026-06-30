@@ -507,10 +507,10 @@ All operators present in the same object are **AND-combined**. An absent operato
 
 | Operator | Shape | Matches when |
 | --- | --- | --- |
-| `anyOf` | `TMatcher[]` | At least one array element matches at least one of the matchers. Empty operand never matches. |
-| `allOf` | `TMatcher[]` | For every matcher, at least one array element matches it. Empty operand vacuously matches. |
-| `noneOf` | `TMatcher[]` | No array element matches any of the matchers. Empty operand always matches. |
-| `equalsTo` | `TMatcher[]` | Array length equals `N` **and** `array[i]` matches `matcher[i]` (ordered, exact-length). |
+| `anyOf` | `(string \| { expand: string })[]` | At least one array element matches at least one of the matchers. Empty operand never matches. |
+| `allOf` | `(string \| { expand: string })[]` | For every matcher, at least one array element matches it. Empty operand vacuously matches. |
+| `noneOf` | `(string \| { expand: string })[]` | No array element matches any of the matchers. Empty operand always matches. |
+| `equalsTo` | `string[]` | Array length equals `N` **and** `array[i]` matches `matcher[i]` (ordered, exact-length). |
 | `atIndex` | `{ index: number; matches: TMatcher \| TMatcher[] }` | Resolves the index (negative counts from end), then that element matches `matches`. When `matches` is an array, OR semantics apply — the element must satisfy at least one of the matchers. Out-of-range never matches. |
 | `hasLength` | `number` | The array length is exactly this value. |
 
@@ -522,8 +522,42 @@ All operators present in the same object are **AND-combined**. An absent operato
 - All string matchers are micromatch patterns and are rendered as Handlebars templates before matching, exactly like all other selector values.
 
 **`TMatcher` per property:**
-- `types` (element) / `categories` (file): `string` (a micromatch pattern)
+- `types` (element) / `categories` (file): `string` (a micromatch pattern) or `{ expand: string }` (see below)
 - `parents`: `ParentElementSingleSelector` — an object supporting `type`, `types` (accepts `StringArrayQuery`), `path`, `category`, and `captured`
+
+#### `{ expand }` items in `anyOf` / `allOf` / `noneOf`
+
+For `element.types`, `file.categories`, and `parent.types`, each item in `anyOf`, `allOf`, and `noneOf` can be a `{ expand: "{{ path }}" }` object instead of a plain string. The path is resolved against the template data at match time and the result is spread in place as additional string matchers.
+
+This is useful when you need to build the operand list dynamically from the other side's property — for example, to match elements that share (or do not share) types with a given element.
+
+**Resolution:**
+- Path resolves to a string array → each element becomes a separate matcher.
+- Path resolves to a scalar → a single matcher.
+- Path resolves to null/undefined, or the value is not a single `{{ }}` expression → no matchers (empty-operand rules apply: empty `noneOf` always passes; empty `anyOf` never matches).
+
+```typescript
+// element.types: to element must not share any type with the from element
+matcher.isEntityMatch(toFilePath, {
+  element: {
+    types: { noneOf: [{ expand: "{{ from.element.types }}" }] },
+  },
+}, { extraTemplateData: { from: { element: fromDescription } } });
+
+// element.types: mixed static + dynamic — exclude "legacy" and all of from's types
+{
+  element: {
+    types: { noneOf: ["legacy", { expand: "{{ from.element.types }}" }] },
+  },
+}
+
+// file.categories: to file must share at least one category with the from file
+{
+  file: {
+    categories: { anyOf: [{ expand: "{{ from.file.categories }}" }] },
+  },
+}
+```
 
 **Examples:**
 

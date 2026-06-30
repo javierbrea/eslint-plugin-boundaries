@@ -849,5 +849,113 @@ describe("FilesMatcher", () => {
         expect(result).toBe(true);
       });
     });
+
+    describe("expand items in anyOf / noneOf / allOf", () => {
+      it("matches anyOf when expand resolves to a category in the file", () => {
+        const file = createFileDescription({ categories: ["components"] });
+        const selector: FileSingleSelector = {
+          categories: { anyOf: [{ expand: "{{ from.file.categories }}" }] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(
+          matcher.isFileMatch(file, selector, {
+            extraTemplateData: {
+              from: { file: { categories: ["components"] } },
+            },
+          })
+        ).toBe(true);
+      });
+
+      it("does not match anyOf when expand resolves to categories absent from the file", () => {
+        const file = createFileDescription({ categories: ["components"] });
+        const selector: FileSingleSelector = {
+          categories: { anyOf: [{ expand: "{{ from.file.categories }}" }] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockReturnValue(false);
+
+        expect(
+          matcher.isFileMatch(file, selector, {
+            extraTemplateData: { from: { file: { categories: ["helpers"] } } },
+          })
+        ).toBe(false);
+      });
+
+      it("matches noneOf when expand resolves to categories absent from the file", () => {
+        const file = createFileDescription({ categories: ["components"] });
+        const selector: FileSingleSelector = {
+          categories: { noneOf: [{ expand: "{{ from.file.categories }}" }] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockReturnValue(false);
+
+        expect(
+          matcher.isFileMatch(file, selector, {
+            extraTemplateData: { from: { file: { categories: ["helpers"] } } },
+          })
+        ).toBe(true);
+      });
+
+      it("does not match noneOf when expand resolves to a category in the file", () => {
+        const file = createFileDescription({ categories: ["components"] });
+        const selector: FileSingleSelector = {
+          categories: { noneOf: [{ expand: "{{ from.file.categories }}" }] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(
+          matcher.isFileMatch(file, selector, {
+            extraTemplateData: {
+              from: { file: { categories: ["components"] } },
+            },
+          })
+        ).toBe(false);
+      });
+
+      it("matches noneOf when expand resolves to null (empty-operand: always passes)", () => {
+        const file = createFileDescription({ categories: ["components"] });
+        const selector: FileSingleSelector = {
+          categories: { noneOf: [{ expand: "{{ from.file.categories }}" }] },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+
+        expect(
+          matcher.isFileMatch(file, selector, {
+            extraTemplateData: { from: { file: { categories: null } } },
+          })
+        ).toBe(true);
+      });
+
+      it("mixes static and expand items in noneOf", () => {
+        const file = createFileDescription({ categories: ["helpers"] });
+        const selector: FileSingleSelector = {
+          categories: {
+            noneOf: ["helpers", { expand: "{{ from.file.categories }}" }],
+          },
+        };
+        mockedNormalizeFileSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(
+          matcher.isFileMatch(file, selector, {
+            extraTemplateData: {
+              from: { file: { categories: ["components"] } },
+            },
+          })
+        ).toBe(false);
+      });
+    });
   });
 });

@@ -9,7 +9,7 @@ import {
   isUndefined,
   isNull,
 } from "../../Shared";
-import { BaseElementsMatcher, isArrayQuery } from "../Shared";
+import { BaseElementsMatcher, isStringArrayQuery } from "../Shared";
 import type { TemplateData, MatcherOptions, Micromatch } from "../Shared";
 
 import type { ElementSingleSelectorMatchResult } from "./ElementMatcher.types";
@@ -75,12 +75,11 @@ export class ElementsMatcher extends BaseElementsMatcher {
       return true;
     }
 
-    if (isArrayQuery(typesSelector)) {
-      return this.isArrayQueryMatch(
+    if (isStringArrayQuery(typesSelector)) {
+      return this.isStringArrayQueryMatch(
         element.types,
         typesSelector,
-        (type, pattern) =>
-          this.isTemplateMicromatchMatch(pattern, templateData, type)
+        templateData
       );
     }
 
@@ -279,13 +278,12 @@ export class ElementsMatcher extends BaseElementsMatcher {
     }
 
     if (!isUndefined(selector.types)) {
-      if (isArrayQuery(selector.types)) {
+      if (isStringArrayQuery(selector.types)) {
         if (
-          !this.isArrayQueryMatch(
+          !this.isStringArrayQueryMatch(
             parent.types,
             selector.types,
-            (type, pattern) =>
-              this.isTemplateMicromatchMatch(pattern, templateData, type)
+            templateData
           )
         ) {
           return false;

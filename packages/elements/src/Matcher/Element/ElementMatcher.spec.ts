@@ -1298,6 +1298,128 @@ describe("ElementsMatcher", () => {
         expect(matcher.isElementMatch(element, selector)).toBe(false);
       });
     });
+
+    describe("expand items in anyOf / noneOf / allOf", () => {
+      it("matches anyOf when expand resolves to a type in the element", () => {
+        const element = createElementDescription({ types: ["helpers"] });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { anyOf: [{ expand: "{{ from.element.types }}" }] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(
+          matcher.isElementMatch(element, selector, {
+            extraTemplateData: { from: { element: { types: ["helpers"] } } },
+          })
+        ).toBe(true);
+      });
+
+      it("does not match anyOf when expand resolves to types not in the element", () => {
+        const element = createElementDescription({ types: ["helpers"] });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { anyOf: [{ expand: "{{ from.element.types }}" }] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockReturnValue(false);
+
+        expect(
+          matcher.isElementMatch(element, selector, {
+            extraTemplateData: {
+              from: { element: { types: ["components"] } },
+            },
+          })
+        ).toBe(false);
+      });
+
+      it("matches noneOf when expand resolves to types absent from the element", () => {
+        const element = createElementDescription({ types: ["helpers"] });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { noneOf: [{ expand: "{{ from.element.types }}" }] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockReturnValue(false);
+
+        expect(
+          matcher.isElementMatch(element, selector, {
+            extraTemplateData: {
+              from: { element: { types: ["components"] } },
+            },
+          })
+        ).toBe(true);
+      });
+
+      it("does not match noneOf when expand resolves to a type in the element", () => {
+        const element = createElementDescription({ types: ["helpers"] });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { noneOf: [{ expand: "{{ from.element.types }}" }] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(
+          matcher.isElementMatch(element, selector, {
+            extraTemplateData: { from: { element: { types: ["helpers"] } } },
+          })
+        ).toBe(false);
+      });
+
+      it("mixes static and expand items in noneOf", () => {
+        const element = createElementDescription({ types: ["legacy"] });
+        const selector: ElementSingleSelectorNormalized = {
+          types: {
+            noneOf: ["legacy", { expand: "{{ from.element.types }}" }],
+          },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+        micromatch.isMatch.mockImplementation(
+          (val: string, pattern: string | string[]) =>
+            [pattern].flat().includes(val)
+        );
+
+        expect(
+          matcher.isElementMatch(element, selector, {
+            extraTemplateData: {
+              from: { element: { types: ["components"] } },
+            },
+          })
+        ).toBe(false);
+      });
+
+      it("matches noneOf when expand resolves to null (empty-operand: always passes)", () => {
+        const element = createElementDescription({ types: ["helpers"] });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { noneOf: [{ expand: "{{ from.element.types }}" }] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+
+        expect(
+          matcher.isElementMatch(element, selector, {
+            extraTemplateData: { from: { element: { types: null } } },
+          })
+        ).toBe(true);
+      });
+
+      it("does not match anyOf when expand resolves to null (empty-operand: never matches)", () => {
+        const element = createElementDescription({ types: ["helpers"] });
+        const selector: ElementSingleSelectorNormalized = {
+          types: { anyOf: [{ expand: "{{ from.element.types }}" }] },
+        };
+        mockedNormalizeElementSelector.mockReturnValue([selector]);
+
+        expect(
+          matcher.isElementMatch(element, selector, {
+            extraTemplateData: { from: { element: { types: null } } },
+          })
+        ).toBe(false);
+      });
+    });
   });
 
   describe("parent", () => {

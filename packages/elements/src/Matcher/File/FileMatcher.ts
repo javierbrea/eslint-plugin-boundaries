@@ -2,7 +2,7 @@ import type { MatchersOptionsNormalized } from "../../Config";
 import type { FileDescription } from "../../Descriptor";
 import type { MicromatchPatternNullable } from "../../Shared";
 import { isArray, isNullish, isEmptyObject } from "../../Shared";
-import { BaseElementsMatcher, isArrayQuery } from "../Shared";
+import { BaseElementsMatcher, isStringArrayQuery } from "../Shared";
 import type { TemplateData, MatcherOptions, Micromatch } from "../Shared";
 
 import type { FileSingleSelector, FileSelector } from "./FileSelector.types";
@@ -62,12 +62,11 @@ export class FilesMatcher extends BaseElementsMatcher {
       return true;
     }
 
-    if (isArrayQuery(categoriesSelector)) {
-      return this.isArrayQueryMatch(
+    if (isStringArrayQuery(categoriesSelector)) {
+      return this.isStringArrayQueryMatch(
         file.categories,
         categoriesSelector,
-        (category, pattern) =>
-          this.isTemplateMicromatchMatch(pattern, templateData, category)
+        templateData
       );
     }
 

@@ -427,10 +427,10 @@ All operators inside the same object are **AND-combined**. An absent operator pl
 
 | Operator | Shape | Matches when |
 | --- | --- | --- |
-| `anyOf` | `TMatcher[]` | At least one array element matches at least one of the matchers. An empty operand never matches. |
-| `allOf` | `TMatcher[]` | For every matcher, at least one array element matches it. An empty operand vacuously matches. |
-| `noneOf` | `TMatcher[]` | No array element matches any of the matchers. An empty operand always matches. |
-| `equalsTo` | `TMatcher[]` | Array length equals `N` **and** `array[i]` matches `matcher[i]` (ordered, exact length). |
+| `anyOf` | `(string \| { expand: string })[]` | At least one array element matches at least one of the matchers. An empty operand never matches. |
+| `allOf` | `(string \| { expand: string })[]` | For every matcher, at least one array element matches it. An empty operand vacuously matches. |
+| `noneOf` | `(string \| { expand: string })[]` | No array element matches any of the matchers. An empty operand always matches. |
+| `equalsTo` | `string[]` | Array length equals `N` **and** `array[i]` matches `matcher[i]` (ordered, exact length). |
 | `atIndex` | `{ index: number; matches: TMatcher \| TMatcher[] }` | Resolves the index (negative counts from end), then that element matches `matches`. When `matches` is an array, OR semantics apply — the element at that index must match at least one of the values. Out-of-range never matches. |
 | `hasLength` | `number` | The array length is exactly this value. |
 
@@ -441,7 +441,7 @@ All operators inside the same object are **AND-combined**. An absent operator pl
 - Negative `atIndex.index` counts from the end: `-1` = last element (e.g. outermost ancestor for `parents`).
 - All string matchers are micromatch patterns rendered as Handlebars templates before matching, like all other selector values.
 
-For `types` and `categories`, `TMatcher` is a string (micromatch pattern). For `parents`, `TMatcher` is a parent selector object (`type`, `types`, `path`, `category`, `captured`).
+For `types` and `categories`, `TMatcher` is a string (micromatch pattern) or a `{ expand }` item (see [Sourcing operands from a template](#sourcing-operands-from-a-template-expand) below). For `parents`, `TMatcher` is a parent selector object (`type`, `types`, `path`, `category`, `captured`).
 
 ```js
 // element.types: require exactly one type
@@ -477,6 +477,57 @@ For `types` and `categories`, `TMatcher` is a string (micromatch pattern). For `
 
 :::note
 See [Parent matching](#parent-matching) for the full explanation of `parent` vs `parents`, including how to combine them and their template-data differences.
+:::
+
+### Sourcing operands from a template (`expand`)
+
+Inside `anyOf`, `allOf`, and `noneOf` on **`element.types`**, **`file.categories`**, and **`parent.types`** / **`parents[*].types`**, each item can be either a plain string (micromatch pattern) or a special `{ expand: "{{ path }}" }` object. The `expand` item is resolved at match time against the same template data tree used by `{{ }}` templates and its resolved value is spread in place as additional string matchers.
+
+**Why is this useful?**
+When the other side's property is an array (for example `from.element.types` when an element can belong to multiple types), a plain `"{{ from.element.types }}"` template renders the array as the string `"type-a,type-b"`, which is not a valid micromatch OR pattern. The `expand` item reads the **raw array** and spreads each entry as an independent matcher, giving you correct `anyOf` / `noneOf` / `allOf` semantics against dynamic values.
+
+**Resolution semantics:**
+- The `expand` value must be a single `{{ path }}` expression (e.g. `"{{ from.element.types }}"`).
+- If the path resolves to a **string array** → each element becomes a separate matcher.
+- If the path resolves to a **scalar string** → a single matcher is produced.
+- If the path resolves to **null/undefined**, or the value is not a single `{{ }}` expression → **no matchers** (the item disappears). Combined with the empty-operand rules: empty `noneOf` always passes; empty `anyOf` never matches.
+
+**Mixing static and dynamic items** is allowed — list them in the same array:
+
+```js
+// "to element must share at least one type with the importer"
+{
+  to: { element: { types: { anyOf: [{ expand: "{{ from.element.types }}" }] } } }
+}
+
+// "to element must NOT share any type with the importer"
+{
+  to: { element: { types: { noneOf: [{ expand: "{{ from.element.types }}" }] } } }
+}
+
+// "to element must have all of the importer's types"
+{
+  to: { element: { types: { allOf: [{ expand: "{{ from.element.types }}" }] } } }
+}
+
+// Mixed: also exclude "legacy" in addition to any of the importer's types
+{
+  to: { element: { types: { noneOf: ["legacy", { expand: "{{ from.element.types }}" }] } } }
+}
+
+// File categories: to file must not share any category with the importing file
+{
+  to: { file: { categories: { noneOf: [{ expand: "{{ from.file.categories }}" }] } } }
+}
+```
+
+**Null / unknown element behavior:**
+When `expand` resolves to `null` (e.g. the `from` element is unknown and has no types), the expansion produces zero matchers. Because of the empty-operand rules:
+- `noneOf: []` → always passes (unknown from-element never blocks a `noneOf` rule).
+- `anyOf: []` → never matches (unknown from-element cannot satisfy an `anyOf` rule).
+
+:::note
+The available paths are exactly the same as the template tree documented in [Templating in selectors](#templating-in-selectors): `from.element.types`, `from.file.categories`, `to.element.types`, etc. The `expand` item reads the raw array; no Handlebars rendering is applied to the resolved values.
 :::
 
 ## Parent matching
@@ -543,6 +594,10 @@ Both `parents` and `parent` work with **parent selector objects**. A parent sele
 ## Templating in selectors
 
 Selector values support templates, so a rule can adapt to the file it is checking. For example, you can disallow a dependency between two elements of the same type but in different families, without writing a rule per family.
+
+:::note
+To use a **whole array** from the template tree (e.g. `from.element.types`) as operands of an `anyOf` / `allOf` / `noneOf` array query, use the [`{ expand }` item](#sourcing-operands-from-a-template-expand) instead of a plain template string. A plain `"{{ from.element.types }}"` renders as the string `"a,b,c"`, which is not a valid micromatch OR pattern.
+:::
 
 ### Modern template syntax
 

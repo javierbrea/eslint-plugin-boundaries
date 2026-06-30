@@ -4,7 +4,7 @@ import type { MicromatchPatternNullable } from "../../Shared";
 import type { ElementSingleSelector } from "../Element";
 import type { ModuleSelector } from "../Module";
 
-import type { ArrayQuery } from "./ArrayQuery.types";
+import type { ArrayQuery, StringArrayQuery } from "./ArrayQuery.types";
 import { BaseElementsMatcher } from "./BaseMatcher";
 import type { TemplateData } from "./BaseMatcher.types";
 import { Micromatch } from "./Micromatch";
@@ -73,6 +73,14 @@ class TestableMatcher extends BaseElementsMatcher {
     templateData: TemplateData;
   }): boolean {
     return this.isObjectKeyMicromatchMatch(params);
+  }
+
+  public callIsStringArrayQueryMatch(
+    array: readonly string[] | null,
+    query: StringArrayQuery,
+    templateData: TemplateData
+  ): boolean {
+    return this.isStringArrayQueryMatch(array, query, templateData);
   }
 }
 
@@ -1033,6 +1041,98 @@ describe("BaseElementsMatcher", () => {
       it("returns true for an empty array with no constraints", () => {
         expect(matcher.callIsArrayQueryMatch([], {}, eq)).toBe(true);
       });
+    });
+  });
+
+  describe("isStringArrayQueryMatch", () => {
+    beforeEach(() => {
+      createMatcher();
+      micromatch.isMatch.mockImplementation(
+        (value: string, pattern: string | string[]) => {
+          const patterns = Array.isArray(pattern) ? pattern : [pattern];
+          return patterns.includes(value);
+        }
+      );
+    });
+
+    it("matches anyOf with plain string matchers", () => {
+      expect(
+        matcher.callIsStringArrayQueryMatch(
+          ["helpers"],
+          { anyOf: ["helpers"] },
+          {}
+        )
+      ).toBe(true);
+    });
+
+    it("expands { expand } items in anyOf and matches", () => {
+      expect(
+        matcher.callIsStringArrayQueryMatch(
+          ["helpers"],
+          { anyOf: [{ expand: "{{ types }}" }] },
+          { types: ["helpers", "components"] }
+        )
+      ).toBe(true);
+    });
+
+    it("returns false when expand resolves to empty and anyOf is thus empty", () => {
+      expect(
+        matcher.callIsStringArrayQueryMatch(
+          ["helpers"],
+          { anyOf: [{ expand: "{{ missing }}" }] },
+          {}
+        )
+      ).toBe(false);
+    });
+
+    it("matches noneOf with { expand } resolving to types not in array", () => {
+      expect(
+        matcher.callIsStringArrayQueryMatch(
+          ["helpers"],
+          { noneOf: [{ expand: "{{ types }}" }] },
+          { types: ["components", "modules"] }
+        )
+      ).toBe(true);
+    });
+
+    it("does not match noneOf when expand resolves to a type in the array", () => {
+      expect(
+        matcher.callIsStringArrayQueryMatch(
+          ["helpers"],
+          { noneOf: [{ expand: "{{ types }}" }] },
+          { types: ["helpers"] }
+        )
+      ).toBe(false);
+    });
+
+    it("returns false for null array", () => {
+      expect(
+        matcher.callIsStringArrayQueryMatch(null, { anyOf: ["helpers"] }, {})
+      ).toBe(false);
+    });
+
+    it("passes hasLength constraint through", () => {
+      expect(
+        matcher.callIsStringArrayQueryMatch(["helpers"], { hasLength: 1 }, {})
+      ).toBe(true);
+
+      expect(
+        matcher.callIsStringArrayQueryMatch(
+          ["helpers", "components"],
+          { hasLength: 1 },
+          {}
+        )
+      ).toBe(false);
+    });
+
+    it("passes equalsTo constraint through", () => {
+      expect(
+        matcher.callIsStringArrayQueryMatch(
+          ["helpers"],
+          { equalsTo: ["helpers"] },
+          {}
+        )
+      ).toBe(true);
     });
   });
 });

@@ -63,6 +63,19 @@ const atIndexMatchesSchema = {
   anyOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
 };
 
+/** A string pattern or an `{ expand }` item. Used in anyOf/allOf/noneOf operands. */
+const stringOrExpandItemSchema: JsonSchemaObject = {
+  anyOf: [
+    { type: "string" },
+    {
+      type: "object",
+      properties: { expand: { type: "string" } },
+      required: ["expand"],
+      additionalProperties: false,
+    },
+  ],
+};
+
 /**
  * Schema for an ArrayQuery over a string array (`categories`, `types`).
  * All operators are optional and AND-combined when present.
@@ -70,9 +83,9 @@ const atIndexMatchesSchema = {
 const stringArrayQuerySchema = {
   type: "object",
   properties: {
-    anyOf: { type: "array", items: { type: "string" } },
-    allOf: { type: "array", items: { type: "string" } },
-    noneOf: { type: "array", items: { type: "string" } },
+    anyOf: { type: "array", items: stringOrExpandItemSchema },
+    allOf: { type: "array", items: stringOrExpandItemSchema },
+    noneOf: { type: "array", items: stringOrExpandItemSchema },
     equalsTo: { type: "array", items: { type: "string" } },
     atIndex: {
       type: "object",

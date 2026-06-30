@@ -17,7 +17,8 @@ import type {
 import type { ElementSingleSelector } from "../Element";
 import type { ModuleSelector } from "../Module";
 
-import type { ArrayQuery } from "./ArrayQuery.types";
+import type { ArrayQuery, StringArrayQuery } from "./ArrayQuery.types";
+import { expandStringArrayQuery } from "./ArrayQuerySelectorHelpers";
 import type { TemplateData } from "./BaseMatcher.types";
 import type { Micromatch } from "./Micromatch";
 
@@ -311,6 +312,22 @@ export class BaseElementsMatcher {
     }
 
     return true;
+  }
+
+  /**
+   * String array query matcher with `expand` item support.
+   * Expands `{ expand }` operand items against the template data, then evaluates
+   * with the standard template-micromatch element matcher.
+   */
+  protected isStringArrayQueryMatch(
+    array: readonly string[] | null,
+    query: StringArrayQuery,
+    templateData: TemplateData
+  ): boolean {
+    const expanded = expandStringArrayQuery(query, templateData);
+    return this.isArrayQueryMatch(array, expanded, (value, pattern) =>
+      this.isTemplateMicromatchMatch(pattern, templateData, value)
+    );
   }
 
   /**

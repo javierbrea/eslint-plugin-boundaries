@@ -570,4 +570,113 @@ describe("isFileMatch | Integration", () => {
       ).toBe(false);
     });
   });
+
+  describe("expand items in file.categories", () => {
+    it("anyOf expand: matches when file shares a category with the from file", () => {
+      // Button.tsx categories = ["react"]
+      // from file also has category "react"
+      expect(
+        matcher.isFileMatch(
+          "/project/src/components/Button.tsx",
+          { categories: { anyOf: [{ expand: "{{ from.file.categories }}" }] } },
+          {
+            extraTemplateData: {
+              from: { file: { categories: ["react"] } },
+            },
+          }
+        )
+      ).toBe(true);
+    });
+
+    it("anyOf expand: does not match when file shares no category with the from file", () => {
+      // Button.tsx categories = ["react"]
+      // from file has category "spec" only
+      expect(
+        matcher.isFileMatch(
+          "/project/src/components/Button.tsx",
+          { categories: { anyOf: [{ expand: "{{ from.file.categories }}" }] } },
+          {
+            extraTemplateData: {
+              from: { file: { categories: ["spec"] } },
+            },
+          }
+        )
+      ).toBe(false);
+    });
+
+    it("noneOf expand: matches when file shares no category with the from file", () => {
+      // Button.tsx categories = ["react"]
+      // from file has category "spec" → no overlap
+      expect(
+        matcher.isFileMatch(
+          "/project/src/components/Button.tsx",
+          {
+            categories: { noneOf: [{ expand: "{{ from.file.categories }}" }] },
+          },
+          {
+            extraTemplateData: {
+              from: { file: { categories: ["spec"] } },
+            },
+          }
+        )
+      ).toBe(true);
+    });
+
+    it("noneOf expand: does not match when file shares a category with the from file", () => {
+      // Button.tsx categories = ["react"]
+      // from file also has category "react"
+      expect(
+        matcher.isFileMatch(
+          "/project/src/components/Button.tsx",
+          {
+            categories: { noneOf: [{ expand: "{{ from.file.categories }}" }] },
+          },
+          {
+            extraTemplateData: {
+              from: { file: { categories: ["react"] } },
+            },
+          }
+        )
+      ).toBe(false);
+    });
+
+    it("noneOf expand: always passes when expand resolves to null", () => {
+      // from.file.categories is null → empty noneOf → always passes
+      expect(
+        matcher.isFileMatch(
+          "/project/src/components/Button.tsx",
+          {
+            categories: { noneOf: [{ expand: "{{ from.file.categories }}" }] },
+          },
+          {
+            extraTemplateData: {
+              from: { file: { categories: null } },
+            },
+          }
+        )
+      ).toBe(true);
+    });
+
+    it("mixed noneOf: excludes both static and dynamic categories", () => {
+      // Button.tsx categories = ["react"]
+      // noneOf: ["spec", { expand: "{{ from.file.categories }}" }]
+      // from has categories ["module-file"] → noneOf = ["spec", "module-file"]
+      // "react" is in neither → passes
+      expect(
+        matcher.isFileMatch(
+          "/project/src/components/Button.tsx",
+          {
+            categories: {
+              noneOf: ["spec", { expand: "{{ from.file.categories }}" }],
+            },
+          },
+          {
+            extraTemplateData: {
+              from: { file: { categories: ["module-file"] } },
+            },
+          }
+        )
+      ).toBe(true);
+    });
+  });
 });

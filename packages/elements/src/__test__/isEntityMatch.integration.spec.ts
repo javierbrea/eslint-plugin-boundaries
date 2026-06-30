@@ -1114,4 +1114,148 @@ describe("isEntityMatch | Integration", () => {
       ).toBe(false);
     });
   });
+
+  describe("expand items in element.types", () => {
+    it("anyOf expand: matches when element shares a type with the from element", () => {
+      // /project/src/components/Button.tsx → type "component"
+      // from element also has type "component" → expand resolves to ["component"]
+      expect(
+        matcher.isEntityMatch(
+          "/project/src/components/Button.tsx",
+          {
+            element: {
+              types: { anyOf: [{ expand: "{{ from.element.types }}" }] },
+            },
+          },
+          {
+            extraTemplateData: {
+              from: { element: { types: ["component"] } },
+            },
+          }
+        )
+      ).toBe(true);
+    });
+
+    it("anyOf expand: does not match when element shares no type with the from element", () => {
+      // /project/src/components/Button.tsx → type "component"
+      // from element has type "utility" → expand resolves to ["utility"]
+      expect(
+        matcher.isEntityMatch(
+          "/project/src/components/Button.tsx",
+          {
+            element: {
+              types: { anyOf: [{ expand: "{{ from.element.types }}" }] },
+            },
+          },
+          {
+            extraTemplateData: {
+              from: { element: { types: ["utility"] } },
+            },
+          }
+        )
+      ).toBe(false);
+    });
+
+    it("noneOf expand: matches when to element shares no type with from element", () => {
+      // /project/src/components/Button.tsx → type "component"
+      // from element has type "utility" → expand resolves to ["utility"] — not in ["component"]
+      expect(
+        matcher.isEntityMatch(
+          "/project/src/components/Button.tsx",
+          {
+            element: {
+              types: { noneOf: [{ expand: "{{ from.element.types }}" }] },
+            },
+          },
+          {
+            extraTemplateData: {
+              from: { element: { types: ["utility"] } },
+            },
+          }
+        )
+      ).toBe(true);
+    });
+
+    it("noneOf expand: does not match when to element shares a type with from element", () => {
+      // /project/src/components/Button.tsx → type "component"
+      // from element also has type "component"
+      expect(
+        matcher.isEntityMatch(
+          "/project/src/components/Button.tsx",
+          {
+            element: {
+              types: { noneOf: [{ expand: "{{ from.element.types }}" }] },
+            },
+          },
+          {
+            extraTemplateData: {
+              from: { element: { types: ["component"] } },
+            },
+          }
+        )
+      ).toBe(false);
+    });
+
+    it("noneOf expand: always passes when expand resolves to null (unknown from element)", () => {
+      // from.element.types is null → empty noneOf → always passes
+      expect(
+        matcher.isEntityMatch(
+          "/project/src/components/Button.tsx",
+          {
+            element: {
+              types: { noneOf: [{ expand: "{{ from.element.types }}" }] },
+            },
+          },
+          {
+            extraTemplateData: {
+              from: { element: { types: null } },
+            },
+          }
+        )
+      ).toBe(true);
+    });
+
+    it("anyOf expand: never matches when expand resolves to null (unknown from element)", () => {
+      // from.element.types is null → empty anyOf → never matches
+      expect(
+        matcher.isEntityMatch(
+          "/project/src/components/Button.tsx",
+          {
+            element: {
+              types: { anyOf: [{ expand: "{{ from.element.types }}" }] },
+            },
+          },
+          {
+            extraTemplateData: {
+              from: { element: { types: null } },
+            },
+          }
+        )
+      ).toBe(false);
+    });
+
+    it("mixed noneOf: excludes both static and dynamic types", () => {
+      // noneOf: ["utility", { expand: "{{ from.element.types }}" }]
+      // /project/src/components/Button.tsx → type "component"
+      // from has type "module" → expand resolves to ["module"]
+      // noneOf = ["utility", "module"] — "component" is in neither → passes
+      expect(
+        matcher.isEntityMatch(
+          "/project/src/components/Button.tsx",
+          {
+            element: {
+              types: {
+                noneOf: ["utility", { expand: "{{ from.element.types }}" }],
+              },
+            },
+          },
+          {
+            extraTemplateData: {
+              from: { element: { types: ["module"] } },
+            },
+          }
+        )
+      ).toBe(true);
+    });
+  });
 });
