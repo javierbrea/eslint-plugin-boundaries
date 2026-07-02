@@ -25,7 +25,8 @@ Enforce architectural boundaries in your JavaScript and TypeScript projects.
 
 **ESLint Plugin Boundaries** is an ESLint plugin that helps you maintain clean architecture by enforcing boundaries between different parts of your codebase. Define your architectural layers, specify how they can interact, and get instant feedback when boundaries are violated.
 
-- **Architectural Enforcement**: Define elements and dependency rules that match your project's architecture
+- **Architectural Enforcement**: Define dependency rules that match your project's architecture
+- **Multi-Layer Classification**: Every file or dependency in your project can be described across three independent dimensions simultaneously — its architectural element, its own file category, and its origin. Define rules for any combination.
 - **Flexible Configuration**: Adapt the plugin to any project structure. It works with monorepos, modular architectures, layered patterns, and any custom structure you can imagine
 - **Real-time Feedback**: Get immediate ESLint errors when imports violate your architectural rules
 
@@ -37,11 +38,9 @@ The full documentation is available on the [JS Boundaries website](https://www.j
 
 - **[Overview](https://www.jsboundaries.dev/docs/overview/)** - Introduction to the plugin and its core concepts
 - **[Quick Start](https://www.jsboundaries.dev/docs/quick-start/)** - Set up the plugin in 5 minutes
-- **[Setup Guide](https://www.jsboundaries.dev/docs/setup/)** - In-depth configuration guide
-  - [Define Elements](https://www.jsboundaries.dev/docs/setup/elements/)
-  - [Use Element Selectors](https://www.jsboundaries.dev/docs/setup/selectors/)
-  - [Configure Rules](https://www.jsboundaries.dev/docs/setup/rules/)
-  - [Global Settings](https://www.jsboundaries.dev/docs/setup/settings/)
+- **[Classification](https://www.jsboundaries.dev/docs/classification/)** - How to classify files and folders for your architecture
+- **[Selectors](https://www.jsboundaries.dev/docs/selectors/)** - How to match classified files, elements, and modules in your rules
+- **[Policies](https://www.jsboundaries.dev/docs/policies/)** - How to define dependency rules between classified files, elements, and modules
 - **[Rules Reference](https://www.jsboundaries.dev/docs/rules/)** - Complete documentation for all available rules
 - **[TypeScript Support](https://www.jsboundaries.dev/docs/guides/typescript-support/)** - Use with TypeScript projects
 
@@ -66,6 +65,9 @@ export default [
         { type: "controller", pattern: "controllers/*" },
         { type: "model", pattern: "models/*" },
         { type: "view", pattern: "views/*" }
+      ],
+      "boundaries/files": [
+        { category: "test", pattern: "**/*.test.js" }
       ]
     }
   }
@@ -80,9 +82,33 @@ Define your dependency rules:
     "boundaries/dependencies": [2, {
       default: "disallow",
       rules: [
-        { from: { type: "controller" }, allow: { to: { type: ["model", "view"] } } },
-        { from: { type: "view" }, allow: { to: { type: "model" } } },
-        { from: { type: "model" }, disallow: { to: { type: "*" } } }
+        // Allow controllers to depend on models and views
+        {
+          from: { element: { types: "controller" } },
+          allow: {
+            to: { element: { types: { anyOf: ["model", "view"] } },
+          },
+        },
+        // Allow views to depend on models
+        {
+          from: { element: { types: "view" } },
+          allow: {
+            to: { element: { types: "model" } },
+          },
+        },
+        // Disallow models to depend on anything other than other models
+        {
+          from: { element: { types: "model" } },
+          disallow: {
+            to: { element: { types: { noneOf: ["!model"] } },
+          },
+        },
+        // Disallow any element from importing a test file
+        {
+          disallow: {
+            to: { file: { categories: "test" } },
+          },
+        },
       ]
     }]
   }

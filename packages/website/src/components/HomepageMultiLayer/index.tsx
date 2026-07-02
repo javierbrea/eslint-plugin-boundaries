@@ -137,7 +137,7 @@ export default function HomepageMultiLayer(): ReactNode {
             Every file in your project can be described across three independent
             dimensions simultaneously — its architectural element, its own file
             category, and the origin of its dependencies. Define rules for any
-            combination, without duplication.
+            combination.
           </p>
           <ul className={styles.layerList}>
             <li>

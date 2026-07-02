@@ -96,7 +96,7 @@ const elementDescriptors = [
 ];
 
 const fileDescriptors = [
-  { pattern: "**/*.spec.js", category: "test" },
+  { category: "test", pattern: "**/*.spec.js" },
 ];
 ```
 
