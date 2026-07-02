@@ -210,7 +210,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/dependencies" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -253,7 +255,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/dependencies" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -299,7 +303,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/dependencies" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -345,7 +351,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -391,7 +399,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/dependencies" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -434,7 +444,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "customBoundaries/element-types" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -477,7 +489,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "customBoundaries/dependencies" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -523,7 +537,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "customBoundaries/element-types" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -569,7 +585,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "customBoundaries/dependencies" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -647,7 +665,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/dependencies" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -693,7 +713,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -739,7 +761,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -785,7 +809,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -866,7 +892,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }

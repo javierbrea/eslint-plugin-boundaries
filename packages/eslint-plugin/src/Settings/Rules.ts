@@ -1,4 +1,12 @@
 import type { MicromatchPatternNullable } from "@boundaries/elements";
+import {
+  isEntitySelector,
+  isLegacyEntitySelector,
+  isDependencyInfoSelector,
+  isLegacyDependencyInfoSelector,
+  isDependencySelector,
+  isLegacyDependencySelector,
+} from "@boundaries/elements";
 
 import { warnOnce } from "../Debug";
 import {
@@ -104,38 +112,6 @@ const stringArrayQuerySchema = {
 /** Schema for a property that accepts either a micromatch pattern or a string array query. */
 const micromatchOrArrayQuerySchema = {
   anyOf: [micromatchPatternNullableSchema, stringArrayQuerySchema],
-};
-
-const dependencyRelationshipSelectorSchema = {
-  type: "object",
-  properties: {
-    from: micromatchPatternNullableSchema,
-    to: micromatchPatternNullableSchema,
-  },
-  additionalProperties: false,
-};
-
-const dependencyInfoSingleSelectorSchema = {
-  type: "object",
-  properties: {
-    relationship: dependencyRelationshipSelectorSchema,
-    kind: micromatchPatternNullableSchema,
-    specifiers: micromatchPatternNullableSchema,
-    nodeKind: micromatchPatternNullableSchema,
-    source: micromatchPatternNullableSchema,
-    module: micromatchPatternNullableSchema,
-  },
-  additionalProperties: false,
-};
-
-const dependencyInfoSelectorSchema = {
-  anyOf: [
-    dependencyInfoSingleSelectorSchema,
-    {
-      type: "array",
-      items: dependencyInfoSingleSelectorSchema,
-    },
-  ],
 };
 
 const capturedValuesSingleSelectorSchema = {
@@ -371,14 +347,16 @@ const backwardCompatibleEntitySelectorSchema = {
   ],
 };
 
-const dependencySelectorSchema = {
-  type: "object",
-  properties: {
-    from: backwardCompatibleEntitySelectorSchema,
-    to: backwardCompatibleEntitySelectorSchema,
-    dependency: dependencyInfoSelectorSchema,
-  },
-  additionalProperties: false,
+/**
+ * Loose schema for the modern `from`/`to`/`dependency`/`allow`/`disallow` policy properties.
+ *
+ * Their actual selector shape (element/file/module/origin/dependency-info descriptors) is
+ * validated at runtime via the type guards exposed by `@boundaries/elements` (see
+ * `validateAndWarnRuleOptions`) instead of a deep AJV schema, which used to be embedded once
+ * per property and crashed V8's baseline JIT compiler when parsed.
+ */
+const modernPolicySelectorSchema = {
+  anyOf: [{ type: "object" }, { type: "array" }, { type: "string" }],
 };
 
 /**
@@ -446,16 +424,7 @@ export function rulesOptionsSchema({
 } = {}) {
   const policiesSchema = isLegacy
     ? legacyPoliciesSchema(targetMatcherOptions)
-    : {
-        anyOf: [
-          dependencySelectorSchema,
-          {
-            type: "array",
-            items: dependencySelectorSchema,
-          },
-          backwardCompatibleEntitySelectorSchema,
-        ],
-      };
+    : modernPolicySelectorSchema;
 
   const legacyMainKey = rulesMainKey(mainKey);
 
@@ -466,9 +435,9 @@ export function rulesOptionsSchema({
         disallow: policiesSchema,
       }
     : {
-        from: backwardCompatibleEntitySelectorSchema,
-        to: backwardCompatibleEntitySelectorSchema,
-        dependency: dependencyInfoSelectorSchema,
+        from: modernPolicySelectorSchema,
+        to: modernPolicySelectorSchema,
+        dependency: modernPolicySelectorSchema,
         allow: policiesSchema,
         disallow: policiesSchema,
       };
@@ -676,6 +645,96 @@ const RULE_NAMES_WITH_ENTITY_ALLOW_DISALLOW: RuleName[] = [
   RULE_NAMES_MAP.DEPENDENCIES,
   RULE_NAMES_MAP.ELEMENT_TYPES,
 ];
+
+/**
+ * Determines whether a value is a valid `from`/`to` entity selector, in either its
+ * modern (`{ element, file, module }`) or backward-compatible legacy shape.
+ *
+ * @param value - The `from`/`to` property value to check.
+ * @returns True if the value is a valid entity selector, false otherwise.
+ */
+function isValidEntitySelectorValue(value: unknown): boolean {
+  return isEntitySelector(value) || isLegacyEntitySelector(value);
+}
+
+/**
+ * Determines whether a value is a valid `dependency` selector.
+ *
+ * @param value - The `dependency` property value to check.
+ * @returns True if the value is a valid dependency information selector, false otherwise.
+ */
+function isValidDependencyInfoSelectorValue(value: unknown): boolean {
+  return (
+    isDependencyInfoSelector(value) || isLegacyDependencyInfoSelector(value)
+  );
+}
+
+/**
+ * Determines whether a value is a valid `allow`/`disallow` policy target: either a
+ * dependency selector (`{ from, to, dependency }`) or a bare entity selector, kept for
+ * backward compatibility, or an array of either.
+ *
+ * @param value - The `allow`/`disallow` property value to check.
+ * @returns True if the value is a valid policy target, false otherwise.
+ */
+function isValidPolicyTargetValue(value: unknown): boolean {
+  if (isArray(value)) {
+    return value.every(isValidPolicyTargetValue);
+  }
+  return (
+    isDependencySelector(value) ||
+    isLegacyDependencySelector(value) ||
+    isValidEntitySelectorValue(value)
+  );
+}
+
+/**
+ * Collects indices of policy entries whose `from`/`to`/`dependency`/`allow`/`disallow`
+ * selectors do not match any shape recognized by the `@boundaries/elements` type guards.
+ *
+ * This replaces the deep AJV schema that used to validate these selector shapes: JSON
+ * schema now only checks the pure ESLint option shape (which top-level properties are
+ * allowed), while the actual selector structure is validated here at runtime.
+ *
+ * @param rules - Rule list to inspect.
+ * @returns Indices of rule entries with an unrecognized selector shape.
+ */
+function collectRulesWithInvalidSelectors(
+  rules: RuleOptionsPolicies[]
+): number[] {
+  const invalidIndexes: number[] = [];
+
+  for (const [index, rule] of rules.entries()) {
+    const ruleRecord = rule as unknown as Record<string, unknown>;
+
+    const fromIsValid =
+      isUndefined(ruleRecord.from) ||
+      isValidEntitySelectorValue(ruleRecord.from);
+    const toIsValid =
+      isUndefined(ruleRecord.to) || isValidEntitySelectorValue(ruleRecord.to);
+    const dependencyIsValid =
+      isUndefined(ruleRecord.dependency) ||
+      isValidDependencyInfoSelectorValue(ruleRecord.dependency);
+    const allowIsValid =
+      isUndefined(ruleRecord.allow) ||
+      isValidPolicyTargetValue(ruleRecord.allow);
+    const disallowIsValid =
+      isUndefined(ruleRecord.disallow) ||
+      isValidPolicyTargetValue(ruleRecord.disallow);
+
+    if (
+      !fromIsValid ||
+      !toIsValid ||
+      !dependencyIsValid ||
+      !allowIsValid ||
+      !disallowIsValid
+    ) {
+      invalidIndexes.push(index);
+    }
+  }
+
+  return invalidIndexes;
+}
 
 /**
  * Determines whether any of a rule's selector fields satisfies a predicate.
@@ -965,6 +1024,19 @@ export function validateAndWarnRuleOptions(
   }
 
   trackedWarnedRuleOptions.add(options);
+
+  if (RULE_NAMES_WITH_ENTITY_ALLOW_DISALLOW.includes(ruleName)) {
+    const rulesWithInvalidSelectors =
+      collectRulesWithInvalidSelectors(policies);
+    if (rulesWithInvalidSelectors.length > 0) {
+      warnOnce(
+        `[${ruleName}] Detected an unrecognized selector shape in ${
+          rulesWithInvalidSelectors.length
+        } rule(s) at indices: ${rulesWithInvalidSelectors.join(", ")}.`,
+        `Check the 'from', 'to', 'dependency', 'allow' and 'disallow' properties. ${moreInfoLink(getRuleDocsPath(ruleName))}`
+      );
+    }
+  }
 
   if (disableLegacyWarnings) {
     return;

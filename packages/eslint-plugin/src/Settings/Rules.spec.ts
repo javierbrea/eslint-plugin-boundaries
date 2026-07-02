@@ -992,6 +992,59 @@ describe("Settings/Rules", () => {
     });
   });
 
+  describe("validateAndWarnRuleOptions invalid selector shapes", () => {
+    it("warns once when a 'dependencies' policy has an unrecognized 'from' shape", () => {
+      const options = {
+        policies: [
+          {
+            from: { notAnEntitySelectorKey: true },
+            to: { element: { type: "b" } },
+            allow: "*",
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("unrecognized selector shape"),
+        expect.any(String)
+      );
+    });
+
+    it("does not warn when 'from'/'to'/'allow' use recognized modern or legacy shapes", () => {
+      const options = {
+        policies: [
+          {
+            from: { element: { type: "a" } },
+            to: "legacy-matcher",
+            allow: [{ element: { type: "b" } }],
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+
+    it("does not check selector shapes for rules outside dependencies/element-types", () => {
+      const options = {
+        policies: [
+          {
+            target: { notAnEntitySelectorKey: true },
+            allow: "*",
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, true);
+
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+  });
+
   describe("validateAndWarnRuleOptions 'rules' option alias", () => {
     const modernFrom = { element: { type: "a" } };
     const modernTo = { element: { type: "b" } };

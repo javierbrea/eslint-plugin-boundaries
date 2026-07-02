@@ -120,7 +120,7 @@ const createDependencyDescription = (): DependencyDescription => {
 
 type RuleDebugPayload = {
   dependency: DependencyDescription;
-  rule: {
+  policy: {
     index: number;
     selector: Record<string, unknown>;
   };
@@ -672,10 +672,10 @@ describe("Debug", () => {
       const payload = extractRuleDebugPayload(
         consoleSpy.mock.calls[0][0] as string
       );
-      const selectorKeys = Object.keys(payload.rule.selector);
+      const selectorKeys = Object.keys(payload.policy.selector);
 
       expect(selectorKeys).toEqual([name]);
-      expect(payload.rule.selector[name]).toBeDefined();
+      expect(payload.policy.selector[name]).toBeDefined();
     }
   );
 
