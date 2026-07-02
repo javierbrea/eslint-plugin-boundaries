@@ -104,7 +104,7 @@ const config: Config = {
 ```
 
 :::tip
-For a more strongly-typed setup that also registers the plugin and validates rule prefixes for you, use [`createConfig`](../setup/eslint-integration.md) imported from `eslint-plugin-boundaries/config`. The manual `Config` object above remains a valid alternative when you need to compose configs by hand.
+For a more strongly-typed setup that also registers the plugin and validates rule prefixes for you, use [`createConfig`](../settings/config-helpers.md) imported from `eslint-plugin-boundaries/config`. The manual `Config` object above remains a valid alternative when you need to compose configs by hand.
 :::
 
 ### Custom Plugin Names
@@ -138,15 +138,15 @@ In addition to the main `Config` type, the plugin exports individual subtypes fo
 
 - `Settings` - the `settings` object (typed `boundaries/*` keys).
 - `Rules` - mapping of rule names to their configurations.
-- `ElementDescriptor` - an entry of the [`boundaries/elements`](../setup/elements.md) setting.
+- `ElementDescriptor` - an entry of the [`boundaries/elements`](../classification/elements.md) setting.
 - `DependenciesRule` - one entry of the [`dependencies`](../rules/dependencies.md) rule's `rules` array.
 - `DependenciesRuleOptions` - options for the `dependencies` rule.
-- `ElementSelector` - an [element selector](../setup/selectors.md).
+- `ElementSelector` - an [element selector](../selectors/selectors.md).
 - `DependencyKind` - dependency kind union (`"value" | "type" | "typeof"`); replaces the deprecated `ImportKind`.
 - `CapturedValuesSelector` - captured-values selector.
 - `DependencyNodeKey`, `DependencyNodeSelector` - dependency-node configuration.
-- `IgnoreSetting`, `IncludeSetting`, `RootPathSetting`, `DebugSetting`, `SettingsKey` - other [settings](../setup/settings.md) types.
-- `FileDescriptor`, `FileDescriptors` - an entry (or array) of the [`boundaries/files`](../setup/settings.md#boundariesfiles) setting.
+- `IgnoreSetting`, `IncludeSetting`, `RootPathSetting`, `DebugSetting`, `SettingsKey` - other [settings](../settings/settings.md) types.
+- `FileDescriptor`, `FileDescriptors` - an entry (or array) of the [`boundaries/files`](../settings/settings.md#boundariesfiles) setting.
 
 The deprecated-rule option types (`EntryPointRule`, `EntryPointRuleOptions`, `ExternalRule`, `ExternalRuleOptions`, `NoPrivateOptions`) and constants/guards (`SETTINGS_KEYS_MAP`, `RULE_NAMES_MAP`, `DEPENDENCY_KINDS_MAP`, `isSettingsKey`, `isDependencyKind`, `isFileDescriptor`, and more) are also exported. See the package types for the complete list.
 
@@ -193,7 +193,7 @@ const config: Config = {
 ```
 
 :::note[Entity selectors]
-The example above uses [entity selectors](../setup/selectors.md) (`from: { element: { type: "..." } }`). Flat element selectors (`from: { type: "..." }`) still work and are converted internally, but the entity selector form also gives you access to `file` and `module` matching.
+The example above uses [entity selectors](../selectors/selectors.md) (`from: { element: { type: "..." } }`). Flat element selectors (`from: { type: "..." }`) still work and are converted internally, but the entity selector form also gives you access to `file` and `module` matching.
 :::
 
 :::warning[TypeScript breaking changes from v6]
@@ -212,8 +212,8 @@ If you encounter issues with TypeScript support:
 
 ## Further Reading
 
-- **[ESLint integration](../setup/eslint-integration.md)** - `createConfig` and typed config helpers.
-- **[Elements](../setup/elements.md)** - element descriptors and the entity model.
-- **[Selectors](../setup/selectors.md)** - element, file, and module selector types.
-- **[Settings](../setup/settings.md)** - all available settings.
+- **[ESLint integration](../settings/config-helpers.md)** - `createConfig` and typed config helpers.
+- **[Elements](../classification/elements.md)** - element descriptors and the entity model.
+- **[Selectors](../selectors/selectors.md)** - element, file, and module selector types.
+- **[Settings](../settings/settings.md)** - all available settings.
 - **[Custom Resolvers](./custom-resolvers.md)** - resolver and path-alias configuration.

@@ -1,0 +1,195 @@
+---
+id: legacy
+title: Legacy Policy Configuration
+sidebar_label: Legacy
+description: Deprecated policy configuration in eslint-plugin-boundaries — rule-level importKind, legacy flat message aliases, and the legacy ${...} message template syntax, with migration guidance.
+tags:
+  - configuration
+  - deprecated
+keywords:
+  - eslint-plugin-boundaries
+  - legacy
+  - deprecated
+  - importKind
+  - legacy templates
+  - message templates
+  - migration
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CodeDiff from '@site/src/components/CodeDiff';
+
+# Legacy Policy Configuration
+
+:::warning[Deprecated]
+Everything on this page is kept for backward compatibility but is deprecated and will be removed in a future major version. Prefer the modern configuration documented in [Policies](./policies.mdx).
+:::
+
+## Deprecated properties
+
+### `importKind` (deprecated)
+
+**Type:** `<string>` or `<array of strings>` or `<micromatch pattern>`
+
+**Available with:** TypeScript
+
+**Optional**
+
+Deprecated in v6. Use the [`dependency.kind`](../selectors/selectors.md#dependency-selectors) metadata selector instead; when both are defined, `dependency.kind` takes precedence.
+
+Specifies whether a rule applies based on how the dependency is imported.
+
+**Possible values:**
+- `"value"` - Importing as a value
+- `"type"` - Importing as a type
+- `"typeof"` - Importing with typeof
+
+<CodeDiff language="javascript">{`
+. // Components can import helpers as values
+. {
+.   from: { element: { type: "component" } },
+.   allow: {
+.     to: { element: { type: "helper" } },
++     dependency: { kind: "value" }
+.   },
+-   importKind: "value"
+. }
+
+. // Components cannot import helper types
+. {
+.   from: { element: { type: "component" } },
+.   disallow: {
+.     to: { element: { type: "helper" } },
++     dependency: { kind: "type" }
+.   }
+-   importKind: "type"
+. }
+
+. // Modules can import helpers as values or types
+. {
+.   from: { element: { type: "module" } },
+.   allow: {
+.     to: { element: { type: "helper" } },
++     dependency: { kind: ["value", "type"] }
+.   }
+-   importKind: ["value", "type"]
+. }
+.
+. // Modules can import components as any import kind
+. {
+.   from: { element: { type: "module" } },
+.   allow: {
+.     to: { element: { type: "component" } },
++     dependency: { kind: "*" }
+.   },
+-   importKind: "*"
+. }
+`}</CodeDiff>
+
+:::warning
+When both policy-level `importKind` and dependency-level `kind` are defined, dependency-level `kind` takes precedence.
+:::
+
+### `target` (deprecated)
+
+The `target` property is a deprecated alias for `to`. It still works, but use `to` for clarity.
+
+<CodeDiff language="javascript">{`
+. {
+. from: { element: { type: "component" } },
+. disallow: {
+-    target: { element: { type: "helper" } }
++    to: { element: { type: "helper" } }
+. }
+. }
+`}</CodeDiff>
+
+:::warning
+When both `target` and `to` are defined, `to` takes precedence.
+:::
+
+## Legacy flat message aliases
+
+For backward compatibility, each side also exposes V6 flat fields at the `from`/`to` root in custom message templates. These keep working but the nested paths are preferred:
+
+| Legacy alias | Canonical V7 path |
+|---|---|
+| `{{from.type}}` | `{{from.element.types.[0]}}` |
+| `{{from.captured.X}}` | `{{from.element.captured.X}}` |
+| `{{from.elementPath}}` | `{{from.element.path}}` |
+| `{{from.internalPath}}` | `{{from.element.fileInternalPath}}` |
+| `{{from.origin}}` | `{{from.module.origin}}` |
+| `{{from.parents.[0].type}}` | `{{from.element.parents.[0].types.[0]}}` |
+
+:::warning[Deprecated]
+`{{from.category}}` / `{{to.category}}` resolve the deprecated element-level `category` field. They still work, but use **file categories** (`{{from.file.categories}}` / `{{to.file.categories}}`) instead. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx).
+:::
+
+## Legacy Message Templates
+
+Legacy message template syntax using `${...}` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[Handlebars templates](./policies.mdx#message-templating)** (`{{...}}`) instead.
+
+It keeps working without changes. Using `${...}` in a message does not print a deprecation warning, and the [`boundaries/legacy-templates`](../settings/settings.md#boundarieslegacy-templates) setting does not affect it — that setting only controls legacy templating in selectors, not in custom messages.
+
+### Backward Compatibility
+
+For backward compatibility, message rendering runs in two phases:
+
+1. **Legacy replacement** (`${...}`): Processes legacy template syntax with flattened property access
+2. **Handlebars rendering** (`{{...}}`): Processes modern template syntax with nested object access
+
+This allows existing templates to continue working while you migrate to the new format.
+
+### Available properties
+
+Legacy templates do not support the full range of properties available in Handlebars templates. The following properties are available in legacy templates:
+
+- `${file.*}` and `${dependency.*}` - Legacy aliases for the importing/imported elements
+  - `type` - Element type
+  - `internalPath` - Path inside the element
+  - `source` - Import source
+  - `importKind` - Import kind (value, type, typeof)
+  - All captured values from the element pattern
+- `${from.*}` and `${target.*}` - Alternative legacy aliases
+- `${file.parent.*}`, `${from.parent.*}`, `${dependency.parent.*}`, `${target.parent.*}` - Parent element properties
+- `${report.*}` - Dependency metadata: `${report.path}` is the target's internal path, `${report.specifiers}` is the comma-separated list of imported specifiers
+
+**Example:**
+
+```js
+{
+  "message": "${file.type} cannot import ${dependency.type}"
+}
+```
+
+### Migration to Handlebars
+
+To migrate from legacy templates to Handlebars:
+
+1. **Replace `${...}` with `{{...}}`**: Change the delimiter syntax
+2. **Update property paths**: Use the new nested structure (`from`, `to`, `dependency`) instead of deprecated flattened aliases.
+3. **Remove legacy aliases**: Use official property names instead of deprecated aliases
+
+**Migration examples:**
+
+<CodeDiff language="javascript">{`
+- "$\{file.type} cannot import $\{dependency.type}"
++ "{{from.element.types.[0]}} cannot import {{to.element.types.[0]}}"
+. 
+- "$\{file.type} with name $\{file.elementName} cannot import $\{dependency.family}"
++ "{{from.element.types.[0]}} with name {{from.element.captured.elementName}} cannot import {{to.element.captured.family}}"
+. 
+- "$\{file.type} in $\{file.parent.type} cannot import $\{dependency.type}"
++ "{{from.element.types.[0]}} in {{from.element.parents.[0].types.[0]}} cannot import {{to.element.types.[0]}}"
+`}</CodeDiff>
+
+:::info[Migration Guide]
+For a detailed migration conversion table, see the [v5 to v6 migration guide](../releases/migration-guides/v5-to-v6.mdx#templates-in-custom-messages) and the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx#new-custom-message-template-data).
+:::
+
+## See Also
+
+- [Policies](./policies.mdx) — the modern policy configuration.
+- [Selectors](../selectors/selectors.md) — selectors used in `from`/`to`/`dependency`.
+- [v6 to v7 Migration Guide](../releases/migration-guides/v6-to-v7.mdx) — full migration instructions.

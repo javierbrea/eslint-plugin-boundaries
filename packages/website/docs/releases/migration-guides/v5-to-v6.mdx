@@ -29,7 +29,7 @@ import CodeDiff from "@site/src/components/CodeDiff";
 
 ## Overview
 
-Version 6.0.0 introduces **[object-based selectors](../../setup/selectors.md)** as the recommended way to define element selectors. This provides better readability and access to advanced matching features.
+Version 6.0.0 introduces **[object-based selectors](../../selectors/selectors.md)** as the recommended way to define element selectors. This provides better readability and access to advanced matching features.
 
 It also introduces several new features and changes in configuration to make it more semantic and powerful. But **almost every change is designed to be incremental and non-breaking, allowing you to migrate at your own pace**. The only breaking change is the [new default value for `boundaries/dependency-nodes`](#changed-default-value-for-boundariesdependency-nodes-setting).
 
@@ -54,13 +54,13 @@ Here is the list of changes and how to migrate your configuration for each one.
 
 ## Object-based elements selector syntax
 
-The following **[elements selector](../../setup/selectors.md)** formats are now deprecated:
+The following **[elements selector](../../selectors/selectors.md)** formats are now deprecated:
 
 1. **String format**: `"helper"`
 2. **Tuple format**: `["helper", { family: "data" }]`
 3. **Array of legacy selectors**: `["helper", "component"]`
 
-The new **[object-based syntax](../../setup/selectors.md)** provides:
+The new **[object-based syntax](../../selectors/selectors.md)** provides:
 
 - **Modern format**: `{ type: "helper", captured: { family: "data" } }`
 - **Clear property names**: Self-documenting code
@@ -69,7 +69,7 @@ The new **[object-based syntax](../../setup/selectors.md)** provides:
 - **Future-proof**: New capabilities will only be added to object-based syntax
 
 :::info
-Read more about the new object-based selector syntax in the **[selectors documentation](../../setup/selectors.md).**
+Read more about the new object-based selector syntax in the **[selectors documentation](../../selectors/selectors.md).**
 :::
 
 ### Conversion table
@@ -111,7 +111,7 @@ For the migration, the main changes are:
 **Now `allow` and `disallow` must match dependencies using dependency selectors, not just elements**: In the practice, this means that `allow` and `disallow` rules must be defined with a `to` property that specifies the dependency selector for proper migration.
 
 :::info
-Read more about the new dependency selector syntax in the [selectors documentation](../../setup/selectors.md#dependency-selectors).
+Read more about the new dependency selector syntax in the [selectors documentation](../../selectors/selectors.md#dependency-selectors).
 :::
 
 #### Conversion table
@@ -182,7 +182,7 @@ If you want to keep the previous behavior and only analyze `import` statements, 
 
 ## Rule-level `importKind` is deprecated
 
-**Rule-level `importKind` is deprecated**: Use **[selector-level `dependency.kind`](../../setup/selectors.md#dependency-selectors)** instead. When both are defined, selector-level `dependency.kind` takes precedence. This allows for more granular control over matching specific dependency kinds within the same rule.
+**Rule-level `importKind` is deprecated**: Use **[selector-level `dependency.kind`](../../selectors/selectors.md#dependency-selectors)** instead. When both are defined, selector-level `dependency.kind` takes precedence. This allows for more granular control over matching specific dependency kinds within the same rule.
 
 ### Conversion table
 
@@ -220,7 +220,7 @@ This does not apply to the [`entry-point` rule](../../rules/entry-point.mdx), be
 
 ## New template syntax
 
-V6 introduces a new Handlebars-style template syntax (`{{...}}`) for selectors and custom messages, providing clearer syntax and structured access to [element descriptions properties](../../setup/elements.md#runtime-description-properties). The old `${ }` syntax is still supported for backwards compatibility but will be deprecated in future versions.
+V6 introduces a new Handlebars-style template syntax (`{{...}}`) for selectors and custom messages, providing clearer syntax and structured access to [element descriptions properties](../../classification/elements.md#element-description). The old `${ }` syntax is still supported for backwards compatibility but will be deprecated in future versions.
 
 The modern template syntax uses Handlebars-style double curly braces:
 
@@ -231,10 +231,10 @@ The modern template syntax uses Handlebars-style double curly braces:
 
 ### Templates in selectors
 
-The new template syntax can access any property from the [dependency description](../../setup/elements.md#runtime-description-properties), while the old `${to.capturedProperty}` syntax could access only captured properties.
+The new template syntax can access any property from the [dependency description](../../classification/elements.md#element-description), while the old `${to.capturedProperty}` syntax could access only captured properties.
 
 :::tip
-Read more about the description properties in the [Runtime Description Properties](../../setup/elements.md#runtime-description-properties) documentation.
+Read more about the description properties in the [Runtime Description Properties](../../classification/elements.md#element-description) documentation.
 :::
 
 #### Conversion table
@@ -264,14 +264,14 @@ Read more about the description properties in the [Runtime Description Propertie
 
 
 :::caution
-When the new [`boundaries/legacy-templates` setting](../../setup/settings.md#boundarieslegacy-templates) is enabled (default until next major version), if you are capturing properties with names equal to any of the [Runtime Element Description Properties](../../setup/elements.md#runtime-description-properties) (e.g., `path`, `category`, `origin`, etc.) they will overwrite the corresponding template variables and cause unexpected behavior in the templates.
+When the new [`boundaries/legacy-templates` setting](../../settings/settings.md#boundarieslegacy-templates) is enabled (default until next major version), if you are capturing properties with names equal to any of the [Runtime Element Description Properties](../../classification/elements.md#element-description) (e.g., `path`, `category`, `origin`, etc.) they will overwrite the corresponding template variables and cause unexpected behavior in the templates.
 
 To avoid this, it is recommended to check your captured properties and set `boundaries/legacy-templates` to `false`, which will avoid injecting captured properties at first level object and instead require using the `captured` namespace to access them.
 :::
 
 ### Templates in custom messages
 
-The new template syntax (`{{ }}`) **can access any property from the [dependency description](../../setup/elements.md#runtime-description-properties)**, while the **old `${ }` syntax could access only**:
+The new template syntax (`{{ }}`) **can access any property from the [dependency description](../../classification/elements.md#element-description)**, while the **old `${ }` syntax could access only**:
 
 - `${file.*}` and `${dependency.*}`:
   - `type` - Element type
@@ -317,14 +317,14 @@ This allows existing templates to continue working while you migrate to the new 
 `}</CodeDiff>
 
 :::tip
-For more details on the template messages migration, see the Legacy Message Templates section in the [rules documentation](../../setup/rules.mdx#legacy-message-templates).
+For more details on the template messages migration, see the Legacy Message Templates section in the [rules documentation](../../policies/legacy.mdx).
 :::
 
 ## Deprecated Rules
 
 ### `entry-point` rule
 
-The boundaries set by this rule now can also be achieved with the **[`boundaries/dependencies` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the new [`internalPath` selector property](../../setup/selectors.md).**
+The boundaries set by this rule now can also be achieved with the **[`boundaries/dependencies` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the new [`internalPath` selector property](../../selectors/selectors.md).**
 
 Here you have an example of how to migrate a configuration from `boundaries/entry-point` to `boundaries/dependencies`:
 
@@ -363,7 +363,7 @@ With `boundaries/dependencies` you can also define rules to allow different entr
 
 ### `external` rule
 
-The boundaries set by this rule can also be achieved with the **[`boundaries/dependencies` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the [`origin`, `source`, `module`, 'internalPath' and `specifiers` selector properties](../../setup/selectors.md).**
+The boundaries set by this rule can also be achieved with the **[`boundaries/dependencies` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the [`origin`, `source`, `module`, 'internalPath' and `specifiers` selector properties](../../selectors/selectors.md).**
 
 :::warning
 You need to set the `checkAllOrigins` option to `true` in your `boundaries/dependencies` configuration to make sure that dependencies from external origins are also checked, as by default `boundaries/dependencies` only checks dependencies between local known elements.
@@ -427,7 +427,7 @@ Here you have an example of how to migrate a configuration from `boundaries/exte
 
 ### `no-private` rule
 
-The boundaries set by this rule can also be achieved with the **[`boundaries/dependencies` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the [`relationship` selector property](../../setup/selectors.md).**
+The boundaries set by this rule can also be achieved with the **[`boundaries/dependencies` rule](../../rules/dependencies.md)**, which allows you to specify allowed entry points directly in the rules by **using the [`relationship` selector property](../../selectors/selectors.md).**
 
 <CodeDiff language="javascript">{`
 . {
@@ -511,7 +511,7 @@ Using the `boundaries/dependencies` rule with the new selector syntax instead of
 
 ## Need Help?
 
-- See [Object-Based Selectors](../../setup/selectors.md) for complete documentation
-- See [Legacy Selectors](../../setup/selectors/legacy-selectors.md) for reference
+- See [Object-Based Selectors](../../selectors/selectors.md) for complete documentation
+- See [Legacy Selectors](../../selectors/legacy/element.md) for reference
 - Check [Examples](../../rules/dependencies.md) in the rules documentation
 - Open an issue on [GitHub](https://github.com/javierbrea/eslint-plugin-boundaries/issues) if you need assistance

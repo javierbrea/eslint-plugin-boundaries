@@ -93,7 +93,7 @@ function expandMatchers(
 
 /**
  * Returns a plain `ArrayQuery<string>` where any `{ expand }` items in
- * anyOf/allOf/noneOf are resolved to their string values. Other operators pass through.
+ * anyOf/allOf/noneOf/equalsTo are resolved to their string values. Other operators pass through.
  */
 export function expandStringArrayQuery(
   query: StringArrayQuery,
@@ -104,5 +104,7 @@ export function expandStringArrayQuery(
   if (query.allOf) expanded.allOf = expandMatchers(query.allOf, templateData);
   if (query.noneOf)
     expanded.noneOf = expandMatchers(query.noneOf, templateData);
+  if (query.equalsTo)
+    expanded.equalsTo = expandMatchers(query.equalsTo, templateData);
   return expanded;
 }

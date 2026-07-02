@@ -1,7 +1,7 @@
 ---
-id: legacy-selectors
-title: Legacy Selector Syntax
-sidebar_label: Legacy Selectors
+id: element
+title: Legacy Elements Selector Syntax
+sidebar_label: Elements Selector
 description: Reference for deprecated string and tuple selector formats in eslint-plugin-boundaries, with migration guidance to modern object-based and entity selectors.
 tags:
   - configuration
@@ -20,19 +20,15 @@ keywords:
   - module selector
 ---
 
-# Legacy Selector Syntax
-
-:::warning[Deprecated]
-The string and tuple selector formats on this page are kept for backward compatibility but are deprecated and will be removed in a future major version. Use the [object-based selector syntax](../selectors.md) instead.
-:::
+# Legacy Elements Selector Syntax
 
 These formats keep working without changes, but when a rule uses them the plugin emits a one-time runtime console warning encouraging migration to object-based selectors. When you are ready to migrate, the [v6 to v7 migration guide](../../releases/migration-guides/v6-to-v7.mdx) covers the full transition, including the [entity selector](../selectors.md#entity-selectors) form.
 
-## Overview
+## String and tuple selectors
 
 String and tuple selectors were the original way to match elements. They still work, but they can only match an element type and its captured values. The modern [object-based selectors](../selectors.md) — and especially the [entity selector](../selectors.md#entity-selectors) form — can also match a file's categories, a module's origin, and more.
 
-## String selector format
+### String selector format
 
 **Format:** `<string>`
 
@@ -62,13 +58,11 @@ A [micromatch pattern](https://github.com/micromatch/micromatch) matched against
 { element: { type: "*-component" } }
 ```
 
-:::tip[Why the `element` wrapper]
-Wrapping the type in an `element` sub-selector turns it into a full [entity selector](../selectors.md#entity-selectors). The flat form `{ type: "helper" }` still works and is converted internally, but only the entity form lets you also match [`file.categories`](../selectors.md#file-sub-selector) and [`module.origin`/`module.source`](../selectors.md#module-sub-selector).
-:::
-
-## Tuple selector format
+### Tuple selector format
 
 **Format:** `[<string>, <capturedValuesObject>]`
+
+The first entry is a micromatch pattern matched against the element type. The second entry is an object of captured values to match.
 
 Matches when both the element type matches **and** all the listed captured values match.
 
@@ -96,10 +90,6 @@ Matches when both the element type matches **and** all the listed captured value
 { element: { type: "helper", captured: { elementName: "parse*" } } }
 ```
 
-## Array of legacy selectors
-
-When you provide an array of selectors, it matches if **any** selector in the array matches (OR logic).
-
 ### Array of strings
 
 ```js
@@ -120,10 +110,6 @@ When you provide an array of selectors, it matches if **any** selector in the ar
 ]
 ```
 
-:::note
-Both forms above match a `helper` or a `component`. Use the type-array form (`type: ["helper", "component"]`) when the only difference is the type. Use an array of selectors when the alternatives also differ in other properties (for example, a different `captured` value per type), since each selector can carry its own conditions.
-:::
-
 ### Mixed array of strings and tuples
 
 ```js
@@ -143,14 +129,63 @@ Both forms above match a `helper` or a `component`. Use the type-array form (`ty
 ]
 ```
 
+## Element selector properties
+
+The following [element selector](../element.md) properties still work but are kept only for backward compatibility. They will be removed in a future major version.
+
+### Category
+
+The category property on element descriptors is deprecated, so the `category` property on element selectors is also deprecated. The replacement is a [file descriptor](../../classification/files.md) category matched through the `file` sub-selector. File descriptors let you assign multiple categories to different files within the same element.
+
+| Deprecated | Replacement |
+| --- | --- |
+| `{ element: { category: "test" } }` | `{ file: { categories: "test" } }` |
+
+### Origin
+
+Module origin describes where an imported module comes from, so it now lives on the `module` sub-selector. The legacy form keeps working.
+
+| Deprecated | Replacement |
+| --- | --- |
+| `{ element: { origin: "external" } }` | `{ module: { origin: "external" } }` |
+
+### internalPath
+
+The `internalPath` property on an element selector is deprecated. Use the [`module` sub-selector](../module.md) `internalPath` to match the path within an external or core module, or `fileInternalPath` to match the path within a local element.
+
+| Deprecated | Replacement |
+| --- | --- |
+| `{ element: { internalPath: "index.js" } }` | `{ file: { fileInternalPath: "index.js" } }` |
+| `{ element: { internalPath: "index.js" } }` | `{ module: { internalPath: "index.js" } }` |
+
+### filePath
+
+The `filePath` property on an element selector is deprecated. Use the [`module` sub-selector](../module.md) `internalPath` to match the path within an external or core module, or `fileInternalPath` to match the file internal path within a local element relative to the element root.
+
+| Deprecated | Replacement |
+| --- | --- |
+| `{ element: { filePath: "index.js" } }` | `{ file: { fileInternalPath: "index.js" } }` |
+| `{ element: { filePath: "index.js" } }` | `{ module: { internalPath: "index.js" } }` |
+
+## Using element selectors as entity selectors
+
+From v7, the `element` selector is a sub-selector of the [entity selector](../selectors.md#entity-selectors) syntax. But, for backward compatibility, the `element` selector can still be used as a top-level selector. The following two selectors are equivalent in places where an entity selector is expected, such as the `from` and `to` properties of a policy. The first form is deprecated and will be removed in a future major version.
+
+```js
+// Top-level element selector (deprecated)
+{ type: "helper" }
+
+// Entity selector (canonical form)
+{ element: { type: "helper" } }
+```
+
 ## Why migrate?
 
 The object-based and entity selector syntax gives you:
 
 - **Self-documenting selectors** — Object properties read clearly, especially in long rule lists.
-- **Entity matching** — Wrap element properties in `{ element: { ... } }` to also match [`file.categories`](../selectors.md#file-sub-selector) (file descriptors) and [`module.origin`/`module.source`](../selectors.md#module-sub-selector) (external and local module origin). These are only reachable through entity selectors.
+- **Entity matching** — Wrap element properties in `{ element: { ... } }` to also match [`file.categories`](../file.md) (file descriptors) and [`module.origin`/`module.source`](../module.md) (external and local module origin). These are only reachable through entity selectors.
 - **Richer element matching** — Object selectors support `element.type`, `element.path`, `element.fileInternalPath`, `element.captured`, `element.parent`, and the `isIgnored`/`isUnknown` flags.
-- **Type safety** — Better TypeScript support and editor autocompletion.
 - **Future features** — New capabilities are added to the object-based syntax only.
 
 ## Migration guide
@@ -160,7 +195,7 @@ For step-by-step migration instructions and examples, see the [v6 to v7 migratio
 ## See Also
 
 - [Selectors](../selectors.md) — modern object-based and entity selector reference.
-- [Rules](../rules.mdx) — where selectors are used in `from`/`to`/`dependency`.
-- [Settings](../settings.md) — configure `boundaries/files`, `boundaries/elements-single-type`, and `boundaries/legacy-templates`.
-- [Elements](../elements.md) — element descriptors and captured values.
+- [Rules](../../policies/policies.mdx) — where selectors are used in `from`/`to`/`dependency`.
+- [Settings](../../settings/settings.md) — configure `boundaries/files` and `boundaries/elements-single-type`.
+- [Elements](../../classification/elements.md) — element descriptors and captured values.
 - [v6 to v7 Migration Guide](../../releases/migration-guides/v6-to-v7.mdx) — full migration instructions.

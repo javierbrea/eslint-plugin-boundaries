@@ -995,7 +995,7 @@ describe("Settings/Rules", () => {
     it("returns a non-legacy schema with 'from'/'to'/'dependency' properties by default", () => {
       const [schema] = rulesOptionsSchema();
       const ruleItem = (
-        schema.properties.rules as {
+        (schema.properties as unknown as Record<string, unknown>).rules as {
           items: { properties: Record<string, unknown>; anyOf: unknown[] };
         }
       ).items;
@@ -1021,7 +1021,7 @@ describe("Settings/Rules", () => {
         isLegacy: true,
       });
       const ruleItem = (
-        schema.properties.rules as {
+        (schema.properties as unknown as Record<string, unknown>).rules as {
           items: { properties: Record<string, unknown>; anyOf: unknown[] };
         }
       ).items;
@@ -1039,7 +1039,7 @@ describe("Settings/Rules", () => {
     it("falls back to 'from' as legacy main key when rulesMainKey is not provided", () => {
       const [schema] = rulesOptionsSchema({ isLegacy: true });
       const ruleItem = (
-        schema.properties.rules as {
+        (schema.properties as unknown as Record<string, unknown>).rules as {
           items: { properties: Record<string, unknown> };
         }
       ).items;
@@ -1067,7 +1067,7 @@ describe("Settings/Rules", () => {
         targetMatcherOptions: customMatcherOptions,
       });
       const ruleItem = (
-        schema.properties.rules as {
+        (schema.properties as unknown as Record<string, unknown>).rules as {
           items: { properties: { allow: { anyOf: unknown[] } } };
         }
       ).items;

@@ -26,14 +26,14 @@ This guide shows how to configure ESLint Plugin Boundaries in monorepo environme
 
 ## Understanding External vs Local Dependencies
 
-When a file does `import { x } from "@myorg/shared"`, the plugin resolves that import and classifies its [`module.origin`](../setup/modules.md#module-origins). By default, the plugin categorizes dependencies as:
+When a file does `import { x } from "@myorg/shared"`, the plugin resolves that import and classifies its [`module.origin`](../classification/modules.md#module-origins). By default, the plugin categorizes dependencies as:
 
 - **External**: npm packages in `node_modules` and unresolvable imports
 - **Local**: all other resolved file paths within your project
 
 :::info[Why does this matter?]
 
-Use the [`module.origin` sub-selector](../setup/selectors.md#module-sub-selector) in your rules to target dependencies based on their classification as `"local"` or `"external"`, and decide whether a rule applies to dependencies from all origins or only local ones.
+Use the [`module.origin` sub-selector](../selectors/module.md) in your rules to target dependencies based on their classification as `"local"` or `"external"`, and decide whether a rule applies to dependencies from all origins or only local ones.
 
 **So you might want to control how inter-package dependencies in a monorepo are categorized to apply the appropriate rules.**
 
@@ -44,7 +44,7 @@ By default, the [`dependencies`](../rules/dependencies.md) rule only evaluates *
 The `checkAllOrigins` option (default `false`) extends the `dependencies` rule to also evaluate external and core dependencies. Set it to `true` when you want a single rule to govern both local and external inter-package imports.
 
 :::warning[Deprecated]
-The [`external`](../rules/external.mdx) rule is kept for backward compatibility but is deprecated and will be removed in a future major version. Use the [`dependencies`](../rules/dependencies.md) rule with `checkAllOrigins: true` and a [`module` sub-selector](../setup/selectors.md#module-sub-selector) instead.
+The [`external`](../rules/external.mdx) rule is kept for backward compatibility but is deprecated and will be removed in a future major version. Use the [`dependencies`](../rules/dependencies.md) rule with `checkAllOrigins: true` and a [`module` sub-selector](../selectors/module.md) instead.
 :::
 
 It keeps working without changes; you will see a deprecation warning in your console. To check external inter-package dependencies the current way, use the `dependencies` rule with `checkAllOrigins: true` and target `to: { module: { origin: ["external", "core"] } }`. See the [`external`](../rules/external.mdx) rule page for full migration steps.
@@ -55,7 +55,7 @@ In a monorepo, you might want different behavior:
 2. **Treat inter-package dependencies as local**
 3. **Mix both approaches** - Some packages as external, others as local
 
-The [`boundaries/flag-as-external`](../setup/settings.md#boundariesflag-as-external) setting gives you full control over this categorization.
+The [`boundaries/flag-as-external`](../settings/settings.md#boundariesflag-as-external) setting gives you full control over this categorization.
 
 
 :::tip[Fully customizable]
@@ -86,9 +86,9 @@ All examples in this page **assume eslint is executed from the monorepo root**, 
 
 ### Pattern matching and `rootPath`
 
-Element descriptor patterns are matched **relative to the [`rootPath` setting](../setup/settings.md#boundariesroot-path)**. Patterns are evaluated **right-to-left** (from the end of the path), so a pattern like `components/*/*` matches files regardless of where the matched folder sits within `rootPath`. This makes the relativity less critical for most patterns. Files resolved outside `rootPath` keep their absolute path for matching.
+Element descriptor patterns are matched **relative to the [`rootPath` setting](../settings/settings.md#boundariesroot-path)**. Patterns are evaluated **right-to-left** (from the end of the path), so a pattern like `components/*/*` matches files regardless of where the matched folder sits within `rootPath`. This makes the relativity less critical for most patterns. Files resolved outside `rootPath` keep their absolute path for matching.
 
-For how element patterns and captures work, see the [Elements documentation](../setup/elements.md).
+For how element patterns and captures work, see the [Elements documentation](../classification/elements.md).
 
 
 ## Scenario 1: Inter-package Dependencies as External (Package Isolation)
@@ -234,7 +234,7 @@ import { map } from 'lodash';
 ```
 
 :::tip[Use the `module` sub-selector to target inter-package dependencies]
-Use the [`module` sub-selector](../setup/selectors.md#module-sub-selector) in a rule's `to` to match dependencies by origin. For example, `to: { module: { origin: "external" } }` matches all external dependencies. To target only `@myorg/` packages: `to: { module: { origin: "external", source: "@myorg/*" } }`. See [Selectors](../setup/selectors.md#module-sub-selector) for the full reference.
+Use the [`module` sub-selector](../selectors/module.md) in a rule's `to` to match dependencies by origin. For example, `to: { module: { origin: "external" } }` matches all external dependencies. To target only `@myorg/` packages: `to: { module: { origin: "external", source: "@myorg/*" } }`. See [Selectors](../selectors/module.md) for the full reference.
 :::
 
 ## Scenario 3: Inter-package Dependencies as Local (Monorepo-wide Rules)
@@ -365,9 +365,9 @@ Then use `customSourcePatterns` for more precise control.
 
 ## Further Reading
 
-- **[Modules](../setup/modules.md)** - how the plugin classifies each import's origin, source, and internal path.
-- **[Settings](../setup/settings.md#boundariesflag-as-external)** - the `flag-as-external` and `root-path` settings.
-- **[Selectors](../setup/selectors.md#module-sub-selector)** - the `module` sub-selector for matching by origin and source.
+- **[Modules](../classification/modules.md)** - how the plugin classifies each import's origin, source, and internal path.
+- **[Settings](../settings/settings.md#boundariesflag-as-external)** - the `flag-as-external` and `root-path` settings.
+- **[Selectors](../selectors/module.md)** - the `module` sub-selector for matching by origin and source.
 - **[Dependencies rule](../rules/dependencies.md)** - the `checkAllOrigins` option and rule format.
 - **[Custom Resolvers](./custom-resolvers.md)** - resolving imports across workspace packages.
 - **[Debugging](./debugging.md)** - inspect how each import is categorized.

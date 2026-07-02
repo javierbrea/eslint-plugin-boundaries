@@ -20,13 +20,13 @@ keywords:
 
 ## Overview
 
-Use debugging to verify that your [`elements`](../setup/elements.md) setting and [rules](../setup/rules.mdx) work as expected. The debugging feature prints detailed traces about how the plugin analyzes your files and imports, including:
+Use debugging to verify that your [`elements`](../classification/elements.md) setting and [rules](../policies/policies.mdx) work as expected. The debugging feature prints detailed traces about how the plugin analyzes your files and imports, including:
 
 - File paths being analyzed
 - Assigned descriptions for each file and dependency
 - Rule violations, and which dependency selectors matched them
 
-Each file description is an [**entity**](../setup/classification.md) — the element the file belongs to, the file's categories (from [file descriptors](../setup/files.md)), and the module origin of each dependency. This breakdown helps you troubleshoot configuration issues and confirm your element definitions and rules are correct.
+Each file description is an [**entity**](../classification/classification.md) — the element the file belongs to, the file's categories (from [file descriptors](../classification/files.md)), and the module origin of each dependency. This breakdown helps you troubleshoot configuration issues and confirm your element definitions and rules are correct.
 
 ## Enabling Debug Mode
 
@@ -52,7 +52,7 @@ ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 npm run lint
 
 The environment variable is equivalent to setting `"boundaries/debug": { "enabled": true }`.
 
-When debug mode is enabled, you will see detailed output in the console for each file and dependency analyzed by the plugin. This includes all the information of **[entity and dependency descriptions](../setup/classification.md).**
+When debug mode is enabled, you will see detailed output in the console for each file and dependency analyzed by the plugin. This includes all the information of **[entity and dependency descriptions](../classification/classification.md).**
 
 ## Filtering by Message Type
 
@@ -85,12 +85,12 @@ You may want to disable some message types to reduce noise and focus on specific
 
 ## Filtering by File or Dependency
 
-You can **[filter traces using selectors](../setup/selectors.md)** in the `boundaries/debug.filter` setting. This lets you focus on specific files or dependencies relevant to your debugging session.
+You can **[filter traces using selectors](../selectors/selectors.md)** in the `boundaries/debug.filter` setting. This lets you focus on specific files or dependencies relevant to your debugging session.
 
 The two filter keys accept different selector types:
 
-- `filter.files` accepts a [file selector](../setup/selectors.md#file-sub-selector) or an [entity selector](../setup/selectors.md#entity-selectors). Use it to match by element type, file category, or module origin.
-- `filter.dependencies` accepts a [dependency selector](../setup/selectors.md#dependency-selectors) with `from`, `to`, and `dependency` keys.
+- `filter.files` accepts a [file selector](../selectors/file.md) or an [entity selector](../selectors/selectors.md#entity-selectors). Use it to match by element type, file category, or module origin.
+- `filter.dependencies` accepts a [dependency selector](../selectors/selectors.md#dependency-selectors) with `from`, `to`, and `dependency` keys.
 
 Filters apply to all debug messages (file descriptions, dependency descriptions, and rule violation descriptions). If a trace doesn't match the filter, it won't be printed in the console.
 
@@ -114,7 +114,7 @@ export default [{
 ```
 
 :::note[Entity selectors in `filter.files`]
-`filter.files` accepts entity selectors, so you can filter by element type (`{ element: { type: "component" } }`), file category (`{ file: { categories: "test" } }`), or module origin (`{ module: { origin: "external" } }`). A bare flat element selector such as `{ type: "component" }` still works and is converted internally, but prefer the entity selector form. See [Selectors](../setup/selectors.md).
+`filter.files` accepts entity selectors, so you can filter by element type (`{ element: { type: "component" } }`), file category (`{ file: { categories: "test" } }`), or module origin (`{ module: { origin: "external" } }`). A bare flat element selector such as `{ type: "component" }` still works and is converted internally, but prefer the entity selector form. See [Selectors](../selectors/selectors.md).
 :::
 
 Filter behavior:
@@ -129,7 +129,7 @@ The `files` filter also gates the dependencies and rule violations found within 
 
 ## Example Output
 
-When debug mode is enabled, you'll see **[descriptions of files, dependencies, and rule violations](../setup/classification.md)** in the console. Each file is serialized as an [entity](../setup/classification.md) with three sub-descriptions: `element`, `file`, and `module`. For example, for a `component` that imports a `helper`:
+When debug mode is enabled, you'll see **[descriptions of files, dependencies, and rule violations](../classification/classification.md)** in the console. Each file is serialized as an [entity](../classification/classification.md) with three sub-descriptions: `element`, `file`, and `module`. For example, for a `component` that imports a `helper`:
 
 ```
 [boundaries][debug]: Description of file "src/components/atoms/atom-a/AtomA.js":
@@ -258,7 +258,7 @@ When debug mode is enabled, you'll see **[descriptions of files, dependencies, a
 ```
 
 :::note[Reading the entity output]
-Local source files carry their classification in `element` (the architectural element and its `types`) and in `file` (its `categories`, from [file descriptors](../setup/files.md)). `module` is `{ "origin": "local", "source": null, "internalPath": null }`. For imported external or core dependencies, `element` and `file` are usually unknown — the meaningful classification lives in `module` (`origin`, `source`, `internalPath`). When no [`boundaries/files`](../setup/settings.md#boundariesfiles) descriptors match a file, its `file.categories` is `null`.
+Local source files carry their classification in `element` (the architectural element and its `types`) and in `file` (its `categories`, from [file descriptors](../classification/files.md)). `module` is `{ "origin": "local", "source": null, "internalPath": null }`. For imported external or core dependencies, `element` and `file` are usually unknown — the meaningful classification lives in `module` (`origin`, `source`, `internalPath`). When no [`boundaries/files`](../settings/settings.md#boundariesfiles) descriptors match a file, its `file.categories` is `null`.
 :::
 
 ## Best Practices
@@ -311,13 +311,13 @@ This ensures a clean output without ANSI color codes, making it easier to read i
 
 ### Unexpected element properties or missing captures
 
-- Check your element patterns in the [`boundaries/elements`](../setup/elements.md) setting
+- Check your element patterns in the [`boundaries/elements`](../classification/elements.md) setting
 - Verify the pattern is correct in the element descriptor
 - Ensure descriptor patterns are listed in the correct order (first match wins)
 
 ### Unexpected file categories or `file.categories` is `null`
 
-- File categories come from the [`boundaries/files`](../setup/settings.md#boundariesfiles) setting, not from `boundaries/elements`
+- File categories come from the [`boundaries/files`](../settings/settings.md#boundariesfiles) setting, not from `boundaries/elements`
 - If `file.categories` is `null`, no file descriptor pattern matched the file (or none is configured)
 - Categories accumulate: every matching file descriptor contributes its category
 

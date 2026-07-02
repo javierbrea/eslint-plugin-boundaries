@@ -1,5 +1,5 @@
 ---
-id: eslint-integration
+id: config-helpers
 title: Config Helpers
 description: Configuration helpers to integrate ESLint Plugin Boundaries with your ESLint setup.
 tags:

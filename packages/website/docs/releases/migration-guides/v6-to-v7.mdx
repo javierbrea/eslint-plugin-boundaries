@@ -28,7 +28,7 @@ import CodeDiff from "@site/src/components/CodeDiff";
 
 ## Overview
 
-Version 7.0.0 introduces the **entity model**: every file is now described along three independent dimensions — its **[element](../../setup/elements.md)** (the architectural unit it belongs to), its **[file](../../setup/files.md)** (categorized on its own), and the **[module](../../setup/modules.md)** each dependency resolves to. This unlocks multi-dimensional classification: multiple types per element, file-level categories, and matching by module origin.
+Version 7.0.0 introduces the **entity model**: every file is now described along three independent dimensions — its **[element](../../classification/elements.md)** (the architectural unit it belongs to), its **[file](../../classification/files.md)** (categorized on its own), and the **[module](../../classification/modules.md)** each dependency resolves to. This unlocks multi-dimensional classification: multiple types per element, file-level categories, and matching by module origin.
 
 **There are no breaking configuration changes for plugin users.** You can upgrade with **zero config changes** and keep your v6 setup exactly as it is. Every new feature is additive, and every deprecated pattern keeps working — you migrate at your own pace, one step at a time, with each step delivering immediate value.
 
@@ -63,7 +63,7 @@ npm install --save-dev eslint-plugin-boundaries@7
 
 Run ESLint. With an unchanged v6 configuration, your boundaries are enforced exactly as before. A few things may differ in the output:
 
-- **Deprecation warnings from the preset.** The `recommended` and `strict` presets still enable the deprecated `boundaries/element-types`, `boundaries/entry-point`, and `boundaries/external` rules alongside `boundaries/dependencies`, so you may see one-time deprecation warnings in your console. They are harmless and do not change your results. To silence them, override the deprecated rule keys (for example `"boundaries/element-types": 0`). See **[ESLint Integration](../../setup/eslint-integration.md)** for details.
+- **Deprecation warnings from the preset.** The `recommended` and `strict` presets still enable the deprecated `boundaries/element-types`, `boundaries/entry-point`, and `boundaries/external` rules alongside `boundaries/dependencies`, so you may see one-time deprecation warnings in your console. They are harmless and do not change your results. To silence them, override the deprecated rule keys (for example `"boundaries/element-types": 0`). See **[ESLint Integration](../../settings/config-helpers.md)** for details.
 - **Legacy `${ }` template warnings.** If your **selector values** (`from` / `to` / `dependency` and `allow` / `disallow`) use the legacy `${ }` syntax, you will keep seeing the v6 deprecation warning. Using `${ }` in a custom `message` does **not** trigger this warning. See [New custom message template data](#new-custom-message-template-data).
 
 One behavior change can affect automated checks even with no config change:
@@ -87,7 +87,7 @@ In v6, each file was described by a single flat element. In v7, each file is des
 The same file can be element type `"component"`, file category `"test"`, and module origin `"local"` all at once. These three axes are independent, so you can classify and match files much more precisely than before.
 
 :::info
-Read more about the entity model and runtime descriptions in the **[Classification](../../setup/classification.md)** documentation.
+Read more about the entity model and runtime descriptions in the **[Classification](../../classification/classification.md)** documentation.
 :::
 
 The next sections walk through adopting each part of the model. Throughout the guide we use this house architecture (`helper`, `component`, `module` elements):
@@ -104,7 +104,7 @@ settings: {
 
 ## File descriptors
 
-The new **[`boundaries/files`](../../setup/settings.md)** setting defines **file descriptors** that categorize files independently of the elements they belong to. Each file descriptor has a `pattern`, a `category`, and optional `capture` names. A single file can match several descriptors, so it can carry multiple `categories`.
+The new **[`boundaries/files`](../../settings/settings.md)** setting defines **file descriptors** that categorize files independently of the elements they belong to. Each file descriptor has a `pattern`, a `category`, and optional `capture` names. A single file can match several descriptors, so it can carry multiple `categories`.
 
 This is purely additive — adding `boundaries/files` does not change any existing element behavior.
 
@@ -122,15 +122,15 @@ This is purely additive — adding `boundaries/files` does not change any existi
 . },
 `}</CodeDiff>
 
-Once configured, file categories are matchable through the **[`file` sub-selector](../../setup/selectors.md)** (`file.categories`) and usable in custom message templates (`{{to.file.categories}}`).
+Once configured, file categories are matchable through the **[`file` sub-selector](../../selectors/selectors.md)** (`file.categories`) and usable in custom message templates (`{{to.file.categories}}`).
 
 :::info
-Read more about file descriptors in the **[Files](../../setup/files.md)** documentation and about matching file categories in the **[Selectors](../../setup/selectors.md)** documentation.
+Read more about file descriptors in the **[Files](../../classification/files.md)** documentation and about matching file categories in the **[Selectors](../../selectors/selectors.md)** documentation.
 :::
 
 ## Multi-type elements
 
-A file can now match multiple element descriptors at the same path level, so a single element can have multiple `types`. This is controlled by the new **[`boundaries/elements-single-type`](../../setup/settings.md)** setting.
+A file can now match multiple element descriptors at the same path level, so a single element can have multiple `types`. This is controlled by the new **[`boundaries/elements-single-type`](../../settings/settings.md)** setting.
 
 The setting **defaults to `true` (single-type)** to preserve v6 behavior: each element keeps only the **first** matching descriptor's type. Nothing changes unless you opt in by setting it to `false`, which makes elements accumulate **all** matching types into the `types` array.
 
@@ -151,7 +151,7 @@ The setting **defaults to `true` (single-type)** to preserve v6 behavior: each e
 With the configuration above, a file under `components/shared/*` matches both descriptors at the same path level, so its `types` becomes `["component", "shared"]`. A selector with `{ types: "shared" }` matches it, while `{ type: "shared" }` (first type only) does not.
 
 :::info
-Read more about multi-type elements in the **[Elements](../../setup/elements.md)** documentation and about the `types` selector property in the **[Selectors](../../setup/selectors.md)** documentation.
+Read more about multi-type elements in the **[Elements](../../classification/elements.md)** documentation and about the `types` selector property in the **[Selectors](../../selectors/selectors.md)** documentation.
 :::
 
 ## Entity selectors
@@ -189,12 +189,12 @@ Wrapping a flat element selector in `{ element: ... }` is **recommended, not req
 `}</CodeDiff>
 
 :::info
-Read more about entity selectors and their `element` / `file` / `module` sub-selectors in the **[Selectors](../../setup/selectors.md)** documentation.
+Read more about entity selectors and their `element` / `file` / `module` sub-selectors in the **[Selectors](../../selectors/selectors.md)** documentation.
 :::
 
 ## Module selectors
 
-Every dependency now carries a **module** description: its `origin` (`"local"`, `"external"`, or `"core"`), its `source` (the base package name), and its `internalPath` (the sub-path within the package). You can match these through the **[`module` sub-selector](../../setup/selectors.md)** in any rule — not only in the deprecated `external` rule.
+Every dependency now carries a **module** description: its `origin` (`"local"`, `"external"`, or `"core"`), its `source` (the base package name), and its `internalPath` (the sub-path within the package). You can match these through the **[`module` sub-selector](../../selectors/selectors.md)** in any rule — not only in the deprecated `external` rule.
 
 This is the canonical way to control dependencies on external and core libraries with the `boundaries/dependencies` rule.
 
@@ -220,7 +220,7 @@ By default, `boundaries/dependencies` only checks dependencies whose target modu
 `}</CodeDiff>
 
 :::info
-Read more about module origins in the **[Modules](../../setup/modules.md)** documentation, and about the `module` sub-selector in the **[Selectors](../../setup/selectors.md)** documentation. For migrating the deprecated `external` rule, see its **[migration example](../../rules/external.mdx#migration-to-boundariesdependencies)**.
+Read more about module origins in the **[Modules](../../classification/modules.md)** documentation, and about the `module` sub-selector in the **[Selectors](../../selectors/selectors.md)** documentation. For migrating the deprecated `external` rule, see its **[migration example](../../rules/external.mdx#migration-to-boundariesdependencies)**.
 :::
 
 ## Deprecated: `category` in element descriptors and selectors
@@ -253,7 +253,7 @@ It keeps working without changes. File descriptors are a more flexible replaceme
 `}</CodeDiff>
 
 :::info
-Read more about file descriptors in the **[Files](../../setup/files.md)** documentation and about the `file` selector in the **[Selectors](../../setup/selectors.md)** documentation.
+Read more about file descriptors in the **[Files](../../classification/files.md)** documentation and about the `file` selector in the **[Selectors](../../selectors/selectors.md)** documentation.
 :::
 
 ## Deprecated: `dependency.module`
@@ -283,7 +283,7 @@ It keeps working without changes; the new form matches the base module name thro
 `}</CodeDiff>
 
 :::info
-Read more about the `module` sub-selector in the **[Selectors](../../setup/selectors.md)** documentation.
+Read more about the `module` sub-selector in the **[Selectors](../../selectors/selectors.md)** documentation.
 :::
 
 ## New custom message template data
@@ -312,7 +312,7 @@ The flat `{{from.type}}` is the **first** matched type, so it maps to `{{from.el
 `}</CodeDiff>
 
 :::tip
-The legacy `${ }` template syntax also keeps working in custom messages. Using `${ }` in a message does not print a deprecation warning, and the **[`boundaries/legacy-templates`](../../setup/settings.md#boundarieslegacy-templates)** setting does not affect it — that setting only controls legacy templating in selectors, not in custom messages. For migrating `${ }` templates, see the Legacy Message Templates section in the **[rules documentation](../../setup/rules.mdx#legacy-message-templates)**.
+The legacy `${ }` template syntax also keeps working in custom messages. Using `${ }` in a message does not print a deprecation warning, and the **[`boundaries/legacy-templates`](../../settings/settings.md#boundarieslegacy-templates)** setting does not affect it — that setting only controls legacy templating in selectors, not in custom messages. For migrating `${ }` templates, see the Legacy Message Templates section in the **[rules documentation](../../policies/legacy.mdx)**.
 :::
 
 ## `no-unknown-files` behavior change
@@ -329,7 +329,7 @@ In v6 the message was `File does not match any element pattern`. If you assert t
 
 ## `no-unknown` renamed to `no-unknown-dependencies`
 
-The `boundaries/no-unknown` rule has been renamed to **[`boundaries/no-unknown-dependencies`](../../rules/no-unknown-dependencies.md)** and is now aware of [file descriptors](../../setup/files.md).
+The `boundaries/no-unknown` rule has been renamed to **[`boundaries/no-unknown-dependencies`](../../rules/no-unknown-dependencies.md)** and is now aware of [file descriptors](../../classification/files.md).
 
 :::warning[Deprecated]
 The `boundaries/no-unknown` rule name is kept for backward compatibility but is deprecated. Using it prints a one-time rename warning and it will be removed in a future major version. Rename the rule key to `boundaries/no-unknown-dependencies`; the behavior is identical with the default options.
@@ -413,7 +413,7 @@ The `mode` property in element descriptors is deprecated.
 
 ### Migrating from `mode: "file"`
 
-`mode: "file"` treated the element as the matched file itself. Migrate to [file descriptors](../../setup/files.md) with the [`boundaries/files`](../../setup/settings.md) setting:
+`mode: "file"` treated the element as the matched file itself. Migrate to [file descriptors](../../classification/files.md) with the [`boundaries/files`](../../settings/settings.md) setting:
 
 <CodeDiff language="javascript">{`
 . "boundaries/elements": [
@@ -446,7 +446,7 @@ Because `mode: "full"` used file paths and `partialMatch: false` uses folder pat
 With the new descriptor, any file under `src/pages/<something>/` is classified as a `page` element, and `element.path` is `src/pages/<something>` — the folder, not the file. This is the recommended representation for element-level classification.
 
 :::info
-Read more about `partialMatch` in the **[Elements](../../setup/elements.md#partialmatch-optional)** documentation.
+Read more about `partialMatch` in the **[Elements](../../classification/elements.md#partialmatch-optional)** documentation.
 :::
 
 ## Once Fully Migrated
@@ -480,11 +480,11 @@ While your v6 configuration keeps working, adopting the entity model brings real
 
 ## Need Help?
 
-- See **[Classification](../../setup/classification.md)** for the entity model
-- See **[Elements](../../setup/elements.md)** for elements and multi-type elements
-- See **[Files](../../setup/files.md)** for file descriptors and file categories
-- See **[Modules](../../setup/modules.md)** for module origin, source, and internal path
-- See **[Selectors](../../setup/selectors.md)** for entity, file, and module selectors
-- See **[Settings](../../setup/settings.md)** for `boundaries/files` and `boundaries/elements-single-type`
+- See **[Classification](../../classification/classification.md)** for the entity model
+- See **[Elements](../../classification/elements.md)** for elements and multi-type elements
+- See **[Files](../../classification/files.md)** for file descriptors and file categories
+- See **[Modules](../../classification/modules.md)** for module origin, source, and internal path
+- See **[Selectors](../../selectors/selectors.md)** for entity, file, and module selectors
+- See **[Settings](../../settings/settings.md)** for `boundaries/files` and `boundaries/elements-single-type`
 - See the **[`boundaries/dependencies` rule](../../rules/dependencies.md)** for full rule documentation
 - Open an issue on **[GitHub](https://github.com/javierbrea/eslint-plugin-boundaries/issues)** if you need assistance

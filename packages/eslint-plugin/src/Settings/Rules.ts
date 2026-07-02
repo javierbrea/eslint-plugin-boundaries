@@ -86,7 +86,7 @@ const stringArrayQuerySchema = {
     anyOf: { type: "array", items: stringOrExpandItemSchema },
     allOf: { type: "array", items: stringOrExpandItemSchema },
     noneOf: { type: "array", items: stringOrExpandItemSchema },
-    equalsTo: { type: "array", items: { type: "string" } },
+    equalsTo: { type: "array", items: stringOrExpandItemSchema },
     atIndex: {
       type: "object",
       properties: {
@@ -553,7 +553,8 @@ export function rulesOptionsSchema({
     },
   ];
 
-  return schema;
+  // NOTE: The schema is casted because the schema is too complex for TypeScript to infer the type correctly. The schema is valid and can be used with ESLint.
+  return schema as JsonSchemaObject[];
 }
 
 /**

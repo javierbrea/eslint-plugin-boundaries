@@ -30,7 +30,7 @@ npm install --save-dev eslint eslint-plugin-boundaries
 `eslint-plugin-boundaries` does **not** install `eslint` automatically. You must install it yourself.
 :::
 
-Once installed, enable the plugin and apply one of the [predefined configs](./setup/setup.md) in your `eslint.config.js` file. The `recommended` config enables the boundary rules and is safe for existing projects:
+Once installed, enable the plugin and apply one of the [predefined configs](./settings/config-helpers.md) in your `eslint.config.js` file. The `recommended` config enables the boundary rules and is safe for existing projects:
 
 <Tabs>
 <TabItem value="JavaScript">
@@ -68,7 +68,7 @@ export default [
 </Tabs>
 
 :::note
-The `recommended` config includes some deprecated rule aliases, so you may see deprecation warnings in your console. They are harmless and do not affect linting. See **[ESLint integration](./setup/eslint-integration.md)** to learn how to override them (for example, `"boundaries/element-types": 0`).
+The `recommended` config includes some deprecated rule aliases, so you may see deprecation warnings in your console. They are harmless and do not affect linting. See **[ESLint integration](./settings/config-helpers.md)** to learn how to override them (for example, `"boundaries/element-types": 0`).
 :::
 
 :::warning[ESLint Version Compatibility]
@@ -80,4 +80,4 @@ While it may still work with earlier versions of ESLint, refer to the
 ## Next Steps
 
 - Follow the **[Quick Start](./quick-start.mdx)** to classify your files and configure your first rule.
-- Learn how to configure elements in depth in **[Elements](./setup/elements.md)**.
+- Learn how to configure elements in depth in **[Elements](./classification/elements.md)**.

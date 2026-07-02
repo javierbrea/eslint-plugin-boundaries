@@ -186,14 +186,25 @@ describe("expandStringArrayQuery", () => {
     expect(result.noneOf).toEqual(["legacy", "test"]);
   });
 
-  it("leaves equalsTo unchanged", () => {
+  it("expands { expand } items in equalsTo", () => {
     const query = {
-      equalsTo: ["helpers"],
+      equalsTo: [{ expand: "{{ types }}" }],
+    };
+    const result = expandStringArrayQuery(query, {
+      types: ["helpers", "reusable"],
+    });
+
+    expect(result.equalsTo).toEqual(["helpers", "reusable"]);
+  });
+
+  it("expands mixed static and { expand } items in equalsTo", () => {
+    const query = {
+      equalsTo: ["static", { expand: "{{ types }}" }],
       anyOf: [{ expand: "{{ types }}" }],
     };
     const result = expandStringArrayQuery(query, { types: ["a"] });
 
-    expect(result.equalsTo).toEqual(["helpers"]);
+    expect(result.equalsTo).toEqual(["static", "a"]);
     expect(result.anyOf).toEqual(["a"]);
   });
 

@@ -18,19 +18,19 @@ keywords:
 
 # dependencies
 
-> Enforce allowed dependencies between **[elements](../setup/elements.md)** in your project.
+> Enforce dependency constraints in your project.
 
-`boundaries/dependencies` is the canonical rule for restricting dependencies between [elements](../setup/elements.md). This page documents the specifics of this rule, such as its options, error messages, and examples.
+`boundaries/dependencies` is the canonical rule for restricting dependencies. This page documents the specifics of this rule, such as its options, error messages, and examples.
 
-:::info[Rule configuration]
-The shared configuration format for rules — the `rules` array, `allow`/`disallow` policies, [selectors](../setup/selectors.md), and custom message templates — is documented in **[Rules Configuration](../setup/rules.mdx)**. Read that page first to learn how to configure this rule.
+:::info
+This page focuses on how to configure the `boundaries/dependencies` rule options. You should read the [Classification](../classification/classification.md), [Selectors](../selectors/selectors.md), and [Policies](../policies/policies.mdx) sections to understand how to define your architecture, select dependencies, and configure policies and custom messages.
 :::
 
 ## Rule Details
 
-This rule evaluates dependencies between elements. By default it checks only local-origin dependencies to known, non-internal targets. A dependency is skipped when its target is external or core, when its target element is unknown, or when it is internal to the same element. Use `checkAllOrigins`, `checkUnknownLocals`, and `checkInternals` to broaden coverage.
+This rule evaluates dependencies. By default it checks only local-origin dependencies to known, non-internal targets. A dependency is skipped when its target is external or core, when its target is unknown, or when it is internal to the same element. Use `checkAllOrigins`, `checkUnknownLocals`, and `checkInternals` to broaden coverage.
 
-When a dependency is evaluated, the rule decides whether it is allowed or disallowed by matching it against your `rules`. Rules are processed in order, and the last rule that matches wins. Inside a single rule, `disallow` is evaluated before `allow`.
+When a dependency is evaluated, the rule decides whether it is allowed or disallowed by matching it against your `rules`, which contains the policies. Policies are processed in order, and the last policy that matches wins. Inside a single policy, `disallow` is evaluated before `allow`.
 
 ## Options
 
@@ -50,29 +50,25 @@ When a dependency is evaluated, the rule decides whether it is allowed or disall
 
 The first element is the ESLint severity (`0` = off, `1` = warning, `2` = error). The second element is the options object:
 
-- `default`: `"allow"` or `"disallow"`. Determines the default behavior for dependencies that don't match any rule. When omitted, dependencies that match no rule are disallowed.
+- `default`: `"allow"` or `"disallow"`. Determines the default behavior for dependencies that don't match any policy. When omitted, dependencies that match no policy are disallowed.
 - `checkAllOrigins`: Optional. Whether to check dependencies from all origins (including external and core) or only from local elements (default: `false`, only local).
 - `checkUnknownLocals`: Optional. Whether to check local dependencies whose target element is unknown (not matching any element descriptor) or to ignore them (default: `false`).
 - `checkInternals`: Optional. Whether to check internal dependencies (dependencies within files in the same element) (default: `false`).
 - `message`: Custom error message for rule violations. Note that **the default message provides detailed information about why the error occurred**, so only define a custom message if necessary. See [error messages](#error-messages) for more information.
-- `rules`: An array of rule objects processed in order to determine whether a dependency should be allowed. Each rule object can contain the following properties:
-  - `from`: **[`<entity selector/s>`](../setup/selectors.md)** - If the file being analyzed matches this selector, the rule is evaluated. Otherwise, it is skipped.
-  - `to`: **[`<entity selector/s>`](../setup/selectors.md)** - If the dependency target matches this selector, the rule is evaluated. Otherwise, it is skipped.
-  - `disallow`: **[`<dependency selector/s>`](../setup/selectors.md)** - If the dependency matches this selector, it is disallowed (can be overridden by a subsequent rule returning `"allow"`).
-  - `allow`: **[`<dependency selector/s>`](../setup/selectors.md)** - If the dependency matches this selector, it is allowed (can be overridden by a subsequent rule returning `"disallow"`).
-  - `message`: `<string>` - Custom error message for this specific rule. See [error messages](#error-messages) for more information.
+- `rules`: An array of policy objects processed in order to determine whether a dependency should be allowed. Each policy object can contain the following properties:
+  - `from`: **[`<entity selector/s>`](../selectors/selectors.md)** - If the file being analyzed matches this selector, the policy is evaluated. Otherwise, it is skipped.
+  - `to`: **[`<entity selector/s>`](../selectors/selectors.md)** - If the dependency target matches this selector, the policy is evaluated. Otherwise, it is skipped.
+  - `disallow`: **[`<dependency selector/s>`](../selectors/selectors.md)** - If the dependency matches this selector, it is disallowed (can be overridden by a subsequent policy returning `"allow"`).
+  - `allow`: **[`<dependency selector/s>`](../selectors/selectors.md)** - If the dependency matches this selector, it is allowed (can be overridden by a subsequent policy returning `"disallow"`).
+  - `message`: `<string>` - Custom error message for this specific policy. See [error messages](#error-messages) for more information.
   - _`importKind`_: `<string>` - Optional. **Deprecated** (kept for backward compatibility). Makes sense only for [TypeScript](../guides/typescript-support.md) projects. Use `dependency.kind` instead. If both are defined, `dependency.kind` takes precedence. Possible values: `"value"`, `"type"`, or `"typeof"`. If defined, the rule is only evaluated for dependencies of the specified kind.
 
-:::note
-`from` and `to` accept [entity selectors](../setup/selectors.md) with `element`, `file`, and `module` sub-selectors (for example, `from: { element: { type: "helper" } }`). Flat element selectors such as `{ type: "helper" }` also work and are converted internally. `allow` and `disallow` accept [dependency selectors](../setup/selectors.md) (`{ from?, to?, dependency? }`).
-:::
-
 :::warning
-You must provide at least one of `allow` or `disallow` for each rule.
+You must provide at least one of `allow` or `disallow` effect for each policy.
 :::
 
 :::tip[Match a specific import kind]
-Use the `dependency.kind` property to evaluate only dependencies of a given kind: `"value"`, `"type"`, or `"typeof"`. This is useful in [TypeScript](../guides/typescript-support.md) projects, for example to allow type-only imports while disallowing value imports. See [Selectors](../setup/selectors.md) for the full dependency selector reference.
+Use the `dependency.kind` property to evaluate only dependencies of a given kind: `"value"`, `"type"`, or `"typeof"`. This is useful in [TypeScript](../guides/typescript-support.md) projects, for example to allow type-only imports while disallowing value imports. See [Selectors](../selectors/selectors.md) for the full dependency selector reference.
 :::
 
 :::tip[Check external dependencies with this rule]
@@ -89,21 +85,17 @@ Set `checkAllOrigins` to `true` to evaluate dependencies from all origins (exter
 
 ### Using selectors in this rule
 
-This rule uses **[selectors](../setup/selectors.md)** to decide which dependencies a rule applies to. The `from` and `to` selectors locate the two sides of a dependency; the `dependency` selector matches its metadata (kind, relationship, and more).
+This rule uses **[selectors](../selectors/selectors.md)** to decide which dependencies a policy applies to. The `from` and `to` selectors locate the two sides of a dependency; the `dependency` selector matches its metadata (kind, relationship, and more).
 
 For example, you can match components of one `family` and allow them to import only components of the same `family`, using a captured value in the selector.
 
-:::info
-Read the **[rules configuration](../setup/rules.mdx)** documentation to learn how to use common rule options, use [selectors](../setup/selectors.md) in rule options, and customize error messages with templates.
-:::
-
 :::tip
-Enable [debug mode](../guides/debugging.md) to inspect the descriptions assigned to each file and dependency. This helps you see how selectors match and how to configure your rules.
+Enable [debug mode](../guides/debugging.md) to inspect the descriptions assigned to each file and dependency. This helps you see how selectors match and how to configure your policies.
 :::
 
 ### Configuration Example
 
-This example uses the entity selector form (`{ element: { ... } }`). It locates each side of a dependency through the `element` sub-selector, which also gives you access to `file` and `module` matching.
+This example uses the entity selector form (`{ element: { ... } }`). It locates each side of a dependency through the [`entity` selector](../selectors/selectors.md), which gives you access to `element`, `file`, and `module` matching.
 
 ```js
 {
@@ -115,9 +107,12 @@ This example uses the entity selector form (`{ element: { ... } }`). It locates 
         {
           // from helper elements
           from: { element: { type: "helper" } },
-          // allow importing helper elements
           allow: {
-            to: { element: { type: "helper" } },
+            to: {
+              element: { type: "helper" },
+              // allow only files categorized as "util" and not "internal" (array query)
+              file: { categories: { anyOf: ["util"], noneOf: ["internal"] } }
+            },
             // allow only importing value, not type (TypeScript only)
             dependency: { kind: "value" }
           }
@@ -149,6 +144,14 @@ This example uses the entity selector form (`{ element: { ... } }`). It locates 
           allow: {
             to: { element: { type: ["helper", "component", "module"] } }
           }
+        },
+        {
+          // from any element
+          from: { element: { type: "*" } },
+          // disallow importing files categorized as "test" (file selector)
+          disallow: {
+            to: { file: { categories: "test" } }
+          }
         }
       ]
     }]
@@ -156,12 +159,23 @@ This example uses the entity selector form (`{ element: { ... } }`). It locates 
 }
 ```
 
-:::note
-Flat element selectors such as `from: { type: "helper" }` still work and are converted internally to the entity selector form. Prefer `from: { element: { type: "helper" } }` in new configurations for access to `file` and `module` matching. See [Selectors](../setup/selectors.md).
+:::tip[Match file selectors and descriptors]
+File selectors (`{ file: { ... } }`) let you target files by pattern-based **categories** instead of by literal path, which is more flexible than `element.fileInternalPath`. Categories are defined with the [`boundaries/files` setting](../classification/files.md) and, unlike element types, they accumulate: a single file can match several patterns and end up with several categories, for example `["util", "public"]`. See the [Settings](#settings) section below for a concrete `boundaries/files` example.
 :::
 
-:::warning[Deprecated]
-`{{ family }}` (a shorthand that reads captured values from the root of the template data) relies on `boundaries/legacy-templates` being `true`, which is the current default. Prefer the canonical form `{{ from.element.captured.family }}`. Read more about [message and selector templating](../setup/rules.mdx) and the [`boundaries/legacy-templates` setting](../setup/settings.md).
+:::tip[Array queries]
+When a property holds an array of values (`element.types`, `file.categories`, `element.parents`), a plain value or list checks for **any match** (OR logic). Use an **array query** to express richer conditions: `allOf`, `noneOf`, `equalsTo`, `atIndex`, and `hasLength`. For example, `{ file: { categories: { anyOf: ["util"], noneOf: ["internal"] } } }` matches files categorized as `"util"` as long as they are not also categorized as `"internal"`.
+
+Array queries also support an `expand` helper to spread a templated value (such as a captured value from `from`) into the query at evaluation time:
+
+```js
+// Only allow importing elements that share at least one type with the importer
+{
+  to: { element: { types: { anyOf: [{ expand: "{{ from.element.types }}" }] } } }
+}
+```
+
+See [Selectors -> Array Query Selectors](../selectors/selectors.md#array-query-selectors) for the full reference.
 :::
 
 ### Settings
@@ -190,6 +204,7 @@ src/
 ├── helpers/
 │   ├── data/
 │   │   ├── sort.js
+│   │   ├── sort.spec.js
 │   │   └── parse.js
 │   └── permissions/
 │       └── roles.js
@@ -224,6 +239,14 @@ src/
         capture: ["elementName"]
       }
     ],
+    "boundaries/files": [
+      // any spec file is categorized as "test"
+      { pattern: "**/*.spec.js", category: "test" },
+      // any file under helpers/ is categorized as "util"
+      { pattern: "helpers/**/*.js", category: "util" },
+      // files under helpers/permissions/ are additionally categorized as "internal"
+      { pattern: "helpers/permissions/**/*.js", category: "internal" }
+    ],
     "import/resolver": {
       "babel-module": {}
     }
@@ -233,8 +256,10 @@ src/
 
 With these descriptors, each `helpers/<family>` folder is one helper element (so `helpers/data` captures `family: "data"`). The files inside, such as `sort.js` and `parse.js`, are distinguished by their `fileInternalPath`.
 
+File categories accumulate: `helpers/data/sort.js` matches only the `helpers/**/*.js` pattern, so its `categories` is `["util"]`, while `helpers/permissions/roles.js` matches both the `helpers/**/*.js` and `helpers/permissions/**/*.js` patterns, so its `categories` is `["util", "internal"]`. This is what the array query policy in the [Configuration Example](#configuration-example) uses to allow importing `"util"` helper files while excluding `"internal"` ones.
+
 :::note
-These examples use aliases for the `src/helpers`, `src/components`, and `src/modules` folders. You can also use relative paths, or you can **[configure the plugin to recognize aliases by using resolvers](../guides/custom-resolvers.md).**
+These examples use aliases for the `src/helpers`, `src/components`, and `src/modules` folders for simplicity. In a real project, you can use any folder structure and naming convention.
 :::
 
 ## Examples
@@ -283,9 +308,23 @@ Components importing modules:
 import ModuleA from 'modules/module-a'
 ```
 
+Any element importing a test file (file selector, `file.categories`):
+
+```js
+// src/components/atoms/atom-a/AtomA.js
+import { sortDescending } from 'helpers/data/sort.spec'
+```
+
+Helpers importing another helper's "internal" file (array query, `noneOf: ["internal"]`):
+
+```js
+// src/helpers/data/sort.js
+import { roleHasPermissions } from 'helpers/permissions/roles'
+```
+
 ### Correct
 
-Helpers importing helpers:
+Helpers importing "util" (non-"internal") helper files (array query, `anyOf: ["util"], noneOf: ["internal"]`):
 
 ```js
 // src/helpers/permissions/roles.js
@@ -356,19 +395,20 @@ This rule provides detailed error messages to help you understand and resolve vi
 
   `Dependencies to elements of type "component" and captured values: family="atoms", elementName="atom-a" are not allowed in elements of type "helper" and captured values: family="permissions". Denied by rule at index 1`
 
-  **The exact sentence varies depending on which [selector](../setup/selectors.md) parts were used to match the dependency** (in any of `from`, `to`, `dependency`, `disallow`). For dependencies on external or core modules, messages describe the module instead of an element, for example `module with origin "external" and module source "react"`. This detailed information helps you understand exactly why a dependency is disallowed and how to adjust your rules or code.
+  **The exact sentence varies depending on which [selector](../selectors/selectors.md) parts were used to match the dependency** (in any of `from`, `to`, `dependency`, `disallow`). For dependencies on external or core modules, messages describe the module instead of an element, for example `module with origin "external" and module source "react"`. This detailed information helps you understand exactly why a dependency is disallowed and how to adjust your rules or code.
 
 ### Custom Messages with Templates
 
 :::tip
-You can customize error messages globally or for specific rules. Use the [`message` option](#options) in your rule configuration and see [Rules Configuration -> Message Templating](../setup/rules.mdx#message-templating) for more details.
+You can customize error messages globally or for specific policies. Use the [`message` option](#options) in your rule configuration and see [Rules Configuration -> Message Templating](../policies/policies.mdx#message-templating) for more details.
 :::
 
 ## Further Reading
 
 Read next sections to learn more about related topics:
 
-* [Defining Elements](../setup/elements.md) - Learn how to define architectural elements in your project
-* [Selectors](../setup/selectors.md) - Learn about element, file, and module selectors used in rules
-* [Rules Configuration](../setup/rules.mdx) - Learn how to configure common rule options
-* [Global Settings](../setup/settings.md) - Learn about global settings that affect all rules
+* [Defining Elements](../classification/elements.md) - Learn how to define architectural elements in your project
+* [Defining Files](../classification/files.md) - Learn how to categorize files with the `boundaries/files` setting
+* [Selectors](../selectors/selectors.md) - Learn about element, file, and module selectors, including array queries
+* [Policies](../policies/policies.mdx) - Learn how to configure common rule options
+* [Global Settings](../settings/settings.md) - Learn about global settings that affect all rules

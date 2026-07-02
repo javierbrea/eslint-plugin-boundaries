@@ -41,32 +41,44 @@ It ensures that __your architectural boundaries are respected by the elements in
 
 ## How It Works
 
-By default, it analyzes `import` and `export` statements, `require` calls, and dynamic `import()` expressions. You can customize it to inspect any other AST node that creates a dependency, such as `jest.mock()`. See the [configuration guide for more details](./setup/settings.md).
+By default, it analyzes `import` and `export` statements, `require` calls, and dynamic `import()` expressions. You can customize it to inspect any other AST node that creates a dependency, such as `jest.mock()`. See the [configuration guide for more details](./settings/settings.md).
 
 For each dependency it finds, the plugin classifies both the file the dependency comes from and the module it points to. That classification is what your rules read to decide whether the dependency is allowed.
 
-## The Three Classification Layers
+## The Concept
 
-The plugin classifies every file along three independent layers — and, for each dependency, the module it resolves to. You configure the first two; the third is derived for you. Rules then combine any of them to draw a boundary.
+The plugin classifies every file along three independent layers. You configure the first two layers to recognize files and the elements they belong to; the third is derived for you.
 
 | Layer | Describes | You configure? | Example |
 | --- | --- | --- | --- |
-| **element** | The architectural role a file plays. Usually based on the folder it is in. | Yes, with [element descriptors](./setup/elements.md). | `{ type: "controller", pattern: "controllers/*" }` |
-| **file** | A cross-cutting category of the file itself, independent of its element. | Yes, with [file descriptors](./setup/files.md). | `{ pattern: "**/*.spec.js", category: "test" }` |
+| **element** | The architectural role a file plays. Usually based on the folder it is in. | Yes, with [element descriptors](./classification/elements.md). | `{ type: "controller", pattern: "controllers/*" }` |
+| **file** | A cross-cutting category of the file itself, independent of its element. | Yes, with [file descriptors](./classification/files.md). | `{ pattern: "**/*.spec.js", category: "test" }` |
 | **module** | Where the imported module resolves from. | No — derived from the import. | `import "react"` resolves to `module.origin: "external"` |
 
 - An **element** is a group of files the plugin treats as one architectural unit — always a folder, like `controllers/*`. Element patterns match folder paths; they should not include file extensions. You map paths to a `type`, and every file under that folder belongs to that element.
 - A **file** category is a label attached to the file on its own, such as `"test"` or `"style"`. File patterns can match individual files (e.g. `**/*.spec.js`). A file is independent of the element: the same file can be a controller *and* a test.
-- A **module** is the resolved target of a dependency. The plugin derives its [origin](./setup/modules.md) — `"local"` (your own files), `"external"` (a package), or `"core"` (a Node.js built-in) — so you can target third-party imports without naming each one.
+- A **module** is the resolved target of a dependency. The plugin derives its [origin](./classification/modules.md) — `"local"` (your own files), `"external"` (a package), or `"core"` (a Node.js built-in) — so you can target third-party imports without naming each one.
 
-Because the layers are independent, a rule can mix them. A few boundaries you can express, each phrased as an outcome and mapped to the selector fragment that captures it:
+The plugin builds a **description** for each dependency, which includes the three layers for both the `from` and `to` sides of the dependency, and it also carries a fourth, **fully computed** layer: the [dependency metadata](./classification/dependency.md). It describes the nature of the import itself — its `kind` (a value, type, or typeof import), the structural `relationship` between the two elements, and the imported `specifiers`.
+
+| Dependency Property | Description |
+| --- | --- |
+| **from** | The element, file, and module the dependency comes from. |
+| **to** | The element, file, and module the dependency points to. |
+| **dependency** | The metadata about the dependency itself: its kind, relationship, specifiers, and so on. |
+
+:::info[Summary]
+Then, using [selectors](./selectors/selectors.md) to match [dependency descriptions](./classification/classification.md), you define [**policies**](./policies/policies.mdx) that allow or disallow them. Each policy can combine any of the three layers from both sides of the dependency, and the dependency metadata to express a boundary.
+:::
+
+Because the layers are independent, a rule can mix them:
 
 - **Models cannot import views** — `from: { element: { type: "model" } }`, `disallow: { to: { element: { type: "view" } } }`.
 - **No code may import test files** — `disallow: { to: { file: { categories: "test" } } }`.
 - **Only shared code may use the `axios` package** — `from: { element: { type: "!shared" } }`, `disallow: { to: { module: { source: "axios" } } }`.
 
 :::tip
-Layering is progressive. Start with one classification layer — elements or files — and one rule, then add the remaining layers when you need them. You only need to configure one of the two; the rest is optional. See [Classification](./setup/classification.md).
+Layering is progressive. Start with one classification layer — elements or files — and one rule, then add the remaining layers when you need them. You only need to configure one of the two; the rest is optional. See [Classification](./classification/classification.md).
 :::
 
 ## Usage
@@ -90,7 +102,7 @@ const fileDescriptors = [
 
 ### 2. The Plugin Builds a Runtime Description for Each Dependency
 
-Given this configuration, the plugin analyzes your project at runtime and describes each dependency. For both sides of a dependency (`from` and `to`), it builds the three layers: the `element` the file belongs to, the `file` itself, and the resolved `module`. For example:
+Given this configuration, the plugin analyzes your project at runtime and describes each dependency. For both sides of a dependency (`from` and `to`), it builds the three layers: the `element` the file belongs to, the `file` itself, and the resolved `module`. It also adds the `dependency` metadata. For example:
 
 ```javascript
 // Runtime description for a dependency in src/controllers/controller-a/index.js
@@ -119,13 +131,13 @@ Given this configuration, the plugin analyzes your project at runtime and descri
 }
 ```
 
-:::tip
-This is a simplified view. See **[Classification](./setup/classification.md)** for the full list of properties available in each description.
+:::note
+This is a simplified view. See **[Classification](./classification/classification.md)** for the full list of properties available in each description.
 :::
 
 ### 3. Define your Rules Based on These Descriptions
 
-Based on these **[descriptions](./setup/classification.md)**, you can define rules to allow or disallow dependencies using **[selectors](./setup/selectors.md)**. For example:
+Based on these **[descriptions](./classification/classification.md)**, you can define rules to allow or disallow dependencies using **[selectors](./selectors/selectors.md)**. For example:
 
 <div style={{textAlign: 'center', margin: '2rem 0'}}>
   ![Architecture Boundaries Diagram](./overview-schema.svg)
@@ -135,23 +147,23 @@ Based on these **[descriptions](./setup/classification.md)**, you can define rul
 const dependencyRules = [
   // Allow controllers to depend on models and views
   {
-    from: { element: { type: "controller" } },
+    from: { element: { types: "controller" } },
     allow: {
-      to: { element: { type: ["model", "view"] } },
+      to: { element: { types: { anyOf: ["model", "view"] } },
     },
   },
   // Allow views to depend on models
   {
-    from: { element: { type: "view" } },
+    from: { element: { types: "view" } },
     allow: {
-      to: { element: { type: "model" } },
+      to: { element: { types: "model" } },
     },
   },
   // Disallow models to depend on anything other than other models
   {
-    from: { element: { type: "model" } },
+    from: { element: { types: "model" } },
     disallow: {
-      to: { element: { type: "!model" } },
+      to: { element: { types: "!model" } },
     },
   },
   // Disallow any element from importing a test file (a file layer match)
@@ -164,7 +176,7 @@ const dependencyRules = [
 ```
 
 :::note
-This is a very simplified view. See **[Selectors](./setup/selectors.md)** for the full syntax and capabilities of selectors, and **[Rules](./setup/rules.mdx)** for the full list of rule properties.
+This is a very simplified view. See **[Selectors](./selectors/selectors.md)** for the full syntax and capabilities of selectors, and **[Rules](./policies/policies.mdx)** for the full list of rule properties.
 :::
 
 ### 4. Get Instant Feedback

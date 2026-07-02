@@ -31,13 +31,13 @@ To handle this, eslint-plugin-boundaries reuses the resolver infrastructure of [
 The plugin uses `eslint-module-utils/resolve` internally. Configure module resolution with the `import/resolver` setting, and eslint-plugin-boundaries respects those same resolution rules.
 
 :::warning[Deprecated]
-`boundaries/alias` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`import/resolver`](../setup/settings.md#importresolver)** instead.
+`boundaries/alias` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`import/resolver`](../settings/settings.md#importresolver)** instead.
 :::
 
 It keeps working without changes; you will see a deprecation warning in your console. Migrate by moving your path aliases from `boundaries/alias` to a resolver configuration (for example, the [Alias Resolver](#alias-resolver) shown below).
 
 :::note[Resolution affects module origin]
-The resolver outcome decides each dependency's [module origin](../setup/modules.md#module-origins). A resolved import that points inside your project is classified as `"local"`; one resolved into `node_modules` is `"external"`. When no configured resolver can resolve an import, the plugin classifies it as `"external"` by default (`unresolvableAlias`, see [`boundaries/flag-as-external`](../setup/settings.md#boundariesflag-as-external)). Configuring the right resolver avoids false positives in rules that match on `to.module.origin`.
+The resolver outcome decides each dependency's [module origin](../classification/modules.md#module-origins). A resolved import that points inside your project is classified as `"local"`; one resolved into `node_modules` is `"external"`. When no configured resolver can resolve an import, the plugin classifies it as `"external"` by default (`unresolvableAlias`, see [`boundaries/flag-as-external`](../settings/settings.md#boundariesflag-as-external)). Configuring the right resolver avoids false positives in rules that match on `to.module.origin`.
 :::
 
 ## Common Resolvers
@@ -168,7 +168,7 @@ For comprehensive information about available resolvers and their configuration 
 
 ### Imports classified as `external` unexpectedly
 
-If a rule that matches on `to.module.origin` flags a local import as external, the import is probably not resolving. Unresolvable imports are classified as `"external"` by default (`unresolvableAlias` in [`boundaries/flag-as-external`](../setup/settings.md#boundariesflag-as-external)). Configure the resolver that recognizes your aliases, then re-run with [debug mode](./debugging.md) to confirm the new origin.
+If a rule that matches on `to.module.origin` flags a local import as external, the import is probably not resolving. Unresolvable imports are classified as `"external"` by default (`unresolvableAlias` in [`boundaries/flag-as-external`](../settings/settings.md#boundariesflag-as-external)). Configure the resolver that recognizes your aliases, then re-run with [debug mode](./debugging.md) to confirm the new origin.
 
 ### Custom resolver not found
 
@@ -178,8 +178,8 @@ If a rule that matches on `to.module.origin` flags a local import as external, t
 
 ## Further Reading
 
-- **[Settings](../setup/settings.md)** - the `import/resolver` and `boundaries/flag-as-external` settings.
-- **[Selectors](../setup/selectors.md#module-sub-selector)** - matching dependencies by module origin and source.
+- **[Settings](../settings/settings.md)** - the `import/resolver` and `boundaries/flag-as-external` settings.
+- **[Selectors](../selectors/module.md)** - matching dependencies by module origin and source.
 - **[TypeScript Support](./typescript-support.md)** - the TypeScript resolver and path aliases.
 - **[Monorepo Setup](./monorepo-setup.md)** - resolution across workspace packages.
 - **[Debugging](./debugging.md)** - inspect how each import is resolved and classified.

@@ -261,3 +261,79 @@ createRuleTester(multiTypeSettings).run(
     ],
   }
 );
+
+// ─── equalsTo expand ──────────────────────────────────────────────────────────
+//
+// equalsTo expand "{{ from.element.types }}" resolves to from element's types.
+// The resolved array is used as an ordered exact-match pattern list.
+//
+// helpers types = ["helpers", "reusable"]
+// components types = ["components", "reusable"]
+// modules types = ["modules"]
+//
+// Disallow selector: equalsTo [{ expand: "{{ from.element.types }}" }]
+// Matches when to.types == from.types (same ordered array).
+//   helper → helper: to=["helpers","reusable"], equalsTo=["helpers","reusable"] → matches → disallowed ✓
+//   helper → component: to=["components","reusable"], equalsTo=["helpers","reusable"] → no match → not disallowed ✓
+
+createRuleTester(multiTypeSettings).run(
+  `${RULE} element.types equalsTo expand — disallow to whose types equal from's types`,
+  rule,
+  {
+    valid: [
+      // helper → component: types differ → equalsTo fails → not disallowed
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import ComponentA from 'components/component-a'",
+        options: [
+          {
+            default: "allow",
+            rules: [
+              {
+                from: { element: { type: "helpers" } },
+                disallow: {
+                  to: {
+                    element: {
+                      types: {
+                        equalsTo: [{ expand: "{{ from.element.types }}" }],
+                      },
+                    },
+                  },
+                },
+                message: "to-types-equal-from-types",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    invalid: [
+      // helper → helper: same types → equalsTo passes → disallowed
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options: [
+          {
+            default: "allow",
+            rules: [
+              {
+                from: { element: { type: "helpers" } },
+                disallow: {
+                  to: {
+                    element: {
+                      types: {
+                        equalsTo: [{ expand: "{{ from.element.types }}" }],
+                      },
+                    },
+                  },
+                },
+                message: "to-types-equal-from-types",
+              },
+            ],
+          },
+        ],
+        errors: [{ message: "to-types-equal-from-types", type: "Literal" }],
+      },
+    ],
+  }
+);

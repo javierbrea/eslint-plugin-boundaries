@@ -38,7 +38,7 @@ Every import is classified into one of three origins:
 The plugin decides the origin like this:
 
 1. **`core`** when the import source resolves to a Node.js built-in module. The `node:` prefix is stripped before the check, so `node:path` and `path` are both `core`. Sub-paths of a built-in are still `core` (for example `node:fs/promises`).
-2. **`external`** when the import is not a built-in but matches any of the [`boundaries/flag-as-external`](./settings.md#boundariesflag-as-external) conditions. By default this covers:
+2. **`external`** when the import is not a built-in but matches any of the [`boundaries/flag-as-external`](../settings/settings.md#boundariesflag-as-external) conditions. By default this covers:
    - imports resolved to a path inside `node_modules`;
    - non-relative imports that cannot be resolved (unresolvable aliases that look like a package or `@scope/...` name).
 3. **`local`** in every other case — including relative imports and aliases that resolve to a file inside your project.
@@ -55,7 +55,7 @@ The plugin computes `origin` for each import from how that import resolves and f
 
 ### Monorepo workspace imports
 
-In a monorepo, imports of sibling workspace packages are a common edge case. Whether they count as `external` (a separate package) or `local` (part of the same boundary graph) depends on how they resolve and on your [`boundaries/flag-as-external`](./settings.md#boundariesflag-as-external) and [`boundaries/root-path`](./settings.md#boundariesroot-path) settings. The [Monorepo Setup guide](../guides/monorepo-setup.md) walks through the common configurations.
+In a monorepo, imports of sibling workspace packages are a common edge case. Whether they count as `external` (a separate package) or `local` (part of the same boundary graph) depends on how they resolve and on your [`boundaries/flag-as-external`](../settings/settings.md#boundariesflag-as-external) and [`boundaries/root-path`](../settings/settings.md#boundariesroot-path) settings. The [Monorepo Setup guide](../guides/monorepo-setup.md) walks through the common configurations.
 
 ## Module Source and Internal Path
 
@@ -84,22 +84,18 @@ When the plugin analyzes a dependency, the module description is available as `f
 | `source` | `<string \| null>` | The base package name for `external`/`core` modules (for example `"react"`), or `null` for `local`. |
 | `internalPath` | `<string \| null>` | The sub-path inside an `external`/`core` module (for example `"fp"` in `lodash/fp`), or `null`. |
 
-The module description has no `isIgnored`, `isUnknown`, or `path` — it is always one of the three origins. See [Classification](./classification.md#dependency-description) for how `module` combines with `element` and `file` in a full dependency description.
+The module description has no `isIgnored`, `isUnknown`, or `path` — it is always one of the three origins. See [Classification](./classification.md#dependency) for how `module` combines with `element` and `file` in a full dependency description.
 
-## Matching Modules in Rules
+## Matching Modules using Selectors
 
-To target a dependency by its module, use the [`module` sub-selector](./selectors.md#module-sub-selector) inside a rule's `to`:
+To target a dependency by its module, use the [`module` sub-selector](../selectors/module.md) inside a rule's `to`:
 
 ```js
 // Match imports of the "react" package
 { to: { module: { origin: "external", source: "react" } } }
 ```
 
-This is the right way to write rules about packages and built-ins, where there is no local element to match. See [Selectors](./selectors.md#module-sub-selector) for the full `module` selector reference, including matching by `origin` arrays and `internalPath`.
-
-:::note
-By default the [`dependencies` rule](../rules/dependencies.md) only checks `local`-origin targets. To also enforce rules on `external` and `core` dependencies, enable its `checkAllOrigins` option.
-:::
+This is the right way to write rules about packages and built-ins, where there is no local element to match. See [Module Selectors](../selectors/module.md) for the full `module` selector reference.
 
 ## Replacing the Deprecated External Rule
 
@@ -117,10 +113,10 @@ It also replaces the deprecated `dependency.module` metadata selector — use `t
 
 ## How Settings Influence Origin
 
-Two settings change how the plugin assigns an origin. Their schemas live in the [Settings reference](./settings.md); this layer only describes their effect:
+Two settings change how the plugin assigns an origin. Their schemas live in the [Settings reference](../settings/settings.md); this layer only describes their effect:
 
-- **[`boundaries/flag-as-external`](./settings.md#boundariesflag-as-external)** — controls which imports become `external`. Adjust it to treat `node_modules`, unresolvable aliases, paths outside the root, or custom source patterns as external.
-- **[`boundaries/root-path`](./settings.md#boundariesroot-path)** — defines the project root. It affects the `outsideRootPath` condition of `flag-as-external` and how resolved paths are compared.
+- **[`boundaries/flag-as-external`](../settings/settings.md#boundariesflag-as-external)** — controls which imports become `external`. Adjust it to treat `node_modules`, unresolvable aliases, paths outside the root, or custom source patterns as external.
+- **[`boundaries/root-path`](../settings/settings.md#boundariesroot-path)** — defines the project root. It affects the `outsideRootPath` condition of `flag-as-external` and how resolved paths are compared.
 
 ```js
 import { resolve } from "node:path";
@@ -141,8 +137,8 @@ These settings are most useful in monorepos. See the [Monorepo Setup guide](../g
 
 ## Next Steps
 
-- **[Selectors](./selectors.md#module-sub-selector)** - match modules, elements, and files in your rules.
-- **[Rules Configuration](./rules.mdx)** - write dependency rules that enforce your architecture.
-- **[Settings](./settings.md#boundariesflag-as-external)** - configure `flag-as-external` and `root-path`.
+- **[Selectors](../selectors/module.md)** - match modules, elements, and files in your rules.
+- **[Policies](../policies/policies.mdx)** - write dependency rules that enforce your architecture.
+- **[Settings](../settings/settings.md#boundariesflag-as-external)** - configure `flag-as-external` and `root-path`.
 - **[Monorepo Setup](../guides/monorepo-setup.md)** - classify workspace imports as local or external.
 - **[Classification](./classification.md)** - how element, file, and module combine into one entity.

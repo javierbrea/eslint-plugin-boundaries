@@ -46,7 +46,7 @@ export default [{
 This extends the running example used across the documentation. Test files get the `test` category and stylesheets get the `style` category, no matter which element contains them.
 
 :::tip
-Read the [Selectors](./selectors.md) section to learn how to match categorized files in rules with the [`file` selector](./selectors.md), and see [`boundaries/files`](./settings.md#boundariesfiles) for the setting schema.
+Read the [Selectors](../selectors/selectors.md) section to learn how to match categorized files in rules with the [`file` selector](../selectors/selectors.md), and see [`boundaries/files`](../settings/settings.md#boundariesfiles) for the setting schema.
 :::
 
 ## File Descriptor Properties
@@ -57,7 +57,7 @@ Read the [Selectors](./selectors.md) section to learn how to match categorized f
 
 A [micromatch pattern](https://github.com/micromatch/micromatch) matched against the file path. An array means OR — the file is categorized if any pattern matches.
 
-Like element descriptors, patterns are matched relative to [`rootPath`](./settings.md#boundariesroot-path) when the file is inside it.
+Like element descriptors, patterns are matched relative to [`rootPath`](../settings/settings.md#boundariesroot-path) when the file is inside it.
 
 ```js
 { pattern: "**/*.spec.js", category: "test" }
@@ -73,15 +73,11 @@ The category assigned to files matching the pattern. It is stored in the file's 
 { pattern: "**/*.css", category: "style" }
 ```
 
-:::warning
-Each file descriptor must define both a `pattern` and a `category`. Descriptors missing either are filtered out with a warning. (This differs from element descriptors, where `category` is optional and `type` may be used instead.)
-:::
-
 ### `capture` (optional)
 
 **Type:** `<array of strings>`
 
-Captures named values from path fragments so you can reference them later in [rule selectors](./selectors.md). It uses the [micromatch capture feature](https://github.com/micromatch/micromatch#capture), the same way [element descriptors](./elements.md) do.
+Captures named values from path fragments so you can reference them later in [file selectors](../selectors/selectors.md). It uses the [micromatch capture feature](https://github.com/micromatch/micromatch#capture), the same way [element descriptors](./elements.md) do.
 
 Each captured fragment is stored under the key from the `capture` array at the same index, and appears at runtime as `file.captured`.
 
@@ -93,7 +89,7 @@ When several matching descriptors capture values, those values are **merged** in
 
 ## Category Accumulation
 
-Unlike element descriptors, file descriptors do not stop at the first match. **Every file descriptor whose pattern matches contributes its category**, so a single file can carry several categories at once.
+Unlike element descriptors by default, file descriptors do not stop at the first match. **Every file descriptor whose pattern matches contributes its category**, so a single file can carry several categories at once.
 
 ```js
 export default [{
@@ -119,32 +115,30 @@ This is the key difference from element types, which are single by default (you 
 
 ## File Description
 
-During analysis, the plugin builds a runtime **file description** for each analyzed file as part of its [entity](./classification.md). Access it as `from.file` / `to.file` in [selectors](./selectors.md) and [message templates](./rules.mdx#message-templating) (for example, `{{to.file.categories}}`).
+During analysis, the plugin builds a runtime **file description** for each analyzed file as part of its [entity](./classification.md). Access it as `from.file` / `to.file` in [selectors](../selectors/selectors.md) and [message templates](../policies/policies.mdx#message-templating) (for example, `{{to.file.categories}}`).
 
 | Property | Type | Description |
 | --- | --- | --- |
 | `categories` | `<array of strings \| null>` | All file categories matched, or `null` when the file matches no file descriptor (unknown) or is ignored. |
-| `path` | `<string \| null>` | The file path. Relative to [`rootPath`](./settings.md#boundariesroot-path) when inside it, absolute when outside. Kept even for unknown files. |
+| `path` | `<string \| null>` | The file path. Relative to [`rootPath`](../settings/settings.md#boundariesroot-path) when inside it, absolute when outside. Kept even for unknown files. |
 | `captured` | `<object \| null>` | Captured values merged from all matching file descriptors, or `null` when there are none. |
-| `isIgnored` | `<boolean>` | `true` when the file is excluded by [include/ignore](./settings.md#boundariesignore) settings. |
+| `isIgnored` | `<boolean>` | `true` when the file is excluded by [include/ignore](../settings/settings.md#boundariesignore) settings. |
 | `isUnknown` | `<boolean>` | `true` when the file matches no file descriptor. |
 
 :::note
 The file dimension is independent from the element dimension. A file can be a **known element** but an **unknown file** (no matching file descriptor), or an **unknown element** but a **known file** (it matched a file descriptor but no element descriptor). See [Classification](./classification.md) for how the three layers combine into one entity.
 :::
 
-## Using Categories in Rules
+## Matching Files using Selectors
 
-Match categorized files in your [dependency rules](./rules.mdx) with the [`file` selector](./selectors.md). For example, allow components to import test files:
+To target a file, use the [`file` sub-selector](../selectors/file.md) inside a rule's `to`:
 
 ```js
-{
-  from: { element: { type: "component" } },
-  allow: { to: { file: { categories: "test" } } }
-}
+// Match files with the "test" category
+{ to: { file: { categories: ["test"] } } }
 ```
 
-The `categories` selector matches if **any** of the file's categories matches the pattern. See the [Selectors](./selectors.md) section for the full file selector reference, including `path`, `captured`, `isIgnored`, and `isUnknown`.
+See [File Selectors](../selectors/file.md) for the full `file` selector reference.
 
 ## Interaction with `no-unknown-files`
 
@@ -152,7 +146,7 @@ The [`no-unknown-files`](../rules/no-unknown-files.md) rule reports files that t
 
 This means defining a file descriptor makes the matching files **known**: a file that matches any `boundaries/files` pattern is no longer flagged, even if it belongs to no element.
 
-This behavior also preserves backward compatibility: configurations that classified files such as tests or styles through element descriptors (the deprecated [`mode: "file"`](./elements.md#mode-optional) or element [`category`](./elements.md#category-optional)) and have since moved them to file descriptors keep passing the rule, instead of being newly reported as unknown.
+This behavior also preserves backward compatibility: configurations that classified files such as tests or styles through element descriptors (the deprecated [`mode: "file"`](./elements/legacy.md) or element [`category`](./elements/legacy.md)) and have since moved them to file descriptors keep passing the rule, instead of being newly reported as unknown.
 
 The default message reflects both layers:
 
@@ -164,11 +158,7 @@ See [`no-unknown-files`](../rules/no-unknown-files.md) for the full rule referen
 
 ## Migrating from the Element `category` Property
 
-File categories are the recommended replacement for the deprecated [`category` property in element descriptors](./elements.md#category-optional).
-
-:::warning[Deprecated]
-`category` in element descriptors is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **file descriptor categories** (`file.categories`) instead.
-:::
+File categories are the recommended replacement for the deprecated [`category` property in element descriptors](./elements/legacy.md).
 
 It keeps working without changes; you will see a deprecation warning in your console. File descriptors are a better fit because they categorize files independently of elements: one element can contain files in several categories, and a single file can have several categories at once — neither is possible with the single, element-wide `category`.
 
@@ -185,5 +175,5 @@ See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) fo
 - **[Classification](./classification.md)** - how elements, files, and modules combine into one entity.
 - **[Elements](./elements.md)** - classify files by the architectural element they belong to.
 - **[Modules](./modules.md)** - classify dependencies by where they resolve from.
-- **[Selectors](./selectors.md)** - match files (and their categories) in your rules.
-- **[Settings](./settings.md)** - the `boundaries/files` setting schema and every other global setting.
+- **[Selectors](../selectors/selectors.md)** - match files (and their categories) in your rules.
+- **[Settings](../settings/settings.md)** - the `boundaries/files` setting schema and every other global setting.

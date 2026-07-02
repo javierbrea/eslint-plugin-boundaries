@@ -23,35 +23,71 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "Setup",
+      label: "Classification",
       link: {
         type: "doc",
-        id: "setup/setup",
+        id: "classification/classification",
       },
       collapsed: true,
       items: [
         {
           type: "category",
-          label: "Classification",
+          label: "Elements",
           link: {
             type: "doc",
-            id: "setup/classification",
+            id: "classification/elements",
           },
-          items: ["setup/elements", "setup/files", "setup/modules"],
+          items: ["classification/elements/legacy"],
         },
+        "classification/files",
+        "classification/modules",
+        "classification/dependency",
+      ],
+    },
+    {
+      type: "category",
+      label: "Selectors",
+      link: {
+        type: "doc",
+        id: "selectors/selectors",
+      },
+      collapsed: true,
+      items: [
+        "selectors/element",
+        "selectors/file",
+        "selectors/module",
+        "selectors/dependency",
         {
           type: "category",
-          label: "Selectors",
-          link: {
-            type: "doc",
-            id: "setup/selectors",
-          },
-          items: ["setup/selectors/legacy-selectors"],
+          label: "Legacy",
+          collapsed: true,
+          items: [
+            "selectors/legacy/element",
+            "selectors/legacy/dependency",
+            "selectors/legacy/templates",
+          ],
         },
-        "setup/rules",
-        "setup/settings",
-        "setup/eslint-integration",
       ],
+    },
+    {
+      type: "category",
+      label: "Policies",
+      link: {
+        type: "doc",
+        id: "policies/policies",
+      },
+      collapsed: true,
+      items: ["policies/legacy"],
+    },
+    {
+      type: "category",
+      label: "Settings",
+      link: {
+        type: "doc",
+        id: "settings/settings",
+      },
+      collapsed: true,
+      items: ["settings/config-helpers", "settings/legacy"],
     },
     {
       type: "category",

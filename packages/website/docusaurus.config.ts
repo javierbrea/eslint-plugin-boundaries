@@ -141,6 +141,10 @@ const config: Config = {
           position: "left",
           label: "Getting Started",
         },
+        // NOTE: navbar links target the default (published) docs version.
+        // The flattened top-level sections (Classification, Selectors, Policies,
+        // Settings) live in the "next" (v7) docs. Switch these to the flat links
+        // when v7 becomes the default version (set `lastVersion: "current"`).
         {
           to: "docs/setup/",
           position: "left",

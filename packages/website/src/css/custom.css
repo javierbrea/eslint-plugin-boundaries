@@ -158,6 +158,13 @@
   height: 100%;
 }
 
+/* Text links inside documentation content */
+
+.markdown a {
+  text-decoration: underline;
+  font-weight: 600;
+}
+
 /* Search bar */
 
 [data-theme='light'] .DocSearch-Button {

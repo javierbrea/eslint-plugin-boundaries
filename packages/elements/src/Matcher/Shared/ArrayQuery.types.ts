@@ -37,7 +37,7 @@ export type ArrayQuery<TMatcher> = {
 };
 
 /**
- * Template-array operand item used inside `anyOf` / `allOf` / `noneOf`.
+ * Template-array operand item used inside `anyOf` / `allOf` / `noneOf` / `equalsTo`.
  * Its `expand` template is resolved against the template data to a raw string array
  * (or single string), whose values are spread in place as additional matchers.
  */
@@ -51,11 +51,11 @@ export type StringArrayQueryMatcher = string | ArrayQueryExpandItem;
 
 /** Array query over a string array (file `categories`, element `types`). */
 export type StringArrayQuery = {
-  /** anyOf/allOf/noneOf items may be micromatch patterns or `{ expand }` items. */
+  /** anyOf/allOf/noneOf/equalsTo items may be micromatch patterns or `{ expand }` items. */
   anyOf?: StringArrayQueryMatcher[];
   allOf?: StringArrayQueryMatcher[];
   noneOf?: StringArrayQueryMatcher[];
-  equalsTo?: string[];
+  equalsTo?: StringArrayQueryMatcher[];
   atIndex?: ArrayQueryAtIndex<string>;
   hasLength?: number;
 };

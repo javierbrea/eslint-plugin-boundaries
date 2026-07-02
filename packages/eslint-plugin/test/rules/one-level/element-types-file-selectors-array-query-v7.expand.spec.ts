@@ -292,3 +292,84 @@ createRuleTester(singleCategorySettings).run(
     ],
   }
 );
+
+// ─── file.categories equalsTo expand ─────────────────────────────────────────
+//
+// equalsTo expand "{{ from.file.categories }}" resolves to from file's categories.
+// The resolved array is used as an ordered exact-match pattern list.
+//
+// singleCategory: each file has exactly one category.
+//   helpers/*/** → ["helpers"]
+//   components/*/** → ["components"]
+//
+// Disallow selector: equalsTo [{ expand: "{{ from.file.categories }}" }]
+// Matches when to.categories == from.categories (same ordered array).
+//   helpers → helpers: to=["helpers"], equalsTo=["helpers"] → matches → disallowed ✓
+//   helpers → components: to=["components"], equalsTo=["helpers"] → no match → not disallowed ✓
+
+createRuleTester(singleCategorySettings).run(
+  `${RULE} file.categories equalsTo expand — disallow to whose categories equal from's categories`,
+  rule,
+  {
+    valid: [
+      // helpers → components: categories differ → equalsTo fails → not disallowed
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import ComponentA from 'components/component-a'",
+        options: [
+          {
+            default: "allow",
+            rules: [
+              {
+                from: { file: { categories: "helpers" } },
+                disallow: {
+                  to: {
+                    file: {
+                      categories: {
+                        equalsTo: [{ expand: "{{ from.file.categories }}" }],
+                      },
+                    },
+                  },
+                },
+                message: "to-categories-equal-from-categories",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    invalid: [
+      // helpers → helpers: same categories → equalsTo passes → disallowed
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options: [
+          {
+            default: "allow",
+            rules: [
+              {
+                from: { file: { categories: "helpers" } },
+                disallow: {
+                  to: {
+                    file: {
+                      categories: {
+                        equalsTo: [{ expand: "{{ from.file.categories }}" }],
+                      },
+                    },
+                  },
+                },
+                message: "to-categories-equal-from-categories",
+              },
+            ],
+          },
+        ],
+        errors: [
+          {
+            message: "to-categories-equal-from-categories",
+            type: "Literal",
+          },
+        ],
+      },
+    ],
+  }
+);

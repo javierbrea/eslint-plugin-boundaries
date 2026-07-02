@@ -22,7 +22,7 @@ import CodeDiff from "@site/src/components/CodeDiff";
 
 # no-private
 
-> Prevent importing private **[elements](../setup/elements.md)** of another element.
+> Prevent importing private **[elements](../classification/elements.md)** of another element.
 
 :::warning[Deprecated]
 `boundaries/no-private` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`boundaries/dependencies`](./dependencies.md)** instead.
@@ -52,7 +52,7 @@ This rule helps maintain encapsulation by preventing external elements from dire
 
 ## Options
 
-```
+```text
 "boundaries/no-private":
   [<severity>, { "allowUncles": <boolean>, "message": <string> }]
 ```
@@ -112,7 +112,6 @@ src/
                 └── ModuleD.js
 ```
 
-
 **Settings configuration:**
 
 ```js
@@ -133,72 +132,55 @@ src/
 Some examples use aliases for the `src/modules` folder. You can also use relative paths, or you can **[configure the plugin to recognize aliases by using resolvers](../guides/custom-resolvers.md).**
 :::
 
-
 ## Examples
-
 
 ### Incorrect
 
-
 `module-a` importing `module-c` (private child of `module-b`):
-
 
 ```js
 // src/modules/module-a/ModuleA.js
 import ModuleC from 'modules/module-b/modules/module-c'
 ```
 
-
 `module-b` importing `module-e` (private grandchild):
-
 
 ```js
 // src/modules/module-b/ModuleB.js
 import ModuleE from './modules/module-c/modules/module-e'
 ```
 
-
 `module-e` importing `module-d` (uncle element, disallowed by default):
-
 
 ```js
 // src/modules/module-b/modules/module-c/modules/module-e/ModuleE.js
 import ModuleD from 'modules/module-b/modules/module-d'
 ```
 
-
 ### Correct
 
-
 `module-b` importing `module-c` (its direct child):
-
 
 ```js
 // src/modules/module-b/ModuleB.js
 import ModuleC from './modules/module-c'
 ```
 
-
 `module-c` importing `module-a` (public element):
-
 
 ```js
 // src/modules/module-b/modules/module-c/ModuleC.js
 import ModuleA from 'modules/module-a'
 ```
 
-
 `module-c` importing `module-d` (sibling element):
-
 
 ```js
 // src/modules/module-b/modules/module-c/ModuleC.js
 import ModuleD from '../module-d'
 ```
 
-
 `module-e` importing `module-d` (uncle element) when `allowUncles: true` is set:
-
 
 ```js
 // src/modules/module-b/modules/module-c/modules/module-e/ModuleE.js
@@ -216,12 +198,12 @@ This rule provides detailed error messages indicating which element owns the pri
 ### Custom Messages with Templates
 
 :::tip
-You can customize error messages globally or for specific rules. See [Rules Configuration -> Message Templating](../setup/rules.mdx#message-templating) for more details.
+You can customize error messages globally or for specific rules. See [Rules Configuration -> Message Templating](../policies/policies.mdx#message-templating) for more details.
 :::
 
 ## Migration to `boundaries/dependencies`
 
-The restrictions enforced by this rule can also be achieved with the `boundaries/dependencies` rule, which lets you match allowed relationships directly using the [`relationship` dependency metadata selector](../setup/selectors.md). It is recommended to migrate your configuration to `boundaries/dependencies` as soon as possible, as this rule will be removed in a future major version.
+The restrictions enforced by this rule can also be achieved with the `boundaries/dependencies` rule, which lets you match allowed relationships directly using the [`relationship` dependency metadata selector](../selectors/selectors.md). It is recommended to migrate your configuration to `boundaries/dependencies` as soon as possible, as this rule will be removed in a future major version.
 
 `boundaries/no-private` only blocks importing the private (nested) elements of _other_ elements. It never blocks ordinary dependencies. So the replacement keeps the default policy as `"allow"`, disallows importing any nested element, and then re-allows each element to import its own children, siblings, and uncles.
 
@@ -263,7 +245,7 @@ The following example shows how to migrate a configuration from `boundaries/no-p
 `}</CodeDiff>
 
 :::note
-You can also express the same intent with the [`relationship` dependency metadata selector](../setup/selectors.md) instead of selecting parents: disallow importing `descendant` elements, then re-allow `child`, `sibling`, and `uncle`. Both forms keep the default policy as `"allow"`, so ordinary dependencies are never blocked. Selecting a nested target via `to.element.parent` (as above) matches `no-private` most closely, because `no-private` only fires when the imported element actually has a parent.
+You can also express the same intent with the [`relationship` dependency metadata selector](../selectors/dependency.md) instead of selecting parents: disallow importing `descendant` elements, then re-allow `child`, `sibling`, and `uncle`. Both forms keep the default policy as `"allow"`, so ordinary dependencies are never blocked. Selecting a nested target via `to.element.parent` (as above) matches `no-private` most closely, because `no-private` only fires when the imported element actually has a parent.
 :::
 
 :::tip[Bonus: More specific rules with `boundaries/dependencies`]
@@ -274,8 +256,8 @@ With `boundaries/dependencies` you can also define more specific rules that were
 
 Learn more about related topics:
 
-* [Defining Elements](../setup/elements.md) - Learn how to define architectural elements in your project
-* [Selectors](../setup/selectors.md) - Learn how to use element selectors and the `relationship` dependency metadata selector
-* [Rules Configuration](../setup/rules.mdx) - Learn how to configure common rule options
-* [Global Settings](../setup/settings.md) - Learn about global settings that affect all rules
-* [Migrating from v6 to v7](../releases/migration-guides/v6-to-v7.mdx) - Migrate deprecated rules to `boundaries/dependencies`
+- [Defining Elements](../classification/elements.md) - Learn how to define architectural elements in your project
+- [Selectors](../selectors/selectors.md) - Learn how to use element selectors and the `relationship` dependency metadata selector
+- [Policies](../policies/policies.mdx) - Learn how to configure common rule options
+- [Global Settings](../settings/settings.md) - Learn about global settings that affect all rules
+- [Migrating from v6 to v7](../releases/migration-guides/v6-to-v7.mdx) - Migrate deprecated rules to `boundaries/dependencies`

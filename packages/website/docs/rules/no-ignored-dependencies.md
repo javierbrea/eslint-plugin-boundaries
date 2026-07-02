@@ -19,17 +19,17 @@ keywords:
 
 # no-ignored-dependencies
 
-> Prevent importing **[ignored files](../setup/settings.md#boundariesignore)** from recognized files.
+> Prevent importing **[ignored files](../settings/settings.md#boundariesignore)** from files matching any **[element](../classification/elements.md)** or **[file](../classification/files.md)** descriptor.
 
-:::info[Renamed rule]
+:::note[Renamed rule]
 This rule was previously named `boundaries/no-ignored`. The old name still works but is **deprecated**: using it prints a one-time warning and it will be removed in a future major version. Update your configuration to `boundaries/no-ignored-dependencies`.
 :::
 
 ## Rule Details
 
-This rule validates dependencies to local files. If the imported file is **[marked as ignored in the plugin settings](../setup/settings.md#boundariesignore)**, the dependency is reported as an error.
+This rule validates dependencies to local files. If the imported file is **[marked as ignored in the plugin settings](../settings/settings.md#boundariesignore)**, the dependency is reported as an error.
 
-The rule analyzes any source file that the plugin recognizes: a file that belongs to a known **[element](../setup/elements.md)** or that matches a known **[file descriptor](../setup/files.md)**. It does not analyze files that are both element-unknown and file-unknown, or files that are ignored.
+The rule analyzes any source file that the plugin recognizes: a file that belongs to a known **[element](../classification/elements.md)** or that matches a known **[file descriptor](../classification/files.md)**. It does not analyze files that are both element-unknown and file-unknown, or files that are ignored.
 
 :::tip
 This rule is disabled in the `recommended` preset and enabled in the `strict` preset. Enable it when you want to prevent recognized files from depending on files that are intentionally excluded from analysis.
@@ -128,7 +128,7 @@ Dependencies to ignored files are not allowed
 
 Read next sections to learn more about related topics:
 
-* [Defining Elements](../setup/elements.md) - Learn how to define architectural elements in your project
-* [Selectors](../setup/selectors.md) - Learn about element, file, and module selectors used in rules
-* [Rules Configuration](../setup/rules.mdx) - Learn how to configure rule options and custom messages
-* [Global Settings](../setup/settings.md) - Learn about global settings including ignore patterns
+* [Defining Elements](../classification/elements.md) - Learn how to define architectural elements in your project
+* [Selectors](../selectors/selectors.md) - Learn about element, file, and module selectors used in rules
+* [Policies](../policies/policies.mdx) - Learn how to configure rule options and custom messages
+* [Global Settings](../settings/settings.md) - Learn about global settings including ignore patterns
