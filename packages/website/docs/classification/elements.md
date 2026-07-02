@@ -69,7 +69,7 @@ Here `helpers/data` and `helpers/permissions` are `helper` elements (with `captu
 :::
 
 :::tip
-Read the [Selectors](../selectors/selectors.md) section to learn how to match these elements in rules, and [Captured Values Matching](../selectors/selectors.md#captured-values-matching) to use the values you capture here.
+Read the [Selectors](../selectors/selectors.md) section to learn how to match these elements in rule policies, and [Captured Values Matching](../selectors/selectors.md#captured-values-matching) to use the values you capture here.
 :::
 
 During analysis, the plugin transforms descriptors into a runtime [Element Descriptions](#element-description). Read the section below for the full breakdown, and [Classification](./classification.md#entity) for how it combines with the file and module layers.
@@ -138,7 +138,7 @@ Each descriptor must define at least one of `type` or `category`. Descriptors wi
 
 **Type:** `<array of strings>`
 
-Captures named values from path fragments so you can reference them later in [rule selectors](../selectors/selectors.md). Uses the [micromatch capture feature](https://github.com/micromatch/micromatch#capture) under the hood.
+Captures named values from path fragments so you can reference them later in [element selectors](../selectors/selectors.md). Uses the [micromatch capture feature](https://github.com/micromatch/micromatch#capture) under the hood.
 
 Each captured fragment is stored under the key from the `capture` array at the same index.
 
@@ -153,7 +153,7 @@ For a path `components/atoms/atom-a/AtomA.js`, this captures:
 ```
 
 :::tip
-Captured values can be used in [element selectors](../selectors/selectors.md) to create more specific, dynamic rules.
+Captured values can be used in [element selectors](../selectors/selectors.md) to create more specific, dynamic policies.
 :::
 
 <details>
@@ -202,7 +202,7 @@ The effective pattern becomes `[basePattern]/**/[pattern]`.
 
 **Type:** `<array of strings>`
 
-Works like `capture`, but for `basePattern`. Both arrays' keys are available in rules. Because it is the companion to `basePattern`, it is only applicable when `partialMatch: true`.
+Works like `capture`, but for `basePattern`. Both arrays' keys are available in selectors. Because it is the companion to `basePattern`, it is only applicable when `partialMatch: true`.
 
 For a path `src/modules/auth/components/login-form` with the descriptor above, this captures:
 
@@ -275,7 +275,7 @@ With the default single-type behavior (`boundaries/elements-single-type: true`),
 
 ## Hierarchical Elements
 
-The plugin supports elements being children of other elements. This relationship can be used in rules to restrict access based on the relationship (for example, only allow importing from child elements).
+The plugin supports elements being children of other elements. This relationship can be used in policies to restrict access based on the relationship (for example, only allow importing from child elements).
 
 After finding the first match, the plugin keeps searching at higher path levels for parent elements.
 
@@ -345,7 +345,7 @@ Read the **[Legacy Element Fields](./elements/legacy.md)** page for deprecated e
 
 ## Matching Elements using Selectors
 
-To target an element, use the [`element` sub-selector](../selectors/element.md) inside a rule's `to`:
+To target an element, use the [`element` sub-selector](../selectors/element.md) inside a policy's `to`:
 
 ```js
 // Match elements with the "helper" type
@@ -364,6 +364,6 @@ This means defining an element descriptor makes the matching files **known**: a 
 
 - **[Files](./files.md)** - categorize files across elements with file descriptors.
 - **[Modules](./modules.md)** - understand module origin for external and core imports.
-- **[Selectors](../selectors/selectors.md)** - match elements, files, and modules in your rules.
-- **[Policies](../policies/policies.mdx)** - write dependency rules that enforce your architecture.
+- **[Selectors](../selectors/selectors.md)** - match elements, files, and modules in your policies.
+- **[Policies](../policies/policies.mdx)** - write dependency policies that enforce your architecture.
 - **[Settings](../settings/settings.md)** - the full reference for `boundaries/files`, `boundaries/elements-single-type`, and every other global setting.

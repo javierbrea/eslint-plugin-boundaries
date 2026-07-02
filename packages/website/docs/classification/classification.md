@@ -60,7 +60,7 @@ The three layers are orthogonal, so the same file can be classified independentl
 
 An element is a group of files the plugin treats as one architectural unit — usually a folder. You declare elements in the `boundaries/elements` setting, assigning each a `type` and a `pattern` that matches its files. The plugin can also capture path fragments (a component's name, a helper's family) for use in rules.
 
-Define your `helper`, `component`, and `module` elements, then write rules about which may depend on which.
+Define your `helper`, `component`, and `module` elements, then write rule policies about which may depend on which.
 
 ```js
 "boundaries/elements": [
@@ -78,7 +78,7 @@ Read **[Elements](./elements.md)** for descriptor properties, matching order, hi
 
 The file layer answers a different question than the element layer: not *which element does this file belong to?* but *what kind of file is this, on its own?* You declare file categories in the `boundaries/files` setting. A file descriptor assigns a `category` to every file matching its `pattern`.
 
-This layer is for cross-cutting file kinds — tests, styles, stories — that appear inside many different elements. Categories accumulate, so one file can carry several at once. Like element descriptors, file descriptors can also `capture` named path fragments for use in rules, exposed at runtime as `file.captured`.
+This layer is for cross-cutting file kinds — tests, styles, stories — that appear inside many different elements. Categories accumulate, so one file can carry several at once. Like element descriptors, file descriptors can also `capture` named path fragments for use in rule policies, exposed at runtime as `file.captured`.
 
 ```js
 "boundaries/files": [
@@ -116,7 +116,7 @@ Read **[Modules](./modules.md)** for the origin determination rules and how `bou
 The three layers are independent, so the right one depends on the question you are asking.
 
 :::tip
-You rarely use a single layer in isolation. A typical rule combines them: *components may import test files only from helpers*, for example, mixes the element layer with the file layer.
+You rarely use a single layer in isolation. A typical policy combines them: *components may import test files only from helpers*, for example, mixes the element layer with the file layer.
 :::
 
 | You want to… | Use | Configured with |
@@ -124,7 +124,7 @@ You rarely use a single layer in isolation. A typical rule combines them: *compo
 | Group code by architectural role (components, helpers, modules) | Elements | [`boundaries/elements`](./elements.md) |
 | Tag files across elements (tests, styles, stories) | File categories | [`boundaries/files`](./files.md) |
 | Control imports of external packages or Node.js core modules | Modules | derived automatically; see [Modules](./modules.md) |
-| Capture path fragments (element name, family) for dynamic rules | Element or file captured values | [`boundaries/elements`](./elements.md) / [`boundaries/files`](./files.md) |
+| Capture path fragments (element name, family) for dynamic policies | Element or file captured values | [`boundaries/elements`](./elements.md) / [`boundaries/files`](./files.md) |
 
 For the full property list of each layer, see the per-layer reference tables:
 
@@ -177,9 +177,9 @@ The `dependency` part of a dependency description carries metadata about the rel
 
 Read **[Dependency](./dependency.md)** for the full property list of the dependency metadata description.
 
-## Combining layers in a rule
+## Combining layers in a policy
 
-The layers pay off when you combine them. Say you want components to import test files only from helpers. That rule mixes the element layer (the importing element and the target element) with the file layer (the target file's category):
+The layers pay off when you combine them. Say you want components to import test files only from helpers. That policy mixes the element layer (the importing element and the target element) with the file layer (the target file's category):
 
 ```js
 {
@@ -195,7 +195,7 @@ The layers pay off when you combine them. Say you want components to import test
 }
 ```
 
-The `from`/`to` objects above are **entity selectors**: each sub-key (`element`, `file`, `module`, `dependency`) matches its own layer, and all provided sub-keys must match. Read **[Selectors](../selectors/selectors.md)** for the full matching reference, and **[Policies](../policies/policies.mdx)** for how rules use these selectors to allow or disallow dependencies.
+The `from`/`to` objects above are **entity selectors**: each sub-key (`element`, `file`, `module`, `dependency`) matches its own layer, and all provided sub-keys must match. Read **[Selectors](../selectors/selectors.md)** for the full matching reference, and **[Policies](../policies/policies.mdx)** for how policies use these selectors to allow or disallow dependencies.
 
 ## Next Steps
 
@@ -203,6 +203,6 @@ The `from`/`to` objects above are **entity selectors**: each sub-key (`element`,
 - **[Files](./files.md)** - categorize files across elements with file descriptors.
 - **[Modules](./modules.md)** - understand module origin for external and core imports.
 - **[Dependency](./dependency.md)** - read the computed dependency metadata that describes each import.
-- **[Selectors](../selectors/selectors.md)** - match elements, files, and modules in your rules.
-- **[Policies](../policies/policies.mdx)** - write the dependency rules that enforce your architecture.
+- **[Selectors](../selectors/selectors.md)** - match elements, files, and modules in your policies.
+- **[Policies](../policies/policies.mdx)** - write the dependency rule policies that enforce your architecture.
 - **[Debugging](../guides/debugging.md)** - inspect the runtime entity description the plugin assigns to each file.

@@ -294,7 +294,7 @@ export function printDependenciesRuleResult(
     );
     return;
   }
-  const title = `${DEPENDENCIES_VIOLATION_PREFIX} Rule at index ${ruleIndex} reported a violation because the following selector matched the dependency:`;
+  const title = `${DEPENDENCIES_VIOLATION_PREFIX} Policy at index ${ruleIndex} reported a violation because the following selector matched the dependency:`;
 
   const selectorRelevantData: Partial<DependencySingleSelectorMatchResult> = {};
   if (dependencyMatchResult.from) {
@@ -307,7 +307,7 @@ export function printDependenciesRuleResult(
     selectorRelevantData.dependency = dependencyMatchResult.dependency;
   }
   printDebugBlock(title, {
-    rule: {
+    policy: {
       index: ruleIndex,
       selector: selectorRelevantData,
     },

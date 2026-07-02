@@ -66,7 +66,7 @@ createRuleTester(singleCategorySettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: {
@@ -93,7 +93,7 @@ createRuleTester(singleCategorySettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "components" } },
                 disallow: {
@@ -154,7 +154,7 @@ createRuleTester(multiCategorySettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: {
@@ -192,7 +192,7 @@ createRuleTester(multiCategorySettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: {
@@ -235,7 +235,7 @@ createRuleTester(singleCategorySettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "components" } },
                 disallow: {
@@ -265,7 +265,7 @@ createRuleTester(singleCategorySettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "components" } },
                 disallow: {
@@ -319,7 +319,7 @@ createRuleTester(singleCategorySettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: {
@@ -346,7 +346,7 @@ createRuleTester(singleCategorySettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: {

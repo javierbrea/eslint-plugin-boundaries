@@ -25,7 +25,7 @@ The **module** is the third classification layer of the [entity](./classificatio
 
 Unlike [elements](./elements.md) and [files](./files.md), there are **no descriptors to configure** for modules. The plugin derives the module description automatically from the import source and how it resolves on disk. An import such as `import sort from "./utils/sort.js"` resolves to a local module; `import React from "react"` resolves to an external one.
 
-This layer is what lets you write rules about dependencies on packages and built-ins — where there is no local file, and therefore no element or file, to match.
+This layer is what lets you write rule policies about dependencies on packages and built-ins — where there is no local file, and therefore no element or file, to match.
 
 ## Module Origins
 
@@ -88,14 +88,14 @@ The module description has no `isIgnored`, `isUnknown`, or `path` — it is alwa
 
 ## Matching Modules using Selectors
 
-To target a dependency by its module, use the [`module` sub-selector](../selectors/module.md) inside a rule's `to`:
+To target a dependency by its module, use the [`module` sub-selector](../selectors/module.md) inside a policy's `to`:
 
 ```js
 // Match imports of the "react" package
 { to: { module: { origin: "external", source: "react" } } }
 ```
 
-This is the right way to write rules about packages and built-ins, where there is no local element to match. See [Module Selectors](../selectors/module.md) for the full `module` selector reference.
+This is the right way to write policies about packages and built-ins, where there is no local element to match. See [Module Selectors](../selectors/module.md) for the full `module` selector reference.
 
 ## Replacing the Deprecated External Rule
 
@@ -137,8 +137,8 @@ These settings are most useful in monorepos. See the [Monorepo Setup guide](../g
 
 ## Next Steps
 
-- **[Selectors](../selectors/module.md)** - match modules, elements, and files in your rules.
-- **[Policies](../policies/policies.mdx)** - write dependency rules that enforce your architecture.
+- **[Selectors](../selectors/module.md)** - match modules, elements, and files in your policies.
+- **[Policies](../policies/policies.mdx)** - write dependency policies that enforce your architecture.
 - **[Settings](../settings/settings.md#boundariesflag-as-external)** - configure `flag-as-external` and `root-path`.
 - **[Monorepo Setup](../guides/monorepo-setup.md)** - classify workspace imports as local or external.
 - **[Classification](./classification.md)** - how element, file, and module combine into one entity.

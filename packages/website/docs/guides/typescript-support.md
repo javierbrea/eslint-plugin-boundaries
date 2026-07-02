@@ -97,7 +97,7 @@ const config: Config = {
   rules: {
     "boundaries/dependencies": [
       "error",
-      { default: "disallow", rules: [] },
+      { default: "disallow", policies: [] },
     ],
   },
 };
@@ -139,7 +139,7 @@ In addition to the main `Config` type, the plugin exports individual subtypes fo
 - `Settings` - the `settings` object (typed `boundaries/*` keys).
 - `Rules` - mapping of rule names to their configurations.
 - `ElementDescriptor` - an entry of the [`boundaries/elements`](../classification/elements.md) setting.
-- `DependenciesRule` - one entry of the [`dependencies`](../rules/dependencies.md) rule's `rules` array.
+- `DependenciesPolicy` - one entry of the [`dependencies`](../rules/dependencies.md) rule's `policies` array (`DependenciesRule` is a deprecated alias).
 - `DependenciesRuleOptions` - options for the `dependencies` rule.
 - `ElementSelector` - an [element selector](../selectors/selectors.md).
 - `DependencyKind` - dependency kind union (`"value" | "type" | "typeof"`); replaces the deprecated `ImportKind`.
@@ -148,7 +148,7 @@ In addition to the main `Config` type, the plugin exports individual subtypes fo
 - `IgnoreSetting`, `IncludeSetting`, `RootPathSetting`, `DebugSetting`, `SettingsKey` - other [settings](../settings/settings.md) types.
 - `FileDescriptor`, `FileDescriptors` - an entry (or array) of the [`boundaries/files`](../settings/settings.md#boundariesfiles) setting.
 
-The deprecated-rule option types (`EntryPointRule`, `EntryPointRuleOptions`, `ExternalRule`, `ExternalRuleOptions`, `NoPrivateOptions`) and constants/guards (`SETTINGS_KEYS_MAP`, `RULE_NAMES_MAP`, `DEPENDENCY_KINDS_MAP`, `isSettingsKey`, `isDependencyKind`, `isFileDescriptor`, and more) are also exported. See the package types for the complete list.
+The deprecated-rule option types (`EntryPointPolicy`, `EntryPointRuleOptions`, `ExternalPolicy`, `ExternalRuleOptions`, `NoPrivateOptions`) and constants/guards (`SETTINGS_KEYS_MAP`, `RULE_NAMES_MAP`, `DEPENDENCY_KINDS_MAP`, `isSettingsKey`, `isDependencyKind`, `isFileDescriptor`, and more) are also exported. See the package types for the complete list.
 
 This modular approach lets you import only what you need while keeping autocomplete and type checking:
 
@@ -173,7 +173,7 @@ const settings: Settings = {
 
 const dependenciesRuleOptions: DependenciesRuleOptions = {
   default: "disallow",
-  rules: [
+  policies: [
     {
       from: { element: { type: "module" } },
       allow: { to: { element: { type: "helper" } } },
@@ -197,7 +197,7 @@ The example above uses [entity selectors](../selectors/selectors.md) (`from: { e
 :::
 
 :::warning[TypeScript breaking changes from v6]
-If you are upgrading from v6, the following type exports were removed: `ElementTypesRule`, `ElementTypesRuleOptions`, `ElementSelectors`, `ElementsSelector`, `ElementSelectorWithOptions`, the guards `isElementsSelector`, `isElementDescriptorMode`, `isImportKind`, and the constant `IMPORT_KINDS_MAP`. Replace them with `DependenciesRule`, `DependenciesRuleOptions`, `ElementSelector`, `isDependencyKind`, and `DEPENDENCY_KINDS_MAP`. The deprecated `ImportKind` type still exists but prefer `DependencyKind`. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) for details.
+If you are upgrading from v6, the following type exports were removed: `ElementTypesRule`, `ElementTypesRuleOptions`, `ElementSelectors`, `ElementsSelector`, `ElementSelectorWithOptions`, the guards `isElementsSelector`, `isElementDescriptorMode`, `isImportKind`, and the constant `IMPORT_KINDS_MAP`. Replace them with `DependenciesPolicy`, `DependenciesRuleOptions`, `ElementSelector`, `isDependencyKind`, and `DEPENDENCY_KINDS_MAP`. The deprecated `ImportKind` type still exists but prefer `DependencyKind`. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) for details.
 :::
 
 ## Troubleshooting

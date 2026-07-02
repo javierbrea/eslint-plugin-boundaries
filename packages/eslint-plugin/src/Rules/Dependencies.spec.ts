@@ -22,9 +22,9 @@ import {
   dependenciesRuleDefaultErrorMessage,
 } from "../Messages";
 import type {
-  DependenciesRule,
+  DependenciesPolicy,
   DependenciesRuleOptions,
-  RuleOptionsWithRules,
+  RuleOptionsWithPolicies,
   SettingsNormalized,
 } from "../Shared";
 import { RULE_NAMES_MAP } from "../Shared";
@@ -60,8 +60,8 @@ jest.mock("./Support", () => ({
 
 import getDependencyRule, {
   buildErrorMessage,
-  evaluateRules,
-  evaluateRulesAndReport,
+  evaluatePolicies,
+  evaluatePoliciesAndReport,
   resolveCustomMessage,
 } from "./Dependencies";
 import { dependencyRule } from "./Support";
@@ -186,11 +186,11 @@ describe("Dependencies", () => {
     jest.clearAllMocks();
   });
 
-  describe("evaluateRules", () => {
+  describe("evaluatePolicies", () => {
     it("returns allowed when there are no rules", () => {
       const matcher = createMatcher();
 
-      const result = evaluateRules(
+      const result = evaluatePolicies(
         [],
         createDependencyDescription(),
         matcher,
@@ -208,7 +208,7 @@ describe("Dependencies", () => {
       const matcher = createMatcher();
       setMatcherReturns(matcher, [{ matched: "allow" }]);
 
-      const result = evaluateRules(
+      const result = evaluatePolicies(
         [
           {
             from: { element: { type: "component" } },
@@ -227,7 +227,7 @@ describe("Dependencies", () => {
       const matcher = createMatcher();
       setMatcherReturns(matcher, [{ matched: "disallow" }]);
 
-      const result = evaluateRules(
+      const result = evaluatePolicies(
         [{ disallow: [{ to: [{ element: [{ type: "x" }] }] }] }],
         createDependencyDescription(),
         matcher,
@@ -247,7 +247,7 @@ describe("Dependencies", () => {
       // disallow matches → allow should not be called
       fn.mockReturnValueOnce({ matched: true });
 
-      const result = evaluateRules(
+      const result = evaluatePolicies(
         [
           {
             disallow: [{ to: [{ element: [{ type: "x" }] }] }],
@@ -273,7 +273,7 @@ describe("Dependencies", () => {
       // rule 0 disallow matches, rule 1 allow matches → final allowed
       fn.mockReturnValueOnce({ rule: 0 }).mockReturnValueOnce({ rule: 1 });
 
-      const result = evaluateRules(
+      const result = evaluatePolicies(
         [
           { disallow: [{ to: [{ element: [{ type: "x" }] }] }] },
           { allow: [{ to: [{ element: [{ type: "x" }] }] }] },
@@ -291,7 +291,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null).mockReturnValueOnce({ matched: "second" });
 
-      const result = evaluateRules(
+      const result = evaluatePolicies(
         [
           {
             disallow: [
@@ -318,16 +318,16 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValue(null);
 
-      const rule: DependenciesRule = {
+      const rule: DependenciesPolicy = {
         allow: [{ to: [{ element: [{ type: "x" }] }] }],
       };
-      evaluateRules(
+      evaluatePolicies(
         [rule],
         createDependencyDescription(),
         matcher,
         createSettings()
       );
-      evaluateRules(
+      evaluatePolicies(
         [rule],
         createDependencyDescription(),
         matcher,
@@ -347,7 +347,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [{ element: [{ type: "component" }] }],
@@ -370,7 +370,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             to: [{ element: [{ type: "helper" }] }],
@@ -393,7 +393,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             dependency: [{ kind: "type" }],
@@ -418,7 +418,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             dependency: [{ kind: "type" }],
@@ -440,7 +440,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [{ allow: [{ dependency: [{ source: "@scope/x" }] }] }],
         createDependencyDescription(),
         matcher,
@@ -457,7 +457,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [
@@ -495,7 +495,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [{ file: [{ categories: ["ui"] }] }],
@@ -518,7 +518,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [{ element: [{ type: "component" }] }],
@@ -541,7 +541,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             to: [{ module: [{ origin: "external" }] }],
@@ -568,7 +568,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             to: [{ module: [{ origin: "external" }] }],
@@ -591,7 +591,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             to: [{ element: [{ type: "helper" }] }],
@@ -614,7 +614,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [
@@ -652,7 +652,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             dependency: [{ relationship: { from: "sibling" } }],
@@ -675,7 +675,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             dependency: [{ relationship: { from: "sibling" } }],
@@ -701,7 +701,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             dependency: [{ source: "@scope/x" }],
@@ -727,7 +727,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [
@@ -768,7 +768,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [
@@ -795,7 +795,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [
@@ -825,7 +825,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [
@@ -882,7 +882,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [{ element: [{ type: "a", parent: [{ type: "module" }] }] }],
@@ -908,7 +908,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [{ element: [{ type: "a", parent: null }] }],
@@ -934,7 +934,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [{ element: [{ type: "a", parent: null }] }],
@@ -968,7 +968,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [{ element: [{ type: "a", parent: [{ type: "module" }] }] }],
@@ -994,7 +994,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [{ element: [{ type: "a" }] }],
@@ -1026,7 +1026,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [{ element: [{ type: "component" }] }],
@@ -1049,7 +1049,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [{ file: [{ categories: ["ui"] }] }],
@@ -1072,7 +1072,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [{ element: [{ type: "component" }] }],
@@ -1095,7 +1095,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             to: [{ element: [{ type: "helper" }] }],
@@ -1118,7 +1118,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             importKind: "type",
@@ -1141,7 +1141,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             importKind: "type",
@@ -1163,7 +1163,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [{ allow: [{ to: [{ element: [{ type: "helper" }] }] }] }],
         createDependencyDescription(),
         matcher,
@@ -1189,7 +1189,7 @@ describe("Dependencies", () => {
         }),
       });
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             from: [{ element: [{ type: "a" }] }],
@@ -1223,7 +1223,7 @@ describe("Dependencies", () => {
         }),
       });
 
-      evaluateRules(
+      evaluatePolicies(
         [
           {
             to: [{ element: [{ type: "helper" }] }],
@@ -1248,7 +1248,7 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
 
-      evaluateRules(
+      evaluatePolicies(
         [{ allow: [{ to: [{ element: [{ type: "x" }] }] }] }],
         createDependencyDescription(),
         matcher,
@@ -1261,24 +1261,24 @@ describe("Dependencies", () => {
   });
 
   describe("resolveCustomMessage", () => {
-    it("returns undefined when neither rule message nor options message is set", () => {
+    it("returns undefined when neither policy message nor options message is set", () => {
       expect(
-        resolveCustomMessage(0, { rules: [{ from: undefined }] })
+        resolveCustomMessage(0, { policies: [{ from: undefined }] })
       ).toBeUndefined();
     });
 
-    it("returns the rule message when available", () => {
+    it("returns the policy message when available", () => {
       const result = resolveCustomMessage(1, {
         message: "global",
-        rules: [{}, { message: "rule-msg" }],
+        policies: [{}, { message: "policy-msg" }],
       });
-      expect(result).toBe("rule-msg");
+      expect(result).toBe("policy-msg");
     });
 
-    it("falls back to the options message when there is no rule message", () => {
+    it("falls back to the options message when there is no policy message", () => {
       const result = resolveCustomMessage(0, {
         message: "global",
-        rules: [{}],
+        policies: [{}],
       });
       expect(result).toBe("global");
     });
@@ -1286,9 +1286,26 @@ describe("Dependencies", () => {
     it("returns the options message when ruleIndex is null", () => {
       const result = resolveCustomMessage(null, {
         message: "global",
-        rules: [{ message: "rule" }],
+        policies: [{ message: "policy" }],
       });
       expect(result).toBe("global");
+    });
+
+    it("reads from the deprecated 'rules' alias when 'policies' is not set", () => {
+      const result = resolveCustomMessage(1, {
+        message: "global",
+        rules: [{}, { message: "rule-msg" }],
+      });
+      expect(result).toBe("rule-msg");
+    });
+
+    it("prefers 'policies' over 'rules' when both are set", () => {
+      const result = resolveCustomMessage(0, {
+        message: "global",
+        policies: [{ message: "policy-msg" }],
+        rules: [{ message: "rule-msg" }],
+      });
+      expect(result).toBe("policy-msg");
     });
   });
 
@@ -1331,7 +1348,7 @@ describe("Dependencies", () => {
     });
   });
 
-  describe("evaluateRulesAndReport", () => {
+  describe("evaluatePoliciesAndReport", () => {
     const createReportContext = () => {
       const report = jest.fn();
       return {
@@ -1348,7 +1365,7 @@ describe("Dependencies", () => {
       getElementsMatcherMock.mockReturnValue(matcher);
       const { context, report } = createReportContext();
 
-      evaluateRulesAndReport({
+      evaluatePoliciesAndReport({
         rules: [{ allow: [{ to: [{ element: [{ type: "x" }] }] }] }],
         dependency: createDependencyDescription(),
         settings: createSettings(),
@@ -1367,7 +1384,7 @@ describe("Dependencies", () => {
       getElementsMatcherMock.mockReturnValue(matcher);
       const { context, report } = createReportContext();
 
-      evaluateRulesAndReport({
+      evaluatePoliciesAndReport({
         rules: [{ allow: [{ to: [{ element: [{ type: "x" }] }] }] }],
         dependency: createDependencyDescription(),
         settings: createSettings(),
@@ -1386,7 +1403,7 @@ describe("Dependencies", () => {
       getElementsMatcherMock.mockReturnValue(matcher);
       const { context, report } = createReportContext();
 
-      evaluateRulesAndReport({
+      evaluatePoliciesAndReport({
         rules: [{ allow: [{ to: [{ element: [{ type: "x" }] }] }] }],
         dependency: createDependencyDescription(),
         settings: createSettings(),
@@ -1416,13 +1433,16 @@ describe("Dependencies", () => {
         },
       ];
 
-      evaluateRulesAndReport({
+      evaluatePoliciesAndReport({
         rules,
         dependency: createDependencyDescription(),
         settings: createSettings(),
         context,
         node: baseNode,
-        options: { message: "global", rules } as RuleOptionsWithRules,
+        options: {
+          message: "global",
+          policies: rules,
+        } as RuleOptionsWithPolicies,
       });
 
       expect(report).toHaveBeenCalledTimes(1);
@@ -1441,7 +1461,7 @@ describe("Dependencies", () => {
       getElementsMatcherMock.mockReturnValue(matcher);
       const { context, report } = createReportContext();
 
-      evaluateRulesAndReport({
+      evaluatePoliciesAndReport({
         rules: [],
         dependency: createDependencyDescription(),
         settings: createSettings(),
@@ -1681,7 +1701,7 @@ describe("Dependencies", () => {
       expect(getElementsMatcherMock).toHaveBeenCalledTimes(1);
     });
 
-    it("uses an empty rules array when options.rules is undefined", () => {
+    it("uses an empty policies array when options.policies is undefined", () => {
       const matcher = createMatcher();
       getElementsMatcherMock.mockReturnValue(matcher);
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
@@ -1694,11 +1714,30 @@ describe("Dependencies", () => {
       );
 
       expect(getElementsMatcherMock).toHaveBeenCalledTimes(1);
-      // No rules → matcher should not be invoked
+      // No policies → matcher should not be invoked
       expect(fn).not.toHaveBeenCalled();
     });
 
-    it("evaluates rules through the wrapper when configured", () => {
+    it("evaluates policies through the wrapper when configured", () => {
+      const matcher = createMatcher();
+      getElementsMatcherMock.mockReturnValue(matcher);
+      const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
+      fn.mockReturnValueOnce({ matched: true });
+
+      const dependency = localDependency();
+
+      callHandler(
+        RULE_NAMES_MAP.DEPENDENCIES,
+        createCallArgs(dependency, {
+          default: "allow",
+          policies: [{ disallow: [{ to: [{ element: [{ type: "x" }] }] }] }],
+        })
+      );
+
+      expect(fn).toHaveBeenCalledTimes(1);
+    });
+
+    it("falls back to the deprecated 'rules' alias when 'policies' is not set", () => {
       const matcher = createMatcher();
       getElementsMatcherMock.mockReturnValue(matcher);
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;

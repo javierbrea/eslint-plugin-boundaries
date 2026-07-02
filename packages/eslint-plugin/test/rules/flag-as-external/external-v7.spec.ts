@@ -32,7 +32,7 @@ const testDefaultSettings = () => {
           {
             checkAllOrigins: true,
             default: "disallow",
-            rules: [{ allow: [{ to: { module: { origin: "local" } } }] }],
+            policies: [{ allow: [{ to: { module: { origin: "local" } } }] }],
           },
         ],
       },
@@ -46,7 +46,7 @@ const testDefaultSettings = () => {
           {
             checkAllOrigins: true,
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "components" } },
                 disallow: [
@@ -71,7 +71,7 @@ const testDefaultSettings = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
             type: "Literal",
           },
         ],
@@ -84,7 +84,7 @@ const testDefaultSettings = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "unknown-package-xyz"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "unknown-package-xyz"',
             type: "Literal",
           },
         ],
@@ -132,7 +132,7 @@ const testOutsideRootPath = () => {
           {
             checkAllOrigins: true,
             default: "disallow",
-            rules: [{ allow: [{ to: { module: { origin: "local" } } }] }],
+            policies: [{ allow: [{ to: { module: { origin: "local" } } }] }],
           },
         ],
       },
@@ -146,7 +146,7 @@ const testOutsideRootPath = () => {
           {
             checkAllOrigins: true,
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "components" } },
                 allow: [
@@ -171,7 +171,7 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to entities of module with origin "external" and module source "package-b" being elements of type "helpers" and captured values: elementName="helper-b"',
+              'There is no policy allowing dependencies from elements of type "components" and captured values: elementName="component-a" to entities of module with origin "external" and module source "package-b" being elements of type "helpers" and captured values: elementName="helper-b"',
             type: "Literal",
           },
         ],
@@ -185,7 +185,7 @@ const testOutsideRootPath = () => {
           {
             checkAllOrigins: true,
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "components" } },
                 disallow: [
@@ -200,7 +200,7 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message:
-              'Dependencies with module source "package-b" to entities of module with origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
+              'Dependencies with module source "package-b" to entities of module with origin "external" are not allowed in elements of type "components". Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -213,7 +213,7 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "helpers" and captured values: elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
             type: "Literal",
           },
         ],
@@ -248,7 +248,7 @@ const testCustomSourcePatterns = () => {
           {
             checkAllOrigins: true,
             default: "disallow",
-            rules: [{ allow: [{ to: { module: { origin: "local" } } }] }],
+            policies: [{ allow: [{ to: { module: { origin: "local" } } }] }],
           },
         ],
       },
@@ -262,7 +262,7 @@ const testCustomSourcePatterns = () => {
           {
             checkAllOrigins: true,
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "components" } },
                 disallow: [
@@ -283,7 +283,7 @@ const testCustomSourcePatterns = () => {
           {
             checkAllOrigins: true,
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "components" } },
                 allow: [
@@ -308,7 +308,7 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "components" and captured values: package="a", elementName="component-a" to entities of module with origin "external" and module source "package-b" being elements of type "helpers" and captured values: package="b", elementName="helper-b"',
+              'There is no policy allowing dependencies from elements of type "components" and captured values: package="a", elementName="component-a" to entities of module with origin "external" and module source "package-b" being elements of type "helpers" and captured values: package="b", elementName="helper-b"',
             type: "Literal",
           },
         ],
@@ -322,7 +322,7 @@ const testCustomSourcePatterns = () => {
           {
             checkAllOrigins: true,
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "components" } },
                 disallow: [
@@ -337,7 +337,7 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message:
-              'Dependencies with module source "package-b" to entities of module with origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
+              'Dependencies with module source "package-b" to entities of module with origin "external" are not allowed in elements of type "components". Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -350,7 +350,7 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
             type: "Literal",
           },
         ],
@@ -389,7 +389,7 @@ const testInNodeModulesDisabled = () => {
           {
             checkAllOrigins: true,
             default: "disallow",
-            rules: [{ allow: [{ to: { module: { origin: "local" } } }] }],
+            policies: [{ allow: [{ to: { module: { origin: "local" } } }] }],
           },
         ],
       },
@@ -400,7 +400,7 @@ const testInNodeModulesDisabled = () => {
           {
             checkAllOrigins: true,
             default: "disallow",
-            rules: [{ allow: [{ to: { module: { origin: "local" } } }] }],
+            policies: [{ allow: [{ to: { module: { origin: "local" } } }] }],
           },
         ],
       },
@@ -414,7 +414,7 @@ const testInNodeModulesDisabled = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "any" to entities of module with origin "external" and module source "unknown-package-xyz"',
+              'There is no policy allowing dependencies from elements of type "any" to entities of module with origin "external" and module source "unknown-package-xyz"',
             type: "Literal",
           },
         ],
@@ -455,7 +455,7 @@ const testUnresolvableAliasDisabled = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
             type: "Literal",
           },
         ],
@@ -496,7 +496,7 @@ const testInvalidSettings = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "eslint"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "eslint"',
             type: "Literal",
           },
         ],

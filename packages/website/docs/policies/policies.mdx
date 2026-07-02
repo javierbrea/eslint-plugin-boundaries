@@ -55,7 +55,7 @@ export default [{
       message: "{{from.element.types}} is not allowed to depend on {{to.element.types}}",
 
       // Array of policies
-      rules: [
+      policies: [
         {
           from: { element: { type: "helper" } },
           // Effect when the dependency matches this policy
@@ -220,7 +220,7 @@ Custom error messages let you express more helpful feedback tailored to your pro
 The rule provides a detailed default message. You can override it by setting `message` in the options.
 
 :::tip
-You can define a custom message at the top level of the rule, which applies to every policy in the `rules` array, or on an individual policy for more specific messages.
+You can define a custom message at the top level of the rule, which applies to every policy in the `policies` array, or on an individual policy for more specific messages.
 :::
 
 #### Message Templating
@@ -244,7 +244,7 @@ The Handlebars context for custom messages has these top-level variables:
 * `from` - The entity importing the dependency.
 * `to` - The entity being imported.
 * `dependency` - Metadata about the dependency itself.
-* `rule` - The policy that produced the error, or `null` when the error comes from the default policy (no policy matched).
+* `policy` - The policy that produced the error, or `null` when the error comes from the default policy (no policy matched). (`rule` is a deprecated alias, see [Legacy Policy Configuration](./legacy.mdx#legacy-rule-template-variable).)
 
 Both `from` and `to` carry the [full entity data tree](../classification/classification.md). These are the canonical paths:
 
@@ -266,13 +266,13 @@ Both `from` and `to` carry the [full entity data tree](../classification/classif
 | `{{dependency.source}}` | string | Literal import/export source string |
 | `{{dependency.specifiers}}` | array | Imported/exported specifier names |
 | `{{dependency.relationship.from}}` / `{{dependency.relationship.to}}` | string | Relationship between the two elements |
-| `{{rule.index}}` | number | Index of the matching rule (`null` for default policy) |
-| `{{rule.selector}}` | object | The full [selector](../selectors/selectors.md#dependency-selectors) (`from`, `to`, `dependency`) of the matching rule — any selector field is available, e.g. `{{rule.selector.from.element.type}}`, `{{rule.selector.to.file.categories}}`, `{{rule.selector.dependency.kind}}` |
+| `{{policy.index}}` | number | Index of the matching policy (`null` for default policy) |
+| `{{policy.selector}}` | object | The full [selector](../selectors/selectors.md#dependency-selectors) (`from`, `to`, `dependency`) of the matching policy — any selector field is available, e.g. `{{policy.selector.from.element.type}}`, `{{policy.selector.to.file.categories}}`, `{{policy.selector.dependency.kind}}` |
 
 Use Handlebars bracket notation to read array items, for example `{{from.element.types.[0]}}` for the first type.
 
 :::tip
-For the complete property reference of `from`, `to`, and `dependency`, see [Classification](../classification/classification.md) and its per-layer tables ([element](../classification/elements.md#element-description), [file](../classification/files.md#file-description), [module](../classification/modules.md#module-description)). `rule.selector` is the full selector object of the matching policy (`from`, `to`, `dependency`, each of which can contain `element`, `file`, and `module` sub-selectors) — see [Selectors → Dependency Selectors](../selectors/selectors.md#dependency-selectors) for its complete shape.
+For the complete property reference of `from`, `to`, and `dependency`, see [Classification](../classification/classification.md) and its per-layer tables ([element](../classification/elements.md#element-description), [file](../classification/files.md#file-description), [module](../classification/modules.md#module-description)). `policy.selector` is the full selector object of the matching policy (`from`, `to`, `dependency`, each of which can contain `element`, `file`, and `module` sub-selectors) — see [Selectors → Dependency Selectors](../selectors/selectors.md#dependency-selectors) for its complete shape.
 :::
 
 **Usage in templates:**
@@ -294,8 +294,8 @@ For the complete property reference of `from`, `to`, and `dependency`, see [Clas
   // Access dependency information
   "message": "Cannot import {{dependency.kind}} from {{to.element.types}}",
 
-  // Access rule information
-  "message": "Denied by rule at index {{rule.index}} (from {{rule.selector.from.element.type}} to {{rule.selector.to.element.type}})"
+  // Access policy information
+  "message": "Denied by policy at index {{policy.index}} (from {{policy.selector.from.element.type}} to {{policy.selector.to.element.type}})"
 }
 ```
 
@@ -309,7 +309,7 @@ For backward compatibility, each `from`/`to` side also exposes flat V6 fields in
 
 ### `importKind` (deprecated)
 
-Rule-level `importKind` is kept for backward compatibility but is deprecated. Use the [`dependency.kind`](../selectors/selectors.md#dependency-selectors) metadata selector instead; when both are defined, `dependency.kind` takes precedence. See **[Legacy Policy Configuration](./legacy.mdx#importkind-deprecated)** for examples and migration.
+Policy-level `importKind` is kept for backward compatibility but is deprecated. Use the [`dependency.kind`](../selectors/selectors.md#dependency-selectors) metadata selector instead; when both are defined, `dependency.kind` takes precedence. See **[Legacy Policy Configuration](./legacy.mdx#importkind-deprecated)** for examples and migration.
 
 ## Policies Evaluation Order
 
@@ -318,7 +318,7 @@ Policies are evaluated sequentially, and each matching policy can override previ
 ```js
 {
   default: "disallow",
-  rules: [
+  policies: [
     // If this matches: result is "allow"
     // Components can import helpers
     {
@@ -332,7 +332,7 @@ Policies are evaluated sequentially, and each matching policy can override previ
       disallow: { to: { element: { types: "helper", captured: { family: "data" } } } },
     },
     // If this also matches: result is "allow" (overrides previous).
-    // Component family "atoms" can import the "data/sort" helper, in exception to previous rule
+    // Component family "atoms" can import the "data/sort" helper, in exception to previous policy
     {
       from: { element: { types: "component", captured: { family: "atoms" } } },
       allow: {
@@ -441,7 +441,7 @@ For example, the next policy applies to dependencies whose importing file is eit
 
 ### Merging nested properties
 
-When using nested properties like `parent`, `captured` or `relationship`, the properties are merged together as well. For example, in the next rule:
+When using nested properties like `parent`, `captured` or `relationship`, the properties are merged together as well. For example, in the next policy:
 
 - `allow` applies to components with `elementName` "component-a" and `family` "atoms", importing any helper.
 
@@ -478,7 +478,7 @@ For example, in the next policy the `allow` selector is not merged with the poli
 
 ## Complete Example
 
-To illustrate the level of customization the plugin supports, here is a fully commented `boundaries/dependencies` rule that uses entity selectors, file categories, and module matching. It assumes the canonical demo setup:
+To illustrate the level of customization the plugin supports, here is a fully commented `boundaries/dependencies` rule that uses entity selectors, file categories, and module matching in policies. It assumes the canonical demo setup:
 
 ```js
 settings: {
@@ -500,7 +500,7 @@ export default [{
     "boundaries/dependencies": [2, {
       // Disallow every dependency by default
       default: "disallow",
-      rules: [
+      policies: [
         {
           // Helpers can import other helpers
           from: { element: { type: "helper" } },

@@ -28,7 +28,7 @@ function fileCategoriesNoRuleMessage({
   file: string;
   dep: string;
 }) {
-  return `There is no rule allowing dependencies from file of category ${file} to file of category ${dep}`;
+  return `There is no policy allowing dependencies from file of category ${file} to file of category ${dep}`;
 }
 
 function fileCapturedNoRuleMessage({
@@ -38,7 +38,7 @@ function fileCapturedNoRuleMessage({
   file: string;
   dep: string;
 }) {
-  return `There is no rule allowing dependencies from ${file} to ${dep}`;
+  return `There is no policy allowing dependencies from ${file} to ${dep}`;
 }
 
 function fileWithCapturedDesc(
@@ -175,7 +175,7 @@ const runTest = (
       {
         filename: absoluteFilePath("modules/module-a/ModuleA.js"),
         code: "import ModuleB from '../module-b/foo.js'",
-        options: [{ rules: undefined }],
+        options: [{ policies: undefined }],
       },
       // Invalid options: unknown file category in from
       {
@@ -183,7 +183,7 @@ const runTest = (
         code: "import ModuleB from '../module-b/foo.js'",
         options: [
           {
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "foo" } },
                 allow: { to: { file: { categories: "modules" } } },
@@ -490,7 +490,7 @@ runTest(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { file: { categories: "components" } },
           allow: {
@@ -530,7 +530,7 @@ runTest(
   [
     {
       default: "allow",
-      rules: [
+      policies: [
         {
           from: { file: { categories: "helpers" } },
           disallow: {
@@ -565,10 +565,10 @@ runTest(
       file: '"helpers" belonging to elements of type "helpers"',
       dep: '"helpers" belonging to elements of type "helpers"',
     }),
-    1: 'Dependencies to file of category "helpers" are not allowed in file of category "helpers". Denied by rule at index 0',
-    2: 'Dependencies to file of category "components" are not allowed in file of category "helpers". Denied by rule at index 0',
-    3: 'Dependencies to file of category "modules" are not allowed in file of category "helpers". Denied by rule at index 0',
-    4: 'Dependencies to file of category "modules" are not allowed in file of category "components". Denied by rule at index 1',
+    1: 'Dependencies to file of category "helpers" are not allowed in file of category "helpers". Denied by policy at index 0',
+    2: 'Dependencies to file of category "components" are not allowed in file of category "helpers". Denied by policy at index 0',
+    3: 'Dependencies to file of category "modules" are not allowed in file of category "helpers". Denied by policy at index 0',
+    4: 'Dependencies to file of category "modules" are not allowed in file of category "components". Denied by policy at index 1',
   }
 );
 
@@ -579,7 +579,7 @@ runTest(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { file: { categories: "c*" } },
           allow: {
@@ -612,7 +612,7 @@ runTest(
   [
     {
       default: "allow",
-      rules: [
+      policies: [
         {
           from: { file: { categories: "helpers" } },
           disallow: {
@@ -631,10 +631,10 @@ runTest(
     },
   ],
   {
-    1: 'Dependencies to file of category "helpers" are not allowed in file of category "helpers". Denied by rule at index 0',
-    2: 'Dependencies to file of category "components" are not allowed in file of category "helpers". Denied by rule at index 0',
-    3: 'Dependencies to file of category "modules" are not allowed in file of category "helpers". Denied by rule at index 0',
-    4: 'Dependencies to file of category "modules" are not allowed in file of category "components". Denied by rule at index 1',
+    1: 'Dependencies to file of category "helpers" are not allowed in file of category "helpers". Denied by policy at index 0',
+    2: 'Dependencies to file of category "components" are not allowed in file of category "helpers". Denied by policy at index 0',
+    3: 'Dependencies to file of category "modules" are not allowed in file of category "helpers". Denied by policy at index 0',
+    4: 'Dependencies to file of category "modules" are not allowed in file of category "components". Denied by policy at index 1',
   }
 );
 
@@ -647,7 +647,7 @@ testFileCaptured(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { file: { categories: "components" } },
           allow: {
@@ -695,7 +695,7 @@ testFileCaptured(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { file: { categories: "c*" } },
           allow: {
@@ -733,7 +733,7 @@ testFileCaptured(
     },
   ],
   {
-    2: 'Dependencies to file of category "components" and captured values: elementName="component-a" are not allowed in file of category "components". Denied by rule at index 0',
+    2: 'Dependencies to file of category "components" and captured values: elementName="component-a" are not allowed in file of category "components". Denied by policy at index 0',
   }
 );
 
@@ -746,7 +746,7 @@ testFileCaptured(
       default: "disallow",
       message:
         "Importing {{to.file.categories.[0]}} with captured name {{to.file.captured.elementName}} is not allowed in {{from.file.categories.[0]}} with captured name {{from.file.captured.elementName}}",
-      rules: [
+      policies: [
         {
           from: { file: { categories: "c*" } },
           allow: {
@@ -802,7 +802,7 @@ testFileCaptured(
       default: "disallow",
       message:
         "Importing {{to.file.categories.[0]}} with captured name {{to.file.captured.elementName}} is not allowed in {{from.file.categories.[0]}} with captured name {{from.file.captured.elementName}}",
-      rules: [
+      policies: [
         {
           from: { file: { categories: "c*" } },
           allow: {
@@ -854,7 +854,7 @@ testFileCaptured(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: {
             file: {
@@ -932,7 +932,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 allow: {
@@ -951,7 +951,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   to: { file: { isIgnored: false, isUnknown: false } },
@@ -968,7 +968,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   dependency: { relationship: { from: null } },
@@ -985,7 +985,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   dependency: { relationship: { to: null } },
@@ -1002,7 +1002,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   to: { file: { captured: null } },
@@ -1019,7 +1019,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: {
@@ -1038,7 +1038,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   to: {
@@ -1059,7 +1059,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: { to: [{ file: { categories: "helpers" } }] },
@@ -1077,7 +1077,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: {
@@ -1104,7 +1104,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: {
@@ -1131,7 +1131,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: {
                   file: {
@@ -1156,7 +1156,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: {
@@ -1176,7 +1176,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { path: "**/helpers/helper-a/**" } },
                 disallow: {
@@ -1196,7 +1196,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: { to: [{ file: { isIgnored: false } }] },
@@ -1214,7 +1214,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: { to: [{ file: { isUnknown: false } }] },
@@ -1232,7 +1232,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: {
@@ -1253,7 +1253,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: {
@@ -1274,7 +1274,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: {
@@ -1295,7 +1295,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: {
@@ -1316,7 +1316,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { file: { categories: "helpers" } },
                 disallow: {
@@ -1343,7 +1343,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 disallow: {
                   to: { file: { categories: null } },
@@ -1355,7 +1355,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to file of category "helpers" are not allowed. Denied by rule at index 0',
+              'Dependencies to file of category "helpers" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1367,7 +1367,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 disallow: {
                   to: { file: { captured: null } },
@@ -1379,7 +1379,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to file of captured values: restOfPath="test/fixtures/one-level", elementName="helper-b", fileName="index" are not allowed. Denied by rule at index 0',
+              'Dependencies to file of captured values: restOfPath="test/fixtures/one-level", elementName="helper-b", fileName="index" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1391,7 +1391,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 disallow: {
                   to: {
@@ -1405,7 +1405,7 @@ createRuleTester(fileSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to file of category "helpers" and captured values: restOfPath="test/fixtures/one-level", elementName="helper-b", fileName="index" are not allowed. Denied by rule at index 0',
+              'Dependencies to file of category "helpers" and captured values: restOfPath="test/fixtures/one-level", elementName="helper-b", fileName="index" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],

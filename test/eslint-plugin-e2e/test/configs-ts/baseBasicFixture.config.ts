@@ -1,7 +1,7 @@
 import type {
   ElementDescriptors,
   IgnoreSetting,
-  DependenciesRule,
+  DependenciesPolicy,
   DependenciesRuleOptions,
   Config,
   Settings,
@@ -29,7 +29,7 @@ const elementsMapping: ElementDescriptors = [
 
 const ignoreSetting: IgnoreSetting = ["**/ignored/**/*.js"];
 
-const allowComponentsFromModules: DependenciesRule = {
+const allowComponentsFromModules: DependenciesPolicy = {
   from: { type: "module" },
   allow: [{ to: { type: "component" } }],
 };
@@ -44,7 +44,7 @@ const componentToComponentRuleElementSelectors = [
 
 const dependenciesRuleOptions: DependenciesRuleOptions = {
   default: "disallow",
-  rules: [
+  policies: [
     allowComponentsFromModules,
     {
       from: {

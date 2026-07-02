@@ -16,7 +16,7 @@ const options = [
     // disallow all external imports by default
     checkAllOrigins: true,
     default: "disallow",
-    rules: [
+    policies: [
       {
         // from helper elements
         from: { file: { categories: "helpers" } },
@@ -108,7 +108,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from file of category "helpers" and captured values: restOfPath="test/fixtures/docs-examples", category="data", elementName="parse" to entities of module with origin "external" and module source "react"',
+            'There is no policy allowing dependencies from file of category "helpers" and captured values: restOfPath="test/fixtures/docs-examples", category="data", elementName="parse" to entities of module with origin "external" and module source "react"',
           type: "Literal",
         },
       ],
@@ -121,7 +121,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from file of category "helpers" and captured values: restOfPath="test/fixtures/docs-examples", category="data", elementName="parse" to entities of module with origin "external" and module source "react"',
+            'There is no policy allowing dependencies from file of category "helpers" and captured values: restOfPath="test/fixtures/docs-examples", category="data", elementName="parse" to entities of module with origin "external" and module source "react"',
           type: "Literal",
         },
       ],
@@ -134,7 +134,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "components" and captured values: family="atoms", elementName="atom-a" to entities of module with origin "external" and module source "moment"',
+            'There is no policy allowing dependencies from elements of type "components" and captured values: family="atoms", elementName="atom-a" to entities of module with origin "external" and module source "moment"',
           type: "Literal",
         },
       ],
@@ -149,7 +149,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies with module source "@material-ui/icons" to entities of module with origin "external" are not allowed in elements of type "components" and captured values: family="molecules". Denied by rule at index 2',
+            'Dependencies with module source "@material-ui/icons" to entities of module with origin "external" are not allowed in elements of type "components" and captured values: family="molecules". Denied by policy at index 2',
           type: "Literal",
         },
       ],
@@ -162,7 +162,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to entities of module with origin "external" and module source "react-router-dom"',
+            'There is no policy allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to entities of module with origin "external" and module source "react-router-dom"',
           type: "Literal",
         },
       ],

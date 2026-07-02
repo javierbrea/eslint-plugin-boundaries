@@ -46,7 +46,7 @@ export default [{
 This extends the running example used across the documentation. Test files get the `test` category and stylesheets get the `style` category, no matter which element contains them.
 
 :::tip
-Read the [Selectors](../selectors/selectors.md) section to learn how to match categorized files in rules with the [`file` selector](../selectors/selectors.md), and see [`boundaries/files`](../settings/settings.md#boundariesfiles) for the setting schema.
+Read the [Selectors](../selectors/selectors.md) section to learn how to match categorized files in policies with the [`file` selector](../selectors/selectors.md), and see [`boundaries/files`](../settings/settings.md#boundariesfiles) for the setting schema.
 :::
 
 ## File Descriptor Properties
@@ -131,7 +131,7 @@ The file dimension is independent from the element dimension. A file can be a **
 
 ## Matching Files using Selectors
 
-To target a file, use the [`file` sub-selector](../selectors/file.md) inside a rule's `to`:
+To target a file, use the [`file` sub-selector](../selectors/file.md) inside a policy's `to`:
 
 ```js
 // Match files with the "test" category
@@ -175,5 +175,5 @@ See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) fo
 - **[Classification](./classification.md)** - how elements, files, and modules combine into one entity.
 - **[Elements](./elements.md)** - classify files by the architectural element they belong to.
 - **[Modules](./modules.md)** - classify dependencies by where they resolve from.
-- **[Selectors](../selectors/selectors.md)** - match files (and their categories) in your rules.
+- **[Selectors](../selectors/selectors.md)** - match files (and their categories) in your policies.
 - **[Settings](../settings/settings.md)** - the `boundaries/files` setting schema and every other global setting.

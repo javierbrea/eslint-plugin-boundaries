@@ -105,7 +105,7 @@ testCapture(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           to: { element: { type: "helpers" } },
           allow: { to: { element: { fileInternalPath: "main.js" } } },
@@ -139,10 +139,10 @@ testCapture(
     },
   ],
   {
-    0: 'There is no rule allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to elements of type "components" and captured values: elementName="component-c"',
-    1: 'There is no rule allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to elements of type "components" and captured values: elementName="component-a"',
-    2: 'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "helpers" and captured values: elementName="helper-b"',
-    3: 'Dependencies to elements of type "helpers", captured values: elementName="helper-a" and fileInternalPath "main.js" are not allowed. Denied by rule at index 1',
+    0: 'There is no policy allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to elements of type "components" and captured values: elementName="component-c"',
+    1: 'There is no policy allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to elements of type "components" and captured values: elementName="component-a"',
+    2: 'There is no policy allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "helpers" and captured values: elementName="helper-b"',
+    3: 'Dependencies to elements of type "helpers", captured values: elementName="helper-a" and fileInternalPath "main.js" are not allowed. Denied by policy at index 1',
   }
 );
 
@@ -155,7 +155,7 @@ testCapture(
       default: "disallow",
       message:
         "Importing the file ${dependency.internalPath} is not allowed in ${dependency.type}",
-      rules: [
+      policies: [
         {
           to: { element: { type: "helpers" } },
           allow: { to: { element: { fileInternalPath: "main.js" } } },

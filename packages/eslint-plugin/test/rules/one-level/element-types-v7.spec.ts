@@ -120,7 +120,7 @@ const runTest = (
       {
         filename: absoluteFilePath("modules/module-a/ModuleA.js"),
         code: "import ModuleB from '../module-b/foo.js'",
-        options: [{ rules: undefined }],
+        options: [{ policies: undefined }],
       },
       // Invalid options
       {
@@ -128,7 +128,7 @@ const runTest = (
         code: "import ModuleB from '../module-b/foo.js'",
         options: [
           {
-            rules: [
+            policies: [
               {
                 from: { element: { type: "foo" } },
                 allow: { to: { element: { type: "components" } } },
@@ -143,7 +143,7 @@ const runTest = (
         code: "import MyModuleB from '../../modules/module-b/foo.js'",
         options: [
           {
-            rules: [
+            policies: [
               {
                 from: { element: { type: "components" } },
                 disallow: { to: { element: { type: "foo" } } },
@@ -424,7 +424,7 @@ runTest(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "components" } },
           allow: {
@@ -472,7 +472,7 @@ runTest(
   [
     {
       default: "allow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "helpers" } },
           disallow: {
@@ -511,10 +511,10 @@ runTest(
       file: '"helpers"',
       dep: '"helpers"',
     }),
-    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by rule at index 1',
+    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by policy at index 1',
   }
 );
 
@@ -525,7 +525,7 @@ runTest(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "components" } },
           allow: {
@@ -561,7 +561,7 @@ runTest(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "components" } },
           allow: {
@@ -594,7 +594,7 @@ runTest(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "components" } },
           allow: {
@@ -627,7 +627,7 @@ runTest(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "c*" } },
           allow: {
@@ -656,7 +656,7 @@ runTest(
   [
     {
       default: "allow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "helpers" } },
           disallow: {
@@ -675,10 +675,10 @@ runTest(
     },
   ],
   {
-    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by rule at index 1',
+    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by policy at index 1',
   }
 );
 
@@ -689,7 +689,7 @@ testCapture(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "components" } },
           allow: {
@@ -733,7 +733,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );
 
@@ -744,7 +744,7 @@ testCapture(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "components" } },
           allow: {
@@ -792,7 +792,7 @@ testCapture(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "c*" } },
           allow: {
@@ -821,7 +821,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );
 
@@ -834,7 +834,7 @@ testCapture(
       default: "disallow",
       message:
         "Importing {{to.element.types.[0]}} with name {{to.element.captured.elementName}} is not allowed in {{from.element.types.[0]}} with name {{from.element.captured.elementName}}",
-      rules: [
+      policies: [
         {
           from: { element: { type: "c*" } },
           allow: {
@@ -881,7 +881,7 @@ testCapture(
       default: "disallow",
       message:
         "Importing {{to.element.types.[0]}} with name {{to.element.captured.elementName}} is not allowed in {{from.element.types.[0]}} with name {{from.element.captured.elementName}}",
-      rules: [
+      policies: [
         {
           from: { element: { type: "c*" } },
           allow: {
@@ -922,7 +922,7 @@ testCapture(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "c*" } },
           allow: {
@@ -956,7 +956,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );
 
@@ -965,7 +965,7 @@ testCapture(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: [{ element: { type: "c*" } }],
           allow: {
@@ -1006,7 +1006,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );
 
@@ -1047,7 +1047,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 allow: {
@@ -1065,7 +1065,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   to: { element: { parent: null } },
@@ -1081,7 +1081,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   to: { element: { isIgnored: false, isUnknown: false } },
@@ -1097,7 +1097,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   dependency: { relationship: { from: null } },
@@ -1113,7 +1113,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   dependency: { relationship: { to: null } },
@@ -1129,7 +1129,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   dependency: { relationship: { from: null, to: null } },
@@ -1145,7 +1145,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -1163,7 +1163,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   to: { element: { path: null } },
@@ -1179,7 +1179,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   to: { element: { parent: null } },
@@ -1195,7 +1195,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   to: { element: { type: null } },
@@ -1211,7 +1211,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   to: { file: { categories: null } },
@@ -1227,7 +1227,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   to: { element: { captured: null } },
@@ -1243,7 +1243,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   to: {
@@ -1270,7 +1270,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: { to: [{ element: { type: "helpers" } }] },
@@ -1287,7 +1287,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: { to: [{ file: { categories: "shared" } }] },
@@ -1304,7 +1304,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -1323,7 +1323,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: { to: [{ module: { origin: "local" } }] },
@@ -1340,7 +1340,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -1359,7 +1359,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -1378,7 +1378,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -1397,7 +1397,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: { to: [{ element: { isIgnored: false } }] },
@@ -1414,7 +1414,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: { to: [{ element: { isUnknown: false } }] },
@@ -1431,7 +1431,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -1451,7 +1451,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -1471,7 +1471,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -1491,7 +1491,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -1512,7 +1512,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -1526,7 +1526,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies with module source "null" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 0',
+              'Dependencies with module source "null" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1537,7 +1537,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 disallow: {
                   to: { element: { parent: null } },
@@ -1549,7 +1549,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of parent "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of parent "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1560,7 +1560,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 disallow: {
                   to: { element: { isIgnored: false, isUnknown: false } },
@@ -1572,7 +1572,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of isIgnored "false" and isUnknown "false" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of isIgnored "false" and isUnknown "false" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1583,7 +1583,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 disallow: {
                   dependency: { relationship: { from: null } },
@@ -1595,7 +1595,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies with relationship from "null" are not allowed. Denied by rule at index 0',
+              'Dependencies with relationship from "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1606,7 +1606,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 disallow: {
                   dependency: { relationship: { to: null } },
@@ -1618,7 +1618,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies with relationship to "null" are not allowed. Denied by rule at index 0',
+              'Dependencies with relationship to "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1629,7 +1629,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 disallow: {
                   dependency: { relationship: { from: null, to: null } },
@@ -1641,7 +1641,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies with relationship from "null" and relationship to "null" are not allowed. Denied by rule at index 0',
+              'Dependencies with relationship from "null" and relationship to "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1653,7 +1653,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
           {
             checkAllOrigins: true,
             default: "allow",
-            rules: [
+            policies: [
               {
                 disallow: {
                   to: { element: { path: null } },
@@ -1665,7 +1665,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of path "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of path "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1677,7 +1677,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
           {
             default: "allow",
             checkAllOrigins: true,
-            rules: [
+            policies: [
               {
                 disallow: {
                   to: { element: { path: null } },
@@ -1689,7 +1689,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of path "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of path "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1701,7 +1701,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
           {
             default: "allow",
             checkAllOrigins: true,
-            rules: [
+            policies: [
               {
                 disallow: {
                   to: { element: { parent: null } },
@@ -1713,7 +1713,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of parent "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of parent "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1725,7 +1725,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
           {
             default: "allow",
             checkAllOrigins: true,
-            rules: [
+            policies: [
               {
                 disallow: {
                   to: { element: { type: null } },
@@ -1737,7 +1737,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of type "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of type "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1749,7 +1749,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
           {
             default: "allow",
             checkAllOrigins: true,
-            rules: [
+            policies: [
               {
                 disallow: {
                   to: { file: { categories: null } },
@@ -1761,7 +1761,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to file of category "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to file of category "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1773,7 +1773,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
           {
             default: "allow",
             checkAllOrigins: true,
-            rules: [
+            policies: [
               {
                 disallow: {
                   to: { element: { captured: null } },
@@ -1785,7 +1785,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of captured "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of captured "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1797,7 +1797,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
           {
             default: "allow",
             checkAllOrigins: true,
-            rules: [
+            policies: [
               {
                 disallow: {
                   to: {
@@ -1818,7 +1818,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to file of category "null" belonging to elements of path "null", fileInternalPath "null", type "null", captured "null" and parent "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to file of category "null" belonging to elements of path "null", fileInternalPath "null", type "null", captured "null" and parent "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1829,7 +1829,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -1857,7 +1857,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
           {
             default: "allow",
             checkAllOrigins: true,
-            rules: [
+            policies: [
               {
                 disallow: {
                   to: {

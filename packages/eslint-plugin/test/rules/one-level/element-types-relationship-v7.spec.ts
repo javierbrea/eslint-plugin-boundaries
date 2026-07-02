@@ -16,7 +16,7 @@ const options = [
     default: "allow",
     message:
       'Dependency is private of element of type "${dependency.parent.type}" and captured values: elementName="${dependency.parent.elementName}"',
-    rules: [
+    policies: [
       {
         disallow: {
           to: {
@@ -44,7 +44,7 @@ const options = [
 const optionsDisallowUncles = [
   {
     default: "allow",
-    rules: [
+    policies: [
       {
         disallow: {
           to: {
@@ -241,7 +241,7 @@ const runTest = (settings: RuleTesterSettings) => {
         errors: [
           {
             message:
-              'Dependencies to elements of parent type "components" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of parent type "components" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -257,7 +257,7 @@ const runTest = (settings: RuleTesterSettings) => {
             default: "allow",
             message:
               "The element of type '${dependency.type}' with name '${dependency.elementName}' is child of element of type '${dependency.parent.type}' with name '${dependency.parent.elementName}'",
-            rules: optionsDisallowUncles[0].rules,
+            policies: optionsDisallowUncles[0].policies,
           },
         ],
         errors: [
@@ -279,7 +279,7 @@ const runTest = (settings: RuleTesterSettings) => {
             default: "allow",
             message:
               "The element of type '${target.type}' with name '${target.elementName}' is child of element of type '${target.parent.type}' with name '${target.parent.elementName}'",
-            rules: optionsDisallowUncles[0].rules,
+            policies: optionsDisallowUncles[0].policies,
           },
         ],
         errors: [
@@ -301,7 +301,7 @@ const runTest = (settings: RuleTesterSettings) => {
             default: "allow",
             message:
               "This element is of type '${file.type}' with name '${file.elementName}', and it is child of element of type '${file.parent.type}' with name '${file.parent.elementName}'",
-            rules: optionsDisallowUncles[0].rules,
+            policies: optionsDisallowUncles[0].policies,
           },
         ],
         errors: [
@@ -323,7 +323,7 @@ const runTest = (settings: RuleTesterSettings) => {
             default: "allow",
             message:
               "This element is of type '${from.type}' with name '${from.elementName}', and it is child of element of type '${from.parent.type}' with name '${from.parent.elementName}'",
-            rules: optionsDisallowUncles[0].rules,
+            policies: optionsDisallowUncles[0].policies,
           },
         ],
         errors: [

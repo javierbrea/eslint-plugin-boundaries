@@ -15,7 +15,7 @@ const options = [
   {
     // disallow all entry-points by default
     default: "disallow",
-    rules: [
+    policies: [
       {
         target: { type: "modules" },
         allow: "**",
@@ -61,7 +61,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies to elements of type "modules", captured values: elementName="module-a" and fileInternalPath "helpers.js" are not allowed. Denied by rule at index 1',
+            'Dependencies to elements of type "modules", captured values: elementName="module-a" and fileInternalPath "helpers.js" are not allowed. Denied by policy at index 1',
           type: "Literal",
         },
       ],
@@ -73,7 +73,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies to elements of type "modules", captured values: elementName="module-a" and fileInternalPath "ComponentA.js" are not allowed. Denied by rule at index 1',
+            'Dependencies to elements of type "modules", captured values: elementName="module-a" and fileInternalPath "ComponentA.js" are not allowed. Denied by policy at index 1',
           type: "Literal",
         },
       ],

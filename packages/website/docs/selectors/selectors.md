@@ -22,7 +22,7 @@ keywords:
 
 # Selectors
 
-Selectors describe which files and dependencies a rule applies to. You write them in the `from`, `to`, and `dependency` keys of your [policies](../policies/policies.mdx), and the plugin matches them against the [runtime descriptions](../classification/classification.md) it builds for every analyzed file.
+Selectors describe which files and dependencies a policy applies to. You write them in the `from`, `to`, and `dependency` keys of your [policies](../policies/policies.mdx), and the plugin matches them against the [runtime descriptions](../classification/classification.md) it builds for every analyzed file.
 
 There are two top-level selector shapes:
 
@@ -38,14 +38,14 @@ The smallest selector targets a single axis — for example, one element type:
 That selector matches any file belonging to a `helper` element. You could just as well match a single `file` category or `module` origin instead; no axis takes precedence over the others. From there you can add more conditions to narrow the match.
 
 :::note[Legacy flat selectors]
-Earlier versions accepted flat element selectors such as `{ type: "helper" }` (without the `element` wrapper) and bare strings like `"helper"`. They still work and are converted internally, so existing configurations keep running. For new rules, prefer the entity selector form so you can also match against `file` and `module`. The string and tuple formats are documented on the [Legacy Selectors](./legacy/element.md) page.
+Earlier versions accepted flat element selectors such as `{ type: "helper" }` (without the `element` wrapper) and bare strings like `"helper"`. They still work and are converted internally, so existing configurations keep running. For new policies, prefer the entity selector form so you can also match against `file` and `module`. The string and tuple formats are documented on the [Legacy Selectors](./legacy/element.md) page.
 :::
 
 ## How matching works
 
 1. You define [element descriptors](./element.md) and/or [file descriptors](./file.md) in your settings — at least one of the two.
 2. During analysis, the plugin builds a [runtime description](../classification/classification.md) for each file: its element, its file categories, and the module it resolves to.
-3. Selectors in your rules match against those descriptions to decide whether a rule applies.
+3. Selectors in your policies match against those descriptions to decide whether a policy applies.
 
 All conditions inside a single selector are combined with **AND** — every property you specify must match. Arrays act as **OR** — the selector matches if any item in the array matches. These two rules apply at every level, from sub-selectors down to individual pattern values.
 
@@ -131,7 +131,7 @@ It has three optional keys:
 ```
 
 :::tip
-Dependency selectors live inside your rule configuration. For how rules use `from`/`to`/`dependency` together with `allow`/`disallow`, see the [Policies documentation](../policies/policies.mdx).
+Dependency selectors live inside your policies configuration. For how policies use `from`/`to`/`dependency` together with `allow`/`disallow`, see the [Policies documentation](../policies/policies.mdx).
 :::
 
 ## Combining properties
@@ -344,7 +344,7 @@ When the other side's property is an array (for example `from.element.types` whe
 
 ## Templating in selectors
 
-Selector values support templates, so a rule can adapt to the file it is checking. For example, you can disallow a dependency between two elements of the same type but in different families, without writing a rule per family.
+Selector values support templates, so a policy can adapt to the file it is checking. For example, you can disallow a dependency between two elements of the same type but in different families, without writing a policy per family.
 
 :::note
 To use a **whole array** from the template tree (e.g. `from.element.types`) as operands of an `anyOf` / `allOf` / `noneOf` / `equalsTo` array query, use the [`{ expand }` item](#sourcing-operands-from-a-template-expand) instead of a plain template string. A plain `"{{ from.element.types }}"` renders as the string `"a,b,c"`, which is not a valid micromatch OR pattern.
@@ -363,7 +363,7 @@ Use the array index syntax to read a single entry from an array, for example `{{
 
 ### Template example
 
-This rule disallows dependencies between elements of the same type that belong to different families:
+This policy disallows dependencies between elements of the same type that belong to different families:
 
 ```js
 {

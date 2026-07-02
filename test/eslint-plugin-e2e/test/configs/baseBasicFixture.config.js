@@ -22,7 +22,7 @@ export default {
       "error",
       {
         default: "disallow",
-        rules: [
+        policies: [
           {
             from: {
               element: {

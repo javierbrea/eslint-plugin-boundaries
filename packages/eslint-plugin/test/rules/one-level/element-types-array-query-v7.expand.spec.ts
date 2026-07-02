@@ -52,7 +52,7 @@ createRuleTester(multiTypeSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -79,7 +79,7 @@ createRuleTester(multiTypeSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -121,7 +121,7 @@ createRuleTester(multiTypeSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "components" } },
                 disallow: {
@@ -148,7 +148,7 @@ createRuleTester(multiTypeSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "components" } },
                 disallow: {
@@ -204,7 +204,7 @@ createRuleTester(multiTypeSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -234,7 +234,7 @@ createRuleTester(multiTypeSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -288,7 +288,7 @@ createRuleTester(multiTypeSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -315,7 +315,7 @@ createRuleTester(multiTypeSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {

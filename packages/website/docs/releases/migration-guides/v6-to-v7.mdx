@@ -41,11 +41,13 @@ Main changes include:
 - **[Module selectors (`to.module.*`)](#module-selectors)** — match dependencies by origin and source
 - **[Deprecated: `category` in element descriptors and selectors](#deprecated-category-in-element-descriptors-and-selectors)** — use file categories
 - **[Deprecated: `dependency.module`](#deprecated-dependencymodule)** — use `to.module.source`
-- **[Deprecated: `mode` in element descriptors](#deprecated-mode-in-element-descriptors)** — use `partialMatch: false` instead of `mode: "full"`
+- **[Deprecated: `mode` in element descriptors](#deprecated-mode-in-element-descriptors)** — use `partialMatch: false` instead of `mode: "full"`. Use file descriptors instead of `mode: "file"`.
 - **[New custom message template data](#new-custom-message-template-data)** — `element` / `file` / `module` template objects
-- **[`no-unknown-files` behavior change](#no-unknown-files-behavior-change)** — now considers file descriptors
-- **[`no-unknown` renamed to `no-unknown-dependencies`](#no-unknown-renamed-to-no-unknown-dependencies)** — file-aware, with new options
-- **[`no-ignored` renamed to `no-ignored-dependencies`](#no-ignored-renamed-to-no-ignored-dependencies)** — rule name change only
+- **[`no-unknown-files` rule behavior change](#no-unknown-files-behavior-change)** — now considers file descriptors
+- **[`no-unknown` rule renamed to `no-unknown-dependencies`](#no-unknown-renamed-to-no-unknown-dependencies)** — file-aware, with new options
+- **[`no-ignored` rule renamed to `no-ignored-dependencies`](#no-ignored-renamed-to-no-ignored-dependencies)** — rule name change only
+- **[`rules` option renamed to `policies`](#rules-option-renamed-to-policies)** — clarifies that a rule contains policies, each with an effect
+- **[`rule` template variable renamed to `policy`](#rule-template-variable-renamed-to-policy)** — `{{rule.*}}` → `{{policy.*}}` in custom messages
 - **[TypeScript-only breaking changes](#typescript-only-breaking-changes)** — removed type exports (TS users only)
 - **[Once fully migrated](#once-fully-migrated)** — set `boundaries/disable-legacy-warnings: true` to skip legacy detection and silence the performance tip
 
@@ -168,7 +170,7 @@ Wrapping a flat element selector in `{ element: ... }` is **recommended, not req
 . rules: {
 .   "boundaries/dependencies": [2, {
 .     default: "disallow",
-.     rules: [
+.     policies: [
 .       {
 -         from: { type: "component" },
 +         from: { element: { type: "component" } },
@@ -207,7 +209,7 @@ By default, `boundaries/dependencies` only checks dependencies whose target modu
 .   "boundaries/dependencies": [2, {
 +     checkAllOrigins: true,
 .     default: "disallow",
-.     rules: [
+.     policies: [
 .       {
 .         from: { element: { type: "helper" } },
 +         disallow: {
@@ -312,7 +314,7 @@ The flat `{{from.type}}` is the **first** matched type, so it maps to `{{from.el
 `}</CodeDiff>
 
 :::tip
-The legacy `${ }` template syntax also keeps working in custom messages. Using `${ }` in a message does not print a deprecation warning, and the **[`boundaries/legacy-templates`](../../settings/settings.md#boundarieslegacy-templates)** setting does not affect it — that setting only controls legacy templating in selectors, not in custom messages. For migrating `${ }` templates, see the Legacy Message Templates section in the **[rules documentation](../../policies/legacy.mdx)**.
+The legacy `${ }` template syntax also keeps working in custom messages. Using `${ }` in a message does not print a deprecation warning, and the **[`boundaries/legacy-templates`](../../settings/settings.md#boundarieslegacy-templates)** setting does not affect it — that setting only controls legacy templating in selectors, not in custom messages. For migrating `${ }` templates, see the Legacy Message Templates section in the **[policies legacy documentation](../../policies/legacy.mdx)**.
 :::
 
 ## `no-unknown-files` behavior change
@@ -370,6 +372,54 @@ The `boundaries/no-ignored` rule name is kept for backward compatibility but is 
   }
 `}</CodeDiff>
 
+## `rules` option renamed to `policies`
+
+The per-entry option of the `boundaries/dependencies` rule (and the deprecated `element-types`, `entry-point`, and `external` rules) has been renamed from **`rules`** to **[`policies`](../../policies/policies.mdx)**.
+
+This removes an overload in the vocabulary: the ESLint **rule** (`boundaries/dependencies`) *contains* a list of entries — calling those entries "rules" too made "a rule inside a rule" confusing. Each entry is now called a **policy**, and its `allow`/`disallow` decision is called its **effect**. So: a rule contains `policies`; each policy has an `effect`; `default` is the default effect.
+
+:::warning[Deprecated]
+The `rules` option is kept for backward compatibility but is deprecated. Using it prints a one-time deprecation warning (suppressible via [`boundaries/disable-legacy-warnings`](../../settings/settings.md#boundariesdisable-legacy-warnings)) and it will be removed in a future major version. See the [Legacy Policy Configuration](../../policies/legacy.mdx) page for details.
+:::
+
+<CodeDiff language="javascript">{`
+  "boundaries/dependencies": [2, {
+    default: "disallow",
+-   rules: [
++   policies: [
+      { from: { element: { type: "component" } }, allow: { element: { type: "helper" } } }
+    ]
+  }]
+`}</CodeDiff>
+
+If your configuration is generated dynamically and imports the plugin's TypeScript types, the following aliases are kept as `@deprecated`:
+
+| Deprecated | Replacement |
+|---|---|
+| `DependenciesRule` | `DependenciesPolicy` |
+| `EntryPointRule` | `EntryPointPolicy` |
+| `ExternalRule` | `ExternalPolicy` |
+| `RulePolicy` | `RuleEffect` |
+| `RULE_POLICIES_MAP` | `RULE_EFFECTS_MAP` |
+| `isRulePolicy` | `isRuleEffect` |
+
+## `rule` template variable renamed to `policy`
+
+The [custom message template](../../policies/policies.mdx#message-templating) data exposed under `rule` (`{{rule.index}}`, `{{rule.selector}}`) is now exposed under **`policy`** (`{{policy.index}}`, `{{policy.selector}}`), matching the `rules` → `policies` rename above.
+
+:::warning[Deprecated]
+The `{{rule.*}}` template variable is kept for backward compatibility but is deprecated and will be removed in a future major version. See [Legacy Policy Configuration](../../policies/legacy.mdx).
+:::
+
+<CodeDiff language="javascript">{`
+  {
+-   "message": "Denied by policy at index {{rule.index}}"
++   "message": "Denied by policy at index {{policy.index}}"
+  }
+`}</CodeDiff>
+
+TypeScript users importing `CustomMessageTemplateRuleContext` should switch to `CustomMessageTemplatePolicyContext` (the old name is kept as a `@deprecated` alias).
+
 ## TypeScript-only breaking changes
 
 These changes affect **only TypeScript users importing internal types** from the package. Configuration is unaffected.
@@ -378,7 +428,7 @@ The following exports were removed from the public API. Use the listed replaceme
 
 | Removed | Replacement |
 |---------|-------------|
-| `ElementTypesRule` | `DependenciesRule` |
+| `ElementTypesRule` | `DependenciesPolicy` |
 | `ElementTypesRuleOptions` | `DependenciesRuleOptions` |
 | `ElementSelectors` | `ElementSelector` |
 | `ElementsSelector` | `ElementSelector` |

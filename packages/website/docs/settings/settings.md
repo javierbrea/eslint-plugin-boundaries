@@ -55,7 +55,7 @@ See the [Element Descriptors](../classification/elements.md) section for every d
 
 **Required:** No, but it can be the only classification layer you configure instead of [`boundaries/elements`](#boundarieselements).
 
-Defines **[file descriptors](../classification/files.md)** that categorize files independently of the elements they belong to. The resulting categories appear at runtime as `file.categories` and can be matched in rules with the [`file` selector](../selectors/selectors.md) and used in [message templates](../policies/policies.mdx#message-templating) (for example, `{{to.file.categories}}`). This is the recommended replacement for the deprecated element-descriptor `category` property.
+Defines **[file descriptors](../classification/files.md)** that categorize files independently of the elements they belong to. The resulting categories appear at runtime as `file.categories` and can be matched in rule policies with the [`file` selector](../selectors/selectors.md) and used in [message templates](../policies/policies.mdx#message-templating) (for example, `{{to.file.categories}}`). This is the recommended replacement for the deprecated element-descriptor `category` property.
 
 ```js
 export default [{
@@ -170,11 +170,11 @@ Defines custom dependency nodes to analyze beyond the built-in ones. All plugin 
 **Object structure:**
 
 - **`selector`** - The [esquery selector](https://github.com/estools/esquery) for the `Literal` node where the dependency source is defined
-- **`name`** (optional) - A name for the custom node, so you can **use it in rules configuration using `dependency.nodeKind`** (e.g., to forbid or allow this kind of dependency node in some rules or to use it in custom messages templates variables)
-- **`kind`** - Assigns the **`dependency.kind` property in dependency descriptions**, which you can use in rules configuration or custom message templates to target specific dependency kinds. Possible values are `"value"`, `"type"`, or `"typeof"`.
+- **`name`** (optional) - A name for the custom node, so you can **use it in policy configuration using `dependency.nodeKind`** (e.g., to forbid or allow this kind of dependency node in some rules or to use it in custom messages templates variables)
+- **`kind`** - Assigns the **`dependency.kind` property in dependency descriptions**, which you can use in policy configuration or custom message templates to target specific dependency kinds. Possible values are `"value"`, `"type"`, or `"typeof"`.
 
 :::warning
-The `name` property is optional for the moment, but if you don't provide it, the plugin will not be able to identify the node kind of the dependency in rules configuration or custom messages templates, so it will be treated as a generic dependency without a specific node kind. If you want to use the custom node in rules configuration or custom messages templates, make sure to provide a unique name for it.
+The `name` property is optional for the moment, but if you don't provide it, the plugin will not be able to identify the node kind of the dependency in policy configuration or custom messages templates, so it will be treated as a generic dependency without a specific node kind. If you want to use the custom node in policy configuration or custom messages templates, make sure to provide a unique name for it.
 :::
 
 **Example:**
@@ -392,10 +392,10 @@ export default [{
 Enables debug traces and optionally filters them with [selectors](../selectors/selectors.md). When enabled, debug prints the full runtime **entity** description (element, file, and module) for each analyzed file.
 
 - **`enabled`** `<boolean>` - Enables debug output when `true`. Default `false`. Debug also turns on via the `ESLINT_PLUGIN_BOUNDARIES_DEBUG` environment variable.
-- **`messages`** `<object>` - Configures which message types to print (file descriptions, dependency descriptions, and rule violation descriptions). All are enabled by default.
+- **`messages`** `<object>` - Configures which message types to print (file descriptions, dependency descriptions, and policy violation descriptions). All are enabled by default.
   - **`files`** `<boolean>` - Prints file descriptions for each file analyzed.
   - **`dependencies`** `<boolean>` - Prints dependency descriptions for each dependency analyzed.
-  - **`violations`** `<boolean>` - Prints rule violation descriptions for each rule violation detected.
+  - **`violations`** `<boolean>` - Prints policy violation descriptions for each rule policy violation detected.
 - **`filter`** `<object>` - Configures filters to apply to debug traces. See the sub-properties for the accepted selector types. By default, no filters are applied, and all debug traces are printed when debug mode is enabled.
   - **`filter.files`** - Filters file traces. Accepts **both [file selectors](../selectors/selectors.md) and [entity selectors](../selectors/selectors.md)** (an array means OR).
   - **`filter.dependencies`** - Filters dependency traces. Accepts [dependency selectors](../selectors/selectors.md) — `{ from?, to?, dependency? }` objects (an array means OR).
@@ -429,7 +429,7 @@ Read more about legacy templates in the [Legacy Message Templates](../policies/l
 When `true`, skips all legacy-pattern detection work and suppresses the associated runtime deprecation warnings, reducing overhead at lint time. Specifically, the plugin will no longer:
 
 - Check element descriptors for deprecated `mode` and `category` fields.
-- Scan rule options for deprecated string/tuple selector syntax, legacy templates, and other deprecated rule properties.
+- Scan rule policies for deprecated string/tuple selector syntax, legacy templates, and other deprecated policy properties.
 - Emit deprecation notices for `boundaries/types`, `boundaries/alias`, and similar legacy patterns.
 
 While this setting is `false`, the plugin emits a one-time "Performance tip" console notice directing you to enable it. Once all legacy patterns have been removed from your configuration, set this to `true` to eliminate the detection overhead entirely.
@@ -456,7 +456,7 @@ The `boundaries/types` and `boundaries/alias` settings are kept for backward com
 
 - **[Elements](../classification/elements.md)** - element descriptors in context.
 - **[Files](../classification/files.md)** - file descriptor properties and category accumulation.
-- **[Selectors](../selectors/selectors.md)** - the selectors used by rules and debug filters.
+- **[Selectors](../selectors/selectors.md)** - the selectors used by policies and debug filters.
 - **[Policies](../policies/policies.mdx)** - message templates referenced by `legacy-templates`.
 - **[Debugging](../guides/debugging.md)** - debug filter examples.
 - **[Monorepo Setup](../guides/monorepo-setup.md)** - `flag-as-external` usage in monorepos.

@@ -21,7 +21,7 @@ function elementCategoriesNoRuleMessage({
   file: string;
   dep: string;
 }) {
-  return `There is no rule allowing dependencies from elements of type "code", category ${file} to elements of type "code", category ${dep}`;
+  return `There is no policy allowing dependencies from elements of type "code", category ${file} to elements of type "code", category ${dep}`;
 }
 
 const defaultSettings: RuleTesterSettings = {
@@ -151,7 +151,7 @@ const runTest = (
       {
         filename: absoluteFilePath("modules/module-a/ModuleA.js"),
         code: "import ModuleB from '../module-b/foo.js'",
-        options: [{ rules: undefined }],
+        options: [{ policies: undefined }],
       },
       // Invalid options
       {
@@ -159,7 +159,7 @@ const runTest = (
         code: "import ModuleB from '../module-b/foo.js'",
         options: [
           {
-            rules: [
+            policies: [
               {
                 from: { category: "foo" },
                 allow: { to: { category: "components" } },
@@ -174,7 +174,7 @@ const runTest = (
         code: "import MyModuleB from '../../modules/module-b/foo.js'",
         options: [
           {
-            rules: [
+            policies: [
               {
                 from: { category: "components" },
                 disallow: { to: { category: "foo" } },
@@ -474,7 +474,7 @@ runTest(
   [
     {
       default: "allow",
-      rules: [
+      policies: [
         {
           from: { category: "helpers" },
           disallow: {
@@ -502,11 +502,11 @@ runTest(
     },
   ],
   {
-    0: 'There is no rule allowing dependencies from elements of type "code" and category "helpers" to elements of type "code" and category "helpers"',
-    1: 'Dependencies to elements of category "helpers" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    2: 'Dependencies to elements of category "components" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    3: 'Dependencies to elements of category "modules" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    4: 'Dependencies to elements of category "modules" are not allowed in elements of category "components". Denied by rule at index 1',
+    0: 'There is no policy allowing dependencies from elements of type "code" and category "helpers" to elements of type "code" and category "helpers"',
+    1: 'Dependencies to elements of category "helpers" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    2: 'Dependencies to elements of category "components" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    3: 'Dependencies to elements of category "modules" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    4: 'Dependencies to elements of category "modules" are not allowed in elements of category "components". Denied by policy at index 1',
   }
 );
 
@@ -520,7 +520,7 @@ runTest(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { category: "components" },
           allow: { to: [{ category: "helpers" }, { category: "components" }] },
@@ -548,7 +548,7 @@ runTest(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { category: "c*" },
           allow: { to: [{ category: "h*" }, { category: "c*" }] },
@@ -571,7 +571,7 @@ runTest(
   [
     {
       default: "allow",
-      rules: [
+      policies: [
         {
           from: { category: "helpers" },
           disallow: {
@@ -590,10 +590,10 @@ runTest(
     },
   ],
   {
-    1: 'Dependencies to elements of category "helpers" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    2: 'Dependencies to elements of category "components" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    3: 'Dependencies to elements of category "modules" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    4: 'Dependencies to elements of category "modules" are not allowed in elements of category "components". Denied by rule at index 1',
+    1: 'Dependencies to elements of category "helpers" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    2: 'Dependencies to elements of category "components" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    3: 'Dependencies to elements of category "modules" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    4: 'Dependencies to elements of category "modules" are not allowed in elements of category "components". Denied by policy at index 1',
   }
 );
 
@@ -604,7 +604,7 @@ testCapture(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { category: "components" },
           allow: {
@@ -636,7 +636,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of category "components" and captured values: elementName="component-a" are not allowed in elements of category "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of category "components" and captured values: elementName="component-a" are not allowed in elements of category "components". Denied by policy at index 0',
   }
 );
 
@@ -647,7 +647,7 @@ testCapture(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { category: "components" },
           allow: {
@@ -683,7 +683,7 @@ testCapture(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { category: "c*" },
           allow: {
@@ -710,7 +710,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of category "components" and captured values: elementName="component-a" are not allowed in elements of category "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of category "components" and captured values: elementName="component-a" are not allowed in elements of category "components". Denied by policy at index 0',
   }
 );
 
@@ -723,7 +723,7 @@ testCapture(
       default: "disallow",
       message:
         "Importing {{to.category}} with name {{to.captured.elementName}} is not allowed in {{from.category}} with name {{from.captured.elementName}}",
-      rules: [
+      policies: [
         {
           from: { category: "c*" },
           allow: {
@@ -768,7 +768,7 @@ testCapture(
       default: "disallow",
       message:
         "Importing {{to.category}} with name {{to.captured.elementName}} is not allowed in {{from.category}} with name {{from.captured.elementName}}",
-      rules: [
+      policies: [
         {
           from: { category: "c*" },
           allow: {
@@ -837,7 +837,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 allow: {
@@ -855,7 +855,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   to: { parent: null },
@@ -871,7 +871,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   to: { isIgnored: false, isUnknown: false },
@@ -887,7 +887,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   dependency: { relationship: { from: null } },
@@ -903,7 +903,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   dependency: { relationship: { to: null } },
@@ -919,7 +919,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: {
                   dependency: { relationship: { from: null, to: null } },
@@ -935,7 +935,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 disallow: {
@@ -955,7 +955,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 disallow: { to: [{ category: "helpers" }] },
@@ -972,7 +972,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 disallow: { to: [{ type: "shared" }] },
@@ -989,7 +989,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 disallow: {
@@ -1008,7 +1008,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 disallow: { to: [{ origin: "local" }] },
@@ -1025,7 +1025,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 disallow: { to: [{ path: "**/helpers/helper-b/**" }] },
@@ -1042,7 +1042,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 disallow: { to: [{ elementPath: "**/helpers/helper-b" }] },
@@ -1059,7 +1059,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 disallow: { to: [{ internalPath: "index.js" }] },
@@ -1076,7 +1076,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 disallow: { to: [{ isIgnored: false }] },
@@ -1093,7 +1093,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 disallow: { to: [{ isUnknown: false }] },
@@ -1110,7 +1110,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 disallow: {
@@ -1130,7 +1130,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 disallow: {
@@ -1150,7 +1150,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 disallow: {
@@ -1170,7 +1170,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { category: "helpers" },
                 disallow: {

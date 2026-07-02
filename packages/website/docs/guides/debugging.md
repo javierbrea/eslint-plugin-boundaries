@@ -20,13 +20,13 @@ keywords:
 
 ## Overview
 
-Use debugging to verify that your [`elements`](../classification/elements.md) setting and [rules](../policies/policies.mdx) work as expected. The debugging feature prints detailed traces about how the plugin analyzes your files and imports, including:
+Use debugging to verify that your [`elements`](../classification/elements.md) setting and [policies](../policies/policies.mdx) work as expected. The debugging feature prints detailed traces about how the plugin analyzes your files and imports, including:
 
 - File paths being analyzed
 - Assigned descriptions for each file and dependency
-- Rule violations, and which dependency selectors matched them
+- Rule policy violations, and which dependency selectors matched them
 
-Each file description is an [**entity**](../classification/classification.md) — the element the file belongs to, the file's categories (from [file descriptors](../classification/files.md)), and the module origin of each dependency. This breakdown helps you troubleshoot configuration issues and confirm your element definitions and rules are correct.
+Each file description is an [**entity**](../classification/classification.md) — the element the file belongs to, the file's categories (from [file descriptors](../classification/files.md)), and the module origin of each dependency. This breakdown helps you troubleshoot configuration issues and confirm your element definitions and rule policies are correct.
 
 ## Enabling Debug Mode
 
@@ -60,7 +60,7 @@ By default, all messages are printed when debug mode is enabled. Messages includ
 
 - File descriptions for each file analyzed
 - Dependency descriptions for each dependency analyzed
-- Rule violation descriptions for each rule violation detected
+- Rule policy violation descriptions for each rule policy violation detected
 
 You can enable/disable these message types using the `boundaries/debug.messages` setting:
 
@@ -92,7 +92,7 @@ The two filter keys accept different selector types:
 - `filter.files` accepts a [file selector](../selectors/file.md) or an [entity selector](../selectors/selectors.md#entity-selectors). Use it to match by element type, file category, or module origin.
 - `filter.dependencies` accepts a [dependency selector](../selectors/selectors.md#dependency-selectors) with `from`, `to`, and `dependency` keys.
 
-Filters apply to all debug messages (file descriptions, dependency descriptions, and rule violation descriptions). If a trace doesn't match the filter, it won't be printed in the console.
+Filters apply to all debug messages (file descriptions, dependency descriptions, and rule policy violation descriptions). If a trace doesn't match the filter, it won't be printed in the console.
 
 ```js
 export default [{
@@ -125,11 +125,11 @@ Filter behavior:
 | `[]` (empty array) | No traces for that category are printed. |
 | `[selector, ...]` | Only traces matching at least one selector are printed. |
 
-The `files` filter also gates the dependencies and rule violations found within each file: if a file doesn't match `filter.files`, none of its dependencies or rule violations are printed, even when they match `filter.dependencies`.
+The `files` filter also gates the dependencies and rule policy violations found within each file: if a file doesn't match `filter.files`, none of its dependencies or rule policy violations are printed, even when they match `filter.dependencies`.
 
 ## Example Output
 
-When debug mode is enabled, you'll see **[descriptions of files, dependencies, and rule violations](../classification/classification.md)** in the console. Each file is serialized as an [entity](../classification/classification.md) with three sub-descriptions: `element`, `file`, and `module`. For example, for a `component` that imports a `helper`:
+When debug mode is enabled, you'll see **[descriptions of files, dependencies, and rule policy violations](../classification/classification.md)** in the console. Each file is serialized as an [entity](../classification/classification.md) with three sub-descriptions: `element`, `file`, and `module`. For example, for a `component` that imports a `helper`:
 
 ```
 [boundaries][debug]: Description of file "src/components/atoms/atom-a/AtomA.js":
@@ -235,13 +235,13 @@ When debug mode is enabled, you'll see **[descriptions of files, dependencies, a
   }
 }
 
-[boundaries][debug]: dependencies rule violation: Rule at index 1 reported a violation because the following selector matched the dependency:
+[boundaries][debug]: dependencies rule violation: Policy at index 1 reported a violation because the following selector matched the dependency:
 
 {
-  "rule": {
-    // The index of the rule in the configuration that reported the violation
+  "policy": {
+    // The index of the policy in the configuration that reported the violation
     "index": 1,
-    // The selector in that rule that matched the dependency
+    // The selector in that policy that matched the dependency
     "selector": {
       "from": {
         "element": { "type": "helper" }

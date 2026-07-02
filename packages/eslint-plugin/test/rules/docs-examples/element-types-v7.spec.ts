@@ -16,7 +16,7 @@ const options = [
   {
     // disallow all local imports by default
     default: "disallow",
-    rules: [
+    policies: [
       {
         // from helper elements
         from: { file: { categories: "helpers" } },
@@ -132,7 +132,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from file of category "helpers" and captured values: restOfPath="test/fixtures/docs-examples", category="permissions", elementName="roles" to elements of type "components" and captured values: family="atoms", elementName="atom-a"',
+            'There is no policy allowing dependencies from file of category "helpers" and captured values: restOfPath="test/fixtures/docs-examples", category="permissions", elementName="roles" to elements of type "components" and captured values: family="atoms", elementName="atom-a"',
           type: "Literal",
         },
       ],
@@ -145,7 +145,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from file of category "helpers" and captured values: restOfPath="test/fixtures/docs-examples", category="permissions", elementName="roles" to elements of type "modules" and captured values: elementName="module-a"',
+            'There is no policy allowing dependencies from file of category "helpers" and captured values: restOfPath="test/fixtures/docs-examples", category="permissions", elementName="roles" to elements of type "modules" and captured values: elementName="module-a"',
           type: "Literal",
         },
       ],
@@ -158,7 +158,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "components" and captured values: family="atoms", elementName="atom-a" to elements of type "components" and captured values: family="molecules", elementName="molecule-a"',
+            'There is no policy allowing dependencies from elements of type "components" and captured values: family="atoms", elementName="atom-a" to elements of type "components" and captured values: family="molecules", elementName="molecule-a"',
           type: "Literal",
         },
       ],
@@ -171,7 +171,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "components" and captured values: family="atoms", elementName="atom-a" to file of category "helpers" and captured values: restOfPath="test/fixtures/docs-examples", category="permissions", elementName="roles"',
+            'There is no policy allowing dependencies from elements of type "components" and captured values: family="atoms", elementName="atom-a" to file of category "helpers" and captured values: restOfPath="test/fixtures/docs-examples", category="permissions", elementName="roles"',
           type: "Literal",
         },
       ],
@@ -184,7 +184,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "components" and captured values: family="atoms", elementName="atom-a" to elements of type "modules" and captured values: elementName="module-a"',
+            'There is no policy allowing dependencies from elements of type "components" and captured values: family="atoms", elementName="atom-a" to elements of type "modules" and captured values: elementName="module-a"',
           type: "Literal",
         },
       ],

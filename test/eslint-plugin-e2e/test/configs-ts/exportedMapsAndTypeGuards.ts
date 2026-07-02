@@ -14,18 +14,22 @@ import {
   SETTINGS_KEYS_MAP,
   isSettingsKey,
   ELEMENT_DESCRIPTOR_MODES_MAP,
+  RULE_EFFECTS_MAP,
   RULE_POLICIES_MAP,
+  isRuleEffect,
   isRulePolicy,
   FlagAsExternalOptions,
   isElementSelector,
-  DependenciesRuleOptions,
-  DependenciesRule,
 } from "@boundaries/eslint-plugin/config";
 import type {
+  RuleEffect,
   RulePolicy,
   SettingsKey,
   DependencyNodeKey,
   DebugSetting,
+  DependenciesRuleOptions,
+  DependenciesRule,
+  DependenciesPolicy,
 } from "@boundaries/eslint-plugin/config";
 import recommendedBoundariesConfig from "@boundaries/eslint-plugin/recommended";
 
@@ -43,6 +47,26 @@ const allowRulePolicy: RulePolicy = RULE_POLICIES_MAP.ALLOW;
 
 // @ts-expect-error Testing invalid value
 const wrongRulePolicy: RulePolicy = "deny"; // This should show a type error
+
+const allowRuleEffect: RuleEffect = RULE_EFFECTS_MAP.ALLOW;
+
+// @ts-expect-error Testing invalid value
+const wrongRuleEffect: RuleEffect = "deny"; // This should show a type error
+
+if (!isRuleEffect(wrongRuleEffect)) {
+  throw new Error();
+}
+
+const allowComponentsFromModules: DependenciesPolicy = {
+  from: { type: "internal" },
+  allow: [{ to: { type: "components" } }],
+};
+
+// This should still be a valid `DependenciesRuleOptions` shape
+const legacyDependenciesRuleOptions: DependenciesRuleOptions = {
+  default: allowRulePolicy,
+  policies: [allowComponentsFromModules as DependenciesRule],
+};
 
 const dependencyNodeKey: DependencyNodeKey = DEPENDENCY_NODE_KEYS_MAP.EXPORT;
 
@@ -158,7 +182,7 @@ export const boundariesConfig = createConfig(
         2,
         {
           default: allowRulePolicy,
-          rules: [
+          policies: [
             {
               from: ["internal", "external"],
               importKind: DEPENDENCY_KINDS_MAP.TYPE,

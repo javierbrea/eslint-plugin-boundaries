@@ -42,10 +42,10 @@ import {
   validateAndWarnRuleOptions,
 } from "../Settings";
 import type {
-  RuleOptionsWithRules,
+  RuleOptionsWithPolicies,
   DependenciesRuleOptions,
-  DependenciesRule,
-  DependenciesRuleNormalized,
+  DependenciesPolicy,
+  DependenciesPolicyNormalized,
   SettingsNormalized,
   RuleName,
 } from "../Shared";
@@ -59,21 +59,21 @@ import {
 
 import { dependencyRule } from "./Support";
 
-type DependenciesRulePrecomputed = DependenciesRuleNormalized & {
+type DependenciesPolicyPrecomputed = DependenciesPolicyNormalized & {
   precomputedAllow?: DependencySingleSelectorNormalized[];
   precomputedDisallow?: DependencySingleSelectorNormalized[];
 };
 
-const normalizedRulesMap = new WeakMap<
-  DependenciesRule,
-  DependenciesRulePrecomputed
+const normalizedPoliciesMap = new WeakMap<
+  DependenciesPolicy,
+  DependenciesPolicyPrecomputed
 >();
 
-const normalizeRulePolicy = (
-  rule: DependenciesRule["allow"] | DependenciesRule["disallow"]
+const normalizeRuleEffect = (
+  rule: DependenciesPolicy["allow"] | DependenciesPolicy["disallow"]
 ):
-  | DependenciesRuleNormalized["allow"]
-  | DependenciesRuleNormalized["disallow"] => {
+  | DependenciesPolicyNormalized["allow"]
+  | DependenciesPolicyNormalized["disallow"] => {
   if (isUndefined(rule)) {
     return rule;
   }
@@ -84,21 +84,21 @@ const normalizeRulePolicy = (
 };
 
 const normalizeRuleOptions = (
-  rule: DependenciesRule
-): DependenciesRulePrecomputed => {
-  if (normalizedRulesMap.has(rule)) {
-    return normalizedRulesMap.get(rule)!;
+  rule: DependenciesPolicy
+): DependenciesPolicyPrecomputed => {
+  if (normalizedPoliciesMap.has(rule)) {
+    return normalizedPoliciesMap.get(rule)!;
   }
 
-  const normalizedRule: DependenciesRuleNormalized = {
+  const normalizedRule: DependenciesPolicyNormalized = {
     from: rule.from ? normalizeEntitySelector(rule.from) : undefined,
     to: rule.to ? normalizeEntitySelector(rule.to) : undefined,
     dependency: rule.dependency
       ? normalizeDependencyInfoSelector(rule.dependency)
       : undefined,
     importKind: rule.importKind,
-    allow: normalizeRulePolicy(rule.allow),
-    disallow: normalizeRulePolicy(rule.disallow),
+    allow: normalizeRuleEffect(rule.allow),
+    disallow: normalizeRuleEffect(rule.disallow),
   };
 
   const precomputedAllow = normalizedRule.allow?.map((entry) =>
@@ -120,13 +120,13 @@ const normalizeRuleOptions = (
     )
   );
 
-  const precomputedRule: DependenciesRulePrecomputed = {
+  const precomputedRule: DependenciesPolicyPrecomputed = {
     ...normalizedRule,
     precomputedAllow,
     precomputedDisallow,
   };
 
-  normalizedRulesMap.set(rule, precomputedRule);
+  normalizedPoliciesMap.set(rule, precomputedRule);
   return precomputedRule;
 };
 
@@ -538,7 +538,7 @@ function safeMatch(
  * @param options.templateData - The template data object containing captured values for template rendering.
  * @returns The match result from the first matching selector, or null if no selectors matched.
  */
-function evaluatePolicyEntries({
+function evaluateEffectEntries({
   selectors,
   dep,
   matcher,
@@ -558,7 +558,7 @@ function evaluatePolicyEntries({
   return null;
 }
 
-export type EvaluateRulesResult =
+export type EvaluatePoliciesResult =
   | { allowed: true }
   | {
       allowed: false;
@@ -577,7 +577,7 @@ export type EvaluateRulesResult =
  * @returns Template data object consumed by matcher template rendering.
  */
 function getCapturedTemplateData(
-  rule: DependenciesRule,
+  rule: DependenciesPolicy,
   dep: DependencyDescription,
   legacyTemplates: boolean
 ): TemplateData {
@@ -606,12 +606,12 @@ function getCapturedTemplateData(
  * Within a single rule, `disallow`/`deny` takes precedence over `allow` — `allow` is not
  * evaluated when `disallow` already matched.
  */
-export function evaluateRules(
-  rules: DependenciesRule[],
+export function evaluatePolicies(
+  rules: DependenciesPolicy[],
   dep: DependencyDescription,
   matcher: Matcher,
   settings: SettingsNormalized
-): EvaluateRulesResult {
+): EvaluatePoliciesResult {
   let allowed: boolean | null = null;
   let ruleIndex: number | null = null;
   let matchResult: DependencySingleSelectorMatchResult | null = null;
@@ -628,7 +628,7 @@ export function evaluateRules(
 
     let denyMatched = false;
     if (normalizedRule.precomputedDisallow) {
-      const denyMatch = evaluatePolicyEntries({
+      const denyMatch = evaluateEffectEntries({
         selectors: normalizedRule.precomputedDisallow,
         dep,
         matcher,
@@ -644,7 +644,7 @@ export function evaluateRules(
 
     // Allow is only evaluated when disallow/deny did not match for this rule
     if (!denyMatched && normalizedRule.precomputedAllow) {
-      const allowMatch = evaluatePolicyEntries({
+      const allowMatch = evaluateEffectEntries({
         selectors: normalizedRule.precomputedAllow,
         dep,
         matcher,
@@ -663,17 +663,17 @@ export function evaluateRules(
 }
 
 /**
- * Resolves the custom error message for a violation, preferring the rule-specific message
+ * Resolves the custom error message for a violation, preferring the policy-specific message
  * over the global options message.
  */
 export function resolveCustomMessage(
   ruleIndex: number | null,
-  ruleOptions: RuleOptionsWithRules
+  ruleOptions: RuleOptionsWithPolicies
 ): string | undefined {
-  const ruleMessage = isNull(ruleIndex)
+  const policyMessage = isNull(ruleIndex)
     ? undefined
-    : ruleOptions.rules?.[ruleIndex]?.message;
-  return ruleMessage ?? ruleOptions.message;
+    : (ruleOptions.policies ?? ruleOptions.rules)?.[ruleIndex]?.message;
+  return policyMessage ?? ruleOptions.message;
 }
 
 type BuildErrorMessageParams = {
@@ -712,7 +712,7 @@ export function buildErrorMessage({
  *
  * @param params - Rule evaluation context and dependency information.
  */
-export function evaluateRulesAndReport({
+export function evaluatePoliciesAndReport({
   rules,
   dependency,
   settings,
@@ -720,15 +720,15 @@ export function evaluateRulesAndReport({
   node,
   options,
 }: {
-  rules: DependenciesRule[];
+  rules: DependenciesPolicy[];
   settings: SettingsNormalized;
   context: Rule.RuleContext;
   node: EslintLiteralNode;
-  options?: RuleOptionsWithRules;
+  options?: RuleOptionsWithPolicies;
   dependency: DependencyDescription;
 }): void {
   const matcher = getElementsMatcher(settings);
-  const result = evaluateRules(rules, dependency, matcher, settings);
+  const result = evaluatePolicies(rules, dependency, matcher, settings);
   const defaultAllowed = options?.default === "allow";
   let finalAllowed = false;
   if (result.allowed === true) {
@@ -830,9 +830,9 @@ export default function getDependencyRule(
         (checkUnknownLocals || !isUnknownLocalDependency) &&
         (checkInternals || !isInternalDependency)
       ) {
-        const rules = options?.rules ?? [];
-        evaluateRulesAndReport({
-          rules,
+        const policies = options?.policies ?? options?.rules ?? [];
+        evaluatePoliciesAndReport({
+          rules: policies,
           settings,
           context,
           node,

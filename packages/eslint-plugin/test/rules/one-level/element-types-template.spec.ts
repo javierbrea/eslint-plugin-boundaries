@@ -218,7 +218,7 @@ testCapture(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { type: "components" },
           allow: {
@@ -270,7 +270,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );
 
@@ -305,7 +305,7 @@ testCapture(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { type: "components" },
           allow: {
@@ -356,6 +356,6 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );

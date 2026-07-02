@@ -10,12 +10,12 @@ import {
 } from "../Settings";
 import type {
   EntryPointRuleOptions,
-  EntryPointRule,
-  DependenciesRule,
+  EntryPointPolicy,
+  DependenciesPolicy,
 } from "../Shared";
 import { SETTINGS, RULE_NAMES_MAP } from "../Shared";
 
-import { evaluateRulesAndReport } from "./Dependencies";
+import { evaluatePoliciesAndReport } from "./Dependencies";
 import { dependencyRule } from "./Support";
 
 const { RULE_ENTRY_POINT } = SETTINGS;
@@ -23,7 +23,7 @@ const { RULE_ENTRY_POINT } = SETTINGS;
 /**
  * Adapts legacy template placeholders from `target` to `to` notation.
  *
- * @param templates - Legacy templates from rule options.
+ * @param templates - Legacy templates from policy options.
  * @returns Normalized templates or `undefined` when not provided.
  */
 function modifyLegacyTemplates(templates: string | string[]): string[] {
@@ -34,15 +34,15 @@ function modifyLegacyTemplates(templates: string | string[]): string[] {
 }
 
 /**
- * Converts `entry-point` legacy rules to `dependencies` rule shape.
+ * Converts `entry-point` legacy policies to `dependencies` policy shape.
  *
- * @param rules - Entry-point rules as defined by user configuration.
- * @returns Equivalent dependencies rules for shared evaluator.
+ * @param rules - Entry-point policies as defined by user configuration.
+ * @returns Equivalent dependencies policies for shared evaluator.
  */
 function transformToDependenciesRules(
-  rules: EntryPointRule[]
-): DependenciesRule[] {
-  const newRules: DependenciesRule[] = [];
+  rules: EntryPointPolicy[]
+): DependenciesPolicy[] {
+  const newRules: DependenciesPolicy[] = [];
 
   for (const rule of rules) {
     const newTargets = normalizeEntitySelector(rule.target);
@@ -101,8 +101,10 @@ export default dependencyRule<EntryPointRuleOptions>(
       dependency.dependency.relationship.to !==
         DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL
     ) {
-      const rules = transformToDependenciesRules(options?.rules ?? []);
-      evaluateRulesAndReport({
+      const rules = transformToDependenciesRules(
+        options?.policies ?? options?.rules ?? []
+      );
+      evaluatePoliciesAndReport({
         rules,
         settings,
         context,

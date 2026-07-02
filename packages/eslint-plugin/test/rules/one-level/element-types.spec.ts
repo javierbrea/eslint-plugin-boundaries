@@ -499,10 +499,10 @@ runTest(
       file: '"helpers"',
       dep: '"helpers"',
     }),
-    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by rule at index 1',
+    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by policy at index 1',
   }
 );
 
@@ -640,10 +640,10 @@ runTest(
     },
   ],
   {
-    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by rule at index 1',
+    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by policy at index 1',
   }
 );
 
@@ -683,7 +683,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );
 
@@ -752,7 +752,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );
 
@@ -875,7 +875,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );
 
@@ -921,7 +921,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );
 
@@ -1448,7 +1448,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies with module source "null" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 0',
+              'Dependencies with module source "null" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1471,7 +1471,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of parent "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of parent "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1494,7 +1494,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of isIgnored "false" and isUnknown "false" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of isIgnored "false" and isUnknown "false" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1517,7 +1517,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies with relationship from "null" are not allowed. Denied by rule at index 0',
+              'Dependencies with relationship from "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1540,7 +1540,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies with relationship to "null" are not allowed. Denied by rule at index 0',
+              'Dependencies with relationship to "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1563,7 +1563,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies with relationship from "null" and relationship to "null" are not allowed. Denied by rule at index 0',
+              'Dependencies with relationship from "null" and relationship to "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1587,7 +1587,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of path "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of path "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1611,7 +1611,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of path "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of path "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1635,7 +1635,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of parent "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of parent "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1659,7 +1659,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of type "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of type "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1683,7 +1683,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of category "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of category "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1707,7 +1707,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of captured "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of captured "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -1739,7 +1739,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies to elements of path "null", type "null", category "null", captured "null", fileInternalPath "null", filePath "null" and parent "null" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of path "null", type "null", category "null", captured "null", fileInternalPath "null", filePath "null" and parent "null" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],

@@ -34,7 +34,7 @@ createRuleTester(elementTypesArrayQuerySettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { element: { types: { hasLength: 1 } } },
                 allow: { to: { element: { type: "helpers" } } },
@@ -50,7 +50,7 @@ createRuleTester(elementTypesArrayQuerySettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { element: { types: { anyOf: ["helpers"] } } },
                 allow: { to: { element: { type: "helpers" } } },
@@ -66,7 +66,7 @@ createRuleTester(elementTypesArrayQuerySettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { element: { types: { equalsTo: ["helpers"] } } },
                 allow: { to: { element: { type: "helpers" } } },
@@ -82,7 +82,7 @@ createRuleTester(elementTypesArrayQuerySettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: { types: { noneOf: ["modules", "components"] } },
@@ -100,7 +100,7 @@ createRuleTester(elementTypesArrayQuerySettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -120,7 +120,7 @@ createRuleTester(elementTypesArrayQuerySettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { element: { types: { allOf: ["helpers"] } } },
                 allow: { to: { element: { type: "helpers" } } },
@@ -138,7 +138,7 @@ createRuleTester(elementTypesArrayQuerySettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -160,7 +160,7 @@ createRuleTester(elementTypesArrayQuerySettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -182,7 +182,7 @@ createRuleTester(elementTypesArrayQuerySettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -204,7 +204,7 @@ createRuleTester(elementTypesArrayQuerySettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -226,7 +226,7 @@ createRuleTester(elementTypesArrayQuerySettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: { to: { element: { types: { hasLength: 1 } } } },
@@ -244,7 +244,7 @@ createRuleTester(elementTypesArrayQuerySettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -294,7 +294,7 @@ createRuleTester(multiTypeElementSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: { types: { anyOf: ["helpers", "modules"] } },
@@ -312,7 +312,7 @@ createRuleTester(multiTypeElementSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: { types: { allOf: ["helpers", "reusable"] } },
@@ -330,7 +330,7 @@ createRuleTester(multiTypeElementSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { element: { types: { hasLength: 2 } } },
                 allow: { to: { element: { type: "helpers" } } },
@@ -346,7 +346,7 @@ createRuleTester(multiTypeElementSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { element: { types: { noneOf: ["modules"] } } },
                 allow: { to: { element: { type: "helpers" } } },
@@ -362,7 +362,7 @@ createRuleTester(multiTypeElementSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: { types: { equalsTo: ["helpers", "reusable"] } },
@@ -380,7 +380,7 @@ createRuleTester(multiTypeElementSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -402,7 +402,7 @@ createRuleTester(multiTypeElementSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -429,7 +429,7 @@ createRuleTester(multiTypeElementSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: { to: { element: { types: { hasLength: 2 } } } },
@@ -447,7 +447,7 @@ createRuleTester(multiTypeElementSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "helpers" } },
                 disallow: {
@@ -469,7 +469,7 @@ createRuleTester(multiTypeElementSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "components" } },
                 disallow: {
@@ -514,7 +514,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { element: { parents: { hasLength: 0 } } },
                 allow: { to: { element: { type: "helpers" } } },
@@ -532,7 +532,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { element: { parents: { hasLength: 1 } } },
                 allow: { to: { element: { type: "helpers" } } },
@@ -550,7 +550,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { element: { parents: { hasLength: 2 } } },
                 allow: { to: { element: { type: "helpers" } } },
@@ -568,7 +568,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -588,7 +588,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -610,7 +610,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -634,7 +634,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -656,7 +656,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -680,7 +680,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { parents: { hasLength: 0 } } },
                 disallow: { to: { element: { type: "helpers" } } },
@@ -702,7 +702,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: { element: { parents: { hasLength: 1 } } },
                 disallow: { to: { element: { type: "helpers" } } },
@@ -724,7 +724,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: { parents: { anyOf: [{ type: "components" }] } },
@@ -746,7 +746,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -775,7 +775,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -804,7 +804,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -850,7 +850,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -874,7 +874,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -896,7 +896,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -920,7 +920,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -944,7 +944,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -974,7 +974,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -1003,7 +1003,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -1034,7 +1034,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -1063,7 +1063,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -1094,7 +1094,7 @@ createRuleTester(SETTINGS.oneLevel).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {

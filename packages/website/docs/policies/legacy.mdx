@@ -26,7 +26,29 @@ import CodeDiff from '@site/src/components/CodeDiff';
 Everything on this page is kept for backward compatibility but is deprecated and will be removed in a future major version. Prefer the modern configuration documented in [Policies](./policies.mdx).
 :::
 
-## Deprecated properties
+## Legacy `rules` option in rules configuration
+
+The `rules` option in rules configuration (the array of per-entry dependency declarations) has been renamed to **[`policies`](./policies.mdx)**. `rules` is kept as a deprecated alias — it keeps working exactly as before.
+
+:::warning[Deprecated]
+Using `rules` prints a one-time deprecation warning (suppressible via [`boundaries/disable-legacy-warnings`](../settings/settings.md#boundariesdisable-legacy-warnings)) and it will be removed in a future major version. When both `policies` and `rules` are set, `policies` takes precedence.
+:::
+
+<CodeDiff language="javascript">{`
+  "boundaries/dependencies": [2, {
+    default: "disallow",
+-   rules: [
++   policies: [
+      { from: { element: { type: "component" } }, allow: { element: { type: "helper" } } }
+    ]
+  }]
+`}</CodeDiff>
+
+For TypeScript users, the following exports are kept as `@deprecated` aliases: `DependenciesRule` (→ `DependenciesPolicy`), `EntryPointRule` (→ `EntryPointPolicy`), `ExternalRule` (→ `ExternalPolicy`), `RulePolicy` (→ `RuleEffect`), `RULE_POLICIES_MAP` (→ `RULE_EFFECTS_MAP`), and `isRulePolicy` (→ `isRuleEffect`).
+
+See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx#rules-option-renamed-to-policies) for more details.
+
+## Deprecated Policy Properties
 
 ### `importKind` (deprecated)
 
@@ -108,6 +130,25 @@ The `target` property is a deprecated alias for `to`. It still works, but use `t
 :::warning
 When both `target` and `to` are defined, `to` takes precedence.
 :::
+
+## Legacy `rule` template variable
+
+The [custom message template](./policies.mdx#message-templating) data exposed under `rule` (`{{rule.index}}`, `{{rule.selector}}`) has been renamed to **`policy`** (`{{policy.index}}`, `{{policy.selector}}`). `rule` is kept as a deprecated alias with the exact same shape and value.
+
+:::warning[Deprecated]
+`{{rule.*}}` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use `{{policy.*}}` instead.
+:::
+
+<CodeDiff language="javascript">{`
+  {
+-   "message": "Denied by policy at index {{rule.index}}"
++   "message": "Denied by policy at index {{policy.index}}"
+  }
+`}</CodeDiff>
+
+TypeScript users importing `CustomMessageTemplateRuleContext` should switch to `CustomMessageTemplatePolicyContext` (the old name is kept as a `@deprecated` alias).
+
+See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx#rule-template-variable-renamed-to-policy) for more details.
 
 ## Legacy flat message aliases
 

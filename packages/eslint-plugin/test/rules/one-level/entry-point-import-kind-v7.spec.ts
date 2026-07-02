@@ -105,7 +105,7 @@ runTest(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           to: { element: { type: "helpers" } },
           allow: { to: { element: { fileInternalPath: "main.js" } } },
@@ -125,10 +125,10 @@ runTest(
     },
   ],
   {
-    0: 'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "helpers" and captured values: elementName="helper-a"',
-    1: 'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "components" and captured values: elementName="component-b"',
-    2: 'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "modules" and captured values: elementName="module-a"',
-    3: 'There is no rule allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "modules" and captured values: elementName="module-a"',
+    0: 'There is no policy allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "helpers" and captured values: elementName="helper-a"',
+    1: 'There is no policy allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "components" and captured values: elementName="component-b"',
+    2: 'There is no policy allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "modules" and captured values: elementName="module-a"',
+    3: 'There is no policy allowing dependencies from elements of type "components" and captured values: elementName="component-a" to elements of type "modules" and captured values: elementName="module-a"',
   }
 );
 
@@ -139,7 +139,7 @@ runTest(
   [
     {
       default: "allow",
-      rules: [
+      policies: [
         {
           to: { element: { type: "helpers" } },
           disallow: { to: { element: { fileInternalPath: "!main.js" } } },
@@ -169,9 +169,9 @@ runTest(
     },
   ],
   {
-    0: 'Dependencies with kind "type" to elements of type "helpers" and fileInternalPath "main.js" are not allowed. Denied by rule at index 1',
-    1: 'Dependencies with kind "value" to elements of type "components" and fileInternalPath "Component.js" are not allowed. Denied by rule at index 3',
-    2: 'Dependencies with kind "value" to elements of type "modules" and fileInternalPath "index.js" are not allowed. Denied by rule at index 4',
-    3: 'Dependencies with kind "type" to elements of type "modules" and fileInternalPath "index.js" are not allowed. Denied by rule at index 4',
+    0: 'Dependencies with kind "type" to elements of type "helpers" and fileInternalPath "main.js" are not allowed. Denied by policy at index 1',
+    1: 'Dependencies with kind "value" to elements of type "components" and fileInternalPath "Component.js" are not allowed. Denied by policy at index 3',
+    2: 'Dependencies with kind "value" to elements of type "modules" and fileInternalPath "index.js" are not allowed. Denied by policy at index 4',
+    3: 'Dependencies with kind "type" to elements of type "modules" and fileInternalPath "index.js" are not allowed. Denied by policy at index 4',
   }
 );

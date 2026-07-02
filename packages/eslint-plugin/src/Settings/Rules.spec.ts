@@ -9,13 +9,14 @@ import {
   SETTINGS_KEYS_MAP,
 } from "../Shared/Settings.types";
 import type {
-  RuleOptionsWithRules,
-  RuleOptionsRules,
+  RuleOptionsWithPolicies,
+  RuleOptionsPolicies,
 } from "../Shared/Settings.types";
 
 import {
   collectRuleWarningIndexes,
   detectLegacyTemplateSyntax,
+  isRuleEffect,
   isRuleName,
   isRulePolicy,
   isRuleShortName,
@@ -34,7 +35,25 @@ describe("Settings/Rules", () => {
     mockedWarnOnce.mockClear();
   });
 
-  describe("isRulePolicy", () => {
+  describe("isRuleEffect", () => {
+    it("returns true for 'allow'", () => {
+      expect(isRuleEffect("allow")).toBe(true);
+    });
+
+    it("returns true for 'disallow'", () => {
+      expect(isRuleEffect("disallow")).toBe(true);
+    });
+
+    it("returns false for an unrelated string", () => {
+      expect(isRuleEffect("other")).toBe(false);
+    });
+
+    it("returns false for a non-string value", () => {
+      expect(isRuleEffect(42)).toBe(false);
+    });
+  });
+
+  describe("isRulePolicy (deprecated alias of isRuleEffect)", () => {
     it("returns true for 'allow'", () => {
       expect(isRulePolicy("allow")).toBe(true);
     });
@@ -49,6 +68,10 @@ describe("Settings/Rules", () => {
 
     it("returns false for a non-string value", () => {
       expect(isRulePolicy(42)).toBe(false);
+    });
+
+    it("is the same function as isRuleEffect", () => {
+      expect(isRulePolicy).toBe(isRuleEffect);
     });
   });
 
@@ -165,18 +188,18 @@ describe("Settings/Rules", () => {
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
 
-    it("does nothing when options.rules is missing", () => {
-      const options = {} as unknown as RuleOptionsWithRules;
+    it("does nothing when options.policies is missing", () => {
+      const options = {} as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
 
-    it("does nothing when options.rules is not an array", () => {
+    it("does nothing when options.policies is not an array", () => {
       const options = {
-        rules: "not-an-array",
-      } as unknown as RuleOptionsWithRules;
+        policies: "not-an-array",
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -185,10 +208,10 @@ describe("Settings/Rules", () => {
 
     it("does not warn when no rule uses deprecated syntax", () => {
       const options = {
-        rules: [
-          { from: modernFrom, to: modernTo } as unknown as RuleOptionsRules,
+        policies: [
+          { from: modernFrom, to: modernTo } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -197,13 +220,13 @@ describe("Settings/Rules", () => {
 
     it("does not flag an array of modern object selectors as legacy", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: [{ element: { type: "a" } }, { element: { type: "b" } }],
             to: modernTo,
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -211,20 +234,20 @@ describe("Settings/Rules", () => {
     });
 
     it("warns once about deprecated rule-level importKind and includes affected indices", () => {
-      const rules: RuleOptionsRules[] = [
-        { from: modernFrom, to: modernTo } as unknown as RuleOptionsRules,
+      const rules: RuleOptionsPolicies[] = [
+        { from: modernFrom, to: modernTo } as unknown as RuleOptionsPolicies,
         {
           from: modernFrom,
           to: modernTo,
           importKind: "type",
-        } as unknown as RuleOptionsRules,
+        } as unknown as RuleOptionsPolicies,
         {
           from: modernFrom,
           to: modernTo,
           importKind: "value",
-        } as unknown as RuleOptionsRules,
+        } as unknown as RuleOptionsPolicies,
       ];
-      const options = { rules } as unknown as RuleOptionsWithRules;
+      const options = { policies: rules } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -238,14 +261,14 @@ describe("Settings/Rules", () => {
 
     it("does not warn again for the same options object on subsequent invocations", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             to: modernTo,
             importKind: "type",
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
@@ -255,10 +278,10 @@ describe("Settings/Rules", () => {
 
     it("warns about legacy string selector syntax in `from` for the dependencies rule", () => {
       const options = {
-        rules: [
-          { from: "helper", to: modernTo } as unknown as RuleOptionsRules,
+        policies: [
+          { from: "helper", to: modernTo } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -272,13 +295,13 @@ describe("Settings/Rules", () => {
 
     it("warns about legacy tuple selector syntax in `from`", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: ["helper", { family: "data" }],
             to: modernTo,
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -291,13 +314,13 @@ describe("Settings/Rules", () => {
 
     it("warns about an array of legacy string selectors", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: ["helper", "component"],
             to: modernTo,
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -310,13 +333,13 @@ describe("Settings/Rules", () => {
 
     it("warns about an array of legacy tuple selectors", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: [["helper", { family: "data" }], "component"],
             to: modernTo,
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -329,13 +352,13 @@ describe("Settings/Rules", () => {
 
     it("detects legacy string selector in `allow` for the dependencies rule", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             allow: ["helpers"],
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -348,13 +371,13 @@ describe("Settings/Rules", () => {
 
     it("detects legacy selector in `disallow` for the element-types rule", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             disallow: ["helpers"],
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ELEMENT_TYPES, false);
 
@@ -367,13 +390,13 @@ describe("Settings/Rules", () => {
 
     it("detects legacy string selector in `target` for the entry-point rule", () => {
       const options = {
-        rules: [
+        policies: [
           {
             target: "components",
             allow: ["**/index.ts"],
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, false);
 
@@ -386,13 +409,13 @@ describe("Settings/Rules", () => {
 
     it("does NOT flag `allow`/`disallow` as legacy selectors for the external rule (external lib names)", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             allow: ["lodash"],
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL, false);
 
@@ -401,13 +424,13 @@ describe("Settings/Rules", () => {
 
     it("does NOT flag `allow`/`disallow` as legacy selectors for the entry-point rule (file globs)", () => {
       const options = {
-        rules: [
+        policies: [
           {
             target: { element: { type: "a" } },
             allow: ["**/index.ts"],
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, false);
 
@@ -416,12 +439,12 @@ describe("Settings/Rules", () => {
 
     it("aggregates indices of multiple rules with legacy selectors", () => {
       const options = {
-        rules: [
-          { from: "helper", to: modernTo } as unknown as RuleOptionsRules,
-          { from: modernFrom, to: modernTo } as unknown as RuleOptionsRules,
-          { from: "component", to: modernTo } as unknown as RuleOptionsRules,
+        policies: [
+          { from: "helper", to: modernTo } as unknown as RuleOptionsPolicies,
+          { from: modernFrom, to: modernTo } as unknown as RuleOptionsPolicies,
+          { from: "component", to: modernTo } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -431,13 +454,13 @@ describe("Settings/Rules", () => {
 
     it("warns about legacy template syntax in `from` for the dependencies rule", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: { element: { type: "Comp${name}" } },
             to: modernTo,
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -451,12 +474,12 @@ describe("Settings/Rules", () => {
 
     it("detects legacy template syntax recursively inside nested `to` selectors", () => {
       const options = {
-        rules: [
+        policies: [
           {
             to: { element: { path: "x/${cat}" } },
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -469,13 +492,13 @@ describe("Settings/Rules", () => {
 
     it("detects legacy template syntax in the `dependency` selector", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             dependency: { kind: "value-${kind}" },
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -488,13 +511,13 @@ describe("Settings/Rules", () => {
 
     it("detects legacy template syntax in `allow` for the dependencies rule", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             allow: ["b/${captured}"],
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -509,13 +532,13 @@ describe("Settings/Rules", () => {
 
     it("detects legacy template syntax in `disallow` for the element-types rule", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             disallow: ["x/${y}"],
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ELEMENT_TYPES, false);
 
@@ -527,13 +550,13 @@ describe("Settings/Rules", () => {
 
     it("does NOT scan `allow`/`disallow` templates for the external rule (external lib names)", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             disallow: ["lodash/${sub}"],
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL, false);
 
@@ -542,13 +565,13 @@ describe("Settings/Rules", () => {
 
     it("does NOT scan `allow`/`disallow` templates for the entry-point rule (file globs)", () => {
       const options = {
-        rules: [
+        policies: [
           {
             target: { element: { type: "a" } },
             disallow: ["**/${private}/**"],
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, false);
 
@@ -557,13 +580,13 @@ describe("Settings/Rules", () => {
 
     it("detects legacy template syntax in `target` for the entry-point rule", () => {
       const options = {
-        rules: [
+        policies: [
           {
             target: { element: { type: "Comp${x}" } },
             allow: ["**/index.ts"],
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, false);
 
@@ -576,18 +599,18 @@ describe("Settings/Rules", () => {
 
     it("aggregates indices of multiple rules with legacy template syntax", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: { element: { type: "a${b}" } },
             to: modernTo,
-          } as unknown as RuleOptionsRules,
-          { from: modernFrom, to: modernTo } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
+          { from: modernFrom, to: modernTo } as unknown as RuleOptionsPolicies,
           {
             from: modernFrom,
             dependency: { kind: "y${z}" },
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -597,14 +620,14 @@ describe("Settings/Rules", () => {
 
     it("emits both legacy template and deprecated importKind warnings when applicable", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: { element: { type: "a${b}" } },
             to: modernTo,
             importKind: "type",
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -618,13 +641,13 @@ describe("Settings/Rules", () => {
 
     it("warns about deprecated v7 selector property 'category' in `from`", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: { element: { category: "domain" } },
             to: modernTo,
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -639,13 +662,13 @@ describe("Settings/Rules", () => {
 
     it("detects deprecated v7 selector property 'elementPath' nested in `to`", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             to: { element: { elementPath: "src/**" } },
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -657,13 +680,13 @@ describe("Settings/Rules", () => {
 
     it("detects deprecated v7 selector property 'filePath' nested in `to`", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             to: { file: { filePath: "src/**" } },
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -675,10 +698,10 @@ describe("Settings/Rules", () => {
 
     it("does not warn about deprecated v7 selector properties when none are used", () => {
       const options = {
-        rules: [
-          { from: modernFrom, to: modernTo } as unknown as RuleOptionsRules,
+        policies: [
+          { from: modernFrom, to: modernTo } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -687,13 +710,13 @@ describe("Settings/Rules", () => {
 
     it("warns about deprecated 'dependency.module' property", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             dependency: { module: "lodash" },
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -708,13 +731,13 @@ describe("Settings/Rules", () => {
 
     it("detects deprecated 'module' property in an array of dependency selectors", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             dependency: [{ kind: "value" }, { module: "lodash" }],
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -726,13 +749,13 @@ describe("Settings/Rules", () => {
 
     it("does not warn about 'dependency.module' when the dependency selector omits it", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             dependency: { kind: "value" },
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -744,13 +767,13 @@ describe("Settings/Rules", () => {
 
     it("does not warn about 'dependency.module' when dependency is a non-object primitive", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             dependency: null,
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -767,13 +790,13 @@ describe("Settings/Rules", () => {
 
     it("warns when internalPath appears on a flat element selector at entity level", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: { type: "helper", internalPath: "src/**" },
             to: modernTo,
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -786,13 +809,13 @@ describe("Settings/Rules", () => {
 
     it("warns when internalPath appears inside an element sub-selector of a modern entity selector", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             to: { element: { internalPath: "src/**" } },
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -804,13 +827,13 @@ describe("Settings/Rules", () => {
 
     it("does not warn when internalPath appears inside a module sub-selector (modern usage)", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             to: { module: { internalPath: "dist/**" } },
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -822,13 +845,13 @@ describe("Settings/Rules", () => {
 
     it("does not warn when no internalPath is present", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             to: modernTo,
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -840,13 +863,13 @@ describe("Settings/Rules", () => {
 
     it("warns when internalPath appears in an array of element selectors inside a modern entity selector", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             to: { element: [{ internalPath: "src/**" }, { type: "b" }] },
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -858,13 +881,13 @@ describe("Settings/Rules", () => {
 
     it("does not warn when the element sub-selector value is a non-object primitive", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: modernFrom,
             to: { element: null },
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -885,13 +908,13 @@ describe("Settings/Rules", () => {
       // set, validateAndWarnRuleOptions returns before calling the detection
       // loop, so warnOnce is never reached.
       const options = {
-        rules: [
+        policies: [
           {
             from: "legacy-string",
             to: modernTo,
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
@@ -903,18 +926,18 @@ describe("Settings/Rules", () => {
 
     it("does not emit any warnOnce call when disableLegacyWarnings is true and legacy patterns are present", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: "legacy-string",
             to: modernTo,
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
           {
             from: modernFrom,
             to: modernTo,
             importKind: "type",
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
@@ -923,13 +946,13 @@ describe("Settings/Rules", () => {
 
     it("does not emit any warning when disableLegacyWarnings is true", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: "legacy-string",
             to: modernTo,
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
@@ -938,13 +961,13 @@ describe("Settings/Rules", () => {
 
     it("emits legacy-pattern warnings when legacy patterns are present and disableLegacyWarnings is false", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: "legacy-string",
             to: modernTo,
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
@@ -953,18 +976,94 @@ describe("Settings/Rules", () => {
 
     it("still caches via WeakSet: second call with same options is skipped even when disableLegacyWarnings changes", () => {
       const options = {
-        rules: [
+        policies: [
           {
             from: "legacy-string",
             to: modernTo,
-          } as unknown as RuleOptionsRules,
+          } as unknown as RuleOptionsPolicies,
         ],
-      } as unknown as RuleOptionsWithRules;
+      } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
       mockedWarnOnce.mockClear();
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("validateAndWarnRuleOptions 'rules' option alias", () => {
+    const modernFrom = { element: { type: "a" } };
+    const modernTo = { element: { type: "b" } };
+    const entry = {
+      from: modernFrom,
+      to: modernTo,
+    } as unknown as RuleOptionsPolicies;
+
+    it("does not warn about the 'rules' alias when 'policies' is used", () => {
+      const options = {
+        policies: [entry],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+
+    it("warns once that the 'rules' option is deprecated when only 'rules' is used", () => {
+      const options = {
+        rules: [entry],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("'rules' option is deprecated"),
+        expect.stringContaining("policies")
+      );
+    });
+
+    it("does not warn about the 'rules' alias when disableLegacyWarnings is true", () => {
+      const options = {
+        rules: [entry],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+
+    it("evaluates deprecated-syntax entries from 'rules' when 'policies' is not set", () => {
+      const options = {
+        rules: [
+          {
+            from: "legacy-string",
+            to: modernTo,
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+
+      // One warning for the deprecated 'rules' option itself, one for the legacy selector syntax.
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(2);
+    });
+
+    it("prefers 'policies' over 'rules' when both are set", () => {
+      const options = {
+        policies: [entry],
+        rules: [
+          {
+            from: "legacy-string",
+            to: modernTo,
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+
+      // 'policies' entries contain no deprecated syntax, and no 'rules' deprecation
+      // warning is emitted because 'policies' is present.
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
   });
@@ -1013,6 +1112,16 @@ describe("Settings/Rules", () => {
           { required: ["dependency", "disallow"] },
         ])
       );
+    });
+
+    it("also exposes the same entries schema under 'policies' (the current option name)", () => {
+      const [schema] = rulesOptionsSchema();
+      const properties = schema.properties as unknown as Record<
+        string,
+        unknown
+      >;
+
+      expect(properties.policies).toEqual(properties.rules);
     });
 
     it("returns a legacy schema keyed by the provided mainKey", () => {

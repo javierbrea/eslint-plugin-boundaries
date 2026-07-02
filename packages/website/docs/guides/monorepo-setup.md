@@ -33,9 +33,9 @@ When a file does `import { x } from "@myorg/shared"`, the plugin resolves that i
 
 :::info[Why does this matter?]
 
-Use the [`module.origin` sub-selector](../selectors/module.md) in your rules to target dependencies based on their classification as `"local"` or `"external"`, and decide whether a rule applies to dependencies from all origins or only local ones.
+Use the [`module.origin` sub-selector](../selectors/module.md) in your policies to target dependencies based on their classification as `"local"` or `"external"`, and decide whether a policy applies to dependencies from all origins or only local ones.
 
-**So you might want to control how inter-package dependencies in a monorepo are categorized to apply the appropriate rules.**
+**So you might want to control how inter-package dependencies in a monorepo are categorized to apply the appropriate policies.**
 
 :::
 
@@ -132,7 +132,7 @@ export default [{
     "boundaries/dependencies": ["error", {
       default: "disallow",
       checkAllOrigins: false, // Only check local dependencies
-      rules: [
+      policies: [
         {
           from: { element: { type: "component" } },
           allow: { to: { element: { type: ["component", "module"] } } }
@@ -202,7 +202,7 @@ export default [{
     "boundaries/dependencies": ["error", {
       default: "disallow",
       checkAllOrigins: false, // Only check local dependencies
-      rules: [
+      policies: [
         {
           from: { element: { type: "component" } },
           allow: [{
@@ -272,7 +272,7 @@ export default [{
   rules: {
     "boundaries/dependencies": ["error", {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "component" } },
           allow: { to: { element: { type: ["component", "module"] } } }
@@ -288,31 +288,31 @@ export default [{
 ```ts
 // packages/app/src/components/button/Button.ts
 
-// ✅ Local dependency - allowed by rules (component → component)
+// ✅ Local dependency - allowed by policies (component → component)
 import { Text } from './components/Text';
 
-// ✅ Local dependency - allowed by rules (component → module)
+// ✅ Local dependency - allowed by policies (component → module)
 import { ButtonModule } from '@monorepo/shared/modules/FooModule';
 
-// ❌ Local dependency - BLOCKED by rules (not explicitly allowed)
+// ❌ Local dependency - BLOCKED by policies (not explicitly allowed)
 import { InternalUtil } from '@monorepo/shared/internal-utils';
 
-// ⚠️  External dependency - boundary rules DON'T apply
+// ⚠️  External dependency - boundary policies DON'T apply
 import { map } from 'lodash';
 ```
 
 :::info[Why This Works]
 With `outsideRootPath: false`, imports from `packages/shared` are categorized as **local** dependencies. This allows the plugin to:
 1. Match them against your element patterns
-2. Apply boundary rules between packages
+2. Apply boundary policies between packages
 3. Enforce architectural constraints across your monorepo
 :::
 
 ## Combining Approaches
 
-You can combine multiple configurations with different `files` patterns in the same flat config file, enabling both package-level and monorepo-level rules.
+You can combine multiple configurations with different `files` patterns in the same flat config file, enabling both package-level and monorepo-level policies.
 
-For example, you could combine Scenario 3, defining rules that consider inter-package dependencies as local, and also Scenario 1, defining package-isolated rules.
+For example, you could combine Scenario 3, defining policies that consider inter-package dependencies as local, and also Scenario 1, defining package-isolated policies.
 
 You could even have different configurations: some treat inter-package dependencies as external to add global constraints with the `dependencies` rule and `checkAllOrigins: true`, while others treat them as local for granular control with the `dependencies` rule between packages that are allowed to interact.
 

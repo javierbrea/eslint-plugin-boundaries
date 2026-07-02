@@ -103,7 +103,7 @@ This example uses the entity selector form (`{ element: { ... } }`). It locates 
     "boundaries/dependencies": [2, {
       // disallow all local imports by default
       default: "disallow",
-      rules: [
+      policies: [
         {
           // from helper elements
           from: { element: { type: "helper" } },

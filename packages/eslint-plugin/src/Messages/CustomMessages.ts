@@ -12,8 +12,8 @@ import { isArray, isNull, isUndefined } from "../Shared";
 
 import type {
   CustomMessageTemplateContext,
-  CustomMessageTemplateRuleEntitySelectorContext,
-  CustomMessageTemplateRuleSelectorContext,
+  CustomMessageTemplatePolicyEntitySelectorContext,
+  CustomMessageTemplatePolicySelectorContext,
 } from "./CustomMessages.types";
 
 /** Regular expression to detect Handlebars expressions in custom message templates */
@@ -160,15 +160,15 @@ function extendDependencyEntityContextForTemplate(
 }
 
 /**
- * Extends a selector entity context used in `rule.selector` templates.
+ * Extends a selector entity context used in `policy.selector` templates.
  *
  * For backward compatibility with V6 dependency selectors, properties from
  * `entity.element` are also exposed at the root level (for example
- * `rule.selector.from.type`) besides `rule.selector.from.element.type`.
+ * `policy.selector.from.type`) besides `policy.selector.from.element.type`.
  */
-function extendRuleEntitySelectorContextForTemplate(
+function extendPolicyEntitySelectorContextForTemplate(
   entityContext: EntitySingleSelectorMatchResult
-): CustomMessageTemplateRuleEntitySelectorContext {
+): CustomMessageTemplatePolicyEntitySelectorContext {
   return {
     ...entityContext.element,
     ...(isUndefined(entityContext.element?.filePath)
@@ -213,16 +213,23 @@ function renderCustomMessageHandlebarsTemplate(
         elementPath: parent.path,
       }))
     : dependency.to.element.parents;
-  const ruleSelector: CustomMessageTemplateRuleSelectorContext =
+  const policySelector: CustomMessageTemplatePolicySelectorContext =
     !isNull(ruleIndex) && matchResult
       ? {
           ...matchResult,
           from: matchResult.from
-            ? extendRuleEntitySelectorContextForTemplate(matchResult.from)
+            ? extendPolicyEntitySelectorContextForTemplate(matchResult.from)
             : undefined,
           to: matchResult.to
-            ? extendRuleEntitySelectorContextForTemplate(matchResult.to)
+            ? extendPolicyEntitySelectorContextForTemplate(matchResult.to)
             : undefined,
+        }
+      : null;
+  const policyContext =
+    !isNull(ruleIndex) && matchResult
+      ? {
+          index: ruleIndex,
+          selector: policySelector,
         }
       : null;
   const context: CustomMessageTemplateContext = {
@@ -232,13 +239,9 @@ function renderCustomMessageHandlebarsTemplate(
     ),
     to: extendDependencyEntityContextForTemplate(dependency.to, toParents),
     dependency: dependency.dependency,
-    rule:
-      !isNull(ruleIndex) && matchResult
-        ? {
-            index: ruleIndex,
-            selector: ruleSelector,
-          }
-        : null,
+    // `policy` is the current template property; `rule` is kept as a deprecated alias.
+    policy: policyContext,
+    rule: policyContext,
   };
 
   const compiledTemplate = Handlebars.compile(template, { noEscape: true });

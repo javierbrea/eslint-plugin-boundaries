@@ -592,39 +592,56 @@ export type RuleMetaDefinition = {
   schema?: Rule.RuleMetaData["schema"];
 };
 
-export const RULE_POLICY_ALLOW = "allow" as const;
-export const RULE_POLICY_DISALLOW = "disallow" as const;
+export const RULE_EFFECT_ALLOW = "allow" as const;
+export const RULE_EFFECT_DISALLOW = "disallow" as const;
 
 /**
- * Map containing the available rule policies.
+ * Map containing the available rule effects.
  */
-export const RULE_POLICIES_MAP = {
-  ALLOW: RULE_POLICY_ALLOW,
-  DISALLOW: RULE_POLICY_DISALLOW,
+export const RULE_EFFECTS_MAP = {
+  ALLOW: RULE_EFFECT_ALLOW,
+  DISALLOW: RULE_EFFECT_DISALLOW,
 } as const;
 
 /**
- * Policy for rules, either allowing or disallowing certain dependencies.
+ * Effect of a policy, either allowing or disallowing certain dependencies.
  */
-export type RulePolicy =
-  (typeof RULE_POLICIES_MAP)[keyof typeof RULE_POLICIES_MAP];
+export type RuleEffect =
+  (typeof RULE_EFFECTS_MAP)[keyof typeof RULE_EFFECTS_MAP];
+
+/** @deprecated Use `RULE_EFFECT_ALLOW` instead. */
+export const RULE_POLICY_ALLOW = RULE_EFFECT_ALLOW;
+/** @deprecated Use `RULE_EFFECT_DISALLOW` instead. */
+export const RULE_POLICY_DISALLOW = RULE_EFFECT_DISALLOW;
 
 /**
- * Base options for some rules, including default policy and custom message.
+ * Map containing the available rule policies.
+ * @deprecated Use `RULE_EFFECTS_MAP` instead.
+ */
+export const RULE_POLICIES_MAP = RULE_EFFECTS_MAP;
+
+/**
+ * Policy for rules, either allowing or disallowing certain dependencies.
+ * @deprecated Use `RuleEffect` instead.
+ */
+export type RulePolicy = RuleEffect;
+
+/**
+ * Base options for some rules, including default effect and custom message.
  */
 export type RuleBaseOptions = {
-  /** Default policy for all the rules (allow or disallow) */
-  default?: RulePolicy;
-  /** Custom message for all rule violations. It can be overridden at the rule level. */
+  /** Default effect for all the policies (allow or disallow) */
+  default?: RuleEffect;
+  /** Custom message for all rule violations. It can be overridden at the policy level. */
   message?: string;
 };
 
 /**
- * Rule that defines allowed or disallowed dependencies between different element types.
+ * Policy that defines allowed or disallowed dependencies between different element types.
  */
-export type DependenciesRule = {
+export type DependenciesPolicy = {
   dependency?: BackwardCompatibleDependencyInfoSelector;
-  /** Selectors of the source elements that the rule applies to (the elements importing) */
+  /** Selectors of the source elements that the policy applies to (the elements importing) */
   from?: BackwardCompatibleEntitySelector;
   /** Selectors of the target elements that are disallowed to be imported */
   to?: BackwardCompatibleEntitySelector;
@@ -636,13 +653,19 @@ export type DependenciesRule = {
   allow?:
     | BackwardCompatibleDependencySelector
     | BackwardCompatibleEntitySelector;
-  /** Kind of import that the rule applies to (e.g., "type", "value") */
+  /** Kind of import that the policy applies to (e.g., "type", "value") */
   importKind?: DependencyKind;
-  /** Custom message for rule violations */
+  /** Custom message for policy violations */
   message?: string;
 };
 
-export type DependenciesRuleNormalized = {
+/**
+ * Policy that defines allowed or disallowed dependencies between different element types.
+ * @deprecated Use `DependenciesPolicy` instead.
+ */
+export type DependenciesRule = DependenciesPolicy;
+
+export type DependenciesPolicyNormalized = {
   dependency?: DependencyInfoSelectorNormalized;
   from?: EntitySelectorNormalized;
   to?: EntitySelectorNormalized;
@@ -652,12 +675,20 @@ export type DependenciesRuleNormalized = {
   message?: string;
 };
 
+/** @deprecated Use `DependenciesPolicyNormalized` instead. */
+export type DependenciesRuleNormalized = DependenciesPolicyNormalized;
+
 /**
- * Options for the dependencies rule, including default policy and specific rules.
+ * Options for the dependencies rule, including default effect and specific policies.
  */
-export type DependenciesRuleOptions = Omit<RuleBaseOptions, "rules"> & {
-  /** Specific rules for defining boundaries between elements */
-  rules?: DependenciesRule[];
+export type DependenciesRuleOptions = Omit<
+  RuleBaseOptions,
+  "policies" | "rules"
+> & {
+  /** Specific policies for defining boundaries between elements */
+  policies?: DependenciesPolicy[];
+  /** Specific policies for defining boundaries between elements. @deprecated Use `policies` instead. */
+  rules?: DependenciesPolicy[];
   /** Whether to check dependencies from all origins (including external and core) or only from local elements (default: `false`, only local). */
   checkAllOrigins?: boolean;
   /** Whether to check local dependencies with unknown elements (not matching any element descriptor) or to ignore them. (default: `false`, ignore them) */
@@ -667,27 +698,35 @@ export type DependenciesRuleOptions = Omit<RuleBaseOptions, "rules"> & {
 };
 
 /**
- * Rule that defines entry points for specific element types, controlling which files can be imported.
+ * Policy that defines entry points for specific element types, controlling which files can be imported.
  */
-export type EntryPointRule = {
-  /** Selectors of the elements that the rule applies to (the elements being imported) */
+export type EntryPointPolicy = {
+  /** Selectors of the elements that the policy applies to (the elements being imported) */
   target: BackwardCompatibleEntitySelector;
   /** Micromatch patterns of the files that are disallowed to import from other elements. Relative to the element path */
   disallow?: string[];
   /** Micromatch patterns of the files that are allowed to import from other elements. Relative to the element path */
   allow?: string[];
-  /** Kind of import that the rule applies to (e.g., "type", "value") */
+  /** Kind of import that the policy applies to (e.g., "type", "value") */
   importKind?: DependencyKind;
-  /** Custom message for rule violations */
+  /** Custom message for policy violations */
   message?: string;
 };
 
+/** @deprecated Use `EntryPointPolicy` instead. */
+export type EntryPointRule = EntryPointPolicy;
+
 /**
- * Options for the entry-point rule, including default policy and specific rules.
+ * Options for the entry-point rule, including default effect and specific policies.
  */
-export type EntryPointRuleOptions = Omit<RuleBaseOptions, "rules"> & {
-  /** Specific rules for defining entry points between elements */
-  rules?: EntryPointRule[];
+export type EntryPointRuleOptions = Omit<
+  RuleBaseOptions,
+  "policies" | "rules"
+> & {
+  /** Specific policies for defining entry points between elements */
+  policies?: EntryPointPolicy[];
+  /** Specific policies for defining entry points between elements. @deprecated Use `policies` instead. */
+  rules?: EntryPointPolicy[];
 };
 
 /**
@@ -732,27 +771,35 @@ export type ExternalLibrariesSelector =
   | ExternalLibrarySelector[];
 
 /**
- * Rule that defines allowed or disallowed external library imports for specific element types.
+ * Policy that defines allowed or disallowed external library imports for specific element types.
  */
-export type ExternalRule = {
-  /** Selectors of the source elements that the rule applies to (the elements importing) */
+export type ExternalPolicy = {
+  /** Selectors of the source elements that the policy applies to (the elements importing) */
   from: BackwardCompatibleEntitySelector;
   /** Selectors of the external libraries that are disallowed to be imported */
   disallow?: ExternalLibrariesSelector;
   /** Selectors of the external libraries that are allowed to be imported */
   allow?: ExternalLibrariesSelector;
-  /** Kind of import that the rule applies to (e.g., "type", "value") */
+  /** Kind of import that the policy applies to (e.g., "type", "value") */
   importKind?: DependencyKind;
-  /** Custom message for rule violations */
+  /** Custom message for policy violations */
   message?: string;
 };
 
+/** @deprecated Use `ExternalPolicy` instead. */
+export type ExternalRule = ExternalPolicy;
+
 /**
- * Options for the external rule, including default policy and specific rules.
+ * Options for the external rule, including default effect and specific policies.
  */
-export type ExternalRuleOptions = Omit<RuleBaseOptions, "rules"> & {
-  /** Specific rules for defining allowed or disallowed external library imports */
-  rules?: ExternalRule[];
+export type ExternalRuleOptions = Omit<
+  RuleBaseOptions,
+  "policies" | "rules"
+> & {
+  /** Specific policies for defining allowed or disallowed external library imports */
+  policies?: ExternalPolicy[];
+  /** Specific policies for defining allowed or disallowed external library imports. @deprecated Use `policies` instead. */
+  rules?: ExternalPolicy[];
 };
 
 /**
@@ -784,17 +831,20 @@ export type NoUnknownDependenciesOptions = {
   allowUnknownElements?: boolean;
 };
 
-export type RuleOptionsWithRules =
+export type RuleOptionsWithPolicies =
   | ExternalRuleOptions
   | EntryPointRuleOptions
   | DependenciesRuleOptions;
 
 export type RuleOptions =
-  | RuleOptionsWithRules
+  | RuleOptionsWithPolicies
   | NoPrivateOptions
   | NoUnknownDependenciesOptions;
 
-export type RuleOptionsRules = ExternalRule | EntryPointRule | DependenciesRule;
+export type RuleOptionsPolicies =
+  | ExternalPolicy
+  | EntryPointPolicy
+  | DependenciesPolicy;
 
 export const FROM = "from" as const;
 

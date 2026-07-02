@@ -25,7 +25,7 @@ The **dependency metadata** is the layer that describes the relationship itself,
 
 Unlike [elements](./elements.md) and [files](./files.md), there are **no descriptors to configure** for the dependency metadata. The plugin computes it automatically from the import: from the AST node that produced the dependency, the literal source string, and the relative position of the two elements.
 
-This is the layer that lets you write rules about the *nature* of an import — for example, allowing a type-only dependency where a value dependency would be forbidden, or restricting imports to a `child` element.
+This is the layer that lets you write policies about the *nature* of an import — for example, allowing a type-only dependency where a value dependency would be forbidden, or restricting imports to a `child` element.
 
 ## Dependency Metadata Description
 
@@ -56,7 +56,7 @@ When the target is not a known local element (for example an external package or
 
 ## Matching Dependency Metadata using Selectors
 
-To target a dependency by its metadata, use the [`dependency` selector](../selectors/dependency.md) inside a rule, alongside the `from` and `to` entity selectors:
+To target a dependency by its metadata, use the [`dependency` selector](../selectors/dependency.md) inside a policy, alongside the `from` and `to` entity selectors:
 
 ```js
 // Match type-only dependencies to helpers
@@ -75,7 +75,7 @@ See [Selectors → Dependency](../selectors/dependency.md) for the full dependen
 
 ## Next Steps
 
-- **[Selectors → Dependency](../selectors/dependency.md)** - match dependency metadata in your rules.
+- **[Selectors → Dependency](../selectors/dependency.md)** - match dependency metadata in your policies.
 - **[Policies](../policies/policies.mdx)** - use `from`/`to`/`dependency` together with `allow`/`disallow`.
 - **[Settings](../settings/settings.md#boundariesadditional-dependency-nodes)** - configure which AST nodes produce dependencies.
 - **[Classification](./classification.md)** - how the dependency metadata combines two entities into one dependency description.

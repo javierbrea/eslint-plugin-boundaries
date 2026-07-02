@@ -165,7 +165,7 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message:
-              'Dependencies with module source "package-b" to entities of module with origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
+              'Dependencies with module source "package-b" to entities of module with origin "external" are not allowed in elements of type "components". Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -272,7 +272,7 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message:
-              'Dependencies with module source "package-b" to entities of module with origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
+              'Dependencies with module source "package-b" to entities of module with origin "external" are not allowed in elements of type "components". Denied by policy at index 0',
             type: "Literal",
           },
         ],

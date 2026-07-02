@@ -46,7 +46,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 to: "helpers",
                 allow: "helpers",
@@ -61,7 +61,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 dependency: { nodeKind: "dynamic-import" },
                 disallow: { dependency: { kind: "value" } },
@@ -77,7 +77,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 dependency: [{ nodeKind: "dynamic-import" }],
                 disallow: { dependency: { kind: "value" } },
@@ -93,7 +93,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 dependency: [{ nodeKind: "dynamic-import" }],
                 disallow: { dependency: [{ kind: "value" }] },
@@ -109,7 +109,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 dependency: { nodeKind: "dynamic-import" },
                 disallow: { dependency: [{ kind: "value" }] },
@@ -125,7 +125,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: { dependency: { kind: "value" } },
                 importKind: "type",
@@ -140,7 +140,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: [{ dependency: { kind: "value" } }],
                 importKind: "type",
@@ -155,7 +155,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 allow: [{ dependency: [{ kind: "value" }] }],
                 importKind: "type",
@@ -170,7 +170,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 dependency: { nodeKind: "import", kind: ["foo"] },
                 disallow: { to: { type: "*" } },
@@ -188,7 +188,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 to: "helpers",
                 disallow: { from: [{ type: "helpers" }] },
@@ -205,7 +205,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 dependency: { nodeKind: "import" },
                 disallow: { dependency: { kind: "value" } },
@@ -222,7 +222,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 dependency: [{ nodeKind: "import" }],
                 disallow: { dependency: { kind: "value" } },
@@ -239,7 +239,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 dependency: { nodeKind: "import" },
                 disallow: { dependency: [{ kind: "value" }] },
@@ -256,7 +256,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 dependency: [{ nodeKind: "import" }],
                 disallow: { dependency: [{ kind: "value" }] },
@@ -273,7 +273,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 dependency: { nodeKind: "import" },
                 disallow: { to: { type: "*" } },
@@ -285,7 +285,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies with kind "value" and nodeKind "import" to elements of type "helpers" are not allowed. Denied by rule at index 0',
+              'Dependencies with kind "value" and nodeKind "import" to elements of type "helpers" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -296,7 +296,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 dependency: [{ nodeKind: "import" }],
                 disallow: { to: { type: "*" } },
@@ -308,7 +308,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies with kind "value" and nodeKind "import" to elements of type "helpers" are not allowed. Denied by rule at index 0',
+              'Dependencies with kind "value" and nodeKind "import" to elements of type "helpers" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -319,7 +319,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 disallow: { dependency: { nodeKind: "import" } },
                 importKind: "value",
@@ -330,7 +330,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies with kind "value" and nodeKind "import" are not allowed. Denied by rule at index 0',
+              'Dependencies with kind "value" and nodeKind "import" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -341,7 +341,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 disallow: [{ dependency: { nodeKind: "import" } }],
                 importKind: "value",
@@ -352,7 +352,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies with kind "value" and nodeKind "import" are not allowed. Denied by rule at index 0',
+              'Dependencies with kind "value" and nodeKind "import" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -363,7 +363,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               {
                 disallow: [{ dependency: [{ nodeKind: "import" }] }],
                 importKind: "value",
@@ -374,7 +374,7 @@ createRuleTester(objectSelectorPropertiesSettings).run(
         errors: [
           {
             message:
-              'Dependencies with kind "value" and nodeKind "import" are not allowed. Denied by rule at index 0',
+              'Dependencies with kind "value" and nodeKind "import" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],

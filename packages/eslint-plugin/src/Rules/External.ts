@@ -13,8 +13,8 @@ import {
 } from "../Settings";
 import type {
   ExternalRuleOptions,
-  ExternalRule,
-  DependenciesRule,
+  ExternalPolicy,
+  DependenciesPolicy,
   ExternalLibrariesSelector,
   ExternalLibrarySelectorWithOptions,
 } from "../Shared";
@@ -26,7 +26,7 @@ import {
   RULE_NAMES_MAP,
 } from "../Shared";
 
-import { evaluateRulesAndReport } from "./Dependencies";
+import { evaluatePoliciesAndReport } from "./Dependencies";
 import { dependencyRule } from "./Support";
 
 const { RULE_EXTERNAL } = SETTINGS;
@@ -132,14 +132,14 @@ function modifySelectors(
 }
 
 /**
- * Converts `external` legacy rules to `dependencies` rule shape.
+ * Converts `external` legacy policies to `dependencies` policy shape.
  *
- * @param rules - External rules as configured by the user.
- * @returns Equivalent dependencies rules consumed by shared evaluator.
+ * @param rules - External policies as configured by the user.
+ * @returns Equivalent dependencies policies consumed by shared evaluator.
  */
 function transformToDependenciesRules(
-  rules: ExternalRule[]
-): DependenciesRule[] {
+  rules: ExternalPolicy[]
+): DependenciesPolicy[] {
   return rules.map((rule) => ({
     from: rule.from,
     allow: rule.allow ? modifySelectors(rule.allow) : undefined,
@@ -194,8 +194,10 @@ export default dependencyRule<ExternalRuleOptions>(
 
     const origin = dependency.to.module.origin;
     if (origin === ORIGINS_MAP.EXTERNAL || origin === ORIGINS_MAP.CORE) {
-      const rules = transformToDependenciesRules(options?.rules ?? []);
-      evaluateRulesAndReport({
+      const rules = transformToDependenciesRules(
+        options?.policies ?? options?.rules ?? []
+      );
+      evaluatePoliciesAndReport({
         rules,
         settings,
         context,

@@ -81,7 +81,7 @@ Define your dependency rules:
   rules: {
     "boundaries/dependencies": [2, {
       default: "disallow",
-      rules: [
+      policies: [
         // Allow controllers to depend on models and views
         {
           from: { element: { types: "controller" } },

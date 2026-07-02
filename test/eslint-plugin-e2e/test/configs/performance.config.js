@@ -140,7 +140,7 @@ export default [
           default: "allow",
           message:
             "dependencies violation: {{ from.element.types.[0] }} -> {{ to.element.types.[0] }} through {{ dependency.source }}",
-          rules: [
+          policies: [
             {
               disallow: {
                 to: {

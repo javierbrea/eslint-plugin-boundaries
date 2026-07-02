@@ -34,7 +34,7 @@ export default [
           // can be folded into this one through the to.module sub-selector.
           checkAllOrigins: true,
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: {
                 element: {

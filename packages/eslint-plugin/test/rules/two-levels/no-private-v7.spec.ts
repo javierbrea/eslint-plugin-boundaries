@@ -12,7 +12,7 @@ const rule = ruleFactory();
 const options = [
   {
     default: "allow",
-    rules: [
+    policies: [
       { disallow: { to: { element: { parent: { type: "*" } } } } },
       {
         allow: {
@@ -100,7 +100,7 @@ const runTest = (
         errors: [
           {
             message:
-              'Dependencies to elements of parent type "components" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of parent type "components" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -112,7 +112,7 @@ const runTest = (
         errors: [
           {
             message:
-              'Dependencies to elements of parent type "components" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of parent type "components" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -125,7 +125,7 @@ const runTest = (
         errors: [
           {
             message:
-              'Dependencies to elements of parent type "helpers" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of parent type "helpers" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -140,7 +140,7 @@ const runTest = (
         errors: [
           {
             message:
-              'Dependencies to elements of parent type "components" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of parent type "components" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -156,7 +156,7 @@ const runTest = (
         options: [
           {
             default: "allow",
-            rules: [
+            policies: [
               { disallow: { to: { element: { parent: { type: "*" } } } } },
               {
                 allow: {
@@ -171,7 +171,7 @@ const runTest = (
         errors: [
           {
             message:
-              'Dependencies to elements of parent type "components" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of parent type "components" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],

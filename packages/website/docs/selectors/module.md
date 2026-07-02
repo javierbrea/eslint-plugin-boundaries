@@ -54,7 +54,7 @@ This is the right sub-selector for matching dependencies on external packages an
 
 ## Using the Module Selector in Rule Policies
 
-Read the [Selectors](../selectors/selectors.md) section to learn how to use the `module` sub-selector in a rule's `from` or `to` entity selector. See [Policies](../policies/policies.mdx) for how to combine entity selectors with `disallow` and `allow` to write a complete rule.
+Read the [Selectors](../selectors/selectors.md) section to learn how to use the `module` sub-selector in a policy's `from` or `to` entity selector. See [Policies](../policies/policies.mdx) for how to combine entity selectors with `disallow` and `allow` to write a complete policy.
 
 :::warning
 By default the [`dependencies` rule](../rules/dependencies.md) only checks `local`-origin targets. To also enforce rules on `external` and `core` dependencies, enable its `checkAllOrigins` option.

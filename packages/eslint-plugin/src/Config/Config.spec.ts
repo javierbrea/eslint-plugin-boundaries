@@ -14,7 +14,9 @@ import {
   SETTINGS_KEYS_MAP,
   isSettingsKey,
   ELEMENT_DESCRIPTOR_MODES_MAP,
+  RULE_EFFECTS_MAP,
   RULE_POLICIES_MAP,
+  isRuleEffect,
   isRulePolicy,
 } from "./Config";
 
@@ -605,7 +607,22 @@ describe("Constants", () => {
     });
   });
 
-  describe("RULE_POLICIES_MAP", () => {
+  describe("RULE_EFFECTS_MAP", () => {
+    it("should be defined as a string key/value map", () => {
+      expect(RULE_EFFECTS_MAP).toBeDefined();
+      expect(typeof RULE_EFFECTS_MAP).toBe("object");
+
+      Object.entries(RULE_EFFECTS_MAP).forEach(([key, value]) => {
+        expect(typeof key).toBe("string");
+        expect(typeof value).toBe("string");
+      });
+
+      expect(RULE_EFFECTS_MAP.ALLOW).toBe("allow");
+      expect(RULE_EFFECTS_MAP.DISALLOW).toBe("disallow");
+    });
+  });
+
+  describe("RULE_POLICIES_MAP (deprecated alias of RULE_EFFECTS_MAP)", () => {
     it("should be defined as a string key/value map", () => {
       expect(RULE_POLICIES_MAP).toBeDefined();
       expect(typeof RULE_POLICIES_MAP).toBe("object");
@@ -617,6 +634,10 @@ describe("Constants", () => {
 
       expect(RULE_POLICIES_MAP.ALLOW).toBe("allow");
       expect(RULE_POLICIES_MAP.DISALLOW).toBe("disallow");
+    });
+
+    it("is the same object as RULE_EFFECTS_MAP", () => {
+      expect(RULE_POLICIES_MAP).toBe(RULE_EFFECTS_MAP);
     });
   });
 });
@@ -764,7 +785,29 @@ describe("Type Guard Functions", () => {
     });
   });
 
-  describe("isRulePolicy", () => {
+  describe("isRuleEffect", () => {
+    it("should return true for valid rule effects", () => {
+      expect(isRuleEffect("allow")).toBe(true);
+      expect(isRuleEffect("disallow")).toBe(true);
+    });
+
+    it("should return false for invalid rule effects", () => {
+      expect(isRuleEffect("invalid")).toBe(false);
+      expect(isRuleEffect("ALLOW")).toBe(false);
+      expect(isRuleEffect("DISALLOW")).toBe(false);
+      expect(isRuleEffect("")).toBe(false);
+    });
+
+    it("should return false for non-string values", () => {
+      expect(isRuleEffect(null)).toBe(false);
+      expect(isRuleEffect(undefined)).toBe(false);
+      expect(isRuleEffect(123)).toBe(false);
+      expect(isRuleEffect({})).toBe(false);
+      expect(isRuleEffect([])).toBe(false);
+    });
+  });
+
+  describe("isRulePolicy (deprecated alias of isRuleEffect)", () => {
     it("should return true for valid rule policies", () => {
       expect(isRulePolicy("allow")).toBe(true);
       expect(isRulePolicy("disallow")).toBe(true);
@@ -783,6 +826,10 @@ describe("Type Guard Functions", () => {
       expect(isRulePolicy(123)).toBe(false);
       expect(isRulePolicy({})).toBe(false);
       expect(isRulePolicy([])).toBe(false);
+    });
+
+    it("is the same function as isRuleEffect", () => {
+      expect(isRulePolicy).toBe(isRuleEffect);
     });
   });
 });

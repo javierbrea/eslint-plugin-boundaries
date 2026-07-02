@@ -225,7 +225,7 @@ runTest(
     {
       checkAllOrigins: true,
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "helpers" } },
           allow: [
@@ -285,7 +285,7 @@ runTest(
     {
       checkAllOrigins: true,
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "helpers" } },
           allow: [

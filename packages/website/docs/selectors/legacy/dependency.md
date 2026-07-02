@@ -19,7 +19,7 @@ keywords:
 
 # Legacy Dependency Metadata Selector Syntax
 
-These formats keep working without changes, but when a rule uses them the plugin emits a one-time runtime console warning encouraging migration to object-based selectors. When you are ready to migrate, the [v6 to v7 migration guide](../../releases/migration-guides/v6-to-v7.mdx) covers the full transition, including the [entity selector](../selectors.md#entity-selectors) form.
+These formats keep working without changes, but when a rule policy uses them the plugin emits a one-time runtime console warning encouraging migration to object-based selectors. When you are ready to migrate, the [v6 to v7 migration guide](../../releases/migration-guides/v6-to-v7.mdx) covers the full transition, including the [entity selector](../selectors.md#entity-selectors) form.
 
 ## Dependency metadata properties
 
@@ -38,5 +38,5 @@ For step-by-step migration instructions and examples, see the [v6 to v7 migratio
 ## See Also
 
 - [Selectors](../selectors.md) — modern object-based and entity selector reference.
-- [Rules](../../policies/policies.mdx) — where selectors are used in `from`/`to`/`dependency`.
+- [Policies](../../policies/policies.mdx) — where selectors are used in `from`/`to`/`dependency`.
 - [v6 to v7 Migration Guide](../../releases/migration-guides/v6-to-v7.mdx) — full migration instructions.

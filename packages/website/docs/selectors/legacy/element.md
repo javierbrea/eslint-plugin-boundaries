@@ -22,7 +22,7 @@ keywords:
 
 # Legacy Elements Selector Syntax
 
-These formats keep working without changes, but when a rule uses them the plugin emits a one-time runtime console warning encouraging migration to object-based selectors. When you are ready to migrate, the [v6 to v7 migration guide](../../releases/migration-guides/v6-to-v7.mdx) covers the full transition, including the [entity selector](../selectors.md#entity-selectors) form.
+These formats keep working without changes, but when a policy uses them the plugin emits a one-time runtime console warning encouraging migration to object-based selectors. When you are ready to migrate, the [v6 to v7 migration guide](../../releases/migration-guides/v6-to-v7.mdx) covers the full transition, including the [entity selector](../selectors.md#entity-selectors) form.
 
 ## String and tuple selectors
 
@@ -183,7 +183,7 @@ From v7, the `element` selector is a sub-selector of the [entity selector](../se
 
 The object-based and entity selector syntax gives you:
 
-- **Self-documenting selectors** — Object properties read clearly, especially in long rule lists.
+- **Self-documenting selectors** — Object properties read clearly, especially in long policy lists.
 - **Entity matching** — Wrap element properties in `{ element: { ... } }` to also match [`file.categories`](../file.md) (file descriptors) and [`module.origin`/`module.source`](../module.md) (external and local module origin). These are only reachable through entity selectors.
 - **Richer element matching** — Object selectors support `element.type`, `element.path`, `element.fileInternalPath`, `element.captured`, `element.parent`, and the `isIgnored`/`isUnknown` flags.
 - **Future features** — New capabilities are added to the object-based syntax only.
@@ -195,7 +195,7 @@ For step-by-step migration instructions and examples, see the [v6 to v7 migratio
 ## See Also
 
 - [Selectors](../selectors.md) — modern object-based and entity selector reference.
-- [Rules](../../policies/policies.mdx) — where selectors are used in `from`/`to`/`dependency`.
+- [Policies](../../policies/policies.mdx) — where selectors are used in `from`/`to`/`dependency`.
 - [Settings](../../settings/settings.md) — configure `boundaries/files` and `boundaries/elements-single-type`.
 - [Elements](../../classification/elements.md) — element descriptors and captured values.
 - [v6 to v7 Migration Guide](../../releases/migration-guides/v6-to-v7.mdx) — full migration instructions.

@@ -38,7 +38,7 @@ const boundariesConfig: Config<"customBoundaries"> = {
       "error",
       {
         default: "disallow",
-        rules: [
+        policies: [
           {
             from: {
               type: "module",

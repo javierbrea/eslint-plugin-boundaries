@@ -37,7 +37,7 @@ The plugin uses `eslint-module-utils/resolve` internally. Configure module resol
 It keeps working without changes; you will see a deprecation warning in your console. Migrate by moving your path aliases from `boundaries/alias` to a resolver configuration (for example, the [Alias Resolver](#alias-resolver) shown below).
 
 :::note[Resolution affects module origin]
-The resolver outcome decides each dependency's [module origin](../classification/modules.md#module-origins). A resolved import that points inside your project is classified as `"local"`; one resolved into `node_modules` is `"external"`. When no configured resolver can resolve an import, the plugin classifies it as `"external"` by default (`unresolvableAlias`, see [`boundaries/flag-as-external`](../settings/settings.md#boundariesflag-as-external)). Configuring the right resolver avoids false positives in rules that match on `to.module.origin`.
+The resolver outcome decides each dependency's [module origin](../classification/modules.md#module-origins). A resolved import that points inside your project is classified as `"local"`; one resolved into `node_modules` is `"external"`. When no configured resolver can resolve an import, the plugin classifies it as `"external"` by default (`unresolvableAlias`, see [`boundaries/flag-as-external`](../settings/settings.md#boundariesflag-as-external)). Configuring the right resolver avoids false positives in policies that match on `to.module.origin`.
 :::
 
 ## Common Resolvers
@@ -168,7 +168,7 @@ For comprehensive information about available resolvers and their configuration 
 
 ### Imports classified as `external` unexpectedly
 
-If a rule that matches on `to.module.origin` flags a local import as external, the import is probably not resolving. Unresolvable imports are classified as `"external"` by default (`unresolvableAlias` in [`boundaries/flag-as-external`](../settings/settings.md#boundariesflag-as-external)). Configure the resolver that recognizes your aliases, then re-run with [debug mode](./debugging.md) to confirm the new origin.
+If a policy that matches on `to.module.origin` flags a local import as external, the import is probably not resolving. Unresolvable imports are classified as `"external"` by default (`unresolvableAlias` in [`boundaries/flag-as-external`](../settings/settings.md#boundariesflag-as-external)). Configure the resolver that recognizes your aliases, then re-run with [debug mode](./debugging.md) to confirm the new origin.
 
 ### Custom resolver not found
 

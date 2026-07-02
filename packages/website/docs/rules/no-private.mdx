@@ -215,7 +215,7 @@ The following example shows how to migrate a configuration from `boundaries/no-p
 -     "boundaries/no-private": [2, { allowUncles: true }]
 +     "boundaries/dependencies": [2, {
 +       default: "allow",
-+       rules: [
++       policies: [
 +         // Disallow importing any nested (private) element
 +         {
 +           disallow: {

@@ -80,7 +80,7 @@ function fileBelongingToElement(
 }
 
 function noRuleMessage({ from, to }: { from: string; to: string }) {
-  return `There is no rule allowing dependencies from ${from} to ${to}`;
+  return `There is no policy allowing dependencies from ${from} to ${to}`;
 }
 
 const ruleTester = createRuleTester(mixedSettings);
@@ -98,7 +98,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: {
                 element: { type: "components" },
@@ -124,7 +124,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: { file: { categories: "components" } },
               allow: {
@@ -147,7 +147,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: {
                 element: { captured: { elementName: "component-a" } },
@@ -173,7 +173,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: { element: { type: "components" } },
               allow: {
@@ -196,7 +196,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: { file: { categories: "components" } },
               allow: {
@@ -221,7 +221,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: { element: { type: "components" } },
               allow: { to: [{ element: { type: "helpers" } }] },
@@ -252,7 +252,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: { element: { type: "modules" } },
               allow: {
@@ -281,7 +281,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: { file: { categories: "modules" } },
               allow: {
@@ -309,7 +309,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: {
                 element: { type: "modules", captured: { elementName: "*" } },
@@ -342,7 +342,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: {
                 element: { type: "components" },
@@ -388,7 +388,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: { element: { type: "modules" } },
               allow: {
@@ -425,7 +425,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: {
                 element: { type: "modules", captured: { elementName: "*" } },
@@ -462,7 +462,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "allow",
-          rules: [
+          policies: [
             {
               from: { element: { type: "modules" } },
               disallow: {
@@ -503,7 +503,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "allow",
-          rules: [
+          policies: [
             {
               from: {
                 element: { type: "components" },
@@ -538,7 +538,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "allow",
-          rules: [
+          policies: [
             {
               from: { element: { type: "components" } },
               disallow: {
@@ -570,7 +570,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "allow",
-          rules: [
+          policies: [
             {
               from: {
                 element: { captured: { elementName: "component-a" } },
@@ -604,7 +604,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "allow",
-          rules: [
+          policies: [
             {
               from: { file: { categories: "components" } },
               disallow: {

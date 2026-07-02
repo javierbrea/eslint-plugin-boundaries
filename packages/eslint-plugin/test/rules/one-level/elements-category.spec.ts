@@ -21,7 +21,7 @@ function elementCategoriesNoRuleMessage({
   file: string;
   dep: string;
 }) {
-  return `There is no rule allowing dependencies from elements of category ${file} to elements of category ${dep}`;
+  return `There is no policy allowing dependencies from elements of category ${file} to elements of category ${dep}`;
 }
 
 const defaultSettings: RuleTesterSettings = {
@@ -496,11 +496,11 @@ runTest(
     },
   ],
   {
-    0: 'There is no rule allowing dependencies from elements of category "helpers" to elements of category "helpers"',
-    1: 'Dependencies to elements of category "helpers" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    2: 'Dependencies to elements of category "components" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    3: 'Dependencies to elements of category "modules" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    4: 'Dependencies to elements of category "modules" are not allowed in elements of category "components". Denied by rule at index 1',
+    0: 'There is no policy allowing dependencies from elements of category "helpers" to elements of category "helpers"',
+    1: 'Dependencies to elements of category "helpers" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    2: 'Dependencies to elements of category "components" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    3: 'Dependencies to elements of category "modules" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    4: 'Dependencies to elements of category "modules" are not allowed in elements of category "components". Denied by policy at index 1',
   }
 );
 
@@ -584,10 +584,10 @@ runTest(
     },
   ],
   {
-    1: 'Dependencies to elements of category "helpers" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    2: 'Dependencies to elements of category "components" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    3: 'Dependencies to elements of category "modules" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    4: 'Dependencies to elements of category "modules" are not allowed in elements of category "components". Denied by rule at index 1',
+    1: 'Dependencies to elements of category "helpers" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    2: 'Dependencies to elements of category "components" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    3: 'Dependencies to elements of category "modules" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    4: 'Dependencies to elements of category "modules" are not allowed in elements of category "components". Denied by policy at index 1',
   }
 );
 
@@ -630,7 +630,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of category "components" and captured values: elementName="component-a" are not allowed in elements of category "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of category "components" and captured values: elementName="component-a" are not allowed in elements of category "components". Denied by policy at index 0',
   }
 );
 
@@ -704,7 +704,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of category "components" and captured values: elementName="component-a" are not allowed in elements of category "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of category "components" and captured values: elementName="component-a" are not allowed in elements of category "components". Denied by policy at index 0',
   }
 );
 

@@ -27,7 +27,6 @@ import CodeDiff from "@site/src/components/CodeDiff";
 
 Follow these steps to quickly set up ESLint Plugin Boundaries in your project. Then you can explore more advanced configurations to fit your project's needs, starting with [Classification](./classification/classification.md).
 
-
 ## 1. Installation
 
 If you [have not installed them yet](./installation.mdx), install ESLint and ESLint Plugin Boundaries:
@@ -131,7 +130,7 @@ Read the **[Classification](./classification/classification.md)** section for gu
 </Tabs>
 
 :::info
-This is only a basic example of configuration. The plugin can also capture path fragments from element paths so you can reuse them in rule selectors. Read **[Elements](./classification/elements.md)** to learn the full range of descriptor options.
+This is only a basic example of configuration. The plugin can also capture path fragments from element paths so you can reuse them in rule policy selectors. Read **[Elements](./classification/elements.md)** to learn the full range of descriptor options.
 :::
 
 :::note
@@ -204,7 +203,7 @@ File categories are independent from elements, so the same file can be element t
 :::
 
 :::note
-The rest of this guide keeps these file descriptors so you can see the `file` layer matched in a rule. If you skip this optional step, simply omit the `boundaries/files` setting and any rule that targets `file`.
+The rest of this guide keeps these file descriptors so you can see the `file` layer matched in a rule policy. If you skip this optional step, simply omit the `boundaries/files` setting and any rule that targets `file`.
 :::
 
 ## 5. Apply Predefined Rules
@@ -311,7 +310,7 @@ Read how to use **[Selectors](./selectors/selectors.md)** to configure your [Rul
 .      ...boundaries.configs.recommended.rules,
 +      "boundaries/dependencies": [2, {
 +        default: "disallow",
-+        rules: [
++        policies: [
 +          {
 +            from: { element: { types: "component" } },
 +            allow: { to: { element: { types: "helper" } } }
@@ -357,7 +356,7 @@ Read how to use **[Selectors](./selectors/selectors.md)** to configure your [Rul
 .      ...boundaries.configs.recommended.rules,
 +      "boundaries/dependencies": [2, {
 +        default: "disallow",
-+        rules: [
++        policies: [
 +          {
 +            from: { element: { types: "component" } },
 +            allow: { to: { element: { types: "helper" } } }
@@ -381,7 +380,7 @@ Read how to use **[Selectors](./selectors/selectors.md)** to configure your [Rul
 </Tabs>
 
 :::info
-You can customize the error messages reported by rules using **[message templates](./policies/policies.mdx)**.
+You can customize the error messages reported by rule policies using **[message templates](./policies/policies.mdx)**.
 :::
 
 ## 7. Next Steps
@@ -390,10 +389,10 @@ You are all set! Now you can start enforcing architectural boundaries in your pr
 
 From here you can:
 
-* Explore the configuration sections to learn:
-  * How to **[Classify Elements and Files](./classification/classification.md)**.
-  * How to **[define Selectors to match dependencies](./selectors/selectors.md)**.
-  * How to **[define Rule Policies using those Selectors](./policies/policies.mdx)**.
-  * How to **[customize Global Settings](./settings/settings.md)**.
-* Review the **[Rules section](./rules/rules.md)** to understand all available rules and how to configure them.
-* Browse the **[Guides](./guides/monorepo-setup.md)** for task-oriented walkthroughs, such as setting up a monorepo.
+- Explore the configuration sections to learn:
+  - How to **[Classify Elements and Files](./classification/classification.md)**.
+  - How to **[define Selectors to match dependencies](./selectors/selectors.md)**.
+  - How to **[define Rule Policies using those Selectors](./policies/policies.mdx)**.
+  - How to **[customize Global Settings](./settings/settings.md)**.
+- Review the **[Rules section](./rules/rules.md)** to understand all available rules and how to configure them.
+- Browse the **[Guides](./guides/monorepo-setup.md)** for task-oriented walkthroughs, such as setting up a monorepo.

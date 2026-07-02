@@ -96,7 +96,7 @@ runTest(
     },
   ],
   {
-    0: 'There is no rule allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to entities of module with origin "external" and module source "@module-helpers/module-b"',
-    1: 'There is no rule allowing dependencies from elements of type "modules" and captured values: elementName="ModuleC" to entities of module with origin "external" and module source "@module-helpers/all"',
+    0: 'There is no policy allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to entities of module with origin "external" and module source "@module-helpers/module-b"',
+    1: 'There is no policy allowing dependencies from elements of type "modules" and captured values: elementName="ModuleC" to entities of module with origin "external" and module source "@module-helpers/all"',
   }
 );

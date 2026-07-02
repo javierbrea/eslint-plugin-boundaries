@@ -43,7 +43,7 @@ It ensures that __your architectural boundaries are respected by the elements in
 
 By default, it analyzes `import` and `export` statements, `require` calls, and dynamic `import()` expressions. You can customize it to inspect any other AST node that creates a dependency, such as `jest.mock()`. See the [configuration guide for more details](./settings/settings.md).
 
-For each dependency it finds, the plugin classifies both the file the dependency comes from and the module it points to. That classification is what your rules read to decide whether the dependency is allowed.
+For each dependency it finds, the plugin classifies both the file the dependency comes from and the module it points to. That classification is what your rule policies read to decide whether the dependency is allowed.
 
 ## The Concept
 
@@ -71,14 +71,14 @@ The plugin builds a **description** for each dependency, which includes the thre
 Then, using [selectors](./selectors/selectors.md) to match [dependency descriptions](./classification/classification.md), you define [**policies**](./policies/policies.mdx) that allow or disallow them. Each policy can combine any of the three layers from both sides of the dependency, and the dependency metadata to express a boundary.
 :::
 
-Because the layers are independent, a rule can mix them:
+Because the layers are independent, a policy can mix them:
 
 - **Models cannot import views** — `from: { element: { type: "model" } }`, `disallow: { to: { element: { type: "view" } } }`.
 - **No code may import test files** — `disallow: { to: { file: { categories: "test" } } }`.
 - **Only shared code may use the `axios` package** — `from: { element: { type: "!shared" } }`, `disallow: { to: { module: { source: "axios" } } }`.
 
 :::tip
-Layering is progressive. Start with one classification layer — elements or files — and one rule, then add the remaining layers when you need them. You only need to configure one of the two; the rest is optional. See [Classification](./classification/classification.md).
+Layering is progressive. Start with one classification layer — elements or files — and one policy, then add the remaining layers when you need them. You only need to configure one of the two; the rest is optional. See [Classification](./classification/classification.md).
 :::
 
 ## Usage
@@ -135,16 +135,16 @@ Given this configuration, the plugin analyzes your project at runtime and descri
 This is a simplified view. See **[Classification](./classification/classification.md)** for the full list of properties available in each description.
 :::
 
-### 3. Define your Rules Based on These Descriptions
+### 3. Define your Rule Policies Based on These Descriptions
 
-Based on these **[descriptions](./classification/classification.md)**, you can define rules to allow or disallow dependencies using **[selectors](./selectors/selectors.md)**. For example:
+Based on these **[descriptions](./classification/classification.md)**, you can define rule policies to allow or disallow dependencies using **[selectors](./selectors/selectors.md)**. For example:
 
 <div style={{textAlign: 'center', margin: '2rem 0'}}>
   ![Architecture Boundaries Diagram](./overview-schema.svg)
 </div>
 
 ```javascript
-const dependencyRules = [
+const dependencyRulePolicies = [
   // Allow controllers to depend on models and views
   {
     from: { element: { types: "controller" } },
@@ -176,12 +176,12 @@ const dependencyRules = [
 ```
 
 :::note
-This is a very simplified view. See **[Selectors](./selectors/selectors.md)** for the full syntax and capabilities of selectors, and **[Rules](./policies/policies.mdx)** for the full list of rule properties.
+This is a very simplified view. See **[Selectors](./selectors/selectors.md)** for the full syntax and capabilities of selectors, and **[Policies](./policies/policies.mdx)** for the full list of policy properties.
 :::
 
 ### 4. Get Instant Feedback
 
-When a file violates a dependencies rule, ESLint reports an error. For example, a model importing a view:
+When a file violates a dependencies rule policy, ESLint reports an error. For example, a model importing a view:
 
 ```javascript
 // src/models/model-a/index.js
@@ -191,7 +191,7 @@ import View from "../../views/view-a";
 ESLint reports:
 
 ```text
-error  Dependencies to elements of type "view" are not allowed in elements of type "model". Denied by rule at index 2  boundaries/dependencies
+error  Dependencies to elements of type "view" are not allowed in elements of type "model". Denied by policy at index 2  boundaries/dependencies
 ```
 
 ## Scope

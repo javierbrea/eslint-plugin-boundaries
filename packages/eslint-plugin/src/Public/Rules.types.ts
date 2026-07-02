@@ -10,12 +10,16 @@ export type {
 export { isElementSelector } from "@boundaries/elements";
 
 export type {
+  RuleEffect,
   RulePolicy,
   RuleBaseOptions,
+  DependenciesPolicy,
   DependenciesRule,
   DependenciesRuleOptions,
+  EntryPointPolicy,
   EntryPointRule,
   EntryPointRuleOptions,
+  ExternalPolicy,
   ExternalRule,
   ExternalRuleOptions,
   NoPrivateOptions,
@@ -25,12 +29,18 @@ export type {
 } from "../Shared";
 
 export {
+  RULE_EFFECTS_MAP,
   RULE_POLICIES_MAP,
   RULE_SHORT_NAMES_MAP,
   RULE_NAMES_MAP,
 } from "../Shared";
 
-export { isRulePolicy, isRuleShortName, isRuleName } from "../Settings";
+export {
+  isRuleEffect,
+  isRulePolicy,
+  isRuleShortName,
+  isRuleName,
+} from "../Settings";
 
 /**
  * Kind of import that the rule applies to (e.g., "type", "value")

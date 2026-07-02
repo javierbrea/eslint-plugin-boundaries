@@ -14,7 +14,7 @@ const rule = ruleFactory();
 const options = [
   {
     default: "allow",
-    rules: [
+    policies: [
       { disallow: { to: { element: { parent: { type: "*" } } } } },
       {
         allow: {
@@ -69,7 +69,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies to elements of parent type "modules" are not allowed. Denied by rule at index 0',
+            'Dependencies to elements of parent type "modules" are not allowed. Denied by policy at index 0',
           type: "Literal",
         },
       ],
@@ -82,7 +82,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies to elements of parent type "modules" are not allowed. Denied by rule at index 0',
+            'Dependencies to elements of parent type "modules" are not allowed. Denied by policy at index 0',
           type: "Literal",
         },
       ],
@@ -96,7 +96,7 @@ ruleTester.run(RULE, rule, {
       options: [
         {
           default: "allow",
-          rules: [
+          policies: [
             { disallow: { to: { element: { parent: { type: "*" } } } } },
             {
               allow: {
@@ -109,7 +109,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies to elements of parent type "modules" are not allowed. Denied by rule at index 0',
+            'Dependencies to elements of parent type "modules" are not allowed. Denied by policy at index 0',
           type: "Literal",
         },
       ],

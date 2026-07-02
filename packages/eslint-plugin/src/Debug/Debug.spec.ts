@@ -594,13 +594,13 @@ describe("Debug", () => {
 
     expect(consoleSpy).toHaveBeenCalledTimes(1);
     expect(consoleSpy.mock.calls[0][0]).toContain(
-      "Rule at index 2 reported a violation"
+      "Policy at index 2 reported a violation"
     );
     expect(consoleSpy.mock.calls[0][0]).toContain('"selector"');
     expect(consoleSpy.mock.calls[0][0]).toContain('"index": 2');
   });
 
-  it("should print rule selector with full match result details", () => {
+  it("should print policy selector with full match result details", () => {
     const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
     const debugModule = loadDebugModule();
     const settings = createSettings();
@@ -619,7 +619,7 @@ describe("Debug", () => {
 
     expect(consoleSpy).toHaveBeenCalledTimes(1);
     expect(consoleSpy.mock.calls[0][0]).toContain(
-      "Rule at index 3 reported a violation"
+      "Policy at index 3 reported a violation"
     );
     expect(consoleSpy.mock.calls[0][0]).toContain('"from"');
     expect(consoleSpy.mock.calls[0][0]).toContain('"to"');

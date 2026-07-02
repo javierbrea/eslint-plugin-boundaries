@@ -7,13 +7,13 @@ import type {
 } from "@boundaries/elements";
 
 /**
- * Rule selector entity context exposed to custom message templates.
+ * Policy selector entity context exposed to custom message templates.
  *
  * For backward compatibility with V6 dependency selectors, element selector
  * properties are also exposed at the root level (for example `type`) in
  * addition to `element.type`.
  */
-export type CustomMessageTemplateRuleEntitySelectorContext = Omit<
+export type CustomMessageTemplatePolicyEntitySelectorContext = Omit<
   EntitySingleSelectorMatchResult,
   "origin"
 > &
@@ -27,26 +27,33 @@ export type CustomMessageTemplateRuleEntitySelectorContext = Omit<
     >["fileInternalPath"];
   };
 
-export type CustomMessageTemplateRuleContext = {
-  /** Index of the rule that triggered the error */
+export type CustomMessageTemplatePolicyContext = {
+  /** Index of the policy that triggered the error */
   index: number | null;
   /**
-   * Selector of the rule that matched the dependency.
+   * Selector of the policy that matched the dependency.
    *
    * For backward compatibility with V6 dependency selectors, `from` and `to`
    * expose element selector fields at the root level.
    */
   selector:
     | (Omit<DependencySingleSelectorMatchResult, "from" | "to"> & {
-        from?: CustomMessageTemplateRuleEntitySelectorContext;
-        to?: CustomMessageTemplateRuleEntitySelectorContext;
+        from?: CustomMessageTemplatePolicyEntitySelectorContext;
+        to?: CustomMessageTemplatePolicyEntitySelectorContext;
       })
     | null;
 } | null;
 
-/** Type alias for the normalized selector exposed in `rule.selector`. */
-export type CustomMessageTemplateRuleSelectorContext =
-  NonNullable<CustomMessageTemplateRuleContext>["selector"];
+/**
+ * Context about the rule that matched the dependency, if any.
+ * @deprecated Use `CustomMessageTemplatePolicyContext` instead.
+ */
+export type CustomMessageTemplateRuleContext =
+  CustomMessageTemplatePolicyContext;
+
+/** Type alias for the normalized selector exposed in `policy.selector`. */
+export type CustomMessageTemplatePolicySelectorContext =
+  NonNullable<CustomMessageTemplatePolicyContext>["selector"];
 
 /** Context received by custom message templates */
 export type CustomMessageTemplateContext = {
@@ -64,6 +71,8 @@ export type CustomMessageTemplateContext = {
   } & DependencyDescription["to"];
   /** Information about the dependency itself */
   dependency: DependencyDescription["dependency"];
-  /** Context about the rule that matched the dependency, if any */
-  rule: CustomMessageTemplateRuleContext;
+  /** Context about the policy that matched the dependency, if any */
+  policy: CustomMessageTemplatePolicyContext;
+  /** Context about the policy that matched the dependency, if any. @deprecated Use `policy` instead. */
+  rule: CustomMessageTemplatePolicyContext;
 };

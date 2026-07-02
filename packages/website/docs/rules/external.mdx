@@ -119,7 +119,7 @@ When using options:
     "boundaries/external": [2, {
       // disallow all external imports by default
       default: "disallow",
-      rules: [
+      policies: [
         {
           // from helper elements
           from: { type: "helper" },
@@ -368,7 +368,7 @@ The following example shows how to migrate a configuration from `boundaries/exte
 +     "boundaries/dependencies": [2, {
 +       checkAllOrigins: true,
 .       default: "disallow",
-.       rules: [
+.       policies: [
 -         {
 -           from: "helper",
 -           allow: ["moment"],

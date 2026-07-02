@@ -236,7 +236,7 @@ const runTest = (settings: RuleTesterSettings) => {
         errors: [
           {
             message:
-              'Dependencies to elements of parent type "components" are not allowed. Denied by rule at index 0',
+              'Dependencies to elements of parent type "components" are not allowed. Denied by policy at index 0',
             type: "Literal",
           },
         ],

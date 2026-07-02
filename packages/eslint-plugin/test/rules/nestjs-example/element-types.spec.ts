@@ -366,7 +366,7 @@ const runTest = (
 const ruleOptions = [
   {
     default: "disallow",
-    rules: [
+    policies: [
       {
         from: { type: "app" },
         allow: { to: { type: "module" } },

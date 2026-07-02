@@ -210,7 +210,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 2, dependency)).toBe(
-        'Dependencies with source "@scope/helpers", kind "type", nodeKind "ImportDeclaration", relationship from "sibling", relationship to "sibling", module source "@scope/helpers" and specifiers "Fetcher", "FetcherConfig" to file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper" and captured values: domain="api" are not allowed in file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" and module with origin "local". Denied by rule at index 2'
+        'Dependencies with source "@scope/helpers", kind "type", nodeKind "ImportDeclaration", relationship from "sibling", relationship to "sibling", module source "@scope/helpers" and specifiers "Fetcher", "FetcherConfig" to file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper" and captured values: domain="api" are not allowed in file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" and module with origin "local". Denied by policy at index 2'
       );
     });
 
@@ -218,7 +218,7 @@ describe("Messages", () => {
       const dependency = createDependencyDescription();
 
       expect(dependenciesRuleMatchedMessage(null, 5, dependency)).toBe(
-        "Not able to create a message for this violation. Please report this at: https://github.com/javierbrea/eslint-plugin-boundaries/issues. Denied by rule at index 5"
+        "Not able to create a message for this violation. Please report this at: https://github.com/javierbrea/eslint-plugin-boundaries/issues. Denied by policy at index 5"
       );
     });
 
@@ -229,7 +229,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in elements of type "component". Denied by rule at index 1'
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 1'
       );
     });
 
@@ -240,7 +240,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies to elements of type "helper" are not allowed. Denied by rule at index 1'
+        'Dependencies to elements of type "helper" are not allowed. Denied by policy at index 1'
       );
     });
 
@@ -251,7 +251,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies with source "@scope/helpers" are not allowed. Denied by rule at index 1'
+        'Dependencies with source "@scope/helpers" are not allowed. Denied by policy at index 1'
       );
     });
 
@@ -263,7 +263,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies with source "@scope/helpers" are not allowed in elements of type "component". Denied by rule at index 1'
+        'Dependencies with source "@scope/helpers" are not allowed in elements of type "component". Denied by policy at index 1'
       );
     });
 
@@ -275,7 +275,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies to entities of module with origin "external" are not allowed in elements of type "component". Denied by rule at index 1'
+        'Dependencies to entities of module with origin "external" are not allowed in elements of type "component". Denied by policy at index 1'
       );
     });
 
@@ -288,7 +288,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies with module source "@scope/helpers" and specifiers "Fetcher", "FetcherConfig" are not allowed in elements of type "component". Denied by rule at index 1'
+        'Dependencies with module source "@scope/helpers" and specifiers "Fetcher", "FetcherConfig" are not allowed in elements of type "component". Denied by policy at index 1'
       );
     });
 
@@ -308,7 +308,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies with module internalPath "deep/path" are not allowed in elements of type "component". Denied by rule at index 1'
+        'Dependencies with module internalPath "deep/path" are not allowed in elements of type "component". Denied by policy at index 1'
       );
     });
 
@@ -339,7 +339,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in elements of parent type "module" and captured values: area="primary". Denied by rule at index 1'
+        'Dependencies are not allowed in elements of parent type "module" and captured values: area="primary". Denied by policy at index 1'
       );
     });
 
@@ -354,7 +354,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in elements of parent "null". Denied by rule at index 1'
+        'Dependencies are not allowed in elements of parent "null". Denied by policy at index 1'
       );
     });
 
@@ -367,7 +367,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in elements of captured "null". Denied by rule at index 1'
+        'Dependencies are not allowed in elements of captured "null". Denied by policy at index 1'
       );
     });
 
@@ -385,7 +385,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in elements of type "component". Denied by rule at index 1'
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 1'
       );
     });
 
@@ -405,7 +405,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in file of path "/repo/src/components/button/index.ts" and captured values: scope="frontend". Denied by rule at index 1'
+        'Dependencies are not allowed in file of path "/repo/src/components/button/index.ts" and captured values: scope="frontend". Denied by policy at index 1'
       );
     });
 
@@ -419,7 +419,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in elements of type "component". Denied by rule at index 1'
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 1'
       );
     });
 
@@ -437,7 +437,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in elements of type "component" and module with origin "local". Denied by rule at index 1'
+        'Dependencies are not allowed in elements of type "component" and module with origin "local". Denied by policy at index 1'
       );
     });
 
@@ -454,7 +454,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in elements of type "component". Denied by rule at index 1'
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 1'
       );
     });
 
@@ -475,7 +475,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies with relationship to "sibling" are not allowed. Denied by rule at index 1'
+        'Dependencies with relationship to "sibling" are not allowed. Denied by policy at index 1'
       );
     });
 
@@ -487,7 +487,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies with source "@scope/helpers" to elements of type "helper" are not allowed. Denied by rule at index 1'
+        'Dependencies with source "@scope/helpers" to elements of type "helper" are not allowed. Denied by policy at index 1'
       );
     });
 
@@ -516,7 +516,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in elements of type "component". Denied by rule at index 1'
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 1'
       );
     });
 
@@ -530,7 +530,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in file of categories "ui", "feature". Denied by rule at index 1'
+        'Dependencies are not allowed in file of categories "ui", "feature". Denied by policy at index 1'
       );
     });
 
@@ -557,7 +557,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in file of categories "ui", "feature". Denied by rule at index 1'
+        'Dependencies are not allowed in file of categories "ui", "feature". Denied by policy at index 1'
       );
     });
 
@@ -574,7 +574,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in elements of type "component". Denied by rule at index 1'
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 1'
       );
     });
 
@@ -588,7 +588,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in elements of type "component". Denied by rule at index 1'
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 1'
       );
     });
 
@@ -601,7 +601,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies are not allowed in module with origin "local". Denied by rule at index 1'
+        'Dependencies are not allowed in module with origin "local". Denied by policy at index 1'
       );
     });
 
@@ -616,7 +616,7 @@ describe("Messages", () => {
       };
 
       expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
-        'Dependencies with source "@scope/helpers" are not allowed. Denied by rule at index 1'
+        'Dependencies with source "@scope/helpers" are not allowed. Denied by policy at index 1'
       );
     });
   });
@@ -709,7 +709,7 @@ describe("Messages", () => {
       const dependency = createDependencyDescription();
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" to entities of module with origin "external" and module source "@scope/helpers" being file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper", category "data" and captured values: domain="api"'
+        'There is no policy allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" to entities of module with origin "external" and module source "@scope/helpers" being file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper", category "data" and captured values: domain="api"'
       );
     });
 
@@ -748,7 +748,7 @@ describe("Messages", () => {
       });
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" to entities of module with origin "external" and module source "@scope/helpers" being file of category "shared" and captured values: team="platform"'
+        'There is no policy allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" to entities of module with origin "external" and module source "@scope/helpers" being file of category "shared" and captured values: team="platform"'
       );
     });
 
@@ -787,7 +787,7 @@ describe("Messages", () => {
       });
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from elements of type "component", category "ui" and captured values: family="atoms" to elements of type "helper", category "data" and captured values: domain="api"'
+        'There is no policy allowing dependencies from elements of type "component", category "ui" and captured values: family="atoms" to elements of type "helper", category "data" and captured values: domain="api"'
       );
     });
 
@@ -806,7 +806,7 @@ describe("Messages", () => {
       });
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms"'
+        'There is no policy allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms"'
       );
     });
 
@@ -827,7 +827,7 @@ describe("Messages", () => {
       });
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies to file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper", category "data" and captured values: domain="api"'
+        'There is no policy allowing dependencies to file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper", category "data" and captured values: domain="api"'
       );
     });
 
@@ -847,7 +847,7 @@ describe("Messages", () => {
       });
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" with source "lodash"'
+        'There is no policy allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" with source "lodash"'
       );
     });
 
@@ -875,7 +875,7 @@ describe("Messages", () => {
       });
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies to elements of type "helper", category "data" and captured values: domain="api" with source "lodash"'
+        'There is no policy allowing dependencies to elements of type "helper", category "data" and captured values: domain="api" with source "lodash"'
       );
     });
 
@@ -899,7 +899,7 @@ describe("Messages", () => {
       });
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies with source "lodash"'
+        'There is no policy allowing dependencies with source "lodash"'
       );
     });
 
@@ -938,7 +938,7 @@ describe("Messages", () => {
       expect(
         dependenciesRuleDefaultErrorMessage(matchResult, 7, dependency)
       ).toBe(
-        'Dependencies are not allowed in elements of type "component". Denied by rule at index 7'
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 7'
       );
     });
 
@@ -970,7 +970,7 @@ describe("Messages", () => {
       });
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
-        'There is no rule allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" to entities of module with origin "external" and module source "@scope/helpers"'
+        'There is no policy allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" to entities of module with origin "external" and module source "@scope/helpers"'
       );
     });
   });

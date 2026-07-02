@@ -118,7 +118,7 @@ const runTest = (
       {
         filename: absoluteFilePath("modules/module-a/ModuleA.js"),
         code: "import ModuleB from '../module-b/foo.js'",
-        options: [{ rules: undefined }],
+        options: [{ policies: undefined }],
       },
       // Invalid options
       {
@@ -126,7 +126,7 @@ const runTest = (
         code: "import ModuleB from '../module-b/foo.js'",
         options: [
           {
-            rules: [
+            policies: [
               {
                 to: { element: { type: "components" } },
                 allow: { from: { element: { type: "foo" } } },
@@ -141,7 +141,7 @@ const runTest = (
         code: "import MyModuleB from '../../modules/module-b/foo.js'",
         options: [
           {
-            rules: [
+            policies: [
               {
                 to: { element: { type: "foo" } },
                 disallow: { from: { element: { type: "components" } } },
@@ -316,7 +316,7 @@ runTest(
   [
     {
       default: "allow",
-      rules: [
+      policies: [
         {
           to: [
             { element: { type: "modules" } },
@@ -350,10 +350,10 @@ runTest(
       file: '"helpers"',
       dep: '"helpers"',
     }),
-    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by rule at index 1',
+    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by policy at index 1',
   }
 );
 
@@ -364,7 +364,7 @@ runTest(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           to: { element: { type: "h*" } },
           allow: {
@@ -409,7 +409,7 @@ createRuleTester({
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               dependency: { kind: "value" },
               allow: { from: { element: { type: "components" } } },
@@ -424,7 +424,7 @@ createRuleTester({
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               dependency: { kind: "type" },
               allow: { from: { element: { type: "helpers" } } },
@@ -439,7 +439,7 @@ createRuleTester({
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               dependency: { kind: "value" },
               allow: {
@@ -457,7 +457,7 @@ createRuleTester({
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               dependency: { kind: "value" },
               allow: {
@@ -476,7 +476,7 @@ createRuleTester({
       options: [
         {
           default: "allow",
-          rules: [
+          policies: [
             {
               dependency: { kind: "value" },
               disallow: { from: { element: { type: "helpers" } } },
@@ -487,7 +487,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" are not allowed in elements of type "helpers". Denied by rule at index 0',
+            'Dependencies with kind "value" are not allowed in elements of type "helpers". Denied by policy at index 0',
           type: "Literal",
         },
       ],
@@ -498,7 +498,7 @@ createRuleTester({
       options: [
         {
           default: "allow",
-          rules: [
+          policies: [
             {
               dependency: { kind: "value" },
               disallow: { dependency: { nodeKind: "import" } },
@@ -509,7 +509,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" and nodeKind "import" are not allowed. Denied by rule at index 0',
+            'Dependencies with kind "value" and nodeKind "import" are not allowed. Denied by policy at index 0',
           type: "Literal",
         },
       ],
@@ -520,7 +520,7 @@ createRuleTester({
       options: [
         {
           default: "allow",
-          rules: [
+          policies: [
             {
               from: { element: { type: "components" } },
               disallow: {
@@ -533,7 +533,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies are not allowed in elements of type "components" and captured values: elementName="component-a". Denied by rule at index 0',
+            'Dependencies are not allowed in elements of type "components" and captured values: elementName="component-a". Denied by policy at index 0',
           type: "Literal",
         },
       ],
@@ -544,7 +544,7 @@ createRuleTester({
       options: [
         {
           default: "allow",
-          rules: [
+          policies: [
             {
               to: { element: { type: "helpers" } },
               disallow: {
@@ -557,7 +557,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies to elements of type "helpers" and captured values: elementName="helper-a" are not allowed. Denied by rule at index 0',
+            'Dependencies to elements of type "helpers" and captured values: elementName="helper-a" are not allowed. Denied by policy at index 0',
           type: "Literal",
         },
       ],
@@ -568,7 +568,7 @@ createRuleTester({
       options: [
         {
           default: "allow",
-          rules: [
+          policies: [
             {
               to: { element: { captured: { family: "helpers" } } },
               disallow: {
@@ -581,7 +581,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies to elements of captured values: family="helpers", elementName="helper-a" are not allowed. Denied by rule at index 0',
+            'Dependencies to elements of captured values: family="helpers", elementName="helper-a" are not allowed. Denied by policy at index 0',
           type: "Literal",
         },
       ],
@@ -595,7 +595,7 @@ runTest(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "components" } },
           dependency: { kind: "value" },

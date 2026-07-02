@@ -188,7 +188,7 @@ Set the `checkUnknownLocals` option to `true` in your `boundaries/dependencies` 
       {
         checkUnknownLocals: true,
         default: "allow",
-        rules: [
+        policies: [
           {
             from: { element: { isUnknown: false } },
             disallow: {

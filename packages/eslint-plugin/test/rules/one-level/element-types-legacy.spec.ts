@@ -488,10 +488,10 @@ runTest(
       file: '"helpers"',
       dep: '"helpers"',
     }),
-    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by rule at index 1',
+    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by policy at index 1',
   }
 );
 
@@ -605,10 +605,10 @@ runTest(
     },
   ],
   {
-    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by rule at index 1',
+    1: 'Dependencies to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    2: 'Dependencies to elements of type "components" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    3: 'Dependencies to elements of type "modules" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    4: 'Dependencies to elements of type "modules" are not allowed in elements of type "components". Denied by policy at index 1',
   }
 );
 
@@ -637,7 +637,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );
 
@@ -691,7 +691,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );
 
@@ -776,7 +776,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );
 
@@ -803,6 +803,6 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );

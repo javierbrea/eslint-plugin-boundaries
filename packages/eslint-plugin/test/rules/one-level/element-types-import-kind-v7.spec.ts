@@ -246,7 +246,7 @@ runTest(
   [
     {
       default: "allow",
-      rules: [
+      policies: [
         {
           from: {
             element: { type: "helpers" },
@@ -300,11 +300,11 @@ runTest(
       file: '"helpers"',
       dep: '"helpers"',
     }),
-    1: 'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
-    2: 'Dependencies with kind "value" to elements of type "components" are not allowed in elements of type "helpers". Denied by rule at index 1',
-    3: 'Dependencies with kind "value" to elements of type "modules" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    4: 'Dependencies with kind "value" to elements of type "modules" are not allowed in elements of type "components". Denied by rule at index 2',
-    5: 'Dependencies with kind "type" to elements of type "helpers" are not allowed in elements of type "modules". Denied by rule at index 3',
+    1: 'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 1',
+    2: 'Dependencies with kind "value" to elements of type "components" are not allowed in elements of type "helpers". Denied by policy at index 1',
+    3: 'Dependencies with kind "value" to elements of type "modules" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    4: 'Dependencies with kind "value" to elements of type "modules" are not allowed in elements of type "components". Denied by policy at index 2',
+    5: 'Dependencies with kind "type" to elements of type "helpers" are not allowed in elements of type "modules". Denied by policy at index 3',
   }
 );
 
@@ -315,7 +315,7 @@ runTest(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "modules" } },
           allow: [
@@ -380,7 +380,7 @@ runTest(
   [
     {
       default: "allow",
-      rules: [
+      policies: [
         {
           from: { element: { type: "helpers" } },
           disallow: [
@@ -452,7 +452,7 @@ precedenceRuleTester.run(`${RULE} selector kind precedence`, rule, {
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: { element: { type: "components" } },
               allow: [
@@ -475,7 +475,7 @@ precedenceRuleTester.run(`${RULE} selector kind precedence`, rule, {
       options: [
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: { element: { type: "components" } },
               allow: [

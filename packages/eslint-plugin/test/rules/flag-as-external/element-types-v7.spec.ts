@@ -30,7 +30,7 @@ const testDefaultSettings = () => {
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: { type: "components", captured: { package: "a" } },
@@ -83,7 +83,7 @@ const testDefaultSettings = () => {
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: {
@@ -206,7 +206,7 @@ const testCustomSourcePatterns = () => {
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: { type: "components", captured: { package: "a" } },
@@ -279,7 +279,7 @@ const testInNodeModulesDisabled = () => {
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { element: { type: "any" } },
                 allow: { to: { element: { type: "any" } } },
@@ -366,7 +366,7 @@ const testInvalidSettings = () => {
         options: [
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: {
                   element: { type: "components", captured: { package: "a" } },

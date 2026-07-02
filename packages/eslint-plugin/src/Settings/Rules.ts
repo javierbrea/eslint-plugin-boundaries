@@ -12,18 +12,18 @@ import {
 import {
   SETTINGS_KEYS_MAP,
   FROM,
-  RULE_POLICY_ALLOW,
-  RULE_POLICY_DISALLOW,
+  RULE_EFFECT_ALLOW,
+  RULE_EFFECT_DISALLOW,
   RULE_NAMES,
   RULE_SHORT_NAMES,
   RULE_NAMES_MAP,
 } from "../Shared/Settings.types";
 import type {
-  RuleOptionsRules,
-  RuleOptionsWithRules,
+  RuleOptionsPolicies,
+  RuleOptionsWithPolicies,
   RuleMainKey,
   RuleShortName,
-  RulePolicy,
+  RuleEffect,
   RuleName,
 } from "../Shared/Settings.types";
 
@@ -44,7 +44,7 @@ type JsonSchemaObject = {
   [key: string]: JsonSchemaValue;
 };
 
-const trackedWarnedRuleOptions = new WeakSet<RuleOptionsWithRules>();
+const trackedWarnedRuleOptions = new WeakSet<RuleOptionsWithPolicies>();
 
 const defaultExtraOptionsSchema = {
   type: "object",
@@ -509,6 +509,34 @@ export function rulesOptionsSchema({
         },
       ];
 
+  const policyEntrySchema = {
+    type: "array",
+    items: {
+      type: "object",
+      properties: {
+        ...ruleSupportedProperties,
+        importKind: {
+          anyOf: [
+            {
+              type: "string",
+            },
+            {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+          ],
+        },
+        message: {
+          type: "string",
+        },
+      },
+      additionalProperties: false,
+      anyOf: requiredProperties,
+    },
+  };
+
   const schema = [
     {
       type: "object",
@@ -520,33 +548,9 @@ export function rulesOptionsSchema({
           type: "string",
           enum: ["allow", "disallow"],
         },
-        rules: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              ...ruleSupportedProperties,
-              importKind: {
-                anyOf: [
-                  {
-                    type: "string",
-                  },
-                  {
-                    type: "array",
-                    items: {
-                      type: "string",
-                    },
-                  },
-                ],
-              },
-              message: {
-                type: "string",
-              },
-            },
-            additionalProperties: false,
-            anyOf: requiredProperties,
-          },
-        },
+        // `policies` is the current option name; `rules` is kept as a deprecated alias.
+        policies: policyEntrySchema,
+        rules: policyEntrySchema,
         ...extraOptionsSchema,
       },
       additionalProperties: false,
@@ -558,16 +562,24 @@ export function rulesOptionsSchema({
 }
 
 /**
- * Type guard to check if a value is a valid RulePolicy.
+ * Type guard to check if a value is a valid RuleEffect.
  * @param value - The value to check.
- * @returns True if the value is a valid RulePolicy, false otherwise.
+ * @returns True if the value is a valid RuleEffect, false otherwise.
  */
-export function isRulePolicy(value: unknown): value is RulePolicy {
+export function isRuleEffect(value: unknown): value is RuleEffect {
   return (
     isString(value) &&
-    (value === RULE_POLICY_ALLOW || value === RULE_POLICY_DISALLOW)
+    (value === RULE_EFFECT_ALLOW || value === RULE_EFFECT_DISALLOW)
   );
 }
+
+/**
+ * Type guard to check if a value is a valid RuleEffect.
+ * @deprecated Use `isRuleEffect` instead.
+ * @param value - The value to check.
+ * @returns True if the value is a valid RuleEffect, false otherwise.
+ */
+export const isRulePolicy = isRuleEffect;
 
 /**
  * Type guard to check if a value is a valid rule name including the default plugin prefix.
@@ -678,7 +690,7 @@ const RULE_NAMES_WITH_ENTITY_ALLOW_DISALLOW: RuleName[] = [
  * @returns True if any scanned selector field satisfies the predicate, false otherwise.
  */
 function ruleSelectorFieldMatches(
-  rule: RuleOptionsRules,
+  rule: RuleOptionsPolicies,
   ruleName: RuleName,
   predicate: (value: unknown) => boolean
 ): boolean {
@@ -848,7 +860,7 @@ function entitySelectorHasDeprecatedInternalPath(value: unknown): boolean {
  * @returns True if any selector field contains legacy template syntax, false otherwise.
  */
 function ruleHasLegacyTemplateSyntax(
-  rule: RuleOptionsRules,
+  rule: RuleOptionsPolicies,
   ruleName: RuleName
 ): boolean {
   return ruleSelectorFieldMatches(rule, ruleName, (value) =>
@@ -865,7 +877,7 @@ function ruleHasLegacyTemplateSyntax(
  * @returns True if any selector field uses legacy string or tuple syntax, false otherwise.
  */
 function ruleHasLegacySelectorSyntax(
-  rule: RuleOptionsRules,
+  rule: RuleOptionsPolicies,
   ruleName: RuleName
 ): boolean {
   return ruleSelectorFieldMatches(rule, ruleName, isLegacySelectorValue);
@@ -879,7 +891,7 @@ function ruleHasLegacySelectorSyntax(
  * @returns Rule indices grouped by deprecated syntax type.
  */
 export function collectRuleWarningIndexes(
-  rules: RuleOptionsRules[],
+  rules: RuleOptionsPolicies[],
   ruleName: RuleName
 ): RuleWarningIndexes {
   const indexes: RuleWarningIndexes = {
@@ -931,13 +943,14 @@ export function collectRuleWarningIndexes(
 }
 
 /**
- * Warns once when deprecated selector/template syntax is detected in rules.
+ * Warns once when deprecated selector/template syntax is detected in policies, and when the
+ * deprecated `rules` option alias is used instead of `policies`.
  *
- * @param options - Rule options containing `rules` entries.
+ * @param options - Rule options containing `policies` (or the deprecated `rules` alias) entries.
  * @param ruleName - Rule name displayed in warning messages.
  */
 export function validateAndWarnRuleOptions(
-  options: RuleOptionsWithRules | undefined,
+  options: RuleOptionsWithPolicies | undefined,
   ruleName: RuleName,
   disableLegacyWarnings: boolean
 ): void {
@@ -945,7 +958,9 @@ export function validateAndWarnRuleOptions(
     return;
   }
 
-  if (!options.rules || !isArray(options.rules)) {
+  const policies = options.policies ?? options.rules;
+
+  if (!policies || !isArray(policies)) {
     return;
   }
 
@@ -955,6 +970,13 @@ export function validateAndWarnRuleOptions(
     return;
   }
 
+  if (!options.policies && options.rules) {
+    warnOnce(
+      `[${ruleName}] The 'rules' option is deprecated.`,
+      `Please use 'policies' instead. ${migrationToV7GuideLink("rules-option-renamed-to-policies")}`
+    );
+  }
+
   const {
     rulesWithLegacySelector,
     rulesWithLegacyTemplate,
@@ -962,7 +984,7 @@ export function validateAndWarnRuleOptions(
     rulesWithDeprecatedV7SelectorProps,
     rulesWithDeprecatedDependencyModule,
     rulesWithDeprecatedInternalPath,
-  } = collectRuleWarningIndexes(options.rules, ruleName);
+  } = collectRuleWarningIndexes(policies, ruleName);
 
   if (rulesWithLegacySelector.length > 0) {
     warnOnce(
