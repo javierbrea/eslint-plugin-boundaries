@@ -119,12 +119,14 @@ jobs:
           path: packages/eslint-plugin/coverage
       - name: Coveralls for Elements
         uses: coverallsapp/github-action@v2
+        continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ./packages/elements/coverage/lcov.info
           flag-name: elements
       - name: Coveralls for Eslint Plugin
         uses: coverallsapp/github-action@v2
+        continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ./packages/eslint-plugin/coverage/lcov.info
