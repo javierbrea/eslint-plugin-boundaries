@@ -11,6 +11,7 @@ import {
   isLegacySimpleElementSingleSelectorByType,
   isLegacySimpleElementSingleSelectorByTypeWithOptions,
   isLegacySimpleElementSingleSelector,
+  isLegacySimpleElementSelector,
   isLegacyParentElementSingleSelector,
   isLegacyElementSingleObjectSelector,
   isLegacyElementSingleSelector,
@@ -185,6 +186,73 @@ describe("ElementSelectorHelpers", () => {
 
     it("should return false for a boolean", () => {
       expect(isLegacySimpleElementSingleSelector(true)).toBe(false);
+    });
+  });
+
+  describe("isLegacySimpleElementSelector", () => {
+    it("should return true for a string", () => {
+      expect(isLegacySimpleElementSelector("components")).toBe(true);
+    });
+
+    it("should return true for a tuple with type and captured values", () => {
+      expect(
+        isLegacySimpleElementSelector(["components", { key: "value" }])
+      ).toBe(true);
+    });
+
+    it("should return true for a single-element array with a string", () => {
+      expect(isLegacySimpleElementSelector(["components"])).toBe(true);
+    });
+
+    it("should return true for an array of strings", () => {
+      expect(isLegacySimpleElementSelector(["components", "helpers"])).toBe(
+        true
+      );
+    });
+
+    it("should return true for an array with at least one legacy simple selector", () => {
+      expect(isLegacySimpleElementSelector([42, "components"])).toBe(true);
+    });
+
+    it("should return true for an array of tuple selectors", () => {
+      expect(
+        isLegacySimpleElementSelector([
+          ["components", { key: "value" }],
+          ["helpers", { key: "other" }],
+        ])
+      ).toBe(true);
+    });
+
+    it("should return false for an array with no legacy simple selectors", () => {
+      expect(isLegacySimpleElementSelector([42, false])).toBe(false);
+    });
+
+    it("should return false for an empty array", () => {
+      expect(isLegacySimpleElementSelector([])).toBe(false);
+    });
+
+    it("should return false for a legacy object selector (not a simple selector)", () => {
+      expect(isLegacySimpleElementSelector({ origin: "src/**" })).toBe(false);
+    });
+
+    it("should return false for a modern object selector", () => {
+      expect(isLegacySimpleElementSelector({ type: "components" })).toBe(false);
+    });
+
+    it("should return false for a number", () => {
+      expect(isLegacySimpleElementSelector(42)).toBe(false);
+    });
+
+    it("should return false for null", () => {
+      expect(isLegacySimpleElementSelector(null)).toBe(false);
+    });
+
+    it("should return false for undefined", () => {
+      expect(isLegacySimpleElementSelector(undefined)).toBe(false);
+    });
+
+    it("should return false for a boolean", () => {
+      expect(isLegacySimpleElementSelector(true)).toBe(false);
     });
   });
 

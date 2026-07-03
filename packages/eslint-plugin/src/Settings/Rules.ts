@@ -6,19 +6,12 @@ import {
   isLegacyDependencyInfoSelector,
   isDependencySelector,
   isLegacyDependencySelector,
+  isLegacySimpleElementSelector,
 } from "@boundaries/elements";
 
 import { warnOnce } from "../Debug";
+import { isArray, isUndefined, isString, isNull, isObject } from "../Shared";
 import {
-  isArray,
-  isBoolean,
-  isUndefined,
-  isString,
-  isNull,
-  isObject,
-} from "../Shared";
-import {
-  SETTINGS_KEYS_MAP,
   FROM,
   RULE_EFFECT_ALLOW,
   RULE_EFFECT_DISALLOW,
@@ -39,7 +32,6 @@ import {
   getRuleDocsPath,
   migrationToV6GuideLink,
   migrationToV7GuideLink,
-  moreInfoSettingsLink,
   moreInfoLink,
 } from "./Docs";
 
@@ -774,31 +766,6 @@ function ruleSelectorFieldMatches(
   return false;
 }
 
-/**
- * Determines whether a value uses the legacy string or tuple selector syntax.
- *
- * Legacy selectors are a string matcher (e.g. `"helper"`), a tuple
- * `[matcher, capturedValues]` (e.g. `["helper", { family: "data" }]`), or an
- * array of either. Modern object-based selectors (`{ element: { ... } }`) are
- * objects and therefore never match.
- *
- * @param value - Selector field value to inspect.
- * @returns True if the value uses legacy string or tuple selector syntax, false otherwise.
- */
-function isLegacySelectorValue(value: unknown): boolean {
-  if (isString(value)) {
-    return true;
-  }
-
-  if (isArray(value)) {
-    return value.some(
-      (item) => isString(item) || (isArray(item) && isString(item[0]))
-    );
-  }
-
-  return false;
-}
-
 const DEPRECATED_V7_ELEMENT_SELECTOR_PROPS = [
   "category",
   "elementPath",
@@ -939,7 +906,11 @@ function ruleHasLegacySelectorSyntax(
   rule: RuleOptionsPolicies,
   ruleName: RuleName
 ): boolean {
-  return ruleSelectorFieldMatches(rule, ruleName, isLegacySelectorValue);
+  return ruleSelectorFieldMatches(
+    rule,
+    ruleName,
+    isLegacySimpleElementSelector
+  );
 }
 
 /**
@@ -1112,27 +1083,6 @@ export function validateAndWarnRuleOptions(
       `Use "fileInternalPath" for local element paths, or the module sub-selector "internalPath" for external modules. ${moreInfoLink("setup/selectors", "deprecated-element-selector-properties")}`
     );
   }
-}
-
-/**
- * Validates the legacyTemplates setting.
- *
- * @param legacyTemplates - Raw legacyTemplates setting value.
- * @returns Validated boolean value or `undefined` when missing/invalid.
- */
-export function validateLegacyTemplates(
-  legacyTemplates: unknown
-): boolean | undefined {
-  if (isUndefined(legacyTemplates)) {
-    return;
-  }
-  if (isBoolean(legacyTemplates)) {
-    return legacyTemplates;
-  }
-  warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting.`,
-    `The value should be a boolean. ${moreInfoSettingsLink()}`
-  );
 }
 
 /**

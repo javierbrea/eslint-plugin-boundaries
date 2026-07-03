@@ -3,11 +3,7 @@ jest.mock("../Debug", () => ({
 }));
 
 import { warnOnce } from "../Debug";
-import {
-  RULE_NAMES_MAP,
-  RULE_SHORT_NAMES_MAP,
-  SETTINGS_KEYS_MAP,
-} from "../Shared/Settings.types";
+import { RULE_NAMES_MAP, RULE_SHORT_NAMES_MAP } from "../Shared/Settings.types";
 import type {
   RuleOptionsWithPolicies,
   RuleOptionsPolicies,
@@ -24,7 +20,6 @@ import {
   rulesMainKey,
   rulesOptionsSchema,
   validateAndWarnRuleOptions,
-  validateLegacyTemplates,
   warnMigrationToDependencies,
 } from "./Rules";
 
@@ -139,28 +134,6 @@ describe("Settings/Rules", () => {
     it("returns false for a non-object, non-array, non-string value", () => {
       // @ts-expect-error Forcing an unsupported primitive to exercise the fallthrough branch
       expect(detectLegacyTemplateSyntax(42)).toBe(false);
-    });
-  });
-
-  describe("validateLegacyTemplates", () => {
-    it("returns undefined when value is undefined", () => {
-      expect(validateLegacyTemplates(undefined)).toBeUndefined();
-      expect(mockedWarnOnce).not.toHaveBeenCalled();
-    });
-
-    it("returns the boolean when it is a valid boolean", () => {
-      expect(validateLegacyTemplates(true)).toBe(true);
-      expect(validateLegacyTemplates(false)).toBe(false);
-      expect(mockedWarnOnce).not.toHaveBeenCalled();
-    });
-
-    it("warns and returns undefined when the value is invalid", () => {
-      expect(validateLegacyTemplates("invalid")).toBeUndefined();
-      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
-      expect(mockedWarnOnce).toHaveBeenCalledWith(
-        expect.stringContaining(SETTINGS_KEYS_MAP.LEGACY_TEMPLATES),
-        expect.stringContaining("boolean")
-      );
     });
   });
 

@@ -75,6 +75,20 @@ export function isLegacySimpleElementSingleSelector(
 }
 
 /**
+ * Determines if the given value uses the legacy string or tuple selector syntax
+ * (a type string, a `[type, options?]` tuple, or an array containing either),
+ * as opposed to the modern object-based selector syntax.
+ * @param value The value to check.
+ * @returns True if the value uses legacy string or tuple selector syntax, false otherwise.
+ */
+export function isLegacySimpleElementSelector(value: unknown): boolean {
+  return (
+    isLegacySimpleElementSingleSelector(value) ||
+    (isArray(value) && value.some(isLegacySimpleElementSingleSelector))
+  );
+}
+
+/**
  * Determines if the given selector is a legacy parent element single selector.
  * @param selector The selector to check.
  * @returns True if the selector is a legacy parent element single selector, false otherwise.
