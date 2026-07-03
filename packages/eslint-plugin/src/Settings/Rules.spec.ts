@@ -612,6 +612,82 @@ describe("Settings/Rules", () => {
       expect(messages.some((m) => m.includes('"importKind"'))).toBe(true);
     });
 
+    it("warns about legacy template syntax ${...} in a policy-level `message`", () => {
+      const options = {
+        policies: [
+          {
+            from: modernFrom,
+            to: modernTo,
+            message: "${from.type} cannot import ${to.type}",
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("legacy template syntax ${...}"),
+        expect.stringContaining("{{...}}")
+      );
+      expect(mockedWarnOnce.mock.calls[0][0]).toContain("indices: 0");
+    });
+
+    it("does NOT warn about a policy-level `message` using modern {{...}} syntax", () => {
+      const options = {
+        policies: [
+          {
+            from: modernFrom,
+            to: modernTo,
+            message:
+              "{{from.element.types.[0]}} cannot import {{to.element.types.[0]}}",
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+
+    it("warns about legacy template syntax ${...} in the rule's general `message`", () => {
+      const options = {
+        message: "${from.type} cannot import ${to.type}",
+        policies: [
+          {
+            from: modernFrom,
+            to: modernTo,
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("legacy template syntax ${...}"),
+        expect.stringContaining("{{...}}")
+      );
+      expect(mockedWarnOnce.mock.calls[0][0]).toContain("general 'message'");
+    });
+
+    it("does NOT warn about legacy template syntax when `disableLegacyWarnings` is true", () => {
+      const options = {
+        message: "${from.type} cannot import ${to.type}",
+        policies: [
+          {
+            from: modernFrom,
+            to: modernTo,
+            message: "${from.type} cannot import ${to.type}",
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+
     it("warns about deprecated v7 selector property 'category' in `from`", () => {
       const options = {
         policies: [

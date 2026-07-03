@@ -171,7 +171,7 @@ For backward compatibility, each side also exposes V6 flat fields at the `from`/
 
 Legacy message template syntax using `${...}` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[Handlebars templates](./policies.mdx#message-templating)** (`{{...}}`) instead.
 
-It keeps working without changes. Using `${...}` in a message does not print a deprecation warning, and the [`boundaries/legacy-templates`](../settings/settings.md#boundarieslegacy-templates) setting does not affect it — that setting only controls legacy templating in selectors, not in custom messages.
+It keeps working without changes, but using `${...}` in a message now prints the same deprecation warning as legacy `${...}` selectors. The [`boundaries/legacy-templates`](../settings/settings.md#boundarieslegacy-templates) setting does not affect it — that setting only controls legacy templating in selectors, not the rendering of custom messages.
 
 ### Backward Compatibility
 

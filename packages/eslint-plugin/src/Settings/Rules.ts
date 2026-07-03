@@ -889,9 +889,14 @@ function ruleHasLegacyTemplateSyntax(
   rule: RuleOptionsPolicies,
   ruleName: RuleName
 ): boolean {
-  return ruleSelectorFieldMatches(rule, ruleName, (value) =>
-    detectLegacyTemplateSyntax(value as MicromatchPatternNullable)
-  );
+  if (
+    ruleSelectorFieldMatches(rule, ruleName, (value) =>
+      detectLegacyTemplateSyntax(value as MicromatchPatternNullable)
+    )
+  ) {
+    return true;
+  }
+  return isString(rule.message) && detectLegacyTemplateSyntax(rule.message);
 }
 
 /**
@@ -1088,6 +1093,16 @@ export function validateAndWarnRuleOptions(
         rulesWithDeprecatedInternalPath.length
       } rule(s) at indices: ${rulesWithDeprecatedInternalPath.join(", ")}.`,
       `Use "fileInternalPath" for local element paths, or the module sub-selector "internalPath" for external modules. ${moreInfoLink("setup/selectors", "deprecated-element-selector-properties")}`
+    );
+  }
+
+  if (
+    isString(options.message) &&
+    detectLegacyTemplateSyntax(options.message)
+  ) {
+    warnOnce(
+      `[${ruleName}] Detected legacy template syntax \${...} in the rule's general 'message'.`,
+      `Consider migrating to {{...}} syntax. ${migrationToV6GuideLink("new-template-syntax")}`
     );
   }
 }

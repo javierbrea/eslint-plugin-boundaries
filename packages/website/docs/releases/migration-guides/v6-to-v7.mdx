@@ -66,7 +66,7 @@ npm install --save-dev eslint-plugin-boundaries@7
 Run ESLint. With an unchanged v6 configuration, your boundaries are enforced exactly as before. A few things may differ in the output:
 
 - **Deprecation warnings from the preset.** The `recommended` and `strict` presets still enable the deprecated `boundaries/element-types`, `boundaries/entry-point`, and `boundaries/external` rules alongside `boundaries/dependencies`, so you may see one-time deprecation warnings in your console. They are harmless and do not change your results. To silence them, override the deprecated rule keys (for example `"boundaries/element-types": 0`). See **[ESLint Integration](../../settings/config-helpers.md)** for details.
-- **Legacy `${ }` template warnings.** If your **selector values** (`from` / `to` / `dependency` and `allow` / `disallow`) use the legacy `${ }` syntax, you will keep seeing the v6 deprecation warning. Using `${ }` in a custom `message` does **not** trigger this warning. See [New custom message template data](#new-custom-message-template-data).
+- **Legacy `${ }` template warnings.** If your **selector values** (`from` / `to` / `dependency` and `allow` / `disallow`) or your custom `message` (policy-level or rule-level) use the legacy `${ }` syntax, you will see a deprecation warning. See [New custom message template data](#new-custom-message-template-data).
 
 One behavior change can affect automated checks even with no config change:
 
@@ -314,7 +314,7 @@ The flat `{{from.type}}` is the **first** matched type, so it maps to `{{from.el
 `}</CodeDiff>
 
 :::tip
-The legacy `${ }` template syntax also keeps working in custom messages. Using `${ }` in a message does not print a deprecation warning, and the **[`boundaries/legacy-templates`](../../settings/settings.md#boundarieslegacy-templates)** setting does not affect it — that setting only controls legacy templating in selectors, not in custom messages. For migrating `${ }` templates, see the Legacy Message Templates section in the **[policies legacy documentation](../../policies/legacy.mdx)**.
+The legacy `${ }` template syntax also keeps working in custom messages, but using it there now prints the same deprecation warning as in selectors. The **[`boundaries/legacy-templates`](../../settings/settings.md#boundarieslegacy-templates)** setting does not affect it — that setting only controls legacy templating in selectors, not the rendering of custom messages. For migrating `${ }` templates, see the Legacy Message Templates section in the **[policies legacy documentation](../../policies/legacy.mdx)**.
 :::
 
 ## `no-unknown-files` behavior change
