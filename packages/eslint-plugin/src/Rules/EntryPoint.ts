@@ -7,6 +7,7 @@ import {
   rulesOptionsSchema,
   warnMigrationToDependencies,
   validateAndWarnRuleOptions,
+  deprecatedRuleInfo,
 } from "../Settings";
 import type {
   EntryPointRuleOptions,
@@ -80,6 +81,7 @@ export default dependencyRule<EntryPointRuleOptions>(
   {
     ruleName: RULE_ENTRY_POINT,
     description: `Check elements entry point`,
+    deprecated: deprecatedRuleInfo(RULE_NAMES_MAP.DEPENDENCIES),
     schema: rulesOptionsSchema({
       rulesMainKey: "target",
       isLegacy: true,

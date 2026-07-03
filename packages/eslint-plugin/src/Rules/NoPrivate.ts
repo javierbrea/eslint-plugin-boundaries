@@ -5,7 +5,7 @@ import {
 } from "@boundaries/elements";
 
 import { customErrorMessage, elementDescriptionMessage } from "../Messages";
-import { warnMigrationToDependencies } from "../Settings";
+import { warnMigrationToDependencies, deprecatedRuleInfo } from "../Settings";
 import type { NoPrivateOptions } from "../Shared";
 import { SETTINGS, RULE_NAMES_MAP, PLUGIN_ISSUES_URL } from "../Shared";
 
@@ -43,6 +43,7 @@ export default dependencyRule<NoPrivateOptions>(
   {
     ruleName: RULE_NO_PRIVATE,
     description: `Prevent dependencies to private elements`,
+    deprecated: deprecatedRuleInfo(RULE_NAMES_MAP.DEPENDENCIES),
     schema: [
       {
         type: "object",

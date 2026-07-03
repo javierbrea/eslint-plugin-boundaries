@@ -1,3 +1,5 @@
+import type { Rule } from "eslint";
+
 import {
   PLUGIN_NAME,
   WEBSITE_URL,
@@ -126,4 +128,28 @@ export function moreInfoSettingsLink(anchor?: string): string {
  */
 export function moreInfoElementsLink(anchor?: string): string {
   return moreInfoLink("setup/elements", anchor);
+}
+
+/**
+ * Builds the ESLint `meta.deprecated` info object for a rule replaced by another rule name
+ * (e.g. a rename), so editors/tools can surface the deprecation without relying on the
+ * runtime `warnOnce` message.
+ * @param replacedByRuleName - The rule name that replaces the deprecated one.
+ * @returns The `deprecated` metadata object consumed by ESLint's rule `meta`.
+ */
+export function deprecatedRuleInfo(
+  replacedByRuleName: RuleName
+): Rule.RuleMetaData["deprecated"] {
+  return {
+    message: `Use "${replacedByRuleName}" instead.`,
+    url: ruleDocsUrl(replacedByRuleName),
+    replacedBy: [
+      {
+        rule: {
+          name: replacedByRuleName,
+          url: ruleDocsUrl(replacedByRuleName),
+        },
+      },
+    ],
+  };
 }

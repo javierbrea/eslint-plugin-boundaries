@@ -590,6 +590,8 @@ export type RuleMetaDefinition = {
   ruleName: RuleName;
   /** The schema of the rule options */
   schema?: Rule.RuleMetaData["schema"];
+  /** Deprecation metadata surfaced by ESLint when the rule is deprecated */
+  deprecated?: Rule.RuleMetaData["deprecated"];
 };
 
 export const RULE_EFFECT_ALLOW = "allow" as const;

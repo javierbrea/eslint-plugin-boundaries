@@ -40,6 +40,7 @@ import {
   rulesOptionsSchema,
   migrationToV6GuideLink,
   validateAndWarnRuleOptions,
+  deprecatedRuleInfo,
 } from "../Settings";
 import type {
   RuleOptionsWithPolicies,
@@ -774,6 +775,10 @@ export default function getDependencyRule(
     {
       ruleName,
       description: `Check dependencies between elements`,
+      deprecated:
+        ruleName === RULE_NAMES_MAP.ELEMENT_TYPES
+          ? deprecatedRuleInfo(RULE_NAMES_MAP.DEPENDENCIES)
+          : undefined,
       schema: rulesOptionsSchema({
         extraOptionsSchema: {
           checkAllOrigins: {

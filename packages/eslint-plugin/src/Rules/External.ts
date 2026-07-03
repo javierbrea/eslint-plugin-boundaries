@@ -10,6 +10,7 @@ import {
   rulesOptionsSchema,
   warnMigrationToDependencies,
   validateAndWarnRuleOptions,
+  deprecatedRuleInfo,
 } from "../Settings";
 import type {
   ExternalRuleOptions,
@@ -153,6 +154,7 @@ export default dependencyRule<ExternalRuleOptions>(
   {
     ruleName: RULE_EXTERNAL,
     description: `Check dependencies to external and core libraries`,
+    deprecated: deprecatedRuleInfo(RULE_NAMES_MAP.DEPENDENCIES),
     schema: rulesOptionsSchema({
       isLegacy: true,
       targetMatcherOptions: {

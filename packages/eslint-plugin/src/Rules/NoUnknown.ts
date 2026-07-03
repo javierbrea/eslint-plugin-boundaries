@@ -1,7 +1,7 @@
 import { ORIGINS_MAP } from "@boundaries/elements";
 
 import { warnOnce } from "../Debug";
-import { migrationToV7GuideLink } from "../Settings";
+import { migrationToV7GuideLink, deprecatedRuleInfo } from "../Settings";
 import type { NoUnknownDependenciesOptions, RuleName } from "../Shared";
 import { RULE_NAMES_MAP } from "../Shared";
 
@@ -49,6 +49,10 @@ export default function getNoUnknownDependenciesRule(
     {
       ruleName,
       description: `Prevent dependencies to unknown elements and files`,
+      deprecated:
+        ruleName === RULE_NAMES_MAP.NO_UNKNOWN
+          ? deprecatedRuleInfo(RULE_NAMES_MAP.NO_UNKNOWN_DEPENDENCIES)
+          : undefined,
       schema: [
         {
           type: "object",

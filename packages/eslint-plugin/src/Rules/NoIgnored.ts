@@ -1,5 +1,5 @@
 import { warnOnce } from "../Debug";
-import { migrationToV7GuideLink } from "../Settings";
+import { migrationToV7GuideLink, deprecatedRuleInfo } from "../Settings";
 import type { RuleName } from "../Shared";
 import { RULE_NAMES_MAP } from "../Shared";
 
@@ -21,6 +21,10 @@ export default function getNoIgnoredDependenciesRule(
       schema: [],
       ruleName,
       description: `Prevent dependencies to ignored files from recognized elements`,
+      deprecated:
+        ruleName === RULE_NAMES_MAP.NO_IGNORED
+          ? deprecatedRuleInfo(RULE_NAMES_MAP.NO_IGNORED_DEPENDENCIES)
+          : undefined,
     },
     function ({ dependency, node, context }) {
       if (ruleName === RULE_NAMES_MAP.NO_IGNORED) {

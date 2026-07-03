@@ -65,7 +65,7 @@ npm install --save-dev eslint-plugin-boundaries@7
 
 Run ESLint. With an unchanged v6 configuration, your boundaries are enforced exactly as before. A few things may differ in the output:
 
-- **Deprecation warnings from the preset.** The `recommended` and `strict` presets still enable the deprecated `boundaries/element-types`, `boundaries/entry-point`, and `boundaries/external` rules alongside `boundaries/dependencies`, so you may see one-time deprecation warnings in your console. They are harmless and do not change your results. To silence them, override the deprecated rule keys (for example `"boundaries/element-types": 0`). See **[ESLint Integration](../../settings/config-helpers.md)** for details.
+- **The `recommended` and `strict` presets only enable `boundaries/dependencies` now.** In v6 they also listed the deprecated `boundaries/element-types`, `boundaries/entry-point`, and `boundaries/external` rules at severity `2`. Those entries were removed because, without their own `policies`/`rules` options, these rules never do anything — they are no-ops, so dropping them from the presets does not change your linting results. See **[ESLint Integration](../../settings/config-helpers.md)** for details.
 - **Legacy `${ }` template warnings.** If your **selector values** (`from` / `to` / `dependency` and `allow` / `disallow`) or your custom `message` (policy-level or rule-level) use the legacy `${ }` syntax, you will see a deprecation warning. See [New custom message template data](#new-custom-message-template-data).
 
 One behavior change can affect automated checks even with no config change:
