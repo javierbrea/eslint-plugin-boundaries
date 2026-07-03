@@ -960,13 +960,6 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
 
   const rootPath = getNormalizedRootPath(settings[SETTINGS_KEYS_MAP.ROOT_PATH]);
 
-  if (!disableLegacyWarnings) {
-    warnOnce(
-      `Performance tip`,
-      `Set \`${SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS}: true\` to skip legacy-pattern detection and improve performance. This option will be removed in a future version when legacy support is dropped.`
-    );
-  }
-
   const result: SettingsNormalized = {
     elementDescriptors,
     elementsSingleType,

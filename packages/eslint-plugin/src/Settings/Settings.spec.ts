@@ -928,7 +928,7 @@ describe("Settings/Settings", () => {
         );
 
         expect(result.flagAsExternal).toEqual(defaults);
-        expect(mockedWarnOnce).toHaveBeenCalledTimes(1); // performance tip only
+        expect(mockedWarnOnce).not.toHaveBeenCalled();
       });
 
       it("warns once per invalid field and keeps defaults for the bad ones", () => {
@@ -1046,7 +1046,7 @@ describe("Settings/Settings", () => {
         );
 
         expect(result.debug.messages).toEqual(defaults.messages);
-        expect(mockedWarnOnce).toHaveBeenCalledTimes(1); // performance tip only
+        expect(mockedWarnOnce).not.toHaveBeenCalled();
       });
 
       it("applies partial 'messages' overrides and warns about invalid flags", () => {
@@ -1275,42 +1275,6 @@ describe("Settings/Settings", () => {
 
         const calls = mockedWarnOnce.mock.calls.map((c) => c[0]);
         expect(calls.some((m) => m.includes("mode"))).toBe(false);
-      });
-
-      it("emits the performance tip when disableLegacyWarnings is false, even without legacy patterns", () => {
-        getSettings(
-          buildContext({
-            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
-          })
-        );
-
-        expect(mockedWarnOnce).toHaveBeenCalledWith(
-          expect.stringContaining("Performance tip"),
-          expect.stringContaining(SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS)
-        );
-      });
-
-      it("emits the performance tip when legacy patterns are present and disableLegacyWarnings is false", () => {
-        getSettings(
-          buildContext({
-            [SETTINGS_KEYS_MAP.TYPES]: [validElementDescriptor],
-          })
-        );
-
-        const calls = mockedWarnOnce.mock.calls.map((c) => c[0]);
-        expect(calls.some((m) => m.includes("Performance tip"))).toBe(true);
-      });
-
-      it("does not emit the performance tip when disableLegacyWarnings is true", () => {
-        getSettings(
-          buildContext({
-            [SETTINGS_KEYS_MAP.TYPES]: [validElementDescriptor],
-            [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]: true,
-          })
-        );
-
-        const calls = mockedWarnOnce.mock.calls.map((c) => c[0]);
-        expect(calls.some((m) => m.includes("Performance tip"))).toBe(false);
       });
     });
   });

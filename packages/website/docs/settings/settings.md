@@ -426,13 +426,7 @@ Read more about legacy templates in the [Legacy Message Templates](../policies/l
 
 **Default:** `false`
 
-When `true`, skips all legacy-pattern detection work and suppresses the associated runtime deprecation warnings, reducing overhead at lint time. Specifically, the plugin will no longer:
-
-- Check element descriptors for deprecated `mode` and `category` fields.
-- Scan rule policies for deprecated string/tuple selector syntax, legacy templates, and other deprecated policy properties.
-- Emit deprecation notices for `boundaries/types`, `boundaries/alias`, and similar legacy patterns.
-
-While this setting is `false`, the plugin emits a one-time "Performance tip" console notice directing you to enable it. Once all legacy patterns have been removed from your configuration, set this to `true` to eliminate the detection overhead entirely.
+When `true`, skips all legacy-pattern detection work and suppresses the associated runtime deprecation warnings, reducing overhead at lint time. Turn it on in case you don't want to see the warnings anymore, or to improve performance (but be aware to activate it again before you upgrade to a future major version, as some legacy patterns will be removed).
 
 ```js
 export default [{
@@ -441,10 +435,6 @@ export default [{
   }
 }]
 ```
-
-:::warning[Temporary setting]
-This setting is temporary. It will be removed in a future major version once legacy support is fully dropped. Enable it now to eliminate detection overhead, then remove it when that major version arrives.
-:::
 
 ## Deprecated Settings
 
