@@ -1075,7 +1075,7 @@ describe("Settings/Rules", () => {
       expect(mockedWarnOnce).toHaveBeenCalledTimes(2);
     });
 
-    it("prefers 'policies' over 'rules' when both are set", () => {
+    it("still warns that 'rules' is deprecated and ignored when 'policies' is also set", () => {
       const options = {
         policies: [entry],
         rules: [
@@ -1088,8 +1088,25 @@ describe("Settings/Rules", () => {
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
-      // 'policies' entries contain no deprecated syntax, and no 'rules' deprecation
-      // warning is emitted because 'policies' is present.
+      // 'policies' entries contain no deprecated syntax, so the only warning is
+      // that 'rules' is deprecated and will be ignored.
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "'rules' option is deprecated and will be ignored"
+        ),
+        expect.stringContaining("remove")
+      );
+    });
+
+    it("does not warn about the 'rules' alias when disableLegacyWarnings is true, even if 'policies' is also set", () => {
+      const options = {
+        policies: [entry],
+        rules: [entry],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
   });

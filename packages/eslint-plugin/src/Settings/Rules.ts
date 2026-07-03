@@ -1013,11 +1013,18 @@ export function validateAndWarnRuleOptions(
     return;
   }
 
-  if (!options.policies && options.rules) {
-    warnOnce(
-      `[${ruleName}] The 'rules' option is deprecated.`,
-      `Please use 'policies' instead. ${migrationToV7GuideLink("rules-option-renamed-to-policies")}`
-    );
+  if (options.rules) {
+    if (options.policies) {
+      warnOnce(
+        `[${ruleName}] The 'rules' option is deprecated and will be ignored because 'policies' is also defined.`,
+        `You can safely remove the 'rules' option. ${migrationToV7GuideLink("rules-option-renamed-to-policies")}`
+      );
+    } else {
+      warnOnce(
+        `[${ruleName}] The 'rules' option is deprecated.`,
+        `Please use 'policies' instead. ${migrationToV7GuideLink("rules-option-renamed-to-policies")}`
+      );
+    }
   }
 
   const {

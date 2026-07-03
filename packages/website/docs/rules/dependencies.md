@@ -407,8 +407,8 @@ You can customize error messages globally or for specific policies. Use the [`me
 
 Read next sections to learn more about related topics:
 
-* [Defining Elements](../classification/elements.md) - Learn how to define architectural elements in your project
-* [Defining Files](../classification/files.md) - Learn how to categorize files with the `boundaries/files` setting
-* [Selectors](../selectors/selectors.md) - Learn about element, file, and module selectors, including array queries
-* [Policies](../policies/policies.mdx) - Learn how to configure common rule options
-* [Global Settings](../settings/settings.md) - Learn about global settings that affect all rules
+- [Defining Elements](../classification/elements.md) - Learn how to define architectural elements in your project
+- [Defining Files](../classification/files.md) - Learn how to categorize files with the `boundaries/files` setting
+- [Selectors](../selectors/selectors.md) - Learn about element, file, and module selectors, including array queries
+- [Policies](../policies/policies.mdx) - Learn how to configure common rule options
+- [Global Settings](../settings/settings.md) - Learn about global settings that affect all rules
