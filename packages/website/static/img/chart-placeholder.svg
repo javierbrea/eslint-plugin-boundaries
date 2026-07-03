@@ -27,29 +27,29 @@
   </defs>
   
   <!-- Area under curve -->
-  <path d="M 50 170 L 120 160 L 190 145 L 260 135 L 330 120 L 400 100 L 470 85 L 540 65 L 610 50 L 680 35 L 750 25 L 750 200 L 50 200 Z" 
+  <path d="M 50 180 L 120 178 L 190 173 L 260 165 L 330 154 L 400 139 L 470 121 L 540 99 L 610 74 L 680 46 L 750 15 L 750 200 L 50 200 Z"
         fill="url(#areaGradient)"/>
-  
+
   <!-- Main line -->
-  <path d="M 50 170 L 120 160 L 190 145 L 260 135 L 330 120 L 400 100 L 470 85 L 540 65 L 610 50 L 680 35 L 750 25" 
-        stroke="url(#chartGradient)" 
-        stroke-width="3" 
+  <path d="M 50 180 L 120 178 L 190 173 L 260 165 L 330 154 L 400 139 L 470 121 L 540 99 L 610 74 L 680 46 L 750 15"
+        stroke="url(#chartGradient)"
+        stroke-width="3"
         fill="none"
         stroke-linecap="round"
         stroke-linejoin="round"/>
-  
+
   <!-- Data points -->
-  <circle cx="50" cy="170" r="4" fill="#2563eb"/>
-  <circle cx="120" cy="160" r="4" fill="#2563eb"/>
-  <circle cx="190" cy="145" r="4" fill="#2563eb"/>
-  <circle cx="260" cy="135" r="4" fill="#2563eb"/>
-  <circle cx="330" cy="120" r="4" fill="#2563eb"/>
-  <circle cx="400" cy="100" r="4" fill="#2563eb"/>
-  <circle cx="470" cy="85" r="4" fill="#2563eb"/>
-  <circle cx="540" cy="65" r="4" fill="#2563eb"/>
-  <circle cx="610" cy="50" r="4" fill="#2563eb"/>
-  <circle cx="680" cy="35" r="4" fill="#2563eb"/>
-  <circle cx="750" cy="25" r="5" fill="#3b82f6">
+  <circle cx="50" cy="180" r="4" fill="#2563eb"/>
+  <circle cx="120" cy="178" r="4" fill="#2563eb"/>
+  <circle cx="190" cy="173" r="4" fill="#2563eb"/>
+  <circle cx="260" cy="165" r="4" fill="#2563eb"/>
+  <circle cx="330" cy="154" r="4" fill="#2563eb"/>
+  <circle cx="400" cy="139" r="4" fill="#2563eb"/>
+  <circle cx="470" cy="121" r="4" fill="#2563eb"/>
+  <circle cx="540" cy="99" r="4" fill="#2563eb"/>
+  <circle cx="610" cy="74" r="4" fill="#2563eb"/>
+  <circle cx="680" cy="46" r="4" fill="#2563eb"/>
+  <circle cx="750" cy="15" r="5" fill="#3b82f6">
     <animate attributeName="r" values="5;7;5" dur="2s" repeatCount="indefinite"/>
   </circle>
 </svg>
