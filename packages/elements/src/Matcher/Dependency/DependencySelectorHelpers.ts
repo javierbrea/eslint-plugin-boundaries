@@ -222,10 +222,10 @@ function addModuleToEntitySelectorNormalized(
   /* istanbul ignore next -- Defensive: the only caller decomposes arrays before calling */
   if (isArray(legacyDependencySelector)) {
     dependencyItems = legacyDependencySelector;
-  } else if (legacyDependencySelector !== undefined) {
-    dependencyItems = [legacyDependencySelector];
-  } else {
+  } else if (legacyDependencySelector === undefined) {
     dependencyItems = [];
+  } else {
+    dependencyItems = [legacyDependencySelector];
   }
 
   const legacyItems = dependencyItems.filter(
@@ -292,11 +292,17 @@ export function normalizeLegacyDependencySingleSelector(
   const normalizedBaseTo = selector.to
     ? normalizeEntitySelector(selector.to)
     : undefined;
-  const dependencyItems = isArray(selector.dependency)
-    ? selector.dependency
-    : selector.dependency !== undefined
-      ? [selector.dependency]
-      : [undefined];
+  let dependencyItems: (
+    | BackwardCompatibleDependencyInfoSingleSelector
+    | undefined
+  )[];
+  if (isArray(selector.dependency)) {
+    dependencyItems = selector.dependency;
+  } else if (selector.dependency === undefined) {
+    dependencyItems = [undefined];
+  } else {
+    dependencyItems = [selector.dependency];
+  }
 
   return dependencyItems.map((dependencyItem) => {
     const normalizedSelector: DependencySingleSelectorNormalized = {};

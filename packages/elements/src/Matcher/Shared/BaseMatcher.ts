@@ -257,6 +257,14 @@ export class BaseElementsMatcher {
       return false;
     }
 
+    if (this._arrayQueryEqualsToFails(array, query, matchElement)) {
+      return false;
+    }
+
+    if (this._arrayQueryAtIndexFails(array, query, matchElement)) {
+      return false;
+    }
+
     if (
       !isUndefined(query.anyOf) &&
       !array.some((element) =>
@@ -284,34 +292,56 @@ export class BaseElementsMatcher {
       return false;
     }
 
-    if (!isUndefined(query.equalsTo)) {
-      if (array.length !== query.equalsTo.length) {
-        return false;
-      }
-      if (
-        !query.equalsTo.every((matcher, index) =>
-          matchElement(array[index], matcher)
-        )
-      ) {
-        return false;
-      }
-    }
-
-    if (!isUndefined(query.atIndex)) {
-      const { index, matches } = query.atIndex;
-      const resolvedIndex = index < 0 ? array.length + index : index;
-      if (resolvedIndex < 0 || resolvedIndex >= array.length) {
-        return false;
-      }
-      const matcherList = isArray(matches)
-        ? (matches as TMatcher[])
-        : [matches as TMatcher];
-      if (!matcherList.some((m) => matchElement(array[resolvedIndex], m))) {
-        return false;
-      }
-    }
-
     return true;
+  }
+
+  /**
+   * Whether the array-query `equalsTo` operator, if present, fails to match the array.
+   * @param array The target array from the description.
+   * @param query The array query object.
+   * @param matchElement Predicate matching one array element against one matcher.
+   * @returns Whether the `equalsTo` operator is present and not satisfied by the array.
+   */
+  private _arrayQueryEqualsToFails<TElement, TMatcher>(
+    array: readonly TElement[],
+    query: ArrayQuery<TMatcher>,
+    matchElement: (element: TElement, matcher: TMatcher) => boolean
+  ): boolean {
+    if (isUndefined(query.equalsTo)) {
+      return false;
+    }
+    if (array.length !== query.equalsTo.length) {
+      return true;
+    }
+    return !query.equalsTo.every((matcher, index) =>
+      matchElement(array[index], matcher)
+    );
+  }
+
+  /**
+   * Whether the array-query `atIndex` operator, if present, fails to match the array.
+   * @param array The target array from the description.
+   * @param query The array query object.
+   * @param matchElement Predicate matching one array element against one matcher.
+   * @returns Whether the `atIndex` operator is present and not satisfied by the array.
+   */
+  private _arrayQueryAtIndexFails<TElement, TMatcher>(
+    array: readonly TElement[],
+    query: ArrayQuery<TMatcher>,
+    matchElement: (element: TElement, matcher: TMatcher) => boolean
+  ): boolean {
+    if (isUndefined(query.atIndex)) {
+      return false;
+    }
+    const { index, matches } = query.atIndex;
+    const resolvedIndex = index < 0 ? array.length + index : index;
+    if (resolvedIndex < 0 || resolvedIndex >= array.length) {
+      return true;
+    }
+    const matcherList = isArray(matches)
+      ? (matches as TMatcher[])
+      : [matches as TMatcher];
+    return !matcherList.some((m) => matchElement(array[resolvedIndex], m));
   }
 
   /**

@@ -49,7 +49,7 @@ export function isExpandItem(value: unknown): value is ArrayQueryExpandItem {
   return isObjectWithProperty(value, "expand") && isString(value.expand);
 }
 
-const SINGLE_TEMPLATE_REGEX = /^\s*{{\s*([^{}]+?)\s*}}\s*$/;
+const SINGLE_TEMPLATE_REGEX = /^\s*\{\{([^{}]+)\}\}\s*$/;
 
 /** Resolves a dotted path (supports `a.b`, `a.[0].b`, `a[0].b`) against the data. */
 function resolvePath(path: string, data: TemplateData): unknown {
@@ -73,11 +73,15 @@ export function resolveExpandItem(
 ): string[] {
   const match = SINGLE_TEMPLATE_REGEX.exec(item.expand);
   if (!match) return [];
-  const value = resolvePath(match[1], templateData);
+  const value = resolvePath(match[1].trim(), templateData);
   if (isArray(value)) {
-    return value.filter((v) => !isNullish(v)).map((v) => String(v));
+    return value
+      .filter(
+        (v): v is string | number | boolean => !isNullish(v) && !isObject(v)
+      )
+      .map(String);
   }
-  if (isNullish(value)) return [];
+  if (isNullish(value) || isObject(value)) return [];
   return [String(value)];
 }
 

@@ -33,11 +33,14 @@ export class Config {
     this._cache = options?.cache ?? true;
 
     const customSourcePatterns = options?.flagAsExternal?.customSourcePatterns;
-    const normalizedCustomSourcePatterns = isString(customSourcePatterns)
-      ? [customSourcePatterns]
-      : isArray(customSourcePatterns)
-        ? customSourcePatterns
-        : [];
+    let normalizedCustomSourcePatterns: string[];
+    if (isString(customSourcePatterns)) {
+      normalizedCustomSourcePatterns = [customSourcePatterns];
+    } else if (isArray(customSourcePatterns)) {
+      normalizedCustomSourcePatterns = customSourcePatterns;
+    } else {
+      normalizedCustomSourcePatterns = [];
+    }
 
     this._flagAsExternal = {
       unresolvableAlias: options?.flagAsExternal?.unresolvableAlias ?? true,

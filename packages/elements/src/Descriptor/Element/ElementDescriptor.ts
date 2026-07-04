@@ -2,6 +2,7 @@ import { CacheManager, CacheManagerDisabled } from "../../Cache";
 import type { DescriptorOptionsNormalized } from "../../Config";
 import type { Micromatch } from "../../Matcher";
 import { isArray, isObject, normalizePath } from "../../Shared";
+import type { CapturedValues } from "../Shared";
 import { PathHelper } from "../Shared";
 
 import type {
@@ -390,74 +391,50 @@ export class ElementsDescriptor {
         };
       }
 
-      const elementPath = useFullPathMatch
-        ? filePath
-        : elementDescriptor.partialMatch === false && isMainElementLevel
-          ? this._getFullFolderMatchElementPath(patternUsed, filePath)
-          : this._getElementPath(
-              patternUsed,
-              currentPathSegments,
-              elementPaths
-            );
+      let elementPath: string;
+      if (useFullPathMatch) {
+        elementPath = filePath;
+      } else if (
+        elementDescriptor.partialMatch === false &&
+        isMainElementLevel
+      ) {
+        elementPath = this._getFullFolderMatchElementPath(
+          patternUsed,
+          filePath
+        );
+      } else {
+        elementPath = this._getElementPath(
+          patternUsed,
+          currentPathSegments,
+          elementPaths
+        );
+      }
 
       if (!elementResult.types && !elementResult.category) {
-        const isFolderMode =
-          elementDescriptor.partialMatch === false ||
-          !elementDescriptor.mode ||
-          elementDescriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
-        // It is the main element
-        elementResult.types = elementDescriptor.type
-          ? [elementDescriptor.type]
-          : null;
-        elementResult.category = elementDescriptor.category || null;
-        elementResult.isUnknown = false;
-        elementResult.path = elementPath;
-        elementResult.captured = capturedValues;
-        elementResult.fileInternalPath =
-          isFolderMode || filePath !== elementPath // Defensive check to ensure we don't return an empty string if filePath and elementPath are the same. This should not happen.
-            ? filePath.replace(`${elementPath}/`, "")
-            : filePath.split("/").pop() ||
-              // istanbul ignore next -- Ensures non-empty string if filePath were a single segment. Unreachable: filePath is guaranteed non-empty, so split("/").pop() always returns a truthy string
-              filePath;
+        this._setMainElement(
+          elementResult,
+          elementDescriptor,
+          elementPath,
+          filePath,
+          capturedValues
+        );
       } else if (isMainElementLevel && !this._singleType) {
-        // Multi-type: additional type at same path level
-        if (elementDescriptor.type && isArray(elementResult.types)) {
-          elementResult.types = [
-            ...elementResult.types,
-            elementDescriptor.type,
-          ];
-        }
-        if (isObject(capturedValues)) {
-          elementResult.captured = {
-            ...(elementResult.captured || {}),
-            ...capturedValues,
-          };
-        }
+        this._addMultiTypeAtMainLevel(
+          elementResult,
+          elementDescriptor,
+          capturedValues
+        );
       } else if (elementPath !== elementResult.path) {
         // It is a parent element, because we have already matched the main one.
         // Skip when the resolved path equals the main element's path — this prevents
         // self-duplication when a root-anchored `partialMatch: false` pattern also matches
         // the accumulated suffix segments at a deeper iteration.
-        const lastParent = parents[parents.length - 1];
-        if (lastParent && lastParent.path === elementPath) {
-          // Multi-type: accumulate additional type at same parent path level
-          if (elementDescriptor.type && isArray(lastParent.types)) {
-            lastParent.types = [...lastParent.types, elementDescriptor.type];
-          }
-          if (isObject(capturedValues)) {
-            lastParent.captured = {
-              ...(lastParent.captured || {}),
-              ...capturedValues,
-            };
-          }
-        } else {
-          parents.push({
-            types: elementDescriptor.type ? [elementDescriptor.type] : null,
-            category: elementDescriptor.category || null,
-            path: elementPath,
-            captured: capturedValues,
-          });
-        }
+        this._addOrMergeParent(
+          parents,
+          elementDescriptor,
+          elementPath,
+          capturedValues
+        );
       }
     };
 
@@ -515,6 +492,98 @@ export class ElementsDescriptor {
     }
 
     return result;
+  }
+
+  /**
+   * Sets the main element data on the element result being built.
+   * @param elementResult The element result being built.
+   * @param elementDescriptor The descriptor that matched as the main element.
+   * @param elementPath The resolved path of the main element.
+   * @param filePath The full file path being described.
+   * @param capturedValues The captured values for this match.
+   */
+  private _setMainElement(
+    elementResult: ElementDescription,
+    elementDescriptor: ElementDescriptor,
+    elementPath: string,
+    filePath: string,
+    capturedValues: CapturedValues | null
+  ): void {
+    const isFolderMode =
+      elementDescriptor.partialMatch === false ||
+      !elementDescriptor.mode ||
+      elementDescriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
+    elementResult.types = elementDescriptor.type
+      ? [elementDescriptor.type]
+      : null;
+    elementResult.category = elementDescriptor.category || null;
+    elementResult.isUnknown = false;
+    elementResult.path = elementPath;
+    elementResult.captured = capturedValues;
+    elementResult.fileInternalPath =
+      isFolderMode || filePath !== elementPath // Defensive check to ensure we don't return an empty string if filePath and elementPath are the same. This should not happen.
+        ? filePath.replace(`${elementPath}/`, "")
+        : filePath.split("/").pop() ||
+          // istanbul ignore next -- Ensures non-empty string if filePath were a single segment. Unreachable: filePath is guaranteed non-empty, so split("/").pop() always returns a truthy string
+          filePath;
+  }
+
+  /**
+   * Accumulates an additional type/captured values on the main element result when another
+   * descriptor matches at the same path level (multi-type, non-single-type mode).
+   * @param elementResult The element result being built.
+   * @param elementDescriptor The descriptor that matched at the same level.
+   * @param capturedValues The captured values for this match.
+   */
+  private _addMultiTypeAtMainLevel(
+    elementResult: ElementDescription,
+    elementDescriptor: ElementDescriptor,
+    capturedValues: CapturedValues | null
+  ): void {
+    if (elementDescriptor.type && isArray(elementResult.types)) {
+      elementResult.types = [...elementResult.types, elementDescriptor.type];
+    }
+    if (isObject(capturedValues)) {
+      elementResult.captured = {
+        ...elementResult.captured,
+        ...capturedValues,
+      };
+    }
+  }
+
+  /**
+   * Adds a new parent element or merges into the last parent when it resolves to the same path.
+   * @param parents The accumulated list of parent elements.
+   * @param elementDescriptor The descriptor that matched as a parent.
+   * @param elementPath The resolved path of the parent element.
+   * @param capturedValues The captured values for this match.
+   */
+  private _addOrMergeParent(
+    parents: ElementParent[],
+    elementDescriptor: ElementDescriptor,
+    elementPath: string,
+    capturedValues: CapturedValues | null
+  ): void {
+    const lastParent = parents.at(-1);
+    if (lastParent?.path === elementPath) {
+      // Multi-type: accumulate additional type at same parent path level
+      if (elementDescriptor.type && isArray(lastParent.types)) {
+        lastParent.types = [...lastParent.types, elementDescriptor.type];
+      }
+      if (isObject(capturedValues)) {
+        lastParent.captured = {
+          ...lastParent.captured,
+          ...capturedValues,
+        };
+      }
+    } else {
+      parents.push({
+        types: elementDescriptor.type ? [elementDescriptor.type] : null,
+        category: elementDescriptor.category || null,
+        path: elementPath,
+        captured: capturedValues,
+      });
+    }
   }
 
   /**

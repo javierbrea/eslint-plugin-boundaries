@@ -241,7 +241,7 @@ export class FilesDescriptor {
       fileResult.isUnknown = false;
       fileResult.captured = isObject(capturedValues)
         ? {
-            ...(fileResult.captured || {}),
+            ...fileResult.captured,
             ...capturedValues,
           }
         : capturedValues;

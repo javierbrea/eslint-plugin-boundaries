@@ -56,7 +56,7 @@ export class Matcher {
   private readonly _originalDescriptors: DescriptorsConfig;
   private readonly _descriptorOptions: DescriptorOptionsNormalized;
   private readonly _micromatch: Micromatch;
-  private _descriptors: Descriptors;
+  private readonly _descriptors: Descriptors;
 
   /**
    * Constructor for the Matcher class.
