@@ -131,7 +131,7 @@ export default function HomepageMultiLayer(): ReactNode {
         <div className={styles.content}>
           <Heading as="h2" className={styles.title}>
             One File, Multiple Perspectives{" "}
-            <span className="badge badge--primary">New in v7</span>
+            <span className="badge badge--primary">Coming soon in v7</span>
           </Heading>
           <p className={styles.intro}>
             Every file in your project can be described across three independent
