@@ -20,13 +20,13 @@ keywords:
 
 ## Overview
 
-When configuring the plugin, it's helpful to **verify that your [`elements`](../setup/elements.md) setting and [rules](../setup/rules.mdx) are correctly working as expected**. The debugging feature provides detailed traces about how the plugin analyzes your files and imports, including information such as:
+Use debugging to verify that your [`elements`](../classification/elements.md) setting and [policies](../policies/policies.mdx) work as expected. The debugging feature prints detailed traces about how the plugin analyzes your files and imports, including:
 
 - File paths being analyzed
 - Assigned descriptions for each file and dependency
-- Rule violations, and which dependency selectors are matching them
+- Rule policy violations, and which dependency selectors matched them
 
-This can help you troubleshoot configuration issues and ensure your element definitions and rules are correct.
+Each file description is an [**entity**](../classification/classification.md) — the element the file belongs to, the file's categories (from [file descriptors](../classification/files.md)), and the module origin of each dependency. This breakdown helps you troubleshoot configuration issues and confirm your element definitions and rule policies are correct.
 
 ## Enabling Debug Mode
 
@@ -50,17 +50,17 @@ export default [{
 ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 npm run lint
 ```
 
-The environment variable is equivalent to enabling `boundaries/debug.enabled`.
+The environment variable is equivalent to setting `"boundaries/debug": { "enabled": true }`.
 
-When debug mode is enabled, you will see detailed output in the console for each file and dependency analyzed by the plugin. This includes all the information of **[element and dependency descriptions](../setup/elements.md#runtime-description-properties).**
+When debug mode is enabled, you will see detailed output in the console for each file and dependency analyzed by the plugin. This includes all the information of **[entity and dependency descriptions](../classification/classification.md).**
 
-## Filtering messages
+## Filtering by Message Type
 
 By default, all messages are printed when debug mode is enabled. Messages include:
 
 - File descriptions for each file analyzed
 - Dependency descriptions for each dependency analyzed
-- Rule violation descriptions for each rule violation detected
+- Rule policy violation descriptions for each rule policy violation detected
 
 You can enable/disable these message types using the `boundaries/debug.messages` setting:
 
@@ -83,11 +83,16 @@ export default [{
 You may want to disable some message types to reduce noise and focus on specific information relevant to your debugging session. For example, if you're only interested in how files are being categorized, you can disable dependency and violation messages.
 :::
 
-## Filtering Debug Output
+## Filtering by File or Dependency
 
-You can **[filter traces using selectors](../setup/selectors.md)** in the `boundaries/debug.filter` setting. This allows you to focus on specific files or dependencies that are relevant to your debugging session.
+You can **[filter traces using selectors](../selectors/selectors.md)** in the `boundaries/debug.filter` setting. This lets you focus on specific files or dependencies relevant to your debugging session.
 
-Filters apply to all debug messages (file descriptions, dependency descriptions, and rule violation descriptions). If a trace doesn't match the filter, it won't be printed in the console.
+The two filter keys accept different selector types:
+
+- `filter.files` accepts a [file selector](../selectors/file.md) or an [entity selector](../selectors/selectors.md#entity-selectors). Use it to match by element type, file category, or module origin.
+- `filter.dependencies` accepts a [dependency selector](../selectors/selectors.md#dependency-selectors) with `from`, `to`, and `dependency` keys.
+
+Filters apply to all debug messages (file descriptions, dependency descriptions, and rule policy violation descriptions). If a trace doesn't match the filter, it won't be printed in the console.
 
 ```js
 export default [{
@@ -95,116 +100,166 @@ export default [{
     "boundaries/debug": {
       enabled: true,
       filter: {
-        files: [{ type: "component" }],
-        dependencies: [
-          {
-            to: [{ source: "@/shared/**" }],
-            dependency: [{ kind: "type" }],
-          },
-        ],
+        // Entity selector: only debug files belonging to "component" elements
+        files: [{ element: { type: "component" } }],
+        // Dependency selector: only debug type-kind dependencies to external "@my-org/*" modules
+        dependencies: [{
+          to: { module: { origin: "external", source: "@my-org/*" } },
+          dependency: { kind: "type" },
+        }],
       },
     },
   },
 }];
 ```
 
+:::note[Entity selectors in `filter.files`]
+`filter.files` accepts entity selectors, so you can filter by element type (`{ element: { type: "component" } }`), file category (`{ file: { categories: "test" } }`), or module origin (`{ module: { origin: "external" } }`). A bare flat element selector such as `{ type: "component" }` still works and is converted internally, but prefer the entity selector form. See [Selectors](../selectors/selectors.md).
+:::
+
 Filter behavior:
 
-- The `files` filter applies both to file traces, and to the dependencies and rule violations found within those files. If a file doesn't match the `files` filter, none of its dependencies or rule violations will be printed, even if they match the `dependencies` filter.
-- If `files` is `undefined`, all file traces are eligible.
-- If `files` is an empty array, no file traces are printed.
-- If `dependencies` is `undefined`, all dependency traces are eligible.
-- If `dependencies` is an empty array, no dependency traces are printed.
+| Filter value | Behavior |
+| --- | --- |
+| `undefined` | All traces for that category are printed. |
+| `[]` (empty array) | No traces for that category are printed. |
+| `[selector, ...]` | Only traces matching at least one selector are printed. |
+
+The `files` filter also gates the dependencies and rule policy violations found within each file: if a file doesn't match `filter.files`, none of its dependencies or rule policy violations are printed, even when they match `filter.dependencies`.
 
 ## Example Output
 
-When debug mode is enabled, you'll see **[descriptions of files, dependencies, and rule violations](../setup/elements.md#runtime-description-properties)** in the console. This information is based on the properties defined in the **[element descriptors](../setup/elements.md)** in your configuration. For example:
+When debug mode is enabled, you'll see **[descriptions of files, dependencies, and rule policy violations](../classification/classification.md)** in the console. Each file is serialized as an [entity](../classification/classification.md) with three sub-descriptions: `element`, `file`, and `module`. For example, for a `component` that imports a `helper`:
 
 ```
-[boundaries] [debug]: Description of file "src/Config/Strict.ts":
+[boundaries][debug]: Description of file "src/components/atoms/atom-a/AtomA.js":
 
 {
-  "path": "src/Config/Strict.ts",
-  "type": "config",
-  "category": null,
-  "captured": {
-    "name": "Strict"
+  "element": {
+    "path": "src/components/atoms/atom-a",
+    "types": ["component"],
+    "category": null,
+    "filePath": "src/components/atoms/atom-a/AtomA.js",
+    "fileInternalPath": "AtomA.js",
+    "captured": {
+      "family": "atoms",
+      "elementName": "atom-a"
+    },
+    "parents": [],
+    "isIgnored": false,
+    "isUnknown": false
   },
-  "origin": "local",
-  "isIgnored": false,
-  "isUnknown": false,
-  "elementPath": "src/Config/Strict.ts",
-  "internalPath": "Strict.ts",
-  "parents": []
+  "file": {
+    "path": "src/components/atoms/atom-a/AtomA.js",
+    "categories": null,
+    "captured": null,
+    "isIgnored": false,
+    "isUnknown": false
+  },
+  "module": {
+    "origin": "local",
+    "source": null,
+    "internalPath": null
+  }
 }
 
-[boundaries] [debug]: Description of dependency "../Settings" in file "src/Config/Strict.ts":
+[boundaries][debug]: Description of dependency "../../../helpers/data/sort" in file "src/components/atoms/atom-a/AtomA.js":
 
 {
   "from": {
-    "path": "src/Config/Strict.ts",
-    "type": "config",
-    "category": null,
-    "captured": {
-      "name": "Strict"
+    "element": {
+      "path": "src/components/atoms/atom-a",
+      "types": ["component"],
+      "category": null,
+      "filePath": "src/components/atoms/atom-a/AtomA.js",
+      "fileInternalPath": "AtomA.js",
+      "captured": {
+        "family": "atoms",
+        "elementName": "atom-a"
+      },
+      "parents": [],
+      "isIgnored": false,
+      "isUnknown": false
     },
-    "origin": "local",
-    "isIgnored": false,
-    "isUnknown": false,
-    "elementPath": "src/Config/Strict.ts",
-    "internalPath": "Strict.ts",
-    "parents": []
+    "file": {
+      "path": "src/components/atoms/atom-a/AtomA.js",
+      "categories": null,
+      "captured": null,
+      "isIgnored": false,
+      "isUnknown": false
+    },
+    "module": {
+      "origin": "local",
+      "source": null,
+      "internalPath": null
+    }
   },
   "to": {
-    "path": "src/Settings/index.ts",
-    "type": "settings",
-    "category": null,
-    "captured": {
-      "name": "index"
+    "element": {
+      "path": "src/helpers/data",
+      "types": ["helper"],
+      "category": null,
+      "filePath": "src/helpers/data/sort.js",
+      "fileInternalPath": "sort.js",
+      "captured": {
+        "family": "data"
+      },
+      "parents": [],
+      "isIgnored": false,
+      "isUnknown": false
     },
-    "origin": "local",
-    "isIgnored": false,
-    "isUnknown": false,
-    "elementPath": "src/Settings/index.ts",
-    "internalPath": "index.ts",
-    "parents": []
+    "file": {
+      "path": "src/helpers/data/sort.js",
+      "categories": null,
+      "captured": null,
+      "isIgnored": false,
+      "isUnknown": false
+    },
+    "module": {
+      "origin": "local",
+      "source": null,
+      "internalPath": null
+    }
   },
   "dependency": {
-    "source": "../Settings",
-    "module": null,
-    "kind": "type",
+    "source": "../../../helpers/data/sort",
+    "kind": "value",
     "nodeKind": "import",
     "relationship": {
       "from": null,
       "to": null
     },
     "specifiers": [
-      "Config"
+      "sort"
     ]
   }
 }
 
-[boundaries][debug]: dependencies rule violation: Rule at index 2 reported a violation because the following selector matched the dependency:
+[boundaries][debug]: dependencies rule violation: Policy at index 1 reported a violation because the following selector matched the dependency:
 
 {
-  "dependency": {
-    // ...dependency description, like the one above
-  },
-  "rule": {
-    // The index of the rule in the configuration that reported the violation
-    "index": 2,
-    // The specific selector in that rule that matched the dependency and caused the violation
+  "policy": {
+    // The index of the policy in the configuration that reported the violation
+    "index": 1,
+    // The selector in that policy that matched the dependency
     "selector": {
       "from": {
-        "type": "config"
+        "element": { "type": "helper" }
       },
       "to": {
-        "type": "settings"
+        "element": { "type": "component" }
       }
     }
+  },
+  "dependency": {
+    // ...the full dependency description for the matched dependency
   }
 }
 ```
+
+:::note[Reading the entity output]
+Local source files carry their classification in `element` (the architectural element and its `types`) and in `file` (its `categories`, from [file descriptors](../classification/files.md)). `module` is `{ "origin": "local", "source": null, "internalPath": null }`. For imported external or core dependencies, `element` and `file` are usually unknown — the meaningful classification lives in `module` (`origin`, `source`, `internalPath`). When no [`boundaries/files`](../settings/settings.md#boundariesfiles) descriptors match a file, its `file.categories` is `null`.
+:::
 
 ## Best Practices
 
@@ -256,9 +311,15 @@ This ensures a clean output without ANSI color codes, making it easier to read i
 
 ### Unexpected element properties or missing captures
 
-- Check your element patterns in the [`boundaries/elements`](../setup/elements.md) setting
-- Verify pattern is correct in the element descriptor
+- Check your element patterns in the [`boundaries/elements`](../classification/elements.md) setting
+- Verify the pattern is correct in the element descriptor
 - Ensure descriptor patterns are listed in the correct order (first match wins)
+
+### Unexpected file categories or `file.categories` is `null`
+
+- File categories come from the [`boundaries/files`](../settings/settings.md#boundariesfiles) setting, not from `boundaries/elements`
+- If `file.categories` is `null`, no file descriptor pattern matched the file (or none is configured)
+- Categories accumulate: every matching file descriptor contributes its category
 
 ### Imports not resolving
 

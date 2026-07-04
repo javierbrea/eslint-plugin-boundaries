@@ -91,7 +91,7 @@ const runTest = (
         errors: [
           {
             message: noPrivateMessage({
-              dep: '"components", category "molecules" and elementName "molecule-c"',
+              dep: '"components" and captured values: category="molecules", elementName="molecule-c"',
             }),
             type: "Literal",
           },
@@ -104,7 +104,7 @@ const runTest = (
         errors: [
           {
             message: noPrivateMessage({
-              dep: '"components", category "molecules" and elementName "molecule-a"',
+              dep: '"components" and captured values: category="molecules", elementName="molecule-a"',
             }),
             type: "Literal",
           },
@@ -118,7 +118,7 @@ const runTest = (
         errors: [
           {
             message: noPrivateMessage({
-              dep: '"helpers" and elementName "helper-a"',
+              dep: '"helpers" and captured values: elementName="helper-a"',
             }),
             type: "Literal",
           },
@@ -134,7 +134,7 @@ const runTest = (
         errors: [
           {
             message: noPrivateMessage({
-              dep: '"components", category "molecules" and elementName "molecule-c"',
+              dep: '"components" and captured values: category="molecules", elementName="molecule-c"',
             }),
             type: "Literal",
           },
@@ -156,7 +156,7 @@ const runTest = (
         errors: [
           {
             message: noPrivateMessage({
-              dep: '"components", category "molecules" and elementName "molecule-a"',
+              dep: '"components" and captured values: category="molecules", elementName="molecule-a"',
             }),
             type: "Literal",
           },

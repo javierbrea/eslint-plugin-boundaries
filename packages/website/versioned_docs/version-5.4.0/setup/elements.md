@@ -122,7 +122,7 @@ Controls how the pattern matching works:
   - `**/*/*.model.js`
   - `src/*/*/*.model.js`
 
-:::note Pattern Matching Modes and rootPath
+:::note[Pattern Matching Modes and rootPath]
 
 Patterns in element descriptors are **relative to [`rootPath`](./settings.md#boundariesroot-path)** (which defaults to the current working directory).
 

@@ -1,19 +1,21 @@
-import {
-  isExternalDependencyElement,
-  isCoreDependencyElement,
-  ELEMENT_ORIGINS_MAP,
+import { ORIGINS_MAP } from "@boundaries/elements";
+import type {
+  DependencyInfoSelector,
+  DependencySelector,
+  DependencySingleSelector,
+  ModuleSingleSelector,
 } from "@boundaries/elements";
-import type { DependencySelector } from "@boundaries/elements";
 
 import {
   rulesOptionsSchema,
-  validateAndWarnRuleOptions,
   warnMigrationToDependencies,
+  validateAndWarnRuleOptions,
+  deprecatedRuleInfo,
 } from "../Settings";
 import type {
   ExternalRuleOptions,
-  ExternalRule,
-  DependenciesRule,
+  ExternalPolicy,
+  DependenciesPolicy,
   ExternalLibrariesSelector,
   ExternalLibrarySelectorWithOptions,
 } from "../Shared";
@@ -21,12 +23,11 @@ import {
   isString,
   isArray,
   isObject,
-  isNullish,
   SETTINGS,
   RULE_NAMES_MAP,
 } from "../Shared";
 
-import { evaluateRulesAndReport } from "./Dependencies";
+import { evaluatePoliciesAndReport } from "./Dependencies";
 import { dependencyRule } from "./Support";
 
 const { RULE_EXTERNAL } = SETTINGS;
@@ -49,30 +50,53 @@ function isExternalLibrarySelectorWithOptions(
 }
 
 /**
+ * Strips the leading slash from a path so it matches the normalized `module.internalPath`
+ * value exposed by the elements package.
+ *
+ * @param path The raw path option supplied by the user.
+ * @returns The path without a leading slash, or the original value when not a string.
+ */
+function normalizeInternalPath<T>(path: T): T {
+  if (isString(path) && path.startsWith("/")) {
+    return path.slice(1) as T;
+  }
+  return path;
+}
+
+/**
  * Builds a dependency selector from a legacy external selector using tuple syntax with options.
  * @param selector The external library selector in legacy format with options.
  * @returns The corresponding dependency selector compatible with `dependencies` rule evaluator.
  */
 function buildSelectorFromLegacySelectorWithOptions(
   selector: ExternalLibrarySelectorWithOptions
-): DependencySelector {
+): DependencySingleSelector {
   const moduleSelector = selector[0];
   const selectorOptions = selector[1];
-  const hasPathSelector = !isNullish(selectorOptions.path);
-  return {
+  const dependencyInfoSelector: DependencyInfoSelector = {};
+  const moduleSingleSelector: ModuleSingleSelector = {
+    origin: [ORIGINS_MAP.EXTERNAL, ORIGINS_MAP.CORE],
+    source: moduleSelector,
+  };
+
+  if (selectorOptions.specifiers) {
+    dependencyInfoSelector.specifiers = selectorOptions.specifiers;
+  }
+  if (selectorOptions.path) {
+    moduleSingleSelector.internalPath = isString(selectorOptions.path)
+      ? normalizeInternalPath(selectorOptions.path)
+      : selectorOptions.path.map(normalizeInternalPath);
+  }
+
+  const result: DependencySingleSelector = {
     to: {
-      origin: [ELEMENT_ORIGINS_MAP.EXTERNAL, ELEMENT_ORIGINS_MAP.CORE],
-      ...(hasPathSelector ? { internalPath: selectorOptions.path } : {}),
-    },
-    dependency: {
-      module: moduleSelector,
-      ...(selectorOptions.specifiers
-        ? {
-            specifiers: selectorOptions.specifiers,
-          }
-        : {}),
+      module: moduleSingleSelector,
     },
   };
+  if (dependencyInfoSelector.specifiers) {
+    result.dependency = dependencyInfoSelector;
+  }
+  return result;
 }
 
 /**
@@ -83,21 +107,18 @@ function buildSelectorFromLegacySelectorWithOptions(
  */
 function modifySelectors(
   selectors: ExternalLibrariesSelector
-): DependencySelector | DependencySelector[] {
-  const originsToMatch = [
-    ELEMENT_ORIGINS_MAP.EXTERNAL,
-    ELEMENT_ORIGINS_MAP.CORE,
-  ];
+): DependencySelector {
+  const originsToMatch = [ORIGINS_MAP.EXTERNAL, ORIGINS_MAP.CORE];
   if (isExternalLibrarySelectorWithOptions(selectors)) {
     return buildSelectorFromLegacySelectorWithOptions(selectors);
   }
   if (isString(selectors)) {
     return {
       to: {
-        origin: originsToMatch,
-      },
-      dependency: {
-        module: selectors,
+        module: {
+          origin: originsToMatch,
+          source: selectors,
+        },
       },
     };
   }
@@ -106,23 +127,20 @@ function modifySelectors(
       return buildSelectorFromLegacySelectorWithOptions(selector);
     }
     return {
-      to: { origin: originsToMatch },
-      dependency: {
-        module: selector,
-      },
+      to: { module: { origin: originsToMatch, source: selector } },
     };
   });
 }
 
 /**
- * Converts `external` legacy rules to `dependencies` rule shape.
+ * Converts `external` legacy policies to `dependencies` policy shape.
  *
- * @param rules - External rules as configured by the user.
- * @returns Equivalent dependencies rules consumed by shared evaluator.
+ * @param rules - External policies as configured by the user.
+ * @returns Equivalent dependencies policies consumed by shared evaluator.
  */
 function transformToDependenciesRules(
-  rules: ExternalRule[]
-): DependenciesRule[] {
+  rules: ExternalPolicy[]
+): DependenciesPolicy[] {
   return rules.map((rule) => ({
     from: rule.from,
     allow: rule.allow ? modifySelectors(rule.allow) : undefined,
@@ -136,6 +154,7 @@ export default dependencyRule<ExternalRuleOptions>(
   {
     ruleName: RULE_EXTERNAL,
     description: `Check dependencies to external and core libraries`,
+    deprecated: deprecatedRuleInfo(RULE_NAMES_MAP.DEPENDENCIES),
     schema: rulesOptionsSchema({
       isLegacy: true,
       targetMatcherOptions: {
@@ -167,15 +186,20 @@ export default dependencyRule<ExternalRuleOptions>(
   },
   function ({ dependency, node, context, settings, options }) {
     warnMigrationToDependencies(RULE_NAMES_MAP.EXTERNAL);
-    // Validate and warn about legacy selector syntax
-    validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL, "from");
+    // Validate and warn about deprecated rule option syntax (legacy
+    // selectors, legacy templates, and rule-level importKind).
+    validateAndWarnRuleOptions(
+      options,
+      RULE_NAMES_MAP.EXTERNAL,
+      settings.legacyWarnings
+    );
 
-    if (
-      isExternalDependencyElement(dependency.to) ||
-      isCoreDependencyElement(dependency.to)
-    ) {
-      const rules = transformToDependenciesRules(options?.rules ?? []);
-      evaluateRulesAndReport({
+    const origin = dependency.to.module.origin;
+    if (origin === ORIGINS_MAP.EXTERNAL || origin === ORIGINS_MAP.CORE) {
+      const rules = transformToDependenciesRules(
+        options?.policies ?? options?.rules ?? []
+      );
+      evaluatePoliciesAndReport({
         rules,
         settings,
         context,

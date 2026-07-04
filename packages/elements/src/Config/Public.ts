@@ -1,1 +1,1 @@
-export * from "./Config.types";
+export type { ConfigOptions, FlagAsExternalOptions } from "./Config.types";

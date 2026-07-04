@@ -60,7 +60,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message: noPrivateMessage({
-            dep: '"modules" and elementName "module-b"',
+            dep: '"modules" and captured values: elementName="module-b"',
           }),
           type: "Literal",
         },
@@ -74,7 +74,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message: noPrivateMessage({
-            dep: '"modules" and elementName "module-c"',
+            dep: '"modules" and captured values: elementName="module-c"',
           }),
           type: "Literal",
         },
@@ -94,7 +94,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message: noPrivateMessage({
-            dep: '"modules" and elementName "module-b"',
+            dep: '"modules" and captured values: elementName="module-b"',
           }),
           type: "Literal",
         },

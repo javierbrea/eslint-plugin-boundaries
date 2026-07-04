@@ -28,7 +28,7 @@ The plugin includes two predefined configurations to get started quickly.
 
 ### Recommended Config
 
-:::tip Usage
+:::tip[Usage]
 **Best for:** Applying the plugin to an existing project
 :::
 
@@ -62,7 +62,7 @@ export default [{
 
 ### Strict Config
 
-:::tip Usage
+:::tip[Usage]
 **Best for:** New projects or enforcing full compliance
 :::
 

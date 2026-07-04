@@ -5,6 +5,7 @@ sidebar_label: v1 to v2
 description: Guide to migrating from ESLint Plugin Boundaries from version 1 to version 2.
 tags:
   - configuration
+  - migration
 keywords:
   - eslint-plugin-boundaries
   - migration

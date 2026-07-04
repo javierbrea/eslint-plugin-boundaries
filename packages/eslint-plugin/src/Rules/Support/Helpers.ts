@@ -17,6 +17,7 @@ export function meta({
   schema,
   ruleName,
   type,
+  deprecated,
 }: RuleMetaDefinition): Pick<Rule.RuleModule, "meta"> {
   return {
     meta: {
@@ -28,6 +29,7 @@ export function meta({
         category: "dependencies",
       },
       schema,
+      ...(deprecated ? { deprecated } : {}),
     },
   };
 }

@@ -3,6 +3,8 @@ import type * as Preset from "@docusaurus/preset-classic";
 import type { Config } from "@docusaurus/types";
 import { themes as prismThemes } from "prism-react-renderer";
 
+const IS_DEV = process.env.NODE_ENV === "development";
+
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
@@ -74,6 +76,19 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"],
   },
+  plugins: [
+    () => ({
+      name: "custom-webpack-config",
+      configureWebpack(_config, isServer) {
+        if (!isServer && IS_DEV) {
+          return {
+            devtool: "source-map", // Generate source maps for client-side code to improve debugging experience in the browser, but avoid doing it for server-side code to prevent potential issues with Node.js and Docusaurus' server-side rendering.
+          };
+        }
+        return {};
+      },
+    }),
+  ],
   presets: [
     [
       "classic",
@@ -97,6 +112,14 @@ const config: Config = {
   ],
 
   themeConfig: {
+    /* announcementBar: {
+      id: "v7-launch",
+      content:
+        'Version 7 is here — file descriptors, multi-dimensional classification, and zero breaking changes. <a href="/docs/next/releases/migration-guides/v6-to-v7/">See what\'s new →</a>',
+      backgroundColor: "#3b4468",
+      textColor: "#e8ecff",
+      isCloseable: true,
+    }, */
     // Replace with your project's social card
     colorMode: {
       respectPrefersColorScheme: true,
@@ -118,6 +141,10 @@ const config: Config = {
           position: "left",
           label: "Getting Started",
         },
+        // NOTE: navbar links target the default (published) docs version.
+        // The flattened top-level sections (Classification, Selectors, Policies,
+        // Settings) live in the "next" (v7) docs. Switch these to the flat links
+        // when v7 becomes the default version (set `lastVersion: "current"`).
         {
           to: "docs/setup/",
           position: "left",

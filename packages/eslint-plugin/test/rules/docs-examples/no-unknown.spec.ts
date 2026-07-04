@@ -1,10 +1,12 @@
-import rule from "../../../src/Rules/NoUnknown";
+import getRule from "../../../src/Rules/NoUnknown";
 import { NO_UNKNOWN as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
   createRuleTester,
   pathResolvers,
 } from "../../support/helpers";
+
+const rule = getRule();
 
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath } = pathResolvers("docs-examples");

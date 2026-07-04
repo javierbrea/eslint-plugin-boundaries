@@ -1,4 +1,4 @@
-import { isString } from "../Support";
+import { isString } from "../Shared";
 
 import type { NotUndefined } from "./Cache.types";
 

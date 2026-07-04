@@ -23,27 +23,71 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "Setup",
+      label: "Classification",
       link: {
         type: "doc",
-        id: "setup/setup",
+        id: "classification/classification",
       },
       collapsed: true,
       items: [
-        "setup/elements",
         {
           type: "category",
-          label: "Selectors",
+          label: "Elements",
           link: {
             type: "doc",
-            id: "setup/selectors",
+            id: "classification/elements",
           },
-          items: ["setup/selectors/legacy-selectors"],
+          items: ["classification/elements/legacy"],
         },
-        "setup/rules",
-        "setup/settings",
-        "setup/eslint-integration",
+        "classification/files",
+        "classification/modules",
+        "classification/dependency",
       ],
+    },
+    {
+      type: "category",
+      label: "Selectors",
+      link: {
+        type: "doc",
+        id: "selectors/selectors",
+      },
+      collapsed: true,
+      items: [
+        "selectors/element",
+        "selectors/file",
+        "selectors/module",
+        "selectors/dependency",
+        {
+          type: "category",
+          label: "Legacy",
+          collapsed: true,
+          items: [
+            "selectors/legacy/element",
+            "selectors/legacy/dependency",
+            "selectors/legacy/templates",
+          ],
+        },
+      ],
+    },
+    {
+      type: "category",
+      label: "Policies",
+      link: {
+        type: "doc",
+        id: "policies/policies",
+      },
+      collapsed: true,
+      items: ["policies/legacy"],
+    },
+    {
+      type: "category",
+      label: "Settings",
+      link: {
+        type: "doc",
+        id: "settings/settings",
+      },
+      collapsed: true,
+      items: ["settings/config-helpers", "settings/legacy"],
     },
     {
       type: "category",
@@ -55,8 +99,8 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       items: [
         "rules/dependencies",
-        "rules/no-unknown",
-        "rules/no-ignored",
+        "rules/no-unknown-dependencies",
+        "rules/no-ignored-dependencies",
         "rules/no-unknown-files",
         {
           type: "category",
@@ -90,6 +134,7 @@ const sidebars: SidebarsConfig = {
           label: "Migration Guides",
           collapsed: false,
           items: [
+            "releases/migration-guides/v6-to-v7",
             "releases/migration-guides/v5-to-v6",
             "releases/migration-guides/v3-to-v4",
             "releases/migration-guides/v1-to-v2",

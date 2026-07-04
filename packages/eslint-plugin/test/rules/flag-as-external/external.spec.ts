@@ -38,7 +38,9 @@ const testDefaultSettings = () => {
         options: [
           {
             default: "allow",
-            rules: [{ from: { type: "components" }, disallow: ["micromatch"] }],
+            policies: [
+              { from: { type: "components" }, disallow: ["micromatch"] },
+            ],
           },
         ],
       },
@@ -52,7 +54,7 @@ const testDefaultSettings = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "helpers", package "a" and elementName "helper-a" to elements of origin "external" with module "micromatch"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
             type: "Literal",
           },
         ],
@@ -65,7 +67,7 @@ const testDefaultSettings = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "helpers", package "a" and elementName "helper-a" to elements of origin "external" with module "unknown-package-xyz"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "unknown-package-xyz"',
             type: "Literal",
           },
         ],
@@ -120,7 +122,7 @@ const testOutsideRootPath = () => {
         options: [
           {
             default: "disallow",
-            rules: [{ from: { type: "components" }, allow: ["package-b"] }],
+            policies: [{ from: { type: "components" }, allow: ["package-b"] }],
           },
         ],
       },
@@ -136,7 +138,7 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of origin "external" with module "package-b"',
+              'There is no policy allowing dependencies from elements of type "components" and captured values: elementName="component-a" to entities of module with origin "external" and module source "package-b" being elements of type "helpers" and captured values: elementName="helper-b"',
             type: "Literal",
           },
         ],
@@ -149,13 +151,15 @@ const testOutsideRootPath = () => {
         options: [
           {
             default: "allow",
-            rules: [{ from: { type: "components" }, disallow: ["package-b"] }],
+            policies: [
+              { from: { type: "components" }, disallow: ["package-b"] },
+            ],
           },
         ],
         errors: [
           {
             message:
-              'Dependencies with module "package-b" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
+              'Dependencies with module source "package-b" to entities of module with origin "external" are not allowed in elements of type "components". Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -168,7 +172,7 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "helpers" and elementName "helper-a" to elements of origin "external" with module "micromatch"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
             type: "Literal",
           },
         ],
@@ -210,7 +214,7 @@ const testCustomSourcePatterns = () => {
         options: [
           {
             default: "allow",
-            rules: [{ from: { type: "components" }, disallow: ["eslint"] }],
+            policies: [{ from: { type: "components" }, disallow: ["eslint"] }],
           },
         ],
       },
@@ -223,7 +227,7 @@ const testCustomSourcePatterns = () => {
         options: [
           {
             default: "disallow",
-            rules: [{ from: { type: "components" }, allow: ["package-b"] }],
+            policies: [{ from: { type: "components" }, allow: ["package-b"] }],
           },
         ],
       },
@@ -239,7 +243,7 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "components", package "a" and elementName "component-a" to elements of origin "external" with module "package-b"',
+              'There is no policy allowing dependencies from elements of type "components" and captured values: package="a", elementName="component-a" to entities of module with origin "external" and module source "package-b" being elements of type "helpers" and captured values: package="b", elementName="helper-b"',
             type: "Literal",
           },
         ],
@@ -252,13 +256,15 @@ const testCustomSourcePatterns = () => {
         options: [
           {
             default: "allow",
-            rules: [{ from: { type: "components" }, disallow: ["package-b"] }],
+            policies: [
+              { from: { type: "components" }, disallow: ["package-b"] },
+            ],
           },
         ],
         errors: [
           {
             message:
-              'Dependencies with module "package-b" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 0',
+              'Dependencies with module source "package-b" to entities of module with origin "external" are not allowed in elements of type "components". Denied by policy at index 0',
             type: "Literal",
           },
         ],
@@ -271,7 +277,7 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "helpers", package "a" and elementName "helper-a" to elements of origin "external" with module "micromatch"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
             type: "Literal",
           },
         ],
@@ -323,7 +329,7 @@ const testInNodeModulesDisabled = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "any" to elements of origin "external" with module "unknown-package-xyz"',
+              'There is no policy allowing dependencies from elements of type "any" to entities of module with origin "external" and module source "unknown-package-xyz"',
             type: "Literal",
           },
         ],
@@ -364,7 +370,7 @@ const testUnresolvableAliasDisabled = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "helpers", package "a" and elementName "helper-a" to elements of origin "external" with module "micromatch"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
             type: "Literal",
           },
         ],
@@ -405,7 +411,7 @@ const testInvalidSettings = () => {
         errors: [
           {
             message:
-              'There is no rule allowing dependencies from elements of type "helpers", package "a" and elementName "helper-a" to elements of origin "external" with module "eslint"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "eslint"',
             type: "Literal",
           },
         ],

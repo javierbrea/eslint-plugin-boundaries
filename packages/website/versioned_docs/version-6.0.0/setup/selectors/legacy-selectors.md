@@ -19,7 +19,7 @@ keywords:
 
 # Legacy Selector Syntax
 
-:::warning Deprecated
+:::warning[Deprecated]
 The selector formats documented on this page are **deprecated** and will be removed in a future major version. These formats still work but will show a deprecation warning in your console.
 
 **We strongly recommend migrating to the modern [object-based selector syntax](../selectors.md).** See the [v5 to v6 migration guide](../../releases/migration-guides/v5-to-v6.mdx) for detailed migration instructions and examples.

@@ -2,14 +2,19 @@ import type {
   ElementParent,
   DependencyDescription,
   ElementDescription,
-  DependencyMatchResult,
+  DependencySingleSelectorMatchResult,
+  EntitySingleSelectorMatchResult,
+  ModuleDescription,
 } from "@boundaries/elements";
-import { isElementDescription } from "@boundaries/elements";
 import Handlebars from "handlebars";
 
-import { isNull } from "../Shared";
+import { isArray, isNull, isUndefined } from "../Shared";
 
-import type { CustomMessageTemplateContext } from "./CustomMessages.types";
+import type {
+  CustomMessageTemplateContext,
+  CustomMessageTemplatePolicyEntitySelectorContext,
+  CustomMessageTemplatePolicySelectorContext,
+} from "./CustomMessages.types";
 
 /** Regular expression to detect Handlebars expressions in custom message templates */
 const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^{}\s][^{}]*}}/;
@@ -69,33 +74,42 @@ function replaceObjectValuesInLegacyTemplate(
  *
  * @param element - Element or parent element that provides captured values.
  * @param importKind - Dependency kind (`value`, `type`, etc.).
- * @param dependencyMetadata - Extra dependency metadata for full elements.
+ * @param dependencyInfo - Extra dependency metadata for full elements.
  * @returns Normalized key/value map used during placeholder replacement.
  */
-export function elementPropertiesToReplaceInLegacyTemplate(
-  element: ElementDescription | ElementParent,
-  importKind: string,
-  dependencyMetadata?: DependencyDescription["dependency"]
-) {
-  if (isElementDescription(element)) {
-    const source = dependencyMetadata?.source || "";
-    const dependencyModule = dependencyMetadata?.module || "";
-    return {
-      ...element.captured,
-      type: element.type || "",
-      internalPath: element.internalPath || "",
-      source,
-      module: dependencyModule,
-      importKind: importKind || "",
-    };
-  }
+export function elementPropertiesToReplaceInLegacyTemplate({
+  element,
+  module: moduleName,
+  dependency,
+}: {
+  element: ElementDescription;
+  module?: ModuleDescription;
+  dependency?: DependencyDescription["dependency"];
+}) {
   return {
     ...element.captured,
-    type: element.type || "",
+    type: element.types?.[0] || "",
+    internalPath: element.fileInternalPath || "",
+    source: dependency?.source || "",
+    module: moduleName?.source || "",
+    importKind: dependency?.kind || "",
+  };
+}
+
+export function parentPropertiesToReplaceInLegacyTemplate({
+  parent,
+  dependency,
+}: {
+  parent: ElementParent;
+  dependency?: DependencyDescription["dependency"];
+}) {
+  return {
+    ...parent.captured,
+    type: parent.types?.[0] || "",
     internalPath: "",
     source: "",
     module: "",
-    importKind: importKind || "",
+    importKind: dependency?.kind || "",
   };
 }
 
@@ -107,6 +121,64 @@ export function elementPropertiesToReplaceInLegacyTemplate(
  */
 function hasHandlebarsTemplate(template: string) {
   return HANDLEBARS_TEMPLATE_REGEX.test(template);
+}
+
+/**
+ * Extends dependency entity context used by custom message templates.
+ *
+ * For backward compatibility with V6 dependency selectors, properties from
+ * `entity.element` are also exposed at the root level (`from`/`to`), while
+ * preserving the nested structure.
+ */
+function extendDependencyEntityContextForTemplate(
+  entityContext: DependencyDescription["from"],
+  parents: ElementParent[]
+): CustomMessageTemplateContext["from"];
+function extendDependencyEntityContextForTemplate(
+  entityContext: DependencyDescription["to"],
+  parents: ElementParent[]
+): CustomMessageTemplateContext["to"];
+function extendDependencyEntityContextForTemplate(
+  entityContext: DependencyDescription["from"] | DependencyDescription["to"],
+  parents: ElementParent[]
+) {
+  return {
+    ...entityContext.element,
+    type: entityContext.element.types?.[0],
+    elementPath: entityContext.element.path,
+    internalPath: entityContext.element.fileInternalPath,
+    parents,
+    ...(isUndefined(entityContext.module.origin)
+      ? {}
+      : { origin: entityContext.module.origin }),
+    ...entityContext,
+    element: {
+      ...entityContext.element,
+      type: entityContext.element.types?.[0],
+    },
+  };
+}
+
+/**
+ * Extends a selector entity context used in `policy.selector` templates.
+ *
+ * For backward compatibility with V6 dependency selectors, properties from
+ * `entity.element` are also exposed at the root level (for example
+ * `policy.selector.from.type`) besides `policy.selector.from.element.type`.
+ */
+function extendPolicyEntitySelectorContextForTemplate(
+  entityContext: EntitySingleSelectorMatchResult
+): CustomMessageTemplatePolicyEntitySelectorContext {
+  return {
+    ...entityContext.element,
+    ...(isUndefined(entityContext.element?.filePath)
+      ? {}
+      : { elementPath: entityContext.element.filePath }),
+    ...(isUndefined(entityContext.element?.fileInternalPath)
+      ? {}
+      : { internalPath: entityContext.element.fileInternalPath }),
+    ...entityContext,
+  };
 }
 
 /**
@@ -124,26 +196,52 @@ function renderCustomMessageHandlebarsTemplate(
   template: string,
   dependency: DependencyDescription,
   ruleIndex: number | null,
-  matchResult: DependencyMatchResult | null
+  matchResult: DependencySingleSelectorMatchResult | null
 ) {
   if (!hasHandlebarsTemplate(template)) {
     return template;
   }
+  const fromParents = isArray(dependency.from.element.parents)
+    ? dependency.from.element.parents.map((parent) => ({
+        ...parent,
+        elementPath: parent.path,
+      }))
+    : dependency.from.element.parents;
+  const toParents = isArray(dependency.to.element.parents)
+    ? dependency.to.element.parents.map((parent) => ({
+        ...parent,
+        elementPath: parent.path,
+      }))
+    : dependency.to.element.parents;
+  const policySelector: CustomMessageTemplatePolicySelectorContext =
+    !isNull(ruleIndex) && matchResult
+      ? {
+          ...matchResult,
+          from: matchResult.from
+            ? extendPolicyEntitySelectorContextForTemplate(matchResult.from)
+            : undefined,
+          to: matchResult.to
+            ? extendPolicyEntitySelectorContextForTemplate(matchResult.to)
+            : undefined,
+        }
+      : null;
+  const policyContext =
+    !isNull(ruleIndex) && matchResult
+      ? {
+          index: ruleIndex,
+          selector: policySelector,
+        }
+      : null;
   const context: CustomMessageTemplateContext = {
-    from: dependency.from,
-    to: dependency.to,
+    from: extendDependencyEntityContextForTemplate(
+      dependency.from,
+      fromParents
+    ),
+    to: extendDependencyEntityContextForTemplate(dependency.to, toParents),
     dependency: dependency.dependency,
-    rule:
-      !isNull(ruleIndex) && matchResult
-        ? {
-            index: ruleIndex,
-            selector: {
-              from: matchResult.from,
-              to: matchResult.to,
-              dependency: matchResult.dependency,
-            },
-          }
-        : null,
+    // `policy` is the current template property; `rule` is kept as a deprecated alias.
+    policy: policyContext,
+    rule: policyContext,
   };
 
   const compiledTemplate = Handlebars.compile(template, { noEscape: true });
@@ -160,78 +258,68 @@ function replaceLegacyTemplateVariables(
   template: string,
   dependency: DependencyDescription
 ) {
+  const fromProperties = elementPropertiesToReplaceInLegacyTemplate({
+    element: dependency.from.element,
+    module: dependency.from.module,
+  });
+  const toProperties = elementPropertiesToReplaceInLegacyTemplate({
+    element: dependency.to.element,
+    module: dependency.to.module,
+    dependency: dependency.dependency,
+  });
   let replacedMessage = replaceObjectValuesInLegacyTemplate(
-    replaceObjectValuesInLegacyTemplate(
-      template,
-      elementPropertiesToReplaceInLegacyTemplate(
-        dependency.from,
-        dependency.dependency.kind
-      ),
-      "file"
-    ),
-    elementPropertiesToReplaceInLegacyTemplate(
-      dependency.to,
-      dependency.dependency.kind,
-      dependency.dependency
-    ),
+    replaceObjectValuesInLegacyTemplate(template, fromProperties, "file"),
+    toProperties,
     "dependency"
   );
   replacedMessage = replaceObjectValuesInLegacyTemplate(
     replaceObjectValuesInLegacyTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInLegacyTemplate(
-        dependency.from,
-        dependency.dependency.kind
-      ),
+      fromProperties,
       "from"
     ),
-    elementPropertiesToReplaceInLegacyTemplate(
-      dependency.to,
-      dependency.dependency.kind,
-      dependency.dependency
-    ),
+    toProperties,
     "target"
   );
-  if (dependency.from.parents?.[0]) {
+  if (dependency.from.element.parents?.[0]) {
+    const fromParentProperties = parentPropertiesToReplaceInLegacyTemplate({
+      parent: dependency.from.element.parents[0],
+      dependency: dependency.dependency,
+    });
     replacedMessage = replaceObjectValuesInLegacyTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInLegacyTemplate(
-        dependency.from.parents?.[0],
-        dependency.dependency.kind
-      ),
+      fromParentProperties,
       "file.parent"
     );
     replacedMessage = replaceObjectValuesInLegacyTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInLegacyTemplate(
-        dependency.from.parents?.[0],
-        dependency.dependency.kind
-      ),
+      fromParentProperties,
       "from.parent"
     );
   }
-  if (dependency.to.parents?.[0]) {
+  if (dependency.to.element.parents?.[0]) {
+    const toParentProperties = parentPropertiesToReplaceInLegacyTemplate({
+      parent: dependency.to.element.parents?.[0],
+      dependency: dependency.dependency,
+    });
     replacedMessage = replaceObjectValuesInLegacyTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInLegacyTemplate(
-        dependency.to.parents?.[0],
-        dependency.dependency.kind
-      ),
+      toParentProperties,
       "dependency.parent"
     );
     replacedMessage = replaceObjectValuesInLegacyTemplate(
       replacedMessage,
-      elementPropertiesToReplaceInLegacyTemplate(
-        dependency.to.parents?.[0],
-        dependency.dependency.kind
-      ),
+      toParentProperties,
       "target.parent"
     );
   }
   return replaceObjectValuesInLegacyTemplate(
     replacedMessage,
     {
-      path: dependency.to.internalPath || "",
+      path:
+        dependency.to.module.internalPath ||
+        dependency.to.element.fileInternalPath ||
+        "",
       specifiers: dependency.dependency.specifiers?.join(", ") || "",
     },
     "report"
@@ -253,7 +341,7 @@ export function customErrorMessage(
   template: string,
   dependency: DependencyDescription,
   ruleIndex: number | null = null,
-  matchResult: DependencyMatchResult | null = null
+  matchResult: DependencySingleSelectorMatchResult | null = null
 ) {
   const replacedMessage = replaceLegacyTemplateVariables(template, dependency);
   return renderCustomMessageHandlebarsTemplate(

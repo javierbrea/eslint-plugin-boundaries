@@ -25,8 +25,7 @@ import CodeDiff from "@site/src/components/CodeDiff";
 
 # Quick Start
 
-Follow these steps to quickly set up ESLint Plugin Boundaries in your project. Then you can explore more advanced configurations to fit your project's needs in the [Setup section](./setup/setup.md).
-
+Follow these steps to quickly set up ESLint Plugin Boundaries in your project. Then you can explore more advanced configurations to fit your project's needs, starting with [Classification](./classification/classification.md).
 
 ## 1. Installation
 
@@ -75,12 +74,12 @@ export default [
 
 ## 3. Define your Elements
 
-The plugin needs to identify the elements in your project. To do so, define your elements using the [`boundaries/elements` setting](./setup/elements.md).
+Elements classify a project by the architectural piece each file belongs to. Define them using the [`boundaries/elements` setting](./classification/elements.md).
 
-These patterns determine how each file or dependency is classified.
+These patterns determine how each file or dependency is classified. This step is optional on its own — as the [next step](#4-categorize-your-files) explains, you only need to define **at least one** classification layer, elements or files.
 
 :::tip
-Read the **[Elements](./setup/elements.md)** section for guidance on how to define the patterns for the elements in your project.
+Read the **[Classification](./classification/classification.md)** section for guidance on how to define the patterns for the elements and files in your project.
 :::
 
 <Tabs>
@@ -96,9 +95,9 @@ Read the **[Elements](./setup/elements.md)** section for guidance on how to defi
 .     },
 +     settings: {
 +       "boundaries/elements": [
-+         { type: "controller", pattern: "controllers/*" },
-+         { type: "model", pattern: "models/*" },
-+         { type: "view", pattern: "views/*" }
++         { type: "helper", pattern: "helpers/*" },
++         { type: "component", pattern: "components/*/*" },
++         { type: "module", pattern: "modules/*" }
 +       ],
 +     },
 .   }
@@ -118,9 +117,9 @@ Read the **[Elements](./setup/elements.md)** section for guidance on how to defi
 .     },
 +     settings: {
 +       "boundaries/elements": [
-+         { type: "controller", pattern: "controllers/*" },
-+         { type: "model", pattern: "models/*" },
-+         { type: "view", pattern: "views/*" }
++         { type: "helper", pattern: "helpers/*" },
++         { type: "component", pattern: "components/*/*" },
++         { type: "module", pattern: "modules/*" }
 +       ],
 +     } satisfies Settings,
 .   } satisfies Config
@@ -131,16 +130,18 @@ Read the **[Elements](./setup/elements.md)** section for guidance on how to defi
 </Tabs>
 
 :::info
-This is only a basic example of configuration. The plugin can be configured to identify elements being a file, or elements being a folder containing files. It also supports capturing path fragments to be used afterwards on each rule, etc.
+This is only a basic example of configuration. The plugin can also capture path fragments from element paths so you can reuse them in rule policy selectors. Read **[Elements](./classification/elements.md)** to learn the full range of descriptor options.
 :::
 
-## 4. Apply Predefined Rules
-
-Apply one of the [predefined rule configurations](./setup/eslint-integration.md) as a starting point by extending it in your `rules` section.
-
-:::tip
-You should use `recommended` config in already existing projects to gradually introduce the rules without too many errors at once, because it does not require all files in the project to belong to be part of a defined element. For new projects, you can use `strict` config to ensure all files belong to an element from the beginning.
+:::note
+Element patterns match **folders** (e.g. `components/*/*`), not individual files. To classify files by kind — tests, styles, stories — use [file descriptors](./classification/files.md) in `boundaries/files`, as shown in the next step.
 :::
+
+## 4. Categorize your Files
+
+This step is optional. The plugin needs at least one classification layer to work, so you only have to define **either** [elements](./classification/elements.md) **or** [file](./classification/files.md) descriptors — the previous step is optional too, and defining both is not required.
+
+While elements group files into architectural units (usually folders, such as `components/Button/`), file descriptors classify each file **on its own**, independently of the element it belongs to. They answer the question "what kind of file is this?" — a test, a style, a story — regardless of where it lives. Define them with the [`boundaries/files` setting](./classification/files.md).
 
 <Tabs>
 <TabItem value="JavaScript">
@@ -155,9 +156,85 @@ You should use `recommended` config in already existing projects to gradually in
 .     },
 .     settings: {
 .       "boundaries/elements": [
-.         { type: "controller", pattern: "controllers/*" },
-.         { type: "model", pattern: "models/*" },
-.         { type: "view", pattern: "views/*" }
+.         { type: "helper", pattern: "helpers/*" },
+.         { type: "component", pattern: "components/*/*" },
+.         { type: "module", pattern: "modules/*" }
+.       ],
++       "boundaries/files": [
++         { pattern: "**/*.spec.js", category: "test" },
++         { pattern: "**/*.css", category: "style" }
++       ],
+.     },
+.   }
+. ];
+`}</CodeDiff>
+
+</TabItem>
+<TabItem value="TypeScript">
+
+<CodeDiff language="typescript">{`
+. import boundaries, { Config, Settings } from "eslint-plugin-boundaries";
+
+. export default [
+.   {
+.     plugins: {
+.       boundaries,
+.     },
+.     settings: {
+.       "boundaries/elements": [
+.         { type: "helper", pattern: "helpers/*" },
+.         { type: "component", pattern: "components/*/*" },
+.         { type: "module", pattern: "modules/*" }
+.       ],
++       "boundaries/files": [
++         { pattern: "**/*.spec.js", category: "test" },
++         { pattern: "**/*.css", category: "style" }
++       ],
+.     } satisfies Settings,
+.   } satisfies Config
+. ];
+`}</CodeDiff>
+
+</TabItem>
+</Tabs>
+
+:::info
+File categories are independent from elements, so the same file can be element type `component` **and** file category `test` at the same time. Unlike element types, every matching descriptor contributes its category, so a file can carry several at once. Read **[Files](./classification/files.md)** to learn the full range of file descriptor options.
+:::
+
+:::note
+The rest of this guide keeps these file descriptors so you can see the `file` layer matched in a rule policy. If you skip this optional step, simply omit the `boundaries/files` setting and any rule that targets `file`.
+:::
+
+## 5. Apply Predefined Rules
+
+Apply one of the [predefined rule configurations](./settings/config-helpers.md) as a starting point by extending it in your `rules` section.
+
+:::tip
+Use `recommended` for existing projects to introduce rules gradually — it allows files outside defined elements. Use `strict` for new projects to require all files to belong to a known element from the start.
+:::
+
+
+<Tabs>
+<TabItem value="JavaScript">
+
+<CodeDiff language="javascript">{`
+. import boundaries from "eslint-plugin-boundaries";
+
+. export default [
+.   {
+.     plugins: {
+.       boundaries,
+.     },
+.     settings: {
+.       "boundaries/elements": [
+.         { type: "helper", pattern: "helpers/*" },
+.         { type: "component", pattern: "components/*/*" },
+.         { type: "module", pattern: "modules/*" }
+.       ],
+.       "boundaries/files": [
+.         { pattern: "**/*.spec.js", category: "test" },
+.         { pattern: "**/*.css", category: "style" }
 .       ],
 .     },
 +     rules: {
@@ -180,9 +257,13 @@ You should use `recommended` config in already existing projects to gradually in
 .     },
 .     settings: {
 .       "boundaries/elements": [
-.         { type: "controller", pattern: "controllers/*" },
-.         { type: "model", pattern: "models/*" },
-.         { type: "view", pattern: "views/*" }
+.         { type: "helper", pattern: "helpers/*" },
+.         { type: "component", pattern: "components/*/*" },
+.         { type: "module", pattern: "modules/*" }
+.       ],
+.       "boundaries/files": [
+.         { pattern: "**/*.spec.js", category: "test" },
+.         { pattern: "**/*.css", category: "style" }
 .       ],
 .     } satisfies Settings,
 +     rules: {
@@ -195,12 +276,12 @@ You should use `recommended` config in already existing projects to gradually in
 </TabItem>
 </Tabs>
 
-## 5. Set Dependency Rules
+## 6. Set Dependencies Rule Policies
 
-Now you can define your own dependency rules by using the [`boundaries/dependencies` rule](./setup/rules.mdx).
+Now you can define your own dependency rule policies using the [`boundaries/dependencies` rule](./rules/dependencies.md).
 
 :::tip
-Read how to use **[Element Selectors](./setup/selectors.md)** to configure your rules in more detail.
+Read how to use **[Selectors](./selectors/selectors.md)** to configure your [Rule Policies](./policies/policies.mdx) in detail.
 :::
 
 <Tabs>
@@ -216,27 +297,31 @@ Read how to use **[Element Selectors](./setup/selectors.md)** to configure your 
 .    },
 .    settings: {
 .      "boundaries/elements": [
-.        { type: "controller", pattern: "controllers/*" },
-.        { type: "model", pattern: "models/*" },
-.        { type: "view", pattern: "views/*" }
+.        { type: "helper", pattern: "helpers/*" },
+.        { type: "component", pattern: "components/*/*" },
+.        { type: "module", pattern: "modules/*" }
+.      ],
+.      "boundaries/files": [
+.        { pattern: "**/*.spec.js", category: "test" },
+.        { pattern: "**/*.css", category: "style" }
 .      ],
 .    },
 .    rules: {
 .      ...boundaries.configs.recommended.rules,
 +      "boundaries/dependencies": [2, {
 +        default: "disallow",
-+        rules: [
++        policies: [
 +          {
-+            from: { type: "controller" },
-+            allow: { to: { type: ["model", "view"] } }
++            from: { element: { types: "component" } },
++            allow: { to: { element: { types: "helper" } } }
 +          },
 +          {
-+            from: { type: "view" },
-+            allow: { to: { type: "model" } }
++            from: { element: { types: "module" } },
++            allow: { to: { element: { types: ["component", "helper"] } } }
 +          },
 +          {
-+            from: { type: "model" },
-+            disallow: { to: { type: "*" } }
++            // No element may import a test file, whatever element it belongs to
++            disallow: { to: { file: { categories: "test" } } }
 +          }
 +        ]
 +      }]
@@ -258,27 +343,31 @@ Read how to use **[Element Selectors](./setup/selectors.md)** to configure your 
 .    },
 .    settings: {
 .      "boundaries/elements": [
-.        { type: "controller", pattern: "controllers/*" },
-.        { type: "model", pattern: "models/*" },
-.        { type: "view", pattern: "views/*" }
+.        { type: "helper", pattern: "helpers/*" },
+.        { type: "component", pattern: "components/*/*" },
+.        { type: "module", pattern: "modules/*" }
+.      ],
+.      "boundaries/files": [
+.        { pattern: "**/*.spec.js", category: "test" },
+.        { pattern: "**/*.css", category: "style" }
 .      ],
 .    } satisfies Settings,
 .    rules: {
 .      ...boundaries.configs.recommended.rules,
 +      "boundaries/dependencies": [2, {
 +        default: "disallow",
-+        rules: [
++        policies: [
 +          {
-+            from: { type: "controller" },
-+            allow: [{ type: "model" }, { type: "view" }]
++            from: { element: { types: "component" } },
++            allow: { to: { element: { types: "helper" } } }
 +          },
 +          {
-+            from: { type: "view" },
-+            allow: [{ type: "model" }]
++            from: { element: { types: "module" } },
++            allow: { to: { element: { types: ["component", "helper"] } } }
 +          },
 +          {
-+            from: { type: "model" },
-+            disallow: [{ type: "*" }]
++            // No element may import a test file, whatever element it belongs to
++            disallow: { to: { file: { categories: "test" } } }
 +          }
 +        ]
 +      }]
@@ -290,15 +379,20 @@ Read how to use **[Element Selectors](./setup/selectors.md)** to configure your 
 </TabItem>
 </Tabs>
 
-## 6. Next Steps
+:::info
+You can customize the error messages reported by rule policies using **[message templates](./policies/policies.mdx)**.
+:::
+
+## 7. Next Steps
 
 You are all set! Now you can start enforcing architectural boundaries in your project 🎉
 
 From here you can:
 
-* Explore the **[Setup section](./setup/setup.md)** to learn:
-  * How to **[assign Elements](./setup/elements.md)**.
-  * How to **[use Element Selectors](./setup/selectors.md)**.
-  * How to **[define Dependency Rules](./setup/rules.mdx)**.
-  * How to **[customize Global Settings](./setup/settings.md)**.
-* Review the **[Rules section](./rules/rules.md)** to understand **all available rules and how to configure them**.
+- Explore the configuration sections to learn:
+  - How to **[Classify Elements and Files](./classification/classification.md)**.
+  - How to **[define Selectors to match dependencies](./selectors/selectors.md)**.
+  - How to **[define Rule Policies using those Selectors](./policies/policies.mdx)**.
+  - How to **[customize Global Settings](./settings/settings.md)**.
+- Review the **[Rules section](./rules/rules.md)** to understand all available rules and how to configure them.
+- Browse the **[Guides](./guides/monorepo-setup.md)** for task-oriented walkthroughs, such as setting up a monorepo.

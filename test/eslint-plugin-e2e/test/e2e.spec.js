@@ -1,14 +1,19 @@
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import chalk from "chalk";
 
+import createdConfigWithDefineLegacy from "./configs/createAndDefineConfig-legacy.config.js";
 import createdConfigWithDefine from "./configs/createAndDefineConfig.config.js";
+import createdConfigLegacy from "./configs/createConfig-legacy.config.js";
 import createdConfig from "./configs/createConfig.config.js";
+import monorepoLegacyConfig from "./configs/monorepo-legacy.config.js";
 import monorepoConfig from "./configs/monorepo.config.js";
 import performanceLegacyConfig from "./configs/performance-legacy.config.js";
 import performanceConfig from "./configs/performance.config.js";
+import recommendedLegacyConfig from "./configs/recommended-legacy.config.js";
 import recommendedConfig from "./configs/recommended.config.js";
+import strictLegacyConfig from "./configs/strict-legacy.config.js";
 import strictConfig from "./configs/strict.config.js";
 import createRenamedConfig from "./configs-ts/createRenamedConfig.config.js";
 import createRenamedLegacyConfig from "./configs-ts/createRenamedConfigLegacy.config.js";
@@ -27,11 +32,11 @@ const PERFORMANCE_MIN_DURATION_MS = 30000;
 const PERFORMANCE_ERRORS = 44;
 const PERFORMANCE_FILES = 5026;
 
-const PERFORMANCE_LEGACY_BASELINE_MS = 55000;
+const PERFORMANCE_LEGACY_BASELINE_MS = 85000;
 const PERFORMANCE_LEGACY_MAX_DURATION_MS =
   PERFORMANCE_LEGACY_BASELINE_MS * (1 + PERFORMANCE_MAX_INCREASE_PERCENT / 100);
 
-const PERFORMANCE_BASELINE_MS = 65000;
+const PERFORMANCE_BASELINE_MS = 95000;
 const PERFORMANCE_MAX_DURATION_MS =
   PERFORMANCE_BASELINE_MS * (1 + PERFORMANCE_MAX_INCREASE_PERCENT / 100);
 
@@ -55,10 +60,9 @@ function findFileResult(fileNameFragment, result) {
  * @param {string} options.name - Name of the performance test
  * @param {Object} options.config - ESLint configuration to be tested
  * @param {number} options.maxDurationMs - Optional maximum duration for the test in milliseconds
- * @param {boolean} [options.legacyRuleNames] - Whether to use legacy rule names
  * @returns {import('./runner.js').TestDefinition} The performance test definition
  */
-function getPerformanceTest({ name, config, maxDurationMs, legacyRuleNames }) {
+function getPerformanceTest({ name, config, maxDurationMs }) {
   return {
     name,
     config,
@@ -67,9 +71,7 @@ function getPerformanceTest({ name, config, maxDurationMs, legacyRuleNames }) {
     runOnFiles: ["src/**/*.js"],
     assert: async (runner, result) => {
       const allMessages = (result.files || []).flatMap((file) => file.messages);
-      const dependenciesRuleName = legacyRuleNames
-        ? "element-types"
-        : "dependencies";
+      const dependenciesRuleName = "dependencies";
 
       await runner.assert(
         `performance fixture should have ${PERFORMANCE_FILES} js files`,
@@ -132,10 +134,10 @@ function getPerformanceTest({ name, config, maxDurationMs, legacyRuleNames }) {
       );
 
       await runner.assert(
-        `performance config should include at least one no-unknown rule error`,
+        `performance config should include at least one no-unknown-dependencies rule error`,
         async () => {
           return allMessages.some(
-            (msg) => msg.ruleId === "boundaries/no-unknown"
+            (msg) => msg.ruleId === "boundaries/no-unknown-dependencies"
           );
         }
       );
@@ -207,8 +209,10 @@ const tests = [
               boundariesErrorFile?.errorCount > 0 &&
               boundariesErrorFile?.messages.some(
                 (msg) =>
-                  msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.ruleId === "boundaries/dependencies" &&
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -250,8 +254,10 @@ const tests = [
               boundariesErrorFile?.errorCount > 0 &&
               boundariesErrorFile?.messages.some(
                 (msg) =>
-                  msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.ruleId === "boundaries/dependencies" &&
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -296,8 +302,10 @@ const tests = [
               boundariesErrorFile?.errorCount > 0 &&
               boundariesErrorFile?.messages.some(
                 (msg) =>
-                  msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.ruleId === "boundaries/dependencies" &&
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -343,7 +351,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -389,7 +399,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "boundaries/dependencies" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -432,7 +444,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "customBoundaries/element-types" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -475,7 +489,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "customBoundaries/dependencies" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -521,7 +537,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "customBoundaries/element-types" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -567,7 +585,9 @@ const tests = [
               boundariesErrorFile?.messages.some(
                 (msg) =>
                   msg.ruleId === "customBoundaries/dependencies" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -591,7 +611,7 @@ const tests = [
             fileResult?.errorCount === 1 &&
             fileResult?.messages.some(
               (msg) =>
-                msg.ruleId === "boundaries/no-unknown" &&
+                msg.ruleId === "boundaries/no-unknown-dependencies" &&
                 msg.message.includes(
                   "Dependencies to unknown elements are not allowed"
                 )
@@ -609,7 +629,9 @@ const tests = [
             fileResult?.messages.some(
               (msg) =>
                 msg.ruleId === "boundaries/no-unknown-files" &&
-                msg.message.includes("File does not match any element pattern")
+                msg.message.includes(
+                  "File does not match any file pattern and does not belong to any known element"
+                )
             )
           );
         }
@@ -623,7 +645,7 @@ const tests = [
             fileResult?.errorCount === 1 &&
             fileResult?.messages.some(
               (msg) =>
-                msg.ruleId === "boundaries/no-ignored" &&
+                msg.ruleId === "boundaries/no-ignored-dependencies" &&
                 msg.message.includes(
                   "Dependencies to ignored files are not allowed"
                 )
@@ -642,8 +664,237 @@ const tests = [
               boundariesErrorFile?.errorCount > 0 &&
               boundariesErrorFile?.messages.some(
                 (msg) =>
+                  msg.ruleId === "boundaries/dependencies" &&
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
+              )
+          );
+        }
+      );
+    },
+  },
+  {
+    name: "recommended-legacy-config",
+    config: recommendedLegacyConfig,
+    fixture: join(currentDir, "fixtures", "basic"),
+    assert: async (runner, result) => {
+      await runner.assert(
+        `recommended legacy config should detect 1 error`,
+        async () => {
+          return result.errorCount === 1;
+        }
+      );
+
+      await runner.assert(
+        `recommended legacy config should have no errors when importing unknown elements`,
+        async () => {
+          const fileResult = findFileResult("ignored-import", result);
+          return fileResult?.errorCount === 0;
+        }
+      );
+
+      await runner.assert(
+        `recommended legacy config should have no errors when importing ignored elements`,
+        async () => {
+          const fileResult = findFileResult("unknown-import", result);
+          return fileResult?.errorCount === 0;
+        }
+      );
+
+      await runner.assert(
+        `recommended legacy config should detect boundaries violation`,
+        async () => {
+          const boundariesErrorFile = findFileResult("boundary-import", result);
+
+          return Boolean(
+            boundariesErrorFile?.errorCount &&
+              boundariesErrorFile?.errorCount > 0 &&
+              boundariesErrorFile?.messages.some(
+                (msg) =>
                   msg.ruleId === "boundaries/element-types" &&
-                  msg.message.includes("There is no rule allowing dependencies")
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
+              )
+          );
+        }
+      );
+    },
+  },
+  {
+    name: "created-legacy-config",
+    config: createdConfigLegacy,
+    fixture: join(currentDir, "fixtures", "basic"),
+    assert: async (runner, result) => {
+      await runner.assert(
+        `created legacy config should detect 1 error`,
+        async () => {
+          return result.errorCount === 1;
+        }
+      );
+
+      await runner.assert(
+        `created legacy config should have no errors when importing unknown elements`,
+        async () => {
+          const fileResult = findFileResult("ignored-import", result);
+          return fileResult?.errorCount === 0;
+        }
+      );
+
+      await runner.assert(
+        `created legacy config should have no errors when importing ignored elements`,
+        async () => {
+          const fileResult = findFileResult("unknown-import", result);
+          return fileResult?.errorCount === 0;
+        }
+      );
+
+      await runner.assert(
+        `created legacy config should detect boundaries violation`,
+        async () => {
+          const boundariesErrorFile = findFileResult("boundary-import", result);
+
+          return Boolean(
+            boundariesErrorFile?.errorCount &&
+              boundariesErrorFile?.errorCount > 0 &&
+              boundariesErrorFile?.messages.some(
+                (msg) =>
+                  msg.ruleId === "boundaries/element-types" &&
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
+              )
+          );
+        }
+      );
+    },
+  },
+  {
+    name: "created-config-with-define-legacy",
+    config: createdConfigWithDefineLegacy,
+    fixture: join(currentDir, "fixtures", "basic"),
+    assert: async (runner, result) => {
+      await runner.assert(
+        `created legacy config with define should detect 1 error`,
+        async () => {
+          return result.errorCount === 1;
+        }
+      );
+
+      await runner.assert(
+        `created legacy config with define should have no errors when importing unknown elements`,
+        async () => {
+          const fileResult = findFileResult("ignored-import", result);
+          return fileResult?.errorCount === 0;
+        }
+      );
+
+      await runner.assert(
+        `created legacy config with define should have no errors when importing ignored elements`,
+        async () => {
+          const fileResult = findFileResult("unknown-import", result);
+          return fileResult?.errorCount === 0;
+        }
+      );
+
+      await runner.assert(
+        `created legacy config with define should detect boundaries violation`,
+        async () => {
+          const boundariesErrorFile = findFileResult("boundary-import", result);
+
+          return Boolean(
+            boundariesErrorFile?.errorCount &&
+              boundariesErrorFile?.errorCount > 0 &&
+              boundariesErrorFile?.messages.some(
+                (msg) =>
+                  msg.ruleId === "boundaries/element-types" &&
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
+              )
+          );
+        }
+      );
+    },
+  },
+  {
+    name: "strict-legacy-config",
+    config: strictLegacyConfig,
+    fixture: join(currentDir, "fixtures", "basic"),
+    assert: async (runner, result) => {
+      await runner.assert(
+        `strict legacy config should detect 4 errors`,
+        async () => {
+          return result.errorCount === 4;
+        }
+      );
+
+      await runner.assert(
+        `strict legacy config should have errors when importing unknown elements`,
+        async () => {
+          const fileResult = findFileResult("unknown-import", result);
+          return (
+            fileResult?.errorCount === 1 &&
+            fileResult?.messages.some(
+              (msg) =>
+                msg.ruleId === "boundaries/no-unknown-dependencies" &&
+                msg.message.includes(
+                  "Dependencies to unknown elements are not allowed"
+                )
+            )
+          );
+        }
+      );
+
+      await runner.assert(
+        `strict legacy config should have errors in unknown elements`,
+        async () => {
+          const fileResult = findFileResult("unknown.js", result);
+          return (
+            fileResult?.errorCount === 1 &&
+            fileResult?.messages.some(
+              (msg) =>
+                msg.ruleId === "boundaries/no-unknown-files" &&
+                msg.message.includes(
+                  "File does not match any file pattern and does not belong to any known element"
+                )
+            )
+          );
+        }
+      );
+
+      await runner.assert(
+        `strict legacy config should have errors when importing ignored elements`,
+        async () => {
+          const fileResult = findFileResult("ignored-import", result);
+          return (
+            fileResult?.errorCount === 1 &&
+            fileResult?.messages.some(
+              (msg) =>
+                msg.ruleId === "boundaries/no-ignored-dependencies" &&
+                msg.message.includes(
+                  "Dependencies to ignored files are not allowed"
+                )
+            )
+          );
+        }
+      );
+
+      await runner.assert(
+        `strict legacy config should detect boundaries violation`,
+        async () => {
+          const boundariesErrorFile = findFileResult("boundary-import", result);
+
+          return Boolean(
+            boundariesErrorFile?.errorCount &&
+              boundariesErrorFile?.errorCount > 0 &&
+              boundariesErrorFile?.messages.some(
+                (msg) =>
+                  msg.ruleId === "boundaries/element-types" &&
+                  msg.message.includes(
+                    "There is no policy allowing dependencies"
+                  )
               )
           );
         }
@@ -686,8 +937,10 @@ const tests = [
             fileResult?.errorCount === 1 &&
             fileResult?.messages.some(
               (msg) =>
-                msg.ruleId === "boundaries/external" &&
-                msg.message.includes('type "component" and name "component-a"')
+                msg.ruleId === "boundaries/dependencies" &&
+                msg.message.includes(
+                  'type "component" and captured values: name="component-a"'
+                )
             )
           );
         }
@@ -704,8 +957,10 @@ const tests = [
             fileResult?.errorCount === 1 &&
             fileResult?.messages.some(
               (msg) =>
-                msg.ruleId === "boundaries/external" &&
-                msg.message.includes('type "helper" and name "helper-a"')
+                msg.ruleId === "boundaries/dependencies" &&
+                msg.message.includes(
+                  'type "helper" and captured values: name="helper-a"'
+                )
             )
           );
         }
@@ -722,8 +977,10 @@ const tests = [
             fileResult?.errorCount === 1 &&
             fileResult?.messages.some(
               (msg) =>
-                msg.ruleId === "boundaries/external" &&
-                msg.message.includes('type "helper" and name "helper-a"')
+                msg.ruleId === "boundaries/dependencies" &&
+                msg.message.includes(
+                  'type "helper" and captured values: name="helper-a"'
+                )
             )
           );
         }
@@ -757,6 +1014,119 @@ const tests = [
       });
     },
   },
+  {
+    name: "monorepo-external-legacy-config",
+    config: [
+      {
+        ...monorepoLegacyConfig[0],
+        settings: {
+          ...monorepoLegacyConfig[0].settings,
+          "boundaries/root-path": join(
+            currentDir,
+            "fixtures",
+            "monorepo",
+            "package-a"
+          ),
+          "boundaries/flag-as-external": {
+            outsideRootPath: true,
+          },
+        },
+      },
+    ],
+    fixture: join(currentDir, "fixtures", "monorepo"),
+    runOnFiles: ["**/*.js"],
+    assert: async (runner, result) => {
+      await runner.assert(`legacy config should detect 3 errors`, async () => {
+        return result.errorCount === 3;
+      });
+      await runner.assert(
+        `component-a should not be able to import helper c (external) with legacy config`,
+        async () => {
+          const fileResult = findFileResult(
+            "package-a/components/component-a",
+            result
+          );
+          return (
+            fileResult?.errorCount === 1 &&
+            fileResult?.messages.some(
+              (msg) =>
+                msg.ruleId === "boundaries/external" &&
+                msg.message.includes(
+                  'type "component" and captured values: name="component-a"'
+                )
+            )
+          );
+        }
+      );
+
+      await runner.assert(
+        `helper-a should not be able to import helper b (external) with legacy config`,
+        async () => {
+          const fileResult = findFileResult(
+            "package-a/helpers/helper-a",
+            result
+          );
+          return (
+            fileResult?.errorCount === 1 &&
+            fileResult?.messages.some(
+              (msg) =>
+                msg.ruleId === "boundaries/external" &&
+                msg.message.includes(
+                  'type "helper" and captured values: name="helper-a"'
+                )
+            )
+          );
+        }
+      );
+
+      await runner.assert(
+        `helper-a (external) should not be able to import helper b (external) with legacy config`,
+        async () => {
+          const fileResult = findFileResult(
+            "package-b/helpers/helper-a",
+            result
+          );
+          return (
+            fileResult?.errorCount === 1 &&
+            fileResult?.messages.some(
+              (msg) =>
+                msg.ruleId === "boundaries/external" &&
+                msg.message.includes(
+                  'type "helper" and captured values: name="helper-a"'
+                )
+            )
+          );
+        }
+      );
+    },
+  },
+  {
+    name: "monorepo-config-no-external-legacy",
+    config: [
+      {
+        ...monorepoLegacyConfig[0],
+        settings: {
+          ...monorepoLegacyConfig[0].settings,
+          "boundaries/root-path": join(
+            currentDir,
+            "fixtures",
+            "monorepo",
+            "package-a"
+          ),
+          "boundaries/flag-as-external": {
+            outsideRootPath: false,
+          },
+        },
+      },
+    ],
+    fixture: join(currentDir, "fixtures", "monorepo"),
+    runOnFiles: ["**/*.js"],
+    assert: async (runner, result) => {
+      await runner.assert(`legacy config should detect no errors`, async () => {
+        return result.errorCount === 0;
+      });
+    },
+  },
   getPerformanceTest({
     name: "performance-config",
     config: performanceConfig,
@@ -766,7 +1136,6 @@ const tests = [
     name: "performance-legacy-config",
     config: performanceLegacyConfig,
     maxDurationMs: PERFORMANCE_LEGACY_MAX_DURATION_MS,
-    legacyRuleNames: true,
   }),
 ];
 

@@ -7,15 +7,16 @@ import {
   RULE_NAMES_MAP,
   isRuleShortName,
   isRuleName,
-  IMPORT_KINDS_MAP,
-  isImportKind,
+  DEPENDENCY_KINDS_MAP,
+  isDependencyKind,
   DEPENDENCY_NODE_KEYS_MAP,
   isDependencyNodeKey,
   SETTINGS_KEYS_MAP,
   isSettingsKey,
   ELEMENT_DESCRIPTOR_MODES_MAP,
-  isElementDescriptorMode,
+  RULE_EFFECTS_MAP,
   RULE_POLICIES_MAP,
+  isRuleEffect,
   isRulePolicy,
 } from "./Config";
 
@@ -152,9 +153,11 @@ describe("createConfig", () => {
           "boundaries/element-types": [2, { default: "disallow" }],
           "boundaries/entry-point": [1],
           "boundaries/external": [2, { forbid: ["lodash"] }],
+          "boundaries/no-ignored-dependencies": [0],
           "boundaries/no-ignored": [0],
           "boundaries/no-private": [2, { allowUncles: false }],
           "boundaries/no-unknown-files": [1],
+          "boundaries/no-unknown-dependencies": [2],
           "boundaries/no-unknown": [2],
         },
       };
@@ -166,9 +169,11 @@ describe("createConfig", () => {
         "myBoundaries/element-types": [2, { default: "disallow" }],
         "myBoundaries/entry-point": [1],
         "myBoundaries/external": [2, { forbid: ["lodash"] }],
+        "myBoundaries/no-ignored-dependencies": [0],
         "myBoundaries/no-ignored": [0],
         "myBoundaries/no-private": [2, { allowUncles: false }],
         "myBoundaries/no-unknown-files": [1],
+        "myBoundaries/no-unknown-dependencies": [2],
         "myBoundaries/no-unknown": [2],
       });
     });
@@ -486,9 +491,15 @@ describe("Constants", () => {
       expect(RULE_SHORT_NAMES_MAP.ELEMENT_TYPES).toBe("element-types");
       expect(RULE_SHORT_NAMES_MAP.ENTRY_POINT).toBe("entry-point");
       expect(RULE_SHORT_NAMES_MAP.EXTERNAL).toBe("external");
+      expect(RULE_SHORT_NAMES_MAP.NO_IGNORED_DEPENDENCIES).toBe(
+        "no-ignored-dependencies"
+      );
       expect(RULE_SHORT_NAMES_MAP.NO_IGNORED).toBe("no-ignored");
       expect(RULE_SHORT_NAMES_MAP.NO_PRIVATE).toBe("no-private");
       expect(RULE_SHORT_NAMES_MAP.NO_UNKNOWN_FILES).toBe("no-unknown-files");
+      expect(RULE_SHORT_NAMES_MAP.NO_UNKNOWN_DEPENDENCIES).toBe(
+        "no-unknown-dependencies"
+      );
       expect(RULE_SHORT_NAMES_MAP.NO_UNKNOWN).toBe("no-unknown");
     });
   });
@@ -506,27 +517,34 @@ describe("Constants", () => {
       expect(RULE_NAMES_MAP.ELEMENT_TYPES).toBe("boundaries/element-types");
       expect(RULE_NAMES_MAP.ENTRY_POINT).toBe("boundaries/entry-point");
       expect(RULE_NAMES_MAP.EXTERNAL).toBe("boundaries/external");
+      expect(RULE_NAMES_MAP.NO_IGNORED_DEPENDENCIES).toBe(
+        "boundaries/no-ignored-dependencies"
+      );
       expect(RULE_NAMES_MAP.NO_IGNORED).toBe("boundaries/no-ignored");
       expect(RULE_NAMES_MAP.NO_PRIVATE).toBe("boundaries/no-private");
       expect(RULE_NAMES_MAP.NO_UNKNOWN_FILES).toBe(
         "boundaries/no-unknown-files"
       );
+      expect(RULE_NAMES_MAP.NO_UNKNOWN_DEPENDENCIES).toBe(
+        "boundaries/no-unknown-dependencies"
+      );
       expect(RULE_NAMES_MAP.NO_UNKNOWN).toBe("boundaries/no-unknown");
     });
   });
 
-  describe("IMPORT_KINDS_MAP", () => {
+  describe("DEPENDENCY_KINDS_MAP", () => {
     it("should be defined as a string key/value map", () => {
-      expect(IMPORT_KINDS_MAP).toBeDefined();
-      expect(typeof IMPORT_KINDS_MAP).toBe("object");
+      expect(DEPENDENCY_KINDS_MAP).toBeDefined();
+      expect(typeof DEPENDENCY_KINDS_MAP).toBe("object");
 
-      Object.entries(IMPORT_KINDS_MAP).forEach(([key, value]) => {
+      Object.entries(DEPENDENCY_KINDS_MAP).forEach(([key, value]) => {
         expect(typeof key).toBe("string");
         expect(typeof value).toBe("string");
       });
 
-      expect(IMPORT_KINDS_MAP.TYPE).toBe("type");
-      expect(IMPORT_KINDS_MAP.VALUE).toBe("value");
+      expect(DEPENDENCY_KINDS_MAP.TYPE).toBe("type");
+      expect(DEPENDENCY_KINDS_MAP.VALUE).toBe("value");
+      expect(DEPENDENCY_KINDS_MAP.TYPE_OF).toBe("typeof");
     });
   });
 
@@ -589,7 +607,22 @@ describe("Constants", () => {
     });
   });
 
-  describe("RULE_POLICIES_MAP", () => {
+  describe("RULE_EFFECTS_MAP", () => {
+    it("should be defined as a string key/value map", () => {
+      expect(RULE_EFFECTS_MAP).toBeDefined();
+      expect(typeof RULE_EFFECTS_MAP).toBe("object");
+
+      Object.entries(RULE_EFFECTS_MAP).forEach(([key, value]) => {
+        expect(typeof key).toBe("string");
+        expect(typeof value).toBe("string");
+      });
+
+      expect(RULE_EFFECTS_MAP.ALLOW).toBe("allow");
+      expect(RULE_EFFECTS_MAP.DISALLOW).toBe("disallow");
+    });
+  });
+
+  describe("RULE_POLICIES_MAP (deprecated alias of RULE_EFFECTS_MAP)", () => {
     it("should be defined as a string key/value map", () => {
       expect(RULE_POLICIES_MAP).toBeDefined();
       expect(typeof RULE_POLICIES_MAP).toBe("object");
@@ -602,6 +635,10 @@ describe("Constants", () => {
       expect(RULE_POLICIES_MAP.ALLOW).toBe("allow");
       expect(RULE_POLICIES_MAP.DISALLOW).toBe("disallow");
     });
+
+    it("is the same object as RULE_EFFECTS_MAP", () => {
+      expect(RULE_POLICIES_MAP).toBe(RULE_EFFECTS_MAP);
+    });
   });
 });
 
@@ -611,9 +648,11 @@ describe("Type Guard Functions", () => {
       expect(isRuleShortName("element-types")).toBe(true);
       expect(isRuleShortName("entry-point")).toBe(true);
       expect(isRuleShortName("external")).toBe(true);
+      expect(isRuleShortName("no-ignored-dependencies")).toBe(true);
       expect(isRuleShortName("no-ignored")).toBe(true);
       expect(isRuleShortName("no-private")).toBe(true);
       expect(isRuleShortName("no-unknown-files")).toBe(true);
+      expect(isRuleShortName("no-unknown-dependencies")).toBe(true);
       expect(isRuleShortName("no-unknown")).toBe(true);
     });
 
@@ -638,9 +677,11 @@ describe("Type Guard Functions", () => {
       expect(isRuleName("boundaries/element-types")).toBe(true);
       expect(isRuleName("boundaries/entry-point")).toBe(true);
       expect(isRuleName("boundaries/external")).toBe(true);
+      expect(isRuleName("boundaries/no-ignored-dependencies")).toBe(true);
       expect(isRuleName("boundaries/no-ignored")).toBe(true);
       expect(isRuleName("boundaries/no-private")).toBe(true);
       expect(isRuleName("boundaries/no-unknown-files")).toBe(true);
+      expect(isRuleName("boundaries/no-unknown-dependencies")).toBe(true);
       expect(isRuleName("boundaries/no-unknown")).toBe(true);
     });
 
@@ -665,25 +706,27 @@ describe("Type Guard Functions", () => {
     });
   });
 
-  describe("isImportKind", () => {
-    it("should return true for valid import kinds", () => {
-      expect(isImportKind("type")).toBe(true);
-      expect(isImportKind("value")).toBe(true);
+  describe("isDependencyKind", () => {
+    it("should return true for valid dependency kinds", () => {
+      expect(isDependencyKind("type")).toBe(true);
+      expect(isDependencyKind("value")).toBe(true);
+      expect(isDependencyKind("typeof")).toBe(true);
     });
 
-    it("should return false for invalid import kinds", () => {
-      expect(isImportKind("invalid")).toBe(false);
-      expect(isImportKind("TYPE")).toBe(false);
-      expect(isImportKind("VALUE")).toBe(false);
-      expect(isImportKind("")).toBe(false);
+    it("should return false for invalid dependency kinds", () => {
+      expect(isDependencyKind("invalid")).toBe(false);
+      expect(isDependencyKind("TYPE")).toBe(false);
+      expect(isDependencyKind("VALUE")).toBe(false);
+      expect(isDependencyKind("TYPEOF")).toBe(false);
+      expect(isDependencyKind("")).toBe(false);
     });
 
     it("should return false for non-string values", () => {
-      expect(isImportKind(null)).toBe(false);
-      expect(isImportKind(undefined)).toBe(false);
-      expect(isImportKind(123)).toBe(false);
-      expect(isImportKind({})).toBe(false);
-      expect(isImportKind([])).toBe(false);
+      expect(isDependencyKind(null)).toBe(false);
+      expect(isDependencyKind(undefined)).toBe(false);
+      expect(isDependencyKind(123)).toBe(false);
+      expect(isDependencyKind({})).toBe(false);
+      expect(isDependencyKind([])).toBe(false);
     });
   });
 
@@ -742,30 +785,29 @@ describe("Type Guard Functions", () => {
     });
   });
 
-  describe("isElementDescriptorMode", () => {
-    it("should return true for valid element descriptor modes", () => {
-      expect(isElementDescriptorMode("folder")).toBe(true);
-      expect(isElementDescriptorMode("file")).toBe(true);
-      expect(isElementDescriptorMode("full")).toBe(true);
+  describe("isRuleEffect", () => {
+    it("should return true for valid rule effects", () => {
+      expect(isRuleEffect("allow")).toBe(true);
+      expect(isRuleEffect("disallow")).toBe(true);
     });
 
-    it("should return false for invalid element descriptor modes", () => {
-      expect(isElementDescriptorMode("invalid")).toBe(false);
-      expect(isElementDescriptorMode("FOLDER")).toBe(false);
-      expect(isElementDescriptorMode("FILE")).toBe(false);
-      expect(isElementDescriptorMode("")).toBe(false);
+    it("should return false for invalid rule effects", () => {
+      expect(isRuleEffect("invalid")).toBe(false);
+      expect(isRuleEffect("ALLOW")).toBe(false);
+      expect(isRuleEffect("DISALLOW")).toBe(false);
+      expect(isRuleEffect("")).toBe(false);
     });
 
     it("should return false for non-string values", () => {
-      expect(isElementDescriptorMode(null)).toBe(false);
-      expect(isElementDescriptorMode(undefined)).toBe(false);
-      expect(isElementDescriptorMode(123)).toBe(false);
-      expect(isElementDescriptorMode({})).toBe(false);
-      expect(isElementDescriptorMode([])).toBe(false);
+      expect(isRuleEffect(null)).toBe(false);
+      expect(isRuleEffect(undefined)).toBe(false);
+      expect(isRuleEffect(123)).toBe(false);
+      expect(isRuleEffect({})).toBe(false);
+      expect(isRuleEffect([])).toBe(false);
     });
   });
 
-  describe("isRulePolicy", () => {
+  describe("isRulePolicy (deprecated alias of isRuleEffect)", () => {
     it("should return true for valid rule policies", () => {
       expect(isRulePolicy("allow")).toBe(true);
       expect(isRulePolicy("disallow")).toBe(true);
@@ -784,6 +826,10 @@ describe("Type Guard Functions", () => {
       expect(isRulePolicy(123)).toBe(false);
       expect(isRulePolicy({})).toBe(false);
       expect(isRulePolicy([])).toBe(false);
+    });
+
+    it("is the same function as isRuleEffect", () => {
+      expect(isRulePolicy).toBe(isRuleEffect);
     });
   });
 });

@@ -30,7 +30,7 @@ export const boundariesConfig = createConfig(
         "error",
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: { type: "module" },
               allow: { to: { type: "component" } },
@@ -70,7 +70,7 @@ export const config: Linter.Config[] = defineConfig([
           "error",
           {
             default: "disallow",
-            rules: [
+            policies: [
               {
                 from: { type: "module" },
                 allow: [{ to: { type: "component" } }],
@@ -110,7 +110,7 @@ export const boundariesConfig2 = createConfig(
         "error",
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: { type: "module" },
               allow: [{ to: { type: "component" } }],
@@ -148,7 +148,7 @@ export const boundariesConfig3 = createConfig({
       "error",
       {
         default: "disallow",
-        rules: [
+        policies: [
           {
             from: { type: "module" },
             allow: [{ to: { type: "component" } }],

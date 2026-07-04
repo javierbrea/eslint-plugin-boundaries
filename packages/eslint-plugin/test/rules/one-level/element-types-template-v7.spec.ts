@@ -1,0 +1,416 @@
+import ruleFactory from "../../../src/Rules/Dependencies";
+import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
+import {
+  SETTINGS,
+  createRuleTester,
+  pathResolvers,
+} from "../../support/helpers";
+import type { RuleTesterSettings } from "../../support/helpers";
+import {
+  errorMessage,
+  elementTypesNoRuleMessage,
+} from "../../support/messages";
+
+const rule = ruleFactory();
+const { absoluteFilePath } = pathResolvers("one-level");
+let testCounter = 0;
+
+const testCapture = (
+  settings: RuleTesterSettings,
+  options: unknown[],
+  errorMessages: Record<number, string>
+) => {
+  testCounter++;
+  const ruleTester = createRuleTester(settings);
+
+  ruleTester.run(`${RULE} - template - ${testCounter}`, rule, {
+    valid: [
+      // Components can import helper-a
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import HelperA from '../../helpers/helper-a'",
+        options,
+      },
+      // Components can import helper-a using alias
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import HelperA from 'helpers/helper-a'",
+        options,
+      },
+      // Components can import component-b using alias
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import ComponentB from 'components/component-b'",
+        options,
+      },
+      // Component A can import internal files
+      {
+        filename: absoluteFilePath("components/component-a/index.js"),
+        code: "import ComponentA from './ComponentA'",
+        options,
+      },
+      // Modules can import helper-a using alias
+      {
+        filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+        code: "import HelperA from 'helpers/helper-a'",
+        options,
+      },
+      // Module A can import module-a-helpers
+      {
+        filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+        code: "import Helper1 from 'module-a-helpers/helper-1'",
+        options,
+      },
+      // Module A can import helper with name module-a
+      {
+        filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+        code: "import Helper from 'helpers/module-a'",
+        options,
+      },
+    ],
+    invalid: [
+      // Components can't import helper-b
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import HelperB from '../../helpers/helper-b'",
+        options,
+        errors: [
+          {
+            message: errorMessage(
+              errorMessages,
+              0,
+              elementTypesNoRuleMessage({
+                file: '"components" and captured values: elementName="component-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
+              })
+            ),
+            type: "Literal",
+          },
+        ],
+      },
+      // Components can't import helper-b using alias
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import HelperA from 'helpers/helper-b'",
+        options,
+        errors: [
+          {
+            message: errorMessage(
+              errorMessages,
+              1,
+              elementTypesNoRuleMessage({
+                file: '"components" and captured values: elementName="component-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
+              })
+            ),
+            type: "Literal",
+          },
+        ],
+      },
+      // Components can't import component-a
+      {
+        filename: absoluteFilePath("components/component-b/ComponentB.js"),
+        code: "import ComponentB from 'components/component-a'",
+        options,
+        errors: [
+          {
+            message: errorMessage(
+              errorMessages,
+              2,
+              elementTypesNoRuleMessage({
+                file: '"components" and captured values: elementName="component-b"',
+                dep: '"components" and captured values: elementName="component-a"',
+              })
+            ),
+            type: "Literal",
+          },
+        ],
+      },
+      // Modules can't import helper-b
+      {
+        filename: absoluteFilePath("modules/module-a/ModuleA.js"),
+        code: "import HelperB from 'helpers/helper-b'",
+        options,
+        errors: [
+          {
+            message: errorMessage(
+              errorMessages,
+              3,
+              elementTypesNoRuleMessage({
+                file: '"modules" and captured values: elementName="module-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
+              })
+            ),
+            type: "Literal",
+          },
+        ],
+      },
+      // Module B can't import module-a-helpers
+      {
+        filename: absoluteFilePath("modules/module-b/ModuleB.js"),
+        code: "import Helper1 from 'module-a-helpers/helper-1'",
+        options,
+        errors: [
+          {
+            message: errorMessage(
+              errorMessages,
+              4,
+              elementTypesNoRuleMessage({
+                file: '"modules" and captured values: elementName="module-b"',
+                dep: '"module-a-helpers" and captured values: elementName="helper-1"',
+              })
+            ),
+            type: "Literal",
+          },
+        ],
+      },
+      // Module B can't import helper with name module-a
+      {
+        filename: absoluteFilePath("modules/module-b/ModuleB.js"),
+        code: "import Helper from 'helpers/module-a'",
+        options,
+        errors: [
+          {
+            message: errorMessage(
+              errorMessages,
+              5,
+              elementTypesNoRuleMessage({
+                file: '"modules" and captured values: elementName="module-b"',
+                dep: '"helpers" and captured values: elementName="module-a"',
+              })
+            ),
+            type: "Literal",
+          },
+        ],
+      },
+    ],
+  });
+};
+
+// capture options
+
+testCapture(
+  {
+    ...SETTINGS.oneLevel,
+    "boundaries/elements": [
+      {
+        type: "helpers",
+        pattern: "helpers/*",
+        capture: ["elementName"],
+      },
+      {
+        type: "module-a-helpers",
+        pattern: "module-a-helpers/*",
+        capture: ["elementName"],
+      },
+      {
+        type: "components",
+        pattern: ["components/*"],
+        capture: ["elementName"],
+      },
+      {
+        type: "modules",
+        pattern: "modules/*",
+        capture: ["elementName"],
+      },
+    ],
+  } as RuleTesterSettings,
+  [
+    {
+      default: "disallow",
+      policies: [
+        {
+          from: { element: { type: "components" } },
+          allow: {
+            to: [
+              {
+                element: {
+                  type: "helpers",
+                  captured: { elementName: "helper-a" },
+                },
+              },
+              { element: { type: "components" } },
+            ],
+          },
+          disallow: {
+            to: [
+              {
+                element: {
+                  type: "components",
+                  captured: { elementName: "component-a" },
+                },
+              },
+            ],
+          },
+        },
+        {
+          from: { element: { type: "modules" } },
+          allow: {
+            to: [
+              {
+                element: {
+                  type: "helpers",
+                  captured: { elementName: "helper-a" },
+                },
+              },
+              { element: { type: "components" } },
+              { element: { type: "modules" } },
+            ],
+          },
+        },
+        {
+          from: {
+            element: { type: "modules", captured: { elementName: "*-a" } },
+          },
+          allow: {
+            to: [
+              {
+                element: {
+                  type: "helpers",
+                  captured: {
+                    elementName: "{{ from.element.captured.elementName }}",
+                  },
+                },
+              },
+              { element: { type: "components" } },
+              { element: { type: "modules" } },
+            ],
+          },
+        },
+        {
+          from: {
+            element: { type: "modules", captured: { elementName: "*-a" } },
+          },
+          allow: {
+            to: [
+              {
+                element: {
+                  type: "{{ from.element.captured.elementName }}-helpers",
+                },
+              },
+              { element: { type: "components" } },
+              { element: { type: "modules" } },
+            ],
+          },
+        },
+      ],
+    },
+  ],
+  {
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
+  }
+);
+
+// Test new templates format with captured values
+testCapture(
+  {
+    ...SETTINGS.oneLevel,
+    "boundaries/legacy-templates": false,
+    "boundaries/elements": [
+      {
+        type: "helpers",
+        pattern: "helpers/*",
+        capture: ["elementName"],
+      },
+      {
+        type: "module-a-helpers",
+        pattern: "module-a-helpers/*",
+        capture: ["elementName"],
+      },
+      {
+        type: "components",
+        pattern: ["components/*"],
+        capture: ["elementName"],
+      },
+      {
+        type: "modules",
+        pattern: "modules/*",
+        capture: ["elementName"],
+      },
+    ],
+  } as RuleTesterSettings,
+  [
+    {
+      default: "disallow",
+      policies: [
+        {
+          from: { element: { type: "components" } },
+          allow: {
+            to: [
+              {
+                element: {
+                  type: "helpers",
+                  captured: { elementName: "helper-a" },
+                },
+              },
+              { element: { type: "components" } },
+            ],
+          },
+          disallow: [
+            {
+              to: {
+                element: {
+                  type: "components",
+                  captured: { elementName: "component-a" },
+                },
+              },
+            },
+          ],
+        },
+        {
+          from: { element: { type: "modules" } },
+          allow: [
+            {
+              to: {
+                element: {
+                  type: "helpers",
+                  captured: { elementName: "helper-a" },
+                },
+              },
+            },
+            { to: { element: { type: "components" } } },
+            { to: { element: { type: "modules" } } },
+          ],
+        },
+        {
+          from: {
+            element: { type: "modules", captured: { elementName: "*-a" } },
+          },
+          allow: {
+            to: [
+              {
+                element: {
+                  type: "helpers",
+                  captured: {
+                    elementName: "{{ from.element.captured.elementName }}",
+                  },
+                },
+              },
+              { element: { type: "components" } },
+              { element: { type: "modules" } },
+            ],
+          },
+        },
+        {
+          from: {
+            element: { type: "modules", captured: { elementName: "*-a" } },
+          },
+          allow: [
+            {
+              to: {
+                element: {
+                  type: "{{ from.element.captured.elementName }}-helpers",
+                },
+              },
+            },
+            { to: { element: { type: "components" } } },
+            { to: { element: { type: "modules" } } },
+          ],
+        },
+      ],
+    },
+  ],
+  {
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
+  }
+);

@@ -1,55 +1,109 @@
-import type { DescriptorOptionsNormalized } from "../Config";
 import type {
-  ElementDescriptors,
-  DescribeDependencyOptions,
+  DescriptorOptionsNormalized,
+  MatchersOptionsNormalized,
+} from "../Config";
+import type {
+  DependencyDescriptorOptions,
   ElementDescription,
   DependencyDescription,
+  EntityDescription,
+  FileDescription,
+  ModuleDescription,
+  DescriptorsConfig,
 } from "../Descriptor";
+import { Descriptors } from "../Descriptor";
 import {
-  Descriptors,
-  isElementDescription,
-  isDependencyDescription,
-} from "../Descriptor";
+  getLegacyDependencySelectorExtraTemplateData,
+  getLegacyElementSelectorExtraTemplateData,
+  getLegacyEntitySelectorExtraTemplateData,
+} from "../Legacy";
 
-import type { DependenciesMatcher } from "./DependenciesMatcher";
-import type { ElementsMatcher } from "./ElementsMatcher";
 import type {
-  DependencySelector,
+  BackwardCompatibleDependencySelector,
+  DependencySingleSelectorMatchResult,
+} from "./Dependency";
+import { DependenciesMatcher } from "./Dependency";
+import type {
+  BackwardCompatibleElementSelector,
+  ElementSingleSelector,
+} from "./Element";
+import { ElementsMatcher } from "./Element";
+import { EntitiesMatcher } from "./Entity";
+import type {
+  BackwardCompatibleEntitySelector,
+  EntitySingleSelectorMatchResult,
+} from "./Entity";
+import { FilesMatcher } from "./File";
+import type { FileSelector, FileSingleSelector } from "./File";
+import type { MatcherSerializedCache } from "./Matcher.types";
+import type { ModuleSelector } from "./Module";
+import { ModulesMatcher } from "./Module";
+import type {
+  Micromatch,
   MatcherOptions,
-  ElementsSelector,
-  DependencyMatchResult,
-  MatcherSerializedCache,
-  BaseElementSelectorData,
-} from "./Matcher.types";
-import { isDependencySelector, isElementsSelector } from "./MatcherHelpers";
-import type { Micromatch } from "./Micromatch";
+  EntityMatcherOptions,
+} from "./Shared";
 
 /**
  * Matcher class to evaluate if elements or dependencies match given selectors.
  */
 export class Matcher {
-  private readonly _descriptors: Descriptors;
   private readonly _elementsMatcher: ElementsMatcher;
+  private readonly _filesMatcher: FilesMatcher;
+  private readonly _entitiesMatcher: EntitiesMatcher;
+  private readonly _modulesMatcher: ModulesMatcher;
   private readonly _dependenciesMatcher: DependenciesMatcher;
+  private readonly _originalDescriptors: DescriptorsConfig;
+  private readonly _descriptorOptions: DescriptorOptionsNormalized;
+  private readonly _micromatch: Micromatch;
+  private readonly _descriptors: Descriptors;
 
   /**
    * Constructor for the Matcher class.
-   * @param descriptors Element descriptors to use for matching.
-   * @param elementsMatcher Elements matcher instance.
-   * @param dependenciesMatcher Dependencies matcher instance.
-   * @param config Configuration options.
-   * @param globalCache Global cache instance.
+   * @param options The options to configure the Matcher instance, including descriptors, matchers for elements and dependencies, and micromatch instance for pattern matching.
+   * @param options.descriptors The descriptors configuration to use for describing elements and dependencies.
+   * @param options.options.descriptors The normalized descriptor options to use for describing elements and dependencies.
+   * @param options.options.matchers The matchers configuration for elements and dependencies.
+   * @param options.micromatch The micromatch instance to use for pattern matching.
    */
-  constructor(
-    descriptors: ElementDescriptors,
-    elementsMatcher: ElementsMatcher,
-    dependenciesMatcher: DependenciesMatcher,
-    config: DescriptorOptionsNormalized,
-    micromatch: Micromatch
-  ) {
-    this._descriptors = new Descriptors(descriptors, config, micromatch);
-    this._elementsMatcher = elementsMatcher;
-    this._dependenciesMatcher = dependenciesMatcher;
+  constructor({
+    descriptors,
+    options: { descriptors: descriptorOptions, matchers: matchersOptions },
+    micromatch,
+  }: {
+    descriptors: DescriptorsConfig;
+    options: {
+      descriptors: DescriptorOptionsNormalized;
+      matchers: MatchersOptionsNormalized;
+    };
+    micromatch: Micromatch;
+  }) {
+    this._originalDescriptors = descriptors;
+    this._descriptorOptions = descriptorOptions;
+    this._micromatch = micromatch;
+    this._descriptors = new Descriptors(
+      this._originalDescriptors,
+      this._descriptorOptions,
+      this._micromatch
+    );
+
+    // end of getDescriptors method
+    this._elementsMatcher = new ElementsMatcher(matchersOptions, micromatch);
+    this._filesMatcher = new FilesMatcher(matchersOptions, micromatch);
+    this._modulesMatcher = new ModulesMatcher(matchersOptions, micromatch);
+    this._entitiesMatcher = new EntitiesMatcher(
+      this._elementsMatcher,
+      this._filesMatcher,
+      this._modulesMatcher,
+      matchersOptions,
+      micromatch
+    );
+
+    this._dependenciesMatcher = new DependenciesMatcher(
+      this._entitiesMatcher,
+      matchersOptions,
+      micromatch
+    );
   }
 
   /**
@@ -66,8 +120,37 @@ export class Matcher {
    * @param options The options for describing the elements and the dependency details.
    * @returns The description of the dependency between the elements.
    */
-  public describeDependency(options: DescribeDependencyOptions) {
+  public describeDependency(options: DependencyDescriptorOptions) {
     return this._descriptors.describeDependency(options);
+  }
+
+  /**
+   * Describes an entity given its file path, including both the file, element and origin description.
+   * @param filePath The path of the file to describe.
+   * @param source The optional dependency source (e.g., the importer file path) to use for describing the origin of the entity being imported.
+   * @returns The description of the entity.
+   */
+  public describeEntity(filePath?: string, source?: string) {
+    return this._descriptors.describeEntity(filePath, source);
+  }
+
+  /**
+   * Describes the module of a file given its path and the path of the importer file.
+   * @param filePath The path of the file to describe.
+   * @param source The optional dependency source (e.g., the importer file path) to use for describing the module of the entity being imported.
+   * @returns The description of the file's module.
+   */
+  public describeModule(filePath?: string, source?: string) {
+    return this._descriptors.describeModule(filePath, source);
+  }
+
+  /**
+   * Returns the description of a file given its path.
+   * @param filePath The path of the file to describe.
+   * @returns The description of the file.
+   */
+  public describeFile(filePath: string) {
+    return this._descriptors.describeFile(filePath);
   }
 
   /**
@@ -79,11 +162,27 @@ export class Matcher {
    */
   public isElementMatch(
     filePath: string,
-    selector: ElementsSelector,
+    selector: BackwardCompatibleElementSelector,
     options?: MatcherOptions
   ): boolean {
     const description = this._descriptors.describeElement(filePath);
-    return this._elementsMatcher.isElementMatch(description, selector, options);
+    const moduleDescription = this._descriptors.describeModule(filePath);
+    const matcherOptions = {
+      ...options,
+      extraTemplateData: {
+        ...getLegacyElementSelectorExtraTemplateData(
+          description,
+          moduleDescription
+        ),
+        ...options?.extraTemplateData,
+      },
+    };
+
+    return this._elementsMatcher.isElementMatch(
+      description,
+      selector,
+      matcherOptions
+    );
   }
 
   /**
@@ -94,15 +193,120 @@ export class Matcher {
    * @returns True if the dependency matches the selector, false otherwise
    */
   public isDependencyMatch(
-    dependencyData: DescribeDependencyOptions,
-    selector: DependencySelector,
+    dependencyData: DependencyDescriptorOptions,
+    selector: BackwardCompatibleDependencySelector,
     options?: MatcherOptions
   ): boolean {
     const description = this._descriptors.describeDependency(dependencyData);
+    const matcherOptions = {
+      ...options,
+      extraTemplateData: getLegacyDependencySelectorExtraTemplateData(
+        description,
+        options?.extraTemplateData
+      ),
+    };
+
     return this._dependenciesMatcher.isDependencyMatch(
       description,
       selector,
-      options
+      matcherOptions
+    );
+  }
+
+  /**
+   * Determines if an entity matches a given selector.
+   * @param filePath The file path of the entity
+   * @param selector The selector to match against
+   * @param options Extra matcher options
+   * @returns True if the entity matches the selector, false otherwise
+   */
+  public isEntityMatch(
+    filePath: string,
+    selector: BackwardCompatibleEntitySelector,
+    options?: EntityMatcherOptions
+  ): boolean {
+    const description = this._descriptors.describeEntity(
+      filePath,
+      options?.source
+    );
+    const matcherOptions = {
+      ...options,
+      extraTemplateData: {
+        ...getLegacyEntitySelectorExtraTemplateData(description),
+        ...options?.extraTemplateData,
+      },
+    };
+
+    return this._entitiesMatcher.isEntityMatch(
+      description,
+      selector,
+      matcherOptions
+    );
+  }
+
+  /**
+   * Determines if an origin matches a given selector.
+   * @param filePath The file path of the origin
+   * @param selector The selector to match against
+   * @param options Extra matcher options
+   * @returns True if the module matches the selector, false otherwise
+   */
+  public isModuleMatch(
+    filePath: string,
+    selector: ModuleSelector,
+    options?: EntityMatcherOptions
+  ): boolean {
+    const description = this._descriptors.describeModule(
+      filePath,
+      options?.source
+    );
+    return this._modulesMatcher.isModuleMatch(description, selector, options);
+  }
+
+  /**
+   * Determines if a file matches a given selector.
+   * @param filePath The file path to check
+   * @param selector The selector to match against
+   * @param options Extra matcher options
+   * @returns True if the file matches the selector, false otherwise
+   */
+  public isFileMatch(
+    filePath: string,
+    selector: FileSelector,
+    options?: MatcherOptions
+  ): boolean {
+    const description = this._descriptors.describeFile(filePath);
+    return this._filesMatcher.isFileMatch(description, selector, options);
+  }
+
+  /**
+   * Determines if an entity matches a given selector.
+   * @param filePath The file path of the entity
+   * @param selector The selector to match against
+   * @param options Extra matcher options
+   * @returns True if the entity matches the selector, false otherwise
+   */
+  public getEntitySelectorMatching(
+    filePath: string,
+    selector: BackwardCompatibleEntitySelector,
+    options?: EntityMatcherOptions
+  ) {
+    const description = this._descriptors.describeEntity(
+      filePath,
+      options?.source
+    );
+    const matcherOptions = {
+      ...options,
+      extraTemplateData: {
+        ...getLegacyEntitySelectorExtraTemplateData(description),
+        ...options?.extraTemplateData,
+      },
+    };
+
+    return this._entitiesMatcher.getSelectorMatching(
+      description,
+      selector,
+      matcherOptions
     );
   }
 
@@ -115,14 +319,26 @@ export class Matcher {
    */
   public getElementSelectorMatching(
     filePath: string,
-    selector: ElementsSelector,
+    selector: BackwardCompatibleElementSelector,
     options?: MatcherOptions
   ) {
     const description = this._descriptors.describeElement(filePath);
+    const moduleDescription = this._descriptors.describeModule(filePath);
+    const matcherOptions = {
+      ...options,
+      extraTemplateData: {
+        ...getLegacyElementSelectorExtraTemplateData(
+          description,
+          moduleDescription
+        ),
+        ...options?.extraTemplateData,
+      },
+    };
+
     return this._elementsMatcher.getSelectorMatching(
       description,
       selector,
-      options
+      matcherOptions
     );
   }
 
@@ -134,15 +350,93 @@ export class Matcher {
    * @returns The matching dependency result or null if no match is found
    */
   public getDependencySelectorMatching(
-    dependencyData: DescribeDependencyOptions,
-    selector: DependencySelector,
+    dependencyData: DependencyDescriptorOptions,
+    selector: BackwardCompatibleDependencySelector,
     options?: MatcherOptions
   ) {
     const description = this._descriptors.describeDependency(dependencyData);
-    return this._dependenciesMatcher.getSelectorsMatching(
+    const matcherOptions = {
+      ...options,
+      extraTemplateData: getLegacyDependencySelectorExtraTemplateData(
+        description,
+        options?.extraTemplateData
+      ),
+    };
+
+    return this._dependenciesMatcher.getSelectorMatching(
+      description,
+      selector,
+      matcherOptions
+    );
+  }
+
+  /**
+   * Determines the selector matching for an origin.
+   * @param filePath The file path of the origin
+   * @param selector The selector to match against
+   * @param options Extra options for matching
+   * @returns The matching module result or null if no match is found
+   */
+  public getModuleSelectorMatching(
+    filePath: string,
+    selector: ModuleSelector,
+    options?: EntityMatcherOptions
+  ) {
+    const description = this._descriptors.describeModule(
+      filePath,
+      options?.source
+    );
+    return this._modulesMatcher.getSelectorMatching(
       description,
       selector,
       options
+    );
+  }
+
+  /**
+   * Determines the selector matching for a file.
+   * @param filePath The file path to check
+   * @param selector The selector to match against
+   * @param options Extra options for matching
+   * @returns The matching file selector or null if no match is found
+   */
+  public getFileSelectorMatching(
+    filePath: string,
+    selector: FileSelector,
+    options?: MatcherOptions
+  ) {
+    const description = this._descriptors.describeFile(filePath);
+    return this._filesMatcher.getSelectorMatching(
+      description,
+      selector,
+      options
+    );
+  }
+
+  /**
+   * Returns the first selector matching result for the given entity and selector.
+   * @param description The entity description to check.
+   * @param selector The selector to check against.
+   * @param options Extra options for matching, such as templates data, etc.
+   * @returns The first selector matching result for the given entity and selector, or null if no match is found.
+   */
+  public getEntitySelectorMatchingDescription(
+    description: EntityDescription,
+    selector: BackwardCompatibleEntitySelector,
+    options?: MatcherOptions
+  ): EntitySingleSelectorMatchResult | null {
+    const matcherOptions = {
+      ...options,
+      extraTemplateData: {
+        ...getLegacyEntitySelectorExtraTemplateData(description),
+        ...options?.extraTemplateData,
+      },
+    };
+
+    return this._entitiesMatcher.getSelectorMatching(
+      description,
+      selector,
+      matcherOptions
     );
   }
 
@@ -155,21 +449,21 @@ export class Matcher {
    */
   public getDependencySelectorMatchingDescription(
     description: DependencyDescription,
-    selector: DependencySelector,
+    selector: BackwardCompatibleDependencySelector,
     options?: MatcherOptions
-  ): DependencyMatchResult {
-    if (
-      isDependencySelector(selector) &&
-      isDependencyDescription(description)
-    ) {
-      return this._dependenciesMatcher.getSelectorsMatching(
+  ): DependencySingleSelectorMatchResult | null {
+    const matcherOptions = {
+      ...options,
+      extraTemplateData: getLegacyDependencySelectorExtraTemplateData(
         description,
-        selector,
-        options
-      );
-    }
-    throw new Error(
-      "Invalid arguments: Please provide a valid description and selector"
+        options?.extraTemplateData
+      ),
+    };
+
+    return this._dependenciesMatcher.getSelectorMatching(
+      description,
+      selector,
+      matcherOptions
     );
   }
 
@@ -182,18 +476,52 @@ export class Matcher {
    */
   public getElementSelectorMatchingDescription(
     description: ElementDescription,
-    selector: ElementsSelector,
+    selector: BackwardCompatibleElementSelector,
     options?: MatcherOptions
-  ): BaseElementSelectorData | null {
-    if (isElementsSelector(selector) && isElementDescription(description)) {
-      return this._elementsMatcher.getSelectorMatching(
-        description,
-        selector,
-        options
-      );
-    }
-    throw new Error(
-      "Invalid arguments: Please provide a valid description and selector"
+  ): ElementSingleSelector | null {
+    const matcherOptions = {
+      ...options,
+      extraTemplateData: {
+        ...getLegacyElementSelectorExtraTemplateData(description),
+        ...options?.extraTemplateData,
+      },
+    };
+
+    return this._elementsMatcher.getSelectorMatching(
+      description,
+      selector,
+      matcherOptions
+    );
+  }
+
+  public getModuleSelectorMatchingDescription(
+    description: ModuleDescription,
+    selector: ModuleSelector,
+    options?: EntityMatcherOptions
+  ) {
+    return this._modulesMatcher.getSelectorMatching(
+      description,
+      selector,
+      options
+    );
+  }
+
+  /**
+   * Returns the first file selector matching result for the given file description.
+   * @param description The file description to check.
+   * @param selector The selector to check against.
+   * @param options Extra options for matching, such as templates data, etc.
+   * @returns The first matching selector result for the given description, or null if no match is found.
+   */
+  public getFileSelectorMatchingDescription(
+    description: FileDescription,
+    selector: FileSelector,
+    options?: MatcherOptions
+  ): FileSingleSelector | null {
+    return this._filesMatcher.getSelectorMatching(
+      description,
+      selector,
+      options
     );
   }
 

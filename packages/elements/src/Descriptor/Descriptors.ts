@@ -1,68 +1,96 @@
 import type { DescriptorOptionsNormalized } from "../Config";
 import type { Micromatch } from "../Matcher";
 
-import { DependenciesDescriptor } from "./DependenciesDescriptor";
 import type {
   DependencyDescription,
-  DescribeDependencyOptions,
-} from "./DependenciesDescriptor.types";
-import type { DescriptorsSerializedCache } from "./Descriptors.types";
-import { ElementsDescriptor } from "./ElementsDescriptor";
+  DependencyDescriptorOptions,
+} from "./Dependency";
+import { DependenciesDescriptor } from "./Dependency";
 import type {
-  ElementDescriptors,
-  ElementDescription,
-} from "./ElementsDescriptor.types";
+  DescriptorsConfig,
+  DescriptorsSerializedCache,
+} from "./Descriptors.types";
+import type { ElementDescription } from "./Element";
+import { ElementsDescriptor } from "./Element";
+import { EntitiesDescriptor } from "./Entity";
+import type { EntityDescription } from "./Entity";
+import type { FileDescription } from "./File";
+import { FilesDescriptor } from "./File";
+import { ModulesDescriptor } from "./Module";
+import type { ModuleDescription } from "./Module";
 
 /**
- * Class with methods to describe elements and dependencies between them.
+ * Class with methods to describe files, elements, entities, and dependencies between them.
  */
 export class Descriptors {
   private readonly _elementsDescriptor: ElementsDescriptor;
+  private readonly _filesDescriptor: FilesDescriptor;
   private readonly _dependenciesDescriptor: DependenciesDescriptor;
+  private readonly _entitiesDescriptor: EntitiesDescriptor;
+  private readonly _modulesDescriptor: ModulesDescriptor;
 
   /** Creates a new DescriptorsManager instance
-   * @param elementDescriptors The element descriptors.
+   * @param descriptors The descriptors.
    * @param configOptions The configuration options.
    * @param micromatch The Micromatch instance.
    */
   constructor(
-    elementDescriptors: ElementDescriptors,
+    descriptors: DescriptorsConfig,
     config: DescriptorOptionsNormalized,
     micromatch: Micromatch
   ) {
     this._elementsDescriptor = new ElementsDescriptor(
-      elementDescriptors,
+      descriptors.elements || [],
+      config,
+      micromatch,
+      descriptors.elementsSingleType ?? false
+    );
+    this._filesDescriptor = new FilesDescriptor(
+      descriptors.files || [],
       config,
       micromatch
     );
-    this._dependenciesDescriptor = new DependenciesDescriptor(
+    this._modulesDescriptor = new ModulesDescriptor(config, micromatch);
+    this._entitiesDescriptor = new EntitiesDescriptor(
       this._elementsDescriptor,
+      this._filesDescriptor,
+      this._modulesDescriptor,
+      config
+    );
+    this._dependenciesDescriptor = new DependenciesDescriptor(
+      this._entitiesDescriptor,
       config
     );
   }
 
   /**
-   * Serializes the elements and dependencies cache to a plain object.
-   * @returns The serialized elements and dependencies cache.
+   * Serializes the elements, files, entities, and dependencies cache to a plain object.
+   * @returns The serialized elements, files, entities, and dependencies cache.
    */
   public serializeCache(): DescriptorsSerializedCache {
     return {
       elements: this._elementsDescriptor.serializeCache(),
+      files: this._filesDescriptor.serializeCache(),
+      entities: this._entitiesDescriptor.serializeCache(),
       dependencies: this._dependenciesDescriptor.serializeCache(),
+      modules: this._modulesDescriptor.serializeCache(),
     };
   }
 
   /**
-   * Sets the elements and dependencies cache from a serialized object.
-   * @param serializedCache The serialized elements and dependencies cache.
+   * Sets the elements, files, entities, and dependencies cache from a serialized object.
+   * @param serializedCache The serialized elements, files, entities, and dependencies cache.
    */
   public setCacheFromSerialized(
     serializedCache: DescriptorsSerializedCache
   ): void {
     this._elementsDescriptor.setCacheFromSerialized(serializedCache.elements);
+    this._filesDescriptor.setCacheFromSerialized(serializedCache.files);
+    this._entitiesDescriptor.setCacheFromSerialized(serializedCache.entities);
     this._dependenciesDescriptor.setCacheFromSerialized(
       serializedCache.dependencies
     );
+    this._modulesDescriptor.setCacheFromSerialized(serializedCache.modules);
   }
 
   /**
@@ -70,7 +98,10 @@ export class Descriptors {
    */
   public clearCache(): void {
     this._elementsDescriptor.clearCache();
+    this._filesDescriptor.clearCache();
+    this._entitiesDescriptor.clearCache();
     this._dependenciesDescriptor.clearCache();
+    this._modulesDescriptor.clearCache();
   }
 
   /**
@@ -83,12 +114,41 @@ export class Descriptors {
   }
 
   /**
+   * Returns the description of a file given its path.
+   * @param filePath The path of the file to describe.
+   * @returns The description of the file.
+   */
+  public describeFile(filePath: string): FileDescription {
+    return this._filesDescriptor.describeFile(filePath);
+  }
+
+  /**
+   * Describes a file given its path. It returns both the file description and the element description.
+   * @param filePath The path of the file to describe.
+   * @param source The optional dependency source (e.g., the importer file path) to use for describing the origin of the entity being imported.
+   * @returns The entity description of the file, including both the file description and the element description.
+   */
+  public describeEntity(filePath?: string, source?: string): EntityDescription {
+    return this._entitiesDescriptor.describeEntity(filePath, source);
+  }
+
+  /**
+   * Describes a module given its path and the path of the importer file.
+   * @param filePath The path of the file to describe.
+   * @param source The optional dependency source (e.g., the importer file path) to use for describing the origin of the entity being imported.
+   * @returns The description of the module.
+   */
+  public describeModule(filePath?: string, source?: string): ModuleDescription {
+    return this._modulesDescriptor.describeModule(filePath, source);
+  }
+
+  /**
    * Describes elements in a dependency relationship, and provides additional information about the dependency itself.
    * @param options The options for describing the elements and the dependency details.
    * @returns The description of the dependency between the elements.
    */
   public describeDependency(
-    options: DescribeDependencyOptions
+    options: DependencyDescriptorOptions
   ): DependencyDescription {
     return this._dependenciesDescriptor.describeDependency(options);
   }

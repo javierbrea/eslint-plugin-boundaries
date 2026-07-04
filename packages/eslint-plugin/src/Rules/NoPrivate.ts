@@ -1,11 +1,11 @@
 import {
+  ORIGINS_MAP,
   DEPENDENCY_RELATIONSHIPS_MAP,
-  isLocalElement,
   type DependencyDescription,
 } from "@boundaries/elements";
 
 import { customErrorMessage, elementDescriptionMessage } from "../Messages";
-import { warnMigrationToDependencies } from "../Settings";
+import { warnMigrationToDependencies, deprecatedRuleInfo } from "../Settings";
 import type { NoPrivateOptions } from "../Shared";
 import { SETTINGS, RULE_NAMES_MAP, PLUGIN_ISSUES_URL } from "../Shared";
 
@@ -27,14 +27,14 @@ function errorMessage(
   if (options?.message) {
     return customErrorMessage(options.message, dependency);
   }
-  const privateParent = dependency.to.parents?.[0];
+  const privateParent = dependency.to.element.parents?.[0];
   /* istanbul ignore next - Defensive: This should not happen */
   if (!privateParent) {
     return `Not able to create a message for this violation. Please report this at: ${PLUGIN_ISSUES_URL}`;
   }
   return `Dependency is private of ${elementDescriptionMessage(
     privateParent,
-    ["type", "category", "captured"],
+    ["types", "category", "captured"],
     { singleElement: true }
   )}`;
 }
@@ -43,6 +43,7 @@ export default dependencyRule<NoPrivateOptions>(
   {
     ruleName: RULE_NO_PRIVATE,
     description: `Prevent dependencies to private elements`,
+    deprecated: deprecatedRuleInfo(RULE_NAMES_MAP.DEPENDENCIES),
     schema: [
       {
         type: "object",
@@ -61,10 +62,10 @@ export default dependencyRule<NoPrivateOptions>(
   function ({ dependency, node, context, options }) {
     warnMigrationToDependencies(RULE_NAMES_MAP.NO_PRIVATE);
     if (
-      !dependency.to.isIgnored &&
-      isLocalElement(dependency.to) &&
-      dependency.to.type &&
-      dependency.to.parents.length &&
+      !dependency.to.element.isIgnored &&
+      dependency.to.module.origin === ORIGINS_MAP.LOCAL &&
+      dependency.to.element.types &&
+      dependency.to.element.parents.length &&
       dependency.dependency.relationship.to !==
         DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL &&
       dependency.dependency.relationship.to !==

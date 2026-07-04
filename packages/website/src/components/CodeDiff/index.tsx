@@ -100,7 +100,7 @@ function CodeDiffBase({
           <pre style={{ overflowX: "auto", padding: "1em" }}>
             {tokens.map((lineTokens, i) => {
               const line = trimmedOriginalLines[i] || "";
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
               const { key: _, ...linePropsRest } = getLineProps({
                 line: lineTokens,
                 key: i,

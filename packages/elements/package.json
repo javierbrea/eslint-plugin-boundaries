@@ -1,6 +1,6 @@
 {
   "name": "@boundaries/elements",
-  "version": "2.0.1",
+  "version": "3.0.0-beta.1",
   "description": "Element descriptors and matchers for @boundaries tools",
   "keywords": [
     "boundaries",
@@ -53,6 +53,7 @@
     "lint:fix": "eslint . --fix",
     "serve:mutation:report": "serve --config ./serve.test-mutation-report.json",
     "serve:unit:report": "serve --config ./serve.test-unit-report.json",
+    "test": "pnpm test:unit",
     "test:unit": "jest",
     "test:mutation": "stryker run"
   },
@@ -72,6 +73,7 @@
     "@types/micromatch": "4.0.10",
     "@types/object-hash": "3.0.6",
     "path-browserify": "1.0.1",
-    "tsup": "8.5.1"
+    "tsup": "8.5.1",
+    "typescript": "5.9.3"
   }
 }

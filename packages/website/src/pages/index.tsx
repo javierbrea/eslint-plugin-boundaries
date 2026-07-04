@@ -7,6 +7,7 @@ import clsx from "clsx";
 import type { ReactNode } from "react";
 
 import HomepageFeatures from "@site/src/components/HomepageFeatures";
+import HomepageMultiLayer from "@site/src/components/HomepageMultiLayer";
 import HomepageQuote from "@site/src/components/HomePageQuote";
 import HomeSponsors from "@site/src/components/HomeSponsors";
 import HomeStats from "@site/src/components/HomeStats";
@@ -58,6 +59,7 @@ export default function Home(): ReactNode {
       <main>
         <HomepageFeatures />
         <HomepageQuote />
+        <HomepageMultiLayer />
         <HomeStats />
         <HomeSponsors />
       </main>

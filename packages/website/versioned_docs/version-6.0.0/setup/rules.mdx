@@ -75,7 +75,7 @@ export default [{
 }]
 ```
 
-:::info Important
+:::info[Important]
 - All rules are evaluated, and the final result is from the last matching rule
 - If a rule has both `allow` and `disallow` properties, `disallow` takes priority
 - Each rule's result will be "allow" or "disallow", producing an ESLint error accordingly
@@ -255,7 +255,7 @@ Missing properties in Handlebars templates resolve to an empty string.
 
 ##### Legacy Message Templates
 
-:::info Backwards Compatibility
+:::info[Backwards Compatibility]
 Legacy message templates using `${...}` syntax are still supported but deprecated. For migration guidance, see [Legacy Message Templates](#legacy-message-templates) below.
 :::
 
@@ -269,7 +269,7 @@ Legacy message templates using `${...}` syntax are still supported but deprecate
 
 Specifies whether the rule applies based on how the dependency is imported.
 
-:::warning Deprecated in v6
+:::warning[Deprecated in v6]
 Rule-level `importKind` is kept for backward compatibility but is deprecated.
 
 Prefer using dependency metadata selectors instead: `dependency.kind`
@@ -605,7 +605,7 @@ export default [{
 
 ## Legacy Message Templates
 
-:::warning Deprecated
+:::warning[Deprecated]
 Legacy message template syntax using `${...}` is deprecated and will be removed in a future major version. It is strongly recommended to migrate to Handlebars templates using `{{...}}` syntax.
 :::
 
@@ -663,6 +663,6 @@ To migrate from legacy templates to Handlebars:
 + "{{from.type}} in {{from.parents.0.type}} cannot import {{to.type}}"
 `}</CodeDiff>
 
-:::tip Migration Guide
+:::tip[Migration Guide]
 For detailed migration conversion table, see the [v5 to v6 migration guide](../releases/migration-guides/v5-to-v6.mdx#templates-in-custom-messages).
 :::

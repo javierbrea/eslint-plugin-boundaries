@@ -13,7 +13,7 @@ export class CacheManagerDisabled<
    * @param key The cache key to hash
    * @returns An empty string
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   public getKey(_key: CacheKey): string {
     return "";
   }
@@ -23,7 +23,7 @@ export class CacheManagerDisabled<
    * @param hashedKey The hashed key to retrieve
    * @returns Undefined as caching is disabled
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   public get(_hashedKey: string): CachedValue | undefined {
     return undefined;
   }
@@ -33,7 +33,7 @@ export class CacheManagerDisabled<
    * @param hashedKey The hashed key to store
    * @param value The value to cache
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   public set(_hashedKey: string, _value: CachedValue): void {
     return;
   }
@@ -43,7 +43,7 @@ export class CacheManagerDisabled<
    * @param hashedKey The hashed key to check
    * @returns False as caching is disabled
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   public has(_hashedKey: string): boolean {
     return false;
   }

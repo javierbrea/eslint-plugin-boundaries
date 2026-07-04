@@ -1,26 +1,31 @@
 import type {
-  BaseElementSelectorData,
   DependencyDescription,
-  DependencyDataSelector,
-  DependencySelector,
   TemplateData,
   Matcher,
-  DependencyMatchResult,
-  BaseElementsSelector,
-  BaseElementSelectorWithOptions,
-  SimpleElementSelectorByType,
-  DependencyDataSelectorData,
   DependencyKind,
+  EntitySelectorNormalized,
+  DependencyInfoSelectorNormalized,
+  DependencyInfoSingleSelector,
+  EntitySingleSelectorNormalized,
+  DependencySingleSelectorMatchResult,
+  DependencySingleSelectorNormalized,
+  ElementSingleSelectorNormalized,
+  ElementSelectorNormalized,
+  ParentElementSingleSelector,
+  ParentElementSelectorNormalized,
+  FileSelectorNormalized,
+  FileSingleSelector,
+  ModuleSingleSelector,
+  ModuleSelectorNormalized,
 } from "@boundaries/elements";
 import {
+  DEPENDENCY_RELATIONSHIPS_MAP,
+  isBackwardCompatibleDependencySelector,
   isDependencySelector,
-  isElementSelectorWithLegacyOptions,
-  isDependencyDataSelectorData,
-  isIgnoredElement,
-  isInternalDependency,
-  isLocalElement,
-  isUnknownLocalElement,
-  normalizeElementsSelector,
+  normalizeDependencyInfoSelector,
+  normalizeDependencySelector,
+  normalizeEntitySelector,
+  ORIGINS_MAP,
 } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
@@ -33,21 +38,20 @@ import {
 } from "../Messages";
 import {
   rulesOptionsSchema,
-  validateAndWarnRuleOptions,
   migrationToV6GuideLink,
+  validateAndWarnRuleOptions,
+  deprecatedRuleInfo,
 } from "../Settings";
 import type {
-  RuleOptionsWithRules,
+  RuleOptionsWithPolicies,
   DependenciesRuleOptions,
-  DependenciesRule,
+  DependenciesPolicy,
+  DependenciesPolicyNormalized,
   SettingsNormalized,
-  RulePolicyEntry,
   RuleName,
 } from "../Shared";
 import {
   isObject,
-  isArray,
-  isString,
   isUndefined,
   isNull,
   RULE_NAMES_MAP,
@@ -56,154 +60,116 @@ import {
 
 import { dependencyRule } from "./Support";
 
-/**
- * Merges the legacy `importKind` field from the rule level into the `kind` field of the dependency selector, if applicable.
- * This is needed to support the legacy `importKind` rule option, which allowed specifying the import kind at the rule level instead of the selector level.
- * @param dependencyMetadata - The dependency metadata selector data to merge the `importKind` into.
- * @param importKind - The legacy import kind specified at the rule level, if any.
- * @returns The merged dependency metadata selector data with the `importKind` merged into the `kind` field.
- *
- * @deprecated This function exists only for backward compatibility with the `importKind` rule
- * option deprecated in v6. Remove in next major version once `importKind` is no longer supported.
- */
-function mergeImportKindToDependencyMetadata(
-  dependencyMetadata: DependencyDataSelectorData,
-  importKind: DependencyKind
-): DependencyDataSelectorData {
-  if (!dependencyMetadata.kind) {
-    return {
-      kind: importKind,
-      ...dependencyMetadata,
-    };
+type DependenciesPolicyPrecomputed = DependenciesPolicyNormalized & {
+  precomputedAllow?: DependencySingleSelectorNormalized[];
+  precomputedDisallow?: DependencySingleSelectorNormalized[];
+};
+
+const normalizedPoliciesMap = new WeakMap<
+  DependenciesPolicy,
+  DependenciesPolicyPrecomputed
+>();
+
+const normalizeRuleEffect = (
+  rule: DependenciesPolicy["allow"] | DependenciesPolicy["disallow"]
+):
+  | DependenciesPolicyNormalized["allow"]
+  | DependenciesPolicyNormalized["disallow"] => {
+  if (isUndefined(rule)) {
+    return rule;
+  }
+  if (isBackwardCompatibleDependencySelector(rule)) {
+    return normalizeDependencySelector(rule);
+  }
+  return normalizeEntitySelector(rule);
+};
+
+const normalizeRuleOptions = (
+  rule: DependenciesPolicy
+): DependenciesPolicyPrecomputed => {
+  if (normalizedPoliciesMap.has(rule)) {
+    return normalizedPoliciesMap.get(rule)!;
   }
 
-  if (isArray(dependencyMetadata.kind)) {
-    return {
-      ...dependencyMetadata,
-      kind: [...dependencyMetadata.kind, importKind],
-    };
-  }
-  return dependencyMetadata;
-}
+  const normalizedRule: DependenciesPolicyNormalized = {
+    from: rule.from ? normalizeEntitySelector(rule.from) : undefined,
+    to: rule.to ? normalizeEntitySelector(rule.to) : undefined,
+    dependency: rule.dependency
+      ? normalizeDependencyInfoSelector(rule.dependency)
+      : undefined,
+    importKind: rule.importKind,
+    allow: normalizeRuleEffect(rule.allow),
+    disallow: normalizeRuleEffect(rule.disallow),
+  };
+
+  const precomputedAllow = normalizedRule.allow?.map((entry) =>
+    buildEntrySelector(
+      normalizedRule.from,
+      normalizedRule.to,
+      normalizedRule.dependency,
+      entry,
+      rule.importKind /* legacy importKind for backward compatibility */
+    )
+  );
+  const precomputedDisallow = normalizedRule.disallow?.map((entry) =>
+    buildEntrySelector(
+      normalizedRule.from,
+      normalizedRule.to,
+      normalizedRule.dependency,
+      entry,
+      rule.importKind /* legacy importKind for backward compatibility */
+    )
+  );
+
+  const precomputedRule: DependenciesPolicyPrecomputed = {
+    ...normalizedRule,
+    precomputedAllow,
+    precomputedDisallow,
+  };
+
+  normalizedPoliciesMap.set(rule, precomputedRule);
+  return precomputedRule;
+};
 
 /**
  * Merges a dependency selector by adding the `importKind` field from the rule level to the `dependency.kind` field in the selector, if applicable.
  * This is needed to support the legacy `importKind` rule option, which allowed specifying the import kind at the rule level instead of the selector level.
  * @param dependencySelector - The dependency selector object to add the `importKind` to.
  * @param importKind - The legacy import kind specified at the rule level, if any.
- *
- * @deprecated This function exists only for backward compatibility with the `importKind` rule
- * option deprecated in v6. Remove in next major version once `importKind` is no longer supported.
  */
+
 function mergeImportKind(
-  dependencySelector: DependencySelector,
+  dependencySelector: DependencySingleSelectorNormalized,
   importKind?: DependencyKind
-): DependencySelector {
+): DependencySingleSelectorNormalized;
+function mergeImportKind(
+  dependencySelector: undefined,
+  importKind?: DependencyKind
+): undefined;
+function mergeImportKind(
+  dependencySelector?: DependencySingleSelectorNormalized | undefined,
+  importKind?: DependencyKind
+): DependencySingleSelectorNormalized | undefined {
   if (!importKind) {
     return dependencySelector;
   }
-  if (!dependencySelector.dependency) {
+  if (dependencySelector?.dependency) {
     return {
       ...dependencySelector,
-      dependency: {
+      dependency: dependencySelector.dependency.map((dep) => ({
         kind: importKind,
-      },
+        ...dep,
+      })),
     };
   }
-  if (isDependencyDataSelectorData(dependencySelector.dependency)) {
-    return {
-      ...dependencySelector,
-      dependency: mergeImportKindToDependencyMetadata(
-        dependencySelector.dependency,
-        importKind
-      ),
-    };
-  }
-
-  /* istanbul ignore next - Defensive check, it should be always an array, because options are validated */
-  if (!isArray(dependencySelector.dependency)) {
-    return dependencySelector;
-  }
-
   return {
     ...dependencySelector,
-    dependency: dependencySelector.dependency.map((dep) => {
-      return mergeImportKindToDependencyMetadata(dep, importKind);
-    }),
+    dependency: [
+      {
+        kind: importKind,
+      },
+    ],
   };
-}
-
-/**
- * Wraps matcher.getDependencySelectorMatchingDescription catching any errors to avoid breaking the rule.
- */
-function safeMatch(
-  dep: DependencyDescription,
-  matcher: Matcher,
-  selector: DependencySelector,
-  extraTemplateData: TemplateData
-): DependencyMatchResult {
-  try {
-    return matcher.getDependencySelectorMatchingDescription(dep, selector, {
-      extraTemplateData,
-    });
-  } catch (error) /* istanbul ignore next - Defensive check */ {
-    warnOnce(
-      `Error occurred while matching dependency. Please report it at: ${PLUGIN_ISSUES_URL}`,
-      `${JSON.stringify({
-        error: isObject(error)
-          ? { message: error.message, stack: error.stack }
-          : String(error),
-        dependency: dep,
-        selector,
-        extraTemplateData,
-      })}.`
-    );
-    return { isMatch: false, from: null, to: null, dependency: null };
-  }
-}
-
-/**
- * Builds template data for legacy `${...}` placeholders from captured values.
- *
- * @param rule - Rule currently being evaluated.
- * @param dep - Dependency description under evaluation.
- * @param legacyTemplates - Whether legacy template mode is enabled.
- * @returns Template data object consumed by matcher template rendering.
- */
-function getCapturedTemplateData(
-  rule: DependenciesRule,
-  dep: DependencyDescription,
-  legacyTemplates: boolean
-): TemplateData {
-  if (!legacyTemplates) return {};
-  const targetDir = rule.from ? "from" : "to";
-  return targetDir === "from"
-    ? { ...dep.from.captured, from: dep.from.captured, to: dep.to.captured }
-    : { ...dep.to.captured, from: dep.from.captured, to: dep.to.captured };
-}
-
-/**
- * Normalizes a policy value to an array of individual selector entries.
- * For arrays that contain objects (new format), each element is a separate entry.
- * For legacy string/array selectors the whole value is a single entry.
- */
-function getPolicyEntries(
-  policy: RulePolicyEntry | RulePolicyEntry[]
-): (
-  | SimpleElementSelectorByType
-  | DependencySelector
-  | BaseElementSelectorWithOptions
-)[] {
-  if (isString(policy)) {
-    return [policy];
-  }
-  if (isElementSelectorWithLegacyOptions(policy)) {
-    return [policy];
-  }
-
-  if (!isArray(policy)) return [policy];
-
-  return policy;
 }
 
 /**
@@ -223,30 +189,206 @@ function mergeProperties<T>(
   return isUndefined(entry) ? outer : entry;
 }
 
-/**
- * Merges two element selectors by merging their fields, with entry fields taking precedence over outer fields.
- * If both selectors have a `captured` field, they are merged separately to avoid losing any captured values.
- */
-function mergeElementSelectorData(
-  outer: BaseElementSelectorData,
-  entry: BaseElementSelectorData
-): BaseElementSelectorData {
-  const result: BaseElementSelectorData = { ...outer, ...entry };
-  const captured = mergeProperties(outer.captured, entry.captured);
-  if (!isUndefined(captured)) {
-    result.captured = captured;
+function mergeElementSingleSelector(
+  outer?: ElementSingleSelectorNormalized,
+  entry?: ElementSingleSelectorNormalized
+): ElementSingleSelectorNormalized | undefined {
+  /* istanbul ignore next -- Defensive: callers always pass a defined entry through flatMap; preserved for type safety */
+  if (!entry) {
+    return outer;
   }
-  const parent = mergeProperties(outer.parent, entry.parent);
-  if (!isUndefined(parent)) {
+  /* istanbul ignore next -- Defensive: callers always pass a defined outer through flatMap; preserved for type safety */
+  if (!outer) {
+    return entry;
+  }
+  const result = mergeProperties(outer, entry) as
+    | ElementSingleSelectorNormalized
+    | undefined;
+  if (result && isObject(outer.captured) && isObject(entry.captured)) {
+    result.captured = { ...outer.captured, ...entry.captured };
+  }
+  const parent = mergeParentSelector(outer.parent, entry.parent);
+  if (result && parent) {
     result.parent = parent;
   }
   return result;
 }
 
-function mergeDependencySelectorData(
-  outer: DependencyDataSelectorData,
-  entry: DependencyDataSelectorData
-): DependencyDataSelectorData {
+function mergeParentSingleSelector(
+  outer?: ParentElementSingleSelector,
+  entry?: ParentElementSingleSelector
+): ParentElementSingleSelector | undefined {
+  /* istanbul ignore next -- Defensive: callers always pass a defined entry through flatMap; preserved for type safety */
+  if (!entry) {
+    return outer;
+  }
+  /* istanbul ignore next -- Defensive: callers always pass a defined outer through flatMap; preserved for type safety */
+  if (!outer) {
+    return entry;
+  }
+  const result = mergeProperties(outer, entry) as
+    | ParentElementSingleSelector
+    | undefined;
+  if (result && isObject(outer.captured) && isObject(entry.captured)) {
+    result.captured = { ...outer.captured, ...entry.captured };
+  }
+  return result;
+}
+
+function mergeParentSelector(
+  outer?: ParentElementSelectorNormalized | null,
+  entry?: ParentElementSelectorNormalized | null
+): ParentElementSelectorNormalized | null | undefined {
+  if (isNull(entry)) {
+    return entry;
+  }
+  if (isNull(outer)) {
+    return isUndefined(entry) ? outer : entry;
+  }
+  if (!entry) {
+    return outer;
+  }
+  if (!outer) {
+    return entry;
+  }
+  return outer.flatMap((outerSelector) => {
+    return entry.map(
+      (entrySelector) =>
+        mergeParentSingleSelector(
+          outerSelector,
+          entrySelector
+        ) as ParentElementSingleSelector
+    );
+  });
+}
+
+function mergeElementSelector(
+  outer?: ElementSelectorNormalized,
+  entry?: ElementSelectorNormalized
+): ElementSelectorNormalized | undefined {
+  if (!entry) {
+    return outer;
+  }
+  if (!outer) {
+    return entry;
+  }
+  return outer.flatMap((outerSelector) => {
+    return entry.map(
+      (entrySelector) =>
+        mergeElementSingleSelector(
+          outerSelector,
+          entrySelector
+        ) as ElementSingleSelectorNormalized
+    );
+  });
+}
+
+function mergeFileSingleSelector(
+  outer?: FileSingleSelector,
+  entry?: FileSingleSelector
+): FileSingleSelector | undefined {
+  /* istanbul ignore next -- Defensive: callers always pass a defined entry through flatMap; preserved for type safety */
+  if (!entry) {
+    return outer;
+  }
+  /* istanbul ignore next -- Defensive: callers always pass a defined outer through flatMap; preserved for type safety */
+  if (!outer) {
+    return entry;
+  }
+  const result = mergeProperties(outer, entry) as
+    | FileSingleSelector
+    | undefined;
+  if (result && isObject(outer.captured) && isObject(entry.captured)) {
+    result.captured = { ...outer.captured, ...entry.captured };
+  }
+  return result;
+}
+
+function mergeFileSelector(
+  outer?: FileSelectorNormalized,
+  entry?: FileSelectorNormalized
+): FileSelectorNormalized | undefined {
+  if (!entry) {
+    return outer;
+  }
+  if (!outer) {
+    return entry;
+  }
+  return outer.flatMap((outerSelector) => {
+    return entry.map(
+      (entrySelector) =>
+        mergeFileSingleSelector(
+          outerSelector,
+          entrySelector
+        ) as FileSingleSelector
+    );
+  });
+}
+
+function mergeModuleSingleSelector(
+  outer?: ModuleSingleSelector,
+  entry?: ModuleSingleSelector
+): ModuleSingleSelector | undefined {
+  /* istanbul ignore next -- Defensive: callers always pass a defined entry through flatMap; preserved for type safety */
+  if (!entry) {
+    return outer;
+  }
+  /* istanbul ignore next -- Defensive: callers always pass a defined outer through flatMap; preserved for type safety */
+  if (!outer) {
+    return entry;
+  }
+  return mergeProperties(outer, entry) as ModuleSingleSelector | undefined;
+}
+
+function mergeModuleSelector(
+  outer?: ModuleSelectorNormalized,
+  entry?: ModuleSelectorNormalized
+): ModuleSelectorNormalized | undefined {
+  if (!entry) {
+    return outer;
+  }
+  if (!outer) {
+    return entry;
+  }
+  return outer.flatMap((outerSelector) => {
+    return entry.map(
+      (entrySelector) =>
+        mergeModuleSingleSelector(
+          outerSelector,
+          entrySelector
+        ) as ModuleSingleSelector
+    );
+  });
+}
+
+/**
+ * Merges two element selectors by merging their fields, with entry fields taking precedence over outer fields.
+ * If both selectors have a `captured` field, they are merged separately to avoid losing any captured values.
+ */
+function mergeEntitySingleSelector(
+  outer: EntitySingleSelectorNormalized,
+  entry: EntitySingleSelectorNormalized
+): EntitySingleSelectorNormalized {
+  const merged: EntitySingleSelectorNormalized = {};
+  const mergedElement = mergeElementSelector(outer.element, entry.element);
+  if (mergedElement) {
+    merged.element = mergedElement;
+  }
+  const mergedFile = mergeFileSelector(outer.file, entry.file);
+  if (mergedFile) {
+    merged.file = mergedFile;
+  }
+  const mergedModule = mergeModuleSelector(outer.module, entry.module);
+  if (mergedModule) {
+    merged.module = mergedModule;
+  }
+  return merged;
+}
+
+function mergeDependencyInfoSingleSelector(
+  outer: DependencyInfoSingleSelector,
+  entry: DependencyInfoSingleSelector
+): DependencyInfoSingleSelector {
   const result = { ...outer, ...entry };
   const relationship = mergeProperties(outer.relationship, entry.relationship);
   if (!isUndefined(relationship)) {
@@ -264,22 +406,20 @@ function mergeDependencySelectorData(
  * @param entryElementSelector The entry selector(s) defined at the policy level.
  * @returns The merged selector(s) as an array of `BaseElementSelectorData` objects.
  */
-function mergeElementsSelector(
-  outerElementSelector: BaseElementSelectorData[] | undefined,
-  entryElementSelector: BaseElementSelectorData[] | undefined
-): BaseElementSelectorData[] | undefined {
+function mergeEntitySelector(
+  outerElementSelector: EntitySelectorNormalized | undefined,
+  entryElementSelector: EntitySelectorNormalized | undefined
+): EntitySelectorNormalized | undefined {
   if (!entryElementSelector) {
     return outerElementSelector;
   }
   if (!outerElementSelector) {
-    return normalizeElementsSelector(entryElementSelector);
+    return entryElementSelector;
   }
-  const normalizedEntrySelector =
-    normalizeElementsSelector(entryElementSelector);
 
   return outerElementSelector?.flatMap((outerSelector) => {
-    return normalizedEntrySelector.map((entrySelector) =>
-      mergeElementSelectorData(outerSelector, entrySelector)
+    return entryElementSelector.map((entrySelector) =>
+      mergeEntitySingleSelector(outerSelector, entrySelector)
     );
   });
 }
@@ -290,27 +430,21 @@ function mergeElementsSelector(
  * it would produce the merged selectors `[{ dependency: { kind: "import", module: "react" } }, { dependency: { kind: "import", module: "lodash" } }]`.
  * @param outerDependencySelector The outer dependency selector defined at the rule level.
  * @param entryDependencySelector The entry dependency selector(s) defined at the policy level.
- * @returns The merged dependency selector(s) as an array of `DependencyDataSelector` objects.
+ * @returns The merged dependency selector(s) as an array of `DependencyInfoSelectorNormalized` objects.
  */
-function mergeDependencyDataSelectors(
-  outerDependencySelector: DependencyDataSelector | undefined,
-  entryDependencySelector: DependencyDataSelector | undefined
-): DependencyDataSelector | undefined {
+function mergeDependencyInfoSelectors(
+  outerDependencySelector: DependencyInfoSelectorNormalized | undefined,
+  entryDependencySelector: DependencyInfoSelectorNormalized | undefined
+): DependencyInfoSelectorNormalized | undefined {
   if (!entryDependencySelector) {
     return outerDependencySelector;
   }
   if (!outerDependencySelector) {
     return entryDependencySelector;
   }
-  const outer = isArray(outerDependencySelector)
-    ? outerDependencySelector
-    : [outerDependencySelector];
-  const entry = isArray(entryDependencySelector)
-    ? entryDependencySelector
-    : [entryDependencySelector];
-  return outer.flatMap((outerSelector) => {
-    return entry.map((entrySelector) =>
-      mergeDependencySelectorData(outerSelector, entrySelector)
+  return outerDependencySelector.flatMap((outerSelector) => {
+    return entryDependencySelector.map((entrySelector) =>
+      mergeDependencyInfoSingleSelector(outerSelector, entrySelector)
     );
   });
 }
@@ -327,134 +461,161 @@ function mergeDependencyDataSelectors(
  *   for the "other" direction (opposite to the direction defined at the rule level).
  */
 function buildEntrySelector(
-  outerFrom: BaseElementSelectorData[] | undefined,
-  outerTo: BaseElementSelectorData[] | undefined,
-  outerDependency: DependencyDataSelector | undefined,
-  entry:
-    | string
-    | BaseElementSelectorWithOptions
-    | DependencySelector
-    | undefined
-): DependencySelector {
+  outerFrom: EntitySelectorNormalized | undefined,
+  outerTo: EntitySelectorNormalized | undefined,
+  outerDependency: DependencyInfoSelectorNormalized | undefined,
+  entry: DependencySingleSelectorNormalized | EntitySingleSelectorNormalized,
+  legacyImportKind?: DependencyKind
+): DependencySingleSelectorNormalized {
   if (isDependencySelector(entry)) {
     const entryObj = entry;
 
-    const mergedFrom = mergeElementsSelector(
-      outerFrom,
-      entryObj.from ? normalizeElementsSelector(entryObj.from) : undefined
-    );
-    const mergedTo = mergeElementsSelector(
-      outerTo,
-      entryObj.to ? normalizeElementsSelector(entryObj.to) : undefined
-    );
-    const mergedDependency = mergeDependencyDataSelectors(
+    const mergedFrom = mergeEntitySelector(outerFrom, entryObj.from);
+    const mergedTo = mergeEntitySelector(outerTo, entryObj.to);
+    const mergedDependency = mergeDependencyInfoSelectors(
       outerDependency,
       entryObj.dependency
     );
 
-    const selectorResult: DependencySelector = {};
+    const selectorResult: DependencySingleSelectorNormalized = {};
     if (!isUndefined(mergedFrom)) selectorResult.from = mergedFrom;
     if (!isUndefined(mergedTo)) selectorResult.to = mergedTo;
     if (!isUndefined(mergedDependency))
       selectorResult.dependency = mergedDependency;
-    return selectorResult;
+
+    return mergeImportKind(selectorResult, legacyImportKind);
   }
 
   // Legacy entry: string or legacy array → becomes the "other direction" element selector
   // They are not merged because legacy entries are not objects but strings/arrays, so they
   // can not express criteria in the same direction as the outer selector but only in the opposite direction
   const hasFrom = !isUndefined(outerFrom);
-  const result: DependencySelector = {};
+  const result: DependencySingleSelectorNormalized = {};
   if (hasFrom) {
     result.from = outerFrom;
-    result.to = entry;
+    result.to = [entry];
   } else {
     result.to = outerTo;
-    result.from = entry;
+    result.from = [entry];
   }
-  return result;
+  return mergeImportKind(result, legacyImportKind);
 }
 
 /**
- * Iterates the entries of a single policy value returning the first match, or null.
+ * Wraps matcher.getDependencySelectorMatchingDescription catching any errors to avoid breaking the rule.
+ */
+function safeMatch(
+  dep: DependencyDescription,
+  matcher: Matcher,
+  selector: DependencySingleSelectorNormalized,
+  extraTemplateData: TemplateData
+): DependencySingleSelectorMatchResult | null {
+  try {
+    return matcher.getDependencySelectorMatchingDescription(dep, selector, {
+      extraTemplateData,
+    });
+  } catch (error) /* istanbul ignore next - Defensive check */ {
+    warnOnce(
+      `Error occurred while matching dependency. Please report it at: ${PLUGIN_ISSUES_URL}`,
+      `${JSON.stringify({
+        error: isObject(error)
+          ? { message: error.message, stack: error.stack }
+          : String(error),
+        dependency: dep,
+        selector,
+        extraTemplateData,
+      })}.`
+    );
+    return null;
+  }
+}
+
+/**
+ * Iterates precomputed selectors of a policy returning the first match, or null.
  * @param options - The rule options object containing the policy entries and outer selectors.
- * @param options.policy - The policy value, which can be a single entry or an array of entries.
- * @param options.outerFrom - The outer `from` selector defined at the rule level, to be merged with each entry.
- * @param options.outerTo - The outer `to` selector defined at the rule level, to be merged with each entry.
- * @param options.outerDependency - The outer `dependency` selector defined at the rule level, to be merged with each entry.
+ * @param options.selectors - Precomputed dependency selectors for the policy.
  * @param options.dep - The dependency description under evaluation.
  * @param options.matcher - The elements matcher instance used to evaluate matches.
  * @param options.templateData - The template data object containing captured values for template rendering.
- * @param options.legacyImportKind - The legacy import kind at rule level, if applicable.
- * @returns The match result from the first matching entry, or null if no entries matched.
+ * @returns The match result from the first matching selector, or null if no selectors matched.
  */
-function evaluatePolicyEntries({
-  policy,
-  outerFrom,
-  outerTo,
-  outerDependency,
+function evaluateEffectEntries({
+  selectors,
   dep,
   matcher,
   templateData,
-  legacyImportKind,
 }: {
-  policy: RulePolicyEntry | RulePolicyEntry[];
-  outerFrom: BaseElementsSelector | undefined;
-  outerTo: BaseElementsSelector | undefined;
-  outerDependency: DependencyDataSelector | undefined;
+  selectors: DependencySingleSelectorNormalized[];
   dep: DependencyDescription;
   matcher: Matcher;
   templateData: TemplateData;
-  legacyImportKind?: DependencyKind;
-}): DependencyMatchResult | null {
-  for (const entry of getPolicyEntries(policy)) {
-    const selector = buildEntrySelector(
-      outerFrom ? normalizeElementsSelector(outerFrom) : undefined,
-      outerTo ? normalizeElementsSelector(outerTo) : undefined,
-      outerDependency,
-      entry
-    );
-    const selectorWithImportKind = mergeImportKind(selector, legacyImportKind);
-    const result = safeMatch(
-      dep,
-      matcher,
-      selectorWithImportKind,
-      templateData
-    );
-    if (result.isMatch) return result;
+}): DependencySingleSelectorMatchResult | null {
+  for (const selector of selectors) {
+    const result = safeMatch(dep, matcher, selector, templateData);
+    if (result) {
+      return result;
+    }
   }
   return null;
 }
 
-export type EvaluateRulesResult =
+export type EvaluatePoliciesResult =
   | { allowed: true }
   | {
       allowed: false;
       /** Index into `rules[]` of the rule that produced the result, or null if no rule matched. */
       ruleIndex: number | null;
       /** The match result from the selector that triggered the outcome, or null when no rule matched. */
-      matchResult: DependencyMatchResult | null;
+      matchResult: DependencySingleSelectorMatchResult | null;
     };
+
+/**
+ * Builds template data for legacy `${...}` placeholders from captured values.
+ *
+ * @param rule - Rule currently being evaluated.
+ * @param dep - Dependency description under evaluation.
+ * @param legacyTemplates - Whether legacy template mode is enabled.
+ * @returns Template data object consumed by matcher template rendering.
+ */
+function getCapturedTemplateData(
+  rule: DependenciesPolicy,
+  dep: DependencyDescription,
+  legacyTemplates: boolean
+): TemplateData {
+  if (!legacyTemplates) return {};
+  const targetDir = rule.from ? "from" : "to";
+  return targetDir === "from"
+    ? {
+        ...dep.from.element.captured,
+        from: dep.from.element.captured,
+        to: dep.to.element.captured,
+      }
+    : {
+        ...dep.to.element.captured,
+        from: dep.from.element.captured,
+        to: dep.to.element.captured,
+      };
+}
 
 /**
  * Evaluates the configured rules against a dependency description using a simplified path
  * that delegates all matching entirely to the elements package.
  *
  * For each rule, the outer `from`/`to`/`dependency` fields are merged with each entry in
- * `allow`/`disallow` to build the final {@link DependencySelector}. Rules follow
+ * `allow`/`disallow` to build the final {@link DependencySelectorNormalized}. Rules follow
  * **last-write-wins** semantics: the last rule that produces a match determines the outcome.
  * Within a single rule, `disallow`/`deny` takes precedence over `allow` — `allow` is not
  * evaluated when `disallow` already matched.
  */
-export function evaluateRules(
-  rules: DependenciesRule[],
+export function evaluatePolicies(
+  rules: DependenciesPolicy[],
   dep: DependencyDescription,
   matcher: Matcher,
   settings: SettingsNormalized
-): EvaluateRulesResult {
+): EvaluatePoliciesResult {
   let allowed: boolean | null = null;
   let ruleIndex: number | null = null;
-  let matchResult: DependencyMatchResult | null = null;
+  let matchResult: DependencySingleSelectorMatchResult | null = null;
 
   for (let i = 0; i < rules.length; i++) {
     const rule = rules[i];
@@ -464,22 +625,15 @@ export function evaluateRules(
       settings.legacyTemplates
     );
 
-    const outerFrom = rule.from;
-    const outerTo = rule.to;
-    const outerDependency = rule.dependency;
+    const normalizedRule = normalizeRuleOptions(rule);
 
     let denyMatched = false;
-    if (rule.disallow) {
-      const denyMatch = evaluatePolicyEntries({
-        policy: rule.disallow,
-        outerFrom,
-        outerTo,
-        outerDependency,
+    if (normalizedRule.precomputedDisallow) {
+      const denyMatch = evaluateEffectEntries({
+        selectors: normalizedRule.precomputedDisallow,
         dep,
         matcher,
         templateData,
-        legacyImportKind:
-          rule.importKind /* legacy importKind for backward compatibility */,
       });
       if (denyMatch) {
         allowed = false;
@@ -490,17 +644,12 @@ export function evaluateRules(
     }
 
     // Allow is only evaluated when disallow/deny did not match for this rule
-    if (!denyMatched && rule.allow) {
-      const allowMatch = evaluatePolicyEntries({
-        policy: rule.allow,
-        outerFrom,
-        outerTo,
-        outerDependency,
+    if (!denyMatched && normalizedRule.precomputedAllow) {
+      const allowMatch = evaluateEffectEntries({
+        selectors: normalizedRule.precomputedAllow,
         dep,
         matcher,
         templateData,
-        legacyImportKind:
-          rule.importKind /* legacy importKind for backward compatibility */,
       });
       if (allowMatch) {
         allowed = true;
@@ -515,21 +664,21 @@ export function evaluateRules(
 }
 
 /**
- * Resolves the custom error message for a violation, preferring the rule-specific message
+ * Resolves the custom error message for a violation, preferring the policy-specific message
  * over the global options message.
  */
 export function resolveCustomMessage(
   ruleIndex: number | null,
-  ruleOptions: DependenciesRuleOptions
+  ruleOptions: RuleOptionsWithPolicies
 ): string | undefined {
-  const ruleMessage = isNull(ruleIndex)
+  const policyMessage = isNull(ruleIndex)
     ? undefined
-    : ruleOptions.rules?.[ruleIndex]?.message;
-  return ruleMessage ?? ruleOptions.message;
+    : (ruleOptions.policies ?? ruleOptions.rules)?.[ruleIndex]?.message;
+  return policyMessage ?? ruleOptions.message;
 }
 
 type BuildErrorMessageParams = {
-  matchResult: DependencyMatchResult | null;
+  matchResult: DependencySingleSelectorMatchResult | null;
   ruleIndex: number | null;
   customMessage: string | undefined;
   dependency: DependencyDescription;
@@ -564,7 +713,7 @@ export function buildErrorMessage({
  *
  * @param params - Rule evaluation context and dependency information.
  */
-export function evaluateRulesAndReport({
+export function evaluatePoliciesAndReport({
   rules,
   dependency,
   settings,
@@ -572,15 +721,15 @@ export function evaluateRulesAndReport({
   node,
   options,
 }: {
-  rules: DependenciesRule[];
+  rules: DependenciesPolicy[];
   settings: SettingsNormalized;
   context: Rule.RuleContext;
   node: EslintLiteralNode;
-  options?: RuleOptionsWithRules;
+  options?: RuleOptionsWithPolicies;
   dependency: DependencyDescription;
 }): void {
   const matcher = getElementsMatcher(settings);
-  const result = evaluateRules(rules, dependency, matcher, settings);
+  const result = evaluatePolicies(rules, dependency, matcher, settings);
   const defaultAllowed = options?.default === "allow";
   let finalAllowed = false;
   if (result.allowed === true) {
@@ -626,22 +775,26 @@ export default function getDependencyRule(
     {
       ruleName,
       description: `Check dependencies between elements`,
+      deprecated:
+        ruleName === RULE_NAMES_MAP.ELEMENT_TYPES
+          ? deprecatedRuleInfo(RULE_NAMES_MAP.DEPENDENCIES)
+          : undefined,
       schema: rulesOptionsSchema({
         extraOptionsSchema: {
           checkAllOrigins: {
             type: "boolean",
             description:
-              "Whether to check dependencies from all origins (including external and core) or only from local elements. Default to false (only local).",
+              "Whether to check dependencies from all origins (including external and core) or only from local entities. Default to false (only local).",
           },
           checkUnknownLocals: {
             type: "boolean",
             description:
-              "Whether to check local dependencies with unknown elements (not matching any element descriptor) or to ignore them. Default to false (ignore).",
+              "Whether to check local dependencies with unknown entities (not matching any entity descriptor) or to ignore them. Default to false (ignore).",
           },
           checkInternals: {
             type: "boolean",
             description:
-              "Whether to check internal dependencies (dependencies within files in the same element). Default to false (ignore).",
+              "Whether to check internal dependencies (dependencies within files in the same entity). Default to false (ignore).",
           },
         },
       }),
@@ -653,22 +806,34 @@ export default function getDependencyRule(
           migrationToV6GuideLink("rule-element-types-renamed-to-dependencies")
         );
       }
-      // Validate and warn about legacy selector syntax
-      validateAndWarnRuleOptions(options, ruleName, "from");
+      // Validate and warn about deprecated rule option syntax (legacy
+      // selectors, legacy templates, and rule-level importKind).
+      validateAndWarnRuleOptions(options, ruleName, settings.legacyWarnings);
 
       const checkAllOrigins = options?.checkAllOrigins ?? false;
       const checkUnknownLocals = options?.checkUnknownLocals ?? false;
       const checkInternals = options?.checkInternals ?? false;
 
+      const isLocalDependency =
+        dependency.to.module.origin === ORIGINS_MAP.LOCAL;
+      const isUnknownLocalDependency =
+        isLocalDependency &&
+        dependency.to.file.isUnknown &&
+        dependency.to.element.isUnknown;
+      const isInternalDependency =
+        dependency.dependency.relationship.to ===
+        DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL;
+
       if (
-        !isIgnoredElement(dependency.to) &&
-        (checkAllOrigins || isLocalElement(dependency.to)) &&
-        (checkUnknownLocals || !isUnknownLocalElement(dependency.to)) &&
-        (checkInternals || !isInternalDependency(dependency))
+        !dependency.to.file.isIgnored &&
+        !dependency.from.file.isIgnored &&
+        (checkAllOrigins || isLocalDependency) &&
+        (checkUnknownLocals || !isUnknownLocalDependency) &&
+        (checkInternals || !isInternalDependency)
       ) {
-        const rules = options?.rules ?? [];
-        evaluateRulesAndReport({
-          rules,
+        const policies = options?.policies ?? options?.rules ?? [];
+        evaluatePoliciesAndReport({
+          rules: policies,
           settings,
           context,
           node,

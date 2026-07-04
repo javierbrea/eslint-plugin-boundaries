@@ -7,59 +7,73 @@ tags:
   - rules
   - configuration
   - examples
+  - deprecated
+  - migration
 keywords:
   - eslint-plugin-boundaries
   - entry-point rule
   - public API
-  - internalPath
+  - fileInternalPath
   - import restrictions
   - migration
   - dependencies replacement
+  - deprecated rule
 ---
 
 import CodeDiff from "@site/src/components/CodeDiff";
 
 # entry-point
 
-> Enforce entry point restrictions for **[elements](../setup/elements.md)** in your project.
+> Enforce entry point restrictions for **[elements](../classification/elements.md)** in your project.
+
+:::warning[Deprecated]
+`boundaries/entry-point` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`boundaries/dependencies`](./dependencies.md)** instead.
+
+It keeps working without changes; you will see a deprecation warning in your console:
+
+```text
+Rule "boundaries/entry-point" is deprecated and will be removed in future versions. Please migrate to the "boundaries/dependencies" rule with appropriate selectors.
+```
+
+Read the **[migration guide below](#migration-to-boundariesdependencies)** for conversion examples, and the **[v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx)** for the full picture.
+:::
+
+:::info[Same base mechanism as Policies]
+This rule builds on the same base configuration documented in **[Policies](../policies/policies.mdx)** (a `default` plus a `rules` array). The differences are: its rule entries use a required **`target`** entity selector (an alias of `to`) instead of `from`/`to`, and the policy `allow`/`disallow` values match the imported **`fileInternalPath`** entry points. Read [Policies](../policies/policies.mdx) first, then the options below for the differences.
+:::
 
 ## Rule Details
 
-
-This rule validates dependencies to ensure that each element is imported only through its defined entry point based on the provided configuration. It helps maintain consistent access patterns across your codebase and prevents bypassing public interfaces.
-
-:::warning
-The boundaries set by this rule can also be achieved with the **[`boundaries/dependencies` rule](./dependencies.md)**, which allows you to specify allowed entry points directly in the rules by using the [`internalPath` selector property](../setup/selectors.md). This legacy rule will continue working for now to give you more time to migrate your configuration, but it is recommended to migrate to `boundaries/dependencies` as soon as possible, as this rule will eventually be removed in oncoming major versions.
-
-Read the **[migration guide below](#migration-to-boundariesdependencies)** for more details and examples on how to migrate your configuration.
-:::
+This rule validates dependencies to ensure that each element is imported only through its defined entry point. Files that are not declared as entry points cannot be imported from other elements.
 
 ## Options
 
 ```
 "boundaries/entry-point":
-  [<enabled>, { "default": <string>, "message": <string>, "rules": <object> }]
+  [<severity>, { "default": <string>, "message": <string>, "rules": <object> }]
 ```
 
-**Configuration properties:**
+The first item in the array is the ESLint severity (`0` = off, `1` = warning, `2` = error). The second item is the options object:
 
-
-- `enabled`: Enables the rule. `0` = off, `1` = warning, `2` = error
-- `default`: `"allow"` or `"disallow"`. Determines the default behavior for imports that don't match any rule
+- `default`: `"allow"` or `"disallow"`. Determines the default behavior for imports that don't match any policy rule. If `"allow"`, imports are allowed unless explicitly disallowed by a rule. If `"disallow"`, imports are disallowed unless explicitly allowed by a policy.
 - `message`: Custom error message for rule violations. Note that **the default message provides detailed information about why the error occurred**, so only define a custom message if necessary. See [error messages](#error-messages) for more information
-- `rules`: An array of rule objects processed in order to determine whether an import should be allowed. Each rule object can have the following properties:
-  - `target`: **[`<element selectors>`](../setup/selectors.md)** - If defined, the rule will only be evaluated if the imported element matches this selector.
-  - `disallow`: `<string>` - A [micromatch pattern](https://github.com/micromatch/micromatch). If the imported file path matches this pattern, the import is disallowed (can be overridden by a subsequent rule returning `"allow"`)
-  - `allow`: `<string>` - A [micromatch pattern](https://github.com/micromatch/micromatch). If the imported file path matches this pattern, the import is allowed (can be overridden by a subsequent rule returning `"disallow"`)
-  - `importKind`: `<string>` - Optional. Makes sense when using [TypeScript](../guides/typescript-support.md) only. If defined, the rule will only be evaluated for dependencies of the specified kind. Possible values: `"value"`, `"type"`, or `"typeof"`. If defined, the rule will only be evaluated for dependencies of the specified kind.
-  - `message`: `<string>` - Custom error message for this specific rule. See [error messages](#error-messages) for more information
+- `rules`: An array of policy objects processed in order to determine whether an import should be allowed. Each policy object can have the following properties:
+  - `target` (**required**): **[`<entity selectors>`](../selectors/selectors.md)** - The policy is only evaluated when the imported element matches this selector. Accepts both legacy element selectors (for example `{ type: "module" }`) and entity selectors (for example `{ element: { type: "module" } }`).
+  - `disallow`: `<string>` - A [micromatch pattern](https://github.com/micromatch/micromatch). If the imported file path matches this pattern, the import is disallowed (can be overridden by a subsequent rule returning `"allow"`). The pattern is matched against the `fileInternalPath` — the imported file's path relative to its element root (for example `index.js` or `subfolder/main.js`)
+  - `allow`: `<string>` - A [micromatch pattern](https://github.com/micromatch/micromatch). If the imported file path matches this pattern, the import is allowed (can be overridden by a subsequent rule returning `"disallow"`). Like `disallow`, the pattern is matched against the `fileInternalPath`
+  - _`importKind`_: `<string>` - Optional. Makes sense when using [TypeScript](../guides/typescript-support.md) only. If defined, the policy is only evaluated for dependencies of the specified kind. Possible values: `"value"`, `"type"`, or `"typeof"`
+  - `message`: `<string>` - Custom error message for this specific policy. See [error messages](#error-messages) for more information
 
 :::warning
-You must provide at least one of `allow` or `disallow`, and one of `to`/`target` or `from` for each rule.
+Each policy requires `target` and at least one of `allow` or `disallow`.
+:::
+
+:::warning[Deprecated]
+The policy-level `importKind` option is deprecated. When you migrate to **[`boundaries/dependencies`](./dependencies.md)**, replace it with the `dependency.kind` selector property. See the **[v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx)** for details.
 :::
 
 :::info
-Read the **[rules configuration](../setup/rules.mdx)** documentation to learn about how to use common rule options, use [selectors](../setup/selectors.md) in rule options, and customize error messages with templates.
+Read the **[policies](../policies/policies.mdx)** documentation to learn about how to use common policy options, use [selectors](../selectors/selectors.md) in policy options, and customize error messages with templates.
 :::
 
 :::tip
@@ -68,23 +82,22 @@ Enable [debug mode](../guides/debugging.md) in the plugin configuration to inspe
 
 ### Configuration Example
 
-
 ```js
 {
   rules: {
     "boundaries/entry-point": [2, {
       // disallow all entry points by default
       default: "disallow",
-      rules: [
+      policies: [
         {
           // when importing helpers
-          to: { type: "helper" },
-          // allow any file (helpers are single files)
+          target: { type: "helper" },
+          // allow importing any file from a helper element
           allow: "*"
         },
         {
           // when importing components or modules
-          to: {
+          target: {
             type: [
               "component",
               "module"
@@ -93,6 +106,7 @@ Enable [debug mode](../guides/debugging.md) in the plugin configuration to inspe
           // only allow index.js
           allow: "index.js",
           // allow only importing values, not types (TypeScript only)
+          // note: importKind is deprecated, use dependency.kind after migrating
           importKind: "value"
         }
       ]
@@ -101,15 +115,11 @@ Enable [debug mode](../guides/debugging.md) in the plugin configuration to inspe
 }
 ```
 
-
 ### Settings
-
 
 The following examples use this project structure and settings configuration.
 
-
 **Project structure:**
-
 
 ```text
 src/
@@ -143,9 +153,7 @@ src/
         └── ModuleB.js
 ```
 
-
 **Settings configuration:**
-
 
 ```js
 {
@@ -153,20 +161,17 @@ src/
     "boundaries/elements": [
       {
         type: "helper",
-        pattern: "helpers/*/*.js",
-        mode: "file",
-        capture: ["family", "elementName"]
+        pattern: "helpers/*",
+        capture: ["family"]
       },
       {
         type: "component",
         pattern: "components/*/*",
-        mode: "folder",
         capture: ["family", "elementName"]
       },
       {
         type: "module",
         pattern: "modules/*",
-        mode: "folder",
         capture: ["elementName"]
       }
     ],
@@ -177,101 +182,86 @@ src/
 }
 ```
 
-
 :::note
 These examples use aliases for the `src/helpers`, `src/components`, and `src/modules` folders. You can also use relative paths. You can **[configure the plugin to recognize aliases by using resolvers](../guides/custom-resolvers.md).**
 :::
 
-
 ## Examples
-
 
 ### Incorrect
 
-
 Importing files other than `index.js` from components:
-
 
 ```js
 // src/modules/module-a/ModuleA.js
 import AtomA from 'components/atoms/atom-a/AtomA'
 ```
 
-
 Importing files other than `index.js` from modules:
-
 
 ```js
 // src/modules/module-a/ModuleA.js
 import ModuleB from 'modules/module-b/ModuleB'
 ```
 
-
 Importing types from module entry points:
-
 
 ```js
 // src/modules/module-a/ModuleA.js
 import type ModuleB from 'modules/module-b'
 ```
 
-
 ### Correct
 
-
 Importing helper files:
-
 
 ```js
 // src/components/atoms/atom-a/AtomA.js
 import { someParser } from 'helpers/data/parse'
 ```
 
-
 Importing `index.js` from components:
-
 
 ```js
 // src/components/atoms/atom-a/AtomA.js
 import ComponentB from 'components/atoms/atom-b'
 ```
 
-
 Explicitly importing `index.js` from components:
-
 
 ```js
 // src/components/atoms/atom-a/AtomA.js
 import ComponentB from 'components/atoms/atom-b/index.js'
 ```
 
-
 Importing `index.js` from modules:
-
 
 ```js
 // src/modules/module-a/ModuleA.js
 import ModuleB from 'modules/module-b'
 ```
 
-
 ## Error Messages
 
 This rule provides detailed error messages to help you understand and resolve violations.
 
-It uses the same default message format as [`boundaries/dependencies`](./dependencies.md#error-messages). The message includes information about the violated rule and the elements involved in the violation, as well as details about the specific import that is not allowed (e.g., the internal path of the imported file).
+It uses the same default message format as [`boundaries/dependencies`](./dependencies.md#error-messages). The message includes information about the violated rule and the elements involved in the violation, as well as the internal path of the imported file.
+
+For example:
+
+`Dependencies to elements of type "module", captured values: elementName="module-a" and fileInternalPath "ModuleA.js" are not allowed. Denied by rule at index 1`
 
 ### Custom Messages with Templates
 
 :::tip
-You can customize error messages globally or for specific rules. See [Rules Configuration -> Message Templating](../setup/rules.mdx#message-templating) for more details.
+You can customize error messages globally or for specific rules. See [Rules Configuration -> Message Templating](../policies/policies.mdx#message-templating) for more details.
 :::
 
 ## Migration to `boundaries/dependencies`
 
-The entry point restrictions enforced by this rule can also be achieved with the more flexible and powerful `boundaries/dependencies` rule, which allows you to specify allowed entry points directly in the rules by using the `internalPath` selector property. It is recommended to migrate your configuration to `boundaries/dependencies` as soon as possible, as this legacy rule will eventually be removed in oncoming major versions.
+The entry point restrictions enforced by this rule can also be achieved with the `boundaries/dependencies` rule. There, you select the target element with `to`, and constrain the importable files with the `fileInternalPath` property of the `element` sub-selector.
 
-Here you have an example of how to migrate a configuration from `boundaries/entry-point` to `boundaries/dependencies`:
+The following example shows how to migrate a configuration from `boundaries/entry-point` to `boundaries/dependencies`. The legacy `target` becomes `to`, and `allow: "index.js"` becomes a policy that allows only files whose `fileInternalPath` matches `index.js`. The deprecated `importKind` option becomes `dependency.kind`:
 
 <CodeDiff language="javascript">{`
 . {
@@ -279,40 +269,37 @@ Here you have an example of how to migrate a configuration from `boundaries/entr
 -     "boundaries/entry-point": [2, {
 +     "boundaries/dependencies": [2, {
 .       default: "disallow",
-.       rules: [
+.       policies: [
 -         {
 -           target: ["component", "module"],
 -           allow: "index.js",
 -           importKind: "value"
 -         }
 +         {
-+           to: {
-+             type: ["component", "module"],
-+             internalPath: "!index.js" 
++           to: { element: { type: ["component", "module"] } },
++           allow: {
++             to: { element: { fileInternalPath: "index.js" } }
 +           },
-+           disallow: {
-+             from: {
-+               type: "*",
-+             }
-+           }
-+         },
++           dependency: { kind: "value" }
++         }
 .       ]
 .     }]
 .   }
 . }
 `}</CodeDiff>
 
-:::tip Bonus: Allowing different entry points based on the importer element
+Read more about entity selectors and the `fileInternalPath` property in the **[Selectors](../selectors/selectors.md)** documentation, and see the **[v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx)** for the complete migration.
+
+:::tip[Bonus: Allowing different entry points based on the importer element]
 With `boundaries/dependencies` you can also define rules to allow different entry points depending on the importer element, which was not possible with the `entry-point` rule. For example, you could allow importing `index.js` from components but only allow importing `main.js` from modules.
 :::
 
 ## Further Reading
 
+Learn more about related topics:
 
-Read next sections to learn more about related topics:
-
-
-* [Defining Elements](../setup/elements.md) - Learn how to define architectural elements in your project
-* [Element Selectors](../setup/selectors.md) - Learn how to define and use element selectors in your rules
-* [Rules Configuration](../setup/rules.mdx) - Learn how to configure common rule options
-* [Global Settings](../setup/settings.md) - Learn about global settings that affect all rules
+- [Defining Elements](../classification/elements.md) - Learn how to define architectural elements in your project
+- [Selectors](../selectors/selectors.md) - Learn how to use element, file, and module selectors (the `target` option accepts entity selectors)
+- [Policies](../policies/policies.mdx) - Learn how to configure common rule options
+- [Global Settings](../settings/settings.md) - Learn about global settings that affect all rules
+- [Migrating from v6 to v7](../releases/migration-guides/v6-to-v7.mdx) - Migrate deprecated rules to `boundaries/dependencies`

@@ -10,13 +10,16 @@ import { errorMessage, externalNoRuleMessage } from "../../support/messages";
 
 const { absoluteFilePath } = pathResolvers("one-level");
 
+let testIndex = 0;
+
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
   errorMessages: Record<number, string>
 ) => {
+  testIndex++;
   const ruleTester = createRuleTester(settings);
-  ruleTester.run(RULE, rule, {
+  ruleTester.run(`${RULE} - ${testIndex}`, rule, {
     valid: [
       // Modules can import react-router-dom
       {
@@ -391,19 +394,19 @@ runTest(
     },
   ],
   {
-    0: 'Dependencies with kind "value" and module "react" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    1: 'Dependencies with kind "type" and module "react-router-dom" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 1',
-    2: 'Dependencies with kind "value", module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    3: 'Dependencies with kind "value", module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    4: 'Dependencies with kind "value", module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    5: 'Dependencies with kind "value", module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    6: 'Dependencies with kind "value", module "foo-library" and specifiers "Link", "Router" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    7: 'Dependencies with kind "type" and module "@material-ui/core" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
-    8: 'Dependencies with kind "value" and module "@material-ui/core" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
-    9: 'Dependencies with kind "value" and module "react-router-dom" to elements of origin "external" and internalPath "/var/foo" are not allowed in elements of type "modules". Denied by rule at index 2',
-    10: 'Dependencies with kind "type" and module "react-router-dom" to elements of origin "external" and internalPath "/var/foo" are not allowed in elements of type "modules". Denied by rule at index 2',
-    11: 'Dependencies with kind "type" and module "@material-ui/icons" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
-    12: 'Dependencies with kind "type" and module "@material-ui/icons" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
+    0: 'Dependencies with kind "value" and module source "react" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    1: 'Dependencies with kind "type" and module source "react-router-dom" to entities of module with origin "external" are not allowed in elements of type "components". Denied by policy at index 1',
+    2: 'Dependencies with kind "value", module source "foo-library" and specifiers "Link" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    3: 'Dependencies with kind "value", module source "foo-library" and specifiers "Link" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    4: 'Dependencies with kind "value", module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    5: 'Dependencies with kind "value", module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    6: 'Dependencies with kind "value", module source "foo-library" and specifiers "Link", "Router" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    7: 'Dependencies with kind "type" and module source "@material-ui/core" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by policy at index 2',
+    8: 'Dependencies with kind "value" and module source "@material-ui/core" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by policy at index 2',
+    9: 'Dependencies with kind "value", module source "react-router-dom" and module internalPath "var/foo" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by policy at index 2',
+    10: 'Dependencies with kind "type", module source "react-router-dom" and module internalPath "var/foo" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by policy at index 2',
+    11: 'Dependencies with kind "type" and module source "@material-ui/icons" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by policy at index 2',
+    12: 'Dependencies with kind "type" and module source "@material-ui/icons" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by policy at index 2',
   }
 );
 
@@ -449,9 +452,8 @@ runTest(
         },
         {
           from: "modules",
-          disallow: [["react-router-dom", { path: ["/var/foo", "fake"] }]],
-          message:
-            "Do not import ${dependency.importKind} ${report.path} from RDD in modules",
+          disallow: [["react-router-dom", { path: ["var/foo", "fake"] }]],
+          message: "Do not import ${dependency.importKind} from RDD in modules",
           importKind: "*",
         },
         {
@@ -463,18 +465,18 @@ runTest(
     },
   ],
   {
-    0: 'There is no rule allowing dependencies from elements of type "helpers" and elementName "helper-a" to elements of origin "external" with module "react"',
-    1: 'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of origin "external" with module "react-router-dom"',
-    2: 'Dependencies with kind "value", module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 1',
-    3: 'Dependencies with kind "value", module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 1',
-    4: 'Dependencies with kind "value", module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 1',
-    5: 'Dependencies with kind "value", module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 1',
-    6: 'Dependencies with kind "value", module "foo-library" and specifiers "Link", "Router" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 1',
-    7: 'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of origin "external" with module "@material-ui/core"',
-    8: 'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of origin "external" with module "@material-ui/core"',
-    9: "Do not import value /var/foo from RDD in modules",
-    10: "Do not import type /var/foo from RDD in modules",
-    11: 'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of origin "external" with module "@material-ui/icons"',
-    12: 'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of origin "external" with module "@material-ui/icons"',
+    0: 'There is no policy allowing dependencies from elements of type "helpers" and captured values: elementName="helper-a" to entities of module with origin "external" and module source "react"',
+    1: 'There is no policy allowing dependencies from elements of type "components" and captured values: elementName="component-a" to entities of module with origin "external" and module source "react-router-dom"',
+    2: 'Dependencies with kind "value", module source "foo-library" and specifiers "Link" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 1',
+    3: 'Dependencies with kind "value", module source "foo-library" and specifiers "Link" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 1',
+    4: 'Dependencies with kind "value", module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 1',
+    5: 'Dependencies with kind "value", module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 1',
+    6: 'Dependencies with kind "value", module source "foo-library" and specifiers "Link", "Router" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 1',
+    7: 'There is no policy allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to entities of module with origin "external" and module source "@material-ui/core"',
+    8: 'There is no policy allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to entities of module with origin "external" and module source "@material-ui/core"',
+    9: "Do not import value from RDD in modules",
+    10: "Do not import type from RDD in modules",
+    11: 'There is no policy allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to entities of module with origin "external" and module source "@material-ui/icons"',
+    12: 'There is no policy allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to entities of module with origin "external" and module source "@material-ui/icons"',
   }
 );

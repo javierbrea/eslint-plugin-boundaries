@@ -10,7 +10,8 @@ const settings = SETTINGS.docsExamples;
 const { absoluteFilePath, codeFilePath } = pathResolvers("docs-examples");
 
 const FOO_CODE = "export default {}";
-const ERROR_MESSAGE = "File does not match any element pattern";
+const ERROR_MESSAGE =
+  "File does not match any file pattern and does not belong to any known element";
 
 const ruleTester = createRuleTester(settings);
 

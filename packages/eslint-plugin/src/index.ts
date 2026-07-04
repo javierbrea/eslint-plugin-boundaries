@@ -6,9 +6,9 @@ import strictConfig from "./Config/Strict";
 import getDependenciesRule from "./Rules/Dependencies";
 import EntryPointRule from "./Rules/EntryPoint";
 import ExternalRule from "./Rules/External";
-import NoIgnoredRule from "./Rules/NoIgnored";
+import getNoIgnoredDependenciesRule from "./Rules/NoIgnored";
 import NoPrivateRule from "./Rules/NoPrivate";
-import NoUnknownRule from "./Rules/NoUnknown";
+import getNoUnknownDependenciesRule from "./Rules/NoUnknown";
 import NoUnknownFilesRule from "./Rules/NoUnknownFiles";
 import { RULE_SHORT_NAMES_MAP, SETTINGS } from "./Shared";
 import type { PluginBoundaries } from "./Shared";
@@ -41,9 +41,19 @@ const RULES = {
   ),
   [RULE_SHORT_NAMES_MAP.DEPENDENCIES]: getDependenciesRule(),
   [RULE_SHORT_NAMES_MAP.EXTERNAL]: ExternalRule,
-  [RULE_SHORT_NAMES_MAP.NO_IGNORED]: NoIgnoredRule,
+  [RULE_SHORT_NAMES_MAP.NO_IGNORED_DEPENDENCIES]:
+    getNoIgnoredDependenciesRule(),
+  /** @deprecated Use no-ignored-dependencies rule instead */
+  [RULE_SHORT_NAMES_MAP.NO_IGNORED]: getNoIgnoredDependenciesRule(
+    SETTINGS.RULE_NO_IGNORED
+  ),
   [RULE_SHORT_NAMES_MAP.NO_PRIVATE]: NoPrivateRule,
-  [RULE_SHORT_NAMES_MAP.NO_UNKNOWN]: NoUnknownRule,
+  [RULE_SHORT_NAMES_MAP.NO_UNKNOWN_DEPENDENCIES]:
+    getNoUnknownDependenciesRule(),
+  /** @deprecated Use no-unknown-dependencies rule instead */
+  [RULE_SHORT_NAMES_MAP.NO_UNKNOWN]: getNoUnknownDependenciesRule(
+    SETTINGS.RULE_NO_UNKNOWN
+  ),
   [RULE_SHORT_NAMES_MAP.NO_UNKNOWN_FILES]: NoUnknownFilesRule,
 };
 

@@ -3,37 +3,44 @@ export type {
   DependencyKind,
   CapturedValuesSelector,
   ElementSelector,
-  ElementSelectors,
-  ElementsSelector,
-  ElementSelectorWithOptions,
+  LegacySimpleElementSingleSelectorByTypeWithOptions,
   FlagAsExternalOptions,
 } from "@boundaries/elements";
 
-export { isElementSelector, isElementsSelector } from "@boundaries/elements";
+export { isElementSelector } from "@boundaries/elements";
 
 export type {
+  RuleEffect,
   RulePolicy,
   RuleBaseOptions,
-  ElementTypesRule,
-  ElementTypesRuleOptions,
+  DependenciesPolicy,
   DependenciesRule,
   DependenciesRuleOptions,
+  EntryPointPolicy,
   EntryPointRule,
   EntryPointRuleOptions,
+  ExternalPolicy,
   ExternalRule,
   ExternalRuleOptions,
   NoPrivateOptions,
+  NoUnknownDependenciesOptions,
   RuleShortName,
   RuleName,
 } from "../Shared";
 
 export {
+  RULE_EFFECTS_MAP,
   RULE_POLICIES_MAP,
   RULE_SHORT_NAMES_MAP,
   RULE_NAMES_MAP,
 } from "../Shared";
 
-export { isRulePolicy, isRuleShortName, isRuleName } from "../Settings";
+export {
+  isRuleEffect,
+  isRulePolicy,
+  isRuleShortName,
+  isRuleName,
+} from "../Settings";
 
 /**
  * Kind of import that the rule applies to (e.g., "type", "value")

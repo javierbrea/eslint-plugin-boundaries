@@ -17,7 +17,7 @@ keywords:
 
 # TypeScript Support
 
-Eslint Plugin Boundaries provides first-class TypeScript support, including full type definitions for configuration and seamless integration with TypeScript projects.
+The plugin ships TypeScript type definitions for all configuration objects. This guide explains how to configure a TypeScript project and use the exported types for autocomplete and compile-time checking of your eslint-plugin-boundaries config.
 
 ## Prerequisites
 
@@ -97,11 +97,15 @@ const config: Config = {
   rules: {
     "boundaries/dependencies": [
       "error",
-      { default: "disallow", rules: [] },
+      { default: "disallow", policies: [] },
     ],
   },
 };
 ```
+
+:::tip
+For a more strongly-typed setup that also registers the plugin and validates rule prefixes for you, use [`createConfig`](../settings/config-helpers.md) imported from `eslint-plugin-boundaries/config`. The manual `Config` object above remains a valid alternative when you need to compose configs by hand.
+:::
 
 ### Custom Plugin Names
 
@@ -130,18 +134,23 @@ Settings always use the `boundaries/` prefix regardless of the plugin name, as E
 
 ### Granular Type Exports
 
-In addition to the main `Config` type, the plugin exports individual subtypes for fine-grained type safety:
+In addition to the main `Config` type, the plugin exports individual subtypes for fine-grained type safety. The most common ones:
 
-- `Settings` - Plugin settings configuration
-- `Rules` - Mapping of rule names to their configurations
-- `ElementDescriptor` - Element descriptors, as set in the `boundaries/elements` setting.
-- `DependenciesRule` - `dependencies` rule configuration
-- `DependenciesRuleOptions` - Options for the `dependencies` rule.
-- `ElementSelector` - Element selector syntax
-- `IgnoreSetting` - Ignore pattern configuration
-- ...
+- `Settings` - the `settings` object (typed `boundaries/*` keys).
+- `Rules` - mapping of rule names to their configurations.
+- `ElementDescriptor` - an entry of the [`boundaries/elements`](../classification/elements.md) setting.
+- `DependenciesPolicy` - one entry of the [`dependencies`](../rules/dependencies.md) rule's `policies` array (`DependenciesRule` is a deprecated alias).
+- `DependenciesRuleOptions` - options for the `dependencies` rule.
+- `ElementSelector` - an [element selector](../selectors/selectors.md).
+- `DependencyKind` - dependency kind union (`"value" | "type" | "typeof"`); replaces the deprecated `ImportKind`.
+- `CapturedValuesSelector` - captured-values selector.
+- `DependencyNodeKey`, `DependencyNodeSelector` - dependency-node configuration.
+- `IgnoreSetting`, `IncludeSetting`, `RootPathSetting`, `DebugSetting`, `SettingsKey` - other [settings](../settings/settings.md) types.
+- `FileDescriptor`, `FileDescriptors` - an entry (or array) of the [`boundaries/files`](../settings/settings.md#boundariesfiles) setting.
 
-This modular approach allows you to import only what you need while maintaining full autocomplete and type checking:
+The deprecated-rule option types (`EntryPointPolicy`, `EntryPointRuleOptions`, `ExternalPolicy`, `ExternalRuleOptions`, `NoPrivateOptions`) and constants/guards (`SETTINGS_KEYS_MAP`, `RULE_NAMES_MAP`, `DEPENDENCY_KINDS_MAP`, `isSettingsKey`, `isDependencyKind`, `isFileDescriptor`, and more) are also exported. See the package types for the complete list.
+
+This modular approach lets you import only what you need while keeping autocomplete and type checking:
 
 ```ts
 import type {
@@ -154,8 +163,8 @@ import type {
 
 const elementDescriptor: ElementDescriptor = {
   type: "module",
-  pattern: "src/modules/*",
-  capture: ["module"],
+  pattern: "modules/*",
+  capture: ["elementName"],
 };
 
 const settings: Settings = {
@@ -164,10 +173,10 @@ const settings: Settings = {
 
 const dependenciesRuleOptions: DependenciesRuleOptions = {
   default: "disallow",
-  rules: [
+  policies: [
     {
-      from: { type: "controller" },
-      allow: { to: { type: ["model", "view"] } },
+      from: { element: { type: "module" } },
+      allow: { to: { element: { type: "helper" } } },
     },
   ],
 };
@@ -183,15 +192,13 @@ const config: Config = {
 };
 ```
 
-## Benefits of TypeScript Integration
+:::note[Entity selectors]
+The example above uses [entity selectors](../selectors/selectors.md) (`from: { element: { type: "..." } }`). Flat element selectors (`from: { type: "..." }`) still work and are converted internally, but the entity selector form also gives you access to `file` and `module` matching.
+:::
 
-Using the plugin with TypeScript provides several advantages:
-
-- **Type Safety**: Catch configuration errors at development time
-- **Autocomplete**: Get intelligent suggestions in your IDE
-- **Documentation**: Inline type information serves as documentation
-- **Refactoring**: Safely rename and restructure configurations
-- **Path Mapping**: Automatic support for TypeScript path aliases
+:::warning[TypeScript breaking changes from v6]
+If you are upgrading from v6, the following type exports were removed: `ElementTypesRule`, `ElementTypesRuleOptions`, `ElementSelectors`, `ElementsSelector`, `ElementSelectorWithOptions`, the guards `isElementsSelector`, `isElementDescriptorMode`, `isImportKind`, and the constant `IMPORT_KINDS_MAP`. Replace them with `DependenciesPolicy`, `DependenciesRuleOptions`, `ElementSelector`, `isDependencyKind`, and `DEPENDENCY_KINDS_MAP`. The deprecated `ImportKind` type still exists but prefer `DependencyKind`. See the [v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx) for details.
+:::
 
 ## Troubleshooting
 
@@ -202,3 +209,11 @@ If you encounter issues with TypeScript support:
 3. Check that your `tsconfig.json` is valid and accessible
 4. Confirm that the TypeScript parser is correctly specified in `languageOptions`
 5. Refer to the example repository for a known working configuration
+
+## Further Reading
+
+- **[ESLint integration](../settings/config-helpers.md)** - `createConfig` and typed config helpers.
+- **[Elements](../classification/elements.md)** - element descriptors and the entity model.
+- **[Selectors](../selectors/selectors.md)** - element, file, and module selector types.
+- **[Settings](../settings/settings.md)** - all available settings.
+- **[Custom Resolvers](./custom-resolvers.md)** - resolver and path-alias configuration.

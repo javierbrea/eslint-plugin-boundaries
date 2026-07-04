@@ -10,11 +10,11 @@ type StatItem = {
 
 const stats: StatItem[] = [
   {
-    value: "~800",
+    value: "~900",
     label: "stargazers on GitHub",
   },
   {
-    value: "~1.5M",
+    value: "~4M",
     label: "monthly downloads",
   },
   {

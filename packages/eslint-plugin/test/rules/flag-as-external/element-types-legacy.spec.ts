@@ -1,5 +1,5 @@
 import ruleFactory from "../../../src/Rules/Dependencies";
-import noUnknownRule from "../../../src/Rules/NoUnknown";
+import getNoUnknownDependenciesRule from "../../../src/Rules/NoUnknown";
 import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
@@ -10,6 +10,7 @@ import type { RuleTesterSettings } from "../../support/helpers";
 import { elementTypesNoRuleMessage } from "../../support/messages";
 
 const rule = ruleFactory();
+const noUnknownRule = getNoUnknownDependenciesRule();
 
 const { absoluteFilePath } = pathResolvers("flag-as-external");
 
@@ -60,8 +61,8 @@ const testDefaultSettings = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: '"helpers", package "a" and elementName "helper-a"',
-              dep: '"components", package "a" and elementName "component-a"',
+              file: '"helpers" and captured values: package="a", elementName="helper-a"',
+              dep: '"components" and captured values: package="a", elementName="component-a"',
             }),
             type: "Literal",
           },
@@ -87,8 +88,8 @@ const testDefaultSettings = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: '"components", package "a" and elementName "component-a"',
-              dep: '"helpers", package "b" and elementName "helper-b"',
+              file: '"components" and captured values: package="a", elementName="component-a"',
+              dep: '"helpers" and captured values: package="b", elementName="helper-b"',
             }),
             type: "Literal",
           },
@@ -151,8 +152,8 @@ const testOutsideRootPath = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: '"helpers" and elementName "helper-a"',
-              dep: '"components" and elementName "component-a"',
+              file: '"helpers" and captured values: elementName="helper-a"',
+              dep: '"components" and captured values: elementName="component-a"',
             }),
             type: "Literal",
           },
@@ -214,8 +215,8 @@ const testCustomSourcePatterns = () => {
         errors: [
           {
             message: elementTypesNoRuleMessage({
-              file: '"helpers", package "a" and elementName "helper-a"',
-              dep: '"components", package "a" and elementName "component-a"',
+              file: '"helpers" and captured values: package="a", elementName="helper-a"',
+              dep: '"components" and captured values: package="a", elementName="component-a"',
             }),
             type: "Literal",
           },
