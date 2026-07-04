@@ -55,7 +55,6 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 
 3. **Follow the tagging conventions:** When creating or editing content, please use the appropriate tags from the list below to categorize your content properly.
 
-
 ## Content Organization and Tags
 
 To maintain consistency and improve content discoverability, all documentation should be tagged appropriately. Please use only the following predefined tags:
@@ -76,11 +75,19 @@ Tags should be added to the front matter of markdown files to enable filtering a
 
 ```
 website/
-├── docs/               # Documentation pages
-├── src/                # React components and custom pages
-├── static/             # Static assets (images, etc.)
-├── docusaurus.config.js  # Docusaurus configuration
-└── package.json        # Package metadata and dependencies
+├── docs/                    # Documentation pages for the current ("next") version
+├── versioned_docs/          # Snapshotted documentation for each released version
+├── versioned_sidebars/      # Sidebar configuration for each released version
+├── src/
+│   ├── components/          # React components used across the site
+│   ├── css/                 # Custom global styles
+│   ├── pages/                # Custom pages, including the home page
+│   └── theme/                # Swizzled/overridden Docusaurus theme components
+├── static/                  # Static assets (images, etc.)
+├── sidebars.ts              # Sidebar configuration for the current ("next") version
+├── docusaurus.config.ts     # Docusaurus configuration
+├── versions.json            # List of released documentation versions
+└── package.json             # Package metadata and dependencies
 ```
 
 ## Building for Production
