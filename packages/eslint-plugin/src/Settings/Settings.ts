@@ -1,4 +1,4 @@
-import { isAbsolute, resolve } from "path";
+import { isAbsolute, resolve } from "node:path";
 
 import type {
   ElementDescriptors,
@@ -807,6 +807,38 @@ function getNormalizedCache(cache: unknown): boolean {
  * @param flagAsExternal - Raw flag-as-external setting value.
  * @returns Normalized flag-as-external object with defaults.
  */
+const BOOLEAN_FLAG_AS_EXTERNAL_OPTION_KEYS = [
+  "unresolvableAlias",
+  "inNodeModules",
+  "outsideRootPath",
+] as const;
+
+/**
+ * Validates a boolean flag-as-external option, warning and leaving the default
+ * untouched when the provided value is not a valid boolean.
+ * @param options - Raw flag-as-external options provided by the user.
+ * @param validated - Normalized flag-as-external object to update in place.
+ * @param key - Name of the boolean option to validate.
+ */
+function validateBooleanFlagAsExternalOption(
+  options: Record<string, unknown>,
+  validated: Required<FlagAsExternalOptions>,
+  key: (typeof BOOLEAN_FLAG_AS_EXTERNAL_OPTION_KEYS)[number]
+): void {
+  if (isUndefined(options[key])) {
+    return;
+  }
+
+  if (isBoolean(options[key])) {
+    validated[key] = options[key];
+  } else {
+    warnOnce(
+      `Please provide a valid boolean for '${key}' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
+      moreInfoSettingsLink()
+    );
+  }
+}
+
 function getNormalizedFlagAsExternal(
   flagAsExternal: unknown
 ): Required<FlagAsExternalOptions> {
@@ -832,37 +864,8 @@ function getNormalizedFlagAsExternal(
   const validated: Required<FlagAsExternalOptions> = { ...defaults };
   const options = flagAsExternal as Record<string, unknown>;
 
-  if (!isUndefined(options.unresolvableAlias)) {
-    if (isBoolean(options.unresolvableAlias)) {
-      validated.unresolvableAlias = options.unresolvableAlias;
-    } else {
-      warnOnce(
-        `Please provide a valid boolean for 'unresolvableAlias' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
-        moreInfoSettingsLink()
-      );
-    }
-  }
-
-  if (!isUndefined(options.inNodeModules)) {
-    if (isBoolean(options.inNodeModules)) {
-      validated.inNodeModules = options.inNodeModules;
-    } else {
-      warnOnce(
-        `Please provide a valid boolean for 'inNodeModules' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
-        moreInfoSettingsLink()
-      );
-    }
-  }
-
-  if (!isUndefined(options.outsideRootPath)) {
-    if (isBoolean(options.outsideRootPath)) {
-      validated.outsideRootPath = options.outsideRootPath;
-    } else {
-      warnOnce(
-        `Please provide a valid boolean for 'outsideRootPath' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
-        moreInfoSettingsLink()
-      );
-    }
+  for (const key of BOOLEAN_FLAG_AS_EXTERNAL_OPTION_KEYS) {
+    validateBooleanFlagAsExternalOption(options, validated, key);
   }
 
   if (!isUndefined(options.customSourcePatterns)) {

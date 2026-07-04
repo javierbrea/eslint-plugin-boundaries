@@ -85,6 +85,48 @@ function capitalizeFirstLetter(message: string): string {
  * @param options.capturedKeys - If "captured" is included in properties, specifies which captured keys to include in the description.
  * @returns List of formatted message fragments describing the element based on the selected properties.
  */
+function buildSinglePropertyFragments(
+  elementDescription: ElementDescription | ElementParent,
+  propertyName: string,
+  options: {
+    capturedKeys?: string[];
+    parentProperties?: string[];
+    parentCapturedKeys?: string[];
+    includeNullValues: boolean;
+  },
+  includeNullValues: boolean
+): string[] {
+  if (propertyName === "parent") {
+    const parentFragment = buildParentFragment(
+      elementDescription,
+      options,
+      includeNullValues
+    );
+    return parentFragment ? [parentFragment] : [];
+  }
+
+  const value = getElementPropertyValue(elementDescription, propertyName);
+
+  if (propertyName === "captured") {
+    return buildCapturedFragments(
+      value,
+      options?.capturedKeys,
+      includeNullValues
+    );
+  }
+
+  if (shouldSkipFragmentValue(value, includeNullValues)) {
+    return [];
+  }
+
+  if (propertyName === "type" || propertyName === "types") {
+    const label = isArray(value) && value.length > 1 ? "types" : "type";
+    return [formatPropertyFragment(label, value)];
+  }
+
+  return [formatPropertyFragment(propertyName, value)];
+}
+
 function buildElementPropertyFragments(
   elementDescription: ElementDescription | ElementParent,
   properties: string[],
@@ -99,42 +141,14 @@ function buildElementPropertyFragments(
   const fragments: string[] = [];
 
   for (const propertyName of properties) {
-    if (propertyName === "parent") {
-      const parentFragment = buildParentFragment(
+    fragments.push(
+      ...buildSinglePropertyFragments(
         elementDescription,
+        propertyName,
         options,
         includeNullValues
-      );
-      if (parentFragment) {
-        fragments.push(parentFragment);
-      }
-      continue;
-    }
-
-    const value = getElementPropertyValue(elementDescription, propertyName);
-
-    if (propertyName === "captured") {
-      fragments.push(
-        ...buildCapturedFragments(
-          value,
-          options?.capturedKeys,
-          includeNullValues
-        )
-      );
-      continue;
-    }
-
-    if (shouldSkipFragmentValue(value, includeNullValues)) {
-      continue;
-    }
-
-    if (propertyName === "type" || propertyName === "types") {
-      const label = isArray(value) && value.length > 1 ? "types" : "type";
-      fragments.push(formatPropertyFragment(label, value));
-      continue;
-    }
-
-    fragments.push(formatPropertyFragment(propertyName, value));
+      )
+    );
   }
 
   return fragments;
@@ -794,15 +808,18 @@ function dependenciesNoRuleMatchedMessage(
   const targetModuleSource = dependency.to.module.source;
   const isExternalOrigin = targetModuleOrigin === "external";
 
+  const targetModuleSourceSuffix = shouldRenderDependencyValue(
+    targetModuleSource,
+    false
+  )
+    ? ` and module source ${formatPropertyValue(targetModuleSource)}`
+    : "";
+
   const targetModuleDescription = shouldRenderDependencyValue(
     targetModuleOrigin,
     false
   )
-    ? `module with origin ${formatPropertyValue(targetModuleOrigin)}${
-        shouldRenderDependencyValue(targetModuleSource, false)
-          ? ` and module source ${formatPropertyValue(targetModuleSource)}`
-          : ""
-      }`
+    ? `module with origin ${formatPropertyValue(targetModuleOrigin)}${targetModuleSourceSuffix}`
     : "";
 
   let toDescription =
@@ -825,6 +842,43 @@ function dependenciesNoRuleMatchedMessage(
     toDescription,
     dependencyDescription
   );
+}
+
+/**
+ * Selects the wording of a dependencies rule violation message based on which
+ * of its parts (dependency, target and source) are available.
+ * @param effectiveDependencyPart - Message fragment describing the dependency, or empty string when not available.
+ * @param toPart - Message fragment describing the target entity, or null when not available.
+ * @param fromPart - Message fragment describing the source entity, or null when not available.
+ * @returns Formatted violation message, or the generic {@link MESSAGE_ERROR} when no part is available.
+ */
+function selectDependencyMatchedMessage(
+  effectiveDependencyPart: string,
+  toPart: string | null,
+  fromPart: string | null
+): string {
+  if (effectiveDependencyPart && toPart && fromPart) {
+    return `Dependencies with ${effectiveDependencyPart} to ${toPart} are not allowed in ${fromPart}`;
+  }
+  if (effectiveDependencyPart && toPart) {
+    return `Dependencies with ${effectiveDependencyPart} to ${toPart} are not allowed`;
+  }
+  if (effectiveDependencyPart && fromPart) {
+    return `Dependencies with ${effectiveDependencyPart} are not allowed in ${fromPart}`;
+  }
+  if (toPart && fromPart) {
+    return `Dependencies to ${toPart} are not allowed in ${fromPart}`;
+  }
+  if (toPart) {
+    return `Dependencies to ${toPart} are not allowed`;
+  }
+  if (fromPart) {
+    return `Dependencies are not allowed in ${fromPart}`;
+  }
+  if (effectiveDependencyPart) {
+    return `Dependencies with ${effectiveDependencyPart} are not allowed`;
+  }
+  return MESSAGE_ERROR;
 }
 
 /**
@@ -887,23 +941,11 @@ export function dependenciesRuleMatchedMessage(
 
   const effectiveDependencyPart = joinWithCommasAndAnd(dependencyFragments);
 
-  let message = MESSAGE_ERROR;
-
-  if (effectiveDependencyPart && toPart && fromPart) {
-    message = `Dependencies with ${effectiveDependencyPart} to ${toPart} are not allowed in ${fromPart}`;
-  } else if (effectiveDependencyPart && toPart) {
-    message = `Dependencies with ${effectiveDependencyPart} to ${toPart} are not allowed`;
-  } else if (effectiveDependencyPart && fromPart) {
-    message = `Dependencies with ${effectiveDependencyPart} are not allowed in ${fromPart}`;
-  } else if (toPart && fromPart) {
-    message = `Dependencies to ${toPart} are not allowed in ${fromPart}`;
-  } else if (toPart) {
-    message = `Dependencies to ${toPart} are not allowed`;
-  } else if (fromPart) {
-    message = `Dependencies are not allowed in ${fromPart}`;
-  } else if (effectiveDependencyPart) {
-    message = `Dependencies with ${effectiveDependencyPart} are not allowed`;
-  }
+  const message = selectDependencyMatchedMessage(
+    effectiveDependencyPart,
+    toPart,
+    fromPart
+  );
 
   return `${capitalizeFirstLetter(message)}. Denied by policy at index ${ruleIndex}`;
 }

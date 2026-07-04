@@ -633,10 +633,10 @@ const ALWAYS_SCANNED_SELECTOR_FIELDS = [
   "dependency",
 ] as const;
 
-const RULE_NAMES_WITH_ENTITY_ALLOW_DISALLOW: RuleName[] = [
+const RULE_NAMES_WITH_ENTITY_ALLOW_DISALLOW: Set<RuleName> = new Set([
   RULE_NAMES_MAP.DEPENDENCIES,
   RULE_NAMES_MAP.ELEMENT_TYPES,
-];
+]);
 
 /**
  * Determines whether a value is a valid `from`/`to` entity selector, in either its
@@ -754,7 +754,7 @@ function ruleSelectorFieldMatches(
     }
   }
 
-  if (RULE_NAMES_WITH_ENTITY_ALLOW_DISALLOW.includes(ruleName)) {
+  if (RULE_NAMES_WITH_ENTITY_ALLOW_DISALLOW.has(ruleName)) {
     for (const field of ["allow", "disallow"] as const) {
       const value = ruleRecord[field];
       if (!isUndefined(value) && predicate(value)) {
@@ -1001,7 +1001,7 @@ export function validateAndWarnRuleOptions(
 
   trackedWarnedRuleOptions.add(options);
 
-  if (RULE_NAMES_WITH_ENTITY_ALLOW_DISALLOW.includes(ruleName)) {
+  if (RULE_NAMES_WITH_ENTITY_ALLOW_DISALLOW.has(ruleName)) {
     const rulesWithInvalidSelectors =
       collectRulesWithInvalidSelectors(policies);
     if (rulesWithInvalidSelectors.length > 0) {
@@ -1032,68 +1032,56 @@ export function validateAndWarnRuleOptions(
     }
   }
 
-  const {
-    rulesWithLegacySelector,
-    rulesWithLegacyTemplate,
-    rulesWithDeprecatedImportKind,
-    rulesWithDeprecatedV7SelectorProps,
-    rulesWithDeprecatedDependencyModule,
-    rulesWithDeprecatedInternalPath,
-  } = collectRuleWarningIndexes(policies, ruleName);
+  const ruleWarningIndexes = collectRuleWarningIndexes(policies, ruleName);
 
-  if (rulesWithLegacySelector.length > 0) {
-    warnOnce(
-      `[${ruleName}] Detected legacy selector syntax in ${
-        rulesWithLegacySelector.length
-      } rule(s) at indices: ${rulesWithLegacySelector.join(", ")}.`,
-      `Consider migrating to object-based selectors. ${migrationToV6GuideLink()}`
-    );
-  }
+  const legacySyntaxWarnings: {
+    indexes: number[];
+    summary: (count: number, indexList: string) => string;
+    detail: string;
+  }[] = [
+    {
+      indexes: ruleWarningIndexes.rulesWithLegacySelector,
+      summary: (count, indexList) =>
+        `[${ruleName}] Detected legacy selector syntax in ${count} rule(s) at indices: ${indexList}.`,
+      detail: `Consider migrating to object-based selectors. ${migrationToV6GuideLink()}`,
+    },
+    {
+      indexes: ruleWarningIndexes.rulesWithLegacyTemplate,
+      summary: (count, indexList) =>
+        `[${ruleName}] Detected legacy template syntax \${...} in ${count} rule(s) at indices: ${indexList}.`,
+      detail: `Consider migrating to {{...}} syntax. ${migrationToV6GuideLink("new-template-syntax")}`,
+    },
+    {
+      indexes: ruleWarningIndexes.rulesWithDeprecatedImportKind,
+      summary: (count, indexList) =>
+        `[${ruleName}] Detected deprecated rule-level "importKind" in ${count} rule(s) at indices: ${indexList}.`,
+      detail: `Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence. ${migrationToV6GuideLink("rule-level-importkind-is-deprecated")}`,
+    },
+    {
+      indexes: ruleWarningIndexes.rulesWithDeprecatedV7SelectorProps,
+      summary: (count, indexList) =>
+        `[${ruleName}] Detected deprecated selector properties (category, elementPath, filePath) in ${count} rule(s) at indices: ${indexList}.`,
+      detail: `Rename elementPath → path, filePath → fileInternalPath, and remove category (use file descriptors instead). ${moreInfoLink("setup/selectors", "deprecated-element-selector-properties")}`,
+    },
+    {
+      indexes: ruleWarningIndexes.rulesWithDeprecatedDependencyModule,
+      // cspell:ignore dependencymodule -- documentation anchor for the deprecated dependency.module property
+      summary: (count, indexList) =>
+        `[${ruleName}] Detected deprecated "dependency.module" property in ${count} rule(s) at indices: ${indexList}.`,
+      detail: `Use "to.module.source" instead. ${migrationToV7GuideLink("deprecated-dependencymodule")}`,
+    },
+    {
+      indexes: ruleWarningIndexes.rulesWithDeprecatedInternalPath,
+      summary: (count, indexList) =>
+        `[${ruleName}] Detected deprecated "internalPath" in element selectors in ${count} rule(s) at indices: ${indexList}.`,
+      detail: `Use "fileInternalPath" for local element paths, or the module sub-selector "internalPath" for external modules. ${moreInfoLink("setup/selectors", "deprecated-element-selector-properties")}`,
+    },
+  ];
 
-  if (rulesWithLegacyTemplate.length > 0) {
-    warnOnce(
-      `[${ruleName}] Detected legacy template syntax \${...} in ${
-        rulesWithLegacyTemplate.length
-      } rule(s) at indices: ${rulesWithLegacyTemplate.join(", ")}.`,
-      `Consider migrating to {{...}} syntax. ${migrationToV6GuideLink("new-template-syntax")}`
-    );
-  }
-
-  if (rulesWithDeprecatedImportKind.length > 0) {
-    warnOnce(
-      `[${ruleName}] Detected deprecated rule-level "importKind" in ${
-        rulesWithDeprecatedImportKind.length
-      } rule(s) at indices: ${rulesWithDeprecatedImportKind.join(", ")}.`,
-      `Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence. ${migrationToV6GuideLink("rule-level-importkind-is-deprecated")}`
-    );
-  }
-
-  if (rulesWithDeprecatedV7SelectorProps.length > 0) {
-    warnOnce(
-      `[${ruleName}] Detected deprecated selector properties (category, elementPath, filePath) in ${
-        rulesWithDeprecatedV7SelectorProps.length
-      } rule(s) at indices: ${rulesWithDeprecatedV7SelectorProps.join(", ")}.`,
-      `Rename elementPath → path, filePath → fileInternalPath, and remove category (use file descriptors instead). ${moreInfoLink("setup/selectors", "deprecated-element-selector-properties")}`
-    );
-  }
-
-  if (rulesWithDeprecatedDependencyModule.length > 0) {
-    // cspell:ignore dependencymodule -- documentation anchor for the deprecated dependency.module property
-    warnOnce(
-      `[${ruleName}] Detected deprecated "dependency.module" property in ${
-        rulesWithDeprecatedDependencyModule.length
-      } rule(s) at indices: ${rulesWithDeprecatedDependencyModule.join(", ")}.`,
-      `Use "to.module.source" instead. ${migrationToV7GuideLink("deprecated-dependencymodule")}`
-    );
-  }
-
-  if (rulesWithDeprecatedInternalPath.length > 0) {
-    warnOnce(
-      `[${ruleName}] Detected deprecated "internalPath" in element selectors in ${
-        rulesWithDeprecatedInternalPath.length
-      } rule(s) at indices: ${rulesWithDeprecatedInternalPath.join(", ")}.`,
-      `Use "fileInternalPath" for local element paths, or the module sub-selector "internalPath" for external modules. ${moreInfoLink("setup/selectors", "deprecated-element-selector-properties")}`
-    );
+  for (const { indexes, summary, detail } of legacySyntaxWarnings) {
+    if (indexes.length > 0) {
+      warnOnce(summary(indexes.length, indexes.join(", ")), detail);
+    }
   }
 
   if (
