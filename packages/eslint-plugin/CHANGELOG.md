@@ -19,9 +19,7 @@ Version 7 introduces the **entity model**: every file is now described along thr
 - **Richer error messages.** Custom message templates can reference the full entity (`{{to.file.categories}}`, `{{to.module.source}}`, …). Default messages now include entity information too — re-record any exact-string snapshot assertions.
 - **Clearer vocabulary and rule names.** The `rules` option is now `policies` (each with an `effect`), `no-unknown` → `no-unknown-dependencies` (now file-aware), and `no-ignored` → `no-ignored-dependencies`. Old names/options keep working with a deprecation warning.
 
-> **The only thing that can affect automated checks without a config change:** default
-> report messages changed and `no-unknown-files` now considers file descriptors. If you
-> assert exact report strings in snapshots or CI, re-record them after upgrading.
+> **The only thing that can affect automated checks without a config change:** default report messages changed and `no-unknown-files` now considers file descriptors. If you assert exact report strings in snapshots or CI, re-record them after upgrading.
 
 ### Added
 
