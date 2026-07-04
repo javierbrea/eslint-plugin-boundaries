@@ -81,8 +81,14 @@ export function resolveExpandItem(
       )
       .map(String);
   }
-  if (isNullish(value) || isObject(value)) return [];
-  return [String(value)];
+  if (
+    isString(value) ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return [String(value)];
+  }
+  return [];
 }
 
 /** Expands `{ expand }` items in an operand list, keeping plain string matchers as-is. */
