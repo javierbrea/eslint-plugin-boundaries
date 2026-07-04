@@ -808,11 +808,7 @@ export default function getDependencyRule(
       }
       // Validate and warn about deprecated rule option syntax (legacy
       // selectors, legacy templates, and rule-level importKind).
-      validateAndWarnRuleOptions(
-        options,
-        ruleName,
-        settings.disableLegacyWarnings
-      );
+      validateAndWarnRuleOptions(options, ruleName, settings.legacyWarnings);
 
       const checkAllOrigins = options?.checkAllOrigins ?? false;
       const checkUnknownLocals = options?.checkUnknownLocals ?? false;

@@ -191,7 +191,7 @@ export default dependencyRule<ExternalRuleOptions>(
     validateAndWarnRuleOptions(
       options,
       RULE_NAMES_MAP.EXTERNAL,
-      settings.disableLegacyWarnings
+      settings.legacyWarnings
     );
 
     const origin = dependency.to.module.origin;

@@ -987,7 +987,7 @@ export function collectRuleWarningIndexes(
 export function validateAndWarnRuleOptions(
   options: RuleOptionsWithPolicies | undefined,
   ruleName: RuleName,
-  disableLegacyWarnings: boolean
+  legacyWarnings: boolean
 ): void {
   if (!options || trackedWarnedRuleOptions.has(options)) {
     return;
@@ -1014,7 +1014,7 @@ export function validateAndWarnRuleOptions(
     }
   }
 
-  if (disableLegacyWarnings) {
+  if (!legacyWarnings) {
     return;
   }
 

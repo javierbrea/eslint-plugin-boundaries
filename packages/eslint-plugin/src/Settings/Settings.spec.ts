@@ -12,9 +12,9 @@ import { warnOnce } from "../Debug";
 import {
   CACHE_DEFAULT,
   DEPENDENCY_NODE_KEYS_MAP,
-  DISABLE_LEGACY_WARNINGS_DEFAULT,
   ELEMENTS_SINGLE_TYPE_DEFAULT,
   LEGACY_TEMPLATES_DEFAULT,
+  LEGACY_WARNINGS_DEFAULT,
   SETTINGS,
   SETTINGS_KEYS_MAP,
 } from "../Shared/Settings.types";
@@ -196,12 +196,12 @@ describe("Settings/Settings", () => {
 
   describe("deprecateTypes", () => {
     it("does not warn when the value is falsy", () => {
-      deprecateTypes(undefined, false);
+      deprecateTypes(undefined, true);
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
 
     it("warns when the value is truthy", () => {
-      deprecateTypes([validElementDescriptor], false);
+      deprecateTypes([validElementDescriptor], true);
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
         expect.stringContaining(SETTINGS.TYPES),
@@ -212,12 +212,12 @@ describe("Settings/Settings", () => {
 
   describe("deprecateAlias", () => {
     it("does not warn when the value is falsy", () => {
-      deprecateAlias(undefined, false);
+      deprecateAlias(undefined, true);
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
 
     it("warns when the value is truthy", () => {
-      deprecateAlias({ "@components": "src/components" }, false);
+      deprecateAlias({ "@components": "src/components" }, true);
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
         expect.stringContaining(SETTINGS.ALIAS),
@@ -1183,51 +1183,49 @@ describe("Settings/Settings", () => {
       });
     });
 
-    describe("disableLegacyWarnings", () => {
-      it("returns false by default when the setting is absent", () => {
+    describe("legacyWarnings", () => {
+      it("returns true by default when the setting is absent", () => {
         const result = getSettings(
           buildContext({
             [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
           })
         );
 
-        expect(result.disableLegacyWarnings).toBe(
-          DISABLE_LEGACY_WARNINGS_DEFAULT
-        );
-        expect(result.disableLegacyWarnings).toBe(false);
+        expect(result.legacyWarnings).toBe(LEGACY_WARNINGS_DEFAULT);
+        expect(result.legacyWarnings).toBe(true);
       });
 
-      it("returns true when explicitly set to true", () => {
+      it("returns false when explicitly set to false", () => {
         const result = getSettings(
           buildContext({
             [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
-            [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]: true,
+            [SETTINGS_KEYS_MAP.LEGACY_WARNINGS]: false,
           })
         );
 
-        expect(result.disableLegacyWarnings).toBe(true);
+        expect(result.legacyWarnings).toBe(false);
       });
 
-      it("warns and returns false when the value is not a boolean", () => {
+      it("warns and returns true when the value is not a boolean", () => {
         const result = getSettings(
           buildContext({
             [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
-            [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]: "yes",
+            [SETTINGS_KEYS_MAP.LEGACY_WARNINGS]: "yes",
           })
         );
 
-        expect(result.disableLegacyWarnings).toBe(false);
+        expect(result.legacyWarnings).toBe(true);
         expect(mockedWarnOnce).toHaveBeenCalledWith(
-          expect.stringContaining(SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS),
+          expect.stringContaining(SETTINGS_KEYS_MAP.LEGACY_WARNINGS),
           expect.stringContaining("boolean")
         );
       });
 
-      it("skips all legacy deprecation warnings when set to true with boundaries/types", () => {
+      it("skips all legacy deprecation warnings when set to false with boundaries/types", () => {
         getSettings(
           buildContext({
             [SETTINGS_KEYS_MAP.TYPES]: [validElementDescriptor],
-            [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]: true,
+            [SETTINGS_KEYS_MAP.LEGACY_WARNINGS]: false,
           })
         );
 
@@ -1235,12 +1233,12 @@ describe("Settings/Settings", () => {
         expect(calls.some((m) => m.includes(SETTINGS.TYPES))).toBe(false);
       });
 
-      it("skips all legacy deprecation warnings when set to true with boundaries/alias", () => {
+      it("skips all legacy deprecation warnings when set to false with boundaries/alias", () => {
         getSettings(
           buildContext({
             [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
             [SETTINGS_KEYS_MAP.ALIAS]: { "@comp": "src/components" },
-            [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]: true,
+            [SETTINGS_KEYS_MAP.LEGACY_WARNINGS]: false,
           })
         );
 
@@ -1248,12 +1246,12 @@ describe("Settings/Settings", () => {
         expect(calls.some((m) => m.includes(SETTINGS.ALIAS))).toBe(false);
       });
 
-      it("skips all legacy deprecation warnings when set to true with legacyTemplates: true", () => {
+      it("skips all legacy deprecation warnings when set to false with legacyTemplates: true", () => {
         getSettings(
           buildContext({
             [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
             [SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]: true,
-            [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]: true,
+            [SETTINGS_KEYS_MAP.LEGACY_WARNINGS]: false,
           })
         );
 
@@ -1263,13 +1261,13 @@ describe("Settings/Settings", () => {
         ).toBe(false);
       });
 
-      it("skips the mode deprecation .some() check when set to true with deprecated mode in element descriptors", () => {
+      it("skips the mode deprecation .some() check when set to false with deprecated mode in element descriptors", () => {
         getSettings(
           buildContext({
             [SETTINGS_KEYS_MAP.ELEMENTS]: [
               { ...validElementDescriptor, mode: "folder" },
             ],
-            [SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]: true,
+            [SETTINGS_KEYS_MAP.LEGACY_WARNINGS]: false,
           })
         );
 

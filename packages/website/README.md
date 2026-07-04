@@ -64,10 +64,10 @@ To maintain consistency and improve content discoverability, all documentation s
 - **rules** – ESLint rules, enforcement strategies, and rule configuration
 - **examples** – Code examples and practical implementations
 - **eslint** – ESLint-related content and plugin usage
-- **typescript** – TypeScript-specific features, configurations, and best practices
 - **advanced** – Advanced topics and techniques for experienced users
 - **troubleshooting** – Common issues, error messages, and solutions
-- **integration** – Integration guides for third-party tools and frameworks
+- **deprecated** – Deprecated features and legacy configuration kept for backward compatibility
+- **migration** – Migration guides and upgrade instructions between versions
 
 Tags should be added to the front matter of markdown files to enable filtering and organization across the documentation site.
 

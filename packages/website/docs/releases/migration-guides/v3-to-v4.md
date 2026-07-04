@@ -5,6 +5,7 @@ sidebar_label: v3 to v4
 description: Guide to migrating from ESLint Plugin Boundaries from version 3 to version 4.
 tags:
   - configuration
+  - migration
 keywords:
   - eslint-plugin-boundaries
   - migration

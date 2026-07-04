@@ -49,7 +49,7 @@ Main changes include:
 - **[`rules` option renamed to `policies`](#rules-option-renamed-to-policies)** — clarifies that a rule contains policies, each with an effect
 - **[`rule` template variable renamed to `policy`](#rule-template-variable-renamed-to-policy)** — `{{rule.*}}` → `{{policy.*}}` in custom messages
 - **[TypeScript-only breaking changes](#typescript-only-breaking-changes)** — removed type exports (TS users only)
-- **[Once fully migrated](#once-fully-migrated)** — set `boundaries/disable-legacy-warnings: true` to skip legacy detection and silence the performance tip
+- **[Once fully migrated](#once-fully-migrated)** — set `boundaries/legacy-warnings: false` to skip legacy detection
 
 :::info[Backwards Compatibility]
 Your v6 configuration keeps working without changes. Legacy element selectors, the deprecated `category` and `dependency.module` properties, legacy `${ }` templates, and the v6 rule names continue to work in v7 and produce the same results. Some of them — legacy `${ }` templates and the deprecated rule names — print a deprecation warning in your console.
@@ -379,7 +379,7 @@ The per-entry option of the `boundaries/dependencies` rule (and the deprecated `
 This removes an overload in the vocabulary: the ESLint **rule** (`boundaries/dependencies`) *contains* a list of entries — calling those entries "rules" too made "a rule inside a rule" confusing. Each entry is now called a **policy**, and its `allow`/`disallow` decision is called its **effect**. So: a rule contains `policies`; each policy has an `effect`; `default` is the default effect.
 
 :::warning[Deprecated]
-The `rules` option is kept for backward compatibility but is deprecated. Using it prints a one-time deprecation warning (suppressible via [`boundaries/disable-legacy-warnings`](../../settings/settings.md#boundariesdisable-legacy-warnings)) and it will be removed in a future major version. See the [Legacy Policy Configuration](../../policies/legacy.mdx) page for details.
+The `rules` option is kept for backward compatibility but is deprecated. Using it prints a one-time deprecation warning (suppressible by setting [`boundaries/legacy-warnings`](../../settings/settings.md#boundarieslegacy-warnings) to `false`) and it will be removed in a future major version. See the [Legacy Policy Configuration](../../policies/legacy.mdx) page for details.
 :::
 
 <CodeDiff language="javascript">{`
@@ -503,12 +503,12 @@ Read more about `partialMatch` in the **[Elements](../../classification/elements
 
 The plugin performs a one-time detection of legacy patterns on every lint pass. This is useful while migrating, but once you have completed all the steps above, it is no longer necessary and can be disabled for performance.
 
-Set `boundaries/disable-legacy-warnings` to `true` to skip that detection work entirely.
+Set `boundaries/legacy-warnings` to `false` to skip that detection work entirely.
 
 ```js
 export default [{
   settings: {
-    "boundaries/disable-legacy-warnings": true
+    "boundaries/legacy-warnings": false
   }
 }]
 ```

@@ -156,7 +156,7 @@ describe("Settings/Rules", () => {
     const modernTo = { element: { type: "b" } };
 
     it("does nothing when options are undefined", () => {
-      validateAndWarnRuleOptions(undefined, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(undefined, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -164,7 +164,7 @@ describe("Settings/Rules", () => {
     it("does nothing when options.policies is missing", () => {
       const options = {} as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -174,7 +174,7 @@ describe("Settings/Rules", () => {
         policies: "not-an-array",
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -186,7 +186,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -201,7 +201,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -222,7 +222,7 @@ describe("Settings/Rules", () => {
       ];
       const options = { policies: rules } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -243,8 +243,8 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
     });
@@ -256,7 +256,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -276,7 +276,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -295,7 +295,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -314,7 +314,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -333,7 +333,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -352,7 +352,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ELEMENT_TYPES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ELEMENT_TYPES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -371,7 +371,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -390,7 +390,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL, true);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -405,7 +405,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, true);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -419,7 +419,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce.mock.calls[0][0]).toContain("0, 2");
@@ -435,7 +435,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -454,7 +454,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -473,7 +473,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -492,7 +492,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       // A legacy string array in `allow` is also a legacy selector, so it
       // additionally triggers the legacy-selector warning; assert the template
@@ -513,7 +513,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ELEMENT_TYPES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ELEMENT_TYPES, true);
 
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
       expect(
@@ -531,7 +531,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.EXTERNAL, true);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -546,7 +546,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, true);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -561,7 +561,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -585,7 +585,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce.mock.calls[0][0]).toContain("0, 2");
@@ -602,7 +602,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(2);
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
@@ -623,7 +623,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -645,7 +645,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -661,7 +661,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -671,7 +671,7 @@ describe("Settings/Rules", () => {
       expect(mockedWarnOnce.mock.calls[0][0]).toContain("general 'message'");
     });
 
-    it("does NOT warn about legacy template syntax when `disableLegacyWarnings` is true", () => {
+    it("does NOT warn about legacy template syntax when `legacyWarnings` is false", () => {
       const options = {
         message: "${from.type} cannot import ${to.type}",
         policies: [
@@ -683,7 +683,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -698,7 +698,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledWith(
         expect.stringContaining(
@@ -719,7 +719,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
       expect(
@@ -737,7 +737,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
       expect(
@@ -752,7 +752,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -767,7 +767,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledWith(
         expect.stringContaining('deprecated "dependency.module" property'),
@@ -788,7 +788,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
       expect(
@@ -806,7 +806,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
       expect(
@@ -824,7 +824,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
       expect(
@@ -847,7 +847,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledWith(
         expect.stringContaining('"internalPath" in element selectors'),
@@ -866,7 +866,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
       expect(
@@ -884,7 +884,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
       expect(
@@ -902,7 +902,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
       expect(
@@ -920,7 +920,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
       expect(
@@ -938,7 +938,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
       expect(
@@ -947,11 +947,11 @@ describe("Settings/Rules", () => {
     });
   });
 
-  describe("validateAndWarnRuleOptions disableLegacyWarnings", () => {
+  describe("validateAndWarnRuleOptions legacyWarnings", () => {
     const modernFrom = { element: { type: "a" } };
     const modernTo = { element: { type: "b" } };
 
-    it("skips detection work entirely when disableLegacyWarnings is true: no warnOnce calls despite legacy patterns", () => {
+    it("skips detection work entirely when legacyWarnings is false: no warnOnce calls despite legacy patterns", () => {
       // collectRuleWarningIndexes is exported so that callers can verify it is
       // not invoked. Here we verify the behavioral guarantee: when the flag is
       // set, validateAndWarnRuleOptions returns before calling the detection
@@ -965,7 +965,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
       // Confirm the exported symbol is accessible (required for integration tests
@@ -973,7 +973,7 @@ describe("Settings/Rules", () => {
       expect(collectRuleWarningIndexes).toBeInstanceOf(Function);
     });
 
-    it("does not emit any warnOnce call when disableLegacyWarnings is true and legacy patterns are present", () => {
+    it("does not emit any warnOnce call when legacyWarnings is false and legacy patterns are present", () => {
       const options = {
         policies: [
           {
@@ -988,27 +988,12 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
 
-    it("does not emit any warning when disableLegacyWarnings is true", () => {
-      const options = {
-        policies: [
-          {
-            from: "legacy-string",
-            to: modernTo,
-          } as unknown as RuleOptionsPolicies,
-        ],
-      } as unknown as RuleOptionsWithPolicies;
-
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
-
-      expect(mockedWarnOnce).not.toHaveBeenCalled();
-    });
-
-    it("emits legacy-pattern warnings when legacy patterns are present and disableLegacyWarnings is false", () => {
+    it("does not emit any warning when legacyWarnings is false", () => {
       const options = {
         policies: [
           {
@@ -1019,11 +1004,26 @@ describe("Settings/Rules", () => {
       } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+
+    it("emits legacy-pattern warnings when legacy patterns are present and legacyWarnings is true", () => {
+      const options = {
+        policies: [
+          {
+            from: "legacy-string",
+            to: modernTo,
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
     });
 
-    it("still caches via WeakSet: second call with same options is skipped even when disableLegacyWarnings changes", () => {
+    it("still caches via WeakSet: second call with same options is skipped even when legacyWarnings changes", () => {
       const options = {
         policies: [
           {
@@ -1033,9 +1033,9 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
-      mockedWarnOnce.mockClear();
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      mockedWarnOnce.mockClear();
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -1053,7 +1053,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
@@ -1073,7 +1073,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -1088,7 +1088,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, true);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, false);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -1107,7 +1107,7 @@ describe("Settings/Rules", () => {
         policies: [entry],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -1117,7 +1117,7 @@ describe("Settings/Rules", () => {
         rules: [entry],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledWith(
         expect.stringContaining("'rules' option is deprecated"),
@@ -1125,12 +1125,12 @@ describe("Settings/Rules", () => {
       );
     });
 
-    it("does not warn about the 'rules' alias when disableLegacyWarnings is true", () => {
+    it("does not warn about the 'rules' alias when legacyWarnings is false", () => {
       const options = {
         rules: [entry],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
@@ -1145,7 +1145,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       // One warning for the deprecated 'rules' option itself, one for the legacy selector syntax.
       expect(mockedWarnOnce).toHaveBeenCalledTimes(2);
@@ -1162,7 +1162,7 @@ describe("Settings/Rules", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       // 'policies' entries contain no deprecated syntax, so the only warning is
       // that 'rules' is deprecated and will be ignored.
@@ -1175,13 +1175,13 @@ describe("Settings/Rules", () => {
       );
     });
 
-    it("does not warn about the 'rules' alias when disableLegacyWarnings is true, even if 'policies' is also set", () => {
+    it("does not warn about the 'rules' alias when legacyWarnings is false, even if 'policies' is also set", () => {
       const options = {
         policies: [entry],
         rules: [entry],
       } as unknown as RuleOptionsWithPolicies;
 
-      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
 
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });

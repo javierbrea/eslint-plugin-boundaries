@@ -29,7 +29,7 @@ import {
   LEGACY_TEMPLATES_DEFAULT,
   ELEMENTS_SINGLE_TYPE_DEFAULT,
   CACHE_DEFAULT,
-  DISABLE_LEGACY_WARNINGS_DEFAULT,
+  LEGACY_WARNINGS_DEFAULT,
   DEPENDENCY_NODE_KEYS_MAP,
 } from "../Shared/Settings.types";
 import type {
@@ -159,14 +159,14 @@ export function isValidDependencyNodeSelector(
  * Emits deprecation warning for legacy `types` setting.
  *
  * @param types - Legacy types setting value when present.
- * @param disableLegacyWarnings - When `true`, skips detection and warning entirely.
+ * @param legacyWarnings - When `false`, skips detection and warning entirely.
  * @returns `true` when a legacy pattern was present.
  */
 export function deprecateTypes(
   types: unknown,
-  disableLegacyWarnings: boolean
+  legacyWarnings: boolean
 ): boolean {
-  if (disableLegacyWarnings) return false;
+  if (!legacyWarnings) return false;
   if (!types) return false;
   warnOnce(
     `'${TYPES}' setting is deprecated.`,
@@ -179,14 +179,14 @@ export function deprecateTypes(
  * Emits deprecation warning for legacy `alias` setting.
  *
  * @param alias - Legacy alias setting value when present.
- * @param disableLegacyWarnings - When `true`, skips detection and warning entirely.
+ * @param legacyWarnings - When `false`, skips detection and warning entirely.
  * @returns `true` when a legacy pattern was present.
  */
 export function deprecateAlias(
   alias: unknown,
-  disableLegacyWarnings: boolean
+  legacyWarnings: boolean
 ): boolean {
-  if (disableLegacyWarnings) return false;
+  if (!legacyWarnings) return false;
   // cspell:ignore boundariesalias -- documentation anchor for the boundaries/alias setting
   if (!alias) return false;
   warnOnce(
@@ -413,15 +413,15 @@ function getNormalizedDebug(debug: unknown): DebugSettingNormalized {
  *
  * @param elements - Raw element descriptors from settings.
  * @param legacyTypes - Fallback legacy types setting for backward compatibility.
- * @param disableLegacyWarnings - When `true`, skips all legacy deprecation detection and warnings.
+ * @param legacyWarnings - When `false`, skips all legacy deprecation detection and warnings.
  * @returns Filtered array of valid element descriptors and whether a legacy pattern was detected.
  */
 function getNormalizedElementDescriptors(
   elements: unknown,
   legacyTypes: unknown,
-  disableLegacyWarnings: boolean
+  legacyWarnings: boolean
 ): { descriptors: ElementDescriptor[]; legacyDetected: boolean } {
-  const typesLegacy = deprecateTypes(legacyTypes, disableLegacyWarnings);
+  const typesLegacy = deprecateTypes(legacyTypes, legacyWarnings);
   const rawElements = elements || legacyTypes;
 
   if (!rawElements || !isArray(rawElements) || !rawElements.length) {
@@ -449,7 +449,7 @@ function getNormalizedElementDescriptors(
 
   let legacyDetected = typesLegacy;
 
-  if (!disableLegacyWarnings) {
+  if (legacyWarnings) {
     // cspell:ignore partialmatch -- documentation anchor for the partialMatch option
     if (validElementDescriptors.some((d) => d.mode !== undefined)) {
       warnOnce(
@@ -706,12 +706,12 @@ function getNormalizedRootPath(rootPath: unknown): string {
  * Normalizes legacy templates setting, validating and applying defaults.
  *
  * @param legacyTemplates - Raw legacy templates setting value.
- * @param disableLegacyWarnings - When `true`, skips the deprecation warning.
+ * @param legacyWarnings - When `false`, skips the deprecation warning.
  * @returns Normalized value and whether a legacy pattern was detected.
  */
 function getNormalizedLegacyTemplates(
   legacyTemplates: unknown,
-  disableLegacyWarnings: boolean
+  legacyWarnings: boolean
 ): { value: boolean; legacyDetected: boolean } {
   if (isUndefined(legacyTemplates)) {
     return { value: LEGACY_TEMPLATES_DEFAULT, legacyDetected: false };
@@ -719,7 +719,7 @@ function getNormalizedLegacyTemplates(
 
   if (isBoolean(legacyTemplates)) {
     const legacyDetected = legacyTemplates === true;
-    if (legacyDetected && !disableLegacyWarnings) {
+    if (legacyDetected && legacyWarnings) {
       warnOnce(
         `'${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting is deprecated.`,
         `The legacy \${...} template syntax will not be supported in the next major version. Migrate to the {{...}} Handlebars syntax. ${migrationToV6GuideLink("new-template-syntax")}`
@@ -758,14 +758,14 @@ function getNormalizedElementsSingleType(elementsSingleType: unknown): boolean {
 }
 
 /**
- * Normalizes disable-legacy-warnings setting, validating and applying defaults.
+ * Normalizes legacy-warnings setting, validating and applying defaults.
  *
- * @param value - Raw disable-legacy-warnings setting value.
- * @returns Boolean value or default (`false`).
+ * @param value - Raw legacy-warnings setting value.
+ * @returns Boolean value or default (`true`).
  */
-function getNormalizedDisableLegacyWarnings(value: unknown): boolean {
+function getNormalizedLegacyWarnings(value: unknown): boolean {
   if (isUndefined(value)) {
-    return DISABLE_LEGACY_WARNINGS_DEFAULT;
+    return LEGACY_WARNINGS_DEFAULT;
   }
 
   if (isBoolean(value)) {
@@ -773,10 +773,10 @@ function getNormalizedDisableLegacyWarnings(value: unknown): boolean {
   }
 
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS}' setting.`,
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.LEGACY_WARNINGS}' setting.`,
     `The value should be a boolean. ${moreInfoSettingsLink()}`
   );
-  return DISABLE_LEGACY_WARNINGS_DEFAULT;
+  return LEGACY_WARNINGS_DEFAULT;
 }
 
 /**
@@ -899,17 +899,17 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
   const settings = context.settings;
 
   // Must be resolved first so it can be passed to all legacy-detecting helpers.
-  const disableLegacyWarnings = getNormalizedDisableLegacyWarnings(
-    settings[SETTINGS_KEYS_MAP.DISABLE_LEGACY_WARNINGS]
+  const legacyWarnings = getNormalizedLegacyWarnings(
+    settings[SETTINGS_KEYS_MAP.LEGACY_WARNINGS]
   );
 
-  deprecateAlias(settings[SETTINGS_KEYS_MAP.ALIAS], disableLegacyWarnings);
+  deprecateAlias(settings[SETTINGS_KEYS_MAP.ALIAS], legacyWarnings);
 
   // Normalize all settings from raw values
   const { descriptors: elementDescriptors } = getNormalizedElementDescriptors(
     settings[ELEMENTS],
     settings[TYPES],
-    disableLegacyWarnings
+    legacyWarnings
   );
 
   const fileDescriptors = getNormalizedFileDescriptors(
@@ -943,7 +943,7 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
 
   const { value: legacyTemplates } = getNormalizedLegacyTemplates(
     settings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES],
-    disableLegacyWarnings
+    legacyWarnings
   );
 
   const elementsSingleType = getNormalizedElementsSingleType(
@@ -970,7 +970,7 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
     dependencyNodes: [...dependencyNodes, ...additionalDependencyNodes],
     legacyTemplates,
     cache,
-    disableLegacyWarnings,
+    legacyWarnings,
     flagAsExternal,
     debug: debugSetting,
   };

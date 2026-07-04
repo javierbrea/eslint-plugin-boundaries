@@ -31,7 +31,7 @@ Everything on this page is kept for backward compatibility but is deprecated and
 The `rules` option in rules configuration (the array of per-entry dependency declarations) has been renamed to **[`policies`](./policies.mdx)**. `rules` is kept as a deprecated alias — it keeps working exactly as before.
 
 :::warning[Deprecated]
-Using `rules` prints a one-time deprecation warning (suppressible via [`boundaries/disable-legacy-warnings`](../settings/settings.md#boundariesdisable-legacy-warnings)) and it will be removed in a future major version. When both `policies` and `rules` are set, `policies` takes precedence.
+Using `rules` prints a one-time deprecation warning (suppressible by setting [`boundaries/legacy-warnings`](../settings/settings.md#boundarieslegacy-warnings) to `false`) and it will be removed in a future major version. When both `policies` and `rules` are set, `policies` takes precedence.
 :::
 
 <CodeDiff language="javascript">{`

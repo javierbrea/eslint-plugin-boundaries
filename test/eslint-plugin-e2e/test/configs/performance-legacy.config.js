@@ -98,7 +98,7 @@ export default [
       ],
       "boundaries/include": ["**/*.js"],
       "boundaries/ignore": ["src/ignored/**"],
-      "boundaries/disable-legacy-warnings": true,
+      "boundaries/legacy-warnings": false,
       "boundaries/dependency-nodes": [
         "import",
         "require",

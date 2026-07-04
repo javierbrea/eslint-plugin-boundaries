@@ -122,7 +122,7 @@ export default [
           name: "jest-mock",
         },
       ],
-      "boundaries/disable-legacy-warnings": true,
+      "boundaries/legacy-warnings": false,
       "boundaries/root-path": ".",
       "boundaries/cache": true,
       "boundaries/flag-as-external": {

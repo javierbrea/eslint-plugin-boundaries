@@ -420,18 +420,18 @@ This setting only affects selectors. It does not change the syntax available in 
 Read more about legacy templates in the [Legacy Message Templates](../policies/legacy.mdx#legacy-message-templates) section.
 :::
 
-## `boundaries/disable-legacy-warnings`
+## `boundaries/legacy-warnings`
 
 **Type:** `<boolean>`
 
-**Default:** `false`
+**Default:** `true`
 
-When `true`, skips all legacy-pattern detection work and suppresses the associated runtime deprecation warnings, reducing overhead at lint time. Turn it on in case you don't want to see the warnings anymore, or to improve performance (but be aware to activate it again before you upgrade to a future major version, as some legacy patterns will be removed).
+When `false`, skips all legacy-pattern detection work and suppresses the associated runtime deprecation warnings, reducing overhead at lint time. Turn it off in case you don't want to see the warnings anymore, or to improve performance (but be aware to activate it again before you upgrade to a future major version, as some legacy patterns will be removed).
 
 ```js
 export default [{
   settings: {
-    "boundaries/disable-legacy-warnings": true
+    "boundaries/legacy-warnings": false
   }
 }]
 ```

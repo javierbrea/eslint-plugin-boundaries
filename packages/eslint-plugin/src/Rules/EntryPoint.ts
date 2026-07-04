@@ -94,7 +94,7 @@ export default dependencyRule<EntryPointRuleOptions>(
     validateAndWarnRuleOptions(
       options,
       RULE_NAMES_MAP.ENTRY_POINT,
-      settings.disableLegacyWarnings
+      settings.legacyWarnings
     );
 
     if (
