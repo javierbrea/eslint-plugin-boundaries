@@ -8,35 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Highlights
 
-Version 7 introduces the **entity model**: every file is now described along three
-independent dimensions — its **element** (architectural unit), its **file**
-(categorized on its own), and the **module** each dependency resolves to. This
-unlocks multi-dimensional classification and much more precise rules.
+Version 7 introduces the **entity model**: every file is now described along three independent dimensions — its **element** (architectural unit), its **file** (categorized on its own), and the **module** each dependency resolves to. This unlocks multi-dimensional classification and much more precise rules.
 
-- **Upgrade with zero config changes.** Everything new is additive and every v6
-  pattern keeps working, so you can adopt features one at a time, at your own pace.
-  See the v6-to-v7 migration guide for the details.
-- **File descriptors (`boundaries/files`).** Categorize files (tests, styles, …)
-  independently of the element they belong to. A file can carry multiple categories.
-- **Multi-type elements.** A single element can now match several types at once
-  (opt-in via `boundaries/elements-single-type: false`).
-- **Entity selectors in `from` / `to`.** Match rules by element, file, and module
-  properties together — e.g. scope a rule to test files, or to a module's origin.
-- **Advanced array matching for types and categories.** `element.types` and
-  `file.categories` now accept query objects (`anyOf`, `allOf`, `noneOf`,
-  `equalsTo`, `atIndex`, `hasLength`) instead of just plain patterns, enabling
-  precise rules like "must have exactly these types" or "must not share a type
-  with the other side" — the latter via the new `expand` operator, which pulls
-  values from the opposite side of the rule at match time.
-- **Precise control of external/core dependencies.** Match by module `origin` and
-  `source` directly in `boundaries/dependencies` with `to.module.*`.
-- **Richer error messages.** Custom message templates can reference the full entity
-  (`{{to.file.categories}}`, `{{to.module.source}}`, …). Default messages now
-  include entity information too — re-record any exact-string snapshot assertions.
-- **Clearer vocabulary and rule names.** The `rules` option is now `policies`
-  (each with an `effect`), `no-unknown` → `no-unknown-dependencies` (now file-aware),
-  and `no-ignored` → `no-ignored-dependencies`. Old names/options keep working with a
-  deprecation warning.
+- **Upgrade with zero config changes.** Everything new is additive and every v6 pattern keeps working, so you can adopt features one at a time, at your own pace. See the v6-to-v7 migration guide for the details.
+- **File descriptors (`boundaries/files`).** Categorize files (tests, styles, …) independently of the element they belong to. A file can carry multiple categories.
+- **Multi-type elements.** A single element can now match several types at once (opt-in via `boundaries/elements-single-type: false`).
+- **Entity selectors in `from` / `to`.** Match rules by element, file, and module properties together — e.g. scope a rule to test files, or to a module's origin.
+- **Advanced array matching for types and categories.** `element.types` and `file.categories` now accept query objects (`anyOf`, `allOf`, `noneOf`, `equalsTo`, `atIndex`, `hasLength`) instead of just plain patterns, enabling precise rules like "must have exactly these types" or "must not share a type with the other side" — the latter via the new `expand` operator, which pulls values from the opposite side of the rule at match time.
+- **Precise control of external/core dependencies.** Match by module `origin` and `source` directly in `boundaries/dependencies` with `to.module.*`.
+- **Richer error messages.** Custom message templates can reference the full entity (`{{to.file.categories}}`, `{{to.module.source}}`, …). Default messages now include entity information too — re-record any exact-string snapshot assertions.
+- **Clearer vocabulary and rule names.** The `rules` option is now `policies` (each with an `effect`), `no-unknown` → `no-unknown-dependencies` (now file-aware), and `no-ignored` → `no-ignored-dependencies`. Old names/options keep working with a deprecation warning.
 
 > **The only thing that can affect automated checks without a config change:** default
 > report messages changed and `no-unknown-files` now considers file descriptors. If you
