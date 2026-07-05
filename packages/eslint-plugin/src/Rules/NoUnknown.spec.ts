@@ -133,29 +133,15 @@ describe("NoUnknown", () => {
       expect(args.context.report).not.toHaveBeenCalled();
     });
 
-    it("reports when dependency target element is unknown (default options)", () => {
+    it("does not report (default options) when only the element is unknown", () => {
       const args = createCallArgs(
         createDependencyDescription({
-          to: createEntityDescription({ element: { isUnknown: true } }),
+          to: createEntityDescription({
+            element: { isUnknown: true },
+            file: { isUnknown: false },
+          }),
         }),
         {}
-      );
-
-      callHandler(undefined, args);
-
-      expect(args.context.report).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: "Dependencies to unknown elements are not allowed",
-        })
-      );
-    });
-
-    it("does not report when allowUnknownElements is true and element is unknown", () => {
-      const args = createCallArgs(
-        createDependencyDescription({
-          to: createEntityDescription({ element: { isUnknown: true } }),
-        }),
-        { allowUnknownElements: true }
       );
 
       callHandler(undefined, args);
@@ -163,24 +149,7 @@ describe("NoUnknown", () => {
       expect(args.context.report).not.toHaveBeenCalled();
     });
 
-    it("reports when allowUnknownFiles is false and file is unknown", () => {
-      const args = createCallArgs(
-        createDependencyDescription({
-          to: createEntityDescription({ file: { isUnknown: true } }),
-        }),
-        { allowUnknownFiles: false }
-      );
-
-      callHandler(undefined, args);
-
-      expect(args.context.report).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: "Dependencies to unknown files are not allowed",
-        })
-      );
-    });
-
-    it("does not report when allowUnknownFiles defaults to true and file is unknown", () => {
+    it("does not report (default options) when only the file is unknown", () => {
       const args = createCallArgs(
         createDependencyDescription({
           to: createEntityDescription({
@@ -196,7 +165,7 @@ describe("NoUnknown", () => {
       expect(args.context.report).not.toHaveBeenCalled();
     });
 
-    it("reports combined message when both element and file are unknown and allowUnknownFiles is false", () => {
+    it("reports combined message (default options) when both element and file are unknown", () => {
       const args = createCallArgs(
         createDependencyDescription({
           to: createEntityDescription({
@@ -204,7 +173,7 @@ describe("NoUnknown", () => {
             file: { isUnknown: true },
           }),
         }),
-        { allowUnknownFiles: false }
+        {}
       );
 
       callHandler(undefined, args);
@@ -216,6 +185,154 @@ describe("NoUnknown", () => {
       );
     });
 
+    it('reports when require is "element" and the element is unknown, regardless of the file', () => {
+      const args = createCallArgs(
+        createDependencyDescription({
+          to: createEntityDescription({
+            element: { isUnknown: true },
+            file: { isUnknown: false },
+          }),
+        }),
+        { require: "element" }
+      );
+
+      callHandler(undefined, args);
+
+      expect(args.context.report).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Dependencies to unknown elements are not allowed",
+        })
+      );
+    });
+
+    it('does not report when require is "element" and only the file is unknown', () => {
+      const args = createCallArgs(
+        createDependencyDescription({
+          to: createEntityDescription({
+            element: { isUnknown: false },
+            file: { isUnknown: true },
+          }),
+        }),
+        { require: "element" }
+      );
+
+      callHandler(undefined, args);
+
+      expect(args.context.report).not.toHaveBeenCalled();
+    });
+
+    it('reports when require is "file" and the file is unknown, regardless of the element', () => {
+      const args = createCallArgs(
+        createDependencyDescription({
+          to: createEntityDescription({
+            element: { isUnknown: false },
+            file: { isUnknown: true },
+          }),
+        }),
+        { require: "file" }
+      );
+
+      callHandler(undefined, args);
+
+      expect(args.context.report).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Dependencies to unknown files are not allowed",
+        })
+      );
+    });
+
+    it('does not report when require is "file" and only the element is unknown', () => {
+      const args = createCallArgs(
+        createDependencyDescription({
+          to: createEntityDescription({
+            element: { isUnknown: true },
+            file: { isUnknown: false },
+          }),
+        }),
+        { require: "file" }
+      );
+
+      callHandler(undefined, args);
+
+      expect(args.context.report).not.toHaveBeenCalled();
+    });
+
+    it('reports "unknown elements" message when require is "all" and only the element is unknown', () => {
+      const args = createCallArgs(
+        createDependencyDescription({
+          to: createEntityDescription({
+            element: { isUnknown: true },
+            file: { isUnknown: false },
+          }),
+        }),
+        { require: "all" }
+      );
+
+      callHandler(undefined, args);
+
+      expect(args.context.report).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Dependencies to unknown elements are not allowed",
+        })
+      );
+    });
+
+    it('reports "unknown files" message when require is "all" and only the file is unknown', () => {
+      const args = createCallArgs(
+        createDependencyDescription({
+          to: createEntityDescription({
+            element: { isUnknown: false },
+            file: { isUnknown: true },
+          }),
+        }),
+        { require: "all" }
+      );
+
+      callHandler(undefined, args);
+
+      expect(args.context.report).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Dependencies to unknown files are not allowed",
+        })
+      );
+    });
+
+    it('reports combined message when require is "all" and both element and file are unknown', () => {
+      const args = createCallArgs(
+        createDependencyDescription({
+          to: createEntityDescription({
+            element: { isUnknown: true },
+            file: { isUnknown: true },
+          }),
+        }),
+        { require: "all" }
+      );
+
+      callHandler(undefined, args);
+
+      expect(args.context.report).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "Dependencies to unknown elements and files are not allowed",
+        })
+      );
+    });
+
+    it('does not report when require is "all" and both element and file are known', () => {
+      const args = createCallArgs(
+        createDependencyDescription({
+          to: createEntityDescription({
+            element: { isUnknown: false },
+            file: { isUnknown: false },
+          }),
+        }),
+        { require: "all" }
+      );
+
+      callHandler(undefined, args);
+
+      expect(args.context.report).not.toHaveBeenCalled();
+    });
+
     it("does not report when dependency target element is ignored", () => {
       const args = createCallArgs(
         createDependencyDescription({
@@ -223,7 +340,7 @@ describe("NoUnknown", () => {
             element: { isUnknown: true, isIgnored: true },
           }),
         }),
-        {}
+        { require: "element" }
       );
 
       callHandler(undefined, args);
@@ -235,11 +352,11 @@ describe("NoUnknown", () => {
       const args = createCallArgs(
         createDependencyDescription({
           to: createEntityDescription({
-            element: { isUnknown: true },
-            file: { isIgnored: true },
+            element: { isUnknown: false },
+            file: { isUnknown: true, isIgnored: true },
           }),
         }),
-        {}
+        { require: "file" }
       );
 
       callHandler(undefined, args);
@@ -255,7 +372,7 @@ describe("NoUnknown", () => {
             module: { origin: ORIGINS_MAP.EXTERNAL },
           }),
         }),
-        {}
+        { require: "element" }
       );
 
       callHandler(undefined, args);

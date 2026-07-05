@@ -337,28 +337,25 @@ In v6 the message was `File does not match any element pattern`. If you assert t
 The `boundaries/no-unknown` rule has been renamed to **[`boundaries/no-unknown-dependencies`](../../rules/no-unknown-dependencies.md)** and is now aware of [file descriptors](../../classification/files.md).
 
 :::warning[Deprecated]
-The `boundaries/no-unknown` rule name is kept for backward compatibility but is deprecated. Using it prints a one-time rename warning and it will be removed in a future major version. Rename the rule key to `boundaries/no-unknown-dependencies`; the behavior is identical with the default options.
+The `boundaries/no-unknown` rule name is kept for backward compatibility but is deprecated. Using it prints a one-time rename warning and it will be removed in a future major version. Rename the rule key to `boundaries/no-unknown-dependencies`.
 :::
 
-The rule now reports a dependency when its target is an unknown element **or** an unknown file, controlled by two new options:
+The rule now reports a dependency when its target is unknown on the classification axes selected by the new `require` option:
 
 | Option | Default | Effect |
 |--------|---------|--------|
-| `allowUnknownElements` | `false` | When `true`, dependencies to unknown elements are allowed (element axis disabled). |
-| `allowUnknownFiles` | `true` | When `true`, dependencies to unknown files are allowed (file axis disabled). |
+| `require` | `"any"` | Which classification axes the target must be known on **to be valid**: `"any"`, `"element"`, `"file"`, or `"all"`. |
 
-The default `allowUnknownFiles: true` keeps the **v6 behavior**: the rule reports only when the target element is unknown, exactly as `no-unknown` did. You opt into file checking by setting `allowUnknownFiles: false`.
+:::info[Default behavior]
+Both `boundaries/no-unknown` (deprecated) and `boundaries/no-unknown-dependencies` now default to `require: "any"`: the target must be known on **at least one** axis, so the rule reports only when it is unknown as **both** an element and a file. So, there is no change in default behavior, previous projects only had known elements, and the rule keeps working as before. The new `require` option is only useful if you want to change the default behavior.
+:::
 
 <CodeDiff language="javascript">{`
   rules: {
 -   "boundaries/no-unknown": [2]
-+   "boundaries/no-unknown-dependencies": [2]
++   "boundaries/no-unknown-dependencies": [2, { require: "element" }]
   }
 `}</CodeDiff>
-
-:::tip[Projects using only file descriptors]
-If you classify your project with `boundaries/files` instead of elements, set `allowUnknownElements: true` and `allowUnknownFiles: false` so the rule judges targets purely by their file descriptor.
-:::
 
 :::warning[Breaking change if you use the `strict` config with `eslint-disable` comments]
 The `strict` config now enables `boundaries/no-unknown-dependencies` (the new name) instead of `boundaries/no-unknown`. If your codebase has `// eslint-disable-next-line boundaries/no-unknown` comments, they will no longer suppress the corresponding violations — reported now under the new rule name — and may themselves become "unused eslint-disable directive" errors.

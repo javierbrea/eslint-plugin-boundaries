@@ -818,20 +818,30 @@ export type NoPrivateOptions = {
 };
 
 /**
+ * Which classification axes a dependency target must be "known" on for the
+ * no-unknown-dependencies rule to consider it valid.
+ * - `"any"` (default): known on at least one axis (element or file) is enough.
+ *   Reported only when the target is unknown on both axes.
+ * - `"element"`: the element axis must be known, regardless of the file axis.
+ *   Reported when the target element is unknown.
+ * - `"file"`: the file axis must be known, regardless of the element axis.
+ *   Reported when the target file is unknown.
+ * - `"all"`: both axes must be known. Reported when either axis is unknown.
+ */
+export type NoUnknownDependenciesRequire = "any" | "element" | "file" | "all";
+
+/**
  * Options for the no-unknown-dependencies rule, which prevents dependencies to
  * targets that are not recognized by any element or file descriptor.
  *
- * A dependency is reported when its target is an unknown element OR an unknown file.
- * Each option, when set to `true`, disables ("allows") that kind of unknown target.
- * With the defaults (`allowUnknownElements: false`, `allowUnknownFiles: true`) the rule
- * reports only when the target element is unknown, preserving the behavior of the
- * deprecated `no-unknown` rule.
+ * The `require` option controls which classification axes the target must be
+ * known on to be valid. With the default (`require: "any"`), known on at least
+ * one axis is enough, so the rule reports only when the target is unknown on
+ * both axes.
  */
 export type NoUnknownDependenciesOptions = {
-  /** When `true`, dependencies to unknown files (not matching any file descriptor) are allowed. (default: `true`) */
-  allowUnknownFiles?: boolean;
-  /** When `true`, dependencies to unknown elements (not matching any element descriptor) are allowed. (default: `false`) */
-  allowUnknownElements?: boolean;
+  /** Which classification axes the target must be known on to be valid. (default: `"any"`) */
+  require?: NoUnknownDependenciesRequire;
 };
 
 export type RuleOptionsWithPolicies =

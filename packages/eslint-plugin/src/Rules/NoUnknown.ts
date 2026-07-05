@@ -30,13 +30,15 @@ function unknownDependencyMessage(
  * Returns the `no-unknown-dependencies` rule, which prevents dependencies to targets
  * that are not recognized by any element or file descriptor.
  *
- * A dependency is reported when its target is an unknown element OR an unknown file.
- * The `allowUnknownElements` and `allowUnknownFiles` options each disable their axis:
- * - `allowUnknownElements` (default `false`): when `true`, unknown elements are allowed.
- * - `allowUnknownFiles` (default `true`): when `true`, unknown files are allowed.
- *
- * With the default options the rule reports only when the target element is unknown,
- * preserving the behavior of the deprecated `no-unknown` rule.
+ * The `require` option controls which classification axes the target must be known
+ * on for the dependency to be considered valid:
+ * - `"any"` (default): known on at least one axis (element or file) is enough.
+ *   Reported only when the target is unknown on both axes.
+ * - `"element"`: the element axis must be known, regardless of the file axis.
+ *   Reported when the target element is unknown.
+ * - `"file"`: the file axis must be known, regardless of the element axis.
+ *   Reported when the target file is unknown.
+ * - `"all"`: both axes must be known. Reported when either axis is unknown.
  *
  * @param ruleName - Rule name to build the rule for. Defaults to the canonical name.
  *   When the deprecated `no-unknown` name is used, a one-time rename warning is emitted.
@@ -57,15 +59,15 @@ export default function getNoUnknownDependenciesRule(
         {
           type: "object",
           properties: {
-            allowUnknownFiles: {
-              type: "boolean",
+            require: {
+              type: "string",
+              enum: ["any", "element", "file", "all"],
               description:
-                "When true, dependencies to unknown files (not matching any file descriptor) are allowed. Default to true.",
-            },
-            allowUnknownElements: {
-              type: "boolean",
-              description:
-                "When true, dependencies to unknown elements (not matching any element descriptor) are allowed. Default to false.",
+                "Which classification axes the dependency target must be known on to be valid. " +
+                '"any" (default): known on at least one axis is enough; reports only when unknown on both. ' +
+                '"element": the element axis must be known; reports when the element is unknown. ' +
+                '"file": the file axis must be known; reports when the file is unknown. ' +
+                '"all": both axes must be known; reports when either is unknown.',
             },
           },
           additionalProperties: false,
@@ -82,12 +84,32 @@ export default function getNoUnknownDependenciesRule(
         );
       }
 
-      const allowUnknownElements = options?.allowUnknownElements ?? false;
-      const allowUnknownFiles = options?.allowUnknownFiles ?? true;
+      const requireMode = options?.require ?? "any";
+      const elementUnknown = dependency.to.element.isUnknown;
+      const fileUnknown = dependency.to.file.isUnknown;
 
-      const onUnknownElement =
-        !allowUnknownElements && dependency.to.element.isUnknown;
-      const onUnknownFile = !allowUnknownFiles && dependency.to.file.isUnknown;
+      let onUnknownElement = false;
+      let onUnknownFile = false;
+      switch (requireMode) {
+        case "any":
+          // Report only when the target is unknown on BOTH axes.
+          if (elementUnknown && fileUnknown) {
+            onUnknownElement = true;
+            onUnknownFile = true;
+          }
+          break;
+        case "all":
+          // Report when the target is unknown on EITHER axis.
+          onUnknownElement = elementUnknown;
+          onUnknownFile = fileUnknown;
+          break;
+        case "element":
+          onUnknownElement = elementUnknown;
+          break;
+        case "file":
+          onUnknownFile = fileUnknown;
+          break;
+      }
 
       if (
         !dependency.to.element.isIgnored &&
