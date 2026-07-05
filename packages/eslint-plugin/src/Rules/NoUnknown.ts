@@ -3,7 +3,7 @@ import { ORIGINS_MAP } from "@boundaries/elements";
 import { warnOnce } from "../Debug";
 import { migrationToV7GuideLink, deprecatedRuleInfo } from "../Settings";
 import type { NoUnknownDependenciesOptions, RuleName } from "../Shared";
-import { RULE_NAMES_MAP } from "../Shared";
+import { NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP, RULE_NAMES_MAP } from "../Shared";
 
 import { dependencyRule } from "./Support";
 
@@ -27,15 +27,15 @@ function getReportedAxes(
   fileUnknown: boolean
 ): ReportedAxes | null {
   switch (requireMode) {
-    case "all":
+    case NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP.ALL:
       return elementUnknown || fileUnknown
         ? { element: elementUnknown, file: fileUnknown }
         : null;
-    case "element":
+    case NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP.ELEMENT:
       return elementUnknown ? { element: true, file: false } : null;
-    case "file":
+    case NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP.FILE:
       return fileUnknown ? { element: false, file: true } : null;
-    case "any":
+    case NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP.ANY:
     default:
       return elementUnknown && fileUnknown
         ? { element: true, file: true }
@@ -93,7 +93,7 @@ export default function getNoUnknownDependenciesRule(
           properties: {
             require: {
               type: "string",
-              enum: ["any", "element", "file", "all"],
+              enum: Object.values(NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP),
               description:
                 "Which classification axes the dependency target must be known on to be valid. " +
                 '"any" (default): known on at least one axis is enough; reports only when unknown on both. ' +
@@ -116,7 +116,8 @@ export default function getNoUnknownDependenciesRule(
         );
       }
 
-      const requireMode = options?.require ?? "any";
+      const requireMode =
+        options?.require ?? NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP.ANY;
       const reportedAxes = getReportedAxes(
         requireMode,
         dependency.to.element.isUnknown,

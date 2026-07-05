@@ -817,6 +817,22 @@ export type NoPrivateOptions = {
   message?: string;
 };
 
+export const NO_UNKNOWN_DEPENDENCIES_REQUIRE_ALL = "all" as const;
+export const NO_UNKNOWN_DEPENDENCIES_REQUIRE_ELEMENT = "element" as const;
+export const NO_UNKNOWN_DEPENDENCIES_REQUIRE_FILE = "file" as const;
+export const NO_UNKNOWN_DEPENDENCIES_REQUIRE_ANY = "any" as const;
+
+/**
+ * Map containing the available values for the no-unknown-dependencies rule's
+ * `require` option.
+ */
+export const NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP = {
+  ALL: NO_UNKNOWN_DEPENDENCIES_REQUIRE_ALL,
+  ELEMENT: NO_UNKNOWN_DEPENDENCIES_REQUIRE_ELEMENT,
+  FILE: NO_UNKNOWN_DEPENDENCIES_REQUIRE_FILE,
+  ANY: NO_UNKNOWN_DEPENDENCIES_REQUIRE_ANY,
+} as const;
+
 /**
  * Which classification axes a dependency target must be "known" on for the
  * no-unknown-dependencies rule to consider it valid.
@@ -828,7 +844,8 @@ export type NoPrivateOptions = {
  *   Reported when the target file is unknown.
  * - `"all"`: both axes must be known. Reported when either axis is unknown.
  */
-export type NoUnknownDependenciesRequire = "any" | "element" | "file" | "all";
+export type NoUnknownDependenciesRequire =
+  (typeof NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP)[keyof typeof NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP];
 
 /**
  * Options for the no-unknown-dependencies rule, which prevents dependencies to
