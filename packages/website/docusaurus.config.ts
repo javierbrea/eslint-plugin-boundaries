@@ -115,7 +115,7 @@ const config: Config = {
     /* announcementBar: {
       id: "v7-launch",
       content:
-        'Version 7 is here — file descriptors, multi-dimensional classification, and zero breaking changes. <a href="/docs/next/releases/migration-guides/v6-to-v7/">See what\'s new →</a>',
+        'Version 7 is here — file descriptors, multi-dimensional classification, and array queries.<a href="/docs/next/releases/migration-guides/v6-to-v7/">See what\'s new →</a>',
       backgroundColor: "#3b4468",
       textColor: "#e8ecff",
       isCloseable: true,

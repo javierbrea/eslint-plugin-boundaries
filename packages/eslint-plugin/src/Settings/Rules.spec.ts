@@ -380,6 +380,60 @@ describe("Settings/Rules", () => {
       );
     });
 
+    it("warns when an element selector is used directly as an entity selector in `from`", () => {
+      const options = {
+        policies: [
+          {
+            from: { type: "components" },
+            to: modernTo,
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("legacy selector syntax"),
+        expect.stringContaining("object-based selectors")
+      );
+      expect(mockedWarnOnce.mock.calls[0][0]).toContain("indices: 0");
+    });
+
+    it("warns when an element selector is used directly as an entity selector in `allow`", () => {
+      const options = {
+        policies: [
+          {
+            from: modernFrom,
+            allow: { type: "helpers" },
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ELEMENT_TYPES, true);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("legacy selector syntax"),
+        expect.any(String)
+      );
+    });
+
+    it("does NOT flag a modern entity selector (wrapped in `element`) as legacy", () => {
+      const options = {
+        policies: [
+          {
+            from: modernFrom,
+            to: modernTo,
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+
     it("does NOT flag `allow`/`disallow` as legacy selectors for the external rule (external lib names)", () => {
       const options = {
         policies: [
