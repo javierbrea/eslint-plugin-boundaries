@@ -7,20 +7,52 @@ import { RULE_NAMES_MAP } from "../Shared";
 
 import { dependencyRule } from "./Support";
 
+/** Which axes an unknown-dependency report should mention in its message. */
+interface ReportedAxes {
+  element: boolean;
+  file: boolean;
+}
+
+/**
+ * Decides whether a dependency should be reported as unknown for the given
+ * `require` mode, and which axes the report should mention.
+ * @param requireMode - The `require` option value.
+ * @param elementUnknown - Whether the target element is unknown.
+ * @param fileUnknown - Whether the target file is unknown.
+ * @returns The reported axes, or `null` if the dependency should not be reported.
+ */
+function getReportedAxes(
+  requireMode: NoUnknownDependenciesOptions["require"],
+  elementUnknown: boolean,
+  fileUnknown: boolean
+): ReportedAxes | null {
+  switch (requireMode) {
+    case "all":
+      return elementUnknown || fileUnknown
+        ? { element: elementUnknown, file: fileUnknown }
+        : null;
+    case "element":
+      return elementUnknown ? { element: true, file: false } : null;
+    case "file":
+      return fileUnknown ? { element: false, file: true } : null;
+    case "any":
+    default:
+      return elementUnknown && fileUnknown
+        ? { element: true, file: true }
+        : null;
+  }
+}
+
 /**
  * Builds the default error message based on which unknown axes triggered the report.
- * @param onUnknownElement - Whether the report was triggered by an unknown element.
- * @param onUnknownFile - Whether the report was triggered by an unknown file.
+ * @param axes - Which axes triggered the report.
  * @returns The error message reported by ESLint.
  */
-function unknownDependencyMessage(
-  onUnknownElement: boolean,
-  onUnknownFile: boolean
-): string {
-  if (onUnknownElement && onUnknownFile) {
+function unknownDependencyMessage(axes: ReportedAxes): string {
+  if (axes.element && axes.file) {
     return `Dependencies to unknown elements and files are not allowed`;
   }
-  if (onUnknownElement) {
+  if (axes.element) {
     return `Dependencies to unknown elements are not allowed`;
   }
   return `Dependencies to unknown files are not allowed`;
@@ -85,40 +117,20 @@ export default function getNoUnknownDependenciesRule(
       }
 
       const requireMode = options?.require ?? "any";
-      const elementUnknown = dependency.to.element.isUnknown;
-      const fileUnknown = dependency.to.file.isUnknown;
-
-      let onUnknownElement = false;
-      let onUnknownFile = false;
-      switch (requireMode) {
-        case "any":
-          // Report only when the target is unknown on BOTH axes.
-          if (elementUnknown && fileUnknown) {
-            onUnknownElement = true;
-            onUnknownFile = true;
-          }
-          break;
-        case "all":
-          // Report when the target is unknown on EITHER axis.
-          onUnknownElement = elementUnknown;
-          onUnknownFile = fileUnknown;
-          break;
-        case "element":
-          onUnknownElement = elementUnknown;
-          break;
-        case "file":
-          onUnknownFile = fileUnknown;
-          break;
-      }
+      const reportedAxes = getReportedAxes(
+        requireMode,
+        dependency.to.element.isUnknown,
+        dependency.to.file.isUnknown
+      );
 
       if (
+        reportedAxes &&
         !dependency.to.element.isIgnored &&
         !dependency.to.file.isIgnored &&
-        dependency.to.module.origin === ORIGINS_MAP.LOCAL &&
-        (onUnknownElement || onUnknownFile)
+        dependency.to.module.origin === ORIGINS_MAP.LOCAL
       ) {
         context.report({
-          message: unknownDependencyMessage(onUnknownElement, onUnknownFile),
+          message: unknownDependencyMessage(reportedAxes),
           node: node,
         });
       }
