@@ -40,6 +40,6 @@ The typical workflow when setting up the plugin involves three main steps:
 
 The plugin analyzes each file in your project and assigns it to an element based on your descriptors. Then, when checking dependencies (imports, requires, etc.), it uses your rules with element selectors to determine if the dependency is allowed.
 
-:::tip Debug Mode
+:::tip[Debug Mode]
 Enable [debug mode](../guides/debugging.md) when first configuring the plugin to see which element is assigned to each file and what values are assigned to the [element descriptions](./elements.md).
 :::

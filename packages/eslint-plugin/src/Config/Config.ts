@@ -7,6 +7,7 @@ import { PLUGIN_NAME } from "../Shared";
 
 import recommendedConfig from "./Recommended";
 import strictConfig from "./Strict";
+import strictLegacyConfig from "./StrictLegacy";
 
 export * from "../Public";
 
@@ -143,3 +144,4 @@ export function createConfig<PluginName extends string = typeof PLUGIN_NAME>(
 
 export const recommended = recommendedConfig;
 export const strict = strictConfig;
+export const strictLegacy = strictLegacyConfig;

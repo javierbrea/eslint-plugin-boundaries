@@ -35,5 +35,3 @@ The typical workflow when setting up the plugin involves three main steps:
 3. **Customize global settings** to include/ignore files, define dependency nodes, etc. You can use the helpers in the [Configuration Helpers](./eslint-integration.md) section to simplify this process.
 
 The plugin analyzes each file in your project and assigns it an element type based on your descriptors. Then, when checking dependencies (imports, requires, etc.), it uses your rules with element selectors to determine if the dependency is allowed.
-
-<!-- > **Tip:** Enable [debug mode](#debug-mode) when first configuring the plugin to see which element type is assigned to each file and what properties are captured. -->

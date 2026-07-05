@@ -28,7 +28,7 @@ JS Boundaries is a project that provides a set of tools to help you enforce arch
 
 ---
 
-:::info Robert C. Martin's quote
+:::info[Robert C. Martin's quote]
 **"Software architecture is the art of drawing lines that I call boundaries. Those boundaries separate software elements from one another, and restrict those on one side from knowing about those on the other."**
 
 [*Clean Architecture: A Craftsman's Guide to Software Structure and Design*](https://www.oreilly.com/library/view/clean-architecture-a/9780134494272/)

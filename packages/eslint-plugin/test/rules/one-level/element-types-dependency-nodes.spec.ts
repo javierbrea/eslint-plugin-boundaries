@@ -43,7 +43,7 @@ const dependencyNodesSettings = {
 const options = [
   {
     default: "allow",
-    rules: [
+    policies: [
       {
         from: {
           type: "helpers",
@@ -97,7 +97,7 @@ const options = [
 const nodeKindSelectorOptions = [
   {
     default: "allow",
-    rules: [
+    policies: [
       {
         from: {
           type: "helpers",
@@ -193,7 +193,7 @@ createRuleTester(settings).run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 1',
           type: "Literal",
         },
       ],
@@ -247,7 +247,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 1',
           type: "Literal",
         },
       ],
@@ -260,7 +260,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 1',
           type: "Literal",
         },
       ],
@@ -273,7 +273,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 1',
           type: "Literal",
         },
       ],
@@ -286,7 +286,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 1',
           type: "Literal",
         },
       ],
@@ -299,7 +299,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 1',
           type: "Literal",
         },
       ],
@@ -316,7 +316,7 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       options: [
         {
           default: "allow",
-          rules: [
+          policies: [
             {
               from: { type: "components" },
               disallow: [
@@ -339,7 +339,7 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       options: [
         {
           default: "allow",
-          rules: [
+          policies: [
             {
               from: { type: "components" },
               disallow: [
@@ -356,7 +356,7 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies with kind "type" to elements of type "helpers" are not allowed in elements of type "components". Denied by rule at index 0',
+            'Dependencies with kind "type" to elements of type "helpers" are not allowed in elements of type "components". Denied by policy at index 0',
           type: "Literal",
         },
       ],
@@ -425,7 +425,7 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       errors: [
         {
           message:
-            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 1',
           type: "Literal",
         },
       ],
@@ -473,7 +473,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 1',
           type: "Literal",
         },
       ],
@@ -486,7 +486,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "type" to elements of type "helpers" are not allowed in elements of type "modules". Denied by rule at index 3',
+            'Dependencies with kind "type" to elements of type "helpers" are not allowed in elements of type "modules". Denied by policy at index 3',
           type: "Literal",
         },
       ],
@@ -499,7 +499,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 1',
           type: "Literal",
         },
       ],
@@ -512,7 +512,7 @@ createRuleTester({
       errors: [
         {
           message:
-            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by rule at index 1',
+            'Dependencies with kind "value" to elements of type "helpers" are not allowed in elements of type "helpers". Denied by policy at index 1',
           type: "Literal",
         },
       ],

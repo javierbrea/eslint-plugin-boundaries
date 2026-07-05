@@ -21,6 +21,7 @@ function createConfig(config = {}) {
         "**/reports/**",
         "**/build/**",
         "**/*.svg",
+        "**/pnpm-workspace.yaml",
       ],
       caseSensitive: false,
       // Language - current active spelling language

@@ -21,7 +21,7 @@ function elementCategoriesNoRuleMessage({
   file: string;
   dep: string;
 }) {
-  return `There is no rule allowing dependencies from elements of category ${file} to elements of category ${dep}`;
+  return `There is no policy allowing dependencies from elements of category ${file} to elements of category ${dep}`;
 }
 
 const defaultSettings: RuleTesterSettings = {
@@ -237,8 +237,8 @@ const runTest = (
               errorMessages,
               0,
               elementCategoriesNoRuleMessage({
-                file: '"helpers" and elementName "helper-a"',
-                dep: '"helpers" and elementName "helper-b"',
+                file: '"helpers" and captured values: elementName="helper-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
               })
             ),
             type: "Literal",
@@ -256,8 +256,8 @@ const runTest = (
               errorMessages,
               1,
               elementCategoriesNoRuleMessage({
-                file: '"helpers" and elementName "helper-a"',
-                dep: '"helpers" and elementName "helper-b"',
+                file: '"helpers" and captured values: elementName="helper-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
               })
             ),
             type: "Literal",
@@ -275,8 +275,8 @@ const runTest = (
               errorMessages,
               2,
               elementCategoriesNoRuleMessage({
-                file: '"helpers" and elementName "helper-a"',
-                dep: '"components" and elementName "component-a"',
+                file: '"helpers" and captured values: elementName="helper-a"',
+                dep: '"components" and captured values: elementName="component-a"',
               })
             ),
             type: "Literal",
@@ -294,8 +294,8 @@ const runTest = (
               errorMessages,
               3,
               elementCategoriesNoRuleMessage({
-                file: '"helpers" and elementName "helper-a"',
-                dep: '"modules" and elementName "module-a"',
+                file: '"helpers" and captured values: elementName="helper-a"',
+                dep: '"modules" and captured values: elementName="module-a"',
               })
             ),
             type: "Literal",
@@ -313,8 +313,8 @@ const runTest = (
               errorMessages,
               4,
               elementCategoriesNoRuleMessage({
-                file: '"components" and elementName "component-a"',
-                dep: '"modules" and elementName "module-a"',
+                file: '"components" and captured values: elementName="component-a"',
+                dep: '"modules" and captured values: elementName="module-a"',
               })
             ),
             type: "Literal",
@@ -377,8 +377,8 @@ const testCapture = (
               errorMessages,
               0,
               elementCategoriesNoRuleMessage({
-                file: '"components" and elementName "component-a"',
-                dep: '"helpers" and elementName "helper-b"',
+                file: '"components" and captured values: elementName="component-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
               })
             ),
             type: "Literal",
@@ -396,8 +396,8 @@ const testCapture = (
               errorMessages,
               1,
               elementCategoriesNoRuleMessage({
-                file: '"components" and elementName "component-a"',
-                dep: '"helpers" and elementName "helper-b"',
+                file: '"components" and captured values: elementName="component-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
               })
             ),
             type: "Literal",
@@ -415,8 +415,8 @@ const testCapture = (
               errorMessages,
               2,
               elementCategoriesNoRuleMessage({
-                file: '"components" and elementName "component-b"',
-                dep: '"components" and elementName "component-a"',
+                file: '"components" and captured values: elementName="component-b"',
+                dep: '"components" and captured values: elementName="component-a"',
               })
             ),
             type: "Literal",
@@ -434,8 +434,8 @@ const testCapture = (
               errorMessages,
               3,
               elementCategoriesNoRuleMessage({
-                file: '"modules" and elementName "module-a"',
-                dep: '"helpers" and elementName "helper-b"',
+                file: '"modules" and captured values: elementName="module-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
               })
             ),
             type: "Literal",
@@ -496,11 +496,11 @@ runTest(
     },
   ],
   {
-    0: 'There is no rule allowing dependencies from elements of category "helpers" to elements of category "helpers"',
-    1: 'Dependencies to elements of category "helpers" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    2: 'Dependencies to elements of category "components" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    3: 'Dependencies to elements of category "modules" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    4: 'Dependencies to elements of category "modules" are not allowed in elements of category "components". Denied by rule at index 1',
+    0: 'There is no policy allowing dependencies from elements of category "helpers" to elements of category "helpers"',
+    1: 'Dependencies to elements of category "helpers" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    2: 'Dependencies to elements of category "components" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    3: 'Dependencies to elements of category "modules" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    4: 'Dependencies to elements of category "modules" are not allowed in elements of category "components". Denied by policy at index 1',
   }
 );
 
@@ -584,10 +584,10 @@ runTest(
     },
   ],
   {
-    1: 'Dependencies to elements of category "helpers" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    2: 'Dependencies to elements of category "components" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    3: 'Dependencies to elements of category "modules" are not allowed in elements of category "helpers". Denied by rule at index 0',
-    4: 'Dependencies to elements of category "modules" are not allowed in elements of category "components". Denied by rule at index 1',
+    1: 'Dependencies to elements of category "helpers" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    2: 'Dependencies to elements of category "components" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    3: 'Dependencies to elements of category "modules" are not allowed in elements of category "helpers". Denied by policy at index 0',
+    4: 'Dependencies to elements of category "modules" are not allowed in elements of category "components". Denied by policy at index 1',
   }
 );
 
@@ -630,7 +630,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of category "components" and elementName "component-a" are not allowed in elements of category "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of category "components" and captured values: elementName="component-a" are not allowed in elements of category "components". Denied by policy at index 0',
   }
 );
 
@@ -704,7 +704,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of category "components" and elementName "component-a" are not allowed in elements of category "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of category "components" and captured values: elementName="component-a" are not allowed in elements of category "components". Denied by policy at index 0',
   }
 );
 

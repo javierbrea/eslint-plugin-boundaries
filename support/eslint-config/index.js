@@ -115,7 +115,13 @@ export const jsBaseConfig = {
     "no-undef": [2],
     "no-unused-vars": [
       2,
-      { vars: "all", args: "after-used", ignoreRestSiblings: false },
+      {
+        vars: "all",
+        args: "after-used",
+        ignoreRestSiblings: false,
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+      },
     ],
     "import/no-named-as-default-member": [2],
     "import/no-named-as-default": [2],
@@ -181,7 +187,13 @@ export const typescriptConfig = {
     "no-unused-vars": 0,
     "@typescript-eslint/no-unused-vars": [
       2,
-      { vars: "all", args: "after-used", ignoreRestSiblings: false },
+      {
+        vars: "all",
+        args: "after-used",
+        ignoreRestSiblings: false,
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+      },
     ],
     "@typescript-eslint/no-unused-expressions": [
       1,

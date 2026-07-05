@@ -1,6 +1,6 @@
 {
   "name": "@boundaries/eslint-plugin",
-  "version": "6.0.2",
+  "version": "7.0.0",
   "description": "Eslint plugin checking architecture boundaries between elements",
   "keywords": [
     "eslint",
@@ -11,6 +11,9 @@
     "boundaries",
     "dependencies",
     "elements",
+    "files",
+    "modules",
+    "analysis",
     "hierarchy",
     "import",
     "dependency"
@@ -59,7 +62,8 @@
     "lint:fix": "eslint . --fix",
     "serve:unit:report": "serve --config ./serve.test-unit-report.json",
     "test": "jest",
-    "test:unit": "pnpm test"
+    "test:unit": "pnpm test",
+    "test:unit:debug": "ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 pnpm test:unit"
   },
   "peerDependencies": {
     "eslint": ">=6.0.0"

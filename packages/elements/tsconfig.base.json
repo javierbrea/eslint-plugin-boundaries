@@ -16,6 +16,10 @@
     "forceConsistentCasingInFileNames": true,
     "noUnusedParameters": true,
     "isolatedModules": true,
+    "types": [
+      "node",
+      "jest"
+    ],
     "strictPropertyInitialization": false
   }
 }

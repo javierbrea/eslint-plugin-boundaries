@@ -15,7 +15,7 @@ const { absoluteFilePath } = pathResolvers("base-pattern");
 const options = [
   {
     default: "disallow",
-    rules: [
+    policies: [
       {
         from: { type: "modules", captured: { domain: "domain-a" } },
         allow: {
@@ -169,7 +169,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-a" and elementName "module-a" to elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-b" and elementName "module-c"',
+            'There is no policy allowing dependencies from elements of type "modules" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-a", elementName="module-a" to elements of type "modules" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-b", elementName="module-c"',
           type: "Literal",
         },
       ],
@@ -184,7 +184,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-a" and elementName "module-h" to elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-b" and elementName "module-c"',
+            'There is no policy allowing dependencies from elements of type "modules" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-a", elementName="module-h" to elements of type "modules" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-b", elementName="module-c"',
           type: "Literal",
         },
       ],
@@ -199,7 +199,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-a" and elementName "module-a" to elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-b", type "atoms" and elementName "atom-c"',
+            'There is no policy allowing dependencies from elements of type "modules" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-a", elementName="module-a" to elements of type "components" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-b", type="atoms", elementName="atom-c"',
           type: "Literal",
         },
       ],
@@ -214,7 +214,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-a", type "molecules" and elementName "molecule-a" to elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-a" and elementName "module-a"',
+            'There is no policy allowing dependencies from elements of type "components" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-a", type="molecules", elementName="molecule-a" to elements of type "modules" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-a", elementName="module-a"',
           type: "Literal",
         },
       ],
@@ -229,7 +229,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-a", type "molecules" and elementName "molecule-a" to elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-b" and elementName "module-c"',
+            'There is no policy allowing dependencies from elements of type "components" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-a", type="molecules", elementName="molecule-a" to elements of type "modules" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-b", elementName="module-c"',
           type: "Literal",
         },
       ],
@@ -244,7 +244,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-a", type "molecules" and elementName "molecule-a" to elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-b", type "atoms" and elementName "atom-c"',
+            'There is no policy allowing dependencies from elements of type "components" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-a", type="molecules", elementName="molecule-a" to elements of type "components" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-b", type="atoms", elementName="atom-c"',
           type: "Literal",
         },
       ],
@@ -259,7 +259,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-a", type "molecules" and elementName "molecule-e" to elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-b", type "atoms" and elementName "atom-c"',
+            'There is no policy allowing dependencies from elements of type "components" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-a", type="molecules", elementName="molecule-e" to elements of type "components" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-b", type="atoms", elementName="atom-c"',
           type: "Literal",
         },
       ],
@@ -274,7 +274,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-b", type "molecules" and elementName "molecule-c" to elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-b" and elementName "module-c"',
+            'There is no policy allowing dependencies from elements of type "components" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-b", type="molecules", elementName="molecule-c" to elements of type "modules" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-b", elementName="module-c"',
           type: "Literal",
         },
       ],
@@ -289,7 +289,7 @@ ruleTester.run(RULE, rule, {
       errors: [
         {
           message:
-            'There is no rule allowing dependencies from elements of type "components", parentFolders "test/fixtures/base-pattern", domain "domain-b", type "molecules" and elementName "molecule-c" to elements of type "modules", parentFolders "test/fixtures/base-pattern", domain "domain-a" and elementName "module-a"',
+            'There is no policy allowing dependencies from elements of type "components" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-b", type="molecules", elementName="molecule-c" to elements of type "modules" and captured values: parentFolders="test/fixtures/base-pattern", domain="domain-a", elementName="module-a"',
           type: "Literal",
         },
       ],

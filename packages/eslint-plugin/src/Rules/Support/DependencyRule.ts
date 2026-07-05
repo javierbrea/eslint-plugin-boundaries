@@ -1,10 +1,10 @@
 import type { Rule } from "eslint";
 
 import { warnOnce } from "../../Debug";
-import { elementDescription, dependencyDescription } from "../../Elements";
+import { entityDescription, dependencyDescription } from "../../Elements";
 import type { EslintLiteralNode } from "../../Elements";
 import { getSettings, moreInfoSettingsLink } from "../../Settings";
-import type { RuleOptionsWithRules, RuleMetaDefinition } from "../../Shared";
+import type { RuleOptions, RuleMetaDefinition } from "../../Shared";
 import { SETTINGS, isString } from "../../Shared";
 
 import type {
@@ -23,7 +23,7 @@ const { ADDITIONAL_DEPENDENCY_NODES } = SETTINGS;
  * @param ruleOptions - Optional behavior flags for validation and rule shape.
  * @returns ESLint rule module ready to be exported by concrete rules.
  */
-export function dependencyRule<Options extends RuleOptionsWithRules>(
+export function dependencyRule<Options extends RuleOptions>(
   ruleMeta: RuleMetaDefinition,
   rule: DependencyRuleRunner<Options>,
   ruleOptions: DependencyRuleOptions = {}
@@ -33,13 +33,16 @@ export function dependencyRule<Options extends RuleOptionsWithRules>(
     create: function (context: Rule.RuleContext) {
       const options = context.options[0] as Options | undefined;
       const settings = getSettings(context);
-      const file = elementDescription(context.filename, settings);
+      const entity = entityDescription(context.filename, settings);
 
       if (ruleOptions.validate !== false && !options) {
         return {};
       }
 
-      if (file.isIgnored || file.isUnknown) {
+      if (
+        entity.file.isIgnored ||
+        (entity.file.isUnknown && entity.element.isUnknown)
+      ) {
         return {};
       }
 

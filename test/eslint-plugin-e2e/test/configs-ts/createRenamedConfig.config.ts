@@ -24,7 +24,7 @@ const boundariesConfig = createConfig(
         "error",
         {
           default: "disallow",
-          rules: [
+          policies: [
             {
               from: {
                 type: "module",

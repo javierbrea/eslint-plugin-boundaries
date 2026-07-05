@@ -428,15 +428,15 @@ runTest(
     },
   ],
   {
-    0: 'Dependencies with module "react" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    1: 'Dependencies with module "react-router-dom" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 1',
-    2: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    3: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    4: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    5: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    6: 'Dependencies with module "foo-library" and specifiers "Link", "Router" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    7: 'Dependencies with module "@material-ui/core" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
-    8: 'Dependencies with module "react-router-dom" to elements of origin "external" and internalPath "/var/foo" are not allowed in elements of type "modules". Denied by rule at index 2',
+    0: 'Dependencies with module source "react" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    1: 'Dependencies with module source "react-router-dom" to entities of module with origin "external" are not allowed in elements of type "components". Denied by policy at index 1',
+    2: 'Dependencies with module source "foo-library" and specifiers "Link" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    3: 'Dependencies with module source "foo-library" and specifiers "Link" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    4: 'Dependencies with module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    5: 'Dependencies with module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    6: 'Dependencies with module source "foo-library" and specifiers "Link", "Router" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    7: 'Dependencies with module source "@material-ui/core" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by policy at index 2',
+    8: 'Dependencies with module source "react-router-dom" and module internalPath "var/foo" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by policy at index 2',
   }
 );
 
@@ -475,15 +475,15 @@ runTest(
     },
   ],
   {
-    0: 'Dependencies with module "react" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    1: 'Dependencies with module "react-router-dom" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 1',
-    2: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    3: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    4: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    5: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    6: 'Dependencies with module "foo-library" and specifiers "Link", "Router" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    7: 'Dependencies with module "@material-ui/core" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
-    8: 'Dependencies with module "react-router-dom" to elements of origin "external" and internalPath "/var/foo" are not allowed in elements of type "modules". Denied by rule at index 2',
+    0: 'Dependencies with module source "react" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    1: 'Dependencies with module source "react-router-dom" to entities of module with origin "external" are not allowed in elements of type "components". Denied by policy at index 1',
+    2: 'Dependencies with module source "foo-library" and specifiers "Link" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    3: 'Dependencies with module source "foo-library" and specifiers "Link" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    4: 'Dependencies with module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    5: 'Dependencies with module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    6: 'Dependencies with module source "foo-library" and specifiers "Link", "Router" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    7: 'Dependencies with module source "@material-ui/core" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by policy at index 2',
+    8: 'Dependencies with module source "react-router-dom" and module internalPath "var/foo" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by policy at index 2',
   }
 );
 
@@ -519,15 +519,15 @@ runTest(
     },
   ],
   {
-    0: 'Dependencies with module "react" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    1: 'Dependencies with module "react-router-dom" to elements of origin "external" are not allowed in elements of type "components". Denied by rule at index 1',
-    2: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    3: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    4: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    5: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    6: 'Dependencies with module "foo-library" and specifiers "Link", "Router" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    7: 'Dependencies with module "@material-ui/core" to elements of origin "external" are not allowed in elements of type "modules". Denied by rule at index 2',
-    8: 'Dependencies with module "react-router-dom" to elements of origin "external" and internalPath "/var/foo" are not allowed in elements of type "modules". Denied by rule at index 2',
+    0: 'Dependencies with module source "react" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    1: 'Dependencies with module source "react-router-dom" to entities of module with origin "external" are not allowed in elements of type "components". Denied by policy at index 1',
+    2: 'Dependencies with module source "foo-library" and specifiers "Link" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    3: 'Dependencies with module source "foo-library" and specifiers "Link" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    4: 'Dependencies with module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    5: 'Dependencies with module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    6: 'Dependencies with module source "foo-library" and specifiers "Link", "Router" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    7: 'Dependencies with module source "@material-ui/core" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by policy at index 2',
+    8: 'Dependencies with module source "react-router-dom" and module internalPath "var/foo" to entities of module with origin "external" are not allowed in elements of type "modules". Denied by policy at index 2',
   }
 );
 
@@ -569,15 +569,15 @@ runTest(
     },
   ],
   {
-    0: 'There is no rule allowing dependencies from elements of type "helpers" and elementName "helper-a" to elements of origin "external" with module "react"',
-    1: 'There is no rule allowing dependencies from elements of type "components" and elementName "component-a" to elements of origin "external" with module "react-router-dom"',
-    2: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    3: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    4: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    5: 'Dependencies with module "foo-library" and specifiers "Link", "Foo" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    6: 'Dependencies with module "foo-library" and specifiers "Link", "Router" to elements of origin "external" are not allowed in elements of type "helpers". Denied by rule at index 0',
-    7: 'There is no rule allowing dependencies from elements of type "modules" and elementName "module-a" to elements of origin "external" with module "@material-ui/core"',
-    8: "Do not import /var/foo from RDD in modules",
+    0: 'There is no policy allowing dependencies from elements of type "helpers" and captured values: elementName="helper-a" to entities of module with origin "external" and module source "react"',
+    1: 'There is no policy allowing dependencies from elements of type "components" and captured values: elementName="component-a" to entities of module with origin "external" and module source "react-router-dom"',
+    2: 'Dependencies with module source "foo-library" and specifiers "Link" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    3: 'Dependencies with module source "foo-library" and specifiers "Link" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    4: 'Dependencies with module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    5: 'Dependencies with module source "foo-library" and specifiers "Link", "Foo" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    6: 'Dependencies with module source "foo-library" and specifiers "Link", "Router" to entities of module with origin "external" are not allowed in elements of type "helpers". Denied by policy at index 0',
+    7: 'There is no policy allowing dependencies from elements of type "modules" and captured values: elementName="module-a" to entities of module with origin "external" and module source "@material-ui/core"',
+    8: "Do not import var/foo from RDD in modules",
   }
 );
 
@@ -654,8 +654,8 @@ testCapture(
     },
   ],
   {
-    0: 'Dependencies with module "react-router-dom" to elements of origin "external" are not allowed in elements of type "modules" and elementName "module-b". Denied by rule at index 0',
-    1: 'Dependencies with module "foo-library" to elements of origin "external" are not allowed in elements of type "helpers" and elementName "helper-b". Denied by rule at index 1',
-    2: 'Dependencies with module "foo-library" and specifiers "Link" to elements of origin "external" are not allowed in elements of type "helpers" and elementName "helper-a". Denied by rule at index 2',
+    0: 'Dependencies with module source "react-router-dom" to entities of module with origin "external" are not allowed in elements of type "modules" and captured values: elementName="module-b". Denied by policy at index 0',
+    1: 'Dependencies with module source "foo-library" to entities of module with origin "external" are not allowed in elements of type "helpers" and captured values: elementName="helper-b". Denied by policy at index 1',
+    2: 'Dependencies with module source "foo-library" and specifiers "Link" to entities of module with origin "external" are not allowed in elements of type "helpers" and captured values: elementName="helper-a". Denied by policy at index 2',
   }
 );

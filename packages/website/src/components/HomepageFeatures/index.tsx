@@ -13,12 +13,13 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: "Define Your Elements",
+    title: "Classify Files & Elements",
     Svg: require("@site/static/img/undraw_software-engineer_xv60.svg").default,
     description: (
       <>
-        Define and categorize elements in your architecture using file patterns.
-        Components, services, layers, domains, or whatever fits it.
+        Categorize your files and architectural elements using flexible
+        patterns. Define components, layers, or domains — and describe the same
+        files from multiple independent perspectives at once.
       </>
     ),
   },
@@ -27,8 +28,8 @@ const FeatureList: FeatureItem[] = [
     Svg: require("@site/static/img/undraw_adjust-settings_6pis.svg").default,
     description: (
       <>
-        Define rules for dependencies between elements. Prevent unwanted
-        coupling and enforce your architectural patterns automatically.
+        Define rules for dependencies based on your classification. Prevent
+        unwanted coupling and enforce your architectural patterns automatically.
       </>
     ),
   },

@@ -13,7 +13,7 @@ export function elementTypesNoRuleMessage({
   file: string;
   dep: string;
 }) {
-  return `There is no rule allowing dependencies from elements of type ${file} to elements of type ${dep}`;
+  return `There is no policy allowing dependencies from elements of type ${file} to elements of type ${dep}`;
 }
 
 export function entryPointNoRuleMessage({
@@ -33,7 +33,17 @@ export function externalNoRuleMessage({
   file: string;
   dep: string;
 }) {
-  return `There is no rule allowing dependencies from elements of type ${file} to elements of origin "external" with module "${dep}"`;
+  return `There is no policy allowing dependencies from elements of type ${file} to entities of module with origin "external" and module source "${dep}"`;
+}
+
+export function externalNoRuleMessage2({
+  file,
+  dep,
+}: {
+  file: string;
+  dep: string;
+}) {
+  return `There is no policy allowing dependencies from elements of type ${file} to entities of module with origin "external" and module source ${dep}`;
 }
 
 export function noPrivateMessage({ dep }: { dep: string }) {

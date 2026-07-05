@@ -27,23 +27,52 @@ export default [
     /** @type {import('@boundaries/eslint-plugin').Rules} */
     rules: {
       ...strictBoundariesConfig.rules,
-      "boundaries/element-types": [
+      "boundaries/dependencies": [
         "error",
         {
+          // Check external dependencies too, so the deprecated external rule
+          // can be folded into this one through the to.module sub-selector.
+          checkAllOrigins: true,
           default: "disallow",
-          rules: [
+          policies: [
             {
-              from: "component",
-              allow: ["helper"],
+              from: {
+                element: {
+                  type: "component",
+                },
+              },
+              // Only local helpers are allowed. A helper outside the root path
+              // is flagged as external (module origin "external") and, although
+              // it still matches the helper element pattern, must be disallowed
+              // here to fold in the deprecated external rule behavior.
+              allow: [
+                {
+                  to: {
+                    element: {
+                      type: "helper",
+                    },
+                    module: {
+                      origin: "local",
+                    },
+                  },
+                },
+              ],
             },
             {
               from: {
-                type: "helper",
+                element: {
+                  type: "helper",
+                },
               },
               allow: [
                 {
                   to: {
-                    type: "helper",
+                    element: {
+                      type: "helper",
+                    },
+                    module: {
+                      origin: "local",
+                    },
                   },
                 },
               ],
@@ -51,7 +80,6 @@ export default [
           ],
         },
       ],
-      "boundaries/external": ["error", { default: "disallow" }],
     },
   },
 ];

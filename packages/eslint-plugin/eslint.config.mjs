@@ -6,185 +6,133 @@ import config, { jestConfig } from "../../support/eslint-config/index.js";
 export default [
   ...config,
   {
-    files: ["**/*.ts"],
+    files: ["src/**/*.ts"],
+
     plugins: {
       "local-rules": localRules,
     },
-  },
-  {
-    files: ["src/**/*.ts"],
 
     settings: {
-      "boundaries/debug": {
+      /* "boundaries/debug": {
         enabled: true,
         messages: {
           files: false,
           dependencies: false,
           violations: true,
         },
-      },
-
+      },*/
       "boundaries/elements": [
-        {
-          type: "@boundaries/elements",
-          mode: "folder",
-          pattern: "**/packages/elements/dist",
-        },
-        {
-          type: "config-utils",
-          mode: "file",
-          pattern: ["src/Config/Config.ts"],
-          capture: ["name"],
-        },
-        {
-          type: "config",
-          mode: "file",
-          pattern: ["src/Config/*.ts", "(package.json)"],
-          capture: ["name"],
-        },
-        {
-          type: "elements",
-          mode: "file",
-          pattern: "src/Elements/*.ts",
-        },
-        {
-          type: "messages",
-          mode: "file",
-          pattern: "src/Messages/*.ts",
-        },
-        {
-          type: "public",
-          mode: "file",
-          pattern: "src/Public/*.ts",
-          capture: ["name"],
-        },
-        {
-          type: "rule",
-          mode: "file",
-          pattern: "src/Rules/*.ts",
-          capture: ["name"],
-        },
-        {
-          type: "rule-support",
-          mode: "file",
-          pattern: "src/Rules/Support/*.ts",
-          capture: ["name"],
-        },
-        {
-          type: "settings",
-          mode: "file",
-          pattern: "src/Settings/*.ts",
-          capture: ["name"],
-        },
-        {
-          type: "shared",
-          mode: "file",
-          pattern: "src/Shared/*.ts",
-          capture: ["name"],
-        },
-        {
-          type: "debug",
-          mode: "file",
-          pattern: "src/Debug/*.ts",
-          capture: ["name"],
-        },
-        {
-          type: "plugin",
-          mode: "full",
-          pattern: ["src/*.ts"],
-        },
-        {
-          type: "test",
-          mode: "full",
-          pattern: ["src/**/*.spec.ts"],
-        },
+        { type: "rule-support", pattern: "Rules/Support" },
+        { type: "rule", pattern: "Rules" },
+        { type: "config", pattern: "Config" },
+        { type: "elements", pattern: "Elements" },
+        { type: "settings", pattern: "Settings" },
+        { type: "messages", pattern: "Messages" },
+        { type: "debug", pattern: "Debug" },
+        { type: "public", pattern: "Public" },
+        { type: "shared", pattern: "Shared" },
+      ],
+      "boundaries/files": [
+        { pattern: "**/*.spec.ts", category: "test" },
+        // Only the root composition file, not the per-folder barrel index.ts files
+        { pattern: "src/index.ts", category: "entry" },
       ],
     },
 
     rules: {
-      "local-rules/boundaries/element-types": [
+      "local-rules/boundaries/dependencies": [
         2,
         {
           default: "disallow",
+          policies: [
+            // External / Node core imports are unrestricted; we enforce internal layering only
+            { allow: { to: { module: { origin: ["external", "core"] } } } },
+            // Shared is the universal foundation: anything may import it (except public, see below)
+            { allow: { to: { element: { type: "shared" } } } },
+            // Same-element (same-folder) imports are always allowed
+            { allow: { dependency: { relationship: { to: "internal" } } } },
 
-          rules: [
+            // Layered allowlist: each layer may only import strictly downward
+            // (shared is omitted below, already covered by the universal policy above)
             {
-              allow: [
-                {
-                  // Allow all elements importing the same type of element
-                  to: { type: "{{ from.type }}" },
-                },
-                {
-                  // Allow all elements importing the elements library
-                  to: { type: "@boundaries/elements" },
-                },
-                {
-                  from: { type: "test" },
-                },
-              ],
+              from: { element: { type: "messages" } },
+              allow: { to: { element: { type: "shared" } } },
             },
-            // Allow all elements importing settings and support
             {
-              to: { type: ["settings", "shared", "debug"] },
+              from: { element: { type: "debug" } },
+              allow: { to: { element: { type: "shared" } } },
+            },
+            {
+              from: { element: { type: "settings" } },
+              allow: { to: { element: { type: "debug" } } },
+            },
+            {
+              from: { element: { type: "elements" } },
+              allow: { to: { element: { type: "debug" } } },
+            },
+            {
+              from: { element: { type: "rule-support" } },
               allow: {
-                from: {
-                  type: [
-                    "rule",
-                    "rule-support",
-                    "elements",
-                    "messages",
-                    "plugin",
-                    "config",
-                    "public",
-                    "config-utils",
-                  ],
-                },
+                to: { element: { type: ["elements", "settings", "debug"] } },
               },
             },
             {
-              from: { type: "settings" },
-              allow: { to: { type: ["shared", "debug"] } },
+              from: { element: { type: "rule" } },
+              allow: {
+                to: {
+                  element: {
+                    type: [
+                      "rule-support",
+                      "elements",
+                      "settings",
+                      "messages",
+                      "debug",
+                    ],
+                  },
+                },
+              },
+            },
+            // Public API surface: re-exports downward from messages/settings; consumed only by entry + config
+            {
+              from: { element: { type: "public" } },
+              allow: { to: { element: { type: ["messages", "settings"] } } },
             },
             {
-              from: { type: "debug" },
-              allow: [{ to: { type: ["shared"] } }],
+              from: { element: { type: "config" } },
+              allow: {
+                to: [
+                  { element: { type: ["public", "settings"] } },
+                  { file: { categories: "entry" } },
+                ],
+              },
             },
+            // Root composition entry (src/index.ts) may import the top layers it wires together
             {
-              from: { type: "elements" },
-              allow: { to: { type: "@boundaries/elements" } },
+              from: { file: { categories: "entry" } },
+              allow: {
+                to: { element: { type: ["config", "rule", "public"] } },
+              },
             },
 
+            // Test files must never be imported from source code
             {
-              from: { type: "rule" },
+              disallow: { to: { file: { categories: "test" } } },
+              message:
+                "Do not import test files ({{to.file.categories}}) from source code",
+            },
+            // A test file may import anything it needs to test
+            {
+              from: { file: { categories: "test" } },
               allow: {
-                to: { type: ["rule-support", "elements", "messages"] },
+                to: [
+                  { element: { type: "*" } },
+                  { file: { categories: "entry" } },
+                ],
               },
-            },
-            {
-              from: { type: "rule-support" },
-              allow: {
-                to: { type: "elements" },
-              },
-            },
-            {
-              from: { type: "config-utils" },
-              allow: { to: { type: ["config", "public", "plugin"] } },
-            },
-            {
-              from: { type: "plugin" },
-              allow: { to: { type: ["config", "public", "rule"] } },
-            },
-            {
-              from: { type: "public" },
-              allow: { to: { type: ["messages"] } },
             },
           ],
         },
       ],
-
-      "local-rules/boundaries/no-unknown": [2],
-      "local-rules/boundaries/no-unknown-files": [2],
-      "local-rules/boundaries/no-ignored": [2],
     },
   },
   {

@@ -1,4 +1,4 @@
-import rule from "../../../src/Rules/NoUnknown";
+import getRule from "../../../src/Rules/NoUnknown";
 import { NO_UNKNOWN as RULE } from "../../../src/Shared";
 import {
   SETTINGS,
@@ -6,10 +6,16 @@ import {
   pathResolvers,
 } from "../../support/helpers";
 
+const rule = getRule();
+
 const settings = SETTINGS.docsExamples;
 const { absoluteFilePath } = pathResolvers("docs-examples");
 
-const ERROR_MESSAGE = "Dependencies to unknown elements are not allowed";
+// With the default options (`require: "any"`) the rule reports only when the
+// target is unknown as both element and file. No file descriptors are
+// configured here, so every file is unknown on the file axis too.
+const ERROR_MESSAGE =
+  "Dependencies to unknown elements and files are not allowed";
 
 const ruleTester = createRuleTester(settings);
 

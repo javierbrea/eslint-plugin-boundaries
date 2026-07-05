@@ -31,7 +31,7 @@ By default, the plugin categorizes dependencies as:
 - **External**: npm packages in `node_modules` and unresolvable imports
 - **Local**: all other resolved file paths within your project
 
-:::info Why does this matter?
+:::info[Why does this matter?]
 
 This is relevant because you can use the `origin` selector property in your rules to target dependencies based on their categorization as external or local, and also decide if rules apply to dependencies from all origins or only local ones.
 
@@ -52,7 +52,7 @@ In a monorepo, you might want different behavior:
 The [`boundaries/flag-as-external`](../setup/settings.md#boundariesflag-as-external) setting gives you full control over this categorization.
 
 
-:::tip Fully customizable
+:::tip[Fully customizable]
 
 You can control both the categorization of inter-package dependencies (external vs local) and also if the `dependencies` rule should check dependencies from all origins or only local ones, allowing you to mix and match different approaches in the same monorepo.
 
@@ -67,7 +67,7 @@ It is also important the path where ESlint is executed from, as the `files` patt
 
 Remember: Even when splitting the eslint configuration per-package, the `files` property is relative to where ESLint is executed (usually the repository root), **not** to the config file location.
 
-:::info Adapting examples if ESLint is run from package directories
+:::info[Adapting examples if ESLint is run from package directories]
 All examples in this page **assume eslint is executed from the monorepo root**, so all `files` patterns are relative to that path, but you can easily adapt them if eslint is run from each package directory by changing the `files` patterns accordingly:
 
 - If ESLint runs from monorepo root:
@@ -233,7 +233,7 @@ import { formatDate } from '@myorg/shared';
 import { map } from 'lodash';
 ```
 
-:::tip Use the `origin` selector to target inter-package dependencies
+:::tip[Use the `origin` selector to target inter-package dependencies]
 You can still use the `origin` selector property in your rules to target dependencies from specific origins, such as `external` to target all inter-package dependencies flagged as external, or even more specific with `external:@myorg/*` to target only those matching the custom pattern.
 :::
 
@@ -301,7 +301,7 @@ import { InternalUtil } from '@monorepo/shared/internal-utils';
 import { map } from 'lodash';
 ```
 
-:::info Why This Works
+:::info[Why This Works]
 With `outsideRootPath: false`, imports from `packages/shared` are categorized as **local** dependencies. This allows the plugin to:
 1. Match them against your element patterns
 2. Apply boundary rules between packages

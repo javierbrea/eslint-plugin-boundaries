@@ -13,15 +13,17 @@ import {
 
 const rule = ruleFactory();
 const { absoluteFilePath } = pathResolvers("one-level");
+let testCounter = 0;
 
 const testCapture = (
   settings: RuleTesterSettings,
   options: unknown[],
   errorMessages: Record<number, string>
 ) => {
+  testCounter++;
   const ruleTester = createRuleTester(settings);
 
-  ruleTester.run(RULE, rule, {
+  ruleTester.run(`${RULE} - template - ${testCounter}`, rule, {
     valid: [
       // Components can import helper-a
       {
@@ -78,8 +80,8 @@ const testCapture = (
               errorMessages,
               0,
               elementTypesNoRuleMessage({
-                file: '"components" and elementName "component-a"',
-                dep: '"helpers" and elementName "helper-b"',
+                file: '"components" and captured values: elementName="component-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
               })
             ),
             type: "Literal",
@@ -97,8 +99,8 @@ const testCapture = (
               errorMessages,
               1,
               elementTypesNoRuleMessage({
-                file: '"components" and elementName "component-a"',
-                dep: '"helpers" and elementName "helper-b"',
+                file: '"components" and captured values: elementName="component-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
               })
             ),
             type: "Literal",
@@ -116,8 +118,8 @@ const testCapture = (
               errorMessages,
               2,
               elementTypesNoRuleMessage({
-                file: '"components" and elementName "component-b"',
-                dep: '"components" and elementName "component-a"',
+                file: '"components" and captured values: elementName="component-b"',
+                dep: '"components" and captured values: elementName="component-a"',
               })
             ),
             type: "Literal",
@@ -135,8 +137,8 @@ const testCapture = (
               errorMessages,
               3,
               elementTypesNoRuleMessage({
-                file: '"modules" and elementName "module-a"',
-                dep: '"helpers" and elementName "helper-b"',
+                file: '"modules" and captured values: elementName="module-a"',
+                dep: '"helpers" and captured values: elementName="helper-b"',
               })
             ),
             type: "Literal",
@@ -154,8 +156,8 @@ const testCapture = (
               errorMessages,
               4,
               elementTypesNoRuleMessage({
-                file: '"modules" and elementName "module-b"',
-                dep: '"module-a-helpers" and elementName "helper-1"',
+                file: '"modules" and captured values: elementName="module-b"',
+                dep: '"module-a-helpers" and captured values: elementName="helper-1"',
               })
             ),
             type: "Literal",
@@ -173,8 +175,8 @@ const testCapture = (
               errorMessages,
               5,
               elementTypesNoRuleMessage({
-                file: '"modules" and elementName "module-b"',
-                dep: '"helpers" and elementName "module-a"',
+                file: '"modules" and captured values: elementName="module-b"',
+                dep: '"helpers" and captured values: elementName="module-a"',
               })
             ),
             type: "Literal",
@@ -216,7 +218,7 @@ testCapture(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { type: "components" },
           allow: {
@@ -268,7 +270,7 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and elementName "component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );
 
@@ -303,7 +305,7 @@ testCapture(
   [
     {
       default: "disallow",
-      rules: [
+      policies: [
         {
           from: { type: "components" },
           allow: {
@@ -354,6 +356,6 @@ testCapture(
     },
   ],
   {
-    2: 'Dependencies to elements of type "components" and elementName "component-a" are not allowed in elements of type "components". Denied by rule at index 0',
+    2: 'Dependencies to elements of type "components" and captured values: elementName="component-a" are not allowed in elements of type "components". Denied by policy at index 0',
   }
 );

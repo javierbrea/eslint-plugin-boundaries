@@ -18,6 +18,31 @@ describe("Cache", () => {
     expect(cacheManager.get("nonExistentKey")).toBeUndefined();
   });
 
+  it("should check if a key exists with has", () => {
+    cacheManager.set("key2", "value2");
+
+    expect(cacheManager.has("key2")).toBe(true);
+    expect(cacheManager.has("nonExistent")).toBe(false);
+  });
+
+  it("should return all cached values with getAll", () => {
+    cacheManager.set("key3", "value3");
+    cacheManager.set("key4", "value4");
+
+    const all = cacheManager.getAll();
+
+    expect(all).toBeInstanceOf(Map);
+    expect(all.size).toBe(2);
+    expect(all.get("key3")).toBe("value3");
+    expect(all.get("key4")).toBe("value4");
+  });
+
+  it("should generate key from string using default generateKey", () => {
+    const key = cacheManager.getKey("myKey");
+
+    expect(key).toBe("myKey");
+  });
+
   it("should clear all values", () => {
     cacheManager.set("key3", "value3");
     cacheManager.set("key4", "value4");
@@ -132,6 +157,12 @@ describe("CacheManager serialization", () => {
     });
   });
 
+  it("should serialize an empty cache to an empty object", () => {
+    const serialized = cacheManager.serialize();
+
+    expect(serialized).toEqual({});
+  });
+
   it("should initialize cache from a serialized object", () => {
     cacheManager.setFromSerialized({
       key1: "value1",
@@ -140,5 +171,13 @@ describe("CacheManager serialization", () => {
 
     expect(cacheManager.get("key1")).toBe("value1");
     expect(cacheManager.get("key2")).toBe("value2");
+  });
+
+  it("should not modify cache when setting from an empty serialized object", () => {
+    cacheManager.set("existing", "value");
+    cacheManager.setFromSerialized({});
+
+    expect(cacheManager.get("existing")).toBe("value");
+    expect(cacheManager.getAll().size).toBe(1);
   });
 });

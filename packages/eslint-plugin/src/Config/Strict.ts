@@ -3,7 +3,11 @@ import { SETTINGS } from "../Shared";
 
 import recommended from "./Recommended";
 
-const { RULE_NO_IGNORED, RULE_NO_UNKNOWN_FILES, RULE_NO_UNKNOWN } = SETTINGS;
+const {
+  RULE_NO_IGNORED_DEPENDENCIES,
+  RULE_NO_UNKNOWN_FILES,
+  RULE_NO_UNKNOWN_DEPENDENCIES,
+} = SETTINGS;
 
 // TODO In next major version: Export also files, plugin, etc.
 
@@ -16,9 +20,9 @@ const config: Config = {
   ...recommended,
   rules: {
     ...recommended.rules,
-    [RULE_NO_IGNORED]: 2,
+    [RULE_NO_IGNORED_DEPENDENCIES]: 2,
     [RULE_NO_UNKNOWN_FILES]: 2,
-    [RULE_NO_UNKNOWN]: 2,
+    [RULE_NO_UNKNOWN_DEPENDENCIES]: 2,
   },
 };
 

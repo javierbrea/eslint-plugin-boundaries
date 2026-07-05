@@ -1,1195 +1,977 @@
 import type {
   DependencyDescription,
-  DependencyMatchResult,
+  DependencySingleSelectorMatchResult,
+  ElementDescription,
+  EntityDescription,
 } from "@boundaries/elements";
 
-import { buildErrorMessage } from "../Rules/Dependencies";
-
 import {
-  elementDescriptionMessage,
-  elementDescriptionMessageFromSelector,
-  dependencyDescriptionMessage,
-  dependencyDescriptionMessageFromSelector,
   dependenciesRuleDefaultErrorMessage,
+  dependenciesRuleMatchedMessage,
+  elementDescriptionMessage,
 } from "./Messages";
 
-const dependencyDescription: DependencyDescription = {
-  from: {
-    path: "/repo/src/components/button/index.ts",
-    elementPath: "src/components/button",
-    internalPath: "index.ts",
-    type: "component",
-    category: "ui",
-    captured: {
-      family: "atoms",
-      elementName: "button",
+type EntityDescriptionOverrides = {
+  element?: Partial<EntityDescription["element"]>;
+  file?: Partial<EntityDescription["file"]>;
+  module?: Partial<EntityDescription["module"]>;
+};
+
+type DependencyDescriptionOverrides = {
+  from?: EntityDescriptionOverrides;
+  to?: EntityDescriptionOverrides;
+  dependency?: Partial<DependencyDescription["dependency"]>;
+};
+
+function createEntityDescription(
+  values: EntityDescriptionOverrides
+): EntityDescription {
+  return {
+    element: {
+      path: "/repo/src/default/index.ts",
+      types: ["default"],
+      category: null,
+      filePath: "/repo/src/default/index.ts",
+      fileInternalPath: "index.ts",
+      captured: null,
+      parents: [],
+      isIgnored: false,
+      isUnknown: false,
+      ...values.element,
     },
-    parents: [],
-    origin: "local",
-    isIgnored: false,
-    isUnknown: false,
-  },
-  to: {
-    path: "/repo/src/helpers/fetcher.ts",
-    elementPath: "src/helpers/fetcher",
-    internalPath: "fetcher.ts",
-    type: "helper",
-    category: "data",
-    captured: {
-      domain: "api",
+    file: {
+      path: "/repo/src/default/index.ts",
+      categories: ["default"],
+      captured: null,
+      isIgnored: false,
+      isUnknown: false,
+      ...values.file,
     },
-    parents: [],
-    origin: "local",
-    isIgnored: false,
-    isUnknown: false,
-  },
-  dependency: {
-    source: "@/helpers/fetcher",
-    module: null,
+    module: {
+      origin: "local",
+      source: null,
+      internalPath: null,
+      ...values.module,
+    },
+  };
+}
+
+function createDependencyDescription(
+  values: DependencyDescriptionOverrides = {}
+): DependencyDescription {
+  const fromDefaults: EntityDescriptionOverrides = {
+    element: {
+      path: "/repo/src/components/button/index.ts",
+      types: ["component"],
+      category: "ui",
+      filePath: "/repo/src/components/button/index.ts",
+      fileInternalPath: "index.ts",
+      captured: {
+        family: "atoms",
+      },
+    },
+    file: {
+      path: "/repo/src/components/button/index.ts",
+      categories: ["ui", "feature"],
+      captured: {
+        scope: "frontend",
+      },
+    },
+    module: {
+      origin: "local",
+      source: null,
+      internalPath: null,
+    },
+  };
+
+  const toDefaults: EntityDescriptionOverrides = {
+    element: {
+      path: "/repo/src/helpers/fetcher.ts",
+      types: ["helper"],
+      category: "data",
+      filePath: "/repo/src/helpers/fetcher.ts",
+      fileInternalPath: "fetcher.ts",
+      captured: {
+        domain: "api",
+      },
+    },
+    file: {
+      path: "/repo/src/helpers/fetcher.ts",
+      categories: ["shared", "data"],
+      captured: {
+        team: "platform",
+      },
+    },
+    module: {
+      origin: "external",
+      source: "@scope/helpers",
+      internalPath: null,
+    },
+  };
+
+  const dependencyDefaults: DependencyDescription["dependency"] = {
+    source: "@scope/helpers",
     kind: "type",
     nodeKind: "ImportDeclaration",
-    specifiers: ["Fetcher"],
+    specifiers: ["Fetcher", "FetcherConfig"],
     relationship: {
       from: "sibling",
       to: "sibling",
     },
-  },
-};
+  };
+
+  return {
+    from: createEntityDescription({
+      element: {
+        ...fromDefaults.element,
+        ...values.from?.element,
+      },
+      file: {
+        ...fromDefaults.file,
+        ...values.from?.file,
+      },
+      module: {
+        ...fromDefaults.module,
+        ...values.from?.module,
+      },
+    }),
+    to: createEntityDescription({
+      element: {
+        ...toDefaults.element,
+        ...values.to?.element,
+      },
+      file: {
+        ...toDefaults.file,
+        ...values.to?.file,
+      },
+      module: {
+        ...toDefaults.module,
+        ...values.to?.module,
+      },
+    }),
+    dependency: {
+      ...dependencyDefaults,
+      ...values.dependency,
+    },
+  };
+}
 
 describe("Messages", () => {
-  describe("elementDescriptionMessage", () => {
-    it("creates element descriptions using the requested properties", () => {
-      expect(
-        elementDescriptionMessage(dependencyDescription.from, [
-          "type",
-          "category",
-          "path",
-        ])
-      ).toBe(
-        'elements of type "component", category "ui" and path "/repo/src/components/button/index.ts"'
+  describe("dependenciesRuleMatchedMessage", () => {
+    it("builds a full entity-based message when selector matches element, file, origin and dependency", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: {
+            types: ["component"],
+            category: "ui",
+            captured: {
+              family: "*",
+            },
+          },
+          file: {
+            categories: "*",
+            captured: {
+              scope: "*",
+            },
+          },
+          module: {
+            origin: "local",
+          },
+        },
+        to: {
+          element: {
+            types: ["helper"],
+            captured: {
+              domain: "*",
+            },
+          },
+          file: {
+            categories: "*",
+            captured: {
+              team: "*",
+            },
+          },
+          module: {
+            origin: "external",
+            source: "@scope/helpers",
+          },
+        },
+        dependency: {
+          source: "@scope/helpers",
+          kind: "type",
+          nodeKind: "ImportDeclaration",
+          relationship: {
+            from: "sibling",
+            to: "sibling",
+          },
+          specifiers: "Fetcher",
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 2, dependency)).toBe(
+        'Dependencies with source "@scope/helpers", kind "type", nodeKind "ImportDeclaration", relationship from "sibling", relationship to "sibling", module source "@scope/helpers" and specifiers "Fetcher", "FetcherConfig" to file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper" and captured values: domain="api" are not allowed in file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" and module with origin "local". Denied by policy at index 2'
       );
     });
 
-    it("ignores null element values by default", () => {
-      expect(
-        elementDescriptionMessage(
-          {
-            ...dependencyDescription.from,
-            type: null,
+    it("returns the fallback message when matchResult is null", () => {
+      const dependency = createDependencyDescription();
+
+      expect(dependenciesRuleMatchedMessage(null, 5, dependency)).toBe(
+        "Not able to create a message for this violation. Please report this at: https://github.com/javierbrea/eslint-plugin-boundaries/issues. Denied by policy at index 5"
+      );
+    });
+
+    it("builds message with only the from selector", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: { element: { types: ["component"] } },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 1'
+      );
+    });
+
+    it("builds message with only the to selector", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        to: { element: { types: ["helper"] } },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies to elements of type "helper" are not allowed. Denied by policy at index 1'
+      );
+    });
+
+    it("builds message with only the dependency selector", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        dependency: { source: "@scope/helpers" },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies with source "@scope/helpers" are not allowed. Denied by policy at index 1'
+      );
+    });
+
+    it("builds message with dependency and from selectors", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: { element: { types: ["component"] } },
+        dependency: { source: "@scope/helpers" },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies with source "@scope/helpers" are not allowed in elements of type "component". Denied by policy at index 1'
+      );
+    });
+
+    it("falls back to the module origin description when the to selector only targets module.origin", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: { element: { types: ["component"] } },
+        to: { module: { origin: "external" } },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies to entities of module with origin "external" are not allowed in elements of type "component". Denied by policy at index 1'
+      );
+    });
+
+    it("renders module source fragments via legacy to.module.source selector before existing specifiers", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: { element: { types: ["component"] } },
+        to: { module: { source: "@scope/helpers" } },
+        dependency: { specifiers: "Fetcher" },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies with module source "@scope/helpers" and specifiers "Fetcher", "FetcherConfig" are not allowed in elements of type "component". Denied by policy at index 1'
+      );
+    });
+
+    it("renders module internalPath fragment via legacy to.module.internalPath selector", () => {
+      const dependency = createDependencyDescription({
+        to: {
+          module: {
+            origin: "external",
+            source: "@scope/helpers",
+            internalPath: "deep/path",
           },
-          ["type"]
-        )
-      ).toBe("");
+        },
+      });
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: { element: { types: ["component"] } },
+        to: { module: { internalPath: "deep/*" } },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies with module internalPath "deep/path" are not allowed in elements of type "component". Denied by policy at index 1'
+      );
     });
 
-    it("includes null element values when configured", () => {
-      expect(
-        elementDescriptionMessage(
-          {
-            ...dependencyDescription.from,
-            type: null,
-          },
-          ["type"],
-          {
-            includeNullValues: true,
-          }
-        )
-      ).toBe('elements of type "null"');
-    });
-
-    it("ignores empty parent element values by default", () => {
-      expect(
-        elementDescriptionMessage(
-          {
-            ...dependencyDescription.from,
-            type: null,
-            parents: [],
-          },
-          ["type", "parent"]
-        )
-      ).toBe("");
-    });
-
-    it("ignores empty captured values by default", () => {
-      expect(
-        elementDescriptionMessage(
-          {
-            ...dependencyDescription.from,
-            elementPath: "",
-            path: "",
-            captured: {},
-          },
-          ["type", "captured"]
-        )
-      ).toBe('elements of type "component"');
-    });
-
-    it("uses singleElement option for grammar", () => {
-      expect(
-        elementDescriptionMessage(dependencyDescription.from, ["type"], {
-          singleElement: true,
-        })
-      ).toBe('element of type "component"');
-    });
-
-    it("handles empty parents array", () => {
-      expect(
-        elementDescriptionMessage(dependencyDescription.from, ["parent"])
-      ).toBe("");
-    });
-
-    it("ignores parent when parent exists but no parent properties are selected", () => {
-      expect(
-        elementDescriptionMessage(
-          {
-            ...dependencyDescription.from,
+    it("renders parent element fragments when the from selector includes parent properties", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          element: {
             parents: [
               {
-                elementPath: "src/shared",
-                type: "shared",
-                category: "ui",
-                captured: {
-                  scope: "shared",
-                },
+                types: ["module"],
+                category: null,
+                path: "/repo/src/components/button",
+                captured: { area: "primary" },
               },
             ],
           },
-          ["parent"]
-        )
+        },
+      });
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: {
+            parent: {
+              types: ["module"],
+              captured: { area: "*" },
+            },
+          },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in elements of parent type "module" and captured values: area="primary". Denied by policy at index 1'
+      );
+    });
+
+    it("renders 'parent null' when the from selector requires a parent and the element has none", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: {
+            parent: { types: ["module"] },
+          },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in elements of parent "null". Denied by policy at index 1'
+      );
+    });
+
+    it("renders captured 'null' when selector selects captured but element captured is empty", () => {
+      const dependency = createDependencyDescription({
+        from: { element: { captured: {} } },
+      });
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: { element: { captured: { family: "*" } } },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in elements of captured "null". Denied by policy at index 1'
+      );
+    });
+
+    it("skips selected captured keys that are not present in the element captured values", () => {
+      const dependency = createDependencyDescription({
+        from: { element: { captured: { family: "atoms" } } },
+      });
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: {
+            types: ["component"],
+            captured: { other: "*" },
+          },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 1'
+      );
+    });
+
+    it("renders generic file properties beyond categories and captured", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          file: {
+            path: "/repo/src/**",
+            captured: { scope: "*" },
+          } as DependencySingleSelectorMatchResult["from"] extends infer T
+            ? T extends { file?: infer F }
+              ? F
+              : never
+            : never,
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in file of path "/repo/src/components/button/index.ts" and captured values: scope="frontend". Denied by policy at index 1'
+      );
+    });
+
+    it("skips file selector entirely when file selector has no usable properties", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: { types: ["component"] },
+          file: {},
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 1'
+      );
+    });
+
+    it("renders module description through the module selector and skips unknown module keys", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: { types: ["component"] },
+          module: {
+            origin: "local",
+            // @ts-expect-error Forcing unknown module key to exercise undefined-value skip branch
+            unknownKey: "value",
+          },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in elements of type "component" and module with origin "local". Denied by policy at index 1'
+      );
+    });
+
+    it("omits the module fragment when the module selector has no resolvable properties", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: { types: ["component"] },
+          module: {
+            // @ts-expect-error Forcing all keys to undefined to hit empty fragments branch
+            unknownKey: "value",
+          },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 1'
+      );
+    });
+
+    it("skips relationship sides without a matching value in the dependency", () => {
+      const dependency = createDependencyDescription({
+        dependency: {
+          relationship: {
+            // @ts-expect-error Forcing relationship.from to be undefined to hit relationship skip branch
+            from: undefined,
+            to: "sibling",
+          },
+        },
+      });
+      const matchResult: DependencySingleSelectorMatchResult = {
+        dependency: {
+          relationship: { from: "*", to: "*" },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies with relationship to "sibling" are not allowed. Denied by policy at index 1'
+      );
+    });
+
+    it("builds a message with dependency and to selectors but no from selector", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        to: { element: { types: ["helper"] } },
+        dependency: { source: "@scope/helpers" },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies with source "@scope/helpers" to elements of type "helper" are not allowed. Denied by policy at index 1'
+      );
+    });
+
+    it("returns null parent fragment when the parent selector targets no parent properties", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          element: {
+            parents: [
+              {
+                types: ["module"],
+                category: null,
+                path: "/repo/src/components/button",
+                captured: null,
+              },
+            ],
+          },
+        },
+      });
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: {
+            types: ["component"],
+            parent: {},
+          },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 1'
+      );
+    });
+
+    it("skips the element selector when it has no properties", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: {},
+          file: { categories: "*" },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in file of categories "ui", "feature". Denied by policy at index 1'
+      );
+    });
+
+    it("returns null element fragment when only parent selector with no parent properties is provided and element has a parent", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          element: {
+            parents: [
+              {
+                types: ["module"],
+                category: null,
+                path: "/repo/src/components/button",
+                captured: null,
+              },
+            ],
+          },
+        },
+      });
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: { parent: {} },
+          file: { categories: "*" },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in file of categories "ui", "feature". Denied by policy at index 1'
+      );
+    });
+
+    it("returns null file fragment when all file selector properties map to undefined values", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: { types: ["component"] },
+          file: {
+            // @ts-expect-error Forcing unknown file key to exercise empty file fragments branch
+            unknownKey: "*",
+          },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 1'
+      );
+    });
+
+    it("skips the module selector when it has no properties", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: { types: ["component"] },
+          module: {},
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 1'
+      );
+    });
+
+    it("builds a message using only the module fragment when the entity selector targets only module", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          module: { origin: "local" },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in module with origin "local". Denied by policy at index 1'
+      );
+    });
+
+    it("skips dependency selector keys that have no matching value in the dependency info", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        dependency: {
+          // @ts-expect-error Forcing unknown dependency key to exercise undefined skip branch
+          unknownKey: "*",
+          source: "@scope/helpers",
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies with source "@scope/helpers" are not allowed. Denied by policy at index 1'
+      );
+    });
+  });
+
+  describe("elementDescriptionMessage", () => {
+    function createElement(
+      overrides: Partial<ElementDescription> = {}
+    ): ElementDescription {
+      return {
+        path: "/repo/src/components/button/index.ts",
+        types: ["component"],
+        category: "ui",
+        filePath: "/repo/src/components/button/index.ts",
+        fileInternalPath: "index.ts",
+        captured: { family: "atoms" },
+        parents: [],
+        isIgnored: false,
+        isUnknown: false,
+        ...overrides,
+      };
+    }
+
+    it("uses the singular 'element of' label when singleElement is true", () => {
+      const element = createElement();
+
+      expect(
+        elementDescriptionMessage(element, ["type"], { singleElement: true })
+      ).toBe('element of type "component"');
+    });
+
+    it("uses the 'types' label when multiple types are present", () => {
+      const element = createElement({ types: ["component", "page"] });
+
+      expect(elementDescriptionMessage(element, ["type"])).toBe(
+        'elements of types "component", "page"'
+      );
+    });
+
+    it("returns an empty string when no fragments can be produced", () => {
+      const element = createElement({
+        types: null,
+        category: null,
+        captured: null,
+      });
+
+      expect(
+        elementDescriptionMessage(element, ["type", "category", "captured"])
       ).toBe("");
     });
 
-    it("includes parent with null value when configured", () => {
+    it("includes null parent values when includeNullValues is true", () => {
+      const element = createElement({ types: null, category: null });
+
       expect(
-        elementDescriptionMessage(dependencyDescription.from, ["parent"], {
+        elementDescriptionMessage(element, ["parent"], {
           includeNullValues: true,
         })
       ).toBe('elements of parent "null"');
     });
-  });
 
-  describe("elementDescriptionMessageFromSelector", () => {
-    it("returns null when element selector data is null", () => {
-      expect(
-        elementDescriptionMessageFromSelector(dependencyDescription.from, null)
-      ).toBeNull();
+    it("skips the parent fragment when the element has no parents and includeNullValues is false", () => {
+      const element = createElement({ types: ["component"], category: null });
+
+      expect(elementDescriptionMessage(element, ["type", "parent"])).toBe(
+        'elements of type "component"'
+      );
     });
 
-    it("returns null when element selector has no properties", () => {
-      expect(
-        elementDescriptionMessageFromSelector(
-          dependencyDescription.from,
-          {} as unknown as DependencyMatchResult["from"]
-        )
-      ).toBeNull();
-    });
-
-    it("returns null when selector properties do not exist in element metadata", () => {
-      expect(
-        elementDescriptionMessageFromSelector(dependencyDescription.from, {
-          /* @ts-expect-error Testing branch with unsupported selector property */
-          foo: "bar",
-        })
-      ).toBeNull();
-    });
-
-    it("describes parent captured keys selected in element selector", () => {
-      const elementWithParent = {
-        ...dependencyDescription.from,
+    it("skips the parent fragment when the element has parents but no parent properties are configured", () => {
+      const element = createElement({
+        types: ["component"],
         parents: [
           {
-            elementPath: "src/shared",
-            internalPath: "index.ts",
-            type: "shared",
-            category: "ui",
-            captured: {
-              scope: "shared",
-              layer: "core",
-            },
-            parents: [],
-            origin: "local",
-            isIgnored: false,
-            isUnknown: false,
+            types: ["module"],
+            category: null,
+            path: "/repo/src/components",
+            captured: null,
           },
         ],
-      };
+      });
 
-      expect(
-        elementDescriptionMessageFromSelector(elementWithParent, {
-          parent: {
-            captured: {
-              scope: "shared",
-            },
-          },
-        })
-      ).toBe('elements of parent scope "shared"');
-    });
-  });
-
-  describe("dependencyDescriptionMessage", () => {
-    it("creates dependency metadata fragments without redundant prefixes", () => {
-      expect(
-        dependencyDescriptionMessage(dependencyDescription.dependency, [
-          "kind",
-          "source",
-        ])
-      ).toBe('kind "type" and source "@/helpers/fetcher"');
-    });
-
-    it("formats array values in metadata fragments", () => {
-      expect(
-        dependencyDescriptionMessage(dependencyDescription.dependency, [
-          "specifiers",
-        ])
-      ).toBe('specifiers "Fetcher"');
-    });
-
-    it("formats multiple array values in metadata fragments", () => {
-      expect(
-        dependencyDescriptionMessage(
-          {
-            ...dependencyDescription.dependency,
-            specifiers: ["Fetcher", "useApi", "ApiConfig"],
-          },
-          ["specifiers"]
-        )
-      ).toBe('specifiers "Fetcher", "useApi", "ApiConfig"');
-    });
-
-    it("includes relationship property in dependency description", () => {
-      expect(
-        dependencyDescriptionMessage(dependencyDescription.dependency, [
-          "relationship",
-        ])
-      ).toBe('relationship from "sibling" and relationship to "sibling"');
-    });
-
-    it("handles nodeKind property in dependency description", () => {
-      expect(
-        dependencyDescriptionMessage(dependencyDescription.dependency, [
-          "nodeKind",
-        ])
-      ).toBe('nodeKind "ImportDeclaration"');
-    });
-
-    it("returns empty metadata fragment when selected properties are not available", () => {
-      expect(
-        dependencyDescriptionMessage(dependencyDescription.dependency, ["foo"])
-      ).toBe("");
-    });
-
-    it("ignores null metadata values by default", () => {
-      expect(
-        dependencyDescriptionMessage(dependencyDescription.dependency, [
-          "module",
-        ])
-      ).toBe("");
-    });
-
-    it("includes null metadata values when configured", () => {
-      expect(
-        dependencyDescriptionMessage(
-          dependencyDescription.dependency,
-          ["module"],
-          {
-            includeNullValues: true,
-          }
-        )
-      ).toBe('module "null"');
-    });
-
-    it("includes relationship null property in dependency description when configured", () => {
-      expect(
-        dependencyDescriptionMessage(
-          {
-            ...dependencyDescription.dependency,
-            relationship: {
-              from: null,
-              to: null,
-            },
-          },
-          ["relationship"],
-          {
-            includeNullValues: true,
-          }
-        )
-      ).toBe('relationship from "null" and relationship to "null"');
-    });
-
-    it("omits relationship side when it is undefined", () => {
-      expect(
-        dependencyDescriptionMessage(
-          {
-            ...dependencyDescription.dependency,
-            relationship: {
-              from: undefined,
-              to: "sibling",
-            },
-          } as unknown as DependencyDescription["dependency"],
-          ["relationship"]
-        )
-      ).toBe('relationship to "sibling"');
-    });
-  });
-
-  describe("dependencyDescriptionMessageFromSelector", () => {
-    it("returns null when dependency selector data is null", () => {
-      expect(
-        dependencyDescriptionMessageFromSelector(
-          dependencyDescription.dependency,
-          null
-        )
-      ).toBeNull();
-    });
-
-    it("returns null when dependency selector has no properties", () => {
-      expect(
-        dependencyDescriptionMessageFromSelector(
-          dependencyDescription.dependency,
-          {} as unknown as DependencyMatchResult["dependency"]
-        )
-      ).toBeNull();
-    });
-
-    it("returns null when selector properties do not exist in dependency metadata", () => {
-      expect(
-        dependencyDescriptionMessageFromSelector(
-          dependencyDescription.dependency,
-          {
-            /* @ts-expect-error Testing branch with unsupported selector property */
-            foo: "bar",
-          }
-        )
-      ).toBeNull();
-    });
-
-    it("describes only selected relationship sides from dependency selector", () => {
-      expect(
-        dependencyDescriptionMessageFromSelector(
-          dependencyDescription.dependency,
-          {
-            relationship: { from: "sibling" },
-          }
-        )
-      ).toBe('relationship from "sibling"');
-    });
-
-    it("describes all relationship sides when relationship selector is not an object", () => {
-      expect(
-        dependencyDescriptionMessageFromSelector(
-          dependencyDescription.dependency,
-          {
-            /* @ts-expect-error Testing fallback when relationship selector is not an object */
-            relationship: true,
-          }
-        )
-      ).toBe('relationship from "sibling" and relationship to "sibling"');
-    });
-
-    it("ignores relationship to when specified in selector", () => {
-      expect(
-        dependencyDescriptionMessageFromSelector(
-          dependencyDescription.dependency,
-          {
-            relationship: { from: "sibling" },
-          }
-        )
-      ).toBe('relationship from "sibling"');
-    });
-
-    it("ignores relationship from when specified in selector", () => {
-      expect(
-        dependencyDescriptionMessageFromSelector(
-          dependencyDescription.dependency,
-          {
-            relationship: { to: "sibling" },
-          }
-        )
-      ).toBe('relationship to "sibling"');
-    });
-
-    it("includes null dependency values when selector targets those properties", () => {
-      expect(
-        dependencyDescriptionMessageFromSelector(
-          {
-            ...dependencyDescription.dependency,
-            module: null,
-          },
-          { module: "react" }
-        )
-      ).toBe('module "null"');
+      expect(elementDescriptionMessage(element, ["type", "parent"])).toBe(
+        'elements of type "component"'
+      );
     });
   });
 
   describe("dependenciesRuleDefaultErrorMessage", () => {
-    it("builds a semantic default message using relevant from/to/dependency properties", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: { type: "component", captured: { family: "atoms" } },
-        to: { type: "helper", internalPath: "fetcher.ts" },
-        dependency: { kind: "type", source: "@/helpers/fetcher" },
-      };
+    it("builds no-rule message with both element and file data and includes to origin", () => {
+      const dependency = createDependencyDescription();
 
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          1,
-          dependencyDescription
-        )
-      ).toBe(
-        'Dependencies with kind "type" and source "@/helpers/fetcher" to elements of type "helper" and internalPath "fetcher.ts" are not allowed in elements of type "component" and family "atoms". Denied by rule at index 1'
+      expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
+        'There is no policy allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" to entities of module with origin "external" and module source "@scope/helpers" being file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper", category "data" and captured values: domain="api"'
       );
     });
 
-    it("uses natural wording for no-rules message without 'dependencies of' redundancy", () => {
-      const dependencyWithModule: DependencyDescription = {
-        ...dependencyDescription,
-        dependency: {
-          ...dependencyDescription.dependency,
-          module: "react-router-dom",
-        },
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(null, null, dependencyWithModule)
-      ).toBe(
-        'There is no rule allowing dependencies from elements of type "component", category "ui", family "atoms" and elementName "button" to elements of type "helper", category "data" and domain "api"'
-      );
-    });
-
-    it("uses 'with module' wording when no-rules message includes dependency metadata", () => {
-      const dependencyFromWithModuleOnly: DependencyDescription = {
-        ...dependencyDescription,
-        to: {
-          ...dependencyDescription.to,
-          type: null,
-          category: null,
-          captured: null,
-        },
-        dependency: {
-          ...dependencyDescription.dependency,
-          module: "react-router-dom",
-        },
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          null,
-          null,
-          dependencyFromWithModuleOnly
-        )
-      ).toBe(
-        'There is no rule allowing dependencies from elements of type "component", category "ui", family "atoms" and elementName "button" to elements of origin "local" with module "react-router-dom"'
-      );
-    });
-
-    it("uses 'from ... with ...' wording when no-rules message has from and dependency but no origin", () => {
-      const dependencyFromAndDependencyOnly: DependencyDescription = {
-        ...dependencyDescription,
-        to: {},
-        dependency: {
-          ...dependencyDescription.dependency,
-          module: "react-router-dom",
-        },
-      } as unknown as DependencyDescription;
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          null,
-          null,
-          dependencyFromAndDependencyOnly
-        )
-      ).toBe(
-        'There is no rule allowing dependencies from elements of type "component", category "ui", family "atoms" and elementName "button" with module "react-router-dom"'
-      );
-    });
-
-    it("handles no-rules message with only toDescription", () => {
-      const onlyToDescription: DependencyDescription = {
-        ...dependencyDescription,
+    it("builds no-rule message when only file data is available", () => {
+      const dependency = createDependencyDescription({
         from: {
-          ...dependencyDescription.from,
-          type: null,
-          category: null,
-          captured: null,
-        },
-        dependency: {
-          ...dependencyDescription.dependency,
-          module: null,
-          /* @ts-expect-error Testing branch with null source for message formatting */
-          source: null,
-        },
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(null, null, onlyToDescription)
-      ).toContain("There is no rule allowing dependencies");
-    });
-
-    it("handles no-rules message with only dependency and origin", () => {
-      const onlyDependencyAndOrigin: DependencyDescription = {
-        ...dependencyDescription,
-        from: {
-          ...dependencyDescription.from,
-          type: null,
-          category: null,
-          captured: null,
-        },
-        to: {
-          ...dependencyDescription.to,
-          type: null,
-          category: null,
-          captured: null,
-        },
-        dependency: {
-          ...dependencyDescription.dependency,
-          module: "external-pkg",
-          /* @ts-expect-error Testing branch with null source for message formatting */
-          source: null,
-        },
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(null, null, onlyDependencyAndOrigin)
-      ).toContain("with module");
-    });
-
-    it("handles no-rules message with only origin", () => {
-      const onlyOrigin: DependencyDescription = {
-        ...dependencyDescription,
-        from: {
-          ...dependencyDescription.from,
-          type: null,
-          category: null,
-          captured: null,
-        },
-        to: {
-          ...dependencyDescription.to,
-          type: null,
-          category: null,
-          captured: null,
-        },
-        dependency: {
-          ...dependencyDescription.dependency,
-          module: null,
-          /* @ts-expect-error Testing branch with null source for message formatting */
-          source: null,
-        },
-      };
-
-      expect(dependenciesRuleDefaultErrorMessage(null, null, onlyOrigin)).toBe(
-        'There is no rule allowing dependencies to elements of origin "local"'
-      );
-    });
-
-    it("handles no-rules message with only to and dependency", () => {
-      const onlyToDependency: DependencyDescription = {
-        ...dependencyDescription,
-        from: {
-          ...dependencyDescription.from,
-          type: null,
-          category: null,
-          captured: null,
-        },
-        dependency: {
-          ...dependencyDescription.dependency,
-          module: "pkg",
-        },
-      } as unknown as DependencyDescription;
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(null, null, onlyToDependency)
-      ).toContain("to elements");
-    });
-
-    it("handles no-rules message with only from", () => {
-      const onlyFrom: DependencyDescription = {
-        ...dependencyDescription,
-        to: {
-          ...dependencyDescription.to,
-          type: null,
-          category: null,
-          captured: null,
-        },
-        dependency: {
-          ...dependencyDescription.dependency,
-          module: null,
-          source: null,
-        },
-      } as unknown as DependencyDescription;
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(null, null, onlyFrom)
-      ).toContain("from elements");
-    });
-
-    it("handles no-rules message with only dependency", () => {
-      const onlyDependency: DependencyDescription = {
-        ...dependencyDescription,
-        from: {
-          ...dependencyDescription.from,
-          type: null,
-          category: null,
-          captured: null,
-        },
-        to: {
-          ...dependencyDescription.to,
-          type: null,
-          category: null,
-          captured: null,
-        },
-        dependency: {
-          ...dependencyDescription.dependency,
-          module: null,
-        },
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(null, null, onlyDependency)
-      ).toContain("with");
-    });
-
-    it("handles no-rules message with only dependency and no origin", () => {
-      const onlyDependencyWithoutOrigin: DependencyDescription = {
-        ...dependencyDescription,
-        from: {
-          ...dependencyDescription.from,
-          type: null,
-          category: null,
-          captured: null,
-        },
-        to: {},
-        dependency: {
-          ...dependencyDescription.dependency,
-          module: "external-pkg",
-        },
-      } as unknown as DependencyDescription;
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          null,
-          null,
-          onlyDependencyWithoutOrigin
-        )
-      ).toBe(
-        'There is no rule allowing dependencies with module "external-pkg"'
-      );
-    });
-
-    it("returns error when no rules but no describable parts", () => {
-      const noDescribableParts: DependencyDescription = {
-        ...dependencyDescription,
-        from: {
-          ...dependencyDescription.from,
-          type: null,
-          category: null,
-          captured: null,
-        },
-        to: {
-          ...dependencyDescription.to,
-          type: null,
-          category: null,
-          captured: null,
-          origin: null,
-        },
-        dependency: {
-          ...dependencyDescription.dependency,
-          module: null,
-          source: null,
-        },
-      } as unknown as DependencyDescription;
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(null, null, noDescribableParts)
-      ).toContain("Not able to create a message");
-    });
-
-    it("omits non-present parts when only from selector is present", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: { type: "component" },
-        to: null,
-        dependency: null,
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          1,
-          dependencyDescription
-        )
-      ).toBe(
-        'Dependencies are not allowed in elements of type "component". Denied by rule at index 1'
-      );
-    });
-
-    it("builds message when only dependency selector is present", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: null,
-        to: null,
-        dependency: { kind: "type" },
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          1,
-          dependencyDescription
-        )
-      ).toBe(
-        'Dependencies with kind "type" are not allowed. Denied by rule at index 1'
-      );
-    });
-
-    it("builds message when only to selector is present", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: null,
-        to: { type: "helper" },
-        dependency: null,
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          2,
-          dependencyDescription
-        )
-      ).toBe(
-        'Dependencies to elements of type "helper" are not allowed. Denied by rule at index 2'
-      );
-    });
-
-    it("builds message when dependency and to selectors are present", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: null,
-        to: { type: "helper", internalPath: "fetcher.ts" },
-        dependency: { kind: "type" },
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          3,
-          dependencyDescription
-        )
-      ).toBe(
-        'Dependencies with kind "type" to elements of type "helper" and internalPath "fetcher.ts" are not allowed. Denied by rule at index 3'
-      );
-    });
-
-    it("builds message when dependency and from selectors are present", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: { type: "component" },
-        to: null,
-        dependency: { kind: "type" },
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          4,
-          dependencyDescription
-        )
-      ).toBe(
-        'Dependencies with kind "type" are not allowed in elements of type "component". Denied by rule at index 4'
-      );
-    });
-
-    it("builds message when to and from selectors are present without dependency", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: { type: "component" },
-        to: { type: "helper" },
-        dependency: null,
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          5,
-          dependencyDescription
-        )
-      ).toBe(
-        'Dependencies to elements of type "helper" are not allowed in elements of type "component". Denied by rule at index 5'
-      );
-    });
-
-    it("builds message with parent selector in from", () => {
-      const dependencyWithParent = {
-        ...dependencyDescription,
-        from: {
-          ...dependencyDescription.from,
-          parents: [
-            {
-              elementPath: "src/shared",
-              internalPath: "index.ts",
-              type: "shared",
-              category: null,
-              captured: null,
-              parents: [],
-              origin: "local",
-              isIgnored: false,
-              isUnknown: false,
+          element: {
+            types: null,
+            category: null,
+            captured: null,
+          },
+          file: {
+            categories: ["ui", "feature"],
+            captured: {
+              scope: "frontend",
             },
-          ],
-        },
-      };
-
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: { type: "component", parent: { type: "shared" } },
-        to: null,
-        dependency: null,
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          6,
-          dependencyWithParent
-        )
-      ).toContain("parent type");
-    });
-
-    it("builds message with parent captured selector in from", () => {
-      const dependencyWithParent = {
-        ...dependencyDescription,
-        from: {
-          ...dependencyDescription.from,
-          parents: [
-            {
-              elementPath: "src/shared",
-              internalPath: "index.ts",
-              type: "shared",
-              category: "ui",
-              captured: {
-                scope: "shared",
-                layer: "core",
-              },
-              parents: [],
-              origin: "local",
-              isIgnored: false,
-              isUnknown: false,
-            },
-          ],
-        },
-      };
-
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: { parent: { captured: { scope: "shared" } } },
-        to: null,
-        dependency: null,
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          16,
-          dependencyWithParent
-        )
-      ).toBe(
-        'Dependencies are not allowed in elements of parent scope "shared". Denied by rule at index 16'
-      );
-    });
-
-    it("builds message with wrong parent selector in from", () => {
-      const dependencyWithParent = {
-        ...dependencyDescription,
-        from: {
-          ...dependencyDescription.from,
-          parents: [
-            {
-              elementPath: "src/shared",
-              internalPath: "index.ts",
-              type: "shared",
-              category: null,
-              captured: null,
-              parents: [],
-              origin: "local",
-              isIgnored: false,
-              isUnknown: false,
-            },
-          ],
-        },
-      };
-
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        /* @ts-expect-error Testing branch with parent selector with wrong property */
-        from: { type: "component", parent: { foo: "shared" } },
-        to: null,
-        dependency: null,
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          6,
-          dependencyWithParent
-        )
-      ).not.toContain("parent type");
-    });
-
-    it("builds message with captured in selector", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: { type: "component", captured: { family: "atoms" } },
-        to: null,
-        dependency: null,
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          7,
-          dependencyDescription
-        )
-      ).toContain("family");
-    });
-
-    it("builds message with relationship selector", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: null,
-        to: null,
-        dependency: { relationship: { from: "sibling" } },
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          8,
-          dependencyDescription
-        )
-      ).toContain("relationship from");
-    });
-
-    it("builds message with parent selector that has no properties", () => {
-      const dependencyWithParent = {
-        ...dependencyDescription,
-        from: {
-          ...dependencyDescription.from,
-          parents: [
-            {
-              elementPath: "src/shared",
-              internalPath: "index.ts",
-              type: null,
-              category: null,
-              captured: null,
-              parents: [],
-              origin: "local",
-              isIgnored: false,
-              isUnknown: false,
-            },
-          ],
-        },
-      };
-
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: { parent: { type: "shared" } },
-        to: null,
-        dependency: null,
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          9,
-          dependencyWithParent
-        )
-      ).toContain("Dependencies");
-    });
-
-    it("builds message with captured selector with multiple captured keys", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: {
-          type: "component",
-          captured: { family: "atoms", name: "button" },
-        },
-        to: null,
-        dependency: null,
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          10,
-          dependencyDescription
-        )
-      ).toContain("family");
-    });
-
-    it("builds message with to selector that has captured properties", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: null,
-        to: { type: "helper", captured: { domain: "api" } },
-        dependency: null,
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          11,
-          dependencyDescription
-        )
-      ).toContain("domain");
-    });
-
-    it("includes null values in captured when selector requires it", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: {
-          type: "component",
-          captured: { family: null },
-        },
-        to: null,
-        dependency: null,
-      };
-
-      const dependencyWithCapturedNull: DependencyDescription = {
-        ...dependencyDescription,
-        from: {
-          ...dependencyDescription.from,
-          captured: {
-            family: null,
-            elementName: "button",
           },
         },
-      } as unknown as DependencyDescription;
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          12,
-          dependencyWithCapturedNull
-        )
-      ).toContain("family");
-    });
-
-    it("handles relationship selector with both from and to", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: null,
-        to: null,
-        dependency: {
-          relationship: { from: "sibling", to: "child" },
+        to: {
+          element: {
+            types: null,
+            category: null,
+            captured: null,
+          },
+          file: {
+            categories: ["shared"],
+            captured: {
+              team: "platform",
+            },
+          },
+          module: {
+            origin: "external",
+            source: "@scope/helpers",
+          },
         },
-      };
+      });
 
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          13,
-          dependencyDescription
-        )
-      ).toContain("relationship");
+      expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
+        'There is no policy allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" to entities of module with origin "external" and module source "@scope/helpers" being file of category "shared" and captured values: team="platform"'
+      );
     });
 
-    it("handles from selector with undefined properties", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: { type: "component" },
-        to: null,
-        dependency: null,
-      };
-
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          14,
-          dependencyDescription
-        )
-      ).toContain("component");
-    });
-
-    it("handles empty captured object in selector", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: true,
-        from: { type: "component", captured: {} },
-        to: null,
-        dependency: null,
-      };
-
-      const emptyCapturedDependency: DependencyDescription = {
-        ...dependencyDescription,
+    it("builds no-rule message when only element data is available", () => {
+      const dependency = createDependencyDescription({
         from: {
-          ...dependencyDescription.from,
-          captured: {},
+          element: {
+            types: ["component"],
+            category: "ui",
+            captured: {
+              family: "atoms",
+            },
+          },
+          file: {
+            categories: null,
+            captured: null,
+          },
         },
-      } as unknown as DependencyDescription;
+        to: {
+          element: {
+            types: ["helper"],
+            category: "data",
+            captured: {
+              domain: "api",
+            },
+          },
+          file: {
+            categories: null,
+            captured: null,
+          },
+          module: {
+            origin: "local",
+            source: null,
+          },
+        },
+      });
 
-      expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          15,
-          emptyCapturedDependency
-        )
-      ).toContain("component");
+      expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
+        'There is no policy allowing dependencies from elements of type "component", category "ui" and captured values: family="atoms" to elements of type "helper", category "data" and captured values: domain="api"'
+      );
     });
 
-    it("returns fallback error when rule matched but there are no describable selector parts", () => {
-      const matchResult: DependencyMatchResult = {
-        isMatch: false,
-        from: null,
-        to: null,
-        dependency: null,
+    it("builds no-rule message with only from entity data when destination is empty", () => {
+      const dependency = createDependencyDescription({
+        to: {
+          element: { types: null, category: null, captured: null },
+          file: { categories: null, captured: null },
+          module: {
+            // @ts-expect-error Forcing origin null to drop module fragment
+            origin: null,
+            source: "ignored-source",
+            internalPath: null,
+          },
+        },
+      });
+
+      expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
+        'There is no policy allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms"'
+      );
+    });
+
+    it("builds no-rule message with only to entity data when source is empty", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          element: { types: null, category: null, captured: null },
+          file: { categories: null, captured: null },
+        },
+        to: {
+          module: {
+            // @ts-expect-error Forcing origin null to drop module fragment
+            origin: null,
+            source: "ignored-source",
+            internalPath: null,
+          },
+        },
+      });
+
+      expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
+        'There is no policy allowing dependencies to file of categories "shared", "data" and captured values: team="platform" belonging to elements of type "helper", category "data" and captured values: domain="api"'
+      );
+    });
+
+    it("builds no-rule message with from and dependency description when destination is empty", () => {
+      const dependency = createDependencyDescription({
+        to: {
+          element: { types: null, category: null, captured: null },
+          file: { categories: null, captured: null },
+          module: {
+            // @ts-expect-error Forcing origin null to drop module fragment
+            origin: null,
+            source: null,
+            internalPath: null,
+          },
+        },
+        dependency: { source: "lodash" },
+      });
+
+      expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
+        'There is no policy allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" with source "lodash"'
+      );
+    });
+
+    it("builds no-rule message with to and dependency description when source is empty", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          element: { types: null, category: null, captured: null },
+          file: { categories: null, captured: null },
+        },
+        to: {
+          element: {
+            types: ["helper"],
+            category: "data",
+            captured: { domain: "api" },
+          },
+          file: { categories: null, captured: null },
+          module: {
+            // @ts-expect-error Forcing origin null to drop module fragment
+            origin: null,
+            source: null,
+            internalPath: null,
+          },
+        },
+        dependency: { source: "lodash" },
+      });
+
+      expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
+        'There is no policy allowing dependencies to elements of type "helper", category "data" and captured values: domain="api" with source "lodash"'
+      );
+    });
+
+    it("builds no-rule message with only dependency description when there is no entity data", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          element: { types: null, category: null, captured: null },
+          file: { categories: null, captured: null },
+        },
+        to: {
+          element: { types: null, category: null, captured: null },
+          file: { categories: null, captured: null },
+          module: {
+            // @ts-expect-error Forcing origin null to drop module fragment
+            origin: null,
+            source: null,
+            internalPath: null,
+          },
+        },
+        dependency: { source: "lodash" },
+      });
+
+      expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
+        'There is no policy allowing dependencies with source "lodash"'
+      );
+    });
+
+    it("returns the fallback error message when nothing can be described", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          element: { types: null, category: null, captured: null },
+          file: { categories: null, captured: null },
+        },
+        to: {
+          element: { types: null, category: null, captured: null },
+          file: { categories: null, captured: null },
+          module: {
+            // @ts-expect-error Forcing origin null to drop module fragment
+            origin: null,
+            source: null,
+            internalPath: null,
+          },
+        },
+        dependency: {
+          source: undefined,
+        },
+      });
+
+      expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
+        "Not able to create a message for this violation. Please report this at: https://github.com/javierbrea/eslint-plugin-boundaries/issues"
+      );
+    });
+
+    it("delegates to the rule-matched message when ruleIndex is not null", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: { element: { types: ["component"] } },
       };
 
       expect(
-        dependenciesRuleDefaultErrorMessage(
-          matchResult,
-          1,
-          dependencyDescription
-        )
-      ).toContain("Not able to create a message for this violation");
+        dependenciesRuleDefaultErrorMessage(matchResult, 7, dependency)
+      ).toBe(
+        'Dependencies are not allowed in elements of type "component". Denied by policy at index 7'
+      );
     });
-  });
-});
 
-describe("buildErrorMessage", () => {
-  it("returns rendered custom message when customMessage is provided", () => {
-    const matchResult: DependencyMatchResult = {
-      isMatch: true,
-      from: { type: "component" },
-      to: { type: "helper" },
-      dependency: null,
-    };
+    it("builds no-rule message with origin inside dependency description when destination has no entity details", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          file: {
+            categories: ["ui", "feature"],
+            captured: {
+              scope: "frontend",
+            },
+          },
+        },
+        to: {
+          element: {
+            types: null,
+            category: null,
+            captured: null,
+          },
+          file: {
+            categories: null,
+            captured: null,
+          },
+          module: {
+            origin: "external",
+            source: "@scope/helpers",
+          },
+        },
+      });
 
-    expect(
-      buildErrorMessage({
-        matchResult,
-        ruleIndex: 2,
-        customMessage: "My custom message",
-        dependency: dependencyDescription,
-      })
-    ).toBe("My custom message");
-  });
-
-  it("returns generated default message when customMessage is not provided", () => {
-    const matchResult: DependencyMatchResult = {
-      isMatch: true,
-      from: { type: "component" },
-      to: { type: "helper" },
-      dependency: { kind: "type" },
-    };
-
-    expect(
-      buildErrorMessage({
-        matchResult,
-        ruleIndex: 1,
-        customMessage: undefined,
-        dependency: dependencyDescription,
-      })
-    ).toBe(
-      'Dependencies with kind "type" to elements of type "helper" are not allowed in elements of type "component". Denied by rule at index 1'
-    );
+      expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
+        'There is no policy allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" to entities of module with origin "external" and module source "@scope/helpers"'
+      );
+    });
   });
 });

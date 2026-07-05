@@ -1,13 +1,21 @@
+import {
+  ELEMENT_DESCRIPTOR_MODES_MAP,
+  DEPENDENCY_KINDS_MAP,
+} from "@boundaries/elements";
 import type {
   DependencyKind,
-  DependencySelector,
   ElementDescriptors,
-  ElementsSelector,
   FlagAsExternalOptions,
-  DependencyDataSelector,
-  SimpleElementSelectorByType,
-  BaseElementSelectorWithOptions,
   MicromatchPatternNullable,
+  BackwardCompatibleEntitySelector,
+  FileDescriptors,
+  FileSelector,
+  FileSelectorNormalized,
+  DependencySelectorNormalized,
+  BackwardCompatibleDependencyInfoSelector,
+  BackwardCompatibleDependencySelector,
+  DependencyInfoSelectorNormalized,
+  EntitySelectorNormalized,
 } from "@boundaries/elements";
 import type { ESLint, Linter, Rule } from "eslint";
 
@@ -30,9 +38,13 @@ export const ELEMENT_TYPES = "element-types" as const;
 export const DEPENDENCIES = "dependencies" as const;
 export const ENTRY_POINT = "entry-point" as const;
 export const EXTERNAL = "external" as const;
+export const NO_IGNORED_DEPENDENCIES = "no-ignored-dependencies" as const;
+/** @deprecated Use NO_IGNORED_DEPENDENCIES instead */
 export const NO_IGNORED = "no-ignored" as const;
 export const NO_PRIVATE = "no-private" as const;
 export const NO_UNKNOWN_FILES = "no-unknown-files" as const;
+export const NO_UNKNOWN_DEPENDENCIES = "no-unknown-dependencies" as const;
+/** @deprecated Use NO_UNKNOWN_DEPENDENCIES instead */
 export const NO_UNKNOWN = "no-unknown" as const;
 
 /**
@@ -44,9 +56,13 @@ export const RULE_SHORT_NAMES_MAP = {
   DEPENDENCIES,
   ENTRY_POINT,
   EXTERNAL,
+  NO_IGNORED_DEPENDENCIES,
+  /** @deprecated Use NO_IGNORED_DEPENDENCIES instead */
   NO_IGNORED,
   NO_PRIVATE,
   NO_UNKNOWN_FILES,
+  NO_UNKNOWN_DEPENDENCIES,
+  /** @deprecated Use NO_UNKNOWN_DEPENDENCIES instead */
   NO_UNKNOWN,
 } as const;
 
@@ -55,9 +71,15 @@ const ELEMENT_TYPES_FULL = `${PLUGIN_NAME}/${ELEMENT_TYPES}` as const;
 const DEPENDENCIES_FULL = `${PLUGIN_NAME}/${DEPENDENCIES}` as const;
 const ENTRY_POINT_FULL = `${PLUGIN_NAME}/${ENTRY_POINT}` as const;
 const EXTERNAL_FULL = `${PLUGIN_NAME}/${EXTERNAL}` as const;
+const NO_IGNORED_DEPENDENCIES_FULL =
+  `${PLUGIN_NAME}/${NO_IGNORED_DEPENDENCIES}` as const;
+/** @deprecated Use NO_IGNORED_DEPENDENCIES_FULL instead */
 const NO_IGNORED_FULL = `${PLUGIN_NAME}/${NO_IGNORED}` as const;
 const NO_PRIVATE_FULL = `${PLUGIN_NAME}/${NO_PRIVATE}` as const;
 const NO_UNKNOWN_FILES_FULL = `${PLUGIN_NAME}/${NO_UNKNOWN_FILES}` as const;
+const NO_UNKNOWN_DEPENDENCIES_FULL =
+  `${PLUGIN_NAME}/${NO_UNKNOWN_DEPENDENCIES}` as const;
+/** @deprecated Use NO_UNKNOWN_DEPENDENCIES_FULL instead */
 const NO_UNKNOWN_FULL = `${PLUGIN_NAME}/${NO_UNKNOWN}` as const;
 
 /**
@@ -69,9 +91,13 @@ export const RULE_NAMES_MAP = {
   DEPENDENCIES: DEPENDENCIES_FULL,
   ENTRY_POINT: ENTRY_POINT_FULL,
   EXTERNAL: EXTERNAL_FULL,
+  NO_IGNORED_DEPENDENCIES: NO_IGNORED_DEPENDENCIES_FULL,
+  /** @deprecated Use NO_IGNORED_DEPENDENCIES instead */
   NO_IGNORED: NO_IGNORED_FULL,
   NO_PRIVATE: NO_PRIVATE_FULL,
   NO_UNKNOWN_FILES: NO_UNKNOWN_FILES_FULL,
+  NO_UNKNOWN_DEPENDENCIES: NO_UNKNOWN_DEPENDENCIES_FULL,
+  /** @deprecated Use NO_UNKNOWN_DEPENDENCIES instead */
   NO_UNKNOWN: NO_UNKNOWN_FULL,
 } as const;
 
@@ -153,6 +179,7 @@ export type DependencyNodeSelector = {
 export const SETTINGS = {
   // settings
   ELEMENTS: `${PLUGIN_NAME}/elements`,
+  ELEMENTS_SINGLE_TYPE: `${PLUGIN_NAME}/elements-single-type`,
   IGNORE: `${PLUGIN_NAME}/ignore`,
   INCLUDE: `${PLUGIN_NAME}/include`,
   ROOT_PATH: `${PLUGIN_NAME}/root-path`,
@@ -160,6 +187,7 @@ export const SETTINGS = {
   ADDITIONAL_DEPENDENCY_NODES: `${PLUGIN_NAME}/additional-dependency-nodes`,
   LEGACY_TEMPLATES: `${PLUGIN_NAME}/legacy-templates`,
   CACHE: `${PLUGIN_NAME}/cache`,
+  LEGACY_WARNINGS: `${PLUGIN_NAME}/legacy-warnings`,
   FLAG_AS_EXTERNAL: `${PLUGIN_NAME}/flag-as-external`,
   DEBUG_SETTING: `${PLUGIN_NAME}/debug`,
 
@@ -173,19 +201,32 @@ export const SETTINGS = {
   RULE_DEPENDENCIES: `${PLUGIN_NAME}/${DEPENDENCIES}`,
   RULE_ENTRY_POINT: `${PLUGIN_NAME}/${ENTRY_POINT}`,
   RULE_EXTERNAL: `${PLUGIN_NAME}/${EXTERNAL}`,
+  RULE_NO_IGNORED_DEPENDENCIES: `${PLUGIN_NAME}/${NO_IGNORED_DEPENDENCIES}`,
+  /** @deprecated Use RULE_NO_IGNORED_DEPENDENCIES instead */
   RULE_NO_IGNORED: `${PLUGIN_NAME}/${NO_IGNORED}`,
   RULE_NO_PRIVATE: `${PLUGIN_NAME}/${NO_PRIVATE}`,
   RULE_NO_UNKNOWN_FILES: `${PLUGIN_NAME}/${NO_UNKNOWN_FILES}`,
+  RULE_NO_UNKNOWN_DEPENDENCIES: `${PLUGIN_NAME}/${NO_UNKNOWN_DEPENDENCIES}`,
+  /** @deprecated Use RULE_NO_UNKNOWN_DEPENDENCIES instead */
   RULE_NO_UNKNOWN: `${PLUGIN_NAME}/${NO_UNKNOWN}`,
 
   // deprecated settings
   TYPES: `${PLUGIN_NAME}/types`,
   ALIAS: `${PLUGIN_NAME}/alias`,
+  FILES: `${PLUGIN_NAME}/files`,
 
   // elements settings properties,
-  VALID_MODES: ["folder", "file", "full"],
+  VALID_MODES: [
+    ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER,
+    ELEMENT_DESCRIPTOR_MODES_MAP.FILE,
+    ELEMENT_DESCRIPTOR_MODES_MAP.FULL,
+  ],
 
-  VALID_DEPENDENCY_NODE_KINDS: ["value", "type", "typeof"],
+  VALID_DEPENDENCY_NODE_KINDS: [
+    DEPENDENCY_KINDS_MAP.VALUE,
+    DEPENDENCY_KINDS_MAP.TYPE,
+    DEPENDENCY_KINDS_MAP.TYPE_OF,
+  ],
   DEFAULT_DEPENDENCY_NODES: {
     [DEPENDENCY_NODE_KEYS_MAP.REQUIRE]: [
       // Note: detects "require('source')"
@@ -251,6 +292,8 @@ export const SETTINGS = {
  */
 export const SETTINGS_KEYS_MAP = {
   ELEMENTS: SETTINGS.ELEMENTS,
+  ELEMENTS_SINGLE_TYPE: SETTINGS.ELEMENTS_SINGLE_TYPE,
+  FILES: SETTINGS.FILES,
   IGNORE: SETTINGS.IGNORE,
   INCLUDE: SETTINGS.INCLUDE,
   ROOT_PATH: SETTINGS.ROOT_PATH,
@@ -262,6 +305,7 @@ export const SETTINGS_KEYS_MAP = {
   /** @deprecated Use import/resolver settings instead */
   ALIAS: SETTINGS.ALIAS,
   CACHE: SETTINGS.CACHE,
+  LEGACY_WARNINGS: SETTINGS.LEGACY_WARNINGS,
   FLAG_AS_EXTERNAL: SETTINGS.FLAG_AS_EXTERNAL,
   DEBUG: SETTINGS.DEBUG_SETTING,
 } as const;
@@ -270,6 +314,16 @@ export const SETTINGS_KEYS_MAP = {
  * Default value for the legacy templates setting.
  */
 export const LEGACY_TEMPLATES_DEFAULT = true as const;
+
+/**
+ * Default value for the legacy-warnings setting.
+ */
+export const LEGACY_WARNINGS_DEFAULT = true as const;
+
+/**
+ * Default value for the elements single type setting.
+ */
+export const ELEMENTS_SINGLE_TYPE_DEFAULT = true as const;
 
 /**
  * Default value for the cache setting.
@@ -313,10 +367,10 @@ export type RootPathSetting = string;
 export type AliasSetting = Record<string, string>;
 
 export type DebugFilterSetting = {
-  /** File selectors used to filter file debug messages */
-  files?: ElementsSelector[];
+  /** File or entity selectors used to filter file debug messages */
+  files?: FileSelector | BackwardCompatibleEntitySelector;
   /** Dependency selectors used to filter dependency debug messages */
-  dependencies?: DependencySelector[];
+  dependencies?: BackwardCompatibleEntitySelector;
 };
 
 export type DebugSetting = {
@@ -352,10 +406,10 @@ export type DebugSettingNormalized = {
   };
   /** Debug filters **/
   filter: {
-    /** File selectors used to filter file debug messages */
-    files?: ElementsSelector[];
+    /** File or entity selectors used to filter file debug messages */
+    files?: FileSelectorNormalized | EntitySelectorNormalized;
     /** Dependency selectors used to filter dependency debug messages */
-    dependencies?: DependencySelector[];
+    dependencies?: DependencySelectorNormalized;
   };
 };
 
@@ -368,6 +422,18 @@ export type Settings = {
    * Each element descriptor includes a type, a pattern to match files, and optional settings like mode and capture groups.
    */
   [SETTINGS_KEYS_MAP.ELEMENTS]?: ElementDescriptors;
+
+  /**
+   * When `true`, each element is assigned only the first matching element descriptor's type.
+   * When `false` (default), elements accumulate all matching descriptor types.
+   */
+  [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]?: boolean;
+
+  /**
+   * File descriptors to define specific file patterns and their associated metadata.
+   * Each file descriptor includes a category and a pattern to match files, along with optional settings.
+   */
+  [SETTINGS_KEYS_MAP.FILES]?: FileDescriptors;
   /**
    * List of glob patterns to ignore when analyzing dependencies.
    * Files matching these patterns will be excluded from the plugin analysis.
@@ -408,6 +474,8 @@ export type Settings = {
   [SETTINGS_KEYS_MAP.ALIAS]?: AliasSetting;
   /** Whether to enable caching for the plugin analysis */
   [SETTINGS_KEYS_MAP.CACHE]?: boolean;
+  /** When `false`, skips all legacy-pattern detection and suppresses deprecation warnings. Temporary option; will be removed when legacy support is dropped. */
+  [SETTINGS_KEYS_MAP.LEGACY_WARNINGS]?: boolean;
   /** Configuration for categorizing dependencies as external or local */
   [SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]?: FlagAsExternalOptions;
   /** Debug configuration for tracing files and dependencies */
@@ -421,8 +489,10 @@ export type Settings = {
 export type SettingsNormalized = {
   /** Element descriptors */
   elementDescriptors: ElementDescriptors;
-  /** Element type names extracted from the descriptors. Used to validate selectors defined as strings in rules */
-  elementTypeNames: string[];
+  /** Whether each element should be assigned only the first matching descriptor's type */
+  elementsSingleType: boolean;
+  /** File descriptors */
+  fileDescriptors: FileDescriptors;
   /** List of glob patterns to ignore when analyzing dependencies */
   ignorePaths: string[] | undefined;
   /** List of glob patterns to include when analyzing dependencies */
@@ -435,6 +505,8 @@ export type SettingsNormalized = {
   legacyTemplates: boolean;
   /** Whether caching is enabled */
   cache: boolean;
+  /** Whether legacy-pattern detection and deprecation warnings are enabled */
+  legacyWarnings: boolean;
   /** Configuration for categorizing dependencies as external or local */
   flagAsExternal: FlagAsExternalOptions;
   /** Debug configuration */
@@ -453,11 +525,13 @@ export type Rules<PluginName extends string = typeof PLUGIN_NAME> = {
     | typeof DEPENDENCIES
     | typeof ENTRY_POINT
     | typeof EXTERNAL
+    | typeof NO_IGNORED_DEPENDENCIES
     | typeof NO_IGNORED
     | typeof NO_PRIVATE
     | typeof NO_UNKNOWN_FILES
+    | typeof NO_UNKNOWN_DEPENDENCIES
     | typeof NO_UNKNOWN}`]?: K extends `${PluginName}/${typeof ELEMENT_TYPES}`
-    ? Linter.RuleEntry<ElementTypesRuleOptions[]>
+    ? Linter.RuleEntry<DependenciesRuleOptions[]>
     : K extends `${PluginName}/${typeof DEPENDENCIES}`
       ? Linter.RuleEntry<DependenciesRuleOptions[]>
       : K extends `${PluginName}/${typeof ENTRY_POINT}`
@@ -466,7 +540,11 @@ export type Rules<PluginName extends string = typeof PLUGIN_NAME> = {
           ? Linter.RuleEntry<ExternalRuleOptions[]>
           : K extends `${PluginName}/${typeof NO_PRIVATE}`
             ? Linter.RuleEntry<NoPrivateOptions[]>
-            : Linter.RuleEntry<never>;
+            : K extends `${PluginName}/${
+                  | typeof NO_UNKNOWN_DEPENDENCIES
+                  | typeof NO_UNKNOWN}`
+              ? Linter.RuleEntry<NoUnknownDependenciesOptions[]>
+              : Linter.RuleEntry<never>;
 };
 
 export type FlagAsExternalBooleanOptionKey =
@@ -501,6 +579,7 @@ export interface PluginBoundaries extends ESLint.Plugin {
   configs: {
     recommended: Config;
     strict: Config;
+    "strict-legacy": Config;
   };
 }
 
@@ -512,71 +591,107 @@ export type RuleMetaDefinition = {
   ruleName: RuleName;
   /** The schema of the rule options */
   schema?: Rule.RuleMetaData["schema"];
+  /** Deprecation metadata surfaced by ESLint when the rule is deprecated */
+  deprecated?: Rule.RuleMetaData["deprecated"];
 };
 
-export const RULE_POLICY_ALLOW = "allow" as const;
-export const RULE_POLICY_DISALLOW = "disallow" as const;
+export const RULE_EFFECT_ALLOW = "allow" as const;
+export const RULE_EFFECT_DISALLOW = "disallow" as const;
 
 /**
- * Map containing the available rule policies.
+ * Map containing the available rule effects.
  */
-export const RULE_POLICIES_MAP = {
-  ALLOW: RULE_POLICY_ALLOW,
-  DISALLOW: RULE_POLICY_DISALLOW,
+export const RULE_EFFECTS_MAP = {
+  ALLOW: RULE_EFFECT_ALLOW,
+  DISALLOW: RULE_EFFECT_DISALLOW,
 } as const;
 
 /**
- * Policy for rules, either allowing or disallowing certain dependencies.
+ * Effect of a policy, either allowing or disallowing certain dependencies.
  */
-export type RulePolicy =
-  (typeof RULE_POLICIES_MAP)[keyof typeof RULE_POLICIES_MAP];
+export type RuleEffect =
+  (typeof RULE_EFFECTS_MAP)[keyof typeof RULE_EFFECTS_MAP];
+
+/** @deprecated Use `RULE_EFFECT_ALLOW` instead. */
+export const RULE_POLICY_ALLOW = RULE_EFFECT_ALLOW;
+/** @deprecated Use `RULE_EFFECT_DISALLOW` instead. */
+export const RULE_POLICY_DISALLOW = RULE_EFFECT_DISALLOW;
 
 /**
- * Base options for some rules, including default policy and custom message.
+ * Map containing the available rule policies.
+ * @deprecated Use `RULE_EFFECTS_MAP` instead.
+ */
+export const RULE_POLICIES_MAP = RULE_EFFECTS_MAP;
+
+/**
+ * Policy for rules, either allowing or disallowing certain dependencies.
+ * @deprecated Use `RuleEffect` instead.
+ */
+export type RulePolicy = RuleEffect;
+
+/**
+ * Base options for some rules, including default effect and custom message.
  */
 export type RuleBaseOptions = {
-  /** Default policy for all the rules (allow or disallow) */
-  default?: RulePolicy;
-  /** Custom message for all rule violations. It can be overridden at the rule level. */
+  /** Default effect for all the policies (allow or disallow) */
+  default?: RuleEffect;
+  /** Custom message for all rule violations. It can be overridden at the policy level. */
   message?: string;
 };
 
-export type RulePolicyEntry =
-  | SimpleElementSelectorByType
-  | BaseElementSelectorWithOptions
-  | DependencySelector;
-
 /**
- * Rule that defines allowed or disallowed dependencies between different element types.
+ * Policy that defines allowed or disallowed dependencies between different element types.
  */
-export type DependenciesRule = {
-  dependency?: DependencyDataSelector;
-  /** Selectors of the source elements that the rule applies to (the elements importing) */
-  from?: ElementsSelector;
+export type DependenciesPolicy = {
+  dependency?: BackwardCompatibleDependencyInfoSelector;
+  /** Selectors of the source elements that the policy applies to (the elements importing) */
+  from?: BackwardCompatibleEntitySelector;
   /** Selectors of the target elements that are disallowed to be imported */
-  to?: ElementsSelector;
+  to?: BackwardCompatibleEntitySelector;
   /** Selectors of the elements that are disallowed to be imported */
-  disallow?: RulePolicyEntry | RulePolicyEntry[];
+  disallow?:
+    | BackwardCompatibleDependencySelector
+    | BackwardCompatibleEntitySelector;
   /** Selectors of the elements that are allowed to be imported */
-  allow?: RulePolicyEntry | RulePolicyEntry[];
-  /** Kind of import that the rule applies to (e.g., "type", "value") */
+  allow?:
+    | BackwardCompatibleDependencySelector
+    | BackwardCompatibleEntitySelector;
+  /** Kind of import that the policy applies to (e.g., "type", "value") */
   importKind?: DependencyKind;
-  /** Custom message for rule violations */
+  /** Custom message for policy violations */
   message?: string;
 };
 
 /**
- * Legacy type for the renamed element-types rule, kept for backward compatibility. It has the same shape as the dependencies rule but with "target" instead of "to" and without the "dependency" field.
- * @deprecated Use DependenciesRule instead
+ * Policy that defines allowed or disallowed dependencies between different element types.
+ * @deprecated Use `DependenciesPolicy` instead.
  */
-export type ElementTypesRule = DependenciesRule;
+export type DependenciesRule = DependenciesPolicy;
+
+export type DependenciesPolicyNormalized = {
+  dependency?: DependencyInfoSelectorNormalized;
+  from?: EntitySelectorNormalized;
+  to?: EntitySelectorNormalized;
+  disallow?: DependencySelectorNormalized | EntitySelectorNormalized;
+  allow?: DependencySelectorNormalized | EntitySelectorNormalized;
+  importKind?: DependencyKind;
+  message?: string;
+};
+
+/** @deprecated Use `DependenciesPolicyNormalized` instead. */
+export type DependenciesRuleNormalized = DependenciesPolicyNormalized;
 
 /**
- * Options for the dependencies rule, including default policy and specific rules.
+ * Options for the dependencies rule, including default effect and specific policies.
  */
-export type DependenciesRuleOptions = Omit<RuleBaseOptions, "rules"> & {
-  /** Specific rules for defining boundaries between elements */
-  rules?: DependenciesRule[];
+export type DependenciesRuleOptions = Omit<
+  RuleBaseOptions,
+  "policies" | "rules"
+> & {
+  /** Specific policies for defining boundaries between elements */
+  policies?: DependenciesPolicy[];
+  /** Specific policies for defining boundaries between elements. @deprecated Use `policies` instead. */
+  rules?: DependenciesPolicy[];
   /** Whether to check dependencies from all origins (including external and core) or only from local elements (default: `false`, only local). */
   checkAllOrigins?: boolean;
   /** Whether to check local dependencies with unknown elements (not matching any element descriptor) or to ignore them. (default: `false`, ignore them) */
@@ -586,36 +701,35 @@ export type DependenciesRuleOptions = Omit<RuleBaseOptions, "rules"> & {
 };
 
 /**
- * Legacy type for the renamed element-types rule options, kept for backward compatibility.
- * @deprecated Use DependenciesRuleOptions instead
+ * Policy that defines entry points for specific element types, controlling which files can be imported.
  */
-export type ElementTypesRuleOptions = Omit<DependenciesRuleOptions, "rules"> & {
-  /** Specific rules for defining element types */
-  rules?: ElementTypesRule[];
-};
-
-/**
- * Rule that defines entry points for specific element types, controlling which files can be imported.
- */
-export type EntryPointRule = {
-  /** Selectors of the elements that the rule applies to (the elements being imported) */
-  target: ElementsSelector;
+export type EntryPointPolicy = {
+  /** Selectors of the elements that the policy applies to (the elements being imported) */
+  target: BackwardCompatibleEntitySelector;
   /** Micromatch patterns of the files that are disallowed to import from other elements. Relative to the element path */
   disallow?: string[];
   /** Micromatch patterns of the files that are allowed to import from other elements. Relative to the element path */
   allow?: string[];
-  /** Kind of import that the rule applies to (e.g., "type", "value") */
+  /** Kind of import that the policy applies to (e.g., "type", "value") */
   importKind?: DependencyKind;
-  /** Custom message for rule violations */
+  /** Custom message for policy violations */
   message?: string;
 };
 
+/** @deprecated Use `EntryPointPolicy` instead. */
+export type EntryPointRule = EntryPointPolicy;
+
 /**
- * Options for the entry-point rule, including default policy and specific rules.
+ * Options for the entry-point rule, including default effect and specific policies.
  */
-export type EntryPointRuleOptions = Omit<RuleBaseOptions, "rules"> & {
-  /** Specific rules for defining entry points between elements */
-  rules?: EntryPointRule[];
+export type EntryPointRuleOptions = Omit<
+  RuleBaseOptions,
+  "policies" | "rules"
+> & {
+  /** Specific policies for defining entry points between elements */
+  policies?: EntryPointPolicy[];
+  /** Specific policies for defining entry points between elements. @deprecated Use `policies` instead. */
+  rules?: EntryPointPolicy[];
 };
 
 /**
@@ -660,27 +774,35 @@ export type ExternalLibrariesSelector =
   | ExternalLibrarySelector[];
 
 /**
- * Rule that defines allowed or disallowed external library imports for specific element types.
+ * Policy that defines allowed or disallowed external library imports for specific element types.
  */
-export type ExternalRule = {
-  /** Selectors of the source elements that the rule applies to (the elements importing) */
-  from: ElementsSelector;
+export type ExternalPolicy = {
+  /** Selectors of the source elements that the policy applies to (the elements importing) */
+  from: BackwardCompatibleEntitySelector;
   /** Selectors of the external libraries that are disallowed to be imported */
   disallow?: ExternalLibrariesSelector;
   /** Selectors of the external libraries that are allowed to be imported */
   allow?: ExternalLibrariesSelector;
-  /** Kind of import that the rule applies to (e.g., "type", "value") */
+  /** Kind of import that the policy applies to (e.g., "type", "value") */
   importKind?: DependencyKind;
-  /** Custom message for rule violations */
+  /** Custom message for policy violations */
   message?: string;
 };
 
+/** @deprecated Use `ExternalPolicy` instead. */
+export type ExternalRule = ExternalPolicy;
+
 /**
- * Options for the external rule, including default policy and specific rules.
+ * Options for the external rule, including default effect and specific policies.
  */
-export type ExternalRuleOptions = Omit<RuleBaseOptions, "rules"> & {
-  /** Specific rules for defining allowed or disallowed external library imports */
-  rules?: ExternalRule[];
+export type ExternalRuleOptions = Omit<
+  RuleBaseOptions,
+  "policies" | "rules"
+> & {
+  /** Specific policies for defining allowed or disallowed external library imports */
+  policies?: ExternalPolicy[];
+  /** Specific policies for defining allowed or disallowed external library imports. @deprecated Use `policies` instead. */
+  rules?: ExternalPolicy[];
 };
 
 /**
@@ -695,14 +817,64 @@ export type NoPrivateOptions = {
   message?: string;
 };
 
-export type RuleOptionsWithRules =
+export const NO_UNKNOWN_DEPENDENCIES_REQUIRE_ALL = "all" as const;
+export const NO_UNKNOWN_DEPENDENCIES_REQUIRE_ELEMENT = "element" as const;
+export const NO_UNKNOWN_DEPENDENCIES_REQUIRE_FILE = "file" as const;
+export const NO_UNKNOWN_DEPENDENCIES_REQUIRE_ANY = "any" as const;
+
+/**
+ * Map containing the available values for the no-unknown-dependencies rule's
+ * `require` option.
+ */
+export const NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP = {
+  ALL: NO_UNKNOWN_DEPENDENCIES_REQUIRE_ALL,
+  ELEMENT: NO_UNKNOWN_DEPENDENCIES_REQUIRE_ELEMENT,
+  FILE: NO_UNKNOWN_DEPENDENCIES_REQUIRE_FILE,
+  ANY: NO_UNKNOWN_DEPENDENCIES_REQUIRE_ANY,
+} as const;
+
+/**
+ * Which classification axes a dependency target must be "known" on for the
+ * no-unknown-dependencies rule to consider it valid.
+ * - `"any"` (default): known on at least one axis (element or file) is enough.
+ *   Reported only when the target is unknown on both axes.
+ * - `"element"`: the element axis must be known, regardless of the file axis.
+ *   Reported when the target element is unknown.
+ * - `"file"`: the file axis must be known, regardless of the element axis.
+ *   Reported when the target file is unknown.
+ * - `"all"`: both axes must be known. Reported when either axis is unknown.
+ */
+export type NoUnknownDependenciesRequire =
+  (typeof NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP)[keyof typeof NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP];
+
+/**
+ * Options for the no-unknown-dependencies rule, which prevents dependencies to
+ * targets that are not recognized by any element or file descriptor.
+ *
+ * The `require` option controls which classification axes the target must be
+ * known on to be valid. With the default (`require: "any"`), known on at least
+ * one axis is enough, so the rule reports only when the target is unknown on
+ * both axes.
+ */
+export type NoUnknownDependenciesOptions = {
+  /** Which classification axes the target must be known on to be valid. (default: `"any"`) */
+  require?: NoUnknownDependenciesRequire;
+};
+
+export type RuleOptionsWithPolicies =
   | ExternalRuleOptions
   | EntryPointRuleOptions
   | DependenciesRuleOptions;
 
-export type RuleOptions = RuleOptionsWithRules | NoPrivateOptions;
+export type RuleOptions =
+  | RuleOptionsWithPolicies
+  | NoPrivateOptions
+  | NoUnknownDependenciesOptions;
 
-export type RuleOptionsRules = ExternalRule | EntryPointRule | DependenciesRule;
+export type RuleOptionsPolicies =
+  | ExternalPolicy
+  | EntryPointPolicy
+  | DependenciesPolicy;
 
 export const FROM = "from" as const;
 

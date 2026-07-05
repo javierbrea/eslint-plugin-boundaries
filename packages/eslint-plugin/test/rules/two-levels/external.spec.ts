@@ -108,7 +108,7 @@ const runTest = (
               errorMessages,
               0,
               externalNoRuleMessage({
-                file: '"helpers" and elementName "helper-a"',
+                file: '"helpers" and captured values: elementName="helper-a"',
                 dep: "react",
               })
             ),
@@ -127,7 +127,7 @@ const runTest = (
               errorMessages,
               1,
               externalNoRuleMessage({
-                file: '"components", category "atoms" and elementName "atom-a"',
+                file: '"components" and captured values: category="atoms", elementName="atom-a"',
                 dep: "@material-ui/core",
               })
             ),
@@ -146,7 +146,7 @@ const runTest = (
               errorMessages,
               2,
               externalNoRuleMessage({
-                file: '"components", category "molecules" and elementName "molecule-a"',
+                file: '"components" and captured values: category="molecules", elementName="molecule-a"',
                 dep: "@material-ui/core",
               })
             ),
@@ -165,7 +165,7 @@ const runTest = (
               errorMessages,
               3,
               externalNoRuleMessage({
-                file: '"components", category "layouts" and elementName "layout-a"',
+                file: '"components" and captured values: category="layouts", elementName="layout-a"',
                 dep: "@material-ui/core",
               })
             ),
@@ -184,7 +184,7 @@ const runTest = (
               errorMessages,
               4,
               externalNoRuleMessage({
-                file: '"modules", domain "pages" and elementName "page-a"',
+                file: '"modules" and captured values: domain="pages", elementName="page-a"',
                 dep: "react-router-dom",
               })
             ),
@@ -203,7 +203,7 @@ const runTest = (
               errorMessages,
               4,
               externalNoRuleMessage({
-                file: '"modules", domain "domain-b" and elementName "module-b"',
+                file: '"modules" and captured values: domain="domain-b", elementName="module-b"',
                 dep: "react",
               })
             ),

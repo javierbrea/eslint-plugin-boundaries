@@ -216,6 +216,75 @@ export const SETTINGS: Record<string, RuleTesterSettings> = {
       },
     },
   },
+  docsExamplesV7: {
+    "boundaries/elements": [
+      {
+        type: "components",
+        pattern: "components/*/*",
+        capture: ["family", "elementName"],
+      },
+      {
+        type: "modules",
+        pattern: "modules/*",
+        capture: ["elementName"],
+      },
+    ],
+    "boundaries/files": [
+      {
+        category: "helpers",
+        pattern: "helpers/*/*.js",
+        basePattern: "**",
+        capture: ["category", "elementName"],
+      },
+    ],
+    "import/resolver": {
+      "eslint-import-resolver-node": {},
+      [resolverLegacyAliasPath]: {
+        helpers: `./${codeFilePath("docs-examples", "helpers")}`,
+        components: `./${codeFilePath("docs-examples", "components")}`,
+        modules: `./${codeFilePath("docs-examples", "modules")}`,
+      },
+    },
+  },
+  basePatternV7: {
+    "boundaries/elements": [
+      {
+        type: "modules",
+        pattern: "modules/*",
+        basePattern: "**/domains/*",
+        capture: ["elementName"],
+        baseCapture: ["parentFolders", "domain"],
+      },
+      {
+        type: "components",
+        pattern: "components/{molecules,atoms}/*",
+        basePattern: "**/domains/*",
+        capture: ["type", "elementName"],
+        baseCapture: ["parentFolders", "domain"],
+      },
+    ],
+    "import/resolver": {
+      "eslint-import-resolver-node": {},
+      [resolverLegacyAliasPath]: {
+        domains: `./${codeFilePath("base-pattern", "domains")}`,
+      },
+    },
+  },
+  layeredV7: {
+    "boundaries/elements": [
+      {
+        type: "modules",
+        pattern: "modules/*",
+        capture: ["elementName"],
+      },
+    ],
+    "import/resolver": {
+      "eslint-import-resolver-node": {},
+      [resolverLegacyAliasPath]: {
+        modules: `./${codeFilePath("layered", "modules")}`,
+      },
+    },
+  },
   flagAsExternal: {
     "boundaries/elements": [
       {

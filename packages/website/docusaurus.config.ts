@@ -3,6 +3,8 @@ import type * as Preset from "@docusaurus/preset-classic";
 import type { Config } from "@docusaurus/types";
 import { themes as prismThemes } from "prism-react-renderer";
 
+const IS_DEV = process.env.NODE_ENV === "development";
+
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
@@ -74,6 +76,19 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"],
   },
+  plugins: [
+    () => ({
+      name: "custom-webpack-config",
+      configureWebpack(_config, isServer) {
+        if (!isServer && IS_DEV) {
+          return {
+            devtool: "source-map", // Generate source maps for client-side code to improve debugging experience in the browser, but avoid doing it for server-side code to prevent potential issues with Node.js and Docusaurus' server-side rendering.
+          };
+        }
+        return {};
+      },
+    }),
+  ],
   presets: [
     [
       "classic",
@@ -97,6 +112,14 @@ const config: Config = {
   ],
 
   themeConfig: {
+    announcementBar: {
+      id: "v7-launch",
+      content:
+        'Version 7 is here — file descriptors, multi-dimensional classification, and array queries. <a href="/docs/next/releases/migration-guides/v6-to-v7/">See what\'s new →</a>',
+      backgroundColor: "#3b4468",
+      textColor: "#e8ecff",
+      isCloseable: true,
+    },
     // Replace with your project's social card
     colorMode: {
       respectPrefersColorScheme: true,
@@ -119,14 +142,19 @@ const config: Config = {
           label: "Getting Started",
         },
         {
-          to: "docs/setup/",
+          to: "docs/classification/",
           position: "left",
-          label: "Setup",
+          label: "Classification",
         },
         {
-          to: "docs/rules/",
+          to: "docs/selectors/",
           position: "left",
-          label: "Rules",
+          label: "Selectors",
+        },
+        {
+          to: "docs/policies/",
+          position: "left",
+          label: "Policies",
         },
         {
           type: "custom-githubStarsButton",
@@ -150,8 +178,8 @@ const config: Config = {
               to: "/docs/overview/",
             },
             {
-              label: "Setup",
-              to: "/docs/setup/",
+              label: "Settings",
+              to: "/docs/settings/",
             },
             {
               label: "Rules",

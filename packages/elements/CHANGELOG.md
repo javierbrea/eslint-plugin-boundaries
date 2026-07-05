@@ -4,12 +4,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [unreleased]
-### Added
-### Changed
-### Fixed
-### Removed
+## [3.0.0] - 2026-07-05
+
 ### Breaking Changes
+
+- feat: `getMatcher` now accepts a `DescriptorsConfig` object instead of an `ElementDescriptor[]` array. The first argument changed from a flat array to an object with optional `elements`, `files`, and `elementsSingleType` properties. Existing code must wrap the array: `getMatcher([...])` → `getMatcher({ elements: [...] })`.
+- feat: `DependencyDescription.from` and `DependencyDescription.to` are now `EntityDescription` objects (containing `element`, `file`, and `module` sub-objects) instead of flat `ElementDescription` objects. Code accessing properties like `description.from.type` must change to `description.from.element.types[0]`.
+- feat: `ElementDescription.type` (single string) has been replaced by `types` (string array). Elements can now match multiple type descriptors at the same path level. Element selectors still support `type` (matches first type) for backward compatibility, but `types` is the canonical property.
+- feat: `origin`, `elementPath`, and `internalPath` have been moved out of element descriptions and selectors. `origin` and `internalPath` are now in `ModuleDescription` / module selectors. `elementPath` has been renamed to `path` in element descriptions. These properties still work in element selectors through legacy backward compatibility, but their canonical location is now in entity selectors with `module` and `file` sub-selectors.
+- feat: `ElementDescription.category` is now deprecated. It is still present for backward compatibility but will be removed in a future version. Use file descriptor `categories` instead for more flexible file categorization.
+- feat: The serialized cache format has changed. `DescriptorsSerializedCache` now includes 5 separate sub-caches (`elements`, `files`, `entities`, `dependencies`, `modules`). Serialized caches from v2 are incompatible and must be regenerated.
+- feat: The `module` property in dependency metadata selectors (`dependency.module`) is now deprecated. Use `to.module.source` via entity selectors to match the base module name instead.
+
+### Added
+
+- feat: Add entity abstraction layer. New `EntityDescription` type combines `element`, `file`, and `module` descriptions into a unified representation. New matcher methods: `describeEntity()`, `isEntityMatch()`, `getEntitySelectorMatching()`, `getEntitySelectorMatchingDescription()`.
+- feat: Add new selector types: `EntitySelector` with `element`, `file`, and `module` sub-selectors; `FileSelector` with `path`, `categories`, `captured`, `isIgnored`, and `isUnknown`; `ModuleSelector` with `origin`, `source`, and `internalPath`.
+- feat: Add file descriptors system. A new `files` property in `DescriptorsConfig` allows categorizing files independently from elements. `FileDescriptor` supports `pattern`, `category`, and `capture` properties. `FileDescription` provides `path`, `categories`, `captured`, `isIgnored`, and `isUnknown` fields.
+- feat: Add module origin system. New `ModuleDescription` type with `origin` (`"local"` | `"external"` | `"core"`), `source`, and `internalPath` properties. New matcher methods: `describeModule()`, `isModuleMatch()`, `getModuleSelectorMatching()`, `getModuleSelectorMatchingDescription()`.
+- feat: Add multi-type elements support. Elements can now match multiple type descriptors at the same path level. Behavior is controlled by the `elementsSingleType` option in `DescriptorsConfig` (default: `false` — multi-type mode).
+- feat: Add the `partialMatch` element descriptor option (default: `true`). When `true`, the pattern only needs to match a suffix of the file path (right-to-left accumulation, the existing default behavior). When `false`, the pattern is matched against the full file path from the project root while keeping folder semantics (the element `path` is the matched folder prefix). It defaults to `true` for backward compatibility, but will most likely default to `false` in a future major version and eventually be removed, because requiring the full pattern is more intuitive and is already how file descriptors match. It is the recommended replacement for the deprecated `mode: "full"`, and when set to `false` the `mode` option has no effect.
+- feat: Array-valued selector properties accept a new array query object with `anyOf`, `allOf`, `noneOf`, `equalsTo` (ordered, exact length), `atIndex` (`{ index, matches }`, negative index supported), and `hasLength` operators (AND-combined). The `atIndex.matches` field accepts a single value or an array (OR semantics). Supported by `file` selector `categories` and `element` selector `types`.
+- feat: `anyOf`, `allOf`, and `noneOf` items in `element.types`, `file.categories`, and `parent.types` / `parents[*].types` accept `{ expand: "{{ path }}" }` objects in addition to plain micromatch pattern strings. The expand item resolves the Handlebars path against the template data at match time and spreads the resulting string array as individual matchers. This enables dynamic cross-side comparisons such as "to element must not share any type with from element" (`noneOf: [{ expand: "{{ from.element.types }}" }]`). Mixed static + expand items in the same array are supported. Empty-operand rules apply when the path resolves to null/undefined: empty `noneOf` always passes; empty `anyOf` never matches.
+- feat: Add `element` selector `parents` property: an array query over the full ancestor chain (`parents[0]` is the closest parent). `parent` is unchanged and still matches the closest parent.
+- feat: Add file matcher methods to `Matcher`: `describeFile()`, `isFileMatch()`, `getFileSelectorMatching()`, and `getFileSelectorMatchingDescription()` to work with file descriptions and file selectors directly without going through the entity abstraction layer.
+- feat: Add module matcher methods to `Matcher`: `describeModule()`, `isModuleMatch()`, `getModuleSelectorMatching()`, and `getModuleSelectorMatchingDescription()` to work with module descriptions and module selectors directly without going through the entity abstraction layer.
+
+### Changed
+
+- refactor: Reorganize internal architecture into domain-based module structure (Element, File, Entity, Module, Dependency) for better separation of concerns.
+- refactor: Enhance cache system to support 5 separate descriptor type caches for improved granularity.
 
 ## [2.0.1] - 2026-03-30
 

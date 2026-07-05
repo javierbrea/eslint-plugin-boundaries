@@ -1,3 +1,3 @@
 export * from "./Settings";
-export * from "./Validations";
-export * from "./Helpers";
+export * from "./Rules";
+export * from "./Docs";
