@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - feat: Add `HomepageMultiLayer` section to the home page, showcasing multi-dimensional/multi-layer classification.
 - feat: Add "v7-launch" announcement bar highlighting file descriptors, multi-dimensional classification and the zero-breaking-changes upgrade, linking to the "v6 to v7" migration guide.
 - feat: Add dedicated "Files", "Modules" and "Dependency" pages to the "Classification" section, and per-type pages to the "Selectors" and "Policies" sections.
+- feat: Adapt all content and examples in the documentation to the new file descriptors, multi-dimensional classification, and array queries features.
 
 ### Changed
 
