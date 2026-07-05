@@ -24,6 +24,7 @@ export type {
   ExternalRuleOptions,
   NoPrivateOptions,
   NoUnknownDependenciesOptions,
+  NoUnknownDependenciesRequire,
   RuleShortName,
   RuleName,
 } from "../Shared";
@@ -33,6 +34,7 @@ export {
   RULE_POLICIES_MAP,
   RULE_SHORT_NAMES_MAP,
   RULE_NAMES_MAP,
+  NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP,
 } from "../Shared";
 
 export {

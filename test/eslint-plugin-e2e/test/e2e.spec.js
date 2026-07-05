@@ -613,7 +613,7 @@ const tests = [
               (msg) =>
                 msg.ruleId === "boundaries/no-unknown-dependencies" &&
                 msg.message.includes(
-                  "Dependencies to unknown elements are not allowed"
+                  "Dependencies to unknown elements and files are not allowed"
                 )
             )
           );
@@ -840,7 +840,7 @@ const tests = [
               (msg) =>
                 msg.ruleId === "boundaries/no-unknown-dependencies" &&
                 msg.message.includes(
-                  "Dependencies to unknown elements are not allowed"
+                  "Dependencies to unknown elements and files are not allowed"
                 )
             )
           );

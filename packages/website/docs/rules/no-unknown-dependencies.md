@@ -27,7 +27,7 @@ This rule was previously named `boundaries/no-unknown`. The old name still works
 
 ## Rule Details
 
-This rule validates dependencies to local files. A dependency is reported when its target is an **unknown element** or an **unknown file**, depending on the [options](#options). A target is an "unknown element" when it matches no [element descriptor](../classification/elements.md), and an "unknown file" when it matches no [file descriptor](../classification/files.md).
+This rule validates dependencies to local files. A dependency is reported when its target is unknown on the classification axes selected by the [`require` option](#options). A target is an "unknown element" when it matches no [element descriptor](../classification/elements.md), and an "unknown file" when it matches no [file descriptor](../classification/files.md).
 
 The rule analyzes any source file that the plugin recognizes — a file that matches at least one element descriptor or one file descriptor. It does not analyze files that are ignored.
 
@@ -41,41 +41,29 @@ The first value is the ESLint severity: `0` = off, `1` = warning, `2` = error. T
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `allowUnknownElements` | `boolean` | `false` | When `true`, dependencies to unknown elements are allowed (the element axis is disabled). |
-| `allowUnknownFiles` | `boolean` | `true` | When `true`, dependencies to unknown files are allowed (the file axis is disabled). |
+| `require` | `"any" \| "element" \| "file" \| "all"` | `"any"` | Which classification axes the dependency target must be known on **to be valid**. |
 
 :::info[Default behavior]
-For backward compatibility, the rule defaults are set to report only when the target **element** is unknown, regardless of its file.
+With the default `require: "any"`, known on **at least one** axis (element or file) is enough for the target to be valid. The rule reports only when the target is unknown on **both** axes.
 :::
 
-A dependency is reported when:
+`require` describes the requirement for the target to be valid, not the report condition directly — a lenient requirement (`"any"`) only fails, and reports, when every axis fails; a strict requirement (`"all"`) fails, and reports, as soon as any single axis fails:
 
-```text
-(target element is unknown AND allowUnknownElements is false)
-  OR
-(target file is unknown AND allowUnknownFiles is false)
-```
-
-The resulting behavior for each combination:
-
-| `allowUnknownElements` | `allowUnknownFiles` | Reports when |
+| `require` | To be valid, the target must be known on… | Reports when |
 |---|---|---|
-| `false` (default) | `true` (default) | the target element is unknown (legacy behavior) |
-| `false` | `false` | the target element **or** file is unknown |
-| `true` | `false` | the target file is unknown |
-| `true` | `true` | never (rule effectively disabled) |
+| `"any"` (default) | at least one axis (element or file) | **both** the element and the file are unknown |
+| `"element"` | the element axis, regardless of the file | the element is unknown |
+| `"file"` | the file axis, regardless of the element | the file is unknown |
+| `"all"` | both axes | **either** the element or the file is unknown |
 
-:::tip[Projects using only file descriptors]
-If you classify your project with [`boundaries/files`](../classification/files.md) instead of elements, set `allowUnknownElements: true` and `allowUnknownFiles: false` so the rule judges targets purely by their file descriptor.
-:::
 
 ### Configuration Example
 
 ```js
 {
   rules: {
-    // Report unknown elements (default) and also unknown files
-    "boundaries/no-unknown-dependencies": [2, { allowUnknownFiles: false }]
+    // Report a dependency when its target is unknown as an element OR a file
+    "boundaries/no-unknown-dependencies": [2, { require: "all" }]
   }
 }
 ```

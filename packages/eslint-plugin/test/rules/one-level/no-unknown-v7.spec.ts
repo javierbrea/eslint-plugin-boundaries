@@ -11,9 +11,10 @@ const rule = getRule();
 
 const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 
-// With the default options the rule reports only when the target element is
-// unknown (allowUnknownFiles defaults to true), preserving the legacy message.
-const ERROR_MESSAGE = "Dependencies to unknown elements are not allowed";
+// With the default options (`require: "any"`) the rule reports only when the
+// target is unknown as both element and file.
+const ERROR_MESSAGE =
+  "Dependencies to unknown elements and files are not allowed";
 
 const runTest = (settings: RuleTesterSettings) => {
   const ruleTester = createRuleTester(settings);

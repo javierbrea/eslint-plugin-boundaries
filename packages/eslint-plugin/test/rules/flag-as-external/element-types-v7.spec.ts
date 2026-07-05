@@ -323,7 +323,9 @@ const testUnresolvableAliasDisabled = () => {
 
   const ruleTester = createRuleTester(settingsUnresolvableDisabled);
 
-  // Unresolvable imports are now considered local, but they are unknown, so we use the unknown rule to test it
+  // Unresolvable imports are now considered local, but they are unknown, so we use the unknown rule to test it.
+  // No file descriptors are configured here, so the target is unknown on both axes,
+  // and the default `require: "any"` reports the combined message.
   ruleTester.run(`${RULE} - unresolvableAlias disabled`, noUnknownRule, {
     valid: [],
     invalid: [
@@ -332,7 +334,7 @@ const testUnresolvableAliasDisabled = () => {
         code: "import UnknownPackage from 'unknown-package-xyz'",
         errors: [
           {
-            message: `Dependencies to unknown elements are not allowed`,
+            message: `Dependencies to unknown elements and files are not allowed`,
             type: "Literal",
           },
         ],

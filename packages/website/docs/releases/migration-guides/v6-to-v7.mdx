@@ -30,7 +30,7 @@ import CodeDiff from "@site/src/components/CodeDiff";
 
 Version 7.0.0 introduces the **entity model**: every file is now described along three independent dimensions — its **[element](../../classification/elements.md)** (the architectural unit it belongs to), its **[file](../../classification/files.md)** (categorized on its own), and the **[module](../../classification/modules.md)** each dependency resolves to. This unlocks multi-dimensional classification: multiple types per element, file-level categories, and matching by module origin.
 
-**There are no breaking configuration changes for plugin users.** You can upgrade with **zero config changes** and keep your v6 setup exactly as it is. Every new feature is additive, and every deprecated pattern keeps working — you migrate at your own pace, one step at a time, with each step delivering immediate value.
+**Almost no breaking configuration changes for plugin users.** You can upgrade with **close to zero config changes** and keep your v6 setup exactly as it is. Every new feature is additive, and every deprecated pattern keeps working — you migrate at your own pace, one step at a time, with each step delivering immediate value. The one exception: if you use the `strict` config with `eslint-disable` comments referencing `boundaries/no-ignored` or `boundaries/no-unknown`, see the notes in the [`no-unknown` renamed to `no-unknown-dependencies`](#no-unknown-renamed-to-no-unknown-dependencies) and [`no-ignored` renamed to `no-ignored-dependencies`](#no-ignored-renamed-to-no-ignored-dependencies) sections below.
 
 Main changes include:
 
@@ -44,15 +44,17 @@ Main changes include:
 - **[Deprecated: `mode` in element descriptors](#deprecated-mode-in-element-descriptors)** — use `partialMatch: false` instead of `mode: "full"`. Use file descriptors instead of `mode: "file"`.
 - **[New custom message template data](#new-custom-message-template-data)** — `element` / `file` / `module` template objects
 - **[`no-unknown-files` rule behavior change](#no-unknown-files-behavior-change)** — now considers file descriptors
-- **[`no-unknown` rule renamed to `no-unknown-dependencies`](#no-unknown-renamed-to-no-unknown-dependencies)** — file-aware, with new options
-- **[`no-ignored` rule renamed to `no-ignored-dependencies`](#no-ignored-renamed-to-no-ignored-dependencies)** — rule name change only
+- **[`no-unknown` rule renamed to `no-unknown-dependencies`](#no-unknown-renamed-to-no-unknown-dependencies)** — file-aware, with new options; note the new `strict-legacy` config if you have `eslint-disable` comments to migrate
+- **[`no-ignored` rule renamed to `no-ignored-dependencies`](#no-ignored-renamed-to-no-ignored-dependencies)** — rule name change only, note the new `strict-legacy` config if you have `eslint-disable` comments to migrate
 - **[`rules` option renamed to `policies`](#rules-option-renamed-to-policies)** — clarifies that a rule contains policies, each with an effect
 - **[`rule` template variable renamed to `policy`](#rule-template-variable-renamed-to-policy)** — `{{rule.*}}` → `{{policy.*}}` in custom messages
 - **[TypeScript-only breaking changes](#typescript-only-breaking-changes)** — removed type exports (TS users only)
 - **[Once fully migrated](#once-fully-migrated)** — set `boundaries/legacy-warnings: false` to skip legacy detection
 
 :::info[Backwards Compatibility]
-Your v6 configuration keeps working without changes. Legacy element selectors, the deprecated `category` and `dependency.module` properties, legacy `${ }` templates, and the v6 rule names continue to work in v7 and produce the same results. Some of them — legacy `${ }` templates and the deprecated rule names — print a deprecation warning in your console.
+Your v6 configuration keeps working without changes. Legacy element selectors, the deprecated `category` and `dependency.module` properties, legacy `${ }` templates, and the v6 rule names continue to work in v7 and produce the same results. Most of them — legacy element selectors, legacy `${ }` templates, and the deprecated rule names — print a one-time deprecation warning in your console.
+
+**Exception:** if you use the `strict` config, it now enables `boundaries/no-ignored-dependencies` and `boundaries/no-unknown-dependencies` instead of `boundaries/no-ignored` and `boundaries/no-unknown`. Existing `eslint-disable` comments referencing the old rule names stop suppressing violations and may trigger "unused eslint-disable directive" errors. See the [`no-unknown`](#no-unknown-renamed-to-no-unknown-dependencies) and [`no-ignored`](#no-ignored-renamed-to-no-ignored-dependencies) sections below, or use the new `strict-legacy` config while you migrate.
 :::
 
 ## Upgrade in 5 minutes
@@ -66,7 +68,9 @@ npm install --save-dev eslint-plugin-boundaries@7
 Run ESLint. With an unchanged v6 configuration, your boundaries are enforced exactly as before. A few things may differ in the output:
 
 - **The `recommended` and `strict` presets only enable `boundaries/dependencies` now.** In v6 they also listed the deprecated `boundaries/element-types`, `boundaries/entry-point`, and `boundaries/external` rules at severity `2`. Those entries were removed because, without their own `policies`/`rules` options, these rules never do anything — they are no-ops, so dropping them from the presets does not change your linting results. See **[ESLint Integration](../../settings/config-helpers.md)** for details.
+- **The `strict` preset now enables `boundaries/no-ignored-dependencies` and `boundaries/no-unknown-dependencies`** (the new names) instead of `boundaries/no-ignored` and `boundaries/no-unknown`. If your codebase has `eslint-disable` comments referencing the old names, see [the note below](#no-ignored-renamed-to-no-ignored-dependencies) — either update those comments or use the **`strict-legacy`** preset temporarily.
 - **Legacy `${ }` template warnings.** If your **selector values** (`from` / `to` / `dependency` and `allow` / `disallow`) or your custom `message` (policy-level or rule-level) use the legacy `${ }` syntax, you will see a deprecation warning. See [New custom message template data](#new-custom-message-template-data).
+- **Legacy element selector warnings.** If `from`, `to`, `target`, `allow`, or `disallow` use a legacy flat element selector (a string, a `[type, options]` tuple, or a plain object like `{ type: "component" }` used directly instead of `{ element: { type: "component" } }`), you will see a one-time deprecation warning per policy. The selector keeps working exactly as before; only the warning is new. See [Entity selectors](#entity-selectors).
 
 One behavior change can affect automated checks even with no config change:
 
@@ -161,7 +165,7 @@ Read more about multi-type elements in the **[Elements](../../classification/ele
 The `from` and `to` properties of rule selectors now accept **entity selectors** with `element`, `file`, and `module` sub-selectors. This lets a single rule match by element properties (`type`, `types`, `captured`, `parent`, …), file properties (`path`, `categories`, `captured`, …), and module properties (`origin`, `source`, `internalPath`) together. Within one entity selector, all provided sub-selectors must match.
 
 :::warning[Deprecated]
-Legacy flat element selectors (`"component"`, `{ type: "component" }`, `["component", { ... }]`) are kept for backward compatibility. They keep working without changes and are converted internally. Prefer the entity selector form `{ element: { type: "component" } }` to gain access to `file` and `module` matching.
+Legacy flat element selectors (`"component"`, `{ type: "component" }`, `["component", { ... }]`) are kept for backward compatibility. They keep working without changes and are converted internally, but using one now prints a one-time console deprecation warning per policy (suppressible via [`boundaries/legacy-warnings: false`](#once-fully-migrated)). Prefer the entity selector form `{ element: { type: "component" } }` to gain access to `file` and `module` matching and to silence the warning.
 :::
 
 Wrapping a flat element selector in `{ element: ... }` is **recommended, not required** — it is not a breaking change. The example below adopts entity selectors and uses the new `file` sub-selector to scope a rule to test files only:
@@ -334,27 +338,30 @@ In v6 the message was `File does not match any element pattern`. If you assert t
 The `boundaries/no-unknown` rule has been renamed to **[`boundaries/no-unknown-dependencies`](../../rules/no-unknown-dependencies.md)** and is now aware of [file descriptors](../../classification/files.md).
 
 :::warning[Deprecated]
-The `boundaries/no-unknown` rule name is kept for backward compatibility but is deprecated. Using it prints a one-time rename warning and it will be removed in a future major version. Rename the rule key to `boundaries/no-unknown-dependencies`; the behavior is identical with the default options.
+The `boundaries/no-unknown` rule name is kept for backward compatibility but is deprecated. Using it prints a one-time rename warning and it will be removed in a future major version. Rename the rule key to `boundaries/no-unknown-dependencies`.
 :::
 
-The rule now reports a dependency when its target is an unknown element **or** an unknown file, controlled by two new options:
+The rule now reports a dependency when its target is unknown on the classification axes selected by the new `require` option:
 
 | Option | Default | Effect |
 |--------|---------|--------|
-| `allowUnknownElements` | `false` | When `true`, dependencies to unknown elements are allowed (element axis disabled). |
-| `allowUnknownFiles` | `true` | When `true`, dependencies to unknown files are allowed (file axis disabled). |
+| `require` | `"any"` | Which classification axes the target must be known on **to be valid**: `"any"`, `"element"`, `"file"`, or `"all"`. |
 
-The default `allowUnknownFiles: true` keeps the **v6 behavior**: the rule reports only when the target element is unknown, exactly as `no-unknown` did. You opt into file checking by setting `allowUnknownFiles: false`.
+:::info[Default behavior]
+Both `boundaries/no-unknown` (deprecated) and `boundaries/no-unknown-dependencies` now default to `require: "any"`: the target must be known on **at least one** axis, so the rule reports only when it is unknown as **both** an element and a file. So, there is no change in default behavior, previous projects only had known elements, and the rule keeps working as before. The new `require` option is only useful if you want to change the default behavior.
+:::
 
 <CodeDiff language="javascript">{`
   rules: {
 -   "boundaries/no-unknown": [2]
-+   "boundaries/no-unknown-dependencies": [2]
++   "boundaries/no-unknown-dependencies": [2, { require: "element" }]
   }
 `}</CodeDiff>
 
-:::tip[Projects using only file descriptors]
-If you classify your project with `boundaries/files` instead of elements, set `allowUnknownElements: true` and `allowUnknownFiles: false` so the rule judges targets purely by their file descriptor.
+:::warning[Breaking change if you use the `strict` config with `eslint-disable` comments]
+The `strict` config now enables `boundaries/no-unknown-dependencies` (the new name) instead of `boundaries/no-unknown`. If your codebase has `// eslint-disable-next-line boundaries/no-unknown` comments, they will no longer suppress the corresponding violations — reported now under the new rule name — and may themselves become "unused eslint-disable directive" errors.
+
+Update those comments to the new rule name to keep using `strict` (recommended: it prints no deprecation warning and is the config that keeps working long-term). If you are not ready to update them yet, use **`strict-legacy`** instead — a drop-in replacement for `strict` that keeps enabling `boundaries/no-unknown` (and `boundaries/no-ignored`, see below) until you migrate. See the **[Strict Legacy Config](../../settings/config-helpers.md#strict-legacy-config)** documentation.
 :::
 
 ## `no-ignored` renamed to `no-ignored-dependencies`
@@ -371,6 +378,12 @@ The `boundaries/no-ignored` rule name is kept for backward compatibility but is 
 +   "boundaries/no-ignored-dependencies": [2]
   }
 `}</CodeDiff>
+
+:::warning[Breaking change if you use the `strict` config with `eslint-disable` comments]
+The `strict` config now enables `boundaries/no-ignored-dependencies` (the new name) instead of `boundaries/no-ignored`. If your codebase has `// eslint-disable-next-line boundaries/no-ignored` comments, they will no longer suppress the corresponding violations — reported now under the new rule name — and may themselves become "unused eslint-disable directive" errors.
+
+Update those comments to the new rule name to keep using `strict` (recommended: it prints no deprecation warning and is the config that keeps working long-term). If you are not ready to update them yet, use **`strict-legacy`** instead — a drop-in replacement for `strict` that keeps enabling `boundaries/no-ignored` (and `boundaries/no-unknown`, see above) until you migrate. See the **[Strict Legacy Config](../../settings/config-helpers.md#strict-legacy-config)** documentation.
+:::
 
 ## `rules` option renamed to `policies`
 

@@ -15,10 +15,9 @@ const deprecatedRule = getRule(RULE_NAMES_MAP.NO_UNKNOWN);
 
 const { absoluteFilePath } = pathResolvers("docs-examples");
 
-// The rule reports a dependency when its target is an unknown element OR an unknown
-// file. `allowUnknownElements` (default false) and `allowUnknownFiles` (default true)
-// each disable their axis. With the defaults the rule reports only when the target
-// element is unknown, preserving the behavior of the deprecated `no-unknown` rule.
+// The `require` option controls which classification axes the target must be known
+// on. With the default (`require: "any"`) the rule reports only when the target is
+// unknown as both an element and a file.
 const ELEMENTS_MESSAGE = "Dependencies to unknown elements are not allowed";
 const FILES_MESSAGE = "Dependencies to unknown files are not allowed";
 const BOTH_MESSAGE =
@@ -49,7 +48,7 @@ const elementsAndFiles: RuleTesterSettings = {
 } as RuleTesterSettings;
 
 // Settings using ONLY file descriptors (no element descriptors). Every element is
-// unknown, so the rule must rely on file descriptors (allowUnknownElements: true).
+// unknown, so the rule must rely on file descriptors (require: "file").
 const fileOnlySettings: RuleTesterSettings = {
   "boundaries/files": [
     {
@@ -67,8 +66,8 @@ const fileOnlySettings: RuleTesterSettings = {
 const ruleTester = createRuleTester(elementsAndFiles);
 
 // =========================================================================
-// Default options (allowUnknownElements: false, allowUnknownFiles: true):
-// report only when the target element is unknown (legacy behavior).
+// Default options (require: "any"): the target must be known on at least one
+// axis. Report only when the target is unknown as both element and file.
 // =========================================================================
 ruleTester.run(RULE, rule, {
   valid: [
@@ -83,6 +82,12 @@ ruleTester.run(RULE, rule, {
       code: "import ModuleA from 'modules/module-a'",
       options: [{}],
     },
+    // Known file (even when its element is unknown) -> allowed.
+    {
+      filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
+      code: "import { someParser } from '../../../helpers/data/parse'",
+      options: [{}],
+    },
     // External dependencies are not local, so they are never reported.
     {
       filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
@@ -91,26 +96,19 @@ ruleTester.run(RULE, rule, {
     },
   ],
   invalid: [
-    // Unknown element (known file) -> reported by default (file axis disabled).
-    {
-      filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
-      code: "import { someParser } from '../../../helpers/data/parse'",
-      options: [{}],
-      errors: [{ message: ELEMENTS_MESSAGE, type: "Literal" }],
-    },
-    // Unknown element (and unknown file) -> reported with the element message.
+    // Unknown element and unknown file -> reported with the combined message.
     {
       filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
       code: "import foo from '../../../foo'",
       options: [{}],
-      errors: [{ message: ELEMENTS_MESSAGE, type: "Literal" }],
+      errors: [{ message: BOTH_MESSAGE, type: "Literal" }],
     },
   ],
 });
 
 // =========================================================================
-// allowUnknownFiles: false -> both axes active. Report when the target is an
-// unknown element OR an unknown file.
+// require: "all" -> both axes active. Report when the target is an unknown
+// element OR an unknown file.
 // =========================================================================
 ruleTester.run(RULE, rule, {
   valid: [
@@ -118,7 +116,7 @@ ruleTester.run(RULE, rule, {
     {
       filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
       code: "import AtomB from 'components/atoms/atom-b'",
-      options: [{ allowUnknownFiles: false }],
+      options: [{ require: "all" }],
     },
   ],
   invalid: [
@@ -126,29 +124,30 @@ ruleTester.run(RULE, rule, {
     {
       filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
       code: "import ModuleA from 'modules/module-a'",
-      options: [{ allowUnknownFiles: false }],
+      options: [{ require: "all" }],
       errors: [{ message: FILES_MESSAGE, type: "Literal" }],
     },
     // Unknown element but known file -> reported with the element message.
     {
       filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
       code: "import { someParser } from '../../../helpers/data/parse'",
-      options: [{ allowUnknownFiles: false }],
+      options: [{ require: "all" }],
       errors: [{ message: ELEMENTS_MESSAGE, type: "Literal" }],
     },
     // Unknown element and unknown file -> reported with the combined message.
     {
       filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
       code: "import foo from '../../../foo'",
-      options: [{ allowUnknownFiles: false }],
+      options: [{ require: "all" }],
       errors: [{ message: BOTH_MESSAGE, type: "Literal" }],
     },
   ],
 });
 
 // =========================================================================
-// allowUnknownElements: true + allowUnknownFiles: false -> file axis only.
-// Report when the target file is unknown, regardless of its element.
+// require: "file" -> file axis only. Report when the target file is unknown,
+// regardless of its element. This preserves the pre-v7 `no-unknown-files`
+// intent for projects that judge targets purely by file descriptors.
 // =========================================================================
 ruleTester.run(RULE, rule, {
   valid: [
@@ -156,12 +155,12 @@ ruleTester.run(RULE, rule, {
     {
       filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
       code: "import AtomB from 'components/atoms/atom-b'",
-      options: [{ allowUnknownElements: true, allowUnknownFiles: false }],
+      options: [{ require: "file" }],
     },
     {
       filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
       code: "import { someParser } from '../../../helpers/data/parse'",
-      options: [{ allowUnknownElements: true, allowUnknownFiles: false }],
+      options: [{ require: "file" }],
     },
   ],
   invalid: [
@@ -169,65 +168,77 @@ ruleTester.run(RULE, rule, {
     {
       filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
       code: "import ModuleA from 'modules/module-a'",
-      options: [{ allowUnknownElements: true, allowUnknownFiles: false }],
+      options: [{ require: "file" }],
       errors: [{ message: FILES_MESSAGE, type: "Literal" }],
     },
     {
       filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
       code: "import foo from '../../../foo'",
-      options: [{ allowUnknownElements: true, allowUnknownFiles: false }],
+      options: [{ require: "file" }],
       errors: [{ message: FILES_MESSAGE, type: "Literal" }],
     },
   ],
 });
 
 // =========================================================================
-// allowUnknownElements: true (allowUnknownFiles defaults to true) -> both axes
-// disabled, so the rule never reports.
+// require: "element" -> element axis only. Report when the target element is
+// unknown, regardless of its file. This preserves the legacy `no-unknown`
+// behavior explicitly.
 // =========================================================================
 ruleTester.run(RULE, rule, {
   valid: [
+    // Known element (even with an unknown file) -> allowed.
     {
       filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
-      code: "import foo from '../../../foo'",
-      options: [{ allowUnknownElements: true }],
+      code: "import ModuleA from 'modules/module-a'",
+      options: [{ require: "element" }],
     },
+  ],
+  invalid: [
+    // Unknown element (known file) -> reported with the element message.
     {
       filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
       code: "import { someParser } from '../../../helpers/data/parse'",
-      options: [{ allowUnknownElements: true }],
+      options: [{ require: "element" }],
+      errors: [{ message: ELEMENTS_MESSAGE, type: "Literal" }],
+    },
+    // Unknown element (and unknown file) -> reported with the element message.
+    {
+      filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
+      code: "import foo from '../../../foo'",
+      options: [{ require: "element" }],
+      errors: [{ message: ELEMENTS_MESSAGE, type: "Literal" }],
     },
   ],
-  invalid: [],
 });
 
 // =========================================================================
-// Only file descriptors configured (no element descriptors). Setting
-// allowUnknownElements: true and allowUnknownFiles: false makes the rule judge
-// targets purely by file descriptors: known files are allowed, unknown files
-// are reported.
+// Only file descriptors configured (no element descriptors). Every element is
+// unknown, so require: "file" makes the rule judge targets purely by file
+// descriptors: known files are allowed, unknown files are reported.
 // =========================================================================
 createRuleTester(fileOnlySettings).run(RULE, rule, {
   valid: [
     {
       filename: absoluteFilePath("helpers/data/parse.js"),
       code: "import sort from './sort'",
-      options: [{ allowUnknownElements: true, allowUnknownFiles: false }],
+      options: [{ require: "file" }],
     },
   ],
   invalid: [
     {
       filename: absoluteFilePath("helpers/data/parse.js"),
       code: "import foo from '../../foo'",
-      options: [{ allowUnknownElements: true, allowUnknownFiles: false }],
+      options: [{ require: "file" }],
       errors: [{ message: FILES_MESSAGE, type: "Literal" }],
     },
   ],
 });
 
 // =========================================================================
-// Deprecated rule name `boundaries/no-unknown` keeps working (with the default,
-// legacy behavior); it emits a one-time rename warning at lint time.
+// Deprecated rule name `boundaries/no-unknown` keeps working (with the same
+// default `require: "any"` behavior as `no-unknown-dependencies`); it emits a
+// one-time rename warning at lint time.
 // =========================================================================
 createRuleTester(elementsAndFiles).run(RULE, deprecatedRule, {
   valid: [
@@ -236,13 +247,21 @@ createRuleTester(elementsAndFiles).run(RULE, deprecatedRule, {
       code: "import AtomB from 'components/atoms/atom-b'",
       options: [{}],
     },
-  ],
-  invalid: [
+    // Known file (even when its element is unknown) -> allowed, since the
+    // deprecated name now defaults to `require: "any"` like the new one.
     {
       filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
       code: "import { someParser } from '../../../helpers/data/parse'",
       options: [{}],
-      errors: [{ message: ELEMENTS_MESSAGE, type: "Literal" }],
+    },
+  ],
+  invalid: [
+    // Unknown element and unknown file -> reported with the combined message.
+    {
+      filename: absoluteFilePath("components/atoms/atom-a/AtomA.js"),
+      code: "import foo from '../../../foo'",
+      options: [{}],
+      errors: [{ message: BOTH_MESSAGE, type: "Literal" }],
     },
   ],
 });

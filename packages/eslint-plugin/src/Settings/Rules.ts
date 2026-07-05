@@ -6,7 +6,6 @@ import {
   isLegacyDependencyInfoSelector,
   isDependencySelector,
   isLegacyDependencySelector,
-  isLegacySimpleElementSelector,
 } from "@boundaries/elements";
 
 import { warnOnce } from "../Debug";
@@ -900,22 +899,23 @@ function ruleHasLegacyTemplateSyntax(
 }
 
 /**
- * Determines whether a rule contains legacy string or tuple selector syntax
- * in any of its selector fields.
+ * Determines whether a rule contains legacy string/tuple selector syntax, or an element
+ * selector used directly as an entity-selector value (e.g. `{ type: "components" }`
+ * instead of `{ element: { type: "components" } }`), in any of its selector fields.
+ *
+ * `isLegacyEntitySelector` already covers both cases: it is true for legacy string/tuple
+ * selectors and for bare (backward-compatible) element-selector objects, and false for a
+ * properly wrapped modern entity selector.
  *
  * @param rule - Single rule entry to inspect.
  * @param ruleName - The full rule name, used to decide whether `allow`/`disallow` should be scanned.
- * @returns True if any selector field uses legacy string or tuple syntax, false otherwise.
+ * @returns True if any selector field uses legacy selector syntax, false otherwise.
  */
 function ruleHasLegacySelectorSyntax(
   rule: RuleOptionsPolicies,
   ruleName: RuleName
 ): boolean {
-  return ruleSelectorFieldMatches(
-    rule,
-    ruleName,
-    isLegacySimpleElementSelector
-  );
+  return ruleSelectorFieldMatches(rule, ruleName, isLegacyEntitySelector);
 }
 
 /**
