@@ -579,6 +579,7 @@ export interface PluginBoundaries extends ESLint.Plugin {
   configs: {
     recommended: Config;
     strict: Config;
+    "strict-legacy": Config;
   };
 }
 

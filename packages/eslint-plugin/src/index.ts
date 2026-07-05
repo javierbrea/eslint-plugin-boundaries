@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import recommendedConfig from "./Config/Recommended";
 import strictConfig from "./Config/Strict";
+import strictLegacyConfig from "./Config/StrictLegacy";
 import getDependenciesRule from "./Rules/Dependencies";
 import EntryPointRule from "./Rules/EntryPoint";
 import ExternalRule from "./Rules/External";
@@ -70,6 +71,7 @@ const publicInterface: PluginBoundaries = {
   configs: {
     recommended: recommendedConfig,
     strict: strictConfig,
+    "strict-legacy": strictLegacyConfig,
   },
 };
 

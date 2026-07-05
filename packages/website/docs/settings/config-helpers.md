@@ -14,6 +14,7 @@ keywords:
   - createConfig
   - recommended config
   - strict config
+  - strict-legacy config
   - settings
   - helpers
 ---
@@ -24,7 +25,7 @@ The plugin provides helpers to make ESLint configuration easier and type-safe.
 
 ## Predefined Configs
 
-The plugin includes two predefined configurations to get started quickly.
+The plugin includes predefined configurations to get started quickly.
 
 ### Recommended Config
 
@@ -97,6 +98,45 @@ export default [{
 :::note[`no-private` stays disabled in strict]
 `strict` does not enable `boundaries/no-private`; it remains disabled even when enforcing full compliance. The `no-private` rule is deprecated. To restrict access to private elements, use [`boundaries/dependencies`](../rules/no-private.mdx#migration-to-boundariesdependencies) with relationship selectors instead.
 :::
+
+### Strict Legacy Config
+
+:::tip[Usage]
+**Best for:** Projects upgrading from v6 that use the `strict` config and have `eslint-disable` comments referencing the old `boundaries/no-ignored` or `boundaries/no-unknown` rule names
+:::
+
+`strict-legacy` is otherwise identical to `strict`, but enables the deprecated `boundaries/no-ignored` and `boundaries/no-unknown` rule names instead of their `boundaries/no-ignored-dependencies` and `boundaries/no-unknown-dependencies` replacements.
+
+Since v7, `strict` enables the new rule names. A pre-existing `// eslint-disable-next-line boundaries/no-ignored` (or `boundaries/no-unknown`) comment does not suppress violations reported under the new rule name, and may itself trigger an "unused eslint-disable directive" error if you have `reportUnusedDisableDirectives` enabled. You have two options:
+
+- **Preferred:** keep using `strict` and update your `eslint-disable` comments to `boundaries/no-ignored-dependencies` / `boundaries/no-unknown-dependencies`. This avoids the deprecation warning the old rule names print, and is the only path forward once those names are removed in a future major version.
+- **Temporary:** switch to `strict-legacy` to keep your existing `eslint-disable` comments working unchanged while you migrate them at your own pace.
+
+```js
+import boundaries from "eslint-plugin-boundaries";
+import { strictLegacy } from "eslint-plugin-boundaries/config";
+
+export default [{
+  plugins: {
+    boundaries,
+  },
+  settings: {
+    ...strictLegacy.settings,
+    "boundaries/elements": [
+      {
+        type: "helper",
+        pattern: "helpers/*"
+      },
+    ]
+  },
+  rules: {
+    ...strictLegacy.rules,
+    "boundaries/dependencies": [2, {
+      // Define your rules here
+    }],
+  }
+}]
+```
 
 ## `createConfig` Helper
 
