@@ -45,6 +45,7 @@ import {
   migrationToV6GuideLink,
   migrationToV7GuideLink,
   moreInfoElementsLink,
+  moreInfoLegacySettingsLink,
   moreInfoSettingsLink,
 } from "./Docs";
 
@@ -191,7 +192,7 @@ export function deprecateAlias(
   if (!alias) return false;
   warnOnce(
     `'${SETTINGS_KEYS_MAP.ALIAS}' setting is deprecated.`,
-    `Configure path aliases using 'import/resolver' settings instead. ${moreInfoSettingsLink("boundariesalias")}`
+    `Configure path aliases using 'import/resolver' settings instead. ${moreInfoLegacySettingsLink("boundariesalias")}`
   );
   return true;
 }

@@ -32,6 +32,7 @@ import {
   migrationToV6GuideLink,
   migrationToV7GuideLink,
   moreInfoLink,
+  moreInfoSelectorsLink,
 } from "./Docs";
 
 type JsonSchemaPrimitive = string | number | boolean | null;
@@ -1061,7 +1062,7 @@ export function validateAndWarnRuleOptions(
       indexes: ruleWarningIndexes.rulesWithDeprecatedV7SelectorProps,
       summary: (count, indexList) =>
         `[${ruleName}] Detected deprecated selector properties (category, elementPath, filePath) in ${count} rule(s) at indices: ${indexList}.`,
-      detail: `Rename elementPath → path, filePath → fileInternalPath, and remove category (use file descriptors instead). ${moreInfoLink("setup/selectors", "deprecated-element-selector-properties")}`,
+      detail: `Rename elementPath → path, filePath → fileInternalPath, and remove category (use file descriptors instead). ${moreInfoSelectorsLink("deprecated-element-selector-properties")}`,
     },
     {
       indexes: ruleWarningIndexes.rulesWithDeprecatedDependencyModule,
@@ -1074,7 +1075,7 @@ export function validateAndWarnRuleOptions(
       indexes: ruleWarningIndexes.rulesWithDeprecatedInternalPath,
       summary: (count, indexList) =>
         `[${ruleName}] Detected deprecated "internalPath" in element selectors in ${count} rule(s) at indices: ${indexList}.`,
-      detail: `Use "fileInternalPath" for local element paths, or the module sub-selector "internalPath" for external modules. ${moreInfoLink("setup/selectors", "deprecated-element-selector-properties")}`,
+      detail: `Use "fileInternalPath" for local element paths, or the module sub-selector "internalPath" for external modules. ${moreInfoSelectorsLink("deprecated-element-selector-properties")}`,
     },
   ];
 
