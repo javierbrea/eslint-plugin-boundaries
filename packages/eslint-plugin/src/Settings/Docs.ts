@@ -24,6 +24,12 @@ function adaptRuleNameToUrl(ruleName: RuleName): string {
   if (ruleName === RULE_NAMES_MAP.ELEMENT_TYPES) {
     return RULE_NAMES_MAP.DEPENDENCIES;
   }
+  if (ruleName === RULE_NAMES_MAP.NO_IGNORED) {
+    return RULE_NAMES_MAP.NO_IGNORED_DEPENDENCIES;
+  }
+  if (ruleName === RULE_NAMES_MAP.NO_UNKNOWN) {
+    return RULE_NAMES_MAP.NO_UNKNOWN_DEPENDENCIES;
+  }
   return ruleName;
 }
 
@@ -118,7 +124,7 @@ export function migrationToV7GuideLink(anchor?: string): string {
  * @returns A message containing the settings information URL for the plugin settings documentation.
  */
 export function moreInfoSettingsLink(anchor?: string): string {
-  return moreInfoLink(`setup/settings`, anchor);
+  return moreInfoLink(`settings`, anchor);
 }
 
 /**
@@ -127,7 +133,25 @@ export function moreInfoSettingsLink(anchor?: string): string {
  * @returns A message containing the elements documentation URL.
  */
 export function moreInfoElementsLink(anchor?: string): string {
-  return moreInfoLink("setup/elements", anchor);
+  return moreInfoLink("classification/elements", anchor);
+}
+
+/**
+ * Returns a "more info" message linking to the legacy settings documentation page.
+ * @param anchor - Optional anchor to a specific section in the documentation page.
+ * @returns A message containing the legacy settings documentation URL.
+ */
+export function moreInfoLegacySettingsLink(anchor?: string): string {
+  return moreInfoLink("settings/legacy", anchor);
+}
+
+/**
+ * Returns a "more info" message linking to the entity selectors documentation page.
+ * @param anchor - Optional anchor to a specific section in the documentation page.
+ * @returns A message containing the entity selectors documentation URL.
+ */
+export function moreInfoSelectorsLink(anchor?: string): string {
+  return moreInfoLink("selectors/element", anchor);
 }
 
 /**

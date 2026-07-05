@@ -112,14 +112,14 @@ const config: Config = {
   ],
 
   themeConfig: {
-    /* announcementBar: {
+    announcementBar: {
       id: "v7-launch",
       content:
-        'Version 7 is here — file descriptors, multi-dimensional classification, and array queries.<a href="/docs/next/releases/migration-guides/v6-to-v7/">See what\'s new →</a>',
+        'Version 7 is here — file descriptors, multi-dimensional classification, and array queries. <a href="/docs/next/releases/migration-guides/v6-to-v7/">See what\'s new →</a>',
       backgroundColor: "#3b4468",
       textColor: "#e8ecff",
       isCloseable: true,
-    }, */
+    },
     // Replace with your project's social card
     colorMode: {
       respectPrefersColorScheme: true,
@@ -141,19 +141,20 @@ const config: Config = {
           position: "left",
           label: "Getting Started",
         },
-        // NOTE: navbar links target the default (published) docs version.
-        // The flattened top-level sections (Classification, Selectors, Policies,
-        // Settings) live in the "next" (v7) docs. Switch these to the flat links
-        // when v7 becomes the default version (set `lastVersion: "current"`).
         {
-          to: "docs/setup/",
+          to: "docs/classification/",
           position: "left",
-          label: "Setup",
+          label: "Classification",
         },
         {
-          to: "docs/rules/",
+          to: "docs/selectors/",
           position: "left",
-          label: "Rules",
+          label: "Selectors",
+        },
+        {
+          to: "docs/policies/",
+          position: "left",
+          label: "Policies",
         },
         {
           type: "custom-githubStarsButton",
@@ -177,8 +178,8 @@ const config: Config = {
               to: "/docs/overview/",
             },
             {
-              label: "Setup",
-              to: "/docs/setup/",
+              label: "Settings",
+              to: "/docs/settings/",
             },
             {
               label: "Rules",

@@ -5,17 +5,17 @@ https://jsboundaries.netlify.app/* https://www.jsboundaries.dev/:splat 301!
 # Format: /<from> /<to> <status>
 
 # V7 - The `no-unknown` rule was renamed to `no-unknown-dependencies` in v7.
-# /docs/rules/no-unknown/ /docs/rules/no-unknown-dependencies/ 301!
+/docs/rules/no-unknown/ /docs/rules/no-unknown-dependencies/ 301!
 
 # V7 - The `no-ignored` rule was renamed to `no-ignored-dependencies` in v7.
-# /docs/rules/no-ignored/ /docs/rules/no-ignored-dependencies/ 301!
+/docs/rules/no-ignored/ /docs/rules/no-ignored-dependencies/ 301!
 
 # V7 - The Setup section was flattened in the v7 (next) docs: Classification, Selectors,
 # Policies and Settings were promoted to the top level.
-# /docs/setup/ /docs/classification/ 301!
-# /docs/setup/elements/ /docs/classification/elements/ 301!
-# /docs/setup/selectors/ /docs/selectors/ 301!
-# /docs/setup/selectors/legacy-selectors/ /docs/selectors/legacy/element/ 301!
-# /docs/setup/rules/ /docs/policies/ 301!
-# /docs/setup/settings/ /docs/settings/ 301!
-# /docs/setup/eslint-integration/ /docs/settings/config-helpers/ 301!
+/docs/setup/ /docs/classification/ 301!
+/docs/setup/elements/ /docs/classification/elements/ 301!
+/docs/setup/selectors/ /docs/selectors/ 301!
+/docs/setup/selectors/legacy-selectors/ /docs/selectors/legacy/element/ 301!
+/docs/setup/rules/ /docs/policies/ 301!
+/docs/setup/settings/ /docs/settings/ 301!
+/docs/setup/eslint-integration/ /docs/settings/config-helpers/ 301!
