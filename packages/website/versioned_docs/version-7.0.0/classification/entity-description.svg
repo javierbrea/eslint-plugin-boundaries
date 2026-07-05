@@ -1,0 +1,59 @@
+<svg width="820" height="430" viewBox="0 0 820 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An entity describes one file along three independent axes: element, file and module">
+  <defs>
+    <marker id="ed-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#7a839d" />
+    </marker>
+    <filter id="ed-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.2"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Entity root -->
+  <rect x="310" y="24" width="200" height="64" rx="8" fill="#4e546a" stroke="#2b2e39" stroke-width="2" filter="url(#ed-shadow)"/>
+  <text x="410" y="52" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="600" font-family="sans-serif">Entity</text>
+  <text x="410" y="74" text-anchor="middle" fill="#cfd6e6" font-size="13" font-family="sans-serif">one analyzed file, three axes</text>
+
+  <!-- Connectors -->
+  <path d="M410 88 L410 110 L150 110 L150 132" fill="none" stroke="#7a839d" stroke-width="2" marker-end="url(#ed-arrow)"/>
+  <path d="M410 88 L410 132" fill="none" stroke="#7a839d" stroke-width="2" marker-end="url(#ed-arrow)"/>
+  <path d="M410 88 L410 110 L670 110 L670 132" fill="none" stroke="#7a839d" stroke-width="2" marker-end="url(#ed-arrow)"/>
+
+  <!-- element -->
+  <rect x="34" y="134" width="232" height="266" rx="8" fill="#dfedef" stroke="#4e546a" stroke-width="2" filter="url(#ed-shadow)"/>
+  <text x="150" y="162" text-anchor="middle" fill="#2b2e39" font-size="18" font-weight="600" font-family="monospace">element</text>
+  <text x="150" y="182" text-anchor="middle" fill="#4e546a" font-size="12" font-family="sans-serif">the architectural unit</text>
+  <line x1="54" y1="196" x2="246" y2="196" stroke="#9aa4bb" stroke-width="1"/>
+  <text x="54" y="220" fill="#2b2e39" font-size="13" font-family="monospace">types</text>
+  <text x="54" y="244" fill="#2b2e39" font-size="13" font-family="monospace">path</text>
+  <text x="54" y="268" fill="#2b2e39" font-size="13" font-family="monospace">fileInternalPath</text>
+  <text x="54" y="292" fill="#2b2e39" font-size="13" font-family="monospace">captured</text>
+  <text x="54" y="316" fill="#2b2e39" font-size="13" font-family="monospace">parents</text>
+  <text x="54" y="340" fill="#2b2e39" font-size="13" font-family="monospace">isIgnored</text>
+  <text x="54" y="364" fill="#2b2e39" font-size="13" font-family="monospace">isUnknown</text>
+  <text x="150" y="388" text-anchor="middle" fill="#7a839d" font-size="11" font-family="sans-serif">boundaries/elements</text>
+
+  <!-- file -->
+  <rect x="294" y="134" width="232" height="266" rx="8" fill="#dfedef" stroke="#4e546a" stroke-width="2" filter="url(#ed-shadow)"/>
+  <text x="410" y="162" text-anchor="middle" fill="#2b2e39" font-size="18" font-weight="600" font-family="monospace">file</text>
+  <text x="410" y="182" text-anchor="middle" fill="#4e546a" font-size="12" font-family="sans-serif">the file on its own</text>
+  <line x1="314" y1="196" x2="506" y2="196" stroke="#9aa4bb" stroke-width="1"/>
+  <text x="314" y="220" fill="#2b2e39" font-size="13" font-family="monospace">categories</text>
+  <text x="314" y="244" fill="#2b2e39" font-size="13" font-family="monospace">path</text>
+  <text x="314" y="268" fill="#2b2e39" font-size="13" font-family="monospace">captured</text>
+  <text x="314" y="292" fill="#2b2e39" font-size="13" font-family="monospace">isIgnored</text>
+  <text x="314" y="316" fill="#2b2e39" font-size="13" font-family="monospace">isUnknown</text>
+  <text x="410" y="388" text-anchor="middle" fill="#7a839d" font-size="11" font-family="sans-serif">boundaries/files</text>
+
+  <!-- module -->
+  <rect x="554" y="134" width="232" height="266" rx="8" fill="#dfedef" stroke="#4e546a" stroke-width="2" filter="url(#ed-shadow)"/>
+  <text x="670" y="162" text-anchor="middle" fill="#2b2e39" font-size="18" font-weight="600" font-family="monospace">module</text>
+  <text x="670" y="182" text-anchor="middle" fill="#4e546a" font-size="12" font-family="sans-serif">what an import resolves to</text>
+  <line x1="574" y1="196" x2="766" y2="196" stroke="#9aa4bb" stroke-width="1"/>
+  <text x="574" y="220" fill="#2b2e39" font-size="13" font-family="monospace">origin</text>
+  <text x="574" y="244" fill="#2b2e39" font-size="13" font-family="monospace">source</text>
+  <text x="574" y="268" fill="#2b2e39" font-size="13" font-family="monospace">internalPath</text>
+  <text x="670" y="388" text-anchor="middle" fill="#7a839d" font-size="11" font-family="sans-serif">derived automatically</text>
+</svg>
