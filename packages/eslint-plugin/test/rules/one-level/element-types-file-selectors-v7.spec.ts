@@ -104,6 +104,36 @@ const captureSettings: RuleTesterSettings = {
   ],
 } as RuleTesterSettings;
 
+// Settings using file descriptors WITH plain capture and no basePattern.
+// This is the plain-capture equivalent of `captureSettings` above: the same captured values are
+// produced now that `capture` without `basePattern` is honored (regression coverage for
+// https://github.com/javierbrea/eslint-plugin-boundaries/issues/457).
+const captureSettingsNoBasePattern: RuleTesterSettings = {
+  ...SETTINGS.oneLevel,
+  "boundaries/elements": [
+    { type: "helpers", pattern: "helpers/*", capture: ["elementName"] },
+    { type: "components", pattern: ["components/*"], capture: ["elementName"] },
+    { type: "modules", pattern: "modules/*", capture: ["elementName"] },
+  ],
+  "boundaries/files": [
+    {
+      category: "helpers",
+      pattern: "**/helpers/*/*.js",
+      capture: ["restOfPath", "elementName", "fileName"],
+    },
+    {
+      category: "components",
+      pattern: "**/components/*/*.js",
+      capture: ["restOfPath", "elementName", "fileName"],
+    },
+    {
+      category: "modules",
+      pattern: "**/modules/*/*.js",
+      capture: ["restOfPath", "elementName", "fileName"],
+    },
+  ],
+} as RuleTesterSettings;
+
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
@@ -644,6 +674,55 @@ runTest(
 
 testFileCaptured(
   captureSettings,
+  [
+    {
+      default: "disallow",
+      policies: [
+        {
+          from: { file: { categories: "components" } },
+          allow: {
+            to: [
+              {
+                file: {
+                  categories: "helpers",
+                  captured: { elementName: "helper-a" },
+                },
+              },
+              {
+                file: {
+                  categories: "components",
+                  captured: { elementName: "!component-a" },
+                },
+              },
+            ],
+          },
+        },
+        {
+          from: { file: { categories: "modules" } },
+          allow: {
+            to: [
+              {
+                file: {
+                  categories: "helpers",
+                  captured: { elementName: "helper-a" },
+                },
+              },
+              { file: { categories: "components" } },
+              { file: { categories: "modules" } },
+            ],
+          },
+        },
+      ],
+    },
+  ],
+  {}
+);
+
+// Same scenario, using plain `capture` without `basePattern` (regression test for
+// https://github.com/javierbrea/eslint-plugin-boundaries/issues/457).
+
+testFileCaptured(
+  captureSettingsNoBasePattern,
   [
     {
       default: "disallow",

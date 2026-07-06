@@ -142,6 +142,10 @@ Captures named values from path fragments so you can reference them later in [el
 
 Each captured fragment is stored under the key from the `capture` array at the same index.
 
+:::note
+`capture` maps positionally to each wildcard (`*` or `**`) in `pattern`, in order, left to right. Count the wildcards in your pattern and provide that many names; naming fewer just leaves the trailing wildcards uncaptured (see "Combine with `partialMatch` for targeted captures" below), but naming them in the wrong order (or forgetting one in the middle, such as a `**`) assigns each name to the wrong path fragment.
+:::
+
 ```js
 { type: "component", pattern: "components/*/*", capture: ["family", "elementName"] }
 ```
