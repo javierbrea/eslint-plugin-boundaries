@@ -168,9 +168,11 @@ export class FilesDescriptor {
   }
 
   /**
-   * Returns the capture array for a file descriptor, combining baseCapture and capture if basePattern is used, for backward compatibility with legacy mode "file".
+   * Returns the capture array for a file descriptor. When basePattern is used, combines baseCapture
+   * and capture for backward compatibility with legacy mode "file". Otherwise, returns the plain
+   * capture array as-is, matching it directly against the pattern's own capture groups.
    * @param fileDescriptor The file descriptor to get the capture array for.
-   * @returns The combined capture array if basePattern is used, otherwise undefined.
+   * @returns The capture array, or undefined if no capture is configured.
    */
   private _getCaptureArray(
     fileDescriptor: FileDescriptor
@@ -194,6 +196,7 @@ export class FilesDescriptor {
         ];
       }
     }
+    return fileDescriptor.capture;
   }
 
   /**

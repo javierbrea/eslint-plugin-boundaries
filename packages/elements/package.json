@@ -1,6 +1,6 @@
 {
   "name": "@boundaries/elements",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Element descriptors and matchers for @boundaries tools",
   "keywords": [
     "boundaries",

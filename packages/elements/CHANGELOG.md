@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [3.0.1] - 2026-07-06
+
+### Fixed
+
+- fix(#457): File descriptors now honor a plain `capture` array without requiring `basePattern`. Previously, `capture` on a `boundaries/files` descriptor without `basePattern` always resulted in `file.captured` being `null`.
+
 ## [3.0.0] - 2026-07-05
 
 ### Breaking Changes
