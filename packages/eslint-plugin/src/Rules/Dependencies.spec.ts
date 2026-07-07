@@ -1560,6 +1560,129 @@ describe("Dependencies", () => {
       expect(getElementsMatcherMock).not.toHaveBeenCalled();
     });
 
+    it("still skips local dependencies with dependency.to.file.isIgnored when checkAllOrigins is true", () => {
+      const matcher = createMatcher();
+      getElementsMatcherMock.mockReturnValue(matcher);
+      const dependency = createDependencyDescription({
+        to: createEntityDescription({
+          file: { isIgnored: true },
+          module: { origin: ORIGINS_MAP.LOCAL },
+        }),
+      });
+
+      callHandler(
+        RULE_NAMES_MAP.DEPENDENCIES,
+        createCallArgs(dependency, { checkAllOrigins: true })
+      );
+
+      expect(getElementsMatcherMock).not.toHaveBeenCalled();
+    });
+
+    it("evaluates ignored external modules when checkAllOrigins is true", () => {
+      const matcher = createMatcher();
+      getElementsMatcherMock.mockReturnValue(matcher);
+      const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
+      fn.mockReturnValueOnce({ matched: true });
+
+      const dependency = createDependencyDescription({
+        to: createEntityDescription({
+          file: { isIgnored: true },
+          module: { origin: ORIGINS_MAP.EXTERNAL, source: "zod" },
+        }),
+        dependency: {
+          source: "zod",
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+          specifiers: ["z"],
+          relationship: { from: "sibling", to: "sibling" },
+        },
+      });
+      const args = createCallArgs(dependency, {
+        checkAllOrigins: true,
+        default: "disallow",
+        policies: [
+          {
+            from: { element: { type: "default" } },
+            allow: {
+              to: { module: { origin: "external", source: "zod" } },
+            },
+          },
+        ],
+      });
+
+      callHandler(RULE_NAMES_MAP.DEPENDENCIES, args);
+
+      expect(fn).toHaveBeenCalledTimes(1);
+      expect(args.context.report).not.toHaveBeenCalled();
+    });
+
+    it("reports ignored external modules not covered by an allow policy when checkAllOrigins is true", () => {
+      const matcher = createMatcher();
+      getElementsMatcherMock.mockReturnValue(matcher);
+
+      const dependency = createDependencyDescription({
+        to: createEntityDescription({
+          file: { isIgnored: true },
+          module: { origin: ORIGINS_MAP.EXTERNAL, source: "zod" },
+        }),
+        dependency: {
+          source: "zod",
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+          specifiers: ["z"],
+          relationship: { from: "sibling", to: "sibling" },
+        },
+      });
+      const args = createCallArgs(dependency, {
+        checkAllOrigins: true,
+        default: "disallow",
+        policies: [],
+      });
+
+      callHandler(RULE_NAMES_MAP.DEPENDENCIES, args);
+
+      expect(getElementsMatcherMock).toHaveBeenCalledTimes(1);
+      expect(args.context.report).toHaveBeenCalledTimes(1);
+    });
+
+    it("evaluates ignored core modules when checkAllOrigins is true", () => {
+      const matcher = createMatcher();
+      getElementsMatcherMock.mockReturnValue(matcher);
+      const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
+      fn.mockReturnValueOnce({ matched: true });
+
+      const dependency = createDependencyDescription({
+        to: createEntityDescription({
+          file: { isIgnored: true },
+          module: { origin: ORIGINS_MAP.CORE, source: "fs" },
+        }),
+        dependency: {
+          source: "fs",
+          kind: "value",
+          nodeKind: "ImportDeclaration",
+          specifiers: ["readFileSync"],
+          relationship: { from: "sibling", to: "sibling" },
+        },
+      });
+      const args = createCallArgs(dependency, {
+        checkAllOrigins: true,
+        default: "disallow",
+        policies: [
+          {
+            from: { element: { type: "default" } },
+            allow: {
+              to: { module: { origin: "core", source: "fs" } },
+            },
+          },
+        ],
+      });
+
+      callHandler(RULE_NAMES_MAP.DEPENDENCIES, args);
+
+      expect(fn).toHaveBeenCalledTimes(1);
+      expect(args.context.report).not.toHaveBeenCalled();
+    });
+
     it("skips evaluation when dependency.from.file.isIgnored is true", () => {
       const matcher = createMatcher();
       getElementsMatcherMock.mockReturnValue(matcher);
