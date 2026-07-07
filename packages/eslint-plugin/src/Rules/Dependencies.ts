@@ -825,7 +825,7 @@ export default function getDependencyRule(
         DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL;
 
       if (
-        !dependency.to.file.isIgnored &&
+        (!dependency.to.file.isIgnored || !isLocalDependency) &&
         !dependency.from.file.isIgnored &&
         (checkAllOrigins || isLocalDependency) &&
         (checkUnknownLocals || !isUnknownLocalDependency) &&
