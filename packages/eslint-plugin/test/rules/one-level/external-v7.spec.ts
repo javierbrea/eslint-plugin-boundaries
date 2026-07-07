@@ -848,6 +848,76 @@ testCapture(
   }
 );
 
+// checkAllOrigins evaluates external dependencies even when their resolved
+// file is ignored, e.g. because it lives in node_modules, outside
+// `boundaries/include` (regression test for
+// https://github.com/javierbrea/eslint-plugin-boundaries/issues/460).
+const testCheckAllOriginsWithIgnoredExternalDependencies = () => {
+  const settings = {
+    ...SETTINGS.oneLevel,
+    "boundaries/include": [codeFilePath("**/*.js")],
+  };
+  const ruleTester = createRuleTester(settings);
+
+  ruleTester.run(
+    `${RULE} - checkAllOrigins with ignored external dependencies`,
+    rule,
+    {
+      valid: [
+        // "micromatch" resolves to a real file in node_modules, which is
+        // ignored because it is outside `boundaries/include`. It should
+        // still be allowed by an explicit policy.
+        {
+          filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+          code: "import micromatch from 'micromatch'",
+          options: [
+            {
+              checkAllOrigins: true,
+              default: "disallow",
+              policies: [
+                {
+                  from: { element: { type: "helpers" } },
+                  allow: [
+                    {
+                      to: {
+                        module: { origin: "external", source: "micromatch" },
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      invalid: [
+        // Same ignored "micromatch" dependency, but with no policy allowing
+        // it: it must still be reported, proving that checkAllOrigins
+        // reaches policy evaluation despite `to.file.isIgnored` being true.
+        {
+          filename: absoluteFilePath("components/component-a/ComponentA.js"),
+          code: "import micromatch from 'micromatch'",
+          options: [
+            {
+              checkAllOrigins: true,
+              default: "disallow",
+            },
+          ],
+          errors: [
+            {
+              message:
+                'There is no policy allowing dependencies from elements of type "components" and captured values: elementName="component-a" to entities of module with origin "external" and module source "micromatch"',
+              type: "Literal",
+            },
+          ],
+        },
+      ],
+    }
+  );
+};
+
+testCheckAllOriginsWithIgnoredExternalDependencies();
+
 const noRulesTester = createRuleTester(SETTINGS.oneLevel);
 noRulesTester.run(RULE, rule, {
   valid: [
