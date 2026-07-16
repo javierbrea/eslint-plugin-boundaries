@@ -66,6 +66,27 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  examples/typescript:
+    devDependencies:
+      '@typescript-eslint/eslint-plugin':
+        specifier: 8.57.0
+        version: 8.57.0(@typescript-eslint/parser@8.57.0(eslint@9.37.0(jiti@1.21.7))(typescript@5.9.3))(eslint@9.37.0(jiti@1.21.7))(typescript@5.9.3)
+      '@typescript-eslint/parser':
+        specifier: 8.57.0
+        version: 8.57.0(eslint@9.37.0(jiti@1.21.7))(typescript@5.9.3)
+      eslint:
+        specifier: 9.37.0
+        version: 9.37.0(jiti@1.21.7)
+      eslint-import-resolver-typescript:
+        specifier: 4.4.4
+        version: 4.4.4(eslint-plugin-import@2.32.0)(eslint@9.37.0(jiti@1.21.7))
+      eslint-plugin-boundaries:
+        specifier: workspace:@boundaries/eslint-plugin@*
+        version: link:../../packages/eslint-plugin
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   packages/elements:
     dependencies:
       eslint-import-resolver-node:
