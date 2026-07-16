@@ -170,11 +170,11 @@ Defines custom dependency nodes to analyze beyond the built-in ones. All plugin 
 **Object structure:**
 
 - **`selector`** - The [esquery selector](https://github.com/estools/esquery) for the `Literal` node where the dependency source is defined
-- **`name`** (optional) - A name for the custom node, so you can **use it in policy configuration using `dependency.nodeKind`** (e.g., to forbid or allow this kind of dependency node in some rules or to use it in custom messages templates variables)
+- **`name`** - A name for the custom node, so you can **use it in policy configuration using `dependency.nodeKind`** (e.g., to forbid or allow this kind of dependency node in some rules or to use it in custom messages templates variables)
 - **`kind`** - Assigns the **`dependency.kind` property in dependency descriptions**, which you can use in policy configuration or custom message templates to target specific dependency kinds. Possible values are `"value"`, `"type"`, or `"typeof"`.
 
 :::warning
-The `name` property is optional for the moment, but if you don't provide it, the plugin will not be able to identify the node kind of the dependency in policy configuration or custom messages templates, so it will be treated as a generic dependency without a specific node kind. If you want to use the custom node in policy configuration or custom messages templates, make sure to provide a unique name for it.
+The `name` property is required. Custom dependency nodes defined without a unique `name` cannot be referenced from selectors or custom messages templates, so objects missing it are considered invalid and are ignored (a warning is emitted).
 :::
 
 **Example:**

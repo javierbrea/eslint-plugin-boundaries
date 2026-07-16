@@ -140,17 +140,13 @@ export function isValidDependencyNodeSelector(
     isObject(selector) &&
     isString(selector.selector) &&
     (!selector.kind || isDependencyKind(selector.kind)) &&
-    (!selector.name || isString(selector.name));
+    isString(selector.name) &&
+    selector.name.length > 0;
 
   if (!isValidObject) {
     warnOnce(
       `Please provide a valid object in ${ADDITIONAL_DEPENDENCY_NODES} setting.`,
-      `The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }. The invalid object will be ignored. ${moreInfoSettingsLink()}`
-    );
-  } else if (isObject(selector) && !selector.name) {
-    warnOnce(
-      `Consider adding a "name" property to your custom dependency node for using it in selectors and custom messages.`,
-      moreInfoSettingsLink()
+      `The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" }. The invalid object will be ignored. ${moreInfoSettingsLink()}`
     );
   }
   return isValidObject;
@@ -601,7 +597,7 @@ function getNormalizedAdditionalDependencyNodes(
   if (!isArray(additionalNodes)) {
     warnOnce(
       `Invalid ${ADDITIONAL_DEPENDENCY_NODES} setting format.`,
-      `It should be an array containing objects with properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }. ${moreInfoSettingsLink()}`
+      `It should be an array containing objects with properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" }. ${moreInfoSettingsLink()}`
     );
     return [];
   }

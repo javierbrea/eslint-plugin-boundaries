@@ -174,12 +174,13 @@ runTest(
   {
     "boundaries/additional-dependency-nodes": [
       // valid
-      { selector: "Selector", kind: "value" },
-      { selector: "Selector", kind: "type" },
+      { selector: "Selector", kind: "value", name: "custom-value" },
+      { selector: "Selector", kind: "type", name: "custom-type" },
       // invalid
-      { selector: "Selector", kind: "unknown-kind" },
-      { selector: 0, kind: "value" },
-      { kind: "value" },
+      { selector: "Selector", kind: "value" },
+      { selector: "Selector", kind: "unknown-kind", name: "custom" },
+      { selector: 0, kind: "value", name: "custom" },
+      { kind: "value", name: "custom" },
       { unknown: "object" },
       "import",
       "any-string",

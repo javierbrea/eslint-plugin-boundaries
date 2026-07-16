@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [unreleased]
+
+### Changed
+
+- feat(#430): The `name` property is now required in `boundaries/additional-dependency-nodes`. Objects without a valid `name` are considered invalid and ignored, emitting a warning, instead of being accepted with a soft suggestion.
+
+### BREAKING CHANGES
+
+- Custom dependency nodes defined in `boundaries/additional-dependency-nodes` without a `name` property were previously accepted; now they are ignored. Add a unique `name` to each custom dependency node, so it can be referenced from selectors (`dependency.nodeKind`) and custom messages templates.
+
 ## [7.0.2] - 2026-07-07
 
 ### Fixed
