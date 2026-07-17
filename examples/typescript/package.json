@@ -1,0 +1,25 @@
+{
+  "name": "@boundaries/example-typescript",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Example of configuring eslint-plugin-boundaries in a TypeScript project",
+  "author": "Javier Brea",
+  "license": "MIT",
+  "scripts": {
+    "check:all": "echo 'All checks passed'",
+    "check:spell": "cspell --quiet .",
+    "check:types": "tsc --noEmit",
+    "eslint": "eslint",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "8.57.0",
+    "@typescript-eslint/parser": "8.57.0",
+    "eslint": "9.37.0",
+    "eslint-import-resolver-typescript": "4.4.4",
+    "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
+    "typescript": "5.9.3"
+  }
+}
