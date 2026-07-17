@@ -4,13 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+> [!INFO]
+> Versions marked as `-docs` are documentation-only releases that do not include any code changes. Other versions are code releases that may include documentation changes as well, and are paired with a corresponding release in the `eslint-plugin-boundaries` package.
+
 ## [unreleased]
 ### Added
 ### Changed
-- docs(#440): Point the TypeScript Support guide to the new in-repo `examples/typescript` folder instead of the standalone `epb-ts-example` repository.
 ### Fixed
 ### Removed
 ### Breaking Changes
+
+## [7.0.0-docs.1] - 2026-07-17
+
+- docs(#440): Point the TypeScript Support guide to the new in-repo `examples/typescript` folder instead of the standalone `epb-ts-example` repository.
 
 ## [7.0.0] - 2026-07-05
 
