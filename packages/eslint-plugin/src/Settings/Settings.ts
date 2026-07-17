@@ -141,7 +141,7 @@ export function isValidDependencyNodeSelector(
     isString(selector.selector) &&
     (!selector.kind || isDependencyKind(selector.kind)) &&
     isString(selector.name) &&
-    selector.name.length > 0;
+    selector.name.trim().length > 0;
 
   if (!isValidObject) {
     warnOnce(

@@ -202,6 +202,16 @@ describe("Settings/Settings", () => {
         })
       ).toBe(false);
     });
+
+    it("returns false when name is only whitespace", () => {
+      expect(
+        isValidDependencyNodeSelector({
+          selector: "CallExpression",
+          kind: "value",
+          name: "   ",
+        })
+      ).toBe(false);
+    });
   });
 
   describe("deprecateTypes", () => {
