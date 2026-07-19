@@ -38,7 +38,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toBe(
-        "|:config:|true|src/**|dist/**|true|/root|true|false|true|@external/*|:elements:||:elementsSingleType:|false|:files:|"
+        "|:config:|true|src/**|dist/**|true|/root|true|false|true|@external/*|:elements:||:elementsSingleMatch:|false|:files:||:filesSingleMatch:|false"
       );
     });
   });
@@ -64,7 +64,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toBe(
-        "|:config:|true|src/**|dist/**|true|/root|true|false|true|@external/*|:elements:|src/components/*.tsx|name|component|ui|file|src|baseName|undefined|:elementsSingleType:|false|:files:|"
+        "|:config:|true|src/**|dist/**|true|/root|true|false|true|@external/*|:elements:|src/components/*.tsx|name|component|ui|file|src|baseName|undefined|undefined|undefined|:elementsSingleMatch:|false|:files:||:filesSingleMatch:|false"
       );
     });
 
@@ -76,7 +76,7 @@ describe("MatchersCache", () => {
         descriptors: { elements: undefined },
       });
 
-      expect(key).toContain("|:elements:||:elementsSingleType:|");
+      expect(key).toContain("|:elements:||:elementsSingleMatch:|");
     });
 
     it("should produce empty elements section when elements is an empty array", () => {
@@ -87,7 +87,7 @@ describe("MatchersCache", () => {
         descriptors: { elements: [] },
       });
 
-      expect(key).toContain("|:elements:||:elementsSingleType:|");
+      expect(key).toContain("|:elements:||:elementsSingleMatch:|");
     });
 
     it("should use 'no-capture' when element capture is undefined", () => {
@@ -109,7 +109,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "src/services/*.ts|no-capture|service|core|folder|src|base|undefined"
+        "src/services/*.ts|no-capture|service|core|folder|src|base|undefined|undefined|undefined"
       );
     });
 
@@ -132,7 +132,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "src/utils/*.ts|name|util|shared|file|src|no-base-capture|undefined"
+        "src/utils/*.ts|name|util|shared|file|src|no-base-capture|undefined|undefined|undefined"
       );
     });
 
@@ -156,7 +156,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "src/modules/*/*.ts|module,file|module|feature|folder|src|root,sub|undefined"
+        "src/modules/*/*.ts|module,file|module|feature|folder|src|root,sub|undefined|undefined|undefined"
       );
     });
 
@@ -177,7 +177,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "src/components/*.tsx|no-capture|component|ui|undefined|undefined|no-base-capture|false"
+        "src/components/*.tsx|no-capture|component|ui|undefined|undefined|no-base-capture|false|undefined|undefined"
       );
     });
 
@@ -233,7 +233,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "|:elements:|src/components/*.tsx|name|component|ui|file|src|base|undefined,src/services/*.ts|svc|service|core|folder|lib|root|undefined|:elementsSingleType:|"
+        "|:elements:|src/components/*.tsx|name|component|ui|file|src|base|undefined|undefined|undefined,src/services/*.ts|svc|service|core|folder|lib|root|undefined|undefined|undefined|:elementsSingleMatch:|"
       );
     });
   });
@@ -265,7 +265,7 @@ describe("MatchersCache", () => {
         descriptors: { files: undefined },
       });
 
-      expect(key.endsWith("|:files:|")).toBe(true);
+      expect(key).toContain("|:files:||:filesSingleMatch:|false");
     });
 
     it("should produce empty files section when files is an empty array", () => {
@@ -276,7 +276,7 @@ describe("MatchersCache", () => {
         descriptors: { files: [] },
       });
 
-      expect(key.endsWith("|:files:|")).toBe(true);
+      expect(key).toContain("|:files:||:filesSingleMatch:|false");
     });
 
     it("should use 'no-capture' when file descriptor capture is undefined", () => {
@@ -316,24 +316,24 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "|:files:|src/**/*.spec.ts|name|test,*.config.ts|no-capture|config"
+        "|:files:|src/**/*.spec.ts|name|test|undefined|undefined,*.config.ts|no-capture|config|undefined|undefined"
       );
     });
   });
 
-  describe("elementsSingleType", () => {
-    it("should include 'true' when elementsSingleType is true", () => {
+  describe("elementsSingleMatch", () => {
+    it("should include 'true' when elementsSingleMatch is true", () => {
       const config = createConfig();
 
       const key = matchersCache.getKey({
         config,
-        descriptors: { elementsSingleType: true },
+        descriptors: { elementsSingleMatch: true },
       });
 
-      expect(key).toContain("|:elementsSingleType:|true|");
+      expect(key).toContain("|:elementsSingleMatch:|true|");
     });
 
-    it("should include 'false' when elementsSingleType is undefined", () => {
+    it("should include 'false' when elementsSingleMatch is undefined", () => {
       const config = createConfig();
 
       const key = matchersCache.getKey({
@@ -341,18 +341,64 @@ describe("MatchersCache", () => {
         descriptors: {},
       });
 
-      expect(key).toContain("|:elementsSingleType:|false|");
+      expect(key).toContain("|:elementsSingleMatch:|false|");
     });
 
-    it("should include 'false' when elementsSingleType is false", () => {
+    it("should include 'false' when elementsSingleMatch is false", () => {
       const config = createConfig();
 
       const key = matchersCache.getKey({
         config,
-        descriptors: { elementsSingleType: false },
+        descriptors: { elementsSingleMatch: false },
       });
 
-      expect(key).toContain("|:elementsSingleType:|false|");
+      expect(key).toContain("|:elementsSingleMatch:|false|");
+    });
+
+    it("should fall back to the deprecated elementsSingleType when elementsSingleMatch is undefined", () => {
+      const config = createConfig();
+
+      const key = matchersCache.getKey({
+        config,
+        descriptors: { elementsSingleType: true },
+      });
+
+      expect(key).toContain("|:elementsSingleMatch:|true|");
+    });
+
+    it("should give precedence to elementsSingleMatch over the deprecated elementsSingleType", () => {
+      const config = createConfig();
+
+      const key = matchersCache.getKey({
+        config,
+        descriptors: { elementsSingleMatch: false, elementsSingleType: true },
+      });
+
+      expect(key).toContain("|:elementsSingleMatch:|false|");
+    });
+  });
+
+  describe("filesSingleMatch", () => {
+    it("should include 'true' when filesSingleMatch is true", () => {
+      const config = createConfig();
+
+      const key = matchersCache.getKey({
+        config,
+        descriptors: { filesSingleMatch: true },
+      });
+
+      expect(key).toContain("|:filesSingleMatch:|true");
+    });
+
+    it("should include 'false' when filesSingleMatch is undefined", () => {
+      const config = createConfig();
+
+      const key = matchersCache.getKey({
+        config,
+        descriptors: {},
+      });
+
+      expect(key).toContain("|:filesSingleMatch:|false");
     });
   });
 
@@ -380,7 +426,7 @@ describe("MatchersCache", () => {
 
       const params = {
         config,
-        descriptors: { elements, files, elementsSingleType: true as const },
+        descriptors: { elements, files, elementsSingleMatch: true as const },
       };
 
       const key1 = matchersCache.getKey(params);

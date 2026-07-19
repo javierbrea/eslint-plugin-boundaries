@@ -179,7 +179,10 @@ export type DependencyNodeSelector = {
 export const SETTINGS = {
   // settings
   ELEMENTS: `${PLUGIN_NAME}/elements`,
+  /** @deprecated Use ELEMENTS_SINGLE_MATCH instead */
   ELEMENTS_SINGLE_TYPE: `${PLUGIN_NAME}/elements-single-type`,
+  ELEMENTS_SINGLE_MATCH: `${PLUGIN_NAME}/elements-single-match`,
+  FILES_SINGLE_MATCH: `${PLUGIN_NAME}/files-single-match`,
   IGNORE: `${PLUGIN_NAME}/ignore`,
   INCLUDE: `${PLUGIN_NAME}/include`,
   ROOT_PATH: `${PLUGIN_NAME}/root-path`,
@@ -292,7 +295,10 @@ export const SETTINGS = {
  */
 export const SETTINGS_KEYS_MAP = {
   ELEMENTS: SETTINGS.ELEMENTS,
+  /** @deprecated Use ELEMENTS_SINGLE_MATCH instead */
   ELEMENTS_SINGLE_TYPE: SETTINGS.ELEMENTS_SINGLE_TYPE,
+  ELEMENTS_SINGLE_MATCH: SETTINGS.ELEMENTS_SINGLE_MATCH,
+  FILES_SINGLE_MATCH: SETTINGS.FILES_SINGLE_MATCH,
   FILES: SETTINGS.FILES,
   IGNORE: SETTINGS.IGNORE,
   INCLUDE: SETTINGS.INCLUDE,
@@ -321,9 +327,14 @@ export const LEGACY_TEMPLATES_DEFAULT = true as const;
 export const LEGACY_WARNINGS_DEFAULT = true as const;
 
 /**
- * Default value for the elements single type setting.
+ * Default value for the elements single type/match setting.
  */
 export const ELEMENTS_SINGLE_TYPE_DEFAULT = true as const;
+
+/**
+ * Default value for the files single match setting.
+ */
+export const FILES_SINGLE_MATCH_DEFAULT = false as const;
 
 /**
  * Default value for the cache setting.
@@ -424,10 +435,22 @@ export type Settings = {
   [SETTINGS_KEYS_MAP.ELEMENTS]?: ElementDescriptors;
 
   /**
-   * When `true`, each element is assigned only the first matching element descriptor's type.
-   * When `false` (default), elements accumulate all matching descriptor types.
+   * @deprecated Use `boundaries/elements-single-match` instead. Kept as a backward-compatible alias;
+   * `boundaries/elements-single-match` takes precedence when both are set.
    */
   [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]?: boolean;
+
+  /**
+   * When `true` (default), each element is assigned only the first matching element descriptor's type.
+   * When `false`, elements accumulate all matching descriptor types.
+   */
+  [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH]?: boolean;
+
+  /**
+   * When `true`, each file is assigned only the first matching file descriptor's category, and matching stops.
+   * When `false` (default), files accumulate all matching descriptor categories.
+   */
+  [SETTINGS_KEYS_MAP.FILES_SINGLE_MATCH]?: boolean;
 
   /**
    * File descriptors to define specific file patterns and their associated metadata.
@@ -490,9 +513,11 @@ export type SettingsNormalized = {
   /** Element descriptors */
   elementDescriptors: ElementDescriptors;
   /** Whether each element should be assigned only the first matching descriptor's type */
-  elementsSingleType: boolean;
+  elementsSingleMatch: boolean;
   /** File descriptors */
   fileDescriptors: FileDescriptors;
+  /** Whether each file should be assigned only the first matching descriptor's category */
+  filesSingleMatch: boolean;
   /** List of glob patterns to ignore when analyzing dependencies */
   ignorePaths: string[] | undefined;
   /** List of glob patterns to include when analyzing dependencies */

@@ -511,6 +511,139 @@ describe("ElementsDescriptor", () => {
         expect(result.types).toEqual(["component"]);
       });
 
+      it("should stop accumulating at main level when a matched descriptor has stopMatching: true", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "shared/*/**/*::shared/Button/index.ts": ["Button"],
+          }),
+          makeRe: jest.fn().mockReturnValue(/^shared\/[^/]+$/),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "shared/*",
+            type: "component",
+            stopMatching: true,
+          }),
+          createDescriptor({
+            pattern: "shared/*",
+            type: "shared",
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch,
+          false
+        );
+
+        const result = descriptor.describeElement("shared/Button/index.ts");
+
+        expect(result.types).toEqual(["component"]);
+      });
+
+      it("should keep previously accumulated at main level when a matched descriptor has stopMatching: true and previous matched", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "shared/*/**/*::shared/Button/index.ts": ["Button"],
+          }),
+          makeRe: jest.fn().mockReturnValue(/^shared\/[^/]+$/),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "shared/*",
+            type: "previous-type",
+          }),
+          createDescriptor({
+            pattern: "shared/*",
+            type: "component",
+            stopMatching: true,
+          }),
+          createDescriptor({
+            pattern: "shared/*",
+            type: "shared",
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch,
+          false
+        );
+
+        const result = descriptor.describeElement("shared/Button/index.ts");
+
+        expect(result.types).toEqual(["previous-type", "component"]);
+      });
+
+      it("should discard previously accumulated types at main level when a matched descriptor has exclusive: true", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "shared/*/**/*::shared/Button/index.ts": ["Button"],
+          }),
+          makeRe: jest.fn().mockReturnValue(/^shared\/[^/]+$/),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "shared/*",
+            type: "component",
+          }),
+          createDescriptor({
+            pattern: "shared/*",
+            type: "exclusive-type",
+            exclusive: true,
+          }),
+          createDescriptor({
+            pattern: "shared/*",
+            type: "shared",
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch,
+          false
+        );
+
+        const result = descriptor.describeElement("shared/Button/index.ts");
+
+        expect(result.types).toEqual(["exclusive-type"]);
+      });
+
+      it("should reset types to null at main level when an exclusive descriptor with no type matches", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "shared/*/**/*::shared/Button/index.ts": ["Button"],
+          }),
+          makeRe: jest.fn().mockReturnValue(/^shared\/[^/]+$/),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "shared/*",
+            type: "component",
+          }),
+          createDescriptor({
+            pattern: "shared/*",
+            type: undefined,
+            category: "shared",
+            exclusive: true,
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch,
+          false
+        );
+
+        const result = descriptor.describeElement("shared/Button/index.ts");
+
+        expect(result.types).toBeNull();
+      });
+
       it("should not accumulate types at main level when main matched with category only", () => {
         const micromatch = createMicromatchMock({
           capture: createCaptureLookup({
@@ -733,6 +866,201 @@ describe("ElementsDescriptor", () => {
         expect(result.parents).toHaveLength(1);
         expect(result.parents[0].path).toBe("modules/ui");
         expect(result.parents[0].types).toEqual(["module", "feature"]);
+      });
+
+      it("should stop accumulating on a parent path when a matched descriptor has stopMatching: true", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "components/*/**/*::components/Button/index.ts": [
+              "Button",
+              "",
+              "index.ts",
+            ],
+            "modules/*::modules/ui": ["ui"],
+          }),
+          makeRe: createMakeReLookup({
+            "components/*": /^components\/[^/]+$/,
+            "modules/*": /^modules\/[^/]+$/,
+          }),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "components/*",
+            type: "component",
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: "module",
+            stopMatching: true,
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: "feature",
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const result = descriptor.describeElement(
+          "modules/ui/components/Button/index.ts"
+        );
+
+        expect(result.isUnknown).toBe(false);
+        expect(result.parents).toHaveLength(1);
+        expect(result.parents[0].path).toBe("modules/ui");
+        expect(result.parents[0].types).toEqual(["module"]);
+      });
+
+      it("should keep previously accumulated types on a parent path when a matched descriptor has stopMatching: true and previous matched", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "components/*/**/*::components/Button/index.ts": [
+              "Button",
+              "",
+              "index.ts",
+            ],
+            "modules/*::modules/ui": ["ui"],
+          }),
+          makeRe: createMakeReLookup({
+            "components/*": /^components\/[^/]+$/,
+            "modules/*": /^modules\/[^/]+$/,
+          }),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "components/*",
+            type: "component",
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: "previous-module",
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: "module",
+            stopMatching: true,
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: "feature",
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const result = descriptor.describeElement(
+          "modules/ui/components/Button/index.ts"
+        );
+
+        expect(result.isUnknown).toBe(false);
+        expect(result.parents).toHaveLength(1);
+        expect(result.parents[0].path).toBe("modules/ui");
+        expect(result.parents[0].types).toEqual(["previous-module", "module"]);
+      });
+
+      it("should discard previously accumulated types on a parent path when a matched descriptor has exclusive: true", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "components/*/**/*::components/Button/index.ts": [
+              "Button",
+              "",
+              "index.ts",
+            ],
+            "modules/*::modules/ui": ["ui"],
+          }),
+          makeRe: createMakeReLookup({
+            "components/*": /^components\/[^/]+$/,
+            "modules/*": /^modules\/[^/]+$/,
+          }),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "components/*",
+            type: "component",
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: "module",
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: "exclusive-feature",
+            exclusive: true,
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: "feature",
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const result = descriptor.describeElement(
+          "modules/ui/components/Button/index.ts"
+        );
+
+        expect(result.isUnknown).toBe(false);
+        expect(result.parents).toHaveLength(1);
+        expect(result.parents[0].path).toBe("modules/ui");
+        expect(result.parents[0].types).toEqual(["exclusive-feature"]);
+      });
+
+      it("should reset types to null on a parent path when an exclusive descriptor with no type matches", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "components/*/**/*::components/Button/index.ts": [
+              "Button",
+              "",
+              "index.ts",
+            ],
+            "modules/*::modules/ui": ["ui"],
+          }),
+          makeRe: createMakeReLookup({
+            "components/*": /^components\/[^/]+$/,
+            "modules/*": /^modules\/[^/]+$/,
+          }),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "components/*",
+            type: "component",
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: "module",
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: undefined,
+            category: "feature",
+            exclusive: true,
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const result = descriptor.describeElement(
+          "modules/ui/components/Button/index.ts"
+        );
+
+        expect(result.parents).toHaveLength(1);
+        expect(result.parents[0].types).toBeNull();
       });
 
       it("should merge captured values on a parent path when multiple descriptors match when singleType is false", () => {

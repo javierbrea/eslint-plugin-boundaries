@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [unreleased]
+
+### Added
+
+- feat(#466): Add per-descriptor `stopMatching` and `exclusive` options, available on both element and file descriptors. When a `stopMatching` descriptor matches, previously accumulated types/categories at that path level are kept and no further descriptors are evaluated for that level. `exclusive` additionally discards any previously accumulated matches at that level, keeping only its own match, and takes precedence over `stopMatching` when both are set on the same descriptor. Both options apply independently at each path level, so they affect parent elements the same way they affect the main element.
+- feat(#466): Add `filesSingleMatch` option to `DescriptorsConfig`. When `true`, only the first matching file descriptor's category is used and matching stops; default `false` preserves the current accumulation behavior.
+- feat(#466): Add `elementsSingleMatch` option to `DescriptorsConfig`, sharing vocabulary with the new `filesSingleMatch`. It is the canonical replacement for `elementsSingleType` and takes precedence over it when both are set.
+
+### Changed
+
+- refactor(#466): `elementsSingleType` is now deprecated in favor of `elementsSingleMatch`. It is kept as a backward-compatible alias with no behavior change.
+
 ## [3.0.1] - 2026-07-06
 
 ### Fixed

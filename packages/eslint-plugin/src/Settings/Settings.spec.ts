@@ -762,7 +762,7 @@ describe("Settings/Settings", () => {
       });
     });
 
-    describe("legacyTemplates, elementsSingleType and cache", () => {
+    describe("legacyTemplates, elementsSingleMatch, filesSingleMatch and cache", () => {
       it("applies defaults when undefined", () => {
         const result = getSettings(
           buildContext({
@@ -771,7 +771,8 @@ describe("Settings/Settings", () => {
         );
 
         expect(result.legacyTemplates).toBe(LEGACY_TEMPLATES_DEFAULT);
-        expect(result.elementsSingleType).toBe(ELEMENTS_SINGLE_TYPE_DEFAULT);
+        expect(result.elementsSingleMatch).toBe(ELEMENTS_SINGLE_TYPE_DEFAULT);
+        expect(result.filesSingleMatch).toBe(false);
         expect(result.cache).toBe(CACHE_DEFAULT);
       });
 
@@ -780,14 +781,74 @@ describe("Settings/Settings", () => {
           buildContext({
             [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
             [SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]: false,
-            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]: false,
+            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH]: false,
+            [SETTINGS_KEYS_MAP.FILES_SINGLE_MATCH]: true,
             [SETTINGS_KEYS_MAP.CACHE]: false,
           })
         );
 
         expect(result.legacyTemplates).toBe(false);
-        expect(result.elementsSingleType).toBe(false);
+        expect(result.elementsSingleMatch).toBe(false);
+        expect(result.filesSingleMatch).toBe(true);
         expect(result.cache).toBe(false);
+      });
+
+      it("falls back to the deprecated elements-single-type setting when elements-single-match is not provided", () => {
+        const result = getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]: false,
+          })
+        );
+
+        expect(result.elementsSingleMatch).toBe(false);
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining("deprecated"),
+          expect.stringContaining(SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH)
+        );
+      });
+
+      it("warns and falls back to defaults for a non-boolean deprecated elements-single-type value", () => {
+        const result = getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]: "no",
+          })
+        );
+
+        expect(result.elementsSingleMatch).toBe(ELEMENTS_SINGLE_TYPE_DEFAULT);
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining(SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE),
+          expect.stringContaining("boolean")
+        );
+      });
+
+      it("does not warn about the deprecated elements-single-type setting when legacy-warnings is disabled", () => {
+        const result = getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]: false,
+            [SETTINGS_KEYS_MAP.LEGACY_WARNINGS]: false,
+          })
+        );
+
+        expect(result.elementsSingleMatch).toBe(false);
+        expect(mockedWarnOnce).not.toHaveBeenCalledWith(
+          expect.stringContaining(SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE),
+          expect.stringContaining("deprecated")
+        );
+      });
+
+      it("gives precedence to elements-single-match over the deprecated elements-single-type setting", () => {
+        const result = getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH]: true,
+            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]: false,
+          })
+        );
+
+        expect(result.elementsSingleMatch).toBe(true);
       });
 
       it("warns and falls back to defaults for non-boolean values", () => {
@@ -795,20 +856,26 @@ describe("Settings/Settings", () => {
           buildContext({
             [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
             [SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]: "yes",
-            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]: "no",
+            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH]: "no",
+            [SETTINGS_KEYS_MAP.FILES_SINGLE_MATCH]: "no",
             [SETTINGS_KEYS_MAP.CACHE]: "maybe",
           })
         );
 
         expect(result.legacyTemplates).toBe(LEGACY_TEMPLATES_DEFAULT);
-        expect(result.elementsSingleType).toBe(ELEMENTS_SINGLE_TYPE_DEFAULT);
+        expect(result.elementsSingleMatch).toBe(ELEMENTS_SINGLE_TYPE_DEFAULT);
+        expect(result.filesSingleMatch).toBe(false);
         expect(result.cache).toBe(CACHE_DEFAULT);
         expect(mockedWarnOnce).toHaveBeenCalledWith(
           expect.stringContaining(SETTINGS_KEYS_MAP.LEGACY_TEMPLATES),
           expect.stringContaining("boolean")
         );
         expect(mockedWarnOnce).toHaveBeenCalledWith(
-          expect.stringContaining(SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE),
+          expect.stringContaining(SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH),
+          expect.stringContaining("boolean")
+        );
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining(SETTINGS_KEYS_MAP.FILES_SINGLE_MATCH),
           expect.stringContaining("boolean")
         );
         expect(mockedWarnOnce).toHaveBeenCalledWith(

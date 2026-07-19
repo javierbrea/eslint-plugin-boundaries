@@ -18,4 +18,15 @@ export type BaseDescriptor = {
    * Then, in the rules configuration, you could use ["service", { module: "auth" }] to match only services from the auth module.
    */
   capture?: string[];
+  /**
+   * When `true`, if this descriptor matches, previously accumulated matches (at the same level) are kept
+   * and no further descriptors are evaluated for this file/level. Default `false` (accumulate).
+   */
+  stopMatching?: boolean;
+  /**
+   * When `true`, if this descriptor matches, previously accumulated matches (at the same level) are discarded,
+   * only this descriptor's match is kept, and no further descriptors are evaluated. Takes precedence over
+   * `stopMatching` when both are set. Default `false` (accumulate).
+   */
+  exclusive?: boolean;
 };

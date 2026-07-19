@@ -28,6 +28,7 @@ import {
   SETTINGS_KEYS_MAP,
   LEGACY_TEMPLATES_DEFAULT,
   ELEMENTS_SINGLE_TYPE_DEFAULT,
+  FILES_SINGLE_MATCH_DEFAULT,
   CACHE_DEFAULT,
   LEGACY_WARNINGS_DEFAULT,
   DEPENDENCY_NODE_KEYS_MAP,
@@ -737,25 +738,72 @@ function getNormalizedLegacyTemplates(
 }
 
 /**
- * Normalizes elements-single-type setting, validating and applying defaults.
+ * Normalizes elements-single-match setting, validating and applying defaults. Falls back to
+ * the deprecated elements-single-type setting when elements-single-match is not provided.
  *
- * @param elementsSingleType - Raw elements-single-type setting value.
+ * @param elementsSingleMatch - Raw elements-single-match setting value.
+ * @param elementsSingleType - Raw (deprecated) elements-single-type setting value.
+ * @param legacyWarnings - When `false`, skips the deprecation warning for elements-single-type.
  * @returns Boolean value or default.
  */
-function getNormalizedElementsSingleType(elementsSingleType: unknown): boolean {
-  if (isUndefined(elementsSingleType)) {
+function getNormalizedElementsSingleMatch(
+  elementsSingleMatch: unknown,
+  elementsSingleType: unknown,
+  legacyWarnings: boolean
+): boolean {
+  if (isUndefined(elementsSingleMatch)) {
+    if (isUndefined(elementsSingleType)) {
+      return ELEMENTS_SINGLE_TYPE_DEFAULT;
+    }
+
+    if (isBoolean(elementsSingleType)) {
+      if (legacyWarnings) {
+        warnOnce(
+          `'${SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE}' setting is deprecated.`,
+          `Use '${SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH}' instead. ${moreInfoSettingsLink()}`
+        );
+      }
+      return elementsSingleType;
+    }
+
+    warnOnce(
+      `Please provide a valid value in '${SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE}' setting.`,
+      `The value should be a boolean. ${moreInfoSettingsLink()}`
+    );
     return ELEMENTS_SINGLE_TYPE_DEFAULT;
   }
 
-  if (isBoolean(elementsSingleType)) {
-    return elementsSingleType;
+  if (isBoolean(elementsSingleMatch)) {
+    return elementsSingleMatch;
   }
 
   warnOnce(
-    `Please provide a valid value in '${SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE}' setting.`,
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH}' setting.`,
     `The value should be a boolean. ${moreInfoSettingsLink()}`
   );
   return ELEMENTS_SINGLE_TYPE_DEFAULT;
+}
+
+/**
+ * Normalizes files-single-match setting, validating and applying defaults.
+ *
+ * @param filesSingleMatch - Raw files-single-match setting value.
+ * @returns Boolean value or default.
+ */
+function getNormalizedFilesSingleMatch(filesSingleMatch: unknown): boolean {
+  if (isUndefined(filesSingleMatch)) {
+    return FILES_SINGLE_MATCH_DEFAULT;
+  }
+
+  if (isBoolean(filesSingleMatch)) {
+    return filesSingleMatch;
+  }
+
+  warnOnce(
+    `Please provide a valid value in '${SETTINGS_KEYS_MAP.FILES_SINGLE_MATCH}' setting.`,
+    `The value should be a boolean. ${moreInfoSettingsLink()}`
+  );
+  return FILES_SINGLE_MATCH_DEFAULT;
 }
 
 /**
@@ -950,8 +998,14 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
     legacyWarnings
   );
 
-  const elementsSingleType = getNormalizedElementsSingleType(
-    settings[SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]
+  const elementsSingleMatch = getNormalizedElementsSingleMatch(
+    settings[SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH],
+    settings[SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE],
+    legacyWarnings
+  );
+
+  const filesSingleMatch = getNormalizedFilesSingleMatch(
+    settings[SETTINGS_KEYS_MAP.FILES_SINGLE_MATCH]
   );
 
   const cache = getNormalizedCache(settings[SETTINGS_KEYS_MAP.CACHE]);
@@ -966,8 +1020,9 @@ export function getSettings(context: Rule.RuleContext): SettingsNormalized {
 
   const result: SettingsNormalized = {
     elementDescriptors,
-    elementsSingleType,
+    elementsSingleMatch,
     fileDescriptors,
+    filesSingleMatch,
     ignorePaths,
     includePaths,
     rootPath,

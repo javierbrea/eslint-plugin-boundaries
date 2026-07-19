@@ -212,6 +212,6 @@ import {
 } from "eslint-plugin-boundaries/config";
 ```
 
-`SETTINGS_KEYS_MAP` and `isSettingsKey` recognize every setting, including `boundaries/files` and `boundaries/elements-single-type`. See the [Settings](./settings.md) reference for the full list.
+`SETTINGS_KEYS_MAP` and `isSettingsKey` recognize every setting, including `boundaries/files` and `boundaries/elements-single-match`. See the [Settings](./settings.md) reference for the full list.
 
 Read more about these in the [TypeScript Support](../guides/typescript-support.md) guide.

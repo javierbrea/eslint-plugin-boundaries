@@ -468,7 +468,11 @@ export class ElementsDescriptor {
           );
           matchFoundAtThisLevel = true;
 
-          if (this._singleType) {
+          if (
+            this._singleType ||
+            elementDescriptor.exclusive ||
+            elementDescriptor.stopMatching
+          ) {
             // Break out of the inner loop since we found a match
             break;
           }
@@ -530,7 +534,9 @@ export class ElementsDescriptor {
 
   /**
    * Accumulates an additional type/captured values on the main element result when another
-   * descriptor matches at the same path level (multi-type, non-single-type mode).
+   * descriptor matches at the same path level (multi-type, non-single-type mode). When the
+   * matching descriptor is `exclusive`, previously accumulated types/captured values at this
+   * level are discarded and replaced with this descriptor's match instead.
    * @param elementResult The element result being built.
    * @param elementDescriptor The descriptor that matched at the same level.
    * @param capturedValues The captured values for this match.
@@ -540,6 +546,13 @@ export class ElementsDescriptor {
     elementDescriptor: ElementDescriptor,
     capturedValues: CapturedValues | null
   ): void {
+    if (elementDescriptor.exclusive) {
+      elementResult.types = elementDescriptor.type
+        ? [elementDescriptor.type]
+        : null;
+      elementResult.captured = capturedValues;
+      return;
+    }
     if (elementDescriptor.type && isArray(elementResult.types)) {
       elementResult.types = [...elementResult.types, elementDescriptor.type];
     }
@@ -553,6 +566,9 @@ export class ElementsDescriptor {
 
   /**
    * Adds a new parent element or merges into the last parent when it resolves to the same path.
+   * When the matching descriptor is `exclusive` and merges into an existing parent, previously
+   * accumulated types/captured values at that parent level are discarded and replaced with this
+   * descriptor's match instead.
    * @param parents The accumulated list of parent elements.
    * @param elementDescriptor The descriptor that matched as a parent.
    * @param elementPath The resolved path of the parent element.
@@ -566,6 +582,13 @@ export class ElementsDescriptor {
   ): void {
     const lastParent = parents.at(-1);
     if (lastParent?.path === elementPath) {
+      if (elementDescriptor.exclusive) {
+        lastParent.types = elementDescriptor.type
+          ? [elementDescriptor.type]
+          : null;
+        lastParent.captured = capturedValues;
+        return;
+      }
       // Multi-type: accumulate additional type at same parent path level
       if (elementDescriptor.type && isArray(lastParent.types)) {
         lastParent.types = [...lastParent.types, elementDescriptor.type];

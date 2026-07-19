@@ -36,7 +36,7 @@ Main changes include:
 
 - **[The new entity model](#the-new-entity-model)** — element + file + module
 - **[File descriptors (`boundaries/files`)](#file-descriptors)** — categorize files independently of elements
-- **[Multi-type elements (`boundaries/elements-single-type`)](#multi-type-elements)** — opt-in
+- **[Multi-type elements (`boundaries/elements-single-match`)](#multi-type-elements)** — opt-in
 - **[Entity selectors in `from` / `to`](#entity-selectors)** — match by element, file, and module
 - **[Module selectors (`to.module.*`)](#module-selectors)** — match dependencies by origin and source
 - **[Deprecated: `category` in element descriptors and selectors](#deprecated-category-in-element-descriptors-and-selectors)** — use file categories
@@ -136,7 +136,7 @@ Read more about file descriptors in the **[Files](../../classification/files.md)
 
 ## Multi-type elements
 
-A file can now match multiple element descriptors at the same path level, so a single element can have multiple `types`. This is controlled by the new **[`boundaries/elements-single-type`](../../settings/settings.md)** setting.
+A file can now match multiple element descriptors at the same path level, so a single element can have multiple `types`. This is controlled by the new **[`boundaries/elements-single-match`](../../settings/settings.md)** setting.
 
 The setting **defaults to `true` (single-type)** to preserve v6 behavior: each element keeps only the **first** matching descriptor's type. Nothing changes unless you opt in by setting it to `false`, which makes elements accumulate **all** matching types into the `types` array.
 
@@ -146,7 +146,7 @@ The setting **defaults to `true` (single-type)** to preserve v6 behavior: each e
 
 <CodeDiff language="javascript">{`
 . settings: {
-+   "boundaries/elements-single-type": false,
++   "boundaries/elements-single-match": false,
 .   "boundaries/elements": [
 .     { type: "component", pattern: "components/*/*", capture: ["family", "elementName"] },
 +     { type: "shared", pattern: "components/shared/*", capture: ["elementName"] },
@@ -548,6 +548,6 @@ While your v6 configuration keeps working, adopting the entity model brings real
 - See **[Files](../../classification/files.md)** for file descriptors and file categories
 - See **[Modules](../../classification/modules.md)** for module origin, source, and internal path
 - See **[Selectors](../../selectors/selectors.md)** for entity, file, and module selectors
-- See **[Settings](../../settings/settings.md)** for `boundaries/files` and `boundaries/elements-single-type`
+- See **[Settings](../../settings/settings.md)** for `boundaries/files` and `boundaries/elements-single-match`
 - See the **[`boundaries/dependencies` rule](../../rules/dependencies.md)** for full rule documentation
 - Open an issue on **[GitHub](https://github.com/javierbrea/eslint-plugin-boundaries/issues)** if you need assistance

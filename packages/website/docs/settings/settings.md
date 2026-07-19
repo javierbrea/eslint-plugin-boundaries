@@ -68,9 +68,33 @@ export default [{
 }]
 ```
 
-See the [Files](../classification/files.md) section for the full reference, including how [categories accumulate](../classification/files.md#category-accumulation) across matching descriptors and the migration from the deprecated element `category` property.
+See the [Files](../classification/files.md) section for the full reference, including how [categories accumulate](../classification/files.md#category-accumulation) across matching descriptors, per-descriptor [`stopMatching` and `exclusive`](../classification/files.md#stopmatching-and-exclusive), and the migration from the deprecated element `category` property.
 
-## `boundaries/elements-single-type`
+## `boundaries/files-single-match`
+
+**Type:** `<boolean>`
+
+**Default:** `false` <small>(accumulate, backward compatible)</small>
+
+Global shorthand that controls whether a file can accumulate multiple [categories](../classification/files.md#category-accumulation).
+
+- When `false` (default), a file accumulates **every** category whose descriptor pattern matches it, in descriptor order.
+- When `true`, only the **first** matching file descriptor's category is used; matching stops there. This is equivalent to setting `stopMatching: true` on every [file descriptor](../classification/files.md).
+
+```js
+export default [{
+  settings: {
+    // Every file has exactly one category
+    "boundaries/files-single-match": true
+  }
+}]
+```
+
+:::tip[Targeted exceptions]
+Prefer `boundaries/files-single-match` when *every* file in the project should have a single category. When accumulation should stay the default and only *some* descriptors need to stop or override it, use the per-descriptor [`stopMatching` and `exclusive`](../classification/files.md#stopmatching-and-exclusive) options instead. The two compose: set the global default and still refine individual descriptors.
+:::
+
+## `boundaries/elements-single-match`
 
 **Type:** `<boolean>`
 
@@ -85,13 +109,13 @@ Controls whether an element can have multiple [types](../classification/elements
 export default [{
   settings: {
     // Opt in to multi-type elements
-    "boundaries/elements-single-type": false
+    "boundaries/elements-single-match": false
   }
 }]
 ```
 
 :::tip[Multi-type Elements]
-The plugin defaults this setting to `true` (single-type) for backward compatibility. Set `boundaries/elements-single-type: false` to opt in to multi-type matching. See [Multi-type Elements](../classification/elements.md#multi-type-elements) for an example and the accumulation rules.
+The plugin defaults this setting to `true` (single-type) for backward compatibility. Set `boundaries/elements-single-match: false` to opt in to multi-type matching. See [Multi-type Elements](../classification/elements.md#multi-type-elements) for an example, the accumulation rules, and per-descriptor [`stopMatching` and `exclusive`](../classification/elements.md#stopmatching-and-exclusive).
 :::
 
 ## `boundaries/include`

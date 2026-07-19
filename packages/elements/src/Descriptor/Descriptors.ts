@@ -43,12 +43,13 @@ export class Descriptors {
       descriptors.elements || [],
       config,
       micromatch,
-      descriptors.elementsSingleType ?? false
+      descriptors.elementsSingleMatch ?? descriptors.elementsSingleType ?? false
     );
     this._filesDescriptor = new FilesDescriptor(
       descriptors.files || [],
       config,
-      micromatch
+      micromatch,
+      descriptors.filesSingleMatch ?? false
     );
     this._modulesDescriptor = new ModulesDescriptor(config, micromatch);
     this._entitiesDescriptor = new EntitiesDescriptor(

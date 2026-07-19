@@ -258,6 +258,24 @@ describe("Descriptors", () => {
       );
     });
 
+    it("should give precedence to elementsSingleMatch over the deprecated elementsSingleType", () => {
+      setupSubDescriptorMocks();
+      const elements = [{ type: "component", pattern: "src/components/*" }];
+
+      createDescriptors({
+        elements,
+        elementsSingleMatch: false,
+        elementsSingleType: true,
+      });
+
+      expect(ElementsDescriptorMock).toHaveBeenCalledWith(
+        elements,
+        expect.objectContaining({ cache: true }),
+        expect.any(Function),
+        false
+      );
+    });
+
     it("should default elementsSingleType to false when not provided", () => {
       setupSubDescriptorMocks();
 
@@ -282,7 +300,8 @@ describe("Descriptors", () => {
       expect(FilesDescriptorMock).toHaveBeenCalledWith(
         files,
         expect.objectContaining({ cache: true }),
-        expect.any(Function)
+        expect.any(Function),
+        false
       );
     });
 
@@ -294,7 +313,37 @@ describe("Descriptors", () => {
       expect(FilesDescriptorMock).toHaveBeenCalledWith(
         [],
         expect.anything(),
+        expect.anything(),
         expect.anything()
+      );
+    });
+
+    it("should pass filesSingleMatch to FilesDescriptor", () => {
+      setupSubDescriptorMocks();
+      const files = [
+        { type: "source", pattern: "src/**/*.ts", category: "source" },
+      ];
+
+      createDescriptors({ files, filesSingleMatch: true });
+
+      expect(FilesDescriptorMock).toHaveBeenCalledWith(
+        files,
+        expect.objectContaining({ cache: true }),
+        expect.any(Function),
+        true
+      );
+    });
+
+    it("should default filesSingleMatch to false when not provided", () => {
+      setupSubDescriptorMocks();
+
+      createDescriptors({ filesSingleMatch: undefined });
+
+      expect(FilesDescriptorMock).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        false
       );
     });
 
