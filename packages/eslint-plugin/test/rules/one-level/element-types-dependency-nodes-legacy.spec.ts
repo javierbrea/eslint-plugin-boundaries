@@ -35,6 +35,7 @@ const dependencyNodesSettings = {
     {
       // mock('source')
       selector: "CallExpression[callee.name=mock] > Literal",
+      name: "mock",
     },
   ],
 };

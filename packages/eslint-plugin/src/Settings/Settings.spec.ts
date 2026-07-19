@@ -148,16 +148,16 @@ describe("Settings/Settings", () => {
       expect(mockedWarnOnce).not.toHaveBeenCalled();
     });
 
-    it("returns true and warns when a valid selector omits the name", () => {
+    it("returns false and warns when the selector omits the name", () => {
       expect(
         isValidDependencyNodeSelector({
           selector: "CallExpression",
           kind: "value",
         })
-      ).toBe(true);
+      ).toBe(false);
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
-        expect.stringContaining(`"name"`),
+        expect.stringContaining(SETTINGS.ADDITIONAL_DEPENDENCY_NODES),
         expect.any(String)
       );
     });
@@ -189,6 +189,26 @@ describe("Settings/Settings", () => {
           selector: "CallExpression",
           kind: "value",
           name: 1,
+        })
+      ).toBe(false);
+    });
+
+    it("returns false when name is an empty string", () => {
+      expect(
+        isValidDependencyNodeSelector({
+          selector: "CallExpression",
+          kind: "value",
+          name: "",
+        })
+      ).toBe(false);
+    });
+
+    it("returns false when name is only whitespace", () => {
+      expect(
+        isValidDependencyNodeSelector({
+          selector: "CallExpression",
+          kind: "value",
+          name: "   ",
         })
       ).toBe(false);
     });
@@ -698,6 +718,34 @@ describe("Settings/Settings", () => {
         expect(mockedWarnOnce).toHaveBeenCalledWith(
           expect.stringContaining(SETTINGS.ADDITIONAL_DEPENDENCY_NODES),
           expect.stringContaining(JSON.stringify([{ kind: "value" }]))
+        );
+      });
+
+      it("filters additional nodes without a name and warns about them", () => {
+        const valid = {
+          selector: "CallExpression",
+          kind: "value" as const,
+          name: "custom",
+        };
+        const withoutName = {
+          selector: "CallExpression",
+          kind: "value" as const,
+        };
+        const result = getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.DEPENDENCY_NODES]: [],
+            [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES]: [
+              valid,
+              withoutName,
+            ],
+          })
+        );
+
+        expect(result.dependencyNodes).toEqual([valid]);
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining(SETTINGS.ADDITIONAL_DEPENDENCY_NODES),
+          expect.stringContaining(JSON.stringify([withoutName]))
         );
       });
     });

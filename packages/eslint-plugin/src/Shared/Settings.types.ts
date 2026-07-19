@@ -172,8 +172,8 @@ export type DependencyNodeSelector = {
   selector: string;
   /** The kind of import, either 'type' or 'value' */
   kind: DependencyKind;
-  /** Name to assign to the dependency node. Useful to identify the kind of node selector in rules */
-  name?: string;
+  /** Name to assign to the dependency node. Used to identify the kind of node selector in rules and custom messages */
+  name: string;
 };
 
 export const SETTINGS = {
