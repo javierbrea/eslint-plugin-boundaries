@@ -1,10 +1,6 @@
-[![Build status][build-image]][build-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Quality Gate][quality-gate-image]][quality-gate-url]
+[![License][license-image]][license-url] [![Build status][build-image]][build-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Quality Gate][quality-gate-image]][quality-gate-url] [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fjavierbrea%2Feslint-plugin-boundaries%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/javierbrea/eslint-plugin-boundaries/master) 
 
-[![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com) [![Last commit][last-commit-image]][last-commit-url] [![Last release][release-image]][release-url]
-
-[![NPM downloads][npm-downloads-image]][npm-downloads-url] [![License][license-image]][license-url]
-
-[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fjavierbrea%2Feslint-plugin-boundaries%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/javierbrea/eslint-plugin-boundaries/master)
+[![NPM downloads][npm-downloads-image]][npm-downloads-url] [![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com) [![Last commit][last-commit-image]][last-commit-url] [![Last release][release-image]][release-url]
 
 # @boundaries/elements
 
@@ -240,7 +236,12 @@ The `getMatcher` method accepts a `DescriptorsConfig` object with the following 
 
 - **`elements`** (`ElementDescriptor[]`): Optional array of [element descriptors](#element-descriptors). If not provided, no element abstraction layer is created and only file descriptors are used.
 - **`files`** (`FileDescriptor[]`): Optional array of [file descriptors](#file-descriptors). If not provided, only element descriptors are used to describe files.
-- **`elementsSingleType`** (`boolean`): When `true`, only the first matching descriptor's type is used at each path level. When `false` (default), an element can match multiple type descriptors, accumulating all matched types in the `types` array.
+- **`elementsSingleMatch`** (`boolean`): When `true`, only the first matching descriptor's type is used at each path level. When `false` (default), an element can match multiple type descriptors, accumulating all matched types in the `types` array. Takes precedence over the deprecated `elementsSingleType` when both are set.
+- **`elementsSingleType`** (`boolean`): _(Deprecated)_ Alias of `elementsSingleMatch`, kept for backward compatibility.
+- **`filesSingleMatch`** (`boolean`): When `true`, only the first matching file descriptor's category is used at each file; matching stops there. When `false` (default), a file accumulates every category whose descriptor pattern matches it.
+
+> [!NOTE]
+> `elementsSingleMatch`/`filesSingleMatch` are global shorthands equivalent to setting `stopMatching: true` on every descriptor. For finer-grained control — letting most descriptors accumulate while a few specific ones stop or override the accumulation — use the per-descriptor `stopMatching`/`exclusive` options described in [Element Descriptors](#element-descriptors) and [File Descriptors](#file-descriptors).
 
 You can combine element and file descriptors:
 
@@ -285,6 +286,8 @@ Element descriptors define how files are identified and categorized into archite
 - **`basePattern`** (`string`): Additional pattern that must match from the project root. Only useful when `partialMatch: true` (the default): use it when you want to capture values from the beginning (left side) of the path, without having to define wildcards for every intermediate path segment between the root and the right-side `pattern`.
 - **`capture`** (`string[]`): Array of keys to capture path fragments
 - **`baseCapture`** (`string[]`): Array of keys to capture fragments from `basePattern`. Only useful together with `basePattern`, and therefore only when `partialMatch: true`. If the same key is defined in both `capture` and `baseCapture`, the value from `capture` takes precedence.
+- **`stopMatching`** (`boolean`): When `true`, if this descriptor matches, previously accumulated types at that path level are kept and no further descriptors are evaluated for that level (default: `false`). Applies independently at each path level, so it affects a parent level the same way it affects the main element.
+- **`exclusive`** (`boolean`): When `true`, if this descriptor matches, previously accumulated types at that path level are discarded, only this descriptor's type is kept, and no further descriptors are evaluated (default: `false`). Takes precedence over `stopMatching` when both are set. Applies independently at each path level, so it affects a parent level the same way it affects the main element.
 
 ### File Descriptors
 
@@ -293,6 +296,8 @@ File descriptors allow categorizing individual files independently from the elem
 - **`pattern`** (`string | string[]`): Micromatch pattern(s) to match file paths. Each pattern is matched against the **full file path** in a single pass (there is no right-to-left accumulation, and no option to change it). Use `**/` to match files at any depth — for example `**/*.spec.ts` rather than `*.spec.ts`.
 - **`category`** (`string`): The category to assign to matching files (e.g., `"controller"`, `"service"`, `"model"`).
 - **`capture`** (`string[]`): Array of keys to capture path fragments from the pattern.
+- **`stopMatching`** (`boolean`): When `true`, if this descriptor matches, previously accumulated categories are kept and no further file descriptors are evaluated for that file (default: `false`).
+- **`exclusive`** (`boolean`): When `true`, if this descriptor matches, previously accumulated categories are discarded, only this descriptor's category is kept, and no further file descriptors are evaluated (default: `false`). Takes precedence over `stopMatching` when both are set.
 
 ```typescript
 const matcher = elements.getMatcher({
@@ -303,12 +308,13 @@ const matcher = elements.getMatcher({
     { pattern: "**/*.controller.ts", category: "controller", capture: ["name"] },
     { pattern: "**/*.service.ts", category: "service", capture: ["name"] },
     { pattern: "**/*.spec.ts", category: "test", capture: ["name"] },
+    { pattern: "**/index.ts", category: "public", exclusive: true },
   ],
 });
 ```
 
 > [!NOTE]
-> A file can match multiple file descriptors, accumulating all matched categories in the `categories` array of the file description.
+> A file can match multiple file descriptors, accumulating all matched categories in the `categories` array of the file description — unless a matching descriptor sets `stopMatching`/`exclusive`, or the global `filesSingleMatch` option is enabled.
 
 ### Describing Entities
 
@@ -332,7 +338,7 @@ The result is an `EntityDescription` object:
 
 | Property | Type | Description |
 |---|---|---|
-| `types` | `string[] \| null` | Matched element types (e.g., `["module"]`). Contains multiple types unless `elementsSingleType` is enabled. `null` for unknown/ignored. |
+| `types` | `string[] \| null` | Matched element types (e.g., `["module"]`). Contains multiple types unless `elementsSingleMatch` is enabled. `null` for unknown/ignored. |
 | `path` | `string \| null` | Path representing the detected element boundary |
 | `captured` | `object \| null` | Captured values from descriptor patterns |
 | `parents` | `ElementParent[]` | Parent element chain. Each parent has `types`, `path`, `category`, and `captured`. |
@@ -886,7 +892,7 @@ new Elements(options?: ConfigurationOptions);
 Creates a new matcher instance.
 
 - __Parameters__:
-  - `descriptors`: `DescriptorsConfig` — A [descriptors configuration](#creating-a-matcher) object with optional `elements`, `files`, and `elementsSingleType` properties.
+  - `descriptors`: `DescriptorsConfig` — A [descriptors configuration](#creating-a-matcher) object with optional `elements`, `files`, `elementsSingleMatch`, and `filesSingleMatch` properties.
   - `options`: `ConfigOptions` — Optional. [Configuration options](#configuration-options) for the matcher. Overrides the defaults set in the `Elements` instance.
 - __Returns__: `Matcher`
 
@@ -1362,7 +1368,7 @@ Returned by `describeElement(filePath)`.
 
 | Property | Type | Description |
 |---|---|---|
-| `types` | `string[] \| null` | Matched element types. Multiple unless `elementsSingleType` is enabled. |
+| `types` | `string[] \| null` | Matched element types. Multiple unless `elementsSingleMatch` is enabled. |
 | `path` | `string \| null` | Detected element boundary path. |
 | `captured` | `object \| null` | Captured values from descriptor patterns. |
 | `parents` | `ElementParent[]` | Parent element chain (each has `types`, `path`, `category`, `captured`). |
@@ -1521,7 +1527,7 @@ MIT, see [LICENSE](./LICENSE) for details.
 
 [coveralls-image]: https://coveralls.io/repos/github/javierbrea/eslint-plugin-boundaries/badge.svg
 [coveralls-url]: https://coveralls.io/github/javierbrea/eslint-plugin-boundaries
-[build-image]: https://github.com/javierbrea/eslint-plugin-boundaries/workflows/build/badge.svg
+[build-image]: https://github.com/javierbrea/eslint-plugin-boundaries/actions/workflows/build.yml/badge.svg
 [build-url]: https://github.com/javierbrea/eslint-plugin-boundaries/actions?query=workflow%3Abuild+branch%3Amaster
 [last-commit-image]: https://img.shields.io/github/last-commit/javierbrea/eslint-plugin-boundaries.svg
 [last-commit-url]: https://github.com/javierbrea/eslint-plugin-boundaries/commits

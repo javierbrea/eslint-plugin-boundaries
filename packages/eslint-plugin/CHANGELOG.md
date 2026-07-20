@@ -1,8 +1,25 @@
 # Change Log
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
+
+## [7.1.0] - 2026-07-20
+
+### Added
+
+- feat(#466): Add per-descriptor `stopMatching` and `exclusive` options, available on both `boundaries/elements` and `boundaries/files` descriptors. When a `stopMatching` descriptor matches, previously accumulated types/categories at that path level are kept and no further descriptors are evaluated for that level. `exclusive` additionally discards any previously accumulated matches at that level, keeping only its own match, and takes precedence over `stopMatching` when both are set on the same descriptor. Both options apply independently at each path level, so for elements they affect parent elements the same way they affect the main element.
+- feat(#466): Add `boundaries/files-single-match` setting. When `true`, only the first matching `boundaries/files` descriptor's category is used and matching stops; default `false` preserves the current accumulation behavior.
+- feat(#466): Add `boundaries/elements-single-match` setting, sharing vocabulary with the new `boundaries/files-single-match`. It is the canonical replacement for `boundaries/elements-single-type` and takes precedence over it when both are set.
+
+### Changed
+
+- refactor(#466): `boundaries/elements-single-type` is now deprecated in favor of `boundaries/elements-single-match`. It is kept as a backward-compatible alias, with a deprecation warning, and no behavior change.
+
+### Fixed
+
+- docs: Fix build badge URL in README
 
 ## [7.0.2] - 2026-07-07
 

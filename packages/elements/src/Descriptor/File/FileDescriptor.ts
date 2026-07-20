@@ -55,22 +55,30 @@ export class FilesDescriptor {
   private readonly _pathHelper: PathHelper;
 
   /**
+   * When `true`, only the first matching file descriptor's category is kept and matching stops.
+   * Global shorthand equivalent to setting `stopMatching: true` on every file descriptor.
+   */
+  private readonly _singleMatch: boolean;
+
+  /**
    * The configuration options for this descriptor.
    * @param fileDescriptors The file descriptors.
    * @param configOptions The configuration options.
-   * @param globalCache The global cache for various caching needs.
    * @param micromatch The micromatch instance for path matching.
+   * @param singleMatch When `true`, only the first matching file descriptor's category is used; matching stops.
    */
   constructor(
     fileDescriptors: FileDescriptors,
     configOptions: DescriptorOptionsNormalized,
-    micromatch: Micromatch
+    micromatch: Micromatch,
+    singleMatch = false
   ) {
     this._micromatch = micromatch;
     this._fileDescriptors = fileDescriptors;
     this._validateDescriptors(fileDescriptors);
     this._config = configOptions;
     this._pathHelper = new PathHelper(configOptions, micromatch);
+    this._singleMatch = singleMatch;
     this._descriptionsCache = this._config.cache
       ? new CacheManager<string, FileDescription>()
       : new CacheManagerDisabled<string, FileDescription>();
@@ -237,17 +245,23 @@ export class FilesDescriptor {
         this._getCaptureArray(fileDescriptor)
       );
 
-      fileResult.categories = isArray(fileResult.categories)
-        ? [...fileResult.categories, fileDescriptor.category]
-        : [fileDescriptor.category];
+      if (fileDescriptor.exclusive) {
+        fileResult.categories = [fileDescriptor.category];
+        fileResult.captured = capturedValues;
+      } else {
+        fileResult.categories = isArray(fileResult.categories)
+          ? [...fileResult.categories, fileDescriptor.category]
+          : [fileDescriptor.category];
+
+        fileResult.captured = isObject(capturedValues)
+          ? {
+              ...fileResult.captured,
+              ...capturedValues,
+            }
+          : capturedValues;
+      }
 
       fileResult.isUnknown = false;
-      fileResult.captured = isObject(capturedValues)
-        ? {
-            ...fileResult.captured,
-            ...capturedValues,
-          }
-        : capturedValues;
     };
 
     for (const fileDescriptor of this._fileDescriptors) {
@@ -260,6 +274,13 @@ export class FilesDescriptor {
         processElementMatch(fileDescriptor, match);
         if (fileDescriptor.basePattern) {
           break; // If the descriptor has a basePattern, it has been converted from legacy mode "file", so we stop processing other matches to maintain backward compatibility. In future versions, when legacy mode is removed, this condition can be removed.
+        }
+        if (
+          fileDescriptor.exclusive ||
+          fileDescriptor.stopMatching ||
+          this._singleMatch
+        ) {
+          break;
         }
       }
     }

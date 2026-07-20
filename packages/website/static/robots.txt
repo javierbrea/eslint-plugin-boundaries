@@ -1,6 +1,8 @@
 # Block old versions to avoid duplications
 User-agent: *
 Disallow: /docs/next/
-# Disallow: /docs/5*/
+Disallow: /docs/5*/
+Disallow: /docs/6*/
+Disallow: /docs/7*/
 
 Sitemap: https://www.jsboundaries.dev/sitemap.xml

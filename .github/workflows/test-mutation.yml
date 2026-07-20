@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
       - uses: ./.github/actions/install
         with:
-          node-version: 22.14.0
+          node-version: 22.20.0
       - name: Test Mutation Elements
         run: pnpm nx test:mutation elements
         env:

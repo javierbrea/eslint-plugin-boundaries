@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 ### Breaking Changes
 
+## [7.1.0] - 2026-07-20
+
+### Added
+
+- docs(#467): Document `boundaries/files-single-match`, `boundaries/elements-single-match` (canonical replacement for the deprecated `boundaries/elements-single-type`), and the per-descriptor `stopMatching`/`exclusive` options on file and element descriptors, in the Settings reference and the Files/Elements classification pages.
+- docs(#431): Add Oxlint integration guide to the documentation, showing how to use the plugin with Oxlint instead of ESLint.
+
 ## [7.0.0-docs.1] - 2026-07-17
 
 - docs(#440): Point the TypeScript Support guide to the new in-repo `examples/typescript` folder instead of the standalone `epb-ts-example` repository.
