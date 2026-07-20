@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 
 - docs(#467): Document `boundaries/files-single-match`, `boundaries/elements-single-match` (canonical replacement for the deprecated `boundaries/elements-single-type`), and the per-descriptor `stopMatching`/`exclusive` options on file and element descriptors, in the Settings reference and the Files/Elements classification pages.
+- docs(#431): Add Oxlint integration guide to the documentation, showing how to use the plugin with Oxlint instead of ESLint.
 
 ### Changed
 ### Fixed
