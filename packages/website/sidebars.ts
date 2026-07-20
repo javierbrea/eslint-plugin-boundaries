@@ -117,6 +117,7 @@ const sidebars: SidebarsConfig = {
       items: [
         "guides/typescript-support",
         "guides/monorepo-setup",
+        "guides/oxlint-integration",
         "guides/custom-resolvers",
         "guides/debugging",
       ],

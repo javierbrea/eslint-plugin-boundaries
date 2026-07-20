@@ -183,3 +183,4 @@ If a policy that matches on `to.module.origin` flags a local import as external,
 - **[TypeScript Support](./typescript-support.md)** - the TypeScript resolver and path aliases.
 - **[Monorepo Setup](./monorepo-setup.md)** - resolution across workspace packages.
 - **[Debugging](./debugging.md)** - inspect how each import is resolved and classified.
+- **[Oxlint integration](./oxlint-integration.mdx)** - configuring `import/resolver` under Oxlint.
