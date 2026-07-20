@@ -244,7 +244,7 @@ const config: Config = {
       ],
       copyright: `
         <div class="footer-contents">
-          <span>Copyright © 2020-${new Date().getFullYear()} Javier Brea</span>
+          <span>Copyright © 2020-${new Date().getFullYear()} <a href="https://www.javierbrea.com">Javier Brea</a></span>
           <span class="disclaimer">Trademarks, logos and brand names are the property of their respective owners. All company, product and service names used in this website are for identification purposes only. Use of these names,trademarks and brands does not imply endorsement.</span>
         </div>
       `,

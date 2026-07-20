@@ -1,12 +1,10 @@
-[![Build status][build-image]][build-url] [![Coverage Status][coveralls-image]][coveralls-url] <!-- [![Quality Gate][quality-gate-image]][quality-gate-url] -->
+[![License][license-image]][license-url] [![Build status][build-image]][build-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Quality Gate][quality-gate-image]][quality-gate-url] 
 
-[![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com) [![Last commit][last-commit-image]][last-commit-url] [![Last release][release-image]][release-url]
-
-[![NPM downloads][npm-downloads-image]][npm-downloads-url] [![License][license-image]][license-url]
+[![NPM downloads][npm-downloads-image]][npm-downloads-url] [![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com) [![Last commit][last-commit-image]][last-commit-url] [![Last release][release-image]][release-url]
 
 [coveralls-image]: https://coveralls.io/repos/github/javierbrea/eslint-plugin-boundaries/badge.svg
 [coveralls-url]: https://coveralls.io/github/javierbrea/eslint-plugin-boundaries
-[build-image]: https://github.com/javierbrea/eslint-plugin-boundaries/workflows/build/badge.svg
+[build-image]: https://github.com/javierbrea/eslint-plugin-boundaries/actions/workflows/build.yml/badge.svg
 [build-url]: https://github.com/javierbrea/eslint-plugin-boundaries/actions?query=workflow%3Abuild+branch%3Amaster
 [last-commit-image]: https://img.shields.io/github/last-commit/javierbrea/eslint-plugin-boundaries.svg
 [last-commit-url]: https://github.com/javierbrea/eslint-plugin-boundaries/commits
@@ -84,29 +82,29 @@ Define your dependency rules:
       policies: [
         // Allow controllers to depend on models and views
         {
-          from: { element: { types: "controller" } },
+          from: { element: { type: "controller" } },
           allow: {
-            to: { element: { types: { anyOf: ["model", "view"] } },
+            to: { element: { types: { anyOf: ["model", "view"] } } },
           },
         },
         // Allow views to depend on models
         {
-          from: { element: { types: "view" } },
+          from: { element: { type: "view" } },
           allow: {
-            to: { element: { types: "model" } },
-          },
-        },
-        // Disallow models to depend on anything other than other models
-        {
-          from: { element: { types: "model" } },
-          disallow: {
-            to: { element: { types: { noneOf: ["!model"] } },
+            to: { element: { type: "model" } },
           },
         },
         // Disallow any element from importing a test file
         {
           disallow: {
             to: { file: { categories: "test" } },
+          },
+        },
+        // Only controllers may use the `axios` package
+        {
+          from: { element: { type: "!controller" } },
+          disallow: {
+            to: { module: { origin: "external", source: "axios" } },
           },
         },
       ]

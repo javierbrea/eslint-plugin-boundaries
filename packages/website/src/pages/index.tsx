@@ -37,7 +37,7 @@ function HomepageHeader() {
             )}
             to="/docs/overview/"
           >
-            Quick Start
+            Get Started
           </Link>
         </div>
       </div>

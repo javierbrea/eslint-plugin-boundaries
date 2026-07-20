@@ -1,4 +1,5 @@
 # Change Log
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
@@ -15,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - refactor(#466): `boundaries/elements-single-type` is now deprecated in favor of `boundaries/elements-single-match`. It is kept as a backward-compatible alias, with a deprecation warning, and no behavior change.
+
+### Fixed
+
+- docs: Fix build badge URL in README
 
 ## [7.0.2] - 2026-07-07
 

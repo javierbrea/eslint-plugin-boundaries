@@ -177,14 +177,14 @@ These properties determine the **effect of the policy** when it matches a depend
 ```js
 // Components can import helpers and other components
 {
-  from: { element: { types: "component" } },
+  from: { element: { type: "component" } },
   allow: { to: { element: { types: ["helper", "component"] } } }
 }
 
 // Helpers cannot import anything other than other helpers
 {
-  from: { element: { types: "helper" } },
-  disallow: { to: { element: { types: "!helper" } } }
+  from: { element: { type: "helper" } },
+  disallow: { to: { element: { type: "!helper" } } }
 }
 
 // Any file can import other files of the same element (internal dependencies)
@@ -195,7 +195,7 @@ These properties determine the **effect of the policy** when it matches a depend
 // Any file can import helpers, but only as a type dependency (e.g. TypeScript type imports)
 {
   allow: {
-    to: { element: { types: "helper" } },
+    to: { element: { type: "helper" } },
     dependency: { kind: "type" }
   }
 }
@@ -322,21 +322,21 @@ Policies are evaluated sequentially, and each matching policy can override previ
     // If this matches: result is "allow"
     // Components can import helpers
     {
-      from: { element: { types: "component" } },
-      allow: { to: { element: { types: "helper" } } }
+      from: { element: { type: "component" } },
+      allow: { to: { element: { type: "helper" } } }
     },
     // If this also matches: result is "disallow" (overrides previous).
     // Component family "atoms" cannot import "data" helpers
     {
-      from: { element: { types: "component", captured: { family: "atoms" } } },
-      disallow: { to: { element: { types: "helper", captured: { family: "data" } } } },
+      from: { element: { type: "component", captured: { family: "atoms" } } },
+      disallow: { to: { element: { type: "helper", captured: { family: "data" } } } },
     },
     // If this also matches: result is "allow" (overrides previous).
     // Component family "atoms" can import the "data/sort" helper, in exception to previous policy
     {
-      from: { element: { types: "component", captured: { family: "atoms" } } },
+      from: { element: { type: "component", captured: { family: "atoms" } } },
       allow: {
-        to: { element: { types: "helper", captured: { family: "data" }, fileInternalPath: "sort.js" } }
+        to: { element: { type: "helper", captured: { family: "data" }, fileInternalPath: "sort.js" } }
       }
     }
   ]

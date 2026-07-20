@@ -312,12 +312,12 @@ Read how to use **[Selectors](./selectors/selectors.md)** to configure your [Rul
 +        default: "disallow",
 +        policies: [
 +          {
-+            from: { element: { types: "component" } },
-+            allow: { to: { element: { types: "helper" } } }
++            from: { element: { type: "component" } },
+            allow: { to: { element: { type: "helper" } } }
 +          },
 +          {
-+            from: { element: { types: "module" } },
-+            allow: { to: { element: { types: ["component", "helper"] } } }
+            from: { element: { type: "module" } },
+            allow: { to: { element: { types: ["component", "helper"] } } }
 +          },
 +          {
 +            // No element may import a test file, whatever element it belongs to
@@ -358,11 +358,11 @@ Read how to use **[Selectors](./selectors/selectors.md)** to configure your [Rul
 +        default: "disallow",
 +        policies: [
 +          {
-+            from: { element: { types: "component" } },
-+            allow: { to: { element: { types: "helper" } } }
++            from: { element: { type: "component" } },
++            allow: { to: { element: { type: "helper" } } }
 +          },
 +          {
-+            from: { element: { types: "module" } },
++            from: { element: { type: "module" } },
 +            allow: { to: { element: { types: ["component", "helper"] } } }
 +          },
 +          {

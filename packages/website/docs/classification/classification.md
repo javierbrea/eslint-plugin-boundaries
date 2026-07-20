@@ -154,7 +154,7 @@ Both `from` and `to` are entities, so each exposes all three layers. Here is the
   },
   // The imported target
   to: {
-    element: { types: null, isUnknown: true, /* ... */ },
+    element: { type: null, isUnknown: true, /* ... */ },
     file:    { categories: null, isUnknown: true, /* ... */ },
     module:  { origin: "external", source: "react", internalPath: null }
   },
