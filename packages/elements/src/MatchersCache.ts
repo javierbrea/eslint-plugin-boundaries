@@ -6,6 +6,7 @@ import type {
   ElementDescriptors,
   FileDescriptors,
 } from "./Descriptor";
+import { resolveElementsSingleMatch } from "./Descriptor";
 import type { Matcher } from "./Matcher";
 
 /**
@@ -47,7 +48,7 @@ export class MatchersCache extends CacheManager<
         const baseCaptureKey = descriptor.baseCapture
           ? descriptor.baseCapture.join(",")
           : "no-base-capture";
-        return `${this._getBaseDescriptorsHash(descriptor)}|${descriptor.type}|${descriptor.category}|${descriptor.mode}|${descriptor.basePattern}|${baseCaptureKey}|${descriptor.partialMatch}`;
+        return `${this._getBaseDescriptorsHash(descriptor)}|${descriptor.type}|${descriptor.category}|${descriptor.mode}|${descriptor.basePattern}|${baseCaptureKey}|${descriptor.partialMatch}|${descriptor.stopMatching}|${descriptor.exclusive}`;
       })
       .join(",");
   }
@@ -61,7 +62,7 @@ export class MatchersCache extends CacheManager<
     return fileDescriptors
       .map(
         (descriptor) =>
-          `${this._getBaseDescriptorsHash(descriptor)}|${descriptor.category}`
+          `${this._getBaseDescriptorsHash(descriptor)}|${descriptor.category}|${descriptor.stopMatching}|${descriptor.exclusive}`
       )
       .join(",");
   }
@@ -87,12 +88,13 @@ export class MatchersCache extends CacheManager<
     const elementDescriptorsHash = this._getElementDescriptorsHash(
       descriptors.elements || []
     );
-    const elementsSingleType = descriptors.elementsSingleType
+    const elementsSingleMatch = resolveElementsSingleMatch(descriptors)
       ? "true"
       : "false";
+    const filesSingleMatch = descriptors.filesSingleMatch ? "true" : "false";
     const fileDescriptorsHash = this._getFileDescriptorsHash(
       descriptors.files || []
     );
-    return `|:config:|${configHash}|:elements:|${elementDescriptorsHash}|:elementsSingleType:|${elementsSingleType}|:files:|${fileDescriptorsHash}`;
+    return `|:config:|${configHash}|:elements:|${elementDescriptorsHash}|:elementsSingleMatch:|${elementsSingleMatch}|:files:|${fileDescriptorsHash}|:filesSingleMatch:|${filesSingleMatch}`;
   }
 }

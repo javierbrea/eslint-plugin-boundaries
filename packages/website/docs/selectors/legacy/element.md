@@ -196,6 +196,6 @@ For step-by-step migration instructions and examples, see the [v6 to v7 migratio
 
 - [Selectors](../selectors.md) — modern object-based and entity selector reference.
 - [Policies](../../policies/policies.mdx) — where selectors are used in `from`/`to`/`dependency`.
-- [Settings](../../settings/settings.md) — configure `boundaries/files` and `boundaries/elements-single-type`.
+- [Settings](../../settings/settings.md) — configure `boundaries/files` and `boundaries/elements-single-match`.
 - [Elements](../../classification/elements.md) — element descriptors and captured values.
 - [v6 to v7 Migration Guide](../../releases/migration-guides/v6-to-v7.mdx) — full migration instructions.

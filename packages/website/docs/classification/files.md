@@ -97,6 +97,30 @@ For a path `components/Button/Button.stories.tsx`, this captures:
 
 When several matching descriptors capture values, those values are **merged** into a single `file.captured` object.
 
+### `stopMatching` (optional)
+
+**Type:** `<boolean>`. **Default:** `false`.
+
+Relevant when categories [accumulate](#category-accumulation) (the default, `boundaries/files-single-match: false`). When this descriptor matches, keep the categories accumulated so far and stop evaluating the remaining descriptors for that file.
+
+```js
+{ pattern: "**/index.{ts,tsx}", category: "index", stopMatching: true }
+```
+
+### `exclusive` (optional)
+
+**Type:** `<boolean>`. **Default:** `false`.
+
+Relevant when categories [accumulate](#category-accumulation) (the default, `boundaries/files-single-match: false`). When this descriptor matches, **discard** the categories accumulated so far, keep only this descriptor's category, and stop evaluating further descriptors for that file. Takes precedence over [`stopMatching`](#stopmatching-optional) when both are set on the same descriptor.
+
+```js
+{ pattern: "**/index.{ts,tsx}", category: "index", exclusive: true }
+```
+
+:::info
+Descriptor order matters: `exclusive`/`stopMatching` only affects descriptors evaluated **after** the one that set the flag, so put the most specific, mutually-exclusive patterns first.
+:::
+
 ## Category Accumulation
 
 Unlike element descriptors by default, file descriptors do not stop at the first match. **Every file descriptor whose pattern matches contributes its category**, so a single file can carry several categories at once.
@@ -114,14 +138,40 @@ export default [{
 
 With this configuration, `src/components/atoms/atom-a/AtomA.spec.js` matches both descriptors, so its file `categories` array is `["test", "source"]` — in descriptor declaration order. A plain `AtomA.js` matches only the second descriptor, so its `categories` is `["source"]`.
 
-This is the key difference from element types, which are single by default (you opt in to [multi-type](./elements.md#multi-type-elements)). File categories always accumulate.
+This is the key difference from element types, which are single by default (you opt in to [multi-type](./elements.md#multi-type-elements)). File categories accumulate **by default**; opt out with [`boundaries/files-single-match`](#filessinglematch) or per-descriptor [`stopMatching`/`exclusive`](#stopmatching-and-exclusive).
 
 | | Element descriptors | File descriptors |
 | --- | --- | --- |
 | Setting | `boundaries/elements` | `boundaries/files` |
 | Answers | Which element does the file belong to? | What kind of file is it? |
 | Result | `element.types` (array) | `file.categories` (array) |
-| Accumulation | Single type by default; opt in to [multi-type](./elements.md#multi-type-elements) | Always accumulates all matching categories |
+| Accumulation | Single type by default; opt in to [multi-type](./elements.md#multi-type-elements) | Accumulates all matching categories by default; opt out with [`filesSingleMatch`](#filessinglematch) or per-descriptor [`stopMatching`/`exclusive`](#stopmatching-and-exclusive) |
+
+### `filesSingleMatch`
+
+Some projects need mutually-exclusive categories instead of accumulation — for example, a file should be `index`, `types`, or "everything else", never more than one. Setting [`boundaries/files-single-match`](../settings/settings.md#boundariesfiles-single-match) to `true` makes every file keep only the **first** matching descriptor's category:
+
+```js
+export default [{
+  settings: {
+    "boundaries/files-single-match": true,
+    "boundaries/files": [
+      { pattern: "**/*.spec.js", category: "test" },
+      { pattern: "**/*.js", category: "source" }
+    ]
+  }
+}]
+```
+
+With this configuration, `AtomA.spec.js` matches the `test` descriptor first and stops there — its `categories` is `["test"]`, never `["test", "source"]`.
+
+### `stopMatching` and `exclusive`
+
+[`stopMatching`](#stopmatching-optional) and [`exclusive`](#exclusive-optional) let you carve out targeted exceptions on individual file descriptors instead of flipping `filesSingleMatch` for the whole project. When a descriptor sets both, `exclusive` wins.
+
+:::tip[When to use which]
+Use [`filesSingleMatch`](#filessinglematch) when *every* file in the project should have a single, mutually-exclusive category. Use `stopMatching`/`exclusive` when accumulation should stay the default and only *some* descriptors (for example, a specific `index` or `types` pattern) need to stop or override it — the two compose, so you can set the global default and still refine individual descriptors.
+:::
 
 ## File Description
 

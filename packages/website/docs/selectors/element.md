@@ -71,7 +71,7 @@ All values are [micromatch pattern(s)](https://github.com/micromatch/micromatch)
 
 ## Matching by type
 
-A file can belong to more than one element type at the same path level. When [multi-type elements](../settings/settings.md#boundarieselements-single-type) are enabled (`boundaries/elements-single-type: false`), the runtime description carries every matching type in a `types` array. By default the plugin keeps a single type for backward compatibility, so an element's `types` array usually holds a single type.
+A file can belong to more than one element type at the same path level. When [multi-type elements](../settings/settings.md#boundarieselements-single-match) are enabled (`boundaries/elements-single-match: false`), the runtime description carries every matching type in a `types` array. By default the plugin keeps a single type for backward compatibility, so an element's `types` array usually holds a single type.
 
 The `type` selector property matches the element's **first** type — `types[0]`:
 
@@ -88,7 +88,7 @@ The `types` selector property matches against the whole array — it matches if 
 ```
 
 :::info[Single-type vs multi-type elements]
-With single-type elements (the default), each element has exactly one type, so `type` and `types` behave the same. When multi-type elements are enabled, `type` still matches only the first type in the array, while `types` matches any type the element carries. See [`boundaries/elements-single-type`](../settings/settings.md#boundarieselements-single-type) for details.
+With single-type elements (the default), each element has exactly one type, so `type` and `types` behave the same. When multi-type elements are enabled, `type` still matches only the first type in the array, while `types` matches any type the element carries. See [`boundaries/elements-single-match`](../settings/settings.md#boundarieselements-single-match) for details.
 :::
 
 ## Parent matching

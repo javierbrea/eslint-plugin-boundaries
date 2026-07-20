@@ -36,6 +36,12 @@ It keeps working without changes; you will see a deprecation warning in your con
 
 It was a path-alias map. Configure module resolution with `import/resolver`, which gives access to a wide ecosystem of resolvers. See the [Custom Resolvers](../guides/custom-resolvers.md) guide.
 
+## `boundaries/elements-single-type`
+
+:::warning[Deprecated: `boundaries/elements-single-type`]
+`boundaries/elements-single-type` is a deprecated alias of [`boundaries/elements-single-match`](./settings.md#boundarieselements-single-match), kept for backward compatibility. It will be removed in a future major version — migrate to `boundaries/elements-single-match`. When both are set, `boundaries/elements-single-match` takes precedence.
+:::
+
 ## See Also
 
 - [Settings](./settings.md) — the full reference for every active global setting.

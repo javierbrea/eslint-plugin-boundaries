@@ -156,7 +156,8 @@ const createSettings = (
     rootPath: "/repo",
     dependencyNodes: [],
     legacyTemplates: false,
-    elementsSingleType: false,
+    elementsSingleMatch: false,
+    filesSingleMatch: false,
     cache: false,
     flagAsExternal: {},
     debug: {
