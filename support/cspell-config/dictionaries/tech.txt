@@ -7,6 +7,9 @@ jsboundaries
 importkind
 lockfiles
 nrwl
+oxc
+oxlint
+oxlintrc
 Shai-Hulud
 sonarcloud
 sonarlint

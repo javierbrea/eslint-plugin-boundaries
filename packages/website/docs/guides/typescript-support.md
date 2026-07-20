@@ -213,6 +213,7 @@ If you encounter issues with TypeScript support:
 ## Further Reading
 
 - **[ESLint integration](../settings/config-helpers.md)** - `createConfig` and typed config helpers.
+- **[Oxlint integration](./oxlint-integration.mdx)** - using the plugin with Oxlint instead of ESLint.
 - **[Elements](../classification/elements.md)** - element descriptors and the entity model.
 - **[Selectors](../selectors/selectors.md)** - element, file, and module selector types.
 - **[Settings](../settings/settings.md)** - all available settings.

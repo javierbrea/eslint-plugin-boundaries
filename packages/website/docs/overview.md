@@ -37,7 +37,9 @@ JS Boundaries is a project that provides a set of tools to help you enforce arch
 
 ## Purpose
 
-It ensures that __your architectural boundaries are respected by the elements in your project__ by checking the folder and file structure and the dependencies between them. At the moment, it consists of an **ESLint plugin: [eslint-plugin-boundaries](https://www.npmjs.com/package/eslint-plugin-boundaries).**
+It ensures that __your architectural boundaries are respected by the elements in your project__ by checking the folder and file structure and the dependencies between them.
+
+At the moment, it consists of an **ESLint plugin: [eslint-plugin-boundaries](https://www.npmjs.com/package/eslint-plugin-boundaries).** You can also use it with [Oxlint](./guides/oxlint-integration.mdx).
 
 ## How It Works
 

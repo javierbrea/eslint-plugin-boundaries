@@ -1,0 +1,26 @@
+{
+  "name": "@boundaries/example-oxlint-integration",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Example of configuring eslint-plugin-boundaries with oxlint",
+  "author": "Javier Brea",
+  "license": "MIT",
+  "scripts": {
+    "check:all": "echo 'All checks passed'",
+    "check:spell": "cspell --quiet .",
+    "check:types": "tsc --noEmit",
+    "lint": "pnpm lint:json && pnpm lint:ts-config && pnpm lint:oxc-resolver",
+    "lint:fix": "oxlint --fix -c .oxlintrc.json",
+    "lint:json": "oxlint -c .oxlintrc.json",
+    "lint:oxc-resolver": "oxlint -c .oxlintrc.oxc.json",
+    "lint:ts-config": "oxlint -c oxlint.config.ts"
+  },
+  "devDependencies": {
+    "eslint-import-resolver-oxc": "0.15.0",
+    "eslint-import-resolver-typescript": "4.4.5",
+    "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
+    "oxlint": "1.74.0",
+    "typescript": "5.9.3"
+  }
+}
