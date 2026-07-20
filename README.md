@@ -82,29 +82,29 @@ Define your dependency rules:
       policies: [
         // Allow controllers to depend on models and views
         {
-          from: { element: { types: "controller" } },
+          from: { element: { type: "controller" } },
           allow: {
-            to: { element: { types: { anyOf: ["model", "view"] } },
+            to: { element: { types: { anyOf: ["model", "view"] } } },
           },
         },
         // Allow views to depend on models
         {
-          from: { element: { types: "view" } },
+          from: { element: { type: "view" } },
           allow: {
-            to: { element: { types: "model" } },
-          },
-        },
-        // Disallow models to depend on anything other than other models
-        {
-          from: { element: { types: "model" } },
-          disallow: {
-            to: { element: { types: { noneOf: ["!model"] } },
+            to: { element: { type: "model" } },
           },
         },
         // Disallow any element from importing a test file
         {
           disallow: {
             to: { file: { categories: "test" } },
+          },
+        },
+        // Only controllers may use the `axios` package
+        {
+          from: { element: { type: "!controller" } },
+          disallow: {
+            to: { module: { origin: "external", source: "axios" } },
           },
         },
       ]

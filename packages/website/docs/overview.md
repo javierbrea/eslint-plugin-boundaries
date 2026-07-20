@@ -146,7 +146,7 @@ const dependencyRulePolicies = [
   {
     from: { element: { type: "controller" } },
     allow: {
-      to: { element: { types: { anyOf: ["model", "view"] } },
+      to: { element: { types: { anyOf: ["model", "view"] } } },
     },
   },
   // Allow views to depend on models
@@ -156,24 +156,17 @@ const dependencyRulePolicies = [
       to: { element: { type: "model" } },
     },
   },
-  // Disallow models to depend on anything other than other models
-  {
-    from: { element: { type: "model" } },
-    disallow: {
-      to: { element: { type: "!model" } },
-    },
-  },
-  // Disallow any element from importing a test file (a file layer match)
+  // Disallow any element from importing a test file
   {
     disallow: {
       to: { file: { categories: "test" } },
     },
   },
-  // Only shared code may use the `axios` package (a module layer match)
+  // Only controllers may use the `axios` package
   {
-    from: { element: { type: "!shared" } },
+    from: { element: { type: "!controller" } },
     disallow: {
-      to: { module: { source: "axios" } },
+      to: { module: { origin: "external", source: "axios" } },
     },
   },
 ];
