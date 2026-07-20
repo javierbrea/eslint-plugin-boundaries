@@ -147,23 +147,23 @@ Based on these **[descriptions](./classification/classification.md)**, you can d
 const dependencyRulePolicies = [
   // Allow controllers to depend on models and views
   {
-    from: { element: { types: "controller" } },
+    from: { element: { type: "controller" } },
     allow: {
       to: { element: { types: { anyOf: ["model", "view"] } },
     },
   },
   // Allow views to depend on models
   {
-    from: { element: { types: "view" } },
+    from: { element: { type: "view" } },
     allow: {
-      to: { element: { types: "model" } },
+      to: { element: { type: "model" } },
     },
   },
   // Disallow models to depend on anything other than other models
   {
-    from: { element: { types: "model" } },
+    from: { element: { type: "model" } },
     disallow: {
-      to: { element: { types: "!model" } },
+      to: { element: { type: "!model" } },
     },
   },
   // Disallow any element from importing a test file (a file layer match)
