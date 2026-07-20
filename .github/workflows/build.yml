@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
       - uses: ./.github/actions/install
         with:
-          node-version: 22.14.0
+          node-version: 22.20.0
       - name: Lint repo root
         run: pnpm lint
       - name: Spell check repo root
@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
       - uses: ./.github/actions/install
         with:
-          node-version: 22.14.0
+          node-version: 22.20.0
       - uses: gensecaihq/Shai-Hulud-2.0-Detector@v2
         with:
           fail-on-critical: true
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ["18.20.3", "20.13.1", "22.14.0"]
+        node: ["18.20.3", "20.13.1", "22.20.0"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,30 +49,30 @@ jobs:
           node-version: ${{ matrix.node }}
       # NOTE: In other Node versions, we only run unit eslint plugin unit tests to save time in the CI and to avoid dev tools Node incompatibilities
       - name: Test Unit
-        if: ${{ matrix.node != '22.14.0' }}
+        if: ${{ matrix.node != '22.20.0' }}
         run: |
           pnpm nx test:unit elements --output-style=stream --parallel=1
           pnpm nx test:unit eslint-plugin --output-style=stream --parallel=1
       # NOTE: For the moment, we run the check:all target in all packages instead of running affected check in affected packages only
       - name: Check all
-        if: ${{ matrix.node == '22.14.0' }}
+        if: ${{ matrix.node == '22.20.0' }}
         run: pnpm nx run-many --target=check:all --all --output-style=stream --parallel=1
       - name: Upload elements test results
-        if: ${{ matrix.node == '22.14.0' }}
+        if: ${{ matrix.node == '22.20.0' }}
         uses: actions/upload-artifact@v4
         with:
           name: elements-coverage
           path: packages/elements/coverage
           retention-days: 1
       - name: Upload eslint-plugin test results
-        if: ${{ matrix.node == '22.14.0' }}
+        if: ${{ matrix.node == '22.20.0' }}
         uses: actions/upload-artifact@v4
         with:
           name: eslint-plugin-coverage
           path: packages/eslint-plugin/coverage
           retention-days: 1
       - name: Upload elements build
-        if: ${{ matrix.node == '22.14.0' }}
+        if: ${{ matrix.node == '22.20.0' }}
         uses: actions/upload-artifact@v4
         with:
           name: elements-build
@@ -86,7 +86,7 @@ jobs:
         uses: actions/checkout@v4
       - uses: ./.github/actions/install
         with:
-          node-version: "22.14.0"
+          node-version: "22.20.0"
           windows-fix-symlinks: "true"
       - name: Download elements build
         uses: actions/download-artifact@v4

@@ -208,7 +208,7 @@ If you encounter issues with TypeScript support:
 2. Verify that `eslint-import-resolver-typescript` is configured in settings
 3. Check that your `tsconfig.json` is valid and accessible
 4. Confirm that the TypeScript parser is correctly specified in `languageOptions`
-5. Refer to the example repository for a known working configuration
+5. Refer to the [TypeScript example](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/examples/typescript) in the repository for a known working configuration
 
 ## Further Reading
 

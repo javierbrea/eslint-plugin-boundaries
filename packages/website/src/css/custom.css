@@ -33,6 +33,10 @@
   span {
     display: block;
   }
+  a {
+    color: var(--ifm-color-primary-lighter);
+    text-decoration: underline;
+  }
   .disclaimer {
     margin-top:1rem;
     font-size: 12px;

@@ -1,0 +1,17 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "example-typescript",
+  "projectType": "application",
+  "tags": ["type:example"],
+  "targets": {
+    "lint": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      "dependsOn": ["^build"]
+    }
+  },
+  "implicitDependencies": ["eslint-plugin", "cspell-config"]
+}

@@ -37,7 +37,8 @@ export function getElementsMatcher(settings: SettingsNormalized): Matcher {
     {
       elements: settings.elementDescriptors,
       files: settings.fileDescriptors,
-      elementsSingleType: settings.elementsSingleType,
+      elementsSingleMatch: settings.elementsSingleMatch,
+      filesSingleMatch: settings.filesSingleMatch,
     },
     {
       ignorePaths: settings.ignorePaths,
