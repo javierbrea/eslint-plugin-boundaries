@@ -396,6 +396,6 @@ The legacy `${ property }` selector syntax is kept for backward compatibility bu
 - [Module selector](./module.md) — match external and core module imports.
 - [Dependency selector](./dependency.md) — match dependency metadata (`kind`, `relationship`...).
 - [Classification](../classification/classification.md) — the three layers (element, file, module) that selectors match against.
-- [Settings](../settings/settings.md) — configure [`boundaries/files`](../settings/settings.md#boundariesfiles), [`boundaries/elements-single-type`](../settings/settings.md#boundarieselements-single-type), and [`boundaries/legacy-templates`](../settings/settings.md#boundarieslegacy-templates).
+- [Settings](../settings/settings.md) — configure [`boundaries/files`](../settings/settings.md#boundariesfiles), [`boundaries/elements-single-match`](../settings/settings.md#boundarieselements-single-match), and [`boundaries/legacy-templates`](../settings/settings.md#boundarieslegacy-templates).
 - [Policies](../policies/policies.mdx) — use selectors in `from`/`to`/`dependency` together with `allow`/`disallow`.
 - [Legacy Selectors](./legacy/element.md) — string and tuple selector formats and how to migrate them.

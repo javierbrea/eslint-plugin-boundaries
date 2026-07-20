@@ -10,7 +10,7 @@ import type {
  * Base element properties related to captured values
  */
 export type ElementDescription = BaseDescription & {
-  /** All types of the element. Contains multiple types unless elementsSingleType is enabled. */
+  /** All types of the element. Contains multiple types unless elementsSingleMatch is enabled. */
   types: string[] | null;
   /**
    * Category of the element
@@ -34,7 +34,7 @@ export type ElementDescription = BaseDescription & {
  * Parent elements
  */
 export type ElementParent = {
-  /** All types of the parent element. Contains multiple types unless elementsSingleType is enabled. */
+  /** All types of the parent element. Contains multiple types unless elementsSingleMatch is enabled. */
   types: string[] | null;
   /**
    * Category of the parent element

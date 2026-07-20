@@ -252,6 +252,26 @@ For a file at `src/ui/components/Button/index.tsx`:
 - `element.path` is `src/ui/components/Button`.
 - `fileInternalPath` is `index.tsx`.
 
+### `stopMatching` (optional)
+
+**Type:** `<boolean>`. **Default:** `false`.
+
+Only relevant when [multi-type matching](#multi-type-elements) is enabled (`boundaries/elements-single-match: false`). When this descriptor matches, keep the types accumulated so far **at this path level** and stop evaluating the remaining descriptors for that level.
+
+```js
+{ type: "index", pattern: "shared/index", stopMatching: true }
+```
+
+### `exclusive` (optional)
+
+**Type:** `<boolean>`. **Default:** `false`.
+
+Only relevant when [multi-type matching](#multi-type-elements) is enabled (`boundaries/elements-single-match: false`). When this descriptor matches, **discard** the types accumulated so far at this path level, keep only this descriptor's type, and stop evaluating further descriptors for that level. Takes precedence over [`stopMatching`](#stopmatching-optional) when both are set on the same descriptor.
+
+```js
+{ type: "index", pattern: "shared/index", exclusive: true }
+```
+
 ### `mode` (deprecated)
 
 :::warning[Deprecated]
@@ -264,7 +284,7 @@ For a file at `src/ui/components/Button/index.tsx`:
 Element descriptors are evaluated in **array order**. The descriptor order determines the primary type: the first matching descriptor at a path level sets `types[0]`.
 :::
 
-With the default single-type behavior (`boundaries/elements-single-type: true`), only the first matching descriptor at a path level applies. With [multi-type](#multi-type-elements) enabled (`boundaries/elements-single-type: false`), every descriptor that matches the same path level contributes a type, in descriptor order.
+With the default single-type behavior (`boundaries/elements-single-match: true`), only the first matching descriptor at a path level applies. With [multi-type](#multi-type-elements) enabled (`boundaries/elements-single-match: false`), every descriptor that matches the same path level contributes a type, in descriptor order.
 
 **Best practice:** Sort descriptors from most specific to least specific.
 
@@ -303,12 +323,12 @@ By default, each element gets a single type. You can opt in to letting an elemen
 
 The element's matched types are exposed as the `types` array. The `type` selector matches only the first type (`types[0]`); the `types` selector matches any type in the array.
 
-To enable multi-type matching, set [`boundaries/elements-single-type`](../settings/settings.md#boundarieselements-single-type) to `false`:
+To enable multi-type matching, set [`boundaries/elements-single-match`](../settings/settings.md#boundarieselements-single-match) to `false`:
 
 ```js
 export default [{
   settings: {
-    "boundaries/elements-single-type": false,
+    "boundaries/elements-single-match": false,
     "boundaries/elements": [
       { type: "component", pattern: "shared/*" },
       { type: "shared", pattern: "shared/*" }
@@ -322,10 +342,22 @@ With this configuration, a file under `shared/*` matches both descriptors at the
 When multiple descriptors match at the same path level, their `captured` values are **merged** into a single object. On a key collision across descriptors, the last matching descriptor wins (i.e., later descriptors in the array override earlier ones). This applies to the main element and to each parent element independently.
 
 :::warning
-Multi-type matching is **off by default** in the plugin: `boundaries/elements-single-type` defaults to `true` for backward compatibility. Set it to `false` to opt in. See the [setting reference](../settings/settings.md#boundarieselements-single-type) for the full details.
+Multi-type matching is **off by default** in the plugin: `boundaries/elements-single-match` defaults to `true` for backward compatibility. Set it to `false` to opt in. See the [setting reference](../settings/settings.md#boundarieselements-single-match) for the full details.
+:::
+
+:::note[Deprecated alias]
+`boundaries/elements-single-type` is a deprecated alias of `boundaries/elements-single-match`, kept for backward compatibility.
 :::
 
 Two descriptors match "at the same path level" when they resolve to the same element `path` (the same matched folder). Parents accumulate types the same way.
+
+### `stopMatching` and `exclusive`
+
+[`stopMatching`](#stopmatching-optional) and [`exclusive`](#exclusive-optional) let you carve out targeted exceptions on individual descriptors instead of flipping the global `boundaries/elements-single-match` switch off for the whole project. Both apply within a single path level only, and when a descriptor sets both, `exclusive` wins.
+
+:::tip[When to use which]
+Use `boundaries/elements-single-match: true` when *every* element in the project should have a single type. Use `stopMatching`/`exclusive` when accumulation should stay the default and only *some* descriptors need to stop or override it — the two compose, so you can set the global default and still refine individual descriptors.
+:::
 
 ## Element Description
 
@@ -370,4 +402,4 @@ This means defining an element descriptor makes the matching files **known**: a 
 - **[Modules](./modules.md)** - understand module origin for external and core imports.
 - **[Selectors](../selectors/selectors.md)** - match elements, files, and modules in your policies.
 - **[Policies](../policies/policies.mdx)** - write dependency policies that enforce your architecture.
-- **[Settings](../settings/settings.md)** - the full reference for `boundaries/files`, `boundaries/elements-single-type`, and every other global setting.
+- **[Settings](../settings/settings.md)** - the full reference for `boundaries/files`, `boundaries/elements-single-match`, and every other global setting.
