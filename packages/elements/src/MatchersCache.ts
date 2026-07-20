@@ -6,6 +6,7 @@ import type {
   ElementDescriptors,
   FileDescriptors,
 } from "./Descriptor";
+import { resolveElementsSingleMatch } from "./Descriptor";
 import type { Matcher } from "./Matcher";
 
 /**
@@ -87,10 +88,9 @@ export class MatchersCache extends CacheManager<
     const elementDescriptorsHash = this._getElementDescriptorsHash(
       descriptors.elements || []
     );
-    const elementsSingleMatch =
-      (descriptors.elementsSingleMatch ?? descriptors.elementsSingleType)
-        ? "true"
-        : "false";
+    const elementsSingleMatch = resolveElementsSingleMatch(descriptors)
+      ? "true"
+      : "false";
     const filesSingleMatch = descriptors.filesSingleMatch ? "true" : "false";
     const fileDescriptorsHash = this._getFileDescriptorsHash(
       descriptors.files || []

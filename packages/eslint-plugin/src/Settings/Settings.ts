@@ -751,26 +751,31 @@ function getNormalizedElementsSingleMatch(
   elementsSingleType: unknown,
   legacyWarnings: boolean
 ): boolean {
+  let legacyValue: boolean | undefined;
+
+  if (!isUndefined(elementsSingleType)) {
+    if (isBoolean(elementsSingleType)) {
+      legacyValue = elementsSingleType;
+    } else {
+      warnOnce(
+        `Please provide a valid value in '${SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE}' setting.`,
+        `The value should be a boolean. ${moreInfoSettingsLink()}`
+      );
+    }
+  }
+
   if (isUndefined(elementsSingleMatch)) {
-    if (isUndefined(elementsSingleType)) {
+    if (isUndefined(legacyValue)) {
       return ELEMENTS_SINGLE_TYPE_DEFAULT;
     }
 
-    if (isBoolean(elementsSingleType)) {
-      if (legacyWarnings) {
-        warnOnce(
-          `'${SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE}' setting is deprecated.`,
-          `Use '${SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH}' instead. ${moreInfoSettingsLink()}`
-        );
-      }
-      return elementsSingleType;
+    if (legacyWarnings) {
+      warnOnce(
+        `'${SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE}' setting is deprecated.`,
+        `Use '${SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH}' instead. ${moreInfoSettingsLink()}`
+      );
     }
-
-    warnOnce(
-      `Please provide a valid value in '${SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE}' setting.`,
-      `The value should be a boolean. ${moreInfoSettingsLink()}`
-    );
-    return ELEMENTS_SINGLE_TYPE_DEFAULT;
+    return legacyValue;
   }
 
   if (isBoolean(elementsSingleMatch)) {
@@ -781,7 +786,7 @@ function getNormalizedElementsSingleMatch(
     `Please provide a valid value in '${SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH}' setting.`,
     `The value should be a boolean. ${moreInfoSettingsLink()}`
   );
-  return ELEMENTS_SINGLE_TYPE_DEFAULT;
+  return isUndefined(legacyValue) ? ELEMENTS_SINGLE_TYPE_DEFAULT : legacyValue;
 }
 
 /**

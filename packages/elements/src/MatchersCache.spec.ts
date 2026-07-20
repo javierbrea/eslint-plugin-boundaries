@@ -265,7 +265,7 @@ describe("MatchersCache", () => {
         descriptors: { files: undefined },
       });
 
-      expect(key).toContain("|:files:||:filesSingleMatch:|false");
+      expect(key.endsWith("|:files:||:filesSingleMatch:|false")).toBe(true);
     });
 
     it("should produce empty files section when files is an empty array", () => {
@@ -276,7 +276,7 @@ describe("MatchersCache", () => {
         descriptors: { files: [] },
       });
 
-      expect(key).toContain("|:files:||:filesSingleMatch:|false");
+      expect(key.endsWith("|:files:||:filesSingleMatch:|false")).toBe(true);
     });
 
     it("should use 'no-capture' when file descriptor capture is undefined", () => {
@@ -364,6 +364,17 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain("|:elementsSingleMatch:|true|");
+    });
+
+    it("should fall back to 'false' when only the deprecated elementsSingleType is false", () => {
+      const config = createConfig();
+
+      const key = matchersCache.getKey({
+        config,
+        descriptors: { elementsSingleType: false },
+      });
+
+      expect(key).toContain("|:elementsSingleMatch:|false|");
     });
 
     it("should give precedence to elementsSingleMatch over the deprecated elementsSingleType", () => {

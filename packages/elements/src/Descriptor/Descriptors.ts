@@ -20,6 +20,20 @@ import { ModulesDescriptor } from "./Module";
 import type { ModuleDescription } from "./Module";
 
 /**
+ * Resolves the effective elements-single-match value, giving precedence to
+ * `elementsSingleMatch` over the deprecated `elementsSingleType` alias when both are set.
+ * @param descriptors The descriptors configuration.
+ * @returns The resolved boolean value.
+ */
+export function resolveElementsSingleMatch(
+  descriptors: DescriptorsConfig
+): boolean {
+  return (
+    descriptors.elementsSingleMatch ?? descriptors.elementsSingleType ?? false
+  );
+}
+
+/**
  * Class with methods to describe files, elements, entities, and dependencies between them.
  */
 export class Descriptors {
@@ -43,7 +57,7 @@ export class Descriptors {
       descriptors.elements || [],
       config,
       micromatch,
-      descriptors.elementsSingleMatch ?? descriptors.elementsSingleType ?? false
+      resolveElementsSingleMatch(descriptors)
     );
     this._filesDescriptor = new FilesDescriptor(
       descriptors.files || [],

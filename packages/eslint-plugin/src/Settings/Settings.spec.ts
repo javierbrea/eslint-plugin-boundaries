@@ -851,6 +851,38 @@ describe("Settings/Settings", () => {
         expect(result.elementsSingleMatch).toBe(true);
       });
 
+      it("falls back to a valid deprecated elements-single-type value when elements-single-match is invalid", () => {
+        const result = getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH]: "no",
+            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]: false,
+          })
+        );
+
+        expect(result.elementsSingleMatch).toBe(false);
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining(SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH),
+          expect.stringContaining("boolean")
+        );
+      });
+
+      it("warns about an invalid deprecated elements-single-type value even when elements-single-match is provided", () => {
+        const result = getSettings(
+          buildContext({
+            [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_MATCH]: true,
+            [SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE]: "no",
+          })
+        );
+
+        expect(result.elementsSingleMatch).toBe(true);
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.stringContaining(SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE),
+          expect.stringContaining("boolean")
+        );
+      });
+
       it("warns and falls back to defaults for non-boolean values", () => {
         const result = getSettings(
           buildContext({

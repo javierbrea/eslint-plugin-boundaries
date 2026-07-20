@@ -642,6 +642,39 @@ describe("ElementsDescriptor", () => {
         const result = descriptor.describeElement("shared/Button/index.ts");
 
         expect(result.types).toBeNull();
+        expect(result.category).toBe("shared");
+      });
+
+      it("should discard a previously accumulated category at main level when a matched descriptor has exclusive: true", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "shared/*/**/*::shared/Button/index.ts": ["Button"],
+          }),
+          makeRe: jest.fn().mockReturnValue(/^shared\/[^/]+$/),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "shared/*",
+            category: "legacy",
+          }),
+          createDescriptor({
+            pattern: "shared/*",
+            type: "exclusive-type",
+            exclusive: true,
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch,
+          false
+        );
+
+        const result = descriptor.describeElement("shared/Button/index.ts");
+
+        expect(result.types).toEqual(["exclusive-type"]);
+        expect(result.category).toBeNull();
       });
 
       it("should not accumulate types at main level when main matched with category only", () => {
@@ -1061,6 +1094,53 @@ describe("ElementsDescriptor", () => {
 
         expect(result.parents).toHaveLength(1);
         expect(result.parents[0].types).toBeNull();
+        expect(result.parents[0].category).toBe("feature");
+      });
+
+      it("should discard a previously accumulated category on a parent path when a matched descriptor has exclusive: true", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "components/*/**/*::components/Button/index.ts": [
+              "Button",
+              "",
+              "index.ts",
+            ],
+            "modules/*::modules/ui": ["ui"],
+          }),
+          makeRe: createMakeReLookup({
+            "components/*": /^components\/[^/]+$/,
+            "modules/*": /^modules\/[^/]+$/,
+          }),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "components/*",
+            type: "component",
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            category: "legacy",
+          }),
+          createDescriptor({
+            pattern: "modules/*",
+            type: "exclusive-feature",
+            exclusive: true,
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const result = descriptor.describeElement(
+          "modules/ui/components/Button/index.ts"
+        );
+
+        expect(result.parents).toHaveLength(1);
+        expect(result.parents[0].types).toEqual(["exclusive-feature"]);
+        expect(result.parents[0].category).toBeNull();
       });
 
       it("should merge captured values on a parent path when multiple descriptors match when singleType is false", () => {
