@@ -1,8 +1,6 @@
-[![Build status][build-image]][build-url] [![Coverage Status][coveralls-image]][coveralls-url] <!-- [![Quality Gate][quality-gate-image]][quality-gate-url] -->
+[![Build status][build-image]][build-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Quality Gate][quality-gate-image]][quality-gate-url] [![License][license-image]][license-url]
 
-[![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com) [![Last commit][last-commit-image]][last-commit-url] [![Last release][release-image]][release-url]
-
-[![NPM downloads][npm-downloads-image]][npm-downloads-url] [![License][license-image]][license-url]
+[![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com) [![Last commit][last-commit-image]][last-commit-url] [![Last release][release-image]][release-url] [![NPM downloads][npm-downloads-image]][npm-downloads-url]
 
 [coveralls-image]: https://coveralls.io/repos/github/javierbrea/eslint-plugin-boundaries/badge.svg
 [coveralls-url]: https://coveralls.io/github/javierbrea/eslint-plugin-boundaries
