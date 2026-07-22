@@ -12,14 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.event.release.tag_name, '-beta.') == false
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4.4.0
     - uses: ./.github/actions/install
     - run: pnpm check:all
     - run: pnpm -r publish --no-git-checks
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-    - uses: MerthinTechnologies/edit-json-action@v1
+    - uses: MerthinTechnologies/edit-json-action@v1.0.2
       with:
         filename: './packages/eslint-plugin/package.json'
         key: 'name'
@@ -33,14 +33,14 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.event.release.tag_name, '-beta.') == true
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4.4.0
     - uses: ./.github/actions/install
     - run: pnpm check:all
     - run: pnpm -r publish --no-git-checks --tag beta
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-    - uses: MerthinTechnologies/edit-json-action@v1
+    - uses: MerthinTechnologies/edit-json-action@v1.0.2
       with:
         filename: './packages/eslint-plugin/package.json'
         key: 'name'

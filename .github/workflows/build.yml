@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
       - uses: ./.github/actions/install
         with:
           node-version: 22.20.0
@@ -28,11 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
       - uses: ./.github/actions/install
         with:
           node-version: 22.20.0
-      - uses: gensecaihq/Shai-Hulud-2.0-Detector@v2
+      - uses: gensecaihq/Shai-Hulud-2.0-Detector@v2.1.0
         with:
           fail-on-critical: true
           fail-on-high: true
@@ -43,7 +43,7 @@ jobs:
         node: ["18.20.3", "20.13.1", "22.20.0"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
       - uses: ./.github/actions/install
         with:
           node-version: ${{ matrix.node }}
@@ -59,21 +59,21 @@ jobs:
         run: pnpm nx run-many --target=check:all --all --output-style=stream --parallel=1
       - name: Upload elements test results
         if: ${{ matrix.node == '22.20.0' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: elements-coverage
           path: packages/elements/coverage
           retention-days: 1
       - name: Upload eslint-plugin test results
         if: ${{ matrix.node == '22.20.0' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: eslint-plugin-coverage
           path: packages/eslint-plugin/coverage
           retention-days: 1
       - name: Upload elements build
         if: ${{ matrix.node == '22.20.0' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: elements-build
           path: packages/elements/dist
@@ -83,13 +83,13 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
       - uses: ./.github/actions/install
         with:
           node-version: "22.20.0"
           windows-fix-symlinks: "true"
       - name: Download elements build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.3.0
         with:
           name: elements-build
           path: packages/elements/dist
@@ -104,28 +104,28 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 0
       - name: Download elements test results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.3.0
         with:
           name: elements-coverage
           path: packages/elements/coverage
       - name: Download eslint-plugin test results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.3.0
         with:
           name: eslint-plugin-coverage
           path: packages/eslint-plugin/coverage
       - name: Coveralls for Elements
-        uses: coverallsapp/github-action@v2
+        uses: coverallsapp/github-action@v2.3.7
         continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ./packages/elements/coverage/lcov.info
           flag-name: elements
       - name: Coveralls for Eslint Plugin
-        uses: coverallsapp/github-action@v2
+        uses: coverallsapp/github-action@v2.3.7
         continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -133,7 +133,7 @@ jobs:
           flag-name: eslint-plugin
       - name: SonarCloud Scan - Elements
         if: env.SONAR_TOKEN_ELEMENTS != ''
-        uses: SonarSource/sonarqube-scan-action@v6
+        uses: SonarSource/sonarqube-scan-action@v6.0.0
         with:
           projectBaseDir: packages/elements
         env:
@@ -141,7 +141,7 @@ jobs:
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_ELEMENTS }}
       - name: SonarCloud Scan - Eslint Plugin
         if: env.SONAR_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@v6
+        uses: SonarSource/sonarqube-scan-action@v6.0.0
         with:
           projectBaseDir: packages/eslint-plugin
         env:
