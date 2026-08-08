@@ -401,6 +401,60 @@ describe("describeFile | Integration", () => {
     });
   });
 
+  describe("captured value order independence (regression for #479)", () => {
+    it("should keep captured values regardless of whether the capturing descriptor is declared before the non-capturing one", () => {
+      const elementsWithRoot = new Elements({ rootPath: "/repo" });
+      const matcherCapturingFirst = elementsWithRoot.getMatcher({
+        files: [
+          {
+            pattern: "src/*/index.ts",
+            category: "barrel",
+            capture: ["context"],
+          },
+          { pattern: "src/**/index.ts", category: "entry" },
+        ],
+      });
+
+      const file = matcherCapturingFirst.describeFile(
+        "/repo/src/storage/index.ts"
+      );
+
+      expect(file).toEqual(
+        expect.objectContaining({
+          categories: ["barrel", "entry"],
+          captured: { context: "storage" },
+          isUnknown: false,
+        })
+      );
+    });
+
+    it("should keep captured values when the non-capturing descriptor is declared before the capturing one", () => {
+      const elementsWithRoot = new Elements({ rootPath: "/repo" });
+      const matcherCapturingSecond = elementsWithRoot.getMatcher({
+        files: [
+          { pattern: "src/**/index.ts", category: "entry" },
+          {
+            pattern: "src/*/index.ts",
+            category: "barrel",
+            capture: ["context"],
+          },
+        ],
+      });
+
+      const file = matcherCapturingSecond.describeFile(
+        "/repo/src/storage/index.ts"
+      );
+
+      expect(file).toEqual(
+        expect.objectContaining({
+          categories: ["entry", "barrel"],
+          captured: { context: "storage" },
+          isUnknown: false,
+        })
+      );
+    });
+  });
+
   describe("isFileMatch", () => {
     // eslint-disable-next-line jest/prefer-ending-with-an-expect
     it.each([

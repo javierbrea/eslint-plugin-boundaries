@@ -253,12 +253,12 @@ export class FilesDescriptor {
           ? [...fileResult.categories, fileDescriptor.category]
           : [fileDescriptor.category];
 
-        fileResult.captured = isObject(capturedValues)
-          ? {
-              ...fileResult.captured,
-              ...capturedValues,
-            }
-          : capturedValues;
+        if (isObject(capturedValues)) {
+          fileResult.captured = {
+            ...fileResult.captured,
+            ...capturedValues,
+          };
+        }
       }
 
       fileResult.isUnknown = false;
