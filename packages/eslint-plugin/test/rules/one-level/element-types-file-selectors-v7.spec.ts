@@ -134,37 +134,27 @@ const captureSettingsNoBasePattern: RuleTesterSettings = {
   ],
 } as RuleTesterSettings;
 
-// Same captured values as `captureSettings`, but with a trailing catch-all descriptor that has no
-// `capture` config. A file matches both its capturing descriptor and this catch-all, so it proves a
-// later-matching, non-capturing descriptor no longer wipes out `file.captured` (regression coverage
-// for https://github.com/javierbrea/eslint-plugin-boundaries/issues/479).
+// A capturing `boundaries/files` descriptor followed by a same-category, non-capturing catch-all
+// that also matches every component file. Both descriptors share the "components" category so the
+// catch-all does not change `file.categories` (unlike a distinct extra category would, which shifts
+// the rendered "category"/"categories" message text regardless of the captured-values bug). Built
+// WITHOUT `basePattern` on the capturing descriptor: a `basePattern` match stops the matching loop
+// immediately (legacy mode, see FileDescriptor.ts), which would make the catch-all never even run.
 const captureSettingsWithTrailingNonCapturingDescriptor: RuleTesterSettings = {
   ...SETTINGS.oneLevel,
   "boundaries/elements": [
-    { type: "helpers", pattern: "helpers/*", capture: ["elementName"] },
     { type: "components", pattern: ["components/*"], capture: ["elementName"] },
-    { type: "modules", pattern: "modules/*", capture: ["elementName"] },
   ],
   "boundaries/files": [
     {
-      category: "helpers",
-      pattern: "helpers/*/*.js",
-      basePattern: "**",
-      capture: ["elementName", "fileName"],
-    },
-    {
       category: "components",
-      pattern: "components/*/*.js",
-      basePattern: "**",
-      capture: ["elementName", "fileName"],
+      // 3 wildcards (**, *, *): the leading `**` is left unnamed (skipped) so `elementName` binds
+      // to the component directory name, not the `**` path prefix; the trailing filename wildcard
+      // is left uncaptured by omitting it from the array.
+      pattern: "**/components/*/*.js",
+      capture: ["", "elementName"],
     },
-    {
-      category: "modules",
-      pattern: "modules/*/*.js",
-      basePattern: "**",
-      capture: ["elementName", "fileName"],
-    },
-    { category: "js", pattern: "**/*.js" },
+    { category: "components", pattern: "**/*.js" },
   ],
 } as RuleTesterSettings;
 
@@ -1026,73 +1016,68 @@ testFileCaptured(
   {}
 );
 
-// file.captured in FROM selector, with a trailing non-capturing catch-all descriptor also matching
-// every file. Same scenario and expectations as the previous block: proves that a later-matching,
-// non-capturing descriptor does not wipe out the captured values already accumulated for the file
-// (regression coverage for https://github.com/javierbrea/eslint-plugin-boundaries/issues/479).
+// file.captured in FROM selector, where a same-category, non-capturing catch-all descriptor also
+// matches the file after the capturing one. Only "component-a" files may import other components;
+// every other component may not. Checked by error count rather than exact message text, since this
+// scenario deliberately differs from `captureSettings`/`captureSettingsNoBasePattern` (a distinct
+// "js" catch-all category would itself change the rendered "category"/"categories" text, which is
+// not what this regression is about). Proves that a later-matching, non-capturing descriptor does not
+// wipe out the captured values already accumulated for the file (regression coverage for
+// https://github.com/javierbrea/eslint-plugin-boundaries/issues/479).
 
-testFileCaptured(
-  captureSettingsWithTrailingNonCapturingDescriptor,
-  [
-    {
-      default: "disallow",
-      policies: [
-        {
-          from: {
-            file: {
-              categories: "components",
-              captured: { elementName: "component-a" },
-            },
-          },
-          allow: {
-            to: [
+createRuleTester(captureSettingsWithTrailingNonCapturingDescriptor).run(
+  `${RULE} file.captured merged past a same-category non-capturing descriptor`,
+  rule,
+  {
+    valid: [
+      // component-a's captured elementName is preserved, so it may import other components.
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import ComponentB from '../component-b'",
+        options: [
+          {
+            default: "disallow",
+            policies: [
               {
-                file: {
-                  categories: "helpers",
-                  captured: { elementName: "helper-a" },
+                from: {
+                  file: {
+                    categories: "components",
+                    captured: { elementName: "component-a" },
+                  },
                 },
-              },
-              { file: { categories: "components" } },
-            ],
-          },
-        },
-        {
-          from: {
-            file: {
-              categories: "components",
-              captured: { elementName: "!component-a" },
-            },
-          },
-          allow: {
-            to: [
-              {
-                file: {
-                  categories: "helpers",
-                  captured: { elementName: "helper-a" },
-                },
+                allow: { to: [{ file: { categories: "components" } }] },
               },
             ],
           },
-        },
-        {
-          from: { file: { categories: "modules" } },
-          allow: {
-            to: [
+        ],
+      },
+    ],
+    invalid: [
+      // component-b's captured elementName is preserved (as "component-b", not wiped to null), so
+      // it does not match the "component-a" selector and the import is correctly disallowed.
+      {
+        filename: absoluteFilePath("components/component-b/ComponentB.js"),
+        code: "import ComponentA from '../component-a'",
+        options: [
+          {
+            default: "disallow",
+            policies: [
               {
-                file: {
-                  categories: "helpers",
-                  captured: { elementName: "helper-a" },
+                from: {
+                  file: {
+                    categories: "components",
+                    captured: { elementName: "component-a" },
+                  },
                 },
+                allow: { to: [{ file: { categories: "components" } }] },
               },
-              { file: { categories: "components" } },
-              { file: { categories: "modules" } },
             ],
           },
-        },
-      ],
-    },
-  ],
-  {}
+        ],
+        errors: 1,
+      },
+    ],
+  }
 );
 
 // Object selector properties for file descriptors with captures
