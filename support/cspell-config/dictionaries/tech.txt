@@ -1,5 +1,7 @@
 BRDA
 coverallsapp
+dogfood
+dogfoods
 GHSA
 Diátaxis
 Infima
