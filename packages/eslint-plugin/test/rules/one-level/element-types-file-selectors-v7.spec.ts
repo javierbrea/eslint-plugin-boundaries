@@ -134,6 +134,40 @@ const captureSettingsNoBasePattern: RuleTesterSettings = {
   ],
 } as RuleTesterSettings;
 
+// Same captured values as `captureSettings`, but with a trailing catch-all descriptor that has no
+// `capture` config. A file matches both its capturing descriptor and this catch-all, so it proves a
+// later-matching, non-capturing descriptor no longer wipes out `file.captured` (regression coverage
+// for https://github.com/javierbrea/eslint-plugin-boundaries/issues/479).
+const captureSettingsWithTrailingNonCapturingDescriptor: RuleTesterSettings = {
+  ...SETTINGS.oneLevel,
+  "boundaries/elements": [
+    { type: "helpers", pattern: "helpers/*", capture: ["elementName"] },
+    { type: "components", pattern: ["components/*"], capture: ["elementName"] },
+    { type: "modules", pattern: "modules/*", capture: ["elementName"] },
+  ],
+  "boundaries/files": [
+    {
+      category: "helpers",
+      pattern: "helpers/*/*.js",
+      basePattern: "**",
+      capture: ["elementName", "fileName"],
+    },
+    {
+      category: "components",
+      pattern: "components/*/*.js",
+      basePattern: "**",
+      capture: ["elementName", "fileName"],
+    },
+    {
+      category: "modules",
+      pattern: "modules/*/*.js",
+      basePattern: "**",
+      capture: ["elementName", "fileName"],
+    },
+    { category: "js", pattern: "**/*.js" },
+  ],
+} as RuleTesterSettings;
+
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
@@ -930,6 +964,75 @@ testFileCaptured(
 
 testFileCaptured(
   captureSettings,
+  [
+    {
+      default: "disallow",
+      policies: [
+        {
+          from: {
+            file: {
+              categories: "components",
+              captured: { elementName: "component-a" },
+            },
+          },
+          allow: {
+            to: [
+              {
+                file: {
+                  categories: "helpers",
+                  captured: { elementName: "helper-a" },
+                },
+              },
+              { file: { categories: "components" } },
+            ],
+          },
+        },
+        {
+          from: {
+            file: {
+              categories: "components",
+              captured: { elementName: "!component-a" },
+            },
+          },
+          allow: {
+            to: [
+              {
+                file: {
+                  categories: "helpers",
+                  captured: { elementName: "helper-a" },
+                },
+              },
+            ],
+          },
+        },
+        {
+          from: { file: { categories: "modules" } },
+          allow: {
+            to: [
+              {
+                file: {
+                  categories: "helpers",
+                  captured: { elementName: "helper-a" },
+                },
+              },
+              { file: { categories: "components" } },
+              { file: { categories: "modules" } },
+            ],
+          },
+        },
+      ],
+    },
+  ],
+  {}
+);
+
+// file.captured in FROM selector, with a trailing non-capturing catch-all descriptor also matching
+// every file. Same scenario and expectations as the previous block: proves that a later-matching,
+// non-capturing descriptor does not wipe out the captured values already accumulated for the file
+// (regression coverage for https://github.com/javierbrea/eslint-plugin-boundaries/issues/479).
+
+testFileCaptured(
+  captureSettingsWithTrailingNonCapturingDescriptor,
   [
     {
       default: "disallow",

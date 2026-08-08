@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [unreleased]
+
+### Fixed
+
+- fix(#479): A matching file descriptor without `capture` no longer resets `file.captured`. Captured values are now merged from every matching file descriptor regardless of declaration order, matching the element descriptor behavior. `exclusive` descriptors still reset captured values.
+
 ## [3.1.0] - 2026-07-20
 
 ### Added
