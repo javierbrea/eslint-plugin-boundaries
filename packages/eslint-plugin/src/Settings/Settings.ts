@@ -456,7 +456,7 @@ function getNormalizedElementDescriptors(
     if (validElementDescriptors.some((d) => d.mode !== undefined)) {
       warnOnce(
         `The 'mode' option in element descriptors is deprecated and will be removed in a future major version.`,
-        `Use 'partialMatch: false' instead of 'mode: "full"'. Remove 'mode: "folder"' (it is the default). ${migrationToV7GuideLink()}`
+        `Use 'partialMatch: false' instead of 'mode: "full"'. Remove 'mode: "folder"' (it is the default). ${migrationToV7GuideLink("deprecated-mode-in-element-descriptors")}`
       );
       legacyDetected = true;
     }

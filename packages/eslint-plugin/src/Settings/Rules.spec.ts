@@ -260,10 +260,14 @@ describe("Settings/Rules", () => {
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
-        expect.stringContaining("legacy selector syntax"),
-        expect.stringContaining("object-based selectors")
+        expect.stringContaining("legacy string element selectors"),
+        expect.stringContaining(
+          "migration-guides/v5-to-v6/#object-based-elements-selector-syntax"
+        )
       );
-      expect(mockedWarnOnce.mock.calls[0][0]).toContain("indices: 0");
+      expect(mockedWarnOnce.mock.calls[0][0]).toContain(
+        "1 policy at indices: 0"
+      );
     });
 
     it("warns about legacy tuple selector syntax in `from`", () => {
@@ -280,8 +284,10 @@ describe("Settings/Rules", () => {
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
-        expect.stringContaining("legacy selector syntax"),
-        expect.any(String)
+        expect.stringContaining("legacy tuple element selectors"),
+        expect.stringContaining(
+          "migration-guides/v5-to-v6/#object-based-elements-selector-syntax"
+        )
       );
     });
 
@@ -299,12 +305,12 @@ describe("Settings/Rules", () => {
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
-        expect.stringContaining("legacy selector syntax"),
+        expect.stringContaining("legacy string element selectors"),
         expect.any(String)
       );
     });
 
-    it("warns about an array of legacy tuple selectors", () => {
+    it("warns about an array mixing legacy tuple and string selectors", () => {
       const options = {
         policies: [
           {
@@ -316,11 +322,16 @@ describe("Settings/Rules", () => {
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
-      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
-      expect(mockedWarnOnce).toHaveBeenCalledWith(
-        expect.stringContaining("legacy selector syntax"),
-        expect.any(String)
-      );
+      // The array contains both a tuple entry and a bare string entry, so both
+      // kind-specific warnings fire for the same policy index.
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(2);
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes("legacy tuple element selectors"))
+      ).toBe(true);
+      expect(
+        messages.some((m) => m.includes("legacy string element selectors"))
+      ).toBe(true);
     });
 
     it("detects legacy string selector in `allow` for the dependencies rule", () => {
@@ -328,21 +339,28 @@ describe("Settings/Rules", () => {
         policies: [
           {
             from: modernFrom,
-            allow: ["helpers"],
+            // A bare (non-array) string, as opposed to `["helpers"]`: a
+            // single-item array is itself a distinct legacy tuple form (see
+            // the dedicated test below), so this isolates the string kind.
+            allow: "helpers",
           } as unknown as RuleOptionsPolicies,
         ],
       } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
-      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
-      expect(mockedWarnOnce).toHaveBeenCalledWith(
-        expect.stringContaining("legacy selector syntax"),
-        expect.any(String)
-      );
+      // A bare string in `allow` is both a legacy string selector and missing
+      // the `to` wrapper, so both warnings fire.
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes("legacy string element selectors"))
+      ).toBe(true);
+      expect(
+        messages.some((m) => m.includes('without a "from"/"to" wrapper'))
+      ).toBe(true);
     });
 
-    it("detects legacy selector in `disallow` for the element-types rule", () => {
+    it("detects a legacy single-item array selector in `disallow` for the element-types rule", () => {
       const options = {
         policies: [
           {
@@ -354,11 +372,19 @@ describe("Settings/Rules", () => {
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ELEMENT_TYPES, true);
 
-      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
-      expect(mockedWarnOnce).toHaveBeenCalledWith(
-        expect.stringContaining("legacy selector syntax"),
-        expect.any(String)
-      );
+      // `["helpers"]` is the most common v5 shape. The tuple classification is
+      // gated on the two-item form, so a single-item array falls through to
+      // array recursion and is reported as a string selector instead — its
+      // message and anchor fit it exactly, unlike the tuple example, which
+      // shows captured values the user never wrote. It is also missing the
+      // `to` wrapper.
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes("legacy string element selectors"))
+      ).toBe(true);
+      expect(
+        messages.some((m) => m.includes('without a "from"/"to" wrapper'))
+      ).toBe(true);
     });
 
     it("detects legacy string selector in `target` for the entry-point rule", () => {
@@ -373,9 +399,11 @@ describe("Settings/Rules", () => {
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ENTRY_POINT, true);
 
+      // `entry-point` is not in the entity-allow/disallow rule set, so only the
+      // `target` field is scanned and no wrapper warning applies.
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
-        expect.stringContaining("legacy selector syntax"),
+        expect.stringContaining("legacy string element selectors"),
         expect.any(String)
       );
     });
@@ -394,8 +422,10 @@ describe("Settings/Rules", () => {
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
-        expect.stringContaining("legacy selector syntax"),
-        expect.stringContaining("object-based selectors")
+        expect.stringContaining(
+          "element selectors used directly as entity selectors"
+        ),
+        expect.stringContaining("migration-guides/v6-to-v7/#entity-selectors")
       );
       expect(mockedWarnOnce.mock.calls[0][0]).toContain("indices: 0");
     });
@@ -412,10 +442,107 @@ describe("Settings/Rules", () => {
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ELEMENT_TYPES, true);
 
+      // An unwrapped element selector in `allow` is both a flat-element legacy
+      // selector and missing the `to` wrapper, so both warnings fire.
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) =>
+          m.includes("element selectors used directly as entity selectors")
+        )
+      ).toBe(true);
+      expect(
+        messages.some((m) => m.includes('without a "from"/"to" wrapper'))
+      ).toBe(true);
+    });
+
+    it("warns only about the missing wrapper when `allow` uses a modern element selector without `to`", () => {
+      const options = {
+        policies: [
+          {
+            from: modernFrom,
+            allow: [{ element: { type: "helper" } }],
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+
+      // { element: { type: "helper" } } is a modern entity selector, so it is
+      // not a legacy selector kind — only the missing-wrapper warning applies.
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
-        expect.stringContaining("legacy selector syntax"),
-        expect.any(String)
+        expect.stringContaining('without a "from"/"to" wrapper'),
+        // cspell:ignore allowdisallow -- documentation anchor for the deprecated bare allow/disallow selector
+        expect.stringContaining(
+          "migration-guides/v5-to-v6/#to-property-in-allowdisallow-rules-is-now-required"
+        )
+      );
+    });
+
+    it("does NOT warn when `allow` entries are properly wrapped entity selectors", () => {
+      const options = {
+        policies: [
+          {
+            from: modernFrom,
+            allow: [{ to: { element: { type: "helper" } } }],
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+
+      expect(mockedWarnOnce).not.toHaveBeenCalled();
+    });
+
+    it("warns about both the string kind and the flat-element kind for a mixed `from` array", () => {
+      const options = {
+        policies: [
+          {
+            // A 2-item array whose second entry has a non-string-only shape is
+            // NOT reinterpreted as a `[type, captured]` tuple (unlike
+            // `["helper", { type: "component" }]`, which the underlying
+            // `@boundaries/elements` guard treats as a tuple since a plain
+            // `{ type: "..." }` also satisfies the captured-values shape), so
+            // each array entry is classified independently.
+            from: ["helper", { type: "component", parent: { type: "x" } }],
+            to: modernTo,
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(2);
+      const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
+      expect(
+        messages.some((m) => m.includes("legacy string element selectors"))
+      ).toBe(true);
+      expect(
+        messages.some((m) =>
+          m.includes("element selectors used directly as entity selectors")
+        )
+      ).toBe(true);
+    });
+
+    it("falls back to the generic legacy-selector warning for an unclassified hybrid selector", () => {
+      const options = {
+        policies: [
+          {
+            from: { element: { type: "a" }, type: "b" },
+            to: modernTo,
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+
+      // The gate detects legacy syntax (the top-level `type` makes it a legacy
+      // element selector), but it matches none of the specific kinds since it
+      // is also a valid modern entity selector (has an `element` key).
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("Detected legacy selector syntax"),
+        expect.stringContaining("migration-guides/v6-to-v7/#entity-selectors")
       );
     });
 
@@ -548,13 +675,21 @@ describe("Settings/Rules", () => {
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
-      // A legacy string array in `allow` is also a legacy selector, so it
-      // additionally triggers the legacy-selector warning; assert the template
-      // warning is present among the emitted warnings.
+      // A single-entry array in `allow` is also a legacy string selector (the
+      // one-item array form falls through to array recursion rather than
+      // being classified as a tuple) and is missing the `to` wrapper, so both
+      // additionally fire alongside the template warning.
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
       expect(
         messages.some((m) => m.includes("legacy template syntax ${...}"))
       ).toBe(true);
+      expect(
+        messages.some((m) => m.includes("legacy string element selectors"))
+      ).toBe(true);
+      expect(
+        messages.some((m) => m.includes('without a "from"/"to" wrapper'))
+      ).toBe(true);
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(3);
     });
 
     it("detects legacy template syntax in `disallow` for the element-types rule", () => {
@@ -1096,7 +1231,7 @@ describe("Settings/Rules", () => {
   });
 
   describe("validateAndWarnRuleOptions invalid selector shapes", () => {
-    it("warns once when a 'dependencies' policy has an unrecognized 'from' shape", () => {
+    it("warns once when a 'dependencies' policy has an unrecognized 'from' shape, naming only that property", () => {
       const options = {
         policies: [
           {
@@ -1108,6 +1243,47 @@ describe("Settings/Rules", () => {
       } as unknown as RuleOptionsWithPolicies;
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("unrecognized selector shape"),
+        "Check the 'from' property. More info: https://www.jsboundaries.dev/docs/rules/dependencies/"
+      );
+    });
+
+    it("names every invalid property, in a fixed order, when several are unrecognized", () => {
+      const options = {
+        policies: [
+          {
+            from: { notAnEntitySelectorKey: true },
+            allow: { notAValidTarget: true },
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.stringContaining("Check the 'from' and 'allow' properties.")
+      );
+    });
+
+    it("does not also warn about a missing wrapper when 'allow' has an unrecognized shape", () => {
+      const options = {
+        policies: [
+          {
+            from: { element: { type: "a" } },
+            allow: { notAValidTarget: true },
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      // legacyWarnings: true also runs the wrapper check, which would
+      // otherwise fire on top of the invalid-shape warning for the same
+      // malformed value, with a suggested fix that does not apply to it.
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
       expect(mockedWarnOnce).toHaveBeenCalledWith(
