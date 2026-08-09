@@ -1087,8 +1087,8 @@ describe("Dependencies", () => {
 
       const selector = fn.mock
         .calls[0][1] as DependencySingleSelectorNormalized;
-      expect(selector.from).toBeDefined();
-      expect(selector.to).toBeDefined();
+      expect(selector.from).toEqual([{ element: [{ type: "component" }] }]);
+      expect(selector.to).toEqual([{ element: [{ type: "helper" }] }]);
     });
 
     it("treats legacy string entry as the 'from' selector when outer to is present and outer from is absent", () => {
@@ -1110,8 +1110,8 @@ describe("Dependencies", () => {
 
       const selector = fn.mock
         .calls[0][1] as DependencySingleSelectorNormalized;
-      expect(selector.from).toBeDefined();
-      expect(selector.to).toBeDefined();
+      expect(selector.from).toEqual([{ element: [{ type: "component" }] }]);
+      expect(selector.to).toEqual([{ element: [{ type: "helper" }] }]);
     });
 
     it("treats a bare entry as the 'to' selector when neither outer from nor outer to is present", () => {
@@ -1135,8 +1135,12 @@ describe("Dependencies", () => {
 
       const selector = fn.mock
         .calls[0][1] as DependencySingleSelectorNormalized;
-      expect(selector.to).toBeDefined();
-      expect(selector.from).toBeUndefined();
+      expect(selector.to).toEqual([{ element: [{ type: "shared" }] }]);
+      // `toBeUndefined()` would also pass on a present-but-`undefined` `from`,
+      // which is exactly the shape `@boundaries/elements` rejects as invalid
+      // (see the comment in `buildEntrySelector`) — assert it is absent
+      // entirely instead.
+      expect("from" in selector).toBe(false);
     });
 
     it("applies legacy importKind by adding kind to entry dependency selectors", () => {

@@ -372,11 +372,15 @@ describe("Settings/Rules", () => {
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.ELEMENT_TYPES, true);
 
-      // `["helpers"]` is kept as a legacy tuple form (options-less `[type]`),
-      // and is also missing the `to` wrapper.
+      // `["helpers"]` is the most common v5 shape. The tuple classification is
+      // gated on the two-item form, so a single-item array falls through to
+      // array recursion and is reported as a string selector instead — its
+      // message and anchor fit it exactly, unlike the tuple example, which
+      // shows captured values the user never wrote. It is also missing the
+      // `to` wrapper.
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
       expect(
-        messages.some((m) => m.includes("legacy tuple element selectors"))
+        messages.some((m) => m.includes("legacy string element selectors"))
       ).toBe(true);
       expect(
         messages.some((m) => m.includes('without a "from"/"to" wrapper'))
@@ -671,15 +675,16 @@ describe("Settings/Rules", () => {
 
       validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
-      // A single-entry array in `allow` is also a legacy tuple selector (kept
-      // for backward compatibility with `["type"]`) and is missing the `to`
-      // wrapper, so both additionally fire alongside the template warning.
+      // A single-entry array in `allow` is also a legacy string selector (the
+      // one-item array form falls through to array recursion rather than
+      // being classified as a tuple) and is missing the `to` wrapper, so both
+      // additionally fire alongside the template warning.
       const messages = mockedWarnOnce.mock.calls.map((call) => call[0]);
       expect(
         messages.some((m) => m.includes("legacy template syntax ${...}"))
       ).toBe(true);
       expect(
-        messages.some((m) => m.includes("legacy tuple element selectors"))
+        messages.some((m) => m.includes("legacy string element selectors"))
       ).toBe(true);
       expect(
         messages.some((m) => m.includes('without a "from"/"to" wrapper'))
@@ -1262,6 +1267,28 @@ describe("Settings/Rules", () => {
       expect(mockedWarnOnce).toHaveBeenCalledWith(
         expect.any(String),
         expect.stringContaining("Check the 'from' and 'allow' properties.")
+      );
+    });
+
+    it("does not also warn about a missing wrapper when 'allow' has an unrecognized shape", () => {
+      const options = {
+        policies: [
+          {
+            from: { element: { type: "a" } },
+            allow: { notAValidTarget: true },
+          } as unknown as RuleOptionsPolicies,
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      // legacyWarnings: true also runs the wrapper check, which would
+      // otherwise fire on top of the invalid-shape warning for the same
+      // malformed value, with a suggested fix that does not apply to it.
+      validateAndWarnRuleOptions(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+
+      expect(mockedWarnOnce).toHaveBeenCalledTimes(1);
+      expect(mockedWarnOnce).toHaveBeenCalledWith(
+        expect.stringContaining("unrecognized selector shape"),
+        expect.any(String)
       );
     });
 

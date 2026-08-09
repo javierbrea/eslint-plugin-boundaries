@@ -788,10 +788,9 @@ function collectRulesWithInvalidSelectors(
  */
 function joinQuotedPropertyNames(properties: string[]): string {
   const quoted = properties.map((property) => `'${property}'`);
-  if (quoted.length === 1) {
-    return quoted[0];
-  }
-  return `${quoted.slice(0, -1).join(", ")} and ${quoted[quoted.length - 1]}`;
+  const last = quoted.slice(-1).join("");
+  const rest = quoted.slice(0, -1);
+  return rest.length === 0 ? last : `${rest.join(", ")} and ${last}`;
 }
 
 /**
@@ -1016,7 +1015,11 @@ function collectLegacySelectorKinds(
   value: unknown,
   kinds: Set<LegacySelectorKind>
 ): void {
-  if (isLegacySimpleElementSingleSelectorByTypeWithOptions(value)) {
+  if (
+    isArray(value) &&
+    value.length === 2 &&
+    isLegacySimpleElementSingleSelectorByTypeWithOptions(value)
+  ) {
     kinds.add(LEGACY_SELECTOR_KINDS_MAP.TUPLE);
     return;
   }
@@ -1065,7 +1068,9 @@ function hasUnwrappedPolicyTargetEntry(value: unknown): boolean {
   if (isArray(value)) {
     return value.some(hasUnwrappedPolicyTargetEntry);
   }
-  return !isBaseDependencySingleSelector(value);
+  return (
+    isValidPolicyTargetValue(value) && !isBaseDependencySingleSelector(value)
+  );
 }
 
 /**
@@ -1107,6 +1112,100 @@ function policyNoun(count: number): string {
 }
 
 /**
+ * Classifies a single rule's legacy selector kinds into `indexes`, at `index`, including the
+ * "unclassified" fallback when the rule has legacy selector syntax that could not be assigned
+ * to any specific kind.
+ *
+ * @param rule - Single rule entry to inspect.
+ * @param ruleName - The full rule name, used to decide whether `allow`/`disallow` should be scanned.
+ * @param index - The rule's index within its `policies` array.
+ * @param indexes - Accumulator mutated in place with the matched indices.
+ */
+function pushLegacySelectorKindIndexes(
+  rule: RuleOptionsPolicies,
+  ruleName: RuleName,
+  index: number,
+  indexes: RuleWarningIndexes
+): void {
+  if (!ruleHasLegacySelectorSyntax(rule, ruleName)) {
+    return;
+  }
+
+  const kinds = ruleLegacySelectorKinds(rule, ruleName);
+
+  if (kinds.has(LEGACY_SELECTOR_KINDS_MAP.STRING)) {
+    indexes.rulesWithLegacyStringSelector.push(index);
+  }
+  if (kinds.has(LEGACY_SELECTOR_KINDS_MAP.TUPLE)) {
+    indexes.rulesWithLegacyTupleSelector.push(index);
+  }
+  if (kinds.has(LEGACY_SELECTOR_KINDS_MAP.FLAT_ELEMENT)) {
+    indexes.rulesWithLegacyFlatElementSelector.push(index);
+  }
+  if (kinds.size === 0) {
+    indexes.rulesWithUnclassifiedLegacySelector.push(index);
+  }
+}
+
+/**
+ * Determines whether a rule's `dependency` selector uses the deprecated `dependency.module`
+ * property.
+ *
+ * @param rule - Single rule entry to inspect.
+ * @returns True if the rule's `dependency` selector uses `dependency.module`, false otherwise.
+ */
+function ruleHasDeprecatedDependencyModule(rule: RuleOptionsPolicies): boolean {
+  const ruleRecord = rule as unknown as Record<string, unknown>;
+  return (
+    !isUndefined(ruleRecord["dependency"]) &&
+    hasDeprecatedDependencyModuleProp(ruleRecord["dependency"])
+  );
+}
+
+/**
+ * Single-rule deprecation detectors evaluated for every rule, keyed by the
+ * {@link RuleWarningIndexes} bucket their matches are collected into.
+ */
+const RULE_WARNING_DETECTORS: {
+  key: keyof Omit<
+    RuleWarningIndexes,
+    | "rulesWithLegacyStringSelector"
+    | "rulesWithLegacyTupleSelector"
+    | "rulesWithLegacyFlatElementSelector"
+    | "rulesWithUnclassifiedLegacySelector"
+  >;
+  matches: (rule: RuleOptionsPolicies, ruleName: RuleName) => boolean;
+}[] = [
+  {
+    key: "rulesWithUnwrappedPolicyTarget",
+    matches: ruleHasUnwrappedPolicyTarget,
+  },
+  { key: "rulesWithLegacyTemplate", matches: ruleHasLegacyTemplateSyntax },
+  {
+    key: "rulesWithDeprecatedImportKind",
+    matches: (rule) => !isUndefined(rule.importKind),
+  },
+  {
+    key: "rulesWithDeprecatedV7SelectorProps",
+    matches: (rule, ruleName) =>
+      ruleSelectorFieldMatches(rule, ruleName, hasDeprecatedV7SelectorProp),
+  },
+  {
+    key: "rulesWithDeprecatedDependencyModule",
+    matches: (rule) => ruleHasDeprecatedDependencyModule(rule),
+  },
+  {
+    key: "rulesWithDeprecatedInternalPath",
+    matches: (rule, ruleName) =>
+      ruleSelectorFieldMatches(
+        rule,
+        ruleName,
+        entitySelectorHasDeprecatedInternalPath
+      ),
+  },
+];
+
+/**
  * Collects indices of rules using deprecated selector/template/importKind syntax.
  *
  * @param rules - Rule list to inspect.
@@ -1131,59 +1230,81 @@ export function collectRuleWarningIndexes(
   };
 
   for (const [index, rule] of rules.entries()) {
-    if (ruleHasLegacySelectorSyntax(rule, ruleName)) {
-      const kinds = ruleLegacySelectorKinds(rule, ruleName);
+    pushLegacySelectorKindIndexes(rule, ruleName, index, indexes);
 
-      if (kinds.has(LEGACY_SELECTOR_KINDS_MAP.STRING)) {
-        indexes.rulesWithLegacyStringSelector.push(index);
+    for (const { key, matches } of RULE_WARNING_DETECTORS) {
+      if (matches(rule, ruleName)) {
+        indexes[key].push(index);
       }
-      if (kinds.has(LEGACY_SELECTOR_KINDS_MAP.TUPLE)) {
-        indexes.rulesWithLegacyTupleSelector.push(index);
-      }
-      if (kinds.has(LEGACY_SELECTOR_KINDS_MAP.FLAT_ELEMENT)) {
-        indexes.rulesWithLegacyFlatElementSelector.push(index);
-      }
-      if (kinds.size === 0) {
-        indexes.rulesWithUnclassifiedLegacySelector.push(index);
-      }
-    }
-
-    if (ruleHasUnwrappedPolicyTarget(rule, ruleName)) {
-      indexes.rulesWithUnwrappedPolicyTarget.push(index);
-    }
-
-    if (ruleHasLegacyTemplateSyntax(rule, ruleName)) {
-      indexes.rulesWithLegacyTemplate.push(index);
-    }
-
-    if (!isUndefined(rule.importKind)) {
-      indexes.rulesWithDeprecatedImportKind.push(index);
-    }
-
-    if (ruleSelectorFieldMatches(rule, ruleName, hasDeprecatedV7SelectorProp)) {
-      indexes.rulesWithDeprecatedV7SelectorProps.push(index);
-    }
-
-    const ruleRecord = rule as unknown as Record<string, unknown>;
-    if (
-      !isUndefined(ruleRecord["dependency"]) &&
-      hasDeprecatedDependencyModuleProp(ruleRecord["dependency"])
-    ) {
-      indexes.rulesWithDeprecatedDependencyModule.push(index);
-    }
-
-    if (
-      ruleSelectorFieldMatches(
-        rule,
-        ruleName,
-        entitySelectorHasDeprecatedInternalPath
-      )
-    ) {
-      indexes.rulesWithDeprecatedInternalPath.push(index);
     }
   }
 
   return indexes;
+}
+
+/**
+ * Warns once, for `dependencies`/`element-types` rules, when one or more policy entries have a
+ * `from`/`to`/`dependency`/`allow`/`disallow` value that does not match any shape recognized by
+ * the `@boundaries/elements` type guards.
+ *
+ * @param policies - The rule's `policies` (or `rules`) entries to inspect.
+ * @param ruleName - Rule name displayed in the warning message, and used to decide whether this
+ * rule supports `allow`/`disallow`.
+ */
+function warnAboutInvalidSelectorShapes(
+  policies: RuleOptionsPolicies[],
+  ruleName: RuleName
+): void {
+  if (!RULE_NAMES_WITH_ENTITY_ALLOW_DISALLOW.has(ruleName)) {
+    return;
+  }
+
+  const { indexes: invalidIndexes, properties: invalidProperties } =
+    collectRulesWithInvalidSelectors(policies);
+  if (invalidIndexes.length === 0) {
+    return;
+  }
+
+  const orderedInvalidProperties = INVALID_SELECTOR_PROPERTIES.filter(
+    (property) => invalidProperties.has(property)
+  );
+  const propertyNoun =
+    orderedInvalidProperties.length === 1 ? "property" : "properties";
+  warnOnce(
+    `[${ruleName}] Detected an unrecognized selector shape in ${
+      invalidIndexes.length
+    } ${policyNoun(invalidIndexes.length)} at indices: ${invalidIndexes.join(", ")}.`,
+    `Check the ${joinQuotedPropertyNames(orderedInvalidProperties)} ${propertyNoun}. ${moreInfoLink(getRuleDocsPath(ruleName))}`
+  );
+}
+
+/**
+ * Warns once when the deprecated `rules` option alias is used instead of `policies`, with a
+ * different message depending on whether `policies` is also defined (in which case `rules` is
+ * ignored entirely).
+ *
+ * @param options - Rule options possibly containing the deprecated `rules` alias.
+ * @param ruleName - Rule name displayed in the warning message.
+ */
+function warnAboutDeprecatedRulesOption(
+  options: RuleOptionsWithPolicies,
+  ruleName: RuleName
+): void {
+  if (!options.rules) {
+    return;
+  }
+
+  if (options.policies) {
+    warnOnce(
+      `[${ruleName}] The 'rules' option is deprecated and will be ignored because 'policies' is also defined.`,
+      `You can safely remove the 'rules' option. ${migrationToV7GuideLink("rules-option-renamed-to-policies")}`
+    );
+  } else {
+    warnOnce(
+      `[${ruleName}] The 'rules' option is deprecated.`,
+      `Please use 'policies' instead. ${migrationToV7GuideLink("rules-option-renamed-to-policies")}`
+    );
+  }
 }
 
 /**
@@ -1210,41 +1331,13 @@ export function validateAndWarnRuleOptions(
 
   trackedWarnedRuleOptions.add(options);
 
-  if (RULE_NAMES_WITH_ENTITY_ALLOW_DISALLOW.has(ruleName)) {
-    const { indexes: invalidIndexes, properties: invalidProperties } =
-      collectRulesWithInvalidSelectors(policies);
-    if (invalidIndexes.length > 0) {
-      const orderedInvalidProperties = INVALID_SELECTOR_PROPERTIES.filter(
-        (property) => invalidProperties.has(property)
-      );
-      const propertyNoun =
-        orderedInvalidProperties.length === 1 ? "property" : "properties";
-      warnOnce(
-        `[${ruleName}] Detected an unrecognized selector shape in ${
-          invalidIndexes.length
-        } ${policyNoun(invalidIndexes.length)} at indices: ${invalidIndexes.join(", ")}.`,
-        `Check the ${joinQuotedPropertyNames(orderedInvalidProperties)} ${propertyNoun}. ${moreInfoLink(getRuleDocsPath(ruleName))}`
-      );
-    }
-  }
+  warnAboutInvalidSelectorShapes(policies, ruleName);
 
   if (!legacyWarnings) {
     return;
   }
 
-  if (options.rules) {
-    if (options.policies) {
-      warnOnce(
-        `[${ruleName}] The 'rules' option is deprecated and will be ignored because 'policies' is also defined.`,
-        `You can safely remove the 'rules' option. ${migrationToV7GuideLink("rules-option-renamed-to-policies")}`
-      );
-    } else {
-      warnOnce(
-        `[${ruleName}] The 'rules' option is deprecated.`,
-        `Please use 'policies' instead. ${migrationToV7GuideLink("rules-option-renamed-to-policies")}`
-      );
-    }
-  }
+  warnAboutDeprecatedRulesOption(options, ruleName);
 
   const ruleWarningIndexes = collectRuleWarningIndexes(policies, ruleName);
 
@@ -1282,7 +1375,7 @@ export function validateAndWarnRuleOptions(
       // cspell:ignore allowdisallow -- documentation anchor for the deprecated bare allow/disallow selector
       summary: (count, indexList) =>
         `[${ruleName}] Detected "allow"/"disallow" entries without a "from"/"to" wrapper in ${count} ${policyNoun(count)} at indices: ${indexList}.`,
-      detail: `Use allow: [{ to: { element: { type: "your-type" } } }] instead of a bare element selector. ${migrationToV6GuideLink("to-property-in-allowdisallow-rules-is-now-required")}`,
+      detail: `Use allow: [{ to: { element: { type: "your-type" } } }] or [{ from: ... }] instead of a bare element selector. ${migrationToV6GuideLink("to-property-in-allowdisallow-rules-is-now-required")}`,
     },
     {
       indexes: ruleWarningIndexes.rulesWithLegacyTemplate,

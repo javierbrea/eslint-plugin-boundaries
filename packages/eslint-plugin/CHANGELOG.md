@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- feat(#477): `boundaries/dependencies` and `boundaries/element-types` now warn when an `allow`/`disallow` entry omits the `from`/`to` wrapper (e.g. `allow: [{ element: { type: "helper" } }]` instead of `allow: [{ to: { element: { type: "helper" } } }]`). The bare form keeps working; the warning is suppressible via `boundaries/legacy-warnings: false`.
+- feat(#477): `boundaries/dependencies` and `boundaries/element-types` now warn when an `allow`/`disallow` entry omits the `from`/`to` wrapper (e.g. `allow: [{ element: { type: "helper" } }]` instead of `allow: [{ to: { element: { type: "helper" } } }]`). The bare form keeps working; the warning is suppressible via `boundaries/legacy-warnings: false`. Note that v5-style configs using a legacy `allow`/`disallow` selector (e.g. `allow: ["helper"]`) now emit this warning **in addition to** the legacy-selector warning they already emitted.
 
 ### Changed
 
