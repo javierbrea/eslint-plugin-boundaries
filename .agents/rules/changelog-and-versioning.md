@@ -12,4 +12,4 @@ Every change that affects a published package's behavior adds an entry to that p
 
 If a change modifies a package that another package in the workspace depends on, bump the dependent package's version too — run `pnpm nx graph` to see the dependency graph if it's unclear which packages are affected.
 
-`packages/website`'s version is kept in lockstep with `packages/eslint-plugin`'s version — bump both together when releasing.
+`packages/website`'s version tracks `packages/eslint-plugin`'s version, but only needs bumping — and a new Docusaurus versioned snapshot generating — when the release actually changes `packages/website/docs`. A release that doesn't touch the website's documentation leaves `packages/website` untouched.
