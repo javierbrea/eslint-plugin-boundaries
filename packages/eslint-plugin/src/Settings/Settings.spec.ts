@@ -376,6 +376,12 @@ describe("Settings/Settings", () => {
           expect.stringContaining("deprecated"),
           expect.stringContaining("partialMatch")
         );
+        expect(mockedWarnOnce).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.stringContaining(
+            "migration-guides/v6-to-v7/#deprecated-mode-in-element-descriptors"
+          )
+        );
       });
 
       it("warns when any element descriptor uses the deprecated 'category' option", () => {
