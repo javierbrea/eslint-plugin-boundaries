@@ -134,6 +134,30 @@ const captureSettingsNoBasePattern: RuleTesterSettings = {
   ],
 } as RuleTesterSettings;
 
+// A capturing `boundaries/files` descriptor followed by a same-category, non-capturing catch-all
+// that also matches every component file. Both descriptors share the "components" category so the
+// catch-all does not change `file.categories` (unlike a distinct extra category would, which shifts
+// the rendered "category"/"categories" message text regardless of the captured-values bug). Built
+// WITHOUT `basePattern` on the capturing descriptor: a `basePattern` match stops the matching loop
+// immediately (legacy mode, see FileDescriptor.ts), which would make the catch-all never even run.
+const captureSettingsWithTrailingNonCapturingDescriptor: RuleTesterSettings = {
+  ...SETTINGS.oneLevel,
+  "boundaries/elements": [
+    { type: "components", pattern: ["components/*"], capture: ["elementName"] },
+  ],
+  "boundaries/files": [
+    {
+      category: "components",
+      // 3 wildcards (**, *, *): the leading `**` is left unnamed (skipped) so `elementName` binds
+      // to the component directory name, not the `**` path prefix; the trailing filename wildcard
+      // is left uncaptured by omitting it from the array.
+      pattern: "**/components/*/*.js",
+      capture: ["", "elementName"],
+    },
+    { category: "components", pattern: "**/*.js" },
+  ],
+} as RuleTesterSettings;
+
 const runTest = (
   settings: RuleTesterSettings,
   options: unknown[],
@@ -990,6 +1014,70 @@ testFileCaptured(
     },
   ],
   {}
+);
+
+// file.captured in FROM selector, where a same-category, non-capturing catch-all descriptor also
+// matches the file after the capturing one. Only "component-a" files may import other components;
+// every other component may not. Checked by error count rather than exact message text, since this
+// scenario deliberately differs from `captureSettings`/`captureSettingsNoBasePattern` (a distinct
+// "js" catch-all category would itself change the rendered "category"/"categories" text, which is
+// not what this regression is about). Proves that a later-matching, non-capturing descriptor does not
+// wipe out the captured values already accumulated for the file (regression coverage for
+// https://github.com/javierbrea/eslint-plugin-boundaries/issues/479).
+
+createRuleTester(captureSettingsWithTrailingNonCapturingDescriptor).run(
+  `${RULE} file.captured merged past a same-category non-capturing descriptor`,
+  rule,
+  {
+    valid: [
+      // component-a's captured elementName is preserved, so it may import other components.
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "import ComponentB from '../component-b'",
+        options: [
+          {
+            default: "disallow",
+            policies: [
+              {
+                from: {
+                  file: {
+                    categories: "components",
+                    captured: { elementName: "component-a" },
+                  },
+                },
+                allow: { to: [{ file: { categories: "components" } }] },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    invalid: [
+      // component-b's captured elementName is preserved (as "component-b", not wiped to null), so
+      // it does not match the "component-a" selector and the import is correctly disallowed.
+      {
+        filename: absoluteFilePath("components/component-b/ComponentB.js"),
+        code: "import ComponentA from '../component-a'",
+        options: [
+          {
+            default: "disallow",
+            policies: [
+              {
+                from: {
+                  file: {
+                    categories: "components",
+                    captured: { elementName: "component-a" },
+                  },
+                },
+                allow: { to: [{ file: { categories: "components" } }] },
+              },
+            ],
+          },
+        ],
+        errors: 1,
+      },
+    ],
+  }
 );
 
 // Object selector properties for file descriptors with captures

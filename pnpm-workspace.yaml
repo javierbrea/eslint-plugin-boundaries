@@ -18,3 +18,5 @@ minimumReleaseAgeExclude:
   - handlebars@4.7.9
   # Renovate security update: @babel/core@7.29.6
   - "@babel/core@7.29.6"
+  # Renovate security update: nx@22.7.7
+  - nx@22.7.7

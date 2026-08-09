@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [7.2.0] - 2026-08-09
+
+### Added
+
+- feat(#477): `boundaries/dependencies` and `boundaries/element-types` now warn when an `allow`/`disallow` entry omits the `from`/`to` wrapper (e.g. `allow: [{ element: { type: "helper" } }]` instead of `allow: [{ to: { element: { type: "helper" } } }]`). The bare form keeps working; the warning is suppressible via `boundaries/legacy-warnings: false`. Note that v5-style configs using a legacy `allow`/`disallow` selector (e.g. `allow: ["helper"]`) now emit this warning **in addition to** the legacy-selector warning they already emitted.
+
+### Changed
+
+- refactor(#477): Legacy selector deprecation warnings are now reported per detected syntax form — legacy string selectors, legacy tuple selectors, and element selectors used directly as entity selectors each get their own message with a concrete before/after example. Warnings also say "policy"/"policies" instead of "rule(s)", matching v7 terminology.
+- refactor(#477): The "unrecognized selector shape" warning now names only the specific properties (`from`, `to`, `dependency`, `allow`, `disallow`) that failed validation, instead of always listing all five.
+
+### Fixed
+
+- fix(#479): Upgrade `@boundaries/elements`. A `boundaries/files` descriptor without `capture` no longer resets `file.captured` when it matches after a capturing descriptor. Captured values are now merged from every matching file descriptor regardless of declaration order, matching the `boundaries/elements` descriptor behavior. `exclusive` descriptors still reset captured values.
+- fix(#477): Legacy selector deprecation warnings now link to the migration guide that actually deprecated the detected syntax. Element selectors used directly as entity selectors (e.g. `{ type: "component" }`) link to the v6-to-v7 entity selectors section instead of the v5-to-v6 guide. The `mode` deprecation warning links to its own section of the v6-to-v7 guide.
+- fix: `boundaries/dependencies`/`boundaries/element-types` policies with a bare (unwrapped) `allow`/`disallow` entry and neither `from` nor `to` at the policy level (e.g. `{ allow: { element: { type: "helper" } } }`) no longer invert the policy's meaning or crash the linter on every matched dependency. The bare entry now consistently fills `to`, matching the documented `allow`/`disallow` semantics.
+
 ## [7.1.0] - 2026-07-20
 
 ### Added

@@ -14,10 +14,10 @@ runs:
   using: composite
   steps:
     - name: Install pnpm
-      uses: pnpm/action-setup@v4
+      uses: pnpm/action-setup@v4.4.0
 
     - name: Install Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v4.4.0
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'pnpm'
@@ -25,7 +25,7 @@ runs:
 
     - name: Cache dependencies
       id: cache-pnpm
-      uses: actions/cache@v4
+      uses: actions/cache@v4.3.0
       with:
         path: node_modules
         key: pnpm-windows-${{ hashFiles('pnpm-lock.yaml') }}

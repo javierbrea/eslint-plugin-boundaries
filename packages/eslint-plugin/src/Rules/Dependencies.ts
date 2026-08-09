@@ -488,15 +488,22 @@ function buildEntrySelector(
 
   // Legacy entry: string or legacy array → becomes the "other direction" element selector
   // They are not merged because legacy entries are not objects but strings/arrays, so they
-  // can not express criteria in the same direction as the outer selector but only in the opposite direction
+  // can not express criteria in the same direction as the outer selector but only in the opposite direction.
+  // When neither `from` nor `to` is fixed at the policy level, there is no "other direction"
+  // to infer from — `allow`/`disallow` have always scoped the dependency target, so the
+  // entry fills `to` (see the v5-to-v6 migration guide's `to` requirement), leaving `from`
+  // unconstrained.
   const hasFrom = !isUndefined(outerFrom);
+  const hasTo = !isUndefined(outerTo);
   const result: DependencySingleSelectorNormalized = {};
-  if (hasFrom) {
-    result.from = outerFrom;
-    result.to = [entry];
-  } else {
+  if (hasTo && !hasFrom) {
     result.to = outerTo;
     result.from = [entry];
+  } else {
+    // `@boundaries/elements` treats a present-but-`undefined` property as an invalid
+    // selector shape, so `from` is only set when `outerFrom` actually has a value.
+    if (hasFrom) result.from = outerFrom;
+    result.to = [entry];
   }
   return mergeImportKind(result, legacyImportKind);
 }

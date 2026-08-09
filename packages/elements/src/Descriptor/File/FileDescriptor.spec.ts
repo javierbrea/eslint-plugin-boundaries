@@ -680,6 +680,91 @@ describe("FilesDescriptor", () => {
         });
       });
 
+      it("should keep previously captured values when a later matching descriptor has no capture config", () => {
+        const captureMock = jest
+          .fn()
+          .mockReturnValueOnce(["modules"])
+          .mockReturnValueOnce(["ignored"]);
+        const micromatch = createMicromatchMock({
+          capture: captureMock,
+        });
+        const config = createConfig({ rootPath: undefined });
+        const descriptors: FileDescriptors = [
+          createFileDescriptor({
+            pattern: "src/(*)/**/*.ts",
+            category: "source",
+            capture: ["layer"],
+          }),
+          createFileDescriptor({
+            pattern: "src/**/(*).ts",
+            category: "typescript",
+          }),
+        ];
+        const descriptor = new FilesDescriptor(descriptors, config, micromatch);
+
+        const result = descriptor.describeFile("src/modules/auth/service.ts");
+
+        expect(result.categories).toEqual(["source", "typescript"]);
+        expect(result.captured).toEqual({ layer: "modules" });
+      });
+
+      it("should merge captured values from a later matching descriptor after a non-capturing one", () => {
+        const captureMock = jest
+          .fn()
+          .mockReturnValueOnce(["ignored"])
+          .mockReturnValueOnce(["modules"]);
+        const micromatch = createMicromatchMock({
+          capture: captureMock,
+        });
+        const config = createConfig({ rootPath: undefined });
+        const descriptors: FileDescriptors = [
+          createFileDescriptor({
+            pattern: "src/**/(*).ts",
+            category: "typescript",
+          }),
+          createFileDescriptor({
+            pattern: "src/(*)/**/*.ts",
+            category: "source",
+            capture: ["layer"],
+          }),
+        ];
+        const descriptor = new FilesDescriptor(descriptors, config, micromatch);
+
+        const result = descriptor.describeFile("src/modules/auth/service.ts");
+
+        expect(result.categories).toEqual(["typescript", "source"]);
+        expect(result.captured).toEqual({ layer: "modules" });
+      });
+
+      it("should reset captured values when a later matching descriptor is exclusive, even without capture config", () => {
+        const captureMock = jest
+          .fn()
+          .mockReturnValueOnce(["modules"])
+          .mockReturnValueOnce(["ignored"]);
+        const micromatch = createMicromatchMock({
+          capture: captureMock,
+        });
+        const config = createConfig({ rootPath: undefined });
+        const descriptors: FileDescriptors = [
+          createFileDescriptor({
+            pattern: "src/(*)/**/*.ts",
+            category: "source",
+            capture: ["layer"],
+          }),
+          createFileDescriptor({
+            pattern: "src/**/(*).ts",
+            category: "typescript",
+            exclusive: true,
+          }),
+        ];
+        const descriptor = new FilesDescriptor(descriptors, config, micromatch);
+
+        const result = descriptor.describeFile("src/modules/auth/service.ts");
+
+        expect(result.categories).toEqual(["typescript"]);
+        expect(result.captured).toBeNull();
+      });
+
       it("should skip capture indices without a name in the config", () => {
         const micromatch = createMicromatchMock({
           capture: jest.fn().mockReturnValue(["value1", "restPath", "value3"]),
