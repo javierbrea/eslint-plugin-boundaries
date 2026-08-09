@@ -1091,7 +1091,7 @@ describe("Dependencies", () => {
       expect(selector.to).toBeDefined();
     });
 
-    it("treats legacy string entry as the 'from' selector when outer from is absent", () => {
+    it("treats legacy string entry as the 'from' selector when outer to is present and outer from is absent", () => {
       const matcher = createMatcher();
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValueOnce(null);
@@ -1112,6 +1112,31 @@ describe("Dependencies", () => {
         .calls[0][1] as DependencySingleSelectorNormalized;
       expect(selector.from).toBeDefined();
       expect(selector.to).toBeDefined();
+    });
+
+    it("treats a bare entry as the 'to' selector when neither outer from nor outer to is present", () => {
+      const matcher = createMatcher();
+      const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
+      fn.mockReturnValueOnce(null);
+
+      // No `from`/`to` at the policy level — e.g. `{ allow: { element: { type: "shared" } } }`,
+      // a "universal" policy scoping only the dependency target. `allow`/`disallow` have
+      // always meant "to" (see the v5-to-v6 migration guide), never "from".
+      evaluatePolicies(
+        [
+          {
+            allow: [{ element: [{ type: "shared" }] }],
+          },
+        ],
+        createDependencyDescription(),
+        matcher,
+        createSettings()
+      );
+
+      const selector = fn.mock
+        .calls[0][1] as DependencySingleSelectorNormalized;
+      expect(selector.to).toBeDefined();
+      expect(selector.from).toBeUndefined();
     });
 
     it("applies legacy importKind by adding kind to entry dependency selectors", () => {
