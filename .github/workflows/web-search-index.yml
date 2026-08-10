@@ -21,7 +21,7 @@ jobs:
           sleep 300
 
       - name: Checkout repository
-        uses: actions/checkout@v4.4.0
+        uses: actions/checkout@v5.1.0
 
       - name: Get Algolia config
         working-directory: ./packages/website
