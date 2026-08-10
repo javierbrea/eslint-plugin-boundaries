@@ -151,10 +151,7 @@ This command will create a new versioned documentation set based on the current 
 When the new version is ready to be released, create a new versioned docs set by running the command above with the appropriate version number.
 
 > [!INFO]
-> We only create new documentation versions when releasing a new version of the `eslint-plugin` package, following the same version number.
-
-> [!CAUTION]
-> Patch releases do not require new documentation versions. In such cases, you should modify both the next version and the corresponding versioned docs as needed.
+> A new documentation version is created only when a release actually changes the website's `docs/` content, following the same version number as the corresponding `eslint-plugin` release. If a release — patch or minor — doesn't touch `docs/`, skip this command entirely: the website package version and its versioned docs stay as they are.
 
 ## Useful Commands
 
