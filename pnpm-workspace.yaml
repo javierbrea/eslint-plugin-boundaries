@@ -20,3 +20,5 @@ minimumReleaseAgeExclude:
   - "@babel/core@7.29.6"
   # Renovate security update: nx@22.7.7
   - nx@22.7.7
+  # Renovate security update: baseline-browser-mapping@2.11.0
+  - baseline-browser-mapping@2.11.0
