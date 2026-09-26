@@ -58,17 +58,17 @@
     "test:mutation": "stryker run"
   },
   "dependencies": {
-    "eslint-import-resolver-node": "0.3.9",
+    "eslint-import-resolver-node": "0.3.10",
     "eslint-module-utils": "2.12.1",
     "handlebars": "4.7.9",
-    "is-core-module": "2.16.1",
+    "is-core-module": "2.16.2",
     "micromatch": "4.0.8"
   },
   "engines": {
     "node": ">=18.18"
   },
   "devDependencies": {
-    "@types/estree": "1.0.8",
+    "@types/estree": "1.0.9",
     "@types/is-core-module": "2.2.2",
     "@types/micromatch": "4.0.10",
     "@types/object-hash": "3.0.6",
