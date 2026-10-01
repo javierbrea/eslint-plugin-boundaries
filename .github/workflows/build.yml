@@ -32,7 +32,7 @@ jobs:
       - uses: ./.github/actions/install
         with:
           node-version: 22.20.0
-      - uses: gensecaihq/Shai-Hulud-2.0-Detector@v2.1.0
+      - uses: gensecaihq/Shai-Hulud-2.0-Detector@v2.2.0
         with:
           fail-on-critical: true
           fail-on-high: true
