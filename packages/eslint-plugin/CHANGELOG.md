@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [unreleased]
+
+### Changed
+
+- perf: Upgrade `@boundaries/elements`. Element and file descriptors compile each capture pattern once, instead of once per linted file.
+
 ## [7.2.0] - 2026-08-09
 
 ### Added

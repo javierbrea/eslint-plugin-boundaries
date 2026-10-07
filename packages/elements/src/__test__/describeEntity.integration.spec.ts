@@ -10,7 +10,7 @@ describe("describeEntity | Integration", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    micromatchSpy = jest.spyOn(micromatch, "capture");
+    micromatchSpy = jest.spyOn(micromatch, "makeRe");
 
     elements = new Elements({
       includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],
@@ -627,7 +627,7 @@ describe("describeEntity | Integration", () => {
       expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
-    it("should call micromatch for entities with different file paths", () => {
+    it("should not compile the patterns again for entities with different file paths", () => {
       matcher.describeEntity("/project/src/components/Button.tsx");
 
       expect(micromatchSpy).toHaveBeenCalled();
@@ -636,7 +636,7 @@ describe("describeEntity | Integration", () => {
 
       matcher.describeEntity("/project/src/services/payment/PaymentService.ts");
 
-      expect(micromatchSpy).toHaveBeenCalled();
+      expect(micromatchSpy).not.toHaveBeenCalled();
     });
 
     it("should not call micromatch again after clearing the matcher cache, because the global cache is still populated", () => {
