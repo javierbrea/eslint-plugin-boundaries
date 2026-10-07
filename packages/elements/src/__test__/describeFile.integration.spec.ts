@@ -24,7 +24,7 @@ describe("describeFile | Integration", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    micromatchSpy = jest.spyOn(micromatch, "capture");
+    micromatchSpy = jest.spyOn(micromatch, "makeRe");
 
     elements = new Elements({
       includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],

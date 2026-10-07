@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [unreleased]
+
+### Changed
+
+- perf: `capture` compiles each pattern once and reuses it for every path. Before, it compiled the pattern again for each new path, because its cache key includes the path.
+
 ## [3.1.1] - 2026-08-09
 
 ### Fixed

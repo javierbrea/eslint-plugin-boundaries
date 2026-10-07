@@ -5,8 +5,14 @@ import { Micromatch } from "./Micromatch";
 jest.mock("micromatch");
 
 const mockedMicromatch = jest.mocked(micromatch);
+const actualMicromatch = jest.requireActual<typeof micromatch>("micromatch");
 
 describe("Micromatch", () => {
+  beforeEach(() => {
+    // capture compiles its patterns with makeRe, so it needs real regular expressions
+    mockedMicromatch.makeRe.mockImplementation(actualMicromatch.makeRe);
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -115,18 +121,15 @@ describe("Micromatch", () => {
   });
 
   describe("capture", () => {
-    it("should delegate to micromatch.capture", () => {
-      mockedMicromatch.capture.mockReturnValue(["foo"]);
+    it("should return the captured groups", () => {
       const instance = new Micromatch(false);
 
-      const result = instance.capture("src/*", "src/foo");
+      const result = instance.capture("src/*/*.ts", "src/foo/bar.ts");
 
-      expect(mockedMicromatch.capture).toHaveBeenCalledWith("src/*", "src/foo");
-      expect(result).toEqual(["foo"]);
+      expect(result).toEqual(["foo", "bar"]);
     });
 
     it("should return null when there is no match", () => {
-      mockedMicromatch.capture.mockReturnValue(null);
       const instance = new Micromatch(false);
 
       const result = instance.capture("src/*", "lib/foo");
@@ -134,53 +137,64 @@ describe("Micromatch", () => {
       expect(result).toBeNull();
     });
 
+    it.each([
+      ["src/*", "src/foo"],
+      ["src/**/*.ts", "src/a/b/c.ts"],
+      ["src/{a,b}/*", "src/b/x"],
+      ["src/*/index.(js|ts)", "src/foo/index.ts"],
+    ])(
+      "should capture the same groups as micromatch.capture for %s",
+      (pattern, target) => {
+        const instance = new Micromatch(true);
+
+        const result = instance.capture(pattern, target);
+
+        expect(result).toEqual(actualMicromatch.capture(pattern, target));
+      }
+    );
+
     it("should return cached result on subsequent calls when cache is enabled", () => {
-      mockedMicromatch.capture.mockReturnValue(["foo"]);
       const instance = new Micromatch(true);
 
       instance.capture("src/*", "src/foo");
       const result = instance.capture("src/*", "src/foo");
 
-      expect(mockedMicromatch.capture).toHaveBeenCalledTimes(1);
+      expect(mockedMicromatch.makeRe).toHaveBeenCalledTimes(1);
       expect(result).toEqual(["foo"]);
     });
 
-    it("should not cache results when cache is disabled", () => {
-      mockedMicromatch.capture.mockReturnValue(["foo"]);
-      const instance = new Micromatch(false);
-
-      instance.capture("src/*", "src/foo");
-      instance.capture("src/*", "src/foo");
-
-      expect(mockedMicromatch.capture).toHaveBeenCalledTimes(2);
-    });
-
-    it("should cache separately for different patterns", () => {
-      mockedMicromatch.capture
-        .mockReturnValueOnce(["foo"])
-        .mockReturnValueOnce(null);
-      const instance = new Micromatch(true);
-
-      const first = instance.capture("src/*", "src/foo");
-      const second = instance.capture("lib/*", "src/foo");
-
-      expect(mockedMicromatch.capture).toHaveBeenCalledTimes(2);
-      expect(first).toEqual(["foo"]);
-      expect(second).toBeNull();
-    });
-
-    it("should cache separately for different targets", () => {
-      mockedMicromatch.capture
-        .mockReturnValueOnce(["foo"])
-        .mockReturnValueOnce(["bar"]);
+    it("should compile a pattern once for different targets when cache is enabled", () => {
       const instance = new Micromatch(true);
 
       const first = instance.capture("src/*", "src/foo");
       const second = instance.capture("src/*", "src/bar");
 
-      expect(mockedMicromatch.capture).toHaveBeenCalledTimes(2);
+      expect(mockedMicromatch.makeRe).toHaveBeenCalledTimes(1);
+      expect(mockedMicromatch.makeRe).toHaveBeenCalledWith("src/*", {
+        capture: true,
+      });
       expect(first).toEqual(["foo"]);
       expect(second).toEqual(["bar"]);
+    });
+
+    it("should compile the pattern on every call when cache is disabled", () => {
+      const instance = new Micromatch(false);
+
+      instance.capture("src/*", "src/foo");
+      instance.capture("src/*", "src/foo");
+
+      expect(mockedMicromatch.makeRe).toHaveBeenCalledTimes(2);
+    });
+
+    it("should compile each pattern separately", () => {
+      const instance = new Micromatch(true);
+
+      const first = instance.capture("src/*", "src/foo");
+      const second = instance.capture("lib/*", "src/foo");
+
+      expect(mockedMicromatch.makeRe).toHaveBeenCalledTimes(2);
+      expect(first).toEqual(["foo"]);
+      expect(second).toBeNull();
     });
   });
 
@@ -237,7 +251,6 @@ describe("Micromatch", () => {
   describe("clearCache", () => {
     it("should clear all cached results", () => {
       mockedMicromatch.isMatch.mockReturnValue(true);
-      mockedMicromatch.capture.mockReturnValue(["foo"]);
       mockedMicromatch.makeRe.mockReturnValue(/^src\/.*$/);
       const instance = new Micromatch(true);
 
@@ -251,8 +264,8 @@ describe("Micromatch", () => {
       instance.makeRe("src/**");
 
       expect(mockedMicromatch.isMatch).toHaveBeenCalledTimes(2);
-      expect(mockedMicromatch.capture).toHaveBeenCalledTimes(2);
-      expect(mockedMicromatch.makeRe).toHaveBeenCalledTimes(2);
+      // Two calls from capture, two from makeRe
+      expect(mockedMicromatch.makeRe).toHaveBeenCalledTimes(4);
     });
 
     it("should not throw when cache is disabled", () => {
@@ -265,7 +278,6 @@ describe("Micromatch", () => {
   describe("serializeCache", () => {
     it("should return serialized matching results and captures", () => {
       mockedMicromatch.isMatch.mockReturnValue(true);
-      mockedMicromatch.capture.mockReturnValue(["foo"]);
       const instance = new Micromatch(true);
 
       instance.isMatch("src/foo.ts", "src/**");
@@ -340,7 +352,7 @@ describe("Micromatch", () => {
 
       const result = instance.capture("src/*", "src/foo");
 
-      expect(mockedMicromatch.capture).not.toHaveBeenCalled();
+      expect(mockedMicromatch.makeRe).not.toHaveBeenCalled();
       expect(result).toEqual(["foo"]);
     });
   });

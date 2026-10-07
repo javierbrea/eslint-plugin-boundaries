@@ -5,6 +5,9 @@ import { isArray } from "../../Shared";
 
 import type { MicromatchSerializedCache } from "./Micromatch.types";
 
+const IS_WINDOWS =
+  typeof process !== "undefined" && process.platform === "win32";
+
 /**
  * Cache key type for micromatch matching results
  */
@@ -82,6 +85,12 @@ export class Micromatch {
     new CacheManagerDisabled<string, RegExp>();
 
   /**
+   * Cache for the regular expressions used by capture, keyed by pattern
+   */
+  private readonly _captureReCache: CacheManagerDisabled<string, RegExp> =
+    new CacheManagerDisabled<string, RegExp>();
+
+  /**
    * Creates an instance of Micromatch class.
    * @param cache Whether to use caching or not.
    */
@@ -95,6 +104,9 @@ export class Micromatch {
     this._makeReCache = cache
       ? new CacheManager<string, RegExp>()
       : new CacheManagerDisabled<string, RegExp>();
+    this._captureReCache = cache
+      ? new CacheManager<string, RegExp>()
+      : new CacheManagerDisabled<string, RegExp>();
   }
 
   /**
@@ -104,6 +116,7 @@ export class Micromatch {
     this._matchingResultsCache.clear();
     this._capturesCache.clear();
     this._makeReCache.clear();
+    this._captureReCache.clear();
   }
 
   /**
@@ -162,7 +175,16 @@ export class Micromatch {
       return this._capturesCache.get(cacheKey)!;
     }
 
-    const result = micromatch.capture(pattern, target);
+    // micromatch.capture compiles the pattern on every call, and the captures cache misses on every new target, so the compiled pattern is cached separately
+    const regexp =
+      this._captureReCache.get(pattern) ??
+      micromatch.makeRe(pattern, { capture: true });
+    this._captureReCache.set(pattern, regexp);
+    // Same conversion and result shape as micromatch.capture
+    const match = regexp.exec(
+      IS_WINDOWS ? target.replaceAll("\\", "/") : target
+    );
+    const result = match ? match.slice(1).map((value) => value ?? "") : null;
     this._capturesCache.set(cacheKey, result);
     return result;
   }
