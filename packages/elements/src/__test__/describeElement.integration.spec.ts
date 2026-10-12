@@ -1,4 +1,4 @@
-import micromatch from "micromatch";
+import picomatch from "picomatch";
 
 import type { Matcher } from "../index";
 import {
@@ -16,7 +16,7 @@ describe("describeElement | Integration", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    micromatchSpy = jest.spyOn(micromatch, "capture");
+    micromatchSpy = jest.spyOn(picomatch, "makeRe");
 
     elements = new Elements({
       includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],

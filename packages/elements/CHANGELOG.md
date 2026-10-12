@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [unreleased]
+
+### Fixed
+
+- Replace micromatch with picomatch for matching and captures, removing the transitive braces dependency. Preserve glob syntax, captured groups, and Windows path handling.
+- Return and cache `null` for capture misses, matching the existing declared return type.
+
 ## [3.1.1] - 2026-08-09
 
 ### Fixed

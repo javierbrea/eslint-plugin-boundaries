@@ -42,7 +42,7 @@ const testDefaultSettings = () => {
         options: [
           {
             default: "allow",
-            rules: [{ from: ["components"], disallow: ["micromatch"] }],
+            rules: [{ from: ["components"], disallow: ["chalk"] }],
           },
         ],
       },
@@ -51,13 +51,13 @@ const testDefaultSettings = () => {
       // Disallowed external dependency from node_modules
       {
         filename: absoluteFilePath("package-a/helpers/helper-a/HelperA.js"),
-        code: "import micromatch from 'micromatch'",
+        code: "import chalk from 'chalk'",
         options: [{ default: "disallow" }],
         errors: [
           {
             message: externalNoRuleMessage({
               file: '"helpers" and captured values: package="a", elementName="helper-a"',
-              dep: "micromatch",
+              dep: "chalk",
             }),
             type: "Literal",
           },
@@ -173,13 +173,13 @@ const testOutsideRootPath = () => {
       // Disallowed all external dependency from node_modules
       {
         filename: absoluteFilePath("package-a/helpers/helper-a/HelperA.js"),
-        code: "import micromatch from 'micromatch'",
+        code: "import chalk from 'chalk'",
         options: [{ default: "disallow" }],
         errors: [
           {
             message: externalNoRuleMessage({
               file: '"helpers" and captured values: elementName="helper-a"',
-              dep: "micromatch",
+              dep: "chalk",
             }),
             type: "Literal",
           },
@@ -280,13 +280,13 @@ const testCustomSourcePatterns = () => {
       // Disallowed node_modules dependency
       {
         filename: absoluteFilePath("package-a/helpers/helper-a/HelperA.js"),
-        code: "import micromatch from 'micromatch'",
+        code: "import chalk from 'chalk'",
         options: [{ default: "disallow" }],
         errors: [
           {
             message: externalNoRuleMessage({
               file: '"helpers" and captured values: package="a", elementName="helper-a"',
-              dep: "micromatch",
+              dep: "chalk",
             }),
             type: "Literal",
           },
@@ -326,7 +326,7 @@ const testInNodeModulesDisabled = () => {
       },
       {
         filename: absoluteFilePath("package-a/helpers/helper-a/HelperA.js"),
-        code: "import micromatch from 'micromatch'",
+        code: "import chalk from 'chalk'",
         options: [{ default: "disallow" }],
       },
     ],
@@ -377,13 +377,13 @@ const testUnresolvableAliasDisabled = () => {
       // node_modules imports still flagged as external
       {
         filename: absoluteFilePath("package-a/helpers/helper-a/HelperA.js"),
-        code: "import micromatch from 'micromatch'",
+        code: "import chalk from 'chalk'",
         options: [{ default: "disallow" }],
         errors: [
           {
             message: externalNoRuleMessage({
               file: '"helpers" and captured values: package="a", elementName="helper-a"',
-              dep: "micromatch",
+              dep: "chalk",
             }),
             type: "Literal",
           },
