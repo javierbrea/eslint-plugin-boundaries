@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [unreleased]
+
+### Fixed
+
+- Remove the unused direct micromatch dependency and upgrade `@boundaries/elements` to use picomatch, removing braces from the plugin production dependency tree.
+
 ## [7.2.0] - 2026-08-09
 
 ### Added

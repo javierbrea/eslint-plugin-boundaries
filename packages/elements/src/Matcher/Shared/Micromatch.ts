@@ -1,4 +1,6 @@
-import micromatch from "micromatch";
+import path from "node:path";
+
+import picomatch from "picomatch";
 
 import { CacheManager, CacheManagerDisabled } from "../../Cache";
 import { isArray } from "../../Shared";
@@ -56,7 +58,7 @@ class CapturedValueCache extends CacheManager<
 }
 
 /**
- * Micromatch wrapper class with caching capabilities.
+ * Glob matching and capture wrapper with caching, backed by picomatch.
  */
 
 export class Micromatch {
@@ -144,7 +146,7 @@ export class Micromatch {
       return this._matchingResultsCache.get(cacheKey)!;
     }
 
-    const isMatch = micromatch.isMatch(value, pattern);
+    const isMatch = picomatch.isMatch(value, pattern);
     this._matchingResultsCache.set(cacheKey, isMatch);
     return isMatch;
   }
@@ -162,7 +164,16 @@ export class Micromatch {
       return this._capturesCache.get(cacheKey)!;
     }
 
-    const result = micromatch.capture(pattern, target);
+    const regexp = picomatch.makeRe(pattern, { capture: true });
+    // Preserve micromatch's Windows path normalization, including escaped glob characters.
+    const input =
+      path.sep === "\\"
+        ? target.replace(picomatch.constants.REGEX_BACKSLASH, "/")
+        : target;
+    const match = regexp.exec(input);
+    const result = match
+      ? match.slice(1).map((value) => (value === undefined ? "" : value))
+      : null;
     this._capturesCache.set(cacheKey, result);
     return result;
   }
@@ -176,7 +187,7 @@ export class Micromatch {
     if (this._makeReCache.has(pattern)) {
       return this._makeReCache.get(pattern)!;
     }
-    const regexp = micromatch.makeRe(pattern);
+    const regexp = picomatch.makeRe(pattern);
     this._makeReCache.set(pattern, regexp);
     return regexp;
   }
