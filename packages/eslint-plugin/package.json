@@ -71,7 +71,7 @@
   "dependencies": {
     "@boundaries/elements": "workspace:*",
     "chalk": "4.1.2",
-    "eslint-import-resolver-node": "0.3.9",
+    "eslint-import-resolver-node": "0.3.10",
     "eslint-module-utils": "2.12.1",
     "handlebars": "4.7.9",
     "micromatch": "4.0.8"
@@ -80,9 +80,9 @@
     "node": ">=18.18"
   },
   "devDependencies": {
-    "@types/estree": "1.0.8",
+    "@types/estree": "1.0.9",
     "@types/micromatch": "4.0.10",
-    "eslint-plugin-eslint-plugin": "7.3.2",
+    "eslint-plugin-eslint-plugin": "7.3.3",
     "eslint-plugin-local-rules": "3.0.2"
   }
 }
