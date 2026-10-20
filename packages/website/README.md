@@ -16,8 +16,8 @@ The website is built with [Docusaurus](https://docusaurus.io/), a modern documen
 
 Before you begin, ensure you have the following installed:
 
-- Node.js (v20 or higher recommended)
-- `pnpm` (v9)
+- Node.js: the version defined in the `.nvmrc` file at the repository root.
+- `pnpm`: the version defined in the `packageManager` field of the root `package.json`.
 
 ### Installation
 
