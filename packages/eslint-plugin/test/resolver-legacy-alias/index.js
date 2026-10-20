@@ -1,4 +1,4 @@
-const resolve = require("resolve");
+const { isBuiltin } = require("node:module");
 
 const getUsedAlias = (relativeFilePath, config) => {
   return Object.keys(config).find(
@@ -17,12 +17,12 @@ const replaceAliases = (filePath, config) => {
 module.exports = {
   interfaceVersion: 2,
   resolve: function (source, _file, config) {
-    if (resolve.isCore(source)) return { found: true, path: null };
+    if (isBuiltin(source)) return { found: true, path: null };
     try {
       return {
         found: true,
-        path: resolve.sync(replaceAliases(source, config), {
-          basedir: process.cwd(),
+        path: require.resolve(replaceAliases(source, config), {
+          paths: [process.cwd()],
         }),
       };
     } catch {
