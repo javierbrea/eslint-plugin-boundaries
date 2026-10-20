@@ -3,10 +3,6 @@
   "extends": [
     "github>javierbrea/renovate-config"
   ],
-  "constraints": {
-    "pnpm": "9.4.0",
-    "node": "22.4.0"
-  },
   "baseBranchPatterns": [
     "release"
   ],
@@ -20,6 +16,17 @@
         "chalk"
       ],
       "allowedVersions": "<5.0.0"
+    },
+    {
+      "description": "ESLint 10 requires Node.js >=20.19, but unit tests still run on Node.js 18 to cover the published packages' supported engines. Keep eslint and @eslint/js aligned on v9 until migrating to ESLint 10",
+      "matchFileNames": [
+        "**/package.json"
+      ],
+      "matchPackageNames": [
+        "eslint",
+        "@eslint/js"
+      ],
+      "allowedVersions": "<10.0.0"
     }
   ]
 }
