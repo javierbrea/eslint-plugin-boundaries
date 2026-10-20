@@ -162,6 +162,7 @@ jobs:
           echo "reports: ${{ needs.reports.result }}"
           
           if [[ "${{ needs.check-root.result }}" != "success" ]] || \
+             [[ "${{ needs.check-vulnerabilities.result }}" != "success" ]] || \
              [[ "${{ needs.build.result }}" != "success" ]] || \
              [[ "${{ needs.test-node-versions.result }}" != "success" ]] || \
              [[ "${{ needs.build-windows.result }}" != "success" ]] || \
