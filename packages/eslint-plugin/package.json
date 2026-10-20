@@ -80,9 +80,9 @@
     "node": ">=18.18"
   },
   "devDependencies": {
-    "@types/estree": "1.0.8",
+    "@types/estree": "1.0.9",
     "@types/micromatch": "4.0.10",
-    "eslint-plugin-eslint-plugin": "7.3.2",
+    "eslint-plugin-eslint-plugin": "7.3.3",
     "eslint-plugin-local-rules": "3.0.2"
   }
 }
