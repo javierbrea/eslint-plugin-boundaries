@@ -24,6 +24,8 @@ Every package has to be created in the `packages` folder. Each one must contain 
 
 ## Installation
 
+Development requires the Node.js version defined in the `.nvmrc` file (run `nvm use` if you use [nvm](https://github.com/nvm-sh/nvm)), and the pnpm version defined in the `packageManager` field of the root `package.json`. pnpm >= 9.7 switches to that version automatically, and [Corepack](https://nodejs.org/api/corepack.html) can also be used to enable it.
+
 To get started, clone the repository and install the dependencies:
 
 ```bash
