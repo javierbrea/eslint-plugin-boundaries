@@ -27,6 +27,16 @@
         "@eslint/js"
       ],
       "allowedVersions": "<10.0.0"
+    },
+    {
+      "description": "eslint-import-resolver-node 0.3.10 and later use resolve 2.x, which no longer resolves relative imports when the directory of the linted file does not exist",
+      "matchFileNames": [
+        "**/package.json"
+      ],
+      "matchPackageNames": [
+        "eslint-import-resolver-node"
+      ],
+      "allowedVersions": "<0.3.10"
     }
   ]
 }
