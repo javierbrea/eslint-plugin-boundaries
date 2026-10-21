@@ -1,0 +1,110 @@
+---
+id: v7-2-2
+title: Upgrading to v7.2.2
+sidebar_label: v7.2.2
+description: Learn whether the nested element path fix in ESLint Plugin Boundaries v7.2.2 affects your project, how to find the affected files, and how to adapt your configuration.
+tags:
+  - configuration
+  - migration
+  - troubleshooting
+keywords:
+  - eslint-plugin-boundaries
+  - upgrade notes
+  - release
+  - v7.2.2
+  - element path
+  - fileInternalPath
+  - nested elements
+  - element descriptors
+---
+
+import CodeDiff from "@site/src/components/CodeDiff";
+
+# Upgrading to v7.2.2
+
+## Overview
+
+v7.2.2 is a patch release, and most projects can upgrade without any change. However, it fixes bugs that some configurations may rely on:
+
+- **[Nested element paths](#nested-element-paths)**: when the folders matched by an element descriptor `pattern` also appeared earlier in the file path, the element got a wrong `path` and `fileInternalPath`.
+
+This page explains how to check whether your project is affected, and how to adapt your configuration if it is.
+
+## Nested element paths
+
+Before v7.2.2, the plugin resolved the **[element path](../../classification/elements.md#element-description)** from the first place in the file path where the folders matched by the descriptor `pattern` appeared. When those folders also appeared earlier in the file path, the element got the path of that earlier occurrence, and its `fileInternalPath` was computed from that wrong path. From v7.2.2, the element path is resolved from the position where the `pattern` actually matched. The `types` and `captured` values of the elements were already right.
+
+### Who is affected
+
+Your project is affected only if both of these conditions are true:
+
+- An element descriptor in **[`boundaries/elements`](../../settings/settings.md#boundarieselements)** matches from the right side of the path, which is the default ([`partialMatch: true`](../../classification/elements.md#partialmatch-optional)).
+- The folders matched by its `pattern` also appear earlier in the path of some files. This usually happens with [nested elements](../../classification/elements.md#hierarchical-elements) whose folder name starts with the folder name of an ancestor, or is equal to it.
+
+For example, consider this descriptor:
+
+```js
+{
+  type: "component",
+  pattern: "components/*",
+  capture: ["name"],
+}
+```
+
+The file `src/components/Card/components/Badge/Badge.js` belongs to the `Badge` element, with path `src/components/Card/components/Badge` and `fileInternalPath` `Badge.js`, both before and after v7.2.2. But the folders `components/Button` also appear earlier in these file paths:
+
+- `src/components/ButtonGroup/components/Button/Button.js`: **before v7.2.2**, the `Button` element path was `src/components/Button`, and its `fileInternalPath` was the whole file path. **From v7.2.2**, they are `src/components/ButtonGroup/components/Button` and `Button.js`.
+- `src/components/Button/components/Button/Button.js`: **before v7.2.2**, the nested `Button` element got the same path as its ancestor, `src/components/Button`, its `fileInternalPath` was `components/Button/Button.js`, and it had no parent. **From v7.2.2**, they are `src/components/Button/components/Button`, `Button.js`, and the ancestor `Button` element is its parent.
+
+After upgrading, you may notice that:
+
+- Policies, selectors and [custom messages](../../policies/policies.mdx) that use the element `path` or `fileInternalPath` get the right values. For example, policies that only allow importing the main file of an element no longer report the affected files, and policies that disallow some internal files apply to them.
+- Dependencies between a nested element and an ancestor with the same name are no longer [internal](../../classification/dependency.md#element-relationship), so the **[`boundaries/dependencies`](../../rules/dependencies.md)** rule now checks them, even when `checkInternals` is disabled. Their relationships, such as `child` or `parent`, are also right.
+
+### Find the affected files
+
+Run ESLint with **[debug mode](../../guides/debugging.md)** enabled, and filter the file descriptions to print only the files whose `fileInternalPath` includes the folders matched by the descriptor `pattern`:
+
+```js
+export default [{
+  settings: {
+    "boundaries/debug": {
+      enabled: true,
+      messages: {
+        files: true,
+        dependencies: false,
+        violations: false,
+      },
+      filter: {
+        files: [{ element: { fileInternalPath: "**/components/*/**" } }],
+      },
+    },
+  },
+}];
+```
+
+Run it with the version you use now. The files that are printed are the affected ones, because a nested folder matching the `pattern` belongs to a nested element, so it can not be part of the `fileInternalPath`. With v7.2.2, the filter does not print any of them. Repeat it with the `pattern` of each element descriptor.
+
+### Adapt your configuration
+
+No configuration change is required, because v7.2.2 describes the elements as your configuration defines them. Review the lint results after upgrading:
+
+- Remove the workarounds that you added for the errors that are no longer reported, such as `eslint-disable` comments, or policies that allowed more internal files than needed.
+- Fix the dependencies that are now reported, or allow them in your policies if they are expected. For example, to allow a component to import the main file of its child components, including the ones with the same name:
+
+<CodeDiff language="javascript">{`
+. {
+.   from: { element: { type: "component" } },
+.   allow: [
++     {
++       to: {
++         element: {
++           type: "component",
++           fileInternalPath: "{{to.element.captured.name}}.js",
++         },
++       },
++       dependency: { relationship: { to: "child" } },
++     },
+.   ],
+. }
+`}</CodeDiff>
