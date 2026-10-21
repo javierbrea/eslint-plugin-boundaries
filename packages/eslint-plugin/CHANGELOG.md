@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 
+### Changed
+
+- perf: Upgrade `@boundaries/elements`. Element and file descriptors compile each capture pattern once, instead of once per linted file. ([@joernroeder](https://github.com/joernroeder))
+
 ### Fixed
 
-- Remove the unused direct micromatch dependency and upgrade `@boundaries/elements` to use picomatch, removing braces from the plugin production dependency tree.
+- Remove the unused direct micromatch dependency and upgrade `@boundaries/elements` to use picomatch, removing braces from the plugin production dependency tree. ([@edoroshenko](https://github.com/edoroshenko))
 
 ## [7.2.1] - 2026-10-21
 

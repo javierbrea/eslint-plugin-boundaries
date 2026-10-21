@@ -84,6 +84,12 @@ export class Micromatch {
     new CacheManagerDisabled<string, RegExp>();
 
   /**
+   * Cache for the regular expressions used by capture, keyed by pattern
+   */
+  private readonly _captureReCache: CacheManagerDisabled<string, RegExp> =
+    new CacheManagerDisabled<string, RegExp>();
+
+  /**
    * Creates an instance of Micromatch class.
    * @param cache Whether to use caching or not.
    */
@@ -97,6 +103,9 @@ export class Micromatch {
     this._makeReCache = cache
       ? new CacheManager<string, RegExp>()
       : new CacheManagerDisabled<string, RegExp>();
+    this._captureReCache = cache
+      ? new CacheManager<string, RegExp>()
+      : new CacheManagerDisabled<string, RegExp>();
   }
 
   /**
@@ -106,6 +115,7 @@ export class Micromatch {
     this._matchingResultsCache.clear();
     this._capturesCache.clear();
     this._makeReCache.clear();
+    this._captureReCache.clear();
   }
 
   /**
@@ -164,7 +174,11 @@ export class Micromatch {
       return this._capturesCache.get(cacheKey)!;
     }
 
-    const regexp = picomatch.makeRe(pattern, { capture: true });
+    // Compiling the pattern is expensive, and the captures cache misses on every new target, so the compiled pattern is cached separately
+    const regexp =
+      this._captureReCache.get(pattern) ??
+      picomatch.makeRe(pattern, { capture: true });
+    this._captureReCache.set(pattern, regexp);
     // Preserve micromatch's Windows path normalization, including escaped glob characters.
     const input =
       path.sep === "\\"

@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 
+### Changed
+
+- perf: `capture` compiles each pattern once and reuses it for every path. Before, it compiled the pattern again for each new path, because its cache key includes the path. ([@joernroeder](https://github.com/joernroeder))
+
 ### Fixed
 
-- Replace micromatch with picomatch for matching and captures, removing the transitive braces dependency. Preserve glob syntax, captured groups, and Windows path handling.
-- Return and cache `null` for capture misses, matching the existing declared return type.
+- Replace micromatch with picomatch for matching and captures, removing the transitive braces dependency. Preserve glob syntax, captured groups, and Windows path handling. ([@edoroshenko](https://github.com/edoroshenko))
+- Return and cache `null` for capture misses, matching the existing declared return type. ([@edoroshenko](https://github.com/edoroshenko))
 
 ## [3.1.2] - 2026-10-21
 

@@ -229,13 +229,14 @@ describe("Micromatch", () => {
       expect(second).toBeNull();
     });
 
-    it("should cache separately for different targets", () => {
+    it("should compile a pattern once for different targets when cache is enabled", () => {
       const instance = new Micromatch(true);
 
       const first = instance.capture("src/*", "src/foo");
       const second = instance.capture("src/*", "src/bar");
 
-      expect(picomatch.makeRe).toHaveBeenCalledTimes(2);
+      expect(picomatch.makeRe).toHaveBeenCalledTimes(1);
+      expect(picomatch.makeRe).toHaveBeenCalledWith("src/*", { capture: true });
       expect(first).toEqual(["foo"]);
       expect(second).toEqual(["bar"]);
     });
