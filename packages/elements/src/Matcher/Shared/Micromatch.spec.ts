@@ -174,7 +174,8 @@ describe("Micromatch", () => {
       expect(result).toEqual(["foo/bar"]);
     });
 
-    it("should not normalize path separators when process is not defined, as in browsers", () => {
+    it("should not normalize path separators when process is not defined", () => {
+      setPlatform("win32");
       const instance = new Micromatch(false);
       const replacedProcess = jest.replaceProperty(
         globalThis,
@@ -182,11 +183,15 @@ describe("Micromatch", () => {
         undefined as unknown as typeof process
       );
 
-      const result = instance.capture("src/**", "src\\foo\\bar");
-      // Restore process before asserting, because Jest itself needs it
-      replacedProcess.restore();
+      let result: string[] | null;
+      try {
+        result = instance.capture("src/**", "src/foo\\bar");
+      } finally {
+        // Restore process before asserting, because Jest itself needs it
+        replacedProcess.restore();
+      }
 
-      expect(result).toBeNull();
+      expect(result).toEqual(["foo\\bar"]);
     });
 
     it("should preserve backslashes in captured values on POSIX", () => {
