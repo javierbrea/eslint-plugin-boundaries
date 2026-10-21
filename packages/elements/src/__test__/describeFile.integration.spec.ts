@@ -1,6 +1,6 @@
 /* eslint-disable jest/no-conditional-in-test */
 
-import micromatch from "micromatch";
+import picomatch from "picomatch";
 
 import type {
   FileDescription,
@@ -24,7 +24,7 @@ describe("describeFile | Integration", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    micromatchSpy = jest.spyOn(micromatch, "capture");
+    micromatchSpy = jest.spyOn(picomatch, "makeRe");
 
     elements = new Elements({
       includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],
@@ -695,7 +695,7 @@ describe("describeFile | Integration", () => {
     let isMatchSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      isMatchSpy = jest.spyOn(micromatch, "isMatch");
+      isMatchSpy = jest.spyOn(picomatch, "isMatch");
     });
 
     it("should not call micromatch isMatch again for same file and selector", () => {
