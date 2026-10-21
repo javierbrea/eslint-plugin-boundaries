@@ -16,10 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: actions/checkout@v5.1.0
       - uses: ./.github/actions/install
-        with:
-          node-version: 22.20.0
       - name: Lint repo root
         run: pnpm lint
       - name: Spell check repo root
@@ -28,68 +26,67 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: actions/checkout@v5.1.0
       - uses: ./.github/actions/install
-        with:
-          node-version: 22.20.0
-      - uses: gensecaihq/Shai-Hulud-2.0-Detector@v2.1.0
+      - uses: gensecaihq/Shai-Hulud-2.0-Detector@v2.2.0
         with:
           fail-on-critical: true
           fail-on-high: true
+  # NOTE: Runs with the development Node.js version defined in .nvmrc
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node: ["18.20.3", "20.13.1", "22.20.0"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: actions/checkout@v5.1.0
       - uses: ./.github/actions/install
-        with:
-          node-version: ${{ matrix.node }}
-      # NOTE: In other Node versions, we only run unit eslint plugin unit tests to save time in the CI and to avoid dev tools Node incompatibilities
-      - name: Test Unit
-        if: ${{ matrix.node != '22.20.0' }}
-        run: |
-          pnpm nx test:unit elements --output-style=stream --parallel=1
-          pnpm nx test:unit eslint-plugin --output-style=stream --parallel=1
       # NOTE: For the moment, we run the check:all target in all packages instead of running affected check in affected packages only
       - name: Check all
-        if: ${{ matrix.node == '22.20.0' }}
         run: pnpm nx run-many --target=check:all --all --output-style=stream --parallel=1
       - name: Upload elements test results
-        if: ${{ matrix.node == '22.20.0' }}
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: elements-coverage
           path: packages/elements/coverage
           retention-days: 1
       - name: Upload eslint-plugin test results
-        if: ${{ matrix.node == '22.20.0' }}
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: eslint-plugin-coverage
           path: packages/eslint-plugin/coverage
           retention-days: 1
       - name: Upload elements build
-        if: ${{ matrix.node == '22.20.0' }}
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: elements-build
           path: packages/elements/dist
           retention-days: 1
+  test-node-versions:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ["18.20.8", "20.20.2", "22.23.3", "26.12.0"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5.1.0
+      - uses: ./.github/actions/install
+        with:
+          node-version: ${{ matrix.node }}
+      # NOTE: In Node versions other than the development one, we only run elements and eslint plugin unit tests to save time in the CI and to avoid dev tools Node incompatibilities
+      - name: Test Unit
+        run: |
+          pnpm nx test:unit elements --output-style=stream --parallel=1
+          pnpm nx test:unit eslint-plugin --output-style=stream --parallel=1
   build-windows:
     runs-on: windows-2022
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: actions/checkout@v5.1.0
       - uses: ./.github/actions/install
         with:
-          node-version: "22.20.0"
           windows-fix-symlinks: "true"
       - name: Download elements build
-        uses: actions/download-artifact@v4.3.0
+        uses: actions/download-artifact@v7.0.0
         with:
           name: elements-build
           path: packages/elements/dist
@@ -104,28 +101,28 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: actions/checkout@v5.1.0
         with:
           fetch-depth: 0
       - name: Download elements test results
-        uses: actions/download-artifact@v4.3.0
+        uses: actions/download-artifact@v7.0.0
         with:
           name: elements-coverage
           path: packages/elements/coverage
       - name: Download eslint-plugin test results
-        uses: actions/download-artifact@v4.3.0
+        uses: actions/download-artifact@v7.0.0
         with:
           name: eslint-plugin-coverage
           path: packages/eslint-plugin/coverage
       - name: Coveralls for Elements
-        uses: coverallsapp/github-action@v2.3.7
+        uses: coverallsapp/github-action@v2.3.8
         continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ./packages/elements/coverage/lcov.info
           flag-name: elements
       - name: Coveralls for Eslint Plugin
-        uses: coverallsapp/github-action@v2.3.7
+        uses: coverallsapp/github-action@v2.3.8
         continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -133,7 +130,7 @@ jobs:
           flag-name: eslint-plugin
       - name: SonarCloud Scan - Elements
         if: env.SONAR_TOKEN_ELEMENTS != ''
-        uses: SonarSource/sonarqube-scan-action@v6.0.0
+        uses: SonarSource/sonarqube-scan-action@v7.2.1
         with:
           projectBaseDir: packages/elements
         env:
@@ -141,7 +138,7 @@ jobs:
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_ELEMENTS }}
       - name: SonarCloud Scan - Eslint Plugin
         if: env.SONAR_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@v6.0.0
+        uses: SonarSource/sonarqube-scan-action@v7.2.1
         with:
           projectBaseDir: packages/eslint-plugin
         env:
@@ -152,7 +149,7 @@ jobs:
   # Configure only this job as required status check in GitHub
   all-checks:
     runs-on: ubuntu-latest
-    needs: [check-root, check-vulnerabilities, build, build-windows, reports]
+    needs: [check-root, check-vulnerabilities, build, test-node-versions, build-windows, reports]
     if: always()
     steps:
       - name: Check all jobs status
@@ -160,11 +157,14 @@ jobs:
           echo "check-root: ${{ needs.check-root.result }}"
           echo "check-vulnerabilities: ${{ needs.check-vulnerabilities.result }}"
           echo "build: ${{ needs.build.result }}"
+          echo "test-node-versions: ${{ needs.test-node-versions.result }}"
           echo "build-windows: ${{ needs.build-windows.result }}"
           echo "reports: ${{ needs.reports.result }}"
           
           if [[ "${{ needs.check-root.result }}" != "success" ]] || \
+             [[ "${{ needs.check-vulnerabilities.result }}" != "success" ]] || \
              [[ "${{ needs.build.result }}" != "success" ]] || \
+             [[ "${{ needs.test-node-versions.result }}" != "success" ]] || \
              [[ "${{ needs.build-windows.result }}" != "success" ]] || \
              [[ "${{ needs.reports.result }}" != "success" ]]; then
             echo "❌ One or more jobs failed"

@@ -20,7 +20,7 @@ This is a pnpm + Nx monorepo publishing `@boundaries/elements`, `@boundaries/esl
 |---|---|---|---|
 | `packages/elements` | `elements` | `@boundaries/elements` | Element descriptors and matchers — the classification engine `eslint-plugin` builds rules on |
 | `packages/eslint-plugin` | `eslint-plugin` | `@boundaries/eslint-plugin` | The ESLint plugin itself: rules, settings parsing, messages |
-| `packages/website` | `website` | (deployed, not published) | Docusaurus site for `jsboundaries.dev`; version kept in lockstep with `eslint-plugin` |
+| `packages/website` | `website` | (deployed, not published) | Docusaurus site for `jsboundaries.dev`; version tracks `eslint-plugin`, bumped only on doc-affecting releases |
 | `examples/typescript` | `example-typescript` | (not published) | Minimal TypeScript project consuming the plugin, built against current source |
 | `examples/oxlint-integration` | `example-oxlint-integration` | (not published) | Demonstrates pairing the plugin with Oxlint |
 | `support/eslint-config` | `eslint-config` | `@boundaries/repo-eslint-config` | Shared ESLint flat config every project's `eslint.config.*` composes |
