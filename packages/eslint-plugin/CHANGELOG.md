@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [7.2.1] - 2026-10-21
+
+### Changed
+
+- chore: Upgrade `@boundaries/elements` to 3.1.2 and `eslint-module-utils` to 2.14.0.
+- chore: Update devDependencies to their latest patch and minor versions.
 
 ### Security
 
