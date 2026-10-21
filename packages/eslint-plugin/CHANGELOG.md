@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - chore: Upgrade `@boundaries/elements` to 3.1.2 and `eslint-module-utils` to 2.14.0.
+- chore: Update devDependencies to their latest patch and minor versions.
 
 ### Security
 

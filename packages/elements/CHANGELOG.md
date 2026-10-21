@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - chore: Upgrade `eslint-module-utils` to 2.14.0 and `is-core-module` to 2.17.0.
+- chore: Update devDependencies to their latest patch and minor versions.
 
 ### Security
 
