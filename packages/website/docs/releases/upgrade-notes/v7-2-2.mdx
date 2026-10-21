@@ -82,7 +82,7 @@ export default [{
 }];
 ```
 
-Run it with the version you use now and with v7.2.2. The files that are only printed with v7.2.2 are the affected ones.
+Run it with v7.2.1 and with v7.2.2. The files that are only printed with v7.2.2 are the affected ones. This configuration requires v7.0.0 or later, so if you are upgrading from an older major version, follow the [migration guides](../releases.md#migration-guides) first.
 
 :::tip
 Files that now belong to a different element type are not unknown, so this filter does not print them. To find them too, filter by the type of the descriptor that uses `basePattern`, for example `files: [{ element: { type: "component" } }]`, and look for the files that are no longer printed with v7.2.2.
