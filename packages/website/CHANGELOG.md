@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [unreleased]
 ### Added
 ### Changed
+
+- docs(#492): The `capture` sections of the Elements and Files classification pages now say that captures use picomatch, which replaces micromatch in `@boundaries/elements`.
+
 ### Fixed
 ### Removed
 ### Breaking Changes

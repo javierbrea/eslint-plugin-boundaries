@@ -138,7 +138,7 @@ Each descriptor must define at least one of `type` or `category`. Descriptors wi
 
 **Type:** `<array of strings>`
 
-Captures named values from path fragments so you can reference them later in [element selectors](../selectors/selectors.md). Uses the [micromatch capture feature](https://github.com/micromatch/micromatch#capture) under the hood.
+Captures named values from path fragments so you can reference them later in [element selectors](../selectors/selectors.md). Uses [picomatch](https://github.com/micromatch/picomatch) capture groups under the hood, which produce the same values as the [micromatch capture feature](https://github.com/micromatch/micromatch#capture).
 
 Each captured fragment is stored under the key from the `capture` array at the same index.
 

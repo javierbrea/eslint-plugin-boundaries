@@ -864,12 +864,12 @@ const testCheckAllOriginsWithIgnoredExternalDependencies = () => {
     rule,
     {
       valid: [
-        // "micromatch" resolves to a real file in node_modules, which is
+        // "chalk" resolves to a real file in node_modules, which is
         // ignored because it is outside `boundaries/include`. It should
         // still be allowed by an explicit policy.
         {
           filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
-          code: "import micromatch from 'micromatch'",
+          code: "import chalk from 'chalk'",
           options: [
             {
               checkAllOrigins: true,
@@ -880,7 +880,7 @@ const testCheckAllOriginsWithIgnoredExternalDependencies = () => {
                   allow: [
                     {
                       to: {
-                        module: { origin: "external", source: "micromatch" },
+                        module: { origin: "external", source: "chalk" },
                       },
                     },
                   ],
@@ -891,12 +891,12 @@ const testCheckAllOriginsWithIgnoredExternalDependencies = () => {
         },
       ],
       invalid: [
-        // Same ignored "micromatch" dependency, but with no policy allowing
+        // Same ignored "chalk" dependency, but with no policy allowing
         // it: it must still be reported, proving that checkAllOrigins
         // reaches policy evaluation despite `to.file.isIgnored` being true.
         {
           filename: absoluteFilePath("components/component-a/ComponentA.js"),
-          code: "import micromatch from 'micromatch'",
+          code: "import chalk from 'chalk'",
           options: [
             {
               checkAllOrigins: true,
@@ -906,7 +906,7 @@ const testCheckAllOriginsWithIgnoredExternalDependencies = () => {
           errors: [
             {
               message:
-                'There is no policy allowing dependencies from elements of type "components" and captured values: elementName="component-a" to entities of module with origin "external" and module source "micromatch"',
+                'There is no policy allowing dependencies from elements of type "components" and captured values: elementName="component-a" to entities of module with origin "external" and module source "chalk"',
               type: "Literal",
             },
           ],
