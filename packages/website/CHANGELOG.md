@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 ### Added
+
+- docs(#494): Add v7.2.2 upgrade notes to the Releases section, explaining the fix for the `path` and `fileInternalPath` of nested elements whose matched path also appears earlier in the file path.
 ### Changed
 ### Fixed
 ### Removed

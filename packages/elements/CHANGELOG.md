@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [unreleased]
+
+### Fixed
+
+- fix(#494): Resolve the element `path` from the position where the pattern matched, instead of from the first occurrence of the matched segments in the file path. Before, nested elements whose folder name is a prefix of an ancestor folder name (`components/Button` inside `components/ButtonGroup/`), or equal to it, got a wrong `path` and `fileInternalPath`, and nested elements with the same name as an ancestor lost their parent. See the [v7.2.2 upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-2-2/#nested-element-paths).
+
 ## [3.1.2] - 2026-10-21
 
 ### Changed

@@ -32,6 +32,12 @@ The core elements package that powers the plugin.
 - [Changelog](https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/packages/elements/CHANGELOG.md)
 - [Release Notes](https://github.com/javierbrea/eslint-plugin-boundaries/releases)
 
+## Upgrade Notes
+
+Some minor and patch releases fix behaviors that your lint results may depend on. Their upgrade notes explain what changed, who is affected and how to adapt your configuration:
+
+- [Upgrade notes for v7.2.2](./upgrade-notes/v7-2-2.md)
+
 ## Migration Guides
 
 For breaking changes, we provide detailed migration guides to help you upgrade:
