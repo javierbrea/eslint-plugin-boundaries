@@ -123,8 +123,8 @@ When you're finished with the changes, please ensure the following:
 * You have added tests for your changes.
 * You have updated the documentation if necessary.
 * You have run the linter and fixed any issues.
-* __You have added the necessary changes to the `CHANGELOG.md` file__, under the "unreleased" section at the beginning of the file.
-* You have modified the version of the package in the `package.json` file according to the [versioning](#versioning) section.
+* __You have added the necessary changes to the `CHANGELOG.md` file__ of each affected package: under the "unreleased" section at the beginning of the file, or under the section of the new version if your PR also bumps the package version.
+* If your PR bumps the version of a package in its `package.json` file, the bump follows the [versioning](#versioning) section. Bumping the version is not required: depending on other ongoing PRs, it can also be done later, during the release.
 
 When you have checked these points, then you are ready to submit your pull request. To do so, follow these steps:
 
@@ -159,8 +159,8 @@ Once the PR is approved and merged into the release branch, a project maintainer
 
 The release process is as follows:
 
-1. Prepare the release, either directly on the `release` branch or on a branch. For every package that has changes in the "unreleased" section of its `CHANGELOG.md`:
-   * Move those changes to a new version section that includes the version number and the release date (`## [X.Y.Z] - YYYY-MM-DD`).
+1. Prepare the release, either directly on the `release` branch or on a branch. For every package that has changes in the "unreleased" section of its `CHANGELOG.md`, or in a version section that has not been released yet:
+   * Make sure those changes are in a version section that includes the version number and the release date (`## [X.Y.Z] - YYYY-MM-DD`).
    * Set or check the version number in the `version` field of its `package.json` file, because a contributor PR may have already bumped it.
    * For `elements` and `eslint-plugin`, set the same version in the `sonar.projectVersion` property of its `sonar-project.properties` file.
    * Check that every package affected by a change in another package has also the correct version number (see [versioning](#versioning)).

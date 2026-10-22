@@ -30,7 +30,7 @@ The release spans three phases that depend on merges made outside this skill. St
    - Never commit on `release`. The preparation always goes on a new branch `chore/release-<eslint-plugin-version-with-dashes>` created from `release` (for example `chore/release-7-2-1`) and ends in a PR into `release`.
 
 2. **Take the inventory.**
-   - List every package with entries in the Unreleased section of its `CHANGELOG.md` (match the heading case-insensitively).
+   - List every package whose `CHANGELOG.md` has entries under the Unreleased section (match the heading case-insensitively) or under a version section that is not on `origin/master` yet.
    - Propose each new version from the entries, following `.agents/rules/changelog-and-versioning.md`. A version already set in a package's `package.json` by a contributor PR is the starting proposal; flag it if it does not fit the entries.
    - Check that every package that depends on a changed one is also versioned (`pnpm nx graph` or `pnpm nx show project <name> --json`), and that `package.json` and `sonar-project.properties` of `elements` and `eslint-plugin` agree on the version.
    - For the website, apply step 2 of the "Release process": detect whether `packages/website/docs/` changed since the latest snapshot listed in `packages/website/versions.json` (compare it with `packages/website/versioned_docs/version-<latest>/` and read the website changelog's Unreleased section).
