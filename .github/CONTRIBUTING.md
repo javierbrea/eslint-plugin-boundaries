@@ -183,11 +183,11 @@ The release process is as follows:
    * Tag: `vX.Y.Z`, where `X.Y.Z` is the version number of the `eslint-plugin` package, which is the main entry point of the repository.
    * Title: A human readable summary of the release, such as `Update dependencies to resolve vulnerabilities`.
    * Description: One section per released package, with the changes copied from the corresponding `CHANGELOG.md` file for the version you are releasing. For example, `## eslint-plugin v7.2.1` followed by `## elements v3.1.2`.
-6. Once the release is created, the publishing workflows run automatically:
-   * For a tag without `-beta.`, `.github/workflows/publish.yml` runs `pnpm check:all` and then `pnpm -r publish`, which publishes the non-private packages (`@boundaries/elements` and `@boundaries/eslint-plugin`) to the npm registry and skips the versions that were already published. Then it renames `packages/eslint-plugin` to `eslint-plugin-boundaries` and runs a plain `pnpm publish`.
-   * For a tag without `-beta.`, `.github/workflows/publish-to-github.yml` publishes only the plugin to the GitHub Packages registry as `@javierbrea/eslint-plugin-boundaries`, with a plain `pnpm publish`.
-   * The jobs that publish `eslint-plugin-boundaries` and the GitHub Packages copy fail if the `eslint-plugin` version was already published. This is why every release bumps the `eslint-plugin` version.
-   * For a tag with `-beta.`, `publish.yml` only runs `pnpm -r publish --tag beta`, which publishes the non-private packages to the npm registry with the `beta` tag.
+6. Once the release is created, the publishing workflows (`.github/workflows/publish.yml` and `.github/workflows/publish-to-github.yml`) run automatically. A tag without `-beta.` publishes:
+   * `@boundaries/elements` and `@boundaries/eslint-plugin` to the npm registry, skipping the versions that are already published.
+   * The plugin also as `eslint-plugin-boundaries` to the npm registry, and as `@javierbrea/eslint-plugin-boundaries` to the GitHub Packages registry. Both fail if that `eslint-plugin` version was already published, which is why every release bumps the `eslint-plugin` version.
+
+   A tag with `-beta.` publishes the same packages to the npm registry with the `beta` tag, and nothing to GitHub Packages.
 
 If another package becomes a main entry point of the repository, it may get its own release, tagged as `<package-name>-vX.Y.Z`.
 

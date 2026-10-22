@@ -10,7 +10,7 @@ argument-hint: "[eslint-plugin version]"
 
 Use this skill when the maintainer asks to prepare or publish a release. The procedure itself is written once, in the "Release process" section of `.github/CONTRIBUTING.md`; this skill executes it and adds the preconditions, the checks and the confirmations an agent needs. Read that section and `.agents/rules/changelog-and-versioning.md` before starting, and follow `CONTRIBUTING.md` for what each release step changes.
 
-What a GitHub release publishes is in step 6 of the "Release process" in `.github/CONTRIBUTING.md`, and a published version cannot be replaced. Remind the maintainer of both before the release step.
+What a GitHub release publishes is in step 6 of "Publishing" in `.github/CONTRIBUTING.md`, and a published version cannot be replaced. Remind the maintainer of both before the release step.
 
 ## Inputs
 
@@ -33,7 +33,7 @@ The release spans three phases that depend on merges made outside this skill. St
    - List every package whose `CHANGELOG.md` has entries under the Unreleased section or under a version section that is not on `origin/master` yet.
    - Propose each new version from the entries, following `.agents/rules/changelog-and-versioning.md`. A version already set in a package's `package.json` by a contributor PR, or named in its Unreleased entries or in an upgrade notes page, is the starting proposal; flag it if it does not fit the entries, or if they name different versions.
    - Check that every package that depends on a changed one is also versioned (`pnpm nx graph` or `pnpm nx show project <name> --json`), and that `package.json` and `sonar-project.properties` of `elements` and `eslint-plugin` agree on the version.
-   - For the website, apply step 2 of the "Release process": detect whether `packages/website/docs/` changed since the latest snapshot listed in `packages/website/versions.json` (compare it with `packages/website/versioned_docs/version-<latest>/` and read the website changelog's Unreleased section).
+   - For the website, apply step 2 of "Publishing": detect whether `packages/website/docs/` changed since the latest snapshot listed in `packages/website/versions.json` (compare it with `packages/website/versioned_docs/version-<latest>/` and read the website changelog's Unreleased section).
    - If `eslint-plugin` has no new version, stop and ask the maintainer how to tag the release.
 
 3. **Show a mandatory preview and get explicit confirmation.** Present the proposed version of every package, the branch name, the commit message (`chore(release): Release eslint-plugin vX.Y.Z and elements vA.B.C`) and the PR title (`chore: Release eslint-plugin vX.Y.Z and elements vA.B.C`), both naming the packages actually released, and the planned change to every file, including whether the website gets a new version. Let the maintainer adjust versions. Do not create the branch, edit files, commit, push or open a PR before the confirmation.
@@ -47,7 +47,7 @@ The release spans three phases that depend on merges made outside this skill. St
 Start when the maintainer confirms the PR from phase 1 is merged into `release`.
 
 1. Run `git fetch origin` and check that `origin/release` contains the release commit and the versions match the confirmed ones.
-2. Build the PR from `release` to `master` as step 4 of the "Release process" defines it. Collect the issues to close from the `(#N)` tokens and the `closes #N` lines in the commits and merged PRs in `git log origin/master..origin/release`. Resolve each number on GitHub: an issue goes in the list, and a pull request is read for the issues it closes.
+2. Build the PR from `release` to `master` as step 4 of "Publishing" defines it. Collect the issues to close from the `(#N)` tokens and the `closes #N` lines in the commits and merged PRs in `git log origin/master..origin/release`. Resolve each number on GitHub: an issue goes in the list, and a pull request is read for the issues it closes.
 3. Show a preview of the title, the full body and the list of issues to close. Ask for explicit confirmation before opening the PR.
 4. Open the PR, with the GitHub MCP tools or `gh`. Stop here and report.
 
@@ -58,7 +58,7 @@ Start when the maintainer confirms the PR from phase 2 is merged into `master`.
 1. Check that `origin/master` contains the release commit.
 2. If the website got a new version, check that the "Update Website Search Index" workflow ran for the merge (`gh run list --workflow web-search-index.yml`). If it did not, tell the maintainer to trigger it manually, as `CONTRIBUTING.md` describes.
 3. Build the release as `CONTRIBUTING.md` defines it: tag `vX.Y.Z` (the `eslint-plugin` version, on `master`), a human-readable title proposed from the changelog entries, and a description with one section per released package copied from its `CHANGELOG.md`, `eslint-plugin` first.
-4. **Show a mandatory preview** of the tag, title and full description, remind the maintainer what the release publishes (step 6 of the "Release process"), and ask for explicit confirmation. Never create a tag or a release without it.
+4. **Show a mandatory preview** of the tag, title and full description, remind the maintainer what the release publishes (step 6 of "Publishing"), and ask for explicit confirmation. Never create a tag or a release without it.
 5. Create the release targeting `master`, with the GitHub MCP tools or `gh release create`. Report the URL, and that the publish workflows were triggered.
 
 ### Authorization Failure Handling
