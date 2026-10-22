@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- fix(#494): The element `path` is resolved from the position where the descriptor `pattern` matched, instead of from the first place in the file path where the matched folders appear. Before, nested elements whose folder name starts with the folder name of an ancestor, such as `components/Button` inside `components/ButtonGroup/`, or is equal to it, got a wrong `path` and `fileInternalPath`, and the ones with the same name as an ancestor had no parent.
+
 ## [3.1.2] - 2026-10-21
 
 ### Changed

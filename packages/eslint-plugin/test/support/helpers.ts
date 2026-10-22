@@ -285,6 +285,16 @@ export const SETTINGS: Record<string, RuleTesterSettings> = {
       },
     },
   },
+  nestedElementsV7: {
+    "boundaries/elements": [
+      {
+        type: "component",
+        pattern: "components/*",
+        basePattern: "**/src",
+        capture: ["name"],
+      },
+    ],
+  },
   flagAsExternal: {
     "boundaries/elements": [
       {

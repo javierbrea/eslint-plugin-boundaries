@@ -750,4 +750,125 @@ describe("describeElement | Integration", () => {
       });
     });
   });
+
+  describe("nested elements", () => {
+    let nestedMatcher: Matcher;
+
+    beforeEach(() => {
+      nestedMatcher = new Elements().getMatcher({
+        elements: [
+          {
+            type: "component",
+            pattern: "components/*",
+            basePattern: "**/src",
+            capture: ["name"],
+          },
+        ],
+      });
+    });
+
+    it("should resolve the path of a nested element whose folder name is a prefix of an ancestor folder name", () => {
+      const element = nestedMatcher.describeElement(
+        "src/components/ButtonGroup/components/Button/Button.js"
+      );
+
+      expect(element).toEqual({
+        types: ["component"],
+        category: null,
+        captured: { name: "Button" },
+        isIgnored: false,
+        filePath: "src/components/ButtonGroup/components/Button/Button.js",
+        fileInternalPath: "Button.js",
+        path: "src/components/ButtonGroup/components/Button",
+        isUnknown: false,
+        parents: [
+          {
+            types: ["component"],
+            category: null,
+            captured: { name: "ButtonGroup" },
+            path: "src/components/ButtonGroup",
+          },
+        ],
+      });
+    });
+
+    it("should resolve the path and parents of a nested element with the same name as an ancestor", () => {
+      const element = nestedMatcher.describeElement(
+        "src/components/Button/components/Button/Button.js"
+      );
+
+      expect(element).toEqual({
+        types: ["component"],
+        category: null,
+        captured: { name: "Button" },
+        isIgnored: false,
+        filePath: "src/components/Button/components/Button/Button.js",
+        fileInternalPath: "Button.js",
+        path: "src/components/Button/components/Button",
+        isUnknown: false,
+        parents: [
+          {
+            types: ["component"],
+            category: null,
+            captured: { name: "Button" },
+            path: "src/components/Button",
+          },
+        ],
+      });
+    });
+
+    it("should resolve the path of a parent element whose folder name is a prefix of an ancestor folder name", () => {
+      const element = nestedMatcher.describeElement(
+        "src/components/ButtonGroup/components/Button/components/Icon/Icon.js"
+      );
+
+      expect(element).toEqual(
+        expect.objectContaining({
+          path: "src/components/ButtonGroup/components/Button/components/Icon",
+          fileInternalPath: "Icon.js",
+          parents: [
+            {
+              types: ["component"],
+              category: null,
+              captured: { name: "Button" },
+              path: "src/components/ButtonGroup/components/Button",
+            },
+            {
+              types: ["component"],
+              category: null,
+              captured: { name: "ButtonGroup" },
+              path: "src/components/ButtonGroup",
+            },
+          ],
+        })
+      );
+    });
+
+    it("should resolve the path of an element whose matched path also occurs inside a non-element ancestor folder name", () => {
+      const element = nestedMatcher.describeElement(
+        "src/legacy-components/Button/components/Button/Button.js"
+      );
+
+      expect(element).toEqual(
+        expect.objectContaining({
+          path: "src/legacy-components/Button/components/Button",
+          fileInternalPath: "Button.js",
+          parents: [],
+        })
+      );
+    });
+
+    it("should resolve the path of a nested element in an absolute file path", () => {
+      const element = nestedMatcher.describeElement(
+        "/project/src/components/ButtonGroup/components/Button/Button.js"
+      );
+
+      expect(element).toEqual(
+        expect.objectContaining({
+          path: "/project/src/components/ButtonGroup/components/Button",
+          fileInternalPath: "Button.js",
+        })
+      );
+    });
+  });
 });
