@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- fix(#494): Upgrade `@boundaries/elements` to 3.1.3. Nested elements whose folder name starts with the folder name of an ancestor, such as `components/Button` inside `components/ButtonGroup/`, or is equal to it, get the right `path` and `fileInternalPath`, and the ones with the same name as an ancestor get it as parent. Policies that use the element `path`, `fileInternalPath` or relationships may report different errors for them. Read the [v7.2.2 upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-2-2/#nested-element-paths) to find the affected files and adapt the configuration.
+
 ## [7.2.1] - 2026-10-21
 
 ### Changed
