@@ -40,7 +40,7 @@ An `AGENTS.md` holds a project's own layering, its hard constraints, and the ent
 
 ### Editing one
 
-`CLAUDE.md` is a symlink to `AGENTS.md` everywhere, so always edit `AGENTS.md`.
+Every `CLAUDE.md` is a one-line `@AGENTS.md` import, so edit `AGENTS.md`.
 
 ## Rules
 
