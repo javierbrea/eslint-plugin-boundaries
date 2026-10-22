@@ -5,15 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [unreleased]
+## [Unreleased]
 
 ### Changed
 
-- perf: Upgrade `@boundaries/elements`. Element and file descriptors compile each capture pattern once, instead of once per linted file. ([@joernroeder](https://github.com/joernroeder))
+- perf(#489): Upgrade `@boundaries/elements` to 3.1.3. Element and file descriptors compile each capture pattern once, instead of once per linted file. ([@joernroeder](https://github.com/joernroeder))
 
 ### Fixed
 
-- Remove the unused direct micromatch dependency and upgrade `@boundaries/elements` to use picomatch, removing braces from the plugin production dependency tree. ([@edoroshenko](https://github.com/edoroshenko))
+- fix(#495): Upgrade `@boundaries/elements` to 3.1.3. `basePattern` in `boundaries/elements` restricts matching again: a file is only assigned to the element when the left side of its path also matches `basePattern`, as documented. This had been broken since v5.1.0. Files that were matched by mistake may now be reported as unknown, for example by `boundaries/no-unknown-files`, or match a different element. Read the [v7.2.2 upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-2-2/) to find the affected files and adapt the configuration. ([@edoroshenko](https://github.com/edoroshenko))
+
+### Security
+
+- fix(#492): Remove the direct `micromatch` dependency and upgrade `@boundaries/elements` to 3.1.3, which replaces `micromatch` with `picomatch`. `braces`, affected by [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) with no patched release, is no longer in the plugin's production dependency tree. ([@edoroshenko](https://github.com/edoroshenko))
 
 ## [7.2.1] - 2026-10-21
 

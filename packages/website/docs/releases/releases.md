@@ -32,6 +32,12 @@ The core elements package that powers the plugin.
 - [Changelog](https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/packages/elements/CHANGELOG.md)
 - [Release Notes](https://github.com/javierbrea/eslint-plugin-boundaries/releases)
 
+## Upgrade Notes
+
+Some patch and minor releases fix behaviors that a configuration may rely on. Their upgrade notes explain how to check whether your project is affected, and how to adapt your configuration:
+
+- [Upgrading to v7.2.2](./upgrade-notes/v7-2-2.mdx): `basePattern` restricts element matching again
+
 ## Migration Guides
 
 For breaking changes, we provide detailed migration guides to help you upgrade:

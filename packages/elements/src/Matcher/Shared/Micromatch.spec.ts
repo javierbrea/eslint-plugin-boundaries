@@ -1,15 +1,30 @@
-import path from "node:path";
-
 import picomatch from "picomatch";
 
 import { Micromatch } from "./Micromatch";
 
+const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")!;
+
+/**
+ * Sets process.platform, which is read-only, so it can not be replaced with jest.replaceProperty.
+ * @param platform The platform to set.
+ */
+function setPlatform(platform: typeof process.platform): void {
+  Object.defineProperty(process, "platform", {
+    ...originalPlatform,
+    value: platform,
+  });
+}
+
 describe("Micromatch", () => {
   beforeEach(() => {
     jest.restoreAllMocks();
-    jest.replaceProperty(path, "sep", "/");
+    setPlatform("linux");
     jest.spyOn(picomatch, "isMatch");
     jest.spyOn(picomatch, "makeRe");
+  });
+
+  afterAll(() => {
+    Object.defineProperty(process, "platform", originalPlatform);
   });
 
   describe("constructor", () => {
@@ -151,12 +166,32 @@ describe("Micromatch", () => {
     );
 
     it("should normalize Windows path separators in captured values", () => {
-      jest.replaceProperty(path, "sep", "\\");
+      setPlatform("win32");
       const instance = new Micromatch(false);
 
       const result = instance.capture("src/**", "src\\foo\\bar");
 
       expect(result).toEqual(["foo/bar"]);
+    });
+
+    it("should not normalize path separators when process is not defined", () => {
+      setPlatform("win32");
+      const instance = new Micromatch(false);
+      const replacedProcess = jest.replaceProperty(
+        globalThis,
+        "process",
+        undefined as unknown as typeof process
+      );
+
+      let result: string[] | null;
+      try {
+        result = instance.capture("src/**", "src/foo\\bar");
+      } finally {
+        // Restore process before asserting, because Jest itself needs it
+        replacedProcess.restore();
+      }
+
+      expect(result).toEqual(["foo\\bar"]);
     });
 
     it("should preserve backslashes in captured values on POSIX", () => {
@@ -291,15 +326,25 @@ describe("Micromatch", () => {
 
       instance.isMatch("src/foo.ts", "src/**");
       instance.capture("src/*", "src/foo");
-      instance.makeRe("src/**");
+      instance.makeRe("lib/**");
       instance.clearCache();
 
       instance.isMatch("src/foo.ts", "src/**");
       instance.capture("src/*", "src/foo");
-      instance.makeRe("src/**");
+      instance.makeRe("lib/**");
+
+      // picomatch.isMatch also calls picomatch.makeRe internally, so only the patterns compiled by capture and makeRe are checked
+      const makeReCalls = jest.mocked(picomatch.makeRe).mock.calls;
 
       expect(picomatch.isMatch).toHaveBeenCalledTimes(2);
-      expect(picomatch.makeRe).toHaveBeenCalledTimes(6);
+      expect(makeReCalls.filter(([pattern]) => pattern === "src/*")).toEqual([
+        ["src/*", { capture: true }],
+        ["src/*", { capture: true }],
+      ]);
+      expect(makeReCalls.filter(([pattern]) => pattern === "lib/**")).toEqual([
+        ["lib/**"],
+        ["lib/**"],
+      ]);
     });
 
     it("should not throw when cache is disabled", () => {

@@ -373,6 +373,62 @@ describe("describeElement | Integration", () => {
     });
   });
 
+  describe("basePattern", () => {
+    let basePatternMatcher: Matcher;
+
+    beforeEach(() => {
+      basePatternMatcher = elements.getMatcher({
+        elements: [
+          {
+            type: "feature",
+            pattern: "features/*",
+            basePattern: "**/src/app",
+            capture: ["featureName"],
+          },
+        ],
+      });
+    });
+
+    it("should describe the element when the left side of the path matches basePattern", () => {
+      const element = basePatternMatcher.describeElement(
+        "/project/src/app/features/checkout/Checkout.ts"
+      );
+
+      expect(element).toEqual({
+        types: ["feature"],
+        category: null,
+        captured: { featureName: "checkout" },
+        path: "/project/src/app/features/checkout",
+        filePath: "/project/src/app/features/checkout/Checkout.ts",
+        fileInternalPath: "Checkout.ts",
+        parents: [],
+        isIgnored: false,
+        isUnknown: false,
+      });
+      expect(isKnownElementDescription(element)).toBe(true);
+    });
+
+    // Regression test for https://github.com/javierbrea/eslint-plugin-boundaries/issues/495
+    it("should not describe the element when the left side of the path does not match basePattern", () => {
+      const element = basePatternMatcher.describeElement(
+        "/project/src/legacy/features/search/Search.ts"
+      );
+
+      expect(element).toEqual({
+        types: null,
+        category: null,
+        captured: null,
+        path: null,
+        filePath: null,
+        fileInternalPath: null,
+        parents: [],
+        isIgnored: false,
+        isUnknown: true,
+      });
+      expect(isUnknownElementDescription(element)).toBe(true);
+    });
+  });
+
   describe("elements descriptor cache", () => {
     it("should not call micromatch multiple times for the same element", () => {
       matcher.describeElement("/project/src/components/Button.tsx");

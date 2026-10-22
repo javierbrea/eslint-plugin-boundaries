@@ -1,11 +1,17 @@
-import path from "node:path";
-
 import picomatch from "picomatch";
 
 import { CacheManager, CacheManagerDisabled } from "../../Cache";
 import { isArray } from "../../Shared";
 
 import type { MicromatchSerializedCache } from "./Micromatch.types";
+
+/**
+ * Checks whether the code is running on Windows. It reads `process` from `globalThis`, so it does not throw in browsers, where `process` is not defined.
+ * @returns True when running on Windows, false otherwise.
+ */
+function isWindows(): boolean {
+  return globalThis.process?.platform === "win32";
+}
 
 /**
  * Cache key type for micromatch matching results
@@ -179,11 +185,10 @@ export class Micromatch {
       this._captureReCache.get(pattern) ??
       picomatch.makeRe(pattern, { capture: true });
     this._captureReCache.set(pattern, regexp);
-    // Preserve micromatch's Windows path normalization, including escaped glob characters.
-    const input =
-      path.sep === "\\"
-        ? target.replace(picomatch.constants.REGEX_BACKSLASH, "/")
-        : target;
+    // Normalize Windows separators like micromatch does, keeping the backslashes that escape glob characters.
+    const input = isWindows()
+      ? target.replace(picomatch.constants.REGEX_BACKSLASH, "/")
+      : target;
     const match = regexp.exec(input);
     const result = match
       ? match.slice(1).map((value) => (value === undefined ? "" : value))

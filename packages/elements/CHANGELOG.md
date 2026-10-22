@@ -5,16 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [unreleased]
+## [Unreleased]
 
 ### Changed
 
-- perf: `capture` compiles each pattern once and reuses it for every path. Before, it compiled the pattern again for each new path, because its cache key includes the path. ([@joernroeder](https://github.com/joernroeder))
+- perf(#489): `capture` compiles each pattern once and reuses it for every path. Before, it compiled the pattern again for each new path, because its cache key includes the path. ([@joernroeder](https://github.com/joernroeder))
 
 ### Fixed
 
-- Replace micromatch with picomatch for matching and captures, removing the transitive braces dependency. Preserve glob syntax, captured groups, and Windows path handling. ([@edoroshenko](https://github.com/edoroshenko))
-- Return and cache `null` for capture misses, matching the existing declared return type. ([@edoroshenko](https://github.com/edoroshenko))
+- fix(#495): `capture` returns `null` instead of `undefined` when the path does not match, as its declared return type says. As a result, element descriptors with `basePattern` only match paths whose left side also matches `basePattern`, as documented. Paths outside `basePattern` were matched by mistake before, so they may now be unknown elements or match a different descriptor. ([@edoroshenko](https://github.com/edoroshenko))
+
+### Security
+
+- fix(#492): Replace `micromatch` with `picomatch` 2.3.2 for matching and captures, removing the transitive `braces` dependency, which is affected by [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) and has no patched release. Glob syntax, captured groups and Windows path handling are unchanged. ([@edoroshenko](https://github.com/edoroshenko))
 
 ## [3.1.2] - 2026-10-21
 

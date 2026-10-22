@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [unreleased]
 ### Added
+
+- docs(#495): Add an Upgrade Notes section to the Releases docs, with the v7.2.2 upgrade notes: how to find the files affected by the `basePattern` fix, and how to adapt the configuration.
+
 ### Changed
+
+- docs(#492): The `capture` sections of the Elements and Files classification pages now say that captures use picomatch, which replaces micromatch in `@boundaries/elements`.
+
 ### Fixed
 ### Removed
 ### Breaking Changes
