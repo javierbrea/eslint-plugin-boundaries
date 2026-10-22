@@ -4,10 +4,10 @@ Package-scoped agent instructions for the `website` package (Nx project `website
 
 ## Versioning tracks `eslint-plugin`, only when docs change
 
-This package's own `package.json` version matches `packages/eslint-plugin`'s version as of the last release that changed `docs/`. Bump it, roll its `CHANGELOG.md`, and run `pnpm nx version website <version>` only when the release includes doc changes; a release that doesn't touch `docs/` leaves this package's version and versioned docs as they are (see `.agents/rules/changelog-and-versioning.md`).
+This package's own `package.json` version matches `packages/eslint-plugin`'s version as of the last release that changed `docs/`. A release that doesn't touch `docs/` leaves this package's version, changelog and versioned docs as they are. The steps for a release that does are in `.github/CONTRIBUTING.md` and are run by the `release` skill.
 
 ## Structure
 
 - `docs/` is the current, unreleased documentation, organized by topic (`classification`, `guides`, `policies`, `rules`, `selectors`, `settings`, …); `sidebars.ts` defines its navigation.
 - `versioned_docs/version-<X.Y.Z>/` + `versioned_sidebars/` + `versions.json` are frozen per-release snapshots created by Docusaurus' own versioning command — never hand-edit a file under `versioned_docs/`.
-- `algolia-config.json` drives the search index; after a docs-affecting release, verify the Algolia index updated (see the "Update Website Search Index" GitHub Actions workflow) — Netlify's deploy webhook can't always pass the auth token the scraper needs, so the update sometimes needs a manual trigger.
+- `algolia-config.json` is the configuration of the Algolia search index scraper.

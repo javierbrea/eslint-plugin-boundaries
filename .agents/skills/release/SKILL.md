@@ -1,0 +1,88 @@
+---
+name: release
+description: Prepare and publish a release of the @boundaries packages by running the "Release process" in .github/CONTRIBUTING.md. Inventories the packages with unreleased changes, proposes their versions, updates changelogs, package versions and Sonar versions on a new chore/release-<version> branch with a PR into release, then promotes release to master and creates the vX.Y.Z GitHub release, showing a preview and asking for confirmation before every commit, push, PR, tag or release. Use when the maintainer asks to release, publish, cut a release or prepare a release PR.
+argument-hint: "[eslint-plugin version]"
+---
+
+# Release
+
+## When to use this skill
+
+Use this skill when the maintainer asks to prepare or publish a release. The procedure itself is written once, in the "Release process" section of `.github/CONTRIBUTING.md`; this skill executes it and adds the preconditions, the checks and the confirmations an agent needs. Read that section and `.agents/rules/changelog-and-versioning.md` before starting, and follow `CONTRIBUTING.md` for what each release step changes.
+
+Creating any GitHub release publishes every package to npm and GitHub Packages, and a published version cannot be replaced. Remind the maintainer of that before the release step.
+
+## Inputs
+
+Provide (optional):
+
+- **eslint-plugin version**: the version to release. If omitted, it is proposed during the inventory.
+
+## Procedure
+
+The release spans three phases that depend on merges made outside this skill. Start at the phase the repository state is in, and stop at the end of each phase until the maintainer says the next merge happened.
+
+### Phase 1: prepare the release PR
+
+1. **Check the preconditions.**
+   - `git status --porcelain` is empty. If not, stop and ask the maintainer what to do with the changes.
+   - Run `git fetch origin`; the local `release` branch equals `origin/release`. If not, stop and ask before updating it.
+   - Never commit on `release`. The preparation always goes on a new branch `chore/release-<eslint-plugin-version-with-dashes>` created from `release` (for example `chore/release-7-2-1`) and ends in a PR into `release`, even though `CONTRIBUTING.md` also allows a maintainer to commit directly.
+
+2. **Take the inventory.**
+   - List every package with entries in the "Unreleased" section of its `CHANGELOG.md` (the website heading is lowercase).
+   - Propose each new version from the entries, following `.agents/rules/changelog-and-versioning.md`. A version already set in a package's `package.json` by a contributor PR is the starting proposal; flag it if it does not fit the entries.
+   - Check that every package that depends on a changed one is also versioned (`pnpm nx graph` or `pnpm nx show project <name> --json`), and that `package.json` and `sonar-project.properties` of `elements` and `eslint-plugin` agree on the version.
+   - For the website, detect whether `packages/website/docs/` changed since the latest snapshot listed in `packages/website/versions.json` (compare it with `packages/website/versioned_docs/version-<latest>/` and read the website "unreleased" changelog). If so, it takes the `eslint-plugin` version; if not, leave it untouched.
+   - If `eslint-plugin` has no new version, stop and ask the maintainer how to tag the release.
+
+3. **Show a mandatory preview and get explicit confirmation.** Present the proposed version of every package, the branch name, the commit message and PR title (`chore(release): Release eslint-plugin vX.Y.Z and elements vA.B.C`, naming the packages actually released), and the planned change to every file, including whether the website gets a new version. Let the maintainer adjust versions. Do not create the branch, edit files, commit, push or open a PR before the confirmation.
+
+4. **Apply the changes.** Create the branch and make the changes `CONTRIBUTING.md` lists for the preparation. Run `pnpm nx version website <version>` only when the website takes a new version. Show the resulting `git status` and `git diff --stat`, excluding `versioned_docs/` content from the detailed diff.
+
+5. **Commit, push and open the PR into `release`.** Commit with the confirmed message, push the branch, and open the PR with the `create-pr` skill (target `release`, title as confirmed). The PR is squash-merged by the maintainer. Stop here and report.
+
+### Phase 2: promote `release` to `master`
+
+Start when the maintainer confirms the PR from phase 1 is merged into `release`.
+
+1. Run `git fetch origin` and check that `origin/release` contains the release commit and the versions match the confirmed ones.
+2. Show a preview of the PR from `release` to `master`: title (the release commit message), and a description with one line per released package and version. Ask for explicit confirmation before opening it.
+3. Open the PR, with the GitHub MCP tools or `gh`. The maintainer merges it with a merge commit. Stop here and report.
+
+### Phase 3: create the GitHub release
+
+Start when the maintainer confirms the PR from phase 2 is merged into `master`.
+
+1. Check that `origin/master` contains the release commit.
+2. If the website got a new version, check that the "Update Website Search Index" workflow ran for the merge (`gh run list --workflow web-search-index.yml`). If it did not, tell the maintainer to trigger it manually, as `CONTRIBUTING.md` describes.
+3. Build the release as `CONTRIBUTING.md` defines it: tag `vX.Y.Z` (the `eslint-plugin` version, on `master`), a human-readable title proposed from the changelog entries, and a description with one section per released package copied from its `CHANGELOG.md`, `eslint-plugin` first.
+4. **Show a mandatory preview** of the tag, title and full description, repeat that creating the release publishes every package, and ask for explicit confirmation. Never create a tag or a release without it.
+5. Create the release targeting `master`, with the GitHub MCP tools or `gh release create`. Report the URL, and that the publish workflows were triggered.
+
+### Authorization Failure Handling (Required)
+
+- Never enter retry loops with shell commands when authorization or authentication failures are detected.
+- Treat errors such as `401`, `403`, `Bad credentials`, `Requires authentication`, `Resource not accessible by integration`, `permission denied`, or `not authorized` as terminal for the current automation attempt.
+- On such failures, stop automation immediately and inform the maintainer that authorization is required.
+- Always include in the response what the failed step needed, so the maintainer can do it manually: the commit message and PR title and description, or the tag, release title and full release description.
+- Do not keep attempting alternative shell-based GitHub flows after an auth failure has been detected.
+
+## Output format
+
+Return results with:
+
+- **Summary**: the phase completed, the version of every released package, and the URLs of the PR or release created.
+- **Details**: the files changed per package, the branch name, and how the website decision was made.
+- **Pending manual steps**: the merge the maintainer has to make before the next phase, and the search index check when the website got a new version.
+- **On authorization failure**: the copyable content from the failure handling section, and a clear statement that authorization is required.
+
+Include assumptions, risks, and follow-ups when relevant.
+
+## Notes / Constraints
+
+- Write the commit message, PR text and release text in English, whatever language the conversation is in.
+- **Do not use hard line breaks within paragraphs** in PR and release descriptions. Each paragraph must be a single unbroken line; only blank lines separate paragraphs.
+- Never commit on `release` or `master`, and never push to them.
+- Never tag, create a release, push or open a PR without showing a preview and obtaining explicit confirmation in the same phase.
+- Prefer GitHub MCP tools for supported operations; fall back to `gh` only for what MCP cannot do.

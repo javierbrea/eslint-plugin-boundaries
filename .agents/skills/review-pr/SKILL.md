@@ -46,7 +46,7 @@ Provide (all optional; a sensible default applies):
    - Are there functional problems beyond the issue's literal scope (regressions, edge cases, broken assumptions)?
    - Does the PR description accurately describe what the diff does?
    - Were tests added or updated for the new/changed behaviour?
-   - Is there a `CHANGELOG.md` entry under "unreleased", and was the package `version` bumped consistently with SemVer, per `.github/CONTRIBUTING.md` and `.agents/rules/changelog-and-versioning.md`?
+   - Does the PR have the `CHANGELOG.md` entry and package `version` bump required by `.agents/rules/changelog-and-versioning.md`?
    - When the change is user-visible, was documentation updated accordingly — the package `README.md`, `docs/**`, and/or the website content under `packages/website/docs/**` (per `.agents/rules/docs-authoring.md`)? Flag it only when the issue or diff implies user-visible behaviour actually changed.
 
 6. **Perspective 2 — delegate to the `reviewer` subagent** for code correctness, quality, and test coverage. Give it: the PR number and title, the base branch and diff range (`<base>...<headSha>`), the list of changed files, and whether the review is running in GitHub-only mode (so it knows whether it can run tests/lint locally).

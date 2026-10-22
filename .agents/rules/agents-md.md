@@ -35,7 +35,7 @@ Keep each project's file **under 200 lines**; past that, something in it belongs
 An `AGENTS.md` holds a project's own layering, its hard constraints, and the entry points an agent needs to find its way: what is left after the other tiers take theirs. Before adding a section, check it is not one of these:
 
 - **A convention governing a nameable set of files** (a naming pattern, a layer's import rules, a test shape) → a `.agents/rules/*.md` with a `paths` glob. If the scope can be written as a glob it is a rule, not an `AGENTS.md` section — and a rule only loads for the files it governs.
-- **Architecture that spans projects** (the dependency graph between packages, the release flow) → the `repo-architecture` skill. **Long-form reference material** (a rule's full documented behavior, an ADR, the contributing workflow) → `docs/`.
+- **Architecture that spans projects** (the dependency graph between packages) → the `repo-architecture` skill. **The release procedure** → `.github/CONTRIBUTING.md`, run by the `release` skill. **Long-form reference material** (a rule's full documented behavior, an ADR, the contributing workflow) → `docs/`.
 - **Why one specific file is written the way it is** → that file's own TSDoc or comments, with at most a one-line pointer to it from here. If the code is self-explanatory enough, the comment is unnecessary; if it is not, the comment belongs in the code, not here.
 
 ### Editing one

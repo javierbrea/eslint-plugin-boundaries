@@ -42,6 +42,6 @@ The one non-obvious edge: **`eslint-plugin` makes its own `lint` target depend o
 
 ## Release flow
 
-Each package is versioned independently under semver — see `.agents/rules/changelog-and-versioning.md`. At a high level: `release` is the default PR base branch (PRs squash-merge into it); a maintainer periodically opens a PR from `release` to `master` (merge-commit strategy) to cut a release, tags each modified package as `<package-name>-vX.Y.Z`, and publication to npm happens automatically once a GitHub release is created. Full detail lives in `.github/CONTRIBUTING.md`.
+Packages are versioned independently (`.agents/rules/changelog-and-versioning.md`). PRs target `release`, and releases merge `release` into `master`; the procedure is in `.github/CONTRIBUTING.md` and the `release` skill runs it.
 
 The stable branch is `master`: the remote, the CI workflows, and `nx.json`'s `defaultBase` use it.
