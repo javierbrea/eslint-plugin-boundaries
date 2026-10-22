@@ -107,12 +107,6 @@ importers:
 
   packages/elements:
     dependencies:
-      eslint-import-resolver-node:
-        specifier: 0.3.9
-        version: 0.3.9
-      eslint-module-utils:
-        specifier: 2.14.0
-        version: 2.14.0(@typescript-eslint/parser@8.71.2(eslint@9.39.5(jiti@1.21.7))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@4.4.5)(eslint@9.39.5(jiti@1.21.7))
       handlebars:
         specifier: 4.7.10
         version: 4.7.10
