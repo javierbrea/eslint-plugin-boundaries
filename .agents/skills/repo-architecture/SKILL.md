@@ -35,4 +35,4 @@ The map of where each kind of rule lives is in the root `AGENTS.md`; read the `A
 
 The standardized target names are listed in the root `AGENTS.md` ("Commands"). They get common defaults from `nx.json`'s `targetDefaults` and are overridden per-project in `project.json` only where a project's needs diverge; `.agents/rules/nx-project-config.md` covers that override mechanism and why it matters for caching.
 
-Why `eslint-plugin`'s `lint` target depends on `build` is in `packages/eslint-plugin/AGENTS.md` ("Build and test shape").
+Only `eslint-plugin` and `eslint-plugin-e2e` make `lint` depend on their own `build`; each project's `AGENTS.md` says why.

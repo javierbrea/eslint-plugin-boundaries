@@ -16,8 +16,7 @@
         {
           "target": "eslint:config",
           "projects": ["eslint-config"]
-        },
-        "build"
+        }
       ]
     },
     "test:unit": {
