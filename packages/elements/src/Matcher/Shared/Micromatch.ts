@@ -1,9 +1,17 @@
-import micromatch from "micromatch";
+import picomatch from "picomatch";
 
 import { CacheManager, CacheManagerDisabled } from "../../Cache";
 import { isArray } from "../../Shared";
 
 import type { MicromatchSerializedCache } from "./Micromatch.types";
+
+/**
+ * Checks whether the code is running on Windows. It reads `process` from `globalThis`, so it does not throw in browsers, where `process` is not defined.
+ * @returns True when running on Windows, false otherwise.
+ */
+function isWindows(): boolean {
+  return globalThis.process?.platform === "win32";
+}
 
 /**
  * Cache key type for micromatch matching results
@@ -56,7 +64,7 @@ class CapturedValueCache extends CacheManager<
 }
 
 /**
- * Micromatch wrapper class with caching capabilities.
+ * Glob matching and capture wrapper with caching, backed by picomatch.
  */
 
 export class Micromatch {
@@ -82,6 +90,12 @@ export class Micromatch {
     new CacheManagerDisabled<string, RegExp>();
 
   /**
+   * Cache for the regular expressions used by capture, keyed by pattern
+   */
+  private readonly _captureReCache: CacheManagerDisabled<string, RegExp> =
+    new CacheManagerDisabled<string, RegExp>();
+
+  /**
    * Creates an instance of Micromatch class.
    * @param cache Whether to use caching or not.
    */
@@ -95,6 +109,9 @@ export class Micromatch {
     this._makeReCache = cache
       ? new CacheManager<string, RegExp>()
       : new CacheManagerDisabled<string, RegExp>();
+    this._captureReCache = cache
+      ? new CacheManager<string, RegExp>()
+      : new CacheManagerDisabled<string, RegExp>();
   }
 
   /**
@@ -104,6 +121,7 @@ export class Micromatch {
     this._matchingResultsCache.clear();
     this._capturesCache.clear();
     this._makeReCache.clear();
+    this._captureReCache.clear();
   }
 
   /**
@@ -144,7 +162,7 @@ export class Micromatch {
       return this._matchingResultsCache.get(cacheKey)!;
     }
 
-    const isMatch = micromatch.isMatch(value, pattern);
+    const isMatch = picomatch.isMatch(value, pattern);
     this._matchingResultsCache.set(cacheKey, isMatch);
     return isMatch;
   }
@@ -162,7 +180,19 @@ export class Micromatch {
       return this._capturesCache.get(cacheKey)!;
     }
 
-    const result = micromatch.capture(pattern, target);
+    // Compiling the pattern is expensive, and the captures cache misses on every new target, so the compiled pattern is cached separately
+    const regexp =
+      this._captureReCache.get(pattern) ??
+      picomatch.makeRe(pattern, { capture: true });
+    this._captureReCache.set(pattern, regexp);
+    // Normalize Windows separators like micromatch does, keeping the backslashes that escape glob characters.
+    const input = isWindows()
+      ? target.replace(picomatch.constants.REGEX_BACKSLASH, "/")
+      : target;
+    const match = regexp.exec(input);
+    const result = match
+      ? match.slice(1).map((value) => (value === undefined ? "" : value))
+      : null;
     this._capturesCache.set(cacheKey, result);
     return result;
   }
@@ -176,7 +206,7 @@ export class Micromatch {
     if (this._makeReCache.has(pattern)) {
       return this._makeReCache.get(pattern)!;
     }
-    const regexp = micromatch.makeRe(pattern);
+    const regexp = picomatch.makeRe(pattern);
     this._makeReCache.set(pattern, regexp);
     return regexp;
   }

@@ -7,9 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- perf(#489): `capture` compiles each pattern once and reuses it for every path. Before, it compiled the pattern again for each new path, because its cache key includes the path. ([@joernroeder](https://github.com/joernroeder))
+
 ### Fixed
 
 - fix(#494): The element `path` is resolved from the position where the descriptor `pattern` matched, instead of from the first place in the file path where the matched folders appear. Before, nested elements whose folder name starts with the folder name of an ancestor, such as `components/Button` inside `components/ButtonGroup/`, or is equal to it, got a wrong `path` and `fileInternalPath`, and the ones with the same name as an ancestor had no parent.
+- fix(#495): `capture` returns `null` instead of `undefined` when the path does not match, as its declared return type says. As a result, element descriptors with `basePattern` only match paths whose left side also matches `basePattern`, as documented. Paths outside `basePattern` were matched by mistake before, so they may now be unknown elements or match a different descriptor. ([@edoroshenko](https://github.com/edoroshenko))
+
+### Security
+
+- fix(#492): Replace `micromatch` with `picomatch` 2.3.2 for matching and captures, removing the transitive `braces` dependency, which is affected by [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) and has no patched release. Glob syntax, captured groups and Windows path handling are unchanged. ([@edoroshenko](https://github.com/edoroshenko))
 
 ## [3.1.2] - 2026-10-21
 

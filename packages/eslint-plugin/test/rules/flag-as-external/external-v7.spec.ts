@@ -52,7 +52,7 @@ const testDefaultSettings = () => {
                 disallow: [
                   {
                     to: {
-                      module: { origin: "external", source: "micromatch" },
+                      module: { origin: "external", source: "chalk" },
                     },
                   },
                 ],
@@ -66,12 +66,12 @@ const testDefaultSettings = () => {
       // Disallowed external dependency from node_modules
       {
         filename: absoluteFilePath("package-a/helpers/helper-a/HelperA.js"),
-        code: "import micromatch from 'micromatch'",
+        code: "import chalk from 'chalk'",
         options: [{ checkAllOrigins: true, default: "disallow" }],
         errors: [
           {
             message:
-              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "chalk"',
             type: "Literal",
           },
         ],
@@ -208,12 +208,12 @@ const testOutsideRootPath = () => {
       // Disallowed all external dependency from node_modules
       {
         filename: absoluteFilePath("package-a/helpers/helper-a/HelperA.js"),
-        code: "import micromatch from 'micromatch'",
+        code: "import chalk from 'chalk'",
         options: [{ checkAllOrigins: true, default: "disallow" }],
         errors: [
           {
             message:
-              'There is no policy allowing dependencies from elements of type "helpers" and captured values: elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: elementName="helper-a" to entities of module with origin "external" and module source "chalk"',
             type: "Literal",
           },
         ],
@@ -345,12 +345,12 @@ const testCustomSourcePatterns = () => {
       // Disallowed node_modules dependency
       {
         filename: absoluteFilePath("package-a/helpers/helper-a/HelperA.js"),
-        code: "import micromatch from 'micromatch'",
+        code: "import chalk from 'chalk'",
         options: [{ checkAllOrigins: true, default: "disallow" }],
         errors: [
           {
             message:
-              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "chalk"',
             type: "Literal",
           },
         ],
@@ -395,7 +395,7 @@ const testInNodeModulesDisabled = () => {
       },
       {
         filename: absoluteFilePath("package-a/helpers/helper-a/HelperA.js"),
-        code: "import micromatch from 'micromatch'",
+        code: "import chalk from 'chalk'",
         options: [
           {
             checkAllOrigins: true,
@@ -450,12 +450,12 @@ const testUnresolvableAliasDisabled = () => {
       // node_modules imports still flagged as external
       {
         filename: absoluteFilePath("package-a/helpers/helper-a/HelperA.js"),
-        code: "import micromatch from 'micromatch'",
+        code: "import chalk from 'chalk'",
         options: [{ checkAllOrigins: true, default: "disallow" }],
         errors: [
           {
             message:
-              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "micromatch"',
+              'There is no policy allowing dependencies from elements of type "helpers" and captured values: package="a", elementName="helper-a" to entities of module with origin "external" and module source "chalk"',
             type: "Literal",
           },
         ],

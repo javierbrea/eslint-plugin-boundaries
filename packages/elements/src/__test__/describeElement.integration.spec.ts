@@ -1,4 +1,4 @@
-import micromatch from "micromatch";
+import picomatch from "picomatch";
 
 import type { Matcher } from "../index";
 import {
@@ -16,7 +16,7 @@ describe("describeElement | Integration", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    micromatchSpy = jest.spyOn(micromatch, "capture");
+    micromatchSpy = jest.spyOn(picomatch, "makeRe");
 
     elements = new Elements({
       includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],
@@ -370,6 +370,62 @@ describe("describeElement | Integration", () => {
       });
       expect(isKnownElementDescription(element)).toBe(true);
       expect(isElementDescription(element)).toBe(true);
+    });
+  });
+
+  describe("basePattern", () => {
+    let basePatternMatcher: Matcher;
+
+    beforeEach(() => {
+      basePatternMatcher = elements.getMatcher({
+        elements: [
+          {
+            type: "feature",
+            pattern: "features/*",
+            basePattern: "**/src/app",
+            capture: ["featureName"],
+          },
+        ],
+      });
+    });
+
+    it("should describe the element when the left side of the path matches basePattern", () => {
+      const element = basePatternMatcher.describeElement(
+        "/project/src/app/features/checkout/Checkout.ts"
+      );
+
+      expect(element).toEqual({
+        types: ["feature"],
+        category: null,
+        captured: { featureName: "checkout" },
+        path: "/project/src/app/features/checkout",
+        filePath: "/project/src/app/features/checkout/Checkout.ts",
+        fileInternalPath: "Checkout.ts",
+        parents: [],
+        isIgnored: false,
+        isUnknown: false,
+      });
+      expect(isKnownElementDescription(element)).toBe(true);
+    });
+
+    // Regression test for https://github.com/javierbrea/eslint-plugin-boundaries/issues/495
+    it("should not describe the element when the left side of the path does not match basePattern", () => {
+      const element = basePatternMatcher.describeElement(
+        "/project/src/legacy/features/search/Search.ts"
+      );
+
+      expect(element).toEqual({
+        types: null,
+        category: null,
+        captured: null,
+        path: null,
+        filePath: null,
+        fileInternalPath: null,
+        parents: [],
+        isIgnored: false,
+        isUnknown: true,
+      });
+      expect(isUnknownElementDescription(element)).toBe(true);
     });
   });
 

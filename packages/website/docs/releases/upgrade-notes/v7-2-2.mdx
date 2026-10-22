@@ -2,7 +2,7 @@
 id: v7-2-2
 title: Upgrading to v7.2.2
 sidebar_label: v7.2.2
-description: Learn whether the nested element path fix in ESLint Plugin Boundaries v7.2.2 affects your project, how to find the affected files, and how to adapt your configuration.
+description: Learn whether the basePattern and nested element path fixes in ESLint Plugin Boundaries v7.2.2 affect your project, how to find the affected files, and how to adapt your configuration.
 tags:
   - configuration
   - migration
@@ -12,6 +12,8 @@ keywords:
   - upgrade notes
   - release
   - v7.2.2
+  - basePattern
+  - baseCapture
   - element path
   - fileInternalPath
   - nested elements
@@ -26,9 +28,121 @@ import CodeDiff from "@site/src/components/CodeDiff";
 
 v7.2.2 is a patch release, and most projects can upgrade without any change. However, it fixes bugs that some configurations may rely on:
 
+- **[Base pattern matching](#base-pattern-matching)**: since v5.1.0, the `basePattern` option of element descriptors did not restrict which files matched the descriptor.
 - **[Nested element paths](#nested-element-paths)**: when the folders matched by an element descriptor `pattern` also appeared earlier in the file path, the element got a wrong `path` and `fileInternalPath`.
 
 This page explains how to check whether your project is affected, and how to adapt your configuration if it is.
+
+:::info
+v7.2.2 also replaces `micromatch` with `picomatch` to remove the vulnerable `braces` dependency, and compiles each capture pattern only once. These changes do not affect the pattern syntax or the matching results. Read the [changelog](https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/packages/eslint-plugin/CHANGELOG.md) for the full list of changes.
+:::
+
+## Base pattern matching
+
+Since v5.1.0, the **[`basePattern`](../../classification/elements.md#basepattern-optional)** option of element descriptors did not restrict which files matched the descriptor. From v7.2.2, a file only matches a descriptor with `basePattern` when the left side of its path also matches `basePattern`, as the documentation describes.
+
+### Who is affected
+
+Your project is affected only if both of these conditions are true:
+
+- An element descriptor in **[`boundaries/elements`](../../settings/settings.md#boundarieselements)** uses `basePattern`.
+- Some files match the descriptor `pattern`, but the left side of their path does not match `basePattern`.
+
+For example, consider this descriptor:
+
+```js
+{
+  type: "component",
+  pattern: "components/*",
+  basePattern: "src/modules/*",
+  baseCapture: ["module"],
+  capture: ["componentName"],
+}
+```
+
+The file `src/modules/auth/components/LoginForm/index.js` belongs to a `component` element both before and after v7.2.2. The file `src/shared/components/Button/index.js` matches `pattern`, but `src/shared` does not match `basePattern`:
+
+- **Before v7.2.2**, it belonged to a `component` element anyway, without the values from `baseCapture`, so its `module` captured value was missing.
+- **From v7.2.2**, it does not match this descriptor. It belongs to the next element descriptor that matches it, or it is an unknown element if there is none.
+
+After upgrading, you may notice that:
+
+- Rules that report unknown files or dependencies, such as **[`boundaries/no-unknown-files`](../../rules/no-unknown-files.md)** and **[`boundaries/no-unknown-dependencies`](../../rules/no-unknown-dependencies.md)**, report the affected files.
+- Policies that select the affected files by element type no longer apply to them, so some dependencies are reported or allowed differently.
+
+### Find the affected files
+
+Run ESLint with **[debug mode](../../guides/debugging.md)** enabled, and filter the file descriptions to print only the files that do not belong to any element:
+
+```js
+export default [{
+  settings: {
+    "boundaries/debug": {
+      enabled: true,
+      messages: {
+        files: true,
+        dependencies: false,
+        violations: false,
+      },
+      filter: {
+        files: [{ element: { isUnknown: true } }],
+      },
+    },
+  },
+}];
+```
+
+Run it with v7.2.1 and with v7.2.2. The files that are only printed with v7.2.2 are the affected ones. This configuration requires v7.0.0 or later, so if you are upgrading from an older major version, follow the [migration guides](../releases.md#migration-guides) first.
+
+:::tip
+Files that now belong to a different element type are not unknown, so this filter does not print them. To find them too, filter by the type of the descriptor that uses `basePattern`, for example `files: [{ element: { type: "component" } }]`, and look for the files that are no longer printed with v7.2.2.
+:::
+
+### Adapt your configuration
+
+Choose the option that matches what the descriptor was meant to do.
+
+#### The elements can be in any location
+
+If `basePattern` was not meant to restrict where the elements are, and you do not need the values from `baseCapture`, remove both options:
+
+<CodeDiff language="javascript">{`
+. {
+.   type: "component",
+.   pattern: "components/*",
+-   basePattern: "src/modules/*",
+-   baseCapture: ["module"],
+.   capture: ["componentName"],
+. }
+`}</CodeDiff>
+
+#### The elements are in several known locations
+
+If the elements are in more than one location, add a descriptor with the same `type` for each location. Each descriptor can have its own `basePattern` and `baseCapture`, or none of them:
+
+<CodeDiff language="javascript">{`
+. {
+.   type: "component",
+.   pattern: "components/*",
+.   basePattern: "src/modules/*",
+.   baseCapture: ["module"],
+.   capture: ["componentName"],
+. },
++ {
++   type: "component",
++   pattern: "components/*",
++   basePattern: "src/shared",
++   capture: ["componentName"],
++ },
+`}</CodeDiff>
+
+:::warning
+Avoid joining several locations in one `basePattern` with braces, such as `src/{modules/*,shared}`. Braces create a capture group, which changes the values assigned to the `baseCapture` names. In this example, `module` would be `modules/auth` or `shared` instead of `auth`.
+:::
+
+#### The other files are not elements of that type
+
+If the files outside `basePattern` should not belong to that element type, your configuration already says so, and v7.2.2 applies it. Add an element descriptor for them if they belong to another element type, and review the policies that selected them, because they no longer apply.
 
 ## Nested element paths
 

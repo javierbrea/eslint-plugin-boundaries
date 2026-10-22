@@ -36,7 +36,7 @@ The core elements package that powers the plugin.
 
 Some patch and minor releases fix behaviors that a configuration may rely on. Their upgrade notes explain how to check whether your project is affected, and how to adapt your configuration:
 
-- [Upgrading to v7.2.2](./upgrade-notes/v7-2-2.mdx): nested elements get the right `path` and `fileInternalPath`
+- [Upgrading to v7.2.2](./upgrade-notes/v7-2-2.mdx): `basePattern` restricts element matching again, and nested elements get the right `path` and `fileInternalPath`
 
 ## Migration Guides
 

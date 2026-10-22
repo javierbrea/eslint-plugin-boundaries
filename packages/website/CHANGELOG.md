@@ -12,7 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- docs(#495): Add an Upgrade Notes section to the Releases docs, with the v7.2.2 upgrade notes: how to find the files affected by the `basePattern` fix, and how to adapt the configuration.
 - docs(#494): Add the nested element paths section to the v7.2.2 upgrade notes, in the Upgrade Notes section of the Releases docs: how to find the files affected by the fix of the element `path` and `fileInternalPath`, and how to adapt the configuration.
+
+### Changed
+
+- docs(#492): The `capture` sections of the Elements and Files classification pages now say that captures use picomatch, which replaces micromatch in `@boundaries/elements`.
 
 ## [7.1.0] - 2026-07-20
 
