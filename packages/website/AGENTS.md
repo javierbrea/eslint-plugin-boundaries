@@ -2,9 +2,9 @@
 
 Package-scoped agent instructions for the `website` package (Nx project `website`), a Docusaurus site publishing `jsboundaries.dev`. See `.agents/rules/docs-authoring.md` for the working-vs-versioned docs split, which applies here.
 
-## Versioning tracks `eslint-plugin`, only when docs change
+## Versioning
 
-This package's own `package.json` version matches `packages/eslint-plugin`'s version as of the last release that changed `docs/`. A release that doesn't touch `docs/` leaves this package's version, changelog and versioned docs as they are. The steps for a release that does are in `.github/CONTRIBUTING.md` and are run by the `release` skill.
+The website's version and the release steps that change it are in step 2 of "Publishing" in `.github/CONTRIBUTING.md`, run by the `release` skill.
 
 ## Structure
 

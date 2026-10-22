@@ -6,10 +6,8 @@ paths:
 
 # Changelog and versioning
 
-Each package under `packages/`, `examples/`, `support/`, and `test/` is versioned **independently** under [Semantic Versioning](https://semver.org/): MAJOR for incompatible API changes, MINOR for backwards-compatible additions, PATCH for backwards-compatible fixes (including bumping an internal dependency that doesn't change the package's own API).
+The SemVer meanings, the independent version of each package and the bump of dependent packages are in the "Versioning" section of `.github/CONTRIBUTING.md`.
 
-Every change that affects a published package's behavior adds an entry to that package's `CHANGELOG.md`, under the **"unreleased"** section at the top of the file, following the format already used in the file. Don't create a new dated version section — that happens only during the release process (the `release` skill).
+Every change that affects a published package's behavior adds an entry to that package's `CHANGELOG.md`, under the Unreleased section at the top of the file (`## [Unreleased]` or `## [unreleased]`, as the file has it), in the format already used in the file. Don't create a dated version section; the release process does it (the `release` skill).
 
-If a change modifies a package that another package in the workspace depends on, bump the dependent package's version too — run `pnpm nx graph` to see the dependency graph if it's unclear which packages are affected.
-
-`packages/website` follows a different versioning rule: see `packages/website/AGENTS.md`.
+`packages/website` follows a different versioning rule: see step 2 of "Publishing" in `.github/CONTRIBUTING.md`.
