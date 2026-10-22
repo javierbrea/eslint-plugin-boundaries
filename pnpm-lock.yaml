@@ -127,8 +127,8 @@ importers:
         specifier: 3.0.6
         version: 3.0.6
       '@types/picomatch':
-        specifier: 2.3.3
-        version: 2.3.3
+        specifier: 2.3.4
+        version: 2.3.4
       path-browserify:
         specifier: 1.0.1
         version: 1.0.1
@@ -3610,8 +3610,8 @@ packages:
   '@types/object-hash@3.0.6':
     resolution: {integrity: sha512-fOBV8C1FIu2ELinoILQ+ApxcUKz4ngq+IWUYrxSGjXzzjUALijilampwkMgEtJ+h2njAW3pi853QpzNVCHB73w==}
 
-  '@types/picomatch@2.3.3':
-    resolution: {integrity: sha512-Yll76ZHikRFCyz/pffKGjrCwe/le2CDwOP5F210KQo27kpRE46U2rDnzikNlVn6/ezH3Mhn46bJMTfeVTtcYMg==}
+  '@types/picomatch@2.3.4':
+    resolution: {integrity: sha512-0so8lU8O5zatZS/2Fi4zrwks+vZv7e0dygrgEZXljODXBig97l4cPQD+9LabXfGJOWwoRkTVz6Q4edZvD12UOA==}
 
   '@types/prismjs@1.26.5':
     resolution: {integrity: sha512-AUZTa7hQ2KY5L7AmtSiqxlhWxb4ina0yd8hNbl4TWuqnv/pFP0nDMb3YrfSBf4hJVGLh2YEIBfKaBW/9UEl6IQ==}
@@ -13507,7 +13507,7 @@ snapshots:
 
   '@types/object-hash@3.0.6': {}
 
-  '@types/picomatch@2.3.3': {}
+  '@types/picomatch@2.3.4': {}
 
   '@types/prismjs@1.26.5': {}
 
