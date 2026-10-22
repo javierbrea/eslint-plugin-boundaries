@@ -84,20 +84,19 @@ export class Micromatch {
     new CacheManagerDisabled<CapturedValueCacheKey, string[] | null>();
 
   /**
-   * Cache for micromatch makeRe results
+   * Cache for micromatch makeRe results, keyed by pattern.
+   * It is not governed by the cache option: a compiled pattern depends only on the pattern text, so it can be neither stale nor mismatched. The option only disables the caches of results.
    */
-  private readonly _makeReCache: CacheManagerDisabled<string, RegExp> =
-    new CacheManagerDisabled<string, RegExp>();
+  private readonly _makeReCache = new CacheManager<string, RegExp>();
 
   /**
-   * Cache for the regular expressions used by capture, keyed by pattern
+   * Cache for the regular expressions used by capture, keyed by pattern. Not governed by the cache option either, for the same reason as `_makeReCache`.
    */
-  private readonly _captureReCache: CacheManagerDisabled<string, RegExp> =
-    new CacheManagerDisabled<string, RegExp>();
+  private readonly _captureReCache = new CacheManager<string, RegExp>();
 
   /**
    * Creates an instance of Micromatch class.
-   * @param cache Whether to use caching or not.
+   * @param cache Whether to cache the matching results and captures or not.
    */
   constructor(cache: boolean) {
     this._matchingResultsCache = cache
@@ -106,12 +105,6 @@ export class Micromatch {
     this._capturesCache = cache
       ? new CapturedValueCache()
       : new CacheManagerDisabled<CapturedValueCacheKey, string[] | null>();
-    this._makeReCache = cache
-      ? new CacheManager<string, RegExp>()
-      : new CacheManagerDisabled<string, RegExp>();
-    this._captureReCache = cache
-      ? new CacheManager<string, RegExp>()
-      : new CacheManagerDisabled<string, RegExp>();
   }
 
   /**

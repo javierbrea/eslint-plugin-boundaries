@@ -261,7 +261,7 @@ describe("BaseElementsMatcher", () => {
         expect(compileSpy).toHaveBeenCalledTimes(2);
       });
 
-      it("should compile the template on every render when the cache is disabled", () => {
+      it("should compile the template only once also when the cache option is disabled", () => {
         const compileSpy = jest.spyOn(Handlebars, "compile");
         createMatcher({ cache: false });
 
@@ -274,7 +274,7 @@ describe("BaseElementsMatcher", () => {
 
         expect(first).toBe("components/index");
         expect(second).toBe("modules/index");
-        expect(compileSpy).toHaveBeenCalledTimes(2);
+        expect(compileSpy).toHaveBeenCalledTimes(1);
       });
 
       it("should return templates without Handlebars syntax as they are when the cache is disabled", () => {

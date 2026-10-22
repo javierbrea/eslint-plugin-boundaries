@@ -16,6 +16,7 @@ import {
   isFileDescription,
   normalizeFileSelector,
 } from "../index";
+import { Micromatch } from "../Matcher/Shared/Micromatch";
 
 describe("describeFile | Integration", () => {
   let matcher: Matcher;
@@ -241,15 +242,17 @@ describe("describeFile | Integration", () => {
           cache: false,
         }
       );
+      // Compiled patterns are memoized regardless of the cache option, so the matching itself is observed instead of the pattern compilation
+      const captureSpy = jest.spyOn(Micromatch.prototype, "capture");
       matcher.describeFile("/project/src/components/Button.tsx");
 
-      expect(micromatchSpy).toHaveBeenCalled();
+      expect(captureSpy).toHaveBeenCalled();
 
       jest.clearAllMocks();
 
       matcher.describeFile("/project/src/components/Button.tsx");
 
-      expect(micromatchSpy).toHaveBeenCalled();
+      expect(captureSpy).toHaveBeenCalled();
     });
 
     it("should not call micromatch again after clearing the matcher cache, because the global cache is still populated", () => {

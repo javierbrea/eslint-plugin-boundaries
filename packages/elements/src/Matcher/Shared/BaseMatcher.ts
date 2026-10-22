@@ -1,6 +1,6 @@
 import Handlebars from "handlebars";
 
-import { CacheManager, CacheManagerDisabled } from "../../Cache";
+import { CacheManager } from "../../Cache";
 import type { MatchersOptionsNormalized } from "../../Config";
 import type { BaseDescription, ModuleDescription } from "../../Descriptor";
 import {
@@ -47,10 +47,12 @@ export class BaseElementsMatcher {
 
   /**
    * Cache for compiled Handlebars templates, keyed by the template as received. Templates without Handlebars syntax are stored as null, so they are not checked again either.
+   * It is not governed by the `cache` option: a compiled template depends only on the template text, so it can be neither stale nor mismatched. The option only disables the caches of results.
    */
-  private readonly _compiledTemplatesCache:
-    | CacheManager<string, CompiledTemplate>
-    | CacheManagerDisabled<string, CompiledTemplate>;
+  private readonly _compiledTemplatesCache = new CacheManager<
+    string,
+    CompiledTemplate
+  >();
 
   /**
    * Creates a new BaseElementsMatcher.
@@ -60,9 +62,6 @@ export class BaseElementsMatcher {
   constructor(config: MatchersOptionsNormalized, micromatch: Micromatch) {
     this.micromatch = micromatch;
     this._legacyTemplates = config.legacyTemplates;
-    this._compiledTemplatesCache = config.cache
-      ? new CacheManager<string, CompiledTemplate>()
-      : new CacheManagerDisabled<string, CompiledTemplate>();
   }
 
   /**
@@ -92,7 +91,7 @@ export class BaseElementsMatcher {
 
   /**
    * Returns the compiled Handlebars template, or null when the template has no Handlebars syntax.
-   * When the cache is enabled, each distinct template is converted and compiled only once per matcher, because compiling is expensive and the same templates are rendered for every entity matched.
+   * Each distinct template is converted and compiled only once per matcher, because compiling is expensive and the same templates are rendered for every entity matched.
    * @param template The template to compile.
    * @returns The compiled template, or null when there is nothing to render.
    */
