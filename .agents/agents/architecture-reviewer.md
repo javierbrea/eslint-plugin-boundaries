@@ -2,7 +2,7 @@
 name: architecture-reviewer
 description: Reviews a diff or PR for eslint-plugin-boundaries architecture compliance — package/element boundaries, allowed dependency direction, and the Nx build-dependency graph. Use during code review as a companion to logic/correctness review, not a replacement. Checks structure and fit, not business logic.
 tools: Read, Grep, Glob, Bash
-model: claude-opus-5
+model: opus
 skills: [repo-architecture]
 ---
 

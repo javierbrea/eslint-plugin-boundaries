@@ -136,7 +136,7 @@ Full reference: element/file descriptors → `.../docs/classification/`, matchin
 - `capture` pulls named values from wildcard segments (micromatch capture) — used later in selectors/messages as `element.captured.<name>`.
 - `basePattern`/`baseCapture` capture a value from the **left** side of the path when `pattern` only covers the right side.
 - Parent/child relationships fall out automatically: after the first match, the plugin keeps matching further up the path for parent elements (`element.parents`).
-- `boundaries/elements-single-type: false` lets a folder carry multiple element types at once (off by default).
+- `boundaries/elements-single-match: false` lets a folder carry multiple element types at once (off by default; `boundaries/elements-single-type` is its deprecated alias).
 
 **Files** (`boundaries/files`, orthogonal to elements — categorizes by file kind regardless of folder):
 ```js

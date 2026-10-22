@@ -118,7 +118,7 @@ Include assumptions, risks, and follow-ups when relevant.
 
 ## Notes / Constraints
 
-- **The pull request title and description MUST ALWAYS be written in English**, regardless of the user's language. This is a mandatory requirement.
+- Write the pull request title and description in English, whatever language the conversation is in.
 - **Do not use hard line breaks within paragraphs** in the PR description. Each paragraph must be a single unbroken line; only blank lines separate paragraphs.
 - One pull request per branch: verify existing pull requests before creating a new one.
 - The pull request must remain in draft state after creation.

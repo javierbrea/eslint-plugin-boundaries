@@ -46,7 +46,7 @@ Provide (all optional; a sensible default applies):
    - Are there functional problems beyond the issue's literal scope (regressions, edge cases, broken assumptions)?
    - Does the PR description accurately describe what the diff does?
    - Were tests added or updated for the new/changed behaviour?
-   - Is there a `CHANGELOG.md` entry under "unreleased", and was the package `version` bumped consistently with SemVer, per `.github/CONTRIBUTING.md` and `.agents/rules/changelog-and-versioning.md`?
+   - Does the PR have the `CHANGELOG.md` entry required by `.agents/rules/changelog-and-versioning.md`, and, if it bumps a version, does the bump follow it?
    - When the change is user-visible, was documentation updated accordingly — the package `README.md`, `docs/**`, and/or the website content under `packages/website/docs/**` (per `.agents/rules/docs-authoring.md`)? Flag it only when the issue or diff implies user-visible behaviour actually changed.
 
 6. **Perspective 2 — delegate to the `reviewer` subagent** for code correctness, quality, and test coverage. Give it: the PR number and title, the base branch and diff range (`<base>...<headSha>`), the list of changed files, and whether the review is running in GitHub-only mode (so it knows whether it can run tests/lint locally).
@@ -123,7 +123,7 @@ Include assumptions, risks, and follow-ups when relevant.
 
 ## Notes / Constraints
 
-- **All posted review content MUST ALWAYS be written in English**, regardless of the user's language. This is a mandatory requirement.
+- Write all posted review content in English, whatever language the conversation is in.
 - **Do not use hard line breaks within paragraphs** in the general comment or inline comments. Each paragraph must be a single unbroken line; only blank lines separate paragraphs.
 - Inline comments may only anchor to a line present in the diff; a finding about code the diff does not touch belongs in the general comment instead.
 - The review is always submitted with `event: COMMENT`. Never submit `APPROVE` or `REQUEST_CHANGES` automatically.

@@ -6,7 +6,7 @@ argument-hint: "Path to target test or source file under packages/ (e.g., packag
 
 # Unit Testing — closing coverage gaps
 
-All packages enforce **100% coverage** (branches, functions, lines, statements) via `jest.config.js`'s `coverageThreshold.global`; any drop below fails the build. For AAA structure, mocking, placement, and type safety, follow `.agents/rules/unit-testing.md` — this skill only covers the coverage-completion workflow. For the general Nx-vs-direct command choice, see the root `AGENTS.md`.
+For the coverage threshold ("Coverage — 100% required"), AAA structure, mocking, placement, and type safety, follow `.agents/rules/unit-testing.md` — this skill only covers the coverage-completion workflow. For the general Nx-vs-direct command choice, see the root `AGENTS.md`.
 
 ## Completing coverage for a specific file
 
@@ -31,6 +31,6 @@ When a branch is genuinely unreachable at runtime and cannot be exercised throug
 Rules for `istanbul ignore`:
 
 1. **Always include a justification** after the `--` separator.
-2. **Prefer making code non-optional over ignoring it.** If a default is never exercised, remove it instead of adding an ignore comment.
+2. **Prefer making code non-optional over ignoring it.** If a default is never exercised, propose removing it — with evidence, and only once the user confirms (as in step 5 above) — instead of adding an ignore comment.
 3. **Only use for genuinely unreachable code.** If a branch can be triggered through a public API, write a test for it.
 4. **Keep the ignore scope as narrow as possible.** Place on the specific line or branch, not on entire functions.

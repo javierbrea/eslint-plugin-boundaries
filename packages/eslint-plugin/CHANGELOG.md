@@ -365,7 +365,7 @@ Version 7 introduces the **entity model**: every file is now described along thr
 - feat(#213): Add `dependency-nodes` setting to allow analyzing dependencies from additional nodes, such as exports or dynamic imports. ([@gridsane](https://github.com/gridsane))
 - feat: Add `additional-dependency-nodes` setting to add custom dependency nodes to the default ones. For example, you could enable to analyze dependencies in `jest.mock(...)`, etc. ([@gridsane](https://github.com/gridsane))
 
-### BREAKING CHANGES
+### Breaking Changes
 
 - fix: Fixed the error position in multiline imports. See ["how to migrate from v3 to v4" guide](./docs/guides/how-to-migrate-from-v3-to-v4.md).
 
@@ -587,7 +587,7 @@ Version 7 introduces the **entity model**: every file is now described along thr
 ### Removed
 - feat(settings): Removed `boundaries/alias` setting
 
-### BREAKING CHANGES
+### Breaking Changes
 - Removed `boundaries/alias` setting. `import/resolver` has to be used instead
 - Renamed `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Changed the format of rule options
 - Changed the format of `entry-point` rule options (now it support allow/disallow format)
@@ -639,7 +639,7 @@ Version 7 introduces the **entity model**: every file is now described along thr
 ### Removed
 - feat(settings): Removed `boundaries/alias` setting
 
-### BREAKING CHANGES
+### Breaking Changes
 - Removed `boundaries/alias` setting. `import/resolver` has to be used instead
 - Renamed `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Changed the format of rule options
 - Changed the format of `entry-point` rule options (now it support allow/disallow format)

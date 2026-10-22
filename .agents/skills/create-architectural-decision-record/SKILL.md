@@ -1,5 +1,5 @@
 ---
-description: Create an Architectural Decision Record (ADR) document for AI-optimized decision documentation.
+description: Create an Architectural Decision Record (ADR) document for AI-optimized decision documentation. Use when the user asks to record an architectural decision, or when a change makes a decision worth recording under `docs/adr/`.
 metadata:
     github-path: skills/create-architectural-decision-record
     github-ref: refs/heads/main
@@ -9,14 +9,17 @@ name: create-architectural-decision-record
 ---
 # Create Architectural Decision Record
 
-Create an ADR document for `${input:DecisionTitle}` using structured formatting optimized for AI consumption and human readability.
+Create an ADR document for the decision the user describes, using structured formatting optimized for AI consumption and human readability.
 
 ## Inputs
 
-- **Context**: `${input:Context}`
-- **Decision**: `${input:Decision}`
-- **Alternatives**: `${input:Alternatives}`
-- **Stakeholders**: `${input:Stakeholders}`
+Gather these from the request and the conversation:
+
+- **Decision Title**: a short name for the decision
+- **Context**: the problem and the constraints behind it
+- **Decision**: the chosen solution
+- **Alternatives**: the options considered and why each was rejected
+- **Stakeholders**: who made the decision or is affected by it
 
 ## Input Validation
 If any of the required inputs are not provided or cannot be determined from the conversation history, ask the user to provide the missing information before proceeding with ADR generation.
