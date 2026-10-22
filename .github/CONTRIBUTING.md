@@ -162,6 +162,7 @@ The release process is as follows:
 1. Prepare the release, either directly on the `release` branch or on a branch. For every package that has changes in the "unreleased" section of its `CHANGELOG.md`, or in a version section that has not been released yet:
    * Make sure those changes are in a version section that includes the version number and the release date (`## [X.Y.Z] - YYYY-MM-DD`).
    * Set or check the version number in the `version` field of its `package.json` file, because a contributor PR may have already bumped it.
+   * Check that every version that those changes, or the website docs written for them, name is that same version, because a contributor PR that doesn't bump the version may still name the one it expects, for example in a changelog entry or in an upgrade notes page under `packages/website/docs/releases/upgrade-notes/`. If one doesn't match, update it. For an upgrade notes page, that is its file name, its `id`, every mention of the version in its content, its entries in `packages/website/sidebars.ts` and `packages/website/docs/releases/releases.md`, and the changelog entries that link to it.
    * For `elements` and `eslint-plugin`, set the same version in the `sonar.projectVersion` property of its `sonar-project.properties` file.
    * Check that every package affected by a change in another package has also the correct version number (see [versioning](#versioning)).
 2. Decide if the website needs a new version. A `website` version is one of two kinds:
