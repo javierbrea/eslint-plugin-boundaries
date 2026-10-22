@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - perf(#489): `capture` compiles each pattern once and reuses it for every path. Before, it compiled the pattern again for each new path, because its cache key includes the path. ([@joernroeder](https://github.com/joernroeder))
+- chore(#511): Remove the `eslint-module-utils` and `eslint-import-resolver-node` dependencies, which the package does not use.
 
 ### Fixed
 
