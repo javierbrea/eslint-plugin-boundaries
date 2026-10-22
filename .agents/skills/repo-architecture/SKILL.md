@@ -9,10 +9,7 @@ This is a pnpm + Nx monorepo publishing `@boundaries/elements`, `@boundaries/esl
 
 ## Where the rules live
 
-- `<project>/AGENTS.md` is the source of truth for that project — every `packages/*`, `examples/*`, `support/*`, and `test/*` directory. Read the one(s) touching the area before making a judgment call.
-- Per-file conventions live in `.agents/rules/[rule-name].md`. Read them when you need to know what's expected in a given file type — e.g. `.agents/rules/eslint-rule-authoring.md` when adding a rule to `eslint-plugin`.
-- `packages/eslint-plugin/eslint.config.mjs` is where that package's internal layering becomes mechanically enforced (it dogfoods `eslint-plugin-boundaries` on itself) — treat it as ground truth over any prose description when the two disagree. `elements`' layering is not lint-enforced; its `AGENTS.md` is the source.
-- Long-form reference docs (per-rule documentation, ADRs) live in `docs/` and `packages/website/docs/` — non-normative companions: rules/skills win on disagreement.
+The map of where each kind of rule lives is in the root `AGENTS.md`; read the `AGENTS.md` of the project you touch. Only `eslint-plugin` lint-enforces its own layering (`packages/eslint-plugin/eslint.config.mjs`, ground truth over prose); `elements`' layering is described in its `AGENTS.md`.
 
 ## Component map
 
@@ -20,7 +17,7 @@ This is a pnpm + Nx monorepo publishing `@boundaries/elements`, `@boundaries/esl
 |---|---|---|---|
 | `packages/elements` | `elements` | `@boundaries/elements` | Element descriptors and matchers — the classification engine `eslint-plugin` builds rules on |
 | `packages/eslint-plugin` | `eslint-plugin` | `@boundaries/eslint-plugin` | The ESLint plugin itself: rules, settings parsing, messages |
-| `packages/website` | `website` | (deployed, not published) | Docusaurus site for `jsboundaries.dev`; version tracks `eslint-plugin`, bumped only on doc-affecting releases |
+| `packages/website` | `website` | (deployed, not published) | Docusaurus site for `jsboundaries.dev`; versioning in its `AGENTS.md` |
 | `examples/typescript` | `example-typescript` | (not published) | Minimal TypeScript project consuming the plugin, built against current source |
 | `examples/oxlint-integration` | `example-oxlint-integration` | (not published) | Demonstrates pairing the plugin with Oxlint |
 | `support/eslint-config` | `eslint-config` | `@boundaries/repo-eslint-config` | Shared ESLint flat config every project's `eslint.config.*` composes |
