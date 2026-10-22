@@ -40,6 +40,14 @@ export class BaseElementsMatcher {
   protected micromatch: Micromatch;
 
   /**
+   * Compiled Handlebars templates, keyed by the template as received. Templates without Handlebars syntax are stored as null, so they are not checked again either.
+   */
+  private readonly _compiledTemplates = new Map<
+    string,
+    Handlebars.TemplateDelegate<TemplateData> | null
+  >();
+
+  /**
    * Creates a new BaseElementsMatcher.
    * @param config Configuration options for the matcher.
    * @param globalCache Global cache instance.
@@ -54,12 +62,7 @@ export class BaseElementsMatcher {
    * @param template The template to convert.
    * @returns The converted template.
    */
-  private _getBackwardsCompatibleTemplate(
-    template: string | null
-  ): string | null {
-    if (!template) {
-      return template;
-    }
+  private _getBackwardsCompatibleTemplate(template: string): string {
     return template.replaceAll(LEGACY_TEMPLATE_REGEX, "{{ $1 }}");
   }
 
@@ -68,16 +71,35 @@ export class BaseElementsMatcher {
    * @param template The template to check.
    * @returns True if the template contains Handlebars syntax, false otherwise.
    */
-  private _isHandlebarsTemplate(template: string | null): boolean {
-    if (!template) {
-      return false;
-    }
+  private _isHandlebarsTemplate(template: string): boolean {
     return HANDLEBARS_TEMPLATE_REGEX.test(template);
   }
 
   /**
+   * Returns the compiled Handlebars template, or null when the template has no Handlebars syntax.
+   * Each distinct template is converted and compiled only once per matcher, because compiling is expensive and the same templates are rendered for every entity matched.
+   * @param template The template to compile.
+   * @returns The compiled template, or null when there is nothing to render.
+   */
+  private _getCompiledTemplate(
+    template: string
+  ): Handlebars.TemplateDelegate<TemplateData> | null {
+    const cachedTemplate = this._compiledTemplates.get(template);
+    if (!isUndefined(cachedTemplate)) {
+      return cachedTemplate;
+    }
+    const templateToUse = this._legacyTemplates
+      ? this._getBackwardsCompatibleTemplate(template)
+      : template;
+    const compiledTemplate = this._isHandlebarsTemplate(templateToUse)
+      ? Handlebars.compile<TemplateData>(templateToUse)
+      : null;
+    this._compiledTemplates.set(template, compiledTemplate);
+    return compiledTemplate;
+  }
+
+  /**
    * Returns a rendered template using the provided template data.
-   * Optimized version with template caching for better performance.
    * @param template The template to render.
    * @param templateData The data to use for replace in the template.
    * @returns The rendered template.
@@ -86,16 +108,14 @@ export class BaseElementsMatcher {
     template: string | null,
     templateData: TemplateData
   ): string | null {
-    const templateToUse = this._legacyTemplates
-      ? this._getBackwardsCompatibleTemplate(template)
-      : template;
-    if (!this._isHandlebarsTemplate(templateToUse)) {
+    if (!template) {
+      return template;
+    }
+    const compiledTemplate = this._getCompiledTemplate(template);
+    if (!compiledTemplate) {
       // If the template does not contain any Handlebars syntax, return it as is.
       return template;
     }
-
-    const compiledTemplate = Handlebars.compile(templateToUse);
-
     return compiledTemplate(templateData);
   }
 
