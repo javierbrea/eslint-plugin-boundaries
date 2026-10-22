@@ -760,7 +760,7 @@ describe("describeElement | Integration", () => {
           {
             type: "component",
             pattern: "components/*",
-            basePattern: "src",
+            basePattern: "**/src",
             capture: ["name"],
           },
         ],
