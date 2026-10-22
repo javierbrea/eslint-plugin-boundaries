@@ -92,15 +92,15 @@ pnpm nx run-many -t check:all --all
 
 # Branching model
 
-The repository follows a branching model based on two main branches: `main` and `release`. The `main` branch reflects the latest stable published version of the packages, while the `release` branch is used to prepare the next release.
+The repository follows a branching model based on two main branches: `master` and `release`. The `master` branch reflects the latest stable published version of the packages, while the `release` branch is used to prepare the next release.
 
 Some important points to consider:
 
-* __The "main" branch must always reflect the latest stable published version of the packages in the repository__.
+* __The "master" branch must always reflect the latest stable published version of the packages in the repository__.
 * We have a "release" branch for the following reasons:
-   * To enable the maintainer to prepare the release of features without having to promote any unpublished changes to the "main" branch. By preparing the release we mainly mean to decide how to group changes in different releases and to update the `CHANGELOG.md` files and the version numbers of the packages accordingly.
+   * To enable the maintainer to prepare the release of features without having to promote any unpublished changes to the "master" branch. By preparing the release we mainly mean to decide how to group changes in different releases and to update the `CHANGELOG.md` files and the version numbers of the packages accordingly.
    * It is long-lived because we also have bots that will open PRs. So, they can be configured to open PRs to the "release" branch, and their changes will also enter in the process of preparing the release, such as changes from any other contributor.
-* __The "release" branch is the default branch for PRs.__ Only a project maintainer should open a PR to the "main" branch, and only when the release is ready to be published.
+* __The "release" branch is the default branch for PRs.__ Only a project maintainer should open a PR to the "master" branch, and only when the release is ready to be published.
 * Usually, feature branches should be short-lived, and they should be merged into the "release" branch as soon as possible. This way, the changes will be included in the next release, and the feature branch can be deleted.
 * When necessary, a medium-lived branch can be created from the "release" branch to group changes that will be released together and require more time to be prepared, such as `release-<version>`. Once the changes are ready, the branch can be merged into the "release" branch.
 
@@ -111,10 +111,10 @@ We use the __squash and merge strategy for merging PRs to the release branch__. 
 * To keep the history clean in the release branch
 * To make easier to understand the changes in each release.
 
-But we use the __merge commit strategy for merging PRs to the main branch from the release branch__. The reasons are:
+But we use the __merge commit strategy for merging PRs to the master branch from the release branch__. The reasons are:
 
 * To keep in the history the information about the features that were merged separately into the release branch. This is very important, because we may have changes from different packages in the release branch, or from features that are not related. Squashing all the changes into a single commit would make it difficult to understand or revert the changes for a specific package or feature.
-* To avoid having to rebase the release branch every time a PR is merged to the main branch.
+* To avoid having to rebase the release branch every time a PR is merged to the master branch.
 
 # Pull Request
 
@@ -163,8 +163,8 @@ The release process is as follows:
    * Move changes in the "unreleased" section of the `CHANGELOG.md` files to a new version section that includes the version number and the release date.
    * Check that every affected package has the correct version number in the `package.json` file.
    * Commit the changes with the message `chore(release): description`.
-* Open a PR from the `release` branch to the `main` branch.
-   * Once the PR is approved and merged, the build pipeline will run in the `main` branch, but packages will not be published yet.
+* Open a PR from the `release` branch to the `master` branch.
+   * Once the PR is approved and merged, the build pipeline will run in the `master` branch, but packages will not be published yet.
    * Create a new release in GitHub for each package modified in the release, following the next instructions:
       * Tag: `package-name-vX.Y.Z` (Replace `package-name` with the name of the package and `X.Y.Z` with the version number, of course).
       * Title: `package-name - Human readable title for the release`.

@@ -4,7 +4,7 @@ These instructions apply to all agent-driven changes in this repository.
 
 ## Language Policy
 
-**CRITICAL:** All repository artifacts must be written in English.
+All repository artifacts must be written in English.
 
 - Code, comments, test names and descriptions, documentation, and configuration messages must be in English.
 - The agent can converse in other languages with users, but any output persisted to the repository (files, code, docs, test titles) must be in English.
@@ -23,7 +23,7 @@ Each package's own `README.md` covers its functionality and usage for consumers.
 - **Long-form reference docs** (per-rule documentation, ADRs, the contributing workflow) live in **[`docs/`](./docs/)** — non-normative companions to the rules/skills above: when a `docs/` file and a rule or skill disagree, the rule/skill wins.
 - **A project's own `eslint.config.*` is ground truth over prose** wherever this repo lint-enforces its own layering (it dogfoods `eslint-plugin-boundaries` on itself) — read the config for the exact policy in force rather than trusting a paraphrase.
 - **Before implementing or proposing any change, read the related project's `AGENTS.md`.** If a change conflicts with it, either follow it or update it in the same change; do not silently diverge.
-- Conventions that live only in **[`.github/CONTRIBUTING.md`](./.github/CONTRIBUTING.md)** and aren't restated here: `release` is the default PR base branch, PRs squash-merge into `release` and merge-commit from `release` into `main`, and every PR adds a `CHANGELOG.md` entry under "unreleased" (see `.agents/rules/changelog-and-versioning.md`).
+- Conventions that live only in **[`.github/CONTRIBUTING.md`](./.github/CONTRIBUTING.md)** and aren't restated here: `release` is the default PR base branch, PRs squash-merge into `release` and merge-commit from `release` into `master`, and every PR adds a `CHANGELOG.md` entry under "unreleased" (see `.agents/rules/changelog-and-versioning.md`).
 
 ## Essential Commands
 

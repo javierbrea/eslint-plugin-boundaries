@@ -11,7 +11,7 @@ This is a pnpm + Nx monorepo publishing `@boundaries/elements`, `@boundaries/esl
 
 - `<project>/AGENTS.md` is the source of truth for that project — every `packages/*`, `examples/*`, `support/*`, and `test/*` directory. Read the one(s) touching the area before making a judgment call.
 - Per-file conventions live in `.agents/rules/[rule-name].md`. Read them when you need to know what's expected in a given file type — e.g. `.agents/rules/eslint-rule-authoring.md` when adding a rule to `eslint-plugin`.
-- `packages/eslint-plugin/eslint.config.mjs` and `packages/elements/eslint.config.mjs` are where each package's internal layering becomes mechanically enforced (both dogfood `eslint-plugin-boundaries` on themselves) — treat them as ground truth over any prose description when the two disagree.
+- `packages/eslint-plugin/eslint.config.mjs` is where that package's internal layering becomes mechanically enforced (it dogfoods `eslint-plugin-boundaries` on itself) — treat it as ground truth over any prose description when the two disagree. `elements`' layering is not lint-enforced; its `AGENTS.md` is the source.
 - Long-form reference docs (per-rule documentation, ADRs) live in `docs/` and `packages/website/docs/` — non-normative companions: rules/skills win on disagreement.
 
 ## Component map
@@ -38,10 +38,10 @@ This is a pnpm + Nx monorepo publishing `@boundaries/elements`, `@boundaries/esl
 
 Standardized target names (`lint`, `check:types`, `check:spell`, `build`, `test:unit`, `test:mutation`, `test:e2e`, `check:all`) are defined with common defaults in `nx.json`'s `targetDefaults`, and overridden per-project in `project.json` only where a project's needs diverge — see `.agents/rules/nx-project-config.md` for what that override mechanism looks like and why it matters for caching.
 
-The one non-obvious edge: **`eslint-plugin` and `elements` both make their own `lint` target depend on `build`**, because each dogfoods its own compiled output (`eslint-local-rules.js` requires `./dist/index.js`) to lint its own source. A stale `dist/` means a `lint` run's boundary checks are stale too — Nx handles this automatically via the `dependsOn`, but be aware of it when reasoning about why a lint result did or didn't change.
+The one non-obvious edge: **`eslint-plugin` makes its own `lint` target depend on `build`**, because it dogfoods its own compiled output (`eslint-local-rules.js` requires `./dist/index.js`) to lint its own source. A stale `dist/` means a `lint` run's boundary checks are stale too — Nx handles this automatically via the `dependsOn`, but be aware of it when reasoning about why a lint result did or didn't change.
 
 ## Release flow
 
-Each package is versioned independently under semver — see `.agents/rules/changelog-and-versioning.md`. At a high level: `release` is the default PR base branch (PRs squash-merge into it); a maintainer periodically opens a PR from `release` to `main` (merge-commit strategy) to cut a release, tags each modified package as `<package-name>-vX.Y.Z`, and publication to npm happens automatically once a GitHub release is created. Full detail lives in `.github/CONTRIBUTING.md`.
+Each package is versioned independently under semver — see `.agents/rules/changelog-and-versioning.md`. At a high level: `release` is the default PR base branch (PRs squash-merge into it); a maintainer periodically opens a PR from `release` to `master` (merge-commit strategy) to cut a release, tags each modified package as `<package-name>-vX.Y.Z`, and publication to npm happens automatically once a GitHub release is created. Full detail lives in `.github/CONTRIBUTING.md`.
 
-**Known inconsistency, not yet resolved:** `.github/CONTRIBUTING.md` and `nx.json`'s `defaultBase` disagree on the stable branch name (`main` vs `master`), and `README.md`/`.github/PULL_REQUEST_TEMPLATE.md` mostly link via `master`. Don't silently pick one when it matters — flag it.
+The stable branch is `master`: the remote, the CI workflows, and `nx.json`'s `defaultBase` use it.

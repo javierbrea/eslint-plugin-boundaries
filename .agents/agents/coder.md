@@ -1,7 +1,7 @@
 ---
 name: coder
 description: Implements code from a clear specification. Use for writing, editing, and refactoring code.
-model: claude-sonnet-4-6
+model: sonnet
 tools: Read, Write, Edit, Grep, Glob, Bash
 ---
 

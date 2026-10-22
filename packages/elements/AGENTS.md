@@ -18,6 +18,6 @@ Package-scoped agent instructions for `@boundaries/elements` (Nx project `elemen
 
 ## Build and test shape
 
-- Built with **tsup** (`tsup.config.js`), not raw `tsc`; type-checked separately with `tsc --noEmit` against `tsconfig.eslint.json` for linting.
+- Built with **tsup** (`tsup.config.js`), not raw `tsc`; type-checked separately with `tsc --noEmit` (`tsconfig.json`), while ESLint's type-aware rules use `tsconfig.eslint.json`.
 - Specs and `*.types.ts` files are colocated with their source (`src/Cache/Cache.spec.ts` next to `src/Cache/Cache.ts`).
 - This is the only package with a `test:mutation` target (Stryker) — run it when changing matching/descriptor logic, since branch-level correctness there is easy to break silently.

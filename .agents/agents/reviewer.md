@@ -1,7 +1,7 @@
 ---
 name: reviewer
 description: Reviews code changes for correctness, quality, and test coverage. Read-only, never edits.
-model: claude-sonnet-5
+model: sonnet
 tools: Read, Grep, Glob, Bash
 ---
 

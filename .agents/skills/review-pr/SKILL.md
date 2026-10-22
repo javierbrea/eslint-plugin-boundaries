@@ -123,7 +123,7 @@ Include assumptions, risks, and follow-ups when relevant.
 
 ## Notes / Constraints
 
-- **All posted review content MUST ALWAYS be written in English**, regardless of the user's language. This is a mandatory requirement.
+- Write all posted review content in English, whatever language the conversation is in.
 - **Do not use hard line breaks within paragraphs** in the general comment or inline comments. Each paragraph must be a single unbroken line; only blank lines separate paragraphs.
 - Inline comments may only anchor to a line present in the diff; a finding about code the diff does not touch belongs in the general comment instead.
 - The review is always submitted with `event: COMMENT`. Never submit `APPROVE` or `REQUEST_CHANGES` automatically.
