@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- fix(#494): The element `path` is resolved from the position where the descriptor `pattern` matched, instead of from the first place in the file path where the matched folders appear. Before, nested elements whose folder name starts with the folder name of an ancestor, such as `components/Button` inside `components/ButtonGroup/`, or is equal to it, got a wrong `path` and `fileInternalPath`, and the ones with the same name as an ancestor had no parent.
 - fix(#495): `capture` returns `null` instead of `undefined` when the path does not match, as its declared return type says. As a result, element descriptors with `basePattern` only match paths whose left side also matches `basePattern`, as documented. Paths outside `basePattern` were matched by mistake before, so they may now be unknown elements or match a different descriptor. ([@edoroshenko](https://github.com/edoroshenko))
 
 ### Security

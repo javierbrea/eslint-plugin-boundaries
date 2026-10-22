@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- fix(#495): Upgrade `@boundaries/elements` to 3.1.3. `basePattern` in `boundaries/elements` restricts matching again: a file is only assigned to the element when the left side of its path also matches `basePattern`, as documented. This had been broken since v5.1.0. Files that were matched by mistake may now be reported as unknown, for example by `boundaries/no-unknown-files`, or match a different element. Read the [v7.2.2 upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-2-2/) to find the affected files and adapt the configuration. ([@edoroshenko](https://github.com/edoroshenko))
+- fix(#494): Upgrade `@boundaries/elements` to 3.1.3. Nested elements whose folder name starts with the folder name of an ancestor, such as `components/Button` inside `components/ButtonGroup/`, or is equal to it, get the right `path` and `fileInternalPath`, and the ones with the same name as an ancestor get it as parent. Policies that use the element `path`, `fileInternalPath` or relationships may report different errors for them. Read the [v7.2.2 upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-2-2/#nested-element-paths) to find the affected files and adapt the configuration.
+- fix(#495): Upgrade `@boundaries/elements` to 3.1.3. `basePattern` in `boundaries/elements` restricts matching again: a file is only assigned to the element when the left side of its path also matches `basePattern`, as documented. This had been broken since v5.1.0. Files that were matched by mistake may now be reported as unknown, for example by `boundaries/no-unknown-files`, or match a different element. Read the [v7.2.2 upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-2-2/#base-pattern-matching) to find the affected files and adapt the configuration. ([@edoroshenko](https://github.com/edoroshenko))
 
 ### Security
 
@@ -373,7 +374,7 @@ Version 7 introduces the **entity model**: every file is now described along thr
 - feat(#213): Add `dependency-nodes` setting to allow analyzing dependencies from additional nodes, such as exports or dynamic imports. ([@gridsane](https://github.com/gridsane))
 - feat: Add `additional-dependency-nodes` setting to add custom dependency nodes to the default ones. For example, you could enable to analyze dependencies in `jest.mock(...)`, etc. ([@gridsane](https://github.com/gridsane))
 
-### BREAKING CHANGES
+### Breaking Changes
 
 - fix: Fixed the error position in multiline imports. See ["how to migrate from v3 to v4" guide](./docs/guides/how-to-migrate-from-v3-to-v4.md).
 
@@ -595,7 +596,7 @@ Version 7 introduces the **entity model**: every file is now described along thr
 ### Removed
 - feat(settings): Removed `boundaries/alias` setting
 
-### BREAKING CHANGES
+### Breaking Changes
 - Removed `boundaries/alias` setting. `import/resolver` has to be used instead
 - Renamed `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Changed the format of rule options
 - Changed the format of `entry-point` rule options (now it support allow/disallow format)
@@ -647,7 +648,7 @@ Version 7 introduces the **entity model**: every file is now described along thr
 ### Removed
 - feat(settings): Removed `boundaries/alias` setting
 
-### BREAKING CHANGES
+### Breaking Changes
 - Removed `boundaries/alias` setting. `import/resolver` has to be used instead
 - Renamed `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Changed the format of rule options
 - Changed the format of `entry-point` rule options (now it support allow/disallow format)

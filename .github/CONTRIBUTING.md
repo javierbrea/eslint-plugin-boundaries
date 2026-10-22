@@ -92,15 +92,15 @@ pnpm nx run-many -t check:all --all
 
 # Branching model
 
-The repository follows a branching model based on two main branches: `main` and `release`. The `main` branch reflects the latest stable published version of the packages, while the `release` branch is used to prepare the next release.
+The repository follows a branching model based on two main branches: `master` and `release`. The `master` branch reflects the latest stable published version of the packages, while the `release` branch is used to prepare the next release.
 
 Some important points to consider:
 
-* __The "main" branch must always reflect the latest stable published version of the packages in the repository__.
+* __The "master" branch must always reflect the latest stable published version of the packages in the repository__.
 * We have a "release" branch for the following reasons:
-   * To enable the maintainer to prepare the release of features without having to promote any unpublished changes to the "main" branch. By preparing the release we mainly mean to decide how to group changes in different releases and to update the `CHANGELOG.md` files and the version numbers of the packages accordingly.
+   * To enable the maintainer to prepare the release of features without having to promote any unpublished changes to the "master" branch. By preparing the release we mainly mean to decide how to group changes in different releases and to update the `CHANGELOG.md` files and the version numbers of the packages accordingly.
    * It is long-lived because we also have bots that will open PRs. So, they can be configured to open PRs to the "release" branch, and their changes will also enter in the process of preparing the release, such as changes from any other contributor.
-* __The "release" branch is the default branch for PRs.__ Only a project maintainer should open a PR to the "main" branch, and only when the release is ready to be published.
+* __The "release" branch is the default branch for PRs.__ Only a project maintainer should open a PR to the "master" branch, and only when the release is ready to be published.
 * Usually, feature branches should be short-lived, and they should be merged into the "release" branch as soon as possible. This way, the changes will be included in the next release, and the feature branch can be deleted.
 * When necessary, a medium-lived branch can be created from the "release" branch to group changes that will be released together and require more time to be prepared, such as `release-<version>`. Once the changes are ready, the branch can be merged into the "release" branch.
 
@@ -111,10 +111,10 @@ We use the __squash and merge strategy for merging PRs to the release branch__. 
 * To keep the history clean in the release branch
 * To make easier to understand the changes in each release.
 
-But we use the __merge commit strategy for merging PRs to the main branch from the release branch__. The reasons are:
+But we use the __merge commit strategy for merging PRs to the master branch from the release branch__. The reasons are:
 
 * To keep in the history the information about the features that were merged separately into the release branch. This is very important, because we may have changes from different packages in the release branch, or from features that are not related. Squashing all the changes into a single commit would make it difficult to understand or revert the changes for a specific package or feature.
-* To avoid having to rebase the release branch every time a PR is merged to the main branch.
+* To avoid having to rebase the release branch every time a PR is merged to the master branch.
 
 # Pull Request
 
@@ -123,8 +123,8 @@ When you're finished with the changes, please ensure the following:
 * You have added tests for your changes.
 * You have updated the documentation if necessary.
 * You have run the linter and fixed any issues.
-* __You have added the necessary changes to the `CHANGELOG.md` file__, under the "unreleased" section at the beginning of the file.
-* You have modified the version of the package in the `package.json` file according to the [versioning](#versioning) section.
+* __You have added the necessary changes to the `CHANGELOG.md` file__ of each affected package: under the "Unreleased" section at the beginning of the file, or under the section of the new version if your PR also bumps the package version.
+* If your PR bumps the version of a package in its `package.json` file, the bump follows the [versioning](#versioning) section. Bumping the version is not required: depending on other ongoing PRs, it can also be done later, during the release.
 
 When you have checked these points, then you are ready to submit your pull request. To do so, follow these steps:
 
@@ -159,27 +159,40 @@ Once the PR is approved and merged into the release branch, a project maintainer
 
 The release process is as follows:
 
-* Checkout the `release` branch, and:
-   * Move changes in the "unreleased" section of the `CHANGELOG.md` files to a new version section that includes the version number and the release date.
-   * Check that every affected package has the correct version number in the `package.json` file.
-   * Commit the changes with the message `chore(release): description`.
-* Open a PR from the `release` branch to the `main` branch.
-   * Once the PR is approved and merged, the build pipeline will run in the `main` branch, but packages will not be published yet.
-   * Create a new release in GitHub for each package modified in the release, following the next instructions:
-      * Tag: `package-name-vX.Y.Z` (Replace `package-name` with the name of the package and `X.Y.Z` with the version number, of course).
-      * Title: `package-name - Human readable title for the release`.
-      * Description: Copy the changes from the corresponding `CHANGELOG.md` file for the version you are releasing.
-   * Once the release is created, the packages will be published to the npm registry automatically. __For the moment, creating any release will trigger the publication of all the packages__. If you have to release more than one package there is no problem, next executions will do nothing if the package is already published.
-      NOTE: Publishing all packages when the first release is created has been done to avoid having packages without dependencies published due to possible errors when creating releases for each package manually. In the future, we could only release the target package based on the release tag, but some extra checks should be implemented in order to ensure that the dependencies are published before the dependent packages.
+1. Prepare the release, either directly on the `release` branch or on a branch. For every package that has changes in the "Unreleased" section of its `CHANGELOG.md`, or in a version section that has not been released yet:
+   * Make sure those changes are in a version section that includes the version number and the release date (`## [X.Y.Z] - YYYY-MM-DD`).
+   * Set or check the version number in the `version` field of its `package.json` file, because a contributor PR may have already bumped it.
+   * Check that every version named in those changes, or in the website docs written for them, is that same version, because a contributor PR that doesn't bump the version may still name the one it expects. If one doesn't match, update it everywhere it appears.
+   * For `elements` and `eslint-plugin`, set the same version in the `sonar.projectVersion` property of its `sonar-project.properties` file.
+   * Check that every package affected by a change in another package has also the correct version number (see [versioning](#versioning)).
+2. Decide if the website needs a new version. A `website` version is one of two kinds:
+   * __Code release__: the version is the `eslint-plugin` version, and it only changes when the release changes the website's documentation (`packages/website/docs/`). If the release doesn't touch `packages/website/docs/`, leave the website package, its changelog and its Docusaurus versioned docs untouched. Otherwise:
+      * Set the `eslint-plugin` version in the `version` field of `packages/website/package.json`.
+      * Run `pnpm nx version website <version>` to create the Docusaurus versioned docs snapshot. Read the [website README](../packages/website/README.md) for more information about versioning.
+      * Move the changes in the "Unreleased" section of `packages/website/CHANGELOG.md` to a new version section.
+   * __Documentation-only release__: the version is `<eslint-plugin version>-docs.N` (for example, `7.0.0-docs.1`), and the release includes no code changes.
+3. Commit the changes with a message such as `chore(release): Release eslint-plugin v7.2.1 and elements v3.1.2`. If the release was prepared on a branch, open a PR into `release` and squash-merge it (see the [merging strategy](#merging-strategy)) before opening the PR to `master`.
+4. Open a PR from the `release` branch to the `master` branch:
+   * Title: `Release vX.Y.Z`, where `X.Y.Z` is the version number of the `eslint-plugin` package.
+   * Body: built from the [PR template](./PULL_REQUEST_TEMPLATE.md), in this order: the heading `# Release vX.Y.Z`; one section per released package, copied from its `CHANGELOG.md` (for example, `## eslint-plugin v7.2.1` followed by `## elements v3.1.2`); a `## chore` section listing the repository-level changes that are in no package changelog; the template's Agreement; and a `closes #N` line for every issue the release fixes. Closing keywords only take effect when a PR is merged into the default branch (`master`), so this is the PR that closes the issues fixed by the release.
+   * Once the PR is approved and merged (with a merge commit, see the [merging strategy](#merging-strategy)), the build pipeline will run in the `master` branch, but packages will not be published yet.
+   * If the release changed the website's documentation, verify that the Algolia search index was successfully updated. If the index is not updated, manually trigger the workflow from GitHub's Actions tab by selecting "Update Website Search Index" and clicking "Run workflow".
+
+     **Background**: Netlify deploy-based workflow triggers cannot pass the GitHub authentication tokens required by the Algolia scraper action. As a workaround, the scraper runs automatically after a delay following deployment. However, this timing may occasionally be insufficient, so manual verification and triggering may be necessary.
+5. Create a single release in GitHub for the whole release, following these instructions:
+   * Tag: `vX.Y.Z`, where `X.Y.Z` is the version number of the `eslint-plugin` package, which is the main entry point of the repository.
+   * Title: A human readable summary of the release, such as `Update dependencies to resolve vulnerabilities`.
+   * Description: One section per released package, with the changes copied from the corresponding `CHANGELOG.md` file for the version you are releasing. For example, `## eslint-plugin v7.2.1` followed by `## elements v3.1.2`.
+6. Once the release is created, the publishing workflows (`.github/workflows/publish.yml` and `.github/workflows/publish-to-github.yml`) run automatically. A tag without `-beta.` publishes:
+   * `@boundaries/elements` and `@boundaries/eslint-plugin` to the npm registry, skipping the versions that are already published.
+   * The plugin also as `eslint-plugin-boundaries` to the npm registry, and as `@javierbrea/eslint-plugin-boundaries` to the GitHub Packages registry. Both fail if that `eslint-plugin` version was already published, which is why every release bumps the `eslint-plugin` version.
+
+   A tag with `-beta.` publishes the same packages to the npm registry with the `beta` tag, and nothing to GitHub Packages.
+
+If another package becomes a main entry point of the repository, it may get its own release, tagged as `<package-name>-vX.Y.Z`.
 
 > [!NOTE]
-> For publishing beta versions, remember to set the corresponding package versions with the `-beta.X` suffix, and to create the release with the corresponding tag and title, following the same instructions as for stable releases. The only difference is that the tag should include the `-beta.X` suffix, and the title should include the `Beta` word to make it clear that it is a beta release. Then, the publishing workflow will automatically publish the package as a beta version in the npm registry.
-
-> [!CAUTION]
-> - The website package version tracks the `eslint-plugin` package version, but only needs updating when the release actually changes the website's documentation. If a release doesn't touch `packages/website/docs`, leave the website package version and its Docusaurus versioned docs untouched. Read the [website README](./packages/website/README.md) for more information about versioning.
-> - After releasing website changes, verify that the Algolia search index was successfully updated. If the index is not updated, manually trigger the workflow from GitHub's Actions tab by selecting "Update Website Search Index" and clicking "Run workflow". 
->
->   **Background**: Netlify deploy-based workflow triggers cannot pass the GitHub authentication tokens required by the Algolia scraper action. As a workaround, the scraper runs automatically after a delay following deployment. However, this timing may occasionally be insufficient, so manual verification and triggering may be necessary.
+> For publishing beta versions, remember to set the corresponding package versions with the `-beta.X` suffix, and to create the release following the same instructions as for stable releases. The only difference is that the tag should include the `-beta.X` suffix (for example, `v7.0.0-beta.2`), and the title should include the `Beta` word to make it clear that it is a beta release. What a beta tag publishes differs from a stable one, see step 6.
 
 # License
 
