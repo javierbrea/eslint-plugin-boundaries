@@ -55,5 +55,5 @@ A rule file holds one convention. Its `paths` glob matches that convention's rea
 ## Subagents
 
 - `model:` uses an alias (`opus`, `sonnet`, `haiku`), never a pinned model ID.
-- `tools:` lists only tools a subagent receives; see <https://code.claude.com/docs/en/sub-agents.md> and <https://code.claude.com/docs/en/tools-reference.md>. `TodoWrite` and `ExitPlanMode` are not available to subagents by default.
+- `tools:` lists only tools a subagent receives; see <https://code.claude.com/docs/en/sub-agents.md> and <https://code.claude.com/docs/en/tools-reference.md>.
 - The body never contradicts the front matter: an agent that "never edits" gets no `Write` or `Edit`.
