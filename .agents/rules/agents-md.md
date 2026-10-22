@@ -20,7 +20,7 @@ This covers every file that configures an agent: `AGENTS.md` (and the `CLAUDE.md
 - **It is not a status report.** Nothing about what exists "today", what is not scaffolded yet, or what is still pending. Such notes go stale silently and keep reading as normative. Write only what stays true after the next refactor.
 - **It does not restate the code.** Point at a folder or file instead of listing its contents, exports or rules, and let the agent read it. For lint, state the intent in one line and point at the `eslint.config.*` that enforces it.
 - **It does not reconcile itself with another document.** If two files' rules appear to conflict, reword the rules so they do not, instead of adding a section explaining why the conflict is fine.
-- **Each fact lives in one file.** The others point to it by path. Before adding a fact, search `AGENTS.md` and `.agents/` for it.
+- **Each fact lives in one file.** The others point to it by path. Before adding a fact, search every `AGENTS.md`, `.agents/` and `.github/CONTRIBUTING.md` for it. When a fact is in `.github/CONTRIBUTING.md` (the human-facing source for branching, versioning and releases), agent files point to it instead of restating it.
 - **It names only what exists.** Every path, command, setting and tool it mentions is real. A change that renames or removes one updates the agent files that name it in the same change.
 - **It uses a plain register.** State the rule and, when it is not obvious, its reason. No `CRITICAL`, `MUST ALWAYS` or "this is a mandatory requirement": emphasis on some rules makes the rest read as optional.
 - **It is normative and checkable.** Every statement is a rule ("source may never import `test` files"), never advice ("consider…").

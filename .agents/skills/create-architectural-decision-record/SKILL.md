@@ -1,5 +1,5 @@
 ---
-description: Create an Architectural Decision Record (ADR) document for AI-optimized decision documentation.
+description: Create an Architectural Decision Record (ADR) document for AI-optimized decision documentation. Use when the user asks to record an architectural decision, or when a change makes a decision worth recording under `docs/adr/`.
 metadata:
     github-path: skills/create-architectural-decision-record
     github-ref: refs/heads/main

@@ -6,7 +6,7 @@ argument-hint: "Path to target test or source file under packages/ (e.g., packag
 
 # Unit Testing — closing coverage gaps
 
-`elements` and `eslint-plugin` enforce **100% coverage** (branches, functions, lines, statements) via their `jest.config.js`'s `coverageThreshold.global`; any drop below fails the build. For AAA structure, mocking, placement, and type safety, follow `.agents/rules/unit-testing.md` — this skill only covers the coverage-completion workflow. For the general Nx-vs-direct command choice, see the root `AGENTS.md`.
+For the coverage threshold ("Coverage — 100% required"), AAA structure, mocking, placement, and type safety, follow `.agents/rules/unit-testing.md` — this skill only covers the coverage-completion workflow. For the general Nx-vs-direct command choice, see the root `AGENTS.md`.
 
 ## Completing coverage for a specific file
 

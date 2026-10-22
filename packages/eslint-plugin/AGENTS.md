@@ -12,4 +12,3 @@ The layering is strictly downward — `messages`/`debug` import only `shared`; `
 
 - `lint` depends on `build`, because `eslint-local-rules.js` `require()`s `./dist/index.js` to lint the package against its own compiled rules. Rebuild before trusting a `lint` run's boundary results.
 - `check:types` runs both `tsconfig.code.json` and `tsconfig.test.json` — a change can type-check under one and fail the other.
-- `test:mutation` is not defined for this package (only `elements` runs Stryker).

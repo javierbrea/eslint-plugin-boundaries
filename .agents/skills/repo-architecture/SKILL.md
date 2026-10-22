@@ -1,6 +1,6 @@
 ---
 name: repo-architecture
-description: Cross-cutting architecture reference for the eslint-plugin-boundaries monorepo — the dependency graph between packages, the Nx target graph, and the release flow. Load before designing or reviewing anything that spans more than one project.
+description: Cross-cutting architecture reference for the eslint-plugin-boundaries monorepo — the dependency graph between packages and the Nx target graph. Load before designing or reviewing anything that spans more than one project.
 ---
 
 # eslint-plugin-boundaries repository architecture
@@ -33,12 +33,6 @@ The map of where each kind of rule lives is in the root `AGENTS.md`; read the `A
 
 ## Nx target graph
 
-Standardized target names (`lint`, `check:types`, `check:spell`, `build`, `test:unit`, `test:mutation`, `test:e2e`, `check:all`) are defined with common defaults in `nx.json`'s `targetDefaults`, and overridden per-project in `project.json` only where a project's needs diverge — see `.agents/rules/nx-project-config.md` for what that override mechanism looks like and why it matters for caching.
+The standardized target names are listed in the root `AGENTS.md` ("Commands"). They get common defaults from `nx.json`'s `targetDefaults` and are overridden per-project in `project.json` only where a project's needs diverge; `.agents/rules/nx-project-config.md` covers that override mechanism and why it matters for caching.
 
-The one non-obvious edge: **`eslint-plugin` makes its own `lint` target depend on `build`**, because it dogfoods its own compiled output (`eslint-local-rules.js` requires `./dist/index.js`) to lint its own source. A stale `dist/` means a `lint` run's boundary checks are stale too — Nx handles this automatically via the `dependsOn`, but be aware of it when reasoning about why a lint result did or didn't change.
-
-## Release flow
-
-Packages are versioned independently (`.agents/rules/changelog-and-versioning.md`). PRs target `release`, and releases merge `release` into `master`; the procedure is in `.github/CONTRIBUTING.md` and the `release` skill runs it.
-
-The stable branch is `master`: the remote, the CI workflows, and `nx.json`'s `defaultBase` use it.
+Why `eslint-plugin`'s `lint` target depends on `build` is in `packages/eslint-plugin/AGENTS.md` ("Build and test shape").
