@@ -12,7 +12,7 @@ Use `.spec.ts` for all test files, never `.test.ts`. Placement depends on the pa
 | Package | Convention |
 |---|---|
 | `elements` | Colocated with source (`src/Cache/Cache.spec.ts`) |
-| `eslint-plugin` | Rule tests under `test/rules/<scenario>/`, mirrored by fixtures in `test/fixtures/<scenario>/`; everything else (e.g. `src/index.spec.ts`) colocated with source |
+| `eslint-plugin` | Rule tests in `test/rules/<scenario>/`, run against the fixture projects in `test/fixtures/<scenario>/`; a test may use another scenario's fixtures (`test/rules/two-levels/` uses `two-levels-with-private`). Everything else (e.g. `src/index.spec.ts`) is colocated with source |
 
 ## Structure
 

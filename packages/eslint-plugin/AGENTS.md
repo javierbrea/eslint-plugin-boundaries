@@ -12,5 +12,4 @@ The layering is strictly downward — `messages`/`debug` import only `shared`; `
 
 - `lint` depends on `build`, because `eslint-local-rules.js` `require()`s `./dist/index.js` to lint the package against its own compiled rules. Rebuild before trusting a `lint` run's boundary results.
 - `check:types` runs both `tsconfig.code.json` and `tsconfig.test.json` — a change can type-check under one and fail the other.
-- Rule tests live in `test/rules/<scenario>/` and run against the fixture projects in `test/fixtures/<scenario>/`; list `test/fixtures/` for the scenarios. Source-level tests (e.g. `src/index.spec.ts`) are colocated instead. See `.agents/rules/unit-testing.md` for placement conventions elsewhere in the repo.
 - `test:mutation` is not defined for this package (only `elements` runs Stryker).
