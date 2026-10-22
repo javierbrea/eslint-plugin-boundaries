@@ -42,6 +42,7 @@ describe("Config", () => {
 
       expect(config.matchersOptions).toEqual({
         legacyTemplates: true,
+        cache: true,
       });
     });
 
@@ -114,10 +115,12 @@ describe("Config", () => {
     it("should return the provided matchersOptions", () => {
       const config = new Config({
         legacyTemplates: false,
+        cache: false,
       });
 
       expect(config.matchersOptions).toEqual({
         legacyTemplates: false,
+        cache: false,
       });
     });
 

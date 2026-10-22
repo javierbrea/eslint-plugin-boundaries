@@ -1,5 +1,6 @@
 import Handlebars from "handlebars";
 
+import { CacheManager, CacheManagerDisabled } from "../../Cache";
 import type { MatchersOptionsNormalized } from "../../Config";
 import type { BaseDescription, ModuleDescription } from "../../Descriptor";
 import {
@@ -26,6 +27,11 @@ const LEGACY_TEMPLATE_REGEX = /\$\{([^}]+)\}/g;
 const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^{}\s][^{}]*}}/;
 
 /**
+ * Compiled Handlebars template, or null when the template has no Handlebars syntax
+ */
+type CompiledTemplate = Handlebars.TemplateDelegate<TemplateData> | null;
+
+/**
  * Base matcher class to determine if objects match a given selector.
  */
 export class BaseElementsMatcher {
@@ -40,21 +46,30 @@ export class BaseElementsMatcher {
   protected micromatch: Micromatch;
 
   /**
-   * Compiled Handlebars templates, keyed by the template as received. Templates without Handlebars syntax are stored as null, so they are not checked again either.
+   * Cache for compiled Handlebars templates, keyed by the template as received. Templates without Handlebars syntax are stored as null, so they are not checked again either.
    */
-  private readonly _compiledTemplates = new Map<
-    string,
-    Handlebars.TemplateDelegate<TemplateData> | null
-  >();
+  private readonly _compiledTemplatesCache:
+    | CacheManager<string, CompiledTemplate>
+    | CacheManagerDisabled<string, CompiledTemplate>;
 
   /**
    * Creates a new BaseElementsMatcher.
    * @param config Configuration options for the matcher.
-   * @param globalCache Global cache instance.
+   * @param micromatch Micromatch instance for matching.
    */
   constructor(config: MatchersOptionsNormalized, micromatch: Micromatch) {
     this.micromatch = micromatch;
     this._legacyTemplates = config.legacyTemplates;
+    this._compiledTemplatesCache = config.cache
+      ? new CacheManager<string, CompiledTemplate>()
+      : new CacheManagerDisabled<string, CompiledTemplate>();
+  }
+
+  /**
+   * Clears the cache of compiled templates.
+   */
+  public clearCache(): void {
+    this._compiledTemplatesCache.clear();
   }
 
   /**
@@ -77,14 +92,12 @@ export class BaseElementsMatcher {
 
   /**
    * Returns the compiled Handlebars template, or null when the template has no Handlebars syntax.
-   * Each distinct template is converted and compiled only once per matcher, because compiling is expensive and the same templates are rendered for every entity matched.
+   * When the cache is enabled, each distinct template is converted and compiled only once per matcher, because compiling is expensive and the same templates are rendered for every entity matched.
    * @param template The template to compile.
    * @returns The compiled template, or null when there is nothing to render.
    */
-  private _getCompiledTemplate(
-    template: string
-  ): Handlebars.TemplateDelegate<TemplateData> | null {
-    const cachedTemplate = this._compiledTemplates.get(template);
+  private _getCompiledTemplate(template: string): CompiledTemplate {
+    const cachedTemplate = this._compiledTemplatesCache.get(template);
     if (!isUndefined(cachedTemplate)) {
       return cachedTemplate;
     }
@@ -94,7 +107,7 @@ export class BaseElementsMatcher {
     const compiledTemplate = this._isHandlebarsTemplate(templateToUse)
       ? Handlebars.compile<TemplateData>(templateToUse)
       : null;
-    this._compiledTemplates.set(template, compiledTemplate);
+    this._compiledTemplatesCache.set(template, compiledTemplate);
     return compiledTemplate;
   }
 

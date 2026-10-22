@@ -530,6 +530,11 @@ export class Matcher {
    */
   public clearCache() {
     this._descriptors.clearCache();
+    this._elementsMatcher.clearCache();
+    this._filesMatcher.clearCache();
+    this._modulesMatcher.clearCache();
+    this._entitiesMatcher.clearCache();
+    this._dependenciesMatcher.clearCache();
   }
 
   /**

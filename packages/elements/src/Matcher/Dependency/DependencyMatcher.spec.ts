@@ -26,7 +26,10 @@ const mockedNormalizeDependencySelector = jest.mocked(
 );
 
 describe("DependenciesMatcher", () => {
-  const MOCK_CONFIG: MatchersOptionsNormalized = { legacyTemplates: false };
+  const MOCK_CONFIG: MatchersOptionsNormalized = {
+    legacyTemplates: false,
+    cache: true,
+  };
 
   let micromatch: jest.Mocked<Micromatch>;
   let entitiesMatcher: jest.Mocked<EntitiesMatcher>;

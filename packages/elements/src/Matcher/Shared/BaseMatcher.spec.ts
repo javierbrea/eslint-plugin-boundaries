@@ -97,9 +97,12 @@ describe("BaseElementsMatcher", () => {
   });
 
   function createMatcher(
-    config: MatchersOptionsNormalized = { legacyTemplates: false }
+    config: Partial<MatchersOptionsNormalized> = {}
   ): TestableMatcher {
-    matcher = new TestableMatcher(config, micromatch);
+    matcher = new TestableMatcher(
+      { legacyTemplates: false, cache: true, ...config },
+      micromatch
+    );
     return matcher;
   }
 
@@ -114,6 +117,28 @@ describe("BaseElementsMatcher", () => {
       const instance = createMatcher();
 
       expect(instance).toBeInstanceOf(BaseElementsMatcher);
+    });
+  });
+
+  describe("clearCache", () => {
+    it("should compile the templates again after clearing the cache", () => {
+      const compileSpy = jest.spyOn(Handlebars, "compile");
+      createMatcher();
+      matcher.callGetRenderedTemplates("{{ type }}/index", { type: "a" });
+
+      matcher.clearCache();
+      const result = matcher.callGetRenderedTemplates("{{ type }}/index", {
+        type: "b",
+      });
+
+      expect(result).toBe("b/index");
+      expect(compileSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it("should not throw when the cache is disabled", () => {
+      createMatcher({ cache: false });
+
+      expect(() => matcher.clearCache()).not.toThrow();
     });
   });
 
@@ -234,6 +259,34 @@ describe("BaseElementsMatcher", () => {
         second.callGetRenderedTemplates("{{ type }}/index", { type: "a" });
 
         expect(compileSpy).toHaveBeenCalledTimes(2);
+      });
+
+      it("should compile the template on every render when the cache is disabled", () => {
+        const compileSpy = jest.spyOn(Handlebars, "compile");
+        createMatcher({ cache: false });
+
+        const first = matcher.callGetRenderedTemplates("{{ type }}/index", {
+          type: "components",
+        });
+        const second = matcher.callGetRenderedTemplates("{{ type }}/index", {
+          type: "modules",
+        });
+
+        expect(first).toBe("components/index");
+        expect(second).toBe("modules/index");
+        expect(compileSpy).toHaveBeenCalledTimes(2);
+      });
+
+      it("should return templates without Handlebars syntax as they are when the cache is disabled", () => {
+        const compileSpy = jest.spyOn(Handlebars, "compile");
+        createMatcher({ cache: false });
+
+        const first = matcher.callGetRenderedTemplates("plain-string", {});
+        const second = matcher.callGetRenderedTemplates("plain-string", {});
+
+        expect(first).toBe("plain-string");
+        expect(second).toBe("plain-string");
+        expect(compileSpy).not.toHaveBeenCalled();
       });
     });
 
