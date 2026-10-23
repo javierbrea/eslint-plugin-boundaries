@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- perf: Linting is about 2.5 times faster than in v7.2.1. In the E2E performance fixture (about 5,000 files), the total linting time drops by 60% with flat config and by 57% with legacy config, as the combined result of the `@boundaries/elements` 3.2.0 changes listed below. Measured on the same machine with three interleaved runs of each version.
 - perf(#524): Upgrade `@boundaries/elements` to 3.2.0. Rule selectors are normalized once instead of on every dependency checked, and the template data of each dependency is built once instead of once per selector, which cuts the linting time by about a third in projects with many files and policies.
 - perf: Upgrade `@boundaries/elements` to 3.2.0. Rule selectors with `{{ }}` templates are compiled once instead of on every match, which reduces linting time noticeably in projects with many files and policies. Compiled templates and patterns are kept also when `boundaries/cache` is `false`; the setting now disables only the caches of results.
 - perf(#489): Upgrade `@boundaries/elements` to 3.2.0. Element and file descriptors compile each capture pattern once, instead of once per linted file. ([@joernroeder](https://github.com/joernroeder))
