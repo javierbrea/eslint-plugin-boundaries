@@ -42,6 +42,26 @@ const config: Config = {
     {
       tagName: "link",
       attributes: {
+        rel: "preload",
+        href: "/fonts/sora-latin-600-normal.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossorigin: "anonymous",
+      },
+    },
+    {
+      tagName: "link",
+      attributes: {
+        rel: "preload",
+        href: "/fonts/ibm-plex-sans-latin-400-normal.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossorigin: "anonymous",
+      },
+    },
+    {
+      tagName: "link",
+      attributes: {
         rel: "manifest",
         href: "/site.webmanifest",
       },
@@ -101,7 +121,12 @@ const config: Config = {
             "https://github.com/javierbrea/eslint-plugin-boundaries/edit/master/packages/website/",
         },
         theme: {
-          customCss: "./src/css/custom.css",
+          customCss: [
+            "./src/css/tokens.css",
+            "./src/css/fonts.css",
+            "./src/css/infima-bridge.css",
+            "./src/css/custom.css",
+          ],
         },
         gtag: {
           trackingID: "G-QDP350TYF0",
@@ -116,8 +141,8 @@ const config: Config = {
       id: "v7-launch",
       content:
         'Version 7 is here — file descriptors, multi-dimensional classification, and array queries. <a href="/docs/next/releases/migration-guides/v6-to-v7/">See what\'s new →</a>',
-      backgroundColor: "#3b4468",
-      textColor: "#e8ecff",
+      backgroundColor: "#161a33",
+      textColor: "#f3f4f9",
       isCloseable: true,
     },
     // Replace with your project's social card
@@ -127,7 +152,6 @@ const config: Config = {
     navbar: {
       title: "JS Boundaries",
       hideOnScroll: true,
-      style: "dark",
       logo: {
         alt: "Boundaries Logo",
         src: "img/logo.svg",
@@ -164,11 +188,11 @@ const config: Config = {
           href: "https://github.com/javierbrea/eslint-plugin-boundaries",
           position: "right",
           className: "navbar-github-link",
+          "aria-label": "GitHub repository",
         },
       ],
     },
     footer: {
-      style: "dark",
       links: [
         {
           title: "Docs",
