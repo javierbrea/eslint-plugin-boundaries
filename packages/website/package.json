@@ -37,6 +37,7 @@
     "@fontsource/ibm-plex-sans": "5.3.0",
     "@fontsource/sora": "5.3.0",
     "baseline-browser-mapping": "2.11.29",
+    "eslint-plugin-boundaries": "7.2.1",
     "typescript": "5.9.3"
   },
   "browserslist": {
