@@ -33,7 +33,7 @@ pnpm nx check:all website --output-style=stream           # everything above plu
 
 ## 3. Design tokens (`src/css/tokens.css`)
 
-Prefix `--jsb-`. Light values on `:root`, dark values on `[data-theme="dark"]` (Docusaurus always sets `data-theme` on `<html>` before first paint, so no `prefers-color-scheme` block is needed). Every colour in site CSS references a token; literal colours are allowed only inside this file and inside the Prism theme object.
+Prefix `--jsb-`. Light values on `:root`, dark values on `[data-theme="dark"]` (Docusaurus always sets `data-theme` on `<html>` before first paint, so no `prefers-color-scheme` block is needed). Every colour in site CSS references a token; literal colours are allowed only inside this file, in the per-theme Infima shade scales of `infima-bridge.css`, in the CodeDiff rules of `custom.css` and inside the Prism theme object.
 
 ```css
 :root {

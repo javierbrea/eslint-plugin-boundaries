@@ -1,8 +1,10 @@
 /**
  * Maps Infima variables onto the design tokens so that Docusaurus-rendered
- * pages take the new look without swizzling. The mapping is declared on
- * `:root` and repeated under `[data-theme="dark"]` because Infima's own dark
- * block redefines many of these variables and source order decides.
+ * pages take the new look without swizzling. Infima and DocSearch load in
+ * `@layer docusaurus.*` cascade layers (enabled by `future.v4` in
+ * `docusaurus.config.ts`), so these declarations, which are in no layer, win
+ * over them in both themes; without the layers, Infima's
+ * `html[data-theme="dark"]` block would win in dark mode.
  */
 
 :root,
@@ -11,7 +13,8 @@
   --ifm-font-family-base: var(--jsb-font-body);
   --ifm-font-family-monospace: var(--jsb-font-mono);
   --ifm-heading-font-family: var(--jsb-font-display);
-  --ifm-font-size-base: 15px;
+  --ifm-font-size-base: 93.75%;
+  --ifm-blockquote-font-size: 1rem;
   --ifm-line-height-base: 1.6;
   --ifm-heading-font-weight: 600;
   --ifm-heading-line-height: 1.2;
@@ -142,9 +145,38 @@ h2 {
   text-wrap: balance;
 }
 
+/* Infima sets the docs title and top-level h2/h3 sizes on the elements, so the :root values do not reach them */
+.markdown h1:first-child {
+  --ifm-h1-font-size: 2.1rem;
+}
+
+.markdown > h2 {
+  --ifm-h2-font-size: 1.55rem;
+}
+
+.markdown > h3 {
+  --ifm-h3-font-size: 1.2rem;
+}
+
+/* Infima gives inline code inside admonitions a per-variant highlight color; derive it from the admonition text color instead */
+.alert {
+  --ifm-alert-background-color-highlight: color-mix(in srgb, var(--ifm-alert-foreground-color) 10%, transparent);
+}
+
 .navbar {
   border-bottom: 1px solid var(--jsb-line);
-  backdrop-filter: blur(10px);
+}
+
+/* backdrop-filter makes the navbar the containing block of its fixed descendants, which would clip the mobile sidebar, so the blur only applies above the mobile breakpoint */
+@media (min-width: 997px) {
+  .navbar {
+    backdrop-filter: blur(10px);
+  }
+}
+
+/* The mobile sidebar takes --ifm-navbar-background-color, which is translucent here */
+.navbar-sidebar {
+  background-color: var(--jsb-paper);
 }
 
 .footer {

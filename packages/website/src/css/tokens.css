@@ -1,7 +1,9 @@
 /**
  * Design tokens of the site. Light values on `:root`, dark values on
  * `[data-theme="dark"]`. Every color in site CSS references one of these;
- * literal colors are allowed only here and inside the Prism theme object.
+ * literal colors are allowed only here, in the per-theme Infima shade scales
+ * of `infima-bridge.css`, in the CodeDiff rules of `custom.css` and inside
+ * the Prism theme object.
  */
 
 :root {
