@@ -14,4 +14,4 @@ The website's version and the release steps that change it are in step 2 of "Pub
 
 ## Source layering
 
-`src/` is split into element types (pages, theme overrides, client modules, home sections, site chrome, UI kit, motion, data, Prism theme, MDX components) whose allowed imports are lint-enforced with `eslint-plugin-boundaries`; read `eslint.config.mjs` for the policy in force, and classify a new folder there before using it. Imports inside `src/` are relative, never `@site/src/...` (reserved for MDX docs), because the boundaries rules only see resolvable imports.
+`src/` is split into element types (pages, theme overrides, client modules, home sections, site chrome, UI kit, motion, data, Prism theme, MDX components) whose allowed imports are lint-enforced with the workspace `eslint-plugin-boundaries` (`lint` builds `eslint-plugin` first); read `eslint.config.mjs` for the policy in force, and classify a new folder there before using it. Imports inside `src/` are relative, never `@site/src/...` (reserved for MDX docs), because the boundaries rules only see resolvable imports.

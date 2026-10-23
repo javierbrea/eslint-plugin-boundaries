@@ -16,7 +16,8 @@
         {
           "target": "eslint:config",
           "projects": ["eslint-config"]
-        }
+        },
+        "^build"
       ]
     },
     "test:unit": {
@@ -43,6 +44,7 @@
     }
   },
   "implicitDependencies": [
+    "eslint-plugin",
     "eslint-config",
     "cspell-config"
   ]

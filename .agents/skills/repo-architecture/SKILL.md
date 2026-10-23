@@ -26,9 +26,9 @@ The map of where each kind of rule lives is in the root `AGENTS.md`; read the `A
 
 ## Dependency graph and direction
 
-- **`elements` has no in-repo dependencies.** `eslint-plugin` depends on it for classification. `eslint-plugin-e2e` and both `examples/*` depend on the *built* `eslint-plugin` (via Nx's `dependsOn: ["build"]` / `["^build"]`, not a published version).
+- **`elements` has no in-repo dependencies.** `eslint-plugin` depends on it for classification. `eslint-plugin-e2e`, both `examples/*` and `website` depend on the *built* `eslint-plugin` (via Nx's `dependsOn: ["build"]` / `["^build"]` and a `workspace:` dependency, never a published version).
 - **`support/eslint-config` and `support/cspell-config` are depended on by every project** via `implicitDependencies` in each `project.json`, and via each project's own `lint`/`check:spell` target depending on that support package's `eslint:config`/`cspell:config` target.
-- **`website` is downstream of `eslint-plugin`** conceptually (it documents the plugin's current API and versions its docs alongside plugin releases) but has no Nx build dependency on it — keep `packages/website/docs/rules/` in sync with `eslint-plugin` changes manually. It lints its own `src/` with the published `eslint-plugin-boundaries` from npm, like any consumer, never with the workspace package.
+- **`website` is downstream of `eslint-plugin`** conceptually (it documents the plugin's current API and versions its docs alongside plugin releases) and lints its own `src/` with it, so its `lint` builds `eslint-plugin` first — keep `packages/website/docs/rules/` in sync with `eslint-plugin` changes manually.
 - Run `pnpm nx graph` to see the live dependency graph rather than trusting this table if it's unclear whether it's stale.
 
 ## Nx target graph
