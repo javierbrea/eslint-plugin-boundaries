@@ -1,0 +1,70 @@
+.quote {
+  padding-block: 4rem 5rem;
+}
+
+.text {
+  position: relative;
+  max-width: 36ch;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  font-family: var(--jsb-font-display);
+  font-size: clamp(1.3rem, 2.6vw, 1.9rem);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  text-align: center;
+  color: var(--jsb-ink);
+}
+
+.mark {
+  position: relative;
+  padding: 0;
+  background: none;
+  color: var(--jsb-accent);
+}
+
+/* Underline drawn once the quote is revealed */
+.mark::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  left: 0;
+  height: 2px;
+  background: var(--jsb-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.8s var(--jsb-ease) 0.3s;
+}
+
+[data-revealed] .mark::after {
+  transform: scaleX(1);
+}
+
+.cite {
+  display: block;
+  margin-top: 1.2rem;
+  font-family: var(--jsb-font-mono);
+  font-size: 0.75rem;
+  font-style: normal;
+  text-align: center;
+  color: var(--jsb-muted);
+}
+
+.cite a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cite a:hover {
+  color: var(--jsb-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark::after {
+    transform: scaleX(1);
+    transition: none;
+  }
+}

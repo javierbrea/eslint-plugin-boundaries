@@ -109,6 +109,7 @@ const config: Config = {
       },
     }),
   ],
+  clientModules: ["./src/client/motion.ts"],
   presets: [
     [
       "classic",

@@ -4,6 +4,15 @@
  * `infima-bridge.css`.
  */
 
+/* Layout: content width shared by the sections of the home */
+
+.jsb-wrap {
+  width: min(1140px, 100%);
+  margin-inline: auto;
+  padding-inline: max(16px, env(safe-area-inset-left, 0px))
+    max(16px, env(safe-area-inset-right, 0px));
+}
+
 /* Footer */
 
 .footer-contents {

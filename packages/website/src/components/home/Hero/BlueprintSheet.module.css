@@ -1,0 +1,195 @@
+.sheet {
+  position: relative;
+  aspect-ratio: 1.05;
+  max-width: 100%;
+  perspective: 1200px;
+}
+
+.drawing {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease-out;
+}
+
+.caption {
+  position: absolute;
+  right: 0;
+  bottom: -6px;
+  left: 0;
+  min-height: 1.2em;
+  margin: 0;
+  font-family: var(--jsb-font-mono);
+  font-size: 0.7rem;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--jsb-muted);
+}
+
+.caption code {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--jsb-accent);
+  font-size: inherit;
+  vertical-align: baseline;
+}
+
+.corners {
+  fill: none;
+  stroke: var(--jsb-line-strong);
+  stroke-width: 1;
+}
+
+.dim {
+  stroke: var(--jsb-faint);
+  stroke-width: 1;
+}
+
+.dimText {
+  font-family: var(--jsb-font-mono);
+  font-size: 9px;
+  fill: var(--jsb-faint);
+}
+
+/* Layers */
+
+.slab {
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.35s var(--jsb-ease);
+}
+
+.slab:hover,
+.slab.on {
+  transform: translateY(-6px);
+}
+
+.slab path {
+  fill: var(--jsb-card);
+  stroke: var(--jsb-accent);
+  stroke-width: 1.4;
+}
+
+.slab .face {
+  fill: var(--jsb-accent-soft);
+}
+
+.slab text {
+  font-family: var(--jsb-font-mono);
+  font-size: 11px;
+  fill: var(--jsb-ink);
+}
+
+/* Focus ring: the outline of SVG groups is not drawn by every browser, so the edges thicken too */
+.slab:focus-visible {
+  outline: 2px solid var(--jsb-accent);
+  outline-offset: 3px;
+}
+
+.slab:focus-visible path {
+  stroke-width: 2.6;
+}
+
+/* Edges and tags */
+
+.arrowOk {
+  fill: var(--jsb-ok);
+}
+
+.arrowBad {
+  fill: var(--jsb-bad);
+}
+
+.edgeOk {
+  fill: none;
+  stroke: var(--jsb-ok);
+  stroke-width: 1.6;
+}
+
+.edgeBad {
+  fill: none;
+  stroke: var(--jsb-bad);
+  stroke-width: 1.8;
+  stroke-dasharray: 5 5;
+  animation: dash 1.2s linear infinite;
+}
+
+.tag {
+  font-family: var(--jsb-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.tagOk text {
+  fill: var(--jsb-ok);
+}
+
+.tagBad rect {
+  fill: var(--jsb-bad);
+}
+
+.tagBad text {
+  fill: var(--jsb-accent-ink);
+}
+
+/* Draw-in on load */
+
+.draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 1.6s var(--jsb-ease) forwards;
+}
+
+.draw.l2 {
+  animation-delay: 0.25s;
+}
+
+.draw.l3 {
+  animation-delay: 0.5s;
+}
+
+.draw.l4 {
+  animation-delay: 0.9s;
+}
+
+.draw.l5 {
+  animation-delay: 1.2s;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+@media (max-width: 900px) {
+  .sheet {
+    width: 100%;
+    max-width: 520px;
+    margin-inline: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draw {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .edgeBad {
+    animation: none;
+  }
+
+  .slab,
+  .drawing {
+    transition: none;
+  }
+}
