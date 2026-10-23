@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [7.3.0] - 2026-10-23
+
 ### Added
 
 - docs(#495): Add the Upgrade Notes section to the Releases docs, starting with the v7.3.0 notes: how to find the files affected by the `basePattern` fix, and how to adapt the configuration.
@@ -18,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - docs(#492): The `capture` sections of the Elements and Files classification pages now say that captures use picomatch.
+- docs: The `boundaries/cache` setting now explains that it disables only the caches of results, and that compiled patterns and templates are always reused.
 
 ## [7.1.0] - 2026-07-20
 
