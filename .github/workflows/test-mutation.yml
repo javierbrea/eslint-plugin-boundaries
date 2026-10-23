@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5.1.0
+        uses: actions/checkout@v7.0.1
       - uses: ./.github/actions/install
       - name: Test Mutation Elements
         run: pnpm nx test:mutation elements
