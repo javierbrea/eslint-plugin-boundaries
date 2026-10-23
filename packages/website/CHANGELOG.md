@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - docs(#492): The `capture` sections of the Elements and Files classification pages now say that captures use picomatch.
+- docs: The `boundaries/cache` setting now explains that it disables only the caches of results, and that compiled patterns and templates are always reused.
 
 ## [7.1.0] - 2026-07-20
 
