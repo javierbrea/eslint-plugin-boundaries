@@ -22,7 +22,7 @@ Exactly the block in `00-shared.md` section 3. First file in the `customCss` lis
 | IBM Plex Sans | `ibm-plex-sans-latin-400-normal`, `ibm-plex-sans-latin-400-italic`, `ibm-plex-sans-latin-500-normal`, `ibm-plex-sans-latin-600-normal` |
 | IBM Plex Mono | `ibm-plex-mono-latin-400-normal`, `ibm-plex-mono-latin-500-normal` |
 
-3. `src/css/fonts.css`: one `@font-face` per file, `font-display: swap`, latin `unicode-range`, absolute `url("/fonts/<file>.woff2") format("woff2")`. Template:
+3. `src/css/fonts.css`: one `@font-face` per file, `font-display: swap`, latin `unicode-range`, absolute `url("/fonts/<file>.woff2") format("woff2")` preceded by `/* webpackIgnore: true */` (see `00-shared.md` section 7: without it the bundler rewrites the URL to a hashed `/assets/fonts/` copy and the preloads of step 4 are wasted). Template:
 
 ```css
 @font-face {
@@ -30,7 +30,7 @@ Exactly the block in `00-shared.md` section 3. First file in the `customCss` lis
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url("/fonts/sora-latin-600-normal.woff2") format("woff2");
+  src: /* webpackIgnore: true */ url("/fonts/sora-latin-600-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 ```
@@ -125,7 +125,7 @@ Maps Infima variables onto the tokens so Docusaurus-rendered pages restyle witho
   --ifm-footer-color: var(--jsb-muted);
   --ifm-footer-link-color: var(--jsb-muted);
   --ifm-footer-link-hover-color: var(--jsb-ink);
-  --ifm-footer-title-color: var(--jsb-faint);
+  --ifm-footer-title-color: var(--jsb-muted); /* faint measures 2.85:1 on the footer, below AA */
 
   /* DocSearch */
   --docsearch-primary-color: var(--jsb-accent);
@@ -190,7 +190,7 @@ Keep it for site-specific rules only. Rewrite the existing content:
 - `.footer-contents` and `.footer-acknowledgement`: keep, replace literal colours with tokens.
 - `.navbar-github-link::after`: the icon is a white-filled data URI, invisible on the light navbar once the navbar follows the theme. Replace with a mask so it takes the link colour: `mask: url("<same svg, fill='black'>") center / 24px no-repeat; background-color: currentColor; width: 24px; height: 24px; content: "";`. Phase 2 removes this item altogether; here it only has to be visible in both themes.
 - `.navbar__items--right > span:first-of-type`: keep (phase 2 removes it with the component it supports).
-- CodeDiff rules (`.diff-*`): keep as they are; phase 3 rewrites them with the new Prism theme.
+- CodeDiff rules (`.diff-*`): keep as they are, and add `.diff-theme-light div pre { background-color: #f6f8fa; }` next to the existing `.diff-theme-dark div pre` rule: the CodeDiff `pre` has no background of its own and would inherit the now always-dark `--ifm-pre-background` while keeping the Prism `github` token colours, making the light-theme diff blocks illegible. Phase 3 deletes both rules with the CodeDiff rewrite.
 - Announcement bar: keep the layout rules; add colour overrides with tokens. Docusaurus sets the colours inline from the config, so these two need `!important` (say so in a comment): `[class*="announcementBar_"][role="banner"] { background: var(--jsb-ink) !important; color: var(--jsb-paper) !important; }` and the close button `color: var(--jsb-paper) !important`. Set the config `backgroundColor`/`textColor` to the light-theme values (`#161a33` / `#f3f4f9`) so the no-CSS fallback matches.
 - `.markdown a`: keep underline + weight 600; colour comes from `--ifm-link-color`.
 - DocSearch button: delete the three `[data-theme='light'] .DocSearch-*` rules (the bridge variables cover them).
@@ -199,7 +199,7 @@ Keep it for site-specific rules only. Rewrite the existing content:
 
 - `presets[0][1].theme.customCss`: `["./src/css/tokens.css", "./src/css/fonts.css", "./src/css/infima-bridge.css", "./src/css/custom.css"]` in that order.
 - `headTags`: add the two font preloads (section 2.4).
-- `themeConfig.navbar`: remove `style: "dark"` (the navbar follows the theme through the bridge). Keep `hideOnScroll: true` in this phase.
+- `themeConfig.navbar`: remove `style: "dark"` (the navbar follows the theme through the bridge). Keep `hideOnScroll: true` in this phase. Give the `navbar-github-link` item `"aria-label": "GitHub repository"`: it is an icon-only link and fails the Lighthouse `link-name` audit on every page (phase 2 removes the item).
 - `themeConfig.footer`: remove `style: "dark"`.
 - `themeConfig.announcementBar`: `backgroundColor: "#161a33"`, `textColor: "#f3f4f9"`.
 - `themeConfig.prism`: unchanged (phase 3 replaces the themes).
@@ -214,6 +214,6 @@ Keep it for site-specific rules only. Rewrite the existing content:
 - `pnpm nx check:all website` passes.
 - Screenshots (both themes, 1440 and 390) of `/`, `/docs/overview/`, `/docs/quick-start/`, `/docs/rules/dependencies/`, `/docs/classification/elements/` show: Sora headings, Plex body, indigo links and active sidebar item, paper backgrounds, navbar and footer following the theme, no Infima green anywhere, no overflow, no console errors.
 - Network tab on `/docs/overview/`: only `/fonts/*.woff2` font requests, no `fonts.googleapis.com`/`gstatic`.
-- Lighthouse on `/docs/overview/`: Accessibility 100 (contrast), Performance ≥ 95.
+- Lighthouse on `/docs/overview/`: Performance ≥ 95, Best practices ≥ 95, Accessibility 96 with `color-contrast` on the Prism `github` tokens as the only failing audit (`00-shared.md` section 8).
 - The CodeDiff blocks in `/docs/quick-start/` still show +/- rows legibly in both themes.
 - Changelog entry, e.g. `feat: New visual foundation for the site: colour palette, self-hosted Sora and IBM Plex typefaces, smaller base type.`
