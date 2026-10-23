@@ -23,4 +23,4 @@ const { absoluteFilePath, codeFilePath } = pathResolvers("one-level");
 const ruleTester = createRuleTester(SETTINGS.oneLevel);
 ```
 
-Place valid/invalid cases in `test/rules/<scenario>/<RuleName>.spec.ts`, backed by fixtures under `test/fixtures/<scenario>/`. Reuse an existing scenario (`one-level`, `two-levels`, `two-levels-with-private`, `layered`, `base-pattern`, `flag-as-external`, `nestjs-example`, `docs-examples`) when it already models the boundary shape you need; only add a new scenario when none of them do.
+Where the spec and its fixtures go is in the placement table of `.agents/rules/unit-testing.md`. Reuse a fixture scenario under `test/fixtures/` when it models the boundary shape you need; add a new one only when none does.

@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [7.3.0] - 2026-10-23
+
+### Changed
+
+- perf: Linting is about 2.5 times faster than in v7.2.1: 60% less time with flat config and 57% less with legacy config, measured on the E2E performance fixture of about 5,000 files. Selector templates and normalized selectors are now built once and reused, instead of on every match (#524).
+- perf(#489): The capture patterns of element and file descriptors are compiled once, instead of once per linted file. ([@joernroeder](https://github.com/joernroeder))
+- perf: `boundaries/cache: false` now disables only the caches of results. Compiled patterns and templates are always kept, so linting with the cache disabled is much faster than before.
+- chore: Upgrade `@boundaries/elements` to 3.2.0.
+
+### Fixed
+
+- fix(#494): Nested elements whose folder name starts with, or equals, the name of an ancestor folder (such as `components/Button` inside `components/ButtonGroup/`) now get the right `path`, `fileInternalPath` and parent. Policies that use them may report different errors: read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-3-0/#nested-element-paths) to find the affected files.
+- fix(#495): `basePattern` restricts element matching again, as documented, after being ignored since v5.1.0. Files matched by mistake until now may become unknown or match another element: read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-3-0/#base-pattern-matching) to find them. ([@edoroshenko](https://github.com/edoroshenko))
+
+### Security
+
+- fix(#492): Replace `micromatch` with `picomatch`, which removes `braces` ([GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm), with no patched release) from the production dependencies. ([@edoroshenko](https://github.com/edoroshenko))
+
 ## [7.2.1] - 2026-10-21
 
 ### Changed
@@ -359,7 +377,7 @@ Version 7 introduces the **entity model**: every file is now described along thr
 - feat(#213): Add `dependency-nodes` setting to allow analyzing dependencies from additional nodes, such as exports or dynamic imports. ([@gridsane](https://github.com/gridsane))
 - feat: Add `additional-dependency-nodes` setting to add custom dependency nodes to the default ones. For example, you could enable to analyze dependencies in `jest.mock(...)`, etc. ([@gridsane](https://github.com/gridsane))
 
-### BREAKING CHANGES
+### Breaking Changes
 
 - fix: Fixed the error position in multiline imports. See ["how to migrate from v3 to v4" guide](./docs/guides/how-to-migrate-from-v3-to-v4.md).
 
@@ -581,7 +599,7 @@ Version 7 introduces the **entity model**: every file is now described along thr
 ### Removed
 - feat(settings): Removed `boundaries/alias` setting
 
-### BREAKING CHANGES
+### Breaking Changes
 - Removed `boundaries/alias` setting. `import/resolver` has to be used instead
 - Renamed `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Changed the format of rule options
 - Changed the format of `entry-point` rule options (now it support allow/disallow format)
@@ -633,7 +651,7 @@ Version 7 introduces the **entity model**: every file is now described along thr
 ### Removed
 - feat(settings): Removed `boundaries/alias` setting
 
-### BREAKING CHANGES
+### Breaking Changes
 - Removed `boundaries/alias` setting. `import/resolver` has to be used instead
 - Renamed `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Changed the format of rule options
 - Changed the format of `entry-point` rule options (now it support allow/disallow format)

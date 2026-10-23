@@ -132,6 +132,12 @@ const sidebars: SidebarsConfig = {
       items: [
         {
           type: "category",
+          label: "Upgrade Notes",
+          collapsed: false,
+          items: ["releases/upgrade-notes/v7-3-0"],
+        },
+        {
+          type: "category",
           label: "Migration Guides",
           collapsed: false,
           items: [

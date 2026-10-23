@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [3.2.0] - 2026-10-23
+
+### Changed
+
+- perf: Matching is about 2.5 times faster than in 3.1.2: 60% less linting time with flat config and 57% less with legacy config, measured on the `eslint-plugin` E2E performance fixture. Handlebars templates are compiled once per matcher, and selectors are normalized once per selector object (#524). Normalized selectors and match results are now shared objects: treat them as read-only, and do not mutate a selector after its first use.
+- perf(#489): `capture` compiles each pattern once and reuses it for every path. ([@joernroeder](https://github.com/joernroeder))
+- perf: The `cache` option now disables only the caches of results (descriptions, matches and captures). Compiled patterns and templates are always kept, and `Matcher.clearCache()` clears them.
+- chore(#511): Remove the unused `eslint-module-utils` and `eslint-import-resolver-node` dependencies.
+
+### Fixed
+
+- fix(#494): The element `path` is resolved from where the descriptor `pattern` matched, instead of from the first place its folders appear in the file path. Nested elements whose folder name starts with, or equals, the name of an ancestor now get the right `path`, `fileInternalPath` and parent.
+- fix(#495): `capture` returns `null` when the path does not match, as its type declares. As a result, descriptors with `basePattern` only match paths whose left side also matches it, as documented. ([@edoroshenko](https://github.com/edoroshenko))
+
+### Security
+
+- fix(#492): Replace `micromatch` with `picomatch` 2.3.2, which removes the transitive `braces` dependency ([GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm), with no patched release). Glob syntax, captures and Windows paths are unchanged. ([@edoroshenko](https://github.com/edoroshenko))
+
 ## [3.1.2] - 2026-10-21
 
 ### Changed

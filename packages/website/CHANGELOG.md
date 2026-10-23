@@ -1,4 +1,5 @@
 # Change Log
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
@@ -7,12 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > [!INFO]
 > Versions marked as `-docs` are documentation-only releases that do not include any code changes. Other versions are code releases that may include documentation changes as well, and are paired with a corresponding release in the `eslint-plugin-boundaries` package.
 
-## [unreleased]
+## [Unreleased]
+
+## [7.3.0] - 2026-10-23
+
 ### Added
+
+- docs(#495): Add the Upgrade Notes section to the Releases docs, starting with the v7.3.0 notes: how to find the files affected by the `basePattern` fix, and how to adapt the configuration.
+- docs(#494): Add the nested element paths section to the v7.3.0 upgrade notes.
+
 ### Changed
-### Fixed
-### Removed
-### Breaking Changes
+
+- docs(#492): The `capture` sections of the Elements and Files classification pages now say that captures use picomatch.
+- docs: The `boundaries/cache` setting now explains that it disables only the caches of results, and that compiled patterns and templates are always reused.
 
 ## [7.1.0] - 2026-07-20
 

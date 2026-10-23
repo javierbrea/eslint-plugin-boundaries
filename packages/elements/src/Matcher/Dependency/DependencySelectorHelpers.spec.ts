@@ -927,6 +927,28 @@ describe("DependencySelectorHelpers", () => {
   });
 
   describe("normalizeDependencySelector", () => {
+    it("should return the same normalized selector for the same selector object", () => {
+      // Arrange
+      const selector = { from: "components" };
+
+      // Act
+      const first = normalizeDependencySelector(selector);
+      const second = normalizeDependencySelector(selector);
+
+      // Assert
+      expect(second).toBe(first);
+    });
+
+    it("should normalize again a different selector object with the same content", () => {
+      // Act
+      const first = normalizeDependencySelector({ from: "components" });
+      const second = normalizeDependencySelector({ from: "components" });
+
+      // Assert
+      expect(second).toEqual(first);
+      expect(second).not.toBe(first);
+    });
+
     it("should normalize a single backward compatible selector", () => {
       const result = normalizeDependencySelector({
         from: "components",

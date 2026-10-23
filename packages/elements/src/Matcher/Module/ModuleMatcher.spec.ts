@@ -12,7 +12,10 @@ jest.mock("../Shared/Micromatch");
 const mockedNormalizeModuleSelector = jest.mocked(normalizeModuleSelector);
 
 describe("ModulesMatcher", () => {
-  const MOCK_CONFIG: MatchersOptionsNormalized = { legacyTemplates: false };
+  const MOCK_CONFIG: MatchersOptionsNormalized = {
+    legacyTemplates: false,
+    cache: true,
+  };
 
   let micromatch: jest.Mocked<Micromatch>;
   let matcher: ModulesMatcher;

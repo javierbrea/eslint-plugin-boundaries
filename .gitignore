@@ -137,3 +137,6 @@ dist
 
 # E2E performance fixture (generated)
 test/eslint-plugin-e2e/test/fixtures/performance/
+
+# Agent working plans (local only)
+.agents/plans/

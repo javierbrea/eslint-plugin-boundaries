@@ -1,6 +1,6 @@
 /* eslint-disable jest/no-conditional-in-test */
 
-import micromatch from "micromatch";
+import picomatch from "picomatch";
 
 import type {
   ElementSelector,
@@ -17,7 +17,7 @@ describe("isEntityMatch | Legacy Syntax | Integration", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    micromatchSpy = jest.spyOn(micromatch, "isMatch");
+    micromatchSpy = jest.spyOn(picomatch, "isMatch");
 
     elements = new Elements();
     matcher = elements.getMatcher(

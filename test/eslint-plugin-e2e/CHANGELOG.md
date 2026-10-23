@@ -1,15 +1,15 @@
 # Change Log
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [unreleased]
-### Added
+## [Unreleased]
+
 ### Changed
-### Fixed
-### Removed
-### BREAKING CHANGES
+
+- chore: Lower the performance baselines to the linting times of `@boundaries/elements` 3.2.0, so the performance tests catch a regression to the previous times.
 
 ## [1.1.0] - 2026-03-20
 

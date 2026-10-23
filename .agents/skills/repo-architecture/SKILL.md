@@ -1,6 +1,6 @@
 ---
 name: repo-architecture
-description: Cross-cutting architecture reference for the eslint-plugin-boundaries monorepo — the dependency graph between packages, the Nx target graph, and the release flow. Load before designing or reviewing anything that spans more than one project.
+description: Cross-cutting architecture reference for the eslint-plugin-boundaries monorepo — the dependency graph between packages and the Nx target graph. Load before designing or reviewing anything that spans more than one project.
 ---
 
 # eslint-plugin-boundaries repository architecture
@@ -9,10 +9,7 @@ This is a pnpm + Nx monorepo publishing `@boundaries/elements`, `@boundaries/esl
 
 ## Where the rules live
 
-- `<project>/AGENTS.md` is the source of truth for that project — every `packages/*`, `examples/*`, `support/*`, and `test/*` directory. Read the one(s) touching the area before making a judgment call.
-- Per-file conventions live in `.agents/rules/[rule-name].md`. Read them when you need to know what's expected in a given file type — e.g. `.agents/rules/eslint-rule-authoring.md` when adding a rule to `eslint-plugin`.
-- `packages/eslint-plugin/eslint.config.mjs` and `packages/elements/eslint.config.mjs` are where each package's internal layering becomes mechanically enforced (both dogfood `eslint-plugin-boundaries` on themselves) — treat them as ground truth over any prose description when the two disagree.
-- Long-form reference docs (per-rule documentation, ADRs) live in `docs/` and `packages/website/docs/` — non-normative companions: rules/skills win on disagreement.
+The map of where each kind of rule lives is in the root `AGENTS.md`; read the `AGENTS.md` of the project you touch. Only `eslint-plugin` lint-enforces its own layering (`packages/eslint-plugin/eslint.config.mjs`, ground truth over prose); `elements`' layering is described in its `AGENTS.md`.
 
 ## Component map
 
@@ -20,7 +17,7 @@ This is a pnpm + Nx monorepo publishing `@boundaries/elements`, `@boundaries/esl
 |---|---|---|---|
 | `packages/elements` | `elements` | `@boundaries/elements` | Element descriptors and matchers — the classification engine `eslint-plugin` builds rules on |
 | `packages/eslint-plugin` | `eslint-plugin` | `@boundaries/eslint-plugin` | The ESLint plugin itself: rules, settings parsing, messages |
-| `packages/website` | `website` | (deployed, not published) | Docusaurus site for `jsboundaries.dev`; version tracks `eslint-plugin`, bumped only on doc-affecting releases |
+| `packages/website` | `website` | (deployed, not published) | Docusaurus site for `jsboundaries.dev`; versioning in its `AGENTS.md` |
 | `examples/typescript` | `example-typescript` | (not published) | Minimal TypeScript project consuming the plugin, built against current source |
 | `examples/oxlint-integration` | `example-oxlint-integration` | (not published) | Demonstrates pairing the plugin with Oxlint |
 | `support/eslint-config` | `eslint-config` | `@boundaries/repo-eslint-config` | Shared ESLint flat config every project's `eslint.config.*` composes |
@@ -36,12 +33,6 @@ This is a pnpm + Nx monorepo publishing `@boundaries/elements`, `@boundaries/esl
 
 ## Nx target graph
 
-Standardized target names (`lint`, `check:types`, `check:spell`, `build`, `test:unit`, `test:mutation`, `test:e2e`, `check:all`) are defined with common defaults in `nx.json`'s `targetDefaults`, and overridden per-project in `project.json` only where a project's needs diverge — see `.agents/rules/nx-project-config.md` for what that override mechanism looks like and why it matters for caching.
+The standardized target names are listed in the root `AGENTS.md` ("Commands"). They get common defaults from `nx.json`'s `targetDefaults` and are overridden per-project in `project.json` only where a project's needs diverge; `.agents/rules/nx-project-config.md` covers that override mechanism and why it matters for caching.
 
-The one non-obvious edge: **`eslint-plugin` and `elements` both make their own `lint` target depend on `build`**, because each dogfoods its own compiled output (`eslint-local-rules.js` requires `./dist/index.js`) to lint its own source. A stale `dist/` means a `lint` run's boundary checks are stale too — Nx handles this automatically via the `dependsOn`, but be aware of it when reasoning about why a lint result did or didn't change.
-
-## Release flow
-
-Each package is versioned independently under semver — see `.agents/rules/changelog-and-versioning.md`. At a high level: `release` is the default PR base branch (PRs squash-merge into it); a maintainer periodically opens a PR from `release` to `main` (merge-commit strategy) to cut a release, tags each modified package as `<package-name>-vX.Y.Z`, and publication to npm happens automatically once a GitHub release is created. Full detail lives in `.github/CONTRIBUTING.md`.
-
-**Known inconsistency, not yet resolved:** `.github/CONTRIBUTING.md` and `nx.json`'s `defaultBase` disagree on the stable branch name (`main` vs `master`), and `README.md`/`.github/PULL_REQUEST_TEMPLATE.md` mostly link via `master`. Don't silently pick one when it matters — flag it.
+Only `eslint-plugin` and `eslint-plugin-e2e` make `lint` depend on their own `build`; each project's `AGENTS.md` says why.

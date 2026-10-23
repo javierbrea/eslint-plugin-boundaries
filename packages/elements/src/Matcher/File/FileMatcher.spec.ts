@@ -12,7 +12,10 @@ jest.mock("../Shared/Micromatch");
 const mockedNormalizeFileSelector = jest.mocked(normalizeFileSelector);
 
 describe("FilesMatcher", () => {
-  const MOCK_CONFIG: MatchersOptionsNormalized = { legacyTemplates: false };
+  const MOCK_CONFIG: MatchersOptionsNormalized = {
+    legacyTemplates: false,
+    cache: true,
+  };
 
   let micromatch: jest.Mocked<Micromatch>;
   let matcher: FilesMatcher;

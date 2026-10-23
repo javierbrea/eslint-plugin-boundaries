@@ -77,7 +77,7 @@ The category assigned to files matching the pattern. It is stored in the file's 
 
 **Type:** `<array of strings>`
 
-Captures named values from path fragments so you can reference them later in [file selectors](../selectors/selectors.md). It uses the [micromatch capture feature](https://github.com/micromatch/micromatch#capture), the same way [element descriptors](./elements.md) do.
+Captures named values from path fragments so you can reference them later in [file selectors](../selectors/selectors.md). It uses [picomatch](https://github.com/micromatch/picomatch) capture groups, the same way [element descriptors](./elements.md) do.
 
 Each captured fragment is stored under the key from the `capture` array at the same index, and appears at runtime as `file.captured`.
 

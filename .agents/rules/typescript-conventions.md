@@ -1,10 +1,12 @@
 ---
 paths:
-  - "**/*.ts"
-  - "**/*.tsx"
+  - "packages/elements/**/*.ts"
+  - "packages/elements/**/*.tsx"
+  - "packages/eslint-plugin/**/*.ts"
+  - "packages/eslint-plugin/**/*.tsx"
 ---
 
-# TypeScript conventions (repo-wide)
+# TypeScript conventions
 
 These apply to every `.ts`/`.tsx` file across `packages/elements` and `packages/eslint-plugin`.
 

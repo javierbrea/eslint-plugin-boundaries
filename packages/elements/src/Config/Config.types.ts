@@ -67,5 +67,5 @@ export type DescriptorOptionsNormalized = Pick<
 /** Options for element matchers */
 export type MatchersOptionsNormalized = Pick<
   ConfigOptionsNormalized,
-  "legacyTemplates"
+  "legacyTemplates" | "cache"
 >;

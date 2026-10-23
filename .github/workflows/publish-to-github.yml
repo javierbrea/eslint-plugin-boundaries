@@ -7,12 +7,12 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.event.release.tag_name, '-beta.') == false
     steps:
-    - uses: actions/checkout@v5.1.0
+    - uses: actions/checkout@v7.0.1
     - name: Install pnpm
       uses: pnpm/action-setup@v4.4.0
 
     - name: Install Node.js
-      uses: actions/setup-node@v5.0.0
+      uses: actions/setup-node@v6.5.0
       with:
         node-version-file: .nvmrc
         registry-url: 'https://npm.pkg.github.com'
@@ -22,7 +22,7 @@ jobs:
 
     - name: Cache dependencies
       id: cache-pnpm
-      uses: actions/cache@v5.1.0
+      uses: actions/cache@v6.1.0
       with:
         path: node_modules
         key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}

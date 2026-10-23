@@ -18,7 +18,7 @@ runs:
       uses: pnpm/action-setup@v4.4.0
 
     - name: Install Node.js
-      uses: actions/setup-node@v5.0.0
+      uses: actions/setup-node@v6.5.0
       with:
         node-version: ${{ inputs.node-version }}
         node-version-file: ${{ inputs.node-version == '' && '.nvmrc' || '' }}
@@ -27,7 +27,7 @@ runs:
 
     - name: Cache dependencies
       id: cache-pnpm
-      uses: actions/cache@v5.1.0
+      uses: actions/cache@v6.1.0
       with:
         path: node_modules
         key: pnpm-windows-${{ hashFiles('pnpm-lock.yaml') }}

@@ -46,7 +46,7 @@
 - **File** — per-file metadata and categorization
 - **Module** — the origin of a dependency (local, external, or core)
 
-Together, these facets let you define architectural boundaries, validate dependencies between parts of your codebase, and enforce structural rules. This package powers tools like [`@boundaries/eslint-plugin`](https://github.com/javierbrea/eslint-plugin-boundaries) and uses [Micromatch patterns](https://github.com/micromatch/micromatch) for flexible matching.
+Together, these facets let you define architectural boundaries, validate dependencies between parts of your codebase, and enforce structural rules. This package powers tools like [`@boundaries/eslint-plugin`](https://github.com/javierbrea/eslint-plugin-boundaries) and uses [picomatch patterns](https://github.com/micromatch/picomatch) for flexible matching.
 
 >[!NOTE]
 > This package does not read or analyze your codebase directly. It provides the core logic for defining and matching entities and dependencies, which can be integrated into linters, build systems, or custom tooling.
@@ -54,7 +54,7 @@ Together, these facets let you define architectural boundaries, validate depende
 ## Features
 
 - **Entity-based model** — describe files and dependencies as entities with element, file, and module facets
-- **Flexible pattern matching** using Micromatch syntax
+- **Flexible pattern matching** using picomatch glob syntax
 - **File categorization** independent from elements
 - **Module origin detection** — distinguish local, external, and core dependencies
 - **Template variables** for dynamic selector matching
@@ -203,10 +203,10 @@ const elements = new Elements({
 
 **Available options:**
 
-- **`ignorePaths`**: Micromatch pattern(s) to exclude certain paths from matching (default: none)
-- **`includePaths`**: Micromatch pattern(s) to include only specific paths (default: all paths)
+- **`ignorePaths`**: picomatch pattern(s) to exclude certain paths from matching (default: none)
+- **`includePaths`**: picomatch pattern(s) to include only specific paths (default: all paths)
 - **`legacyTemplates`**: Whether to enable legacy template syntax support (default: `true`, but it will be `false` in future releases). This allows using `${variable}` syntax in templates for backward compatibility.
-- **`cache`**: Whether to enable internal caching to improve performance (default: `true`)
+- **`cache`**: Whether to cache results (entity descriptions, matching results and captures) to improve performance (default: `true`). Compiled patterns and templates are always memoized, because they depend only on their own text, so disabling the cache never compiles them again.
 - **`rootPath`**: Absolute path to the project root. When configured, file paths should be provided as absolute paths to allow the package to determine which files are outside the project root (default: `undefined`)
 - **`flagAsExternal`**: Configuration for categorizing dependencies as external or local. Multiple conditions can be specified, and dependencies will be categorized as external if ANY condition is met (OR logic). See [Flagging Dependencies as External](#flagging-dependencies-as-external) for details.
 
@@ -275,7 +275,7 @@ const matcher = elements.getMatcher(
 
 Element descriptors define how files are identified and categorized into architectural elements (e.g., modules, components, services). Each descriptor is an object with the following properties:
 
-- **`pattern`** (`string | string[]`): Micromatch pattern(s) to match file paths
+- **`pattern`** (`string | string[]`): picomatch pattern(s) to match file paths
 - **`type`** (`string`): The element type to assign to matching files
 - **`category`** (`string`): _(Deprecated)_ Additional categorization for the element. Use [file descriptors](#file-descriptors) with `categories` instead for more flexible per-file categorization.
 - **`mode`** (`"file" | "folder" | "full"`): _(Deprecated)_ Matching mode (default: `"folder"`)
@@ -293,7 +293,7 @@ Element descriptors define how files are identified and categorized into archite
 
 File descriptors allow categorizing individual files independently from the element they belong to. This provides more granular control over file classification within elements. Each descriptor is an object with the following properties:
 
-- **`pattern`** (`string | string[]`): Micromatch pattern(s) to match file paths. Each pattern is matched against the **full file path** in a single pass (there is no right-to-left accumulation, and no option to change it). Use `**/` to match files at any depth — for example `**/*.spec.ts` rather than `*.spec.ts`.
+- **`pattern`** (`string | string[]`): picomatch pattern(s) to match file paths. Each pattern is matched against the **full file path** in a single pass (there is no right-to-left accumulation, and no option to change it). Use `**/` to match files at any depth — for example `**/*.spec.ts` rather than `*.spec.ts`.
 - **`category`** (`string`): The category to assign to matching files (e.g., `"controller"`, `"service"`, `"model"`).
 - **`capture`** (`string[]`): Array of keys to capture path fragments from the pattern.
 - **`stopMatching`** (`boolean`): When `true`, if this descriptor matches, previously accumulated categories are kept and no further file descriptors are evaluated for that file (default: `false`).
@@ -475,9 +475,9 @@ matcher.isEntityMatch("src/modules/auth/auth.spec.ts", {
 
 **Element sub-selector** — matches against element description properties:
 
-- **`type`** (`string | string[]`): Micromatch pattern(s) for the element type. Matches the first type in the `types` array.
-- **`types`** (`string | string[] | ArrayQuery<string>`): Micromatch pattern(s) for matching against all element types, or an [array query object](#array-query-selectors) for richer matching (`anyOf`, `allOf`, `noneOf`, `equalsTo`, `atIndex`, `hasLength`).
-- **`path`** (`string | string[]`): Micromatch pattern(s) for the element path.
+- **`type`** (`string | string[]`): picomatch pattern(s) for the element type. Matches the first type in the `types` array.
+- **`types`** (`string | string[] | ArrayQuery<string>`): picomatch pattern(s) for matching against all element types, or an [array query object](#array-query-selectors) for richer matching (`anyOf`, `allOf`, `noneOf`, `equalsTo`, `atIndex`, `hasLength`).
+- **`path`** (`string | string[]`): picomatch pattern(s) for the element path.
 - **`captured`** (`object | object[]`): Captured values selector. Object = AND logic (all keys must match). Array of objects = OR logic (any object can match).
 - **`parent`** (`object | null`): Selector for the **first** (closest) parent element. Set to `null` to match top-level elements with no parents. Supports `type`, `types`, `path`, and `captured`. **Unchanged** — still matches only `parents[0]`.
 - **`parents`** (`ArrayQuery<ParentElementSingleSelector>`): [Array query](#array-query-selectors) over the **full ancestor chain**. `parents[0]` is the closest parent; the last element is the outermost ancestor. See [Array query selectors](#array-query-selectors) for operators.
@@ -487,17 +487,17 @@ matcher.isEntityMatch("src/modules/auth/auth.spec.ts", {
 
 **File sub-selector** — matches against file description properties:
 
-- **`path`** (`string | string[]`): Micromatch pattern(s) for the file path.
-- **`categories`** (`string | string[] | ArrayQuery<string>`): Micromatch pattern(s) for file categories, or an [array query object](#array-query-selectors) for richer matching (`anyOf`, `allOf`, `noneOf`, `equalsTo`, `atIndex`, `hasLength`).
+- **`path`** (`string | string[]`): picomatch pattern(s) for the file path.
+- **`categories`** (`string | string[] | ArrayQuery<string>`): picomatch pattern(s) for file categories, or an [array query object](#array-query-selectors) for richer matching (`anyOf`, `allOf`, `noneOf`, `equalsTo`, `atIndex`, `hasLength`).
 - **`captured`** (`object | object[]`): Captured values selector (same semantics as element).
 - **`isIgnored`** (`boolean`): Whether the file is ignored.
 - **`isUnknown`** (`boolean`): Whether no file descriptor matched.
 
 **Module sub-selector** — matches against module description properties:
 
-- **`origin`** (`string | string[]`): Micromatch pattern(s) for the origin (`"local"`, `"external"`, or `"core"`).
-- **`source`** (`string | string[]`): Micromatch pattern(s) for the base module name (e.g., `"react"`, `"fs"`).
-- **`internalPath`** (`string | string[]`): Micromatch pattern(s) for the path within the module.
+- **`origin`** (`string | string[]`): picomatch pattern(s) for the origin (`"local"`, `"external"`, or `"core"`).
+- **`source`** (`string | string[]`): picomatch pattern(s) for the base module name (e.g., `"react"`, `"fs"`).
+- **`internalPath`** (`string | string[]`): picomatch pattern(s) for the path within the module.
 
 > [!NOTE]
 > All selector properties are optional and support `null` to match only entities with `null` in the corresponding description property.
@@ -525,10 +525,10 @@ All operators present in the same object are **AND-combined**. An absent operato
 - An empty query object `{}` returns `true` for any non-null array (no constraints).
 - For `equalsTo`, order matters: `["a", "b"]` does not match `["b", "a"]`.
 - Negative `atIndex.index` counts from the end: `-1` = last element (outermost ancestor for `parents`).
-- All string matchers are micromatch patterns and are rendered as Handlebars templates before matching, exactly like all other selector values.
+- All string matchers are picomatch patterns and are rendered as Handlebars templates before matching, exactly like all other selector values.
 
 **`TMatcher` per property:**
-- `types` (element) / `categories` (file): `string` (a micromatch pattern) or `{ expand: string }` (see below)
+- `types` (element) / `categories` (file): `string` (a picomatch pattern) or `{ expand: string }` (see below)
 - `parents`: `ParentElementSingleSelector` — an object supporting `type`, `types` (accepts `StringArrayQuery`), `path`, `category`, and `captured`
 
 #### `{ expand }` items in `anyOf` / `allOf` / `noneOf`
@@ -660,7 +660,7 @@ matcher.isDependencyMatch(
 - **`from`** (`entity selector | entity selector[]`): [Entity selector(s)](#matching-entities) for the source entity
 - **`to`** (`entity selector | entity selector[]`): [Entity selector(s)](#matching-entities) for the target entity
 - **`dependency`** (`object | object[]`): Selector(s) for dependency metadata. When an array is provided, the metadata matches if any selector matches (OR logic). Properties:
-  - **`kind`** (`string | string[]`): Micromatch pattern(s) for the dependency kind
+  - **`kind`** (`string | string[]`): picomatch pattern(s) for the dependency kind
   - **`source`** (`string | string[]`): Pattern(s) to match the import/export source
   - **`specifiers`** (`string | string[]`): Pattern(s) for import/export specifiers
   - **`nodeKind`** (`string | string[]`): Pattern(s) for the AST node type
@@ -824,7 +824,7 @@ The `flagAsExternal` configuration allows you to control how dependencies are ca
   // to: '/monorepo/packages/app/src/utils/helper.ts', source: './utils/helper' -> to.module.origin: 'local'
   ```
 
-- **`customSourcePatterns`** (string[], default: `[]`): Array of micromatch patterns that, when matching the import/export source string, categorize the dependency as external
+- **`customSourcePatterns`** (string[], default: `[]`): Array of picomatch patterns that, when matching the import/export source string, categorize the dependency as external
   
   ```typescript
   const elements = new Elements({
@@ -1276,7 +1276,7 @@ matcher.clearCache();
 ```
 
 > [!WARNING]
-> This only clears the internal cache for this matcher instance. Shared cache for micromatch results, regex and captures is not affected. You can clear all caches using `Elements.clearCache()`.
+> This only clears the internal cache for this matcher instance, including its compiled templates. Shared cache for picomatch results, regex and captures is not affected. You can clear all caches using `Elements.clearCache()`.
 
 ##### `serializeCache`
 
@@ -1304,9 +1304,9 @@ This section provides a complete reference of all selector properties.
 
 | Property | Type | Description |
 |---|---|---|
-| `type` | `string \| string[]` | Micromatch pattern(s) for element type. Matches the first type in `types`. |
-| `types` | `string \| string[]` | Micromatch pattern(s) for matching against all element types. |
-| `path` | `string \| string[]` | Micromatch pattern(s) for the element path. |
+| `type` | `string \| string[]` | picomatch pattern(s) for element type. Matches the first type in `types`. |
+| `types` | `string \| string[]` | picomatch pattern(s) for matching against all element types. |
+| `path` | `string \| string[]` | picomatch pattern(s) for the element path. |
 | `captured` | `object \| object[]` | Captured values selector. Object = AND, array = OR. |
 | `parent` | `object \| null` | Selector for the first parent. `null` matches elements with no parents. Supports `type`, `types`, `path`, `captured`, `category` (deprecated). |
 | `fileInternalPath` | `string \| string[]` | Pattern(s) for the file path relative to the element. |
@@ -1318,8 +1318,8 @@ This section provides a complete reference of all selector properties.
 
 | Property | Type | Description |
 |---|---|---|
-| `path` | `string \| string[]` | Micromatch pattern(s) for the file path. |
-| `categories` | `string \| string[]` | Micromatch pattern(s) for file categories. |
+| `path` | `string \| string[]` | picomatch pattern(s) for the file path. |
+| `categories` | `string \| string[]` | picomatch pattern(s) for file categories. |
 | `captured` | `object \| object[]` | Captured values selector. |
 | `isIgnored` | `boolean` | Whether the file is ignored. |
 | `isUnknown` | `boolean` | Whether the file is unknown. |
@@ -1328,9 +1328,9 @@ This section provides a complete reference of all selector properties.
 
 | Property | Type | Description |
 |---|---|---|
-| `origin` | `string \| string[]` | Micromatch pattern(s) for origin (`"local"`, `"external"`, `"core"`). |
-| `source` | `string \| string[]` | Micromatch pattern(s) for the base module name. |
-| `internalPath` | `string \| string[]` | Micromatch pattern(s) for the path within the module. |
+| `origin` | `string \| string[]` | picomatch pattern(s) for origin (`"local"`, `"external"`, `"core"`). |
+| `source` | `string \| string[]` | picomatch pattern(s) for the base module name. |
+| `internalPath` | `string \| string[]` | picomatch pattern(s) for the path within the module. |
 
 #### Entity Selector
 
@@ -1352,7 +1352,7 @@ This section provides a complete reference of all selector properties.
 
 | Property | Type | Description |
 |---|---|---|
-| `kind` | `string \| string[]` | Micromatch pattern(s) for dependency kind. |
+| `kind` | `string \| string[]` | picomatch pattern(s) for dependency kind. |
 | `source` | `string \| string[]` | Pattern(s) for the import/export source. |
 | `specifiers` | `string \| string[]` | Pattern(s) for import/export specifiers. |
 | `nodeKind` | `string \| string[]` | Pattern(s) for the AST node type. |

@@ -15,7 +15,10 @@ jest.mock("../Shared/Micromatch");
 const mockedNormalizeElementSelector = jest.mocked(normalizeElementSelector);
 
 describe("ElementsMatcher", () => {
-  const MOCK_CONFIG: MatchersOptionsNormalized = { legacyTemplates: false };
+  const MOCK_CONFIG: MatchersOptionsNormalized = {
+    legacyTemplates: false,
+    cache: true,
+  };
 
   let micromatch: jest.Mocked<Micromatch>;
   let matcher: ElementsMatcher;

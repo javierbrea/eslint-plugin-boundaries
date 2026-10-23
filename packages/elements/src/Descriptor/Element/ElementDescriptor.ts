@@ -173,29 +173,33 @@ export class ElementsDescriptor {
    * Gets the element path based on the path pattern, path segments to the element, and all path segments from the file path.
    * @param pathPattern The element path pattern.
    * @param pathSegments The path segments leading to the element.
-   * @param allPathSegments The full path segments from the file path.
+   * @param allPathSegments The full path segments from the file path, in reverse order.
+   * @param levelIndex The index in `allPathSegments` of the first segment of the element, which is the path level being matched.
    * @returns The element path.
    */
   private _getElementPath(
     pathPattern: string,
     pathSegments: string[],
-    allPathSegments: string[]
+    allPathSegments: string[],
+    levelIndex: number
   ): string {
     const elementPathRegexp = this._micromatch.makeRe(pathPattern);
 
     const testedSegments: string[] = [];
-    let result: string | undefined;
 
     for (const pathSegment of pathSegments) {
       testedSegments.push(pathSegment);
-      const joinedSegments = testedSegments.join("/");
-      if (elementPathRegexp.test(joinedSegments)) {
-        result = joinedSegments;
+      if (elementPathRegexp.test(testedSegments.join("/"))) {
         break; // Early exit when match is found
       }
     }
-    // NOTE: result should never be undefined here, as we already matched the pattern before
-    return `${[...allPathSegments].reverse().join("/").split(result!)[0]}${result}`;
+    // NOTE: testedSegments always ends on a match here, as we already matched the pattern before
+    // Slice by segment count from the matched level instead of searching the matched segments in the file path, because they may also occur earlier in it (e.g. "components/Button" inside "components/ButtonGroup")
+    const forwardSegments = [...allPathSegments].reverse();
+    const elementStartIndex = forwardSegments.length - 1 - levelIndex;
+    return forwardSegments
+      .slice(0, elementStartIndex + testedSegments.length)
+      .join("/");
   }
 
   /**
@@ -372,6 +376,7 @@ export class ElementsDescriptor {
       },
       currentPathSegments: string[],
       elementPaths: string[],
+      levelIndex: number,
       isMainElementLevel: boolean
     ) => {
       const { capture, baseCapture, useFullPathMatch, patternUsed } = matchInfo;
@@ -406,7 +411,8 @@ export class ElementsDescriptor {
         elementPath = this._getElementPath(
           patternUsed,
           currentPathSegments,
-          elementPaths
+          elementPaths,
+          levelIndex
         );
       }
 
@@ -464,6 +470,7 @@ export class ElementsDescriptor {
             match,
             state.pathSegmentsAccumulator,
             pathSegments,
+            i,
             !alreadyHasMainElement
           );
           matchFoundAtThisLevel = true;

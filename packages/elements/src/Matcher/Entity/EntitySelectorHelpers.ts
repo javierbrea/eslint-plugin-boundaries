@@ -22,6 +22,7 @@ import {
 } from "../Element";
 import { isFileSelector, normalizeFileSelector } from "../File";
 import { isModuleSelector, normalizeModuleSelector } from "../Module";
+import { memoizeByIdentity } from "../Shared";
 
 import type {
   BackwardCompatibleEntitySelector,
@@ -248,18 +249,22 @@ export function normalizeSingleEntitySelector(
 }
 
 /**
- * Normalizes an EntitySelector into an array of EntitySingleSelector.
+ * Normalizes an EntitySelector into an array of EntitySingleSelector. The result is computed once per selector object and shared by every later call that passes the same object (see `memoizeByIdentity`), so it must be treated as read-only; primitive selectors are normalized on every call.
  * @param entitySelector The entity selector, in any supported format.
  * @returns The normalized array of single entity selectors.
  */
-export function normalizeEntitySelector(
-  entitySelector: BackwardCompatibleEntitySelector
-): EntitySelectorNormalized {
-  if (isLegacyEntitySingleSelector(entitySelector)) {
+export const normalizeEntitySelector = memoizeByIdentity(
+  (
+    entitySelector: BackwardCompatibleEntitySelector
+  ): EntitySelectorNormalized => {
+    if (isLegacyEntitySingleSelector(entitySelector)) {
+      return normalizeSingleEntitySelector(entitySelector);
+    }
+    if (isArray(entitySelector)) {
+      return entitySelector.flatMap((sel) =>
+        normalizeSingleEntitySelector(sel)
+      );
+    }
     return normalizeSingleEntitySelector(entitySelector);
   }
-  if (isArray(entitySelector)) {
-    return entitySelector.flatMap((sel) => normalizeSingleEntitySelector(sel));
-  }
-  return normalizeSingleEntitySelector(entitySelector);
-}
+);

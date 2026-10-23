@@ -1,6 +1,6 @@
 /* eslint-disable jest/no-conditional-in-test */
 
-import micromatch from "micromatch";
+import picomatch from "picomatch";
 
 import type {
   FileDescription,
@@ -16,6 +16,7 @@ import {
   isFileDescription,
   normalizeFileSelector,
 } from "../index";
+import { Micromatch } from "../Matcher/Shared/Micromatch";
 
 describe("describeFile | Integration", () => {
   let matcher: Matcher;
@@ -24,7 +25,7 @@ describe("describeFile | Integration", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    micromatchSpy = jest.spyOn(micromatch, "capture");
+    micromatchSpy = jest.spyOn(picomatch, "makeRe");
 
     elements = new Elements({
       includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],
@@ -241,15 +242,17 @@ describe("describeFile | Integration", () => {
           cache: false,
         }
       );
+      // Compiled patterns are memoized regardless of the cache option, so the matching itself is observed instead of the pattern compilation
+      const captureSpy = jest.spyOn(Micromatch.prototype, "capture");
       matcher.describeFile("/project/src/components/Button.tsx");
 
-      expect(micromatchSpy).toHaveBeenCalled();
+      expect(captureSpy).toHaveBeenCalled();
 
       jest.clearAllMocks();
 
       matcher.describeFile("/project/src/components/Button.tsx");
 
-      expect(micromatchSpy).toHaveBeenCalled();
+      expect(captureSpy).toHaveBeenCalled();
     });
 
     it("should not call micromatch again after clearing the matcher cache, because the global cache is still populated", () => {
@@ -695,7 +698,7 @@ describe("describeFile | Integration", () => {
     let isMatchSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      isMatchSpy = jest.spyOn(micromatch, "isMatch");
+      isMatchSpy = jest.spyOn(picomatch, "isMatch");
     });
 
     it("should not call micromatch isMatch again for same file and selector", () => {
