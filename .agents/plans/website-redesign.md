@@ -33,7 +33,7 @@ This plan is committed on the integration branch `feat/website-redesign` (a `.gi
 
 Phases 2 and 3 can run in parallel by two agents once phase 1 is merged; they touch different files except `docusaurus.config.ts` and `src/css/custom.css` (small, mergeable hunks).
 
-Every phase branch starts from `feat/website-redesign` and its PR targets `feat/website-redesign` (the integration branch), not `release`. The maintainer merges `feat/website-redesign` into `release` once the pending 7.3.0 release is out; the redesign is not part of that release.
+Every phase branch starts from `feat/website-redesign` and its PR targets `feat/website-redesign` (the integration branch), not `release`. The integration branch tracks `release` (merge, never rebase: other sessions build on it). The 7.3.0 release (plugin 7.3.0, website docs 7.3.0) shipped on 2026-10-23 and is already merged here; the redesign goes out in a later release, decided by the maintainer when phase 5 is done.
 
 ## Decisions (closed)
 

@@ -162,7 +162,7 @@ src/helpers/format/index.js
 | performance | 2.5× faster since 7.3 | Selectors are normalized once and message templates are cached, cutting lint time by 60% on real projects. |
 | compatibility | ESLint 9, Oxlint, TypeScript, monorepos | Typed config helpers (`satisfies Config`), custom resolvers and path aliases, per-package element roots. |
 
-Note: the mockup says "Seven rules" and "Six more rules"; the copy above is the corrected version (four active rules, see `docs/rules/rules.md`). The "since 7.3" row assumes 7.3.0 is released when this ships; if not, drop the version from the title ("2.5× faster").
+Note: the mockup says "Seven rules" and "Six more rules"; the copy above is the corrected version (four active rules, see `docs/rules/rules.md`). The "since 7.3" row is accurate: 7.3.0 shipped on 2026-10-23 and its docs are the latest versioned docs (`/docs/` serves 7.3.0; `/docs/next/` serves the working `docs/` folder).
 
 ### 3.5 Perspectives (`.persp`, `.pcard`, `.desc`)
 
@@ -226,7 +226,7 @@ A `PrismTheme` (type from `prism-react-renderer`) with `plain: { color: "#e7e9f8
 - Navbar `hideOnScroll: false` (the mockup's nav is always visible and translucent).
 - Theme toggle: style Docusaurus' `.clean-btn.toggleButton_*` family through `[class*="toggleButton"]` to look like the mockup `.icon-btn` (34px, `--jsb-line` border, radius 6px, hover accent border).
 - Footer: swizzle `Footer/Copyright` (`pnpm --filter website swizzle @docusaurus/theme-classic Footer/Copyright --eject --typescript`) and render `src/components/site/Copyright/Copyright.tsx`: `Copyright © {FIRST_RELEASE_YEAR}-{useCurrentYear()} <a href="https://www.javierbrea.com">Javier Brea</a>. MIT licensed.` plus the trademarks disclaimer line (text from the current config), mono 0.74rem `--jsb-faint`. Remove `footer.copyright` and `footer.logo` from the config. In `footer.links`, remove "Illustrations by unDraw" and keep the rest. Footer CSS: `--jsb-paper-2` background, top `--jsb-line`, column titles as mono eyebrow (0.68rem, uppercase, 0.12em, `--jsb-faint`), links muted → ink on hover.
-- `docs/misc/acknowledgments.mdx`: replace the unDraw bullet with `**[Sora](https://fonts.google.com/specimen/Sora), [IBM Plex Sans](https://fonts.google.com/specimen/IBM+Plex+Sans) and [IBM Plex Mono](https://fonts.google.com/specimen/IBM+Plex+Mono)** - Open source typefaces, used under the SIL Open Font License`.
+- `docs/misc/acknowledgments.mdx`: replace the unDraw bullet with `**[Sora](https://fonts.google.com/specimen/Sora), [IBM Plex Sans](https://fonts.google.com/specimen/IBM+Plex+Sans) and [IBM Plex Mono](https://fonts.google.com/specimen/IBM+Plex+Mono)** - Open source typefaces, used under the SIL Open Font License`. Edit only `docs/` (served at `/docs/next/`): the frozen copy under `versioned_docs/version-7.3.0/` keeps the unDraw line until the next docs version, which is acceptable (crediting an unused resource is harmless) and files under `versioned_docs/` are never hand-edited (`packages/website/AGENTS.md`).
 
 ## 8. Reveal and client module
 
