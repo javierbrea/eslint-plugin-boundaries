@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- feat: New visual foundation for the site: color palette, self-hosted Sora and IBM Plex typefaces, smaller base type. The navbar and footer now follow the light or dark theme.
+
 ## [7.3.0] - 2026-10-23
 
 ### Added
