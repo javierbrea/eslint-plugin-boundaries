@@ -57,8 +57,8 @@ describe("Memoize", () => {
 
     it("should memoize a result that is undefined", () => {
       // Arrange
-      const fn = jest.fn((): undefined => undefined);
-      const memoized = memoizeByIdentity<object, undefined>(fn);
+      const fn = jest.fn((_input: object): undefined => undefined);
+      const memoized = memoizeByIdentity(fn);
       const input = {};
 
       // Act
@@ -103,11 +103,13 @@ describe("Memoize", () => {
   describe("memoizeByIdentityPair", () => {
     type Pair = { first: unknown; second: unknown };
 
-    let fn: jest.Mock<Pair, [unknown, unknown]>;
-    let memoized: (first: unknown, second: unknown) => Pair;
+    let fn: jest.Mock<Pair, [unknown, object | undefined]>;
+    let memoized: (first: unknown, second: object | undefined) => Pair;
 
     beforeEach(() => {
-      fn = jest.fn((a: unknown, b: unknown): Pair => ({ first: a, second: b }));
+      fn = jest.fn(
+        (a: unknown, b: object | undefined): Pair => ({ first: a, second: b })
+      );
       memoized = memoizeByIdentityPair(fn);
     });
 
