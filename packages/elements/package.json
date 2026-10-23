@@ -60,7 +60,7 @@
   "dependencies": {
     "handlebars": "4.7.10",
     "is-core-module": "2.17.0",
-    "picomatch": "2.3.2"
+    "picomatch": "4.0.4"
   },
   "engines": {
     "node": ">=18.18"
