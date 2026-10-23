@@ -9,17 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- perf: Upgrade `@boundaries/elements` to 3.1.3. Rule selectors with `{{ }}` templates are compiled once instead of on every match, which reduces linting time noticeably in projects with many files and policies. Compiled templates and patterns are kept also when `boundaries/cache` is `false`; the setting now disables only the caches of results.
-- perf(#489): Upgrade `@boundaries/elements` to 3.1.3. Element and file descriptors compile each capture pattern once, instead of once per linted file. ([@joernroeder](https://github.com/joernroeder))
+- perf: Upgrade `@boundaries/elements` to 3.2.0. Rule selectors with `{{ }}` templates are compiled once instead of on every match, which reduces linting time noticeably in projects with many files and policies. Compiled templates and patterns are kept also when `boundaries/cache` is `false`; the setting now disables only the caches of results.
+- perf(#489): Upgrade `@boundaries/elements` to 3.2.0. Element and file descriptors compile each capture pattern once, instead of once per linted file. ([@joernroeder](https://github.com/joernroeder))
 
 ### Fixed
 
-- fix(#494): Upgrade `@boundaries/elements` to 3.1.3. Nested elements whose folder name starts with the folder name of an ancestor, such as `components/Button` inside `components/ButtonGroup/`, or is equal to it, get the right `path` and `fileInternalPath`, and the ones with the same name as an ancestor get it as parent. Policies that use the element `path`, `fileInternalPath` or relationships may report different errors for them. Read the [v7.2.2 upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-2-2/#nested-element-paths) to find the affected files and adapt the configuration.
-- fix(#495): Upgrade `@boundaries/elements` to 3.1.3. `basePattern` in `boundaries/elements` restricts matching again: a file is only assigned to the element when the left side of its path also matches `basePattern`, as documented. This had been broken since v5.1.0. Files that were matched by mistake may now be reported as unknown, for example by `boundaries/no-unknown-files`, or match a different element. Read the [v7.2.2 upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-2-2/#base-pattern-matching) to find the affected files and adapt the configuration. ([@edoroshenko](https://github.com/edoroshenko))
+- fix(#494): Upgrade `@boundaries/elements` to 3.2.0. Nested elements whose folder name starts with the folder name of an ancestor, such as `components/Button` inside `components/ButtonGroup/`, or is equal to it, get the right `path` and `fileInternalPath`, and the ones with the same name as an ancestor get it as parent. Policies that use the element `path`, `fileInternalPath` or relationships may report different errors for them. Read the [v7.3.0 upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-3-0/#nested-element-paths) to find the affected files and adapt the configuration.
+- fix(#495): Upgrade `@boundaries/elements` to 3.2.0. `basePattern` in `boundaries/elements` restricts matching again: a file is only assigned to the element when the left side of its path also matches `basePattern`, as documented. This had been broken since v5.1.0. Files that were matched by mistake may now be reported as unknown, for example by `boundaries/no-unknown-files`, or match a different element. Read the [v7.3.0 upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-3-0/#base-pattern-matching) to find the affected files and adapt the configuration. ([@edoroshenko](https://github.com/edoroshenko))
 
 ### Security
 
-- fix(#492): Remove the direct `micromatch` dependency and upgrade `@boundaries/elements` to 3.1.3, which replaces `micromatch` with `picomatch`. `braces`, affected by [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) with no patched release, is no longer in the plugin's production dependency tree. ([@edoroshenko](https://github.com/edoroshenko))
+- fix(#492): Remove the direct `micromatch` dependency and upgrade `@boundaries/elements` to 3.2.0, which replaces `micromatch` with `picomatch`. `braces`, affected by [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) with no patched release, is no longer in the plugin's production dependency tree. ([@edoroshenko](https://github.com/edoroshenko))
 
 ## [7.2.1] - 2026-10-21
 
