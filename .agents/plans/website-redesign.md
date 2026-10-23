@@ -3,9 +3,9 @@
 
 Index of the plan. The plan is split so that an independent agent can implement one phase with no other context than the files named here plus the repository's own agent files.
 
-Status (2026-10-23): design accepted (direction B, "blueprint"), all design decisions closed except the playground stack. No implementation has started.
+Status (2026-10-23): design accepted (direction B, "blueprint"), all design decisions closed except the playground stack. Phase 1 is implemented (PR #536, open against the integration branch); the plan already reflects what that phase learned.
 
-This plan is committed on the integration branch `feat/website-redesign` (a `.gitignore` exception for `.agents/plans/website-redesign*`) so that sessions in other worktrees or in the cloud can read it. It is temporary: phase 5 removes it, the exception and the related clause in the root `AGENTS.md` before the branch merges into `release`. Phase agents read the plan but do not edit it; deviations go in the PR description and the maintainer updates the plan on the integration branch.
+This plan is committed on the integration branch `feat/website-redesign` (a `.gitignore` exception for `.agents/plans/website-redesign*`) so that sessions in other worktrees or in the cloud can read it. It is temporary: phase 5 removes it, the exception and the related clause in the root `AGENTS.md` before the branch merges into `release`. Phase sessions read the plan and keep it true: whenever a session deviates from its phase file, finds a fact here that is wrong, or leaves work for a later phase, it records that in the PR description and also proposes the matching plan edit to the maintainer. With the maintainer's permission it commits the edit on `feat/website-redesign` directly (a `chore(website)` commit, pushed, so every session sees it), never silently and never on the phase branch alone. The maintainer may also apply the edit themselves.
 
 ## Files
 

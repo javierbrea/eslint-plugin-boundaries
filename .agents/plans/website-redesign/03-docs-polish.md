@@ -12,7 +12,7 @@ Pages to use as the test bed (cover every construct): `/docs/overview/` (intro +
 ### 1. Code blocks
 
 - `docusaurus.config.ts` → `themeConfig.prism`: `theme: blueprintTheme`, `darkTheme: blueprintTheme` (import from `./src/prism/blueprintTheme`). Keep `additionalLanguages`.
-- `src/components/CodeDiff/index.tsx`: render once with `blueprintTheme` instead of twice (light/dark); delete the `diff-theme-*` wrappers. In `custom.css` delete the `.diff-theme-*` rules and restyle `.diff-addition` (`color-mix(in srgb, var(--jsb-ok) 18%, transparent)`), `.diff-deletion` (`color-mix(in srgb, var(--jsb-bad) 18%, transparent)`), and the `+`/`-` markers in `--jsb-ok` / `--jsb-bad`. Remove the config comment that says to keep CodeDiff in sync with the Prism themes, since there is now one theme.
+- `src/components/CodeDiff/index.tsx`: render once with `blueprintTheme` instead of twice (light/dark); delete the `diff-theme-*` wrappers. In `custom.css` delete the `.diff-theme-*` rules (including the per-variant `pre` backgrounds phase 1 left there) and restyle `.diff-addition` (`color-mix(in srgb, var(--jsb-ok) 18%, transparent)`), `.diff-deletion` (`color-mix(in srgb, var(--jsb-bad) 18%, transparent)`), and the `+`/`-` markers in `--jsb-ok` / `--jsb-bad`. Remove the config comment that says to keep CodeDiff in sync with the Prism themes, since there is now one theme.
 - Code block chrome: `--ifm-pre-border-radius: var(--jsb-radius-lg)`, a 3px left rule in `--jsb-accent` on `.theme-code-block` (same look as the home `CodeSnippet`), title bar (`.codeBlockTitle`) in mono 0.72rem on `--jsb-code` with a `--jsb-line` divider, copy button visible on hover with the icon in `--jsb-code-fg`. Highlighted lines keep `--docusaurus-highlighted-code-line-bg`.
 - Inline `code` in prose: `--jsb-accent-soft` background, `--jsb-ink` text, radius 4px, no border (`--ifm-code-border-radius`, `--ifm-code-padding-horizontal: 0.35em`).
 
@@ -67,5 +67,5 @@ Swizzle `NotFound/Content` (`--eject --typescript`): mono eyebrow `404`, Sora h1
 - Code blocks look the same on the home and in the docs (same background, palette, radius, left rule); CodeDiff `+`/`-` rows read in both themes.
 - Admonitions of all five types shown on a scratch MDX page during development (do not commit it) use the semantic colours and pass contrast.
 - No Infima default colour left: search the rendered CSS of a docs page for `#25c2a0`, `#2e8555`, `#303846` and get no hits.
-- Lighthouse Accessibility 100 on `/docs/quick-start/` and `/docs/rules/dependencies/`.
+- Lighthouse Accessibility 100 on `/docs/overview/`, `/docs/quick-start/` and `/docs/rules/dependencies/`: with the Prism `github` theme gone, the `color-contrast` miss accepted in phases 1 and 2 (`00-shared.md` section 8) no longer applies.
 - Changelog entry, e.g. `feat: Documentation pages adopt the new design: blueprint code blocks, semantic admonitions, restyled sidebar, table of contents, search and 404 page.`

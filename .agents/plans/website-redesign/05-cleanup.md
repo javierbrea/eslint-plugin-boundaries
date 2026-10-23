@@ -14,6 +14,7 @@ Read first: `../website-redesign.md`.
 5. Search the tree for leftovers: `grep -rn "website-redesign" --exclude-dir=node_modules --exclude-dir=.git .` must only return branch names in git metadata, nothing in tracked files.
 6. `pnpm nx check:all website --output-style=stream` passes (nothing depended on the plan, so this is a sanity check).
 7. PR `chore(website): remove the redesign plan` against `feat/website-redesign`. No changelog entry: nothing changes for site visitors.
+8. Once the phase PRs are merged, delete the screenshot branches on origin (`git push origin --delete screenshots/website-redesign-foundation` and the ones phases 2–3 created, see `00-shared.md` section 2). The images embedded in the merged PR descriptions stop resolving then, which is acceptable once the redesign is live; nothing else references them.
 
 ## After the merge
 
