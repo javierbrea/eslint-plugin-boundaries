@@ -86,7 +86,7 @@ jobs:
         with:
           windows-fix-symlinks: "true"
       - name: Download elements build
-        uses: actions/download-artifact@v7.0.0
+        uses: actions/download-artifact@v8.0.2
         with:
           name: elements-build
           path: packages/elements/dist
@@ -105,12 +105,12 @@ jobs:
         with:
           fetch-depth: 0
       - name: Download elements test results
-        uses: actions/download-artifact@v7.0.0
+        uses: actions/download-artifact@v8.0.2
         with:
           name: elements-coverage
           path: packages/elements/coverage
       - name: Download eslint-plugin test results
-        uses: actions/download-artifact@v7.0.0
+        uses: actions/download-artifact@v8.0.2
         with:
           name: eslint-plugin-coverage
           path: packages/eslint-plugin/coverage
