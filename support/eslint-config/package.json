@@ -13,7 +13,7 @@
     "@eslint/js": "9.39.5",
     "@eslint/json": "1.2.0",
     "@eslint/markdown": "7.5.1",
-    "@typescript-eslint/eslint-plugin": "8.71.2",
+    "@typescript-eslint/eslint-plugin": "8.72.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-import-resolver-alias": "1.1.2",
     "eslint-import-resolver-typescript": "4.4.5",
