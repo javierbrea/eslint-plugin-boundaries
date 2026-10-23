@@ -43,6 +43,7 @@ import type {
   MatcherOptions,
   EntityMatcherOptions,
 } from "./Shared";
+import { memoizeByIdentityPair } from "./Shared";
 
 /**
  * Matcher class to evaluate if elements or dependencies match given selectors.
@@ -57,6 +58,12 @@ export class Matcher {
   private readonly _descriptorOptions: DescriptorOptionsNormalized;
   private readonly _micromatch: Micromatch;
   private readonly _descriptors: Descriptors;
+  /**
+   * Returns the extra template data with legacy aliases for a dependency description. It is computed once per description and extra template data pair, because the same dependency is matched against every selector of every policy.
+   */
+  private readonly _getDependencyExtraTemplateData = memoizeByIdentityPair(
+    getLegacyDependencySelectorExtraTemplateData
+  );
 
   /**
    * Constructor for the Matcher class.
@@ -200,7 +207,7 @@ export class Matcher {
     const description = this._descriptors.describeDependency(dependencyData);
     const matcherOptions = {
       ...options,
-      extraTemplateData: getLegacyDependencySelectorExtraTemplateData(
+      extraTemplateData: this._getDependencyExtraTemplateData(
         description,
         options?.extraTemplateData
       ),
@@ -357,7 +364,7 @@ export class Matcher {
     const description = this._descriptors.describeDependency(dependencyData);
     const matcherOptions = {
       ...options,
-      extraTemplateData: getLegacyDependencySelectorExtraTemplateData(
+      extraTemplateData: this._getDependencyExtraTemplateData(
         description,
         options?.extraTemplateData
       ),
@@ -454,7 +461,7 @@ export class Matcher {
   ): DependencySingleSelectorMatchResult | null {
     const matcherOptions = {
       ...options,
-      extraTemplateData: getLegacyDependencySelectorExtraTemplateData(
+      extraTemplateData: this._getDependencyExtraTemplateData(
         description,
         options?.extraTemplateData
       ),

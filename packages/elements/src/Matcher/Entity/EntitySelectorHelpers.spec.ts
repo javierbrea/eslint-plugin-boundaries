@@ -582,6 +582,42 @@ describe("EntitySelectorHelpers", () => {
   });
 
   describe("normalizeEntitySelector", () => {
+    it("should return the same normalized selector for the same selector object", () => {
+      // Arrange
+      const selector: EntitySingleSelector = {
+        element: { type: "component" },
+      };
+
+      // Act
+      const first = normalizeEntitySelector(selector);
+      const second = normalizeEntitySelector(selector);
+
+      // Assert
+      expect(second).toBe(first);
+    });
+
+    it("should normalize again a different selector object with the same content", () => {
+      // Act
+      const first = normalizeEntitySelector({ element: { type: "component" } });
+      const second = normalizeEntitySelector({
+        element: { type: "component" },
+      });
+
+      // Assert
+      expect(second).toEqual(first);
+      expect(second).not.toBe(first);
+    });
+
+    it("should normalize a legacy string selector on every call", () => {
+      // Act
+      const first = normalizeEntitySelector("component");
+      const second = normalizeEntitySelector("component");
+
+      // Assert
+      expect(second).toEqual(first);
+      expect(second).not.toBe(first);
+    });
+
     it("should normalize a single new entity selector", () => {
       const selector: EntitySingleSelector = {
         element: { type: "component" },

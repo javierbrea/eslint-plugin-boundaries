@@ -1,4 +1,5 @@
 import { isArray, isObjectWithAnyOfProperties } from "../../Shared";
+import { memoizeByIdentity } from "../Shared";
 
 import type {
   ModuleSelector,
@@ -50,21 +51,21 @@ export function normalizeModuleSingleSelector(
 }
 
 /**
- * Normalizes a module selector, ensuring it has the correct structure and default values. If the selector is an array, each item will be normalized.
+ * Normalizes a module selector, ensuring it has the correct structure and default values. If the selector is an array, each item will be normalized. The result is computed once per selector object and shared by every later call that passes the same object (see `memoizeByIdentity`), so it must be treated as read-only; primitive selectors are normalized on every call.
  * @param selector The selector to normalize.
  * @returns The normalized selector.
  * @throws Error if the selector is not a valid origin selector.
  */
-export function normalizeModuleSelector(
-  selector: ModuleSelector
-): ModuleSelectorNormalized {
-  if (isModuleSingleSelector(selector)) {
-    return [normalizeModuleSingleSelector(selector)];
-  }
+export const normalizeModuleSelector = memoizeByIdentity(
+  (selector: ModuleSelector): ModuleSelectorNormalized => {
+    if (isModuleSingleSelector(selector)) {
+      return [normalizeModuleSingleSelector(selector)];
+    }
 
-  if (isArray(selector)) {
-    return selector.map(normalizeModuleSingleSelector);
-  }
+    if (isArray(selector)) {
+      return selector.map(normalizeModuleSingleSelector);
+    }
 
-  throw new Error("Invalid module selector");
-}
+    throw new Error("Invalid module selector");
+  }
+);

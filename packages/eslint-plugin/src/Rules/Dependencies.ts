@@ -65,6 +65,11 @@ type DependenciesPolicyPrecomputed = DependenciesPolicyNormalized & {
   precomputedDisallow?: DependencySingleSelectorNormalized[];
 };
 
+/**
+ * Template data passed to the matcher when legacy templates are disabled. It is a single shared object so the matcher can memoize the data it derives from it per dependency, instead of deriving it again for every policy.
+ */
+const EMPTY_TEMPLATE_DATA: TemplateData = Object.freeze({});
+
 const normalizedPoliciesMap = new WeakMap<
   DependenciesPolicy,
   DependenciesPolicyPrecomputed
@@ -589,7 +594,7 @@ function getCapturedTemplateData(
   dep: DependencyDescription,
   legacyTemplates: boolean
 ): TemplateData {
-  if (!legacyTemplates) return {};
+  if (!legacyTemplates) return EMPTY_TEMPLATE_DATA;
   const targetDir = rule.from ? "from" : "to";
   return targetDir === "from"
     ? {
