@@ -46,7 +46,7 @@ Infima's alerts read the `--ifm-color-*-contrast-background` variables set in ph
 
 ### 5. Navbar, search, announcement bar, footer
 
-- Navbar: `.navbar__link--active` gets the growing underline (`::after` 1px, `scaleX`), hover colour `--jsb-ink`; dropdown menus on `--jsb-card` with `--jsb-line` border and `--jsb-shadow`; mobile sidebar (`.navbar-sidebar`) on `--jsb-paper` (done in phase 2 together with the backdrop-filter fix; verify only).
+- Navbar: `.navbar__link--active` gets the growing underline (`::after` 1px, `scaleX`), hover colour `--jsb-ink`; dropdown menus on `--jsb-card` with `--jsb-line` border and `--jsb-shadow`; mobile sidebar (`.navbar-sidebar`) on `--jsb-paper` (done in phase 1: the navbar is opaque below 997px and the sidebar inherits its background; verify only).
 - DocSearch button: `--jsb-card` background, `--jsb-line` border, mono placeholder `--jsb-muted`, keys on `--jsb-paper`; modal uses the `--docsearch-*` variables set in phase 1 (verify the hit highlight uses `--jsb-accent-soft`).
 - Announcement bar: keep phase 1 colours; link inside underlined, `--jsb-accent` on dark ink reads badly, so set links to `--jsb-paper` with underline.
 - Footer: if phase 2 is merged, only verify; otherwise apply the footer CSS from `02-home.md` section 7 here (both phases may touch it; the merge is trivial).
