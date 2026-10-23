@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- perf(#524): Upgrade `@boundaries/elements` to 3.1.3. Rule selectors are normalized once instead of on every dependency checked, and the template data of each dependency is built once instead of once per selector, which cuts the linting time by about a third in projects with many files and policies.
 - perf: Upgrade `@boundaries/elements` to 3.1.3. Rule selectors with `{{ }}` templates are compiled once instead of on every match, which reduces linting time noticeably in projects with many files and policies. Compiled templates and patterns are kept also when `boundaries/cache` is `false`; the setting now disables only the caches of results.
 - perf(#489): Upgrade `@boundaries/elements` to 3.1.3. Element and file descriptors compile each capture pattern once, instead of once per linted file. ([@joernroeder](https://github.com/joernroeder))
 
