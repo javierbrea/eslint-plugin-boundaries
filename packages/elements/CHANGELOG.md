@@ -9,21 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- perf: Matching is about 2.5 times faster than in 3.1.2. In the `eslint-plugin` E2E performance fixture (about 5,000 files), the total linting time drops by 60% with flat config and by 57% with legacy config, as the combined result of the changes listed below.
-- perf(#524): Selectors are normalized once per selector object instead of on every match. The `normalize*Selector` helpers keep the normalized form of each selector object in a `WeakMap`, and `Matcher` builds the legacy template data of each dependency once instead of once per selector. In the e2e performance fixture this cuts the linting time by about a third on top of the compiled templates cache. The normalized selectors and the match results are now shared objects and must be treated as read-only, and a selector object must not be mutated after its first use.
-- perf: Matchers compile each Handlebars template once and reuse it for every entity they match. Before, every selector field with a `{{ }}` template was compiled again on each match, which took a large part of the linting time in projects with many files and policies. The compiled templates are kept also when the `cache` option is `false`, because they depend only on the template text, and `Matcher.clearCache()` clears them.
-- perf: `makeRe` and `capture` keep their compiled regular expressions also when the `cache` option is `false`. The option now disables only the caches of results (descriptions, matching results and captures), whose keys are built from paths and options; compiled patterns and templates depend only on their own text, so they are always memoized.
-- perf(#489): `capture` compiles each pattern once and reuses it for every path. Before, it compiled the pattern again for each new path, because its cache key includes the path. ([@joernroeder](https://github.com/joernroeder))
-- chore(#511): Remove the `eslint-module-utils` and `eslint-import-resolver-node` dependencies, which the package does not use.
+- perf: Matching is about 2.5 times faster than in 3.1.2: 60% less linting time with flat config and 57% less with legacy config, measured on the `eslint-plugin` E2E performance fixture. Handlebars templates are compiled once per matcher, and selectors are normalized once per selector object (#524). Normalized selectors and match results are now shared objects: treat them as read-only, and do not mutate a selector after its first use.
+- perf(#489): `capture` compiles each pattern once and reuses it for every path. ([@joernroeder](https://github.com/joernroeder))
+- perf: The `cache` option now disables only the caches of results (descriptions, matches and captures). Compiled patterns and templates are always kept, and `Matcher.clearCache()` clears them.
+- chore(#511): Remove the unused `eslint-module-utils` and `eslint-import-resolver-node` dependencies.
 
 ### Fixed
 
-- fix(#494): The element `path` is resolved from the position where the descriptor `pattern` matched, instead of from the first place in the file path where the matched folders appear. Before, nested elements whose folder name starts with the folder name of an ancestor, such as `components/Button` inside `components/ButtonGroup/`, or is equal to it, got a wrong `path` and `fileInternalPath`, and the ones with the same name as an ancestor had no parent.
-- fix(#495): `capture` returns `null` instead of `undefined` when the path does not match, as its declared return type says. As a result, element descriptors with `basePattern` only match paths whose left side also matches `basePattern`, as documented. Paths outside `basePattern` were matched by mistake before, so they may now be unknown elements or match a different descriptor. ([@edoroshenko](https://github.com/edoroshenko))
+- fix(#494): The element `path` is resolved from where the descriptor `pattern` matched, instead of from the first place its folders appear in the file path. Nested elements whose folder name starts with, or equals, the name of an ancestor now get the right `path`, `fileInternalPath` and parent.
+- fix(#495): `capture` returns `null` when the path does not match, as its type declares. As a result, descriptors with `basePattern` only match paths whose left side also matches it, as documented. ([@edoroshenko](https://github.com/edoroshenko))
 
 ### Security
 
-- fix(#492): Replace `micromatch` with `picomatch` 2.3.2 for matching and captures, removing the transitive `braces` dependency, which is affected by [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) and has no patched release. Glob syntax, captured groups and Windows path handling are unchanged. ([@edoroshenko](https://github.com/edoroshenko))
+- fix(#492): Replace `micromatch` with `picomatch` 2.3.2, which removes the transitive `braces` dependency ([GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm), with no patched release). Glob syntax, captures and Windows paths are unchanged. ([@edoroshenko](https://github.com/edoroshenko))
 
 ## [3.1.2] - 2026-10-21
 

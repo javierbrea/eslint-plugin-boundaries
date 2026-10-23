@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- chore: Lower the performance baselines to the linting times measured after `@boundaries/elements` started compiling each Handlebars template once and normalizing each selector once, so the performance tests catch a regression to the previous times.
+- chore: Lower the performance baselines to the linting times of `@boundaries/elements` 3.2.0, so the performance tests catch a regression to the previous times.
 
 ## [1.1.0] - 2026-03-20
 
