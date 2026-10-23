@@ -4,6 +4,9 @@
 # Production
 /build
 
+# Visual check output (scripts/screenshots.mjs)
+/screenshots
+
 # Generated files
 .docusaurus
 .cache-loader
