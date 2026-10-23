@@ -13,7 +13,7 @@ Phase 1 must be merged: this phase assumes `--jsb-*` tokens, the fonts and the I
 src/pages/index.tsx                         composes the sections; Layout + Head meta
 src/components/home/Hero/Hero.tsx           + Hero.module.css
 src/components/home/Hero/BlueprintSheet.tsx + BlueprintSheet.module.css   (the SVG, draw-in, tilt, captions)
-src/components/home/Hero/InstallCommand.tsx                                (copy button)
+src/components/home/Hero/InstallCommand.tsx + InstallCommand.module.css   (copy button)
 src/components/home/Problem/Problem.tsx     + .module.css
 src/components/home/Steps/Steps.tsx         + .module.css
 src/components/home/Spec/Spec.tsx           + .module.css
@@ -27,12 +27,13 @@ src/components/ui/Eyebrow/Eyebrow.tsx       + .module.css
 src/components/ui/SectionHead/SectionHead.tsx + .module.css
 src/components/ui/CodeSnippet/CodeSnippet.tsx + .module.css              (prism-react-renderer Highlight)
 src/components/ui/TerminalOutput/TerminalOutput.tsx + .module.css
-src/components/ui/Icons.tsx                                                (Arrow, Copy, Star: inline SVG components)
+src/components/ui/Icons/Icons.tsx                                          (Arrow, Copy, Star: inline SVG components; a folder, since a loose file in ui/ is not a boundaries element)
 src/components/motion/Reveal.tsx + Reveal.module.css
 src/components/motion/useReveal.ts
 src/components/motion/useReducedMotion.ts
+src/components/motion/useMediaQuery.ts                                      (useSyncExternalStore; used by useReducedMotion and the (hover: none) check)
 src/components/site/GithubStars/GithubStars.tsx + .module.css              (navbar pill; replaces components/GithubStarsButton)
-src/components/site/Copyright/Copyright.tsx                                 (used by the Footer/Copyright swizzle)
+src/components/site/Copyright/Copyright.tsx + .module.css                   (used by the Footer/Copyright swizzle)
 src/data/stats/statsCache.ts
 src/data/stats/fetchStats.ts
 src/data/stats/useLiveStat.ts
@@ -42,7 +43,7 @@ src/data/site/links.ts
 src/data/site/product.ts
 src/data/site/useCurrentYear.ts
 src/prism/blueprintTheme.ts                                                 (PrismTheme object; phase 3 reuses it)
-src/client/motion.ts                                                        (adds the jsb-js class; registered in clientModules)
+src/client/motion.ts                                                        (adds the data-jsb-js attribute; registered in clientModules)
 src/theme/NavbarItem/ComponentTypes.ts                                      (points custom-githubStarsButton at site/GithubStars)
 src/theme/Footer/Copyright/index.tsx                                        (swizzle, renders site/Copyright)
 scripts/screenshots.mjs                                                     (Playwright visual check)
@@ -69,7 +70,7 @@ Left column:
 - h1: `Lint your <u>architecture</u>, not just your syntax.` The `u` is not a text decoration but a 3px accent bar painted with `background-image: linear-gradient(var(--jsb-accent), var(--jsb-accent)); background-size: 100% 3px; background-repeat: no-repeat; background-position: 0 92%; text-decoration: none` (mockup `.hero h1 u`).
 - Lead: `Classify your files, write policies for who may depend on whom, and get an ESLint error the moment a boundary is crossed. In your IDE, in CI, with nothing new to run.`
 - CTA row: primary `Button` "Read the quick start" with arrow → `links.DOCS_QUICK_START`; `InstallCommand` showing `$ npm i -D eslint-plugin-boundaries` with a copy button (`aria-label="Copy install command"`), which writes the command (without `$`) to the clipboard, turns the icon `--jsb-ok` for 1.2s and announces "Copied" through a visually hidden `aria-live="polite"` span; clipboard failures are swallowed.
-- Used line (mono, `--jsb-faint`, strong parts in `--jsb-ink` 500): `Linting <b>{DEPENDENT_REPOS}</b> repositories · <b>{downloads}</b> downloads a month · ESLint 9 · Oxlint · TypeScript`. `downloads` is the live npm number formatted compact (`7.4M`), `DEPENDENT_REPOS` the constant from `fallbacks.ts`.
+- Used line (mono, `--jsb-muted`, not faint, which fails AA; strong parts in `--jsb-ink` 500): `Linting <b>{DEPENDENT_REPOS}</b> repositories · <b>{downloads}</b> downloads a month · ESLint 9 · Oxlint · TypeScript`. `downloads` is the live npm number formatted compact (`7.4M`), `DEPENDENT_REPOS` the constant from `fallbacks.ts`.
 
 Right column: `BlueprintSheet` (section 4).
 
@@ -186,7 +187,7 @@ Centred blockquote, Sora 500 `clamp(1.3rem, 2.6vw, 1.9rem)`, max-width 36ch: `"S
 
 ### 3.8 Playground teaser (`.play`, `.table`)
 
-Left: `SectionHead` eyebrow "Drafting table · coming next", h2 `Try a config against a sketched project`, lead `Paste settings, lay out a folder tree, and watch each file get classified and each import get its verdict. In the browser, nothing to install.`, outline `Button` "Follow the roadmap" with arrow → `links.GITHUB_BACKLOG`. Right: the static "table" card (`aria-label="Playground preview"`): a 16px drafting grid background (`--jsb-grid`), a tree column (`src/`, `components/`, `Button/`, `Price/`, `helpers/`, `format/`, `modules/`, `checkout/` with indentation classes) and result rows `element · component · captured { name: "Price" }`, `file · categories: [ "index" ]`, `module · origin: "local"`, and a `report` row in `--jsb-bad` reading `helpers/format → components/Price · disallowed`. No behaviour beyond hover tints.
+Left: `SectionHead` eyebrow "Drafting table · coming next", h2 `Try a config against a sketched project`, lead `Paste settings, lay out a folder tree, and watch each file get classified and each import get its verdict. In the browser, nothing to install.`, outline `Button` "Follow the roadmap" with arrow → `links.GITHUB_BACKLOG`. Right: the static "table" card, a `figure` with `aria-label="Playground preview"` (ARIA forbids `aria-label` on a plain `div`): a 16px drafting grid background (`--jsb-grid`), a tree column (`src/`, `components/`, `Button/`, `Price/`, `helpers/`, `format/`, `modules/`, `checkout/` with indentation classes) and result rows `element · component · captured { name: "Price" }`, `file · categories: [ "index" ]`, `module · origin: "local"`, and a `report` row with a `--jsb-bad` border reading `helpers/format → components/Price · disallowed` (its label text is `color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink))`: pure `--jsb-bad` is 4.41:1 on the card, below AA). No behaviour beyond hover tints.
 
 ### 3.9 Final CTA (`.final`, `.box`)
 
@@ -196,7 +197,7 @@ Dashed `--jsb-line-strong` box, radius 12px, two accent corner marks (`::before`
 
 Port the `<svg id="draw" viewBox="0 0 520 500">` from the mockup (lines 269–308) to JSX in `BlueprintSheet.tsx`:
 
-- Attribute names to JSX (`strokeWidth`, `markerEnd`, `textAnchor`, `pathLength`, `className`); marker ids prefixed `jsb-` to avoid clashes with docs SVGs; colours through `var(--jsb-*)` in the module CSS, never attributes.
+- Attribute names to JSX (`strokeWidth`, `markerEnd`, `textAnchor`, `pathLength`, `className`); marker ids prefixed `jsb-` to avoid clashes with docs SVGs; colours through `var(--jsb-*)` in the module CSS, never attributes. The corner marks get `fill: none` (the mockup leaves them with the default black fill, which draws triangles) and the dimension ticks `pathLength="1"` so they draw solid.
 - Three slabs from a data array `[{ id: "modules", type: "module", pattern: "modules/*" }, { id: "components", type: "component", pattern: "components/*/*" }, { id: "helpers", type: "helper", pattern: "helpers/*" }]`, each a `<g>` with `tabIndex={0}`, `role="button"`, `aria-label="{id} layer: {descriptor}"`; hover/focus lifts it 6px and sets the caption `"{id} · { type: \"module\", pattern: \"modules/*\" }"` (descriptor in `code`). Default caption: `hover a layer · { type: "component", pattern: "components/*/*" }`.
 - Draw-in: classes `.draw .l1…l5` with the keyframes from the mockup (`stroke-dasharray: 1; stroke-dashoffset: 1 → 0`, 1.6s, delays 0/.25/.5/.9/1.2s). The violation edge uses the `dash` loop. The dimension line text reads `3 element types · 1 rule`. Tags: two `allow →` in `--jsb-ok`, one filled `--jsb-bad` tag `✕ helper → component`.
 - Tilt: on the wrapper (`perspective: 1200px`), `onPointerMove` computes `x, y` in [-0.5, 0.5] and sets `svg.style.transform = rotateX(${-y * 8}deg) rotateY(${x * 10}deg)` inside `requestAnimationFrame`; `onPointerLeave` clears it. Not attached when `useReducedMotion()` is true or `matchMedia("(hover: none)").matches`.
@@ -221,24 +222,25 @@ A `PrismTheme` (type from `prism-react-renderer`) with `plain: { color: "#e7e9f8
 
 ## 7. Navbar and footer
 
-- `src/components/site/GithubStars/GithubStars.tsx`: `<a class="stars" href={GITHUB_REPO_URL} aria-label="Star the repository on GitHub">` star icon + `formatThousands(stars)` via `useLiveStat(fetchGithubStars...)`. Styles from the mockup `.stars`. `ComponentTypes.ts` keeps the key `custom-githubStarsButton` and points it to this component, so `docusaurus.config.ts` keeps its item. Remove the separate `navbar-github-link` item from the config (the pill is the link) and the two CSS rules named in section 1.
+- `src/components/site/GithubStars/GithubStars.tsx`: `<a class="stars" href={GITHUB_REPO_URL} aria-label="Star the repository on GitHub, {count} stars">` star icon + `formatThousands(stars)` via `useLiveStat(fetchGithubStars...)` (the label contains the visible count, WCAG 2.5.3). It hides below 997px, since Docusaurus only hides `.navbar__item` there, and in the mobile sidebar it renders as a `menu__link` inside a `li`. Styles from the mockup `.stars`. `ComponentTypes.ts` keeps the key `custom-githubStarsButton` and points it to this component, so `docusaurus.config.ts` keeps its item. Remove the separate `navbar-github-link` item from the config (the pill is the link) and the two CSS rules named in section 1.
 - Add a navbar item `{ to: "/docs/quick-start/", label: "Get started", position: "right", className: "jsb-navbar-cta" }` and style `.jsb-navbar-cta` in `custom.css` as the primary button (34px high in the navbar); hide it below 996px (Docusaurus' mobile menu shows it as a plain link, which is fine).
-- Navbar `hideOnScroll: false` (the mockup's nav is always visible and translucent).
+- Navbar `hideOnScroll: false` (the mockup's nav is always visible and translucent). Docusaurus renders the theme toggle after the custom items, so the order is stars · Get started · toggle · search.
+- Mobile sidebar: the phase 1 `backdrop-filter` on `.navbar` makes the navbar the containing block of the fixed sidebar, which gets clipped to the navbar height; drop the filter on `.navbar.navbar-sidebar--show` and give `.navbar-sidebar` the `--jsb-paper` background (`infima-bridge.css`).
 - Navbar logo: give `themeConfig.navbar.logo` explicit `width` and `height` (the rendered size, in px); Docusaurus passes them to the `<img>` of the navbar and of the docs sidebar, which Lighthouse otherwise reports as unsized images (`unsized-images`). The footer logo goes away with `footer.logo` below.
 - Theme toggle: style Docusaurus' `.clean-btn.toggleButton_*` family through `[class*="toggleButton"]` to look like the mockup `.icon-btn` (34px, `--jsb-line` border, radius 6px, hover accent border).
-- Footer: swizzle `Footer/Copyright` (`pnpm --filter website swizzle @docusaurus/theme-classic Footer/Copyright --eject --typescript`) and render `src/components/site/Copyright/Copyright.tsx`: `Copyright © {FIRST_RELEASE_YEAR}-{useCurrentYear()} <a href="https://www.javierbrea.com">Javier Brea</a>. MIT licensed.` plus the trademarks disclaimer line (text from the current config), mono 0.74rem `--jsb-faint`. Remove `footer.copyright` and `footer.logo` from the config. In `footer.links`, remove "Illustrations by unDraw" and keep the rest. Footer CSS: `--jsb-paper-2` background, top `--jsb-line`, column titles as mono eyebrow (0.68rem, uppercase, 0.12em, `--jsb-muted`: faint measures 2.85:1 on the footer surface and fails AA, as phase 1 found), links muted → ink on hover.
+- Footer: swizzle `Footer/Copyright` (`pnpm --filter website swizzle @docusaurus/theme-classic Footer/Copyright --eject --typescript`) and render `src/components/site/Copyright/Copyright.tsx`: `Copyright © {FIRST_RELEASE_YEAR}-{useCurrentYear()} <a href="https://www.javierbrea.com">Javier Brea</a>. MIT licensed.` plus the trademarks disclaimer line, mono 0.74rem `--jsb-muted` (faint fails AA). Keep `footer.copyright` in the config holding the disclaimer as plain text, which the swizzle renders below the copyright line: Docusaurus only renders `Footer/Copyright` when that setting is not empty. Remove `footer.logo`. In `footer.links`, remove "Illustrations by unDraw" and keep the rest. Footer CSS: `--jsb-paper-2` background, top `--jsb-line`, column titles as mono eyebrow (0.68rem, uppercase, 0.12em, `--jsb-muted`: faint measures 2.85:1 on the footer surface and fails AA, as phase 1 found), links muted → ink on hover.
 - Acknowledgments page: replace the unDraw bullet with `**[Sora](https://fonts.google.com/specimen/Sora), [IBM Plex Sans](https://fonts.google.com/specimen/IBM+Plex+Sans) and [IBM Plex Mono](https://fonts.google.com/specimen/IBM+Plex+Mono)** - Open source typefaces, used under the SIL Open Font License`. Apply the identical edit to both live copies, `docs/misc/acknowledgments.mdx` (`/docs/next/`) and `versioned_docs/version-7.3.0/misc/acknowledgments.mdx` (`/docs/`), as `00-shared.md` section 2 says; older snapshots keep their historical credit.
 
 ## 8. Reveal and client module
 
-- `src/client/motion.ts`: `if (typeof document !== "undefined") document.documentElement.classList.add("jsb-js")`. Register in `docusaurus.config.ts` as `clientModules: ["./src/client/motion.ts"]`.
-- `Reveal.module.css`: `.reveal { opacity: 1; transform: none }` then `:global(.jsb-js) .reveal:not(.in) { opacity: 0; transform: translateY(16px) }` and `.reveal { transition: opacity .7s var(--jsb-ease), transform .7s var(--jsb-ease); transition-delay: var(--d, 0s) }`, reduced-motion override.
-- `useReveal(ref, { once: true })` creates one IntersectionObserver per element with the thresholds from `00-shared.md` section 5 and sets `in`; with no `IntersectionObserver` or reduced motion it sets `in` immediately.
+- `src/client/motion.ts`: `if (typeof document !== "undefined") document.documentElement.setAttribute("data-jsb-js", "")`. Register in `docusaurus.config.ts` as `clientModules: ["./src/client/motion.ts"]`. A class does not work: Docusaurus rewrites the `class` of `<html>` on every navigation.
+- `Reveal.module.css`: `.reveal { opacity: 1; transform: none }` then `:global([data-jsb-js]) .reveal:not([data-revealed]) { opacity: 0; transform: translateY(16px) }` and `.reveal { transition: opacity .7s var(--jsb-ease), transform .7s var(--jsb-ease); transition-delay: var(--d, 0s) }`, reduced-motion override.
+- `useReveal(ref, { once: true })` creates one IntersectionObserver per element with the thresholds from `00-shared.md` section 5 and returns whether it is revealed; with reduced motion it is always revealed, and with no `IntersectionObserver` it reveals on the next frame. `Reveal` sets `data-revealed` on the element (the quote's underline selects `[data-revealed] .mark::after`).
 - `Reveal` props: `as` (default `div`), `delay` (seconds, becomes `--d`), `className`, `children`.
 
 ## 9. Boundaries dogfooding (`packages/website/eslint.config.mjs`)
 
-Add `eslint-plugin-boundaries` (published, latest 7.x) as a website dev dependency; the website is a consumer like any other and keeps no Nx dependency on `packages/eslint-plugin` (`.agents/skills/repo-architecture/SKILL.md`). Add a config object for `src/**/*.{ts,tsx}`:
+Add `eslint-plugin-boundaries` as a website dev dependency from the workspace, like `examples/*`: `"eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*"`, with `"^build"` in the website `lint` `dependsOn` and `eslint-plugin` in its `implicitDependencies`, so it lints against the current plugin source. Add a config object for `src/**/*.{ts,tsx}` (shown as planned; the implemented version differs as listed after it):
 
 ```js
 settings: {
@@ -273,7 +275,7 @@ rules: {
 }
 ```
 
-`@theme/*` and `@docusaurus/*` imports resolve as external and pass the first policy. Verify with `pnpm nx lint website`; if a file is reported as unknown, fix the pattern (use `"boundaries/debug"` temporarily, never commit it enabled). `motion`, `data`, `prism`, `client` import nothing internal by design.
+As implemented: `page` and `client` are the folder elements `src/pages` and `src/client` (the plugin deprecates `mode` in v7), `ui` may also import `ui` (`Button` uses the icons, `SectionHead` uses `Eyebrow`), and `boundaries/no-unknown-files` is on so that every new folder must be classified. `@theme/*` and `@docusaurus/*` imports resolve as external and pass the first policy. Verify with `pnpm nx lint website`; if a file is reported as unknown, fix the pattern (use `"boundaries/debug"` temporarily, never commit it enabled). `motion`, `data`, `prism`, `client` import nothing internal by design.
 
 ## 10. Screenshot script (`packages/website/scripts/screenshots.mjs`)
 
@@ -319,11 +321,11 @@ for (const [mode, width, height] of [["desk", 1440, 900], ["mob", 390, 844]]) {
   }
 }
 await browser.close();
-``` Usage: `pnpm --filter website screenshots [baseUrl=http://localhost:3000] [paths...]` with default paths `/`, `/docs/overview/`, `/docs/quick-start/`. For each path × {1440×900, 390×844} × {light, dark} (set the theme through `localStorage.theme` before load, which Docusaurus reads): wait for `networkidle`, scroll through the page to trigger reveals, screenshot top and full page into `packages/website/screenshots/` (git-ignored; add to `.gitignore`), assert `scrollWidth <= clientWidth`, collect `pageerror` and console errors, exit 1 on any. Add `"screenshots": "node scripts/screenshots.mjs"` to `package.json` and a row to the README "Useful Commands" table.
+``` Implemented in phase 2; it also writes one contact sheet per page (`<name>-sheet.png`, the format the PR descriptions embed) and tolerates failed GitHub and npm API calls (rate limits), which the live stats fall back from. Usage: `pnpm --filter website screenshots [baseUrl=http://localhost:3000] [paths...]` with default paths `/`, `/docs/overview/`, `/docs/quick-start/`. For each path × {1440×900, 390×844} × {light, dark} (set the theme through `localStorage.theme` before load, which Docusaurus reads): wait for `networkidle`, scroll through the page to trigger reveals, screenshot top and full page into `packages/website/screenshots/` (git-ignored; add to `.gitignore`), assert `scrollWidth <= clientWidth`, collect `pageerror` and console errors, exit 1 on any. Add `"screenshots": "node scripts/screenshots.mjs"` to `package.json` and a row to the README "Useful Commands" table.
 
 ## 11. Social image (optional in this phase)
 
-`static/img/og-image.png` shows the old design. If time allows, capture a 1200×630 crop of the new hero (light theme) with the screenshot script and replace it; otherwise open a follow-up issue.
+`static/img/og-image.png` shows the old design. Not done in phase 2: a 1200×630 crop of the new hero does not show the project name, so the current image stays until a dedicated card is designed (follow-up).
 
 ## Acceptance
 
@@ -331,6 +333,6 @@ await browser.close();
 - Side-by-side with `mockups/mockB-light.png` and `mockB-dark.png`: same section order, same copy (with the corrections in 3.4 and 3.3), same palette, visibly the same hero drawing; deviations only where this file says so (footer layout, no `Playground` navbar link).
 - Live numbers: with network, the stars pill, the hero line and the numbers section show the API values and `localStorage` holds `github-stars:…` and `npm-downloads:…` entries; with the network blocked (DevTools offline) they show the fallbacks and nothing is cached.
 - Keyboard: tab reaches the CTA, the copy button, the three slabs, the three perspective cards and the two final buttons, with a visible ring; slabs and cards react to focus.
-- `pnpm nx lint website` passes with the boundaries policy active; a deliberate `import` from `src/data/stats/fetchStats.ts` into a `home` component is reported (test it, then revert).
+- `pnpm nx lint website` passes with the boundaries policy active; a deliberate `import` from a `home` component into a `ui` one, and from a `ui` component into `data`, is reported (test it, then revert). Importing `fetchStats.ts` from `home` is allowed: home sections pass fetchers to `useLiveStat`.
 - No `react-github-btn` in `package.json` or the lockfile; no `undraw` file or reference left outside older docs snapshots (`grep -ril undraw packages/website/src packages/website/static packages/website/docs packages/website/docusaurus.config.ts packages/website/versioned_docs/version-7.3.0` is empty).
 - Changelog entry, e.g. `feat: New home page: blueprint hero with a live-drawn architecture sheet, the three-step walkthrough, feature specification, live GitHub and npm numbers, and a playground preview.`

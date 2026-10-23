@@ -17,6 +17,7 @@ pnpm nx lint website --output-style=stream --fix          # ESLint (+ prettier),
 pnpm nx check:types website --output-style=stream         # tsc --noEmit
 pnpm nx check:spell website --output-style=stream         # cspell
 pnpm nx check:all website --output-style=stream           # everything above plus the build; run before opening the PR
+pnpm --filter website screenshots [baseUrl] [paths...]   # visual check against a running site (02-home.md section 10)
 ```
 
 - `pnpm nx build website` throws on broken links and anchors (`onBrokenLinks: "throw"`). Every `to`/`href` to an internal page must exist with a trailing slash (`trailingSlash: true`), e.g. `/docs/quick-start/`.
@@ -117,7 +118,7 @@ Weights shipped: Sora 500, 600, 700; IBM Plex Sans 400, 400 italic, 500, 600; IB
 ## 5. Motion spec
 
 - Easing: `var(--jsb-ease)` everywhere. Durations: 0.25s hover states, 0.3s underlines, 0.6s button sheen, 0.7s reveals, 1.6s hero draw-in.
-- Reveal on scroll: element starts at `opacity: 0; transform: translateY(16px)`, transitions to visible when 8% of it enters the viewport (IntersectionObserver `threshold: 0.08`, `rootMargin: "0px 0px -8% 0px"`), once. Siblings stagger with `transition-delay` 0.05–0.1s steps via a `--d` custom property. Elements are visible by default and only hidden when JS has marked `<html class="jsb-js">`, so SSR HTML and no-JS visitors see everything.
+- Reveal on scroll: element starts at `opacity: 0; transform: translateY(16px)`, transitions to visible when 8% of it enters the viewport (IntersectionObserver `threshold: 0.08`, `rootMargin: "0px 0px -8% 0px"`), once. Siblings stagger with `transition-delay` 0.05–0.1s steps via a `--d` custom property. Elements are visible by default and only hidden when JS has marked `<html data-jsb-js>`, so SSR HTML and no-JS visitors see everything. The mark is an attribute, not a class: Docusaurus rewrites the `class` of `<html>` on every navigation. A revealed element carries `data-revealed`, which descendants in other CSS Modules can select.
 - Buttons: primary lifts `translateY(-2px)` with a soft accent shadow and a diagonal sheen that sweeps once on hover; outline buttons recolour the border to accent and lift; arrow icons slide 3px right.
 - Links in nav and text: 1px underline that grows from the left on hover (`scaleX(0) → 1`, transform-origin flips so it exits to the right).
 - Hero sheet: paths draw themselves on load (`pathLength="1"`, dashoffset 1 → 0, staggered 0.25s per layer), the violation edge has a marching dash loop, the sheet tilts up to 8°/10° following the pointer and resets on leave; slabs lift 6px on hover/focus.
@@ -136,17 +137,17 @@ Components: `Button` (`variant: "primary" | "outline"`, optional arrow icon, ren
 - Font files are referenced from CSS as `src: /* webpackIgnore: true */ url("/fonts/<file>.woff2")`: Docusaurus resolves root-relative CSS URLs through the bundler (`resolve.roots` includes `static/`), which would otherwise emit hashed copies under `/assets/fonts/` that the preload links in `docusaurus.config.ts` can never match. Keep the comment on every `@font-face` `src`.
 - Imports inside `src/` are relative (`../ui/Button/Button`), never `@site/src/...`; `@site/` stays for MDX docs only. Reason: the boundaries lint config added in phase 2 only sees resolvable imports.
 - Internal links use `Link` from `@docusaurus/Link`; headings on the home use `Heading` from `@theme/Heading` for h1/h2.
-- SSR safety: no `window`, `document`, `localStorage`, `matchMedia` at module scope or during render; use `useEffect`, `useIsBrowser` (`@docusaurus/useIsBrowser`) or `BrowserOnly`. Values that differ between build and client (current year, live stats) render the fallback first and update in an effect, so hydration never mismatches.
+- SSR safety: no `window`, `document`, `localStorage`, `matchMedia` at module scope or during render; use `useEffect`, `useIsBrowser` (`@docusaurus/useIsBrowser`) or `BrowserOnly`. Values that differ between build and client (current year, live stats, media queries) render the fallback first and update after mount, so hydration never mismatches: use `useSyncExternalStore` with a server snapshot, or set state from an async callback, because the repo lint (`react-hooks/set-state-in-effect`) forbids setting state synchronously in an effect.
 - Accessibility: every icon-only control has `aria-label`; decorative SVG has `aria-hidden="true"`; the hero SVG has an `aria-label` describing the drawing; interactive SVG groups are focusable (`tabIndex={0}`, `role="button"`) and react to focus like hover; colour is never the only signal (the violation edge is dashed and labelled); keyboard focus is visible (section 6 ring).
 - Copy and code are in English. The texts of the home are fixed in `02-home.md`; do not rewrite them.
-- Dependencies: adding one needs a reason in the PR. Allowed by this plan: `playwright-core` (dev), `eslint-plugin-boundaries` (dev), `@fontsource/*` (dev, only to copy font files). Removed by this plan: `react-github-btn`.
+- Dependencies: adding one needs a reason in the PR. Allowed by this plan: `playwright-core` (dev), `eslint-plugin-boundaries` (dev, the workspace package: `workspace:@boundaries/eslint-plugin@*`, never a published version), `@fontsource/*` (dev, only to copy font files). Removed by this plan: `react-github-btn`.
 
 ## 8. Quality gates and definition of done
 
 A phase is done when all of these hold and the PR says so:
 
 - [ ] `pnpm nx check:all website` passes (lint, types, spell, build).
-- [ ] The screenshot script (phase 2 adds `packages/website/scripts/screenshots.mjs`; before that, run the scratch script listed in `02-home.md` section 10 from a folder outside the repo) reports no horizontal overflow and no console errors at 1440×900 and 390×844, light and dark, for every page the phase touches.
+- [ ] The screenshot script (`pnpm --filter website screenshots`, `packages/website/scripts/screenshots.mjs`) reports no horizontal overflow and no console errors at 1440×900 and 390×844, light and dark, for every page the phase touches.
 - [ ] Lighthouse (desktop preset) on the touched pages: Performance ≥ 95, Accessibility 100, Best practices ≥ 95. Command: `pnpm dlx lighthouse@12 http://localhost:3000/<path> --preset=desktop --only-categories=performance,accessibility,best-practices --output=html --output-path=./lighthouse-<name>.html` against `pnpm --filter website serve`. Report the numbers; a miss is acceptable only with a stated cause outside the phase (for example third-party scripts). Two known causes: `docusaurus serve` does not compress responses, which costs a few Performance points on LCP, so when a score is close to the threshold measure again against a compressing static server (`pnpm dlx serve -l 3001 packages/website/build`, which is what Netlify does) and report both; and until phase 3 replaces the Prism themes, docs pages score Accessibility 96 because `color-contrast` fails on the Prism `github` light tokens inside code blocks (`#36acaa`, `#e3116c`, `#999988` on `#f6f8fa`), which phases 1 and 2 may not touch, so that miss is accepted for them and nothing else may fail.
 - [ ] Both themes checked by eye against `mockups/mockB-light.png` / `mockB-dark.png` where applicable; system theme switching works (toggle and OS preference).
 - [ ] Reduced motion checked once (OS setting or DevTools emulation): nothing is hidden, nothing moves.
