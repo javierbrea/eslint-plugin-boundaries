@@ -91,6 +91,7 @@ export class Config {
   public get matchersOptions(): MatchersOptionsNormalized {
     return {
       legacyTemplates: this._legacyTemplates,
+      cache: this._cache,
     };
   }
 

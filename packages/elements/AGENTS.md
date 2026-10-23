@@ -8,7 +8,7 @@ Package-scoped agent instructions for `@boundaries/elements` (Nx project `elemen
 
 ## Other top-level folders
 
-- `Cache` — memoizes matcher/descriptor results; has an explicit `CacheDisabled` variant.
+- `Cache` — memoizes matcher/descriptor results; has an explicit `CacheDisabled` variant. Two kinds of cache live in the package, and the `cache` option governs only the first: **result caches** (entity descriptions, matching results, captures) use `CacheManager` when `cache` is true and `CacheManagerDisabled` otherwise, are serializable, and their keys are built from paths and options, so a bug there can be worked around by disabling the cache; **memoization of compiled artifacts** (compiled glob regexps in `Micromatch`, compiled Handlebars templates in `BaseMatcher`) always uses `CacheManager`, is not serializable, and is cleared by `clearCache()` only to free memory, because the value depends only on the key text and can be neither stale nor mismatched. Put a new cache in the right kind instead of copying the nearest one.
 - `Config` — normalizes and validates the plugin's `settings` shape.
 - `Shared` — cross-cutting helpers (`Paths`, `TypeGuards`, micromatch types) used across both axes.
 - `Legacy` — backwards-compatible helpers (e.g. `TemplateHelpers`) kept for older config shapes; don't extend it with new functionality, add new code in the current shape instead.

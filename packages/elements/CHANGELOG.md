@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- perf: Matchers compile each Handlebars template once and reuse it for every entity they match. Before, every selector field with a `{{ }}` template was compiled again on each match, which took a large part of the linting time in projects with many files and policies. The compiled templates are kept also when the `cache` option is `false`, because they depend only on the template text, and `Matcher.clearCache()` clears them.
+- perf: `makeRe` and `capture` keep their compiled regular expressions also when the `cache` option is `false`. The option now disables only the caches of results (descriptions, matching results and captures), whose keys are built from paths and options; compiled patterns and templates depend only on their own text, so they are always memoized.
 - perf(#489): `capture` compiles each pattern once and reuses it for every path. Before, it compiled the pattern again for each new path, because its cache key includes the path. ([@joernroeder](https://github.com/joernroeder))
 - chore(#511): Remove the `eslint-module-utils` and `eslint-import-resolver-node` dependencies, which the package does not use.
 

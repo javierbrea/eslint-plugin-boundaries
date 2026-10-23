@@ -244,13 +244,13 @@ describe("Micromatch", () => {
       expect(result).toEqual(["foo"]);
     });
 
-    it("should not cache results when cache is disabled", () => {
+    it("should compile the pattern only once also when the cache is disabled", () => {
       const instance = new Micromatch(false);
 
       instance.capture("src/*", "src/foo");
       instance.capture("src/*", "src/foo");
 
-      expect(picomatch.makeRe).toHaveBeenCalledTimes(2);
+      expect(picomatch.makeRe).toHaveBeenCalledTimes(1);
     });
 
     it("should cache separately for different patterns", () => {
@@ -299,13 +299,13 @@ describe("Micromatch", () => {
       expect(result.test("lib/foo.ts")).toBe(false);
     });
 
-    it("should not cache results when cache is disabled", () => {
+    it("should compile the pattern only once also when the cache is disabled", () => {
       const instance = new Micromatch(false);
 
       instance.makeRe("src/**");
       instance.makeRe("src/**");
 
-      expect(picomatch.makeRe).toHaveBeenCalledTimes(2);
+      expect(picomatch.makeRe).toHaveBeenCalledTimes(1);
     });
 
     it("should cache separately for different patterns", () => {

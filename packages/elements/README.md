@@ -206,7 +206,7 @@ const elements = new Elements({
 - **`ignorePaths`**: Micromatch pattern(s) to exclude certain paths from matching (default: none)
 - **`includePaths`**: Micromatch pattern(s) to include only specific paths (default: all paths)
 - **`legacyTemplates`**: Whether to enable legacy template syntax support (default: `true`, but it will be `false` in future releases). This allows using `${variable}` syntax in templates for backward compatibility.
-- **`cache`**: Whether to enable internal caching to improve performance (default: `true`)
+- **`cache`**: Whether to cache results (entity descriptions, matching results and captures) to improve performance (default: `true`). Compiled patterns and templates are always memoized, because they depend only on their own text, so disabling the cache never compiles them again.
 - **`rootPath`**: Absolute path to the project root. When configured, file paths should be provided as absolute paths to allow the package to determine which files are outside the project root (default: `undefined`)
 - **`flagAsExternal`**: Configuration for categorizing dependencies as external or local. Multiple conditions can be specified, and dependencies will be categorized as external if ANY condition is met (OR logic). See [Flagging Dependencies as External](#flagging-dependencies-as-external) for details.
 
@@ -1276,7 +1276,7 @@ matcher.clearCache();
 ```
 
 > [!WARNING]
-> This only clears the internal cache for this matcher instance. Shared cache for micromatch results, regex and captures is not affected. You can clear all caches using `Elements.clearCache()`.
+> This only clears the internal cache for this matcher instance, including its compiled templates. Shared cache for micromatch results, regex and captures is not affected. You can clear all caches using `Elements.clearCache()`.
 
 ##### `serializeCache`
 
