@@ -86,7 +86,7 @@
   --ifm-footer-color: var(--jsb-muted);
   --ifm-footer-link-color: var(--jsb-muted);
   --ifm-footer-link-hover-color: var(--jsb-ink);
-  --ifm-footer-title-color: var(--jsb-faint);
+  --ifm-footer-title-color: var(--jsb-muted);
 
   /* DocSearch */
   --docsearch-primary-color: var(--jsb-accent);
