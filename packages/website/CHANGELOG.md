@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [7.3.0] - 2026-10-23
+
 ### Added
 
 - docs(#495): Add the Upgrade Notes section to the Releases docs, starting with the v7.3.0 notes: how to find the files affected by the `basePattern` fix, and how to adapt the configuration.
