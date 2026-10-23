@@ -72,11 +72,11 @@
   --ifm-code-background: var(--jsb-accent-soft);
   --ifm-pre-background: var(--jsb-code);
   --ifm-pre-color: var(--jsb-code-fg);
-  --docusaurus-highlighted-code-line-bg: rgba(143, 148, 255, 0.18);
+  --docusaurus-highlighted-code-line-bg: var(--jsb-code-line);
 
   /* navbar, menu, footer */
   --ifm-navbar-height: 58px;
-  --ifm-navbar-background-color: color-mix(in srgb, var(--jsb-paper) 88%, transparent);
+  --ifm-navbar-background-color: var(--jsb-paper);
   --ifm-navbar-link-color: var(--jsb-muted);
   --ifm-navbar-link-hover-color: var(--jsb-ink);
   --ifm-navbar-shadow: none;
@@ -145,17 +145,17 @@ h2 {
   text-wrap: balance;
 }
 
-/* Infima sets the docs title and top-level h2/h3 sizes on the elements, so the :root values do not reach them */
+/* Infima sets the docs title and top-level h2/h3 sizes on the elements; inherit the :root values instead */
 .markdown h1:first-child {
-  --ifm-h1-font-size: 2.1rem;
+  --ifm-h1-font-size: inherit;
 }
 
 .markdown > h2 {
-  --ifm-h2-font-size: 1.55rem;
+  --ifm-h2-font-size: inherit;
 }
 
 .markdown > h3 {
-  --ifm-h3-font-size: 1.2rem;
+  --ifm-h3-font-size: inherit;
 }
 
 /* Infima gives inline code inside admonitions a per-variant highlight color; derive it from the admonition text color instead */
@@ -167,16 +167,12 @@ h2 {
   border-bottom: 1px solid var(--jsb-line);
 }
 
-/* backdrop-filter makes the navbar the containing block of its fixed descendants, which would clip the mobile sidebar, so the blur only applies above the mobile breakpoint */
+/* backdrop-filter makes the navbar the containing block of its fixed descendants, which would clip the mobile sidebar, so the translucent blurred navbar only applies above the mobile breakpoint */
 @media (min-width: 997px) {
   .navbar {
+    background-color: color-mix(in srgb, var(--jsb-paper) 88%, transparent);
     backdrop-filter: blur(10px);
   }
-}
-
-/* The mobile sidebar takes --ifm-navbar-background-color, which is translucent here */
-.navbar-sidebar {
-  background-color: var(--jsb-paper);
 }
 
 .footer {

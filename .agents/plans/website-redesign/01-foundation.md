@@ -109,11 +109,11 @@ Maps Infima variables onto the tokens so Docusaurus-rendered pages restyle witho
   --ifm-code-background: var(--jsb-accent-soft);
   --ifm-pre-background: var(--jsb-code);
   --ifm-pre-color: var(--jsb-code-fg);
-  --docusaurus-highlighted-code-line-bg: rgba(143, 148, 255, 0.18);
+  --docusaurus-highlighted-code-line-bg: var(--jsb-code-line);
 
   /* navbar, menu, footer */
   --ifm-navbar-height: 58px;
-  --ifm-navbar-background-color: color-mix(in srgb, var(--jsb-paper) 88%, transparent);
+  --ifm-navbar-background-color: var(--jsb-paper);
   --ifm-navbar-link-color: var(--jsb-muted);
   --ifm-navbar-link-hover-color: var(--jsb-ink);
   --ifm-navbar-shadow: none;
@@ -177,17 +177,15 @@ Maps Infima variables onto the tokens so Docusaurus-rendered pages restyle witho
 
 /* element rules that Infima variables cannot express */
 h1, h2 { letter-spacing: -0.02em; text-wrap: balance; }
-/* Infima sets the docs title and top-level h2/h3 sizes on the elements, so the :root values do not reach them */
-.markdown h1:first-child { --ifm-h1-font-size: 2.1rem; }
-.markdown > h2 { --ifm-h2-font-size: 1.55rem; }
-.markdown > h3 { --ifm-h3-font-size: 1.2rem; }
+/* Infima sets the docs title and top-level h2/h3 sizes on the elements; inherit the :root values instead */
+.markdown h1:first-child { --ifm-h1-font-size: inherit; }
+.markdown > h2 { --ifm-h2-font-size: inherit; }
+.markdown > h3 { --ifm-h3-font-size: inherit; }
 /* Infima gives inline code inside admonitions a per-variant highlight colour */
 .alert { --ifm-alert-background-color-highlight: color-mix(in srgb, var(--ifm-alert-foreground-color) 10%, transparent); }
 .navbar { border-bottom: 1px solid var(--jsb-line); }
-/* backdrop-filter makes the navbar the containing block of its fixed descendants and would clip the mobile sidebar */
-@media (min-width: 997px) { .navbar { backdrop-filter: blur(10px); } }
-/* the mobile sidebar takes --ifm-navbar-background-color, which is translucent here */
-.navbar-sidebar { background-color: var(--jsb-paper); }
+/* backdrop-filter makes the navbar the containing block of its fixed descendants and would clip the mobile sidebar, so the translucent blurred navbar is desktop-only */
+@media (min-width: 997px) { .navbar { background-color: color-mix(in srgb, var(--jsb-paper) 88%, transparent); backdrop-filter: blur(10px); } }
 .footer { border-top: 1px solid var(--jsb-line); }
 ```
 
