@@ -35,7 +35,7 @@ Phases 2 and 3 can run in parallel by two agents once phase 1 is merged; they to
 
 Every phase branch starts from `feat/website-redesign` and its PR targets `feat/website-redesign` (the integration branch), not `release`. The integration branch tracks `release` (merge, never rebase: other sessions build on it); the 7.3.0 release shipped on 2026-10-23 and is merged here.
 
-The redesign is released on its own, as a website release, as soon as phases 1, 2, 3 and 5 are merged. The site is one Docusaurus build whose theme is shared by every docs version, so the moment the styles go live every version changes at once and the home must go out adapted in the same deploy. It does not wait for a plugin release: the maintainer merges `feat/website-redesign` into `release` and sets the website version per step 2 of "Publishing" in `.github/CONTRIBUTING.md` (a documentation-only website release, `7.3.0-docs.N`, when no plugin release coincides).
+The redesign goes live by merging, not by a release. As soon as phases 1, 2, 3 and 5 are merged, the maintainer merges `feat/website-redesign` into `release` and `release` into `master` (maintainer-only, merge commit, as the branching model in `.github/CONTRIBUTING.md` says); Netlify deploys `master`. No package is published, so there is no website version bump and no GitHub release. The site is one Docusaurus build whose theme is shared by every docs version: the moment the styles are deployed every version changes at once, which is why the home must go out adapted in the same deploy and why any docs edit is made in both the current snapshot and `docs/` (decision 9).
 
 ## Decisions (closed)
 

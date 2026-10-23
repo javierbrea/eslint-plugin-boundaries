@@ -17,4 +17,4 @@ Read first: `../website-redesign.md`.
 
 ## After the merge
 
-The maintainer opens the final PR from `feat/website-redesign` into `release` with a description that summarizes the phases (link the phase PRs) and the design decisions from the index, since the plan itself is gone, and then releases the website following step 2 of "Publishing" in `.github/CONTRIBUTING.md` (a documentation-only website release when no plugin release coincides). The styles reach every docs version in that deploy, with the new home.
+The maintainer opens the final PR from `feat/website-redesign` into `release` with a description that summarizes the phases (link the phase PRs) and the design decisions from the index, since the plan itself is gone, and then merges `release` into `master` (maintainer-only, merge commit, per the branching model in `.github/CONTRIBUTING.md`). Netlify deploys `master`: the styles reach every docs version in that deploy, together with the new home. No package release, website version bump or GitHub release is involved.
