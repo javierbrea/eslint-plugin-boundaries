@@ -1,0 +1,533 @@
+<!-- cspell:disable -->
+<title>JS Boundaries Home B</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: "blueprint" drafting sheet. Light-first cool paper with grid, dashed boundary boxes and dimension lines; one indigo accent, teal for allowed, vermilion for violations. */
+:root {
+  --paper: #f3f4f9;
+  --paper-2: #ffffff;
+  --ink: #161a33;
+  --muted: #5a6080;
+  --faint: #9397b6;
+  --grid: rgba(76, 82, 216, 0.10);
+  --line: rgba(22, 26, 51, 0.13);
+  --line-strong: rgba(22, 26, 51, 0.28);
+  --accent: #4c52d8;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(76, 82, 216, 0.10);
+  --ok: #0f8f7c;
+  --bad: #d7442f;
+  --card: #ffffff;
+  --code: #1b1f3b;
+  --code-fg: #e7e9f8;
+  --shadow: 0 24px 50px -30px rgba(22, 26, 51, 0.35);
+  --font-display: "Sora", "Avenir Next", "Helvetica Neue", sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1222; --paper-2: #141833; --ink: #e9ebf7; --muted: #a4a9c9; --faint: #6a6f93;
+    --grid: rgba(143, 148, 255, 0.11); --line: rgba(233, 235, 247, 0.12); --line-strong: rgba(233, 235, 247, 0.28);
+    --accent: #8f94ff; --accent-ink: #0f1222; --accent-soft: rgba(143, 148, 255, 0.14); --ok: #3fd1b4; --bad: #ff7a66;
+    --card: #171b36; --code: #0b0e1d; --code-fg: #e7e9f8; --shadow: 0 24px 50px -30px rgba(0, 0, 0, 0.7); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1222; --paper-2: #141833; --ink: #e9ebf7; --muted: #a4a9c9; --faint: #6a6f93;
+  --grid: rgba(143, 148, 255, 0.11); --line: rgba(233, 235, 247, 0.12); --line-strong: rgba(233, 235, 247, 0.28);
+  --accent: #8f94ff; --accent-ink: #0f1222; --accent-soft: rgba(143, 148, 255, 0.14); --ok: #3fd1b4; --bad: #ff7a66;
+  --card: #171b36; --code: #0b0e1d; --code-fg: #e7e9f8; --shadow: 0 24px 50px -30px rgba(0, 0, 0, 0.7); color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 50; background: var(--paper); }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; }
+h1 { font-size: clamp(2.2rem, 4.8vw, 3.6rem); font-weight: 600; }
+h2 { font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 600; }
+h3 { font-size: 1.02rem; font-weight: 600; }
+p { margin: 0; }
+code, pre { font-family: var(--font-mono); font-size: 0.8rem; }
+.wrap { width: min(1140px, 100%); margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--accent); }
+.lead { font-size: 1.04rem; color: var(--muted); max-width: 54ch; }
+.muted { color: var(--muted); }
+
+/* Buttons & links */
+.btn { position: relative; display: inline-flex; align-items: center; gap: 0.5rem; height: 42px; padding: 0 1.15rem; border-radius: 6px; font-weight: 600; font-size: 0.9rem; border: 1px solid transparent; cursor: pointer; overflow: hidden; transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s, color .25s, border-color .25s; }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.btn svg { width: 16px; height: 16px; transition: transform .25s cubic-bezier(.2,.8,.2,1); position: relative; }
+.btn:hover svg { transform: translateX(3px); }
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-primary::before { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,.25) 50%, transparent 70%); transform: translateX(-100%); transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -12px var(--accent); }
+.btn-primary:hover::before { transform: translateX(100%); }
+.btn-primary span { position: relative; }
+.btn-outline { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+.link { position: relative; font-weight: 500; }
+.link::after { content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: right; transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+.link:hover::after { transform: scaleX(1); transform-origin: left; }
+
+/* Nav */
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40; background: color-mix(in srgb, var(--paper) 85%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.nav .wrap { display: flex; align-items: center; gap: 1.5rem; height: 58px; }
+.brand { display: flex; align-items: center; gap: 0.55rem; font-family: var(--font-display); font-weight: 600; font-size: 1rem; }
+.brand svg { width: 26px; height: 24px; }
+.nav-links { display: flex; gap: 1.3rem; font-size: 0.88rem; color: var(--muted); }
+.nav-links a:hover { color: var(--ink); }
+.soon { font-family: var(--font-mono); font-size: 0.58rem; letter-spacing: .1em; padding: 1px 5px; border: 1px dashed var(--line-strong); border-radius: 3px; margin-left: 5px; color: var(--faint); vertical-align: 2px; }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 0.6rem; }
+.stars { display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); padding: 0 0.7rem; height: 34px; border: 1px solid var(--line); border-radius: 6px; transition: border-color .25s, color .25s; }
+.stars:hover { border-color: var(--accent); color: var(--ink); }
+.stars svg { width: 14px; height: 14px; }
+.icon-btn { width: 34px; height: 34px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); display: grid; place-items: center; cursor: pointer; transition: border-color .25s, color .25s; }
+.icon-btn:hover { border-color: var(--accent); color: var(--ink); }
+.icon-btn svg { width: 15px; height: 15px; }
+@media (max-width: 860px) { .nav-links, .nav .btn { display: none; } }
+
+/* Hero sheet */
+.hero { position: relative; overflow: hidden; --glow-a: color-mix(in srgb, var(--accent) 24%, transparent); --glow-b: color-mix(in srgb, var(--ok) 13%, transparent); }
+.hero[data-bg="grid"] { background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 32px 32px; background-position: center top; }
+.hero[data-bg="gradient"] { background: radial-gradient(55% 65% at 78% 38%, var(--glow-a), transparent 70%), radial-gradient(45% 55% at 8% 95%, var(--glow-b), transparent 70%), linear-gradient(180deg, var(--paper-2), var(--paper)); }
+.hero[data-bg="both"] { background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px), radial-gradient(55% 65% at 78% 38%, var(--glow-a), transparent 70%), radial-gradient(45% 55% at 8% 95%, var(--glow-b), transparent 70%), linear-gradient(180deg, var(--paper-2), var(--paper)); background-size: 32px 32px, 32px 32px, 100% 100%, 100% 100%, 100% 100%; background-position: center top; }
+/* film grain, only with the gradient variants */
+.hero::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .4s; mix-blend-mode: soft-light; background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.6 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.hero[data-bg="gradient"]::before, .hero[data-bg="both"]::before { opacity: .6; }
+.hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, var(--paper)); pointer-events: none; }
+/* mockup-only switch to compare hero backgrounds */
+.bgpick { position: absolute; z-index: 2; right: max(16px, env(safe-area-inset-right, 0px)); top: 14px; display: inline-flex; align-items: center; gap: 2px; padding: 3px; border: 1px dashed var(--line-strong); border-radius: 6px; background: var(--card); font-family: var(--font-mono); font-size: 0.64rem; color: var(--faint); }
+.bgpick span { padding: 0 6px; letter-spacing: .08em; text-transform: uppercase; }
+.bgpick button { border: 0; background: transparent; color: var(--muted); font: inherit; padding: 4px 8px; border-radius: 4px; cursor: pointer; transition: background .2s, color .2s; }
+.bgpick button:hover { color: var(--ink); }
+.bgpick button.on { background: var(--accent); color: var(--accent-ink); }
+.hero .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3rem; align-items: center; padding-block: 4.5rem 4rem; }
+.hero-copy { display: grid; gap: 1.25rem; }
+.hero h1 u { text-decoration: none; background-image: linear-gradient(var(--accent), var(--accent)); background-size: 100% 3px; background-repeat: no-repeat; background-position: 0 92%; }
+.cta { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; }
+.install { display: inline-flex; align-items: center; gap: 0.6rem; height: 42px; padding: 0 0.4rem 0 0.9rem; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--card); font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+.install span { color: var(--accent); }
+.install button { height: 30px; width: 30px; border-radius: 4px; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; cursor: pointer; transition: background .2s, color .2s; }
+.install button:hover { background: var(--accent-soft); color: var(--ink); }
+.install button svg { width: 14px; height: 14px; }
+.used { font-size: 0.82rem; color: var(--faint); font-family: var(--font-mono); }
+.used b { color: var(--ink); font-weight: 500; }
+.sheet { position: relative; aspect-ratio: 1.05; max-width: 100%; perspective: 1200px; }
+.sheet svg { width: 100%; height: 100%; display: block; transform-style: preserve-3d; transition: transform .15s ease-out; }
+.sheet .cap { position: absolute; left: 0; right: 0; bottom: -6px; text-align: center; font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); min-height: 1.2em; }
+.sheet .cap code { color: var(--accent); }
+.slab { cursor: pointer; transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+.slab:hover, .slab.on { transform: translateY(-6px); }
+.slab path, .slab line { stroke: var(--accent); fill: var(--card); stroke-width: 1.4; }
+.slab .face { fill: var(--accent-soft); }
+.slab text { font-family: var(--font-mono); font-size: 11px; fill: var(--ink); }
+.dim { stroke: var(--faint); stroke-width: 1; }
+.dim-t { font-family: var(--font-mono); font-size: 9px; fill: var(--faint); }
+.edge-ok { stroke: var(--ok); stroke-width: 1.6; fill: none; }
+.edge-bad { stroke: var(--bad); stroke-width: 1.8; fill: none; stroke-dasharray: 5 5; animation: dash 1.2s linear infinite; }
+.tag { font-family: var(--font-mono); font-size: 10px; font-weight: 500; }
+.tag-bad rect { fill: var(--bad); } .tag-bad text { fill: #fff; }
+.tag-ok text { fill: var(--ok); }
+.draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.6s cubic-bezier(.2,.8,.2,1) forwards; }
+.draw.l2 { animation-delay: .25s } .draw.l3 { animation-delay: .5s } .draw.l4 { animation-delay: .9s } .draw.l5 { animation-delay: 1.2s }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes dash { to { stroke-dashoffset: -20; } }
+@media (max-width: 900px) { .hero .wrap { grid-template-columns: 1fr; padding-block: 3rem; } .sheet { max-width: 520px; margin-inline: auto; } }
+
+/* Problem statement */
+.problem { padding-block: 4.5rem; border-top: 1px solid var(--line); }
+.problem .wrap { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 3rem; align-items: start; }
+.problem h2 { font-size: clamp(1.7rem, 3.4vw, 2.6rem); }
+.problem ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 0; counter-reset: p; }
+.problem li { counter-increment: p; display: grid; grid-template-columns: 2.4rem 1fr; gap: 0.5rem; padding: 1rem 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.95rem; transition: color .3s, padding-left .3s; }
+.problem li:hover { color: var(--ink); padding-left: 6px; }
+.problem li::before { content: counter(p, decimal-leading-zero); font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent); padding-top: 4px; }
+.problem li b { color: var(--ink); font-weight: 600; display: block; }
+@media (max-width: 900px) { .problem .wrap { grid-template-columns: 1fr; } }
+
+/* Steps timeline */
+.steps { padding-block: 4rem 5rem; background: var(--paper-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.head { display: grid; gap: 0.8rem; max-width: 60ch; margin-bottom: 2.5rem; }
+.step { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 2.5rem; align-items: center; padding-block: 2.2rem; border-top: 1px dashed var(--line-strong); }
+.step:first-of-type { border-top: 0; }
+.step .n { font-family: var(--font-display); font-size: 2.6rem; font-weight: 700; color: var(--accent); line-height: 1; letter-spacing: -0.04em; opacity: .9; }
+.step .txt { display: grid; gap: 0.7rem; }
+.step p { color: var(--muted); font-size: 0.95rem; }
+.code { margin: 0; padding: 1rem 1.1rem; border-radius: 8px; background: var(--code); color: var(--code-fg); overflow-x: auto; line-height: 1.65; box-shadow: var(--shadow); border-left: 3px solid var(--accent); }
+.code .k { color: #b3b8ff; } .code .s { color: #8fe3cf; } .code .c { color: #7a7fa3; } .code .e { color: #ff8f7c; } .code .y { color: #ffd479; }
+@media (max-width: 900px) { .step { grid-template-columns: 1fr; gap: 1.2rem; } }
+
+/* Spec sheet */
+.spec { padding-block: 5rem; }
+.spec dl { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 3rem; }
+.spec .row { display: grid; grid-template-columns: 150px 1fr; gap: 1rem; padding: 1.1rem 0; border-top: 1px solid var(--line); min-width: 0; transition: background .3s; position: relative; }
+.spec .row::before { content: ""; position: absolute; left: -12px; top: 1.1rem; bottom: 1.1rem; width: 2px; background: var(--accent); transform: scaleY(0); transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+.spec .row:hover::before { transform: scaleY(1); }
+.spec dt { font-family: var(--font-mono); font-size: 0.74rem; color: var(--accent); padding-top: 3px; }
+.spec dd { margin: 0; color: var(--muted); font-size: 0.93rem; }
+.spec dd b { color: var(--ink); font-weight: 600; display: block; margin-bottom: 2px; font-family: var(--font-display); font-size: 0.98rem; }
+.spec dd code { background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; font-size: 0.74rem; color: var(--ink); }
+@media (max-width: 900px) { .spec dl { grid-template-columns: 1fr; } .spec .row { grid-template-columns: 110px 1fr; } }
+
+/* Perspectives drawing */
+.persp { padding-block: 5rem; background: var(--paper-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.persp .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3rem; align-items: center; }
+.pcards { display: grid; gap: 0.6rem; }
+.pcard { display: grid; grid-template-columns: 96px 1fr; gap: 1rem; padding: 0.9rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--card); transition: border-color .3s, box-shadow .3s; cursor: default; }
+.pcard:hover, .pcard.on { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.pcard b { font-family: var(--font-mono); font-size: 0.76rem; color: var(--accent); }
+.pcard span { color: var(--muted); font-size: 0.9rem; }
+.desc { margin: 0; padding: 1.1rem; border-radius: 8px; background: var(--code); color: var(--code-fg); overflow-x: auto; line-height: 1.7; font-size: 0.78rem; box-shadow: var(--shadow); }
+.desc .hl { border-radius: 3px; padding: 0 3px; margin: 0 -3px; transition: background .3s; }
+.desc .hl.on { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+@media (max-width: 900px) { .persp .wrap { grid-template-columns: 1fr; } }
+
+/* Numbers */
+.numbers { padding-block: 4rem; }
+.numbers .wrap { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
+.num { display: grid; gap: 0.3rem; padding-top: 1rem; border-top: 2px solid var(--ink); }
+.num b { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3rem); font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1; }
+.num span { color: var(--muted); font-size: 0.88rem; }
+@media (max-width: 700px) { .numbers .wrap { grid-template-columns: 1fr; gap: 1.2rem; } }
+
+/* Quote */
+.quote { padding-block: 4rem 5rem; }
+.quote blockquote { position: relative; margin: 0 auto; max-width: 36ch; font-family: var(--font-display); font-weight: 500; font-size: clamp(1.3rem, 2.6vw, 1.9rem); line-height: 1.3; letter-spacing: -0.015em; text-align: center; }
+.quote mark { background: none; color: var(--accent); position: relative; }
+.quote mark::after { content: ""; position: absolute; left: 0; right: 0; bottom: 2px; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .8s cubic-bezier(.2,.8,.2,1) .3s; }
+.in .quote mark::after, .quote.in mark::after { transform: scaleX(1); }
+.quote cite { display: block; margin-top: 1.2rem; text-align: center; font-style: normal; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+
+/* Playground teaser */
+.play { padding-block: 5rem; border-top: 1px solid var(--line); }
+.play .wrap { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 3rem; align-items: center; }
+.table { border: 1px solid var(--line-strong); border-radius: 8px; background: var(--card); box-shadow: var(--shadow); overflow: hidden; display: grid; grid-template-columns: 160px 1fr; min-height: 270px; background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 16px 16px; }
+.table .tree { border-right: 1px solid var(--line); padding: 0.8rem; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); display: grid; gap: 0.25rem; align-content: start; background: var(--card); }
+.table .tree div { padding: 2px 6px; border-radius: 4px; transition: background .2s, color .2s; }
+.table .tree div:hover { background: var(--accent-soft); color: var(--ink); }
+.table .d { padding-left: 1rem; } .table .dd { padding-left: 2rem; }
+.table .res { padding: 0.9rem; display: grid; gap: 0.45rem; align-content: start; font-family: var(--font-mono); font-size: 0.72rem; }
+.table .row { display: grid; grid-template-columns: 64px 1fr; gap: 0.6rem; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--muted); }
+.table .row b { color: var(--accent); font-weight: 500; }
+@media (max-width: 900px) { .play .wrap { grid-template-columns: 1fr; } .table { grid-template-columns: 1fr; } .table .tree { border-right: 0; border-bottom: 1px solid var(--line); } }
+
+/* CTA + footer */
+.final { padding-block: 4rem 5rem; }
+.final .box { border: 1px dashed var(--line-strong); border-radius: 12px; padding: 3rem 1.5rem; display: grid; gap: 1rem; justify-items: center; text-align: center; position: relative; background: var(--paper-2); }
+.final .box::before, .final .box::after { content: ""; position: absolute; width: 14px; height: 14px; border: 1.5px solid var(--accent); }
+.final .box::before { left: -1px; top: -1px; border-right: 0; border-bottom: 0; }
+.final .box::after { right: -1px; bottom: -1px; border-left: 0; border-top: 0; }
+footer { border-top: 1px solid var(--line); padding-block: 2.5rem; font-size: 0.85rem; color: var(--muted); background: var(--paper-2); }
+footer .wrap { display: grid; grid-template-columns: 1.2fr repeat(3, minmax(0, 1fr)); gap: 2rem; }
+footer h4 { margin: 0 0 0.7rem; font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); }
+footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+footer li a:hover { color: var(--ink); }
+footer .legal { grid-column: 1 / -1; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: 0.74rem; color: var(--faint); }
+@media (max-width: 760px) { footer .wrap { grid-template-columns: 1fr 1fr; } }
+
+/* Reveal */
+.reveal { opacity: 1; transform: none; }
+.js .reveal { opacity: 0; transform: translateY(16px); transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1); transition-delay: var(--d, 0s); }
+.js .reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .js .reveal { opacity: 1; transform: none; transition: none; } .draw { animation: none; stroke-dashoffset: 0; } .edge-bad { animation: none; } .btn, .slab { transition: none; } }
+</style>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="#"><svg viewBox="0 0 300 260" aria-hidden="true"><circle cx="150" cy="80" r="78" fill="none" stroke="#4c52d8" stroke-width="14" opacity=".55"/><circle cx="98" cy="170" r="78" fill="none" stroke="#4c52d8" stroke-width="14" opacity=".8"/><circle cx="202" cy="170" r="78" fill="none" stroke="#4c52d8" stroke-width="14"/></svg>JS Boundaries</a>
+    <div class="nav-links">
+      <a class="link" href="#">Docs</a><a class="link" href="#">Classification</a><a class="link" href="#">Selectors</a><a class="link" href="#">Policies</a><a class="link" href="#playground">Playground<span class="soon">SOON</span></a>
+    </div>
+    <div class="nav-right">
+      <a class="stars" href="https://github.com/javierbrea/eslint-plugin-boundaries"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg><span data-stat="stars">1,001</span></a>
+      <button class="icon-btn" id="themeBtn" aria-label="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+      <a class="btn btn-primary" href="#"><span>Get started</span></a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="hero" data-bg="gradient">
+  <div class="bgpick" role="group" aria-label="Mockup option: hero background"><span>hero bg</span><button type="button" data-bg="gradient" class="on">gradient</button><button type="button" data-bg="grid">grid</button><button type="button" data-bg="both">both</button></div>
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="eyebrow">ESLint plugin · v7</span>
+      <h1>Lint your <u>architecture</u>, not just your syntax.</h1>
+      <p class="lead">Classify your files, write policies for who may depend on whom, and get an ESLint error the moment a boundary is crossed. In your IDE, in CI, with nothing new to run.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#"><span>Read the quick start</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <div class="install"><span>$</span> npm i -D eslint-plugin-boundaries <button id="copyBtn" aria-label="Copy install command"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
+      </div>
+      <p class="used">Linting <b>4,000+</b> repositories · <b data-stat="downloads">4M</b> downloads a month · ESLint 9 · Oxlint · TypeScript</p>
+    </div>
+    <div class="sheet" id="sheet">
+      <svg id="draw" viewBox="0 0 520 500" aria-label="Blueprint drawing of three architecture layers: modules depend on components, components on helpers; a helper importing a component is marked as disallowed">
+        <defs>
+          <marker id="ar-ok" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--ok)"/></marker>
+          <marker id="ar-bad" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--bad)"/></marker>
+        </defs>
+        <!-- corner marks -->
+        <g stroke="var(--line-strong)" stroke-width="1"><path d="M14 30V14h16M506 14h-16M506 30V14M14 470v16h16M506 486h-16M506 470v16"/></g>
+        <!-- dimension line -->
+        <g class="draw l5"><line class="dim" x1="470" y1="70" x2="470" y2="430" pathLength="1"/><line class="dim" x1="464" y1="70" x2="476" y2="70"/><line class="dim" x1="464" y1="430" x2="476" y2="430"/><text class="dim-t" x="478" y="254" transform="rotate(90 478 254)" text-anchor="middle">3 element types · 1 rule</text></g>
+
+        <!-- slab: modules (top) -->
+        <g class="slab" data-t="modules" data-d='{ type: "module", pattern: "modules/*" }'>
+          <path class="draw l1" pathLength="1" d="M110 110 L260 60 L410 110 L260 160 Z"/>
+          <path class="draw l1 face" pathLength="1" d="M110 110 L110 128 L260 178 L260 160 Z"/>
+          <path class="draw l1" pathLength="1" d="M260 160 L260 178 L410 128 L410 110 Z"/>
+          <text x="260" y="114" text-anchor="middle">modules/*</text>
+        </g>
+        <!-- slab: components (middle) -->
+        <g class="slab" data-t="components" data-d='{ type: "component", pattern: "components/*/*" }'>
+          <path class="draw l2" pathLength="1" d="M110 240 L260 190 L410 240 L260 290 Z"/>
+          <path class="draw l2 face" pathLength="1" d="M110 240 L110 258 L260 308 L260 290 Z"/>
+          <path class="draw l2" pathLength="1" d="M260 290 L260 308 L410 258 L410 240 Z"/>
+          <text x="260" y="244" text-anchor="middle">components/*/*</text>
+        </g>
+        <!-- slab: helpers (bottom) -->
+        <g class="slab" data-t="helpers" data-d='{ type: "helper", pattern: "helpers/*" }'>
+          <path class="draw l3" pathLength="1" d="M110 370 L260 320 L410 370 L260 420 Z"/>
+          <path class="draw l3 face" pathLength="1" d="M110 370 L110 388 L260 438 L260 420 Z"/>
+          <path class="draw l3" pathLength="1" d="M260 420 L260 438 L410 388 L410 370 Z"/>
+          <text x="260" y="374" text-anchor="middle">helpers/*</text>
+        </g>
+        <!-- allowed edges (downwards) -->
+        <path class="edge-ok draw l4" pathLength="1" d="M200 160 C190 185 190 195 200 212" marker-end="url(#ar-ok)"/>
+        <path class="edge-ok draw l4" pathLength="1" d="M330 160 C340 185 340 195 330 212" marker-end="url(#ar-ok)"/>
+        <path class="edge-ok draw l4" pathLength="1" d="M200 290 C190 315 190 325 200 342" marker-end="url(#ar-ok)"/>
+        <g class="tag tag-ok"><text x="150" y="190">allow →</text><text x="150" y="320">allow →</text></g>
+        <!-- disallowed edge (upwards from helpers to components) -->
+        <path class="edge-bad" d="M420 380 C470 330 470 290 420 258" marker-end="url(#ar-bad)"/>
+        <g class="tag tag-bad"><rect x="330" y="300" width="128" height="20" rx="3"/><text x="394" y="314" text-anchor="middle">✕ helper → component</text></g>
+      </svg>
+      <div class="cap" id="cap">hover a layer · <code>{ type: "component", pattern: "components/*/*" }</code></div>
+    </div>
+  </div>
+</header>
+
+<section class="problem">
+  <div class="wrap">
+    <div class="reveal">
+      <span class="eyebrow">Why</span>
+      <h2 style="margin-top:.8rem">Architecture decays one import at a time.</h2>
+      <p class="lead" style="margin-top:1rem">The diagram on the wiki says helpers never know about components. Then someone needs a quick fix, the import is three keystrokes away, and the review is busy. JS Boundaries makes the diagram executable.</p>
+    </div>
+    <ol class="reveal" style="--d:.1s">
+      <li><div><b>The lines are in your config</b>Element and file descriptors map folders and files to the names you already use in design discussions.</div></li>
+      <li><div><b>The rules read both sides</b>Each policy sees the element, file category and module origin of the importer and the imported, plus the import kind.</div></li>
+      <li><div><b>Feedback is immediate</b>The editor underlines the import. CI fails the build. The message explains the architectural reason, not just the rule id.</div></li>
+      <li><div><b>Adoption is progressive</b>Start with one layer and one policy on an existing project with the recommended config. Tighten with strict when ready.</div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="steps" id="how">
+  <div class="wrap">
+    <div class="head reveal">
+      <span class="eyebrow">How it works</span>
+      <h2>From folder tree to enforced architecture in three edits</h2>
+    </div>
+    <div class="step reveal">
+      <div class="txt"><span class="n">1</span><h3>Classify files and elements</h3><p>Element descriptors match folders. File descriptors match files on their own, so a file can be a <code>component</code> and a <code>test</code> at the same time. You only need one of the two to start.</p></div>
+<pre class="code"><span class="k">settings</span>: {
+  <span class="s">"boundaries/elements"</span>: [
+    { type: <span class="s">"helper"</span>,    pattern: <span class="s">"helpers/*"</span> },
+    { type: <span class="s">"component"</span>, pattern: <span class="s">"components/*/*"</span> },
+    { type: <span class="s">"module"</span>,    pattern: <span class="s">"modules/*"</span> },
+  ],
+  <span class="s">"boundaries/files"</span>: [
+    { pattern: <span class="s">"**/*.spec.js"</span>, category: <span class="s">"test"</span> },
+  ],
+}</pre>
+    </div>
+    <div class="step reveal">
+      <div class="txt"><span class="n">2</span><h3>Write the policies</h3><p>Pick a default, then allow or disallow by any combination of element type, file category, module origin and dependency kind. Captured path fragments let one policy cover a whole family of elements.</p></div>
+<pre class="code"><span class="s">"boundaries/dependencies"</span>: [<span class="y">2</span>, {
+  default: <span class="s">"disallow"</span>,
+  policies: [
+    { from: { element: { type: <span class="s">"component"</span> } },
+      allow: { to: { element: { type: <span class="s">"helper"</span> } } } },
+    { from: { element: { type: <span class="s">"module"</span> } },
+      allow: { to: { element: { types: [<span class="s">"component"</span>, <span class="s">"helper"</span>] } } } },
+    { disallow: { to: { file: { categories: <span class="s">"test"</span> } } },
+      message: <span class="s">"Never import test files from ${from.element.type}s"</span> },
+  ],
+}]</pre>
+    </div>
+    <div class="step reveal">
+      <div class="txt"><span class="n">3</span><h3>Read the error where you wrote the import</h3><p>Violations are ordinary ESLint errors: editor squiggles, CI failures, templated messages with the element types on both sides. Six more rules cover entry points, external packages, private elements and unknown files.</p></div>
+<pre class="code"><span class="c">src/helpers/format/index.js</span>
+  <span class="y">1:22</span>  <span class="e">error</span>  No rule allowing this dependency was found.
+         File is of type <span class="s">'helper'</span>. Dependency is of type <span class="s">'component'</span>
+         <span class="c">boundaries/dependencies</span>
+
+<span class="e">✖ 1 problem</span> (1 error, 0 warnings)</pre>
+    </div>
+  </div>
+</section>
+
+<section class="spec" id="features">
+  <div class="wrap">
+    <div class="head reveal"><span class="eyebrow">Specification</span><h2>What the plugin understands</h2></div>
+    <dl>
+      <div class="row reveal"><dt>classification</dt><dd><b>Three independent layers</b>Element (the architectural unit), file (its own category) and module (where the import resolves). All three are computed for both sides of every dependency.</dd></div>
+      <div class="row reveal" style="--d:.05s"><dt>selectors</dt><dd><b>Match on anything described</b>Types, categories, origins, captured path fragments and array queries. Reference the <code>from</code> side's captures in the <code>to</code> side.</dd></div>
+      <div class="row reveal" style="--d:.1s"><dt>policies</dt><dd><b>Allow and disallow, with a default</b>Policies are evaluated in order. Messages are templates with access to the full description of the dependency.</dd></div>
+      <div class="row reveal" style="--d:.15s"><dt>rules</dt><dd><b>Seven rules, one setting</b><code>dependencies</code>, <code>entry-point</code>, <code>external</code>, <code>no-private</code>, <code>no-unknown-files</code>, <code>no-unknown-dependencies</code>, <code>no-ignored-dependencies</code>.</dd></div>
+      <div class="row reveal" style="--d:.2s"><dt>performance</dt><dd><b>2.5× faster since 7.3</b>Selectors are normalized once and message templates are cached, cutting lint time by 60% on real projects.</dd></div>
+      <div class="row reveal" style="--d:.25s"><dt>compatibility</dt><dd><b>ESLint 9, Oxlint, TypeScript, monorepos</b>Typed config helpers (<code>satisfies Config</code>), custom resolvers and path aliases, per-package element roots.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="persp" id="perspectives">
+  <div class="wrap">
+    <div>
+      <div class="head reveal" style="margin-bottom:1.5rem"><span class="eyebrow">New in v7</span><h2>One file, described from every angle</h2><p class="lead">Hover a layer to see the part of the runtime description it fills. Policies can read any of them, on both sides.</p></div>
+      <div class="pcards">
+        <div class="pcard reveal" data-l="element"><b>element</b><span>The architectural unit: component, service, module…</span></div>
+        <div class="pcard reveal" data-l="file" style="--d:.06s"><b>file</b><span>The file's own categories: test, index, style…</span></div>
+        <div class="pcard reveal" data-l="module" style="--d:.12s"><b>module</b><span>Where the dependency resolves: local, external, core.</span></div>
+      </div>
+    </div>
+    <pre class="desc reveal" id="desc"><span style="color:#7a7fa3">// components/Price/Price.spec.tsx  →  import "react"</span>
+{
+  from: {
+    <span class="hl" data-l="element">element: { types: ["component"], captured: { name: "Price" } },</span>
+    <span class="hl" data-l="file">file: { categories: ["test"] },</span>
+    <span class="hl" data-l="module">module: { origin: "local" },</span>
+  },
+  to: {
+    <span class="hl" data-l="element">element: { types: [] },</span>
+    <span class="hl" data-l="file">file: { categories: [] },</span>
+    <span class="hl" data-l="module">module: { origin: "external", name: "react" },</span>
+  },
+  dependency: { kind: "value", relationship: null },
+}</pre>
+  </div>
+</section>
+
+<section class="numbers">
+  <div class="wrap">
+    <div class="num reveal"><b data-stat="downloads">4M</b><span>monthly downloads on npm</span></div>
+    <div class="num reveal" style="--d:.08s"><b data-stat="stars">1,001</b><span>GitHub stars, 4,000+ dependent repositories</span></div>
+    <div class="num reveal" style="--d:.16s"><b data-stat="years">6 years</b><span>of releases since 2020, MIT licensed</span></div>
+  </div>
+</section>
+
+<section class="quote">
+  <div class="wrap reveal">
+    <blockquote>"Software architecture is the art of <mark>drawing lines</mark> that I call boundaries. Those boundaries separate software elements from one another, and restrict those on one side from knowing about those on the other."</blockquote>
+    <cite>Robert C. Martin · Clean Architecture</cite>
+  </div>
+</section>
+
+<section class="play" id="playground">
+  <div class="wrap">
+    <div class="head reveal" style="margin-bottom:0"><span class="eyebrow">Drafting table · coming next</span><h2>Try a config against a sketched project</h2><p class="lead">Paste settings, lay out a folder tree, and watch each file get classified and each import get its verdict. In the browser, nothing to install.</p><a class="btn btn-outline" href="#">Follow the roadmap <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+    <div class="table reveal" style="--d:.1s" aria-label="Playground preview">
+      <div class="tree"><div>src/</div><div class="d">components/</div><div class="dd">Button/</div><div class="dd">Price/</div><div class="d">helpers/</div><div class="dd">format/</div><div class="d">modules/</div><div class="dd">checkout/</div></div>
+      <div class="res">
+        <div class="row"><b>element</b><span>component · captured { name: "Price" }</span></div>
+        <div class="row"><b>file</b><span>categories: [ "index" ]</span></div>
+        <div class="row"><b>module</b><span>origin: "local"</span></div>
+        <div class="row" style="border-color:var(--bad)"><b style="color:var(--bad)">report</b><span>helpers/format → components/Price · disallowed</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <div class="box reveal">
+      <h2>Draw one line today</h2>
+      <p class="lead" style="text-align:center">Install the plugin, name one folder, write one policy. Add the rest when the team is ready.</p>
+      <div class="cta" style="justify-content:center"><a class="btn btn-primary" href="#"><span>Quick start</span></a><a class="btn btn-outline" href="#">Sponsor the project</a></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><div class="brand" style="margin-bottom:.6rem"><svg viewBox="0 0 300 260" aria-hidden="true"><circle cx="150" cy="80" r="78" fill="none" stroke="#4c52d8" stroke-width="14" opacity=".55"/><circle cx="98" cy="170" r="78" fill="none" stroke="#4c52d8" stroke-width="14" opacity=".8"/><circle cx="202" cy="170" r="78" fill="none" stroke="#4c52d8" stroke-width="14"/></svg>JS Boundaries</div><p>Made by Javier Brea. MIT licensed.</p></div>
+    <div><h4>Docs</h4><ul><li><a href="#">Getting started</a></li><li><a href="#">Settings</a></li><li><a href="#">Rules</a></li><li><a href="#">TypeScript</a></li></ul></div>
+    <div><h4>Community</h4><ul><li><a href="#">GitHub</a></li><li><a href="#">Discussions</a></li><li><a href="#">Backlog</a></li><li><a href="#">Contribute</a></li></ul></div>
+    <div><h4>Acknowledgements</h4><ul><li><a href="#">Built with Docusaurus</a></li><li><a href="#">Hosted by Netlify</a></li><li><a href="#">Search by Algolia</a></li></ul></div>
+    <div class="legal">Copyright © 2020-<span data-stat="year">2026</span> Javier Brea. Trademarks, logos and brand names are the property of their respective owners.</div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement; root.classList.add("js");
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    var dark = root.getAttribute("data-theme") === "dark" || (!root.getAttribute("data-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    root.setAttribute("data-theme", dark ? "light" : "dark");
+  });
+  document.getElementById("copyBtn").addEventListener("click", function () {
+    var b = this; try { navigator.clipboard.writeText("npm i -D eslint-plugin-boundaries").then(function () { b.style.color = "var(--ok)"; setTimeout(function () { b.style.color = ""; }, 1200); }).catch(function () {}); } catch (e) {}
+  });
+  var els = document.querySelectorAll(".reveal, .quote");
+  if ("IntersectionObserver" in window && !reduce) {
+    var io = new IntersectionObserver(function (es) { es.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } }); }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    els.forEach(function (el) { io.observe(el); });
+  } else { els.forEach(function (el) { el.classList.add("in"); }); }
+
+  /* Blueprint tilt + slab captions */
+  var sheet = document.getElementById("sheet"), svg = document.getElementById("draw"), cap = document.getElementById("cap");
+  if (!reduce) {
+    sheet.addEventListener("pointermove", function (e) {
+      var r = sheet.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      svg.style.transform = "rotateX(" + (-y * 8) + "deg) rotateY(" + (x * 10) + "deg)";
+    });
+    sheet.addEventListener("pointerleave", function () { svg.style.transform = ""; });
+  }
+  var slabs = svg.querySelectorAll(".slab");
+  slabs.forEach(function (s) {
+    s.addEventListener("pointerenter", function () { slabs.forEach(function (o) { o.classList.remove("on"); }); cap.innerHTML = s.dataset.t + " · <code>" + s.dataset.d.replace(/</g, "&lt;") + "</code>"; });
+  });
+
+  /* Perspectives */
+  var cards = document.querySelectorAll(".pcard"), hls = document.querySelectorAll("#desc .hl");
+  function setL(n) { cards.forEach(function (c) { c.classList.toggle("on", c.dataset.l === n); }); hls.forEach(function (h) { h.classList.toggle("on", h.dataset.l === n); }); }
+  cards.forEach(function (c) { c.addEventListener("pointerenter", function () { setL(c.dataset.l); }); });
+  setL("element");
+
+  /* Hero background switch (mockup only) */
+  var hero = document.getElementById("hero"), picks = document.querySelectorAll(".bgpick button");
+  function setBg(v) { hero.setAttribute("data-bg", v); picks.forEach(function (b) { b.classList.toggle("on", b.dataset.bg === v); }); try { localStorage.setItem("jsb-hero-bg", v); } catch (e) {} }
+  var savedBg = null; try { savedBg = localStorage.getItem("jsb-hero-bg"); } catch (e) {}
+  setBg(savedBg || "gradient");
+  picks.forEach(function (b) { b.addEventListener("click", function () { setBg(b.dataset.bg); }); });
+
+  /* Live numbers. Stars and downloads come from the public GitHub and npm APIs, which are rate-limited per IP,
+     so a successful value is cached in localStorage for a day and failed requests are never cached (same approach
+     as javierbrea.com). The numbers baked into the markup are the fallback. Years and copyright are computed. */
+  var TTL = 864e5;
+  function readCache(k) { try { var raw = localStorage.getItem(k); if (!raw) return; var e = JSON.parse(raw); if (Date.now() - e.t >= TTL) return; return e.v; } catch (e) { return; } }
+  function writeCache(k, v) { try { localStorage.setItem(k, JSON.stringify({ v: v, t: Date.now() })); } catch (e) {} }
+  function stat(key, url, pick) {
+    var c = readCache(key); if (c !== undefined) return Promise.resolve(c);
+    return fetch(url, { headers: { Accept: "application/json" } })
+      .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+      .then(function (j) { var v = pick(j); if (typeof v !== "number") throw new Error("shape"); writeCache(key, v); return v; })
+      .catch(function () { return undefined; });
+  }
+  function short(n) { return n >= 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, "") + "M" : n >= 1e3 ? (n / 1e3).toFixed(1).replace(/\.0$/, "") + "k" : String(n); }
+  function setStat(name, text) { document.querySelectorAll('[data-stat="' + name + '"]').forEach(function (el) { el.textContent = text; }); }
+  var year = new Date().getFullYear();
+  setStat("year", String(year)); setStat("years", (year - 2020) + " years");
+  stat("github-stars:javierbrea/eslint-plugin-boundaries", "https://api.github.com/repos/javierbrea/eslint-plugin-boundaries", function (j) { return j.stargazers_count; })
+    .then(function (v) { if (v !== undefined) setStat("stars", v.toLocaleString("en-US")); });
+  stat("npm-downloads:eslint-plugin-boundaries", "https://api.npmjs.org/downloads/point/last-month/eslint-plugin-boundaries", function (j) { return j.downloads; })
+    .then(function (v) { if (v !== undefined) setStat("downloads", short(v)); });
+})();
+</script>
