@@ -41,7 +41,7 @@ Exactly the block in `00-shared.md` section 3. First file in the `customCss` lis
 
 ### 3. `src/css/infima-bridge.css`
 
-Maps Infima variables onto the tokens so Docusaurus-rendered pages restyle without swizzling. Declare the mapping on `:root` and repeat the same declarations under `[data-theme="dark"]`, because Infima's own dark block redefines many of these and source order decides; literal values that differ per theme (primary shades, emphasis scale) are listed for both.
+Maps Infima variables onto the tokens so Docusaurus-rendered pages restyle without swizzling. Infima and DocSearch load in `@layer docusaurus.*` cascade layers (`future.v4` in `docusaurus.config.ts`), so the unlayered bridge wins over them in both themes; without the layers Infima's `html[data-theme="dark"]` block would beat `[data-theme="dark"]` on specificity. Declare the mapping on `:root` and repeat it under `[data-theme="dark"]`; literal values that differ per theme (primary shades, emphasis scale) are listed for both.
 
 ```css
 :root,
@@ -50,7 +50,8 @@ Maps Infima variables onto the tokens so Docusaurus-rendered pages restyle witho
   --ifm-font-family-base: var(--jsb-font-body);
   --ifm-font-family-monospace: var(--jsb-font-mono);
   --ifm-heading-font-family: var(--jsb-font-display);
-  --ifm-font-size-base: 15px;
+  --ifm-font-size-base: 93.75%; /* 15px at the browser default, so the reader's font-size setting still applies */
+  --ifm-blockquote-font-size: 1rem; /* Infima derives it from the base percentage, which would compound */
   --ifm-line-height-base: 1.6;
   --ifm-heading-font-weight: 600;
   --ifm-heading-line-height: 1.2;
@@ -108,11 +109,11 @@ Maps Infima variables onto the tokens so Docusaurus-rendered pages restyle witho
   --ifm-code-background: var(--jsb-accent-soft);
   --ifm-pre-background: var(--jsb-code);
   --ifm-pre-color: var(--jsb-code-fg);
-  --docusaurus-highlighted-code-line-bg: rgba(143, 148, 255, 0.18);
+  --docusaurus-highlighted-code-line-bg: var(--jsb-code-line);
 
   /* navbar, menu, footer */
   --ifm-navbar-height: 58px;
-  --ifm-navbar-background-color: color-mix(in srgb, var(--jsb-paper) 88%, transparent);
+  --ifm-navbar-background-color: var(--jsb-paper);
   --ifm-navbar-link-color: var(--jsb-muted);
   --ifm-navbar-link-hover-color: var(--jsb-ink);
   --ifm-navbar-shadow: none;
@@ -176,7 +177,15 @@ Maps Infima variables onto the tokens so Docusaurus-rendered pages restyle witho
 
 /* element rules that Infima variables cannot express */
 h1, h2 { letter-spacing: -0.02em; text-wrap: balance; }
-.navbar { border-bottom: 1px solid var(--jsb-line); backdrop-filter: blur(10px); }
+/* Infima sets the docs title and top-level h2/h3 sizes on the elements; inherit the :root values instead */
+.markdown h1:first-child { --ifm-h1-font-size: inherit; }
+.markdown > h2 { --ifm-h2-font-size: inherit; }
+.markdown > h3 { --ifm-h3-font-size: inherit; }
+/* Infima gives inline code inside admonitions a per-variant highlight colour */
+.alert { --ifm-alert-background-color-highlight: color-mix(in srgb, var(--ifm-alert-foreground-color) 10%, transparent); }
+.navbar { border-bottom: 1px solid var(--jsb-line); }
+/* backdrop-filter makes the navbar the containing block of its fixed descendants and would clip the mobile sidebar, so the translucent blurred navbar is desktop-only */
+@media (min-width: 997px) { .navbar { background-color: color-mix(in srgb, var(--jsb-paper) 88%, transparent); backdrop-filter: blur(10px); } }
 .footer { border-top: 1px solid var(--jsb-line); }
 ```
 
@@ -212,7 +221,7 @@ Keep it for site-specific rules only. Rewrite the existing content:
 ## Acceptance
 
 - `pnpm nx check:all website` passes.
-- Screenshots (both themes, 1440 and 390) of `/`, `/docs/overview/`, `/docs/quick-start/`, `/docs/rules/dependencies/`, `/docs/classification/elements/` show: Sora headings, Plex body, indigo links and active sidebar item, paper backgrounds, navbar and footer following the theme, no Infima green anywhere, no overflow, no console errors.
+- Screenshots (both themes, 1440 and 390) of `/`, `/docs/overview/`, `/docs/quick-start/`, `/docs/rules/dependencies/`, `/docs/classification/elements/` show: Sora headings, Plex body, indigo links and active sidebar item, paper backgrounds, navbar and footer following the theme, no Infima green anywhere (inline code inside admonitions included), no overflow, no console errors. At 390px, open the mobile menu: the sidebar fills the viewport height with an opaque background.
 - Network tab on `/docs/overview/`: only `/fonts/*.woff2` font requests, no `fonts.googleapis.com`/`gstatic`.
 - Lighthouse on `/docs/overview/`: Performance ≥ 95, Best practices ≥ 95, Accessibility 96 with `color-contrast` on the Prism `github` tokens as the only failing audit (`00-shared.md` section 8).
 - The CodeDiff blocks in `/docs/quick-start/` still show +/- rows legibly in both themes.

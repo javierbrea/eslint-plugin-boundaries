@@ -48,6 +48,19 @@
         "@types/picomatch"
       ],
       "allowedVersions": "<3.0.0"
+    },
+    {
+      "description": "packages/website commits font files copied from these packages",
+      "matchFileNames": [
+        "packages/website/package.json"
+      ],
+      "matchPackageNames": [
+        "@fontsource/*"
+      ],
+      "groupName": "fontsource",
+      "prBodyNotes": [
+        "Run `pnpm --filter website sync:fonts` and commit `packages/website/static/fonts/`."
+      ]
     }
   ]
 }

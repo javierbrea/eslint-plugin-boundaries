@@ -1,7 +1,9 @@
 /**
  * Design tokens of the site. Light values on `:root`, dark values on
  * `[data-theme="dark"]`. Every color in site CSS references one of these;
- * literal colors are allowed only here and inside the Prism theme object.
+ * literal colors are allowed only here, in the per-theme Infima shade scales
+ * of `infima-bridge.css`, in the CodeDiff rules of `custom.css` and inside
+ * the Prism theme object.
  */
 
 :root {
@@ -27,6 +29,7 @@
   --jsb-code-comment: #7a7fa3;
   --jsb-code-error: #ff8f7c;
   --jsb-code-number: #ffd479;
+  --jsb-code-line: rgba(143, 148, 255, 0.18);
   --jsb-shadow: 0 24px 50px -30px rgba(22, 26, 51, 0.35);
   --jsb-glow-a: color-mix(in srgb, var(--jsb-accent) 24%, transparent);
   --jsb-glow-b: color-mix(in srgb, var(--jsb-ok) 13%, transparent);

@@ -33,7 +33,7 @@ pnpm nx check:all website --output-style=stream           # everything above plu
 
 ## 3. Design tokens (`src/css/tokens.css`)
 
-Prefix `--jsb-`. Light values on `:root`, dark values on `[data-theme="dark"]` (Docusaurus always sets `data-theme` on `<html>` before first paint, so no `prefers-color-scheme` block is needed). Every colour in site CSS references a token; literal colours are allowed only inside this file and inside the Prism theme object.
+Prefix `--jsb-`. Light values on `:root`, dark values on `[data-theme="dark"]` (Docusaurus always sets `data-theme` on `<html>` before first paint, so no `prefers-color-scheme` block is needed). Every colour in site CSS references a token; literal colours are allowed only inside this file, in the per-theme Infima shade scales of `infima-bridge.css`, in the CodeDiff rules of `custom.css` and inside the Prism theme object.
 
 ```css
 :root {
@@ -59,6 +59,7 @@ Prefix `--jsb-`. Light values on `:root`, dark values on `[data-theme="dark"]` (
   --jsb-code-comment: #7a7fa3;
   --jsb-code-error: #ff8f7c;
   --jsb-code-number: #ffd479;
+  --jsb-code-line: rgba(143, 148, 255, 0.18);
   --jsb-shadow: 0 24px 50px -30px rgba(22, 26, 51, 0.35);
   --jsb-glow-a: color-mix(in srgb, var(--jsb-accent) 24%, transparent);
   --jsb-glow-b: color-mix(in srgb, var(--jsb-ok) 13%, transparent);
@@ -97,7 +98,7 @@ Semantics: `paper` page background, `paper-2` alternate section background and s
 
 ## 4. Type scale
 
-Font files and `@font-face` rules are phase 1 deliverables. Sizes (rem is 15px once phase 1 sets `--ifm-font-size-base: 15px`):
+Font files and `@font-face` rules are phase 1 deliverables. Sizes (rem is 15px at the browser default once phase 1 sets `--ifm-font-size-base: 93.75%`):
 
 | Role | Family / weight | Size | Notes |
 | --- | --- | --- | --- |

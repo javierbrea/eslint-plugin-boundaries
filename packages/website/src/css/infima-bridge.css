@@ -1,8 +1,10 @@
 /**
  * Maps Infima variables onto the design tokens so that Docusaurus-rendered
- * pages take the new look without swizzling. The mapping is declared on
- * `:root` and repeated under `[data-theme="dark"]` because Infima's own dark
- * block redefines many of these variables and source order decides.
+ * pages take the new look without swizzling. Infima and DocSearch load in
+ * `@layer docusaurus.*` cascade layers (enabled by `future.v4` in
+ * `docusaurus.config.ts`), so these declarations, which are in no layer, win
+ * over them in both themes; without the layers, Infima's
+ * `html[data-theme="dark"]` block would win in dark mode.
  */
 
 :root,
@@ -11,7 +13,8 @@
   --ifm-font-family-base: var(--jsb-font-body);
   --ifm-font-family-monospace: var(--jsb-font-mono);
   --ifm-heading-font-family: var(--jsb-font-display);
-  --ifm-font-size-base: 15px;
+  --ifm-font-size-base: 93.75%;
+  --ifm-blockquote-font-size: 1rem;
   --ifm-line-height-base: 1.6;
   --ifm-heading-font-weight: 600;
   --ifm-heading-line-height: 1.2;
@@ -69,11 +72,11 @@
   --ifm-code-background: var(--jsb-accent-soft);
   --ifm-pre-background: var(--jsb-code);
   --ifm-pre-color: var(--jsb-code-fg);
-  --docusaurus-highlighted-code-line-bg: rgba(143, 148, 255, 0.18);
+  --docusaurus-highlighted-code-line-bg: var(--jsb-code-line);
 
   /* navbar, menu, footer */
   --ifm-navbar-height: 58px;
-  --ifm-navbar-background-color: color-mix(in srgb, var(--jsb-paper) 88%, transparent);
+  --ifm-navbar-background-color: var(--jsb-paper);
   --ifm-navbar-link-color: var(--jsb-muted);
   --ifm-navbar-link-hover-color: var(--jsb-ink);
   --ifm-navbar-shadow: none;
@@ -142,18 +145,34 @@ h2 {
   text-wrap: balance;
 }
 
+/* Infima sets the docs title and top-level h2/h3 sizes on the elements; inherit the :root values instead */
+.markdown h1:first-child {
+  --ifm-h1-font-size: inherit;
+}
+
+.markdown > h2 {
+  --ifm-h2-font-size: inherit;
+}
+
+.markdown > h3 {
+  --ifm-h3-font-size: inherit;
+}
+
+/* Infima gives inline code inside admonitions a per-variant highlight color; derive it from the admonition text color instead */
+.alert {
+  --ifm-alert-background-color-highlight: color-mix(in srgb, var(--ifm-alert-foreground-color) 10%, transparent);
+}
+
 .navbar {
   border-bottom: 1px solid var(--jsb-line);
-  backdrop-filter: blur(10px);
 }
 
-/* A backdrop filter makes the navbar the containing block of the fixed mobile sidebar, which would be clipped to the navbar height */
-.navbar.navbar-sidebar--show {
-  backdrop-filter: none;
-}
-
-.navbar-sidebar {
-  background-color: var(--jsb-paper);
+/* backdrop-filter makes the navbar the containing block of its fixed descendants, which would clip the mobile sidebar, so the translucent blurred navbar only applies above the mobile breakpoint */
+@media (min-width: 997px) {
+  .navbar {
+    background-color: color-mix(in srgb, var(--jsb-paper) 88%, transparent);
+    backdrop-filter: blur(10px);
+  }
 }
 
 .footer {
