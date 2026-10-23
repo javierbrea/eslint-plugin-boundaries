@@ -27,8 +27,8 @@ pnpm nx check:all website --output-style=stream           # everything above plu
 
 - Integration branch: `feat/website-redesign`. Each phase works on its own branch (`feat/website-redesign-<phase>`) created from the integration branch, and opens a PR against the integration branch. Do not target `release`.
 - Commit messages: Conventional Commits, scope `website` (`feat(website): ...`, `chore(website): ...`). English.
-- Changelog: add one short entry under `## [Unreleased]` → `### Changed` (or `### Added`) in `packages/website/CHANGELOG.md`, written for site visitors, one or two sentences, prefixed `feat:`. Do not bump `packages/website/package.json` `version`: only a change under `packages/website/docs/` triggers a website version, and that happens in the release process.
-- Phase 2 edits `docs/misc/acknowledgments.mdx` (fonts attribution replaces unDraw). That is a docs change; it is fine and will ride the next docs version.
+- Changelog: add one short entry under `## [Unreleased]` → `### Changed` (or `### Added`) in `packages/website/CHANGELOG.md`, written for site visitors, one or two sentences, prefixed `feat:`. Do not bump `packages/website/package.json` `version` in a phase PR: the maintainer sets the website version at release time (step 2 of "Publishing" in `.github/CONTRIBUTING.md`).
+- Docs markdown: the redesign changes no docs page except the acknowledgments page (phase 2). The site is one build shared by every docs version: `/docs/` serves the latest snapshot, `versioned_docs/version-7.3.0/`, and `/docs/next/` serves `docs/`. So any docs edit the redesign needs is applied identically to both `docs/` and `versioned_docs/version-7.3.0/` (a deliberate backport to the current release, the case `.agents/rules/docs-authoring.md` allows), and never to older snapshots. If a phase finds it needs another docs edit, it stops and asks the maintainer first.
 - PR description: what changed, screenshots at 1440px and 390px in both themes (the phase's screenshot script produces them), Lighthouse scores for the pages the phase touches, and the checklist of section 8 with every box ticked.
 
 ## 3. Design tokens (`src/css/tokens.css`)

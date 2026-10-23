@@ -33,7 +33,9 @@ This plan is committed on the integration branch `feat/website-redesign` (a `.gi
 
 Phases 2 and 3 can run in parallel by two agents once phase 1 is merged; they touch different files except `docusaurus.config.ts` and `src/css/custom.css` (small, mergeable hunks).
 
-Every phase branch starts from `feat/website-redesign` and its PR targets `feat/website-redesign` (the integration branch), not `release`. The integration branch tracks `release` (merge, never rebase: other sessions build on it). The 7.3.0 release (plugin 7.3.0, website docs 7.3.0) shipped on 2026-10-23 and is already merged here; the redesign goes out in a later release, decided by the maintainer when phase 5 is done.
+Every phase branch starts from `feat/website-redesign` and its PR targets `feat/website-redesign` (the integration branch), not `release`. The integration branch tracks `release` (merge, never rebase: other sessions build on it); the 7.3.0 release shipped on 2026-10-23 and is merged here.
+
+The redesign is released on its own, as a website release, as soon as phases 1, 2, 3 and 5 are merged. The site is one Docusaurus build whose theme is shared by every docs version, so the moment the styles go live every version changes at once and the home must go out adapted in the same deploy. It does not wait for a plugin release: the maintainer merges `feat/website-redesign` into `release` and sets the website version per step 2 of "Publishing" in `.github/CONTRIBUTING.md` (a documentation-only website release, `7.3.0-docs.N`, when no plugin release coincides).
 
 ## Decisions (closed)
 
@@ -45,6 +47,7 @@ Every phase branch starts from `feat/website-redesign` and its PR targets `feat/
 6. Live numbers (stars, downloads) fetched client-side and cached in localStorage for 24h, the same approach javierbrea.com uses for its project stats; years and copyright computed from the current date.
 7. Styling stack: Docusaurus 3 + Infima, design tokens + CSS Modules, no Tailwind, no CSS-in-JS on home or docs. MUI, if ever, only inside the client-only playground.
 8. Code blocks use one always-dark palette in both themes (home and docs).
+9. Docs markdown stays untouched except the acknowledgments page (phase 2). Any docs edit the redesign needs is applied identically to `docs/` (served at `/docs/next/`) and to `versioned_docs/version-7.3.0/` (the latest snapshot, served at `/docs/`), never to older snapshots. Details in `00-shared.md` section 2.
 
 ## Open
 

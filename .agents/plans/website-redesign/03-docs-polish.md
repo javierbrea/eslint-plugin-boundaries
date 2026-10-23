@@ -1,7 +1,7 @@
 <!-- cspell:disable -->
 # Phase 3: docs polish and site chrome
 
-Goal: make the documentation pages read as part of the same design as the home: code blocks on the blueprint palette, heading rhythm, admonitions in the semantic colours, sidebar, table of contents, tabs, tables, search, breadcrumbs, pagination, announcement bar and the 404 page. No content changes under `docs/`.
+Goal: make the documentation pages read as part of the same design as the home: code blocks on the blueprint palette, heading rhythm, admonitions in the semantic colours, sidebar, table of contents, tabs, tables, search, breadcrumbs, pagination, announcement bar and the 404 page. No content changes under `docs/` or `versioned_docs/`; if a page turns out to need an edit for the restyle to work (it should not), `00-shared.md` section 2 applies: ask first, then edit both `docs/` and `versioned_docs/version-7.3.0/`.
 
 Read first: `../website-redesign.md`, `00-shared.md`, `01-foundation.md` (what the bridge already covers). Phase 1 must be merged. If phase 2 is merged, reuse `src/prism/blueprintTheme.ts`; if not, create it as specified in `02-home.md` section 6 and phase 2 will reuse it.
 
