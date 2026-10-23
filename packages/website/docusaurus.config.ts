@@ -152,10 +152,12 @@ const config: Config = {
     },
     navbar: {
       title: "JS Boundaries",
-      hideOnScroll: true,
+      hideOnScroll: false,
       logo: {
         alt: "Boundaries Logo",
         src: "img/logo.svg",
+        width: 30,
+        height: 30,
       },
       items: [
         {
@@ -186,10 +188,10 @@ const config: Config = {
           position: "right",
         },
         {
-          href: "https://github.com/javierbrea/eslint-plugin-boundaries",
+          to: "/docs/quick-start/",
+          label: "Get started",
           position: "right",
-          className: "navbar-github-link",
-          "aria-label": "GitHub repository",
+          className: "jsb-navbar-cta",
         },
       ],
     },
@@ -259,26 +261,12 @@ const config: Config = {
               to: "https://www.algolia.com/ref/docsearch/?utm_source=www.jsboundaries.dev&utm_medium=referral&utm_content=powered_by&utm_campaign=docsearch",
               className: "footer-acknowledgement",
             },
-            {
-              label: "Illustrations by unDraw",
-              to: "https://undraw.co/",
-              className: "footer-acknowledgement",
-            },
           ],
         },
       ],
-      copyright: `
-        <div class="footer-contents">
-          <span>Copyright © 2020-${new Date().getFullYear()} <a href="https://www.javierbrea.com">Javier Brea</a></span>
-          <span class="disclaimer">Trademarks, logos and brand names are the property of their respective owners. All company, product and service names used in this website are for identification purposes only. Use of these names,trademarks and brands does not imply endorsement.</span>
-        </div>
-      `,
-      logo: {
-        alt: "Boundaries logo",
-        src: "img/logo.svg",
-        width: 50,
-        href: "https://www.jsboundaries.dev",
-      },
+      // Plain text rendered below the copyright line by the Footer/Copyright swizzle (src/theme/Footer/Copyright), which adds the years. Docusaurus renders that component only when this is not empty
+      copyright:
+        "Trademarks, logos and brand names are the property of their respective owners. All company, product and service names used in this website are for identification purposes only. Use of these names, trademarks and brands does not imply endorsement.",
     },
     prism: {
       defaultLanguage: "javascript",

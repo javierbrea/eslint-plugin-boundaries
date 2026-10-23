@@ -13,52 +13,102 @@
     max(16px, env(safe-area-inset-right, 0px));
 }
 
-/* Footer */
+/* Navbar: "Get started" call to action, a primary button on desktop and a plain link in the mobile sidebar */
 
-.footer-contents {
-  span {
-    display: block;
+@media (min-width: 997px) {
+  .navbar__item.jsb-navbar-cta {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    margin-left: 0.3rem;
+    padding: 0 0.95rem;
+    border-radius: var(--jsb-radius);
+    background: var(--jsb-accent);
+    color: var(--jsb-accent-ink);
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition:
+      transform 0.25s var(--jsb-ease),
+      box-shadow 0.25s var(--jsb-ease);
   }
-  a {
-    color: var(--jsb-accent);
-    text-decoration: underline;
+
+  .navbar__item.jsb-navbar-cta:hover {
+    color: var(--jsb-accent-ink);
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -12px var(--jsb-accent);
   }
-  .disclaimer {
-    margin-top: 1rem;
-    font-size: 12px;
-    padding-left: 4rem;
-    padding-right: 4rem;
-    margin-bottom: 20px;
-    color: var(--jsb-muted);
+}
+
+@media (max-width: 996px) {
+  .navbar__item.jsb-navbar-cta {
+    display: none;
   }
+}
+
+/* Navbar: theme toggle as a bordered icon button */
+
+[class*="toggle_"]:has(> [class*="toggleButton_"]) {
+  width: 34px;
+  height: 34px;
+}
+
+.navbar [class*="toggle_"]:has(> [class*="toggleButton_"]) {
+  margin-left: 0.5rem;
+}
+
+[class*="toggleButton_"] {
+  border: 1px solid var(--jsb-line);
+  border-radius: var(--jsb-radius);
+  color: var(--jsb-muted);
+  transition:
+    border-color 0.25s var(--jsb-ease),
+    color 0.25s var(--jsb-ease);
+}
+
+[class*="toggleButton_"]:hover {
+  border-color: var(--jsb-accent);
+  background: transparent;
+  color: var(--jsb-ink);
+}
+
+[class*="toggleButton_"] svg {
+  width: 17px;
+  height: 17px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar__item.jsb-navbar-cta,
+  [class*="toggleButton_"] {
+    transition: none;
+  }
+
+  .navbar__item.jsb-navbar-cta:hover {
+    transform: none;
+  }
+}
+
+/* Footer: column titles as mono eyebrows */
+
+.footer__title {
+  margin-bottom: 0.7rem;
+  font-family: var(--jsb-font-mono);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.footer__link-item:hover {
+  text-decoration: none;
+}
+
+.footer__bottom {
+  margin-top: 1.5rem;
 }
 
 .footer-acknowledgement {
   font-size: 12px;
-}
-
-/* Navbar GitHub link: the icon is a mask so that it takes the link color in both themes */
-
-.navbar-github-link {
-  &:after {
-    transition: opacity 0.2s;
-    content: "";
-    width: 24px;
-    height: 24px;
-    display: flex;
-    background-color: currentColor;
-    /* cspell: disable-next-line */
-    mask: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='black' d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E") center / 24px no-repeat;
-  }
-
-  &:hover:after {
-    opacity: 0.5;
-  }
-}
-
-.navbar__items--right > span:first-of-type {
-  margin-top: 10px;
-  margin-right: 5px;
 }
 
 /* Custom styles for code diffs */

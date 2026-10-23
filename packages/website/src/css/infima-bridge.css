@@ -147,6 +147,15 @@ h2 {
   backdrop-filter: blur(10px);
 }
 
+/* A backdrop filter makes the navbar the containing block of the fixed mobile sidebar, which would be clipped to the navbar height */
+.navbar.navbar-sidebar--show {
+  backdrop-filter: none;
+}
+
+.navbar-sidebar {
+  background-color: var(--jsb-paper);
+}
+
 .footer {
   border-top: 1px solid var(--jsb-line);
 }
