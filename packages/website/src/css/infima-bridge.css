@@ -104,7 +104,6 @@
   --docsearch-hit-background: var(--jsb-card);
   --docsearch-hit-color: var(--jsb-muted);
   --docsearch-hit-highlight-color: var(--jsb-accent-soft);
-  --docsearch-hit-shadow: none;
   --docsearch-highlight-color: var(--jsb-accent);
   --docsearch-focus-color: var(--jsb-accent);
   --docsearch-secondary-text-color: var(--jsb-muted);
@@ -118,7 +117,6 @@
   --docsearch-container-background: color-mix(in srgb, var(--jsb-code) 70%, transparent);
   --docsearch-modal-shadow: var(--jsb-shadow);
   --docsearch-footer-background: var(--jsb-paper-2);
-  --docsearch-footer-shadow: 0 -1px 0 0 var(--jsb-line);
   --docsearch-dropdown-menu-item-hover-background: var(--jsb-accent-soft);
 }
 
