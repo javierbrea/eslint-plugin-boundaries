@@ -40,8 +40,14 @@
         "{projectRoot}/coverage"
       ]
     },
+    "check:types": {
+      // Only `lint` uses the workspace eslint-plugin, so the default `^build` is dropped
+      "dependsOn": []
+    },
     "build": {
       "cache": true,
+      // Only `lint` uses the workspace eslint-plugin, so the default `^build` is dropped
+      "dependsOn": [],
       "outputs": ["{projectRoot}/build"],
       "inputs": [
         { "dependentTasksOutputFiles": "**/*", "transitive": true },

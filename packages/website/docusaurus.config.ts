@@ -111,6 +111,10 @@ const config: Config = {
     }),
   ],
   clientModules: ["./src/client/motion.ts"],
+  customFields: {
+    // Build year, used by useCurrentYear as its SSR and hydration snapshot
+    buildYear: new Date().getFullYear(),
+  },
   presets: [
     [
       "classic",

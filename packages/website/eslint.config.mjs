@@ -27,7 +27,7 @@ export default [
       ],
     },
   },
-  // The site's own layering, enforced with the published plugin like in any other project
+  // The site's own layering, enforced with the workspace eslint-plugin-boundaries
   {
     files: ["src/**/*.{ts,tsx}"],
     plugins: {
@@ -56,9 +56,8 @@ export default [
         {
           default: "disallow",
           policies: [
-            // External packages, Docusaurus aliases and Node core modules are unrestricted
+            // External, core and same-element imports are skipped with the default options (checkAllOrigins and checkInternals off); these keep them allowed if either option is enabled
             { allow: { to: { module: { origin: ["external", "core"] } } } },
-            // Files of the same element may import each other
             { allow: { dependency: { relationship: { to: "internal" } } } },
             {
               from: { element: { type: "page" } },
