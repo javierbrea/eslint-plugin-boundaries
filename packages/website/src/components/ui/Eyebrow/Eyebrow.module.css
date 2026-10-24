@@ -1,0 +1,17 @@
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--jsb-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--jsb-accent);
+}
+
+.eyebrow::before {
+  content: "";
+  width: 22px;
+  height: 1px;
+  background: var(--jsb-accent);
+}

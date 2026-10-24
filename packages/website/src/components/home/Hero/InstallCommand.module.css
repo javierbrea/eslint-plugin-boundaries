@@ -1,0 +1,80 @@
+.install {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 100%;
+  height: 42px;
+  padding: 0 0.4rem 0 0.9rem;
+  border: 1px solid var(--jsb-line-strong);
+  border-radius: var(--jsb-radius);
+  background: var(--jsb-card);
+  font-family: var(--jsb-font-mono);
+  font-size: 0.78rem;
+  color: var(--jsb-muted);
+}
+
+.prompt {
+  color: var(--jsb-accent);
+}
+
+.command {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: baseline;
+}
+
+.copy {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--jsb-muted);
+  cursor: pointer;
+  transition:
+    background 0.2s var(--jsb-ease),
+    color 0.2s var(--jsb-ease);
+}
+
+.copy:hover {
+  background: var(--jsb-accent-soft);
+  color: var(--jsb-ink);
+}
+
+.copy:focus-visible {
+  outline: 2px solid var(--jsb-accent);
+  outline-offset: 3px;
+}
+
+.copied,
+.copied:hover {
+  color: var(--jsb-ok);
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Visually hidden, still announced by screen readers */
+.status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

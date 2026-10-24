@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- feat: New visual foundation for the site: color palette, self-hosted Sora and IBM Plex typefaces, smaller base type. The navbar and footer now follow the light or dark theme.
+- feat: New home page: blueprint hero with a live-drawn architecture sheet, the three-step walkthrough, feature specification, live GitHub and npm numbers, and a playground preview. The navbar shows the live GitHub stars and a "Get started" button.
+- feat: Documentation pages adopt the new design: blueprint code blocks in both themes, semantic admonitions, restyled sidebar, table of contents, tables, search and 404 page.
+
 ## [7.3.0] - 2026-10-23
 
 ### Added

@@ -1,0 +1,21 @@
+.head {
+  display: grid;
+  gap: 0.8rem;
+  justify-items: start;
+  max-width: 60ch;
+  margin-bottom: 2.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  margin: 0;
+  max-width: 54ch;
+  font-size: 1.04rem;
+  color: var(--jsb-muted);
+}

@@ -1,0 +1,115 @@
+.perspectives {
+  padding-block: 5rem;
+  border-top: 1px solid var(--jsb-line);
+  border-bottom: 1px solid var(--jsb-line);
+  background: var(--jsb-paper-2);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+}
+
+/* Overrides the default spacing of the section head (descendant selector, so it wins regardless of CSS order) */
+.grid .head {
+  margin-bottom: 1.5rem;
+}
+
+.cards {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--jsb-line);
+  border-radius: var(--jsb-radius-lg);
+  background: var(--jsb-card);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.3s var(--jsb-ease),
+    box-shadow 0.3s var(--jsb-ease);
+}
+
+.card:hover,
+.card.on {
+  border-color: var(--jsb-accent);
+  box-shadow: 0 0 0 3px var(--jsb-accent-soft);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--jsb-accent);
+  outline-offset: 3px;
+}
+
+.cardName {
+  font-family: var(--jsb-font-mono);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--jsb-accent);
+}
+
+.cardText {
+  font-size: 0.9rem;
+  color: var(--jsb-muted);
+}
+
+.description {
+  margin: 0;
+  padding: 1.1rem;
+  border-radius: var(--jsb-radius-lg);
+  background: var(--jsb-code);
+  color: var(--jsb-code-fg);
+  box-shadow: var(--jsb-shadow);
+  overflow-x: auto;
+  font-family: var(--jsb-font-mono);
+  font-size: 0.78rem;
+  line-height: 1.7;
+}
+
+.description code {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.comment {
+  color: var(--jsb-code-comment);
+}
+
+.highlight {
+  margin: 0 -3px;
+  padding: 0 3px;
+  border-radius: 3px;
+  transition: background 0.3s var(--jsb-ease);
+}
+
+.highlight.on {
+  background: color-mix(in srgb, var(--jsb-accent) 35%, transparent);
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .highlight {
+    transition: none;
+  }
+}

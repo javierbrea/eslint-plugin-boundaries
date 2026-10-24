@@ -226,7 +226,7 @@ When `true` (the default), the pattern only needs to match a **suffix** of the f
 
 When set to `false`, the pattern is matched against the **full file path** from the project root (relative to [`rootPath`](../settings/settings.md#boundariesroot-path)). Unlike the deprecated `mode: "full"`, the descriptor still uses **folder semantics**: the pattern is expanded with `/**/*` internally, and the resolved element `path` is the matched folder prefix, not the full file path. `fileInternalPath` is computed the same way as in folder mode. When `partialMatch: false` is set, `mode` has no effect.
 
-| | `partialMatch: true` (default) | `partialMatch: false` | `mode: "full"` (deprecated) |
+| Behavior | `partialMatch: true` (default) | `partialMatch: false` | `mode: "full"` (deprecated) |
 |---|---|---|---|
 | Pattern suffix | `/**/*` appended | `/**/*` appended | none |
 | Match target | Right-to-left accumulated segments | Full file path | Full file path |

@@ -1,0 +1,60 @@
+.final {
+  padding-block: 4rem 5rem;
+}
+
+.box {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  justify-items: center;
+  padding: 3rem 1.5rem;
+  border: 1px dashed var(--jsb-line-strong);
+  border-radius: var(--jsb-radius-xl);
+  background: var(--jsb-paper-2);
+  text-align: center;
+}
+
+/* Accent corner marks */
+.box::before,
+.box::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--jsb-accent);
+}
+
+.box::before {
+  top: -1px;
+  left: -1px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.box::after {
+  right: -1px;
+  bottom: -1px;
+  border-top: 0;
+  border-left: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  margin: 0;
+  max-width: 54ch;
+  font-size: 1.04rem;
+  color: var(--jsb-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  justify-content: center;
+}
