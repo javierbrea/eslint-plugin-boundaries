@@ -175,7 +175,7 @@ When the new version is ready to be released, create a new versioned docs set by
 | `pnpm screenshots [baseUrl] [paths...]` | Capture the pages at desktop and mobile widths in both themes into `screenshots/`, failing on horizontal overflow or console errors. Needs a running site (`pnpm serve` or `pnpm start`) and a local Chrome |
 | `pnpm social-card` | Render the social card, `static/img/og-image.png`, from `scripts/social-card.html`. Needs a local Chrome |
 | `pnpm swizzle` | Customize Docusaurus components |
-| `pnpm sync:fonts` | Copy the self-hosted font files from the Fontsource packages into `static/fonts` |
+| `pnpm sync:fonts` | Copy the self-hosted font files from the Fontsource packages into `static/fonts`. `pnpm lint` fails while they differ |
 | `pnpm version` | Bump the version of the website. Read the documentation for details. |
 
 ## Additional Resources
