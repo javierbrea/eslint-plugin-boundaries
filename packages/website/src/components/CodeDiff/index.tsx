@@ -101,7 +101,8 @@ export default function CodeDiff({
         theme={blueprintTheme}
         // eslint-disable-next-line
         children={({ tokens, getLineProps, getTokenProps }) => (
-          <pre className={styles.pre}>
+          // Focusable, like Docusaurus' own code blocks, so that a line wider than the block can be scrolled with the keyboard
+          <pre className={styles.pre} tabIndex={0}>
             {tokens.map((lineTokens, i) => {
               const line = trimmedOriginalLines[i] || "";
 
