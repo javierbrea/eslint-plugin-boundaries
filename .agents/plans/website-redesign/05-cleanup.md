@@ -1,7 +1,7 @@
 <!-- cspell:disable -->
 # Phase 5: remove the plan from the branch
 
-Goal: leave no trace of the plan in the tree that merges into `release`. Run it after phases 1–3 are merged into `feat/website-redesign` (phase 4 may follow later on its own branch; if it does, keep `04-playground.md` locally, git-ignored, and move it out before this phase).
+Goal: leave no trace of the plan in the tree that merges into `release`. Run it after phases 1–3 are merged into `feat/website-redesign`.
 
 Read first: `../website-redesign.md`.
 
@@ -14,7 +14,7 @@ Read first: `../website-redesign.md`.
 5. Search the tree for leftovers: `grep -rn "website-redesign" --exclude-dir=node_modules --exclude-dir=.git .` must only return branch names in git metadata, nothing in tracked files.
 6. `pnpm nx check:all website --output-style=stream` passes (nothing depended on the plan, so this is a sanity check).
 7. PR `chore(website): remove the redesign plan` against `feat/website-redesign`. No changelog entry: nothing changes for site visitors.
-8. Once the phase PRs are merged, delete the screenshot branches on origin (`git push origin --delete screenshots/website-redesign-foundation` and the ones phases 2–3 created, see `00-shared.md` section 2). The images embedded in the merged PR descriptions stop resolving then, which is acceptable once the redesign is live; nothing else references them.
+8. Once the phase PRs are merged, delete the screenshot branches on origin (`git push origin --delete screenshots/website-redesign-foundation` and the ones phases 2–3 created, see `00-shared.md` section 2). The images embedded in the merged PR descriptions stop resolving then, which is acceptable once the redesign is live; nothing else references them. Do not delete `screenshots/website-playground-rfc`: the playground RFC (#538) embeds its images from it.
 
 ## After the merge
 

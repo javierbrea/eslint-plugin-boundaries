@@ -3,7 +3,7 @@
 
 Index of the plan. The plan is split so that an independent agent can implement one phase with no other context than the files named here plus the repository's own agent files.
 
-Status (2026-10-23): design accepted (direction B, "blueprint"), all design decisions closed except the playground stack. Phase 1 is implemented (PR #536, open against the integration branch); the plan already reflects what that phase learned.
+Status (2026-10-24): design accepted (direction B, "blueprint"), all design decisions closed. The playground is no longer part of the redesign: it has its own RFC ([#538](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538)) and tracking issue (#539), and the home teaser links to that issue. Phase 1 is implemented and merged into the integration branch (PR #536); phase 2 is implemented (PR #537); the plan already reflects what both phases learned.
 
 This plan is committed on the integration branch `feat/website-redesign` (a `.gitignore` exception for `.agents/plans/website-redesign*`) so that sessions in other worktrees or in the cloud can read it. It is temporary: phase 5 removes it, the exception and the related clause in the root `AGENTS.md` before the branch merges into `release`. Phase sessions read the plan and keep it true: whenever a session deviates from its phase file, finds a fact here that is wrong, or leaves work for a later phase, it records that in the PR description and also proposes the matching plan edit to the maintainer. With the maintainer's permission it commits the edit on `feat/website-redesign` directly (a `chore(website)` commit, pushed, so every session sees it), never silently and never on the phase branch alone. The maintainer may also apply the edit themselves.
 
@@ -15,11 +15,10 @@ This plan is committed on the integration branch `feat/website-redesign` (a `.gi
 | `website-redesign/01-foundation.md` | Phase 1: tokens, fonts, Infima bridge, type scale. Docs pages get the new look. |
 | `website-redesign/02-home.md` | Phase 2: the new home page, live stats, navbar stars pill, footer, visual checks, boundaries dogfooding. |
 | `website-redesign/03-docs-polish.md` | Phase 3: code theme, docs typography, admonitions, sidebar, search, navbar and footer details. |
-| `website-redesign/04-playground.md` | Phase 4: the in-site playground (separate milestone; research first). |
 | `website-redesign/05-cleanup.md` | Phase 5: remove this plan from the branch before merging into `release`. |
 | `website-redesign/mockups/mockup-b-blueprint.html` | The approved mockup. Ground truth for layout, copy, CSS values and behaviors of the home. Open it in a browser (wrap it in a doctype skeleton or use the script in `02-home.md` section 10). |
 | `website-redesign/mockups/mockB-light.png`, `mockB-dark.png` | Desktop renders of the mockup in both themes. Mobile renders come from the same script. |
-| `website-redesign/mockups/mockup-a-signal.html` | Rejected direction, kept only for its canvas dependency graph (candidate playground result view). |
+| `website-redesign/mockups/mockup-a-signal.html` | Rejected direction, kept only for its canvas dependency graph; a copy lives on the orphan branch `screenshots/website-playground-rfc` for the playground RFC. |
 
 ## Phases
 
@@ -28,8 +27,7 @@ This plan is committed on the integration branch `feat/website-redesign` (a `.gi
 | 1 Foundation | `feat/website-redesign-foundation` | — | `feat(website): design tokens, self-hosted fonts and Infima bridge` |
 | 2 Home | `feat/website-redesign-home` | 1 merged | `feat(website): redesign the home page` |
 | 3 Docs polish | `feat/website-redesign-docs` | 1 merged (2 preferred) | `feat(website): restyle docs pages, code blocks and site chrome` |
-| 4 Playground | `feat/website-playground` | 2 merged, research done | `feat(website): playground` (its own milestone) |
-| 5 Cleanup | `chore/website-redesign-cleanup` | 1–3 merged (4 may follow later) | `chore(website): remove the redesign plan` |
+| 5 Cleanup | `chore/website-redesign-cleanup` | 1–3 merged | `chore(website): remove the redesign plan` |
 
 Phases 2 and 3 can run in parallel by two agents once phase 1 is merged; they touch different files except `docusaurus.config.ts` and `src/css/custom.css` (small, mergeable hunks).
 
@@ -51,4 +49,4 @@ The redesign goes live by merging, not by a release. As soon as phases 1, 2, 3 a
 
 ## Open
 
-1. Playground stack and engine (see `04-playground.md`, research tasks). Does not block phases 1-3.
+None. The playground (former phase 4) lives in RFC [#538](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538) and tracking issue #539; it does not block the redesign.
