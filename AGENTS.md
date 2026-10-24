@@ -24,7 +24,7 @@ Each package's own `README.md` covers its functionality and usage for consumers.
 - **A project's own `eslint.config.*` is ground truth over prose** wherever this repo lint-enforces its own layering (it dogfoods `eslint-plugin-boundaries` on itself) — read the config for the exact policy in force rather than trusting a paraphrase.
 - **Before implementing or proposing any change, read the related project's `AGENTS.md`.** If a change conflicts with it, either follow it or update it in the same change; do not silently diverge.
 - PRs target the `release` branch. The branching model, merge strategy and release procedure are in `.github/CONTRIBUTING.md` (run releases with the `release` skill); changelog entries and version bumps follow `.agents/rules/changelog-and-versioning.md`.
-- Plans for multi-step changes go in `.agents/plans/`, which is git-ignored; no committed file may depend on them. A plan that several sessions must share is committed on its feature branch through an explicit `.gitignore` exception and is removed before that branch merges into `release`.
+- Plans for multi-step changes go in `.agents/plans/`, which is git-ignored; no committed file may depend on them.
 
 ## Commands
 
