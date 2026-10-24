@@ -176,9 +176,12 @@
   font-size: 0.68rem;
 }
 
-.DocSearch-Modal {
-  border: 1px solid var(--jsb-line);
-  border-radius: var(--jsb-radius-xl);
+/* Below 769px DocSearch turns the modal into a full-screen sheet with square corners */
+@media (min-width: 769px) {
+  .DocSearch-Modal {
+    border: 1px solid var(--jsb-line);
+    border-radius: var(--jsb-radius-xl);
+  }
 }
 
 .DocSearch-Form {
@@ -314,7 +317,7 @@
   margin-bottom: 0.5rem;
 }
 
-.markdown p {
+.markdown > p {
   margin-bottom: var(--ifm-paragraph-margin-bottom);
 }
 
@@ -409,16 +412,8 @@ blockquote {
 
 /* Docs: inline code in prose */
 
-:root,
-[data-theme="dark"] {
-  --ifm-code-border-radius: 4px;
-  --ifm-code-padding-horizontal: 0.35em;
-  --ifm-pre-border-radius: var(--jsb-radius-lg);
-}
-
 :not(pre) > code {
   border: 0;
-  color: var(--jsb-ink);
 }
 
 /* Docs: code blocks on the always-dark palette, same chrome as the home CodeSnippet */
@@ -518,6 +513,7 @@ blockquote {
   color: var(--jsb-ink);
 }
 
+/* Titles keep the case they are written in; the default ones get capitalized labels in i18n/en/code.json */
 .alert [class*="admonitionHeading_"],
 .alert__heading {
   margin-bottom: 0.35rem;
@@ -571,12 +567,12 @@ blockquote {
   background: var(--jsb-accent);
 }
 
-/* The caret is an Infima background image recolored with a filter; use it as a mask so it takes the faint token in both color modes */
+/* The caret is an Infima background image filled at 50% black and recolored with a filter; mask with an opaque copy of its path so it takes the muted token in both color modes (faint is below the 3:1 a state indicator needs) */
 .menu__link--sublist-caret::after,
 .menu__caret::before {
-  background: var(--jsb-faint);
+  background: var(--jsb-muted);
   filter: none;
-  mask: var(--ifm-menu-link-sublist-icon) 50% / 2rem 2rem no-repeat;
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>') 50% / 2rem 2rem no-repeat;
 }
 
 /* Docs: table of contents */
@@ -663,15 +659,15 @@ blockquote {
 
 /* Docs: tabs */
 
+/* Infima scrolls the list (overflow-x: auto, so overflow-y too), so the active underline cannot overlap a list border without overflowing it; the inset shadow paints below the tabs instead */
 .tabs {
-  border-bottom: 1px solid var(--jsb-line);
+  box-shadow: inset 0 -1px 0 var(--jsb-line);
 }
 
 .tabs__item {
   padding: 0.6rem 0.9rem;
   border-bottom-width: 2px;
   border-radius: var(--jsb-radius) var(--jsb-radius) 0 0;
-  margin-bottom: -1px;
   font-family: var(--jsb-font-mono);
   font-size: 0.78rem;
   font-weight: 500;
@@ -693,7 +689,7 @@ blockquote {
   color: var(--jsb-accent);
 }
 
-/* Docs: badges, such as "New in v7" */
+/* Docs: badges, such as "New in v7" and the docs version badge */
 
 .badge {
   padding: 0.25em 0.55em;
@@ -712,11 +708,17 @@ blockquote {
   color: var(--jsb-accent-ink);
 }
 
+.badge--secondary {
+  background: var(--jsb-paper-2);
+  border-color: var(--jsb-line);
+  color: var(--jsb-ink);
+}
+
 /* Motion: nothing moves when the visitor asks for reduced motion */
 
 @media (prefers-reduced-motion: reduce) {
   a,
-  .navbar__items .navbar__link::after,
+  .navbar__items .navbar__link:not(.jsb-navbar-cta, .dropdown > .navbar__link)::after,
   .navbar__item.jsb-navbar-cta,
   [class*="toggleButton_"],
   .DocSearch-Button,

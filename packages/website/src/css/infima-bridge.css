@@ -70,6 +70,9 @@
 
   /* code */
   --ifm-code-background: var(--jsb-accent-soft);
+  --ifm-code-border-radius: 4px;
+  --ifm-code-padding-horizontal: 0.35em;
+  --ifm-pre-border-radius: var(--jsb-radius-lg);
   --ifm-pre-background: var(--jsb-code);
   --ifm-pre-color: var(--jsb-code-fg);
   --docusaurus-highlighted-code-line-bg: var(--jsb-code-line);
@@ -112,7 +115,7 @@
   --docsearch-key-background: var(--jsb-paper);
   --docsearch-key-color: var(--jsb-muted);
   --docsearch-key-pressed-shadow: none;
-  --docsearch-container-background: color-mix(in srgb, var(--jsb-ink) 55%, transparent);
+  --docsearch-container-background: color-mix(in srgb, var(--jsb-code) 70%, transparent);
   --docsearch-modal-shadow: var(--jsb-shadow);
   --docsearch-footer-background: var(--jsb-paper-2);
   --docsearch-footer-shadow: 0 -1px 0 0 var(--jsb-line);

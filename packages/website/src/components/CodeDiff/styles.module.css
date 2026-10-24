@@ -15,6 +15,7 @@
   border-radius: inherit;
   background: var(--jsb-code);
   color: var(--jsb-code-fg);
+  font-size: 0.85rem;
   overflow-x: auto;
 }
 
@@ -41,7 +42,7 @@
   z-index: 10;
 }
 
-.codeBlock:hover .copyButton {
+.codeBlock:hover .copyButton:not(:hover, :focus-visible, .copyButtonCopied) {
   opacity: 0.75;
 }
 
