@@ -18,7 +18,7 @@ This plan is committed on the integration branch `feat/website-redesign` (a `.gi
 | `website-redesign/05-cleanup.md` | Phase 5: remove this plan from the branch before merging into `release`. |
 | `website-redesign/mockups/mockup-b-blueprint.html` | The approved mockup. Ground truth for layout, copy, CSS values and behaviors of the home. Open it in a browser (wrap it in a doctype skeleton or use the script in `02-home.md` section 10). |
 | `website-redesign/mockups/mockB-light.png`, `mockB-dark.png` | Desktop renders of the mockup in both themes. Mobile renders come from the same script. |
-| `website-redesign/mockups/mockup-a-signal.html` | Rejected direction, kept only for its canvas dependency graph; a copy lives on the orphan branch `screenshots/website-playground-rfc` for the playground RFC. |
+| `website-redesign/mockups/mockup-a-signal.html` | Rejected direction, kept only for its canvas dependency graph; a copy lives on the orphan branch `rfc/538-playground-assets`, which belongs to the playground RFC and is not part of the redesign. |
 
 ## Phases
 
