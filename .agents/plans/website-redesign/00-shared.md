@@ -57,7 +57,7 @@ Prefix `--jsb-`. Light values on `:root`, dark values on `[data-theme="dark"]` (
   --jsb-code-fg: #e7e9f8;
   --jsb-code-keyword: #b3b8ff;
   --jsb-code-string: #8fe3cf;
-  --jsb-code-comment: #7a7fa3;
+  --jsb-code-comment: #9499bb; /* #7a7fa3 measured 4.13:1 on --jsb-code (phase 3) */
   --jsb-code-error: #ff8f7c;
   --jsb-code-number: #ffd479;
   --jsb-code-line: rgba(143, 148, 255, 0.18);
@@ -95,7 +95,7 @@ Prefix `--jsb-`. Light values on `:root`, dark values on `[data-theme="dark"]` (
 }
 ```
 
-Semantics: `paper` page background, `paper-2` alternate section background and surfaces, `card` bordered boxes, `ink` text, `muted` secondary text, `faint` captions and labels only (it fails AA contrast for body text; never use it for running text or links), `line`/`line-strong` borders, `accent` the single brand colour, `ok` "allowed" and success, `bad` "violation" and danger, `warn` warnings, `code*` the always-dark code palette (identical in both themes, so code blocks look the same everywhere).
+Semantics: `paper` page background, `paper-2` alternate section background and surfaces, `card` bordered boxes, `ink` text, `muted` secondary text, `faint` captions and labels only (it fails AA contrast for body text; never use it for running text or links), `line`/`line-strong` borders, `accent` the single brand colour, `ok` "allowed" and success, `bad` "violation" and danger, `warn` warnings, `code*` the always-dark code palette (same palette in both themes; only `--jsb-code` darkens further in dark mode, so code blocks look the same everywhere).
 
 ## 4. Type scale
 
@@ -149,7 +149,7 @@ A phase is done when all of these hold and the PR says so:
 
 - [ ] `pnpm nx check:all website` passes (lint, types, spell, build).
 - [ ] The screenshot script (`pnpm --filter website screenshots`, `packages/website/scripts/screenshots.mjs`) reports no horizontal overflow and no console errors at 1440×900 and 390×844, light and dark, for every page the phase touches.
-- [ ] Lighthouse (desktop preset) on the touched pages: Performance ≥ 95, Accessibility 100, Best practices ≥ 95. Command: `pnpm dlx lighthouse@12 http://localhost:3000/<path> --preset=desktop --only-categories=performance,accessibility,best-practices --output=html --output-path=./lighthouse-<name>.html` against `pnpm --filter website serve`. Report the numbers; a miss is acceptable only with a stated cause outside the phase (for example third-party scripts). Two known causes: `docusaurus serve` does not compress responses, which costs a few Performance points on LCP, so when a score is close to the threshold measure again against a compressing static server (`pnpm dlx serve -l 3001 packages/website/build`, which is what Netlify does) and report both; and until phase 3 replaces the Prism themes, docs pages score Accessibility 96 because `color-contrast` fails on the Prism `github` light tokens inside code blocks (`#36acaa`, `#e3116c`, `#999988` on `#f6f8fa`), which phases 1 and 2 may not touch, so that miss is accepted for them and nothing else may fail.
+- [ ] Lighthouse (desktop preset) on the touched pages: Performance ≥ 95, Accessibility 100, Best practices ≥ 95. Command: `pnpm dlx lighthouse@12 http://localhost:3000/<path> --preset=desktop --only-categories=performance,accessibility,best-practices --output=html --output-path=./lighthouse-<name>.html` against `pnpm --filter website serve`. Report the numbers; a miss is acceptable only with a stated cause outside the phase (for example third-party scripts). Two known causes: `docusaurus serve` does not compress responses, which costs a few Performance points on LCP, so when a score is close to the threshold measure again against a compressing static server (`pnpm dlx serve -l 3001 packages/website/build`, which is what Netlify does) and report both; and until phase 3 replaced the Prism themes, docs pages scored Accessibility 96 because `color-contrast` failed on the Prism `github` light tokens inside code blocks (`#36acaa`, `#e3116c`, `#999988` on `#f6f8fa`), which phases 1 and 2 could not touch, so that miss was accepted for them; from phase 3 on Accessibility must be 100. Lighthouse aborts on a 4xx response, so the 404 page is audited at `/404/`, which `docusaurus serve` answers with 200.
 - [ ] Both themes checked by eye against `mockups/mockB-light.png` / `mockB-dark.png` where applicable; system theme switching works (toggle and OS preference).
 - [ ] Reduced motion checked once (OS setting or DevTools emulation): nothing is hidden, nothing moves.
 - [ ] No request leaves to Google Fonts or any font CDN (Network tab).

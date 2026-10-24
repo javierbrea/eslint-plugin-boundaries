@@ -1,7 +1,8 @@
 // eslint-disable-next-line import/no-namespace
 import type * as Preset from "@docusaurus/preset-classic";
 import type { Config } from "@docusaurus/types";
-import { themes as prismThemes } from "prism-react-renderer";
+
+import { blueprintTheme } from "./src/prism/blueprintTheme";
 
 const IS_DEV = process.env.NODE_ENV === "development";
 
@@ -275,9 +276,9 @@ const config: Config = {
     prism: {
       defaultLanguage: "javascript",
       additionalLanguages: ["typescript", "json", "bash", "js-extras"],
-      // WARNING: In case of modifying these themes, make sure to keep the CodeDiff component updated as well (also in custom.css)
-      theme: prismThemes.github,
-      darkTheme: prismThemes.vsDark,
+      // One always-dark palette in both color modes, shared with the home CodeSnippet and the CodeDiff docs component
+      theme: blueprintTheme,
+      darkTheme: blueprintTheme,
     },
     algolia: {
       appId: "Q6XU3R4537",
