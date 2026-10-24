@@ -33,7 +33,7 @@
     "@docusaurus/module-type-aliases": "3.10.2",
     "@docusaurus/tsconfig": "3.10.2",
     "@docusaurus/types": "3.10.2",
-    "baseline-browser-mapping": "2.11.29",
+    "baseline-browser-mapping": "2.11.30",
     "typescript": "5.9.3"
   },
   "browserslist": {
