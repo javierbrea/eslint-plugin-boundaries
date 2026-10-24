@@ -139,8 +139,4 @@ dist
 test/eslint-plugin-e2e/test/fixtures/performance/
 
 # Agent working plans (local only)
-.agents/plans/*
-# Exception: the website redesign plan is shared between sessions on its integration branch
-# and is removed by its last phase before the branch merges into release
-!.agents/plans/website-redesign.md
-!.agents/plans/website-redesign/
+.agents/plans/
