@@ -29,6 +29,14 @@ pnpm i
 
 This command will install dependencies for all packages in the monorepo, including the website package.
 
+Then build the plugin once:
+
+```sh
+pnpm nx build eslint-plugin
+```
+
+The website lints its own `src/` with the workspace plugin, and the pre-commit hook loads it, so ESLint fails to load the website config until the plugin is built.
+
 ### Starting the Development Server
 
 To start the development server and preview the website locally:
@@ -78,12 +86,16 @@ website/
 ├── docs/                    # Documentation pages for the current ("next") version
 ├── versioned_docs/          # Snapshotted documentation for each released version
 ├── versioned_sidebars/      # Sidebar configuration for each released version
+├── scripts/                 # Maintenance scripts (font sync, visual check)
 ├── src/
-│   ├── components/          # React components used across the site
-│   ├── css/                 # Custom global styles
-│   ├── pages/                # Custom pages, including the home page
-│   └── theme/                # Swizzled/overridden Docusaurus theme components
-├── static/                  # Static assets (images, etc.)
+│   ├── client/              # Client modules loaded on every page
+│   ├── components/          # React components: home sections, site chrome, UI kit, motion, MDX components
+│   ├── css/                 # Design tokens, fonts, Infima mapping and global styles
+│   ├── data/                # Site constants, links and live GitHub/npm stats
+│   ├── pages/               # Custom pages, including the home page
+│   ├── prism/               # Code highlighting theme
+│   └── theme/               # Swizzled/overridden Docusaurus theme components
+├── static/                  # Static assets (images, fonts, etc.)
 ├── sidebars.ts              # Sidebar configuration for the current ("next") version
 ├── docusaurus.config.ts     # Docusaurus configuration
 ├── versions.json            # List of released documentation versions
@@ -160,6 +172,7 @@ When the new version is ready to be released, create a new versioned docs set by
 | `pnpm start` | Start the development server with hot-reload |
 | `pnpm build` | Build the website for production |
 | `pnpm serve` | Serve the production build locally for preview |
+| `pnpm screenshots [baseUrl] [paths...]` | Capture the pages at desktop and mobile widths in both themes into `screenshots/`, failing on horizontal overflow or console errors. Needs a running site (`pnpm serve` or `pnpm start`) and a local Chrome |
 | `pnpm swizzle` | Customize Docusaurus components |
 | `pnpm sync:fonts` | Copy the self-hosted font files from the Fontsource packages into `static/fonts` |
 | `pnpm version` | Bump the version of the website. Read the documentation for details. |

@@ -1,0 +1,23 @@
+.reveal {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.7s var(--jsb-ease),
+    transform 0.7s var(--jsb-ease);
+  transition-delay: var(--d, 0s);
+}
+
+/* Hidden only once JS has marked the document, so SSR HTML and no-JS visitors see everything */
+:global([data-jsb-js]) .reveal:not([data-revealed]) {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  :global([data-jsb-js]) .reveal:not([data-revealed]) {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

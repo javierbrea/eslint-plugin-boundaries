@@ -13,6 +13,7 @@
     "docusaurus": "docusaurus",
     "start": "cross-env NODE_ENV=development docusaurus start",
     "serve": "docusaurus serve",
+    "screenshots": "node scripts/screenshots.mjs",
     "swizzle": "docusaurus swizzle",
     "sync:fonts": "node scripts/sync-fonts.mjs",
     "clear": "docusaurus clear",
@@ -27,8 +28,7 @@
     "clsx": "2.1.1",
     "prism-react-renderer": "2.4.1",
     "react": "19.3.1",
-    "react-dom": "19.3.1",
-    "react-github-btn": "1.4.0"
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.10.2",
@@ -38,6 +38,8 @@
     "@fontsource/ibm-plex-sans": "5.3.0",
     "@fontsource/sora": "5.3.0",
     "baseline-browser-mapping": "2.11.29",
+    "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
+    "playwright-core": "1.64.1",
     "typescript": "5.9.3"
   },
   "browserslist": {
