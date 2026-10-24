@@ -182,7 +182,7 @@ Numbers come from `useLiveStat` (section 5); the first render shows the fallback
 
 ### 3.7 Quote (`.quote`)
 
-Centred blockquote, Sora 500 `clamp(1.3rem, 2.6vw, 1.9rem)`, max-width 36ch: `"Software architecture is the art of <mark>drawing lines</mark> that I call boundaries. Those boundaries separate software elements from one another, and restrict those on one side from knowing about those on the other."` The `mark` has no background, accent colour, and a 2px underline that scales from 0 to 1 over 0.8s (delay 0.3s) when the block reveals. `cite` (mono 0.75rem muted): `Robert C. Martin · Clean Architecture`, linking the book title to `https://www.oreilly.com/library/view/clean-architecture-a/9780134494272/` (current `HomePageQuote` link).
+Centred blockquote, Sora 500 `clamp(1.3rem, 2.6vw, 1.9rem)`, max-width 36ch: `"Software architecture is the art of <mark>drawing lines that I call boundaries</mark>. Those boundaries separate software elements from one another, and restrict those on one side from knowing about those on the other."` The `mark` has accent colour and a 2px underline that draws from 0 to the full width over 1s (delay 0.3s) when the block reveals; the phrase wraps, so the underline is a `background-size` transition rather than a pseudo-element. `cite` (mono 0.75rem muted): `Robert C. Martin · Clean Architecture`, linking the book title to `https://www.oreilly.com/library/view/clean-architecture-a/9780134494272/` (current `HomePageQuote` link).
 
 ### 3.8 Playground teaser (`.play`, `.table`)
 
@@ -190,7 +190,7 @@ Left: `SectionHead` eyebrow "Drafting table · coming next", h2 `Try a config ag
 
 ### 3.9 Final CTA (`.final`, `.box`)
 
-Dashed `--jsb-line-strong` box, radius 12px, two accent corner marks (`::before`/`::after`), centred: h2 `Draw one line today`, lead `Install the plugin, name one folder, write one policy. Add the rest when the team is ready.`, primary `Button` "Quick start" → `links.DOCS_QUICK_START`, outline `Button` "Sponsor the project" → `links.GITHUB_SPONSORS`. This replaces the `HomeSponsors` iframe.
+Dashed `--jsb-line-strong` box, radius 12px, two accent corner marks (`::before`/`::after`), centred: h2 `Draw one boundary today`, lead `Install the plugin, name one folder, write one policy. Add the rest when the team is ready.`, primary `Button` "Quick start" → `links.DOCS_QUICK_START`, outline `Button` "Sponsor the project" → `links.GITHUB_SPONSORS`. This replaces the `HomeSponsors` iframe.
 
 ## 4. BlueprintSheet (hero drawing)
 
@@ -199,7 +199,7 @@ Port the `<svg id="draw" viewBox="0 0 520 500">` from the mockup (lines 269–30
 - Attribute names to JSX (`strokeWidth`, `markerEnd`, `textAnchor`, `pathLength`, `className`); marker ids prefixed `jsb-` to avoid clashes with docs SVGs; colours through `var(--jsb-*)` in the module CSS, never attributes.
 - Three slabs from a data array `[{ id: "modules", type: "module", pattern: "modules/*" }, { id: "components", type: "component", pattern: "components/*/*" }, { id: "helpers", type: "helper", pattern: "helpers/*" }]`, each a `<g>` with `tabIndex={0}`, `role="button"`, `aria-label="{id} layer: {descriptor}"`; hover/focus lifts it 6px and sets the caption `"{id} · { type: \"module\", pattern: \"modules/*\" }"` (descriptor in `code`). Default caption: `hover a layer · { type: "component", pattern: "components/*/*" }`.
 - Draw-in: classes `.draw .l1…l5` with the keyframes from the mockup (`stroke-dasharray: 1; stroke-dashoffset: 1 → 0`, 1.6s, delays 0/.25/.5/.9/1.2s). The violation edge uses the `dash` loop. The dimension line text reads `3 element types · 1 rule`. Tags: two `allow →` in `--jsb-ok`, one filled `--jsb-bad` tag `✕ helper → component`.
-- Tilt: on the wrapper (`perspective: 1200px`), `onPointerMove` computes `x, y` in [-0.5, 0.5] and sets `svg.style.transform = rotateX(${-y * 8}deg) rotateY(${x * 10}deg)` inside `requestAnimationFrame`; `onPointerLeave` clears it. Not attached when `useReducedMotion()` is true or `matchMedia("(hover: none)").matches`.
+- Tilt: on the wrapper (`perspective: 1000px`), `onPointerMove` computes `x, y` in [-1, 1] and sets `svg.style.transform = rotateX(${-y * 12}deg) rotateY(${x * 14}deg)` inside `requestAnimationFrame`, flagging the svg with `data-tilting` so the CSS uses a short 0.15s follow transition; `onPointerLeave` clears both, and the return to rest uses the default 0.9s `--jsb-ease` transition. Not attached when `useReducedMotion()` is true or `matchMedia("(hover: none)").matches`.
 - `aria-label` on the svg: `Blueprint drawing of three architecture layers: modules depend on components, components on helpers; a helper importing a component is marked as disallowed`.
 
 ## 5. Live numbers (`src/data/stats`, `src/data/site`)

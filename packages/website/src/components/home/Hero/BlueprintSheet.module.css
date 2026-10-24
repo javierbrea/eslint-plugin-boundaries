@@ -2,15 +2,22 @@
   position: relative;
   aspect-ratio: 1.05;
   max-width: 100%;
-  perspective: 1200px;
+  perspective: 1000px;
 }
 
+/* The long transition is the return to rest once the pointer leaves the sheet */
 .drawing {
   display: block;
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transition: transform 0.15s ease-out;
+  transition: transform 0.9s var(--jsb-ease);
+}
+
+/* While the pointer is over the sheet the drawing follows it closely; the component sets the attribute together with each transform */
+.drawing[data-tilting] {
+  transition-duration: 0.15s;
+  transition-timing-function: ease-out;
 }
 
 .caption {

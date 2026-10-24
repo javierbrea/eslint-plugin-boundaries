@@ -28,8 +28,9 @@ const SLAB_LAYERS = [styles.l1, styles.l2, styles.l3];
 
 const DEFAULT_SLAB = SLABS[1];
 
-const MAX_TILT_X = 8;
-const MAX_TILT_Y = 10;
+// Degrees of rotation when the pointer is at the edges of the sheet
+const MAX_TILT_X = 12;
+const MAX_TILT_Y = 14;
 
 function describe(slab: Slab): string {
   return `{ type: "${slab.type}", pattern: "${slab.pattern}" }`;
@@ -51,11 +52,14 @@ export default function BlueprintSheet(): ReactNode {
 
   const tilt = (pointerEvent: ReactPointerEvent<HTMLDivElement>) => {
     const rect = pointerEvent.currentTarget.getBoundingClientRect();
-    const x = (pointerEvent.clientX - rect.left) / rect.width - 0.5;
-    const y = (pointerEvent.clientY - rect.top) / rect.height - 0.5;
+    // Pointer position relative to the center of the sheet, in [-1, 1]
+    const x = ((pointerEvent.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = ((pointerEvent.clientY - rect.top) / rect.height) * 2 - 1;
     cancelAnimationFrame(frame.current);
     frame.current = requestAnimationFrame(() => {
       if (svgRef.current) {
+        // The attribute switches the CSS to the short "follow the pointer" transition
+        svgRef.current.dataset.tilting = "";
         svgRef.current.style.transform = `rotateX(${-y * MAX_TILT_X}deg) rotateY(${x * MAX_TILT_Y}deg)`;
       }
     });
@@ -64,6 +68,8 @@ export default function BlueprintSheet(): ReactNode {
   const resetTilt = () => {
     cancelAnimationFrame(frame.current);
     if (svgRef.current) {
+      // Removing the attribute in the same frame as the reset makes the return use the long transition
+      delete svgRef.current.dataset.tilting;
       svgRef.current.style.transform = "";
     }
   };

@@ -17,7 +17,7 @@ export default function FinalCta(): ReactNode {
       <div className="jsb-wrap">
         <Reveal className={styles.box}>
           <Heading as="h2" className={styles.title}>
-            Draw one line today
+            Draw one boundary today
           </Heading>
           <p className={styles.lead}>
             Install the plugin, name one folder, write one policy. Add the rest

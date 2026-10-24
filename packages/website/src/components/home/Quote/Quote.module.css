@@ -17,29 +17,23 @@
   color: var(--jsb-ink);
 }
 
+/* Underline drawn once the quote is revealed. The phrase wraps, so it is a background gradient
+   sized from 0 to the full inline width (an absolutely positioned pseudo-element would only cover
+   the first line box): with the default box-decoration-break the gradient spans the fragments in
+   order, so the line draws across the wrapped lines one after another */
 .mark {
-  position: relative;
   padding: 0;
-  background: none;
+  background-color: transparent;
+  background-image: linear-gradient(var(--jsb-accent), var(--jsb-accent));
+  background-repeat: no-repeat;
+  background-position: 0 calc(100% - 2px);
+  background-size: 0% 2px;
   color: var(--jsb-accent);
+  transition: background-size 1s var(--jsb-ease) 0.3s;
 }
 
-/* Underline drawn once the quote is revealed */
-.mark::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 2px;
-  left: 0;
-  height: 2px;
-  background: var(--jsb-accent);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.8s var(--jsb-ease) 0.3s;
-}
-
-[data-revealed] .mark::after {
-  transform: scaleX(1);
+[data-revealed] .mark {
+  background-size: 100% 2px;
 }
 
 .cite {
@@ -63,8 +57,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mark::after {
-    transform: scaleX(1);
+  .mark {
+    background-size: 100% 2px;
     transition: none;
   }
 }

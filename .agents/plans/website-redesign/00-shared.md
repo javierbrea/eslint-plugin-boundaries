@@ -121,7 +121,7 @@ Weights shipped: Sora 500, 600, 700; IBM Plex Sans 400, 400 italic, 500, 600; IB
 - Reveal on scroll: element starts at `opacity: 0; transform: translateY(16px)`, transitions to visible when 8% of it enters the viewport (IntersectionObserver `threshold: 0.08`, `rootMargin: "0px 0px -8% 0px"`), once. Siblings stagger with `transition-delay` 0.05–0.1s steps via a `--d` custom property. Elements are visible by default and only hidden when JS has marked `<html class="jsb-js">`, so SSR HTML and no-JS visitors see everything.
 - Buttons: primary lifts `translateY(-2px)` with a soft accent shadow and a diagonal sheen that sweeps once on hover; outline buttons recolour the border to accent and lift; arrow icons slide 3px right.
 - Links in nav and text: 1px underline that grows from the left on hover (`scaleX(0) → 1`, transform-origin flips so it exits to the right).
-- Hero sheet: paths draw themselves on load (`pathLength="1"`, dashoffset 1 → 0, staggered 0.25s per layer), the violation edge has a marching dash loop, the sheet tilts up to 8°/10° following the pointer and resets on leave; slabs lift 6px on hover/focus.
+- Hero sheet: paths draw themselves on load (`pathLength="1"`, dashoffset 1 → 0, staggered 0.25s per layer), the violation edge has a marching dash loop, the sheet tilts up to 12°/14° following the pointer (0.15s follow) and eases back over 0.9s on leave; slabs lift 6px on hover/focus.
 - `@media (prefers-reduced-motion: reduce)`: reveals render visible with no transition, draw-in and marching dash are off, tilt is not attached, button and slab transitions are none. Also skip the tilt on `(hover: none)` devices.
 
 ## 6. UI vocabulary (phase 2 builds these in `src/components/ui`, phase 3 reuses the CSS for docs)
