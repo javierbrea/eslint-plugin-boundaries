@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 
-import { GITHUB_BACKLOG } from "../../../data/site/links";
+import { GITHUB_PLAYGROUND_ISSUE } from "../../../data/site/links";
 import Reveal from "../../motion/Reveal";
 import Button from "../../ui/Button/Button";
 import SectionHead from "../../ui/SectionHead/SectionHead";
@@ -42,8 +42,8 @@ export default function PlaygroundTeaser(): ReactNode {
             title="Try a config against a sketched project"
             lead="Paste settings, lay out a folder tree, and watch each file get classified and each import get its verdict. In the browser, nothing to install."
           >
-            <Button variant="outline" href={GITHUB_BACKLOG} arrow>
-              Follow the roadmap
+            <Button variant="outline" href={GITHUB_PLAYGROUND_ISSUE} arrow>
+              Follow the progress
             </Button>
           </SectionHead>
         </Reveal>

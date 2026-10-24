@@ -14,3 +14,6 @@ export const GITHUB_SPONSORS = "https://github.com/sponsors/javierbrea";
 
 /** Public roadmap of the project. */
 export const GITHUB_BACKLOG = "https://github.com/users/javierbrea/projects/7";
+
+/** Tracking issue of the playground, linked from the home teaser. */
+export const GITHUB_PLAYGROUND_ISSUE = `${GITHUB_REPO_URL}/issues/539`;
