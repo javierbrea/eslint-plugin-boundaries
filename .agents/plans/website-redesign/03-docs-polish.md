@@ -3,7 +3,7 @@
 
 Goal: make the documentation pages read as part of the same design as the home: code blocks on the blueprint palette, heading rhythm, admonitions in the semantic colours, sidebar, table of contents, tabs, tables, search, breadcrumbs, pagination, announcement bar and the 404 page. No content changes under `docs/` or `versioned_docs/`; if a page turns out to need an edit for the restyle to work (it should not), `00-shared.md` section 2 applies: ask first, then edit both `docs/` and `versioned_docs/version-7.3.0/`.
 
-Read first: `../website-redesign.md`, `00-shared.md`, `01-foundation.md` (what the bridge already covers). Phase 1 must be merged. If phase 2 is merged, reuse `src/prism/blueprintTheme.ts`; if not, create it as specified in `02-home.md` section 6 and phase 2 will reuse it.
+Read first: `../website-redesign.md`, `00-shared.md`, `01-foundation.md` (what the bridge already covers). Phase 1 is merged and phase 2 lives on `feat/website-redesign-home`, the branch this phase starts from (see the index, "Phases"): reuse `src/prism/blueprintTheme.ts` and the home's components and tokens instead of creating them.
 
 Pages to use as the test bed (cover every construct): `/docs/overview/` (intro + SVG schema), `/docs/quick-start/` (tabs, CodeDiff, admonitions tip/info/note), `/docs/rules/dependencies/` (long reference, tables, many code blocks), `/docs/classification/elements/` (nested headings), `/docs/releases/migration-guides/v6-to-v7/` (long page, TOC), `/docs/guides/typescript-support/`, an older versioned page such as `/docs/7.1.0/overview/` (version dropdown and banner; `/docs/` itself serves the latest version, 7.3.0), the working docs at `/docs/next/overview/`, and `/this-page-does-not-exist/` (404).
 
