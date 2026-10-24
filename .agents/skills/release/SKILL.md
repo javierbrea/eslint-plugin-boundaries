@@ -1,6 +1,6 @@
 ---
 name: release
-description: Prepare and publish a release of the @boundaries packages by running the "Release process" in .github/CONTRIBUTING.md. Inventories the packages with unreleased changes, proposes their versions, updates changelogs, package versions and Sonar versions on a new chore/release-<version> branch with a PR into release, then promotes release to master, creates the vX.Y.Z GitHub release and closes the release (publication check, milestone, project board, comments on the fixed issues linking the release notes and upgrade notes, branch cleanup), showing a preview and asking for confirmation before every commit, push, PR, tag, release or comment. Use when the maintainer asks to release, publish, cut a release, prepare a release PR or finish a published release.
+description: Prepare and publish a release of the @boundaries packages by running the "Release process" in .github/CONTRIBUTING.md. Inventories the packages with unreleased changes, proposes their versions, updates changelogs, package versions and Sonar versions on a new chore/release-<version> branch with a PR into release, then promotes release to master and creates the vX.Y.Z GitHub release, showing a preview and asking for confirmation before every commit, push, PR, tag or release. Use when the maintainer asks to release, publish, cut a release or prepare a release PR.
 argument-hint: "[eslint-plugin version]"
 ---
 
@@ -20,7 +20,7 @@ Provide (optional):
 
 ## Procedure
 
-The release spans four phases. The first three depend on merges made outside this skill: start at the phase the repository state is in, and stop at the end of each phase until the maintainer says the next merge happened. The fourth closes the release once it is published.
+The release spans three phases that depend on merges made outside this skill. Start at the phase the repository state is in, and stop at the end of each phase until the maintainer says the next merge happened.
 
 ### Phase 1: prepare the release PR
 
@@ -59,18 +59,7 @@ Start when the maintainer confirms the PR from phase 2 is merged into `master`.
 2. If the website got a new version, check that the "Update Website Search Index" workflow ran for the merge (`gh run list --workflow web-search-index.yml`). If it did not, tell the maintainer to trigger it manually, as `CONTRIBUTING.md` describes.
 3. Build the release as `CONTRIBUTING.md` defines it: tag `vX.Y.Z` (the `eslint-plugin` version, on `master`), a human-readable title proposed from the changelog entries, and a description with one section per released package copied from its `CHANGELOG.md`, `eslint-plugin` first.
 4. **Show a mandatory preview** of the tag, title and full description, remind the maintainer what the release publishes (step 6 of "Publishing"), and ask for explicit confirmation. Never create a tag or a release without it.
-5. Create the release targeting `master`, with the GitHub MCP tools or `gh release create`. Report the URL, and that the publish workflows were triggered. Continue with phase 4.
-
-### Phase 4: close the release
-
-Start right after the release is created, or when the maintainer asks to finish a release that is already published.
-
-1. **Check the publication.** Wait for the publish workflows to finish (`gh run list --workflow publish.yml` and `--workflow publish-to-github.yml`) and check with `npm view <package> version` that every released package is on npm; the registry can take some minutes to show a version after the workflow succeeds. If a workflow failed, report it and stop: fixing a publication is the maintainer's decision.
-2. **Close the milestone.** If a milestone named after the `eslint-plugin` version (`vX.Y.Z`) exists and has no open issues or pull requests, close it (`gh api -X PATCH repos/<owner>/<repo>/milestones/<number> -f state=closed`). If it still has open items, list them and ask the maintainer what to do with them.
-3. **Update the project board**, if the repository has one (read `gh project list --owner <owner>`; it needs the `project` token scope, `gh auth refresh -s read:project,project`). For each issue closed by the phase 2 PR, check its status on the board and move to the final column (for example `Done`) the ones that are not there yet. A board workflow usually moves them when the issue is closed, so often nothing is left to do: say so.
-4. **Comment on the issues the release fixes.** Take the issues closed by the phase 2 PR and decide for each one whether a comment helps its readers: issues opened by external reporters or fixed by external contributors get one; the maintainer's own tracking and task issues normally do not. Each comment names the released version, links the GitHub release and, when the website has upgrade notes or a migration guide for the fix, links their exact section; it thanks the reporter and the contributors by their GitHub user. **Show a mandatory preview of every comment**, let the maintainer drop or edit any of them, and post only the confirmed ones (`gh issue comment <number> --body-file <file>`). Never post a comment without that confirmation.
-5. **Delete the merged branches** the release leaves behind: the `chore/release-*` branch of phase 1, and any integration branch named in the release issues. List them and ask before deleting; `git push origin --delete <branch>` only after the confirmation.
-6. Report what was checked, closed, moved, commented and deleted, and what was skipped and why.
+5. Create the release targeting `master`, with the GitHub MCP tools or `gh release create`. Report the URL, and that the publish workflows were triggered.
 
 ### Authorization Failure Handling
 
@@ -80,9 +69,9 @@ Follow "Authorization Failure Handling" in `.agents/skills/create-pr/SKILL.md`. 
 
 Return results with:
 
-- **Summary**: the phase completed, the version of every released package, and the URLs of the PR or release created. For phase 4, the publication check result, the milestone and board changes, the issues commented and the branches deleted.
+- **Summary**: the phase completed, the version of every released package, and the URLs of the PR or release created.
 - **Details**: the files changed per package, the branch name, and how the website decision was made.
-- **Pending manual steps**: the merge the maintainer has to make before the next phase, the search index check when the website got a new version, and anything phase 4 left for the maintainer, such as a failed publication.
+- **Pending manual steps**: the merge the maintainer has to make before the next phase, and the search index check when the website got a new version.
 - **On authorization failure**: the copyable content from the failure handling section, and a clear statement that authorization is required.
 
 Include assumptions, risks, and follow-ups when relevant.
@@ -92,4 +81,4 @@ Include assumptions, risks, and follow-ups when relevant.
 - Write the commit message, PR text and release text in English, whatever language the conversation is in.
 - **Do not use hard line breaks within paragraphs** in PR and release descriptions. Each paragraph must be a single unbroken line; only blank lines separate paragraphs.
 - Never commit on `release` or `master`, and never push to them.
-- Never commit, push, open a PR, tag, create a release, post a comment or delete a branch without showing a preview and obtaining explicit confirmation in the same phase.
+- Never commit, push, open a PR, tag or create a release without showing a preview and obtaining explicit confirmation in the same phase.

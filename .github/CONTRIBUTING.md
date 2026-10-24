@@ -188,10 +188,6 @@ The release process is as follows:
    * The plugin also as `eslint-plugin-boundaries` to the npm registry, and as `@javierbrea/eslint-plugin-boundaries` to the GitHub Packages registry. Both fail if that `eslint-plugin` version was already published, which is why every release bumps the `eslint-plugin` version.
 
    A tag with `-beta.` publishes the same packages to the npm registry with the `beta` tag, and nothing to GitHub Packages.
-7. Close the release once the publishing workflows succeed and the versions are on npm:
-   * Close the `vX.Y.Z` milestone, and check that the issues the release fixes are in the final column of the project board.
-   * Comment on the issues the release fixes, naming the version and linking the GitHub release and, when they exist, the upgrade notes or migration guide of the fix, so that the reporters know how to upgrade.
-   * Delete the `chore/release-*` branch and any integration branch of the release.
 
 If another package becomes a main entry point of the repository, it may get its own release, tagged as `<package-name>-vX.Y.Z`.
 
