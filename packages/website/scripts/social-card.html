@@ -1,0 +1,273 @@
+<!doctype html>
+<!--
+  Social card of the site (static/img/og-image.png, 1200×630), rendered by
+  scripts/social-card.mjs with the site's own tokens, fonts and logo.
+  The drawing is the final frame of the home hero's BlueprintSheet, without
+  its animation and interactions: keep both in step when the hero changes.
+-->
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <title>JS Boundaries social card</title>
+    <link rel="stylesheet" href="/src/css/tokens.css" />
+    <link rel="stylesheet" href="/src/css/fonts.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+      }
+
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        font-family: var(--jsb-font-body);
+        color: var(--jsb-ink);
+        background: var(--jsb-paper);
+      }
+
+      /* Same background as the home hero: two glows over a paper gradient, with film grain */
+      .card {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background:
+          radial-gradient(55% 65% at 78% 38%, var(--jsb-glow-a), transparent 70%),
+          radial-gradient(45% 55% at 8% 95%, var(--jsb-glow-b), transparent 70%),
+          linear-gradient(180deg, var(--jsb-paper-2), var(--jsb-paper));
+      }
+
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0.6;
+        mix-blend-mode: soft-light;
+        /* cspell: disable-next-line */
+        background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.6 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      }
+
+      .copy {
+        position: absolute;
+        top: 64px;
+        bottom: 60px;
+        left: 76px;
+        width: 560px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-family: var(--jsb-font-display);
+        font-size: 30px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+
+      .brand img {
+        width: 46px;
+        height: 40px;
+      }
+
+      .eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 22px;
+        font-family: var(--jsb-font-mono);
+        font-size: 16px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--jsb-accent);
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 32px;
+        height: 1px;
+        background: var(--jsb-accent);
+      }
+
+      h1 {
+        margin: 0;
+        font-family: var(--jsb-font-display);
+        font-size: 62px;
+        font-weight: 600;
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+      }
+
+      /* The accent bar under the word, as in the hero headline */
+      h1 u {
+        text-decoration: none;
+        background-image: linear-gradient(var(--jsb-accent), var(--jsb-accent));
+        background-size: 100% 5px;
+        background-repeat: no-repeat;
+        background-position: 0 92%;
+      }
+
+      .package {
+        font-family: var(--jsb-font-mono);
+        font-size: 19px;
+        color: var(--jsb-muted);
+      }
+
+      .package b {
+        font-weight: 500;
+        color: var(--jsb-ink);
+      }
+
+      .sheet {
+        position: absolute;
+        top: 50%;
+        right: 28px;
+        width: 560px;
+        height: 538px;
+        transform: translateY(-50%);
+      }
+
+      .corners {
+        fill: none;
+        stroke: var(--jsb-line-strong);
+        stroke-width: 1;
+      }
+
+      .dim {
+        stroke: var(--jsb-faint);
+        stroke-width: 1;
+      }
+
+      .dim-text {
+        font-family: var(--jsb-font-mono);
+        font-size: 9px;
+        fill: var(--jsb-faint);
+      }
+
+      .slab path {
+        fill: var(--jsb-card);
+        stroke: var(--jsb-accent);
+        stroke-width: 1.4;
+      }
+
+      .slab .face {
+        fill: var(--jsb-accent-soft);
+      }
+
+      .slab text {
+        font-family: var(--jsb-font-mono);
+        font-size: 11px;
+        fill: var(--jsb-ink);
+      }
+
+      .arrow-ok {
+        fill: var(--jsb-ok);
+      }
+
+      .arrow-bad {
+        fill: var(--jsb-bad);
+      }
+
+      .edge-ok {
+        fill: none;
+        stroke: var(--jsb-ok);
+        stroke-width: 1.6;
+      }
+
+      .edge-bad {
+        fill: none;
+        stroke: var(--jsb-bad);
+        stroke-width: 1.8;
+        stroke-dasharray: 5 5;
+      }
+
+      .tag {
+        font-family: var(--jsb-font-mono);
+        font-size: 10px;
+        font-weight: 500;
+      }
+
+      .tag-ok text {
+        fill: var(--jsb-ok);
+      }
+
+      .tag-bad rect {
+        fill: var(--jsb-bad);
+      }
+
+      .tag-bad text {
+        fill: var(--jsb-accent-ink);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="copy">
+        <div class="brand">
+          <img src="/img/logo.svg" alt="" />
+          JS Boundaries
+        </div>
+        <div>
+          <div class="eyebrow">ESLint plugin</div>
+          <h1>Lint your <u>architecture</u>, not just your syntax.</h1>
+        </div>
+        <div class="package"><b>eslint-plugin-boundaries</b> · jsboundaries.dev</div>
+      </div>
+
+      <svg class="sheet" viewBox="0 0 520 500" aria-hidden="true">
+        <defs>
+          <marker id="arrow-ok" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path class="arrow-ok" d="M0,0 L8,4 L0,8 z" />
+          </marker>
+          <marker id="arrow-bad" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path class="arrow-bad" d="M0,0 L8,4 L0,8 z" />
+          </marker>
+        </defs>
+
+        <path class="corners" d="M14 30V14h16M506 14h-16M506 30V14M14 470v16h16M506 486h-16M506 470v16" />
+
+        <line class="dim" x1="470" y1="70" x2="470" y2="430" />
+        <line class="dim" x1="464" y1="70" x2="476" y2="70" />
+        <line class="dim" x1="464" y1="430" x2="476" y2="430" />
+        <text class="dim-text" x="478" y="254" transform="rotate(90 478 254)" text-anchor="middle">3 element types · 1 rule</text>
+
+        <g class="slab">
+          <path d="M110 110 L260 60 L410 110 L260 160 Z" />
+          <path class="face" d="M110 110 L110 128 L260 178 L260 160 Z" />
+          <path d="M260 160 L260 178 L410 128 L410 110 Z" />
+          <text x="260" y="114" text-anchor="middle">modules/*</text>
+        </g>
+        <g class="slab">
+          <path d="M110 240 L260 190 L410 240 L260 290 Z" />
+          <path class="face" d="M110 240 L110 258 L260 308 L260 290 Z" />
+          <path d="M260 290 L260 308 L410 258 L410 240 Z" />
+          <text x="260" y="244" text-anchor="middle">components/*/*</text>
+        </g>
+        <g class="slab">
+          <path d="M110 370 L260 320 L410 370 L260 420 Z" />
+          <path class="face" d="M110 370 L110 388 L260 438 L260 420 Z" />
+          <path d="M260 420 L260 438 L410 388 L410 370 Z" />
+          <text x="260" y="374" text-anchor="middle">helpers/*</text>
+        </g>
+
+        <path class="edge-ok" d="M200 160 C190 185 190 195 200 212" marker-end="url(#arrow-ok)" />
+        <path class="edge-ok" d="M330 160 C340 185 340 195 330 212" marker-end="url(#arrow-ok)" />
+        <path class="edge-ok" d="M200 290 C190 315 190 325 200 342" marker-end="url(#arrow-ok)" />
+        <g class="tag tag-ok">
+          <text x="150" y="190">allow →</text>
+          <text x="150" y="320">allow →</text>
+        </g>
+
+        <path class="edge-bad" d="M420 380 C470 330 470 290 420 258" marker-end="url(#arrow-bad)" />
+        <g class="tag tag-bad">
+          <rect x="330" y="300" width="128" height="20" rx="3" />
+          <text x="394" y="314" text-anchor="middle">✕ helper → component</text>
+        </g>
+      </svg>
+    </div>
+  </body>
+</html>

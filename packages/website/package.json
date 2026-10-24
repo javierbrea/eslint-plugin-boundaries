@@ -14,6 +14,7 @@
     "start": "cross-env NODE_ENV=development docusaurus start",
     "serve": "docusaurus serve",
     "screenshots": "node scripts/screenshots.mjs",
+    "social-card": "node scripts/social-card.mjs",
     "swizzle": "docusaurus swizzle",
     "sync:fonts": "node scripts/sync-fonts.mjs",
     "clear": "docusaurus clear",
