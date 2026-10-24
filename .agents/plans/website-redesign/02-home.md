@@ -130,7 +130,7 @@ settings: {
     { from: { element: { type: "module" } },
       allow: { to: { element: { types: ["component", "helper"] } } } },
     { disallow: { to: { file: { categories: "test" } } },
-      message: "Never import test files from ${from.element.type}s" },
+      message: "Never import test files from {{ from.element.types.[0] }}s" },
   ],
 }]
 ```
@@ -139,8 +139,8 @@ settings: {
 
 ```
 src/helpers/format/index.js
-  1:22  error  No rule allowing this dependency was found.
-         File is of type 'helper'. Dependency is of type 'component'
+  1:22  error  There is no policy allowing dependencies from
+         elements of type "helper" to elements of type "component"
          boundaries/dependencies
 
 ✖ 1 problem (1 error, 0 warnings)
@@ -167,7 +167,24 @@ Note: the mockup says "Seven rules" and "Six more rules"; the copy above is the 
 
 ### 3.5 Perspectives (`.persp`, `.pcard`, `.desc`)
 
-Background `--jsb-paper-2`. Left: `SectionHead` eyebrow "New in v7", h2 `One file, described from every angle`, lead `Hover a layer to see the part of the runtime description it fills. Policies can read any of them, on both sides.`; then three cards (`element` / `file` / `module`) with the texts: `The architectural unit: component, service, module…`, `The file's own categories: test, index, style…`, `Where the dependency resolves: local, external, core.` Right: a `pre` with the description object exactly as in the mockup lines 399–412 (comment line `// components/Price/Price.spec.tsx  →  import "react"`), where each `element:`, `file:` and `module:` line is a `span` tagged with its layer.
+Background `--jsb-paper-2`. Left: `SectionHead` eyebrow "New in v7", h2 `One file, described from every angle`, lead `Hover a layer to see the part of the runtime description it fills. Policies can read any of them, on both sides.`; then three cards (`element` / `file` / `module`) with the texts: `The architectural unit: component, service, module…`, `The file's own categories: test, index, style…`, `Where the dependency resolves: local, external, core.` Right: a `pre` with the description object below, where each `element:`, `file:` and `module:` line is a `span` tagged with its layer. It matches what `@boundaries/elements` produces (the mockup lines 399–412 do not: `module.source`, not `name`; `relationship` is always `{ from, to }`; an external target has `types: null` and `categories: null`):
+
+```js
+// components/Price/Price.spec.tsx  →  import "react"
+{
+  from: {
+    element: { types: ["component"], captured: { name: "Price" } },
+    file: { categories: ["test"] },
+    module: { origin: "local" },
+  },
+  to: {
+    element: { types: null },
+    file: { categories: null },
+    module: { origin: "external", source: "react" },
+  },
+  dependency: { kind: "value", relationship: { from: null, to: null } },
+}
+```
 
 Behaviour: state `active: "element" | "file" | "module"` (default `element`). Pointer enter or focus on a card sets it; the active card gets the accent border + `0 0 0 3px var(--jsb-accent-soft)` ring; the matching spans get `background: color-mix(in srgb, var(--jsb-accent) 35%, transparent)`. Cards are `button`s (`aria-pressed`), so keyboard and touch work.
 
