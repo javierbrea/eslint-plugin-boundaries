@@ -1,0 +1,1 @@
+Assets of the website playground RFC (https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538): interface sketches in both themes and the canvas dependency graph that is the starting point of the graph view. No code. This branch is referenced by the RFC and stays as long as the RFC does.
