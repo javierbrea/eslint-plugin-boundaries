@@ -1,0 +1,64 @@
+/**
+ * Design tokens of the site. Light values on `:root`, dark values on
+ * `[data-theme="dark"]`. Every color in site CSS references one of these;
+ * literal colors are allowed only here, in the per-theme Infima shade scales
+ * of `infima-bridge.css`, in the CodeDiff rules of `custom.css` and inside
+ * the Prism theme object.
+ */
+
+:root {
+  --jsb-paper: #f3f4f9;
+  --jsb-paper-2: #ffffff;
+  --jsb-ink: #161a33;
+  --jsb-muted: #5a6080;
+  --jsb-faint: #9397b6;
+  --jsb-line: rgba(22, 26, 51, 0.13);
+  --jsb-line-strong: rgba(22, 26, 51, 0.28);
+  --jsb-grid: rgba(76, 82, 216, 0.1);
+  --jsb-accent: #4c52d8;
+  --jsb-accent-ink: #ffffff;
+  --jsb-accent-soft: rgba(76, 82, 216, 0.1);
+  --jsb-ok: #0f8f7c;
+  --jsb-bad: #d7442f;
+  --jsb-warn: #b26b00;
+  --jsb-card: #ffffff;
+  --jsb-code: #1b1f3b;
+  --jsb-code-fg: #e7e9f8;
+  --jsb-code-keyword: #b3b8ff;
+  --jsb-code-string: #8fe3cf;
+  --jsb-code-comment: #7a7fa3;
+  --jsb-code-error: #ff8f7c;
+  --jsb-code-number: #ffd479;
+  --jsb-code-line: rgba(143, 148, 255, 0.18);
+  --jsb-shadow: 0 24px 50px -30px rgba(22, 26, 51, 0.35);
+  --jsb-glow-a: color-mix(in srgb, var(--jsb-accent) 24%, transparent);
+  --jsb-glow-b: color-mix(in srgb, var(--jsb-ok) 13%, transparent);
+  --jsb-font-display: "Sora", "Avenir Next", "Helvetica Neue", sans-serif;
+  --jsb-font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --jsb-font-mono: "IBM Plex Mono", "SFMono-Regular", Menlo, monospace;
+  --jsb-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --jsb-radius: 6px;
+  --jsb-radius-lg: 8px;
+  --jsb-radius-xl: 12px;
+}
+
+[data-theme="dark"] {
+  --jsb-paper: #0f1222;
+  --jsb-paper-2: #141833;
+  --jsb-ink: #e9ebf7;
+  --jsb-muted: #a4a9c9;
+  --jsb-faint: #6a6f93;
+  --jsb-line: rgba(233, 235, 247, 0.12);
+  --jsb-line-strong: rgba(233, 235, 247, 0.28);
+  --jsb-grid: rgba(143, 148, 255, 0.11);
+  --jsb-accent: #8f94ff;
+  --jsb-accent-ink: #0f1222;
+  --jsb-accent-soft: rgba(143, 148, 255, 0.14);
+  --jsb-ok: #3fd1b4;
+  --jsb-bad: #ff7a66;
+  --jsb-warn: #ffd479;
+  --jsb-card: #171b36;
+  --jsb-code: #0b0e1d;
+  --jsb-code-fg: #e7e9f8;
+  --jsb-shadow: 0 24px 50px -30px rgba(0, 0, 0, 0.7);
+}

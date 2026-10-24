@@ -5,6 +5,13 @@
   "tags": [
     "type:react:application"
   ],
+  "namedInputs": {
+    // Docusaurus reads its config, sidebars and versions from the project root, which the workspace `production` input excludes
+    "production": [
+      "!{projectRoot}/**/*.spec.*",
+      "!{projectRoot}/**/*.test.*"
+    ]
+  },
   "targets": {
     "lint": {
       "cache": true,
@@ -34,7 +41,7 @@
     },
     "build": {
       "cache": true,
-      "outputs": ["{projectRoot}/dist"],
+      "outputs": ["{projectRoot}/build"],
       "inputs": [
         { "dependentTasksOutputFiles": "**/*", "transitive": true },
         "default",

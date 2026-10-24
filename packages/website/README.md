@@ -161,6 +161,7 @@ When the new version is ready to be released, create a new versioned docs set by
 | `pnpm build` | Build the website for production |
 | `pnpm serve` | Serve the production build locally for preview |
 | `pnpm swizzle` | Customize Docusaurus components |
+| `pnpm sync:fonts` | Copy the self-hosted font files from the Fontsource packages into `static/fonts` |
 | `pnpm version` | Bump the version of the website. Read the documentation for details. |
 
 ## Additional Resources

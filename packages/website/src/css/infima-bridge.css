@@ -1,0 +1,180 @@
+/**
+ * Maps Infima variables onto the design tokens so that Docusaurus-rendered
+ * pages take the new look without swizzling. Infima and DocSearch load in
+ * `@layer docusaurus.*` cascade layers (enabled by `future.v4` in
+ * `docusaurus.config.ts`), so these declarations, which are in no layer, win
+ * over them in both themes; without the layers, Infima's
+ * `html[data-theme="dark"]` block would win in dark mode.
+ */
+
+:root,
+[data-theme="dark"] {
+  /* type */
+  --ifm-font-family-base: var(--jsb-font-body);
+  --ifm-font-family-monospace: var(--jsb-font-mono);
+  --ifm-heading-font-family: var(--jsb-font-display);
+  --ifm-font-size-base: 93.75%;
+  --ifm-blockquote-font-size: 1rem;
+  --ifm-line-height-base: 1.6;
+  --ifm-heading-font-weight: 600;
+  --ifm-heading-line-height: 1.2;
+  --ifm-h1-font-size: 2.1rem;
+  --ifm-h2-font-size: 1.55rem;
+  --ifm-h3-font-size: 1.2rem;
+  --ifm-h4-font-size: 1rem;
+  --ifm-code-font-size: 88%;
+  --ifm-global-radius: var(--jsb-radius);
+  --ifm-button-border-radius: var(--jsb-radius);
+  --ifm-transition-timing-default: var(--jsb-ease);
+
+  /* surfaces and text */
+  --ifm-background-color: var(--jsb-paper);
+  --ifm-background-surface-color: var(--jsb-paper-2);
+  --ifm-font-color-base: var(--jsb-ink);
+  --ifm-font-color-secondary: var(--jsb-muted);
+  --ifm-color-content: var(--jsb-ink);
+  --ifm-color-content-secondary: var(--jsb-muted);
+  --ifm-hr-background-color: var(--jsb-line);
+  --ifm-toc-border-color: var(--jsb-line);
+  --ifm-table-border-color: var(--jsb-line);
+  --ifm-table-stripe-background: var(--jsb-paper);
+  --ifm-blockquote-color: var(--jsb-muted);
+  --ifm-blockquote-border-color: var(--jsb-accent);
+
+  /* brand and links */
+  --ifm-color-primary: var(--jsb-accent);
+  --ifm-link-color: var(--jsb-accent);
+  --ifm-link-hover-color: var(--jsb-ink);
+  --ifm-link-hover-decoration: underline;
+
+  /* semantic */
+  --ifm-color-success: var(--jsb-ok);
+  --ifm-color-danger: var(--jsb-bad);
+  --ifm-color-warning: var(--jsb-warn);
+  --ifm-color-info: var(--jsb-accent);
+  --ifm-color-success-contrast-background: color-mix(in srgb, var(--jsb-ok) 12%, transparent);
+  --ifm-color-danger-contrast-background: color-mix(in srgb, var(--jsb-bad) 12%, transparent);
+  --ifm-color-warning-contrast-background: color-mix(in srgb, var(--jsb-warn) 14%, transparent);
+  --ifm-color-info-contrast-background: var(--jsb-accent-soft);
+  --ifm-color-secondary-contrast-background: color-mix(in srgb, var(--jsb-muted) 10%, transparent);
+  --ifm-color-success-contrast-foreground: var(--jsb-ink);
+  --ifm-color-danger-contrast-foreground: var(--jsb-ink);
+  --ifm-color-warning-contrast-foreground: var(--jsb-ink);
+  --ifm-color-info-contrast-foreground: var(--jsb-ink);
+  --ifm-color-secondary-contrast-foreground: var(--jsb-ink);
+  --ifm-color-success-dark: var(--jsb-ok);
+  --ifm-color-danger-dark: var(--jsb-bad);
+  --ifm-color-warning-dark: var(--jsb-warn);
+  --ifm-color-info-dark: var(--jsb-accent);
+  --ifm-color-secondary-dark: var(--jsb-muted);
+
+  /* code */
+  --ifm-code-background: var(--jsb-accent-soft);
+  --ifm-pre-background: var(--jsb-code);
+  --ifm-pre-color: var(--jsb-code-fg);
+  --docusaurus-highlighted-code-line-bg: var(--jsb-code-line);
+
+  /* navbar, menu, footer */
+  --ifm-navbar-height: 58px;
+  --ifm-navbar-background-color: var(--jsb-paper);
+  --ifm-navbar-link-color: var(--jsb-muted);
+  --ifm-navbar-link-hover-color: var(--jsb-ink);
+  --ifm-navbar-shadow: none;
+  --ifm-menu-color: var(--jsb-muted);
+  --ifm-menu-color-active: var(--jsb-accent);
+  --ifm-menu-color-background-active: var(--jsb-accent-soft);
+  --ifm-menu-color-background-hover: var(--jsb-accent-soft);
+  --ifm-breadcrumb-item-background-active: var(--jsb-accent-soft);
+  --ifm-footer-background-color: var(--jsb-paper-2);
+  --ifm-footer-color: var(--jsb-muted);
+  --ifm-footer-link-color: var(--jsb-muted);
+  --ifm-footer-link-hover-color: var(--jsb-ink);
+  --ifm-footer-title-color: var(--jsb-muted);
+
+  /* DocSearch */
+  --docsearch-primary-color: var(--jsb-accent);
+  --docsearch-text-color: var(--jsb-ink);
+  --docsearch-muted-color: var(--jsb-muted);
+  --docsearch-searchbox-background: var(--jsb-card);
+  --docsearch-searchbox-focus-background: var(--jsb-card);
+  --docsearch-modal-background: var(--jsb-paper);
+  --docsearch-hit-background: var(--jsb-card);
+  --docsearch-footer-background: var(--jsb-paper-2);
+}
+
+:root {
+  --ifm-color-primary-dark: #3b41c4;
+  --ifm-color-primary-darker: #353bb9;
+  --ifm-color-primary-darkest: #2c3198;
+  --ifm-color-primary-light: #6469de;
+  --ifm-color-primary-lighter: #7277e1;
+  --ifm-color-primary-lightest: #9a9ded;
+  --ifm-color-emphasis-100: #eef0f7;
+  --ifm-color-emphasis-200: #e1e4f0;
+  --ifm-color-emphasis-300: #cfd3e4;
+  --ifm-color-emphasis-400: #b4b9d0;
+  --ifm-color-emphasis-500: #9397b6;
+  --ifm-color-emphasis-600: #6f7595;
+  --ifm-color-emphasis-700: #5a6080;
+  --ifm-color-emphasis-800: #3a3f5e;
+  --ifm-color-emphasis-900: #161a33;
+}
+
+[data-theme="dark"] {
+  --ifm-color-primary-dark: #7a80ff;
+  --ifm-color-primary-darker: #6a71ff;
+  --ifm-color-primary-darkest: #4f57f0;
+  --ifm-color-primary-light: #a4a8ff;
+  --ifm-color-primary-lighter: #b3b6ff;
+  --ifm-color-primary-lightest: #d0d2ff;
+  --ifm-color-emphasis-100: #1a1e3a;
+  --ifm-color-emphasis-200: #22274a;
+  --ifm-color-emphasis-300: #2e3358;
+  --ifm-color-emphasis-400: #434a73;
+  --ifm-color-emphasis-500: #6a6f93;
+  --ifm-color-emphasis-600: #8a8fb0;
+  --ifm-color-emphasis-700: #a4a9c9;
+  --ifm-color-emphasis-800: #cfd3e8;
+  --ifm-color-emphasis-900: #e9ebf7;
+}
+
+/* element rules that Infima variables cannot express */
+h1,
+h2 {
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+/* Infima sets the docs title and top-level h2/h3 sizes on the elements; inherit the :root values instead */
+.markdown h1:first-child {
+  --ifm-h1-font-size: inherit;
+}
+
+.markdown > h2 {
+  --ifm-h2-font-size: inherit;
+}
+
+.markdown > h3 {
+  --ifm-h3-font-size: inherit;
+}
+
+/* Infima gives inline code inside admonitions a per-variant highlight color; derive it from the admonition text color instead */
+.alert {
+  --ifm-alert-background-color-highlight: color-mix(in srgb, var(--ifm-alert-foreground-color) 10%, transparent);
+}
+
+.navbar {
+  border-bottom: 1px solid var(--jsb-line);
+}
+
+/* backdrop-filter makes the navbar the containing block of its fixed descendants, which would clip the mobile sidebar, so the translucent blurred navbar only applies above the mobile breakpoint */
+@media (min-width: 997px) {
+  .navbar {
+    background-color: color-mix(in srgb, var(--jsb-paper) 88%, transparent);
+    backdrop-filter: blur(10px);
+  }
+}
+
+.footer {
+  border-top: 1px solid var(--jsb-line);
+}

@@ -1,4 +1,7 @@
 // eslint-disable-next-line import/extensions
 const { createConfig } = require("../../support/cspell-config/index.js");
 
-module.exports = createConfig();
+module.exports = createConfig({
+  words: ["Avenir", "fontsource", "Sora", "woff"],
+  ignorePaths: ["static/fonts/LICENSE-*.txt"],
+});
