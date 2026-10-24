@@ -84,12 +84,14 @@ export default function Perspectives(): ReactNode {
             {"\n    "}
             {line("module", 'module: { origin: "local" },')}
             {"\n  },\n  to: {\n    "}
-            {line("element", "element: { types: [] },")}
+            {line("element", "element: { types: null },")}
             {"\n    "}
-            {line("file", "file: { categories: [] },")}
+            {line("file", "file: { categories: null },")}
             {"\n    "}
-            {line("module", 'module: { origin: "external", name: "react" },')}
-            {'\n  },\n  dependency: { kind: "value", relationship: null },\n}'}
+            {line("module", 'module: { origin: "external", source: "react" },')}
+            {
+              '\n  },\n  dependency: { kind: "value", relationship: { from: null, to: null } },\n}'
+            }
           </code>
         </Reveal>
       </div>

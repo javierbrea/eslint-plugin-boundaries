@@ -29,6 +29,14 @@ pnpm i
 
 This command will install dependencies for all packages in the monorepo, including the website package.
 
+Then build the plugin once:
+
+```sh
+pnpm nx build eslint-plugin
+```
+
+The website lints its own `src/` with the workspace plugin, and the pre-commit hook loads it, so ESLint fails to load the website config until the plugin is built.
+
 ### Starting the Development Server
 
 To start the development server and preview the website locally:

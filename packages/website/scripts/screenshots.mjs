@@ -82,7 +82,10 @@ async function capture(chrome, url, name, viewport, theme) {
     }
   });
 
-  await page.goto(url, { waitUntil: "networkidle" });
+  const response = await page.goto(url, { waitUntil: "networkidle" });
+  if (!response?.ok()) {
+    errors.push(`HTTP ${response?.status() ?? "no response"} for ${url}`);
+  }
   await page.mouse.move(viewport.width * 0.7, 420);
   await page.waitForTimeout(SETTLE_MS);
   const prefix = resolve(OUTPUT_DIR, `${name}-${viewport.name}-${theme}`);
