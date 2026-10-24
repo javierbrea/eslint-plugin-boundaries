@@ -167,6 +167,13 @@ export default function BlueprintSheet(): ReactNode {
               onPointerLeave={() => setActive(null)}
               onFocus={() => setActive(slab)}
               onBlur={() => setActive(null)}
+              onKeyDown={(keyEvent) => {
+                // A role="button" answers Enter and Space; Space would otherwise scroll the page
+                if (keyEvent.key === "Enter" || keyEvent.key === " ") {
+                  keyEvent.preventDefault();
+                  setActive(slab);
+                }
+              }}
             >
               <path
                 className={draw}

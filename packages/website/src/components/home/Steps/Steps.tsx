@@ -37,7 +37,7 @@ const POLICIES_CODE = `"boundaries/dependencies": [2, {
     { from: { element: { type: "module" } },
       allow: { to: { element: { types: ["component", "helper"] } } } },
     { disallow: { to: { file: { categories: "test" } } },
-      message: "Never import test files from \${from.element.type}s" },
+      message: "Never import test files from {{ from.element.types.[0] }}s" },
   ],
 }]`;
 
@@ -69,11 +69,11 @@ const STEPS: Step[] = [
         {"  "}
         <TermError>error</TermError>
         {
-          "  No rule allowing this dependency was found.\n         File is of type "
+          "  There is no policy allowing dependencies from\n         elements of type "
         }
-        <TermQuoted>&apos;helper&apos;</TermQuoted>
-        {". Dependency is of type "}
-        <TermQuoted>&apos;component&apos;</TermQuoted>
+        <TermQuoted>&quot;helper&quot;</TermQuoted>
+        {" to elements of type "}
+        <TermQuoted>&quot;component&quot;</TermQuoted>
         {"\n         "}
         <TermPath>boundaries/dependencies</TermPath>
         {"\n\n"}

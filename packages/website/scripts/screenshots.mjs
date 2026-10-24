@@ -4,7 +4,7 @@
 //
 // Usage: pnpm --filter website screenshots [baseUrl] [paths...]
 //   baseUrl defaults to http://localhost:3000 (`pnpm --filter website serve` or `pnpm nx start website`)
-//   paths default to /, /docs/overview/ and /docs/quick-start/
+//   paths default to /, /docs/overview/ and /docs/quick-start/; /this-page-does-not-exist/ captures the 404 page
 //
 // Uses the local Chrome through playwright-core; without Chrome, run `pnpm dlx playwright install chromium` first.
 
@@ -27,6 +27,8 @@ const THEMES = ["light", "dark"];
 const SETTLE_MS = 3000;
 // Live stats fall back to static values when these APIs fail (rate limits), so their errors are expected
 const TOLERATED_ERROR_HOSTS = ["api.github.com", "api.npmjs.org"];
+// The only path allowed to answer 404, so that a mistyped path still fails
+const NOT_FOUND_PATH = "/this-page-does-not-exist/";
 
 const OUTPUT_DIR = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -60,7 +62,7 @@ async function launchBrowser() {
   }
 }
 
-async function capture(chrome, url, name, viewport, theme) {
+async function capture(chrome, url, name, viewport, theme, expectNotFound) {
   const context = await chrome.newContext({
     viewport: { width: viewport.width, height: viewport.height },
     colorScheme: theme,
@@ -75,14 +77,24 @@ async function capture(chrome, url, name, viewport, theme) {
   }, theme);
   const page = await context.newPage();
   const errors = [];
-  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("pageerror", (error) => errors.push({ text: error.message }));
   page.on("console", (message) => {
     if (message.type() === "error" && !isTolerated(message.location().url)) {
-      errors.push(message.text());
+      errors.push({ text: message.text(), url: message.location().url });
     }
   });
 
-  await page.goto(url, { waitUntil: "networkidle" });
+  const response = await page.goto(url, { waitUntil: "networkidle" });
+  // The 404 page answers 404 by design: the browser logs that status as an error, which is expected there
+  const isExpectedNotFound = expectNotFound && response?.status() === 404;
+  const expectedErrors = isExpectedNotFound
+    ? errors.filter((error) => error.url === url)
+    : [];
+  if (!response?.ok() && !isExpectedNotFound) {
+    errors.push({
+      text: `HTTP ${response?.status() ?? "no response"} for ${url}`,
+    });
+  }
   await page.mouse.move(viewport.width * 0.7, 420);
   await page.waitForTimeout(SETTLE_MS);
   const prefix = resolve(OUTPUT_DIR, `${name}-${viewport.name}-${theme}`);
@@ -105,7 +117,13 @@ async function capture(chrome, url, name, viewport, theme) {
       document.documentElement.clientWidth
   );
   await context.close();
-  return { overflow, errors, top: `${prefix}-top.png` };
+  return {
+    overflow,
+    errors: errors
+      .filter((error) => !expectedErrors.includes(error))
+      .map((error) => error.text),
+    top: `${prefix}-top.png`,
+  };
 }
 
 // One image per page: desktop light and dark on top, mobile light and dark below
@@ -142,7 +160,14 @@ for (const path of paths) {
   const shots = [];
   for (const viewport of VIEWPORTS) {
     for (const theme of THEMES) {
-      const result = await capture(browser, url, name, viewport, theme);
+      const result = await capture(
+        browser,
+        url,
+        name,
+        viewport,
+        theme,
+        path === NOT_FOUND_PATH
+      );
       const ok = !result.overflow && result.errors.length === 0;
       failed ||= !ok;
       shots.push({
