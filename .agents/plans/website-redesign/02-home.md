@@ -218,7 +218,7 @@ Same approach as the project stats on javierbrea.com (public GitHub and npm APIs
 
 ## 6. Prism theme (`src/prism/blueprintTheme.ts`)
 
-A `PrismTheme` (type from `prism-react-renderer`) with `plain: { color: "#e7e9f8", backgroundColor: "#1b1f3b" }` and styles: keyword/property/attr-name/tag → `#b3b8ff`; string/attr-value/inserted → `#8fe3cf`; comment/prolog/doctype/cdata → `#7a7fa3` italic; number/boolean/constant → `#ffd479`; deleted/important → `#ff8f7c`; function/class-name → `#e7e9f8`; punctuation/operator → `#aeb3d6`. Literal colours are allowed in this file (it is a JS object). Export it; phase 3 wires it into `docusaurus.config.ts` and `CodeDiff`. In this phase it is used only by `CodeSnippet`.
+A `PrismTheme` (type from `prism-react-renderer`) with `plain: { color: "#e7e9f8", backgroundColor: "#1b1f3b" }` and styles: keyword/property/attr-name/tag → `#b3b8ff`; string/attr-value/inserted → `#8fe3cf`; comment/prolog/doctype/cdata → `#9499bb` italic; number/boolean/constant → `#ffd479`; deleted/important → `#ff8f7c`; function/class-name → `#e7e9f8`; punctuation/operator → `#aeb3d6`. Literal colours are allowed in this file (it is a JS object). Export it; phase 3 wires it into `docusaurus.config.ts` and `CodeDiff`. In this phase it is used only by `CodeSnippet`.
 
 ## 7. Navbar and footer
 

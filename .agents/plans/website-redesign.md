@@ -3,7 +3,7 @@
 
 Index of the plan. The plan is split so that an independent agent can implement one phase with no other context than the files named here plus the repository's own agent files.
 
-Status (2026-10-24): design accepted (direction B, "blueprint"), all design decisions closed. The playground is no longer part of the redesign: it has its own RFC ([#538](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538)) and tracking issue (#539), and the home teaser links to that issue. Phase 1 is implemented and merged into the integration branch (PR #536); phase 2 is implemented (PR #537, under review); phase 5 is implemented (PR #542, merged last); phase 3 is pending. The plan already reflects what the implemented phases learned.
+Status (2026-10-24): design accepted (direction B, "blueprint"), all design decisions closed. The playground is no longer part of the redesign: it has its own RFC ([#538](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538)) and tracking issue (#539), and the home teaser links to that issue. Phase 1 is implemented and merged into the integration branch (PR #536); phase 2 is implemented (PR #537, under review); phase 5 is implemented (PR #542, merged last); phase 3 is implemented (PR #543, under review). The plan already reflects what the implemented phases learned.
 
 This plan is committed on the integration branch `feat/website-redesign` (a `.gitignore` exception for `.agents/plans/website-redesign*`) so that sessions in other worktrees or in the cloud can read it. It is temporary: phase 5 removes it, the exception and the related clause in the root `AGENTS.md` before the branch merges into `release`. Phase sessions read the plan and keep it true: whenever a session deviates from its phase file, finds a fact here that is wrong, or leaves work for a later phase, it records that in the PR description and also proposes the matching plan edit to the maintainer. With the maintainer's permission it commits the edit on `feat/website-redesign` directly (a `chore(website)` commit, pushed, so every session sees it), never silently and never on the phase branch alone. The maintainer may also apply the edit themselves.
 
@@ -44,7 +44,7 @@ The redesign goes live by merging, not by a release. As soon as phases 1, 2, 3 a
 5. Headline: "Lint your architecture, not just your syntax." with "architecture" underlined in the accent. Lead: "Classify your files, write policies for who may depend on whom, and get an ESLint error the moment a boundary is crossed. In your IDE, in CI, with nothing new to run."
 6. Live numbers (stars, downloads) fetched client-side and cached in localStorage for 24h, the same approach javierbrea.com uses for its project stats; years and copyright computed from the current date.
 7. Styling stack: Docusaurus 3 + Infima, design tokens + CSS Modules, no Tailwind, no CSS-in-JS on home or docs. MUI, if ever, only inside the client-only playground.
-8. Code blocks use one always-dark palette in both themes (home and docs).
+8. Code blocks use one always-dark palette in both themes (home and docs); the surface is `--jsb-code`, which darkens further in dark mode.
 9. Docs markdown stays untouched except the acknowledgments page (phase 2). Any docs edit the redesign needs is applied identically to `docs/` (served at `/docs/next/`) and to `versioned_docs/version-7.3.0/` (the latest snapshot, served at `/docs/`), never to older snapshots. Details in `00-shared.md` section 2.
 
 ## Open

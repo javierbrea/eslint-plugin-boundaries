@@ -74,7 +74,7 @@ Maps Infima variables onto the tokens so Docusaurus-rendered pages restyle witho
   --ifm-hr-background-color: var(--jsb-line);
   --ifm-toc-border-color: var(--jsb-line);
   --ifm-table-border-color: var(--jsb-line);
-  --ifm-table-stripe-background: var(--jsb-paper);
+  --ifm-table-stripe-background: var(--jsb-paper-2); /* paper is the page background, so a paper stripe is invisible */
   --ifm-blockquote-color: var(--jsb-muted);
   --ifm-blockquote-border-color: var(--jsb-accent);
 
