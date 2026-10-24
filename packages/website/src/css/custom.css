@@ -1,16 +1,63 @@
 /**
- * Site-specific global rules. Design tokens live in `tokens.css`, the
- * typefaces in `fonts.css` and the Infima variable mapping in
- * `infima-bridge.css`.
+ * Site-specific global rules, grouped by component. Design tokens live in
+ * `tokens.css`, the typefaces in `fonts.css` and the Infima variable mapping
+ * in `infima-bridge.css`.
  */
 
-/* Layout: content width shared by the sections of the home */
+/* Layout: content width shared by the sections of the home and the 404 page */
 
 .jsb-wrap {
   width: min(1140px, 100%);
   margin-inline: auto;
   padding-inline: max(16px, env(safe-area-inset-left, 0px))
     max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* Navbar: page links get the growing underline, dropdown toggles keep their caret */
+
+.navbar__items .navbar__link:not(.jsb-navbar-cta, .dropdown > .navbar__link) {
+  position: relative;
+}
+
+.navbar__items .navbar__link:not(.jsb-navbar-cta, .dropdown > .navbar__link)::after {
+  content: "";
+  position: absolute;
+  left: var(--ifm-navbar-item-padding-horizontal);
+  right: var(--ifm-navbar-item-padding-horizontal);
+  bottom: calc(var(--ifm-navbar-item-padding-vertical) - 2px);
+  height: 1px;
+  background: var(--jsb-accent);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s var(--jsb-ease);
+}
+
+.navbar__items .navbar__link:not(.jsb-navbar-cta, .dropdown > .navbar__link):hover::after,
+.navbar__items .navbar__link--active:not(.jsb-navbar-cta, .dropdown > .navbar__link)::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Navbar: dropdown menus (docs version) */
+
+.navbar .dropdown__menu {
+  padding: 0.35rem;
+  border: 1px solid var(--jsb-line);
+  border-radius: var(--jsb-radius-lg);
+  background: var(--jsb-card);
+  box-shadow: var(--jsb-shadow);
+}
+
+.navbar .dropdown__link {
+  border-radius: var(--jsb-radius);
+  color: var(--jsb-muted);
+  font-size: 0.85rem;
+}
+
+.navbar .dropdown__link:hover,
+.navbar .dropdown__link--active {
+  background: var(--jsb-accent-soft);
+  color: var(--jsb-accent);
 }
 
 /* Navbar: "Get started" call to action, a primary button on desktop and a plain link in the mobile sidebar */
@@ -77,15 +124,139 @@
   height: 17px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .navbar__item.jsb-navbar-cta,
-  [class*="toggleButton_"] {
-    transition: none;
-  }
+/* Search: DocSearch button as a bordered mono field; the modal colors come from the --docsearch-* variables of the bridge */
 
-  .navbar__item.jsb-navbar-cta:hover {
-    transform: none;
-  }
+.DocSearch-Button {
+  height: 34px;
+  padding: 0 0.5rem 0 0.6rem;
+  border: 1px solid var(--jsb-line);
+  border-radius: var(--jsb-radius);
+  background: var(--jsb-card);
+  color: var(--jsb-muted);
+  transition: border-color 0.25s var(--jsb-ease);
+}
+
+.DocSearch-Button:hover,
+.DocSearch-Button:focus-visible,
+.DocSearch-Button:active {
+  border-color: var(--jsb-accent);
+  background: var(--jsb-card);
+  box-shadow: none;
+  color: var(--jsb-ink);
+}
+
+.DocSearch-Button:focus-visible {
+  outline: 2px solid var(--jsb-accent);
+  outline-offset: 3px;
+}
+
+.DocSearch-Button .DocSearch-Search-Icon {
+  width: 15px;
+  height: 15px;
+  color: var(--jsb-muted);
+}
+
+.DocSearch-Button-Placeholder {
+  padding: 0 0.9rem 0 0.5rem;
+  font-family: var(--jsb-font-mono);
+  font-size: 0.78rem;
+  color: var(--jsb-muted);
+}
+
+.DocSearch-Button-Key {
+  width: auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 0.3em;
+  border: 1px solid var(--jsb-line);
+  border-radius: 4px;
+  background: var(--jsb-paper);
+  color: var(--jsb-muted);
+  font-family: var(--jsb-font-mono);
+  font-size: 0.68rem;
+}
+
+.DocSearch-Modal {
+  border: 1px solid var(--jsb-line);
+  border-radius: var(--jsb-radius-xl);
+}
+
+.DocSearch-Form {
+  border-radius: var(--jsb-radius-lg);
+  box-shadow: inset 0 0 0 1px var(--jsb-line);
+}
+
+.DocSearch-Form:focus-within {
+  box-shadow: inset 0 0 0 2px var(--jsb-accent);
+}
+
+.DocSearch-Input {
+  font-family: var(--jsb-font-body);
+}
+
+.DocSearch-Hit-source {
+  font-family: var(--jsb-font-mono);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--jsb-muted);
+}
+
+.DocSearch-Hit a {
+  border-radius: var(--jsb-radius);
+  box-shadow: none;
+}
+
+.DocSearch-Commands-Key {
+  border: 1px solid var(--jsb-line);
+  background: var(--jsb-paper);
+  box-shadow: none;
+  color: var(--jsb-muted);
+}
+
+/* Announcement bar: dark ink band with paper text */
+
+.theme-announcement-bar {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  position: relative;
+  min-height: 40px;
+}
+
+/* Docusaurus sets the announcement bar colors inline from the config, so overriding them per theme needs !important */
+[class*="announcementBar_"][role="banner"] {
+  flex: 1;
+  text-align: center;
+  padding-right: 40px;
+  padding-left: 40px;
+  background: var(--jsb-ink) !important;
+  color: var(--jsb-paper) !important;
+}
+
+[class*="announcementBar_"][role="banner"] a {
+  color: var(--jsb-paper);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+[class*="announcementBar_"][role="banner"] a:hover {
+  color: var(--jsb-paper);
+  text-decoration-thickness: 2px;
+}
+
+[class*="announcementBar_"][role="banner"] button {
+  position: absolute !important;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--jsb-paper) !important;
 }
 
 /* Footer: column titles as mono eyebrows */
@@ -111,106 +282,454 @@
   font-size: 12px;
 }
 
-/* Custom styles for code diffs */
+/* Docs: heading rhythm and paragraph spacing */
 
-/* Theme-specific visibility for CodeDiff component */
-.diff-theme-dark, [data-theme='light'] .diff-theme-dark {
-  display: none;
+.markdown {
+  --ifm-paragraph-margin-bottom: 1rem;
+  --ifm-list-paragraph-margin: 0.5rem;
 }
 
-[data-theme='dark'] .diff-theme-light {
-  display: none;
+.markdown > :first-child {
+  margin-top: 0;
 }
 
-[data-theme='dark'] .diff-theme-dark {
+.markdown h1:first-child {
+  margin-bottom: 1.2rem;
+}
+
+.markdown > h2 {
+  margin-top: 2.4rem;
+  margin-bottom: 0.8rem;
+}
+
+.markdown > h3 {
+  margin-top: 1.8rem;
+  margin-bottom: 0.6rem;
+}
+
+.markdown > h4,
+.markdown > h5,
+.markdown > h6 {
+  margin-top: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown p {
+  margin-bottom: var(--ifm-paragraph-margin-bottom);
+}
+
+/* Docs: text links, emphasis, blockquotes */
+
+.markdown a {
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.25s var(--jsb-ease);
+}
+
+.markdown strong {
+  font-weight: 600;
+}
+
+blockquote {
+  border-left-width: 2px;
+}
+
+/* Docs: tables with mono header row, scrolling inside their own box when wider than the column */
+
+.markdown table {
   display: block;
+  width: max-content;
+  max-width: 100%;
+  margin-bottom: 1.4rem;
+  overflow-x: auto;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-/* The CodeDiff pre has no theme background of its own: match the Prism theme of each variant (github / vsDark) instead of inheriting the always-dark --ifm-pre-background */
-.diff-theme-light div pre {
-  background-color: #f6f8fa;
+.markdown table th,
+.markdown table td {
+  padding: 0.55rem 0.8rem;
+  border: 0;
+  border-bottom: 1px solid var(--jsb-line);
+  border-right: 1px solid var(--jsb-line);
+  vertical-align: top;
 }
 
-.diff-theme-dark div pre {
-  background-color: #1E1E1E;
+.markdown table th:last-child,
+.markdown table td:last-child {
+  border-right: 0;
 }
+
+.markdown table thead th {
+  background: var(--jsb-paper-2);
+  color: var(--jsb-muted);
+  font-family: var(--jsb-font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+  border-top: 1px solid var(--jsb-line);
+  border-bottom: 1px solid var(--jsb-line-strong);
+}
+
+.markdown table thead th code {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.markdown table thead th:first-child {
+  border-left: 1px solid var(--jsb-line);
+  border-top-left-radius: var(--jsb-radius);
+}
+
+.markdown table thead th:last-child {
+  border-right: 1px solid var(--jsb-line);
+  border-top-right-radius: var(--jsb-radius);
+}
+
+.markdown table tbody td:first-child {
+  border-left: 1px solid var(--jsb-line);
+}
+
+.markdown table tbody td:last-child {
+  border-right: 1px solid var(--jsb-line);
+}
+
+.markdown table tr {
+  border: 0;
+}
+
+.markdown table tbody tr:nth-child(2n) {
+  background: var(--jsb-paper-2);
+}
+
+/* Docs: inline code in prose */
+
+:root,
+[data-theme="dark"] {
+  --ifm-code-border-radius: 4px;
+  --ifm-code-padding-horizontal: 0.35em;
+  --ifm-pre-border-radius: var(--jsb-radius-lg);
+}
+
+:not(pre) > code {
+  border: 0;
+  color: var(--jsb-ink);
+}
+
+/* Docs: code blocks on the always-dark palette, same chrome as the home CodeSnippet */
+
+/* Docusaurus sets the Prism background and color inline from the theme object, which holds one literal; the --jsb-code token differs per color mode, so the inline values need !important */
+.theme-code-block {
+  --prism-background-color: var(--jsb-code) !important;
+  --prism-color: var(--jsb-code-fg) !important;
+  border-radius: var(--jsb-radius-lg);
+  border-left: 3px solid var(--jsb-accent);
+  box-shadow: var(--jsb-shadow);
+}
+
+.theme-code-block pre {
+  background-color: var(--jsb-code) !important;
+  color: var(--jsb-code-fg) !important;
+  font-size: 0.85rem;
+}
+
+[class*="codeBlockTitle_"] {
+  padding: 0.55rem var(--ifm-pre-padding);
+  border-bottom: 1px solid var(--jsb-code-line);
+  font-family: var(--jsb-font-mono);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--jsb-code-fg);
+}
+
+.theme-code-block [class*="buttonGroup_"] button {
+  border: 1px solid var(--jsb-code-line);
+  border-radius: var(--jsb-radius);
+  background: var(--jsb-code);
+  color: var(--jsb-code-fg);
+  transition: opacity 0.25s var(--jsb-ease);
+}
+
+.theme-code-block:hover [class*="buttonGroup_"] button {
+  opacity: 0.75;
+}
+
+.theme-code-block [class*="buttonGroup_"] button:hover,
+.theme-code-block [class*="buttonGroup_"] button:focus-visible {
+  opacity: 1;
+}
+
+.theme-code-block [class*="buttonGroup_"] button:focus-visible {
+  outline: 2px solid var(--jsb-accent);
+  outline-offset: 2px;
+}
+
+/* Docs: CodeDiff rows and markers */
 
 .diff-addition {
-  background-color: rgba(76, 175, 80, 0.1); /* soft green */
   display: block;
+  background-color: color-mix(in srgb, var(--jsb-ok) 18%, transparent);
 }
 
 .diff-deletion {
-  background-color: rgba(244, 67, 54, 0.1); /* soft red */
   display: block;
+  background-color: color-mix(in srgb, var(--jsb-bad) 18%, transparent);
 }
 
 .diff-context {
-  display: block; /* unchanged lines */
+  display: block;
 }
 
-/* Added lines */
-.diff-addition::before {
-  content: "+";
-  display: inline-block;
-  width: 1ch;      /* same width as the symbol */
-  margin-right: 0.5ch;
-  color: green;
-  font-weight: bold;
-}
-
-/* Deleted lines */
-.diff-deletion::before {
-  content: "-";
+.diff-addition::before,
+.diff-deletion::before,
+.diff-context::before {
   display: inline-block;
   width: 1ch;
   margin-right: 0.5ch;
-  color: red;
-  font-weight: bold;
+  font-weight: 700;
 }
 
-/* Neutral lines / unchanged */
+.diff-addition::before {
+  content: "+";
+  color: var(--jsb-ok);
+}
+
+.diff-deletion::before {
+  content: "-";
+  color: var(--jsb-bad);
+}
+
 .diff-context::before {
-  content: "\00A0";    /* empty space */
-  display: inline-block;
+  content: "\00A0";
 }
 
-/* Announcement bar */
+/* Docs: admonitions and the version banner, a 3px rule in the semantic color of each type */
 
-.theme-announcement-bar {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  padding: 0 1rem;
+.alert {
+  --ifm-alert-border-left-width: 3px;
+  --ifm-alert-shadow: none;
+  border-radius: var(--jsb-radius-lg);
+  color: var(--jsb-ink);
+}
+
+.alert [class*="admonitionHeading_"],
+.alert__heading {
+  margin-bottom: 0.35rem;
+  font: 600 0.95rem / 1.3 var(--jsb-font-display);
+  text-transform: none;
+  color: var(--jsb-ink);
+}
+
+.alert [class*="admonitionIcon_"] svg,
+.alert__icon svg {
+  fill: var(--ifm-alert-border-color);
+}
+
+.alert [class*="admonitionIcon_"] {
+  margin-right: 0.35em;
+}
+
+.alert [class*="admonitionIcon_"] svg {
+  width: 1.3em;
+  height: 1.3em;
+}
+
+/* Docs: sidebar */
+
+.menu {
+  font-size: 0.9rem;
+}
+
+.menu__link,
+.menu__caret,
+.menu__list-item-collapsible {
+  border-radius: var(--jsb-radius);
+}
+
+.menu__list-item-collapsible > .menu__link {
+  font-weight: 500;
+}
+
+.menu__link--active:not(.menu__link--sublist) {
   position: relative;
-  min-height: 40px;
 }
 
-/* Docusaurus sets the announcement bar colors inline from the config, so overriding them per theme needs !important */
-[class*="announcementBar_"][role="banner"] {
-  flex: 1;
-  text-align: center;
-  padding-right: 40px;
-  padding-left: 40px;
-  background: var(--jsb-ink) !important;
-  color: var(--jsb-paper) !important;
+.menu__link--active:not(.menu__link--sublist)::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.4rem;
+  bottom: 0.4rem;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--jsb-accent);
 }
 
-[class*="announcementBar_"][role="banner"] button {
-  position: absolute !important;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--jsb-paper) !important;
+/* The caret is an Infima background image recolored with a filter; use it as a mask so it takes the faint token in both color modes */
+.menu__link--sublist-caret::after,
+.menu__caret::before {
+  background: var(--jsb-faint);
+  filter: none;
+  mask: var(--ifm-menu-link-sublist-icon) 50% / 2rem 2rem no-repeat;
 }
 
-/* Text links inside documentation content */
+/* Docs: table of contents */
 
-.markdown a {
-  text-decoration: underline;
+.table-of-contents {
+  font-size: 0.82rem;
+}
+
+.table-of-contents__left-border {
+  position: relative;
+  border-left: 1px solid var(--jsb-line);
+}
+
+.table-of-contents__link {
+  color: var(--jsb-muted);
+  line-height: 1.4;
+  transition: color 0.25s var(--jsb-ease);
+}
+
+.table-of-contents__link:hover,
+.table-of-contents__link--active {
+  color: var(--jsb-accent);
+}
+
+/* The active segment sits on the list border whatever the nesting depth: left is relative to the bordered list, top keeps the link's own position */
+.table-of-contents__link--active::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: auto;
+  width: 1px;
+  height: 1.4em;
+  background: var(--jsb-accent);
+}
+
+/* Docs: breadcrumbs */
+
+.breadcrumbs__link {
+  font-family: var(--jsb-font-mono);
+  font-size: 0.72rem;
+  color: var(--jsb-muted);
+}
+
+.breadcrumbs__item--active .breadcrumbs__link {
+  background: var(--jsb-accent-soft);
+  color: var(--jsb-accent);
+}
+
+/* Docs: previous / next pagination */
+
+.pagination-nav {
+  margin-top: 2.5rem;
+}
+
+.pagination-nav__link {
+  border: 1px solid var(--jsb-line);
+  border-radius: var(--jsb-radius-lg);
+  background: var(--jsb-card);
+  transition:
+    border-color 0.25s var(--jsb-ease),
+    transform 0.25s var(--jsb-ease);
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--jsb-accent);
+  transform: translateY(-2px);
+}
+
+.pagination-nav__sublabel {
+  margin-bottom: 0.4rem;
+  font-family: var(--jsb-font-mono);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--jsb-muted);
+}
+
+.pagination-nav__label {
+  font-family: var(--jsb-font-display);
+  font-size: 0.95rem;
   font-weight: 600;
+}
+
+/* Docs: tabs */
+
+.tabs {
+  border-bottom: 1px solid var(--jsb-line);
+}
+
+.tabs__item {
+  padding: 0.6rem 0.9rem;
+  border-bottom-width: 2px;
+  border-radius: var(--jsb-radius) var(--jsb-radius) 0 0;
+  margin-bottom: -1px;
+  font-family: var(--jsb-font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--jsb-muted);
+  transition:
+    background 0.25s var(--jsb-ease),
+    color 0.25s var(--jsb-ease);
+}
+
+.tabs__item:hover {
+  background: var(--jsb-accent-soft);
+  color: var(--jsb-ink);
+}
+
+.tabs__item--active,
+.tabs__item--active:hover {
+  border-bottom-color: var(--jsb-accent);
+  color: var(--jsb-accent);
+}
+
+/* Docs: badges, such as "New in v7" */
+
+.badge {
+  padding: 0.25em 0.55em;
+  border-radius: var(--jsb-radius);
+  font-family: var(--jsb-font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.badge--primary {
+  background: var(--jsb-accent);
+  border-color: var(--jsb-accent);
+  color: var(--jsb-accent-ink);
+}
+
+/* Motion: nothing moves when the visitor asks for reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  a,
+  .navbar__items .navbar__link::after,
+  .navbar__item.jsb-navbar-cta,
+  [class*="toggleButton_"],
+  .DocSearch-Button,
+  .markdown a,
+  .theme-code-block [class*="buttonGroup_"] button,
+  .table-of-contents__link,
+  .pagination-nav__link,
+  .tabs__item {
+    transition: none;
+  }
+
+  .navbar__item.jsb-navbar-cta:hover,
+  .pagination-nav__link:hover {
+    transform: none;
+  }
 }

@@ -1,0 +1,25 @@
+.main {
+  padding: 5rem 0 6rem;
+}
+
+.inner {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+}
+
+.title {
+  margin: 0;
+  max-width: 20ch;
+  font-size: clamp(2.2rem, 4.8vw, 3.6rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.lead {
+  margin: 0 0 0.6rem;
+  max-width: 54ch;
+  font-size: 1.04rem;
+  color: var(--jsb-muted);
+}

@@ -1,15 +1,30 @@
-/* Code block container */
+/* Code block container: same chrome as the Docusaurus code blocks and the home CodeSnippet */
 .codeBlock {
   position: relative;
+  margin-bottom: var(--ifm-leading);
+  border-radius: var(--jsb-radius-lg);
+  border-left: 3px solid var(--jsb-accent);
+  background: var(--jsb-code);
+  color: var(--jsb-code-fg);
+  box-shadow: var(--jsb-shadow);
+}
+
+.pre {
+  margin: 0;
+  padding: var(--ifm-pre-padding);
+  border-radius: inherit;
+  background: var(--jsb-code);
+  color: var(--jsb-code-fg);
+  overflow-x: auto;
 }
 
 /* Copy button styles */
 .copyButton {
   align-items: center;
-  background: var(--prism-background-color);
-  border: 1px solid var(--ifm-color-emphasis-300);
-  border-radius: var(--ifm-global-radius);
-  color: var(--ifm-color-emphasis-700);
+  background: var(--jsb-code);
+  border: 1px solid var(--jsb-code-line);
+  border-radius: var(--jsb-radius);
+  color: var(--jsb-code-fg);
   cursor: pointer;
   display: flex;
   font-size: 0.8rem;
@@ -21,25 +36,22 @@
   position: absolute;
   right: calc(var(--ifm-pre-padding) / 2);
   top: calc(var(--ifm-pre-padding) / 2);
-  transition: opacity var(--ifm-transition-fast) ease-in-out;
+  transition: opacity 0.25s var(--jsb-ease);
   width: 2rem;
   z-index: 10;
 }
 
 .codeBlock:hover .copyButton {
+  opacity: 0.75;
+}
+
+.copyButton:hover,
+.copyButton:focus-visible {
   opacity: 1;
 }
 
-.copyButton:hover {
-  background: var(--ifm-color-emphasis-200);
-}
-
-.copyButton:active {
-  background: var(--ifm-color-emphasis-300);
-}
-
-.copyButton:focus {
-  outline: 2px solid var(--ifm-color-primary);
+.copyButton:focus-visible {
+  outline: 2px solid var(--jsb-accent);
   outline-offset: 2px;
 }
 
@@ -58,12 +70,12 @@
   opacity: inherit;
   position: absolute;
   top: 0;
-  transition: all var(--ifm-transition-fast) ease;
+  transition: all 0.25s var(--jsb-ease);
   width: inherit;
 }
 
 .successIcon {
-  color: #00d600;
+  color: var(--jsb-ok);
   left: 50%;
   opacity: 0;
   top: 50%;
@@ -72,7 +84,7 @@
 
 /* Copied state */
 .copyButtonCopied {
-  opacity: 1 !important;
+  opacity: 1;
 }
 
 .copyButtonCopied .copyIcon {
@@ -84,4 +96,12 @@
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
   transition-delay: 75ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copyButton,
+  .copyIcon,
+  .successIcon {
+    transition: none;
+  }
 }

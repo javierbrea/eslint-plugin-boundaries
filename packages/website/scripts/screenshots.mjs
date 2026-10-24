@@ -75,14 +75,19 @@ async function capture(chrome, url, name, viewport, theme) {
   }, theme);
   const page = await context.newPage();
   const errors = [];
-  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("pageerror", (error) => errors.push({ text: error.message }));
   page.on("console", (message) => {
     if (message.type() === "error" && !isTolerated(message.location().url)) {
-      errors.push(message.text());
+      errors.push({ text: message.text(), url: message.location().url });
     }
   });
 
-  await page.goto(url, { waitUntil: "networkidle" });
+  const response = await page.goto(url, { waitUntil: "networkidle" });
+  // The 404 page answers 404 by design: the browser logs that status as an error, which is expected there
+  const expectedErrors =
+    response?.status() === 404
+      ? errors.filter((error) => error.url === url)
+      : [];
   await page.mouse.move(viewport.width * 0.7, 420);
   await page.waitForTimeout(SETTLE_MS);
   const prefix = resolve(OUTPUT_DIR, `${name}-${viewport.name}-${theme}`);
@@ -105,7 +110,13 @@ async function capture(chrome, url, name, viewport, theme) {
       document.documentElement.clientWidth
   );
   await context.close();
-  return { overflow, errors, top: `${prefix}-top.png` };
+  return {
+    overflow,
+    errors: errors
+      .filter((error) => !expectedErrors.includes(error))
+      .map((error) => error.text),
+    top: `${prefix}-top.png`,
+  };
 }
 
 // One image per page: desktop light and dark on top, mobile light and dark below

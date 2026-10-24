@@ -19,7 +19,7 @@ export const blueprintTheme: PrismTheme = {
     },
     {
       types: ["comment", "prolog", "doctype", "cdata"],
-      style: { color: "#7a7fa3", fontStyle: "italic" },
+      style: { color: "#9499bb", fontStyle: "italic" },
     },
     {
       types: ["number", "boolean", "constant"],

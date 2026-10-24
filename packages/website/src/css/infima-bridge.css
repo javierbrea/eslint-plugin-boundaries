@@ -37,7 +37,7 @@
   --ifm-hr-background-color: var(--jsb-line);
   --ifm-toc-border-color: var(--jsb-line);
   --ifm-table-border-color: var(--jsb-line);
-  --ifm-table-stripe-background: var(--jsb-paper);
+  --ifm-table-stripe-background: var(--jsb-paper-2); /* paper would be invisible on the paper page background */
   --ifm-blockquote-color: var(--jsb-muted);
   --ifm-blockquote-border-color: var(--jsb-accent);
 
@@ -99,7 +99,24 @@
   --docsearch-searchbox-focus-background: var(--jsb-card);
   --docsearch-modal-background: var(--jsb-paper);
   --docsearch-hit-background: var(--jsb-card);
+  --docsearch-hit-color: var(--jsb-muted);
+  --docsearch-hit-highlight-color: var(--jsb-accent-soft);
+  --docsearch-hit-shadow: none;
+  --docsearch-highlight-color: var(--jsb-accent);
+  --docsearch-focus-color: var(--jsb-accent);
+  --docsearch-secondary-text-color: var(--jsb-muted);
+  --docsearch-icon-color: var(--jsb-muted);
+  --docsearch-logo-color: var(--jsb-muted);
+  --docsearch-subtle-color: var(--jsb-line);
+  --docsearch-background-color: var(--jsb-paper-2);
+  --docsearch-key-background: var(--jsb-paper);
+  --docsearch-key-color: var(--jsb-muted);
+  --docsearch-key-pressed-shadow: none;
+  --docsearch-container-background: color-mix(in srgb, var(--jsb-ink) 55%, transparent);
+  --docsearch-modal-shadow: var(--jsb-shadow);
   --docsearch-footer-background: var(--jsb-paper-2);
+  --docsearch-footer-shadow: 0 -1px 0 0 var(--jsb-line);
+  --docsearch-dropdown-menu-item-hover-background: var(--jsb-accent-soft);
 }
 
 :root {
