@@ -139,4 +139,8 @@ dist
 test/eslint-plugin-e2e/test/fixtures/performance/
 
 # Agent working plans (local only)
-.agents/plans/
+.agents/plans/*
+# Exception: the playground plan is shared between sessions on its integration branch
+# feat/539/playground and is removed by its last phase before the branch merges into release
+!.agents/plans/playground.md
+!.agents/plans/playground/
