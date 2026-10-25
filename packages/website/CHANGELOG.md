@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - feat: Documentation pages adopt the new design: blueprint code blocks in both themes, semantic admonitions, restyled sidebar, table of contents, tables, search and 404 page.
 - feat: Links to the site show a new preview image, in the new design.
 
+### Removed
+
+- feat: Remove the "Version 7 is here" announcement bar.
+
 ### Fixed
 
 - fix: Wide tables and diff code blocks in the docs can be scrolled with the keyboard.

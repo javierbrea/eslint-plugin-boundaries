@@ -143,14 +143,6 @@ const config: Config = {
   ],
 
   themeConfig: {
-    announcementBar: {
-      id: "v7-launch",
-      content:
-        'Version 7 is here — file descriptors, multi-dimensional classification, and array queries. <a href="/docs/next/releases/migration-guides/v6-to-v7/">See what\'s new →</a>',
-      backgroundColor: "#161a33",
-      textColor: "#f3f4f9",
-      isCloseable: true,
-    },
     colorMode: {
       respectPrefersColorScheme: true,
     },
