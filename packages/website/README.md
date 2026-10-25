@@ -165,6 +165,16 @@ When the new version is ready to be released, create a new versioned docs set by
 > [!INFO]
 > A new documentation version is created only when a release actually changes the website's `docs/` content, following the same version number as the corresponding `eslint-plugin` release. If a release — patch or minor — doesn't touch `docs/`, skip this command entirely: the website package version and its versioned docs stay as they are.
 
+## Social Card
+
+The image shown when a link to the site is shared, `static/img/og-image.png`, is rendered from `scripts/social-card.html`. To change it, edit the HTML and then regenerate the image (it needs a local Chrome):
+
+```sh
+pnpm social-card
+```
+
+Commit the HTML and the image together. The build does not regenerate the image, so run the command too after changing the design tokens, fonts or logo the card uses, or the home hero's headline or drawing, which the card reproduces.
+
 ## Useful Commands
 
 | Command | Description |
