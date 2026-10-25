@@ -1,0 +1,96 @@
+.hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(55% 65% at 78% 38%, var(--jsb-glow-a), transparent 70%),
+    radial-gradient(45% 55% at 8% 95%, var(--jsb-glow-b), transparent 70%),
+    linear-gradient(180deg, var(--jsb-paper-2), var(--jsb-paper));
+}
+
+/* Film grain */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.6;
+  mix-blend-mode: soft-light;
+  /* cspell: disable-next-line */
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.6 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Fade into the page background */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 60%, var(--jsb-paper));
+}
+
+.grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+  padding-block: 4.5rem 4rem;
+}
+
+.copy {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2.2rem, 4.8vw, 3.6rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+/* A 3px accent bar painted under the word, not a text decoration */
+.title u {
+  text-decoration: none;
+  background-image: linear-gradient(var(--jsb-accent), var(--jsb-accent));
+  background-size: 100% 3px;
+  background-repeat: no-repeat;
+  background-position: 0 92%;
+}
+
+.lead {
+  margin: 0;
+  max-width: 54ch;
+  font-size: 1.04rem;
+  color: var(--jsb-muted);
+}
+
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.used {
+  margin: 0;
+  font-family: var(--jsb-font-mono);
+  font-size: 0.82rem;
+  color: var(--jsb-muted);
+}
+
+.used b {
+  color: var(--jsb-ink);
+  font-weight: 500;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: 3rem;
+  }
+}

@@ -1,0 +1,79 @@
+.problem {
+  padding-block: 4.5rem;
+  border-top: 1px solid var(--jsb-line);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: start;
+}
+
+.title {
+  margin: 0.8rem 0 0;
+  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  margin: 1rem 0 0;
+  max-width: 54ch;
+  font-size: 1.04rem;
+  color: var(--jsb-muted);
+}
+
+.list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: point;
+}
+
+.point {
+  counter-increment: point;
+  display: grid;
+  grid-template-columns: 2.4rem 1fr;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 1rem 0;
+  border-top: 1px solid var(--jsb-line);
+  font-size: 0.95rem;
+  color: var(--jsb-muted);
+  transition:
+    color 0.3s var(--jsb-ease),
+    padding-left 0.3s var(--jsb-ease);
+}
+
+.point:hover {
+  padding-left: 6px;
+  color: var(--jsb-ink);
+}
+
+.point::before {
+  content: counter(point, decimal-leading-zero);
+  padding-top: 4px;
+  font-family: var(--jsb-font-mono);
+  font-size: 0.72rem;
+  color: var(--jsb-accent);
+}
+
+.point strong {
+  display: block;
+  font-weight: 600;
+  color: var(--jsb-ink);
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .point {
+    transition: none;
+  }
+}

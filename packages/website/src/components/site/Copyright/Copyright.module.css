@@ -1,0 +1,25 @@
+.copyright {
+  display: grid;
+  gap: 0.4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--jsb-line);
+  font-family: var(--jsb-font-mono);
+  font-size: 0.74rem;
+  /* --jsb-faint fails AA contrast on the footer surface */
+  color: var(--jsb-muted);
+  text-align: left;
+}
+
+.line {
+  margin: 0;
+}
+
+.copyright a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.copyright a:hover {
+  color: var(--jsb-ink);
+}

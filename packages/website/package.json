@@ -8,12 +8,15 @@
     "check:all": "echo 'All checks passed'",
     "check:spell": "cspell --quiet .",
     "check:types": "tsc --noEmit",
-    "lint": "eslint .",
+    "lint": "node scripts/sync-fonts.mjs --check && eslint .",
     "lint:fix": "eslint . --fix",
     "docusaurus": "docusaurus",
     "start": "cross-env NODE_ENV=development docusaurus start",
     "serve": "docusaurus serve",
+    "screenshots": "node scripts/screenshots.mjs",
+    "social-card": "node scripts/social-card.mjs",
     "swizzle": "docusaurus swizzle",
+    "sync:fonts": "node scripts/sync-fonts.mjs",
     "clear": "docusaurus clear",
     "test:unit": "jest --passWithNoTests",
     "version": "docusaurus docs:version"
@@ -26,14 +29,18 @@
     "clsx": "2.1.1",
     "prism-react-renderer": "2.4.1",
     "react": "19.3.1",
-    "react-dom": "19.3.1",
-    "react-github-btn": "1.4.0"
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.10.2",
     "@docusaurus/tsconfig": "3.10.2",
     "@docusaurus/types": "3.10.2",
+    "@fontsource/ibm-plex-mono": "5.3.0",
+    "@fontsource/ibm-plex-sans": "5.3.0",
+    "@fontsource/sora": "5.3.0",
     "baseline-browser-mapping": "2.11.29",
+    "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
+    "playwright-core": "1.64.1",
     "typescript": "5.9.3"
   },
   "browserslist": {

@@ -1,12 +1,12 @@
 import clsx from "clsx";
-import { Highlight as PrismHighlight, themes } from "prism-react-renderer";
-import type { PrismTheme } from "prism-react-renderer";
+import { Highlight as PrismHighlight } from "prism-react-renderer";
 import React, { useState } from "react";
+
+import { blueprintTheme } from "../../prism/blueprintTheme";
 
 import styles from "./styles.module.css";
 
 type CodeDiffProps = { children: React.ReactNode; language?: string };
-type CodeDiffBaseProps = CodeDiffProps & { theme: PrismTheme };
 
 // Icon to copy code
 function CopyIcon() {
@@ -32,11 +32,15 @@ function SuccessIcon() {
   );
 }
 
-function CodeDiffBase({
+/**
+ * Code block whose lines are marked as added, deleted or unchanged, highlighted on the always-dark palette shared by both color modes.
+ * @param props Code diff props.
+ * @returns The code block.
+ */
+export default function CodeDiff({
   children,
   language = "typescript",
-  theme,
-}: CodeDiffBaseProps) {
+}: CodeDiffProps) {
   // Convert children to string
   const codeString = React.Children.toArray(children)
     .map((child) => (typeof child === "string" ? child : ""))
@@ -94,10 +98,11 @@ function CodeDiffBase({
       <PrismHighlight
         code={cleanCode}
         language={language}
-        theme={theme}
+        theme={blueprintTheme}
         // eslint-disable-next-line
         children={({ tokens, getLineProps, getTokenProps }) => (
-          <pre style={{ overflowX: "auto", padding: "1em" }}>
+          // Focusable, like Docusaurus' own code blocks, so that a line wider than the block can be scrolled with the keyboard
+          <pre className={styles.pre} tabIndex={0}>
             {tokens.map((lineTokens, i) => {
               const line = trimmedOriginalLines[i] || "";
 
@@ -136,18 +141,5 @@ function CodeDiffBase({
         )}
       />
     </div>
-  );
-}
-
-export default function CodeDiff(props: CodeDiffProps) {
-  return (
-    <>
-      <div className="diff-theme-light">
-        <CodeDiffBase {...props} theme={themes.github} />
-      </div>
-      <div className="diff-theme-dark" aria-hidden="true">
-        <CodeDiffBase {...props} theme={themes.vsDark} />
-      </div>
-    </>
   );
 }
