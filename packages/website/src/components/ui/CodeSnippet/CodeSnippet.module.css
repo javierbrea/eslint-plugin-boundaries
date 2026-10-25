@@ -1,0 +1,27 @@
+.code {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  border-radius: var(--jsb-radius-lg);
+  border-left: 3px solid var(--jsb-accent);
+  background: var(--jsb-code);
+  color: var(--jsb-code-fg);
+  box-shadow: var(--jsb-shadow);
+  overflow-x: auto;
+  font-family: var(--jsb-font-mono);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.code code {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.code code > span {
+  display: inline;
+}

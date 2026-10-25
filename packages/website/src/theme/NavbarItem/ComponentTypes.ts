@@ -1,8 +1,8 @@
 import ComponentTypes from "@theme-original/NavbarItem/ComponentTypes";
 
-import GithubStarsButton from "@site/src/components/GithubStarsButton";
+import GithubStars from "../../components/site/GithubStars/GithubStars";
 
 export default {
   ...ComponentTypes,
-  "custom-githubStarsButton": GithubStarsButton,
+  "custom-githubStarsButton": GithubStars,
 };

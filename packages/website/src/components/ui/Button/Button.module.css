@@ -1,0 +1,102 @@
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 42px;
+  padding: 0 1.15rem;
+  border: 1px solid transparent;
+  border-radius: var(--jsb-radius);
+  font-family: var(--jsb-font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 0.25s var(--jsb-ease),
+    box-shadow 0.25s var(--jsb-ease),
+    color 0.25s var(--jsb-ease),
+    border-color 0.25s var(--jsb-ease);
+}
+
+.button:hover {
+  text-decoration: none;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--jsb-accent);
+  outline-offset: 3px;
+}
+
+.label {
+  position: relative;
+}
+
+.icon {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  transition: transform 0.25s var(--jsb-ease);
+}
+
+.button:hover .icon {
+  transform: translateX(3px);
+}
+
+.primary {
+  background: var(--jsb-accent);
+  color: var(--jsb-accent-ink);
+}
+
+/* Diagonal sheen that sweeps once on hover */
+.primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    color-mix(in srgb, var(--jsb-accent-ink) 25%, transparent) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s var(--jsb-ease);
+}
+
+.primary:hover {
+  color: var(--jsb-accent-ink);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -12px var(--jsb-accent);
+}
+
+.primary:hover::before {
+  transform: translateX(100%);
+}
+
+.outline {
+  background: transparent;
+  color: var(--jsb-ink);
+  border-color: var(--jsb-line-strong);
+}
+
+.outline:hover {
+  color: var(--jsb-accent);
+  border-color: var(--jsb-accent);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .icon,
+  .primary::before {
+    transition: none;
+  }
+
+  .button:hover,
+  .button:hover .icon {
+    transform: none;
+  }
+}

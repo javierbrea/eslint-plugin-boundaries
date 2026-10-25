@@ -1,7 +1,8 @@
 // eslint-disable-next-line import/no-namespace
 import type * as Preset from "@docusaurus/preset-classic";
 import type { Config } from "@docusaurus/types";
-import { themes as prismThemes } from "prism-react-renderer";
+
+import { blueprintTheme } from "./src/prism/blueprintTheme";
 
 const IS_DEV = process.env.NODE_ENV === "development";
 
@@ -39,6 +40,26 @@ const config: Config = {
   trailingSlash: true,
 
   headTags: [
+    {
+      tagName: "link",
+      attributes: {
+        rel: "preload",
+        href: "/fonts/sora-latin-600-normal.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossorigin: "anonymous",
+      },
+    },
+    {
+      tagName: "link",
+      attributes: {
+        rel: "preload",
+        href: "/fonts/ibm-plex-sans-latin-400-normal.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossorigin: "anonymous",
+      },
+    },
     {
       tagName: "link",
       attributes: {
@@ -89,6 +110,11 @@ const config: Config = {
       },
     }),
   ],
+  clientModules: ["./src/client/motion.ts"],
+  customFields: {
+    // Build year, used by useCurrentYear as its SSR and hydration snapshot
+    buildYear: new Date().getFullYear(),
+  },
   presets: [
     [
       "classic",
@@ -101,7 +127,12 @@ const config: Config = {
             "https://github.com/javierbrea/eslint-plugin-boundaries/edit/master/packages/website/",
         },
         theme: {
-          customCss: "./src/css/custom.css",
+          customCss: [
+            "./src/css/tokens.css",
+            "./src/css/fonts.css",
+            "./src/css/infima-bridge.css",
+            "./src/css/custom.css",
+          ],
         },
         gtag: {
           trackingID: "G-QDP350TYF0",
@@ -112,25 +143,17 @@ const config: Config = {
   ],
 
   themeConfig: {
-    announcementBar: {
-      id: "v7-launch",
-      content:
-        'Version 7 is here — file descriptors, multi-dimensional classification, and array queries. <a href="/docs/next/releases/migration-guides/v6-to-v7/">See what\'s new →</a>',
-      backgroundColor: "#3b4468",
-      textColor: "#e8ecff",
-      isCloseable: true,
-    },
-    // Replace with your project's social card
     colorMode: {
       respectPrefersColorScheme: true,
     },
     navbar: {
       title: "JS Boundaries",
-      hideOnScroll: true,
-      style: "dark",
+      hideOnScroll: false,
       logo: {
         alt: "Boundaries Logo",
         src: "img/logo.svg",
+        width: 30,
+        height: 30,
       },
       items: [
         {
@@ -161,14 +184,14 @@ const config: Config = {
           position: "right",
         },
         {
-          href: "https://github.com/javierbrea/eslint-plugin-boundaries",
+          to: "/docs/quick-start/",
+          label: "Get started",
           position: "right",
-          className: "navbar-github-link",
+          className: "jsb-navbar-cta",
         },
       ],
     },
     footer: {
-      style: "dark",
       links: [
         {
           title: "Docs",
@@ -234,33 +257,19 @@ const config: Config = {
               to: "https://www.algolia.com/ref/docsearch/?utm_source=www.jsboundaries.dev&utm_medium=referral&utm_content=powered_by&utm_campaign=docsearch",
               className: "footer-acknowledgement",
             },
-            {
-              label: "Illustrations by unDraw",
-              to: "https://undraw.co/",
-              className: "footer-acknowledgement",
-            },
           ],
         },
       ],
-      copyright: `
-        <div class="footer-contents">
-          <span>Copyright © 2020-${new Date().getFullYear()} <a href="https://www.javierbrea.com">Javier Brea</a></span>
-          <span class="disclaimer">Trademarks, logos and brand names are the property of their respective owners. All company, product and service names used in this website are for identification purposes only. Use of these names,trademarks and brands does not imply endorsement.</span>
-        </div>
-      `,
-      logo: {
-        alt: "Boundaries logo",
-        src: "img/logo.svg",
-        width: 50,
-        href: "https://www.jsboundaries.dev",
-      },
+      // Plain text rendered below the copyright line by the Footer/Copyright swizzle (src/theme/Footer/Copyright), which adds the years. Docusaurus renders that component only when this is not empty
+      copyright:
+        "Trademarks, logos and brand names are the property of their respective owners. All company, product and service names used in this website are for identification purposes only. Use of these names, trademarks and brands does not imply endorsement.",
     },
     prism: {
       defaultLanguage: "javascript",
       additionalLanguages: ["typescript", "json", "bash", "js-extras"],
-      // WARNING: In case of modifying these themes, make sure to keep the CodeDiff component updated as well (also in custom.css)
-      theme: prismThemes.github,
-      darkTheme: prismThemes.vsDark,
+      // One always-dark palette in both color modes, shared with the home CodeSnippet and the CodeDiff docs component
+      theme: blueprintTheme,
+      darkTheme: blueprintTheme,
     },
     algolia: {
       appId: "Q6XU3R4537",
