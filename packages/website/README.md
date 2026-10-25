@@ -165,6 +165,16 @@ When the new version is ready to be released, create a new versioned docs set by
 > [!INFO]
 > A new documentation version is created only when a release actually changes the website's `docs/` content, following the same version number as the corresponding `eslint-plugin` release. If a release — patch or minor — doesn't touch `docs/`, skip this command entirely: the website package version and its versioned docs stay as they are.
 
+## Social Card
+
+The image shown when a link to the site is shared, `static/img/og-image.png`, is rendered from `scripts/social-card.html`. To change it, edit the HTML and then regenerate the image (it needs a local Chrome):
+
+```sh
+pnpm social-card
+```
+
+Commit the HTML and the image together. The build does not regenerate the image, so run the command too after changing the design tokens, fonts or logo the card uses, or the home hero's headline, background or drawing, which the card reproduces.
+
 ## Useful Commands
 
 | Command | Description |
@@ -173,8 +183,9 @@ When the new version is ready to be released, create a new versioned docs set by
 | `pnpm build` | Build the website for production |
 | `pnpm serve` | Serve the production build locally for preview |
 | `pnpm screenshots [baseUrl] [paths...]` | Capture the pages at desktop and mobile widths in both themes into `screenshots/`, failing on horizontal overflow or console errors. Needs a running site (`pnpm serve` or `pnpm start`) and a local Chrome |
+| `pnpm social-card` | Render the social card, `static/img/og-image.png`, from `scripts/social-card.html`. Needs a local Chrome |
 | `pnpm swizzle` | Customize Docusaurus components |
-| `pnpm sync:fonts` | Copy the self-hosted font files from the Fontsource packages into `static/fonts` |
+| `pnpm sync:fonts` | Copy the self-hosted font files from the Fontsource packages into `static/fonts`. `pnpm lint` fails while they differ |
 | `pnpm version` | Bump the version of the website. Read the documentation for details. |
 
 ## Additional Resources

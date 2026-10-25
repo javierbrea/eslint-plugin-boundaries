@@ -151,7 +151,6 @@ const config: Config = {
       textColor: "#f3f4f9",
       isCloseable: true,
     },
-    // Replace with your project's social card
     colorMode: {
       respectPrefersColorScheme: true,
     },

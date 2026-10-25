@@ -6,7 +6,7 @@
 //   baseUrl defaults to http://localhost:3000 (`pnpm --filter website serve` or `pnpm nx start website`)
 //   paths default to /, /docs/overview/ and /docs/quick-start/; /this-page-does-not-exist/ captures the 404 page
 //
-// Uses the local Chrome through playwright-core; without Chrome, run `pnpm dlx playwright install chromium` first.
+// Uses the local Chrome through playwright-core; without Chrome, run `pnpm --filter website exec playwright-core install chromium` first.
 
 /* global window, document -- used inside callbacks that run in the page */
 
