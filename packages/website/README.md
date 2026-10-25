@@ -173,7 +173,7 @@ The image shown when a link to the site is shared, `static/img/og-image.png`, is
 pnpm social-card
 ```
 
-Commit the HTML and the image together. The build does not regenerate the image, so run the command too after changing the design tokens, fonts or logo the card uses, or the home hero's headline or drawing, which the card reproduces.
+Commit the HTML and the image together. The build does not regenerate the image, so run the command too after changing the design tokens, fonts or logo the card uses, or the home hero's headline, background or drawing, which the card reproduces.
 
 ## Useful Commands
 

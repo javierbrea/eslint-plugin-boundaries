@@ -4,12 +4,11 @@
 //
 // Usage: pnpm --filter website social-card
 //
-// Uses the local Chrome through playwright-core; without Chrome, run `pnpm dlx playwright install chromium` first.
+// Uses the local Chrome through playwright-core; without Chrome, run `pnpm --filter website exec playwright-core install chromium` first.
 
 /* global document -- used inside a callback that runs in the page */
 
-import { readFile } from "node:fs/promises";
-import { dirname, extname, resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { chromium } from "playwright-core";
@@ -17,14 +16,8 @@ import { chromium } from "playwright-core";
 const WEBSITE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const OUTPUT = resolve(WEBSITE_ROOT, "static/img/og-image.png");
 const CARD = { width: 1200, height: 630 };
-// Nothing listens on this origin: the route below answers every request of the card from the website files
+// Nothing listens on this origin: the route below answers its requests from the website files, and a request to any other origin fails the render, so the card never depends on the network
 const ORIGIN = "http://social-card.local";
-const CONTENT_TYPES = {
-  ".css": "text/css",
-  ".html": "text/html",
-  ".svg": "image/svg+xml",
-  ".woff2": "font/woff2",
-};
 
 // The card itself, the site CSS it links under /src/, and anything else from static/, as Docusaurus serves it
 function sourceFile(pathname) {
@@ -49,13 +42,17 @@ const browser = await launchBrowser();
 const page = await browser.newPage({ viewport: CARD });
 const missing = [];
 
-await page.route(`${ORIGIN}/**`, async (route) => {
-  const file = sourceFile(new URL(route.request().url()).pathname);
+await page.route("**/*", async (route) => {
+  const url = new URL(route.request().url());
+  if (url.origin !== ORIGIN) {
+    missing.push(url.href);
+    await route.abort();
+    return;
+  }
+  const file = sourceFile(decodeURIComponent(url.pathname));
   try {
-    await route.fulfill({
-      body: await readFile(file),
-      contentType: CONTENT_TYPES[extname(file)],
-    });
+    // The content type is inferred from the file extension
+    await route.fulfill({ path: file });
   } catch {
     missing.push(file);
     await route.fulfill({ status: 404 });
@@ -67,7 +64,9 @@ await page.evaluate(() => document.fonts.ready);
 
 if (missing.length) {
   await browser.close();
-  console.error(`Missing files:\n${missing.join("\n")}`);
+  console.error(
+    `Missing files or requests outside the website files:\n${missing.join("\n")}`
+  );
   process.exit(1);
 }
 

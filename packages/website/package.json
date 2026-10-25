@@ -8,7 +8,7 @@
     "check:all": "echo 'All checks passed'",
     "check:spell": "cspell --quiet .",
     "check:types": "tsc --noEmit",
-    "lint": "eslint . && node scripts/sync-fonts.mjs --check",
+    "lint": "node scripts/sync-fonts.mjs --check && eslint .",
     "lint:fix": "eslint . --fix",
     "docusaurus": "docusaurus",
     "start": "cross-env NODE_ENV=development docusaurus start",

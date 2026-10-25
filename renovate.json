@@ -59,7 +59,7 @@
       ],
       "groupName": "fontsource",
       "prBodyNotes": [
-        "Run `pnpm --filter website sync:fonts` and commit `packages/website/static/fonts/`."
+        "Run `pnpm --filter website sync:fonts` and `pnpm --filter website social-card`, and commit `packages/website/static/fonts/` and `packages/website/static/img/og-image.png`."
       ]
     }
   ]
