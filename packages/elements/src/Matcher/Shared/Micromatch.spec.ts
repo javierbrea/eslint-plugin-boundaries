@@ -117,7 +117,6 @@ describe("Micromatch", () => {
 
     it("should not match Windows path separators when process is not defined", () => {
       setPlatform("win32");
-      const instance = new Micromatch(false);
       const replacedProcess = jest.replaceProperty(
         globalThis,
         "process",
@@ -126,6 +125,7 @@ describe("Micromatch", () => {
 
       let result: boolean;
       try {
+        const instance = new Micromatch(false);
         result = instance.isMatch("src\\foo\\bar.ts", "src/**/*.ts");
       } finally {
         // Restore process before asserting, because Jest itself needs it
@@ -221,7 +221,6 @@ describe("Micromatch", () => {
 
     it("should not normalize path separators when process is not defined", () => {
       setPlatform("win32");
-      const instance = new Micromatch(false);
       const replacedProcess = jest.replaceProperty(
         globalThis,
         "process",
@@ -230,6 +229,7 @@ describe("Micromatch", () => {
 
       let result: string[] | null;
       try {
+        const instance = new Micromatch(false);
         result = instance.capture("src/**", "src/foo\\bar");
       } finally {
         // Restore process before asserting, because Jest itself needs it

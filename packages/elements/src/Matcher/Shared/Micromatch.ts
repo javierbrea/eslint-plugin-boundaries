@@ -88,6 +88,11 @@ export class Micromatch {
   private readonly _captureReCache = new CacheManager<string, RegExp>();
 
   /**
+   * Whether the code runs on Windows. The platform can not change during a process, so it is read once, and the compiled patterns and the normalized inputs always use the same value.
+   */
+  private readonly _windows = isWindows();
+
+  /**
    * Creates an instance of Micromatch class.
    * @param cache Whether to cache the matching results and captures or not.
    */
@@ -149,7 +154,7 @@ export class Micromatch {
     }
 
     const isMatch = picomatch.isMatch(value, pattern, {
-      windows: isWindows(),
+      windows: this._windows,
     });
     this._matchingResultsCache.set(cacheKey, isMatch);
     return isMatch;
@@ -171,10 +176,10 @@ export class Micromatch {
     // Compiling the pattern is expensive, and the captures cache misses on every new target, so the compiled pattern is cached separately
     const regexp =
       this._captureReCache.get(pattern) ??
-      picomatch.makeRe(pattern, { capture: true, windows: isWindows() });
+      picomatch.makeRe(pattern, { capture: true, windows: this._windows });
     this._captureReCache.set(pattern, regexp);
     // Normalize Windows separators like micromatch does, keeping the backslashes that escape glob characters.
-    const input = isWindows()
+    const input = this._windows
       ? target.replace(picomatch.constants.REGEX_BACKSLASH, "/")
       : target;
     const match = regexp.exec(input);
@@ -194,7 +199,7 @@ export class Micromatch {
     if (this._makeReCache.has(pattern)) {
       return this._makeReCache.get(pattern)!;
     }
-    const regexp = picomatch.makeRe(pattern, { windows: isWindows() });
+    const regexp = picomatch.makeRe(pattern, { windows: this._windows });
     this._makeReCache.set(pattern, regexp);
     return regexp;
   }
