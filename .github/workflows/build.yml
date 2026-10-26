@@ -90,6 +90,9 @@ jobs:
         with:
           name: elements-build
           path: packages/elements/dist
+      - name: Test Unit Elements
+        working-directory: ./packages/elements
+        run: pnpm test:unit
       - name: Test Unit ESLint Plugin
         working-directory: ./packages/eslint-plugin
         run: pnpm test:unit

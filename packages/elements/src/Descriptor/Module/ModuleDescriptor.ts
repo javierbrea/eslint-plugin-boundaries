@@ -5,7 +5,7 @@ import isCoreModule from "is-core-module";
 import { CacheManager, CacheManagerDisabled } from "../../Cache";
 import type { DescriptorOptionsNormalized } from "../../Config";
 import type { Micromatch } from "../../Matcher";
-import { normalizePath, isNullish } from "../../Shared";
+import { isNode, normalizePath } from "../../Shared";
 import type { MicromatchPattern } from "../../Shared";
 import { PathHelper } from "../Shared";
 
@@ -17,10 +17,24 @@ const SCOPED_PACKAGE_REGEX = /^@[^/]*\/?[^/]+/;
 const EXTERNAL_PATH_REGEX = /^\w/;
 
 /**
+ * Node.js version whose core modules are recognized outside Node.js, where there is no running version to read them from.
+ */
+const NODE_VERSION_OUTSIDE_NODE = "24.0.0";
+
+/**
  * Class describing entity modules.
  */
 export class ModulesDescriptor {
-  private _mod: typeof Mod | null = null;
+  /**
+   * Node.js `module` built-in, which lists the core modules of the running Node.js version. It is null outside Node.js, and in Node.js versions without `process.getBuiltinModule`.
+   */
+  private readonly _mod: typeof Mod | null;
+
+  /**
+   * Node.js version whose core modules `is-core-module` recognizes when `_mod` is null.
+   */
+  private readonly _nodeVersion: string;
+
   /**
    * Cache to store previously described modules.
    */
@@ -54,22 +68,13 @@ export class ModulesDescriptor {
     this._descriptionsCache = this._config.cache
       ? new CacheManager<string, ModuleDescription>()
       : new CacheManagerDisabled<string, ModuleDescription>();
-    this._loadModuleInNode();
-  }
-
-  /**
-   * Loads the Node.js module to access built-in modules information when running in Node.js environment.
-   */
-  private _loadModuleInNode(): void {
-    // istanbul ignore next: Fallback for non-Node.js environments
-    if (
-      !this._mod &&
-      !isNullish(process) &&
-      !isNullish(process.versions) &&
-      !isNullish(process.versions.node)
-    ) {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      this._mod = require("node:module");
+    if (isNode()) {
+      // `require` is not defined in ES modules, and bundlers for browsers fail to resolve it
+      this._mod = globalThis.process.getBuiltinModule?.("node:module") ?? null;
+      this._nodeVersion = globalThis.process.versions.node;
+    } else {
+      this._mod = null;
+      this._nodeVersion = NODE_VERSION_OUTSIDE_NODE;
     }
   }
 
@@ -83,15 +88,13 @@ export class ModulesDescriptor {
     dependencySource: string,
     baseDependencySource: string
   ): boolean {
-    // istanbul ignore next: Fallback for non-Node.js environments
     if (this._mod) {
       const moduleWithoutPrefix = baseDependencySource.startsWith("node:")
         ? baseDependencySource.slice(5)
         : baseDependencySource;
       return this._mod.builtinModules.includes(moduleWithoutPrefix);
     }
-    // istanbul ignore next: Fallback for non-Node.js environments
-    return isCoreModule(dependencySource);
+    return isCoreModule(dependencySource, this._nodeVersion);
   }
 
   /**
