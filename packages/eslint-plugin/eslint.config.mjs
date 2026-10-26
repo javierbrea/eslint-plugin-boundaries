@@ -92,10 +92,10 @@ export default [
                 },
               },
             },
-            // Public API surface: re-exports downward from messages/settings; consumed only by entry + config
+            // Public API surface: re-exports downward from messages (and from @boundaries/config); consumed only by entry + config
             {
               from: { element: { type: "public" } },
-              allow: { to: { element: { type: ["messages", "settings"] } } },
+              allow: { to: { element: { type: "messages" } } },
             },
             {
               from: { element: { type: "config" } },

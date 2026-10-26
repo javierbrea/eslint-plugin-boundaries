@@ -1,3 +1,4 @@
+import type { Diagnostic } from "@boundaries/config";
 import type {
   DependencyDescription,
   Matcher,
@@ -161,6 +162,17 @@ export function warnOnce(title: string, message?: string): boolean {
   warns.add(messageKey);
   warn(title, message);
   return true;
+}
+
+/**
+ * Prints each diagnostic returned by `@boundaries/config` as a warning, in order, once per title and detail.
+ *
+ * @param diagnostics - Diagnostics to print.
+ */
+export function warnDiagnostics(diagnostics: Diagnostic[]): void {
+  for (const { title, detail } of diagnostics) {
+    warnOnce(title, detail);
+  }
 }
 
 /**

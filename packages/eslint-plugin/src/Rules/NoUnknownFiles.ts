@@ -1,3 +1,4 @@
+import { getRuleOptionsSchema } from "@boundaries/config";
 import type { Rule } from "eslint";
 
 import { entityDescription } from "../Elements";
@@ -11,7 +12,7 @@ const { RULE_NO_UNKNOWN_FILES } = SETTINGS;
 const noUnknownFilesRule: Rule.RuleModule = {
   ...meta({
     ruleName: RULE_NO_UNKNOWN_FILES,
-    schema: [],
+    schema: getRuleOptionsSchema(RULE_NO_UNKNOWN_FILES),
     description: `Prevent creating files not recognized by any element or file patterns`,
   }),
 

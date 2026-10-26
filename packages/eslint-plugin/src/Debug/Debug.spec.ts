@@ -12,6 +12,7 @@ import type {
   debugDescription,
   printDependenciesRuleResult,
   warn,
+  warnDiagnostics,
   warnOnce,
 } from "./Debug";
 
@@ -138,6 +139,7 @@ type DebugModule = {
   debugDescription: typeof debugDescription;
   printDependenciesRuleResult: typeof printDependenciesRuleResult;
   warn: typeof warn;
+  warnDiagnostics: typeof warnDiagnostics;
   warnOnce: typeof warnOnce;
 };
 
@@ -182,6 +184,27 @@ describe("Debug", () => {
     expect(warnSpy).toHaveBeenNthCalledWith(
       1,
       expect.stringContaining("Warning")
+    );
+  });
+
+  it("should warn each diagnostic once, in order, with its title and detail", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const debugModule = loadDebugModule();
+
+    debugModule.warnDiagnostics([
+      { level: "warning", title: "First", detail: "Detail", paths: [] },
+      { level: "deprecation", title: "Second", paths: [] },
+      { level: "warning", title: "First", detail: "Detail", paths: [] },
+    ]);
+
+    expect(warnSpy).toHaveBeenCalledTimes(2);
+    expect(warnSpy).toHaveBeenNthCalledWith(
+      1,
+      expect.stringMatching(/First\n {2}Detail/)
+    );
+    expect(warnSpy).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining("Second")
     );
   });
 

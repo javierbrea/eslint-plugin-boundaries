@@ -1,3 +1,7 @@
+import {
+  getRuleOptionsSchema,
+  migrationToV6GuideLink,
+} from "@boundaries/config";
 import type {
   DependencyDescription,
   TemplateData,
@@ -20,11 +24,7 @@ import type {
 } from "@boundaries/elements";
 import {
   DEPENDENCY_RELATIONSHIPS_MAP,
-  isBackwardCompatibleDependencySelector,
   isDependencySelector,
-  normalizeDependencyInfoSelector,
-  normalizeDependencySelector,
-  normalizeEntitySelector,
   ORIGINS_MAP,
 } from "@boundaries/elements";
 import type { Rule } from "eslint";
@@ -37,15 +37,13 @@ import {
   customErrorMessage,
 } from "../Messages";
 import {
-  rulesOptionsSchema,
-  migrationToV6GuideLink,
   validateAndWarnRuleOptions,
   deprecatedRuleInfo,
+  getDependenciesRuleOptions,
 } from "../Settings";
 import type {
   RuleOptionsWithPolicies,
   DependenciesRuleOptions,
-  DependenciesPolicy,
   DependenciesPolicyNormalized,
   SettingsNormalized,
   RuleName,
@@ -70,42 +68,23 @@ type DependenciesPolicyPrecomputed = DependenciesPolicyNormalized & {
  */
 const EMPTY_TEMPLATE_DATA: TemplateData = Object.freeze({});
 
-const normalizedPoliciesMap = new WeakMap<
-  DependenciesPolicy,
+const precomputedPoliciesMap = new WeakMap<
+  DependenciesPolicyNormalized,
   DependenciesPolicyPrecomputed
 >();
 
-const normalizeRuleEffect = (
-  rule: DependenciesPolicy["allow"] | DependenciesPolicy["disallow"]
-):
-  | DependenciesPolicyNormalized["allow"]
-  | DependenciesPolicyNormalized["disallow"] => {
-  if (isUndefined(rule)) {
-    return rule;
-  }
-  if (isBackwardCompatibleDependencySelector(rule)) {
-    return normalizeDependencySelector(rule);
-  }
-  return normalizeEntitySelector(rule);
-};
-
-const normalizeRuleOptions = (
-  rule: DependenciesPolicy
+/**
+ * Builds the dependency selectors of a policy, merging its outer selectors with each entry of `allow` and `disallow`, cached by policy identity.
+ * @param normalizedRule - The policy, normalized by `@boundaries/config`.
+ * @returns The policy with its precomputed selectors.
+ */
+const precomputePolicy = (
+  normalizedRule: DependenciesPolicyNormalized
 ): DependenciesPolicyPrecomputed => {
-  if (normalizedPoliciesMap.has(rule)) {
-    return normalizedPoliciesMap.get(rule)!;
+  const cachedPolicy = precomputedPoliciesMap.get(normalizedRule);
+  if (cachedPolicy) {
+    return cachedPolicy;
   }
-
-  const normalizedRule: DependenciesPolicyNormalized = {
-    from: rule.from ? normalizeEntitySelector(rule.from) : undefined,
-    to: rule.to ? normalizeEntitySelector(rule.to) : undefined,
-    dependency: rule.dependency
-      ? normalizeDependencyInfoSelector(rule.dependency)
-      : undefined,
-    importKind: rule.importKind,
-    allow: normalizeRuleEffect(rule.allow),
-    disallow: normalizeRuleEffect(rule.disallow),
-  };
 
   const precomputedAllow = normalizedRule.allow?.map((entry) =>
     buildEntrySelector(
@@ -113,7 +92,7 @@ const normalizeRuleOptions = (
       normalizedRule.to,
       normalizedRule.dependency,
       entry,
-      rule.importKind /* legacy importKind for backward compatibility */
+      normalizedRule.importKind /* legacy importKind for backward compatibility */
     )
   );
   const precomputedDisallow = normalizedRule.disallow?.map((entry) =>
@@ -122,7 +101,7 @@ const normalizeRuleOptions = (
       normalizedRule.to,
       normalizedRule.dependency,
       entry,
-      rule.importKind /* legacy importKind for backward compatibility */
+      normalizedRule.importKind /* legacy importKind for backward compatibility */
     )
   );
 
@@ -132,7 +111,7 @@ const normalizeRuleOptions = (
     precomputedDisallow,
   };
 
-  normalizedPoliciesMap.set(rule, precomputedRule);
+  precomputedPoliciesMap.set(normalizedRule, precomputedRule);
   return precomputedRule;
 };
 
@@ -590,7 +569,7 @@ export type EvaluatePoliciesResult =
  * @returns Template data object consumed by matcher template rendering.
  */
 function getCapturedTemplateData(
-  rule: DependenciesPolicy,
+  rule: DependenciesPolicyNormalized,
   dep: DependencyDescription,
   legacyTemplates: boolean
 ): TemplateData {
@@ -620,7 +599,7 @@ function getCapturedTemplateData(
  * evaluated when `disallow` already matched.
  */
 export function evaluatePolicies(
-  rules: DependenciesPolicy[],
+  rules: DependenciesPolicyNormalized[],
   dep: DependencyDescription,
   matcher: Matcher,
   settings: SettingsNormalized
@@ -637,7 +616,7 @@ export function evaluatePolicies(
       settings.legacyTemplates
     );
 
-    const normalizedRule = normalizeRuleOptions(rule);
+    const normalizedRule = precomputePolicy(rule);
 
     let denyMatched = false;
     if (normalizedRule.precomputedDisallow) {
@@ -733,7 +712,7 @@ export function evaluatePoliciesAndReport({
   node,
   options,
 }: {
-  rules: DependenciesPolicy[];
+  rules: DependenciesPolicyNormalized[];
   settings: SettingsNormalized;
   context: Rule.RuleContext;
   node: EslintLiteralNode;
@@ -791,25 +770,7 @@ export default function getDependencyRule(
         ruleName === RULE_NAMES_MAP.ELEMENT_TYPES
           ? deprecatedRuleInfo(RULE_NAMES_MAP.DEPENDENCIES)
           : undefined,
-      schema: rulesOptionsSchema({
-        extraOptionsSchema: {
-          checkAllOrigins: {
-            type: "boolean",
-            description:
-              "Whether to check dependencies from all origins (including external and core) or only from local entities. Default to false (only local).",
-          },
-          checkUnknownLocals: {
-            type: "boolean",
-            description:
-              "Whether to check local dependencies with unknown entities (not matching any entity descriptor) or to ignore them. Default to false (ignore).",
-          },
-          checkInternals: {
-            type: "boolean",
-            description:
-              "Whether to check internal dependencies (dependencies within files in the same entity). Default to false (ignore).",
-          },
-        },
-      }),
+      schema: getRuleOptionsSchema(ruleName),
     },
     function ({ dependency, node, context, settings, options }) {
       if (ruleName === RULE_NAMES_MAP.ELEMENT_TYPES) {
@@ -822,9 +783,8 @@ export default function getDependencyRule(
       // selectors, legacy templates, and rule-level importKind).
       validateAndWarnRuleOptions(options, ruleName, settings.legacyWarnings);
 
-      const checkAllOrigins = options?.checkAllOrigins ?? false;
-      const checkUnknownLocals = options?.checkUnknownLocals ?? false;
-      const checkInternals = options?.checkInternals ?? false;
+      const { checkAllOrigins, checkUnknownLocals, checkInternals, policies } =
+        getDependenciesRuleOptions(options);
 
       const isLocalDependency =
         dependency.to.module.origin === ORIGINS_MAP.LOCAL;
@@ -843,7 +803,6 @@ export default function getDependencyRule(
         (checkUnknownLocals || !isUnknownLocalDependency) &&
         (checkInternals || !isInternalDependency)
       ) {
-        const policies = options?.policies ?? options?.rules ?? [];
         evaluatePoliciesAndReport({
           rules: policies,
           settings,

@@ -1,7 +1,11 @@
+import {
+  getRuleOptionsSchema,
+  migrationToV7GuideLink,
+} from "@boundaries/config";
 import { ORIGINS_MAP } from "@boundaries/elements";
 
 import { warnOnce } from "../Debug";
-import { migrationToV7GuideLink, deprecatedRuleInfo } from "../Settings";
+import { deprecatedRuleInfo } from "../Settings";
 import type { NoUnknownDependenciesOptions, RuleName } from "../Shared";
 import { NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP, RULE_NAMES_MAP } from "../Shared";
 
@@ -87,24 +91,7 @@ export default function getNoUnknownDependenciesRule(
         ruleName === RULE_NAMES_MAP.NO_UNKNOWN
           ? deprecatedRuleInfo(RULE_NAMES_MAP.NO_UNKNOWN_DEPENDENCIES)
           : undefined,
-      schema: [
-        {
-          type: "object",
-          properties: {
-            require: {
-              type: "string",
-              enum: Object.values(NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP),
-              description:
-                "Which classification axes the dependency target must be known on to be valid. " +
-                '"any" (default): known on at least one axis is enough; reports only when unknown on both. ' +
-                '"element": the element axis must be known; reports when the element is unknown. ' +
-                '"file": the file axis must be known; reports when the file is unknown. ' +
-                '"all": both axes must be known; reports when either is unknown.',
-            },
-          },
-          additionalProperties: false,
-        },
-      ],
+      schema: getRuleOptionsSchema(ruleName),
     },
     function ({ dependency, node, context, options }) {
       if (ruleName === RULE_NAMES_MAP.NO_UNKNOWN) {

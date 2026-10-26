@@ -163,7 +163,7 @@ The release process is as follows:
    * Make sure those changes are in a version section that includes the version number and the release date (`## [X.Y.Z] - YYYY-MM-DD`).
    * Set or check the version number in the `version` field of its `package.json` file, because a contributor PR may have already bumped it.
    * Check that every version named in those changes, or in the website docs written for them, is that same version, because a contributor PR that doesn't bump the version may still name the one it expects. If one doesn't match, update it everywhere it appears.
-   * For `elements` and `eslint-plugin`, set the same version in the `sonar.projectVersion` property of its `sonar-project.properties` file.
+   * For `elements`, `config` and `eslint-plugin`, set the same version in the `sonar.projectVersion` property of its `sonar-project.properties` file.
    * Check that every package affected by a change in another package has also the correct version number (see [versioning](#versioning)).
 2. Decide if the website needs a new version. A `website` version is one of two kinds:
    * __Code release__: the version is the `eslint-plugin` version, and it only changes when the release changes the website's documentation (`packages/website/docs/`). If the release doesn't touch `packages/website/docs/`, leave the website package, its changelog and its Docusaurus versioned docs untouched. Otherwise:
@@ -184,7 +184,7 @@ The release process is as follows:
    * Title: A human readable summary of the release, such as `Update dependencies to resolve vulnerabilities`.
    * Description: One section per released package, with the changes copied from the corresponding `CHANGELOG.md` file for the version you are releasing. For example, `## eslint-plugin v7.2.1` followed by `## elements v3.1.2`.
 6. Once the release is created, the publishing workflows (`.github/workflows/publish.yml` and `.github/workflows/publish-to-github.yml`) run automatically. A tag without `-beta.` publishes:
-   * `@boundaries/elements` and `@boundaries/eslint-plugin` to the npm registry, skipping the versions that are already published.
+   * `@boundaries/elements`, `@boundaries/config` and `@boundaries/eslint-plugin` to the npm registry, skipping the versions that are already published.
    * The plugin also as `eslint-plugin-boundaries` to the npm registry, and as `@javierbrea/eslint-plugin-boundaries` to the GitHub Packages registry. Both fail if that `eslint-plugin` version was already published, which is why every release bumps the `eslint-plugin` version.
 
    A tag with `-beta.` publishes the same packages to the npm registry with the `beta` tag, and nothing to GitHub Packages.

@@ -48,6 +48,12 @@ jobs:
           name: elements-coverage
           path: packages/elements/coverage
           retention-days: 1
+      - name: Upload config test results
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: config-coverage
+          path: packages/config/coverage
+          retention-days: 1
       - name: Upload eslint-plugin test results
         uses: actions/upload-artifact@v7.0.2
         with:
@@ -60,6 +66,12 @@ jobs:
           name: elements-build
           path: packages/elements/dist
           retention-days: 1
+      - name: Upload config build
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: config-build
+          path: packages/config/dist
+          retention-days: 1
   test-node-versions:
     runs-on: ubuntu-latest
     strategy:
@@ -71,10 +83,11 @@ jobs:
       - uses: ./.github/actions/install
         with:
           node-version: ${{ matrix.node }}
-      # NOTE: In Node versions other than the development one, we only run elements and eslint plugin unit tests to save time in the CI and to avoid dev tools Node incompatibilities
+      # NOTE: In Node versions other than the development one, we only run elements, config and eslint plugin unit tests to save time in the CI and to avoid dev tools Node incompatibilities
       - name: Test Unit
         run: |
           pnpm nx test:unit elements --output-style=stream --parallel=1
+          pnpm nx test:unit config --output-style=stream --parallel=1
           pnpm nx test:unit eslint-plugin --output-style=stream --parallel=1
   build-windows:
     runs-on: windows-2022
@@ -90,6 +103,11 @@ jobs:
         with:
           name: elements-build
           path: packages/elements/dist
+      - name: Download config build
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: config-build
+          path: packages/config/dist
       - name: Test Unit ESLint Plugin
         working-directory: ./packages/eslint-plugin
         run: pnpm test:unit
@@ -98,6 +116,7 @@ jobs:
     needs: build
     env:
       SONAR_TOKEN_ELEMENTS: ${{ secrets.SONAR_TOKEN_ELEMENTS }}
+      SONAR_TOKEN_CONFIG: ${{ secrets.SONAR_TOKEN_CONFIG }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - name: Checkout
@@ -109,6 +128,11 @@ jobs:
         with:
           name: elements-coverage
           path: packages/elements/coverage
+      - name: Download config test results
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: config-coverage
+          path: packages/config/coverage
       - name: Download eslint-plugin test results
         uses: actions/download-artifact@v8.0.2
         with:
@@ -121,6 +145,13 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ./packages/elements/coverage/lcov.info
           flag-name: elements
+      - name: Coveralls for Config
+        uses: coverallsapp/github-action@v2.3.8
+        continue-on-error: true
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ./packages/config/coverage/lcov.info
+          flag-name: config
       - name: Coveralls for Eslint Plugin
         uses: coverallsapp/github-action@v2.3.8
         continue-on-error: true
@@ -136,6 +167,14 @@ jobs:
         env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_ELEMENTS }}
+      - name: SonarCloud Scan - Config
+        if: env.SONAR_TOKEN_CONFIG != ''
+        uses: SonarSource/sonarqube-scan-action@v7.2.1
+        with:
+          projectBaseDir: packages/config
+        env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_CONFIG }}
       - name: SonarCloud Scan - Eslint Plugin
         if: env.SONAR_TOKEN != ''
         uses: SonarSource/sonarqube-scan-action@v7.2.1

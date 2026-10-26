@@ -69,6 +69,7 @@
     "eslint": ">=6.0.0"
   },
   "dependencies": {
+    "@boundaries/config": "workspace:*",
     "@boundaries/elements": "workspace:*",
     "chalk": "4.1.2",
     "eslint-import-resolver-node": "0.3.9",

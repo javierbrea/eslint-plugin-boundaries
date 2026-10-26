@@ -1,3 +1,4 @@
+import { normalizeDependenciesRuleOptions } from "@boundaries/config";
 import type {
   DependencyDescription,
   DependencySingleSelectorMatchResult,
@@ -29,10 +30,30 @@ import type {
 } from "../Shared";
 import { RULE_NAMES_MAP } from "../Shared";
 
-jest.mock("../Debug", () => ({
-  warnOnce: jest.fn(),
-  printDependenciesRuleResult: jest.fn(),
-}));
+/**
+ * Normalizes policies as the rules do before evaluating them.
+ * @param policies - The policies, as the user writes them.
+ * @returns The normalized policies.
+ */
+function normalizePolicies(policies: DependenciesPolicy[]) {
+  return normalizeDependenciesRuleOptions({ policies }).policies;
+}
+
+jest.mock("../Debug", () => {
+  const mockWarnOnce = jest.fn();
+  return {
+    warnOnce: mockWarnOnce,
+    // Prints through the mocked warnOnce, as the real one does
+    warnDiagnostics: jest.fn(
+      (diagnostics: { title: string; detail?: string }[]) => {
+        for (const { title, detail } of diagnostics) {
+          mockWarnOnce(title, detail);
+        }
+      }
+    ),
+    printDependenciesRuleResult: jest.fn(),
+  };
+});
 
 jest.mock("../Elements", () => ({
   getElementsMatcher: jest.fn(),
@@ -192,7 +213,7 @@ describe("Dependencies", () => {
       const matcher = createMatcher();
 
       const result = evaluatePolicies(
-        [],
+        normalizePolicies([]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -210,12 +231,12 @@ describe("Dependencies", () => {
       setMatcherReturns(matcher, [{ matched: "allow" }]);
 
       const result = evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: { element: { type: "component" } },
             allow: [{ to: [{ element: [{ type: "x" }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -229,7 +250,9 @@ describe("Dependencies", () => {
       setMatcherReturns(matcher, [{ matched: "disallow" }]);
 
       const result = evaluatePolicies(
-        [{ disallow: [{ to: [{ element: [{ type: "x" }] }] }] }],
+        normalizePolicies([
+          { disallow: [{ to: [{ element: [{ type: "x" }] }] }] },
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -249,12 +272,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce({ matched: true });
 
       const result = evaluatePolicies(
-        [
+        normalizePolicies([
           {
             disallow: [{ to: [{ element: [{ type: "x" }] }] }],
             allow: [{ to: [{ element: [{ type: "x" }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -275,10 +298,10 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce({ rule: 0 }).mockReturnValueOnce({ rule: 1 });
 
       const result = evaluatePolicies(
-        [
+        normalizePolicies([
           { disallow: [{ to: [{ element: [{ type: "x" }] }] }] },
           { allow: [{ to: [{ element: [{ type: "x" }] }] }] },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -293,14 +316,14 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null).mockReturnValueOnce({ matched: "second" });
 
       const result = evaluatePolicies(
-        [
+        normalizePolicies([
           {
             disallow: [
               { to: [{ element: [{ type: "x" }] }] },
               { to: [{ element: [{ type: "y" }] }] },
             ],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -319,9 +342,9 @@ describe("Dependencies", () => {
       const fn = matcher.getDependencySelectorMatchingDescription as jest.Mock;
       fn.mockReturnValue(null);
 
-      const rule: DependenciesPolicy = {
-        allow: [{ to: [{ element: [{ type: "x" }] }] }],
-      };
+      const [rule] = normalizePolicies([
+        { allow: [{ to: [{ element: [{ type: "x" }] }] }] },
+      ]);
       evaluatePolicies(
         [rule],
         createDependencyDescription(),
@@ -349,12 +372,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [{ element: [{ type: "component" }] }],
             allow: [{ to: [{ element: [{ type: "helper" }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -372,12 +395,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             to: [{ element: [{ type: "helper" }] }],
             disallow: [{ from: [{ element: [{ type: "component" }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -395,12 +418,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             dependency: [{ kind: "type" }],
             allow: [{ dependency: [{ source: "@scope/x" }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -420,12 +443,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             dependency: [{ kind: "type" }],
             allow: [{ to: [{ element: [{ type: "helper" }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -442,7 +465,9 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [{ allow: [{ dependency: [{ source: "@scope/x" }] }] }],
+        normalizePolicies([
+          { allow: [{ dependency: [{ source: "@scope/x" }] }] },
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -459,7 +484,7 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [
               {
@@ -478,7 +503,7 @@ describe("Dependencies", () => {
               },
             ],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -497,12 +522,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [{ file: [{ categories: ["ui"] }] }],
             allow: [{ from: [{ element: [{ type: "component" }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -520,12 +545,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [{ element: [{ type: "component" }] }],
             allow: [{ from: [{ file: [{ categories: ["ui"] }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -543,12 +568,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             to: [{ module: [{ origin: "external" }] }],
             allow: [{ to: [{ module: [{ source: "@scope/x" }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -570,12 +595,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             to: [{ module: [{ origin: "external" }] }],
             allow: [{ to: [{ element: [{ type: "helper" }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -593,12 +618,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             to: [{ element: [{ type: "helper" }] }],
             allow: [{ to: [{ module: [{ origin: "external" }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -616,7 +641,7 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [
               {
@@ -633,7 +658,7 @@ describe("Dependencies", () => {
               },
             ],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -654,12 +679,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             dependency: [{ relationship: { from: "sibling" } }],
             allow: [{ dependency: [{ relationship: { to: "child" } }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -677,12 +702,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             dependency: [{ relationship: { from: "sibling" } }],
             allow: [{ dependency: [{ source: "@scope/x" }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -703,12 +728,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             dependency: [{ source: "@scope/x" }],
             allow: [{ dependency: [{ relationship: { to: "child" } }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -729,7 +754,7 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [
               {
@@ -746,7 +771,7 @@ describe("Dependencies", () => {
               },
             ],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -770,14 +795,14 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [
               { file: [{ categories: ["ui"], captured: { scope: "front" } }] },
             ],
             allow: [{ from: [{ file: [{ categories: ["feature"] }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -797,7 +822,7 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [
               {
@@ -806,7 +831,7 @@ describe("Dependencies", () => {
             ],
             allow: [{ from: [{ element: [{ type: "component" }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -827,7 +852,7 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [
               {
@@ -857,7 +882,7 @@ describe("Dependencies", () => {
               },
             ],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -884,12 +909,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [{ element: [{ type: "a", parent: [{ type: "module" }] }] }],
             allow: [{ from: [{ element: [{ type: "a", parent: null }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -910,12 +935,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [{ element: [{ type: "a", parent: null }] }],
             allow: [{ from: [{ element: [{ type: "b" }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -936,7 +961,7 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [{ element: [{ type: "a", parent: null }] }],
             allow: [
@@ -949,7 +974,7 @@ describe("Dependencies", () => {
               },
             ],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -970,12 +995,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [{ element: [{ type: "a", parent: [{ type: "module" }] }] }],
             allow: [{ from: [{ element: [{ type: "a" }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -996,7 +1021,7 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [{ element: [{ type: "a" }] }],
             allow: [
@@ -1007,7 +1032,7 @@ describe("Dependencies", () => {
               },
             ],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -1028,12 +1053,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [{ element: [{ type: "component" }] }],
             allow: [{ from: [{ file: [{ categories: ["ui"] }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -1051,12 +1076,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [{ file: [{ categories: ["ui"] }] }],
             allow: [{ from: [{ element: [{ type: "component" }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -1074,12 +1099,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [{ element: [{ type: "component" }] }],
             allow: ["helper"],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -1097,12 +1122,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             to: [{ element: [{ type: "helper" }] }],
             allow: ["component"],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -1123,11 +1148,11 @@ describe("Dependencies", () => {
       // a "universal" policy scoping only the dependency target. `allow`/`disallow` have
       // always meant "to" (see the v5-to-v6 migration guide), never "from".
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             allow: [{ element: [{ type: "shared" }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -1149,12 +1174,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             importKind: "type",
             allow: [{ dependency: [{ source: "@scope/x" }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -1172,12 +1197,12 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             importKind: "type",
             allow: [{ to: [{ element: [{ type: "helper" }] }] }],
           },
-        ],
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -1194,7 +1219,9 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [{ allow: [{ to: [{ element: [{ type: "helper" }] }] }] }],
+        normalizePolicies([
+          { allow: [{ to: [{ element: [{ type: "helper" }] }] }] },
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings()
@@ -1220,12 +1247,12 @@ describe("Dependencies", () => {
       });
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             from: [{ element: [{ type: "a" }] }],
             allow: [{ to: [{ element: [{ type: "x" }] }] }],
           },
-        ],
+        ]),
         dependency,
         matcher,
         createSettings({ legacyTemplates: true })
@@ -1254,12 +1281,12 @@ describe("Dependencies", () => {
       });
 
       evaluatePolicies(
-        [
+        normalizePolicies([
           {
             to: [{ element: [{ type: "helper" }] }],
             allow: [{ to: [{ element: [{ type: "x" }] }] }],
           },
-        ],
+        ]),
         dependency,
         matcher,
         createSettings({ legacyTemplates: true })
@@ -1279,7 +1306,9 @@ describe("Dependencies", () => {
       fn.mockReturnValueOnce(null);
 
       evaluatePolicies(
-        [{ allow: [{ to: [{ element: [{ type: "x" }] }] }] }],
+        normalizePolicies([
+          { allow: [{ to: [{ element: [{ type: "x" }] }] }] },
+        ]),
         createDependencyDescription(),
         matcher,
         createSettings({ legacyTemplates: false })
@@ -1396,7 +1425,9 @@ describe("Dependencies", () => {
       const { context, report } = createReportContext();
 
       evaluatePoliciesAndReport({
-        rules: [{ allow: [{ to: [{ element: [{ type: "x" }] }] }] }],
+        rules: normalizePolicies([
+          { allow: [{ to: [{ element: [{ type: "x" }] }] }] },
+        ]),
         dependency: createDependencyDescription(),
         settings: createSettings(),
         context,
@@ -1415,7 +1446,9 @@ describe("Dependencies", () => {
       const { context, report } = createReportContext();
 
       evaluatePoliciesAndReport({
-        rules: [{ allow: [{ to: [{ element: [{ type: "x" }] }] }] }],
+        rules: normalizePolicies([
+          { allow: [{ to: [{ element: [{ type: "x" }] }] }] },
+        ]),
         dependency: createDependencyDescription(),
         settings: createSettings(),
         context,
@@ -1434,7 +1467,9 @@ describe("Dependencies", () => {
       const { context, report } = createReportContext();
 
       evaluatePoliciesAndReport({
-        rules: [{ allow: [{ to: [{ element: [{ type: "x" }] }] }] }],
+        rules: normalizePolicies([
+          { allow: [{ to: [{ element: [{ type: "x" }] }] }] },
+        ]),
         dependency: createDependencyDescription(),
         settings: createSettings(),
         context,
@@ -1492,7 +1527,7 @@ describe("Dependencies", () => {
       const { context, report } = createReportContext();
 
       evaluatePoliciesAndReport({
-        rules: [],
+        rules: normalizePolicies([]),
         dependency: createDependencyDescription(),
         settings: createSettings(),
         context,
