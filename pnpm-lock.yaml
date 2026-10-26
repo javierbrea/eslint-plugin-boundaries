@@ -114,8 +114,8 @@ importers:
         specifier: 2.17.0
         version: 2.17.0
       picomatch:
-        specifier: 2.3.2
-        version: 2.3.2
+        specifier: 4.0.7
+        version: 4.0.7
     devDependencies:
       '@types/estree':
         specifier: 1.0.9
@@ -127,11 +127,11 @@ importers:
         specifier: 3.0.6
         version: 3.0.6
       '@types/picomatch':
-        specifier: 2.3.4
-        version: 2.3.4
-      path-browserify:
-        specifier: 1.0.1
-        version: 1.0.1
+        specifier: 4.0.3
+        version: 4.0.3
+      esbuild:
+        specifier: 0.27.3
+        version: 0.27.3
       tsup:
         specifier: 8.5.1
         version: 8.5.1(@swc/core@1.15.43)(jiti@1.21.7)(postcss@8.5.6)(typescript@5.9.3)(yaml@2.9.0)
@@ -3631,8 +3631,8 @@ packages:
   '@types/object-hash@3.0.6':
     resolution: {integrity: sha512-fOBV8C1FIu2ELinoILQ+ApxcUKz4ngq+IWUYrxSGjXzzjUALijilampwkMgEtJ+h2njAW3pi853QpzNVCHB73w==}
 
-  '@types/picomatch@2.3.4':
-    resolution: {integrity: sha512-0so8lU8O5zatZS/2Fi4zrwks+vZv7e0dygrgEZXljODXBig97l4cPQD+9LabXfGJOWwoRkTVz6Q4edZvD12UOA==}
+  '@types/picomatch@4.0.3':
+    resolution: {integrity: sha512-iG0T6+nYJ9FAPmx9SsUlnwcq1ZVRuCXcVEvWnntoPlrOpwtSTKNDC9uVAxTsC3PUvJ+99n4RpAcNgBbHX3JSnQ==}
 
   '@types/prismjs@1.26.5':
     resolution: {integrity: sha512-AUZTa7hQ2KY5L7AmtSiqxlhWxb4ina0yd8hNbl4TWuqnv/pFP0nDMb3YrfSBf4hJVGLh2YEIBfKaBW/9UEl6IQ==}
@@ -7590,9 +7590,6 @@ packages:
 
   pascal-case@3.1.2:
     resolution: {integrity: sha512-uWlGT3YSnK9x3BQJaOdcZwrnV6hPpd8jFH1/ucpiLRPh/2zCVJKS19E4GvYHvaCcACn3foXZ0cLB9Wrx1KGe5g==}
-
-  path-browserify@1.0.1:
-    resolution: {integrity: sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g==}
 
   path-exists@4.0.0:
     resolution: {integrity: sha512-ak9Qy5Q7jYb2Wwcey5Fpvg2KoAc/ZIhLSLOSBmRmygPsGwkVVt0fZa0qrtMz+m6tJTAHfZQ8FnmB4MG4LWy7/w==}
@@ -13541,7 +13538,7 @@ snapshots:
 
   '@types/object-hash@3.0.6': {}
 
-  '@types/picomatch@2.3.4': {}
+  '@types/picomatch@4.0.3': {}
 
   '@types/prismjs@1.26.5': {}
 
@@ -18563,8 +18560,6 @@ snapshots:
     dependencies:
       no-case: 3.0.4
       tslib: 2.8.1
-
-  path-browserify@1.0.1: {}
 
   path-exists@4.0.0: {}
 

@@ -1,8 +1,14 @@
+import isCoreModule from "is-core-module";
+
 import type { DescriptorOptionsNormalized } from "../../Config";
 import type { Micromatch } from "../../Matcher";
 
 import { ORIGINS_MAP } from "./ModuleDescription.types";
 import { ModulesDescriptor } from "./ModuleDescriptor";
+
+jest.mock<typeof isCoreModule>("is-core-module", () =>
+  jest.fn(jest.requireActual<typeof isCoreModule>("is-core-module"))
+);
 
 function createMicromatchMock(overrides?: Partial<Micromatch>): Micromatch {
   return {
@@ -30,6 +36,26 @@ function createConfig(
     },
     ...overrides,
   };
+}
+
+/**
+ * Creates a descriptor with `globalThis.process` replaced while it is constructed, restoring it before returning, because Jest itself needs it.
+ * @param processValue The value that replaces `process` while the descriptor is constructed.
+ * @returns The created descriptor.
+ */
+function createDescriptorWithProcess(processValue: unknown): ModulesDescriptor {
+  const config = createConfig();
+  const micromatch = createMicromatchMock();
+  const replacedProcess = jest.replaceProperty(
+    globalThis,
+    "process",
+    processValue as typeof process
+  );
+  try {
+    return new ModulesDescriptor(config, micromatch);
+  } finally {
+    replacedProcess.restore();
+  }
 }
 
 describe("ModulesDescriptor", () => {
@@ -157,6 +183,160 @@ describe("ModulesDescriptor", () => {
           origin: ORIGINS_MAP.CORE,
           source: "node:fs",
           internalPath: "promises",
+        });
+      });
+
+      it("should return core origin for a built-in module only available with the node: prefix", () => {
+        const config = createConfig();
+        const micromatch = createMicromatchMock();
+        const descriptor = new ModulesDescriptor(config, micromatch);
+
+        const result = descriptor.describeModule(undefined, "node:test");
+
+        expect(result).toEqual({
+          origin: ORIGINS_MAP.CORE,
+          source: "node:test",
+          internalPath: null,
+        });
+      });
+
+      it("should not return core origin for a subpath that a built-in module does not provide", () => {
+        const config = createConfig();
+        const micromatch = createMicromatchMock();
+        const descriptor = new ModulesDescriptor(config, micromatch);
+
+        const result = descriptor.describeModule(undefined, "fs/nonexistent");
+
+        expect(result).toEqual({
+          origin: ORIGINS_MAP.EXTERNAL,
+          source: "fs",
+          internalPath: "nonexistent",
+        });
+      });
+    });
+
+    describe("core modules in Node.js versions with process.getBuiltinModule", () => {
+      const processWithBuiltinModules = {
+        versions: { node: "24.0.0" },
+        getBuiltinModule: (id: string) =>
+          id === "node:module"
+            ? { isBuiltin: (source: string) => source === "node:fs" }
+            : undefined,
+      };
+
+      it("should return core origin for a module recognized by the module built-in", () => {
+        const descriptor = createDescriptorWithProcess(
+          processWithBuiltinModules
+        );
+
+        const result = descriptor.describeModule(undefined, "node:fs");
+
+        expect(isCoreModule).not.toHaveBeenCalled();
+        expect(result).toEqual({
+          origin: ORIGINS_MAP.CORE,
+          source: "node:fs",
+          internalPath: null,
+        });
+      });
+
+      it("should not return core origin for a module not recognized by the module built-in", () => {
+        const descriptor = createDescriptorWithProcess(
+          processWithBuiltinModules
+        );
+
+        const result = descriptor.describeModule(undefined, "path");
+
+        expect(isCoreModule).not.toHaveBeenCalled();
+        expect(result).toEqual({
+          origin: ORIGINS_MAP.EXTERNAL,
+          source: "path",
+          internalPath: null,
+        });
+      });
+    });
+
+    describe("core modules in Node.js versions without process.getBuiltinModule", () => {
+      it("should return core origin for a built-in module of the running Node.js version", () => {
+        const descriptor = createDescriptorWithProcess({
+          versions: { node: "18.20.8" },
+        });
+
+        const result = descriptor.describeModule(undefined, "node:test");
+
+        expect(isCoreModule).toHaveBeenCalledWith("node:test", "18.20.8");
+        expect(result).toEqual({
+          origin: ORIGINS_MAP.CORE,
+          source: "node:test",
+          internalPath: null,
+        });
+      });
+
+      it("should not return core origin for a built-in module added in a later Node.js version", () => {
+        const descriptor = createDescriptorWithProcess({
+          versions: { node: "18.20.8" },
+        });
+
+        const result = descriptor.describeModule(undefined, "node:sqlite");
+
+        expect(result).toEqual({
+          origin: ORIGINS_MAP.EXTERNAL,
+          source: "node:sqlite",
+          internalPath: null,
+        });
+      });
+    });
+
+    describe("core modules outside Node.js", () => {
+      it("should return core origin for a node: prefixed module", () => {
+        const descriptor = createDescriptorWithProcess(undefined);
+
+        const result = descriptor.describeModule(undefined, "node:fs");
+
+        expect(isCoreModule).toHaveBeenCalledWith("node:fs", "24.0.0");
+        expect(result).toEqual({
+          origin: ORIGINS_MAP.CORE,
+          source: "node:fs",
+          internalPath: null,
+        });
+      });
+
+      it("should return core origin with internalPath for a built-in subpath", () => {
+        const descriptor = createDescriptorWithProcess(undefined);
+
+        const result = descriptor.describeModule(undefined, "fs/promises");
+
+        expect(result).toEqual({
+          origin: ORIGINS_MAP.CORE,
+          source: "fs",
+          internalPath: "promises",
+        });
+      });
+
+      it("should return core origin for a built-in module of Node.js 24", () => {
+        const descriptor = createDescriptorWithProcess({
+          env: {},
+          version: "",
+          versions: {},
+        });
+
+        const result = descriptor.describeModule(undefined, "node:sqlite");
+
+        expect(result).toEqual({
+          origin: ORIGINS_MAP.CORE,
+          source: "node:sqlite",
+          internalPath: null,
+        });
+      });
+
+      it("should return external origin for a package", () => {
+        const descriptor = createDescriptorWithProcess(undefined);
+
+        const result = descriptor.describeModule(undefined, "react");
+
+        expect(result).toEqual({
+          origin: ORIGINS_MAP.EXTERNAL,
+          source: "react",
+          internalPath: null,
         });
       });
     });

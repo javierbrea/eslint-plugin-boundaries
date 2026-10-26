@@ -37,7 +37,7 @@ Every import is classified into one of three origins:
 
 The plugin decides the origin like this:
 
-1. **`core`** when the import source resolves to a Node.js built-in module. The `node:` prefix is stripped before the check, so `node:path` and `path` are both `core`. Sub-paths of a built-in are still `core` (for example `node:fs/promises`).
+1. **`core`** when the import source is a built-in module of the Node.js version that runs ESLint, with the same rules as Node.js: `node:path` and `path` are both `core`, while built-ins that only exist with the prefix, such as `node:test`, are `core` only with it. Sub-paths that a built-in provides are also `core` (for example `node:fs/promises`).
 2. **`external`** when the import is not a built-in but matches any of the [`boundaries/flag-as-external`](../settings/settings.md#boundariesflag-as-external) conditions. By default this covers:
    - imports resolved to a path inside `node_modules`;
    - non-relative imports that cannot be resolved (unresolvable aliases that look like a package or `@scope/...` name).

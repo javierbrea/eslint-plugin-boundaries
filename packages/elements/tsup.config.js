@@ -28,13 +28,5 @@ export default defineConfig([
     target: "es2022",
     splitting: false,
     sourcemap: true,
-    // Alias: replace 'path' with 'path-browserify'
-    esbuildOptions(options) {
-      options.alias = {
-        "node:path": "path-browserify",
-      };
-    },
-    // Don't treat 'path-browserify' as external
-    noExternal: ["path-browserify"],
   },
 ]);
