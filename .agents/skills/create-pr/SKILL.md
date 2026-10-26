@@ -31,6 +31,7 @@ Provide (optional; a sensible default applies):
    | `docs/`       | `docs`            |
    | `chore/`      | `chore`           |
    | `refactor/`   | `refactor`        |
+   | `test/`       | `test`            |
 
    If the PR type cannot be inferred with confidence, ask the user before proceeding.
 
@@ -46,7 +47,7 @@ Provide (optional; a sensible default applies):
    - If no issue was found, or it cannot be read, derive the description from the branch changes only.
    - In both cases, ask the user any clarifying questions about the changes or intent **before** showing the preview.
 
-7. **Build the title and description.** `<type>` is one of `feat`, `fix`, `docs`, `chore`, `refactor`.
+7. **Build the title and description.** `<type>` is one of `feat`, `fix`, `docs`, `chore`, `refactor`, `test`.
    - The title must follow the pattern `<type>: Title` (conventional-commit style, matching this repository's own commit messages).
    - Fill the template sections (`Description`, `Agreement`) from the issue and the diff. Leave the Agreement checkboxes unchecked for the user to confirm themselves.
    - When an issue number was found, add a `closes #<number>` line following the template's "Closing issues" convention. In issue-less mode, omit it.
