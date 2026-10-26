@@ -8,7 +8,7 @@ argument-hint: "[plan name] [phase]"
 
 ## When to use this skill
 
-Use it for any work that needs more than one pull request, or that more than one session will implement. A single-PR task does not need a plan: its issue is enough. Write every file with the `writing-style` skill.
+Use it for any work that needs more than one pull request, or that more than one session will implement. A single-PR task that one session implements does not need a plan: its issue is enough. Write every file with the `writing-style` skill.
 
 ## Layout
 
@@ -28,15 +28,16 @@ Use it for any work that needs more than one pull request, or that more than one
 A plan that several sessions share is committed on the feature's integration branch, never on `release` or `master`:
 
 1. Replace `.agents/plans/` in `.gitignore` with `.agents/plans/*` followed by `!.agents/plans/<name>.md` and `!.agents/plans/<name>/`, with a comment saying the plan is removed before the branch merges into `release`.
-2. The last phase of the plan removes the plan, the exception and nothing else, in its own pull request against the integration branch, merged last.
+2. The last phase of the plan moves any fact that must outlive it into an `AGENTS.md`, a rule or a skill, then removes the plan and the `.gitignore` exception, in its own pull request against the integration branch, merged last.
 3. Plan edits are their own commits on the integration branch (`chore(<scope>): update the <name> plan after phase N`), pushed so that every session sees them, never only on a phase branch.
+4. A phase branch starts from the branch its pull request targets. A phase that targets `release` never commits plan files; its session reads the plan from the integration branch (`git show origin/<branch>:.agents/plans/<name>.md`).
 
 ## The index
 
 The index is what a session reads first. It holds, in this order:
 
 - A status line with the date and what is merged, open or pending. It is rewritten at every update, never appended to.
-- Where the plan lives and how it is kept true (the three rules above, in a sentence each).
+- Where the plan lives (its integration branch) and a pointer to the "Where it lives" and "Starting a phase" sections of this skill.
 - A table of the files with "read it when".
 - A table of the phases: phase, issue, branch, depends on, PR target and title.
 - The integration plan: which branches exist, what merges where and when, and what is released or deployed by which merge. Point to `.github/CONTRIBUTING.md` for the branching model instead of restating it.
