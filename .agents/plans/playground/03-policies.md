@@ -9,7 +9,7 @@ Read first:
 
 - [RFC #559](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/559), decisions 1, 4, 5, 6, 7, 8, 9, 10. If this file and the RFC disagree, the RFC wins and this file is corrected.
 - Research note 2 on #539 (https://github.com/javierbrea/eslint-plugin-boundaries/issues/539#issuecomment-6410354387): the destination of every symbol and the specs that move.
-- `02-config.md` and its PR: the package shape, the adapters and the diagnostics are repeated here.
+- `02-config.md` (its "Outcome" too) and PR #561: the package shape, the adapters and the diagnostics are repeated here.
 - `packages/eslint-plugin/src/Rules/Dependencies.ts`, `Messages/`, `Elements/Elements.ts`, `Rules/Support/DependencyRule.ts`, `Rules/EntryPoint.ts`, `Rules/External.ts`, `Rules/NoPrivate.ts`, `Debug/Debug.ts` (`printDependenciesRuleResult`, `debugDescription`, which stay), and the specs next to them.
 - `packages/elements/src/index.ts`: `Elements`, `Matcher` (`describeEntity`, `describeDependency`, `getDependencySelectorMatchingDescription`), `DependencyDescriptorOptions`, the description and match result types; `policies` builds on them and duplicates nothing.
 
@@ -64,4 +64,5 @@ As phase 2, steps 4 to 6, with the graph line `eslint-plugin → policies → co
 ## Open points
 
 - `entry-point` translates a policy with several `target` selectors into one `dependencies` policy per selector, and today `resolveCustomMessage` reads the custom message from the user's policies at the translated index, so a later policy can report another policy's message or none (found in phase 2, which keeps it). `evaluatePolicies` reads it from the translated policies, which is what the user wrote. Default: the reporting helper keeps today's message for `entry-point`, so that the messages stay byte-identical, and the bug is filed as an issue to fix in its own PR.
+- `DiagnosticsBuilder` is internal to `config`. `policies` reports one kind of problem (the `safeMatch` error), so it builds that `Diagnostic` itself. Default: no new export from `config`; if `policies` needs the builder's deduplication, export it from `config` before `config` 1.0.0 is released, in this PR.
 - If the playground (phase 6) shows that the `elements` caches grow without bound over a long session, add a `clearCache()` to `policies` that delegates to the `Elements` instance, in its own PR into `release`. Default: none (RFC decision 7).

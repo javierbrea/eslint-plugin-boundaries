@@ -3,6 +3,8 @@
 
 Goal: a new published package `@boundaries/config` (`packages/config`) that owns the normalization and validation of the `boundaries/*` settings and of the rule options and returns its problems as diagnostics, with the plugin consuming it and reporting exactly what it reports today.
 
+Status (2026-10-26): implemented in PR #561 (draft); the deviations from the steps below are listed under "Outcome".
+
 Issue: #549. Branch `feat/549/config-package` from `release`; PR into `release`, title `feat: Extract @boundaries/config from the plugin`, `closes #549`. Changelog entries: `packages/config/CHANGELOG.md` (`## [1.0.0]`, first version) and `packages/eslint-plugin/CHANGELOG.md` (`refactor(#549): ...`, one entry saying the plugin now depends on `@boundaries/config` and nothing changes for its users; the version bump is a patch, RFC decision 10). The PR description lists the moved modules, the adapters left in the plugin, the browser check result, and confirms that the plugin's unit and e2e suites pass with no expectation changed.
 
 Read first:
@@ -78,11 +80,23 @@ If `test/browser-e2e` (#558) is merged, add its `config` scenarios in this PR: `
 - No `eslint`, `estree`, `chalk`, `eslint-module-utils` or `node:` import and no `process` under `packages/config/src` (grep); the plugin imports settings and rule-option normalization only from `@boundaries/config` (grep for the old functions in `packages/eslint-plugin/src`).
 - Coverage of `config` is 100%; the moved specs are the baseline.
 
+## Outcome
+
+Deviations from the steps, also in the description of PR #561:
+
+- The plugin's `Shared/Settings.types.ts` re-exports the constants and types of `@boundaries/config` that the plugin uses, instead of every module importing them from the package, so the 130 rule specs under `test/rules/` keep their imports. It defines only the ESLint-typed types, `ValidateRulesOptions`, `PLUGIN_ENV_VARS_PREFIX` and its own `SETTINGS` (the one of `config` plus the environment variable names).
+- `Debug/` gains `warnDiagnostics(diagnostics)`, which the adapters call. Specs that mock `../Debug` give it an implementation that forwards to the mocked `warnOnce`, so their `warnOnce` assertions keep working (`Rules/Dependencies.spec.ts` is the model).
+- `config` memoizes the compiled `ajv` validator of each rule (`Schemas/Validator.ts`); it depends only on the rule name. `DiagnosticsBuilder` is internal: it is not exported by `src/index.ts`.
+- `tsup.config.js` inlines `ajv/lib/refs/json-schema-draft-04.json` (`noExternal`): the Node.js ES module build could not import a JSON module without an import attribute.
+- The `public` element type of the plugin's `eslint.config.mjs` may import only `messages` now; its other re-exports come from `@boundaries/config`.
+- `test:e2e` marks `@boundaries/elements` as external until #510 is merged (`00-shared.md`, section 4).
+- The SonarCloud project and the `SONAR_TOKEN_CONFIG` secret are for the maintainer to create; the scan step is skipped until then.
+
 ## Hand-offs
 
-- To phase 3: `SettingsNormalized`, `DependenciesRuleOptionsNormalized`, `DependenciesPolicyNormalized` and `Diagnostic`, imported from `@boundaries/config`; `getDependenciesRuleOptions` in the plugin's `Settings/` adapter, which phase 3 feeds to `evaluateDependency`; the precomputed selectors in `Rules/Dependencies.ts`, already cached by `DependenciesPolicyNormalized`, which phase 3 moves as they are.
+- To phase 3: `SettingsNormalized`, `DependenciesRuleOptionsNormalized`, `DependenciesPolicyNormalized` and `Diagnostic`, imported from `@boundaries/config`; `getDependenciesRuleOptions` in the plugin's `Settings/` adapter, which phase 3 feeds to `evaluateDependency`; the precomputed selectors in `Rules/Dependencies.ts`, already cached by `DependenciesPolicyNormalized`, which phase 3 moves as they are. `evaluatePoliciesAndReport` takes the normalized policies as `rules` and still reads `default` and the custom message from the rule's own `options`.
 - To phase 4 and 5: `normalizeConfig` and its diagnostics paths, rooted at the config object.
-- To the index: the versions set (`config` 1.0.0, plugin patch).
+- To the index: the versions set (`config` 1.0.0 in its `package.json`; the plugin's patch is set at release time from its `[Unreleased]` entry).
 
 ## Open points
 
