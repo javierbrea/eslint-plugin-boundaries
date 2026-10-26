@@ -534,7 +534,7 @@ export class ElementsDescriptor {
     elementResult.isUnknown = false;
     elementResult.path = elementPath;
     elementResult.captured = capturedValues;
-    // The element path is the file path when a "file" or "full" mode pattern matches the whole path, or when a folder mode pattern like "src/*/**" does. Folder mode keeps the whole path then, like _getFileInternalPath does in the folder cache
+    // The element path is the file path when a "full" mode pattern without partialMatch: false matches, or when the shortest part of the path that the pattern matches already ends at the file name, as with "*.ts" in "file" mode or "src/*/**" in folder mode. Folder mode keeps the whole path then, like _getFileInternalPath does in the folder cache
     elementResult.fileInternalPath =
       isFolderMode || filePath !== elementPath
         ? filePath.replace(`${elementPath}/`, "")
@@ -612,7 +612,7 @@ export class ElementsDescriptor {
    */
   private _getFolderKey(relativePath: string): string {
     const separatorIndex = relativePath.lastIndexOf("/");
-    // Surviving Stryker mutant: replacing the condition with `false` keys a file at the root by its name without the last character, which only collides with a folder named like that
+    // Surviving Stryker mutant: replacing the condition with `false` keys each file at the root by its name without the last character. That only collides with a folder named like that, or changes results when the description of a file at the root depends on its name, as with the pattern "**", where killing it would lock in #568
     // Stryker disable next-line StringLiteral: Changing the key of files at the root only makes it collide with a folder named like the mutated string
     return separatorIndex === -1 ? "" : relativePath.slice(0, separatorIndex);
   }
