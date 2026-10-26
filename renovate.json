@@ -39,17 +39,6 @@
       "allowedVersions": "<0.3.10"
     },
     {
-      "description": "picomatch 3 and later change how Windows paths are detected and matched. Keep picomatch and its types on v2, which behaves like micromatch 4, until the upgrade is reviewed",
-      "matchFileNames": [
-        "**/package.json"
-      ],
-      "matchPackageNames": [
-        "picomatch",
-        "@types/picomatch"
-      ],
-      "allowedVersions": "<3.0.0"
-    },
-    {
       "description": "packages/website commits font files copied from these packages",
       "matchFileNames": [
         "packages/website/package.json"

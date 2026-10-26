@@ -11,6 +11,7 @@
 - [Introduction](#introduction)
 - [Features](#features)
 - [Installation](#installation)
+  - [Browser Support](#browser-support)
 - [Quick Start](#quick-start)
 - [Core Concepts](#core-concepts)
   - [Entities](#entities)
@@ -68,6 +69,12 @@ Install the package via npm:
 ```bash
 npm install @boundaries/elements
 ```
+
+### Browser Support
+
+The package also runs in browsers. Bundlers that build for browsers, such as webpack, Vite or esbuild, select its browser build through the `browser` condition of its `exports` field, and that build needs no polyfills of Node.js modules or globals like `process`.
+
+Outside Node.js there is no running Node.js version to read the built-in modules from, so dependencies are described as `core` when they are built-in modules of Node.js 24.
 
 ## Quick Start
 
