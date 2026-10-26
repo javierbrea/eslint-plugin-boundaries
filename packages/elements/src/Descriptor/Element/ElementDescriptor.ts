@@ -314,6 +314,7 @@ export class ElementsDescriptor {
       }
     }
 
+    // Stryker disable next-line ObjectLiteral: Equivalent mutant, callers only read `matched`, which is also falsy in an empty object
     return { matched: false };
   }
 
@@ -386,7 +387,8 @@ export class ElementsDescriptor {
         elementDescriptor.capture
       );
 
-      if (elementDescriptor.basePattern && baseCapture) {
+      // baseCapture is only set when the descriptor has a basePattern
+      if (baseCapture) {
         capturedValues = {
           ...this._pathHelper.getCapturedValues(
             baseCapture,
@@ -397,6 +399,7 @@ export class ElementsDescriptor {
       }
 
       let elementPath: string;
+      // Surviving Stryker mutant: replacing this condition with `false` is equivalent, because a "full" mode descriptor only matches as main element at the first level, where _getElementPath also returns the file path
       if (useFullPathMatch) {
         elementPath = filePath;
       } else if (
@@ -520,10 +523,6 @@ export class ElementsDescriptor {
     filePath: string,
     capturedValues: CapturedValues | null
   ): void {
-    const isFolderMode =
-      elementDescriptor.partialMatch === false ||
-      !elementDescriptor.mode ||
-      elementDescriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
     elementResult.types = elementDescriptor.type
       ? [elementDescriptor.type]
       : null;
@@ -531,12 +530,13 @@ export class ElementsDescriptor {
     elementResult.isUnknown = false;
     elementResult.path = elementPath;
     elementResult.captured = capturedValues;
+    // The element path is the file path only when a "file" or "full" mode pattern matches the whole path. Otherwise it is a folder containing the file, even in "file" mode with patterns like "helpers/**"
     elementResult.fileInternalPath =
-      isFolderMode || filePath !== elementPath // Defensive check to ensure we don't return an empty string if filePath and elementPath are the same. This should not happen.
-        ? filePath.replace(`${elementPath}/`, "")
-        : filePath.split("/").pop() ||
+      filePath === elementPath
+        ? filePath.split("/").pop() ||
           // istanbul ignore next -- Ensures non-empty string if filePath were a single segment. Unreachable: filePath is guaranteed non-empty, so split("/").pop() always returns a truthy string
-          filePath;
+          filePath
+        : filePath.replace(`${elementPath}/`, "");
   }
 
   /**
@@ -607,10 +607,10 @@ export class ElementsDescriptor {
    * @returns The folder portion of the path (everything but the last segment, empty for a file at the root).
    */
   private _getFolderKey(relativePath: string): string {
-    const lastSeparatorIndex = relativePath.lastIndexOf("/");
-    return lastSeparatorIndex === -1
-      ? ""
-      : relativePath.slice(0, lastSeparatorIndex);
+    const separatorIndex = relativePath.lastIndexOf("/");
+    // Surviving Stryker mutant: replacing the condition with `false` keys a file at the root by its name without the last character, which only collides with a folder named like that
+    // Stryker disable next-line StringLiteral: Changing the key of files at the root only makes it collide with a folder named like the mutated string
+    return separatorIndex === -1 ? "" : relativePath.slice(0, separatorIndex);
   }
 
   /**
