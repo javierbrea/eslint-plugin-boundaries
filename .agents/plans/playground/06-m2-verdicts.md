@@ -9,7 +9,7 @@ Read first:
 
 - RFC #538, "Interface" decisions 3, 4 and 6, the picker drawing, the problems panel states, and "Milestones" M2.
 - The approved mockup (`playground/mockups/`) and "Decisions of the mockup" in `05-m1-identify.md`.
-- `packages/policies` README and `AGENTS.md`: `evaluateDependency`, the `dependencyInfo` shape (kind, specifiers, syntax), the result (verdict, policy index, effect, selector, message); `03-policies.md` hand-offs.
+- `packages/policies` README and `AGENTS.md`: `describeDependency` and its input (`DependencyDescriptorOptions`: `from`, `to`, `source`, `kind`, `nodeKind`, `specifiers`), `evaluateDependency` and its result (`checked` with a skip `reason`, or `allowed`, `policyIndex`, `match`, `message`, `diagnostics`); `03-policies.md` hand-offs.
 - `packages/website/src/components/home/Steps/` for the exact step 3 scenario and the message the home shows.
 
 Preconditions: phase 5 merged; phase 3 merged into `release` and `release` merged into `feat/539/playground`.
@@ -26,7 +26,7 @@ In: the dependency model and picker, rendering as import statements with verdict
 
 ### 2. Evaluation
 
-Extend `engine.evaluate`: for every dependency call `evaluateDependency` with the normalized settings, the `boundaries/dependencies` options from the config node, the `from` and `to` paths (external targets as module names) and the `dependencyInfo` the model carries; collect `{ dependency, verdict }`; derive per-file and per-folder failing counts for the tree, and the `Sketch` list (config diagnostics plus failing dependencies). Only the `dependencies` rule is evaluated (RFC scope); if the config declares other rules, they are shown in the inspector as "not evaluated here" and ignored.
+Extend `engine.evaluate`: for every dependency, build the `describeDependency` input from the model (`from`: the file path; `to`: the target node's path, absent for an external target; `source`: the specifier the statement renders, relative for a node, the module name for an external target; `kind`: `importKind`; `nodeKind`: `import`, `export`, `require` or `dynamic-import` from `syntax`; `specifiers`: the names of the `named` specifiers only, as the plugin reads them from the AST), then call `evaluateDependency` with the normalized settings, the `dependencies` (or `element-types`) options of `normalizeConfig`'s `rules` and that description; collect `{ dependency, evaluation }`. A dependency with `checked: false` is shown as not checked by the rule, with its reason, and counts as no problem; derive per-file and per-folder failing counts for the tree, and the `Sketch` list (config diagnostics plus failing dependencies). Only the `dependencies` rule is evaluated (RFC scope); if the config declares other rules, they are shown in the inspector as "not evaluated here" and ignored.
 
 ### 3. The picker
 

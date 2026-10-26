@@ -23,7 +23,7 @@ In: the three research notes posted on #539, the package, the contract types, th
 
 ### 1. Research note 1: browser bundle
 
-In a scratch folder outside the repo, bundle an entry that imports `@boundaries/elements`, `@boundaries/config` (and `policies` if available) with esbuild `platform: "browser"`, `minify: true`, no alias, run it in `node:vm` without Node.js globals calling `describeElement` / the config normalization on the quick-start example, and record: it runs, the gzipped size of each package, and whether module resolution is involved anywhere (the sketch is the universe, anything not in it is external; confirm the packages accept a precomputed module origin or that `describeDependency` works with paths only). Post the note on #539 ("Research note 1: browser bundle") with the numbers and the conclusion.
+In a scratch folder outside the repo, bundle an entry that imports `@boundaries/elements`, `@boundaries/config` (and `policies` if available) with esbuild `platform: "browser"`, `minify: true`, no alias, run it in `node:vm` without Node.js globals calling `normalizeConfig` and `describeEntity` (and `describeDependency` with paths only, if `policies` is merged) on the quick-start example, and record: it runs, the gzipped size of each package, and that no module resolution is involved (the sketch is the universe: `to` is passed only for nodes of the sketch, and anything else is external or core, RFC #559, decision 4). Post the note on #539 ("Research note 1: browser bundle") with the numbers and the conclusion.
 
 ### 2. Research note 3: config input and editor
 
