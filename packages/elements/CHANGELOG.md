@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - fix(#510): Built-in modules only available with the `node:` prefix, such as `node:test` or `node:sqlite`, are described as `core` instead of `external`.
+- fix(#510): Some extglob patterns now match all the paths they describe, as the same patterns without extglobs do. For example, `src/@(foo/**)` now matches `src/foo`, like `src/foo/**`.
 - fix(#510): The ES module build for Node.js no longer throws `Dynamic require of "module" is not supported` when a matcher is created.
 
 ## [3.2.0] - 2026-10-23
