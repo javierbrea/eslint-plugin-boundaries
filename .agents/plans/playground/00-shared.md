@@ -27,7 +27,7 @@ pnpm nx test:e2e browser-e2e --output-style=stream           # the packages in C
 
 ## 2. Branching, PRs, commits
 
-- Phase branches are named in the index ("Phases"): `feat/<issue>/<slug>` from the branch their PR targets. Extraction phases branch from `release` and target `release`; playground phases branch from `feat/539/playground` and target it. Never target `master`.
+- Phase branches are named in the index ("Phases"): `feat/<issue>/<slug>`, from the branch their PR targets (`write-plan` skill, "Where it lives"). Extraction phases target `release`; playground phases target `feat/539/playground`. Never target `master`.
 - One PR per phase, draft, created with the `create-pr` skill (it fills the template, infers the issue from the branch name and adds `closes #N`). For PRs into `feat/539/playground` the `closes` line is kept: it acts when the integration branch reaches `master`.
 - Commit messages: Conventional Commits with the issue in the scope when there is one (`feat(#549): ...`), as the repository does; plan edits are `chore(playground): update the playground plan ...` on the integration branch.
 - The integration branch merges `release` (never rebases) whenever a phase needs something merged there; the merge is a plain `git merge origin/release` commit, pushed.
