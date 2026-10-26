@@ -5,13 +5,6 @@
   "tags": [
     "type:react:application"
   ],
-  "namedInputs": {
-    // Docusaurus reads its config, sidebars and versions from the project root, so every root file stays an input of the build
-    "production": [
-      "!{projectRoot}/**/*.spec.*",
-      "!{projectRoot}/**/*.test.*"
-    ]
-  },
   "targets": {
     "lint": {
       "cache": true,

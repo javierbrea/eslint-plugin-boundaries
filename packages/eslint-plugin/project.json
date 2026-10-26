@@ -35,11 +35,13 @@
     },
     "build": {
       "cache": true,
-      "outputs": ["{projectRoot}/dist"],
+      // The build also copies the workspace README into the package, which publishes it
+      "outputs": ["{projectRoot}/dist", "{projectRoot}/README.md"],
       "inputs": [
         { "dependentTasksOutputFiles": "**/*", "transitive": true },
         "default",
-        "production"
+        "production",
+        "{workspaceRoot}/README.md"
       ]
     }
   },
