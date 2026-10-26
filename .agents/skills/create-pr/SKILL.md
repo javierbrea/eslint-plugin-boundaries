@@ -53,13 +53,9 @@ Provide (optional; a sensible default applies):
 
 8. **Show a mandatory preview.** Present the full title and description and ask for explicit confirmation before any create or update call. When updating an existing pull request, make clear which content will be replaced, and preserve any manually added sections not covered by the template rather than overwriting them.
 
-9. **Determine labels from the actual changes.** This repository uses these labels (match the strings exactly, including the space after the colon):
+9. **Determine labels from the actual changes.** The labels and what each one covers are in the "Bookkeeping" section of the `create-issue` skill. For a pull request:
    - Type: `type: bug` (branch prefix `fix/`/`bug/`, or `fix(...)` commits) or `type: feature` (branch prefix `feat/`). For other prefixes, do not force `type: bug`/`type: feature`; ask the user if a type label should be applied (for example `type: task`).
-   - Scope, one or more depending on which files changed in the diff:
-     - `scope: code` — functional code under `packages/*/src`.
-     - `scope: tests` — test files (`test/`, `*.spec.*`, `*.test.*`).
-     - `scope: documentation` — docs/website content and `*.md` files.
-     - Other existing labels (`scope: dependencies`, `scope: CI-CD`, `scope: refactor`) may also apply — use them when the diff matches.
+   - Scope: the `scope:` labels of the files changed in the diff, one or more.
 
 10. **Prefer GitHub MCP tools.** Use GitHub MCP tools for all supported operations (for example `create_pull_request`, `update_pull_request`, `get_issue`). Fall back to `gh` CLI or REST only for operations MCP does not support.
 
@@ -118,8 +114,7 @@ Include assumptions, risks, and follow-ups when relevant.
 
 ## Notes / Constraints
 
-- Write the pull request title and description in English, whatever language the conversation is in.
-- **Do not use hard line breaks within paragraphs** in the PR description. Each paragraph must be a single unbroken line; only blank lines separate paragraphs.
+- Write every text with the `writing-style` skill.
 - One pull request per branch: verify existing pull requests before creating a new one.
 - The pull request must remain in draft state after creation.
 - Always show a preview and obtain explicit confirmation before creating or updating the pull request.

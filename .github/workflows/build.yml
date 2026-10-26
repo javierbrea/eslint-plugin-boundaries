@@ -22,6 +22,17 @@ jobs:
         run: pnpm lint
       - name: Spell check repo root
         run: pnpm check:spell
+      # NOTE: Plans are shared only on integration branches, and removed before they merge into release (write-plan skill)
+      - name: Check that no plan is committed
+        if: github.event_name == 'push' || github.base_ref == 'release' || github.base_ref == 'master' || startsWith(github.base_ref, 'release-v')
+        env:
+          TARGET_BRANCH: ${{ github.base_ref || github.ref_name }}
+        run: |
+          if [ -n "$(git ls-files .agents/plans)" ]; then
+            echo "Remove these files before merging into $TARGET_BRANCH:"
+            git ls-files .agents/plans
+            exit 1
+          fi
   check-vulnerabilities:
     runs-on: ubuntu-latest
     steps:
@@ -90,6 +101,9 @@ jobs:
         with:
           name: elements-build
           path: packages/elements/dist
+      - name: Test Unit Elements
+        working-directory: ./packages/elements
+        run: pnpm test:unit
       - name: Test Unit ESLint Plugin
         working-directory: ./packages/eslint-plugin
         run: pnpm test:unit

@@ -41,10 +41,10 @@ Edits or changes to an accepted RFC should be documented in an "Amendment" secti
 
 **RFC Reference**
 
-A reference link to the original RFC discussion should be included in the issue body:
+A reference link to the original RFC discussion should open the issue body:
 
 ```markdown
-[From RFC #x](https://github.com/org/repo/discussions/123)
+From [RFC #123: Title of the RFC](https://github.com/org/repo/discussions/123)
 ```
 
 ---
@@ -66,25 +66,20 @@ A reference link to the original RFC discussion should be included in the issue 
 
 **Add to Project:**
 1. Go to the project board
-2. Add the issue to its appropriate column (e.g., "To Do")
+2. Add the issue to the `Backlog` column
 
 **Assign to Milestone:**
 1. Click "Milestone" in the issue sidebar
 2. Choose the target version (e.g., `v3.0.0`)
 
-**Add Priority label:**
-- `p0-critical` - Blocking release, must do
-- `p1-high` - Important, schedule soon
-- `p2-medium` - Nice to have
-- `p3-low` - Future consideration
+**Priority and size:** the maintainer sets the board's `Priority` (`P0` to `P2`) and `Size` (`XS` to `XL`) fields.
 
 ---
 
 ### Step 5: Contributors Pick Up Tasks
 
 **For core contributors:**
-1. Move Issue from "Backlog" → "To Do" (in Project)
-2. Assign to yourself
+1. Assign the issue to yourself
 
 **For external contributors:**
 1. Comment on Issue: *"I'd like to work on this"*
@@ -94,18 +89,18 @@ A reference link to the original RFC discussion should be included in the issue 
 Create branch from `release`, or from the specific milestone branch when applies (e.g., `release-vX.X.X`): `feat/{issue-number}/description`
 
 **Labels for contributors:**
-- `good-first-issue` - For beginner-friendly tasks
-- `help-wanted` - Actively seeking contributions
-- `blocked` - Waiting for something else before work can start
+- `meta: good first issue` - For beginner-friendly tasks
+- `meta: help wanted` - Actively seeking contributions
+- `status: blocked` - Waiting for something else before work can start
 
 ---
 
 ### Step 6: During Development
 
 **Move in Project:**
-- When starting work: `Backlog` → `In Progress`
-- When PR opens: `In Progress` → `In Review`
-- When PR is merged into the release branch: `In Review` → `Release`
+- When starting work: `Backlog` → `In progress`
+- When PR opens: `In progress` → `In review`
+- When PR is merged into the release branch: `In review` → `Ready for release`
 - When merged into main branch: Auto-move to `Done` (if PR references `Closes #{issue}`)
 
 > [!TIP]

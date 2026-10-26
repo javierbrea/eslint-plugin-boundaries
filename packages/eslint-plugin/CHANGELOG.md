@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- fix(#510): Imports of Node.js built-in modules only available with the `node:` prefix, such as `node:test` or `node:sqlite`, have the `core` origin instead of `external`: read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-4-0/#nodejs-built-in-modules-with-the-node-prefix) to check whether your policies are affected.
+- fix(#510): Some extglob patterns now match all the paths they describe, like the same patterns without extglobs (`src/@(foo/**)` now matches `src/foo`, like `src/foo/**`): read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-4-0/#extglob-patterns) to check whether your patterns are affected.
+
 ## [7.3.0] - 2026-10-23
 
 ### Changed

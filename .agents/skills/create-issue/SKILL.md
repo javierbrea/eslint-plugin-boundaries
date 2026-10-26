@@ -31,7 +31,8 @@ Before drafting, search the open issues (`gh issue list --state open --search "<
 1. `## Context`: why the issue exists, in a paragraph. An issue born from an RFC opens with `From [RFC #N: title](url)` and does not repeat the RFC's reasoning; an issue born from another issue links it.
 2. `## Proposal` (or `## Scope` for a task): what changes, as a list or a short numbered plan, naming the files, packages and commands involved. What is explicitly out of scope goes at the end of this section.
 3. `## Acceptance criteria`: a checklist that a reviewer can tick without asking the author. Each item is observable (a command that passes, a page that renders, a file that exists).
-4. `## Blocked by` / `## Related`: issue numbers with a few words each on why.
+4. `## Open questions`: questions the implementer cannot answer alone, each with who decides it.
+5. `## Blocked by` / `## Related`: issue numbers with a few words each on why.
 
 A tracking issue (the parent of sub-issues) replaces `Proposal` with `## Plan`: the ordered list of its sub-issues, each as `- [ ] #N` so that GitHub shows the progress.
 
@@ -39,9 +40,9 @@ A tracking issue (the parent of sub-issues) replaces `Proposal` with `## Plan`: 
 
 Check the labels, milestones and board fields on GitHub before using them (`gh label list`, `gh api repos/{owner}/{repo}/milestones`, `gh project field-list 7 --owner javierbrea`); the lists below are the ones in use and are not updated by this skill.
 
-- **Labels.** One `type:` label (`type: feature`, `type: task`, `type: bug`, `type: feature request`, `type: subtask`, `type: support`) and the `scope:` labels of the files the work touches (`scope: code`, `scope: documentation`, `scope: tests`, `scope: CI-CD`, `scope: dependencies`, `scope: refactor`). `status: blocked` when a `Blocked by` section exists. Match the strings exactly, including the space after the colon.
+- **Labels.** One `type:` label: `type: feature` for new behavior, `type: bug` for a defect, `type: task` for work with no new behavior; a sub-issue takes the type of its own work. `type: feature request` and `type: support` are for issues opened by users. Add the `scope:` labels of the files the work touches: `scope: code` (source under `packages/*/src`), `scope: tests` (`test/`, `*.spec.*`, `*.test.*`), `scope: documentation` (docs, website content, `*.md`), `scope: CI-CD`, `scope: dependencies`, `scope: refactor`. Add `status: blocked` when a `Blocked by` section exists. Match the strings exactly, including the space after the colon.
 - **Milestone.** Work shipped by a package release goes in the version milestone `vX.Y.Z`. Work that spans releases and comes from an RFC gets a milestone named after the feature, with the RFC in its description. Create a missing milestone with `gh api repos/{owner}/{repo}/milestones -f title=... -f description=...`.
-- **Project board.** Every issue goes to the user project "JS Boundaries" (number 7) with `Status` set to `Backlog`: `gh project item-add 7 --owner javierbrea --url <issue url>`, then `gh project item-edit --project-id <project id> --id <item id> --field-id <status field id> --single-select-option-id <backlog option id>`. The ids come from `gh project field-list` and `gh project item-list`; the commands need the `project` token scope (`gh auth refresh -s project`).
+- **Project board.** Every issue goes to the user project "JS Boundaries" (number 7) with `Status` set to `Backlog`: `gh project item-add 7 --owner javierbrea --url <issue url> --format json --jq .id` returns the item id, then `gh project item-edit --project-id <project id> --id <item id> --field-id <status field id> --single-select-option-id <backlog option id>`. The project id comes from `gh project view 7 --owner javierbrea --format json --jq .id`, and the `Status` field and `Backlog` option ids from `gh project field-list 7 --owner javierbrea --format json`; the commands need the `project` token scope (`gh auth refresh -s project`). Leave the board's `Priority` and `Size` fields to the maintainer.
 - **Assignee.** `--assignee` on creation.
 - **Parent issue.** A sub-issue is attached to its parent with the GraphQL mutation `addSubIssue(input: { issueId, subIssueId })`, using the node ids from `gh issue view N --json id`; `gh issue create` has no option for it.
 

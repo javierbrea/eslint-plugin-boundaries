@@ -15,16 +15,16 @@ Everything published from this repository is read by someone who was not in the 
 - Use a numbered list only when the order matters.
 - Use a table to compare things along two or more attributes. Three rows or fewer with one attribute is a list, not a table.
 - Use a checklist (`- [ ]`) only for items that get ticked off: acceptance criteria, task lists. Never for prose.
-- Headings (`##`, `###`) name what the section holds (`Context`, `Proposal`, `Acceptance criteria`), not what the writer did. A text under about fifteen lines has no headings.
+- Headings (`##`, `###`) name what the section holds (`Context`, `Proposal`, `Acceptance criteria`), not what the writer did. A comment or another text under about fifteen lines has no headings, unless its template or skill sets them (issues, pull requests).
 - Do not hard-wrap paragraphs. One paragraph is one line; blank lines separate paragraphs. GitHub renders single line breaks as breaks.
 
 ## Register
 
-- English, plain and direct. State facts and decisions: "the playground is its own package", not "we could consider making the playground its own package". A real open question is written as a question under `Open questions`.
+- English, whatever language the conversation is in, plain and direct. State facts and decisions: "the playground is its own package", not "we could consider making the playground its own package". A real open question is written as a question under `Open questions`.
 - Say what and why. Leave out how the text was produced ("I checked", "after looking at", "it seems that").
 - Be concrete: name the file, the command, the number, the issue. `#N` for issues and pull requests, the full URL for a discussion, backticks for paths, commands, options and code, a fenced block for anything multi-line.
 - Link instead of restating. One link per fact, placed where the fact is used. When a fact already lives in a repository file, point to the file.
-- No emphasis for urgency (`IMPORTANT`, bold sentences, exclamation marks) and no emojis. The only exception is the status marker on the first line of an RFC (`**Status:** 🟡 Draft`, `✅ Done`).
+- No emphasis for urgency (`IMPORTANT`, bold sentences, exclamation marks) and no emojis. The only exception is the status marker on the first line of an RFC (`**Status:** 🟡 Draft`, `**Status:** ✅ Accepted (2026-10-25)`).
 - Expand an acronym the first time it appears unless it is a common one in this repository (ESLint, RFC, PR, CI, URL).
 
 ## Length

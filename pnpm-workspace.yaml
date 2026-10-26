@@ -22,3 +22,5 @@ minimumReleaseAgeExclude:
   - nx@22.7.7 || 22.7.10
   # Renovate security update: baseline-browser-mapping@2.11.0
   - baseline-browser-mapping@2.11.0
+  # Renovate security update: esbuild@0.28.1
+  - esbuild@0.28.1

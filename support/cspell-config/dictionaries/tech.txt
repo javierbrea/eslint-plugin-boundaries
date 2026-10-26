@@ -19,3 +19,5 @@ sonarlint
 sonarqube
 sonarsource
 subfolders
+extglob
+extglobs
