@@ -16,8 +16,8 @@
       "{projectRoot}/**/*",
       "sharedGlobals"
     ],
-    // Usual input for the build targets. It excludes test files, mocks, and other non-production files. This should be overridden in projects that have different test files
-    // Nx applies every exclusion to all the patterns of a target, so only the root files that never affect a build are excluded: the build configs at the project root (tsup, tsconfig, babel, package.json) must invalidate the cache
+    // Usual input for the build targets. It excludes test files and other non-production files. This should be overridden in projects that have different test files
+    // Nx applies every exclusion to all the patterns of a target, so only the root files that never affect a build are excluded: the build configs at the project root (tsup, tsconfig, package.json) must invalidate the cache
     "production": [
       "!{projectRoot}/**/*.spec.*",
       "!{projectRoot}/**/*.test.*",
