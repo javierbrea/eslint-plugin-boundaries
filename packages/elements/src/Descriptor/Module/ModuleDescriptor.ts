@@ -26,7 +26,7 @@ const NODE_VERSION_OUTSIDE_NODE = "24.0.0";
  */
 export class ModulesDescriptor {
   /**
-   * Node.js `module` built-in, which lists the core modules of the running Node.js version. It is null outside Node.js, and in Node.js versions without `process.getBuiltinModule`.
+   * Node.js `module` built-in, which recognizes the core modules of the running Node.js version. It is null outside Node.js, and in Node.js versions without `process.getBuiltinModule`.
    */
   private readonly _mod: typeof Mod | null;
 
@@ -81,18 +81,11 @@ export class ModulesDescriptor {
   /**
    * Determines if a dependency source is a core module.
    * @param dependencySource The source of the dependency to check.
-   * @param baseDependencySource The base source of the dependency to check.
    * @returns True if the dependency source is a core module, false otherwise.
    */
-  private _dependencySourceIsCoreModule(
-    dependencySource: string,
-    baseDependencySource: string
-  ): boolean {
+  private _dependencySourceIsCoreModule(dependencySource: string): boolean {
     if (this._mod) {
-      const moduleWithoutPrefix = baseDependencySource.startsWith("node:")
-        ? baseDependencySource.slice(5)
-        : baseDependencySource;
-      return this._mod.builtinModules.includes(moduleWithoutPrefix);
+      return this._mod.isBuiltin(dependencySource);
     }
     return isCoreModule(dependencySource, this._nodeVersion);
   }
@@ -249,10 +242,7 @@ export class ModulesDescriptor {
       : null;
 
     // Determine if the dependency source is a core module
-    const isCore = this._dependencySourceIsCoreModule(
-      dependencySource,
-      baseDependencySource
-    );
+    const isCore = this._dependencySourceIsCoreModule(dependencySource);
 
     if (isCore) {
       return {

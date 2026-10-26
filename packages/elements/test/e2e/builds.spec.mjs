@@ -40,6 +40,7 @@ const DEPENDENCIES = [
   },
   ...[
     "node:fs",
+    "node:test",
     "node:fs/promises",
     "fs",
     "fs/promises",
@@ -126,6 +127,7 @@ describe("builds", () => {
 
     assert.deepEqual(origins, [
       "local",
+      "core",
       "core",
       "core",
       "core",

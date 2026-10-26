@@ -14,11 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - chore(#510): Upgrade `picomatch` to 4.0.7, which no longer requires Node.js modules.
-- refactor(#510): In Node.js versions without `process.getBuiltinModule` (earlier than 20.16, and 21 to 22.2), core modules are detected with `is-core-module` instead of with the `module` built-in.
 
 ### Fixed
 
-- fix: The ES module build for Node.js no longer throws `Dynamic require of "module" is not supported` when a matcher is created.
+- fix(#510): Built-in modules only available with the `node:` prefix, such as `node:test` or `node:sqlite`, are described as `core` instead of `external`.
+- fix(#510): The ES module build for Node.js no longer throws `Dynamic require of "module" is not supported` when a matcher is created.
 
 ## [3.2.0] - 2026-10-23
 

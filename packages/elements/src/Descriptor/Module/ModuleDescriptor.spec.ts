@@ -185,16 +185,46 @@ describe("ModulesDescriptor", () => {
           internalPath: "promises",
         });
       });
+
+      it("should return core origin for a built-in module only available with the node: prefix", () => {
+        const config = createConfig();
+        const micromatch = createMicromatchMock();
+        const descriptor = new ModulesDescriptor(config, micromatch);
+
+        const result = descriptor.describeModule(undefined, "node:test");
+
+        expect(result).toEqual({
+          origin: ORIGINS_MAP.CORE,
+          source: "node:test",
+          internalPath: null,
+        });
+      });
+
+      it("should not return core origin for a subpath that a built-in module does not provide", () => {
+        const config = createConfig();
+        const micromatch = createMicromatchMock();
+        const descriptor = new ModulesDescriptor(config, micromatch);
+
+        const result = descriptor.describeModule(undefined, "fs/nonexistent");
+
+        expect(result).toEqual({
+          origin: ORIGINS_MAP.EXTERNAL,
+          source: "fs",
+          internalPath: "nonexistent",
+        });
+      });
     });
 
     describe("core modules in Node.js versions with process.getBuiltinModule", () => {
       const processWithBuiltinModules = {
         versions: { node: "24.0.0" },
         getBuiltinModule: (id: string) =>
-          id === "node:module" ? { builtinModules: ["fs"] } : undefined,
+          id === "node:module"
+            ? { isBuiltin: (source: string) => source === "node:fs" }
+            : undefined,
       };
 
-      it("should return core origin for a module listed by the module built-in", () => {
+      it("should return core origin for a module recognized by the module built-in", () => {
         const descriptor = createDescriptorWithProcess(
           processWithBuiltinModules
         );
@@ -209,7 +239,7 @@ describe("ModulesDescriptor", () => {
         });
       });
 
-      it("should not return core origin for a module not listed by the module built-in", () => {
+      it("should not return core origin for a module not recognized by the module built-in", () => {
         const descriptor = createDescriptorWithProcess(
           processWithBuiltinModules
         );
