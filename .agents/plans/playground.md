@@ -3,7 +3,7 @@
 
 Index of the plan. The plan is split so that an independent session can implement one phase with no other context than the files named here plus the repository's own agent files. The source of every design decision is [RFC #538](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538); the tracking issue is #539 and the milestone is [Playground](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/45).
 
-Status (2026-10-26): phase 1 is done and its RFC, [RFC #559](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/559), waits for acceptance (consensus, or 7 days without objections: 2026-11-02); research note 2 is posted on #539, #538 has Amendment 2, and #557 (Playwright) and #558 (browser e2e) are open. Phase 0 is PR #556 into `release`, open. #510 has its branch `feat/510-elements-in-browser` with no commits yet. No other phase started.
+Status (2026-10-26): phase 1 is done: [RFC #559](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/559) is accepted, #548 is closed, research note 2 is posted on #539 and #538 has Amendment 2. Phase 2 can start; #549 is unblocked. #557 (Playwright) can start; #558 (browser e2e) waits for #510 and #557. Phase 0 is PR #556 into `release`, open. #510 has its branch `feat/510-elements-in-browser` with no commits yet. No other phase started.
 
 This plan is committed on the integration branch `feat/539/playground` through a `.gitignore` exception (`write-plan` skill, "Where it lives"). Phase 9 removes it, the exception and the clause in the root `AGENTS.md` before the branch merges into `release`. Every phase starts by bringing the plan up to date and showing the maintainer the diff before committing it on this branch (`write-plan` skill, "Starting a phase"); plan edits are `chore(playground)` commits on this branch, pushed, never only on a phase branch.
 
@@ -12,7 +12,7 @@ This plan is committed on the integration branch `feat/539/playground` through a
 | File | Read it when |
 | --- | --- |
 | `playground/00-shared.md` | Always. Environment, branching, package conventions, quality gates, definition of done. |
-| `playground/01-rfc-config-policies.md` | Phase 1 (#548), done: where the inventory and the RFC of the two packages are, and what stays open until the RFC is accepted. |
+| `playground/01-rfc-config-policies.md` | Phase 1 (#548), done: where the inventory and the accepted RFC of the two packages are, and the findings later phases rely on. |
 | `playground/02-config.md` | Phase 2 (#549): `@boundaries/config`. |
 | `playground/03-policies.md` | Phase 3 (#550): `@boundaries/policies`. |
 | `playground/04-scaffold.md` | Phase 4 (#551): research notes 1, 3, 4; `packages/playground`; the website shell. |
@@ -29,7 +29,7 @@ This plan is committed on the integration branch `feat/539/playground` through a
 | --- | --- | --- | --- | --- | --- |
 | 0 Skills | — | `chore/539/issue-and-plan-skills` | — | `release` | `chore: Add the writing-style, create-issue and write-plan skills` |
 | 1 RFC | #548 | none (Discussion [RFC #559](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/559)) | — | — | — |
-| 2 config | #549 | `feat/549/config-package` | 1 accepted | `release` | `feat: Extract @boundaries/config from the plugin` |
+| 2 config | #549 | `feat/549/config-package` | 1 done | `release` | `feat: Extract @boundaries/config from the plugin` |
 | 3 policies | #550 | `feat/550/policies-package` | 2 merged | `release` | `feat: Extract @boundaries/policies from the plugin` |
 | — Browser build | #510 | `feat/510-elements-in-browser` | — | `release` | as the issue says |
 | — Playwright | #557 | `chore/557/playwright-root-dependency` | — | `release` | `chore: Run the website browser scripts on Playwright's pinned Chromium` |
@@ -67,12 +67,12 @@ Taken in RFC #538 unless another source is named. A session does not reopen them
 9. The milestone is `Playground`, a feature milestone across releases; the release that publishes the extraction uses its own version milestone for the release bookkeeping if the `release` skill needs one (this plan, 2026-10-25).
 10. Browser support of `elements`, `config` and `policies` is checked twice: per package with esbuild and `node:vm` (fast, in `test:unit`), and together in Chromium, Firefox and WebKit by the Nx project `test/browser-e2e` (#558), against the Node.js results (maintainer, 2026-10-26).
 11. `@playwright/test` is a root devDependency, pinned; every script that uses a browser installs the browser it needs through it and never uses a local Chrome, so that renders and tests run on the same browser build everywhere (maintainer, 2026-10-26; #557).
+12. [RFC #559](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/559) is accepted as proposed (maintainer, 2026-10-26): the cut, the interfaces, the plugin adapters, no self-lint for `config` and `policies`, `1.0.0` for both packages and a patch for the plugin. `02-config.md` and `03-policies.md` copy it; a later change is an amendment of the RFC and a plan edit.
 
 ## Open questions
 
 | Question | Decided by | Needed by |
 | --- | --- | --- |
-| Acceptance of RFC #559 as proposed: cut, interfaces, no self-lint, versions `1.0.0` for both packages and a patch for the plugin. If it changes, `02-config.md` and `03-policies.md` change with it | Community and maintainer (`docs/contributing-workflow.md`, step 2) | Phase 2 |
 | Release to `master` right after phase 3, or wait for the playground | Maintainer | After phase 3 |
 | Config editor and parser (JSON5 with locations vs `acorn`; CodeMirror vs plain editor) | Phase 4, research note 3 | Phase 5 |
 | Component stack (MUI scoped, headless primitives, CSS Modules only) | Phase 4, research note 4 | Phase 5 |

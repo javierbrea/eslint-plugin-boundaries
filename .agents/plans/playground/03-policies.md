@@ -13,7 +13,7 @@ Read first:
 - `packages/eslint-plugin/src/Rules/Dependencies.ts`, `Messages/`, `Elements/Elements.ts`, `Rules/Support/DependencyRule.ts`, `Rules/EntryPoint.ts`, `Rules/External.ts`, `Rules/NoPrivate.ts`, `Debug/Debug.ts` (`printDependenciesRuleResult`, `debugDescription`, which stay), and the specs next to them.
 - `packages/elements/src/index.ts`: `Elements`, `Matcher` (`describeEntity`, `describeDependency`, `getDependencySelectorMatchingDescription`), `DependencyDescriptorOptions`, the description and match result types; `policies` builds on them and duplicates nothing.
 
-Preconditions: phase 2 merged into `release`; RFC #559 accepted.
+Preconditions: phase 2 merged into `release`.
 
 ## Scope
 

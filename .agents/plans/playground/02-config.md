@@ -14,7 +14,7 @@ Read first:
 - `packages/eslint-plugin/src/Settings/`, `Shared/`, `Rules/Dependencies.ts` (`normalizeRuleOptions`), `Debug/Debug.ts` (`warnOnce`) and the specs next to them.
 - `.agents/skills/repo-architecture/SKILL.md` and the root `AGENTS.md` "Repository Overview": both name the published packages and gain this one.
 
-Preconditions: RFC #559 accepted (see the index, "Open questions"). #510 is not required: see step 5.
+Preconditions: none left: RFC #559 is accepted (2026-10-26). #510 is not required: see step 5.
 
 ## Scope
 
