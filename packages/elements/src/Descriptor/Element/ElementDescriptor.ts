@@ -523,6 +523,10 @@ export class ElementsDescriptor {
     filePath: string,
     capturedValues: CapturedValues | null
   ): void {
+    const isFolderMode =
+      elementDescriptor.partialMatch === false ||
+      !elementDescriptor.mode ||
+      elementDescriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FOLDER;
     elementResult.types = elementDescriptor.type
       ? [elementDescriptor.type]
       : null;
@@ -530,13 +534,13 @@ export class ElementsDescriptor {
     elementResult.isUnknown = false;
     elementResult.path = elementPath;
     elementResult.captured = capturedValues;
-    // The element path is the file path only when a "file" or "full" mode pattern matches the whole path. Otherwise it is a folder containing the file, even in "file" mode with patterns like "helpers/**"
+    // The element path is the file path when a "file" or "full" mode pattern matches the whole path, or when a folder mode pattern like "src/*/**" does. Folder mode keeps the whole path then, like _getFileInternalPath does in the folder cache
     elementResult.fileInternalPath =
-      filePath === elementPath
-        ? filePath.split("/").pop() ||
+      isFolderMode || filePath !== elementPath
+        ? filePath.replace(`${elementPath}/`, "")
+        : filePath.split("/").pop() ||
           // istanbul ignore next -- Ensures non-empty string if filePath were a single segment. Unreachable: filePath is guaranteed non-empty, so split("/").pop() always returns a truthy string
-          filePath
-        : filePath.replace(`${elementPath}/`, "");
+          filePath;
   }
 
   /**

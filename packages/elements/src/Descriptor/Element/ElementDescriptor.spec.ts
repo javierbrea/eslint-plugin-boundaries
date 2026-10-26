@@ -348,6 +348,39 @@ describe("ElementsDescriptor", () => {
         expect(result.isUnknown).toBe(false);
         expect(result.category).toBe("helper");
       });
+
+      it.each([
+        ["no mode", {}],
+        ["mode folder", { mode: "folder" }],
+        ["partialMatch false", { mode: "file", partialMatch: false }],
+      ] as const)(
+        "should keep the whole path in the fileInternalPath when a pattern with %s matches the file path",
+        (_title, overrides) => {
+          // The folder cache is disabled, because it computes the fileInternalPath on its own
+          const micromatch = createMicromatchMock({
+            capture: createCaptureLookup({
+              "src/*/**/**/*::src/x/index.ts": ["x", "", "index.ts"],
+            }),
+            makeRe: createMakeReLookup({
+              "src/*/**": /^src\/[^/]+\/.+$/,
+            }),
+          });
+          const config = createConfig({ cache: false });
+          const descriptors: ElementDescriptors = [
+            createDescriptor({ pattern: "src/*/**", type: "x", ...overrides }),
+          ];
+          const descriptor = new ElementsDescriptor(
+            descriptors,
+            config,
+            micromatch
+          );
+
+          const result = descriptor.describeElement("src/x/index.ts");
+
+          expect(result.path).toBe("src/x/index.ts");
+          expect(result.fileInternalPath).toBe("src/x/index.ts");
+        }
+      );
     });
 
     describe("known elements with file mode", () => {
