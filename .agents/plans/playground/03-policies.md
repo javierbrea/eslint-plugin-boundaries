@@ -63,4 +63,5 @@ As phase 2, steps 4 to 6, with the graph line `eslint-plugin → policies → co
 
 ## Open points
 
+- `entry-point` translates a policy with several `target` selectors into one `dependencies` policy per selector, and today `resolveCustomMessage` reads the custom message from the user's policies at the translated index, so a later policy can report another policy's message or none (found in phase 2, which keeps it). `evaluatePolicies` reads it from the translated policies, which is what the user wrote. Default: the reporting helper keeps today's message for `entry-point`, so that the messages stay byte-identical, and the bug is filed as an issue to fix in its own PR.
 - If the playground (phase 6) shows that the `elements` caches grow without bound over a long session, add a `clearCache()` to `policies` that delegates to the `Elements` instance, in its own PR into `release`. Default: none (RFC decision 7).
