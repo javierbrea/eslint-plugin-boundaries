@@ -88,9 +88,10 @@ function getResults(api) {
 /**
  * Bundles an entry with esbuild for browsers, without aliases or polyfills of Node.js modules and globals.
  * @param {string} contents The contents of the entry, which imports the package by name.
+ * @param {string} browserBuild The file of the browser build that the entry has to resolve, so the test fails if the bundle falls back to a Node.js build.
  * @returns {Promise<string>} The code of the bundle, which assigns the entry exports to the `elements` global.
  */
-async function bundleForBrowsers(contents) {
+async function bundleForBrowsers(contents, browserBuild) {
   const result = await build({
     stdin: { contents, resolveDir: packageRoot, sourcefile: "entry.js" },
     bundle: true,
@@ -98,9 +99,16 @@ async function bundleForBrowsers(contents) {
     format: "iife",
     globalName: "elements",
     write: false,
+    metafile: true,
     logLevel: "silent",
   });
   assert.deepEqual(result.warnings, []);
+  assert.ok(
+    Object.keys(result.metafile.inputs).some((input) =>
+      input.endsWith(`dist/${browserBuild}`)
+    ),
+    `The bundle does not include dist/${browserBuild}`
+  );
   return result.outputFiles[0].text;
 }
 
@@ -143,7 +151,8 @@ describe("builds", () => {
 
   it("should return the same results with the browser build imported without Node.js shims", async () => {
     const code = await bundleForBrowsers(
-      'export * from "@boundaries/elements";'
+      'export * from "@boundaries/elements";',
+      "index.browser.mjs"
     );
 
     assert.deepEqual(getResults(runWithoutNodeGlobals(code)), expectedResults);
@@ -151,7 +160,8 @@ describe("builds", () => {
 
   it("should return the same results with the browser build required without Node.js shims", async () => {
     const code = await bundleForBrowsers(
-      'module.exports = require("@boundaries/elements");'
+      'module.exports = require("@boundaries/elements");',
+      "index.browser.js"
     );
 
     assert.deepEqual(getResults(runWithoutNodeGlobals(code)), expectedResults);

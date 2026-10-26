@@ -274,6 +274,18 @@ describe("Micromatch", () => {
       expect(result).toEqual(["foo"]);
     });
 
+    it("should compile a capturing expression that matches Windows path separators on Windows", () => {
+      setPlatform("win32");
+      const instance = new Micromatch(false);
+
+      instance.capture("src/*", "src\\foo");
+
+      expect(picomatch.makeRe).toHaveBeenCalledWith("src/*", {
+        capture: true,
+        windows: true,
+      });
+    });
+
     it("should return null when there is no match", () => {
       const instance = new Micromatch(false);
 
