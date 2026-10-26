@@ -30,6 +30,10 @@ export default [
           "global",
           "__dirname",
           "__filename",
+          "clearImmediate",
+          "exports",
+          "module",
+          "setImmediate",
         ].map((name) => ({
           name,
           message:

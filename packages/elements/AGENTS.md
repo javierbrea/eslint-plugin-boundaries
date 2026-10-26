@@ -19,5 +19,5 @@ Package-scoped agent instructions for `@boundaries/elements` (Nx project `elemen
 ## Build and test shape
 
 - Built with **tsup** (`tsup.config.js`), not raw `tsc`; type-checked separately with `tsc --noEmit` (`tsconfig.json`), while ESLint's type-aware rules use `tsconfig.eslint.json`.
-- The browser build (`index.browser.*`) runs without Node.js shims, so `src` imports no Node.js module at runtime and reads Node.js globals only from `globalThis`, through `src/Shared/Platform.ts` (`eslint.config.mjs` enforces the globals). `test:e2e` (`test/e2e/builds.spec.mjs`) bundles every build the way consumers resolve it and checks they return the same results — run it after changing dependencies or platform-dependent code.
+- The browser build (`index.browser.*`) runs without Node.js shims, so `src` imports no Node.js module at runtime and reads Node.js globals only from `globalThis`, like the helpers in `src/Shared/Platform.ts` do (`eslint.config.mjs` enforces the globals). `test:e2e` (`test/e2e/builds.spec.mjs`) bundles every build the way consumers resolve it and checks they return the same results — run it after changing dependencies or platform-dependent code.
 - This is the only package with a `test:mutation` target (Stryker) — run it when changing matching/descriptor logic, since branch-level correctness there is easy to break silently.
