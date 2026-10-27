@@ -10,8 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - refactor(#549): The normalization and validation of the settings and rule options move to the new `@boundaries/config` package, which the plugin depends on. The plugin reports the same warnings and errors as before.
-- chore(#570): Fix the `@param` tags in the TSDoc of internal functions, which named parameters that do not exist or missed some.
 - chore(#549): Type-check the plugin against the types of ESLint 9.39, which the repository develops and tests it with.
+
+## [7.4.0] - 2026-10-27
+
+### Changed
+
+- chore(#570): Fix the `@param` tags in the TSDoc of internal functions, which named parameters that do not exist or missed some.
+- chore: Upgrade `@boundaries/elements` to 3.3.0.
 
 ### Fixed
 
