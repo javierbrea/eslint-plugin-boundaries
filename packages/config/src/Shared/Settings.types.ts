@@ -464,7 +464,7 @@ export type Settings = {
   /**
    * Specifies which dependency nodes (import types) to consider when analyzing dependencies.
    * Each key corresponds to a type of dependency node (e.g., import, require, dynamic-import, export) and maps to an array of selectors defining how to identify those nodes in the AST.
-   * If not specified, only 'import' nodes will be considered by default.
+   * If not specified, all of them are considered: 'import', 'export', 'require' and 'dynamic-import'.
    */
   [SETTINGS_KEYS_MAP.DEPENDENCY_NODES]?: DependencyNodeKey[];
   /**
