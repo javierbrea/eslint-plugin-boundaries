@@ -22,11 +22,11 @@ describe("Diagnostics", () => {
       ]);
     });
 
-    it("leaves out the detail when it is undefined, and the paths when there are none", () => {
+    it("leaves out the detail when it is undefined, and gives the path of the whole input when there are no paths", () => {
       builder.add(DIAGNOSTIC_LEVELS_MAP.WARNING, "Title");
 
       expect(builder.build()).toEqual([
-        { level: "warning", title: "Title", paths: [] },
+        { level: "warning", title: "Title", paths: [[]] },
       ]);
       expect(builder.build()[0]).not.toHaveProperty("detail");
     });
@@ -55,7 +55,7 @@ describe("Diagnostics", () => {
           detail: "Detail",
           paths: [["a"], ["b"]],
         },
-        { level: "warning", title: "Other", paths: [] },
+        { level: "warning", title: "Other", paths: [[]] },
       ]);
     });
 

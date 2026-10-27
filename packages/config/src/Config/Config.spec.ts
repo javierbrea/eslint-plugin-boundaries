@@ -71,7 +71,7 @@ describe("Config", () => {
       expect(diagnostics[0]).toEqual({
         level: "error",
         title: "Expected an object.",
-        paths: [],
+        paths: [[]],
       });
       expect(value.rules).toEqual({});
       expect(value.settings.elementDescriptors).toEqual([]);
@@ -119,6 +119,19 @@ describe("Config", () => {
           level: "warning",
           title: "Some element descriptors are invalid and will be ignored.",
           paths: [["settings", "boundaries/elements", 3]],
+        }),
+      ]);
+    });
+
+    it("gives a problem with the whole settings the path 'settings'", () => {
+      const { diagnostics } = normalizeConfig({ settings: {} });
+
+      expect(diagnostics).toEqual([
+        expect.objectContaining({
+          level: "warning",
+          title:
+            "Please provide element descriptors using the 'boundaries/elements' setting, or file descriptors using the 'boundaries/files' setting.",
+          paths: [["settings"]],
         }),
       ]);
     });

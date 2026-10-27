@@ -355,7 +355,7 @@ describe("Settings/Settings", () => {
           level: "warning",
           title: `Please provide element descriptors using the '${SETTINGS.ELEMENTS}' setting, or file descriptors using the '${SETTINGS_KEYS_MAP.FILES}' setting.`,
           detail: "More info: https://www.jsboundaries.dev/docs/settings/",
-          paths: [],
+          paths: [[]],
         },
       ]);
     });

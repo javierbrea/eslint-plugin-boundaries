@@ -31,7 +31,7 @@ export type Diagnostic = {
   title: string;
   /** The details and the docs link that the ESLint plugin prints under the title */
   detail?: string;
-  /** One path per affected entry. Empty when the problem concerns the whole input */
+  /** One path per affected entry. A problem with the whole input has the path `[]` */
   paths: DiagnosticPath[];
 };
 

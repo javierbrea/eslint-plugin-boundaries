@@ -192,9 +192,9 @@ describe("Debug", () => {
     const debugModule = loadDebugModule();
 
     debugModule.warnDiagnostics([
-      { level: "warning", title: "First", detail: "Detail", paths: [] },
-      { level: "deprecation", title: "Second", paths: [] },
-      { level: "warning", title: "First", detail: "Detail", paths: [] },
+      { level: "warning", title: "First", detail: "Detail", paths: [[]] },
+      { level: "deprecation", title: "Second", paths: [[]] },
+      { level: "warning", title: "First", detail: "Detail", paths: [[]] },
     ]);
 
     expect(warnSpy).toHaveBeenCalledTimes(2);

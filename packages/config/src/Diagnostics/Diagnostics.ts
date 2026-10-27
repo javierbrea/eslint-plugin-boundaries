@@ -30,13 +30,13 @@ export class DiagnosticsBuilder {
    * @param level The level of the diagnostic.
    * @param title The title of the diagnostic.
    * @param detail The detail of the diagnostic.
-   * @param paths The paths of the affected entries.
+   * @param paths The paths of the affected entries. Without them, the diagnostic concerns the whole input, whose path is `[]`.
    */
   public add(
     level: DiagnosticLevel,
     title: string,
     detail?: string,
-    paths: DiagnosticPath[] = []
+    paths: DiagnosticPath[] = [[]]
   ): void {
     const key = `${title}-${detail}`;
     let diagnostic = this._diagnosticsByKey.get(key);
