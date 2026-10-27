@@ -5,11 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [7.4.0] - 2026-10-27
 
 ### Changed
 
 - chore(#570): Fix the `@param` tags in the TSDoc of internal functions, which named parameters that do not exist or missed some.
+- chore: Upgrade `@boundaries/elements` to 3.3.0.
 
 ### Fixed
 
