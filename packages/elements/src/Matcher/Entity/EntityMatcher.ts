@@ -31,9 +31,10 @@ export class EntitiesMatcher extends BaseElementsMatcher {
   /**
    * Creates a new EntitiesMatcher.
    * @param elementsMatcher Elements matcher to use for matching elements within entities.
+   * @param filesMatcher Files matcher to use for matching files within entities.
+   * @param modulesMatcher Modules matcher to use for matching modules within entities.
    * @param config Configuration options for the matcher.
    * @param micromatch Micromatch instance for matching.
-   * @param globalCache Global cache instance.
    */
   constructor(
     elementsMatcher: ElementsMatcher,
@@ -52,7 +53,7 @@ export class EntitiesMatcher extends BaseElementsMatcher {
    * Returns the selectors matching result for the given entity.
    * @param entity The entity description.
    * @param selector The entity selector normalized.
-   * @param extraTemplateData The extra template data for selector values.
+   * @param templateData The template data for rendering selector values.
    * @returns The selectors matching result for the given entity.
    */
   private _getSingleSelectorMatching(
@@ -112,6 +113,7 @@ export class EntitiesMatcher extends BaseElementsMatcher {
    * @param entity The entity to check.
    * @param selector The selector to check against.
    * @param options Extra options for matching, such as templates data, etc.
+   * @param options.extraTemplateData Extra data to pass to the templates of the selector values.
    * @returns The matching result for the entity against the selector.
    */
   public getSelectorMatching(

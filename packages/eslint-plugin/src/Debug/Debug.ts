@@ -56,12 +56,10 @@ function isDebugEnabled(settingEnabled: boolean): boolean {
 }
 
 /**
- * Prints a log line to stdout with optional color formatting.
+ * Prints a log line with the given console method.
  *
  * @param message - Message text to print.
- * @param options - Optional parameters for color and log level.
- * @param options.color - Optional color key from the internal color map.
- * @param options.level - Optional log level determining which console method to use (default is "log").
+ * @param level - Console method to print the message with.
  */
 function printLog(message: string, level: ConsoleLevel) {
   // eslint-disable-next-line no-console
@@ -102,7 +100,6 @@ function getLogPrefix(logLevel: LogLevel): string {
  * @param options - Optional parameters for log level.
  * @param options.level - Log level determining the title formatting (default is "debug").
  * @param options.message - Message text to print within the block.
- * @param level - Log level determining the title formatting (default is "debug").
  */
 function printBlock(
   title: string,

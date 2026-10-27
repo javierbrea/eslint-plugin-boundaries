@@ -362,6 +362,10 @@ export function legacyPoliciesSchema(
  * Builds JSON schema for rule options of dependency-based rules.
  *
  * @param options - Schema customization options for rule main key and extras.
+ * @param options.rulesMainKey - Main selector key of legacy policies (`from`, `to`, or `target`).
+ * @param options.targetMatcherOptions - Extra matcher options accepted in legacy tuple syntax.
+ * @param options.extraOptionsSchema - Schema of extra rule options, added to the common ones.
+ * @param options.isLegacy - Whether the rule accepts legacy policies instead of the current ones.
  * @returns ESLint-compatible schema array for rule options.
  */
 export function rulesOptionsSchema({

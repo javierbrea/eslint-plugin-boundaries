@@ -89,7 +89,6 @@ Include assumptions, risks, and follow-ups when relevant.
 
 ## Notes / Constraints
 
-- Write the commit message, PR text and release text in English, whatever language the conversation is in.
-- **Do not use hard line breaks within paragraphs** in PR and release descriptions. Each paragraph must be a single unbroken line; only blank lines separate paragraphs.
+- Write every text with the `writing-style` skill.
 - Never commit on `release` or `master`, and never push to them.
 - Never commit, push, open a PR, tag, create a release, post a comment or delete a branch without showing a preview and obtaining explicit confirmation in the same phase.

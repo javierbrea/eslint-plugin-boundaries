@@ -959,6 +959,7 @@ function getNormalizedFlagAsExternal(
  *
  * @param settings - The settings object of an ESLint config. Only its `boundaries/*` keys are read.
  * @param options - Options of the normalization.
+ * @param options.rootPath - The root path of the project, already resolved by the host. Without it, the normalized `rootPath` is the `boundaries/root-path` setting as written.
  * @returns The normalized settings and the problems found, with paths from the root of the settings object.
  */
 export function normalizeSettings(

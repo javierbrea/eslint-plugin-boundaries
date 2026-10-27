@@ -80,9 +80,13 @@ function capitalizeFirstLetter(message: string): string {
 /**
  * Builds message fragments from a selector-driven list of properties.
  * @param elementDescription - Element to describe.
- * @param properties - List of element properties to include in the description.
- * @param options - Additional options for handling specific properties like "captured".
- * @param options.capturedKeys - If "captured" is included in properties, specifies which captured keys to include in the description.
+ * @param propertyName - Element property to include in the description.
+ * @param options - Additional options for handling specific properties like "captured" or "parent".
+ * @param options.capturedKeys - If the property is "captured", specifies which captured keys to include in the description.
+ * @param options.parentProperties - If the property is "parent", specifies which parent properties to include in the description.
+ * @param options.parentCapturedKeys - If the property is "parent", specifies which captured keys of the parent to include in the description.
+ * @param options.includeNullValues - Whether null values should be included in the output.
+ * @param includeNullValues - Whether null values should be included in the output.
  * @returns List of formatted message fragments describing the element based on the selected properties.
  */
 function buildSinglePropertyFragments(
@@ -335,6 +339,7 @@ function buildRelationshipFragments(
  * @param properties - List of element properties to include in the description.
  * @param options - Additional options for message formatting.
  * @param options.singleElement - If `true`, uses singular "element" label instead of "elements of".
+ * @param options.includeNullValues - Whether null values should be included in the output.
  * @returns Formatted message describing the element based on the selected properties.
  */
 export function elementDescriptionMessage(
@@ -406,6 +411,8 @@ function elementDescriptionMessageFromSelector(
  * @param fileDescription - File to describe.
  * @param properties - List of file properties to include in the description.
  * @param options - Additional options for handling specific properties like "captured".
+ * @param options.capturedKeys - If "captured" is included in properties, specifies which captured keys to include in the description.
+ * @param options.includeNullValues - Whether null values should be included in the output.
  * @returns List of formatted fragments describing the file.
  */
 function buildFilePropertyFragments(
@@ -452,6 +459,7 @@ function buildFilePropertyFragments(
  * @param fileDescription - File metadata to describe.
  * @param properties - List of file properties to include in the description.
  * @param options - Formatting options.
+ * @param options.includeNullValues - Whether null values should be included in the output.
  * @returns Formatted message describing the file.
  */
 function fileDescriptionMessage(
@@ -511,6 +519,7 @@ function fileDescriptionMessageFromSelector(
  * @param moduleDescription - Module metadata to describe.
  * @param properties - List of module properties to include.
  * @param options - Formatting options.
+ * @param options.includeNullValues - Whether null values should be included in the output.
  * @returns List of formatted fragments describing module.
  */
 function buildModulePropertyFragments(
@@ -564,6 +573,8 @@ function moduleDescriptionMessageFromSelector(
  * When both file and element are present, the file is described first with "belonging to" linking to the element.
  * @param entityDescription - Entity metadata to describe.
  * @param selectorData - Selector data determining which entity parts to include.
+ * @param options - Formatting options.
+ * @param options.includeModule - Whether to describe the module of the entity (default is `true`).
  * @returns Formatted message describing the entity metadata.
  */
 function entityDescriptionMessageFromSelector(
@@ -675,6 +686,7 @@ function entityDescriptionMessageForNoRule(
  * @param properties - List of dependency metadata properties to include in the description.
  * @param options - Additional options for handling specific properties like "relationship".
  * @param options.relationshipKeys - If "relationship" is included in properties, specifies which relationship sides ("from", "to") to include in the description.
+ * @param options.includeNullValues - Whether null values should be included in the output.
  * @returns List of formatted message fragments describing the dependency metadata.
  */
 function buildDependencyPropertyFragments(
@@ -711,6 +723,8 @@ function buildDependencyPropertyFragments(
  * Describes dependency metadata using selected relevant properties.
  * @param dependencyInfo - Dependency metadata to describe.
  * @param properties - List of dependency metadata properties to include in the description.
+ * @param options - Formatting options.
+ * @param options.includeNullValues - Whether null values should be included in the output.
  * @returns Formatted message describing the dependency metadata based on the selected properties.
  */
 function dependencyDescriptionMessage(

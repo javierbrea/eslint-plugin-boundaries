@@ -31,7 +31,7 @@ export class EntitiesDescriptor {
    * The configuration options for this descriptor.
    * @param elementsDescriptor The elements descriptor instance, used to describe elements when describing entities.
    * @param filesDescriptor The files descriptor instance, used to describe files when describing entities.
-   * @param originsDescriptor The origins descriptor instance, used to describe the origin of entities when describing them.
+   * @param modulesDescriptor The modules descriptor instance, used to describe the module of entities when describing them.
    * @param config The configuration options for this descriptor.
    */
   constructor(

@@ -5,13 +5,6 @@
   "tags": [
     "type:react:application"
   ],
-  "namedInputs": {
-    // Docusaurus reads its config, sidebars and versions from the project root, which the workspace `production` input excludes
-    "production": [
-      "!{projectRoot}/**/*.spec.*",
-      "!{projectRoot}/**/*.test.*"
-    ]
-  },
   "targets": {
     "lint": {
       "cache": true,

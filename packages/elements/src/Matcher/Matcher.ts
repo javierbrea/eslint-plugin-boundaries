@@ -69,6 +69,7 @@ export class Matcher {
    * Constructor for the Matcher class.
    * @param options The options to configure the Matcher instance, including descriptors, matchers for elements and dependencies, and micromatch instance for pattern matching.
    * @param options.descriptors The descriptors configuration to use for describing elements and dependencies.
+   * @param options.options The normalized options for descriptors and matchers.
    * @param options.options.descriptors The normalized descriptor options to use for describing elements and dependencies.
    * @param options.options.matchers The matchers configuration for elements and dependencies.
    * @param options.micromatch The micromatch instance to use for pattern matching.
@@ -557,6 +558,7 @@ export class Matcher {
   /**
    * Sets the descriptors matchers cache from a serialized object.
    * @param serializedCache The serialized cache
+   * @param serializedCache.descriptors The serialized cache of the descriptors.
    */
   public setCacheFromSerialized(serializedCache: {
     descriptors: ReturnType<Descriptors["serializeCache"]>;

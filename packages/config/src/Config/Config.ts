@@ -80,6 +80,8 @@ function toRuleEntryPath(ruleId: string, path: DiagnosticPath): DiagnosticPath {
  * Normalizes the boundaries part of an ESLint config, `{ settings, rules }`: the settings, and the entries of the plugin rules, which are validated as ESLint validates them and then as the plugin does. Keys of other plugins are ignored.
  * @param config The config object.
  * @param options Options of the normalization.
+ * @param options.pluginName The prefix of the rule names, `"boundaries"` by default.
+ * @param options.rootPath The root path of the project, already resolved by the host. Without it, the normalized `rootPath` is the `boundaries/root-path` setting as written.
  * @returns The normalized config and the problems found, with paths from the root of the config object.
  */
 export function normalizeConfig(

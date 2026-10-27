@@ -33,13 +33,13 @@ All conditions inside the selector are combined with **AND**; arrays act as **OR
 
 - **`kind`** — Matches the dependency kind: `"value"`, `"type"`, or `"typeof"`. <small>(`<string | string[]>`)</small>
 - **`relationship`** — Match the relationship between both elements. <small>(`<object>`)</small>
-  - **`from`** — The relationship from the importer's perspective. <small>(`<string | string[]>`)</small>
-  - **`to`** — The relationship from the imported element's perspective. <small>(`<string | string[]>`)</small>
+  - **`from`** — What the importer is to the target, for example `"parent"` when the target is a direct child of the importer. <small>(`<string | string[]>`)</small>
+  - **`to`** — What the target is to the importer, for example `"child"` when the target is a direct child of the importer. <small>(`<string | string[]>`)</small>
 - **`specifiers`** — Matches the imported or exported specifier names. <small>(`<string | string[]>`)</small>
 - **`nodeKind`** — Matches the [dependency node](../settings/settings.md#boundariesdependency-nodes) name that produced the dependency. <small>(`<string | string[]>`)</small>
 - **`source`** — Matches the literal source string written in the `import`/`export` statement. <small>(`<string | string[]>`)</small>
 
-Relationship values are: `internal`, `child`, `descendant`, `sibling`, `parent`, `uncle`, `nephew`, and `ancestor`. The `from` and `to` perspectives are inverses of each other (a `child` from one side is a `parent` from the other).
+Relationship values are: `internal`, `child`, `descendant`, `sibling`, `parent`, `uncle`, `nephew`, and `ancestor`. `from` is always the inverse of `to`: `child` and `parent` invert each other, and so do `descendant` and `ancestor`, and `uncle` and `nephew`. `internal` and `sibling` stay the same on both sides.
 
 ```js
 // Match type-only dependencies to helpers

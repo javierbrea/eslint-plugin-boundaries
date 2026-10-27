@@ -10,6 +10,7 @@ import type { RuleMetaDefinition } from "../../Shared";
  * @param options.schema The JSON schema for rule options validation.
  * @param options.ruleName The name of the rule.
  * @param options.type The type of the rule (problem, suggestion, or layout).
+ * @param options.deprecated Deprecation metadata surfaced by ESLint when the rule is deprecated.
  * @returns The meta object for the ESLint rule.
  */
 export function meta({

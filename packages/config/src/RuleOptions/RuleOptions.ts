@@ -94,7 +94,7 @@ function hasLegacyTemplateSyntax(value: string): boolean {
 
 /**
  * Recursively checks if a selector contains legacy template syntax.
- * @param value - The value to check (can be string, object, array, etc.).
+ * @param micromatchPattern - The value to check (can be string, object, array, etc.).
  * @returns True if legacy template syntax was detected, false otherwise.
  */
 function checkForLegacyTemplateSyntax(
@@ -119,7 +119,7 @@ function checkForLegacyTemplateSyntax(
 
 /**
  * Detects if legacy template syntax is used in selectors.
- * @param selector - The selector to check (can be a single selector or an array of selectors).
+ * @param micromatchPattern - The selector to check (can be a single selector or an array of selectors).
  * @returns True if legacy template syntax was detected, false otherwise.
  */
 export function detectLegacyTemplateSyntax(
@@ -937,6 +937,8 @@ function checkLegacySyntax(
  * @param ruleName - The name of the rule, with the default plugin prefix.
  * @param options - The options object of the rule entry.
  * @param validation - What to validate.
+ * @param validation.legacyWarnings - Whether to report the deprecated syntax of the policies, as the `boundaries/legacy-warnings` setting does.
+ * @param validation.schema - Whether to validate the options against the rule schema, as ESLint does with the rule `meta.schema`. Default `true`; a host that already runs ESLint passes `false`.
  * @returns The problems found, with paths from the root of the options object. When the schema validation fails, only its error, because ESLint never runs a rule whose options fail it.
  */
 export function validateRuleOptions(

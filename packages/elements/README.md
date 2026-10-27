@@ -11,6 +11,7 @@
 - [Introduction](#introduction)
 - [Features](#features)
 - [Installation](#installation)
+  - [Browser Support](#browser-support)
 - [Quick Start](#quick-start)
 - [Core Concepts](#core-concepts)
   - [Entities](#entities)
@@ -68,6 +69,12 @@ Install the package via npm:
 ```bash
 npm install @boundaries/elements
 ```
+
+### Browser Support
+
+The package also runs in browsers. Bundlers that build for browsers, such as webpack, Vite or esbuild, select its browser build through the `browser` condition of its `exports` field, and that build needs no polyfills of Node.js modules or globals like `process`.
+
+Outside Node.js there is no running Node.js version to read the built-in modules from, so dependencies are described as `core` when they are built-in modules of Node.js 24.
 
 ## Quick Start
 
@@ -437,7 +444,7 @@ console.log(dep.dependency.kind);        // "value"
 The `relationship` field describes how the two entities relate to each other structurally. Possible values: `"internal"`, `"child"`, `"parent"`, `"sibling"`, `"descendant"`, `"ancestor"`, `"uncle"`, `"nephew"`, or `null`.
 
 - `relationship.to` — how `to` relates to `from` (e.g., `"child"` means the target is a child of the source)
-- `relationship.from` — the inverse perspective
+- `relationship.from` — how `from` relates to `to`, the inverse of `relationship.to` (e.g., `"parent"` when the target is a child of the source)
 
 ### Matching Entities
 
@@ -664,9 +671,9 @@ matcher.isDependencyMatch(
   - **`source`** (`string | string[]`): Pattern(s) to match the import/export source
   - **`specifiers`** (`string | string[]`): Pattern(s) for import/export specifiers
   - **`nodeKind`** (`string | string[]`): Pattern(s) for the AST node type
-  - **`relationship`** (`object`): Relationship selectors from both perspectives:
-    - **`from`** (`string | string[]`): Relationship from the source perspective
-    - **`to`** (`string | string[]`): Relationship from the target perspective (e.g., `"internal"`, `"child"`, `"parent"`, `"sibling"`, `"descendant"`, `"ancestor"`, `"uncle"`, `"nephew"`)
+  - **`relationship`** (`object`): Relationship between both elements, one of `"internal"`, `"child"`, `"parent"`, `"sibling"`, `"descendant"`, `"ancestor"`, `"uncle"` or `"nephew"` on each side:
+    - **`from`** (`string | string[]`): Pattern(s) for what the source element is to the target, e.g., `"parent"` when the target is a direct child of the source
+    - **`to`** (`string | string[]`): Pattern(s) for what the target element is to the source, e.g., `"child"` when the target is a direct child of the source
 
 > **Important:** All properties within a single selector must match for it to be considered a match (AND logic). Use arrays of selectors for OR logic.
 

@@ -45,7 +45,7 @@ export class Descriptors {
 
   /** Creates a new DescriptorsManager instance
    * @param descriptors The descriptors.
-   * @param configOptions The configuration options.
+   * @param config The configuration options.
    * @param micromatch The Micromatch instance.
    */
   constructor(
