@@ -79,7 +79,6 @@ export class ElementsDescriptor {
    * The configuration options for this descriptor.
    * @param elementDescriptors The element descriptors.
    * @param configOptions The configuration options.
-   * @param globalCache The global cache for various caching needs.
    * @param micromatch The micromatch instance for path matching.
    * @param singleType Whether single-type matching is enabled.
    */
@@ -291,7 +290,7 @@ export class ElementsDescriptor {
 
   /**
    * Describes an element given its file path
-   * @param elementPath The path of the element to describe.
+   * @param filePath The path of the file to describe.
    * @returns The description of the element.
    */
   private _describeElement(filePath?: string): ElementDescription {
