@@ -81,6 +81,7 @@
   },
   "devDependencies": {
     "@types/estree": "1.0.9",
+    "eslint": "9.39.5",
     "eslint-plugin-eslint-plugin": "7.6.2",
     "eslint-plugin-local-rules": "3.0.2"
   }
