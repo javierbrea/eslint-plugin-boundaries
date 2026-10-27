@@ -84,7 +84,12 @@ function getValidator(ruleName: RuleName): Ajv.ValidateFunction {
  * @returns The lines describing the error.
  */
 function formatError(error: Ajv.ErrorObject): string {
-  const valueLine = `Value ${JSON.stringify(error.data)} ${error.message}.`;
+  // ESLint runs ajv without `jsonPointers`, which names a missing property as a property access, such as '.allow'
+  const message =
+    error.keyword === "required"
+      ? `should have required property '.${(error.params as Ajv.RequiredParams).missingProperty}'`
+      : error.message;
+  const valueLine = `Value ${JSON.stringify(error.data)} ${message}.`;
   // The `verbose` option sets the parent schema of every error
   const parentProperties = (error.parentSchema as JsonSchema).properties;
   if (

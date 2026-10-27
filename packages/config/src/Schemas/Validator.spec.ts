@@ -87,6 +87,35 @@ describe("Validator", () => {
       expect(result?.paths).toEqual([[]]);
     });
 
+    it("names a missing required property as ESLint does", () => {
+      const policy = { from: { element: { type: "a" } } };
+
+      const result = validateRuleOptionsList(RULE_NAMES_MAP.DEPENDENCIES, [
+        { policies: [policy] },
+      ]);
+
+      expect(result?.detail.split("\n").slice(0, -1)).toEqual(
+        [
+          "allow",
+          "disallow",
+          "allow",
+          "disallow",
+          "to",
+          "to",
+          "dependency",
+          "dependency",
+        ]
+          .map(
+            (property) =>
+              `Value ${JSON.stringify(policy)} should have required property '.${property}'.`
+          )
+          .concat(
+            `Value ${JSON.stringify(policy)} should match some schema in anyOf.`
+          )
+      );
+      expect(result?.paths).toEqual([[0, "policies", 0]]);
+    });
+
     it("reports every failed branch of a schema with alternatives, as ESLint does", () => {
       const result = validateRuleOptionsList(RULE_NAMES_MAP.ENTRY_POINT, [
         { policies: [{ target: "a", allow: 1 }] },
