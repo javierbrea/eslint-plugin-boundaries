@@ -15,11 +15,10 @@ jest.mock("../Debug", () => {
 
 import { resolve } from "node:path";
 
-import { SETTINGS_KEYS_MAP } from "@boundaries/config";
 import type { Rule } from "eslint";
 
 import { warnOnce } from "../Debug";
-import { SETTINGS } from "../Shared";
+import { SETTINGS, SETTINGS_KEYS_MAP } from "../Shared";
 
 import { getSettings } from "./Settings";
 

@@ -1,14 +1,10 @@
 import { isAbsolute, resolve } from "node:path";
 
-import {
-  moreInfoSettingsLink,
-  normalizeSettings,
-  SETTINGS_KEYS_MAP,
-} from "@boundaries/config";
+import { moreInfoSettingsLink, normalizeSettings } from "@boundaries/config";
 import type { Rule } from "eslint";
 
 import { warnDiagnostics, warnOnce } from "../Debug";
-import { isString, SETTINGS } from "../Shared";
+import { isString, SETTINGS, SETTINGS_KEYS_MAP } from "../Shared";
 import type { SettingsNormalized } from "../Shared";
 
 const { ENV_ROOT_PATH } = SETTINGS;

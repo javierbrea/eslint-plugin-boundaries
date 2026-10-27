@@ -1,4 +1,3 @@
-import type { Diagnostic } from "@boundaries/config";
 import type {
   DependencyDescription,
   Matcher,
@@ -8,7 +7,7 @@ import type {
 import { isDependencyDescription } from "@boundaries/elements";
 import chalk from "chalk";
 
-import type { SettingsNormalized } from "../Shared";
+import type { Diagnostic, SettingsNormalized } from "../Shared";
 import {
   isUndefined,
   isNull,

@@ -39,12 +39,14 @@ export {
   PLUGIN_NAME,
   RULE_NAMES_MAP,
   RULE_SHORT_NAMES_MAP,
+  SETTINGS_KEYS_MAP,
 } from "@boundaries/config";
 export type {
   DependenciesPolicy,
   DependenciesPolicyNormalized,
   DependenciesRuleOptions,
   DependenciesRuleOptionsNormalized,
+  Diagnostic,
   EntryPointPolicy,
   EntryPointRuleOptions,
   ExternalLibrariesSelector,
