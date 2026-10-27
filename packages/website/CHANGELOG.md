@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - fix: Wide tables and diff code blocks in the docs can be scrolled with the keyboard.
+- fix(#572): The element relationship table of the Dependency Metadata page had `relationship.from` and `relationship.to` swapped. It now matches what the plugin returns, and both pages that describe the properties say which side each one describes.
 
 ## [7.3.0] - 2026-10-23
 
