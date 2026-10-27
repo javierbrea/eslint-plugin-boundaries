@@ -218,11 +218,11 @@ export class DependenciesMatcher extends BaseElementsMatcher {
   }
 
   /**
-   * Determines if the dependency description matches the selector for 'to'.
+   * Determines if the dependency source matches the `source` of the selector.
    * @param selector The dependency selector data.
    * @param source The source of the dependency.
    * @param templateData The template data for rendering selector values
-   * @returns Whether the dependency properties match the selector for 'to'.
+   * @returns Whether the dependency source matches the selector.
    */
   private _sourceMatches(
     selector: DependencyInfoSingleSelector,

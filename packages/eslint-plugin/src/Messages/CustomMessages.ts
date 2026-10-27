@@ -73,7 +73,7 @@ function replaceObjectValuesInLegacyTemplate(
  * metadata so templates can use keys consistently regardless of source.
  *
  * @param options - Element, module and dependency information to normalize.
- * @param options.element - Element that provides captured values.
+ * @param options.element - Element that provides its captured values and the `type` and `internalPath` keys.
  * @param options.module - Module of the element, which provides the `module` key.
  * @param options.dependency - Dependency metadata, which provides the `source` and `importKind` keys.
  * @returns Normalized key/value map used during placeholder replacement.

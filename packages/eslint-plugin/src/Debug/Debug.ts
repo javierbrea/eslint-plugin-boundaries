@@ -55,7 +55,7 @@ function isDebugEnabled(settingEnabled: boolean): boolean {
 }
 
 /**
- * Prints a log line to stdout with optional color formatting.
+ * Prints a log line with the given console method.
  *
  * @param message - Message text to print.
  * @param level - Console method to print the message with.
