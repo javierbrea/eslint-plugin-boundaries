@@ -1,0 +1,207 @@
+---
+id: oxlint-integration
+title: Oxlint integration
+sidebar_label: Oxlint integration
+description: Learn how to use ESLint Plugin Boundaries with Oxlint's JS plugins.
+tags:
+  - configuration
+  - integration
+keywords:
+  - eslint-plugin-boundaries
+  - oxlint
+  - oxc
+  - jsPlugins
+  - import/resolver
+  - eslint-import-resolver-typescript
+  - eslint-import-resolver-oxc
+  - migrate from eslint
+  - performance
+  - monorepo
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Oxlint integration
+
+[Oxlint](https://oxc.rs/docs/guide/usage/linter.html) is a Rust-based linter built on the [oxc](https://oxc.rs/) toolchain, offering large performance gains over ESLint. Since Oxlint implements "nearly all ESLint v9+ APIs" through its [JS plugins](https://oxc.rs/docs/guide/usage/linter/js-plugins) feature, it can load `eslint-plugin-boundaries` directly.
+
+This guide shows how to configure the plugin under Oxlint.
+
+:::tip[Working example]
+See the **[Oxlint integration example](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/examples/oxlint-integration)** in the repository for a complete, runnable setup.
+:::
+
+## Compatibility
+
+`eslint-plugin-boundaries` works under Oxlint's `jsPlugins` because it only relies on standard ESLint rule APIs, and needs neither of the two things Oxlint's JS plugins currently don't support:
+
+- **No custom parser** — the plugin works on the AST that ESLint (or Oxlint, through its compatible API) already provides.
+- **No type-aware linting** — classification and dependency checks are purely structural (file paths and import specifiers), not based on TypeScript types.
+
+:::note[No shared module graph]
+Oxlint builds its own internal module graph for [multi-file analysis](https://oxc.rs/docs/guide/usage/linter/multi-file-analysis) (used by rules like `import/no-cycle`). `eslint-plugin-boundaries` does not use that graph — like under ESLint, it resolves each import itself through the `import/resolver` setting (see [below](#the-importresolver-setting-is-required)). This means it won't benefit from Oxlint's internal resolver cache, but it also means its behavior is consistent with how it works under ESLint.
+:::
+
+## Setup
+
+Install Oxlint, the plugin, and a resolver for your path aliases:
+
+```bash
+npm install --save-dev oxlint eslint-plugin-boundaries eslint-import-resolver-typescript
+```
+
+Create an `.oxlintrc.json` file (or an `oxlint.config.ts` file — Oxlint supports both, see its [configuration docs](https://oxc.rs/docs/guide/usage/linter/config.html)):
+
+<Tabs>
+<TabItem value=".oxlintrc.json">
+
+```json title=".oxlintrc.json"
+{
+  "jsPlugins": ["eslint-plugin-boundaries"],
+  "settings": {
+    "boundaries/include": ["src/**/*.ts"],
+    "boundaries/elements": [
+      { "type": "helper", "pattern": "src/helpers/*" },
+      { "type": "component", "pattern": "src/components/*" },
+      { "type": "module", "pattern": "src/modules/*" }
+    ],
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true
+      },
+      "node": true
+    }
+  },
+  "rules": {
+    "boundaries/no-unknown-dependencies": "error",
+    "boundaries/dependencies": ["error", {
+      "default": "disallow",
+      "policies": [
+        {
+          "from": { "element": { "type": "component" } },
+          "allow": { "to": { "element": { "type": "helper" } } }
+        },
+        {
+          "from": { "element": { "type": "module" } },
+          "allow": { "to": { "element": { "type": ["component", "helper"] } } }
+        }
+      ]
+    }]
+  }
+}
+```
+
+</TabItem>
+<TabItem value="oxlint.config.ts">
+
+```ts title="oxlint.config.ts"
+import { defineConfig } from "oxlint";
+
+export default defineConfig({
+  jsPlugins: ["eslint-plugin-boundaries"],
+  settings: {
+    "boundaries/include": ["src/**/*.ts"],
+    "boundaries/elements": [
+      { type: "helper", pattern: "src/helpers/*" },
+      { type: "component", pattern: "src/components/*" },
+      { type: "module", pattern: "src/modules/*" },
+    ],
+    "import/resolver": {
+      typescript: { alwaysTryTypes: true },
+      node: true,
+    },
+  },
+  rules: {
+    "boundaries/no-unknown-dependencies": "error",
+    "boundaries/dependencies": ["error", {
+      default: "disallow",
+      policies: [
+        { from: { element: { type: "component" } }, allow: { to: { element: { type: "helper" } } } },
+        { from: { element: { type: "module" } }, allow: { to: { element: { type: ["component", "helper"] } } } },
+      ],
+    }],
+  },
+});
+```
+
+</TabItem>
+</Tabs>
+
+Then run Oxlint as usual:
+
+```bash
+npx oxlint
+```
+
+:::info[Scoping which files are analyzed]
+Set [`boundaries/include`](../settings/settings.md#boundariesinclude) (and, if needed, [`boundaries/ignore`](../settings/settings.md#boundariesignore)) so only your source files are matched against element patterns. Without it, config files that Oxlint also lints as plain JavaScript (like a `.cjs` config file) can be reported as belonging to an unknown element by `boundaries/no-unknown-files`, since they don't match any of your [descriptor patterns](../classification/classification.md).
+:::
+
+## Findings and troubleshooting
+
+These are the concrete issues found both in [community reports](https://github.com/javierbrea/eslint-plugin-boundaries/issues/431) and while building and running the example above.
+
+### The `import/resolver` setting is required
+
+This is, by far, the most common source of problems (it was the root cause of the `boundaries(no-unknown)` error flood [reported in the community](https://github.com/javierbrea/eslint-plugin-boundaries/issues/431#issuecomment-4091101328)).
+
+`eslint-plugin-boundaries` doesn't resolve imports itself — like under ESLint, it delegates to the resolver chain configured in [`import/resolver`](./custom-resolvers.md). Oxlint activates no resolver by default (only its own internal `import` plugin, unrelated to `import/resolver`, has an implicit resolver). If you don't configure `import/resolver`, resolution falls back to plain Node.js path resolution, which cannot resolve extension-less TypeScript imports or `tsconfig.json` path aliases. In that case:
+
+- A relative import that fails to resolve (e.g. `../../helpers/format-message`) is classified as pointing to an **unknown** element, and `boundaries/no-unknown-dependencies` reports it — if that rule is enabled.
+- A `tsconfig.json` path-alias import (e.g. `@helpers/format-message`) that fails to resolve looks like a bare module specifier, so it is silently reclassified as **external** (`unresolvableAlias`, see [`boundaries/flag-as-external`](../settings/settings.md#boundariesflag-as-external)) — it does **not** raise `no-unknown-dependencies`, and by default the [`dependencies` rule](../rules/dependencies.md) only evaluates local dependencies, so it silently skips boundary checks entirely instead of erroring.
+
+Configuring `import/resolver` (as shown above) fixes both cases. See [Custom Resolvers](./custom-resolvers.md) and [TypeScript Support](./typescript-support.md) for the full resolver reference, and [Debugging](./debugging.md) to inspect how each import is classified — debug mode works the same way under Oxlint:
+
+```bash
+ESLINT_PLUGIN_BOUNDARIES_DEBUG=1 oxlint
+```
+
+### Referencing the plugin: package name matters
+
+`jsPlugins` entries accept either a bare specifier string or an explicit alias object:
+
+```json
+"jsPlugins": ["eslint-plugin-boundaries"]
+```
+
+```json
+"jsPlugins": [{ "name": "boundaries", "specifier": "eslint-plugin-boundaries" }]
+```
+
+Oxlint derives the rule namespace (`boundaries` in `boundaries/dependencies`) from the plugin's own `package.json` `name` field, not from the specifier text. This matters because the plugin is published under two names:
+
+- **`eslint-plugin-boundaries`** — its `package.json` `name` matches the specifier, so the bare string form works out of the box: Oxlint strips the `eslint-plugin-` prefix and registers the `boundaries` namespace.
+- **`@boundaries/eslint-plugin`** — the scoped name doesn't have an `eslint-plugin-` prefix to strip, so the bare string form fails with `Plugin 'boundaries' not found`. Use the explicit alias form (`{ "name": "boundaries", "specifier": "@boundaries/eslint-plugin" }`) instead.
+
+### IDE vs. CLI differences
+
+If linting works from the command line but not from an editor extension, it's usually because the extension runs Oxlint from a different working directory than your terminal. Set [`boundaries/root-path`](../settings/settings.md#boundariesroot-path) explicitly rather than relying on the process's current working directory, similar to the advice in [Monorepo Setup](./monorepo-setup.md#eslint-execution-context).
+
+## Using the oxc resolver
+
+[`eslint-import-resolver-oxc`](https://github.com/9romise/eslint-import-resolver-oxc) wraps oxc's own resolver and can be used as an `import/resolver` entry instead of `eslint-import-resolver-typescript`:
+
+```json
+"import/resolver": {
+  "oxc": {
+    "tsconfig": {
+      "configFile": "./tsconfig.json",
+      "references": "auto"
+    }
+  }
+}
+```
+
+This resolves imports through oxc's own resolver instead of the TypeScript compiler, which can be faster on large projects. See [`.oxlintrc.oxc.json`](https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/examples/oxlint-integration/.oxlintrc.oxc.json) in the example for this variant.
+
+## Migrating from ESLint
+
+[`@oxlint/migrate`](https://oxc.rs/docs/guide/usage/linter/migrate-from-eslint) converts an existing ESLint flat config to Oxlint automatically, and by default retains unsupported plugins — like `eslint-plugin-boundaries` — through `jsPlugins`. Your `boundaries/*` settings and rules carry over unchanged; only double-check the `import/resolver` setting made it into the generated config, per the [finding above](#the-importresolver-setting-is-required).
+
+## Further Reading
+
+- **[Monorepo Setup](./monorepo-setup.md)** - configuring the plugin across multiple packages.
+- **[Custom Resolvers](./custom-resolvers.md)** - the `import/resolver` setting and available resolver packages.
+- **[TypeScript Support](./typescript-support.md)** - the TypeScript resolver and path aliases.
+- **[Debugging](./debugging.md)** - inspect how each import is resolved and classified.

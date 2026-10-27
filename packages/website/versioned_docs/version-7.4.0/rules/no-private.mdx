@@ -1,0 +1,265 @@
+---
+id: no-private
+title: Rule no-private
+sidebar_label: No Private
+description: Documentation for the no-private rule in ESLint Plugin Boundaries.
+tags:
+  - rules
+  - configuration
+  - examples
+  - deprecated
+  - migration
+keywords:
+  - eslint-plugin-boundaries
+  - no-private rule
+  - nested elements
+  - encapsulation
+  - allowUncles
+  - relationship selectors
+  - migration
+  - import restrictions
+---
+
+import CodeDiff from "@site/src/components/CodeDiff";
+
+# no-private
+
+> Prevent importing private **[elements](../classification/elements.md)** of another element.
+
+:::warning[Deprecated]
+`boundaries/no-private` is kept for backward compatibility but is deprecated and will be removed in a future major version. Use **[`boundaries/dependencies`](./dependencies.md)** instead.
+
+It keeps working without changes; you will see a deprecation warning in your console:
+
+```text
+Rule "boundaries/no-private" is deprecated and will be removed in future versions. Please migrate to the "boundaries/dependencies" rule with appropriate selectors.
+```
+
+Read the **[migration guide below](#migration-to-boundariesdependencies)** for conversion examples, and the **[v6 to v7 migration guide](../releases/migration-guides/v6-to-v7.mdx)** for the full picture.
+:::
+
+## Rule Details
+
+This rule enforces privacy boundaries between nested elements based on the following principles:
+
+- An element becomes **private** when it is nested under another element
+- Private elements can only be imported by their parent element
+- Private elements can import public elements
+- Private elements can import sibling elements (elements with the same parent)
+- Uncle imports (importing an element that is a sibling of the parent) are disallowed by default. Set `allowUncles: true` to allow them
+
+:::info
+This rule helps maintain encapsulation by preventing external elements from directly accessing the internal structure of other elements.
+:::
+
+## Options
+
+```text
+"boundaries/no-private":
+  [<severity>, { "allowUncles": <boolean>, "message": <string> }]
+```
+
+The first item in the array is the ESLint severity (`0` = off, `1` = warning, `2` = error). The second item is the options object:
+
+- `allowUncles`: Optional. When set to `true`, allows importing uncle elements (siblings of the parent element). **Default: `false`** (uncle imports are disallowed unless you enable this option)
+- `message`: Custom error message for rule violations. Note that **the default message provides detailed information about why the error occurred**, so only define a custom message if necessary. See [error messages](#error-messages) for more information
+
+### Configuration Example
+
+By default, the rule disallows importing the private (nested) elements of another element, including uncle imports:
+
+```js
+{
+  rules: {
+    "boundaries/no-private": [2]
+  }
+}
+```
+
+Set `allowUncles: true` to also allow importing uncle elements:
+
+```js
+{
+  rules: {
+    "boundaries/no-private": [2, { allowUncles: true }]
+  }
+}
+```
+
+### Settings
+
+The following examples use this project structure and settings configuration.
+
+**Project structure:**
+
+```text
+src/
+└── modules/
+    ├── module-a/
+    │   ├── index.js
+    │   └── ModuleA.js
+    └── module-b/
+        ├── index.js
+        ├── ModuleB.js
+        └── modules/
+            ├── module-c/
+            │   ├── index.js
+            │   ├── ModuleC.js
+            │   └── modules/
+            │       └── module-e/
+            │           ├── index.js
+            │           └── ModuleE.js
+            └── module-d/
+                ├── index.js
+                └── ModuleD.js
+```
+
+**Settings configuration:**
+
+```js
+{
+  settings: {
+    "boundaries/elements": [
+      {
+        type: "module",
+        pattern: "modules/*",
+        capture: ["elementName"]
+      }
+    ],
+  }
+}
+```
+
+:::note
+Some examples use aliases for the `src/modules` folder. You can also use relative paths, or you can **[configure the plugin to recognize aliases by using resolvers](../guides/custom-resolvers.md).**
+:::
+
+## Examples
+
+### Incorrect
+
+`module-a` importing `module-c` (private child of `module-b`):
+
+```js
+// src/modules/module-a/ModuleA.js
+import ModuleC from 'modules/module-b/modules/module-c'
+```
+
+`module-b` importing `module-e` (private grandchild):
+
+```js
+// src/modules/module-b/ModuleB.js
+import ModuleE from './modules/module-c/modules/module-e'
+```
+
+`module-e` importing `module-d` (uncle element, disallowed by default):
+
+```js
+// src/modules/module-b/modules/module-c/modules/module-e/ModuleE.js
+import ModuleD from 'modules/module-b/modules/module-d'
+```
+
+### Correct
+
+`module-b` importing `module-c` (its direct child):
+
+```js
+// src/modules/module-b/ModuleB.js
+import ModuleC from './modules/module-c'
+```
+
+`module-c` importing `module-a` (public element):
+
+```js
+// src/modules/module-b/modules/module-c/ModuleC.js
+import ModuleA from 'modules/module-a'
+```
+
+`module-c` importing `module-d` (sibling element):
+
+```js
+// src/modules/module-b/modules/module-c/ModuleC.js
+import ModuleD from '../module-d'
+```
+
+`module-e` importing `module-d` (uncle element) when `allowUncles: true` is set:
+
+```js
+// src/modules/module-b/modules/module-c/modules/module-e/ModuleE.js
+import ModuleD from 'modules/module-b/modules/module-d'
+```
+
+## Error Messages
+
+This rule provides detailed error messages indicating which element owns the private element being imported.
+
+**Example message:**
+
+`Dependency is private of element of type "module" and captured values: elementName="module-b"`
+
+### Custom Messages with Templates
+
+:::tip
+You can customize error messages globally or for specific rules. See [Rules Configuration -> Message Templating](../policies/policies.mdx#message-templating) for more details.
+:::
+
+## Migration to `boundaries/dependencies`
+
+The restrictions enforced by this rule can also be achieved with the `boundaries/dependencies` rule, which lets you match allowed relationships directly using the [`relationship` dependency metadata selector](../selectors/selectors.md). It is recommended to migrate your configuration to `boundaries/dependencies` as soon as possible, as this rule will be removed in a future major version.
+
+`boundaries/no-private` only blocks importing the private (nested) elements of _other_ elements. It never blocks ordinary dependencies. So the replacement keeps the default policy as `"allow"`, disallows importing any nested element, and then re-allows each element to import its own children, siblings, and uncles.
+
+The following example shows how to migrate a configuration from `boundaries/no-private` to `boundaries/dependencies`:
+
+<CodeDiff language="javascript">{`
+. {
+.   rules: {
+-     "boundaries/no-private": [2, { allowUncles: true }]
++     "boundaries/dependencies": [2, {
++       default: "allow",
++       policies: [
++         // Disallow importing any nested (private) element
++         {
++           disallow: {
++             to: {
++               element: {
++                 parent: {
++                   type: "*"
++                 },
++               },
++             },
++           }
++         },
++         // Re-allow importing your own children, siblings, and uncles
++         {
++           allow: {
++             dependency: {
++               relationship: {
++                 to: ["child", "sibling", "uncle"],
++               }
++             },
++           }
++         }
++       ]
++     }]
+.   }
+. }
+`}</CodeDiff>
+
+:::note
+You can also express the same intent with the [`relationship` dependency metadata selector](../selectors/dependency.md) instead of selecting parents: disallow importing `descendant` elements, then re-allow `child`, `sibling`, and `uncle`. Both forms keep the default policy as `"allow"`, so ordinary dependencies are never blocked. Selecting a nested target via `to.element.parent` (as above) matches `no-private` most closely, because `no-private` only fires when the imported element actually has a parent.
+:::
+
+:::tip[Bonus: More specific rules with `boundaries/dependencies`]
+With `boundaries/dependencies` you can also define more specific rules that were not possible with `no-private`, such as allowing only certain elements to import their siblings or uncles, while disallowing it for others.
+:::
+
+## Further Reading
+
+Learn more about related topics:
+
+- [Defining Elements](../classification/elements.md) - Learn how to define architectural elements in your project
+- [Selectors](../selectors/selectors.md) - Learn how to use element selectors and the `relationship` dependency metadata selector
+- [Policies](../policies/policies.mdx) - Learn how to configure common rule options
+- [Global Settings](../settings/settings.md) - Learn about global settings that affect all rules
+- [Migrating from v6 to v7](../releases/migration-guides/v6-to-v7.mdx) - Migrate deprecated rules to `boundaries/dependencies`
