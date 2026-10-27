@@ -20,6 +20,7 @@ export type TerminalFragmentProps = {
 /**
  * File path or rule id, in the comment color.
  * @param props Fragment props.
+ * @param props.children Text of the fragment.
  * @returns The colored fragment.
  */
 export function TermPath({ children }: TerminalFragmentProps): ReactNode {
@@ -29,6 +30,7 @@ export function TermPath({ children }: TerminalFragmentProps): ReactNode {
 /**
  * Line and column, in the number color.
  * @param props Fragment props.
+ * @param props.children Text of the fragment.
  * @returns The colored fragment.
  */
 export function TermPosition({ children }: TerminalFragmentProps): ReactNode {
@@ -38,6 +40,7 @@ export function TermPosition({ children }: TerminalFragmentProps): ReactNode {
 /**
  * Severity and problem count, in the error color.
  * @param props Fragment props.
+ * @param props.children Text of the fragment.
  * @returns The colored fragment.
  */
 export function TermError({ children }: TerminalFragmentProps): ReactNode {
@@ -47,6 +50,7 @@ export function TermError({ children }: TerminalFragmentProps): ReactNode {
 /**
  * Quoted value, in the string color.
  * @param props Fragment props.
+ * @param props.children Text of the fragment.
  * @returns The colored fragment.
  */
 export function TermQuoted({ children }: TerminalFragmentProps): ReactNode {
@@ -56,6 +60,8 @@ export function TermQuoted({ children }: TerminalFragmentProps): ReactNode {
 /**
  * Preformatted terminal output on the always-dark code palette, styled like a code snippet.
  * @param props Terminal output props.
+ * @param props.children Preformatted output, colored with the `TermPath`, `TermPosition`, `TermError` and `TermQuoted` fragments.
+ * @param props.className Extra class names.
  * @returns The output block.
  */
 export default function TerminalOutput({

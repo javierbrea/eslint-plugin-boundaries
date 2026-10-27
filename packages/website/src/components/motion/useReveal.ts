@@ -13,6 +13,7 @@ export type UseRevealOptions = {
  * Tells when an element has entered the viewport (8% of it visible), to reveal it. With reduced motion it is always revealed.
  * @param ref The element to observe.
  * @param options Reveal options.
+ * @param options.once Stop observing once the element has been revealed.
  * @returns Whether the element has been revealed.
  */
 export function useReveal(

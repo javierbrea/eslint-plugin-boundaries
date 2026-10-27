@@ -8,14 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > [!INFO]
 > Versions marked as `-docs` are documentation-only releases that do not include any code changes. Other versions are code releases that may include documentation changes as well, and are paired with a corresponding release in the `eslint-plugin-boundaries` package.
 
-## [Unreleased]
+## [7.4.0] - 2026-10-27
+
+### Added
+
+- docs(#510): Add the v7.4.0 upgrade notes: how to find the imports of Node.js built-in modules with the `node:` prefix and the extglob patterns that the fixes affect, and how to adapt the configuration.
+- docs(#568): Add the dot files in element folders section to the v7.4.0 upgrade notes.
 
 ### Changed
 
+- docs(#510): The Modules classification page says that the built-in modules that only exist with the `node:` prefix are `core` only with it.
 - feat: New visual foundation for the site: color palette, self-hosted Sora and IBM Plex typefaces, smaller base type. The navbar and footer now follow the light or dark theme.
 - feat: New home page: blueprint hero with a live-drawn architecture sheet, the three-step walkthrough, feature specification, live GitHub and npm numbers, and a playground preview. The navbar shows the live GitHub stars and a "Get started" button.
 - feat: Documentation pages adopt the new design: blueprint code blocks in both themes, semantic admonitions, restyled sidebar, table of contents, tables, search and 404 page.
 - feat: Links to the site show a new preview image, in the new design.
+- chore(#570): Document every prop of the site components in their TSDoc.
 
 ### Removed
 
@@ -24,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - fix: Wide tables and diff code blocks in the docs can be scrolled with the keyboard.
+- fix(#572): The element relationship table of the Dependency Metadata page had `relationship.from` and `relationship.to` swapped. It now matches what the plugin returns, and both pages that describe the properties say which side each one describes.
 
 ## [7.3.0] - 2026-10-23
 

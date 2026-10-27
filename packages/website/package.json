@@ -1,6 +1,6 @@
 {
   "name": "website",
-  "version": "7.3.0",
+  "version": "7.4.0",
   "private": true,
   "scripts": {
     "eslint": "eslint",

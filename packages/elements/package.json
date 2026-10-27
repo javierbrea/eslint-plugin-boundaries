@@ -1,6 +1,6 @@
 {
   "name": "@boundaries/elements",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "Element descriptors and matchers for @boundaries tools",
   "keywords": [
     "boundaries",
@@ -55,12 +55,13 @@
     "serve:unit:report": "serve --config ./serve.test-unit-report.json",
     "test": "pnpm test:unit",
     "test:unit": "jest",
+    "test:e2e": "node --test test/e2e/builds.spec.mjs",
     "test:mutation": "stryker run"
   },
   "dependencies": {
     "handlebars": "4.7.10",
     "is-core-module": "2.17.0",
-    "picomatch": "2.3.2"
+    "picomatch": "4.0.7"
   },
   "engines": {
     "node": ">=18.18"
@@ -69,8 +70,8 @@
     "@types/estree": "1.0.9",
     "@types/is-core-module": "2.2.2",
     "@types/object-hash": "3.0.6",
-    "@types/picomatch": "2.3.4",
-    "path-browserify": "1.0.1",
+    "@types/picomatch": "4.0.3",
+    "esbuild": "0.28.1",
     "tsup": "8.5.1",
     "typescript": "5.9.3"
   }

@@ -74,7 +74,9 @@ describe("Micromatch", () => {
 
       const result = instance.isMatch("src/foo.ts", "src/**");
 
-      expect(picomatch.isMatch).toHaveBeenCalledWith("src/foo.ts", "src/**");
+      expect(picomatch.isMatch).toHaveBeenCalledWith("src/foo.ts", "src/**", {
+        windows: false,
+      });
       expect(result).toBe(true);
     });
 
@@ -83,10 +85,53 @@ describe("Micromatch", () => {
 
       const result = instance.isMatch("test/foo.ts", ["src/**", "lib/**"]);
 
-      expect(picomatch.isMatch).toHaveBeenCalledWith("test/foo.ts", [
-        "src/**",
-        "lib/**",
-      ]);
+      expect(picomatch.isMatch).toHaveBeenCalledWith(
+        "test/foo.ts",
+        ["src/**", "lib/**"],
+        { windows: false }
+      );
+      expect(result).toBe(false);
+    });
+
+    it("should match Windows path separators on Windows", () => {
+      setPlatform("win32");
+      const instance = new Micromatch(false);
+
+      const result = instance.isMatch("src\\foo\\bar.ts", "src/**/*.ts");
+
+      expect(picomatch.isMatch).toHaveBeenCalledWith(
+        "src\\foo\\bar.ts",
+        "src/**/*.ts",
+        { windows: true }
+      );
+      expect(result).toBe(true);
+    });
+
+    it("should not match Windows path separators on POSIX", () => {
+      const instance = new Micromatch(false);
+
+      const result = instance.isMatch("src\\foo\\bar.ts", "src/**/*.ts");
+
+      expect(result).toBe(false);
+    });
+
+    it("should not match Windows path separators when process is not defined", () => {
+      setPlatform("win32");
+      const replacedProcess = jest.replaceProperty(
+        globalThis,
+        "process",
+        undefined as unknown as typeof process
+      );
+
+      let result: boolean;
+      try {
+        const instance = new Micromatch(false);
+        result = instance.isMatch("src\\foo\\bar.ts", "src/**/*.ts");
+      } finally {
+        // Restore process before asserting, because Jest itself needs it
+        replacedProcess.restore();
+      }
+
       expect(result).toBe(false);
     });
 
@@ -176,7 +221,6 @@ describe("Micromatch", () => {
 
     it("should not normalize path separators when process is not defined", () => {
       setPlatform("win32");
-      const instance = new Micromatch(false);
       const replacedProcess = jest.replaceProperty(
         globalThis,
         "process",
@@ -185,6 +229,7 @@ describe("Micromatch", () => {
 
       let result: string[] | null;
       try {
+        const instance = new Micromatch(false);
         result = instance.capture("src/**", "src/foo\\bar");
       } finally {
         // Restore process before asserting, because Jest itself needs it
@@ -222,8 +267,23 @@ describe("Micromatch", () => {
 
       const result = instance.capture("src/*", "src/foo");
 
-      expect(picomatch.makeRe).toHaveBeenCalledWith("src/*", { capture: true });
+      expect(picomatch.makeRe).toHaveBeenCalledWith("src/*", {
+        capture: true,
+        windows: false,
+      });
       expect(result).toEqual(["foo"]);
+    });
+
+    it("should compile a capturing expression that matches Windows path separators on Windows", () => {
+      setPlatform("win32");
+      const instance = new Micromatch(false);
+
+      instance.capture("src/*", "src\\foo");
+
+      expect(picomatch.makeRe).toHaveBeenCalledWith("src/*", {
+        capture: true,
+        windows: true,
+      });
     });
 
     it("should return null when there is no match", () => {
@@ -271,7 +331,10 @@ describe("Micromatch", () => {
       const second = instance.capture("src/*", "src/bar");
 
       expect(picomatch.makeRe).toHaveBeenCalledTimes(1);
-      expect(picomatch.makeRe).toHaveBeenCalledWith("src/*", { capture: true });
+      expect(picomatch.makeRe).toHaveBeenCalledWith("src/*", {
+        capture: true,
+        windows: false,
+      });
       expect(first).toEqual(["foo"]);
       expect(second).toEqual(["bar"]);
     });
@@ -283,9 +346,31 @@ describe("Micromatch", () => {
 
       const result = instance.makeRe("src/**");
 
-      expect(picomatch.makeRe).toHaveBeenCalledWith("src/**");
+      expect(picomatch.makeRe).toHaveBeenCalledWith("src/**", {
+        windows: false,
+      });
       expect(result.test("src/foo.ts")).toBe(true);
       expect(result.test("lib/foo.ts")).toBe(false);
+    });
+
+    it("should compile an expression that matches Windows path separators on Windows", () => {
+      setPlatform("win32");
+      const instance = new Micromatch(false);
+
+      const result = instance.makeRe("src/**");
+
+      expect(picomatch.makeRe).toHaveBeenCalledWith("src/**", {
+        windows: true,
+      });
+      expect(result.test("src\\foo.ts")).toBe(true);
+    });
+
+    it("should compile an expression that does not match Windows path separators on POSIX", () => {
+      const instance = new Micromatch(false);
+
+      const result = instance.makeRe("src/**");
+
+      expect(result.test("src\\foo.ts")).toBe(false);
     });
 
     it("should return cached result on subsequent calls when cache is enabled", () => {
@@ -338,12 +423,12 @@ describe("Micromatch", () => {
 
       expect(picomatch.isMatch).toHaveBeenCalledTimes(2);
       expect(makeReCalls.filter(([pattern]) => pattern === "src/*")).toEqual([
-        ["src/*", { capture: true }],
-        ["src/*", { capture: true }],
+        ["src/*", { capture: true, windows: false }],
+        ["src/*", { capture: true, windows: false }],
       ]);
       expect(makeReCalls.filter(([pattern]) => pattern === "lib/**")).toEqual([
-        ["lib/**"],
-        ["lib/**"],
+        ["lib/**", { windows: false }],
+        ["lib/**", { windows: false }],
       ]);
     });
 

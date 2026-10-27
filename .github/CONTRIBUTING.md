@@ -148,6 +148,7 @@ Please, follow these rules to update the version number:
 * __PATCH__: When:
    * You make backwards-compatible bug fixes.
    * You bump the version of a dependency which doesn't affect the API of the package. __This includes internal dependencies.__
+   * You change the published code without changing its behavior or its API, such as its comments.
 
 > [!WARNING]
 > Remember to modify the version of the packages affected by the change in another package. For example, if you modify a package that is used by another one, you should update the version of the dependent package.

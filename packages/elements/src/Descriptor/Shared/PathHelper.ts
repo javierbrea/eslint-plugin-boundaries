@@ -18,6 +18,7 @@ export class PathHelper {
   /**
    * Determines if a file path is outside the configured root path.
    * Returns false when rootPath is not configured.
+   * @param filePath The absolute path of the file.
    */
   isOutsideRootPath(filePath: string): boolean {
     if (!this._config.rootPath) {
@@ -29,6 +30,7 @@ export class PathHelper {
   /**
    * Converts an absolute file path to a relative path when rootPath is configured.
    * Returns the path unchanged when rootPath is absent or the path is outside it.
+   * @param filePath The absolute path of the file.
    */
   toRelativePath(filePath: string): string {
     if (!this._config.rootPath || this.isOutsideRootPath(filePath)) {
@@ -40,6 +42,7 @@ export class PathHelper {
   /**
    * Determines if a given path is included based on includePaths / ignorePaths config.
    * Returns true when neither option is set.
+   * @param elementPath The path to check.
    */
   pathIsIncluded(elementPath: string): boolean {
     let result: boolean;
@@ -68,6 +71,8 @@ export class PathHelper {
   /**
    * Maps captured glob groups to named keys defined in captureConfig.
    * Returns null when captureConfig is not provided.
+   * @param captured The values captured by the glob groups, in order.
+   * @param captureConfig The keys to assign to the captured values, in the same order.
    */
   getCapturedValues(
     captured: string[],

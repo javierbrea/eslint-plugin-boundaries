@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [3.3.0] - 2026-10-27
+
+### Added
+
+- feat(#510): The browser build works without polyfills of Node.js modules or globals, such as `path` or `process`, whether it is imported or required. Outside Node.js, dependencies are described as `core` when they are built-in modules of Node.js 24.
+
+### Changed
+
+- chore(#510): Upgrade `picomatch` to 4.0.7, which no longer requires Node.js modules.
+- chore(#570): Fix the `@param` tags in the TSDoc of the exported classes, such as the `Matcher` constructor or the `getSelectorMatching` methods, which named parameters that do not exist or missed some. The TSDoc of the `kind` option of `DependencyDescriptorOptions` lists the right dependency kinds.
+- chore(#572): The README and the TSDoc of the `relationship` selector say which side `from` and `to` describe: `from` is what the source element is to the target, and `to` what the target is to the source.
+
+### Fixed
+
+- fix(#510): Built-in modules only available with the `node:` prefix, such as `node:test` or `node:sqlite`, are described as `core` instead of `external`.
+- fix(#510): Some extglob patterns now match all the paths they describe, as the same patterns without extglobs do. For example, `src/@(foo/**)` now matches `src/foo`, like `src/foo/**`.
+- fix(#510): The ES module build for Node.js no longer throws `Dynamic require of "module" is not supported` when a matcher is created.
+- fix(#568): With the `cache` option enabled, `describeElement` no longer gives the files of a folder the description of the first one described, such as a dot file, and returns the same descriptions as with the cache disabled: read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-4-0/#dot-files-in-element-folders) to find the affected files.
+
 ## [3.2.0] - 2026-10-23
 
 ### Changed

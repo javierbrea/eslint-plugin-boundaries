@@ -8,6 +8,8 @@ import typescriptParser from "@typescript-eslint/parser";
 import eslintConfigPrettier from "eslint-config-prettier";
 import importPlugin from "eslint-plugin-import";
 import pluginJest from "eslint-plugin-jest";
+// eslint-disable-next-line import/no-unresolved
+import jsdoc from "eslint-plugin-jsdoc";
 import prettier from "eslint-plugin-prettier";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import reactPlugin from "eslint-plugin-react";
@@ -161,6 +163,17 @@ export const jsBaseConfig = {
   },
 };
 
+export const jsdocConfig = {
+  files: ["**/*.js", "**/*.cjs", "**/*.mjs", "**/*.jsx", "**/*.ts", "**/*.tsx"],
+  plugins: {
+    jsdoc,
+  },
+  rules: {
+    "jsdoc/check-param-names": [2],
+    "jsdoc/require-param": [2],
+  },
+};
+
 export const commonJsConfig = {
   files: ["**/*.cjs"],
   languageOptions: {
@@ -257,6 +270,7 @@ export const defaultConfigWithoutTypescript = [
   jsoncConfig,
   markdownConfig,
   jsBaseConfig,
+  jsdocConfig,
   commonJsConfig,
   disableExtensionsInEslintConfig,
 ];

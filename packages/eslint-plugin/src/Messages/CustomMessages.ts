@@ -72,9 +72,10 @@ function replaceObjectValuesInLegacyTemplate(
  * The resulting object normalizes available element information and dependency
  * metadata so templates can use keys consistently regardless of source.
  *
- * @param element - Element or parent element that provides captured values.
- * @param importKind - Dependency kind (`value`, `type`, etc.).
- * @param dependencyInfo - Extra dependency metadata for full elements.
+ * @param options - Element, module and dependency information to normalize.
+ * @param options.element - Element that provides its captured values and the `type` and `internalPath` keys.
+ * @param options.module - Module of the element, which provides the `module` key.
+ * @param options.dependency - Dependency metadata, which provides the `source` and `importKind` keys.
  * @returns Normalized key/value map used during placeholder replacement.
  */
 export function elementPropertiesToReplaceInLegacyTemplate({
@@ -129,6 +130,10 @@ function hasHandlebarsTemplate(template: string) {
  * For backward compatibility with V6 dependency selectors, properties from
  * `entity.element` are also exposed at the root level (`from`/`to`), while
  * preserving the nested structure.
+ *
+ * @param entityContext - `from` or `to` entity of the dependency description.
+ * @param parents - Parents of the entity element, with legacy `elementPath` aliases.
+ * @returns Entity context exposed to templates.
  */
 function extendDependencyEntityContextForTemplate(
   entityContext: DependencyDescription["from"],
@@ -165,6 +170,9 @@ function extendDependencyEntityContextForTemplate(
  * For backward compatibility with V6 dependency selectors, properties from
  * `entity.element` are also exposed at the root level (for example
  * `policy.selector.from.type`) besides `policy.selector.from.element.type`.
+ *
+ * @param entityContext - `from` or `to` entity of the selector matching result.
+ * @returns Entity selector context exposed to templates.
  */
 function extendPolicyEntitySelectorContextForTemplate(
   entityContext: EntitySingleSelectorMatchResult
@@ -335,6 +343,8 @@ function replaceLegacyTemplateVariables(
  *
  * @param template - User-defined message template from rule configuration.
  * @param dependency - Runtime dependency information used by placeholders.
+ * @param ruleIndex - Index of the rule that triggered the error, if applicable.
+ * @param matchResult - Full result of the dependency matching process, if applicable.
  * @returns Rendered, user-facing error message.
  */
 export function customErrorMessage(

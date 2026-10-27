@@ -9,11 +9,11 @@ import type {
  * Selector for dependency information.
  */
 export type DependencyInfoSingleSelector = {
-  /** Relationship between both elements, from both perspectives */
+  /** Relationship between both elements */
   relationship?: {
-    /** Relationship from dependant element perspective */
+    /** What the dependant element is to the dependency element, such as `parent` when the dependency element is its direct child */
     from?: MicromatchPatternNullable;
-    /** Relationship from dependency element perspective */
+    /** What the dependency element is to the dependant element, such as `child` when it is a direct child of the dependant element */
     to?: MicromatchPatternNullable;
   };
   /** Dependency kind to filter elements */
