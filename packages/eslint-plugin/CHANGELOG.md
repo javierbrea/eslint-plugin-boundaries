@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - fix(#510): Imports of Node.js built-in modules only available with the `node:` prefix, such as `node:test` or `node:sqlite`, have the `core` origin instead of `external`: read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-4-0/#nodejs-built-in-modules-with-the-node-prefix) to check whether your policies are affected.
 - fix(#510): Some extglob patterns now match all the paths they describe, like the same patterns without extglobs (`src/@(foo/**)` now matches `src/foo`, like `src/foo/**`): read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-4-0/#extglob-patterns) to check whether your patterns are affected.
+- fix(#568): With `boundaries/cache` enabled, which is the default, the files placed next to a linted or imported dot file, such as `.lintstagedrc.js`, no longer get its description or give it theirs, which could change the errors from one run to another: read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-4-0/#dot-files-in-element-folders) to find the affected files.
 
 ## [7.3.0] - 2026-10-23
 
