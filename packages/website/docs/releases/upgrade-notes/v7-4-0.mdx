@@ -2,7 +2,7 @@
 id: v7-4-0
 title: Upgrading to v7.4.0
 sidebar_label: v7.4.0
-description: Learn whether the fixes for Node.js built-in modules with the node prefix, for extglob patterns and for element descriptions with the cache enabled in ESLint Plugin Boundaries v7.4.0 affect your project, and how to adapt your configuration.
+description: Learn whether the fixes for Node.js built-in modules with the node prefix, for extglob patterns and for dot files in element folders in ESLint Plugin Boundaries v7.4.0 affect your project, and how to adapt your configuration.
 tags:
   - configuration
   - migration
@@ -32,7 +32,7 @@ v7.4.0 is a minor release, and most projects can upgrade without any change. How
 
 - **[Node.js built-in modules with the `node:` prefix](#nodejs-built-in-modules-with-the-node-prefix)**: imports of the built-in modules that Node.js only provides with the `node:` prefix, such as `node:test`, had the `external` origin instead of `core`.
 - **[Extglob patterns](#extglob-patterns)**: some patterns with extglobs, such as `src/@(foo/**)`, did not match all the paths they describe.
-- **[Element descriptions with the cache enabled](#element-descriptions-with-the-cache-enabled)**: with the cache enabled, which is the default, the files placed next to a linted or imported dot file, such as `.lintstagedrc.js`, could get the description of that dot file, or give it theirs, and the errors could change from one run to another.
+- **[Dot files in element folders](#dot-files-in-element-folders)**: with the cache enabled, which is the default, the files placed next to a linted or imported dot file, such as `.lintstagedrc.js`, could get the description of that dot file, or give it theirs, and the errors could change from one run to another.
 
 This page explains how to check whether your project is affected, and how to adapt your configuration if it is.
 
@@ -116,42 +116,43 @@ No configuration change is required in most cases, because the patterns now matc
 + "src/foo/**/*"
 `}</CodeDiff>
 
-## Element descriptions with the cache enabled
+## Dot files in element folders
 
-Before v7.4.0, when the **[`boundaries/cache`](../../settings/settings.md#boundariescache)** setting was enabled, which is the default, the plugin described the first file of each folder and reused that description for the other files of the same folder. In some cases the description also depends on the file name, so the other files of the folder got the description of the first one described. From v7.4.0, every file gets the same description as with the cache disabled, whatever the order in which the files are described.
+Before v7.4.0, when the **[`boundaries/cache`](../../settings/settings.md#boundariescache)** setting was enabled, which is the default, a file whose name starts with a dot, such as `.lintstagedrc.js`, could give its description to the other files of its folder, or get theirs, and the errors could change from one run to another. From v7.4.0, every file gets the same description as with the cache disabled, in every run.
 
 ### Who is affected
 
-Your project is affected if both of these conditions are true:
+Your project is affected if all of these conditions are true:
 
 - `boundaries/cache` is enabled, which is the default.
-- The plugin describes a file whose name starts with a dot, such as `.lintstagedrc.js`, placed in the folder of an element or in one of its subfolders, next to other files. It describes the dot file when ESLint lints it, or when a linted file imports it. Only the files placed directly in the same folder as the dot file are affected, not the files in its subfolders.
+- The folder of an element, or one of its subfolders, has a dot file next to other files.
+- ESLint lints the dot file, or a linted file imports it.
 
-The plugin appends `/**/*` to element patterns to match the files inside the element folder, and `*` does not match names starting with a dot, so the dot file does not belong to the element. Before v7.4.0, the file described first decided for the whole folder of the dot file:
+Only the files placed directly in the same folder as the dot file are affected, not the files in its subfolders.
 
-- When it was the dot file, the other files of the folder were unknown too. **[`boundaries/no-unknown-files`](../../rules/no-unknown-files.md)** reported them, **[`boundaries/no-unknown-dependencies`](../../rules/no-unknown-dependencies.md)** reported the dependencies on them, and the policies of their element did not apply to them.
-- When it was another file, the dot file got its description, so `boundaries/no-unknown-files` did not report the dot file, `boundaries/no-unknown-dependencies` did not report the dependencies on it, and the policies of the element applied to it.
+### What changes
 
-A file is described when ESLint lints it, or earlier, when a file linted before it imports it. With flat config, ESLint reads the files in parallel and lints each one as soon as it has been read, so the order can change from one run to another, and so could these errors, even when the code did not change. With the legacy `.eslintrc` configuration, ESLint lints the files one after another, in the order in which it finds them, and it does not lint dot files unless the configuration includes them.
+The plugin appends `/**/*` to element patterns, and `*` does not match names starting with a dot, so the dot file does not belong to the element. Before v7.4.0, the cache reused the description of the first file described in the folder:
 
-After upgrading, the other files of the folder always belong to their element, and the dot file is always unknown, as with the cache disabled. So some errors may no longer be reported, the policies of the element may report new ones, and `boundaries/no-unknown-files` and `boundaries/no-unknown-dependencies` may report the dot file and the dependencies on it.
+- When the dot file was described first, the other files of the folder were unknown too.
+- When another file was described first, the dot file got the description of the element.
 
-Other configurations are also affected, although they are outside the documented use of **[element descriptors](../../classification/elements.md)**, and give unexpected results with the cache disabled too:
+With flat config, the order in which ESLint lints the files can change from one run to another, and so could these errors, even when the code did not change.
 
-- **An element `pattern` that matches files instead of folders**, such as `**`, `src/*/**` or `!src/*`. Element patterns should [match folders](../../classification/elements.md#pattern-required). With these patterns, each file placed directly in a folder is an element of its own, and before v7.4.0 the other files of the folder got the `path` of the first one.
-- **A descriptor with more `capture` names than wildcards in its `pattern`, or more `baseCapture` names than wildcards in its `basePattern`**, such as `{ pattern: "src/*", capture: ["name", "rest", "file"] }`. The extra names take values from the rest of the file path, file name included, and before v7.4.0 the other files of the folder got the values of the first one.
+After upgrading, the dot file is always unknown, and the other files of the folder always belong to their element:
+
+- **[`boundaries/no-unknown-files`](../../rules/no-unknown-files.md)** and **[`boundaries/no-unknown-dependencies`](../../rules/no-unknown-dependencies.md)** may report the dot file and the dependencies on it, and no longer report the other files of the folder.
+- The policies of the element apply to the other files of the folder, and no longer to the dot file.
 
 ### Find the affected files
 
-Search the folders of your elements for files whose name starts with a dot, for example:
+Search the folders of your elements for dot files, for example:
 
 ```bash
 find src -type f -name ".*"
 ```
 
-If ESLint lints none of them, no linted file imports them, and your configuration does not have the other forms above, your project is not affected.
-
-Otherwise, lint your project with the version you use now and the cache disabled:
+If ESLint lints none of them and no linted file imports them, your project is not affected. Otherwise, lint your project with the version you use now and the cache disabled. Its results for these files are the ones of v7.4.0:
 
 ```js
 export default [{
@@ -161,18 +162,24 @@ export default [{
 }];
 ```
 
-The results with the cache disabled are the ones that v7.4.0 gives with the cache enabled, in every run, so review them before upgrading. With flat config, the results that you get now with the cache enabled can change from one run to another, so getting the same results in one run does not prove that your project is not affected.
+With flat config, getting the same results with the cache enabled in one run does not prove that your project is not affected, because they can change in the next one.
 
 ### Adapt your configuration
 
-No configuration change is required, because v7.4.0 describes the files as your configuration defines them. Review the lint results after upgrading:
+No configuration change is required. Review the lint results after upgrading:
 
 - Remove the workarounds that you added for the errors that are no longer reported, such as `eslint-disable` comments in the files placed next to a dot file.
-- If an element `pattern` matches files, or a descriptor has more `capture` or `baseCapture` names than wildcards, each file now gets its own `path` or captured values. To give the same values to all the files of an element, rewrite the `pattern` so it matches the folder of the element, such as `src/*` instead of `src/*/**` when each folder in `src` is an element, and give `capture` and `baseCapture` one name per wildcard of `pattern` and `basePattern`.
-- If `boundaries/no-unknown-files` now reports a dot file that does not belong to any element, such as a configuration file, add it to **[`boundaries/ignore`](../../settings/settings.md#boundariesignore)**:
+- If `boundaries/no-unknown-files` reports a dot file that does not belong to any element, such as a configuration file, add it to **[`boundaries/ignore`](../../settings/settings.md#boundariesignore)**:
 
 <CodeDiff language="javascript">{`
 . settings: {
 +   "boundaries/ignore": ["**/.lintstagedrc.js"],
 . }
 `}</CodeDiff>
+
+### Configurations outside the documented use
+
+Two other configurations are also affected. Both are outside the documented use of **[element descriptors](../../classification/elements.md)** and give unexpected results with the cache disabled too. From v7.4.0, each file gets its own values instead of the values of the first file described in its folder:
+
+- **An element `pattern` that matches files instead of folders**, such as `**`, `src/*/**` or `!src/*`: each file placed directly in a folder is an element of its own, with its own `path`. To give the same `path` to all the files of an element, make the pattern [match its folder](../../classification/elements.md#pattern-required), such as `src/*` instead of `src/*/**`.
+- **More `capture` names than wildcards in `pattern`, or more `baseCapture` names than wildcards in `basePattern`**, such as `{ pattern: "src/*", capture: ["name", "rest", "file"] }`: the extra names take values from the rest of the file path, file name included. Give one name per wildcard.
