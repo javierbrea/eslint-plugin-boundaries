@@ -161,6 +161,34 @@ describe("Config", () => {
       ]);
     });
 
+    it.each([0, "off", ["off", {}]])(
+      "ignores a rule that the plugin does not have when its severity is %p, as ESLint does",
+      (entry) => {
+        const { value, diagnostics } = normalizeConfig({
+          settings: VALID_SETTINGS,
+          rules: { "boundaries/foo": entry },
+        });
+
+        expect(diagnostics).toEqual([]);
+        expect(value.rules).toEqual({});
+      }
+    );
+
+    it("reports the severity of a rule that the plugin does not have before the rule", () => {
+      const { diagnostics } = normalizeConfig({
+        settings: VALID_SETTINGS,
+        rules: { "boundaries/foo": "bogus" },
+      });
+
+      expect(diagnostics).toEqual([
+        {
+          level: "error",
+          title: `Key "rules": Key "boundaries/foo": Expected severity of "off", 0, "warn", 1, "error", or 2.`,
+          paths: [["rules", "boundaries/foo"]],
+        },
+      ]);
+    });
+
     it.each([
       [0, "off"],
       ["off", "off"],

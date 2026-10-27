@@ -124,15 +124,6 @@ export function normalizeConfig(
     }
 
     const ruleShortName = ruleId.slice(rulePrefix.length);
-    if (!isRuleShortName(ruleShortName)) {
-      diagnostics.error(
-        `Key "rules": Key "${ruleId}": Could not find "${ruleShortName}" in plugin "${pluginName}".`,
-        undefined,
-        [["rules", ruleId]]
-      );
-      continue;
-    }
-
     const entryList = isArray(entry) ? entry : [entry];
     const severity = RULE_SEVERITIES.get(entryList[0]);
     if (!severity) {
@@ -141,6 +132,18 @@ export function normalizeConfig(
         undefined,
         [isArray(entry) ? ["rules", ruleId, 0] : ["rules", ruleId]]
       );
+      continue;
+    }
+
+    if (!isRuleShortName(ruleShortName)) {
+      // ESLint does not look up a rule that is off
+      if (severity !== RULE_SEVERITIES_MAP.OFF) {
+        diagnostics.error(
+          `Key "rules": Key "${ruleId}": Could not find "${ruleShortName}" in plugin "${pluginName}".`,
+          undefined,
+          [["rules", ruleId]]
+        );
+      }
       continue;
     }
 
