@@ -14,6 +14,7 @@ export type CopyrightProps = {
 /**
  * Footer copyright line with the years of the project, followed by the legal notice.
  * @param props Copyright props.
+ * @param props.disclaimer Legal notice rendered below the copyright line, as plain text.
  * @returns The copyright block.
  */
 export default function Copyright({ disclaimer }: CopyrightProps): ReactNode {

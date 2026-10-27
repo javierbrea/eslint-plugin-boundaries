@@ -126,6 +126,7 @@ export class ElementsDescriptor {
 
   /**
    * Validates the element descriptors to ensure they are correctly defined.
+   * @param elementDescriptors The element descriptors to validate.
    */
   private _validateDescriptors(elementDescriptors: ElementDescriptors): void {
     let index = 0;

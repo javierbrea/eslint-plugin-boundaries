@@ -224,8 +224,9 @@ export class ModulesDescriptor {
 
   /**
    * Gets the module description for a given relative path and source.
-   * @param relativePath The relative path of the file.
+   * @param isOutsideRootPath Whether the file path is outside the configured root path.
    * @param dependencySource The source of the dependency (e.g., the import statement or require call).
+   * @param relativePath The relative path of the file.
    * @returns The description of the file's module.
    */
   private _getDependencyModuleDescription(
@@ -303,9 +304,9 @@ export class ModulesDescriptor {
 
   /**
    * Gets the origin description for a given relative path and source.
+   * @param isOutsideRootPath Whether the file path is outside the configured root path.
    * @param relativePath The relative path of the file.
    * @param source The source of the dependency (e.g., the import statement or require call).
-   * @param isOutsideRootPath Whether the file path is outside the configured root path.
    * @returns The description of the file's module.
    */
   private _getModuleDescription(
