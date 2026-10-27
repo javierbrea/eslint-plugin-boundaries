@@ -21,3 +21,4 @@ sonarsource
 subfolders
 extglob
 extglobs
+lintstagedrc
