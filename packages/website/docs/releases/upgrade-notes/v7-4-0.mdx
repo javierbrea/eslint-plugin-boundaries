@@ -122,12 +122,12 @@ Before v7.4.0, when the **[`boundaries/cache`](../../settings/settings.md#bounda
 
 ### Who is affected
 
-Your project is affected only if both of these conditions are true:
+Your project is affected if both of these conditions are true:
 
 - `boundaries/cache` is enabled, which is the default.
-- The plugin describes a file whose name starts with a dot, such as `.lintstagedrc.js`, placed directly in the folder of an element, next to other files. It describes the dot file when ESLint lints it, or when a linted file imports it. The files in the subfolders of that folder are not affected.
+- The plugin describes a file whose name starts with a dot, such as `.lintstagedrc.js`, placed in the folder of an element or in one of its subfolders, next to other files. It describes the dot file when ESLint lints it, or when a linted file imports it. Only the files placed directly in the same folder as the dot file are affected, not the files in its subfolders.
 
-The plugin appends `/**/*` to element patterns to match the files inside the element folder, and `*` does not match names starting with a dot, so the dot file does not belong to the element. Before v7.4.0, the file described first decided for the whole folder:
+The plugin appends `/**/*` to element patterns to match the files inside the element folder, and `*` does not match names starting with a dot, so the dot file does not belong to the element. Before v7.4.0, the file described first decided for the whole folder of the dot file:
 
 - When it was the dot file, the other files of the folder were unknown too. **[`boundaries/no-unknown-files`](../../rules/no-unknown-files.md)** reported them, **[`boundaries/no-unknown-dependencies`](../../rules/no-unknown-dependencies.md)** reported the dependencies on them, and the policies of their element did not apply to them.
 - When it was another file, the dot file got its description, so `boundaries/no-unknown-files` did not report the dot file, `boundaries/no-unknown-dependencies` did not report the dependencies on it, and the policies of the element applied to it.
