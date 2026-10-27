@@ -47,7 +47,7 @@ export default [
           policies: [
             // External / Node core imports are unrestricted; we enforce internal layering only
             { allow: { to: { module: { origin: ["external", "core"] } } } },
-            // Shared is the universal foundation: anything may import it (except public, see below)
+            // Shared is the universal foundation: anything may import it
             { allow: { to: { element: { type: "shared" } } } },
             // Same-element (same-folder) imports are always allowed
             { allow: { dependency: { relationship: { to: "internal" } } } },

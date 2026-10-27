@@ -24,7 +24,7 @@ The layering is not lint-enforced: linting this package with the workspace plugi
 - Functions never print. Each problem in the input is a `Diagnostic`, added through `DiagnosticsBuilder` with a level (`error` for what ESLint rejects, `warning` for what is ignored or has no effect, `deprecation` for legacy syntax that still works) and the paths of the affected entries from the root of the function's input. `normalizeDependenciesRuleOptions` is the exception: it assumes options that passed the rule schema and reports nothing.
 - Titles and details are the texts the plugin prints with `warnOnce`, so changing one changes the plugin's output, and its changelog.
 - Results are computed from the input on every call, and the input is never mutated. The only memoization is the compiled validator of each rule in `Schemas/Validator.ts`, which depends only on the rule name.
-- `src/index.ts` lists the public exports one by one; a symbol is public only when it is added there.
+- `src/index.ts` is the public interface: `Shared/Settings.types.ts`, the types and constants of what the user writes, is public as a whole, and a symbol of any other file is public only when `src/index.ts` lists it.
 
 ## Build and test shape
 
