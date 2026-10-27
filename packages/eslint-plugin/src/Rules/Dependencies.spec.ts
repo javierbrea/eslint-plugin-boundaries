@@ -1889,6 +1889,26 @@ describe("Dependencies", () => {
       expect(getElementsMatcherMock).toHaveBeenCalledTimes(1);
     });
 
+    it("does not normalize the policies when it skips the dependency, so an invalid selector does not throw", () => {
+      const dependency = createDependencyDescription({
+        to: createEntityDescription({
+          module: { origin: ORIGINS_MAP.EXTERNAL },
+        }),
+      });
+      const options = {
+        policies: [{ from: { bogus: 1 }, allow: { to: { type: "a" } } }],
+      } as unknown as DependenciesRuleOptions;
+
+      const run = () =>
+        callHandler(
+          RULE_NAMES_MAP.DEPENDENCIES,
+          createCallArgs(dependency, options)
+        );
+
+      expect(run).not.toThrow();
+      expect(getElementsMatcherMock).not.toHaveBeenCalled();
+    });
+
     it("uses an empty policies array when options.policies is undefined", () => {
       const matcher = createMatcher();
       getElementsMatcherMock.mockReturnValue(matcher);

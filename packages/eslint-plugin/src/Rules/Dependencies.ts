@@ -811,8 +811,10 @@ export default function getDependencyRule(
       // selectors, legacy templates, and rule-level importKind).
       validateAndWarnRuleOptions(options, ruleName, settings.legacyWarnings);
 
-      const { checkAllOrigins, checkUnknownLocals, checkInternals, policies } =
-        getDependenciesRuleOptions(options);
+      // Policies are normalized only for the dependencies that pass these filters, so an invalid selector does not fail on files whose dependencies are all skipped
+      const checkAllOrigins = options?.checkAllOrigins ?? false;
+      const checkUnknownLocals = options?.checkUnknownLocals ?? false;
+      const checkInternals = options?.checkInternals ?? false;
 
       const isLocalDependency =
         dependency.to.module.origin === ORIGINS_MAP.LOCAL;
@@ -832,7 +834,7 @@ export default function getDependencyRule(
         (checkInternals || !isInternalDependency)
       ) {
         evaluatePoliciesAndReport({
-          rules: policies,
+          rules: getDependenciesRuleOptions(options).policies,
           settings,
           context,
           node,
