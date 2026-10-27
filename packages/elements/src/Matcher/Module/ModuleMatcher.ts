@@ -130,6 +130,7 @@ export class ModulesMatcher extends BaseElementsMatcher {
    * @param moduleDescription The module to check.
    * @param selector The selector to check against.
    * @param options Extra options for matching, such as templates data, etc.
+   * @param options.extraTemplateData Extra data to pass to the templates of the selector values.
    * @returns The selector matching result for the given module, or null if none matches.
    */
   public getSelectorMatching(

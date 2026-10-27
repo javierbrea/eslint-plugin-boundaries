@@ -104,6 +104,7 @@ export function isEntitySelector(
  * v6 stored external internalPath with a leading slash on `element.fileInternalPath`; v7
  * stores it without leading slash on `module.internalPath`. When mapping legacy selectors
  * to the new module-based location we normalize accordingly so user patterns keep matching.
+ * @param pattern The micromatch pattern, or array of patterns, to strip.
  */
 function stripLeadingSlash(
   pattern: MicromatchPatternNullable
@@ -135,6 +136,7 @@ function stripLeadingSlash(
  * matched externals. The extra entry preserves the rest of the legacy constraints as
  * AND, so it only relaxes matching for entities that lack the discarded element
  * constraints (i.e. externals when only `internalPath`/`origin` are present).
+ * @param selector The legacy or current element single selector to convert.
  */
 function normalizeBackwardCompatibleElementSingleSelectorToEntitySingleSelector(
   selector: BackwardCompatibleElementSingleSelector

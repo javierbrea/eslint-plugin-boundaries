@@ -369,6 +369,8 @@ function mergeModuleSelector(
 /**
  * Merges two element selectors by merging their fields, with entry fields taking precedence over outer fields.
  * If both selectors have a `captured` field, they are merged separately to avoid losing any captured values.
+ * @param outer The selector of the rule-level field.
+ * @param entry The selector of the policy entry.
  */
 function mergeEntitySingleSelector(
   outer: EntitySingleSelectorNormalized,
@@ -464,6 +466,11 @@ function mergeDependencyInfoSelectors(
  *   selector `{ to: { type: "helper", internalPath: "index.js" } }`.
  * - **Legacy entry** (string or array without objects) — interpreted as the element selector
  *   for the "other" direction (opposite to the direction defined at the rule level).
+ * @param outerFrom The rule-level `from` selector.
+ * @param outerTo The rule-level `to` selector.
+ * @param outerDependency The rule-level `dependency` selector.
+ * @param entry The policy entry to merge with the rule-level fields.
+ * @param legacyImportKind The rule-level `importKind` of a legacy policy, if any.
  */
 function buildEntrySelector(
   outerFrom: EntitySelectorNormalized | undefined,
@@ -515,6 +522,10 @@ function buildEntrySelector(
 
 /**
  * Wraps matcher.getDependencySelectorMatchingDescription catching any errors to avoid breaking the rule.
+ * @param dep The dependency description.
+ * @param matcher The elements matcher.
+ * @param selector The dependency selector to match.
+ * @param extraTemplateData Extra data to pass to the templates of the selector values.
  */
 function safeMatch(
   dep: DependencyDescription,
@@ -618,6 +629,10 @@ function getCapturedTemplateData(
  * **last-write-wins** semantics: the last rule that produces a match determines the outcome.
  * Within a single rule, `disallow`/`deny` takes precedence over `allow` — `allow` is not
  * evaluated when `disallow` already matched.
+ * @param rules The configured policies.
+ * @param dep The dependency description.
+ * @param matcher The elements matcher.
+ * @param settings The normalized plugin settings.
  */
 export function evaluatePolicies(
   rules: DependenciesPolicy[],
@@ -678,6 +693,8 @@ export function evaluatePolicies(
 /**
  * Resolves the custom error message for a violation, preferring the policy-specific message
  * over the global options message.
+ * @param ruleIndex The index of the policy that produced the violation, if any.
+ * @param ruleOptions The rule options.
  */
 export function resolveCustomMessage(
   ruleIndex: number | null,
@@ -698,6 +715,11 @@ type BuildErrorMessageParams = {
 
 /**
  * Builds the error message for a dependency violation.
+ * @param params Violation information.
+ * @param params.matchResult The result of matching the dependency against the policy selector, if any.
+ * @param params.ruleIndex The index of the policy that produced the violation, if any.
+ * @param params.customMessage The custom message configured for the violation, if any.
+ * @param params.dependency The dependency description.
  */
 export function buildErrorMessage({
   matchResult,
@@ -724,6 +746,12 @@ export function buildErrorMessage({
  * Evaluates configured rules for a dependency and reports ESLint violations.
  *
  * @param params - Rule evaluation context and dependency information.
+ * @param params.rules - Configured policies.
+ * @param params.settings - Normalized plugin settings.
+ * @param params.context - ESLint rule context, used to report violations.
+ * @param params.node - Node of the dependency source, where violations are reported.
+ * @param params.options - Rule options.
+ * @param params.dependency - Dependency description.
  */
 export function evaluatePoliciesAndReport({
   rules,
@@ -777,7 +805,7 @@ export function evaluatePoliciesAndReport({
 
 /**
  * Returns an ESLint rule definition for the dependencies rule, which checks dependencies between elements based on configured rules.
- * @param customRuleName - Optional custom name for the rule.
+ * @param ruleName - Optional custom name for the rule.
  * @returns ESLint rule definition.
  */
 export default function getDependencyRule(

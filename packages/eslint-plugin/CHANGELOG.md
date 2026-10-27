@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- chore(#570): Fix the `@param` tags in the TSDoc of internal functions, which named parameters that do not exist or missed some.
+
 ### Fixed
 
 - fix(#510): Imports of Node.js built-in modules only available with the `node:` prefix, such as `node:test` or `node:sqlite`, have the `core` origin instead of `external`: read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-4-0/#nodejs-built-in-modules-with-the-node-prefix) to check whether your policies are affected.

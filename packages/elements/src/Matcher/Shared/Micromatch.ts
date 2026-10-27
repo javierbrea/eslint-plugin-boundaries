@@ -23,6 +23,8 @@ class MatchingResultsCache extends CacheManager<
   /**
    * Generates a unique cache key based on the value and pattern
    * @param param0 The cache key components
+   * @param param0.value The value to match.
+   * @param param0.pattern The pattern, or patterns, to match the value against.
    * @returns The generated cache key
    */
   protected generateKey({ value, pattern }: MatchingResultsCacheKey): string {
@@ -48,6 +50,8 @@ class CapturedValueCache extends CacheManager<
   /**
    * Generates a unique cache key based on the pattern and target
    * @param param0 The cache key components
+   * @param param0.pattern The pattern to capture the values with.
+   * @param param0.target The string to capture the values from.
    * @returns The generated cache key
    */
   protected generateKey({ pattern, target }: CapturedValueCacheKey): string {

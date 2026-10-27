@@ -35,7 +35,7 @@ function adaptRuleNameToUrl(ruleName: RuleName): string {
 
 /**
  * Returns the documentation URL for an ESLint rule.
- * @param ruleName The name of the rule.
+ * @param path The path of the documentation page, relative to the docs root.
  * @param anchor Optional anchor to a specific section in the documentation page.
  * @returns The documentation URL for the ESLint rule.
  */

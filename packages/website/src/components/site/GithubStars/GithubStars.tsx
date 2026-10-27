@@ -20,6 +20,7 @@ export type GithubStarsProps = {
 /**
  * Navbar pill linking to the repository with its live number of GitHub stars.
  * @param props Navbar item props.
+ * @param props.mobile Whether the item renders in the mobile sidebar instead of the navbar.
  * @returns The link, wrapped in a list item in the mobile sidebar.
  */
 export default function GithubStars({

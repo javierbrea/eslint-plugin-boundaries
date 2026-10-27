@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - feat: New home page: blueprint hero with a live-drawn architecture sheet, the three-step walkthrough, feature specification, live GitHub and npm numbers, and a playground preview. The navbar shows the live GitHub stars and a "Get started" button.
 - feat: Documentation pages adopt the new design: blueprint code blocks in both themes, semantic admonitions, restyled sidebar, table of contents, tables, search and 404 page.
 - feat: Links to the site show a new preview image, in the new design.
+- chore(#570): Document every prop of the site components in their TSDoc.
 
 ### Removed
 

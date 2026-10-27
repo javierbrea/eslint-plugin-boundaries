@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - chore(#510): Upgrade `picomatch` to 4.0.7, which no longer requires Node.js modules.
+- chore(#570): Fix the `@param` tags in the TSDoc of the exported classes, such as the `Matcher` constructor or the `getSelectorMatching` methods, which named parameters that do not exist or missed some.
 
 ### Fixed
 

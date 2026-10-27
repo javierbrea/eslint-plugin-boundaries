@@ -29,7 +29,6 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * Creates a new ElementsSelectorMatcher.
    * @param config Configuration options for the matcher.
    * @param micromatch Micromatch instance for matching.
-   * @param globalCache Global cache instance.
    */
   constructor(config: MatchersOptionsNormalized, micromatch: Micromatch) {
     super(config, micromatch);
@@ -496,7 +495,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
   /**
    * Returns the selector matching result for the given local or external element.
    * @param element The local or external element to check.
-   * @param selector The selector to check against.
+   * @param selectorsData The normalized single selectors to check against, in order.
    * @param extraTemplateData Extra template data to use for matching.
    * @returns The selector matching result for the given element, or null if none matches.
    */
@@ -558,6 +557,7 @@ export class ElementsMatcher extends BaseElementsMatcher {
    * @param element The element to check.
    * @param selector The selector to check against.
    * @param options Extra options for matching, such as templates data, etc.
+   * @param options.extraTemplateData Extra data to pass to the templates of the selector values.
    * @returns The selector matching result for the given element, or null if none matches.
    */
   public getSelectorMatching(

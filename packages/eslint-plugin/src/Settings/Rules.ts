@@ -405,6 +405,10 @@ export function legacyPoliciesSchema(
  * Builds JSON schema for rule options of dependency-based rules.
  *
  * @param options - Schema customization options for rule main key and extras.
+ * @param options.rulesMainKey - Main selector key of legacy policies (`from`, `to`, or `target`).
+ * @param options.targetMatcherOptions - Extra matcher options accepted in legacy tuple syntax.
+ * @param options.extraOptionsSchema - Schema of extra rule options, added to the common ones.
+ * @param options.isLegacy - Whether the rule accepts legacy policies instead of the current ones.
  * @returns ESLint-compatible schema array for rule options.
  */
 export function rulesOptionsSchema({
@@ -575,7 +579,7 @@ function hasLegacyTemplateSyntax(value: string): boolean {
 
 /**
  * Recursively checks if a selector contains legacy template syntax.
- * @param value - The value to check (can be string, object, array, etc.).
+ * @param micromatchPattern - The value to check (can be string, object, array, etc.).
  * @returns True if legacy template syntax was detected, false otherwise.
  */
 function checkForLegacyTemplateSyntax(
@@ -600,7 +604,7 @@ function checkForLegacyTemplateSyntax(
 
 /**
  * Detects if legacy template syntax is used in selectors.
- * @param selector - The selector to check (can be a single selector or an array of selectors).
+ * @param micromatchPattern - The selector to check (can be a single selector or an array of selectors).
  * @returns True if legacy template syntax was detected, false otherwise.
  */
 export function detectLegacyTemplateSyntax(
@@ -1313,6 +1317,7 @@ function warnAboutDeprecatedRulesOption(
  *
  * @param options - Rule options containing `policies` (or the deprecated `rules` alias) entries.
  * @param ruleName - Rule name displayed in warning messages.
+ * @param legacyWarnings - Whether to warn about deprecated syntax, besides invalid selector shapes.
  */
 export function validateAndWarnRuleOptions(
   options: RuleOptionsWithPolicies | undefined,

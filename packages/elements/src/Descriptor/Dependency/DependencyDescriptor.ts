@@ -89,7 +89,7 @@ export class DependenciesDescriptor {
 
   /**
    * Retrieves the element path of the parent of a given element.
-   * @param elementInfo The element whose parent is to be retrieved.
+   * @param elementDescription The element whose parent is to be retrieved.
    * @returns The parent element path, or undefined if none exists.
    */
   private _getParent(elementDescription: ElementDescription) {
@@ -262,6 +262,12 @@ export class DependenciesDescriptor {
   /**
    * Describes elements in a dependency relationship, and provides additional information about the dependency itself.
    * @param options The options for describing the elements and the dependency details.
+   * @param options.from Path of the element where the dependency originates.
+   * @param options.to Path of the element where the dependency points to.
+   * @param options.source Source of the dependency (import/export path).
+   * @param options.kind Kind of the dependency (type, runtime).
+   * @param options.nodeKind Type of the node creating the dependency in the dependent element.
+   * @param options.specifiers Specifiers imported or exported in the dependency.
    * @returns The description of the dependency between the elements.
    */
   public describeDependency({
