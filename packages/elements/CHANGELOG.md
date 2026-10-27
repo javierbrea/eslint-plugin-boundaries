@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - chore(#510): Upgrade `picomatch` to 4.0.7, which no longer requires Node.js modules.
 - chore(#570): Fix the `@param` tags in the TSDoc of the exported classes, such as the `Matcher` constructor or the `getSelectorMatching` methods, which named parameters that do not exist or missed some. The TSDoc of the `kind` option of `DependencyDescriptorOptions` lists the right dependency kinds.
+- chore(#572): The README and the TSDoc of the `relationship` selector say which side `from` and `to` describe: `from` is what the source element is to the target, and `to` what the target is to the source.
 
 ### Fixed
 
