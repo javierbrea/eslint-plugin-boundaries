@@ -39,7 +39,7 @@ All conditions inside the selector are combined with **AND**; arrays act as **OR
 - **`nodeKind`** — Matches the [dependency node](../settings/settings.md#boundariesdependency-nodes) name that produced the dependency. <small>(`<string | string[]>`)</small>
 - **`source`** — Matches the literal source string written in the `import`/`export` statement. <small>(`<string | string[]>`)</small>
 
-Relationship values are: `internal`, `child`, `descendant`, `sibling`, `parent`, `uncle`, `nephew`, and `ancestor`. Each of `from` and `to` is the inverse of the other (when `to` is `child`, `from` is `parent`).
+Relationship values are: `internal`, `child`, `descendant`, `sibling`, `parent`, `uncle`, `nephew`, and `ancestor`. `from` is always the inverse of `to`: `child` and `parent` invert each other, and so do `descendant` and `ancestor`, and `uncle` and `nephew`. `internal` and `sibling` stay the same on both sides.
 
 ```js
 // Match type-only dependencies to helpers
