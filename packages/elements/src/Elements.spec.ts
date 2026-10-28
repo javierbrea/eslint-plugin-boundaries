@@ -109,18 +109,21 @@ describe("Elements", () => {
     it("should create a Config with the provided options", () => {
       const options = { cache: false };
 
+      // eslint-disable-next-line sonarjs/constructor-for-side-effects -- The test checks what the constructor creates
       new Elements(options);
 
       expect(MockedConfig).toHaveBeenCalledWith(options);
     });
 
     it("should create a Config with undefined when no options are provided", () => {
+      // eslint-disable-next-line sonarjs/constructor-for-side-effects -- The test checks what the constructor creates
       new Elements();
 
       expect(MockedConfig).toHaveBeenCalledWith(undefined);
     });
 
     it("should create Micromatch instances with and without cache", () => {
+      // eslint-disable-next-line sonarjs/constructor-for-side-effects -- The test checks what the constructor creates
       new Elements();
 
       expect(MockedMicromatch).toHaveBeenCalledTimes(2);
@@ -129,6 +132,7 @@ describe("Elements", () => {
     });
 
     it("should create a MatchersCache instance", () => {
+      // eslint-disable-next-line sonarjs/constructor-for-side-effects -- The test checks what the constructor creates
       new Elements();
 
       expect(MockedMatchersCache).toHaveBeenCalledTimes(1);

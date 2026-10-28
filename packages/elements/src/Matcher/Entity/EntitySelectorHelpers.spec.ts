@@ -132,7 +132,7 @@ describe("EntitySelectorHelpers", () => {
     });
 
     it("should return false for undefined", () => {
-      expect(isLegacyEntitySelector(undefined)).toBe(false);
+      expect(isLegacyEntitySelector()).toBe(false);
     });
 
     it("should return false for a number", () => {

@@ -252,6 +252,7 @@ function renderCustomMessageHandlebarsTemplate(
     rule: policyContext,
   };
 
+  // eslint-disable-next-line sonarjs/disabled-auto-escaping -- The message is plain text for the ESLint output, not HTML
   const compiledTemplate = Handlebars.compile(template, { noEscape: true });
   return compiledTemplate(context);
 }

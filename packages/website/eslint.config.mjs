@@ -11,6 +11,13 @@ export default [
   {
     ignores: [".docusaurus/**"],
   },
+  {
+    // The social card is rendered from an http origin that no request reaches, because a route answers them from the website files
+    files: ["scripts/social-card.mjs"],
+    rules: {
+      "sonarjs/no-clear-text-protocols": "off",
+    },
+  },
   jestConfig,
   reactConfig,
   reactHooksConfig,
