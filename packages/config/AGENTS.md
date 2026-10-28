@@ -20,7 +20,7 @@ The layering is not lint-enforced: linting this package with the workspace plugi
 
 ## Hard constraints
 
-- The package runs in browsers. `src` never imports `eslint`, `estree`, `eslint-module-utils`, `chalk` or a `node:*` module, and never reads `process` or another Node.js global (`eslint.config.mjs` enforces the globals).
+- The package runs in browsers (`.agents/rules/browser-code.md`). `src` never imports `eslint`, `estree`, `eslint-module-utils`, `chalk` or a `node:*` module.
 - Functions never print. Each problem in the input is a `Diagnostic`, added through `DiagnosticsBuilder` with a level (`error` for what ESLint rejects, `warning` for what is ignored or has no effect, `deprecation` for legacy syntax that still works) and the paths of the affected entries from the root of the function's input. `normalizeDependenciesRuleOptions` is the exception: it assumes options that passed the rule schema and reports nothing.
 - Titles and details are the texts the plugin prints with `warnOnce`, so changing one changes the plugin's output, and its changelog.
 - Results are computed from the input on every call, and the input is never mutated. The only memoization is the compiled validator of each rule in `Schemas/Validator.ts`, which depends only on the rule name.

@@ -88,24 +88,6 @@ export default [
 ];
 ```
 
-### Packages that run in browsers
-
-The sources of a package that runs in browsers must not read Node.js globals, such as `process` or `require`, because browsers do not define them. Add the config returned by `createBrowserConfig` to forbid them in the `src` files, except the unit tests. It receives a hint that is appended to the error message, telling what to do instead:
-
-```js
-import {
-  defaultConfigWithoutTypescript,
-  typescriptConfig,
-  createBrowserConfig,
-} from "../../support/eslint-config/index.js";
-
-export default [
-  ...defaultConfigWithoutTypescript,
-  typescriptConfig,
-  createBrowserConfig("This package does not depend on the platform."),
-];
-```
-
 ## Contributing
 
 Please read the repository [Contributing Guidelines](../../.github/CONTRIBUTING.md) for details on how to contribute to this project before submitting a pull request.
