@@ -220,7 +220,9 @@ function printResultDetails(result) {
       file.messages.forEach((msg) => {
         if (msg.severity === 2) {
           // Error
-          console.log(`      Line ${msg.line}: ${msg.message} (${msg.ruleId})`);
+          console.log(
+            indent(3, `Line ${msg.line}: ${msg.message} (${msg.ruleId})`)
+          );
         }
       });
     }
