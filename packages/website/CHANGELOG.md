@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - chore: Mark the props of the site components as read-only.
+- chore(#557): Render the link preview image with the Chromium of the pinned Playwright version, so it is the same on every machine.
 
 ## [7.4.0] - 2026-10-27
 
