@@ -17,7 +17,9 @@ export type CopyrightProps = {
  * @param props.disclaimer Legal notice rendered below the copyright line, as plain text.
  * @returns The copyright block.
  */
-export default function Copyright({ disclaimer }: CopyrightProps): ReactNode {
+export default function Copyright({
+  disclaimer,
+}: Readonly<CopyrightProps>): ReactNode {
   const currentYear = useCurrentYear();
 
   return (

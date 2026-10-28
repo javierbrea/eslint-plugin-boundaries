@@ -28,7 +28,7 @@ export default function CodeSnippet({
   code,
   language = "js",
   className,
-}: CodeSnippetProps): ReactNode {
+}: Readonly<CodeSnippetProps>): ReactNode {
   return (
     <PrismHighlight code={code} language={language} theme={blueprintTheme}>
       {({ className: prismClassName, tokens, getLineProps, getTokenProps }) => (

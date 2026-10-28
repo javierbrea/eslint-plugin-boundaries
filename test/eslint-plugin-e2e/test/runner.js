@@ -5,6 +5,16 @@ import { ESLint } from "eslint";
 
 import { performanceTestsAreDisabled } from "./helpers/performance.js";
 
+/**
+ * Indents a line of the output
+ * @param {number} level - Indentation level, two spaces each
+ * @param {string} text - Text of the line
+ * @returns {string} The indented line
+ */
+function indent(level, text) {
+  return `${"  ".repeat(level)}${text}`;
+}
+
 // Exported types for external use
 /**
  * @typedef {Object} TestResult
@@ -94,15 +104,14 @@ export class TestRunner {
         });
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       this.failedTests++;
       console.log(`${chalk.red("✗")} ${description}`);
-      console.log(
-        `  ${chalk.red(`Error: ${error instanceof Error ? error.message : String(error)}`)}`
-      );
+      console.log(indent(1, chalk.red(`Error: ${message}`)));
       this.tests.push({
         description,
         status: "failed",
-        error: error instanceof Error ? error.message : String(error),
+        error: message,
       });
     }
   }
@@ -115,9 +124,9 @@ export class TestRunner {
     const total = this.passedTests + this.failedTests;
     console.log(`\n${chalk.bold("=== Test Summary ===")}`);
     console.log(`Total: ${total}`);
-    console.log(`${chalk.green(`Passed: ${this.passedTests}`)}`);
+    console.log(chalk.green(`Passed: ${this.passedTests}`));
     if (this.failedTests > 0) {
-      console.log(`${chalk.red(`Failed: ${this.failedTests}`)}`);
+      console.log(chalk.red(`Failed: ${this.failedTests}`));
     }
 
     if (this.failedTests === 0) {
@@ -178,6 +187,47 @@ async function runESLintOnFixture(
 }
 
 /**
+ * Prints the files, errors, warnings and duration of a successful ESLint run, and the errors of each file
+ * @param {ESLintResult} result - The ESLint result
+ * @returns {void}
+ */
+function printResultDetails(result) {
+  if (!result.files || result.files.length === 0) {
+    return;
+  }
+  console.log(
+    indent(1, chalk.yellow(`Files processed: ${result.files.length}`))
+  );
+  console.log(
+    indent(1, chalk.yellow(`Total errors: ${result.errorCount || 0}`))
+  );
+  console.log(
+    indent(1, chalk.yellow(`Total warnings: ${result.warningCount || 0}`))
+  );
+  console.log(
+    indent(
+      1,
+      chalk.yellow(`Lint duration: ${(result.durationMs || 0).toFixed(2)} ms`)
+    )
+  );
+
+  // Show specific errors for debugging
+  result.files.forEach((file) => {
+    if (file.errorCount > 0) {
+      console.log(
+        indent(2, chalk.red(`Errors in ${file.filePath.split("/").pop()}:`))
+      );
+      file.messages.forEach((msg) => {
+        if (msg.severity === 2) {
+          // Error
+          console.log(`      Line ${msg.line}: ${msg.message} (${msg.ruleId})`);
+        }
+      });
+    }
+  });
+}
+
+/**
  * Runs tests on the provided test definitions
  * @param {Array<TestDefinition>} tests - Array of test definitions
  * @returns {Promise<void>} Promise that resolves when all tests complete
@@ -217,10 +267,10 @@ export async function runTests(tests) {
 
   for (const test of tests) {
     if (test.isPerformanceTest && performanceTestsAreDisabled()) {
-      console.log(`${chalk.yellow(`Skipping performance test: ${test.name}`)}`);
+      console.log(chalk.yellow(`Skipping performance test: ${test.name}`));
       continue;
     }
-    console.log(`${chalk.blue(`Running tests for: ${test.name}`)}`);
+    console.log(chalk.blue(`Running tests for: ${test.name}`));
 
     const result = await runESLintOnFixture(
       test.fixture,
@@ -242,39 +292,11 @@ export async function runTests(tests) {
       }
 
       // Additional information about results
-      if (result.files && result.files.length > 0) {
-        console.log(
-          `  ${chalk.yellow(`Files processed: ${result.files.length}`)}`
-        );
-        console.log(
-          `  ${chalk.yellow(`Total errors: ${result.errorCount || 0}`)}`
-        );
-        console.log(
-          `  ${chalk.yellow(`Total warnings: ${result.warningCount || 0}`)}`
-        );
-        console.log(
-          `  ${chalk.yellow(`Lint duration: ${(result.durationMs || 0).toFixed(2)} ms`)}`
-        );
-
-        // Show specific errors for debugging
-        result.files.forEach((file) => {
-          if (file.errorCount > 0) {
-            console.log(
-              `    ${chalk.red(`Errors in ${file.filePath.split("/").pop()}:`)}`
-            );
-            file.messages.forEach((msg) => {
-              if (msg.severity === 2) {
-                // Error
-                console.log(
-                  `      Line ${msg.line}: ${msg.message} (${msg.ruleId})`
-                );
-              }
-            });
-          }
-        });
-      }
+      printResultDetails(result);
     } else {
-      console.log(`  ${chalk.red(`ESLint execution failed: ${result.error}`)}`);
+      console.log(
+        indent(1, chalk.red(`ESLint execution failed: ${result.error}`))
+      );
     }
 
     console.log(""); // Empty line between tests

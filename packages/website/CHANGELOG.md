@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > [!INFO]
 > Versions marked as `-docs` are documentation-only releases that do not include any code changes. Other versions are code releases that may include documentation changes as well, and are paired with a corresponding release in the `eslint-plugin-boundaries` package.
 
+## [Unreleased]
+
+### Changed
+
+- chore: Mark the props of the site components as read-only.
+
 ## [7.4.0] - 2026-10-27
 
 ### Added

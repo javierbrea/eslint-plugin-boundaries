@@ -36,7 +36,7 @@ export default function SectionHead({
   lead,
   className,
   children,
-}: SectionHeadProps): ReactNode {
+}: Readonly<SectionHeadProps>): ReactNode {
   return (
     <div className={clsx(styles.head, className)}>
       <Eyebrow>{eyebrow}</Eyebrow>
