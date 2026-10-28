@@ -8,6 +8,7 @@ Infima
 jsboundaries
 importkind
 lockfiles
+NOSONAR
 nrwl
 nvmrc
 oxc

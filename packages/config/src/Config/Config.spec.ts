@@ -183,7 +183,7 @@ describe("Config", () => {
         });
 
         expect(diagnostics).toEqual([]);
-        expect(value.rules).toEqual({});
+        expect(value.rules).toStrictEqual({});
       }
     );
 
@@ -252,7 +252,7 @@ describe("Config", () => {
           paths: [path],
         },
       ]);
-      expect(value.rules).toEqual({});
+      expect(value.rules).toStrictEqual({});
     });
 
     it("keeps the options of the rules without policies as written", () => {
@@ -295,7 +295,7 @@ describe("Config", () => {
           paths: [["rules", DEPENDENCIES_RULE, 1, "default"]],
         },
       ]);
-      expect(value.rules).toEqual({});
+      expect(value.rules).toStrictEqual({});
     });
 
     it("reports more options than the rule takes at the rule entry", () => {

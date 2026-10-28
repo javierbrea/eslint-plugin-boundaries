@@ -64,20 +64,17 @@ export const RULE_SHORT_NAMES_MAP = {
   NO_UNKNOWN,
 } as const;
 
-/** @deprecated Use DEPENDENCIES_FULL instead */
 const ELEMENT_TYPES_FULL = `${PLUGIN_NAME}/${ELEMENT_TYPES}` as const;
 const DEPENDENCIES_FULL = `${PLUGIN_NAME}/${DEPENDENCIES}` as const;
 const ENTRY_POINT_FULL = `${PLUGIN_NAME}/${ENTRY_POINT}` as const;
 const EXTERNAL_FULL = `${PLUGIN_NAME}/${EXTERNAL}` as const;
 const NO_IGNORED_DEPENDENCIES_FULL =
   `${PLUGIN_NAME}/${NO_IGNORED_DEPENDENCIES}` as const;
-/** @deprecated Use NO_IGNORED_DEPENDENCIES_FULL instead */
 const NO_IGNORED_FULL = `${PLUGIN_NAME}/${NO_IGNORED}` as const;
 const NO_PRIVATE_FULL = `${PLUGIN_NAME}/${NO_PRIVATE}` as const;
 const NO_UNKNOWN_FILES_FULL = `${PLUGIN_NAME}/${NO_UNKNOWN_FILES}` as const;
 const NO_UNKNOWN_DEPENDENCIES_FULL =
   `${PLUGIN_NAME}/${NO_UNKNOWN_DEPENDENCIES}` as const;
-/** @deprecated Use NO_UNKNOWN_DEPENDENCIES_FULL instead */
 const NO_UNKNOWN_FULL = `${PLUGIN_NAME}/${NO_UNKNOWN}` as const;
 
 /**
@@ -100,14 +97,14 @@ export const RULE_NAMES_MAP = {
 } as const;
 
 /**
- * List of all rule names
- */
-export const RULE_NAMES = [...Object.values(RULE_NAMES_MAP)] as const;
-
-/**
  * Type representing all valid rule names, including the default plugin prefix.
  */
-export type RuleName = (typeof RULE_NAMES)[number];
+export type RuleName = (typeof RULE_NAMES_MAP)[keyof typeof RULE_NAMES_MAP];
+
+/**
+ * List of all rule names, including the default plugin prefix.
+ */
+export const RULE_NAMES: readonly RuleName[] = Object.values(RULE_NAMES_MAP);
 
 /**
  * List of all rule names, including the default plugin prefix.
@@ -115,16 +112,16 @@ export type RuleName = (typeof RULE_NAMES)[number];
 export type RuleNames = typeof RULE_NAMES;
 
 /**
- * List of all rule short names, without the plugin prefix.
- */
-export const RULE_SHORT_NAMES = [
-  ...Object.values(RULE_SHORT_NAMES_MAP),
-] as const;
-
-/**
  * Type representing all valid rule short names, without the plugin prefix.
  */
-export type RuleShortName = (typeof RULE_SHORT_NAMES)[number];
+export type RuleShortName =
+  (typeof RULE_SHORT_NAMES_MAP)[keyof typeof RULE_SHORT_NAMES_MAP];
+
+/**
+ * List of all rule short names, without the plugin prefix.
+ */
+export const RULE_SHORT_NAMES: readonly RuleShortName[] =
+  Object.values(RULE_SHORT_NAMES_MAP);
 
 /**
  * List of all rule short names, without the plugin prefix.
