@@ -52,10 +52,12 @@
     "check:types": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "serve:mutation:report": "serve --config ./serve.test-mutation-report.json",
     "serve:unit:report": "serve --config ./serve.test-unit-report.json",
     "test": "pnpm test:unit",
     "test:unit": "jest",
-    "test:e2e": "node --test test/e2e/builds.spec.mjs"
+    "test:e2e": "node --test test/e2e/builds.spec.mjs",
+    "test:mutation": "stryker run"
   },
   "dependencies": {
     "@boundaries/elements": "workspace:*",

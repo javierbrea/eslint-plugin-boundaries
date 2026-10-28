@@ -31,3 +31,4 @@ The layering is not lint-enforced: linting this package with the workspace plugi
 - Built with **tsup** (`tsup.config.js`) for Node.js and browsers, like `elements`; type-checked with `tsc --noEmit`.
 - `test:e2e` (`test/e2e/builds.spec.mjs`) bundles the package with esbuild for browsers, as an import and as a require, runs the bundles without Node.js globals and checks that they return what the Node.js CommonJS and ES module builds return. Run it after changing dependencies or the build.
 - The schema validation reproduces ESLint's: the `ajv` version that ESLint resolves, the `ajv` options of `eslint/lib/shared/ajv.js`, the wrapping of an array `meta.schema`, and its error texts. Keep `Schemas/Validator.ts` in sync with them.
+- Run `test:mutation` (Stryker) when changing how settings or rule options are normalized or validated, since the 100% unit coverage does not prove that a test checks each condition and default there.
