@@ -783,19 +783,19 @@ describe("isEntityMatch | Legacy Syntax | Integration", () => {
     });
 
     it.each([
-      { selector: "legacy string selector", value: "component" },
+      { description: "legacy string selector", selector: "component" },
       {
-        selector: "legacy string selector with template",
-        value: "{{ element.types.[0] }}",
+        description: "legacy string selector with template",
+        selector: "{{ element.types.[0] }}",
       },
       {
-        selector: "legacy string selector with legacy template",
-        value: "${ element.types.[0] }",
+        description: "legacy string selector with legacy template",
+        selector: "${ element.types.[0] }",
       },
-    ])("should match using $selector", ({ value }) => {
+    ])("should match using $description", ({ selector }) => {
       const result = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
-        value
+        selector
       );
 
       expect(result).toBe(true);
