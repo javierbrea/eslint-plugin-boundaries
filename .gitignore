@@ -138,5 +138,8 @@ dist
 # E2E performance fixture (generated)
 test/eslint-plugin-e2e/test/fixtures/performance/
 
+# Browser e2e results (Playwright)
+test/browser-e2e/test-results/
+
 # Agent working plans (local only)
 .agents/plans/

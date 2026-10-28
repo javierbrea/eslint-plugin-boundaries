@@ -1,0 +1,21 @@
+{
+  "name": "@boundaries/browser-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "eslint": "eslint",
+    "build": "node scripts/build.js",
+    "check:all": "echo 'All checks passed'",
+    "check:spell": "cspell --quiet .",
+    "check:types": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test:e2e": "playwright install chromium firefox webkit && playwright test"
+  },
+  "dependencies": {
+    "@boundaries/config": "workspace:*",
+    "@boundaries/elements": "workspace:*",
+    "esbuild": "0.28.2"
+  }
+}

@@ -304,6 +304,18 @@ importers:
         specifier: 17.13.0
         version: 17.13.0
 
+  test/browser-e2e:
+    dependencies:
+      '@boundaries/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@boundaries/elements':
+        specifier: workspace:*
+        version: link:../../packages/elements
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+
   test/eslint-plugin-e2e:
     dependencies:
       '@boundaries/eslint-plugin':
