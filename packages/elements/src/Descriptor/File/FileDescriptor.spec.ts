@@ -114,7 +114,7 @@ describe("FilesDescriptor", () => {
           micromatch
         );
 
-        const result = descriptor.describeFile(undefined);
+        const result = descriptor.describeFile();
 
         expect(result).toEqual({
           path: null,

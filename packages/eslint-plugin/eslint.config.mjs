@@ -143,6 +143,12 @@ export default [
     },
   },
   {
+    files: ["test/rules/**/*.spec.ts"],
+    rules: {
+      "sonarjs/no-empty-test-file": [0], // NOTE: RuleTester registers the test cases of these specs.
+    },
+  },
+  {
     files: ["src/**/*.ts", "test/**/*.spec.ts"],
     plugins: {
       "eslint-plugin": eslintPluginEslintPlugin,

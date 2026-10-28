@@ -50,7 +50,7 @@ describe("describeModule | Integration", () => {
     });
 
     it("should return local origin when no filePath and no source are provided", () => {
-      const description = matcher.describeModule(undefined, undefined);
+      const description = matcher.describeModule();
 
       expect(isOriginDescription(description)).toBe(true);
       expect(description.origin).toBe("local");
