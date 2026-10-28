@@ -167,7 +167,7 @@ When the new version is ready to be released, create a new versioned docs set by
 
 ## Social Card
 
-The image shown when a link to the site is shared, `static/img/og-image.png`, is rendered from `scripts/social-card.html`. To change it, edit the HTML and then regenerate the image (it needs a local Chrome):
+The image shown when a link to the site is shared, `static/img/og-image.png`, is rendered from `scripts/social-card.html`. To change it, edit the HTML and then regenerate the image:
 
 ```sh
 pnpm social-card
@@ -182,11 +182,13 @@ Commit the HTML and the image together. The build does not regenerate the image,
 | `pnpm start` | Start the development server with hot-reload |
 | `pnpm build` | Build the website for production |
 | `pnpm serve` | Serve the production build locally for preview |
-| `pnpm screenshots [baseUrl] [paths...]` | Capture the pages at desktop and mobile widths in both themes into `screenshots/`, failing on horizontal overflow or console errors. Needs a running site (`pnpm serve` or `pnpm start`) and a local Chrome |
-| `pnpm social-card` | Render the social card, `static/img/og-image.png`, from `scripts/social-card.html`. Needs a local Chrome |
+| `pnpm screenshots [baseUrl] [paths...]` | Capture the pages at desktop and mobile widths in both themes into `screenshots/`, failing on horizontal overflow or console errors. Needs a running site (`pnpm serve` or `pnpm start`) |
+| `pnpm social-card` | Render the social card, `static/img/og-image.png`, from `scripts/social-card.html` |
 | `pnpm swizzle` | Customize Docusaurus components |
 | `pnpm sync:fonts` | Copy the self-hosted font files from the Fontsource packages into `static/fonts`. `pnpm lint` fails while they differ |
 | `pnpm version` | Bump the version of the website. Read the documentation for details. |
+
+`pnpm screenshots` and `pnpm social-card` run on the Chromium of the `@playwright/test` version in the root `package.json`, which they download the first time.
 
 ## Additional Resources
 

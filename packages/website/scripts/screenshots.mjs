@@ -6,7 +6,7 @@
 //   baseUrl defaults to http://localhost:3000 (`pnpm --filter website serve` or `pnpm nx start website`)
 //   paths default to /, /docs/overview/ and /docs/quick-start/; /this-page-does-not-exist/ captures the 404 page
 //
-// Uses the local Chrome through playwright-core; without Chrome, run `pnpm --filter website exec playwright-core install chromium` first.
+// Runs on the Chromium of the @playwright/test version in the root package.json, which the package script installs first.
 
 /* global window, document -- used inside callbacks that run in the page */
 
@@ -14,7 +14,7 @@ import { mkdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { chromium } from "playwright-core";
+import { chromium } from "@playwright/test";
 
 const DEFAULT_BASE_URL = "http://localhost:3000";
 const DEFAULT_PATHS = ["/", "/docs/overview/", "/docs/quick-start/"];
@@ -52,14 +52,6 @@ function pageName(path) {
 
 function isTolerated(url = "") {
   return TOLERATED_ERROR_HOSTS.some((host) => url.includes(host));
-}
-
-async function launchBrowser() {
-  try {
-    return await chromium.launch({ channel: "chrome" });
-  } catch {
-    return chromium.launch();
-  }
 }
 
 async function capture(chrome, url, name, viewport, theme, expectNotFound) {
@@ -151,7 +143,7 @@ async function contactSheet(chrome, name, shots) {
 
 const { baseUrl, paths } = parseArgs(process.argv.slice(2));
 mkdirSync(OUTPUT_DIR, { recursive: true });
-const browser = await launchBrowser();
+const browser = await chromium.launch();
 let failed = false;
 
 for (const path of paths) {
