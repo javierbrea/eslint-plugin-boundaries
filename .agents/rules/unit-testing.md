@@ -12,6 +12,7 @@ Use `.spec.ts` for all test files, never `.test.ts`. Placement depends on the pa
 | Package | Convention |
 |---|---|
 | `elements` | Colocated with source (`src/Cache/Cache.spec.ts`) |
+| `config` | Colocated with source (`src/Config/Config.spec.ts`) |
 | `eslint-plugin` | Rule tests in `test/rules/<scenario>/`, run against the fixture projects in `test/fixtures/<scenario>/`; a test may use another scenario's fixtures. Everything else (e.g. `src/index.spec.ts`) is colocated with source |
 
 ## Structure
@@ -62,7 +63,7 @@ const config: any = { timeout: 5000 };
 
 ## Coverage — 100% required
 
-Both `packages/elements/jest.config.js` and `packages/eslint-plugin/jest.config.js` set `coverageThreshold.global` to 100% (branches, functions, lines, statements); a drop below fails the build. Prefer adding tests over suppressing coverage. See the `unit-testing` skill for the workflow to close remaining coverage gaps and for the `istanbul ignore` rules covering genuinely unreachable branches.
+The `jest.config.js` of `packages/elements`, `packages/config` and `packages/eslint-plugin` sets `coverageThreshold.global` to 100% (branches, functions, lines, statements); a drop below fails the build. Prefer adding tests over suppressing coverage. See the `unit-testing` skill for the workflow to close remaining coverage gaps and for the `istanbul ignore` rules covering genuinely unreachable branches.
 
 ## Anti-patterns
 

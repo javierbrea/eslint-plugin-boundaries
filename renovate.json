@@ -7,10 +7,15 @@
     "release"
   ],
   "rangeStrategy": "pin",
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/fixtures/**"
+  ],
   "packageRules": [
     {
+      "description": "chalk 5 is ESM-only, and the plugin is published as CommonJS",
       "matchFileNames": [
-        "**/package.json"
+        "packages/eslint-plugin/package.json"
       ],
       "matchPackageNames": [
         "chalk"

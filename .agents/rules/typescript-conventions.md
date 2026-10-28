@@ -2,13 +2,15 @@
 paths:
   - "packages/elements/**/*.ts"
   - "packages/elements/**/*.tsx"
+  - "packages/config/**/*.ts"
+  - "packages/config/**/*.tsx"
   - "packages/eslint-plugin/**/*.ts"
   - "packages/eslint-plugin/**/*.tsx"
 ---
 
 # TypeScript conventions
 
-These apply to every `.ts`/`.tsx` file across `packages/elements` and `packages/eslint-plugin`.
+These apply to every `.ts`/`.tsx` file across `packages/elements`, `packages/config` and `packages/eslint-plugin`.
 
 ## `type` vs `interface`
 

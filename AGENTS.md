@@ -11,7 +11,7 @@ All repository artifacts must be written in English.
 
 ## Repository Overview
 
-This repository is a pnpm + Nx monorepo containing the `@boundaries` packages: two published libraries (`elements`, `eslint-plugin`), a Docusaurus website, examples, and shared support configs. Projects live under `packages/`, `examples/`, `support/`, and `test/`.
+This repository is a pnpm + Nx monorepo containing the `@boundaries` packages: three published libraries (`elements`, `config`, `eslint-plugin`), a Docusaurus website, examples, and shared support configs. Projects live under `packages/`, `examples/`, `support/`, and `test/`.
 
 Each package's own `README.md` covers its functionality and usage for consumers. Agent-facing implementation guidance — layering, hard constraints, entry points — lives in that project's own `AGENTS.md` instead; see below.
 
