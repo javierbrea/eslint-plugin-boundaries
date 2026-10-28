@@ -143,6 +143,16 @@ describe("RuleOptions", () => {
       // @ts-expect-error Forcing an unsupported primitive to exercise the fallthrough branch
       expect(detectLegacyTemplateSyntax(42)).toBe(false);
     });
+
+    it("returns false for an object with a property set to undefined", () => {
+      // A JavaScript config can set a property to undefined, such as `path: someOptionalValue`
+      const selector = {
+        type: "components",
+        path: undefined,
+      } as unknown as Parameters<typeof detectLegacyTemplateSyntax>[0];
+
+      expect(detectLegacyTemplateSyntax(selector)).toBe(false);
+    });
   });
 
   describe("validateRuleOptions", () => {
@@ -1545,6 +1555,421 @@ describe("RuleOptions", () => {
 
       expect(result).toEqual([
         expect.objectContaining({ level: "deprecation", paths: [["message"]] }),
+      ]);
+    });
+  });
+
+  describe("validateRuleOptions texts of the deprecation diagnostics", () => {
+    const modernFrom = { element: { type: "a" } };
+    const modernTo = { element: { type: "b" } };
+    const DOCS_URL = "https://www.jsboundaries.dev/docs";
+    const RULE = RULE_NAMES_MAP.DEPENDENCIES;
+
+    it("reports the deprecated 'rules' option with the link to the rename in the v7 migration guide", () => {
+      const options = {
+        rules: [{ from: modernFrom, to: modernTo }],
+      } as unknown as RuleOptionsWithPolicies;
+
+      const result = validate(options, RULE, true);
+
+      expect(result).toEqual([
+        {
+          level: "deprecation",
+          title: `[${RULE}] The 'rules' option is deprecated.`,
+          detail: `Please use 'policies' instead. More info: ${DOCS_URL}/releases/migration-guides/v6-to-v7/#rules-option-renamed-to-policies`,
+          paths: [["rules"]],
+        },
+      ]);
+    });
+
+    it("reports the ignored 'rules' option with the link to the rename in the v7 migration guide", () => {
+      const entry = { from: modernFrom, to: modernTo };
+      const options = {
+        policies: [entry],
+        rules: [entry],
+      } as unknown as RuleOptionsWithPolicies;
+
+      const result = validate(options, RULE, true);
+
+      expect(result).toEqual([
+        {
+          level: "warning",
+          title: `[${RULE}] The 'rules' option is deprecated and will be ignored because 'policies' is also defined.`,
+          detail: `You can safely remove the 'rules' option. More info: ${DOCS_URL}/releases/migration-guides/v6-to-v7/#rules-option-renamed-to-policies`,
+          paths: [["rules"]],
+        },
+      ]);
+    });
+
+    it("reports the legacy template syntax of the policies with the link to the new template syntax", () => {
+      const options = {
+        policies: [
+          { from: { element: { type: "a${b}" } }, to: modernTo },
+          { from: modernFrom, to: modernTo },
+          { from: { element: { type: "c${d}" } }, to: modernTo },
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      const result = validate(options, RULE, true);
+
+      expect(result).toEqual([
+        {
+          level: "deprecation",
+          title: `[${RULE}] Detected legacy template syntax \${...} in 2 policies at indices: 0, 2.`,
+          detail: `Consider migrating to {{...}} syntax. More info: ${DOCS_URL}/releases/migration-guides/v5-to-v6/#new-template-syntax`,
+          paths: [
+            ["policies", 0],
+            ["policies", 2],
+          ],
+        },
+      ]);
+    });
+
+    it("reports the deprecated rule-level importKind with the link to its deprecation in the v6 migration guide", () => {
+      const options = {
+        policies: [
+          { from: modernFrom, to: modernTo, importKind: "type" },
+          { from: modernFrom, to: modernTo, importKind: "value" },
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      const result = validate(options, RULE, true);
+
+      expect(result).toEqual([
+        {
+          level: "deprecation",
+          title: `[${RULE}] Detected deprecated rule-level "importKind" in 2 policies at indices: 0, 1.`,
+          detail: `Use selector-level "dependency.kind" instead. When both are defined, "dependency.kind" takes precedence. More info: ${DOCS_URL}/releases/migration-guides/v5-to-v6/#rule-level-importkind-is-deprecated`,
+          paths: [
+            ["policies", 0],
+            ["policies", 1],
+          ],
+        },
+      ]);
+    });
+
+    it("reports the deprecated 'dependency.module' property with the link to its deprecation in the v7 migration guide", () => {
+      const options = {
+        policies: [{ from: modernFrom, dependency: { module: "lodash" } }],
+      } as unknown as RuleOptionsWithPolicies;
+
+      const result = validate(options, RULE, true);
+
+      // cspell:ignore dependencymodule -- documentation anchor for the deprecated dependency.module property
+      expect(result).toEqual([
+        {
+          level: "deprecation",
+          title: `[${RULE}] Detected deprecated "dependency.module" property in 1 policy at indices: 0.`,
+          detail: `Use "to.module.source" instead. More info: ${DOCS_URL}/releases/migration-guides/v6-to-v7/#deprecated-dependencymodule`,
+          paths: [["policies", 0]],
+        },
+      ]);
+    });
+
+    it("reports the deprecated element-level 'internalPath' with the link to the deprecated selector properties", () => {
+      const options = {
+        policies: [
+          { from: modernFrom, to: { type: "b", internalPath: "src/**" } },
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      const result = validate(options, RULE, true);
+
+      expect(result).toContainEqual({
+        level: "deprecation",
+        title: `[${RULE}] Detected deprecated "internalPath" in element selectors in 1 policy at indices: 0.`,
+        detail: `Use "fileInternalPath" for local element paths, or the module sub-selector "internalPath" for external modules. More info: ${DOCS_URL}/selectors/element/#deprecated-element-selector-properties`,
+        paths: [["policies", 0]],
+      });
+    });
+
+    it("reports the legacy template syntax of the general 'message' with the link to the new template syntax", () => {
+      const options = {
+        message: "${from.type} cannot import ${to.type}",
+        policies: [{ from: modernFrom, to: modernTo }],
+      } as unknown as RuleOptionsWithPolicies;
+
+      const result = validate(options, RULE, true);
+
+      expect(result).toEqual([
+        {
+          level: "deprecation",
+          title: `[${RULE}] Detected legacy template syntax \${...} in the rule's general 'message'.`,
+          detail: `Consider migrating to {{...}} syntax. More info: ${DOCS_URL}/releases/migration-guides/v5-to-v6/#new-template-syntax`,
+          paths: [["message"]],
+        },
+      ]);
+    });
+
+    it("does not report the general 'message' when it uses the {{...}} template syntax", () => {
+      const options = {
+        message: "{{from.element.type}} cannot import {{to.element.type}}",
+        policies: [{ from: modernFrom, to: modernTo }],
+      } as unknown as RuleOptionsWithPolicies;
+
+      const result = validate(options, RULE, true);
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("validateRuleOptions invalid selector shapes by property", () => {
+    const RULE = RULE_NAMES_MAP.DEPENDENCIES;
+    const invalidSelector = { notAnEntitySelectorKey: true };
+    const validEntry = { element: { type: "b" } };
+
+    it.each(["from", "to", "dependency", "allow", "disallow"])(
+      "reports the '%s' property alone when it is the only one with an unrecognized shape",
+      (property) => {
+        const options = {
+          policies: [{ [property]: invalidSelector }],
+        } as unknown as RuleOptionsWithPolicies;
+
+        const result = validate(options, RULE, false);
+
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: `[${RULE}] Detected an unrecognized selector shape in 1 policy at indices: 0.`,
+            detail: `Check the '${property}' property. More info: https://www.jsboundaries.dev/docs/rules/dependencies/`,
+            paths: [["policies", 0]],
+          },
+        ]);
+      }
+    );
+
+    it("lists every property with an unrecognized shape in the policies, in a fixed order, and counts the policies", () => {
+      const options = {
+        policies: [
+          {
+            disallow: invalidSelector,
+            allow: invalidSelector,
+            dependency: invalidSelector,
+            to: invalidSelector,
+            from: invalidSelector,
+          },
+          { from: validEntry },
+          { from: invalidSelector },
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      const result = validate(options, RULE, false);
+
+      expect(result).toEqual([
+        {
+          level: "warning",
+          title: `[${RULE}] Detected an unrecognized selector shape in 2 policies at indices: 0, 2.`,
+          detail: `Check the 'from', 'to', 'dependency', 'allow' and 'disallow' properties. More info: https://www.jsboundaries.dev/docs/rules/dependencies/`,
+          paths: [
+            ["policies", 0],
+            ["policies", 2],
+          ],
+        },
+      ]);
+    });
+
+    it("checks every entry of an array of 'allow' selectors", () => {
+      const options = {
+        policies: [
+          { from: validEntry, allow: [{ to: validEntry }, invalidSelector] },
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      const result = validate(options, RULE, false);
+
+      expect(result).toEqual([
+        expect.objectContaining({
+          level: "warning",
+          detail: expect.stringContaining("Check the 'allow' property."),
+          paths: [["policies", 0]],
+        }),
+      ]);
+    });
+
+    it("accepts an array of 'allow' selectors that mixes dependency selectors and entity selectors", () => {
+      const options = {
+        policies: [
+          { from: validEntry, allow: [{ to: validEntry }, validEntry] },
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      const result = validate(options, RULE, false);
+
+      expect(result).toEqual([]);
+    });
+
+    it("does not take the 'allow' of the external rule, which lists libraries and their specifiers, for entity selectors", () => {
+      const options = {
+        policies: [
+          {
+            from: "components",
+            allow: [["lodash", { specifiers: ["chunk"] }]],
+          },
+        ],
+      };
+
+      // The schema validation passes, so the options are valid for the external rule
+      const result = validateRuleOptions(RULE_NAMES_MAP.EXTERNAL, options, {
+        legacyWarnings: false,
+      });
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("validateRuleOptions deprecated syntax detection", () => {
+    const RULE = RULE_NAMES_MAP.DEPENDENCIES;
+    const modernFrom = { element: { type: "a" } };
+    const modernTo = { element: { type: "b" } };
+
+    /**
+     * Returns the titles of the diagnostics that validating the policies reports.
+     * @param policies - The policies to validate.
+     * @returns The titles.
+     */
+    function titlesOf(policies: unknown[]): string[] {
+      return validate(
+        { policies } as unknown as RuleOptionsWithPolicies,
+        RULE,
+        true
+      ).map(({ title }) => title);
+    }
+
+    it("detects a deprecated selector property in any selector of an array of entity selectors", () => {
+      const titles = titlesOf([
+        {
+          from: [{ element: { category: "domain" } }, modernFrom],
+          to: modernTo,
+        },
+      ]);
+
+      expect(titles).toEqual([
+        `[${RULE}] Detected deprecated selector properties (category, elementPath, filePath) in 1 policy at indices: 0.`,
+      ]);
+    });
+
+    it("detects a deprecated selector property in any sub-selector of an entity selector", () => {
+      const titles = titlesOf([
+        {
+          from: { element: { category: "domain" }, file: { path: "src/**" } },
+          to: modernTo,
+        },
+      ]);
+
+      expect(titles).toEqual([
+        `[${RULE}] Detected deprecated selector properties (category, elementPath, filePath) in 1 policy at indices: 0.`,
+      ]);
+    });
+
+    it("does not take the captured values of an element selector for deprecated selector properties", () => {
+      const titles = titlesOf([
+        {
+          from: { element: { type: "a", captured: { category: "atoms" } } },
+          to: modernTo,
+        },
+      ]);
+
+      expect(titles).toEqual([]);
+    });
+
+    it("does not detect deprecated selector properties that are set to undefined", () => {
+      const titles = titlesOf([
+        {
+          from: { element: { type: "a", category: undefined } },
+          to: modernTo,
+          dependency: { module: undefined },
+        },
+      ]);
+
+      expect(titles).toEqual([]);
+    });
+
+    it("detects a deprecated element-level 'internalPath' in any selector of an array of flat element selectors", () => {
+      const titles = titlesOf([
+        {
+          from: [{ type: "a", internalPath: "src/**" }, { type: "b" }],
+          to: modernTo,
+        },
+      ]);
+
+      expect(titles).toEqual([
+        `[${RULE}] Detected element selectors used directly as entity selectors in 1 policy at indices: 0.`,
+        `[${RULE}] Detected deprecated "internalPath" in element selectors in 1 policy at indices: 0.`,
+      ]);
+    });
+
+    it("does not detect an 'internalPath' set to undefined in a flat element selector", () => {
+      const titles = titlesOf([
+        { from: modernFrom, to: { type: "b", internalPath: undefined } },
+      ]);
+
+      expect(titles).toEqual([
+        `[${RULE}] Detected element selectors used directly as entity selectors in 1 policy at indices: 0.`,
+      ]);
+    });
+
+    it("does not detect an 'internalPath' set to undefined in the element sub-selector of an entity selector", () => {
+      const titles = titlesOf([
+        {
+          from: modernFrom,
+          to: { element: { type: "b", internalPath: undefined } },
+        },
+      ]);
+
+      expect(titles).toEqual([]);
+    });
+
+    it("does not take an 'internalPath' next to the file sub-selector for a deprecated element-level one", () => {
+      const titles = titlesOf([
+        {
+          from: modernFrom,
+          to: { file: { categories: "test" }, internalPath: "src/**" },
+        },
+      ]);
+
+      expect(titles).toEqual([
+        `[${RULE}] Detected legacy selector syntax in 1 policy at indices: 0.`,
+      ]);
+    });
+
+    it("does not take an 'internalPath' next to the module sub-selector for a deprecated element-level one", () => {
+      const titles = titlesOf([
+        {
+          from: modernFrom,
+          to: { module: { source: "lodash" }, internalPath: "src/**" },
+        },
+      ]);
+
+      expect(titles).toEqual([
+        `[${RULE}] Detected legacy selector syntax in 1 policy at indices: 0.`,
+      ]);
+    });
+
+    it("detects an 'allow' array with an entry that lacks the 'to' wrapper next to wrapped entries", () => {
+      const titles = titlesOf([
+        {
+          from: modernFrom,
+          allow: [{ to: modernTo }, { element: { type: "c" } }],
+        },
+      ]);
+
+      expect(titles).toEqual([
+        `[${RULE}] Detected "allow"/"disallow" entries without a "from"/"to" wrapper in 1 policy at indices: 0.`,
+      ]);
+    });
+
+    it("writes 'policies' in the plural for several policies and 'policy' for one", () => {
+      const severalTitles = titlesOf([
+        { from: "a", to: modernTo },
+        { from: "b", to: modernTo },
+      ]);
+      const oneTitles = titlesOf([{ from: "a", to: modernTo }]);
+
+      expect(severalTitles).toEqual([
+        `[${RULE}] Detected legacy string element selectors in 2 policies at indices: 0, 1.`,
+      ]);
+      expect(oneTitles).toEqual([
+        `[${RULE}] Detected legacy string element selectors in 1 policy at indices: 0.`,
       ]);
     });
   });

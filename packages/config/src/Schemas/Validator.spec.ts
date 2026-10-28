@@ -1,9 +1,40 @@
+import type AjvType from "ajv";
+
 import { RULE_NAMES_MAP } from "../Shared";
 
 import { validateRuleOptionsList } from "./Validator";
 
 const DEPENDENCIES_DOCS_LINK =
   "More info: https://www.jsboundaries.dev/docs/rules/dependencies/";
+
+/**
+ * Loads a copy of the validator that has no `ajv` instance and no compiled validators, together with spies on the `ajv` it uses.
+ * @returns The validator, the spy on the creation of `ajv` instances and the spy on the compilation of schemas.
+ */
+function loadValidatorWithAjvSpies(): {
+  validator: { validateRuleOptionsList: typeof validateRuleOptionsList };
+  createAjv: jest.Mock;
+  compile: jest.SpyInstance;
+} {
+  let loaded: ReturnType<typeof loadValidatorWithAjvSpies> | undefined;
+  jest.isolateModules(() => {
+    const ActualAjv = jest.requireActual<typeof AjvType>("ajv");
+    const compile = jest.spyOn(ActualAjv.prototype, "compile");
+    const createAjv = jest.fn(
+      (options: AjvType.Options) => new ActualAjv(options)
+    );
+    jest.doMock<typeof AjvType>(
+      "ajv",
+      () => createAjv as unknown as typeof AjvType
+    );
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const validator = require("./Validator") as {
+      validateRuleOptionsList: typeof validateRuleOptionsList;
+    };
+    loaded = { validator, createAjv, compile };
+  });
+  return loaded as NonNullable<typeof loaded>;
+}
 
 describe("Validator", () => {
   describe("validateRuleOptionsList", () => {
@@ -130,7 +161,7 @@ describe("Validator", () => {
       expect(result?.paths).toEqual([[0, "policies", 0, "allow"]]);
     });
 
-    it("decodes escaped characters of object keys in the paths", () => {
+    it("reports an unexpected property with special characters in its name", () => {
       const result = validateRuleOptionsList(RULE_NAMES_MAP.NO_PRIVATE, [
         { "a/b~c": true },
       ]);
@@ -173,6 +204,77 @@ describe("Validator", () => {
       validateRuleOptionsList(RULE_NAMES_MAP.DEPENDENCIES, [options]);
 
       expect(options).toEqual(copy);
+    });
+
+    describe("with a validator that has not compiled any schema", () => {
+      beforeEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      it("does not create the ajv instance until a rule entry is validated", () => {
+        const { createAjv, validator } = loadValidatorWithAjvSpies();
+
+        expect(createAjv).not.toHaveBeenCalled();
+
+        validator.validateRuleOptionsList(RULE_NAMES_MAP.NO_PRIVATE, []);
+
+        expect(createAjv).toHaveBeenCalledTimes(1);
+      });
+
+      it("shares the ajv instance between the rules", () => {
+        const { createAjv, validator } = loadValidatorWithAjvSpies();
+
+        validator.validateRuleOptionsList(RULE_NAMES_MAP.NO_PRIVATE, []);
+        validator.validateRuleOptionsList(RULE_NAMES_MAP.DEPENDENCIES, []);
+        validator.validateRuleOptionsList(RULE_NAMES_MAP.NO_UNKNOWN_FILES, []);
+
+        expect(createAjv).toHaveBeenCalledTimes(1);
+      });
+
+      it("compiles the schema of a rule once", () => {
+        const { compile, validator } = loadValidatorWithAjvSpies();
+
+        validator.validateRuleOptionsList(RULE_NAMES_MAP.NO_PRIVATE, []);
+        validator.validateRuleOptionsList(RULE_NAMES_MAP.NO_PRIVATE, [{}]);
+        validator.validateRuleOptionsList(RULE_NAMES_MAP.NO_PRIVATE, [
+          { allowUncles: true },
+        ]);
+
+        expect(compile).toHaveBeenCalledTimes(1);
+      });
+
+      it("compiles the schema of each rule", () => {
+        const { compile, validator } = loadValidatorWithAjvSpies();
+
+        validator.validateRuleOptionsList(RULE_NAMES_MAP.NO_PRIVATE, []);
+        validator.validateRuleOptionsList(RULE_NAMES_MAP.DEPENDENCIES, []);
+        validator.validateRuleOptionsList(RULE_NAMES_MAP.NO_PRIVATE, []);
+        validator.validateRuleOptionsList(RULE_NAMES_MAP.DEPENDENCIES, []);
+
+        expect(compile).toHaveBeenCalledTimes(2);
+      });
+
+      it("does not log any warning when it prepares the ajv instance", () => {
+        const warn = jest.spyOn(console, "warn").mockImplementation(() => {
+          // Silences the warnings of ajv while the test runs
+        });
+        const { validator } = loadValidatorWithAjvSpies();
+
+        validator.validateRuleOptionsList(RULE_NAMES_MAP.DEPENDENCIES, []);
+
+        expect(warn).not.toHaveBeenCalled();
+      });
+
+      it("reports the paths of the failed values with the keys of objects and the indexes of lists", () => {
+        const { validator } = loadValidatorWithAjvSpies();
+
+        const result = validator.validateRuleOptionsList(
+          RULE_NAMES_MAP.DEPENDENCIES,
+          [{ policies: [{ allow: "*" }, { allow: "*", importKind: 2 }] }]
+        );
+
+        expect(result?.paths).toEqual([[0, "policies", 1, "importKind"]]);
+      });
     });
   });
 });

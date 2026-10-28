@@ -79,6 +79,15 @@ describe("Diagnostics", () => {
 
       expect(builder.build()[0].paths).toEqual([["a", 1], ["a", 2], ["a"]]);
     });
+
+    it("keeps a path that extends a path added before as a different path", () => {
+      builder.add(DIAGNOSTIC_LEVELS_MAP.WARNING, "Title", undefined, [["a"]]);
+      builder.add(DIAGNOSTIC_LEVELS_MAP.WARNING, "Title", undefined, [
+        ["a", 1],
+      ]);
+
+      expect(builder.build()[0].paths).toEqual([["a"], ["a", 1]]);
+    });
   });
 
   describe("error", () => {
