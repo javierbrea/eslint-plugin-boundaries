@@ -176,6 +176,7 @@ export function normalizeConfig(
     diagnostics.addAll(
       validateRuleOptions(ruleName, options, {
         legacyWarnings: settingsResult.value.legacyWarnings,
+        // Stryker disable next-line BooleanLiteral: Equivalent. The options already passed the schema validation above, so validating them again finds nothing and only repeats the work.
         schema: false,
       }),
       ["rules", ruleId, 1]

@@ -297,6 +297,7 @@ function collectRulesWithInvalidSelectors(
  */
 function joinQuotedPropertyNames(properties: string[]): string {
   const quoted = properties.map((property) => `'${property}'`);
+  // Stryker disable next-line StringLiteral: Equivalent. `slice(-1)` has at most one item, so the separator of `join` is never used.
   const last = quoted.slice(-1).join("");
   const rest = quoted.slice(0, -1);
   return rest.length === 0 ? last : `${rest.join(", ")} and ${last}`;
@@ -328,6 +329,7 @@ function forEachRuleSelectorFieldValue(
 
   for (const field of fields) {
     const value = ruleRecord[field];
+    // Surviving Stryker mutant: the `true` replacement survives because every visitor ignores an undefined value, so calling it with one changes nothing. The check only spares the call.
     if (!isUndefined(value)) {
       visitor(value);
     }
@@ -461,6 +463,7 @@ function entitySelectorHasDeprecatedInternalPath(value: unknown): boolean {
     return "internalPath" in record && !isUndefined(record["internalPath"]);
   }
   // Modern entity selector — only descend into `element`; `module.internalPath` is valid.
+  // Surviving Stryker mutant: the `true` replacement survives because `elementSelectorHasDeprecatedInternalPath` returns false for an undefined `element`, as the `return false` below does.
   if (!isUndefined(record["element"])) {
     return elementSelectorHasDeprecatedInternalPath(record["element"]);
   }

@@ -25,6 +25,11 @@ yarn-error.log*
 .vs
 .vscode
 
+# stryker temp files
+/reports
+.stryker-tmp
+stryker.conf.local.js
+
 # build output
 dist
 

@@ -27,9 +27,13 @@ const validatorsByRuleName = new Map<RuleName, Ajv.ValidateFunction>();
 function getAjv(): Ajv.Ajv {
   if (!ajvInstance) {
     ajvInstance = new Ajv({
+      // Stryker disable next-line BooleanLiteral: true only adds the draft-07 meta schema, which no rule schema uses
       meta: false,
+      // Stryker disable next-line BooleanLiteral: no rule schema uses the default keyword (checked in Schemas.spec.ts), so there is no default to apply
       useDefaults: true,
+      // Stryker disable next-line BooleanLiteral: every rule schema is a valid draft-04 schema, so validating it does not change the result
       validateSchema: false,
+      // Stryker disable next-line StringLiteral: no rule schema has a $ref, so there is no missing reference to ignore
       missingRefs: "ignore",
       verbose: true,
       schemaId: "auto",
@@ -50,14 +54,17 @@ function getAjv(): Ajv.Ajv {
  * @returns The schema of the options list.
  */
 function getOptionsListSchema(schema: JsonSchema[]): JsonSchema {
+  // Surviving Stryker mutant: replacing the condition with true survives because, without schemas, the list schema gets `items: []`, which has the same effect as the one of the else branch
   if (schema.length) {
     return {
+      // Stryker disable next-line StringLiteral: the options list is always an array, so removing its type check changes nothing
       type: "array",
       items: schema,
       minItems: 0,
       maxItems: schema.length,
     };
   }
+  // Stryker disable next-line StringLiteral: the options list is always an array, so removing its type check changes nothing
   return { type: "array", minItems: 0, maxItems: 0 };
 }
 
@@ -92,6 +99,7 @@ function formatError(error: Ajv.ErrorObject): string {
   const valueLine = `Value ${JSON.stringify(error.data)} ${message}.`;
   // The `verbose` option sets the parent schema of every error
   const parentProperties = (error.parentSchema as JsonSchema).properties;
+  // Surviving Stryker mutants: replacing the first operand, the second one, or the conjunction of the first two or three operands with true, or an `&&` with `||`, survive because every `additionalProperties` error of the rule schemas meets all the operands and no other error has an `additionalProperty` string. They are the checks that ESLint makes
   if (
     error.keyword === "additionalProperties" &&
     error.schema === false &&
@@ -118,6 +126,7 @@ function toDiagnosticPath(dataPath: string, data: unknown): DiagnosticPath {
   const path: DiagnosticPath = [];
   let current: unknown = data;
   for (const encodedSegment of dataPath.split("/").slice(1)) {
+    // Surviving Stryker mutants: replacing the unescaped "/" or "~" with an empty string survives because the paths of the rule schemas have only fixed property names and list indexes, which have no escaped characters
     const segment = encodedSegment.replaceAll("~1", "/").replaceAll("~0", "~");
     const pathSegment = isArray(current) ? Number(segment) : segment;
     path.push(pathSegment);

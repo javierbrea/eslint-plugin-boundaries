@@ -166,21 +166,19 @@ export function isValidDependencyNodeSelector(
  * @param types - Legacy types setting value when present.
  * @param legacyWarnings - When `false`, skips detection and reporting entirely.
  * @param diagnostics - Builder that collects the problems found.
- * @returns `true` when a legacy pattern was present.
  */
 export function deprecateTypes(
   types: unknown,
   legacyWarnings: boolean,
   diagnostics: DiagnosticsBuilder
-): boolean {
-  if (!legacyWarnings) return false;
-  if (!types) return false;
+): void {
+  if (!legacyWarnings) return;
+  if (!types) return;
   diagnostics.deprecation(
     `'${TYPES}' setting is deprecated.`,
     `Please use '${ELEMENTS}' instead. ${migrationToV2GuideLink()}`,
     [[TYPES]]
   );
-  return true;
 }
 
 /**
@@ -189,22 +187,20 @@ export function deprecateTypes(
  * @param alias - Legacy alias setting value when present.
  * @param legacyWarnings - When `false`, skips detection and reporting entirely.
  * @param diagnostics - Builder that collects the problems found.
- * @returns `true` when a legacy pattern was present.
  */
 export function deprecateAlias(
   alias: unknown,
   legacyWarnings: boolean,
   diagnostics: DiagnosticsBuilder
-): boolean {
-  if (!legacyWarnings) return false;
+): void {
+  if (!legacyWarnings) return;
   // cspell:ignore boundariesalias -- documentation anchor for the boundaries/alias setting
-  if (!alias) return false;
+  if (!alias) return;
   diagnostics.warning(
     `'${SETTINGS_KEYS_MAP.ALIAS}' setting is deprecated.`,
     `Configure path aliases using 'import/resolver' settings instead. ${moreInfoLegacySettingsLink("boundariesalias")}`,
     [[SETTINGS_KEYS_MAP.ALIAS]]
   );
-  return true;
 }
 
 /**
@@ -455,23 +451,32 @@ function getNormalizedDebug(
  * @param legacyTypes - Fallback legacy types setting for backward compatibility.
  * @param legacyWarnings - When `false`, skips all legacy deprecation detection and reporting.
  * @param diagnostics - Builder that collects the problems found.
- * @returns Filtered array of valid element descriptors and whether a legacy pattern was detected.
+ * @returns Filtered array of valid element descriptors.
  */
 function getNormalizedElementDescriptors(
   elements: unknown,
   legacyTypes: unknown,
   legacyWarnings: boolean,
   diagnostics: DiagnosticsBuilder
-): { descriptors: ElementDescriptor[]; legacyDetected: boolean } {
-  const typesLegacy = deprecateTypes(legacyTypes, legacyWarnings, diagnostics);
+): ElementDescriptor[] {
+  deprecateTypes(legacyTypes, legacyWarnings, diagnostics);
   const rawElements = elements || legacyTypes;
   const settingKey = elements ? ELEMENTS : TYPES;
 
-  if (!rawElements || !isArray(rawElements) || !rawElements.length) {
+  if (!rawElements) {
     // Element descriptors are optional on their own: the file layer can be the
     // only configured classification. The "no classification at all" case is
     // reported once in `normalizeSettings`, where both layers are known.
-    return { descriptors: [], legacyDetected: typesLegacy };
+    return [];
+  }
+
+  if (!isArray(rawElements)) {
+    diagnostics.warning(
+      `Invalid ${settingKey} setting format.`,
+      `It should be an array of element descriptors. ${moreInfoSettingsLink()}`,
+      [[settingKey]]
+    );
+    return [];
   }
 
   const elementDescriptors = transformLegacyTypes(
@@ -495,8 +500,6 @@ function getNormalizedElementDescriptors(
     );
   }
 
-  let legacyDetected = typesLegacy;
-
   if (legacyWarnings) {
     // cspell:ignore partialmatch -- documentation anchor for the partialMatch option
     const entriesWithMode = validEntries.filter(
@@ -508,7 +511,6 @@ function getNormalizedElementDescriptors(
         `Use 'partialMatch: false' instead of 'mode: "full"'. Remove 'mode: "folder"' (it is the default). ${migrationToV7GuideLink("deprecated-mode-in-element-descriptors")}`,
         entriesWithMode.map(({ index }) => [settingKey, index, "mode"])
       );
-      legacyDetected = true;
     }
 
     const entriesWithCategory = validEntries.filter(
@@ -522,7 +524,6 @@ function getNormalizedElementDescriptors(
         `Use the 'category' property in file descriptors ('${SETTINGS_KEYS_MAP.FILES}') instead. ${migrationToV7GuideLink("deprecated-category-in-element-descriptors-and-selectors")}`,
         entriesWithCategory.map(({ index }) => [settingKey, index, "category"])
       );
-      legacyDetected = true;
     }
   }
 
@@ -540,6 +541,7 @@ function getNormalizedElementDescriptors(
     );
   }
 
+  // Surviving Stryker mutant: the replacement without the `+` quantifier survives because `test` only asks for a character after the dot, which the character class alone answers the same way.
   const FILE_EXTENSION_RE = /\.[a-zA-Z0-9]+/;
   const fileLikeEntries = validEntries.filter(({ descriptor }) => {
     const isEffectiveFolderMode =
@@ -562,7 +564,7 @@ function getNormalizedElementDescriptors(
     );
   }
 
-  return { descriptors: validElementDescriptors, legacyDetected };
+  return validElementDescriptors;
 }
 
 /**
@@ -576,7 +578,16 @@ function getNormalizedFileDescriptors(
   fileDescriptors: unknown,
   diagnostics: DiagnosticsBuilder
 ): FileDescriptor[] {
-  if (!fileDescriptors || !isArray(fileDescriptors)) {
+  if (!fileDescriptors) {
+    return [];
+  }
+
+  if (!isArray(fileDescriptors)) {
+    diagnostics.warning(
+      `Invalid ${SETTINGS_KEYS_MAP.FILES} setting format.`,
+      `It should be an array of file descriptors. ${moreInfoSettingsLink()}`,
+      [[SETTINGS_KEYS_MAP.FILES]]
+    );
     return [];
   }
 
@@ -616,9 +627,7 @@ function getNormalizedDependencyNodes(
       DEPENDENCY_NODE_KEYS_MAP.REQUIRE,
       DEPENDENCY_NODE_KEYS_MAP.DYNAMIC_IMPORT,
     ];
-    return defaultKeys
-      .flatMap((key) => [...DEFAULT_DEPENDENCY_NODES[key]])
-      .filter(Boolean);
+    return defaultKeys.flatMap((key) => [...DEFAULT_DEPENDENCY_NODES[key]]);
   }
 
   if (!isArray(dependencyNodes)) {
@@ -645,9 +654,9 @@ function getNormalizedDependencyNodes(
     );
   }
 
-  return validKeys
-    .flatMap((key: DependencyNodeKey) => [...DEFAULT_DEPENDENCY_NODES[key]])
-    .filter(Boolean);
+  return validKeys.flatMap((key: DependencyNodeKey) => [
+    ...DEFAULT_DEPENDENCY_NODES[key],
+  ]);
 }
 
 /**
@@ -754,31 +763,30 @@ function reportInvalidBooleanSetting(
  * @param legacyTemplates - Raw legacy templates setting value.
  * @param legacyWarnings - When `false`, skips the deprecation diagnostic.
  * @param diagnostics - Builder that collects the problems found.
- * @returns Normalized value and whether a legacy pattern was detected.
+ * @returns Boolean value or default.
  */
 function getNormalizedLegacyTemplates(
   legacyTemplates: unknown,
   legacyWarnings: boolean,
   diagnostics: DiagnosticsBuilder
-): { value: boolean; legacyDetected: boolean } {
+): boolean {
   if (isUndefined(legacyTemplates)) {
-    return { value: LEGACY_TEMPLATES_DEFAULT, legacyDetected: false };
+    return LEGACY_TEMPLATES_DEFAULT;
   }
 
   if (isBoolean(legacyTemplates)) {
-    const legacyDetected = legacyTemplates === true;
-    if (legacyDetected && legacyWarnings) {
+    if (legacyTemplates && legacyWarnings) {
       diagnostics.deprecation(
         `'${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting is deprecated.`,
         `The legacy \${...} template syntax will not be supported in the next major version. Migrate to the {{...}} Handlebars syntax. ${migrationToV6GuideLink("new-template-syntax")}`,
         [[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]]
       );
     }
-    return { value: legacyTemplates, legacyDetected };
+    return legacyTemplates;
   }
 
   reportInvalidBooleanSetting(SETTINGS_KEYS_MAP.LEGACY_TEMPLATES, diagnostics);
-  return { value: LEGACY_TEMPLATES_DEFAULT, legacyDetected: false };
+  return LEGACY_TEMPLATES_DEFAULT;
 }
 
 /**
@@ -984,7 +992,7 @@ export function normalizeSettings(
   );
 
   // Normalize all settings from raw values
-  const { descriptors: elementDescriptors } = getNormalizedElementDescriptors(
+  const elementDescriptors = getNormalizedElementDescriptors(
     rawSettings[ELEMENTS],
     rawSettings[TYPES],
     legacyWarnings,
@@ -1027,7 +1035,7 @@ export function normalizeSettings(
     diagnostics
   );
 
-  const { value: legacyTemplates } = getNormalizedLegacyTemplates(
+  const legacyTemplates = getNormalizedLegacyTemplates(
     rawSettings[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES],
     legacyWarnings,
     diagnostics

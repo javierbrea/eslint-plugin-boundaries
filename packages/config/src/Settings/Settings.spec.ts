@@ -53,6 +53,20 @@ function normalize(settings: Record<string, unknown>) {
   return value;
 }
 
+/**
+ * Normalizes settings and returns only their diagnostics.
+ * @param settings - The settings to normalize.
+ * @returns The diagnostics.
+ */
+function diagnosticsOf(settings: Record<string, unknown>): Diagnostic[] {
+  return normalizeSettings(settings).diagnostics;
+}
+
+const SETTINGS_INFO = "More info: https://www.jsboundaries.dev/docs/settings/";
+// cspell:ignore partialmatch -- documentation anchor for the partialMatch option
+const ELEMENTS_INFO =
+  "More info: https://www.jsboundaries.dev/docs/classification/elements/#partialmatch-optional";
+
 const validElementDescriptor = { pattern: "src/services/*", type: "service" };
 const invalidElementDescriptor = { pattern: "src/**/*.ts" };
 const validFileDescriptor = { pattern: "src/**", category: "component" };
@@ -198,6 +212,22 @@ describe("Settings/Settings", () => {
       );
     });
 
+    it("reports an invalid selector with the properties that a custom dependency node should have", () => {
+      isValidDependencyNodeSelector({ kind: "value" }, diagnostics, [
+        SETTINGS.ADDITIONAL_DEPENDENCY_NODES,
+        2,
+      ]);
+
+      expect(diagnostics.build()).toEqual([
+        {
+          level: "warning",
+          title: `Please provide a valid object in ${SETTINGS.ADDITIONAL_DEPENDENCY_NODES} setting.`,
+          detail: `The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }. The invalid object will be ignored. ${SETTINGS_INFO}`,
+          paths: [[SETTINGS.ADDITIONAL_DEPENDENCY_NODES, 2]],
+        },
+      ]);
+    });
+
     it("returns false when the selector field is missing", () => {
       expect(
         isValidDependencyNodeSelector({ kind: "value" }, diagnostics, [])
@@ -239,15 +269,23 @@ describe("Settings/Settings", () => {
       expect(diagnostics.build()).toEqual([]);
     });
 
+    it("does not warn when legacy warnings are disabled", () => {
+      deprecateTypes([validElementDescriptor], false, diagnostics);
+
+      expect(diagnostics.build()).toEqual([]);
+    });
+
     it("warns when the value is truthy", () => {
       deprecateTypes([validElementDescriptor], true, diagnostics);
-      report(diagnostics.build());
 
-      expect(reportedDiagnostic).toHaveBeenCalledTimes(1);
-      expect(reportedDiagnostic).toHaveBeenCalledWith(
-        expect.stringContaining(SETTINGS.TYPES),
-        expect.stringContaining(SETTINGS.ELEMENTS)
-      );
+      expect(diagnostics.build()).toEqual([
+        {
+          level: "deprecation",
+          title: `'${SETTINGS.TYPES}' setting is deprecated.`,
+          detail: `Please use '${SETTINGS.ELEMENTS}' instead. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v1-to-v2/`,
+          paths: [[SETTINGS.TYPES]],
+        },
+      ]);
     });
   });
 
@@ -258,15 +296,25 @@ describe("Settings/Settings", () => {
       expect(diagnostics.build()).toEqual([]);
     });
 
+    it("does not warn when legacy warnings are disabled", () => {
+      deprecateAlias({ "@components": "src/components" }, false, diagnostics);
+
+      expect(diagnostics.build()).toEqual([]);
+    });
+
     it("warns when the value is truthy", () => {
       deprecateAlias({ "@components": "src/components" }, true, diagnostics);
-      report(diagnostics.build());
 
-      expect(reportedDiagnostic).toHaveBeenCalledTimes(1);
-      expect(reportedDiagnostic).toHaveBeenCalledWith(
-        expect.stringContaining(SETTINGS.ALIAS),
-        expect.stringContaining("import/resolver")
-      );
+      // cspell:ignore boundariesalias -- documentation anchor for the boundaries/alias setting
+      expect(diagnostics.build()).toEqual([
+        {
+          level: "warning",
+          title: `'${SETTINGS.ALIAS}' setting is deprecated.`,
+          detail:
+            "Configure path aliases using 'import/resolver' settings instead. More info: https://www.jsboundaries.dev/docs/settings/legacy/#boundariesalias",
+          paths: [[SETTINGS.ALIAS]],
+        },
+      ]);
     });
   });
 
@@ -296,6 +344,24 @@ describe("Settings/Settings", () => {
       );
 
       expect(result).toBeDefined();
+    });
+
+    it("does not take an entity selector for a valid 'dependencies' filter", () => {
+      const result = validateDebugFilterSelectors(
+        { file: { categories: "util" } },
+        "dependencies",
+        diagnostics
+      );
+
+      expect(result).toBeUndefined();
+      expect(diagnostics.build()).toEqual([
+        {
+          level: "warning",
+          title: `Please provide a valid array for 'dependencies' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+          detail: SETTINGS_INFO,
+          paths: [[SETTINGS_KEYS_MAP.DEBUG, "filter", "dependencies"]],
+        },
+      ]);
     });
 
     it("warns and returns undefined for an invalid value", () => {
@@ -516,6 +582,167 @@ describe("Settings/Settings", () => {
           expect.any(String)
         );
       });
+
+      it("ignores element descriptors that are not an array and warns about their format", () => {
+        const { value, diagnostics: result } = normalizeSettings({
+          [SETTINGS_KEYS_MAP.ELEMENTS]: "components/*",
+          [SETTINGS_KEYS_MAP.FILES]: [validFileDescriptor],
+        });
+
+        expect(value.elementDescriptors).toEqual([]);
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: `Invalid ${SETTINGS.ELEMENTS} setting format.`,
+            detail: `It should be an array of element descriptors. ${SETTINGS_INFO}`,
+            paths: [[SETTINGS.ELEMENTS]],
+          },
+        ]);
+      });
+
+      it("warns about the format of the legacy types setting when it is not an array", () => {
+        const { value, diagnostics: result } = normalizeSettings({
+          [SETTINGS_KEYS_MAP.LEGACY_WARNINGS]: false,
+          [SETTINGS_KEYS_MAP.TYPES]: "components",
+          [SETTINGS_KEYS_MAP.FILES]: [validFileDescriptor],
+        });
+
+        expect(value.elementDescriptors).toEqual([]);
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: `Invalid ${SETTINGS.TYPES} setting format.`,
+            detail: `It should be an array of element descriptors. ${SETTINGS_INFO}`,
+            paths: [[SETTINGS.TYPES]],
+          },
+        ]);
+      });
+
+      it("ignores an empty list of element descriptors without warning about it", () => {
+        const { value, diagnostics: result } = normalizeSettings({
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [],
+          [SETTINGS_KEYS_MAP.FILES]: [validFileDescriptor],
+        });
+
+        expect(value.elementDescriptors).toEqual([]);
+        expect(result).toEqual([]);
+      });
+
+      it("reports the deprecated 'category' option with the link to the v7 migration guide", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [
+            { ...validElementDescriptor, category: "domain" },
+          ],
+        });
+
+        expect(result).toEqual([
+          {
+            level: "deprecation",
+            title:
+              "The 'category' option in element descriptors is deprecated and will be removed in a future major version.",
+            detail: `Use the 'category' property in file descriptors ('${SETTINGS_KEYS_MAP.FILES}') instead. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v6-to-v7/#deprecated-category-in-element-descriptors-and-selectors`,
+            paths: [[SETTINGS_KEYS_MAP.ELEMENTS, 0, "category"]],
+          },
+        ]);
+      });
+
+      it("lists the patterns of the element descriptors whose 'mode' has no effect", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.LEGACY_WARNINGS]: false,
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [
+            { ...validElementDescriptor, mode: "full", partialMatch: false },
+            validElementDescriptor,
+            {
+              type: "pages",
+              pattern: ["a/*", "b/*"],
+              partialMatch: false,
+              mode: "folder",
+            },
+          ],
+        });
+
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title:
+              "The 'mode' option has no effect when 'partialMatch: false' is set.",
+            detail: `Remove 'mode' from these element descriptors: ["src/services/*",["a/*","b/*"]]. ${ELEMENTS_INFO}`,
+            paths: [
+              [SETTINGS_KEYS_MAP.ELEMENTS, 0, "mode"],
+              [SETTINGS_KEYS_MAP.ELEMENTS, 2, "mode"],
+            ],
+          },
+        ]);
+      });
+
+      it("does not report that 'mode' has no effect when 'partialMatch' is false and 'mode' is not set", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [
+            { ...validElementDescriptor, partialMatch: false },
+          ],
+        });
+
+        expect(result).toEqual([]);
+      });
+
+      it("lists the file-like patterns of the element descriptors that match folders", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.LEGACY_WARNINGS]: false,
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [
+            { type: "component", pattern: "components/**/*.ts" },
+            validElementDescriptor,
+            { type: "style", pattern: "styles/*.css", mode: "folder" },
+          ],
+        });
+
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: "Some element descriptors appear to use file patterns.",
+            detail: `Element patterns match folders, not individual files. For file classification, use file descriptors ('${SETTINGS_KEYS_MAP.FILES}'). Affected patterns: ["components/**/*.ts","styles/*.css"]. ${ELEMENTS_INFO}`,
+            paths: [
+              [SETTINGS_KEYS_MAP.ELEMENTS, 0, "pattern"],
+              [SETTINGS_KEYS_MAP.ELEMENTS, 2, "pattern"],
+            ],
+          },
+        ]);
+      });
+
+      it("reports the file-like patterns of an element descriptor with 'partialMatch: false' even when it sets 'mode: \"full\"'", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.LEGACY_WARNINGS]: false,
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [
+            {
+              type: "component",
+              pattern: "components/**/*.ts",
+              mode: "full",
+              partialMatch: false,
+            },
+          ],
+        });
+
+        expect(result.map(({ title }) => title)).toEqual([
+          "The 'mode' option has no effect when 'partialMatch: false' is set.",
+          "Some element descriptors appear to use file patterns.",
+        ]);
+      });
+
+      it("does not report the file-like patterns of element descriptors that match files", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.LEGACY_WARNINGS]: false,
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [
+            { type: "full", pattern: "src/*.ts", mode: "full" },
+            {
+              type: "partial",
+              pattern: "src/*.ts",
+              mode: "full",
+              partialMatch: true,
+            },
+          ],
+        });
+
+        expect(result).toEqual([]);
+      });
     });
 
     describe("fileDescriptors", () => {
@@ -527,13 +754,21 @@ describe("Settings/Settings", () => {
         expect(result.fileDescriptors).toEqual([]);
       });
 
-      it("returns an empty array when value is not an array", () => {
-        const result = normalize({
+      it("returns an empty array and warns about the format when value is not an array", () => {
+        const { value, diagnostics: result } = normalizeSettings({
           [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
           [SETTINGS_KEYS_MAP.FILES]: "invalid",
         });
 
-        expect(result.fileDescriptors).toEqual([]);
+        expect(value.fileDescriptors).toEqual([]);
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: `Invalid ${SETTINGS.FILES} setting format.`,
+            detail: `It should be an array of file descriptors. ${SETTINGS_INFO}`,
+            paths: [[SETTINGS.FILES]],
+          },
+        ]);
       });
 
       it("keeps all valid file descriptors without warning about invalid ones", () => {
@@ -666,6 +901,57 @@ describe("Settings/Settings", () => {
           expect.stringContaining("bogus")
         );
       });
+
+      it("does not report anything when all the keys are valid", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.FILES]: [validFileDescriptor],
+          [SETTINGS_KEYS_MAP.DEPENDENCY_NODES]: [
+            DEPENDENCY_NODE_KEYS_MAP.IMPORT,
+            DEPENDENCY_NODE_KEYS_MAP.REQUIRE,
+          ],
+        });
+
+        expect(result).toEqual([]);
+      });
+
+      it("lists the valid keys when the value is not an array", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.FILES]: [validFileDescriptor],
+          [SETTINGS_KEYS_MAP.DEPENDENCY_NODES]: "import",
+        });
+
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: `Invalid ${SETTINGS.DEPENDENCY_NODES} setting format.`,
+            detail: `It should be an array of the following strings: "require", "import", "dynamic-import", "export". ${SETTINGS_INFO}`,
+            paths: [[SETTINGS.DEPENDENCY_NODES]],
+          },
+        ]);
+      });
+
+      it("lists the invalid values and the valid keys when some keys are invalid", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.FILES]: [validFileDescriptor],
+          [SETTINGS_KEYS_MAP.DEPENDENCY_NODES]: [
+            DEPENDENCY_NODE_KEYS_MAP.IMPORT,
+            "bogus",
+            1,
+          ],
+        });
+
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: `Invalid values in ${SETTINGS.DEPENDENCY_NODES} setting.`,
+            detail: `Invalid values: ["bogus",1]. Valid strings are: "require", "import", "dynamic-import", "export". ${SETTINGS_INFO}`,
+            paths: [
+              [SETTINGS.DEPENDENCY_NODES, 1],
+              [SETTINGS.DEPENDENCY_NODES, 2],
+            ],
+          },
+        ]);
+      });
     });
 
     describe("additionalDependencyNodes", () => {
@@ -735,6 +1021,33 @@ describe("Settings/Settings", () => {
           expect.stringContaining(JSON.stringify([{ kind: "value" }]))
         );
       });
+
+      it("does not report anything when all the additional nodes are valid", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.FILES]: [validFileDescriptor],
+          [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES]: [
+            { selector: "CallExpression", kind: "value", name: "custom" },
+          ],
+        });
+
+        expect(result).toEqual([]);
+      });
+
+      it("describes the properties of the additional nodes when the value is not an array", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.FILES]: [validFileDescriptor],
+          [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES]: "CallExpression",
+        });
+
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: `Invalid ${SETTINGS.ADDITIONAL_DEPENDENCY_NODES} setting format.`,
+            detail: `It should be an array containing objects with properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }. ${SETTINGS_INFO}`,
+            paths: [[SETTINGS.ADDITIONAL_DEPENDENCY_NODES]],
+          },
+        ]);
+      });
     });
 
     describe("ignorePaths and includePaths", () => {
@@ -786,6 +1099,22 @@ describe("Settings/Settings", () => {
           expect.stringContaining(SETTINGS_KEYS_MAP.INCLUDE),
           expect.any(String)
         );
+      });
+
+      it("describes the valid values of the setting when a value is invalid", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.FILES]: [validFileDescriptor],
+          [SETTINGS_KEYS_MAP.IGNORE]: ["a", 1],
+        });
+
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: `Please provide a valid value in '${SETTINGS_KEYS_MAP.IGNORE}' setting.`,
+            detail: `The value should be a string or an array of strings. ${SETTINGS_INFO}`,
+            paths: [[SETTINGS_KEYS_MAP.IGNORE]],
+          },
+        ]);
       });
     });
 
@@ -850,10 +1179,7 @@ describe("Settings/Settings", () => {
         });
 
         expect(result.elementsSingleMatch).toBe(false);
-        expect(reportedDiagnostic).not.toHaveBeenCalledWith(
-          expect.stringContaining(SETTINGS_KEYS_MAP.ELEMENTS_SINGLE_TYPE),
-          expect.stringContaining("deprecated")
-        );
+        expect(reportedDiagnostic).not.toHaveBeenCalled();
       });
 
       it("gives precedence to elements-single-match over the deprecated elements-single-type setting", () => {
@@ -937,6 +1263,23 @@ describe("Settings/Settings", () => {
           ),
           expect.stringContaining("{{...}}")
         );
+      });
+
+      it("reports the deprecated legacyTemplates setting with the link to the new template syntax", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+          [SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]: true,
+        });
+
+        expect(result).toEqual([
+          {
+            level: "deprecation",
+            title: `'${SETTINGS_KEYS_MAP.LEGACY_TEMPLATES}' setting is deprecated.`,
+            detail:
+              "The legacy ${...} template syntax will not be supported in the next major version. Migrate to the {{...}} Handlebars syntax. More info: https://www.jsboundaries.dev/docs/releases/migration-guides/v5-to-v6/#new-template-syntax",
+            paths: [[SETTINGS_KEYS_MAP.LEGACY_TEMPLATES]],
+          },
+        ]);
       });
 
       it("does not warn about deprecation when legacyTemplates is undefined", () => {
@@ -1025,6 +1368,26 @@ describe("Settings/Settings", () => {
         expect(reportedDiagnostic).not.toHaveBeenCalled();
       });
 
+      it("warns and keeps the default when customSourcePatterns mixes strings with other values", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+          [SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL]: {
+            customSourcePatterns: ["^@scope/", 1],
+          },
+        });
+
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: `Please provide a valid array of strings for 'customSourcePatterns' in '${SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL}' setting.`,
+            detail: SETTINGS_INFO,
+            paths: [
+              [SETTINGS_KEYS_MAP.FLAG_AS_EXTERNAL, "customSourcePatterns"],
+            ],
+          },
+        ]);
+      });
+
       it("warns once per invalid field and keeps defaults for the bad ones", () => {
         const result = normalize({
           [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
@@ -1068,7 +1431,17 @@ describe("Settings/Settings", () => {
           [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
         });
 
-        expect(result.debug).toEqual(defaults);
+        expect(result.debug).toStrictEqual(defaults);
+      });
+
+      it("returns the default 'messages' and 'filter', without reporting anything, when only 'enabled' is set", () => {
+        const { value, diagnostics: result } = normalizeSettings({
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+          [SETTINGS_KEYS_MAP.DEBUG]: { enabled: true },
+        });
+
+        expect(result).toEqual([]);
+        expect(value.debug).toStrictEqual({ ...defaults, enabled: true });
       });
 
       it("warns and returns defaults when the value is not an object", () => {
@@ -1119,6 +1492,35 @@ describe("Settings/Settings", () => {
         );
       });
 
+      it("reports the path of 'messages' when it is not an object", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+          [SETTINGS_KEYS_MAP.DEBUG]: { messages: "invalid" },
+        });
+
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: `Please provide a valid object for 'messages' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+            detail: SETTINGS_INFO,
+            paths: [[SETTINGS_KEYS_MAP.DEBUG, "messages"]],
+          },
+        ]);
+      });
+
+      it("applies the 'violations' flag of 'messages'", () => {
+        const result = normalize({
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+          [SETTINGS_KEYS_MAP.DEBUG]: { messages: { violations: false } },
+        });
+
+        expect(result.debug.messages).toEqual({
+          files: true,
+          dependencies: true,
+          violations: false,
+        });
+      });
+
       it("returns default flags when 'messages' is an object with no known fields", () => {
         const result = normalize({
           [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
@@ -1157,11 +1559,27 @@ describe("Settings/Settings", () => {
           [SETTINGS_KEYS_MAP.DEBUG]: { filter: "invalid" },
         });
 
-        expect(result.debug.filter).toEqual(defaults.filter);
+        expect(result.debug.filter).toStrictEqual(defaults.filter);
         expect(reportedDiagnostic).toHaveBeenCalledWith(
           expect.stringContaining("filter"),
           expect.any(String)
         );
+      });
+
+      it("reports the path of 'filter' when it is not an object", () => {
+        const result = diagnosticsOf({
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+          [SETTINGS_KEYS_MAP.DEBUG]: { filter: "invalid" },
+        });
+
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: `Please provide a valid object for 'filter' in '${SETTINGS_KEYS_MAP.DEBUG}' setting.`,
+            detail: SETTINGS_INFO,
+            paths: [[SETTINGS_KEYS_MAP.DEBUG, "filter"]],
+          },
+        ]);
       });
 
       it("normalizes valid filter entries", () => {

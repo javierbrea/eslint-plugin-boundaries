@@ -1,5 +1,6 @@
 ---
 paths:
+  - "packages/config/src/**/*.ts"
   - "packages/elements/src/**/*.ts"
 ---
 
@@ -7,7 +8,7 @@ paths:
 
 Kill a surviving mutant with a test whenever an input that a real project could have tells it apart. When no such input kills it because the code that produces it is dead, remove that code, after presenting the evidence and asking the user first, as `.agents/rules/unit-testing.md` requires for coverage. Any other mutant that no such input kills, because it is equivalent or only differs with contrived paths, gets a comment on the line before it:
 
-- `// Stryker disable next-line <Mutator>: <reason>` when it is the only mutant of that mutator on the line, as the report of a run scoped to the file shows (`cd packages/elements && pnpm test:mutation --mutate <file>`). Name the mutator, never `all`.
+- `// Stryker disable next-line <Mutator>: <reason>` when it is the only mutant of that mutator on the line, as the report of a run scoped to the file shows (`cd packages/<package> && pnpm test:mutation --mutate <file>`). Name the mutator, never `all`.
 - Otherwise `// Surviving Stryker mutant: <which replacement survives and why>`, leaving it enabled. A disable comment ignores every mutant of the mutator on its line, such as both the `true` and `false` replacements of a condition, so Stryker would stop checking the ones that the tests kill.
 
 Never disable a range with `// Stryker disable` and `// Stryker restore`: Stryker only reads comments placed before a node, so a `restore` at the end of a block is ignored and the disable runs to the end of the file.
