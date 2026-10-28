@@ -140,11 +140,12 @@ async function bundleForBrowsers(contents, browserBuild) {
  */
 function runWithoutNodeGlobals(code) {
   const context = vm.createContext({});
-  /* eslint-disable sonarjs/code-eval -- The code is the bundle that the test builds from the package */
+  // eslint-disable-next-line sonarjs/code-eval -- The code is the bundle that the test builds from the package
   vm.runInContext(code, context);
+  // eslint-disable-next-line sonarjs/code-eval -- The code checks a global of the context that runs the bundle
   assert.equal(vm.runInContext("typeof process", context), "undefined");
+  // eslint-disable-next-line sonarjs/code-eval -- The code checks a global of the context that runs the bundle
   assert.equal(vm.runInContext("typeof require", context), "undefined");
-  /* eslint-enable sonarjs/code-eval */
   return context.config;
 }
 
