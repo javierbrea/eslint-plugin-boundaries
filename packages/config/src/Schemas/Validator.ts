@@ -99,7 +99,7 @@ function formatError(error: Ajv.ErrorObject): string {
   const valueLine = `Value ${JSON.stringify(error.data)} ${message}.`;
   // The `verbose` option sets the parent schema of every error
   const parentProperties = (error.parentSchema as JsonSchema).properties;
-  // Surviving Stryker mutants: replacing the condition or any of its operands with true, or an `&&` with `||`, survive because every `additionalProperties` error of the rule schemas meets all the operands and no other error has an `additionalProperty` string. They are the checks that ESLint makes
+  // Surviving Stryker mutants: replacing the first operand, the second one, or the conjunction of the first two or three operands with true, or an `&&` with `||`, survive because every `additionalProperties` error of the rule schemas meets all the operands and no other error has an `additionalProperty` string. They are the checks that ESLint makes
   if (
     error.keyword === "additionalProperties" &&
     error.schema === false &&
