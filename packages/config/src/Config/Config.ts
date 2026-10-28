@@ -85,7 +85,7 @@ function toRuleEntryPath(ruleId: string, path: DiagnosticPath): DiagnosticPath {
  * @param context.pluginName The prefix of the rule names.
  * @param context.legacyWarnings Whether the rule options are checked for legacy syntax, from the normalized settings.
  * @param context.diagnostics The builder that receives the problems found, with paths from the root of the config object.
- * @returns The normalized entry, or `undefined` when ESLint rejects it.
+ * @returns The normalized entry, or `undefined` when ESLint rejects it or the plugin has no rule with that name.
  */
 function normalizeRuleEntry(
   ruleId: string,
