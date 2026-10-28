@@ -264,6 +264,40 @@ export const reactHooksConfig = {
   ...reactHooksPlugin.configs.flat.recommended,
 };
 
+const NODE_GLOBALS = [
+  "process",
+  "require",
+  "Buffer",
+  "global",
+  "__dirname",
+  "__filename",
+  "clearImmediate",
+  "exports",
+  "module",
+  "setImmediate",
+];
+
+/**
+ * Returns the config of the sources of a package that runs in browsers, which forbids the Node.js globals because browsers do not define them.
+ * @param {string} hint What to do instead of reading the global, appended to the error message.
+ * @returns {object} The config.
+ */
+export function createBrowserConfig(hint) {
+  return {
+    files: ["src/**/*.ts"],
+    ignores: ["src/**/*.spec.ts"],
+    rules: {
+      "no-restricted-globals": [
+        "error",
+        ...NODE_GLOBALS.map((name) => ({
+          name,
+          message: `It is not defined in browsers. ${hint}`,
+        })),
+      ],
+    },
+  };
+}
+
 export const defaultConfigWithoutTypescript = [
   ignores,
   jsonConfig,

@@ -2,6 +2,7 @@ import {
   defaultConfigWithoutTypescript,
   typescriptConfig,
   jestConfig,
+  createBrowserConfig,
 } from "../../support/eslint-config/index.js";
 
 export default [
@@ -16,30 +17,5 @@ export default [
       },
     },
   },
-  {
-    // The browser build runs where Node.js globals are not defined
-    files: ["src/**/*.ts"],
-    ignores: ["src/**/*.spec.ts"],
-    rules: {
-      "no-restricted-globals": [
-        "error",
-        ...[
-          "process",
-          "require",
-          "Buffer",
-          "global",
-          "__dirname",
-          "__filename",
-          "clearImmediate",
-          "exports",
-          "module",
-          "setImmediate",
-        ].map((name) => ({
-          name,
-          message:
-            "It is not defined in browsers, and this package does not depend on the platform.",
-        })),
-      ],
-    },
-  },
+  createBrowserConfig("This package does not depend on the platform."),
 ];
