@@ -102,7 +102,7 @@ export const RULE_NAMES_MAP = {
 export type RuleName = (typeof RULE_NAMES_MAP)[keyof typeof RULE_NAMES_MAP];
 
 /**
- * List of all rule names
+ * List of all rule names, including the default plugin prefix.
  */
 export const RULE_NAMES: readonly RuleName[] = Object.values(RULE_NAMES_MAP);
 

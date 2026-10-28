@@ -1,6 +1,9 @@
 ---
 paths:
   - "**/sonar-project.properties"
+  - "packages/config/**/*.ts"
+  - "packages/elements/**/*.ts"
+  - "packages/eslint-plugin/**/*.ts"
 ---
 
 # SonarCloud issues
