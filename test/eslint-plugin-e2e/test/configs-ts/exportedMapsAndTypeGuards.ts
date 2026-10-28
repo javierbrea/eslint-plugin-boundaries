@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars,@typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars,@typescript-eslint/no-unused-vars,sonarjs/unused-import */
 // NOTE: This config is not executed in any test. It only checks types in build time
 import {
   createConfig,

@@ -14,6 +14,7 @@ import prettier from "eslint-plugin-prettier";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
+import sonarjs from "eslint-plugin-sonarjs";
 import globals from "globals";
 
 export const jestConfig = {
@@ -298,6 +299,53 @@ export function createBrowserConfig(hint) {
   };
 }
 
+// Rules of the sonarjs recommended config that the "Sonar way comprehensive" profile of the SonarCloud projects does not run
+const SONARJS_RULES_NOT_IN_SONARCLOUD = [
+  "argument-type",
+  "array-callback-without-return",
+  "avoid-mutating-nested-properties-of-shallow-clones",
+  "different-types-comparison",
+  "function-return-type",
+  "future-reserved-words",
+  "in-operator-type-error",
+  "inconsistent-function-call",
+  "no-extra-arguments",
+  "no-implicit-global",
+  "no-trivial-assertions",
+  "no-unused-vars",
+  "null-dereference",
+  "prefer-native-axios-alternative",
+  "prefer-native-jquery-alternative",
+  "prefer-single-boolean-return",
+  "super-linear-regex",
+  "table-header-reference",
+  "updated-const-var",
+];
+
+// Rules whose findings are intentional here and are accepted in SonarCloud instead: the packages read their own deprecated APIs to support legacy configurations, keep deprecated type aliases public, and mark pending work with TODO comments
+const SONARJS_RULES_ACCEPTED_IN_SONARCLOUD = [
+  "deprecation",
+  "redundant-type-aliases",
+  "todo-tag",
+];
+
+/**
+ * The rules of SonarCloud that eslint-plugin-sonarjs implements, so that lint reports their issues before the analysis does.
+ */
+export const sonarjsConfig = {
+  files: ["**/*.js", "**/*.cjs", "**/*.mjs", "**/*.jsx", "**/*.ts", "**/*.tsx"],
+  ...sonarjs.configs.recommended,
+  rules: {
+    ...sonarjs.configs.recommended.rules,
+    ...Object.fromEntries(
+      [
+        ...SONARJS_RULES_NOT_IN_SONARCLOUD,
+        ...SONARJS_RULES_ACCEPTED_IN_SONARCLOUD,
+      ].map((rule) => [`sonarjs/${rule}`, 0])
+    ),
+  },
+};
+
 export const defaultConfigWithoutTypescript = [
   ignores,
   jsonConfig,
@@ -307,6 +355,7 @@ export const defaultConfigWithoutTypescript = [
   jsdocConfig,
   commonJsConfig,
   disableExtensionsInEslintConfig,
+  sonarjsConfig,
 ];
 
 export default [...defaultConfigWithoutTypescript, typescriptConfig];
