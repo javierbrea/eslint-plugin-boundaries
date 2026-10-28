@@ -263,32 +263,21 @@ describe("Settings/Settings", () => {
   });
 
   describe("deprecateTypes", () => {
-    it("does not warn, and returns false, when the value is falsy", () => {
-      const detected = deprecateTypes(undefined, true, diagnostics);
+    it("does not warn when the value is falsy", () => {
+      deprecateTypes(undefined, true, diagnostics);
 
-      expect(detected).toBe(false);
       expect(diagnostics.build()).toEqual([]);
     });
 
-    it("does not warn, and returns false, when legacy warnings are disabled", () => {
-      const detected = deprecateTypes(
-        [validElementDescriptor],
-        false,
-        diagnostics
-      );
+    it("does not warn when legacy warnings are disabled", () => {
+      deprecateTypes([validElementDescriptor], false, diagnostics);
 
-      expect(detected).toBe(false);
       expect(diagnostics.build()).toEqual([]);
     });
 
-    it("warns, and returns true, when the value is truthy", () => {
-      const detected = deprecateTypes(
-        [validElementDescriptor],
-        true,
-        diagnostics
-      );
+    it("warns when the value is truthy", () => {
+      deprecateTypes([validElementDescriptor], true, diagnostics);
 
-      expect(detected).toBe(true);
       expect(diagnostics.build()).toEqual([
         {
           level: "deprecation",
@@ -301,32 +290,21 @@ describe("Settings/Settings", () => {
   });
 
   describe("deprecateAlias", () => {
-    it("does not warn, and returns false, when the value is falsy", () => {
-      const detected = deprecateAlias(undefined, true, diagnostics);
+    it("does not warn when the value is falsy", () => {
+      deprecateAlias(undefined, true, diagnostics);
 
-      expect(detected).toBe(false);
       expect(diagnostics.build()).toEqual([]);
     });
 
-    it("does not warn, and returns false, when legacy warnings are disabled", () => {
-      const detected = deprecateAlias(
-        { "@components": "src/components" },
-        false,
-        diagnostics
-      );
+    it("does not warn when legacy warnings are disabled", () => {
+      deprecateAlias({ "@components": "src/components" }, false, diagnostics);
 
-      expect(detected).toBe(false);
       expect(diagnostics.build()).toEqual([]);
     });
 
-    it("warns, and returns true, when the value is truthy", () => {
-      const detected = deprecateAlias(
-        { "@components": "src/components" },
-        true,
-        diagnostics
-      );
+    it("warns when the value is truthy", () => {
+      deprecateAlias({ "@components": "src/components" }, true, diagnostics);
 
-      expect(detected).toBe(true);
       // cspell:ignore boundariesalias -- documentation anchor for the boundaries/alias setting
       expect(diagnostics.build()).toEqual([
         {

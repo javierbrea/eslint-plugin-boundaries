@@ -166,21 +166,19 @@ export function isValidDependencyNodeSelector(
  * @param types - Legacy types setting value when present.
  * @param legacyWarnings - When `false`, skips detection and reporting entirely.
  * @param diagnostics - Builder that collects the problems found.
- * @returns `true` when a legacy pattern was present.
  */
 export function deprecateTypes(
   types: unknown,
   legacyWarnings: boolean,
   diagnostics: DiagnosticsBuilder
-): boolean {
-  if (!legacyWarnings) return false;
-  if (!types) return false;
+): void {
+  if (!legacyWarnings) return;
+  if (!types) return;
   diagnostics.deprecation(
     `'${TYPES}' setting is deprecated.`,
     `Please use '${ELEMENTS}' instead. ${migrationToV2GuideLink()}`,
     [[TYPES]]
   );
-  return true;
 }
 
 /**
@@ -189,22 +187,20 @@ export function deprecateTypes(
  * @param alias - Legacy alias setting value when present.
  * @param legacyWarnings - When `false`, skips detection and reporting entirely.
  * @param diagnostics - Builder that collects the problems found.
- * @returns `true` when a legacy pattern was present.
  */
 export function deprecateAlias(
   alias: unknown,
   legacyWarnings: boolean,
   diagnostics: DiagnosticsBuilder
-): boolean {
-  if (!legacyWarnings) return false;
+): void {
+  if (!legacyWarnings) return;
   // cspell:ignore boundariesalias -- documentation anchor for the boundaries/alias setting
-  if (!alias) return false;
+  if (!alias) return;
   diagnostics.warning(
     `'${SETTINGS_KEYS_MAP.ALIAS}' setting is deprecated.`,
     `Configure path aliases using 'import/resolver' settings instead. ${moreInfoLegacySettingsLink("boundariesalias")}`,
     [[SETTINGS_KEYS_MAP.ALIAS]]
   );
-  return true;
 }
 
 /**
@@ -631,10 +627,7 @@ function getNormalizedDependencyNodes(
       DEPENDENCY_NODE_KEYS_MAP.REQUIRE,
       DEPENDENCY_NODE_KEYS_MAP.DYNAMIC_IMPORT,
     ];
-    // Stryker disable next-line MethodExpression: Equivalent. The default nodes are all objects, so `filter(Boolean)` never removes one.
-    return defaultKeys
-      .flatMap((key) => [...DEFAULT_DEPENDENCY_NODES[key]])
-      .filter(Boolean);
+    return defaultKeys.flatMap((key) => [...DEFAULT_DEPENDENCY_NODES[key]]);
   }
 
   if (!isArray(dependencyNodes)) {
@@ -661,10 +654,9 @@ function getNormalizedDependencyNodes(
     );
   }
 
-  // Stryker disable next-line MethodExpression: Equivalent. The default nodes are all objects, so `filter(Boolean)` never removes one.
-  return validKeys
-    .flatMap((key: DependencyNodeKey) => [...DEFAULT_DEPENDENCY_NODES[key]])
-    .filter(Boolean);
+  return validKeys.flatMap((key: DependencyNodeKey) => [
+    ...DEFAULT_DEPENDENCY_NODES[key],
+  ]);
 }
 
 /**
