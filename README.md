@@ -31,6 +31,7 @@ An ESLint plugin for JavaScript and TypeScript projects. Classify your files, wr
 npm install --save-dev eslint eslint-plugin-boundaries
 ```
 
+<!-- The steps and snippets of this section repeat packages/website/src/components/home/Steps/Steps.tsx; a change to one needs the same change in the other. -->
 ## How it works
 
 From folder tree to enforced architecture in three edits.
