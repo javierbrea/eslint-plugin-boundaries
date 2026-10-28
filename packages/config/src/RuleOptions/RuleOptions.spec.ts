@@ -22,6 +22,11 @@ import {
 const reportedDiagnostic = jest.fn<void, [string, string | undefined]>();
 
 /**
+ * Base URL of the docs links that the diagnostics carry.
+ */
+const DOCS_URL = "https://www.jsboundaries.dev/docs";
+
+/**
  * Validates rule options without the schema, as the ESLint plugin does, and reports their diagnostics.
  * @param options - The rule options.
  * @param ruleName - The rule name.
@@ -1228,43 +1233,106 @@ describe("RuleOptions", () => {
   });
 
   describe("validateRuleOptions invalid selector shapes", () => {
-    it("warns once when a 'dependencies' policy has an unrecognized 'from' shape, naming only that property", () => {
+    const RULE = RULE_NAMES_MAP.DEPENDENCIES;
+    const invalidSelector = { notAnEntitySelectorKey: true };
+    const validEntry = { element: { type: "b" } };
+
+    it.each(["from", "to", "dependency", "allow", "disallow"])(
+      "reports the '%s' property alone when it is the only one with an unrecognized shape",
+      (property) => {
+        const options = {
+          policies: [{ [property]: invalidSelector }],
+        } as unknown as RuleOptionsWithPolicies;
+
+        const result = validate(options, RULE, false);
+
+        expect(result).toEqual([
+          {
+            level: "warning",
+            title: `[${RULE}] Detected an unrecognized selector shape in 1 policy at indices: 0.`,
+            detail: `Check the '${property}' property. More info: https://www.jsboundaries.dev/docs/rules/dependencies/`,
+            paths: [["policies", 0]],
+          },
+        ]);
+      }
+    );
+
+    it("lists every property with an unrecognized shape in the policies, in a fixed order, and counts the policies", () => {
       const options = {
         policies: [
           {
-            from: { notAnEntitySelectorKey: true },
-            to: { element: { type: "b" } },
-            allow: "*",
-          } as unknown as RuleOptionsPolicies,
+            disallow: invalidSelector,
+            allow: invalidSelector,
+            dependency: invalidSelector,
+            to: invalidSelector,
+            from: invalidSelector,
+          },
+          { from: validEntry },
+          { from: invalidSelector },
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validate(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      const result = validate(options, RULE, false);
 
-      expect(reportedDiagnostic).toHaveBeenCalledTimes(1);
-      expect(reportedDiagnostic).toHaveBeenCalledWith(
-        expect.stringContaining("unrecognized selector shape"),
-        "Check the 'from' property. More info: https://www.jsboundaries.dev/docs/rules/dependencies/"
-      );
+      expect(result).toEqual([
+        {
+          level: "warning",
+          title: `[${RULE}] Detected an unrecognized selector shape in 2 policies at indices: 0, 2.`,
+          detail: `Check the 'from', 'to', 'dependency', 'allow' and 'disallow' properties. More info: https://www.jsboundaries.dev/docs/rules/dependencies/`,
+          paths: [
+            ["policies", 0],
+            ["policies", 2],
+          ],
+        },
+      ]);
     });
 
-    it("names every invalid property, in a fixed order, when several are unrecognized", () => {
+    it("checks every entry of an array of 'allow' selectors", () => {
       const options = {
         policies: [
-          {
-            from: { notAnEntitySelectorKey: true },
-            allow: { notAValidTarget: true },
-          } as unknown as RuleOptionsPolicies,
+          { from: validEntry, allow: [{ to: validEntry }, invalidSelector] },
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validate(options, RULE_NAMES_MAP.DEPENDENCIES, false);
+      const result = validate(options, RULE, false);
 
-      expect(reportedDiagnostic).toHaveBeenCalledTimes(1);
-      expect(reportedDiagnostic).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.stringContaining("Check the 'from' and 'allow' properties.")
-      );
+      expect(result).toEqual([
+        expect.objectContaining({
+          level: "warning",
+          detail: expect.stringContaining("Check the 'allow' property."),
+          paths: [["policies", 0]],
+        }),
+      ]);
+    });
+
+    it("accepts an array of 'allow' selectors that mixes dependency selectors and entity selectors", () => {
+      const options = {
+        policies: [
+          { from: validEntry, allow: [{ to: validEntry }, validEntry] },
+        ],
+      } as unknown as RuleOptionsWithPolicies;
+
+      const result = validate(options, RULE, false);
+
+      expect(result).toEqual([]);
+    });
+
+    it("does not take the 'allow' of the external rule, which lists libraries and their specifiers, for entity selectors", () => {
+      const options = {
+        policies: [
+          {
+            from: "components",
+            allow: [["lodash", { specifiers: ["chunk"] }]],
+          },
+        ],
+      };
+
+      // The schema validation passes, so the options are valid for the external rule
+      const result = validateRuleOptions(RULE_NAMES_MAP.EXTERNAL, options, {
+        legacyWarnings: false,
+      });
+
+      expect(result).toEqual([]);
     });
 
     it("does not also warn about a missing wrapper when 'allow' has an unrecognized shape", () => {
@@ -1339,17 +1407,21 @@ describe("RuleOptions", () => {
       expect(reportedDiagnostic).not.toHaveBeenCalled();
     });
 
-    it("warns once that the 'rules' option is deprecated when only 'rules' is used", () => {
+    it("warns once that the 'rules' option is deprecated when only 'rules' is used, with the link to the rename in the v7 migration guide", () => {
       const options = {
         rules: [entry],
       } as unknown as RuleOptionsWithPolicies;
 
-      validate(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+      const result = validate(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
-      expect(reportedDiagnostic).toHaveBeenCalledWith(
-        expect.stringContaining("'rules' option is deprecated"),
-        expect.stringContaining("policies")
-      );
+      expect(result).toEqual([
+        {
+          level: "deprecation",
+          title: `[${RULE_NAMES_MAP.DEPENDENCIES}] The 'rules' option is deprecated.`,
+          detail: `Please use 'policies' instead. More info: ${DOCS_URL}/releases/migration-guides/v6-to-v7/#rules-option-renamed-to-policies`,
+          paths: [["rules"]],
+        },
+      ]);
     });
 
     it("does not warn about the 'rules' alias when legacyWarnings is false", () => {
@@ -1378,7 +1450,7 @@ describe("RuleOptions", () => {
       expect(reportedDiagnostic).toHaveBeenCalledTimes(2);
     });
 
-    it("still warns that 'rules' is deprecated and ignored when 'policies' is also set", () => {
+    it("still warns that 'rules' is deprecated and ignored when 'policies' is also set, with the link to the rename in the v7 migration guide", () => {
       const options = {
         policies: [entry],
         rules: [
@@ -1389,17 +1461,18 @@ describe("RuleOptions", () => {
         ],
       } as unknown as RuleOptionsWithPolicies;
 
-      validate(options, RULE_NAMES_MAP.DEPENDENCIES, true);
+      const result = validate(options, RULE_NAMES_MAP.DEPENDENCIES, true);
 
       // 'policies' entries contain no deprecated syntax, so the only warning is
       // that 'rules' is deprecated and will be ignored.
-      expect(reportedDiagnostic).toHaveBeenCalledTimes(1);
-      expect(reportedDiagnostic).toHaveBeenCalledWith(
-        expect.stringContaining(
-          "'rules' option is deprecated and will be ignored"
-        ),
-        expect.stringContaining("remove")
-      );
+      expect(result).toEqual([
+        {
+          level: "warning",
+          title: `[${RULE_NAMES_MAP.DEPENDENCIES}] The 'rules' option is deprecated and will be ignored because 'policies' is also defined.`,
+          detail: `You can safely remove the 'rules' option. More info: ${DOCS_URL}/releases/migration-guides/v6-to-v7/#rules-option-renamed-to-policies`,
+          paths: [["rules"]],
+        },
+      ]);
     });
 
     it("does not warn about the 'rules' alias when legacyWarnings is false, even if 'policies' is also set", () => {
@@ -1562,44 +1635,7 @@ describe("RuleOptions", () => {
   describe("validateRuleOptions texts of the deprecation diagnostics", () => {
     const modernFrom = { element: { type: "a" } };
     const modernTo = { element: { type: "b" } };
-    const DOCS_URL = "https://www.jsboundaries.dev/docs";
     const RULE = RULE_NAMES_MAP.DEPENDENCIES;
-
-    it("reports the deprecated 'rules' option with the link to the rename in the v7 migration guide", () => {
-      const options = {
-        rules: [{ from: modernFrom, to: modernTo }],
-      } as unknown as RuleOptionsWithPolicies;
-
-      const result = validate(options, RULE, true);
-
-      expect(result).toEqual([
-        {
-          level: "deprecation",
-          title: `[${RULE}] The 'rules' option is deprecated.`,
-          detail: `Please use 'policies' instead. More info: ${DOCS_URL}/releases/migration-guides/v6-to-v7/#rules-option-renamed-to-policies`,
-          paths: [["rules"]],
-        },
-      ]);
-    });
-
-    it("reports the ignored 'rules' option with the link to the rename in the v7 migration guide", () => {
-      const entry = { from: modernFrom, to: modernTo };
-      const options = {
-        policies: [entry],
-        rules: [entry],
-      } as unknown as RuleOptionsWithPolicies;
-
-      const result = validate(options, RULE, true);
-
-      expect(result).toEqual([
-        {
-          level: "warning",
-          title: `[${RULE}] The 'rules' option is deprecated and will be ignored because 'policies' is also defined.`,
-          detail: `You can safely remove the 'rules' option. More info: ${DOCS_URL}/releases/migration-guides/v6-to-v7/#rules-option-renamed-to-policies`,
-          paths: [["rules"]],
-        },
-      ]);
-    });
 
     it("reports the legacy template syntax of the policies with the link to the new template syntax", () => {
       const options = {
@@ -1708,110 +1744,6 @@ describe("RuleOptions", () => {
       } as unknown as RuleOptionsWithPolicies;
 
       const result = validate(options, RULE, true);
-
-      expect(result).toEqual([]);
-    });
-  });
-
-  describe("validateRuleOptions invalid selector shapes by property", () => {
-    const RULE = RULE_NAMES_MAP.DEPENDENCIES;
-    const invalidSelector = { notAnEntitySelectorKey: true };
-    const validEntry = { element: { type: "b" } };
-
-    it.each(["from", "to", "dependency", "allow", "disallow"])(
-      "reports the '%s' property alone when it is the only one with an unrecognized shape",
-      (property) => {
-        const options = {
-          policies: [{ [property]: invalidSelector }],
-        } as unknown as RuleOptionsWithPolicies;
-
-        const result = validate(options, RULE, false);
-
-        expect(result).toEqual([
-          {
-            level: "warning",
-            title: `[${RULE}] Detected an unrecognized selector shape in 1 policy at indices: 0.`,
-            detail: `Check the '${property}' property. More info: https://www.jsboundaries.dev/docs/rules/dependencies/`,
-            paths: [["policies", 0]],
-          },
-        ]);
-      }
-    );
-
-    it("lists every property with an unrecognized shape in the policies, in a fixed order, and counts the policies", () => {
-      const options = {
-        policies: [
-          {
-            disallow: invalidSelector,
-            allow: invalidSelector,
-            dependency: invalidSelector,
-            to: invalidSelector,
-            from: invalidSelector,
-          },
-          { from: validEntry },
-          { from: invalidSelector },
-        ],
-      } as unknown as RuleOptionsWithPolicies;
-
-      const result = validate(options, RULE, false);
-
-      expect(result).toEqual([
-        {
-          level: "warning",
-          title: `[${RULE}] Detected an unrecognized selector shape in 2 policies at indices: 0, 2.`,
-          detail: `Check the 'from', 'to', 'dependency', 'allow' and 'disallow' properties. More info: https://www.jsboundaries.dev/docs/rules/dependencies/`,
-          paths: [
-            ["policies", 0],
-            ["policies", 2],
-          ],
-        },
-      ]);
-    });
-
-    it("checks every entry of an array of 'allow' selectors", () => {
-      const options = {
-        policies: [
-          { from: validEntry, allow: [{ to: validEntry }, invalidSelector] },
-        ],
-      } as unknown as RuleOptionsWithPolicies;
-
-      const result = validate(options, RULE, false);
-
-      expect(result).toEqual([
-        expect.objectContaining({
-          level: "warning",
-          detail: expect.stringContaining("Check the 'allow' property."),
-          paths: [["policies", 0]],
-        }),
-      ]);
-    });
-
-    it("accepts an array of 'allow' selectors that mixes dependency selectors and entity selectors", () => {
-      const options = {
-        policies: [
-          { from: validEntry, allow: [{ to: validEntry }, validEntry] },
-        ],
-      } as unknown as RuleOptionsWithPolicies;
-
-      const result = validate(options, RULE, false);
-
-      expect(result).toEqual([]);
-    });
-
-    it("does not take the 'allow' of the external rule, which lists libraries and their specifiers, for entity selectors", () => {
-      const options = {
-        policies: [
-          {
-            from: "components",
-            allow: [["lodash", { specifiers: ["chunk"] }]],
-          },
-        ],
-      };
-
-      // The schema validation passes, so the options are valid for the external rule
-      const result = validateRuleOptions(RULE_NAMES_MAP.EXTERNAL, options, {
-        legacyWarnings: false,
-      });
 
       expect(result).toEqual([]);
     });
