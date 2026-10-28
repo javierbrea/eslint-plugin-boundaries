@@ -55,6 +55,18 @@
       "prBodyNotes": [
         "Run `pnpm --filter website sync:fonts` and `pnpm --filter website social-card`, and commit `packages/website/static/fonts/` and `packages/website/static/img/og-image.png`."
       ]
+    },
+    {
+      "description": "support/eslint-config turns off the rules of the sonarjs recommended config that the SonarCloud profile does not run",
+      "matchFileNames": [
+        "support/eslint-config/package.json"
+      ],
+      "matchPackageNames": [
+        "eslint-plugin-sonarjs"
+      ],
+      "prBodyNotes": [
+        "Check `SONARJS_RULES_NOT_IN_SONARCLOUD` in `support/eslint-config/index.js` again against the recommended config of the new `eslint-plugin-sonarjs` version and the \"Sonar way comprehensive\" profile of SonarCloud."
+      ]
     }
   ]
 }
