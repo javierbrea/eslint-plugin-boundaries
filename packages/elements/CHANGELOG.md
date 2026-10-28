@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - chore: The mutation testing badge of the README shows the score of this package instead of the score of the whole repository.
+- chore: The homepage of the package is its own README instead of the README of the plugin, and its folder in the repository is declared in the `directory` field that npm reads.
 
 ## [3.3.0] - 2026-10-27
 

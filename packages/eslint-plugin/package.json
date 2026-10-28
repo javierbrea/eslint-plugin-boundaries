@@ -20,7 +20,12 @@
   ],
   "author": "Javier Brea",
   "license": "MIT",
-  "repository": "https://github.com/javierbrea/eslint-plugin-boundaries",
+  "homepage": "https://www.jsboundaries.dev/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/javierbrea/eslint-plugin-boundaries.git",
+    "directory": "packages/eslint-plugin"
+  },
   "files": [
     "dist"
   ],

@@ -9,10 +9,11 @@
   ],
   "author": "Javier Brea",
   "license": "MIT",
+  "homepage": "https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/packages/elements#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/javierbrea/eslint-plugin-boundaries.git",
-    "folder": "packages/elements"
+    "directory": "packages/elements"
   },
   "files": [
     "dist"

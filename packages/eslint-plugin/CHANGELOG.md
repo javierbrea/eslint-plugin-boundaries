@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - refactor(#549): The normalization and validation of the settings and rule options move to the new `@boundaries/config` package, which the plugin depends on. The plugin reports the same warnings and errors as before.
 - chore(#549): Type-check the plugin against the types of ESLint 9.39, which the repository develops and tests it with.
+- chore: The homepage of the package is the [JS Boundaries website](https://www.jsboundaries.dev/), and the README is a short introduction that links to it.
 
 ### Fixed
 
