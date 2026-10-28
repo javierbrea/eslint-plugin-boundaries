@@ -184,42 +184,12 @@ describe("describeDependency | Integration", () => {
         expect(isElementDescription(element)).toBe(true);
       });
 
-      it("should assign descriptions to external elements correctly", () => {
-        const element = describeDependencyTarget("react");
-
-        expect(element).toEqual({
-          types: null,
-          category: null,
-          captured: null,
-          filePath: null,
-          fileInternalPath: null,
-          parents: [],
-          isIgnored: false,
-          path: null,
-          isUnknown: true,
-        });
-        expect(isElementDescription(element)).toBe(true);
-      });
-
-      it("should assign descriptions to core elements correctly", () => {
-        const element = describeDependencyTarget("node:fs");
-
-        expect(element).toEqual({
-          types: null,
-          category: null,
-          captured: null,
-          filePath: null,
-          fileInternalPath: null,
-          parents: [],
-          isIgnored: false,
-          path: null,
-          isUnknown: true,
-        });
-        expect(isElementDescription(element)).toBe(true);
-      });
-
-      it("should assign descriptions to core elements without node prefix correctly", () => {
-        const element = describeDependencyTarget("fs");
+      it.each([
+        { elements: "external elements", source: "react" },
+        { elements: "core elements", source: "node:fs" },
+        { elements: "core elements without node prefix", source: "fs" },
+      ])("should assign descriptions to $elements correctly", ({ source }) => {
+        const element = describeDependencyTarget(source);
 
         expect(element).toEqual({
           types: null,

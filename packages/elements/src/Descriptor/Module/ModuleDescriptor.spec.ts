@@ -130,75 +130,53 @@ describe("ModulesDescriptor", () => {
     });
 
     describe("core modules", () => {
-      it("should return core origin for a Node.js built-in module", () => {
-        const config = createConfig();
-        const micromatch = createMicromatchMock();
-        const descriptor = new ModulesDescriptor(config, micromatch);
-
-        const result = descriptor.describeModule(undefined, "fs");
-
-        expect(result).toEqual({
-          origin: ORIGINS_MAP.CORE,
+      it.each([
+        {
+          description: "a Node.js built-in module",
+          request: "fs",
           source: "fs",
           internalPath: null,
-        });
-      });
-
-      it("should return core origin for a node: prefixed module", () => {
-        const config = createConfig();
-        const micromatch = createMicromatchMock();
-        const descriptor = new ModulesDescriptor(config, micromatch);
-
-        const result = descriptor.describeModule(undefined, "node:path");
-
-        expect(result).toEqual({
-          origin: ORIGINS_MAP.CORE,
+        },
+        {
+          description: "a node: prefixed module",
+          request: "node:path",
           source: "node:path",
           internalPath: null,
-        });
-      });
-
-      it("should return core origin with internalPath for a built-in subpath", () => {
-        const config = createConfig();
-        const micromatch = createMicromatchMock();
-        const descriptor = new ModulesDescriptor(config, micromatch);
-
-        const result = descriptor.describeModule(undefined, "fs/promises");
-
-        expect(result).toEqual({
-          origin: ORIGINS_MAP.CORE,
+        },
+        {
+          description: "a built-in subpath",
+          request: "fs/promises",
           source: "fs",
           internalPath: "promises",
-        });
-      });
-
-      it("should return core origin with internalPath for a node: prefixed subpath", () => {
-        const config = createConfig();
-        const micromatch = createMicromatchMock();
-        const descriptor = new ModulesDescriptor(config, micromatch);
-
-        const result = descriptor.describeModule(undefined, "node:fs/promises");
-
-        expect(result).toEqual({
-          origin: ORIGINS_MAP.CORE,
+        },
+        {
+          description: "a node: prefixed subpath",
+          request: "node:fs/promises",
           source: "node:fs",
           internalPath: "promises",
-        });
-      });
-
-      it("should return core origin for a built-in module only available with the node: prefix", () => {
-        const config = createConfig();
-        const micromatch = createMicromatchMock();
-        const descriptor = new ModulesDescriptor(config, micromatch);
-
-        const result = descriptor.describeModule(undefined, "node:test");
-
-        expect(result).toEqual({
-          origin: ORIGINS_MAP.CORE,
+        },
+        {
+          description: "a built-in module only available with the node: prefix",
+          request: "node:test",
           source: "node:test",
           internalPath: null,
-        });
-      });
+        },
+      ])(
+        "should return core origin for $description",
+        ({ request, source, internalPath }) => {
+          const config = createConfig();
+          const micromatch = createMicromatchMock();
+          const descriptor = new ModulesDescriptor(config, micromatch);
+
+          const result = descriptor.describeModule(undefined, request);
+
+          expect(result).toEqual({
+            origin: ORIGINS_MAP.CORE,
+            source,
+            internalPath,
+          });
+        }
+      );
 
       it("should not return core origin for a subpath that a built-in module does not provide", () => {
         const config = createConfig();
@@ -514,7 +492,7 @@ describe("ModulesDescriptor", () => {
         const micromatch = createMicromatchMock();
         const descriptor = new ModulesDescriptor(config, micromatch);
 
-        const result = descriptor.describeModule(undefined);
+        const result = descriptor.describeModule();
 
         expect(result).toEqual({
           origin: ORIGINS_MAP.EXTERNAL,

@@ -109,28 +109,32 @@ describe("Elements", () => {
     it("should create a Config with the provided options", () => {
       const options = { cache: false };
 
-      new Elements(options);
+      const elements = new Elements(options);
 
+      expect(elements).toBeInstanceOf(Elements);
       expect(MockedConfig).toHaveBeenCalledWith(options);
     });
 
     it("should create a Config with undefined when no options are provided", () => {
-      new Elements();
+      const elements = new Elements();
 
+      expect(elements).toBeInstanceOf(Elements);
       expect(MockedConfig).toHaveBeenCalledWith(undefined);
     });
 
     it("should create Micromatch instances with and without cache", () => {
-      new Elements();
+      const elements = new Elements();
 
+      expect(elements).toBeInstanceOf(Elements);
       expect(MockedMicromatch).toHaveBeenCalledTimes(2);
       expect(MockedMicromatch).toHaveBeenCalledWith(true);
       expect(MockedMicromatch).toHaveBeenCalledWith(false);
     });
 
     it("should create a MatchersCache instance", () => {
-      new Elements();
+      const elements = new Elements();
 
+      expect(elements).toBeInstanceOf(Elements);
       expect(MockedMatchersCache).toHaveBeenCalledTimes(1);
     });
   });

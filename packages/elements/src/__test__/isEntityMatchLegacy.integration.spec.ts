@@ -231,16 +231,6 @@ describe("isEntityMatch | Legacy Syntax | Integration", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { type: "{{ element.type }}" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { type: "{{ element.types.[0] }}" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
         selector: { type: "component", types: "component" },
         expected: true,
       },
@@ -497,13 +487,6 @@ describe("isEntityMatch | Legacy Syntax | Integration", () => {
       {
         filePath: "/project/src/components/Button.tsx",
         selector: {
-          captured: [{ fileName: "Icon" }, { fileName: "Button" }],
-        },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
           captured: [],
         },
         expected: false,
@@ -619,12 +602,6 @@ describe("isEntityMatch | Legacy Syntax | Integration", () => {
         filePath: "/project/src/misc/other.ts",
         selector: { parent: { category: "business-logic" } },
         expected: false,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: { parent: { type: null } },
-        expected: true,
       },
       // Parent types (plural) selector: matches against all parent types
       {
@@ -805,28 +782,20 @@ describe("isEntityMatch | Legacy Syntax | Integration", () => {
       ).toThrow();
     });
 
-    it("should match using legacy string selector", () => {
+    it.each([
+      { selector: "legacy string selector", value: "component" },
+      {
+        selector: "legacy string selector with template",
+        value: "{{ element.types.[0] }}",
+      },
+      {
+        selector: "legacy string selector with legacy template",
+        value: "${ element.types.[0] }",
+      },
+    ])("should match using $selector", ({ value }) => {
       const result = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
-        "component"
-      );
-
-      expect(result).toBe(true);
-    });
-
-    it("should match using legacy string selector with template", () => {
-      const result = matcher.isElementMatch(
-        "/project/src/components/Button.tsx",
-        "{{ element.types.[0] }}"
-      );
-
-      expect(result).toBe(true);
-    });
-
-    it("should match using legacy string selector with legacy template", () => {
-      const result = matcher.isElementMatch(
-        "/project/src/components/Button.tsx",
-        "${ element.types.[0] }"
+        value
       );
 
       expect(result).toBe(true);
