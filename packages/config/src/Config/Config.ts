@@ -77,6 +77,93 @@ function toRuleEntryPath(ruleId: string, path: DiagnosticPath): DiagnosticPath {
 }
 
 /**
+ * Normalizes the entry of a plugin rule, validating it as ESLint validates it and then as the plugin does, and adds the problems found to the diagnostics.
+ * @param ruleId The key of the rule entry in `rules`.
+ * @param ruleShortName The rule name without the plugin prefix.
+ * @param entry The rule entry, a severity or a list with the severity and the options.
+ * @param context Context of the normalization.
+ * @param context.pluginName The prefix of the rule names.
+ * @param context.legacyWarnings Whether the rule options are checked for legacy syntax, from the normalized settings.
+ * @param context.diagnostics The builder that receives the problems found, with paths from the root of the config object.
+ * @returns The normalized entry, or `undefined` when ESLint rejects it.
+ */
+function normalizeRuleEntry(
+  ruleId: string,
+  ruleShortName: string,
+  entry: unknown,
+  {
+    pluginName,
+    legacyWarnings,
+    diagnostics,
+  }: {
+    pluginName: string;
+    legacyWarnings: boolean;
+    diagnostics: DiagnosticsBuilder;
+  }
+): RuleEntryNormalized<RuleShortName> | undefined {
+  const entryList = isArray(entry) ? entry : [entry];
+  const severity = RULE_SEVERITIES.get(entryList[0]);
+  if (!severity) {
+    diagnostics.error(
+      `Key "rules": Key "${ruleId}": Expected severity of "off", 0, "warn", 1, "error", or 2.`,
+      undefined,
+      [isArray(entry) ? ["rules", ruleId, 0] : ["rules", ruleId]]
+    );
+    return undefined;
+  }
+
+  if (!isRuleShortName(ruleShortName)) {
+    // ESLint does not look up a rule that is off
+    if (severity !== RULE_SEVERITIES_MAP.OFF) {
+      diagnostics.error(
+        `Key "rules": Key "${ruleId}": Could not find "${ruleShortName}" in plugin "${pluginName}".`,
+        undefined,
+        [["rules", ruleId]]
+      );
+    }
+    return undefined;
+  }
+
+  const ruleName = `${PLUGIN_NAME}/${ruleShortName}` as RuleName;
+  const optionsList = entryList.slice(1);
+  const options = optionsList[0];
+  const schemaError = validateRuleOptionsList(ruleName, optionsList);
+
+  if (severity === RULE_SEVERITIES_MAP.OFF) {
+    // ESLint does not validate a rule that is off, so its options are only kept when they are valid
+    return {
+      severity,
+      options: normalizeRuleEntryOptions(
+        ruleShortName,
+        schemaError ? undefined : options
+      ),
+    };
+  }
+
+  if (schemaError) {
+    diagnostics.error(
+      schemaError.title,
+      schemaError.detail,
+      schemaError.paths.map((path) => toRuleEntryPath(ruleId, path))
+    );
+    return undefined;
+  }
+
+  diagnostics.addAll(
+    validateRuleOptions(ruleName, options, {
+      legacyWarnings,
+      // Stryker disable next-line BooleanLiteral: Equivalent. The options already passed the schema validation above, so validating them again finds nothing and only repeats the work.
+      schema: false,
+    }),
+    ["rules", ruleId, 1]
+  );
+  return {
+    severity,
+    options: normalizeRuleEntryOptions(ruleShortName, options),
+  };
+}
+
+/**
  * Normalizes the boundaries part of an ESLint config, `{ settings, rules }`: the settings, and the entries of the plugin rules, which are validated as ESLint validates them and then as the plugin does. Keys of other plugins are ignored.
  * @param config The config object.
  * @param options Options of the normalization.
@@ -124,67 +211,14 @@ export function normalizeConfig(
     }
 
     const ruleShortName = ruleId.slice(rulePrefix.length);
-    const entryList = isArray(entry) ? entry : [entry];
-    const severity = RULE_SEVERITIES.get(entryList[0]);
-    if (!severity) {
-      diagnostics.error(
-        `Key "rules": Key "${ruleId}": Expected severity of "off", 0, "warn", 1, "error", or 2.`,
-        undefined,
-        [isArray(entry) ? ["rules", ruleId, 0] : ["rules", ruleId]]
-      );
-      continue;
+    const ruleEntry = normalizeRuleEntry(ruleId, ruleShortName, entry, {
+      pluginName,
+      legacyWarnings: settingsResult.value.legacyWarnings,
+      diagnostics,
+    });
+    if (ruleEntry) {
+      rulesNormalized[ruleShortName] = ruleEntry;
     }
-
-    if (!isRuleShortName(ruleShortName)) {
-      // ESLint does not look up a rule that is off
-      if (severity !== RULE_SEVERITIES_MAP.OFF) {
-        diagnostics.error(
-          `Key "rules": Key "${ruleId}": Could not find "${ruleShortName}" in plugin "${pluginName}".`,
-          undefined,
-          [["rules", ruleId]]
-        );
-      }
-      continue;
-    }
-
-    const ruleName = `${PLUGIN_NAME}/${ruleShortName}` as RuleName;
-    const optionsList = entryList.slice(1);
-    const options = optionsList[0];
-    const schemaError = validateRuleOptionsList(ruleName, optionsList);
-
-    if (severity === RULE_SEVERITIES_MAP.OFF) {
-      // ESLint does not validate a rule that is off, so its options are only kept when they are valid
-      rulesNormalized[ruleShortName] = {
-        severity,
-        options: normalizeRuleEntryOptions(
-          ruleShortName,
-          schemaError ? undefined : options
-        ),
-      };
-      continue;
-    }
-
-    if (schemaError) {
-      diagnostics.error(
-        schemaError.title,
-        schemaError.detail,
-        schemaError.paths.map((path) => toRuleEntryPath(ruleId, path))
-      );
-      continue;
-    }
-
-    diagnostics.addAll(
-      validateRuleOptions(ruleName, options, {
-        legacyWarnings: settingsResult.value.legacyWarnings,
-        // Stryker disable next-line BooleanLiteral: Equivalent. The options already passed the schema validation above, so validating them again finds nothing and only repeats the work.
-        schema: false,
-      }),
-      ["rules", ruleId, 1]
-    );
-    rulesNormalized[ruleShortName] = {
-      severity,
-      options: normalizeRuleEntryOptions(ruleShortName, options),
-    };
   }
 
   return {
