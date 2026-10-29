@@ -27,7 +27,6 @@ export default [
         { type: "config", pattern: "Config" },
         { type: "elements", pattern: "Elements" },
         { type: "settings", pattern: "Settings" },
-        { type: "messages", pattern: "Messages" },
         { type: "debug", pattern: "Debug" },
         { type: "public", pattern: "Public" },
         { type: "shared", pattern: "Shared" },
@@ -55,10 +54,6 @@ export default [
             // Layered allowlist: each layer may only import strictly downward
             // (shared is omitted below, already covered by the universal policy above)
             {
-              from: { element: { type: "messages" } },
-              allow: { to: { element: { type: "shared" } } },
-            },
-            {
               from: { element: { type: "debug" } },
               allow: { to: { element: { type: "shared" } } },
             },
@@ -81,22 +76,12 @@ export default [
               allow: {
                 to: {
                   element: {
-                    type: [
-                      "rule-support",
-                      "elements",
-                      "settings",
-                      "messages",
-                      "debug",
-                    ],
+                    type: ["rule-support", "elements", "settings", "debug"],
                   },
                 },
               },
             },
-            // Public API surface: re-exports downward from messages (and from @boundaries/config); consumed only by entry + config
-            {
-              from: { element: { type: "public" } },
-              allow: { to: { element: { type: "messages" } } },
-            },
+            // Public API surface: re-exports from @boundaries/config and @boundaries/policies; consumed only by entry + config
             {
               from: { element: { type: "config" } },
               allow: {

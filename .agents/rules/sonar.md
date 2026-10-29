@@ -2,6 +2,7 @@
 paths:
   - "**/sonar-project.properties"
   - "packages/config/**/*.ts"
+  - "packages/policies/**/*.ts"
   - "packages/elements/**/*.ts"
   - "packages/eslint-plugin/**/*.ts"
   - "support/eslint-config/index.js"

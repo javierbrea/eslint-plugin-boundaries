@@ -1,3 +1,4 @@
+import { PLUGIN_ISSUES_URL } from "@boundaries/config";
 import type {
   DependencyDescription,
   DependencyInfoDescription,
@@ -13,13 +14,7 @@ import type {
   ModuleSingleSelector,
 } from "@boundaries/elements";
 
-import {
-  PLUGIN_ISSUES_URL,
-  isArray,
-  isObject,
-  isUndefined,
-  isNull,
-} from "../Shared";
+import { isArray, isObject, isUndefined, isNull } from "../Shared";
 
 const MESSAGE_ERROR = `Not able to create a message for this violation. Please report this at: ${PLUGIN_ISSUES_URL}`;
 const NO_RULE_MESSAGE = "There is no policy allowing dependencies";
