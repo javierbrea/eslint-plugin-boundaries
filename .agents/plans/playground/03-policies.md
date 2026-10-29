@@ -65,13 +65,27 @@ As phase 2, steps 4 to 6, with:
 - A unit test of `policies` reproduces the home's step 3 case (quick-start config, `src/helpers/format` imported from `src/components/Price/index.ts`) and asserts the verdict, the policy index and the message the plugin reports for it (take the expected message from the plugin's own spec of that scenario).
 - Coverage 100%, and `pnpm nx test:mutation policies` above the `break` threshold of `stryker.config.mjs`.
 
+## Outcome
+
+Deviations from the steps, also in the description of PR #588:
+
+- `PolicyEvaluation` is a union on `allowed`: `message` is a `string` when `allowed` is `false` and `undefined` otherwise, so that a consumer reads the message without a cast. The RFC's `message?: string` reads the same.
+- `policies` exports `DependencySkipOptions`, the type of the options that `getDependencySkipReason` reads, and keeps `DEPENDENCY_SKIP_REASONS_MAP` internal.
+- The deprecated `CustomMessageTemplateRuleContext` alias is defined in the plugin's `Public/Messages.types.ts`, not in `policies`, so that the new package does not start with a deprecated type. The plugin exports the same names and types as before.
+- The plugin keeps `evaluatePoliciesAndReport` in `Rules/Dependencies.ts` as the shared reporting helper: it takes normalized options, calls `evaluatePolicies`, prints the diagnostics with `warnDiagnostics` and, when the dependency is not allowed, prints `printDependenciesRuleResult` and reports the message. `entry-point` and `external` call it with `normalizeDependenciesRuleOptions({ default, message, policies })`.
+- `entry-point` keeps its messages byte-identical by giving each translated policy the message of the user's policy at the same index (open point 1). The maintainer decided on 2026-10-29 not to file the bug, because the rule is deprecated.
+- The error of a selector that makes the matcher throw is a `warning` diagnostic with the path `["policies", index]`, from the root of the options.
+- `src/Evaluation/` is split into `Selectors.ts` (the merged selectors of each policy, cached by policy identity) and `Evaluation.ts` (`getDependencySkipReason`, `evaluatePolicies`, `evaluateDependency`). The moved specs keep testing the selector merging through `evaluatePolicies` with a mocked matcher; `src/index.spec.ts` runs the public interface on the quick-start example without mocks.
+- The home's step 3 case is a helper importing a component (`src/helpers/format/index.js` reports `There is no policy allowing dependencies from elements of type "helper" to elements of type "component"`), not the reverse. With the quick-start patterns, a component is a folder two levels under `components/` (`components/atoms/Price`).
+
 ## Hand-offs
 
-- To phases 5 and 6: `describeEntity(settings, path)` for the inspector; `describeDependency(settings, { from, to, source, kind, nodeKind, specifiers })` and `evaluateDependency(settings, options, description)` for the verdicts, with `options` the `dependencies` (or `element-types`) entry of `normalizeConfig`'s `rules`; the result `{ checked, reason }` or `{ checked, allowed, policyIndex, match, message, diagnostics }`; module origin for a sketched tree: `to` only for nodes of the sketch, everything else external or core (RFC #538, research 1).
-- To the index: versions set.
+- To phases 5 and 6: `describeEntity(settings, path)` for the inspector; `describeDependency(settings, { from, to, source, kind, nodeKind, specifiers })` and `evaluateDependency(settings, options, description)` for the verdicts, with `options` the `dependencies` (or `element-types`) entry of `normalizeConfig`'s `rules`; the result is `{ checked: false, reason }` or `{ checked: true, allowed, policyIndex, match, message, diagnostics }`, with `message` set only when `allowed` is `false`; module origin for a sketched tree: `to` only for nodes of the sketch, everything else external or core (RFC #538, research 1). `getDependencySkipReason(options, description)` gives the reason alone.
+- To the index: versions set (`policies` 1.0.0 in its `package.json`; the plugin's patch is set at release time from its `[Unreleased]` entries).
+- Measured on 2026-10-29 with esbuild 0.28.2, minified and gzipped: `policies` alone is 4.2 KB; with `config`, `elements` and their dependencies it is 95.9 KB, against 73.2 KB for `config` and its dependencies, because `policies` pulls the matcher of `elements` and `handlebars`.
 
 ## Open points
 
-- `entry-point` translates a policy with several `target` selectors into one `dependencies` policy per selector, and today `resolveCustomMessage` reads the custom message from the user's policies at the translated index, so a later policy can report another policy's message or none (found in phase 2, which keeps it). `evaluatePolicies` reads it from the translated policies, which is what the user wrote. Default: the reporting helper keeps today's message for `entry-point`, so that the messages stay byte-identical, and the bug is filed as an issue to fix in its own PR.
-- `DiagnosticsBuilder` is internal to `config`. `policies` reports one kind of problem (the `safeMatch` error), so it builds that `Diagnostic` itself. Default: no new export from `config`; if `policies` needs the builder's deduplication, export it from `config` before `config` 1.0.0 is released, in this PR.
+- `entry-point` translates a policy with several `target` selectors into one `dependencies` policy per selector, and today `resolveCustomMessage` reads the custom message from the user's policies at the translated index, so a later policy can report another policy's message or none (found in phase 2, which keeps it). `evaluatePolicies` reads it from the translated policies, which is what the user wrote. Decided in the PR: the messages stay byte-identical, and the bug is not filed, because the rule is deprecated (maintainer, 2026-10-29).
+- `DiagnosticsBuilder` is internal to `config`. `policies` reports one kind of problem (the `safeMatch` error), so it builds that `Diagnostic` itself. Decided in the PR: no new export from `config`; `policies` builds that `Diagnostic` itself.
 - If the playground (phase 6) shows that the `elements` caches grow without bound over a long session, add a `clearCache()` to `policies` that delegates to the `Elements` instance, in its own PR into `release`. Default: none (RFC decision 7).
