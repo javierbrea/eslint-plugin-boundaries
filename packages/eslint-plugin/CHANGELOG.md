@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - chore(#549): Type-check the plugin against the types of ESLint 9.39, which the repository develops and tests it with.
 - chore: Lint the plugin with the SonarCloud rules that `eslint-plugin-sonarjs` implements.
 - chore: The homepage of the package is the [JS Boundaries website](https://www.jsboundaries.dev/), the README is a short introduction that links to it, and the folder of the package in the repository is declared in the `directory` field that npm reads.
+- chore: The TypeScript configuration no longer uses two options that TypeScript 6 deprecates: it resolves modules with `node16` instead of `node10`, and it no longer sets `baseUrl`. The build output does not change.
 
 ### Fixed
 

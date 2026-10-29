@@ -3,6 +3,7 @@
     "skipLibCheck": true,
     "target": "es2022",
     "lib": ["es2022", "dom"],
+    "types": ["node"],
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "allowJs": true,
