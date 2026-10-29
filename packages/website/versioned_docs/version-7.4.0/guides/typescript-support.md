@@ -61,7 +61,7 @@ export default [{
 
 ### Path Mapping Support
 
-The `eslint-import-resolver-typescript` automatically detects custom path mappings defined in your `tsconfig.json` file, making it fully compatible with TypeScript path aliases. The `paths` are relative to the `tsconfig.json` file, so they start with `./`:
+The `eslint-import-resolver-typescript` automatically detects custom path mappings defined in your `tsconfig.json` file, making it fully compatible with TypeScript path aliases. Without `baseUrl`, which TypeScript 6 deprecates, the `paths` are relative to the `tsconfig.json` file, so they start with `./`:
 
 ```json
 {
