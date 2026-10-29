@@ -59,17 +59,39 @@ export default [{
 }];
 ```
 
+### Importing the Plugin with `nodenext`, `node16` or `require()`
+
+In an ES module project whose `tsconfig.json` sets `module` and `moduleResolution` to `nodenext` or `node16`, TypeScript types the default imports of `eslint-plugin-boundaries`, `eslint-plugin-boundaries/recommended` and `eslint-plugin-boundaries/strict` as an object with a `default` property, while Node.js returns the plugin object or the config itself. Reading `.default` type-checks, but it is `undefined` at runtime. When TypeScript checks a CommonJS file, it types what `require()` returns from them in the same way ([#584](https://github.com/javierbrea/eslint-plugin-boundaries/issues/584)).
+
+Import the configs and the [`createConfig`](../settings/config-helpers.md) helper, which registers the plugin, from `eslint-plugin-boundaries/config` instead. Its named exports are typed right with any module resolution, both with `import` and with `require()`:
+
+```ts
+import { createConfig, recommended } from "eslint-plugin-boundaries/config";
+
+export default [
+  createConfig({
+    files: ["**/*.ts"],
+    settings: {
+      ...recommended.settings,
+      "boundaries/elements": [{ type: "module", pattern: "src/modules/*" }],
+    },
+    rules: {
+      ...recommended.rules,
+    },
+  }),
+];
+```
+
 ### Path Mapping Support
 
-The `eslint-import-resolver-typescript` automatically detects custom path mappings defined in your `tsconfig.json` file, making it fully compatible with TypeScript path aliases:
+The `eslint-import-resolver-typescript` automatically detects custom path mappings defined in your `tsconfig.json` file, making it fully compatible with TypeScript path aliases. Without `baseUrl`, which TypeScript 6 deprecates, the `paths` are resolved relative to the `tsconfig.json` file, so they start with `./`:
 
 ```json
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
-      "@modules/*": ["src/modules/*"],
-      "@shared/*": ["src/shared/*"]
+      "@modules/*": ["./src/modules/*"],
+      "@shared/*": ["./src/shared/*"]
     }
   }
 }
@@ -148,7 +170,7 @@ In addition to the main `Config` type, the plugin exports individual subtypes fo
 - `IgnoreSetting`, `IncludeSetting`, `RootPathSetting`, `DebugSetting`, `SettingsKey` - other [settings](../settings/settings.md) types.
 - `FileDescriptor`, `FileDescriptors` - an entry (or array) of the [`boundaries/files`](../settings/settings.md#boundariesfiles) setting.
 
-The deprecated-rule option types (`EntryPointPolicy`, `EntryPointRuleOptions`, `ExternalPolicy`, `ExternalRuleOptions`, `NoPrivateOptions`) and constants/guards (`SETTINGS_KEYS_MAP`, `RULE_NAMES_MAP`, `DEPENDENCY_KINDS_MAP`, `isSettingsKey`, `isDependencyKind`, `isFileDescriptor`, and more) are also exported. See the package types for the complete list.
+The deprecated-rule option types (`EntryPointPolicy`, `EntryPointRuleOptions`, `ExternalPolicy`, `ExternalRuleOptions`, `NoPrivateOptions`) are also exported. The constants and type guards (`SETTINGS_KEYS_MAP`, `RULE_NAMES_MAP`, `DEPENDENCY_KINDS_MAP`, `isSettingsKey`, `isDependencyKind`, `isFileDescriptor`, and more) are exported from `eslint-plugin-boundaries/config`, which also exports every type; see [Type Constants and Guards](../settings/config-helpers.md#type-constants-and-guards). See the package types for the complete list.
 
 This modular approach lets you import only what you need while keeping autocomplete and type checking:
 
