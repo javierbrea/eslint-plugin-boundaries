@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- docs(#584): The TypeScript Support guide explains how to import the plugin and its configs when TypeScript types their default imports wrong, with `nodenext`, `node16` or `require()`: from `eslint-plugin-boundaries/config`.
+- docs(#584): The troubleshooting section of the TypeScript Support guide explains how to fix the type errors of the default imports with `nodenext`, `node16` or `require()`: import from `eslint-plugin-boundaries/config`.
 
 ### Changed
 
