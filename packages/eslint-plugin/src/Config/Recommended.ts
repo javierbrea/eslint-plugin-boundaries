@@ -38,7 +38,5 @@ const config: Config = {
   },
 };
 
-export default config;
-
-// For CommonJS compatibility
-module.exports = config;
+// `export =` makes the config the value of `module.exports`, which is what `require()` and the default import of an ES module receive, and declares it so
+export = config;

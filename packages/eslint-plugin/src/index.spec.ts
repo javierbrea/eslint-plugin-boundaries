@@ -1,8 +1,113 @@
+import path from "node:path";
+
+import ts from "typescript";
+
 import { RULE_NAMES_MAP, RULE_SHORT_NAMES_MAP } from "./Public";
 
 import plugin from "./index";
 
+/**
+ * What the consumers of a type see: its type parameters, its TSDoc and its tags, with the whitespace of the texts collapsed so that the line wrapping does not count.
+ */
+type TypeDeclarationSummary = {
+  typeParameters: string[];
+  documentation: string;
+  tags: string[];
+};
+
+/**
+ * Collapses the whitespace of a text into single spaces.
+ * @param text - Text to collapse.
+ * @returns The text with its whitespace collapsed.
+ */
+function collapseWhitespace(text: string): string {
+  return text.replaceAll(/\s+/g, " ").trim();
+}
+
+/**
+ * Reads the type exports of a module with the TypeScript checker, following `export *` chains and the namespace merged with an `export =` value.
+ * @param fileName - Path of the module, relative to the folder of this file.
+ * @returns The summary of each type export, by name.
+ */
+function getTypeExports(
+  fileName: string
+): Record<string, TypeDeclarationSummary> {
+  const filePath = path.join(__dirname, fileName);
+  const configPath = path.join(__dirname, "..", "tsconfig.code.json");
+  const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
+  const parsedConfig = ts.parseJsonConfigFileContent(
+    configFile.config,
+    ts.sys,
+    path.dirname(configPath)
+  );
+  const program = ts.createProgram({
+    rootNames: [filePath],
+    options: { ...parsedConfig.options, noEmit: true },
+  });
+  const checker = program.getTypeChecker();
+  const sourceFile = program.getSourceFile(filePath);
+  const moduleSymbol = sourceFile && checker.getSymbolAtLocation(sourceFile);
+  if (!moduleSymbol) {
+    throw new Error(`Could not resolve the module symbol of ${fileName}`);
+  }
+
+  const summaries: Record<string, TypeDeclarationSummary> = {};
+  for (const exportSymbol of checker.getExportsOfModule(moduleSymbol)) {
+    const symbol =
+      exportSymbol.flags & ts.SymbolFlags.Alias
+        ? checker.getAliasedSymbol(exportSymbol)
+        : exportSymbol;
+    const declaration = symbol.declarations?.[0];
+    if (symbol.flags & ts.SymbolFlags.Type && declaration) {
+      const typeParameters =
+        ts.isTypeAliasDeclaration(declaration) ||
+        ts.isInterfaceDeclaration(declaration)
+          ? (declaration.typeParameters ?? [])
+          : [];
+      summaries[exportSymbol.getName()] = {
+        typeParameters: typeParameters.map((typeParameter) =>
+          [
+            typeParameter.name.getText(),
+            typeParameter.constraint &&
+              checker.typeToString(
+                checker.getTypeAtLocation(typeParameter.constraint)
+              ),
+            typeParameter.default &&
+              checker.typeToString(
+                checker.getTypeAtLocation(typeParameter.default)
+              ),
+          ].join(" ")
+        ),
+        documentation: collapseWhitespace(
+          ts.displayPartsToString(symbol.getDocumentationComment(checker))
+        ),
+        tags: symbol
+          .getJsDocTags(checker)
+          .map(
+            (tag) =>
+              `@${tag.name} ${collapseWhitespace(ts.displayPartsToString(tag.text))}`
+          ),
+      };
+    }
+  }
+  return summaries;
+}
+
 describe("package", () => {
+  describe("type exports", () => {
+    it("should declare every public type in the namespace of the plugin object, with the same type parameters, TSDoc and tags", () => {
+      // Arrange
+      const publicTypes = getTypeExports("Public/index.ts");
+
+      // Act
+      const pluginTypes = getTypeExports("index.ts");
+
+      // Assert
+      expect(Object.keys(publicTypes).length).toBeGreaterThan(0);
+      expect(pluginTypes).toEqual(publicTypes);
+    });
+  });
+
   describe("rules property", () => {
     it.each(Object.values(RULE_SHORT_NAMES_MAP))(
       "should contain rule '%s' with a defined create function",

@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - chore(#557): Render the link preview image with the Chromium of the pinned Playwright version, so it is the same on every machine.
 - docs(#584): The path aliases example of the TypeScript Support guide no longer sets `baseUrl`, which TypeScript 6 deprecates, and the guide says that the constants and type guards are exported from `eslint-plugin-boundaries/config`.
 
+### Removed
+
+- docs(#584): The TypeScript Support guide no longer explains how to import the plugin from `eslint-plugin-boundaries/config` with `nodenext`, `node16` or `require()`, because v8 types their default imports right.
+
 ## [7.4.0] - 2026-10-27
 
 ### Added

@@ -8,7 +8,7 @@
     "build": "tsc --project test/configs-ts/tsconfig.json",
     "check:all": "echo 'All checks passed'",
     "check:spell": "cspell --quiet .",
-    "check:types": "tsc --noEmit && tsc --project test/configs-ts-nodenext/tsconfig.json",
+    "check:types": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test:e2e": "cross-env RUN_PERFORMANCE_TESTS=false node test/e2e.spec.js",

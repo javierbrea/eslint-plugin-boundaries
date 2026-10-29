@@ -59,29 +59,6 @@ export default [{
 }];
 ```
 
-### Importing the Plugin with `nodenext`, `node16` or `require()`
-
-In an ES module project whose `tsconfig.json` sets `module` and `moduleResolution` to `nodenext` or `node16`, TypeScript types the default imports of `eslint-plugin-boundaries`, `eslint-plugin-boundaries/recommended` and `eslint-plugin-boundaries/strict` as an object with a `default` property, while Node.js returns the plugin object or the config itself. Reading `.default` type-checks, but it is `undefined` at runtime. When TypeScript checks a CommonJS file, it types what `require()` returns from them in the same way ([#584](https://github.com/javierbrea/eslint-plugin-boundaries/issues/584)).
-
-Import the configs and the [`createConfig`](../settings/config-helpers.md) helper, which registers the plugin, from `eslint-plugin-boundaries/config` instead. Its named exports are typed right with any module resolution, both with `import` and with `require()`:
-
-```ts
-import { createConfig, recommended } from "eslint-plugin-boundaries/config";
-
-export default [
-  createConfig({
-    files: ["**/*.ts"],
-    settings: {
-      ...recommended.settings,
-      "boundaries/elements": [{ type: "module", pattern: "src/modules/*" }],
-    },
-    rules: {
-      ...recommended.rules,
-    },
-  }),
-];
-```
-
 ### Path Mapping Support
 
 The `eslint-import-resolver-typescript` automatically detects custom path mappings defined in your `tsconfig.json` file, making it fully compatible with TypeScript path aliases. Without `baseUrl`, which TypeScript 6 deprecates, the `paths` are resolved relative to the `tsconfig.json` file, so they start with `./`:

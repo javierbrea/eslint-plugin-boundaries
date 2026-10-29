@@ -9,10 +9,8 @@ const {
 /** @type {import('@boundaries/eslint-plugin').Config} */
 const boundariesConfig = {
   ...baseBasicFixtureConfig,
-  // @ts-expect-error -- The types of v7 give require() the module namespace, { default: ... } (#584)
   plugins: { boundaries },
   rules: {
-    // @ts-expect-error -- The types of v7 give require() the module namespace, { default: ... } (#584)
     ...strictBoundariesConfig.rules,
     ...baseBasicFixtureConfig.rules,
   },
