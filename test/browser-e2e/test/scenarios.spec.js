@@ -7,7 +7,13 @@ import { expect, test } from "@playwright/test";
 
 import { SCENARIOS, runScenario } from "../src/scenarios/index.js";
 
+import { UNSUPPORTED_BROWSERS_ENV } from "./global-setup.js";
+
 const DIST = join(dirname(fileURLToPath(import.meta.url)), "..", "dist");
+/** @type {string[]} */
+const UNSUPPORTED_BROWSERS = JSON.parse(
+  process.env[UNSUPPORTED_BROWSERS_ENV] ?? "[]"
+);
 // Nothing listens on this origin: the route below answers its requests from the dist folder, and a request to any other origin while the page loads or runs the scenario fails the test
 const ORIGIN = "https://browser-e2e.local";
 
@@ -34,6 +40,12 @@ async function openScenariosPage(page) {
   await page.goto(`${ORIGIN}/`);
   return problems;
 }
+
+// Outside CI, skips the tests of a browser that does not launch on this machine, which the global setup finds
+test.skip(
+  ({ browserName }) => UNSUPPORTED_BROWSERS.includes(browserName),
+  "The browser does not launch on this machine; the global setup prints why"
+);
 
 for (const { name, run } of SCENARIOS) {
   test(name, async ({ page, browserName }) => {

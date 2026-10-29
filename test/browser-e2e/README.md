@@ -18,6 +18,8 @@ pnpm nx test:e2e browser-e2e
 
 The first run downloads Chromium, Firefox and WebKit. On Linux, install their system dependencies once with `pnpm exec playwright install --with-deps chromium firefox webkit`.
 
+A browser that does not launch on your machine does not fail the run: `test/global-setup.js` launches each browser once before the tests, prints why one does not launch, and its tests are skipped. When the `CI` environment variable is set, as in GitHub Actions, nothing is skipped, so a browser that does not launch fails its tests.
+
 To run one browser, build the project and run Playwright from this folder:
 
 ```bash
