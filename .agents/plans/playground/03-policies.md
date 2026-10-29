@@ -3,17 +3,19 @@
 
 Goal: a new published package `@boundaries/policies` (`packages/policies`) that describes files and dependencies from paths, evaluates normalized `dependencies` options against them and produces the messages, with the `dependencies` rule of the plugin reduced to AST reading, resolution, debug output and `report`.
 
-Issue: #550. Branch `feat/550/policies-package` from `release` (after phase 2 is merged); PR into `release`, title `feat: Extract @boundaries/policies from the plugin`, `closes #550`. Changelog entries: `packages/policies/CHANGELOG.md` (`## [1.0.0]`, first version) and `packages/eslint-plugin/CHANGELOG.md` (`refactor(#550): ...`; a patch, or no new bump if phase 2's patch is not released yet). The PR description lists the moved modules, the adapters left in the plugin, the browser check result, and an example call of `evaluateDependency` with its result.
+Issue: #550. Branch `feat/550/policies-package` from `release`; PR into `release`, title `feat: Extract @boundaries/policies from the plugin`, `closes #550`. Changelog entries: `packages/policies/CHANGELOG.md` (`## [1.0.0]`, first version) and `packages/eslint-plugin/CHANGELOG.md` (`refactor(#550): ...` under `[Unreleased]`, next to the `refactor(#549)` entry; the plugin's patch version is set at release time). The PR description lists the moved modules, the adapters left in the plugin, the browser check result, and an example call of `evaluateDependency` with its result.
 
 Read first:
 
-- [RFC #559](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/559), decisions 1, 4, 5, 6, 7, 8, 9, 10. If this file and the RFC disagree, the RFC wins and this file is corrected.
+- [RFC #559](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/559), decisions 1, 4, 5, 6, 7, 8, 9, 10 and Amendment 1 (`getDependencySkipReason`). If this file and the RFC disagree, the RFC wins and this file is corrected.
 - Research note 2 on #539 (https://github.com/javierbrea/eslint-plugin-boundaries/issues/539#issuecomment-6410354387): the destination of every symbol and the specs that move.
 - `02-config.md` (its "Outcome" too) and PR #561: the package shape, the adapters and the diagnostics are repeated here.
-- `packages/eslint-plugin/src/Rules/Dependencies.ts`, `Messages/`, `Elements/Elements.ts`, `Rules/Support/DependencyRule.ts`, `Rules/EntryPoint.ts`, `Rules/External.ts`, `Rules/NoPrivate.ts`, `Debug/Debug.ts` (`printDependenciesRuleResult`, `debugDescription`, which stay), and the specs next to them.
+- `packages/config` as it is on `release`: the model of the package, including what it gained after phase 2 (the browser lint of `createBrowserConfig`, #576; `test:mutation` with Stryker, #577).
+- `packages/eslint-plugin/src/Rules/Dependencies.ts`, `Messages/`, `Elements/Elements.ts`, `Rules/Support/DependencyRule.ts`, `Rules/EntryPoint.ts`, `Rules/External.ts`, `Rules/NoPrivate.ts`, `Debug/Debug.ts` (`printDependenciesRuleResult`, `debugDescription` and `warnDiagnostics`, which stay), and the specs next to them.
 - `packages/elements/src/index.ts`: `Elements`, `Matcher` (`describeEntity`, `describeDependency`, `getDependencySelectorMatchingDescription`), `DependencyDescriptorOptions`, the description and match result types; `policies` builds on them and duplicates nothing.
+- `test/browser-e2e/README.md`: how a package and its scenarios are added.
 
-Preconditions: phase 2 merged into `release`.
+Preconditions: phase 2 merged into `release` (#561, 2026-10-28).
 
 ## Scope
 
@@ -23,30 +25,37 @@ In: the package, the move of the modules the RFC assigns to `policies`, the plug
 
 ### 1. Package scaffold
 
-As phase 2, copying `packages/config`: name `@boundaries/policies`, version `1.0.0`, `dependencies: { "@boundaries/elements": "workspace:*", "@boundaries/config": "workspace:*", "handlebars": "<the version the plugin pins today>" }`, `project.json` name `policies`, `sonar.projectKey` `javierbrea_eslint-plugin-boundaries_policies`. The plugin loses its `handlebars` dependency.
+Copy `packages/config` as it is on `release`, which has every convention a package needs, and change only: name `@boundaries/policies`, version `1.0.0`, `dependencies: { "@boundaries/elements": "workspace:*", "@boundaries/config": "workspace:*", "handlebars": "4.7.10" }` (the version the plugin pins), `project.json` name `policies`, `sonar.projectKey` `javierbrea_eslint-plugin-boundaries_policies`, and `policies` as the Stryker `dashboard.module` and in the mutation badge of the README. The plugin loses its `handlebars` dependency.
 
 ### 2. Move the modules
 
-Follow research note 2. Layout of `src/` (RFC decision 8): `Shared` (private type helpers), `Messages` (`Messages/` of the plugin, whole), `Descriptions` (`getMatcher` from `getElementsMatcher` with its `WeakMap` and `Elements` instance, `describeEntity`, `describeDependency`), `Evaluation` (`buildEntrySelector`, `mergeImportKind` and the `merge*` helpers, the precomputed selectors cached by `DependenciesPolicyNormalized` identity, `evaluatePolicies`, `evaluateDependency`), `src/index.ts`.
+Follow research note 2. Layout of `src/` (RFC decision 8): `Shared` (private type helpers), `Messages` (`Messages/` of the plugin, whole), `Descriptions` (`getMatcher` from `getElementsMatcher` with its `WeakMap` and `Elements` instance, `describeEntity`, `describeDependency`), `Evaluation` (`buildEntrySelector`, `mergeImportKind` and the `merge*` helpers, the precomputed selectors cached by `DependenciesPolicyNormalized` identity, `getDependencySkipReason`, `evaluatePolicies`, `evaluateDependency`), `src/index.ts`.
 
 - `evaluatePolicies(settings, options, dependency)`: today's `evaluatePolicies` over `options.policies`, then the `default` and message part of `evaluatePoliciesAndReport` (`resolveCustomMessage`, `buildErrorMessage`). The result is `{ allowed, policyIndex, match, message?, diagnostics }`; it keeps `policyIndex` and `match` for allowed dependencies too. The `warnOnce` of `safeMatch` becomes a diagnostic with the same title and detail.
-- `evaluateDependency(settings, options, dependency)`: returns `{ checked: false, reason }` in this order: `from-ignored` and `from-unknown` (the checks of `dependencyRule()`), then `to-ignored`, `not-local`, `unknown-local`, `internal` (the checks of the rule function in `Rules/Dependencies.ts`, with the `check*` options); otherwise `{ checked: true, ...evaluatePolicies(...) }`.
+- `getDependencySkipReason(options, dependency)` (RFC #559, Amendment 1): the first skip reason in this order, or `null`: `from-ignored` and `from-unknown` (the checks of `dependencyRule()`), then `to-ignored`, `not-local`, `unknown-local`, `internal` (the checks of the rule function in `Rules/Dependencies.ts`). It reads only `checkAllOrigins`, `checkUnknownLocals` and `checkInternals`, each `false` when not set, so it takes the options as the user wrote them or normalized.
+- `evaluateDependency(settings, options, dependency)`: `{ checked: false, reason }` when `getDependencySkipReason` returns a reason; otherwise `{ checked: true, ...evaluatePolicies(...) }`.
 - `describeDependency(settings, input)` takes `DependencyDescriptorOptions` as is; the default `kind: "value"` that the plugin applies today stays in the plugin adapter.
-- Public exports: `getMatcher`, `describeEntity`, `describeDependency`, `evaluatePolicies`, `evaluateDependency`, `customErrorMessage`, `elementDescriptionMessage`, the result and skip reason types, and the `CustomMessageTemplate*Context` types the plugin's `Public/` re-exports.
+- Public exports: `getMatcher`, `describeEntity`, `describeDependency`, `getDependencySkipReason`, `evaluatePolicies`, `evaluateDependency`, `customErrorMessage`, `elementDescriptionMessage`, the result and skip reason types, and the `CustomMessageTemplate*Context` types the plugin's `Public/` re-exports.
 - Specs: `Messages/*.spec.ts` and `Elements/Elements.spec.ts` move; the `evaluatePolicies`, `resolveCustomMessage` and `buildErrorMessage` blocks of `Rules/Dependencies.spec.ts` move (they mock `../Debug`, `../Elements`, `../Messages`; the moved copy uses the real modules of the package or mocks its own).
 
 ### 3. Plugin adapters
 
 - `Elements/Elements.ts`: keeps `getSpecifiers` and `EslintLiteralNode`; `entityDescription` calls `describeEntity` then `debugDescription(result, settings, getMatcher(settings))`; `dependencyDescription` builds the input (`resolve(source, context)`, `kind || "value"`, `nodeKind`, `getSpecifiers(node)`), calls `describeDependency`, then `debugDescription`.
-- `Rules/Dependencies.ts`: the rule definition, the `element-types` rename warning, `validateAndWarnRuleOptions`, then `evaluateDependency(settings, getDependenciesRuleOptions(options), dependency)`; when it is checked and not allowed, `printDependenciesRuleResult(match, policyIndex, dependency, settings, getMatcher(settings))` and `context.report({ message, node })`; every diagnostic is printed with `warnOnce`. A shared reporting helper keeps that sequence for the legacy rules.
+- `Rules/Dependencies.ts`: the rule definition, the `element-types` rename warning, `validateAndWarnRuleOptions`, then `getDependencySkipReason(options, dependency)` with the options as the user wrote them, and only when it returns `null`, `evaluatePolicies(settings, getDependenciesRuleOptions(options), dependency)`. The policies are normalized only for the dependencies the rule checks, as today: normalizing a selector that passed the schema can still throw in `@boundaries/elements`, and the spec "does not normalize the policies when it skips the dependency, so an invalid selector does not throw" of `Rules/Dependencies.spec.ts` keeps passing. When the dependency is not allowed, `printDependenciesRuleResult(match, policyIndex, dependency, settings, getMatcher(settings))` and `context.report({ message, node })`; the diagnostics are printed with `warnDiagnostics`. A shared reporting helper keeps that sequence for the legacy rules.
 - `Rules/EntryPoint.ts` and `Rules/External.ts`: keep their checks and their translation into `dependencies` policies, then `normalizeDependenciesRuleOptions({ ...options, policies })` and `evaluatePolicies`, and the same reporting helper.
 - `Rules/NoPrivate.ts`: imports `customErrorMessage` and `elementDescriptionMessage` from `@boundaries/policies`.
-- `Messages/` disappears; the `messages` element type leaves `packages/eslint-plugin/eslint.config.mjs` and `packages/eslint-plugin/AGENTS.md` (eight element types).
+- `Messages/` disappears. In `packages/eslint-plugin/eslint.config.mjs`, the `messages` element type goes, the `rule` policy loses `messages`, and the `public` policy goes because `Public/` re-exports only from `@boundaries/config` and `@boundaries/policies`; `packages/eslint-plugin/AGENTS.md` says eight element types and the new layering.
 - The reported messages are byte-identical; the plugin's rule specs under `test/rules/` are the proof.
 
 ### 4. Layering, browser check, repository files
 
-As phase 2, steps 4 to 6, with the graph line `eslint-plugin → policies → config → elements`, the `policies` row in the `repo-architecture` skill, `policies-build` in the `build-windows` job, and `SONAR_TOKEN_POLICIES`. The browser check calls `describeDependency` and `evaluateDependency` on the quick-start example. `test/browser-e2e` (#558) gets the `policies` scenarios in this PR if it is merged (the home's step 3 case, an allowed dependency, a skipped one), or in its own PR otherwise. `README.md`: the interface table with one `evaluateDependency` example and its result.
+As phase 2, steps 4 to 6, with:
+
+- The graph line `eslint-plugin → policies → config → elements` and the `policies` row in the `repo-architecture` skill.
+- `.github/workflows/build.yml`: `policies` wherever `config` is named (`test-node-versions`, the `policies-build` and `policies-coverage` artifacts, `build-windows`, Coveralls, and a Sonar step guarded by `SONAR_TOKEN_POLICIES`). `.github/workflows/test-mutation.yml`: `policies` in the matrix.
+- The browser check of `test/e2e/builds.spec.mjs` calls `describeDependency` and `evaluateDependency` on the quick-start example.
+- `test/browser-e2e`: `src/scenarios/policies.js` (the home's step 3 case, an allowed dependency, a skipped one), and `policies` in `PACKAGES` of `scripts/build.js` and in its `package.json`.
+- `README.md`: the interface table with one `evaluateDependency` example and its result.
 
 ## Verification
 
@@ -54,7 +63,7 @@ As phase 2, steps 4 to 6, with the graph line `eslint-plugin → policies → co
 - `pnpm nx graph` shows `eslint-plugin → policies → config → elements`, no cycle.
 - The browser check passes; no `eslint`, `estree`, `eslint-module-utils`, `chalk` or `node:*` import and no `process` under `packages/policies/src`.
 - A unit test of `policies` reproduces the home's step 3 case (quick-start config, `src/helpers/format` imported from `src/components/Price/index.ts`) and asserts the verdict, the policy index and the message the plugin reports for it (take the expected message from the plugin's own spec of that scenario).
-- Coverage 100%.
+- Coverage 100%, and `pnpm nx test:mutation policies` above the `break` threshold of `stryker.config.mjs`.
 
 ## Hand-offs
 
