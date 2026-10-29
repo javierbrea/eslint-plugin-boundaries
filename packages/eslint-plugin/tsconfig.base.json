@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "skipLibCheck": true,
     "rootDir": ".",
     "outDir": "dist",
@@ -9,13 +8,14 @@
     "strict": true,
     "strictNullChecks": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
-    "module": "commonjs",
+    "moduleResolution": "node16",
+    "module": "node16",
     "useDefineForClassFields": true,
     "importsNotUsedAsValues": "remove",
     "forceConsistentCasingInFileNames": true,
     "noUnusedParameters": true,
     "isolatedModules": true,
+    "types": ["node"],
     "strictPropertyInitialization": false
   }
 }

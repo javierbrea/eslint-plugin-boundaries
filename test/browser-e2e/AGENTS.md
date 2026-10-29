@@ -1,0 +1,12 @@
+# AGENTS Instructions — `@boundaries/browser-e2e`
+
+Package-scoped agent instructions for `@boundaries/browser-e2e` (Nx project `browser-e2e`).
+
+Runs the scenarios of `src/scenarios/` in Node.js and, bundled by `scripts/build.js`, in Chromium, Firefox and WebKit with `@playwright/test`, and requires every browser to return the Node.js result. How it works and how to add a scenario or a package: `README.md`.
+
+- `src/` runs in Node.js and in the browsers, so it never uses a Node.js module or global: `eslint.config.js` forbids the globals, and the bundle fails on Node.js modules. A scenario returns JSON values that depend on its inputs alone.
+- The bundle is built without aliases, polyfills or `define`s, and includes the browser build of every package in `PACKAGES` of `scripts/build.js`. A package that fails here is fixed in the package, never with one of those.
+- `test:e2e` needs the browsers and their system dependencies, so every CI job that runs this project installs them first with `.github/actions/install-browsers`: the `test-browsers` job of `.github/workflows/build.yml` and the publish jobs, which run `pnpm check:all`. The `build` job leaves the project out.
+- `test/global-setup.js` skips the tests of a browser that does not launch, and only when `CI` is not set, so CI always runs every browser. Nothing else is skipped: a scenario that fails in a browser is fixed, never skipped.
+
+Primary checks: `lint`, `check:types`, `test:e2e`.

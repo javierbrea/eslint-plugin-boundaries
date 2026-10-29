@@ -51,8 +51,9 @@ jobs:
         uses: actions/checkout@v7.0.1
       - uses: ./.github/actions/install
       # NOTE: For the moment, we run the check:all target in all packages instead of running affected check in affected packages only
+      # NOTE: browser-e2e runs in the test-browsers job, which installs the browsers
       - name: Check all
-        run: pnpm nx run-many --target=check:all --all --output-style=stream --parallel=1
+        run: pnpm nx run-many --target=check:all --all --exclude=browser-e2e --output-style=stream --parallel=1
       - name: Upload elements test results
         uses: actions/upload-artifact@v7.0.2
         with:
@@ -83,6 +84,15 @@ jobs:
           name: config-build
           path: packages/config/dist
           retention-days: 1
+  test-browsers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/install
+      - uses: ./.github/actions/install-browsers
+      - name: Check all browser-e2e
+        run: pnpm nx check:all browser-e2e --output-style=stream
   test-node-versions:
     runs-on: ubuntu-latest
     strategy:
@@ -202,7 +212,7 @@ jobs:
   # Configure only this job as required status check in GitHub
   all-checks:
     runs-on: ubuntu-latest
-    needs: [check-root, check-vulnerabilities, build, test-node-versions, build-windows, reports]
+    needs: [check-root, check-vulnerabilities, build, test-browsers, test-node-versions, build-windows, reports]
     if: always()
     steps:
       - name: Check all jobs status
@@ -210,6 +220,7 @@ jobs:
           echo "check-root: ${{ needs.check-root.result }}"
           echo "check-vulnerabilities: ${{ needs.check-vulnerabilities.result }}"
           echo "build: ${{ needs.build.result }}"
+          echo "test-browsers: ${{ needs.test-browsers.result }}"
           echo "test-node-versions: ${{ needs.test-node-versions.result }}"
           echo "build-windows: ${{ needs.build-windows.result }}"
           echo "reports: ${{ needs.reports.result }}"
@@ -217,6 +228,7 @@ jobs:
           if [[ "${{ needs.check-root.result }}" != "success" ]] || \
              [[ "${{ needs.check-vulnerabilities.result }}" != "success" ]] || \
              [[ "${{ needs.build.result }}" != "success" ]] || \
+             [[ "${{ needs.test-browsers.result }}" != "success" ]] || \
              [[ "${{ needs.test-node-versions.result }}" != "success" ]] || \
              [[ "${{ needs.build-windows.result }}" != "success" ]] || \
              [[ "${{ needs.reports.result }}" != "success" ]]; then
