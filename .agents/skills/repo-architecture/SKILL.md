@@ -24,7 +24,7 @@ The map of where each kind of rule lives is in the root `AGENTS.md`; read the `A
 | `support/eslint-config` | `eslint-config` | `@boundaries/repo-eslint-config` | Shared ESLint flat config every project's `eslint.config.*` composes |
 | `support/cspell-config` | `cspell-config` | `@boundaries/repo-cspell-config` | Shared cspell config every project's `cspell.config.*` composes |
 | `test/eslint-plugin-e2e` | `eslint-plugin-e2e` | (not published) | Plain-Node end-to-end suite against the built plugin |
-| `test/browser-e2e` | `browser-e2e` | (not published) | Runs scenarios of the built `elements` and `config` in Chromium, Firefox and WebKit with Playwright and requires the Node.js results |
+| `test/browser-e2e` | `browser-e2e` | (not published) | Runs scenarios of the built `elements` and `config` in Chromium, Firefox and WebKit with Playwright and requires each browser to return the Node.js result |
 
 ## Dependency graph and direction
 

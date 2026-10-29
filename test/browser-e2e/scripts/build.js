@@ -35,13 +35,13 @@ const inputs = new Set(
     resolve(PROJECT_ROOT, input)
   )
 );
-const missingBuilds = PACKAGES.map((packageName) =>
-  join(
-    dirname(requireFromProject.resolve(`${packageName}/package.json`)),
-    "dist",
-    "index.browser.mjs"
-  )
-).filter((browserBuild) => !inputs.has(browserBuild));
+const missingBuilds = PACKAGES.map((packageName) => {
+  const manifestPath = requireFromProject.resolve(
+    `${packageName}/package.json`
+  );
+  const { browser } = requireFromProject(manifestPath).exports["."];
+  return resolve(dirname(manifestPath), browser.import);
+}).filter((browserBuild) => !inputs.has(browserBuild));
 
 if (result.warnings.length || missingBuilds.length) {
   console.error(

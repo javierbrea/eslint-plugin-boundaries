@@ -6,6 +6,6 @@ Runs the scenarios of `src/scenarios/` in Node.js and, bundled by `scripts/build
 
 - `src/` runs in Node.js and in the browsers, so it never uses a Node.js module or global: `eslint.config.js` forbids the globals, and the bundle fails on Node.js modules. A scenario returns JSON values that depend on its inputs alone.
 - The bundle is built without aliases, polyfills or `define`s, and includes the browser build of every package in `PACKAGES` of `scripts/build.js`. A package that fails here is fixed in the package, never with one of those.
-- `test:e2e` needs the browsers and their system dependencies, so CI runs this project in the `test-browsers` job of `.github/workflows/build.yml` and leaves it out of the `build` job.
+- `test:e2e` needs the browsers and their system dependencies, so every CI job that runs this project installs them first with `.github/actions/install-browsers`: the `test-browsers` job of `.github/workflows/build.yml` and the publish jobs, which run `pnpm check:all`. The `build` job leaves the project out.
 
 Primary checks: `lint`, `check:types`, `test:e2e`.

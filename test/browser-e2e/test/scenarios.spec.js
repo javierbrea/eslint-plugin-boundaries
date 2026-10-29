@@ -8,7 +8,7 @@ import { expect, test } from "@playwright/test";
 import { SCENARIOS, runScenario } from "../src/scenarios/index.js";
 
 const DIST = join(dirname(fileURLToPath(import.meta.url)), "..", "dist");
-// Nothing listens on this origin: the route below answers its requests from the dist folder, and a request to any other origin fails the test
+// Nothing listens on this origin: the route below answers its requests from the dist folder, and a request to any other origin while the page loads or runs the scenario fails the test
 const ORIGIN = "https://browser-e2e.local";
 
 /**
@@ -35,17 +35,26 @@ async function openScenariosPage(page) {
   return problems;
 }
 
-for (const { name } of SCENARIOS) {
+for (const { name, run } of SCENARIOS) {
   test(name, async ({ page, browserName }) => {
     const problems = await openScenariosPage(page);
+    expect(
+      problems,
+      "The page loads without errors or requests outside the dist folder"
+    ).toEqual([]);
     const browserResult = await page.evaluate(
       (scenarioName) => window.scenarios.runScenario(scenarioName),
       name
     );
 
     const nodeResult = runScenario(name);
+    // runScenario converts the results to JSON, which would hide a difference inside a Map, a Set or an Error
+    expect(nodeResult, `"${name}" returns only JSON values`).toEqual(run());
 
-    expect(problems).toEqual([]);
+    expect(
+      problems,
+      "The scenario runs without errors or requests outside the dist folder"
+    ).toEqual([]);
     // The diff below the message only shows the lines that differ, so the message has both results in full
     expect(
       browserResult,

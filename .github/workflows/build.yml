@@ -90,17 +90,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7.0.1
       - uses: ./.github/actions/install
-      - name: Get Playwright version
-        id: playwright-version
-        run: echo "version=$(node -p 'require("./package.json").devDependencies["@playwright/test"]')" >> "$GITHUB_OUTPUT"
-      - name: Cache Playwright browsers
-        uses: actions/cache@v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
-      # NOTE: When the browsers come from the cache, it only installs their system dependencies
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - uses: ./.github/actions/install-browsers
       - name: Check all browser-e2e
         run: pnpm nx check:all browser-e2e --output-style=stream
   test-node-versions:
