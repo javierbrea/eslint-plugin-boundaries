@@ -5,14 +5,17 @@ import chalk from "chalk";
 
 import createdConfigWithDefineLegacy from "./configs/createAndDefineConfig-legacy.config.js";
 import createdConfigWithDefine from "./configs/createAndDefineConfig.config.js";
+import createdCommonjsConfig from "./configs/createConfig-commonjs.config.cjs";
 import createdConfigLegacy from "./configs/createConfig-legacy.config.js";
 import createdConfig from "./configs/createConfig.config.js";
 import monorepoLegacyConfig from "./configs/monorepo-legacy.config.js";
 import monorepoConfig from "./configs/monorepo.config.js";
 import performanceLegacyConfig from "./configs/performance-legacy.config.js";
 import performanceConfig from "./configs/performance.config.js";
+import recommendedCommonjsConfig from "./configs/recommended-commonjs.config.cjs";
 import recommendedLegacyConfig from "./configs/recommended-legacy.config.js";
 import recommendedConfig from "./configs/recommended.config.js";
+import strictCommonjsConfig from "./configs/strict-commonjs.config.cjs";
 import strictLegacyConfig from "./configs/strict-legacy.config.js";
 import strictConfig from "./configs/strict.config.js";
 import createRenamedConfig from "./configs-ts/createRenamedConfig.config.js";
@@ -669,6 +672,107 @@ const tests = [
                     "There is no policy allowing dependencies"
                   )
               )
+          );
+        }
+      );
+    },
+  },
+  {
+    name: "recommended-commonjs-config",
+    config: recommendedCommonjsConfig,
+    fixture: join(currentDir, "fixtures", "basic"),
+    assert: async (runner, result) => {
+      await runner.assert(
+        `recommended CommonJS config should include the rules that the recommended config disables`,
+        async () => {
+          const rules = recommendedCommonjsConfig[0].rules;
+          return (
+            rules?.["boundaries/no-unknown-files"] === 0 &&
+            rules?.["boundaries/no-unknown-dependencies"] === 0 &&
+            rules?.["boundaries/no-ignored-dependencies"] === 0
+          );
+        }
+      );
+
+      await runner.assert(
+        `recommended CommonJS config should detect 1 error`,
+        async () => {
+          return result.errorCount === 1;
+        }
+      );
+
+      await runner.assert(
+        `recommended CommonJS config should detect boundaries violation`,
+        async () => {
+          const boundariesErrorFile = findFileResult("boundary-import", result);
+
+          return Boolean(
+            boundariesErrorFile?.errorCount === 1 &&
+              boundariesErrorFile?.messages.some(
+                (msg) => msg.ruleId === "boundaries/dependencies"
+              )
+          );
+        }
+      );
+    },
+  },
+  {
+    name: "strict-commonjs-config",
+    config: strictCommonjsConfig,
+    fixture: join(currentDir, "fixtures", "basic"),
+    assert: async (runner, result) => {
+      await runner.assert(
+        `strict CommonJS config should detect 4 errors`,
+        async () => {
+          return result.errorCount === 4;
+        }
+      );
+
+      await runner.assert(
+        `strict CommonJS config should report the rules that the strict config enables`,
+        async () => {
+          const ruleIds = (result.files ?? [])
+            .flatMap((file) => file.messages.map((msg) => msg.ruleId))
+            .sort((a, b) => String(a).localeCompare(String(b), "en"));
+          return (
+            ruleIds.join(",") ===
+            [
+              "boundaries/dependencies",
+              "boundaries/no-ignored-dependencies",
+              "boundaries/no-unknown-dependencies",
+              "boundaries/no-unknown-files",
+            ].join(",")
+          );
+        }
+      );
+    },
+  },
+  {
+    name: "created-commonjs-config",
+    config: createdCommonjsConfig,
+    fixture: join(currentDir, "fixtures", "basic"),
+    assert: async (runner, result) => {
+      await runner.assert(
+        `created CommonJS config should detect 4 errors`,
+        async () => {
+          return result.errorCount === 4;
+        }
+      );
+
+      await runner.assert(
+        `created CommonJS config should report the rules that the strict config enables`,
+        async () => {
+          const ruleIds = (result.files ?? [])
+            .flatMap((file) => file.messages.map((msg) => msg.ruleId))
+            .sort((a, b) => String(a).localeCompare(String(b), "en"));
+          return (
+            ruleIds.join(",") ===
+            [
+              "boundaries/dependencies",
+              "boundaries/no-ignored-dependencies",
+              "boundaries/no-unknown-dependencies",
+              "boundaries/no-unknown-files",
+            ].join(",")
           );
         }
       );

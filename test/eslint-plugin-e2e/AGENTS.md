@@ -4,4 +4,4 @@ Package-scoped agent instructions for `@boundaries/eslint-plugin-e2e` (Nx projec
 
 Runs `test/e2e.spec.js`, a plain Node script (not Jest), against the built `eslint-plugin` — its `test:e2e` target depends on `build`, and so does `lint`, because the specs import the configs that `build` compiles from `test/configs-ts/*.ts`. `test:performance` is gated behind the `RUN_PERFORMANCE_TESTS` environment variable and is skipped otherwise.
 
-Primary checks: `lint`, `test:e2e`.
+Primary checks: `lint`, `check:types`, `test:e2e`.

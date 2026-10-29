@@ -10,10 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- docs(#584): The troubleshooting section of the TypeScript Support guide explains how to fix the type errors of the default imports with `nodenext`, `node16` or `require()`: import from `eslint-plugin-boundaries/config`.
+
 ### Changed
 
 - chore: Mark the props of the site components as read-only.
 - chore(#557): Render the link preview image with the Chromium of the pinned Playwright version, so it is the same on every machine.
+- docs(#584): The path aliases example of the TypeScript Support guide no longer sets `baseUrl`, which TypeScript 6 deprecates.
+
+### Fixed
+
+- docs(#584): The TypeScript Support guide says that the constants and type guards are exported from `eslint-plugin-boundaries/config`; the main entry doesn't export them at runtime.
 
 ## [7.4.0] - 2026-10-27
 
