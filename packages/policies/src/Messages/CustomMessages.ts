@@ -308,7 +308,7 @@ function replaceLegacyTemplateVariables(
   }
   if (dependency.to.element.parents?.[0]) {
     const toParentProperties = parentPropertiesToReplaceInLegacyTemplate({
-      parent: dependency.to.element.parents?.[0],
+      parent: dependency.to.element.parents[0],
       dependency: dependency.dependency,
     });
     replacedMessage = replaceObjectValuesInLegacyTemplate(

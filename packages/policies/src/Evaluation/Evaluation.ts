@@ -64,7 +64,7 @@ function safeMatch(
     return matcher.getDependencySelectorMatchingDescription(dep, selector, {
       extraTemplateData,
     });
-  } catch (error) /* istanbul ignore next - Defensive check */ {
+  } catch (error) {
     diagnostics.push({
       level: DIAGNOSTIC_LEVELS_MAP.WARNING,
       title: `Error occurred while matching dependency. Please report it at: ${PLUGIN_ISSUES_URL}`,
@@ -138,6 +138,7 @@ function getCapturedTemplateData(
   legacyTemplates: boolean
 ): TemplateData {
   if (!legacyTemplates) return EMPTY_TEMPLATE_DATA;
+  // Surviving Stryker mutant: replacing "to" with an empty string survives because targetDir is only compared with "from"
   const targetDir = rule.from ? "from" : "to";
   return targetDir === "from"
     ? {
@@ -164,7 +165,7 @@ export function resolveCustomMessage(
 ): string | undefined {
   const policyMessage = isNull(policyIndex)
     ? undefined
-    : options.policies[policyIndex]?.message;
+    : options.policies[policyIndex].message;
   return policyMessage ?? options.message;
 }
 

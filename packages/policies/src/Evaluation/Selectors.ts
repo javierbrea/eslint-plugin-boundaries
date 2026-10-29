@@ -78,19 +78,11 @@ export const precomputePolicy = (
 function mergeImportKind(
   dependencySelector: DependencySingleSelectorNormalized,
   importKind?: DependencyKind
-): DependencySingleSelectorNormalized;
-function mergeImportKind(
-  dependencySelector: undefined,
-  importKind?: DependencyKind
-): undefined;
-function mergeImportKind(
-  dependencySelector?: DependencySingleSelectorNormalized | undefined,
-  importKind?: DependencyKind
-): DependencySingleSelectorNormalized | undefined {
+): DependencySingleSelectorNormalized {
   if (!importKind) {
     return dependencySelector;
   }
-  if (dependencySelector?.dependency) {
+  if (dependencySelector.dependency) {
     return {
       ...dependencySelector,
       dependency: dependencySelector.dependency.map((dep) => ({
@@ -120,6 +112,7 @@ function mergeProperties<T>(
   outer: T | undefined,
   entry: T | undefined
 ): T | undefined {
+  // Stryker disable next-line LogicalOperator: with `||`, a side that is undefined only turns the other side into a copy with the same values. It only differs for a `relationship: null`, which the types do not allow.
   if (isObject(outer) && isObject(entry)) {
     return { ...outer, ...entry };
   }
@@ -127,46 +120,29 @@ function mergeProperties<T>(
 }
 
 function mergeElementSingleSelector(
-  outer?: ElementSingleSelectorNormalized,
-  entry?: ElementSingleSelectorNormalized
-): ElementSingleSelectorNormalized | undefined {
-  /* istanbul ignore next -- Defensive: callers always pass a defined entry through flatMap; preserved for type safety */
-  if (!entry) {
-    return outer;
-  }
-  /* istanbul ignore next -- Defensive: callers always pass a defined outer through flatMap; preserved for type safety */
-  if (!outer) {
-    return entry;
-  }
-  const result = mergeProperties(outer, entry) as
-    | ElementSingleSelectorNormalized
-    | undefined;
-  if (result && isObject(outer.captured) && isObject(entry.captured)) {
+  outer: ElementSingleSelectorNormalized,
+  entry: ElementSingleSelectorNormalized
+): ElementSingleSelectorNormalized {
+  const result = mergeProperties(
+    outer,
+    entry
+  ) as ElementSingleSelectorNormalized;
+  if (isObject(outer.captured) && isObject(entry.captured)) {
     result.captured = { ...outer.captured, ...entry.captured };
   }
   const parent = mergeParentSelector(outer.parent, entry.parent);
-  if (result && parent) {
+  if (parent) {
     result.parent = parent;
   }
   return result;
 }
 
 function mergeParentSingleSelector(
-  outer?: ParentElementSingleSelector,
-  entry?: ParentElementSingleSelector
-): ParentElementSingleSelector | undefined {
-  /* istanbul ignore next -- Defensive: callers always pass a defined entry through flatMap; preserved for type safety */
-  if (!entry) {
-    return outer;
-  }
-  /* istanbul ignore next -- Defensive: callers always pass a defined outer through flatMap; preserved for type safety */
-  if (!outer) {
-    return entry;
-  }
-  const result = mergeProperties(outer, entry) as
-    | ParentElementSingleSelector
-    | undefined;
-  if (result && isObject(outer.captured) && isObject(entry.captured)) {
+  outer: ParentElementSingleSelector,
+  entry: ParentElementSingleSelector
+): ParentElementSingleSelector {
+  const result = mergeProperties(outer, entry) as ParentElementSingleSelector;
+  if (isObject(outer.captured) && isObject(entry.captured)) {
     result.captured = { ...outer.captured, ...entry.captured };
   }
   return result;
@@ -179,9 +155,6 @@ function mergeParentSelector(
   if (isNull(entry)) {
     return entry;
   }
-  if (isNull(outer)) {
-    return isUndefined(entry) ? outer : entry;
-  }
   if (!entry) {
     return outer;
   }
@@ -189,12 +162,8 @@ function mergeParentSelector(
     return entry;
   }
   return outer.flatMap((outerSelector) => {
-    return entry.map(
-      (entrySelector) =>
-        mergeParentSingleSelector(
-          outerSelector,
-          entrySelector
-        ) as ParentElementSingleSelector
+    return entry.map((entrySelector) =>
+      mergeParentSingleSelector(outerSelector, entrySelector)
     );
   });
 }
@@ -210,32 +179,18 @@ function mergeElementSelector(
     return entry;
   }
   return outer.flatMap((outerSelector) => {
-    return entry.map(
-      (entrySelector) =>
-        mergeElementSingleSelector(
-          outerSelector,
-          entrySelector
-        ) as ElementSingleSelectorNormalized
+    return entry.map((entrySelector) =>
+      mergeElementSingleSelector(outerSelector, entrySelector)
     );
   });
 }
 
 function mergeFileSingleSelector(
-  outer?: FileSingleSelector,
-  entry?: FileSingleSelector
-): FileSingleSelector | undefined {
-  /* istanbul ignore next -- Defensive: callers always pass a defined entry through flatMap; preserved for type safety */
-  if (!entry) {
-    return outer;
-  }
-  /* istanbul ignore next -- Defensive: callers always pass a defined outer through flatMap; preserved for type safety */
-  if (!outer) {
-    return entry;
-  }
-  const result = mergeProperties(outer, entry) as
-    | FileSingleSelector
-    | undefined;
-  if (result && isObject(outer.captured) && isObject(entry.captured)) {
+  outer: FileSingleSelector,
+  entry: FileSingleSelector
+): FileSingleSelector {
+  const result = mergeProperties(outer, entry) as FileSingleSelector;
+  if (isObject(outer.captured) && isObject(entry.captured)) {
     result.captured = { ...outer.captured, ...entry.captured };
   }
   return result;
@@ -252,29 +207,17 @@ function mergeFileSelector(
     return entry;
   }
   return outer.flatMap((outerSelector) => {
-    return entry.map(
-      (entrySelector) =>
-        mergeFileSingleSelector(
-          outerSelector,
-          entrySelector
-        ) as FileSingleSelector
+    return entry.map((entrySelector) =>
+      mergeFileSingleSelector(outerSelector, entrySelector)
     );
   });
 }
 
 function mergeModuleSingleSelector(
-  outer?: ModuleSingleSelector,
-  entry?: ModuleSingleSelector
-): ModuleSingleSelector | undefined {
-  /* istanbul ignore next -- Defensive: callers always pass a defined entry through flatMap; preserved for type safety */
-  if (!entry) {
-    return outer;
-  }
-  /* istanbul ignore next -- Defensive: callers always pass a defined outer through flatMap; preserved for type safety */
-  if (!outer) {
-    return entry;
-  }
-  return mergeProperties(outer, entry) as ModuleSingleSelector | undefined;
+  outer: ModuleSingleSelector,
+  entry: ModuleSingleSelector
+): ModuleSingleSelector {
+  return mergeProperties(outer, entry) as ModuleSingleSelector;
 }
 
 function mergeModuleSelector(
@@ -288,12 +231,8 @@ function mergeModuleSelector(
     return entry;
   }
   return outer.flatMap((outerSelector) => {
-    return entry.map(
-      (entrySelector) =>
-        mergeModuleSingleSelector(
-          outerSelector,
-          entrySelector
-        ) as ModuleSingleSelector
+    return entry.map((entrySelector) =>
+      mergeModuleSingleSelector(outerSelector, entrySelector)
     );
   });
 }
@@ -356,7 +295,7 @@ function mergeEntitySelector(
     return entryElementSelector;
   }
 
-  return outerElementSelector?.flatMap((outerSelector) => {
+  return outerElementSelector.flatMap((outerSelector) => {
     return entryElementSelector.map((entrySelector) =>
       mergeEntitySingleSelector(outerSelector, entrySelector)
     );

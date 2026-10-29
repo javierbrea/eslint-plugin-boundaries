@@ -1,7 +1,6 @@
 ---
 paths:
   - "packages/eslint-plugin/src/Rules/**"
-  - "packages/policies/src/Messages/**"
 ---
 
 # Authoring an ESLint rule in `eslint-plugin`

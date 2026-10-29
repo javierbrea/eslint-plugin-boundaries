@@ -81,7 +81,7 @@ export default [
                 },
               },
             },
-            // Public API surface: re-exports from @boundaries/config and @boundaries/policies; consumed only by entry + config
+            // Public has no policy of its own: it imports only shared and re-exports from @boundaries/elements, @boundaries/config and @boundaries/policies; only config and the entry import it
             {
               from: { element: { type: "config" } },
               allow: {

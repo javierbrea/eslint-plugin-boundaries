@@ -1,4 +1,5 @@
 import type { SettingsNormalized } from "@boundaries/config";
+import { Elements } from "@boundaries/elements";
 
 import { describeDependency, describeEntity, getMatcher } from "./Descriptions";
 
@@ -37,11 +38,25 @@ const createProjectSettings = () =>
   });
 
 describe("Descriptions", () => {
+  beforeEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe("getMatcher", () => {
     it("should return the same matcher instance for the same settings reference", () => {
       const settings = createProjectSettings();
 
       expect(getMatcher(settings)).toBe(getMatcher(settings));
+    });
+
+    it("should build the matcher of a settings reference only once", () => {
+      const elementsGetMatcher = jest.spyOn(Elements.prototype, "getMatcher");
+      const settings = createProjectSettings();
+
+      getMatcher(settings);
+      getMatcher(settings);
+
+      expect(elementsGetMatcher).toHaveBeenCalledTimes(1);
     });
 
     it("should return different matcher instances for settings with different descriptors", () => {
@@ -72,6 +87,22 @@ describe("Descriptions", () => {
       expect(description.element.types).toEqual(["component"]);
       expect(description.file.categories).toEqual(["test"]);
       expect(description.module.origin).toBe("local");
+    });
+
+    it("should pass the ignore paths of the settings to the matcher", () => {
+      const settings = createSettings({
+        elementDescriptors: [
+          { type: "helper", pattern: "src/helpers/*" },
+        ] as SettingsNormalized["elementDescriptors"],
+        ignorePaths: ["**/helpers/**"],
+      });
+
+      const description = describeEntity(
+        settings,
+        "/repo/src/helpers/format/index.ts"
+      );
+
+      expect(description.file.isIgnored).toBe(true);
     });
 
     it("should return what the matcher of the settings returns", () => {

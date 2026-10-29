@@ -357,6 +357,396 @@ describe("Evaluation", () => {
       expect(firstSelector).toBe(secondSelector);
     });
 
+    it("returns a warning diagnostic with the path of the policy when the matcher throws an error", () => {
+      const matcher = createMatcher();
+      jest
+        .mocked(matcher.getDependencySelectorMatchingDescription)
+        .mockReturnValueOnce(null)
+        .mockImplementationOnce(() => {
+          throw new Error("boom");
+        });
+
+      const result = evaluateWithMatcher(
+        normalizePolicies([
+          { allow: [{ to: [{ element: [{ type: "x" }] }] }] },
+          { allow: [{ to: [{ element: [{ type: "y" }] }] }] },
+        ]),
+        createDependencyDescription(),
+        matcher,
+        createSettings()
+      );
+
+      expect(result.diagnostics).toEqual([
+        {
+          level: "warning",
+          title: expect.stringContaining(
+            "Error occurred while matching dependency"
+          ),
+          detail: expect.stringContaining('"error":{"message":"boom"'),
+          paths: [["policies", 1]],
+        },
+      ]);
+      expect(result.diagnostics[0].detail).toContain(
+        '"selector":{"to":[{"element":[{"type":"y"}]}]}'
+      );
+    });
+
+    it("returns a warning diagnostic with the thrown value when the matcher throws something that is not an error", () => {
+      const matcher = createMatcher();
+      jest
+        .mocked(matcher.getDependencySelectorMatchingDescription)
+        .mockImplementationOnce(() => {
+          throw "boom";
+        });
+
+      const result = evaluateWithMatcher(
+        normalizePolicies([
+          { allow: [{ to: [{ element: [{ type: "x" }] }] }] },
+        ]),
+        createDependencyDescription(),
+        matcher,
+        createSettings()
+      );
+
+      expect(result.diagnostics).toEqual([
+        expect.objectContaining({
+          detail: expect.stringContaining('"error":"boom"'),
+          paths: [["policies", 0]],
+        }),
+      ]);
+    });
+
+    // The matcher rejects a selector with a key whose value is undefined, so a merged selector has only the keys that one of its sides has
+    it("merges element selectors without adding keys that neither side has", () => {
+      const matcher = createMatcher();
+      const fn = jest.mocked(matcher.getDependencySelectorMatchingDescription);
+      fn.mockReturnValueOnce(null);
+
+      evaluateWithMatcher(
+        normalizePolicies([
+          {
+            to: [{ element: [{ type: "helper" }] }],
+            allow: [{ to: [{ element: [{ path: "**/index.js" }] }] }],
+          },
+        ]),
+        createDependencyDescription(),
+        matcher,
+        createSettings()
+      );
+
+      expect(fn.mock.calls[0][1]).toStrictEqual({
+        to: [{ element: [{ type: "helper", path: "**/index.js" }] }],
+      });
+    });
+
+    it("merges file selectors without adding keys that neither side has", () => {
+      const matcher = createMatcher();
+      const fn = jest.mocked(matcher.getDependencySelectorMatchingDescription);
+      fn.mockReturnValueOnce(null);
+
+      evaluateWithMatcher(
+        normalizePolicies([
+          {
+            from: [{ file: [{ categories: ["ui"] }] }],
+            allow: [{ from: [{ file: [{ path: "**/*.tsx" }] }] }],
+          },
+        ]),
+        createDependencyDescription(),
+        matcher,
+        createSettings()
+      );
+
+      expect(fn.mock.calls[0][1]).toStrictEqual({
+        from: [{ file: [{ categories: ["ui"], path: "**/*.tsx" }] }],
+      });
+    });
+
+    it("merges module selectors without adding keys that neither side has", () => {
+      const matcher = createMatcher();
+      const fn = jest.mocked(matcher.getDependencySelectorMatchingDescription);
+      fn.mockReturnValueOnce(null);
+
+      evaluateWithMatcher(
+        normalizePolicies([
+          {
+            to: [{ module: [{ origin: "external" }] }],
+            allow: [{ to: [{ module: [{ source: "react" }] }] }],
+          },
+        ]),
+        createDependencyDescription(),
+        matcher,
+        createSettings()
+      );
+
+      expect(fn.mock.calls[0][1]).toStrictEqual({
+        to: [{ module: [{ origin: "external", source: "react" }] }],
+      });
+    });
+
+    it("merges parent selectors without adding keys that neither side has", () => {
+      const matcher = createMatcher();
+      const fn = jest.mocked(matcher.getDependencySelectorMatchingDescription);
+      fn.mockReturnValueOnce(null);
+
+      evaluateWithMatcher(
+        normalizePolicies([
+          {
+            from: [
+              {
+                element: [{ type: "component", parent: [{ type: "module" }] }],
+              },
+            ],
+            allow: [
+              { from: [{ element: [{ parent: [{ category: "feature" }] }] }] },
+            ],
+          },
+        ]),
+        createDependencyDescription(),
+        matcher,
+        createSettings()
+      );
+
+      expect(fn.mock.calls[0][1]).toStrictEqual({
+        from: [
+          {
+            element: [
+              {
+                type: "component",
+                parent: [{ type: "module", category: "feature" }],
+              },
+            ],
+          },
+        ],
+      });
+    });
+
+    it("merges dependency selectors without adding keys that neither side has", () => {
+      const matcher = createMatcher();
+      const fn = jest.mocked(matcher.getDependencySelectorMatchingDescription);
+      fn.mockReturnValueOnce(null);
+
+      evaluateWithMatcher(
+        normalizePolicies([
+          {
+            dependency: [{ kind: "type" }],
+            allow: [{ dependency: [{ source: "@scope/x" }] }],
+          },
+        ]),
+        createDependencyDescription(),
+        matcher,
+        createSettings()
+      );
+
+      expect(fn.mock.calls[0][1]).toStrictEqual({
+        dependency: [{ kind: "type", source: "@scope/x" }],
+      });
+    });
+
+    it("uses the captured values of the entry element selector when the captured values of one side are a list", () => {
+      const matcher = createMatcher();
+      const fn = jest.mocked(matcher.getDependencySelectorMatchingDescription);
+      fn.mockReturnValue(null);
+
+      evaluateWithMatcher(
+        normalizePolicies([
+          {
+            from: [
+              {
+                element: [
+                  {
+                    type: "component",
+                    captured: [{ family: "atoms" }, { family: "molecules" }],
+                  },
+                ],
+              },
+            ],
+            allow: [{ from: [{ element: [{ captured: { area: "ui" } }] }] }],
+          },
+          {
+            from: [
+              {
+                element: [{ type: "component", captured: { family: "atoms" } }],
+              },
+            ],
+            allow: [
+              {
+                from: [
+                  {
+                    element: [{ captured: [{ area: "ui" }, { area: "core" }] }],
+                  },
+                ],
+              },
+            ],
+          },
+        ]),
+        createDependencyDescription(),
+        matcher,
+        createSettings()
+      );
+
+      expect(fn.mock.calls[0][1]).toStrictEqual({
+        from: [{ element: [{ type: "component", captured: { area: "ui" } }] }],
+      });
+      expect(fn.mock.calls[1][1]).toStrictEqual({
+        from: [
+          {
+            element: [
+              {
+                type: "component",
+                captured: [{ area: "ui" }, { area: "core" }],
+              },
+            ],
+          },
+        ],
+      });
+    });
+
+    it("uses the captured values of the entry file selector when the captured values of one side are a list", () => {
+      const matcher = createMatcher();
+      const fn = jest.mocked(matcher.getDependencySelectorMatchingDescription);
+      fn.mockReturnValue(null);
+
+      evaluateWithMatcher(
+        normalizePolicies([
+          {
+            from: [
+              {
+                file: [
+                  {
+                    categories: ["ui"],
+                    captured: [{ scope: "front" }, { scope: "back" }],
+                  },
+                ],
+              },
+            ],
+            allow: [{ from: [{ file: [{ captured: { team: "core" } }] }] }],
+          },
+          {
+            from: [
+              { file: [{ categories: ["ui"], captured: { scope: "front" } }] },
+            ],
+            allow: [
+              {
+                from: [
+                  {
+                    file: [{ captured: [{ team: "core" }, { team: "web" }] }],
+                  },
+                ],
+              },
+            ],
+          },
+        ]),
+        createDependencyDescription(),
+        matcher,
+        createSettings()
+      );
+
+      expect(fn.mock.calls[0][1]).toStrictEqual({
+        from: [{ file: [{ categories: ["ui"], captured: { team: "core" } }] }],
+      });
+      expect(fn.mock.calls[1][1]).toStrictEqual({
+        from: [
+          {
+            file: [
+              {
+                categories: ["ui"],
+                captured: [{ team: "core" }, { team: "web" }],
+              },
+            ],
+          },
+        ],
+      });
+    });
+
+    it("uses the captured values of the entry parent selector when the captured values of one side are a list", () => {
+      const matcher = createMatcher();
+      const fn = jest.mocked(matcher.getDependencySelectorMatchingDescription);
+      fn.mockReturnValue(null);
+
+      evaluateWithMatcher(
+        normalizePolicies([
+          {
+            from: [
+              {
+                element: [
+                  {
+                    parent: [
+                      {
+                        type: "module",
+                        captured: [{ area: "primary" }, { area: "secondary" }],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            allow: [
+              {
+                from: [
+                  { element: [{ parent: [{ captured: { layer: "ui" } }] }] },
+                ],
+              },
+            ],
+          },
+          {
+            from: [
+              {
+                element: [
+                  {
+                    parent: [{ type: "module", captured: { area: "primary" } }],
+                  },
+                ],
+              },
+            ],
+            allow: [
+              {
+                from: [
+                  {
+                    element: [
+                      {
+                        parent: [
+                          { captured: [{ layer: "ui" }, { layer: "core" }] },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ]),
+        createDependencyDescription(),
+        matcher,
+        createSettings()
+      );
+
+      expect(fn.mock.calls[0][1]).toStrictEqual({
+        from: [
+          {
+            element: [
+              { parent: [{ type: "module", captured: { layer: "ui" } }] },
+            ],
+          },
+        ],
+      });
+      expect(fn.mock.calls[1][1]).toStrictEqual({
+        from: [
+          {
+            element: [
+              {
+                parent: [
+                  {
+                    type: "module",
+                    captured: [{ layer: "ui" }, { layer: "core" }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+    });
+
     it("merges outer from element selector into object entry allow", () => {
       const matcher = createMatcher();
       const fn = jest.mocked(matcher.getDependencySelectorMatchingDescription);
@@ -1603,6 +1993,9 @@ describe("Evaluation", () => {
       expect(
         getDependencySkipReason({ checkUnknownLocals: false }, dependency)
       ).toBe("unknown-local");
+      expect(getDependencySkipReason(undefined, dependency)).toBe(
+        "unknown-local"
+      );
     });
 
     it("returns null for an unknown local target when checkUnknownLocals is true", () => {
@@ -1642,6 +2035,7 @@ describe("Evaluation", () => {
       });
 
       expect(getDependencySkipReason({}, dependency)).toBe("internal");
+      expect(getDependencySkipReason(undefined, dependency)).toBe("internal");
     });
 
     it("returns null for a dependency inside an element when checkInternals is true", () => {

@@ -581,5 +581,115 @@ describe("CustomMessages", () => {
 
       expect(customErrorMessage(template, dependency)).toBe("[]");
     });
+
+    it("replaces the file and target legacy placeholders, including their parents", () => {
+      const template =
+        "file ${file.type}/${file.family} target ${target.type}/${target.domain} parents ${file.parent.layer} -> ${target.parent.layer}";
+
+      expect(customErrorMessage(template, dependencyDescription)).toBe(
+        "file component/atoms target helper/api parents domain -> shared"
+      );
+    });
+
+    it("renders handlebars expressions with spaces inside the braces", () => {
+      const template =
+        "{{ from.element.type }} -> {{ to.element.type }} ({{ dependency.kind }})";
+
+      expect(customErrorMessage(template, dependencyDescription)).toBe(
+        "component -> helper (type)"
+      );
+    });
+
+    it.each(["Avoid {{}} here", "Avoid {{ }} here", "Open {{ only"])(
+      "returns the template as it is when it has braces that are not a handlebars expression: %s",
+      (template) => {
+        expect(customErrorMessage(template, dependencyDescription)).toBe(
+          template
+        );
+      }
+    );
+
+    it("does not escape HTML characters in the rendered values", () => {
+      const dependency = createDependencyDescription({
+        to: {
+          element: {
+            path: "/repo/src/helpers/fetcher.ts",
+            types: ["helper"],
+            category: "data",
+            filePath: "/repo/src/helpers/fetcher.ts",
+            fileInternalPath: "fetcher.ts",
+            captured: { domain: 'R&D <core> "api"' },
+            parents: [targetParent],
+            isIgnored: false,
+            isUnknown: false,
+          },
+        },
+      });
+      const template = "{{to.element.captured.domain}}";
+
+      expect(customErrorMessage(template, dependency)).toBe('R&D <core> "api"');
+    });
+
+    it("exposes the module origin of the entities in the handlebars context", () => {
+      const template = "{{from.origin}} -> {{to.origin}}";
+
+      expect(customErrorMessage(template, dependencyDescription)).toBe(
+        "local -> external"
+      );
+    });
+
+    it("renders empty types in the handlebars context when the elements have no types", () => {
+      const dependency = createDependencyDescription({
+        from: { element: { types: null } },
+        to: { element: { types: null } },
+      });
+      const template =
+        "[{{from.type}}][{{from.element.type}}][{{to.type}}][{{to.element.type}}]";
+
+      expect(customErrorMessage(template, dependency)).toBe("[][][][]");
+    });
+
+    it("exposes the parents of both elements with their elementPath in the handlebars context", () => {
+      const template =
+        "{{#each from.parents}}{{elementPath}}={{captured.layer}};{{/each}}|{{#each to.parents}}{{elementPath}}={{captured.layer}};{{/each}}";
+
+      expect(customErrorMessage(template, dependencyDescription)).toBe(
+        "/repo/src/domain=domain;|/repo/src/shared=shared;"
+      );
+    });
+
+    it("handles match result selectors without element in the handlebars context", () => {
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: { file: { categories: "ui" } },
+        to: { module: { origin: "external" } },
+      };
+      const template =
+        "{{#if policy.selector.from.elementPath}}yes{{else}}no{{/if}}|{{#if policy.selector.from.internalPath}}yes{{else}}no{{/if}}|{{policy.selector.from.file.categories}}|{{#if policy.selector.to.elementPath}}yes{{else}}no{{/if}}|{{#if policy.selector.to.internalPath}}yes{{else}}no{{/if}}|{{policy.selector.to.module.origin}}";
+
+      expect(
+        customErrorMessage(template, dependencyDescription, 1, matchResult)
+      ).toBe("no|no|ui|no|no|external");
+    });
+
+    it("renders handlebars without policy context when there is a match result but no rule index", () => {
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: { element: { type: "component" } },
+      };
+      const template =
+        "{{#if policy}}has-policy{{else}}no-policy{{/if}}|{{#if rule}}has-rule{{else}}no-rule{{/if}}";
+
+      expect(
+        customErrorMessage(template, dependencyDescription, null, matchResult)
+      ).toBe("no-policy|no-rule");
+    });
+
+    it("renders handlebars without policy context when there is a rule index but no match result", () => {
+      const template =
+        "{{#if policy}}has-policy{{else}}no-policy{{/if}}|{{#if rule}}has-rule{{else}}no-rule{{/if}}";
+
+      expect(customErrorMessage(template, dependencyDescription, 3, null)).toBe(
+        "no-policy|no-rule"
+      );
+    });
   });
 });
