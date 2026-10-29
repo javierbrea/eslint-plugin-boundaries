@@ -5,6 +5,7 @@ import chalk from "chalk";
 
 import createdConfigWithDefineLegacy from "./configs/createAndDefineConfig-legacy.config.js";
 import createdConfigWithDefine from "./configs/createAndDefineConfig.config.js";
+import createdCommonjsConfig from "./configs/createConfig-commonjs.config.cjs";
 import createdConfigLegacy from "./configs/createConfig-legacy.config.js";
 import createdConfig from "./configs/createConfig.config.js";
 import monorepoLegacyConfig from "./configs/monorepo-legacy.config.js";
@@ -729,6 +730,37 @@ const tests = [
 
       await runner.assert(
         `strict CommonJS config should report the rules that the strict config enables`,
+        async () => {
+          const ruleIds = (result.files ?? [])
+            .flatMap((file) => file.messages.map((msg) => msg.ruleId))
+            .sort((a, b) => String(a).localeCompare(String(b), "en"));
+          return (
+            ruleIds.join(",") ===
+            [
+              "boundaries/dependencies",
+              "boundaries/no-ignored-dependencies",
+              "boundaries/no-unknown-dependencies",
+              "boundaries/no-unknown-files",
+            ].join(",")
+          );
+        }
+      );
+    },
+  },
+  {
+    name: "created-commonjs-config",
+    config: createdCommonjsConfig,
+    fixture: join(currentDir, "fixtures", "basic"),
+    assert: async (runner, result) => {
+      await runner.assert(
+        `created CommonJS config should detect 4 errors`,
+        async () => {
+          return result.errorCount === 4;
+        }
+      );
+
+      await runner.assert(
+        `created CommonJS config should report the rules that the strict config enables`,
         async () => {
           const ruleIds = (result.files ?? [])
             .flatMap((file) => file.messages.map((msg) => msg.ruleId))
