@@ -23,7 +23,7 @@ Plain object shapes, unions, DTOs, entity/descriptor shapes, options, configs, a
 
 ## Colocated `*.types.ts` files
 
-A module's exported types live in a sibling `<Module>.types.ts` file next to `<Module>.ts` (e.g. `Cache.types.ts` next to `Cache.ts`), not inline in the implementation file. Re-export the types a folder's consumers need from that folder's `index.ts` or `Public.ts`.
+A module's exported types live in a sibling `<Module>.types.ts` file next to `<Module>.ts` (e.g. `Cache.types.ts` next to `Cache.ts`), not inline in the implementation file. Re-export the types a folder's consumers need from that folder's `index.ts` or `Public.ts`. An `index.ts` that uses `export =`, which allows no other exports, re-exports them as type aliases in a namespace merged with its exported value, in the same file.
 
 ## TSDoc coverage
 
