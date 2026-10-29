@@ -175,7 +175,7 @@ describe("Settings/Settings", () => {
       expect(diagnostics.build()).toEqual([]);
     });
 
-    it("returns true and warns when a valid selector omits the name", () => {
+    it("returns false and warns when the selector omits the name", () => {
       expect(
         isValidDependencyNodeSelector(
           {
@@ -185,7 +185,7 @@ describe("Settings/Settings", () => {
           diagnostics,
           [SETTINGS.ADDITIONAL_DEPENDENCY_NODES, 0]
         )
-      ).toBe(true);
+      ).toBe(false);
 
       report(diagnostics.build());
 
@@ -194,9 +194,51 @@ describe("Settings/Settings", () => {
       ]);
       expect(reportedDiagnostic).toHaveBeenCalledTimes(1);
       expect(reportedDiagnostic).toHaveBeenCalledWith(
-        expect.stringContaining(`"name"`),
+        expect.stringContaining(SETTINGS.ADDITIONAL_DEPENDENCY_NODES),
         expect.any(String)
       );
+    });
+
+    it("returns false when name is an empty string", () => {
+      expect(
+        isValidDependencyNodeSelector(
+          {
+            selector: "CallExpression",
+            kind: "value",
+            name: "",
+          },
+          diagnostics,
+          []
+        )
+      ).toBe(false);
+    });
+
+    it("returns false when name is only whitespace", () => {
+      expect(
+        isValidDependencyNodeSelector(
+          {
+            selector: "CallExpression",
+            kind: "value",
+            name: "   ",
+          },
+          diagnostics,
+          []
+        )
+      ).toBe(false);
+    });
+
+    it("returns true when the name has surrounding whitespace", () => {
+      expect(
+        isValidDependencyNodeSelector(
+          {
+            selector: "CallExpression",
+            kind: "value",
+            name: " custom ",
+          },
+          diagnostics,
+          []
+        )
+      ).toBe(true);
     });
 
     it("returns false and warns when the value is not an object", () => {
@@ -222,7 +264,7 @@ describe("Settings/Settings", () => {
         {
           level: "warning",
           title: `Please provide a valid object in ${SETTINGS.ADDITIONAL_DEPENDENCY_NODES} setting.`,
-          detail: `The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }. The invalid object will be ignored. ${SETTINGS_INFO}`,
+          detail: `The object should be composed of the following properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" }. The invalid object will be ignored. ${SETTINGS_INFO}`,
           paths: [[SETTINGS.ADDITIONAL_DEPENDENCY_NODES, 2]],
         },
       ]);
@@ -230,7 +272,11 @@ describe("Settings/Settings", () => {
 
     it("returns false when the selector field is missing", () => {
       expect(
-        isValidDependencyNodeSelector({ kind: "value" }, diagnostics, [])
+        isValidDependencyNodeSelector(
+          { kind: "value", name: "custom" },
+          diagnostics,
+          []
+        )
       ).toBe(false);
     });
 
@@ -240,11 +286,25 @@ describe("Settings/Settings", () => {
           {
             selector: "CallExpression",
             kind: "invalid",
+            name: "custom",
           },
           diagnostics,
           []
         )
       ).toBe(false);
+    });
+
+    it("returns true when kind is omitted", () => {
+      expect(
+        isValidDependencyNodeSelector(
+          {
+            selector: "CallExpression",
+            name: "custom",
+          },
+          diagnostics,
+          []
+        )
+      ).toBe(true);
     });
 
     it("returns false when name is not a string", () => {
@@ -1022,6 +1082,29 @@ describe("Settings/Settings", () => {
         );
       });
 
+      it("filters additional nodes without a name and warns about them", () => {
+        const valid = {
+          selector: "CallExpression",
+          kind: "value" as const,
+          name: "custom",
+        };
+        const withoutName = {
+          selector: "CallExpression",
+          kind: "value" as const,
+        };
+        const result = normalize({
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+          [SETTINGS_KEYS_MAP.DEPENDENCY_NODES]: [],
+          [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES]: [valid, withoutName],
+        });
+
+        expect(result.dependencyNodes).toEqual([valid]);
+        expect(reportedDiagnostic).toHaveBeenCalledWith(
+          expect.stringContaining(SETTINGS.ADDITIONAL_DEPENDENCY_NODES),
+          expect.stringContaining(JSON.stringify([withoutName]))
+        );
+      });
+
       it("does not report anything when all the additional nodes are valid", () => {
         const result = diagnosticsOf({
           [SETTINGS_KEYS_MAP.FILES]: [validFileDescriptor],
@@ -1043,7 +1126,7 @@ describe("Settings/Settings", () => {
           {
             level: "warning",
             title: `Invalid ${SETTINGS.ADDITIONAL_DEPENDENCY_NODES} setting format.`,
-            detail: `It should be an array containing objects with properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" (optional) }. ${SETTINGS_INFO}`,
+            detail: `It should be an array containing objects with properties: { selector: "<esquery selector>", kind: "value" | "type", name: "<string>" }. ${SETTINGS_INFO}`,
             paths: [[SETTINGS.ADDITIONAL_DEPENDENCY_NODES]],
           },
         ]);
@@ -1849,15 +1932,17 @@ describe("Settings/Settings", () => {
         },
         {
           level: "warning",
-          paths: [[SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES, 0]],
+          paths: [
+            [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES, 0],
+            [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES, 1],
+          ],
         },
         {
           level: "warning",
-          paths: [[SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES, 1]],
-        },
-        {
-          level: "warning",
-          paths: [[SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES, 1]],
+          paths: [
+            [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES, 0],
+            [SETTINGS_KEYS_MAP.ADDITIONAL_DEPENDENCY_NODES, 1],
+          ],
         },
       ]);
     });

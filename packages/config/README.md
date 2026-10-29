@@ -616,7 +616,7 @@ The package exports the types of what a user writes, so a host can type its own 
 |---|---|
 | `Settings` | The `boundaries/*` settings, by key. |
 | `IgnoreSetting`, `IncludeSetting`, `RootPathSetting`, `DebugSetting` | The values of the `boundaries/ignore`, `boundaries/include`, `boundaries/root-path` and `boundaries/debug` settings. |
-| `DependencyNodeSelector` | An item of `boundaries/additional-dependency-nodes`: `{ selector: string; kind: DependencyKind; name?: string }`. |
+| `DependencyNodeSelector` | An item of `boundaries/additional-dependency-nodes`: `{ selector: string; kind: DependencyKind; name: string }`. |
 | `RuleBaseOptions` | The `default` and `message` options that the rules with policies share. |
 | `DependenciesRuleOptions`, `DependenciesPolicy` | The options of the `dependencies` and `element-types` rules, and their policies. |
 | `EntryPointRuleOptions`, `EntryPointPolicy` | The options of the `entry-point` rule, and its policies. |
