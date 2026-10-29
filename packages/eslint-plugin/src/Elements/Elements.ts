@@ -55,10 +55,10 @@ export function getElementsMatcher(settings: SettingsNormalized): Matcher {
 
 /**
  * Returns the specifiers used in an import or export statement
- * @param node The AST node representing the import or export
+ * @param node The source literal of the import or export
  * @returns The list of specifiers used in the import or export
  */
-export function getSpecifiers(node: Rule.Node): string[] {
+export function getSpecifiers(node: EslintLiteralNode): string[] {
   if (node.parent.type === "ImportDeclaration") {
     return node.parent.specifiers
       .filter(

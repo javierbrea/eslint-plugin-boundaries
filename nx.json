@@ -16,13 +16,20 @@
       "{projectRoot}/**/*",
       "sharedGlobals"
     ],
-    // Usual input for the build targets. It excludes test files, mocks, and other non-production files. This should be overridden in projects that have different test files
+    // Usual input for the build targets. It excludes test files and other non-production files. This should be overridden in projects that have different test files
+    // Nx applies every exclusion to all the patterns of a target, so only the root files that never affect a build are excluded: the build configs at the project root (tsup, tsconfig, package.json) must invalidate the cache
     "production": [
       "!{projectRoot}/**/*.spec.*",
       "!{projectRoot}/**/*.test.*",
       "!{projectRoot}/test/**/*",
-      "!{projectRoot}/*",
-      "{projectRoot}/package.json"
+      "!{projectRoot}/*.md",
+      "!{projectRoot}/LICENSE",
+      "!{projectRoot}/jest.config.js",
+      "!{projectRoot}/stryker.config.mjs",
+      "!{projectRoot}/sonar-project.properties",
+      "!{projectRoot}/cspell.config.js",
+      "!{projectRoot}/eslint.config.mjs",
+      "!{projectRoot}/serve.*.json"
     ]
   },
   "targetDefaults": {
@@ -67,6 +74,11 @@
         "^build"
       ]
     },
+    "test:mutation": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
     "build": {
       "cache": true,
       "inputs": [
@@ -101,5 +113,6 @@
         "test:e2e"
       ]
     }
-  }
+  },
+  "analytics": false
 }

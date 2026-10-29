@@ -1,6 +1,6 @@
-import micromatch from "micromatch";
+import picomatch from "picomatch";
 
-import type { Matcher } from "../index";
+import type { ElementDescription, ElementDescriptors, Matcher } from "../index";
 import {
   Elements,
   isIgnoredElementDescription,
@@ -8,6 +8,7 @@ import {
   isUnknownElementDescription,
   isElementDescription,
 } from "../index";
+import { Micromatch } from "../Matcher/Shared/Micromatch";
 
 describe("describeElement | Integration", () => {
   let matcher: Matcher;
@@ -16,7 +17,7 @@ describe("describeElement | Integration", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    micromatchSpy = jest.spyOn(micromatch, "capture");
+    micromatchSpy = jest.spyOn(picomatch, "makeRe");
 
     elements = new Elements({
       includePaths: ["**/src/**/*.ts", "**/src/**/*.tsx"],
@@ -373,6 +374,62 @@ describe("describeElement | Integration", () => {
     });
   });
 
+  describe("basePattern", () => {
+    let basePatternMatcher: Matcher;
+
+    beforeEach(() => {
+      basePatternMatcher = elements.getMatcher({
+        elements: [
+          {
+            type: "feature",
+            pattern: "features/*",
+            basePattern: "**/src/app",
+            capture: ["featureName"],
+          },
+        ],
+      });
+    });
+
+    it("should describe the element when the left side of the path matches basePattern", () => {
+      const element = basePatternMatcher.describeElement(
+        "/project/src/app/features/checkout/Checkout.ts"
+      );
+
+      expect(element).toEqual({
+        types: ["feature"],
+        category: null,
+        captured: { featureName: "checkout" },
+        path: "/project/src/app/features/checkout",
+        filePath: "/project/src/app/features/checkout/Checkout.ts",
+        fileInternalPath: "Checkout.ts",
+        parents: [],
+        isIgnored: false,
+        isUnknown: false,
+      });
+      expect(isKnownElementDescription(element)).toBe(true);
+    });
+
+    // Regression test for https://github.com/javierbrea/eslint-plugin-boundaries/issues/495
+    it("should not describe the element when the left side of the path does not match basePattern", () => {
+      const element = basePatternMatcher.describeElement(
+        "/project/src/legacy/features/search/Search.ts"
+      );
+
+      expect(element).toEqual({
+        types: null,
+        category: null,
+        captured: null,
+        path: null,
+        filePath: null,
+        fileInternalPath: null,
+        parents: [],
+        isIgnored: false,
+        isUnknown: true,
+      });
+      expect(isUnknownElementDescription(element)).toBe(true);
+    });
+  });
+
   describe("elements descriptor cache", () => {
     it("should not call micromatch multiple times for the same element", () => {
       matcher.describeElement("/project/src/components/Button.tsx");
@@ -397,15 +454,17 @@ describe("describeElement | Integration", () => {
           cache: false,
         }
       );
+      // Compiled patterns are memoized regardless of the cache option, so the matching itself is observed instead of the pattern compilation
+      const captureSpy = jest.spyOn(Micromatch.prototype, "capture");
       matcher.describeElement("/project/src/utils/math/index.ts");
 
-      expect(micromatchSpy).toHaveBeenCalled();
+      expect(captureSpy).toHaveBeenCalled();
 
       jest.clearAllMocks();
 
       matcher.describeElement("/project/src/utils/math/index.ts");
 
-      expect(micromatchSpy).toHaveBeenCalled();
+      expect(captureSpy).toHaveBeenCalled();
     });
 
     it("should not call micromatch again after clearing the matcher cache, because the global cache is still populated", () => {
@@ -749,5 +808,266 @@ describe("describeElement | Integration", () => {
         );
       });
     });
+  });
+
+  describe("nested elements", () => {
+    let nestedMatcher: Matcher;
+
+    beforeEach(() => {
+      nestedMatcher = new Elements().getMatcher({
+        elements: [
+          {
+            type: "component",
+            pattern: "components/*",
+            basePattern: "**/src",
+            capture: ["name"],
+          },
+        ],
+      });
+    });
+
+    it("should resolve the path of a nested element whose folder name is a prefix of an ancestor folder name", () => {
+      const element = nestedMatcher.describeElement(
+        "src/components/ButtonGroup/components/Button/Button.js"
+      );
+
+      expect(element).toEqual({
+        types: ["component"],
+        category: null,
+        captured: { name: "Button" },
+        isIgnored: false,
+        filePath: "src/components/ButtonGroup/components/Button/Button.js",
+        fileInternalPath: "Button.js",
+        path: "src/components/ButtonGroup/components/Button",
+        isUnknown: false,
+        parents: [
+          {
+            types: ["component"],
+            category: null,
+            captured: { name: "ButtonGroup" },
+            path: "src/components/ButtonGroup",
+          },
+        ],
+      });
+    });
+
+    it("should resolve the path and parents of a nested element with the same name as an ancestor", () => {
+      const element = nestedMatcher.describeElement(
+        "src/components/Button/components/Button/Button.js"
+      );
+
+      expect(element).toEqual({
+        types: ["component"],
+        category: null,
+        captured: { name: "Button" },
+        isIgnored: false,
+        filePath: "src/components/Button/components/Button/Button.js",
+        fileInternalPath: "Button.js",
+        path: "src/components/Button/components/Button",
+        isUnknown: false,
+        parents: [
+          {
+            types: ["component"],
+            category: null,
+            captured: { name: "Button" },
+            path: "src/components/Button",
+          },
+        ],
+      });
+    });
+
+    it("should resolve the path of a parent element whose folder name is a prefix of an ancestor folder name", () => {
+      const element = nestedMatcher.describeElement(
+        "src/components/ButtonGroup/components/Button/components/Icon/Icon.js"
+      );
+
+      expect(element).toEqual(
+        expect.objectContaining({
+          path: "src/components/ButtonGroup/components/Button/components/Icon",
+          fileInternalPath: "Icon.js",
+          parents: [
+            {
+              types: ["component"],
+              category: null,
+              captured: { name: "Button" },
+              path: "src/components/ButtonGroup/components/Button",
+            },
+            {
+              types: ["component"],
+              category: null,
+              captured: { name: "ButtonGroup" },
+              path: "src/components/ButtonGroup",
+            },
+          ],
+        })
+      );
+    });
+
+    it("should resolve the path of an element whose matched path also occurs inside a non-element ancestor folder name", () => {
+      const element = nestedMatcher.describeElement(
+        "src/legacy-components/Button/components/Button/Button.js"
+      );
+
+      expect(element).toEqual(
+        expect.objectContaining({
+          path: "src/legacy-components/Button/components/Button",
+          fileInternalPath: "Button.js",
+          parents: [],
+        })
+      );
+    });
+
+    it("should resolve the path of a nested element in an absolute file path", () => {
+      const element = nestedMatcher.describeElement(
+        "/project/src/components/ButtonGroup/components/Button/Button.js"
+      );
+
+      expect(element).toEqual(
+        expect.objectContaining({
+          path: "/project/src/components/ButtonGroup/components/Button",
+          fileInternalPath: "Button.js",
+        })
+      );
+    });
+  });
+
+  describe("files of the same folder", () => {
+    const CACHE_AND_ORDERS = [
+      ["enabled", "in order", true],
+      ["enabled", "in reverse order", true],
+      ["disabled", "in order", false],
+      ["disabled", "in reverse order", false],
+    ] as const;
+
+    function describeFiles(
+      elementDescriptors: ElementDescriptors,
+      cache: boolean,
+      files: string[],
+      order: "in order" | "in reverse order"
+    ): Map<string, ElementDescription> {
+      const folderMatcher = new Elements().getMatcher(
+        { elements: elementDescriptors },
+        { cache }
+      );
+      const filesToDescribe =
+        order === "in order" ? files : [...files].reverse();
+      return new Map(
+        filesToDescribe.map((file) => [
+          file,
+          folderMatcher.describeElement(file),
+        ])
+      );
+    }
+
+    it.each(CACHE_AND_ORDERS)(
+      "should describe the files next to a dot file as their element with the cache %s, describing the files %s",
+      (_title, order, cache) => {
+        const results = describeFiles(
+          [{ type: "module", pattern: "src/*" }],
+          cache,
+          ["src/x/.b.ts", "src/x/a.ts"],
+          order
+        );
+
+        expect(results.get("src/x/.b.ts")).toEqual(
+          expect.objectContaining({ isUnknown: true, path: null })
+        );
+        expect(results.get("src/x/a.ts")).toEqual({
+          types: ["module"],
+          category: null,
+          captured: null,
+          isIgnored: false,
+          filePath: "src/x/a.ts",
+          fileInternalPath: "a.ts",
+          path: "src/x",
+          isUnknown: false,
+          parents: [],
+        });
+      }
+    );
+
+    it.each(CACHE_AND_ORDERS)(
+      "should give each file its own path when a folder pattern matches the files of a folder, with the cache %s, describing the files %s",
+      (_title, order, cache) => {
+        const results = describeFiles(
+          [{ type: "module", pattern: "src/*/**" }],
+          cache,
+          ["src/x/a.ts", "src/x/b.ts"],
+          order
+        );
+
+        expect(results.get("src/x/a.ts")).toEqual(
+          expect.objectContaining({
+            path: "src/x/a.ts",
+            fileInternalPath: "src/x/a.ts",
+          })
+        );
+        expect(results.get("src/x/b.ts")).toEqual(
+          expect.objectContaining({
+            path: "src/x/b.ts",
+            fileInternalPath: "src/x/b.ts",
+          })
+        );
+      }
+    );
+
+    it.each(CACHE_AND_ORDERS)(
+      "should give each file its own captured values when a descriptor has more capture names than its pattern has wildcards, with the cache %s, describing the files %s",
+      (_title, order, cache) => {
+        const results = describeFiles(
+          [
+            {
+              type: "module",
+              pattern: "src/*",
+              capture: ["name", "rest", "file"],
+            },
+          ],
+          cache,
+          ["src/x/a.ts", "src/x/b.ts"],
+          order
+        );
+
+        expect(results.get("src/x/a.ts")?.captured).toEqual({
+          name: "x",
+          rest: "",
+          file: "a.ts",
+        });
+        expect(results.get("src/x/b.ts")?.captured).toEqual({
+          name: "x",
+          rest: "",
+          file: "b.ts",
+        });
+      }
+    );
+
+    it.each(CACHE_AND_ORDERS)(
+      "should give each file its own captured values when a descriptor has more baseCapture names than its basePattern has wildcards, with the cache %s, describing the files %s",
+      (_title, order, cache) => {
+        const results = describeFiles(
+          [
+            {
+              type: "module",
+              pattern: "x",
+              basePattern: "src",
+              baseCapture: ["join", "rest", "file"],
+            },
+          ],
+          cache,
+          ["src/x/a.ts", "src/x/b.ts"],
+          order
+        );
+
+        expect(results.get("src/x/a.ts")?.captured).toEqual({
+          join: "",
+          rest: "",
+          file: "a.ts",
+        });
+        expect(results.get("src/x/b.ts")?.captured).toEqual({
+          join: "",
+          rest: "",
+          file: "b.ts",
+        });
+      }
+    );
   });
 });

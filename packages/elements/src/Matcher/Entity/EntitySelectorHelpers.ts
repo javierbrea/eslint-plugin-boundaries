@@ -22,6 +22,7 @@ import {
 } from "../Element";
 import { isFileSelector, normalizeFileSelector } from "../File";
 import { isModuleSelector, normalizeModuleSelector } from "../Module";
+import { memoizeByIdentity } from "../Shared";
 
 import type {
   BackwardCompatibleEntitySelector,
@@ -103,6 +104,7 @@ export function isEntitySelector(
  * v6 stored external internalPath with a leading slash on `element.fileInternalPath`; v7
  * stores it without leading slash on `module.internalPath`. When mapping legacy selectors
  * to the new module-based location we normalize accordingly so user patterns keep matching.
+ * @param pattern The micromatch pattern, or array of patterns, to strip.
  */
 function stripLeadingSlash(
   pattern: MicromatchPatternNullable
@@ -134,6 +136,7 @@ function stripLeadingSlash(
  * matched externals. The extra entry preserves the rest of the legacy constraints as
  * AND, so it only relaxes matching for entities that lack the discarded element
  * constraints (i.e. externals when only `internalPath`/`origin` are present).
+ * @param selector The legacy or current element single selector to convert.
  */
 function normalizeBackwardCompatibleElementSingleSelectorToEntitySingleSelector(
   selector: BackwardCompatibleElementSingleSelector
@@ -248,18 +251,22 @@ export function normalizeSingleEntitySelector(
 }
 
 /**
- * Normalizes an EntitySelector into an array of EntitySingleSelector.
+ * Normalizes an EntitySelector into an array of EntitySingleSelector. The result is computed once per selector object and shared by every later call that passes the same object (see `memoizeByIdentity`), so it must be treated as read-only; primitive selectors are normalized on every call.
  * @param entitySelector The entity selector, in any supported format.
  * @returns The normalized array of single entity selectors.
  */
-export function normalizeEntitySelector(
-  entitySelector: BackwardCompatibleEntitySelector
-): EntitySelectorNormalized {
-  if (isLegacyEntitySingleSelector(entitySelector)) {
+export const normalizeEntitySelector = memoizeByIdentity(
+  (
+    entitySelector: BackwardCompatibleEntitySelector
+  ): EntitySelectorNormalized => {
+    if (isLegacyEntitySingleSelector(entitySelector)) {
+      return normalizeSingleEntitySelector(entitySelector);
+    }
+    if (isArray(entitySelector)) {
+      return entitySelector.flatMap((sel) =>
+        normalizeSingleEntitySelector(sel)
+      );
+    }
     return normalizeSingleEntitySelector(entitySelector);
   }
-  if (isArray(entitySelector)) {
-    return entitySelector.flatMap((sel) => normalizeSingleEntitySelector(sel));
-  }
-  return normalizeSingleEntitySelector(entitySelector);
-}
+);

@@ -6,7 +6,11 @@ import {
   isUndefined,
   isObjectWithProperty,
 } from "../../Shared";
-import { isCapturedValuesSelector, extendsSingleSelector } from "../Shared";
+import {
+  isCapturedValuesSelector,
+  extendsSingleSelector,
+  memoizeByIdentity,
+} from "../Shared";
 
 import type {
   LegacySimpleElementSingleSelectorByTypeWithOptions,
@@ -210,6 +214,7 @@ export function normalizeLegacySimpleElementSingleSelector(
  *
  * Legacy properties are mapped to the new model as follows:
  * - `elementPath` -> `path`
+ * @param selector The legacy parent element single selector to convert.
  */
 function normalizeLegacyParentElementSingleSelector(
   selector: LegacyParentElementSingleSelector
@@ -316,18 +321,20 @@ export function normalizeSingleElementSelector(
 }
 
 /**
- * Normalizes an ElementSelector into an array of ElementSingleSelector.
+ * Normalizes an ElementSelector into an array of ElementSingleSelector. The result is computed once per selector object and shared by every later call that passes the same object (see `memoizeByIdentity`), so it must be treated as read-only; primitive selectors are normalized on every call.
  * @param elementSelector The element selector, in any supported format.
  * @returns The normalized array of selector data.
  */
-export function normalizeElementSelector(
-  elementSelector: BackwardCompatibleElementSelector
-): ElementSelectorNormalized {
-  if (isLegacySimpleElementSingleSelectorByTypeWithOptions(elementSelector)) {
+export const normalizeElementSelector = memoizeByIdentity(
+  (
+    elementSelector: BackwardCompatibleElementSelector
+  ): ElementSelectorNormalized => {
+    if (isLegacySimpleElementSingleSelectorByTypeWithOptions(elementSelector)) {
+      return [normalizeSingleElementSelector(elementSelector)];
+    }
+    if (isArray(elementSelector)) {
+      return elementSelector.map((sel) => normalizeSingleElementSelector(sel));
+    }
     return [normalizeSingleElementSelector(elementSelector)];
   }
-  if (isArray(elementSelector)) {
-    return elementSelector.map((sel) => normalizeSingleElementSelector(sel));
-  }
-  return [normalizeSingleElementSelector(elementSelector)];
-}
+);

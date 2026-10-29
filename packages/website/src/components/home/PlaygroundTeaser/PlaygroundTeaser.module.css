@@ -1,0 +1,121 @@
+.play {
+  padding-block: 5rem;
+  border-top: 1px solid var(--jsb-line);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 3rem;
+  align-items: center;
+}
+
+/* Overrides the default spacing of the section head (descendant selector, so it wins regardless of CSS order) */
+.grid .head {
+  margin-bottom: 0;
+}
+
+/* Drafting table: a card on a 16px grid */
+.table {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  min-height: 270px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--jsb-line-strong);
+  border-radius: var(--jsb-radius-lg);
+  background-color: var(--jsb-card);
+  background-image:
+    linear-gradient(var(--jsb-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--jsb-grid) 1px, transparent 1px);
+  background-size: 16px 16px;
+  box-shadow: var(--jsb-shadow);
+}
+
+.tree {
+  display: grid;
+  gap: 0.25rem;
+  align-content: start;
+  padding: 0.8rem;
+  border-right: 1px solid var(--jsb-line);
+  background: var(--jsb-card);
+  font-family: var(--jsb-font-mono);
+  font-size: 0.72rem;
+  color: var(--jsb-muted);
+}
+
+.entry {
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition:
+    background 0.2s var(--jsb-ease),
+    color 0.2s var(--jsb-ease);
+}
+
+.entry:hover {
+  background: var(--jsb-accent-soft);
+  color: var(--jsb-ink);
+}
+
+.depth1 {
+  padding-left: 1rem;
+}
+
+.depth2 {
+  padding-left: 2rem;
+}
+
+.results {
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+  padding: 0.9rem;
+  font-family: var(--jsb-font-mono);
+  font-size: 0.72rem;
+}
+
+.result {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 0.6rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--jsb-line);
+  border-radius: var(--jsb-radius);
+  background: var(--jsb-card);
+  color: var(--jsb-muted);
+}
+
+.result b {
+  font-weight: 500;
+  color: var(--jsb-accent);
+}
+
+.report {
+  border-color: var(--jsb-bad);
+}
+
+/* Darkened toward the ink so the small label keeps AA contrast on the card in both themes */
+.report b {
+  color: color-mix(in srgb, var(--jsb-bad) 85%, var(--jsb-ink));
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .table {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tree {
+    border-right: 0;
+    border-bottom: 1px solid var(--jsb-line);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry {
+    transition: none;
+  }
+}

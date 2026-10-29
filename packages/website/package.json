@@ -1,6 +1,6 @@
 {
   "name": "website",
-  "version": "7.1.0",
+  "version": "7.4.0",
   "private": true,
   "scripts": {
     "eslint": "eslint",
@@ -8,12 +8,15 @@
     "check:all": "echo 'All checks passed'",
     "check:spell": "cspell --quiet .",
     "check:types": "tsc --noEmit",
-    "lint": "eslint .",
+    "lint": "node scripts/sync-fonts.mjs --check && eslint .",
     "lint:fix": "eslint . --fix",
     "docusaurus": "docusaurus",
     "start": "cross-env NODE_ENV=development docusaurus start",
     "serve": "docusaurus serve",
+    "screenshots": "playwright install chromium && node scripts/screenshots.mjs",
+    "social-card": "playwright install chromium && node scripts/social-card.mjs",
     "swizzle": "docusaurus swizzle",
+    "sync:fonts": "node scripts/sync-fonts.mjs",
     "clear": "docusaurus clear",
     "test:unit": "jest --passWithNoTests",
     "version": "docusaurus docs:version"
@@ -25,16 +28,20 @@
     "@mdx-js/react": "3.1.1",
     "clsx": "2.1.1",
     "prism-react-renderer": "2.4.1",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "react-github-btn": "1.4.0"
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.10.2",
     "@docusaurus/tsconfig": "3.10.2",
     "@docusaurus/types": "3.10.2",
-    "baseline-browser-mapping": "2.9.0",
-    "typescript": "5.6.3"
+    "@fontsource/ibm-plex-mono": "5.3.0",
+    "@fontsource/ibm-plex-sans": "5.3.0",
+    "@fontsource/sora": "5.3.0",
+    "@types/react": "19.2.5",
+    "baseline-browser-mapping": "2.11.32",
+    "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
+    "typescript": "5.9.3"
   },
   "browserslist": {
     "production": [
@@ -49,6 +56,6 @@
     ]
   },
   "engines": {
-    "node": ">=20.0"
+    "node": ">=24"
   }
 }

@@ -31,6 +31,7 @@ Provide (optional; a sensible default applies):
    | `docs/`       | `docs`            |
    | `chore/`      | `chore`           |
    | `refactor/`   | `refactor`        |
+   | `test/`       | `test`            |
 
    If the PR type cannot be inferred with confidence, ask the user before proceeding.
 
@@ -46,20 +47,16 @@ Provide (optional; a sensible default applies):
    - If no issue was found, or it cannot be read, derive the description from the branch changes only.
    - In both cases, ask the user any clarifying questions about the changes or intent **before** showing the preview.
 
-7. **Build the title and description.** `<type>` is one of `feat`, `fix`, `docs`, `chore`, `refactor`.
+7. **Build the title and description.** `<type>` is one of `feat`, `fix`, `docs`, `chore`, `refactor`, `test`.
    - The title must follow the pattern `<type>: Title` (conventional-commit style, matching this repository's own commit messages).
    - Fill the template sections (`Description`, `Agreement`) from the issue and the diff. Leave the Agreement checkboxes unchecked for the user to confirm themselves.
    - When an issue number was found, add a `closes #<number>` line following the template's "Closing issues" convention. In issue-less mode, omit it.
 
 8. **Show a mandatory preview.** Present the full title and description and ask for explicit confirmation before any create or update call. When updating an existing pull request, make clear which content will be replaced, and preserve any manually added sections not covered by the template rather than overwriting them.
 
-9. **Determine labels from the actual changes.** This repository uses these labels (match the strings exactly, including the space after the colon):
+9. **Determine labels from the actual changes.** The labels and what each one covers are in the "Bookkeeping" section of the `create-issue` skill. For a pull request:
    - Type: `type: bug` (branch prefix `fix/`/`bug/`, or `fix(...)` commits) or `type: feature` (branch prefix `feat/`). For other prefixes, do not force `type: bug`/`type: feature`; ask the user if a type label should be applied (for example `type: task`).
-   - Scope, one or more depending on which files changed in the diff:
-     - `scope: code` — functional code under `packages/*/src`.
-     - `scope: tests` — test files (`test/`, `*.spec.*`, `*.test.*`).
-     - `scope: documentation` — docs/website content and `*.md` files.
-     - Other existing labels (`scope: dependencies`, `scope: CI-CD`, `scope: refactor`) may also apply — use them when the diff matches.
+   - Scope: the `scope:` labels of the files changed in the diff, one or more.
 
 10. **Prefer GitHub MCP tools.** Use GitHub MCP tools for all supported operations (for example `create_pull_request`, `update_pull_request`, `get_issue`). Fall back to `gh` CLI or REST only for operations MCP does not support.
 
@@ -118,8 +115,7 @@ Include assumptions, risks, and follow-ups when relevant.
 
 ## Notes / Constraints
 
-- **The pull request title and description MUST ALWAYS be written in English**, regardless of the user's language. This is a mandatory requirement.
-- **Do not use hard line breaks within paragraphs** in the PR description. Each paragraph must be a single unbroken line; only blank lines separate paragraphs.
+- Write every text with the `writing-style` skill.
 - One pull request per branch: verify existing pull requests before creating a new one.
 - The pull request must remain in draft state after creation.
 - Always show a preview and obtain explicit confirmation before creating or updating the pull request.

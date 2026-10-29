@@ -10,6 +10,7 @@ import {
   isLegacyEntitySelector,
   normalizeEntitySelector,
 } from "../Entity";
+import { memoizeByIdentity } from "../Shared";
 
 import type {
   DependencyInfoSingleSelector,
@@ -212,6 +213,8 @@ export function isBackwardCompatibleDependencySelector(
  * The `dependency` array in the legacy model uses OR semantics between items, and each item
  * may pair a `source` with a `module`. Collecting all modules into a single array would break
  * that pairing, so `module` must stay bound to its own entity selector per dependency item.
+ * @param entitySelector The normalized entity selector to add the module to.
+ * @param legacyDependencySelector The `dependency` property of the legacy dependency selector.
  */
 function addModuleToEntitySelectorNormalized(
   entitySelector: EntitySelectorNormalized | undefined,
@@ -348,19 +351,21 @@ export function normalizeSingleDependencySelector(
 }
 
 /**
- * Normalizes a dependency selector, which can be a single selector or an array of selectors, ensuring it has the correct structure and default values.
+ * Normalizes a dependency selector, which can be a single selector or an array of selectors, ensuring it has the correct structure and default values. The result is computed once per selector object and shared by every later call that passes the same object (see `memoizeByIdentity`), so it must be treated as read-only; primitive selectors are normalized on every call.
  * @param selector The selector to normalize.
  * @returns The normalized selector.
  */
-export function normalizeDependencySelector(
-  selector: BackwardCompatibleDependencySelector
-): DependencySelectorNormalized {
-  if (isBackwardCompatibleDependencySingleSelector(selector)) {
-    return normalizeSingleDependencySelector(selector);
-  } else if (isArray(selector)) {
-    return selector.flatMap((singleSelector) =>
-      normalizeSingleDependencySelector(singleSelector)
-    );
+export const normalizeDependencySelector = memoizeByIdentity(
+  (
+    selector: BackwardCompatibleDependencySelector
+  ): DependencySelectorNormalized => {
+    if (isBackwardCompatibleDependencySingleSelector(selector)) {
+      return normalizeSingleDependencySelector(selector);
+    } else if (isArray(selector)) {
+      return selector.flatMap((singleSelector) =>
+        normalizeSingleDependencySelector(singleSelector)
+      );
+    }
+    throw new Error("Invalid dependency selector");
   }
-  throw new Error("Invalid dependency selector");
-}
+);

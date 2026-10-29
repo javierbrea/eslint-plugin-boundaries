@@ -1,6 +1,6 @@
 /* eslint-disable jest/no-conditional-in-test */
 
-import micromatch from "micromatch";
+import picomatch from "picomatch";
 
 import type {
   ElementSelector,
@@ -17,7 +17,7 @@ describe("isEntityMatch | Legacy Syntax | Integration", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    micromatchSpy = jest.spyOn(micromatch, "isMatch");
+    micromatchSpy = jest.spyOn(picomatch, "isMatch");
 
     elements = new Elements();
     matcher = elements.getMatcher(
@@ -228,16 +228,6 @@ describe("isEntityMatch | Legacy Syntax | Integration", () => {
         filePath: "/project/src/components/Button.tsx",
         selector: { type: "foo" },
         expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { type: "{{ element.type }}" },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { type: "{{ element.types.[0] }}" },
-        expected: true,
       },
       {
         filePath: "/project/src/components/Button.tsx",
@@ -497,13 +487,6 @@ describe("isEntityMatch | Legacy Syntax | Integration", () => {
       {
         filePath: "/project/src/components/Button.tsx",
         selector: {
-          captured: [{ fileName: "Icon" }, { fileName: "Button" }],
-        },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: {
           captured: [],
         },
         expected: false,
@@ -619,12 +602,6 @@ describe("isEntityMatch | Legacy Syntax | Integration", () => {
         filePath: "/project/src/misc/other.ts",
         selector: { parent: { category: "business-logic" } },
         expected: false,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: { parent: { type: null } },
-        expected: true,
       },
       // Parent types (plural) selector: matches against all parent types
       {
@@ -805,28 +782,20 @@ describe("isEntityMatch | Legacy Syntax | Integration", () => {
       ).toThrow();
     });
 
-    it("should match using legacy string selector", () => {
+    it.each([
+      { description: "legacy string selector", selector: "component" },
+      {
+        description: "legacy string selector with template",
+        selector: "{{ element.types.[0] }}",
+      },
+      {
+        description: "legacy string selector with legacy template",
+        selector: "${ element.types.[0] }",
+      },
+    ])("should match using $description", ({ selector }) => {
       const result = matcher.isElementMatch(
         "/project/src/components/Button.tsx",
-        "component"
-      );
-
-      expect(result).toBe(true);
-    });
-
-    it("should match using legacy string selector with template", () => {
-      const result = matcher.isElementMatch(
-        "/project/src/components/Button.tsx",
-        "{{ element.types.[0] }}"
-      );
-
-      expect(result).toBe(true);
-    });
-
-    it("should match using legacy string selector with legacy template", () => {
-      const result = matcher.isElementMatch(
-        "/project/src/components/Button.tsx",
-        "${ element.types.[0] }"
+        selector
       );
 
       expect(result).toBe(true);

@@ -135,26 +135,31 @@ describe("Matcher", () => {
   let elementsMatcherInstance: {
     isElementMatch: jest.Mock;
     getSelectorMatching: jest.Mock;
+    clearCache: jest.Mock;
   };
 
   let filesMatcherInstance: {
     isFileMatch: jest.Mock;
     getSelectorMatching: jest.Mock;
+    clearCache: jest.Mock;
   };
 
   let modulesMatcherInstance: {
     isModuleMatch: jest.Mock;
     getSelectorMatching: jest.Mock;
+    clearCache: jest.Mock;
   };
 
   let entitiesMatcherInstance: {
     isEntityMatch: jest.Mock;
     getSelectorMatching: jest.Mock;
+    clearCache: jest.Mock;
   };
 
   let dependenciesMatcherInstance: {
     isDependencyMatch: jest.Mock;
     getSelectorMatching: jest.Mock;
+    clearCache: jest.Mock;
   };
 
   let matcher: Matcher;
@@ -178,26 +183,31 @@ describe("Matcher", () => {
     elementsMatcherInstance = {
       isElementMatch: jest.fn().mockReturnValue(true),
       getSelectorMatching: jest.fn().mockReturnValue(MOCK_MATCH_RESULT),
+      clearCache: jest.fn(),
     };
 
     filesMatcherInstance = {
       isFileMatch: jest.fn().mockReturnValue(true),
       getSelectorMatching: jest.fn().mockReturnValue(MOCK_MATCH_RESULT),
+      clearCache: jest.fn(),
     };
 
     modulesMatcherInstance = {
       isModuleMatch: jest.fn().mockReturnValue(true),
       getSelectorMatching: jest.fn().mockReturnValue(MOCK_MATCH_RESULT),
+      clearCache: jest.fn(),
     };
 
     entitiesMatcherInstance = {
       isEntityMatch: jest.fn().mockReturnValue(true),
       getSelectorMatching: jest.fn().mockReturnValue(MOCK_MATCH_RESULT),
+      clearCache: jest.fn(),
     };
 
     dependenciesMatcherInstance = {
       isDependencyMatch: jest.fn().mockReturnValue(true),
       getSelectorMatching: jest.fn().mockReturnValue(MOCK_MATCH_RESULT),
+      clearCache: jest.fn(),
     };
 
     MockedDescriptors.mockReturnValue(
@@ -767,6 +777,64 @@ describe("Matcher", () => {
         userExtra
       );
     });
+
+    it("should compute the legacy template data once per description and extraTemplateData pair", () => {
+      // Arrange
+      const userExtra = { custom: "val" };
+
+      // Act
+      matcher.getDependencySelectorMatchingDescription(
+        MOCK_DEPENDENCY_DESCRIPTION,
+        MOCK_DEPENDENCY_SELECTOR,
+        { extraTemplateData: userExtra }
+      );
+      matcher.getDependencySelectorMatchingDescription(
+        MOCK_DEPENDENCY_DESCRIPTION,
+        MOCK_DEPENDENCY_SELECTOR,
+        { extraTemplateData: userExtra }
+      );
+
+      // Assert
+      expect(mockedGetLegacyDependencyExtra).toHaveBeenCalledTimes(1);
+      expect(
+        dependenciesMatcherInstance.getSelectorMatching
+      ).toHaveBeenCalledTimes(2);
+      expect(
+        dependenciesMatcherInstance.getSelectorMatching.mock.calls[1][2]
+      ).toEqual({ extraTemplateData: MOCK_LEGACY_DEPENDENCY_DATA });
+    });
+
+    it("should compute the legacy template data once per description when extraTemplateData is not provided", () => {
+      // Act
+      matcher.getDependencySelectorMatchingDescription(
+        MOCK_DEPENDENCY_DESCRIPTION,
+        MOCK_DEPENDENCY_SELECTOR
+      );
+      matcher.getDependencySelectorMatchingDescription(
+        MOCK_DEPENDENCY_DESCRIPTION,
+        MOCK_DEPENDENCY_SELECTOR
+      );
+
+      // Assert
+      expect(mockedGetLegacyDependencyExtra).toHaveBeenCalledTimes(1);
+    });
+
+    it("should compute the legacy template data again for a different extraTemplateData object", () => {
+      // Act
+      matcher.getDependencySelectorMatchingDescription(
+        MOCK_DEPENDENCY_DESCRIPTION,
+        MOCK_DEPENDENCY_SELECTOR,
+        { extraTemplateData: { custom: "val" } }
+      );
+      matcher.getDependencySelectorMatchingDescription(
+        MOCK_DEPENDENCY_DESCRIPTION,
+        MOCK_DEPENDENCY_SELECTOR,
+        { extraTemplateData: { custom: "val" } }
+      );
+
+      // Assert
+      expect(mockedGetLegacyDependencyExtra).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe("getElementSelectorMatchingDescription", () => {
@@ -1000,6 +1068,16 @@ describe("Matcher", () => {
       matcher.clearCache();
 
       expect(descriptorsInstance.clearCache).toHaveBeenCalledTimes(1);
+    });
+
+    it("should clear the cache of every matcher", () => {
+      matcher.clearCache();
+
+      expect(elementsMatcherInstance.clearCache).toHaveBeenCalledTimes(1);
+      expect(filesMatcherInstance.clearCache).toHaveBeenCalledTimes(1);
+      expect(modulesMatcherInstance.clearCache).toHaveBeenCalledTimes(1);
+      expect(entitiesMatcherInstance.clearCache).toHaveBeenCalledTimes(1);
+      expect(dependenciesMatcherInstance.clearCache).toHaveBeenCalledTimes(1);
     });
   });
 

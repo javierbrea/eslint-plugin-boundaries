@@ -57,24 +57,6 @@ export class ElementsDescriptor {
     | CacheManagerDisabled<string, ElementDescription>;
 
   /**
-   * Cache storing the folder-stable base description for each folder.
-   * Multiple files in the same folder share the same base (path, types, category,
-   * captured, parents), so it is computed once per folder and extended per file with
-   * the file-specific fields (fileInternalPath, isIgnored).
-   */
-  private readonly _folderDescriptionsCache:
-    | CacheManager<string, ElementDescription>
-    | CacheManagerDisabled<string, ElementDescription>;
-
-  /**
-   * Whether the folder-level cache can be used. It is only sound when no descriptor
-   * relies on the file name to match, i.e. no descriptor uses the deprecated "file" or
-   * "full" modes. In those modes a sibling file could match a different descriptor, so
-   * the description is not folder-deterministic and the per-file path must be used.
-   */
-  private readonly _canCacheByFolder: boolean;
-
-  /**
    * Configuration instance for this descriptor.
    */
   private readonly _config: DescriptorOptionsNormalized;
@@ -97,7 +79,6 @@ export class ElementsDescriptor {
    * The configuration options for this descriptor.
    * @param elementDescriptors The element descriptors.
    * @param configOptions The configuration options.
-   * @param globalCache The global cache for various caching needs.
    * @param micromatch The micromatch instance for path matching.
    * @param singleType Whether single-type matching is enabled.
    */
@@ -114,16 +95,6 @@ export class ElementsDescriptor {
     this._config = configOptions;
     this._pathHelper = new PathHelper(configOptions, micromatch);
     this._descriptionsCache = this._config.cache
-      ? new CacheManager<string, ElementDescription>()
-      : new CacheManagerDisabled<string, ElementDescription>();
-    this._canCacheByFolder =
-      this._config.cache &&
-      !elementDescriptors.some(
-        (descriptor) =>
-          descriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FILE ||
-          descriptor.mode === ELEMENT_DESCRIPTOR_MODES_MAP.FULL
-      );
-    this._folderDescriptionsCache = this._canCacheByFolder
       ? new CacheManager<string, ElementDescription>()
       : new CacheManagerDisabled<string, ElementDescription>();
   }
@@ -151,11 +122,11 @@ export class ElementsDescriptor {
    */
   public clearCache(): void {
     this._descriptionsCache.clear();
-    this._folderDescriptionsCache.clear();
   }
 
   /**
    * Validates the element descriptors to ensure they are correctly defined.
+   * @param elementDescriptors The element descriptors to validate.
    */
   private _validateDescriptors(elementDescriptors: ElementDescriptors): void {
     let index = 0;
@@ -173,29 +144,33 @@ export class ElementsDescriptor {
    * Gets the element path based on the path pattern, path segments to the element, and all path segments from the file path.
    * @param pathPattern The element path pattern.
    * @param pathSegments The path segments leading to the element.
-   * @param allPathSegments The full path segments from the file path.
+   * @param allPathSegments The full path segments from the file path, in reverse order.
+   * @param levelIndex The index in `allPathSegments` of the first segment of the element, which is the path level being matched.
    * @returns The element path.
    */
   private _getElementPath(
     pathPattern: string,
     pathSegments: string[],
-    allPathSegments: string[]
+    allPathSegments: string[],
+    levelIndex: number
   ): string {
     const elementPathRegexp = this._micromatch.makeRe(pathPattern);
 
     const testedSegments: string[] = [];
-    let result: string | undefined;
 
     for (const pathSegment of pathSegments) {
       testedSegments.push(pathSegment);
-      const joinedSegments = testedSegments.join("/");
-      if (elementPathRegexp.test(joinedSegments)) {
-        result = joinedSegments;
+      if (elementPathRegexp.test(testedSegments.join("/"))) {
         break; // Early exit when match is found
       }
     }
-    // NOTE: result should never be undefined here, as we already matched the pattern before
-    return `${[...allPathSegments].reverse().join("/").split(result!)[0]}${result}`;
+    // NOTE: testedSegments always ends on a match here, as we already matched the pattern before
+    // Slice by segment count from the matched level instead of searching the matched segments in the file path, because they may also occur earlier in it (e.g. "components/Button" inside "components/ButtonGroup")
+    const forwardSegments = [...allPathSegments].reverse();
+    const elementStartIndex = forwardSegments.length - 1 - levelIndex;
+    return forwardSegments
+      .slice(0, elementStartIndex + testedSegments.length)
+      .join("/");
   }
 
   /**
@@ -310,12 +285,13 @@ export class ElementsDescriptor {
       }
     }
 
+    // Stryker disable next-line ObjectLiteral: Equivalent mutant, callers only read `matched`, which is also falsy in an empty object
     return { matched: false };
   }
 
   /**
    * Describes an element given its file path
-   * @param elementPath The path of the element to describe.
+   * @param filePath The path of the file to describe.
    * @returns The description of the element.
    */
   private _describeElement(filePath?: string): ElementDescription {
@@ -372,6 +348,7 @@ export class ElementsDescriptor {
       },
       currentPathSegments: string[],
       elementPaths: string[],
+      levelIndex: number,
       isMainElementLevel: boolean
     ) => {
       const { capture, baseCapture, useFullPathMatch, patternUsed } = matchInfo;
@@ -381,7 +358,8 @@ export class ElementsDescriptor {
         elementDescriptor.capture
       );
 
-      if (elementDescriptor.basePattern && baseCapture) {
+      // baseCapture is only set when the descriptor has a basePattern
+      if (baseCapture) {
         capturedValues = {
           ...this._pathHelper.getCapturedValues(
             baseCapture,
@@ -392,6 +370,7 @@ export class ElementsDescriptor {
       }
 
       let elementPath: string;
+      // Surviving Stryker mutant: replacing this condition with `false` is equivalent, because a "full" mode descriptor only matches as main element at the first level, where _getElementPath also returns the file path
       if (useFullPathMatch) {
         elementPath = filePath;
       } else if (
@@ -406,7 +385,8 @@ export class ElementsDescriptor {
         elementPath = this._getElementPath(
           patternUsed,
           currentPathSegments,
-          elementPaths
+          elementPaths,
+          levelIndex
         );
       }
 
@@ -464,6 +444,7 @@ export class ElementsDescriptor {
             match,
             state.pathSegmentsAccumulator,
             pathSegments,
+            i,
             !alreadyHasMainElement
           );
           matchFoundAtThisLevel = true;
@@ -524,8 +505,9 @@ export class ElementsDescriptor {
     elementResult.isUnknown = false;
     elementResult.path = elementPath;
     elementResult.captured = capturedValues;
+    // The element path is the file path when a "full" mode pattern without partialMatch: false matches, or when the shortest part of the path that the pattern matches already ends at the file name, as with "*.ts" in "file" mode or "src/*/**" in folder mode. Folder mode keeps the whole path then
     elementResult.fileInternalPath =
-      isFolderMode || filePath !== elementPath // Defensive check to ensure we don't return an empty string if filePath and elementPath are the same. This should not happen.
+      isFolderMode || filePath !== elementPath
         ? filePath.replace(`${elementPath}/`, "")
         : filePath.split("/").pop() ||
           // istanbul ignore next -- Ensures non-empty string if filePath were a single segment. Unreachable: filePath is guaranteed non-empty, so split("/").pop() always returns a truthy string
@@ -595,77 +577,6 @@ export class ElementsDescriptor {
   }
 
   /**
-   * Gets the folder key used to cache the folder-stable base description.
-   * @param relativePath The relative file path.
-   * @returns The folder portion of the path (everything but the last segment, empty for a file at the root).
-   */
-  private _getFolderKey(relativePath: string): string {
-    const lastSeparatorIndex = relativePath.lastIndexOf("/");
-    return lastSeparatorIndex === -1
-      ? ""
-      : relativePath.slice(0, lastSeparatorIndex);
-  }
-
-  /**
-   * Gets the file path relative to its element folder.
-   * This is only used in the folder-cacheable branch, where all descriptors are in
-   * folder mode, so the element path is always a folder containing the file.
-   * @param relativePath The relative file path.
-   * @param elementPath The matched element path.
-   * @returns The file path relative to the element folder.
-   */
-  private _getFileInternalPath(
-    relativePath: string,
-    elementPath: string | null
-  ): string {
-    return relativePath.replace(`${elementPath}/`, "");
-  }
-
-  /**
-   * Describes an element reusing a folder-level cache.
-   * The folder-stable base (path, types, category, captured, parents) is computed once
-   * per folder and extended per file with the file-specific fields.
-   * @param relativePath The relative file path.
-   * @returns The description of the element.
-   */
-  private _describeElementWithFolderCache(
-    relativePath: string
-  ): ElementDescription {
-    // isIgnored depends on the full file path, so it must be evaluated per file before
-    // touching the folder base.
-    if (!this._pathHelper.pathIsIncluded(relativePath)) {
-      return {
-        ...UNKNOWN_ELEMENT,
-        filePath: relativePath,
-        path: relativePath,
-        isIgnored: true,
-      };
-    }
-
-    const folderKey = this._getFolderKey(relativePath);
-    let base = this._folderDescriptionsCache.get(folderKey);
-    if (base === undefined) {
-      // relativePath is guaranteed included here, so _describeElement returns either a
-      // known element or the unknown shape ({ ...UNKNOWN_ELEMENT, path: null }), never
-      // the "ignored" shape. The base is computed from the first included file in the
-      // folder.
-      base = this._describeElement(relativePath);
-      this._folderDescriptionsCache.set(folderKey, base);
-    }
-
-    // A folder matching no descriptor is file-independent in folder-only mode.
-    if (base.isUnknown) {
-      return base;
-    }
-
-    return {
-      ...base,
-      filePath: relativePath,
-      fileInternalPath: this._getFileInternalPath(relativePath, base.path),
-    };
-  }
-
-  /**
    * Describes the element of a file given its path.
    * @param filePath The path of the dependency target file, if known. Can be absolute if rootPath is configured, or relative if not.
    * @returns The description of the dependency element.
@@ -680,10 +591,7 @@ export class ElementsDescriptor {
     if (this._descriptionsCache.has(cacheKey)) {
       return this._descriptionsCache.get(cacheKey)!;
     }
-    const description =
-      this._canCacheByFolder && relativePath
-        ? this._describeElementWithFolderCache(relativePath)
-        : this._describeElement(relativePath);
+    const description = this._describeElement(relativePath);
     this._descriptionsCache.set(cacheKey, description);
     return description;
   }

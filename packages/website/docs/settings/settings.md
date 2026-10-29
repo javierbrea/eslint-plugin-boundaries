@@ -274,7 +274,7 @@ The `rootPath` setting may affect the **[module origin](../classification/module
 
 **Default:** `true`
 
-Enables or disables the cache mechanism used to boost performance.
+Enables or disables the cache of results (entity descriptions, matching results and captures) used to boost performance. Compiled patterns and templates are always reused, because they depend only on their own text, so disabling the cache never makes the plugin compile them again.
 
 ```js
 export default [{

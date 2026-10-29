@@ -160,6 +160,28 @@ describe("ModuleSelectorHelpers", () => {
   });
 
   describe("normalizeModuleSelector", () => {
+    it("should return the same normalized selector for the same selector object", () => {
+      // Arrange
+      const selector: ModuleSingleSelector = { origin: "src/**" };
+
+      // Act
+      const first = normalizeModuleSelector(selector);
+      const second = normalizeModuleSelector(selector);
+
+      // Assert
+      expect(second).toBe(first);
+    });
+
+    it("should normalize again a different selector object with the same content", () => {
+      // Act
+      const first = normalizeModuleSelector({ origin: "src/**" });
+      const second = normalizeModuleSelector({ origin: "src/**" });
+
+      // Assert
+      expect(second).toEqual(first);
+      expect(second).not.toBe(first);
+    });
+
     it("should wrap a single selector in an array", () => {
       const selector: ModuleSingleSelector = { origin: "src/**" };
 

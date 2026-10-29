@@ -5,15 +5,83 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [unreleased]
+## [Unreleased]
 
 ### Changed
 
 - feat(#430): The `name` property is now required in `boundaries/additional-dependency-nodes`. Objects without a valid `name` are considered invalid and ignored, emitting a warning, instead of being accepted with a soft suggestion.
+- refactor(#549): The normalization and validation of the settings and rule options move to the new `@boundaries/config` package, which the plugin depends on. The plugin reports the same warnings and errors as before.
+- chore(#549): Type-check the plugin against the types of ESLint 9.39, which the repository develops and tests it with.
+- chore: Lint the plugin with the SonarCloud rules that `eslint-plugin-sonarjs` implements.
+- chore: The homepage of the package is the [JS Boundaries website](https://www.jsboundaries.dev/), the README is a short introduction that links to it, and the folder of the package in the repository is declared in the `directory` field that npm reads.
+- chore: The TypeScript configuration no longer uses two options that TypeScript 6 deprecates: it resolves modules with `node16` instead of `node10`, and it no longer sets `baseUrl`. The build output does not change.
+
+### Fixed
+
+- fix: Warn when the `boundaries/elements`, `boundaries/types` or `boundaries/files` setting is not an array. The plugin ignored it without saying why.
 
 ### BREAKING CHANGES
 
 - Custom dependency nodes defined in `boundaries/additional-dependency-nodes` without a `name` property were previously accepted; now they are ignored. Add a unique `name` to each custom dependency node, so it can be referenced from selectors (`dependency.nodeKind`) and custom messages templates.
+
+## [7.4.0] - 2026-10-27
+
+### Changed
+
+- chore(#570): Fix the `@param` tags in the TSDoc of internal functions, which named parameters that do not exist or missed some.
+- chore: Upgrade `@boundaries/elements` to 3.3.0.
+
+### Fixed
+
+- fix(#510): Imports of Node.js built-in modules only available with the `node:` prefix, such as `node:test` or `node:sqlite`, have the `core` origin instead of `external`: read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-4-0/#nodejs-built-in-modules-with-the-node-prefix) to check whether your policies are affected.
+- fix(#510): Some extglob patterns now match all the paths they describe, like the same patterns without extglobs (`src/@(foo/**)` now matches `src/foo`, like `src/foo/**`): read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-4-0/#extglob-patterns) to check whether your patterns are affected.
+- fix(#568): With `boundaries/cache` enabled, which is the default, the files placed next to a linted or imported dot file, such as `.lintstagedrc.js`, no longer get its description or give it theirs, which could change the errors from one run to another: read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-4-0/#dot-files-in-element-folders) to find the affected files.
+
+## [7.3.0] - 2026-10-23
+
+### Changed
+
+- perf: Linting is about 2.5 times faster than in v7.2.1: 60% less time with flat config and 57% less with legacy config, measured on the E2E performance fixture of about 5,000 files. Selector templates and normalized selectors are now built once and reused, instead of on every match (#524).
+- perf(#489): The capture patterns of element and file descriptors are compiled once, instead of once per linted file. ([@joernroeder](https://github.com/joernroeder))
+- perf: `boundaries/cache: false` now disables only the caches of results. Compiled patterns and templates are always kept, so linting with the cache disabled is much faster than before.
+- chore: Upgrade `@boundaries/elements` to 3.2.0.
+
+### Fixed
+
+- fix(#494): Nested elements whose folder name starts with, or equals, the name of an ancestor folder (such as `components/Button` inside `components/ButtonGroup/`) now get the right `path`, `fileInternalPath` and parent. Policies that use them may report different errors: read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-3-0/#nested-element-paths) to find the affected files.
+- fix(#495): `basePattern` restricts element matching again, as documented, after being ignored since v5.1.0. Files matched by mistake until now may become unknown or match another element: read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-3-0/#base-pattern-matching) to find them. ([@edoroshenko](https://github.com/edoroshenko))
+
+### Security
+
+- fix(#492): Replace `micromatch` with `picomatch`, which removes `braces` ([GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm), with no patched release) from the production dependencies. ([@edoroshenko](https://github.com/edoroshenko))
+
+## [7.2.1] - 2026-10-21
+
+### Changed
+
+- chore: Upgrade `@boundaries/elements` to 3.1.2 and `eslint-module-utils` to 2.14.0.
+- chore: Update devDependencies to their latest patch and minor versions.
+
+### Security
+
+- chore: Upgrade `handlebars` to 4.7.10, which fixes JavaScript injection advisories affecting 4.0.0 to 4.7.9.
+
+## [7.2.0] - 2026-08-09
+
+### Added
+
+- feat(#477): `boundaries/dependencies` and `boundaries/element-types` now warn when an `allow`/`disallow` entry omits the `from`/`to` wrapper (e.g. `allow: [{ element: { type: "helper" } }]` instead of `allow: [{ to: { element: { type: "helper" } } }]`). The bare form keeps working; the warning is suppressible via `boundaries/legacy-warnings: false`. Note that v5-style configs using a legacy `allow`/`disallow` selector (e.g. `allow: ["helper"]`) now emit this warning **in addition to** the legacy-selector warning they already emitted.
+
+### Changed
+
+- refactor(#477): Legacy selector deprecation warnings are now reported per detected syntax form — legacy string selectors, legacy tuple selectors, and element selectors used directly as entity selectors each get their own message with a concrete before/after example. Warnings also say "policy"/"policies" instead of "rule(s)", matching v7 terminology.
+- refactor(#477): The "unrecognized selector shape" warning now names only the specific properties (`from`, `to`, `dependency`, `allow`, `disallow`) that failed validation, instead of always listing all five.
+
+### Fixed
+
+- fix(#479): Upgrade `@boundaries/elements`. A `boundaries/files` descriptor without `capture` no longer resets `file.captured` when it matches after a capturing descriptor. Captured values are now merged from every matching file descriptor regardless of declaration order, matching the `boundaries/elements` descriptor behavior. `exclusive` descriptors still reset captured values.
+- fix(#477): Legacy selector deprecation warnings now link to the migration guide that actually deprecated the detected syntax. Element selectors used directly as entity selectors (e.g. `{ type: "component" }`) link to the v6-to-v7 entity selectors section instead of the v5-to-v6 guide. The `mode` deprecation warning links to its own section of the v6-to-v7 guide.
+- fix: `boundaries/dependencies`/`boundaries/element-types` policies with a bare (unwrapped) `allow`/`disallow` entry and neither `from` nor `to` at the policy level (e.g. `{ allow: { element: { type: "helper" } } }`) no longer invert the policy's meaning or crash the linter on every matched dependency. The bare entry now consistently fills `to`, matching the documented `allow`/`disallow` semantics.
 
 ## [7.1.0] - 2026-07-20
 
@@ -341,7 +409,7 @@ Version 7 introduces the **entity model**: every file is now described along thr
 - feat(#213): Add `dependency-nodes` setting to allow analyzing dependencies from additional nodes, such as exports or dynamic imports. ([@gridsane](https://github.com/gridsane))
 - feat: Add `additional-dependency-nodes` setting to add custom dependency nodes to the default ones. For example, you could enable to analyze dependencies in `jest.mock(...)`, etc. ([@gridsane](https://github.com/gridsane))
 
-### BREAKING CHANGES
+### Breaking Changes
 
 - fix: Fixed the error position in multiline imports. See ["how to migrate from v3 to v4" guide](./docs/guides/how-to-migrate-from-v3-to-v4.md).
 
@@ -563,7 +631,7 @@ Version 7 introduces the **entity model**: every file is now described along thr
 ### Removed
 - feat(settings): Removed `boundaries/alias` setting
 
-### BREAKING CHANGES
+### Breaking Changes
 - Removed `boundaries/alias` setting. `import/resolver` has to be used instead
 - Renamed `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Changed the format of rule options
 - Changed the format of `entry-point` rule options (now it support allow/disallow format)
@@ -615,7 +683,7 @@ Version 7 introduces the **entity model**: every file is now described along thr
 ### Removed
 - feat(settings): Removed `boundaries/alias` setting
 
-### BREAKING CHANGES
+### Breaking Changes
 - Removed `boundaries/alias` setting. `import/resolver` has to be used instead
 - Renamed `allowed-types` rule into `element-types` (now it can be used to allow/disallow). Changed the format of rule options
 - Changed the format of `entry-point` rule options (now it support allow/disallow format)

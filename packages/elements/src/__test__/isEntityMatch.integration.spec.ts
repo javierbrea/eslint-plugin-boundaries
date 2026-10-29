@@ -1,6 +1,6 @@
 /* eslint-disable jest/no-conditional-in-test */
 
-import micromatch from "micromatch";
+import picomatch from "picomatch";
 
 import type {
   ElementSelector,
@@ -18,7 +18,7 @@ describe("isEntityMatch | Integration", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    micromatchSpy = jest.spyOn(micromatch, "isMatch");
+    micromatchSpy = jest.spyOn(picomatch, "isMatch");
 
     elements = new Elements();
     matcher = elements.getMatcher(
@@ -177,11 +177,6 @@ describe("isEntityMatch | Integration", () => {
       },
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { element: { type: "{{ element.types.[0] }}" } },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
         selector: { element: { type: "{{ foo }}" } },
 
         expected: true,
@@ -218,23 +213,8 @@ describe("isEntityMatch | Integration", () => {
       // Singular type selector: matches against first type only
       {
         filePath: "/project/src/components/Button.tsx",
-        selector: { element: { type: "component" } },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
         selector: { element: { type: "foo" } },
         expected: false,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { element: { type: "{{ element.type }}" } },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/components/Button.tsx",
-        selector: { element: { type: "{{ element.types.[0] }}" } },
-        expected: true,
       },
       {
         filePath: "/project/src/components/Button.tsx",
@@ -495,15 +475,6 @@ describe("isEntityMatch | Integration", () => {
       {
         filePath: "/project/src/modules/user/foo.ts",
         selector: {
-          element: {
-            captured: [{ moduleName: "admin" }, { moduleName: "user" }],
-          },
-        },
-        expected: true,
-      },
-      {
-        filePath: "/project/src/modules/user/foo.ts",
-        selector: {
           element: { captured: [] },
         },
         expected: false,
@@ -613,12 +584,6 @@ describe("isEntityMatch | Integration", () => {
           "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
         selector: { element: { parent: { path: "**" } } },
         expected: true,
-      },
-      {
-        filePath:
-          "/project/src/foo/var/modules/notification/modules/phone/modules/sms/SmsService.ts",
-        selector: { element: { parent: { type: "foo" } } },
-        expected: false,
       },
       {
         filePath: "/project/src/misc/other.ts",

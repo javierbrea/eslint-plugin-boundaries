@@ -8,10 +8,13 @@ import typescriptParser from "@typescript-eslint/parser";
 import eslintConfigPrettier from "eslint-config-prettier";
 import importPlugin from "eslint-plugin-import";
 import pluginJest from "eslint-plugin-jest";
+// eslint-disable-next-line import/no-unresolved
+import jsdoc from "eslint-plugin-jsdoc";
 import prettier from "eslint-plugin-prettier";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
+import sonarjs from "eslint-plugin-sonarjs";
 import globals from "globals";
 
 export const jestConfig = {
@@ -161,6 +164,17 @@ export const jsBaseConfig = {
   },
 };
 
+export const jsdocConfig = {
+  files: ["**/*.js", "**/*.cjs", "**/*.mjs", "**/*.jsx", "**/*.ts", "**/*.tsx"],
+  plugins: {
+    jsdoc,
+  },
+  rules: {
+    "jsdoc/check-param-names": [2],
+    "jsdoc/require-param": [2],
+  },
+};
+
 export const commonJsConfig = {
   files: ["**/*.cjs"],
   languageOptions: {
@@ -251,14 +265,97 @@ export const reactHooksConfig = {
   ...reactHooksPlugin.configs.flat.recommended,
 };
 
+const NODE_GLOBALS = [
+  "process",
+  "require",
+  "Buffer",
+  "global",
+  "__dirname",
+  "__filename",
+  "clearImmediate",
+  "exports",
+  "module",
+  "setImmediate",
+];
+
+/**
+ * Returns the config of the sources of a package that runs in browsers, which forbids the Node.js globals because browsers do not define them.
+ * @param {string} hint What to do instead of reading the global, appended to the error message.
+ * @returns {object} The config.
+ */
+export function createBrowserConfig(hint) {
+  return {
+    files: ["src/**/*.ts"],
+    ignores: ["src/**/*.spec.ts"],
+    rules: {
+      "no-restricted-globals": [
+        "error",
+        ...NODE_GLOBALS.map((name) => ({
+          name,
+          message: `It is not defined in browsers. ${hint}`,
+        })),
+      ],
+    },
+  };
+}
+
+// Rules of the sonarjs recommended config that the "Sonar way comprehensive" profile of the SonarCloud projects does not run
+const SONARJS_RULES_NOT_IN_SONARCLOUD = [
+  "argument-type",
+  "array-callback-without-return",
+  "avoid-mutating-nested-properties-of-shallow-clones",
+  "different-types-comparison",
+  "function-return-type",
+  "future-reserved-words",
+  "in-operator-type-error",
+  "inconsistent-function-call",
+  "no-extra-arguments",
+  "no-implicit-global",
+  "no-trivial-assertions",
+  "no-unused-vars",
+  "null-dereference",
+  "prefer-native-axios-alternative",
+  "prefer-native-jquery-alternative",
+  "prefer-single-boolean-return",
+  "super-linear-regex",
+  "table-header-reference",
+  "updated-const-var",
+];
+
+// Rules whose findings are intentional here and are accepted in SonarCloud instead: the packages read their own deprecated APIs to support legacy configurations, keep deprecated type aliases public, and mark pending work with TODO comments
+const SONARJS_RULES_ACCEPTED_IN_SONARCLOUD = [
+  "deprecation",
+  "redundant-type-aliases",
+  "todo-tag",
+];
+
+/**
+ * The rules of SonarCloud that eslint-plugin-sonarjs implements, so that lint reports their issues before the analysis does.
+ */
+export const sonarjsConfig = {
+  files: ["**/*.js", "**/*.cjs", "**/*.mjs", "**/*.jsx", "**/*.ts", "**/*.tsx"],
+  ...sonarjs.configs.recommended,
+  rules: {
+    ...sonarjs.configs.recommended.rules,
+    ...Object.fromEntries(
+      [
+        ...SONARJS_RULES_NOT_IN_SONARCLOUD,
+        ...SONARJS_RULES_ACCEPTED_IN_SONARCLOUD,
+      ].map((rule) => [`sonarjs/${rule}`, 0])
+    ),
+  },
+};
+
 export const defaultConfigWithoutTypescript = [
   ignores,
   jsonConfig,
   jsoncConfig,
   markdownConfig,
   jsBaseConfig,
+  jsdocConfig,
   commonJsConfig,
   disableExtensionsInEslintConfig,
+  sonarjsConfig,
 ];
 
 export default [...defaultConfigWithoutTypescript, typescriptConfig];

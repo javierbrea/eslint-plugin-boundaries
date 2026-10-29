@@ -1,0 +1,68 @@
+.steps {
+  padding-block: 4rem 5rem;
+  border-top: 1px solid var(--jsb-line);
+  border-bottom: 1px solid var(--jsb-line);
+  background: var(--jsb-paper-2);
+}
+
+.step {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 2.5rem;
+  align-items: center;
+  padding-block: 2.2rem;
+  border-top: 1px dashed var(--jsb-line-strong);
+}
+
+/* The first step follows the section head, not another step */
+.step:nth-child(2) {
+  border-top: 0;
+}
+
+.text {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.number {
+  font-family: var(--jsb-font-display);
+  font-size: 2.6rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--jsb-accent);
+  opacity: 0.9;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.1;
+}
+
+.description {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--jsb-muted);
+}
+
+.description code {
+  padding: 1px 5px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--jsb-accent-soft);
+  color: var(--jsb-ink);
+  font-size: 0.8rem;
+  vertical-align: baseline;
+}
+
+.example {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .step {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.2rem;
+  }
+}

@@ -1,3 +1,5 @@
+import Handlebars from "handlebars";
+
 import type { MatchersOptionsNormalized } from "../../Config";
 import type { BaseDescription, ModuleDescription } from "../../Descriptor";
 import type { MicromatchPatternNullable } from "../../Shared";
@@ -90,13 +92,17 @@ describe("BaseElementsMatcher", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
     micromatch = new Micromatch(false) as jest.Mocked<Micromatch>;
   });
 
   function createMatcher(
-    config: MatchersOptionsNormalized = { legacyTemplates: false }
+    config: Partial<MatchersOptionsNormalized> = {}
   ): TestableMatcher {
-    matcher = new TestableMatcher(config, micromatch);
+    matcher = new TestableMatcher(
+      { legacyTemplates: false, cache: true, ...config },
+      micromatch
+    );
     return matcher;
   }
 
@@ -111,6 +117,28 @@ describe("BaseElementsMatcher", () => {
       const instance = createMatcher();
 
       expect(instance).toBeInstanceOf(BaseElementsMatcher);
+    });
+  });
+
+  describe("clearCache", () => {
+    it("should compile the templates again after clearing the cache", () => {
+      const compileSpy = jest.spyOn(Handlebars, "compile");
+      createMatcher();
+      matcher.callGetRenderedTemplates("{{ type }}/index", { type: "a" });
+
+      matcher.clearCache();
+      const result = matcher.callGetRenderedTemplates("{{ type }}/index", {
+        type: "b",
+      });
+
+      expect(result).toBe("b/index");
+      expect(compileSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it("should not throw when the cache is disabled", () => {
+      createMatcher({ cache: false });
+
+      expect(() => matcher.clearCache()).not.toThrow();
     });
   });
 
@@ -162,6 +190,103 @@ describe("BaseElementsMatcher", () => {
         const result = matcher.callGetRenderedTemplates("{{ missing }}", {});
 
         expect(result).toBe("");
+      });
+    });
+
+    describe("compiled templates cache", () => {
+      it("should compile a template only once when rendering it several times", () => {
+        const compileSpy = jest.spyOn(Handlebars, "compile");
+        createMatcher();
+
+        const first = matcher.callGetRenderedTemplates("{{ type }}/index", {
+          type: "components",
+        });
+        const second = matcher.callGetRenderedTemplates("{{ type }}/index", {
+          type: "modules",
+        });
+
+        expect(first).toBe("components/index");
+        expect(second).toBe("modules/index");
+        expect(compileSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it("should compile each distinct template once", () => {
+        const compileSpy = jest.spyOn(Handlebars, "compile");
+        createMatcher();
+
+        matcher.callGetRenderedTemplates("{{ type }}/index", { type: "a" });
+        matcher.callGetRenderedTemplates("{{ type }}/main", { type: "a" });
+        matcher.callGetRenderedTemplates("{{ type }}/index", { type: "b" });
+
+        expect(compileSpy).toHaveBeenCalledTimes(2);
+      });
+
+      it("should not compile templates without Handlebars syntax, even when rendered several times", () => {
+        const compileSpy = jest.spyOn(Handlebars, "compile");
+        createMatcher();
+
+        const first = matcher.callGetRenderedTemplates("plain-string", {});
+        const second = matcher.callGetRenderedTemplates("plain-string", {});
+
+        expect(first).toBe("plain-string");
+        expect(second).toBe("plain-string");
+        expect(compileSpy).not.toHaveBeenCalled();
+      });
+
+      it("should convert and compile a legacy template only once", () => {
+        const compileSpy = jest.spyOn(Handlebars, "compile");
+        createMatcher({ legacyTemplates: true });
+
+        const first = matcher.callGetRenderedTemplates("${type}/index", {
+          type: "components",
+        });
+        const second = matcher.callGetRenderedTemplates("${type}/index", {
+          type: "modules",
+        });
+
+        expect(first).toBe("components/index");
+        expect(second).toBe("modules/index");
+        expect(compileSpy).toHaveBeenCalledTimes(1);
+        expect(compileSpy).toHaveBeenCalledWith("{{ type }}/index");
+      });
+
+      it("should keep the cache per matcher instance", () => {
+        const compileSpy = jest.spyOn(Handlebars, "compile");
+        const first = createMatcher();
+        const second = createMatcher();
+
+        first.callGetRenderedTemplates("{{ type }}/index", { type: "a" });
+        second.callGetRenderedTemplates("{{ type }}/index", { type: "a" });
+
+        expect(compileSpy).toHaveBeenCalledTimes(2);
+      });
+
+      it("should compile the template only once also when the cache option is disabled", () => {
+        const compileSpy = jest.spyOn(Handlebars, "compile");
+        createMatcher({ cache: false });
+
+        const first = matcher.callGetRenderedTemplates("{{ type }}/index", {
+          type: "components",
+        });
+        const second = matcher.callGetRenderedTemplates("{{ type }}/index", {
+          type: "modules",
+        });
+
+        expect(first).toBe("components/index");
+        expect(second).toBe("modules/index");
+        expect(compileSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it("should return templates without Handlebars syntax as they are when the cache is disabled", () => {
+        const compileSpy = jest.spyOn(Handlebars, "compile");
+        createMatcher({ cache: false });
+
+        const first = matcher.callGetRenderedTemplates("plain-string", {});
+        const second = matcher.callGetRenderedTemplates("plain-string", {});
+
+        expect(first).toBe("plain-string");
+        expect(second).toBe("plain-string");
+        expect(compileSpy).not.toHaveBeenCalled();
       });
     });
 

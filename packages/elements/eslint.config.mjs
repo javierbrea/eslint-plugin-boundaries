@@ -2,6 +2,7 @@ import {
   defaultConfigWithoutTypescript,
   typescriptConfig,
   jestConfig,
+  createBrowserConfig,
 } from "../../support/eslint-config/index.js";
 
 export default [
@@ -16,4 +17,7 @@ export default [
       },
     },
   },
+  createBrowserConfig(
+    "Read it from globalThis, like the helpers in src/Shared/Platform.ts do."
+  ),
 ];

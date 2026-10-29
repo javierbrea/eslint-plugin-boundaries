@@ -1,3 +1,7 @@
+import {
+  getRuleOptionsSchema,
+  migrationToV6GuideLink,
+} from "@boundaries/config";
 import type {
   DependencyDescription,
   TemplateData,
@@ -20,11 +24,7 @@ import type {
 } from "@boundaries/elements";
 import {
   DEPENDENCY_RELATIONSHIPS_MAP,
-  isBackwardCompatibleDependencySelector,
   isDependencySelector,
-  normalizeDependencyInfoSelector,
-  normalizeDependencySelector,
-  normalizeEntitySelector,
   ORIGINS_MAP,
 } from "@boundaries/elements";
 import type { Rule } from "eslint";
@@ -37,15 +37,13 @@ import {
   customErrorMessage,
 } from "../Messages";
 import {
-  rulesOptionsSchema,
-  migrationToV6GuideLink,
   validateAndWarnRuleOptions,
   deprecatedRuleInfo,
+  getDependenciesRuleOptions,
 } from "../Settings";
 import type {
   RuleOptionsWithPolicies,
   DependenciesRuleOptions,
-  DependenciesPolicy,
   DependenciesPolicyNormalized,
   SettingsNormalized,
   RuleName,
@@ -65,42 +63,28 @@ type DependenciesPolicyPrecomputed = DependenciesPolicyNormalized & {
   precomputedDisallow?: DependencySingleSelectorNormalized[];
 };
 
-const normalizedPoliciesMap = new WeakMap<
-  DependenciesPolicy,
+/**
+ * Template data passed to the matcher when legacy templates are disabled. It is a single shared object so the matcher can memoize the data it derives from it per dependency, instead of deriving it again for every policy.
+ */
+const EMPTY_TEMPLATE_DATA: TemplateData = Object.freeze({});
+
+const precomputedPoliciesMap = new WeakMap<
+  DependenciesPolicyNormalized,
   DependenciesPolicyPrecomputed
 >();
 
-const normalizeRuleEffect = (
-  rule: DependenciesPolicy["allow"] | DependenciesPolicy["disallow"]
-):
-  | DependenciesPolicyNormalized["allow"]
-  | DependenciesPolicyNormalized["disallow"] => {
-  if (isUndefined(rule)) {
-    return rule;
-  }
-  if (isBackwardCompatibleDependencySelector(rule)) {
-    return normalizeDependencySelector(rule);
-  }
-  return normalizeEntitySelector(rule);
-};
-
-const normalizeRuleOptions = (
-  rule: DependenciesPolicy
+/**
+ * Builds the dependency selectors of a policy, merging its outer selectors with each entry of `allow` and `disallow`, cached by policy identity.
+ * @param normalizedRule - The policy, normalized by `@boundaries/config`.
+ * @returns The policy with its precomputed selectors.
+ */
+const precomputePolicy = (
+  normalizedRule: DependenciesPolicyNormalized
 ): DependenciesPolicyPrecomputed => {
-  if (normalizedPoliciesMap.has(rule)) {
-    return normalizedPoliciesMap.get(rule)!;
+  const cachedPolicy = precomputedPoliciesMap.get(normalizedRule);
+  if (cachedPolicy) {
+    return cachedPolicy;
   }
-
-  const normalizedRule: DependenciesPolicyNormalized = {
-    from: rule.from ? normalizeEntitySelector(rule.from) : undefined,
-    to: rule.to ? normalizeEntitySelector(rule.to) : undefined,
-    dependency: rule.dependency
-      ? normalizeDependencyInfoSelector(rule.dependency)
-      : undefined,
-    importKind: rule.importKind,
-    allow: normalizeRuleEffect(rule.allow),
-    disallow: normalizeRuleEffect(rule.disallow),
-  };
 
   const precomputedAllow = normalizedRule.allow?.map((entry) =>
     buildEntrySelector(
@@ -108,7 +92,7 @@ const normalizeRuleOptions = (
       normalizedRule.to,
       normalizedRule.dependency,
       entry,
-      rule.importKind /* legacy importKind for backward compatibility */
+      normalizedRule.importKind /* legacy importKind for backward compatibility */
     )
   );
   const precomputedDisallow = normalizedRule.disallow?.map((entry) =>
@@ -117,7 +101,7 @@ const normalizeRuleOptions = (
       normalizedRule.to,
       normalizedRule.dependency,
       entry,
-      rule.importKind /* legacy importKind for backward compatibility */
+      normalizedRule.importKind /* legacy importKind for backward compatibility */
     )
   );
 
@@ -127,7 +111,7 @@ const normalizeRuleOptions = (
     precomputedDisallow,
   };
 
-  normalizedPoliciesMap.set(rule, precomputedRule);
+  precomputedPoliciesMap.set(normalizedRule, precomputedRule);
   return precomputedRule;
 };
 
@@ -364,6 +348,8 @@ function mergeModuleSelector(
 /**
  * Merges two element selectors by merging their fields, with entry fields taking precedence over outer fields.
  * If both selectors have a `captured` field, they are merged separately to avoid losing any captured values.
+ * @param outer The selector of the rule-level field.
+ * @param entry The selector of the policy entry.
  */
 function mergeEntitySingleSelector(
   outer: EntitySingleSelectorNormalized,
@@ -459,6 +445,11 @@ function mergeDependencyInfoSelectors(
  *   selector `{ to: { type: "helper", internalPath: "index.js" } }`.
  * - **Legacy entry** (string or array without objects) — interpreted as the element selector
  *   for the "other" direction (opposite to the direction defined at the rule level).
+ * @param outerFrom The rule-level `from` selector.
+ * @param outerTo The rule-level `to` selector.
+ * @param outerDependency The rule-level `dependency` selector.
+ * @param entry The policy entry to merge with the rule-level fields.
+ * @param legacyImportKind The rule-level `importKind` of a legacy policy, if any.
  */
 function buildEntrySelector(
   outerFrom: EntitySelectorNormalized | undefined,
@@ -488,21 +479,32 @@ function buildEntrySelector(
 
   // Legacy entry: string or legacy array → becomes the "other direction" element selector
   // They are not merged because legacy entries are not objects but strings/arrays, so they
-  // can not express criteria in the same direction as the outer selector but only in the opposite direction
+  // can not express criteria in the same direction as the outer selector but only in the opposite direction.
+  // When neither `from` nor `to` is fixed at the policy level, there is no "other direction"
+  // to infer from — `allow`/`disallow` have always scoped the dependency target, so the
+  // entry fills `to` (see the v5-to-v6 migration guide's `to` requirement), leaving `from`
+  // unconstrained.
   const hasFrom = !isUndefined(outerFrom);
+  const hasTo = !isUndefined(outerTo);
   const result: DependencySingleSelectorNormalized = {};
-  if (hasFrom) {
-    result.from = outerFrom;
-    result.to = [entry];
-  } else {
+  if (hasTo && !hasFrom) {
     result.to = outerTo;
     result.from = [entry];
+  } else {
+    // `@boundaries/elements` treats a present-but-`undefined` property as an invalid
+    // selector shape, so `from` is only set when `outerFrom` actually has a value.
+    if (hasFrom) result.from = outerFrom;
+    result.to = [entry];
   }
   return mergeImportKind(result, legacyImportKind);
 }
 
 /**
  * Wraps matcher.getDependencySelectorMatchingDescription catching any errors to avoid breaking the rule.
+ * @param dep The dependency description.
+ * @param matcher The elements matcher.
+ * @param selector The dependency selector to match.
+ * @param extraTemplateData Extra data to pass to the templates of the selector values.
  */
 function safeMatch(
   dep: DependencyDescription,
@@ -578,11 +580,11 @@ export type EvaluatePoliciesResult =
  * @returns Template data object consumed by matcher template rendering.
  */
 function getCapturedTemplateData(
-  rule: DependenciesPolicy,
+  rule: DependenciesPolicyNormalized,
   dep: DependencyDescription,
   legacyTemplates: boolean
 ): TemplateData {
-  if (!legacyTemplates) return {};
+  if (!legacyTemplates) return EMPTY_TEMPLATE_DATA;
   const targetDir = rule.from ? "from" : "to";
   return targetDir === "from"
     ? {
@@ -606,9 +608,13 @@ function getCapturedTemplateData(
  * **last-write-wins** semantics: the last rule that produces a match determines the outcome.
  * Within a single rule, `disallow`/`deny` takes precedence over `allow` — `allow` is not
  * evaluated when `disallow` already matched.
+ * @param rules The configured policies, normalized.
+ * @param dep The dependency description.
+ * @param matcher The elements matcher.
+ * @param settings The normalized plugin settings.
  */
 export function evaluatePolicies(
-  rules: DependenciesPolicy[],
+  rules: DependenciesPolicyNormalized[],
   dep: DependencyDescription,
   matcher: Matcher,
   settings: SettingsNormalized
@@ -625,7 +631,7 @@ export function evaluatePolicies(
       settings.legacyTemplates
     );
 
-    const normalizedRule = normalizeRuleOptions(rule);
+    const normalizedRule = precomputePolicy(rule);
 
     let denyMatched = false;
     if (normalizedRule.precomputedDisallow) {
@@ -666,6 +672,8 @@ export function evaluatePolicies(
 /**
  * Resolves the custom error message for a violation, preferring the policy-specific message
  * over the global options message.
+ * @param ruleIndex The index of the policy that produced the violation, if any.
+ * @param ruleOptions The rule options.
  */
 export function resolveCustomMessage(
   ruleIndex: number | null,
@@ -686,6 +694,11 @@ type BuildErrorMessageParams = {
 
 /**
  * Builds the error message for a dependency violation.
+ * @param params Violation information.
+ * @param params.matchResult The result of matching the dependency against the policy selector, if any.
+ * @param params.ruleIndex The index of the policy that produced the violation, if any.
+ * @param params.customMessage The custom message configured for the violation, if any.
+ * @param params.dependency The dependency description.
  */
 export function buildErrorMessage({
   matchResult,
@@ -712,6 +725,12 @@ export function buildErrorMessage({
  * Evaluates configured rules for a dependency and reports ESLint violations.
  *
  * @param params - Rule evaluation context and dependency information.
+ * @param params.rules - Configured policies, normalized.
+ * @param params.settings - Normalized plugin settings.
+ * @param params.context - ESLint rule context, used to report violations.
+ * @param params.node - Node of the dependency source, where violations are reported.
+ * @param params.options - Rule options.
+ * @param params.dependency - Dependency description.
  */
 export function evaluatePoliciesAndReport({
   rules,
@@ -721,7 +740,7 @@ export function evaluatePoliciesAndReport({
   node,
   options,
 }: {
-  rules: DependenciesPolicy[];
+  rules: DependenciesPolicyNormalized[];
   settings: SettingsNormalized;
   context: Rule.RuleContext;
   node: EslintLiteralNode;
@@ -765,7 +784,7 @@ export function evaluatePoliciesAndReport({
 
 /**
  * Returns an ESLint rule definition for the dependencies rule, which checks dependencies between elements based on configured rules.
- * @param customRuleName - Optional custom name for the rule.
+ * @param ruleName - Optional custom name for the rule.
  * @returns ESLint rule definition.
  */
 export default function getDependencyRule(
@@ -779,25 +798,7 @@ export default function getDependencyRule(
         ruleName === RULE_NAMES_MAP.ELEMENT_TYPES
           ? deprecatedRuleInfo(RULE_NAMES_MAP.DEPENDENCIES)
           : undefined,
-      schema: rulesOptionsSchema({
-        extraOptionsSchema: {
-          checkAllOrigins: {
-            type: "boolean",
-            description:
-              "Whether to check dependencies from all origins (including external and core) or only from local entities. Default to false (only local).",
-          },
-          checkUnknownLocals: {
-            type: "boolean",
-            description:
-              "Whether to check local dependencies with unknown entities (not matching any entity descriptor) or to ignore them. Default to false (ignore).",
-          },
-          checkInternals: {
-            type: "boolean",
-            description:
-              "Whether to check internal dependencies (dependencies within files in the same entity). Default to false (ignore).",
-          },
-        },
-      }),
+      schema: getRuleOptionsSchema(ruleName),
     },
     function ({ dependency, node, context, settings, options }) {
       if (ruleName === RULE_NAMES_MAP.ELEMENT_TYPES) {
@@ -810,6 +811,7 @@ export default function getDependencyRule(
       // selectors, legacy templates, and rule-level importKind).
       validateAndWarnRuleOptions(options, ruleName, settings.legacyWarnings);
 
+      // Policies are normalized only for the dependencies that pass these filters, so an invalid selector does not fail on files whose dependencies are all skipped
       const checkAllOrigins = options?.checkAllOrigins ?? false;
       const checkUnknownLocals = options?.checkUnknownLocals ?? false;
       const checkInternals = options?.checkInternals ?? false;
@@ -831,9 +833,8 @@ export default function getDependencyRule(
         (checkUnknownLocals || !isUnknownLocalDependency) &&
         (checkInternals || !isInternalDependency)
       ) {
-        const policies = options?.policies ?? options?.rules ?? [];
         evaluatePoliciesAndReport({
-          rules: policies,
+          rules: getDependenciesRuleOptions(options).policies,
           settings,
           context,
           node,

@@ -33,7 +33,6 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * @param entitiesMatcher Entities matcher to use for matching entities within dependencies.
    * @param config Configuration options for the matcher.
    * @param micromatch Micromatch instance for matching.
-   * @param globalCache Global cache instance.
    */
   constructor(
     entitiesMatcher: EntitiesMatcher,
@@ -48,7 +47,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * Returns the selectors matching result for the given dependency.
    * @param dependency The dependency description.
    * @param selector The dependency selector normalized.
-   * @param extraTemplateData The extra template data for selector values.
+   * @param templateData The template data for rendering selector values.
    * @returns The selectors matching result for the given dependency.
    */
   private _getSingleSelectorMatching(
@@ -114,8 +113,9 @@ export class DependenciesMatcher extends BaseElementsMatcher {
 
   /**
    * Determines if the dependency relationship matches the selector.
-   * @param dependency The dependency description.
-   * @param selector The data of an element selector.
+   * @param selector The dependency selector data.
+   * @param relationship The relationship from target element to origin element.
+   * @param templateData The template data for rendering selector values.
    * @returns Whether the dependency relationship matches the selector.
    */
   private _relationshipFromMatches(
@@ -218,11 +218,11 @@ export class DependenciesMatcher extends BaseElementsMatcher {
   }
 
   /**
-   * Determines if the dependency description matches the selector for 'to'.
-   * @param dependency The dependency description.
-   * @param toSelector The selector for 'to' elements.
+   * Determines if the dependency source matches the `source` of the selector.
+   * @param selector The dependency selector data.
+   * @param source The source of the dependency.
    * @param templateData The template data for rendering selector values
-   * @returns Whether the dependency properties match the selector for 'to'.
+   * @returns Whether the dependency source matches the selector.
    */
   private _sourceMatches(
     selector: DependencyInfoSingleSelector,
@@ -278,6 +278,7 @@ export class DependenciesMatcher extends BaseElementsMatcher {
    * @param dependency The dependency to check.
    * @param selector The selector to check against.
    * @param options Extra options for matching, such as templates data, etc.
+   * @param options.extraTemplateData Extra data to pass to the templates of the selector values.
    * @returns The matching result for the dependency against the selector.
    */
   public getSelectorMatching(

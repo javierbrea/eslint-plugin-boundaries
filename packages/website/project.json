@@ -17,7 +17,7 @@
           "target": "eslint:config",
           "projects": ["eslint-config"]
         },
-        "build"
+        "^build"
       ]
     },
     "test:unit": {
@@ -33,9 +33,15 @@
         "{projectRoot}/coverage"
       ]
     },
+    "check:types": {
+      // Only `lint` uses the workspace eslint-plugin, so the default `^build` is dropped
+      "dependsOn": []
+    },
     "build": {
       "cache": true,
-      "outputs": ["{projectRoot}/dist"],
+      // Only `lint` uses the workspace eslint-plugin, so the default `^build` is dropped
+      "dependsOn": [],
+      "outputs": ["{projectRoot}/build"],
       "inputs": [
         { "dependentTasksOutputFiles": "**/*", "transitive": true },
         "default",
@@ -44,6 +50,7 @@
     }
   },
   "implicitDependencies": [
+    "eslint-plugin",
     "eslint-config",
     "cspell-config"
   ]
