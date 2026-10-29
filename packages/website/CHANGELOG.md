@@ -12,17 +12,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- docs(#584): The TypeScript Support guide explains how to import the plugin and its configs when TypeScript types their default imports wrong, with `nodenext`, `node16` or `require()`: from `eslint-plugin-boundaries/config`.
+- docs(#584): The troubleshooting section of the TypeScript Support guide explains how to fix the type errors of the default imports with `nodenext`, `node16` or `require()`: import from `eslint-plugin-boundaries/config`.
 
 ### Changed
 
 - chore: Mark the props of the site components as read-only.
 - chore(#557): Render the link preview image with the Chromium of the pinned Playwright version, so it is the same on every machine.
-- docs(#584): The path aliases example of the TypeScript Support guide no longer sets `baseUrl`, which TypeScript 6 deprecates, and the guide says that the constants and type guards are exported from `eslint-plugin-boundaries/config`.
+- docs(#584): The path aliases example of the TypeScript Support guide no longer sets `baseUrl`, which TypeScript 6 deprecates.
 
 ### Removed
 
-- docs(#584): The TypeScript Support guide no longer explains how to import the plugin from `eslint-plugin-boundaries/config` with `nodenext`, `node16` or `require()`, because v8 types their default imports right.
+- docs(#584): The troubleshooting section of the TypeScript Support guide no longer explains how to fix the type errors of the default imports with `nodenext`, `node16` or `require()`, because v8 types them right.
+
+### Fixed
+
+- docs(#584): The TypeScript Support guide says that the constants and type guards are exported from `eslint-plugin-boundaries/config`; the main entry doesn't export them at runtime.
 
 ## [7.4.0] - 2026-10-27
 

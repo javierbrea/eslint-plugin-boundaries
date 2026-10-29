@@ -61,7 +61,7 @@ export default [{
 
 ### Path Mapping Support
 
-The `eslint-import-resolver-typescript` automatically detects custom path mappings defined in your `tsconfig.json` file, making it fully compatible with TypeScript path aliases. Without `baseUrl`, which TypeScript 6 deprecates, the `paths` are resolved relative to the `tsconfig.json` file, so they start with `./`:
+The `eslint-import-resolver-typescript` automatically detects custom path mappings defined in your `tsconfig.json` file, making it fully compatible with TypeScript path aliases. Without `baseUrl`, which TypeScript 6 deprecates, the `paths` are relative to the `tsconfig.json` file, so they start with `./`:
 
 ```json
 {
@@ -147,7 +147,7 @@ In addition to the main `Config` type, the plugin exports individual subtypes fo
 - `IgnoreSetting`, `IncludeSetting`, `RootPathSetting`, `DebugSetting`, `SettingsKey` - other [settings](../settings/settings.md) types.
 - `FileDescriptor`, `FileDescriptors` - an entry (or array) of the [`boundaries/files`](../settings/settings.md#boundariesfiles) setting.
 
-The deprecated-rule option types (`EntryPointPolicy`, `EntryPointRuleOptions`, `ExternalPolicy`, `ExternalRuleOptions`, `NoPrivateOptions`) are also exported. The constants and type guards (`SETTINGS_KEYS_MAP`, `RULE_NAMES_MAP`, `DEPENDENCY_KINDS_MAP`, `isSettingsKey`, `isDependencyKind`, `isFileDescriptor`, and more) are exported from `eslint-plugin-boundaries/config`, which also exports every type; see [Type Constants and Guards](../settings/config-helpers.md#type-constants-and-guards). See the package types for the complete list.
+The deprecated-rule option types (`EntryPointPolicy`, `EntryPointRuleOptions`, `ExternalPolicy`, `ExternalRuleOptions`, `NoPrivateOptions`) are also exported; see the package types for the complete list. The constants and type guards (`SETTINGS_KEYS_MAP`, `RULE_NAMES_MAP`, `DEPENDENCY_KINDS_MAP`, `isSettingsKey`, `isDependencyKind`, `isFileDescriptor`, and more) are exported from `eslint-plugin-boundaries/config`, along with every type: see [Type Constants and Guards](../settings/config-helpers.md#type-constants-and-guards).
 
 This modular approach lets you import only what you need while keeping autocomplete and type checking:
 
