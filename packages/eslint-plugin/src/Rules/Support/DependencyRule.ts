@@ -1,9 +1,10 @@
+import { moreInfoSettingsLink } from "@boundaries/config";
 import type { Rule } from "eslint";
 
 import { warnOnce } from "../../Debug";
 import { entityDescription, dependencyDescription } from "../../Elements";
 import type { EslintLiteralNode } from "../../Elements";
-import { getSettings, moreInfoSettingsLink } from "../../Settings";
+import { getSettings } from "../../Settings";
 import type { RuleOptions, RuleMetaDefinition } from "../../Shared";
 import { SETTINGS, isString } from "../../Shared";
 

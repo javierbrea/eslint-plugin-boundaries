@@ -1,5 +1,6 @@
 import Handlebars from "handlebars";
 
+import { CacheManager } from "../../Cache";
 import type { MatchersOptionsNormalized } from "../../Config";
 import type { BaseDescription, ModuleDescription } from "../../Descriptor";
 import {
@@ -26,6 +27,11 @@ const LEGACY_TEMPLATE_REGEX = /\$\{([^}]+)\}/g;
 const HANDLEBARS_TEMPLATE_REGEX = /{{\s*[^{}\s][^{}]*}}/;
 
 /**
+ * Compiled Handlebars template, or null when the template has no Handlebars syntax
+ */
+type CompiledTemplate = Handlebars.TemplateDelegate<TemplateData> | null;
+
+/**
  * Base matcher class to determine if objects match a given selector.
  */
 export class BaseElementsMatcher {
@@ -40,9 +46,18 @@ export class BaseElementsMatcher {
   protected micromatch: Micromatch;
 
   /**
+   * Cache for compiled Handlebars templates, keyed by the template as received. Templates without Handlebars syntax are stored as null, so they are not checked again either.
+   * It is not governed by the `cache` option: a compiled template depends only on the template text, so it can be neither stale nor mismatched. The option only disables the caches of results.
+   */
+  private readonly _compiledTemplatesCache = new CacheManager<
+    string,
+    CompiledTemplate
+  >();
+
+  /**
    * Creates a new BaseElementsMatcher.
    * @param config Configuration options for the matcher.
-   * @param globalCache Global cache instance.
+   * @param micromatch Micromatch instance for matching.
    */
   constructor(config: MatchersOptionsNormalized, micromatch: Micromatch) {
     this.micromatch = micromatch;
@@ -50,16 +65,18 @@ export class BaseElementsMatcher {
   }
 
   /**
+   * Clears the cache of compiled templates.
+   */
+  public clearCache(): void {
+    this._compiledTemplatesCache.clear();
+  }
+
+  /**
    * Converts a template with ${} to Handlebars {{}} templates for backwards compatibility.
    * @param template The template to convert.
    * @returns The converted template.
    */
-  private _getBackwardsCompatibleTemplate(
-    template: string | null
-  ): string | null {
-    if (!template) {
-      return template;
-    }
+  private _getBackwardsCompatibleTemplate(template: string): string {
     return template.replaceAll(LEGACY_TEMPLATE_REGEX, "{{ $1 }}");
   }
 
@@ -68,16 +85,33 @@ export class BaseElementsMatcher {
    * @param template The template to check.
    * @returns True if the template contains Handlebars syntax, false otherwise.
    */
-  private _isHandlebarsTemplate(template: string | null): boolean {
-    if (!template) {
-      return false;
-    }
+  private _isHandlebarsTemplate(template: string): boolean {
     return HANDLEBARS_TEMPLATE_REGEX.test(template);
   }
 
   /**
+   * Returns the compiled Handlebars template, or null when the template has no Handlebars syntax.
+   * Each distinct template is converted and compiled only once per matcher, because compiling is expensive and the same templates are rendered for every entity matched.
+   * @param template The template to compile.
+   * @returns The compiled template, or null when there is nothing to render.
+   */
+  private _getCompiledTemplate(template: string): CompiledTemplate {
+    const cachedTemplate = this._compiledTemplatesCache.get(template);
+    if (!isUndefined(cachedTemplate)) {
+      return cachedTemplate;
+    }
+    const templateToUse = this._legacyTemplates
+      ? this._getBackwardsCompatibleTemplate(template)
+      : template;
+    const compiledTemplate = this._isHandlebarsTemplate(templateToUse)
+      ? Handlebars.compile<TemplateData>(templateToUse)
+      : null;
+    this._compiledTemplatesCache.set(template, compiledTemplate);
+    return compiledTemplate;
+  }
+
+  /**
    * Returns a rendered template using the provided template data.
-   * Optimized version with template caching for better performance.
    * @param template The template to render.
    * @param templateData The data to use for replace in the template.
    * @returns The rendered template.
@@ -86,23 +120,21 @@ export class BaseElementsMatcher {
     template: string | null,
     templateData: TemplateData
   ): string | null {
-    const templateToUse = this._legacyTemplates
-      ? this._getBackwardsCompatibleTemplate(template)
-      : template;
-    if (!this._isHandlebarsTemplate(templateToUse)) {
+    if (!template) {
+      return template;
+    }
+    const compiledTemplate = this._getCompiledTemplate(template);
+    if (!compiledTemplate) {
       // If the template does not contain any Handlebars syntax, return it as is.
       return template;
     }
-
-    const compiledTemplate = Handlebars.compile(templateToUse);
-
     return compiledTemplate(templateData);
   }
 
   /**
    * Returns rendered templates using the provided template data.
    * @param template The templates to render.
-   * @param extraTemplateData The data to use for replace in the templates.
+   * @param templateData The data to use for replace in the templates.
    * @returns The rendered templates.
    */
   protected getRenderedTemplates(
@@ -195,6 +227,10 @@ export class BaseElementsMatcher {
   /**
    * Whether the given element key matches the selector key as booleans.
    * @param param0 The parameters object.
+   * @param param0.object The object to check.
+   * @param param0.selector The selector to check against.
+   * @param param0.objectKey The key of the object to check.
+   * @param param0.selectorKey The key of the selector to check against.
    * @returns Whether the object key matches the selector key.
    */
   protected isObjectKeyBooleanMatch<
@@ -348,6 +384,9 @@ export class BaseElementsMatcher {
    * String array query matcher with `expand` item support.
    * Expands `{ expand }` operand items against the template data, then evaluates
    * with the standard template-micromatch element matcher.
+   * @param array The array of strings to check.
+   * @param query The string array query to check against.
+   * @param templateData The template data to resolve the expand items and render the patterns.
    */
   protected isStringArrayQueryMatch(
     array: readonly string[] | null,
@@ -363,6 +402,12 @@ export class BaseElementsMatcher {
   /**
    * Whether the given object key matches the selector key using micromatch.
    * @param param0 The parameters object.
+   * @param param0.object The object to check.
+   * @param param0.selector The selector to check against.
+   * @param param0.objectKey The key of the object to check.
+   * @param param0.selectorKey The key of the selector to check against.
+   * @param param0.selectorValue The value of the selector key to check against.
+   * @param param0.templateData Data to pass when the selector value is rendered as a template.
    * @returns Whether the object key matches the selector key.
    */
   protected isObjectKeyMicromatchMatch<

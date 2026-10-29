@@ -1,3 +1,4 @@
+import { getRuleOptionsSchema } from "@boundaries/config";
 import {
   ORIGINS_MAP,
   DEPENDENCY_RELATIONSHIPS_MAP,
@@ -44,20 +45,7 @@ export default dependencyRule<NoPrivateOptions>(
     ruleName: RULE_NO_PRIVATE,
     description: `Prevent dependencies to private elements`,
     deprecated: deprecatedRuleInfo(RULE_NAMES_MAP.DEPENDENCIES),
-    schema: [
-      {
-        type: "object",
-        properties: {
-          allowUncles: {
-            type: "boolean",
-          },
-          message: {
-            type: "string",
-          },
-        },
-        additionalProperties: false,
-      },
-    ],
+    schema: getRuleOptionsSchema(RULE_NO_PRIVATE),
   },
   function ({ dependency, node, context, options }) {
     warnMigrationToDependencies(RULE_NAMES_MAP.NO_PRIVATE);

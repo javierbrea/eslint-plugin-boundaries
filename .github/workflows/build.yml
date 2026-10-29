@@ -16,83 +16,122 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
       - uses: ./.github/actions/install
-        with:
-          node-version: 22.20.0
       - name: Lint repo root
         run: pnpm lint
       - name: Spell check repo root
         run: pnpm check:spell
+      # NOTE: Plans are shared only on integration branches, and removed before they merge into release (write-plan skill)
+      - name: Check that no plan is committed
+        if: github.event_name == 'push' || github.base_ref == 'release' || github.base_ref == 'master' || startsWith(github.base_ref, 'release-v')
+        env:
+          TARGET_BRANCH: ${{ github.base_ref || github.ref_name }}
+        run: |
+          if [ -n "$(git ls-files .agents/plans)" ]; then
+            echo "Remove these files before merging into $TARGET_BRANCH:"
+            git ls-files .agents/plans
+            exit 1
+          fi
   check-vulnerabilities:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
       - uses: ./.github/actions/install
-        with:
-          node-version: 22.20.0
-      - uses: gensecaihq/Shai-Hulud-2.0-Detector@v2
+      - uses: gensecaihq/Shai-Hulud-2.0-Detector@v2.2.0
         with:
           fail-on-critical: true
           fail-on-high: true
+  # NOTE: Runs with the development Node.js version defined in .nvmrc
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node: ["18.20.3", "20.13.1", "22.20.0"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
       - uses: ./.github/actions/install
-        with:
-          node-version: ${{ matrix.node }}
-      # NOTE: In other Node versions, we only run unit eslint plugin unit tests to save time in the CI and to avoid dev tools Node incompatibilities
-      - name: Test Unit
-        if: ${{ matrix.node != '22.20.0' }}
-        run: |
-          pnpm nx test:unit elements --output-style=stream --parallel=1
-          pnpm nx test:unit eslint-plugin --output-style=stream --parallel=1
       # NOTE: For the moment, we run the check:all target in all packages instead of running affected check in affected packages only
+      # NOTE: browser-e2e runs in the test-browsers job, which installs the browsers
       - name: Check all
-        if: ${{ matrix.node == '22.20.0' }}
-        run: pnpm nx run-many --target=check:all --all --output-style=stream --parallel=1
+        run: pnpm nx run-many --target=check:all --all --exclude=browser-e2e --output-style=stream --parallel=1
       - name: Upload elements test results
-        if: ${{ matrix.node == '22.20.0' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: elements-coverage
           path: packages/elements/coverage
           retention-days: 1
+      - name: Upload config test results
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: config-coverage
+          path: packages/config/coverage
+          retention-days: 1
       - name: Upload eslint-plugin test results
-        if: ${{ matrix.node == '22.20.0' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: eslint-plugin-coverage
           path: packages/eslint-plugin/coverage
           retention-days: 1
       - name: Upload elements build
-        if: ${{ matrix.node == '22.20.0' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: elements-build
           path: packages/elements/dist
           retention-days: 1
+      - name: Upload config build
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: config-build
+          path: packages/config/dist
+          retention-days: 1
+  test-browsers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/install
+      - uses: ./.github/actions/install-browsers
+      - name: Check all browser-e2e
+        run: pnpm nx check:all browser-e2e --output-style=stream
+  test-node-versions:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ["18.20.8", "20.20.2", "22.23.3", "26.12.0"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/install
+        with:
+          node-version: ${{ matrix.node }}
+      # NOTE: In Node versions other than the development one, we only run elements, config and eslint plugin unit tests to save time in the CI and to avoid dev tools Node incompatibilities
+      - name: Test Unit
+        run: |
+          pnpm nx test:unit elements --output-style=stream --parallel=1
+          pnpm nx test:unit config --output-style=stream --parallel=1
+          pnpm nx test:unit eslint-plugin --output-style=stream --parallel=1
   build-windows:
     runs-on: windows-2022
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
       - uses: ./.github/actions/install
         with:
-          node-version: "22.20.0"
           windows-fix-symlinks: "true"
       - name: Download elements build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.2
         with:
           name: elements-build
           path: packages/elements/dist
+      - name: Download config build
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: config-build
+          path: packages/config/dist
+      - name: Test Unit Elements
+        working-directory: ./packages/elements
+        run: pnpm test:unit
       - name: Test Unit ESLint Plugin
         working-directory: ./packages/eslint-plugin
         run: pnpm test:unit
@@ -101,31 +140,44 @@ jobs:
     needs: build
     env:
       SONAR_TOKEN_ELEMENTS: ${{ secrets.SONAR_TOKEN_ELEMENTS }}
+      SONAR_TOKEN_CONFIG: ${{ secrets.SONAR_TOKEN_CONFIG }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
       - name: Download elements test results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.2
         with:
           name: elements-coverage
           path: packages/elements/coverage
+      - name: Download config test results
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: config-coverage
+          path: packages/config/coverage
       - name: Download eslint-plugin test results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.2
         with:
           name: eslint-plugin-coverage
           path: packages/eslint-plugin/coverage
       - name: Coveralls for Elements
-        uses: coverallsapp/github-action@v2
+        uses: coverallsapp/github-action@v2.3.8
         continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ./packages/elements/coverage/lcov.info
           flag-name: elements
+      - name: Coveralls for Config
+        uses: coverallsapp/github-action@v2.3.8
+        continue-on-error: true
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ./packages/config/coverage/lcov.info
+          flag-name: config
       - name: Coveralls for Eslint Plugin
-        uses: coverallsapp/github-action@v2
+        uses: coverallsapp/github-action@v2.3.8
         continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -133,15 +185,23 @@ jobs:
           flag-name: eslint-plugin
       - name: SonarCloud Scan - Elements
         if: env.SONAR_TOKEN_ELEMENTS != ''
-        uses: SonarSource/sonarqube-scan-action@v6
+        uses: SonarSource/sonarqube-scan-action@v7.2.1
         with:
           projectBaseDir: packages/elements
         env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_ELEMENTS }}
+      - name: SonarCloud Scan - Config
+        if: env.SONAR_TOKEN_CONFIG != ''
+        uses: SonarSource/sonarqube-scan-action@v7.2.1
+        with:
+          projectBaseDir: packages/config
+        env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_CONFIG }}
       - name: SonarCloud Scan - Eslint Plugin
         if: env.SONAR_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@v6
+        uses: SonarSource/sonarqube-scan-action@v7.2.1
         with:
           projectBaseDir: packages/eslint-plugin
         env:
@@ -152,7 +212,7 @@ jobs:
   # Configure only this job as required status check in GitHub
   all-checks:
     runs-on: ubuntu-latest
-    needs: [check-root, check-vulnerabilities, build, build-windows, reports]
+    needs: [check-root, check-vulnerabilities, build, test-browsers, test-node-versions, build-windows, reports]
     if: always()
     steps:
       - name: Check all jobs status
@@ -160,11 +220,16 @@ jobs:
           echo "check-root: ${{ needs.check-root.result }}"
           echo "check-vulnerabilities: ${{ needs.check-vulnerabilities.result }}"
           echo "build: ${{ needs.build.result }}"
+          echo "test-browsers: ${{ needs.test-browsers.result }}"
+          echo "test-node-versions: ${{ needs.test-node-versions.result }}"
           echo "build-windows: ${{ needs.build-windows.result }}"
           echo "reports: ${{ needs.reports.result }}"
           
           if [[ "${{ needs.check-root.result }}" != "success" ]] || \
+             [[ "${{ needs.check-vulnerabilities.result }}" != "success" ]] || \
              [[ "${{ needs.build.result }}" != "success" ]] || \
+             [[ "${{ needs.test-browsers.result }}" != "success" ]] || \
+             [[ "${{ needs.test-node-versions.result }}" != "success" ]] || \
              [[ "${{ needs.build-windows.result }}" != "success" ]] || \
              [[ "${{ needs.reports.result }}" != "success" ]]; then
             echo "❌ One or more jobs failed"

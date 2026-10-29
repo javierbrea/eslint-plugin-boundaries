@@ -1,5 +1,5 @@
 import { isArray, isObjectWithAnyOfProperties } from "../../Shared/TypeGuards";
-import { extendsSingleSelector } from "../Shared";
+import { extendsSingleSelector, memoizeByIdentity } from "../Shared";
 
 import type {
   FileSelector,
@@ -48,15 +48,15 @@ export function normalizeSingleFileSelector(
 }
 
 /**
- * Normalizes a FileSelector into an array of FileSingleSelector.
+ * Normalizes a FileSelector into an array of FileSingleSelector. The result is computed once per selector object and shared by every later call that passes the same object (see `memoizeByIdentity`), so it must be treated as read-only; primitive selectors are normalized on every call.
  * @param fileSelector The file selector, in any supported format.
  * @returns The normalized array of single file selectors.
  */
-export function normalizeFileSelector(
-  fileSelector: FileSelector
-): FileSelectorNormalized {
-  if (isArray(fileSelector)) {
-    return fileSelector.map((sel) => normalizeSingleFileSelector(sel));
+export const normalizeFileSelector = memoizeByIdentity(
+  (fileSelector: FileSelector): FileSelectorNormalized => {
+    if (isArray(fileSelector)) {
+      return fileSelector.map((sel) => normalizeSingleFileSelector(sel));
+    }
+    return [normalizeSingleFileSelector(fileSelector)];
   }
-  return [normalizeSingleFileSelector(fileSelector)];
-}
+);

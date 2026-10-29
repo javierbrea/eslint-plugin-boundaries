@@ -1,3 +1,7 @@
+import {
+  getRuleOptionsSchema,
+  normalizeDependenciesRuleOptions,
+} from "@boundaries/config";
 import { ORIGINS_MAP } from "@boundaries/elements";
 import type {
   DependencyInfoSelector,
@@ -7,7 +11,6 @@ import type {
 } from "@boundaries/elements";
 
 import {
-  rulesOptionsSchema,
   warnMigrationToDependencies,
   validateAndWarnRuleOptions,
   deprecatedRuleInfo,
@@ -155,34 +158,7 @@ export default dependencyRule<ExternalRuleOptions>(
     ruleName: RULE_EXTERNAL,
     description: `Check dependencies to external and core libraries`,
     deprecated: deprecatedRuleInfo(RULE_NAMES_MAP.DEPENDENCIES),
-    schema: rulesOptionsSchema({
-      isLegacy: true,
-      targetMatcherOptions: {
-        type: "object",
-        properties: {
-          specifiers: {
-            type: "array",
-            items: {
-              type: "string",
-            },
-          },
-          path: {
-            anyOf: [
-              {
-                type: "string",
-              },
-              {
-                type: "array",
-                items: {
-                  type: "string",
-                },
-              },
-            ],
-          },
-        },
-        additionalProperties: false,
-      },
-    }),
+    schema: getRuleOptionsSchema(RULE_EXTERNAL),
   },
   function ({ dependency, node, context, settings, options }) {
     warnMigrationToDependencies(RULE_NAMES_MAP.EXTERNAL);
@@ -200,7 +176,7 @@ export default dependencyRule<ExternalRuleOptions>(
         options?.policies ?? options?.rules ?? []
       );
       evaluatePoliciesAndReport({
-        rules,
+        rules: normalizeDependenciesRuleOptions({ policies: rules }).policies,
         settings,
         context,
         node,

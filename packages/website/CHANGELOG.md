@@ -1,4 +1,5 @@
 # Change Log
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
@@ -7,12 +8,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > [!INFO]
 > Versions marked as `-docs` are documentation-only releases that do not include any code changes. Other versions are code releases that may include documentation changes as well, and are paired with a corresponding release in the `eslint-plugin-boundaries` package.
 
-## [unreleased]
-### Added
+## [Unreleased]
+
 ### Changed
-### Fixed
+
+- chore: Mark the props of the site components as read-only.
+- chore(#557): Render the link preview image with the Chromium of the pinned Playwright version, so it is the same on every machine.
+
+## [7.4.0] - 2026-10-27
+
+### Added
+
+- docs(#510): Add the v7.4.0 upgrade notes: how to find the imports of Node.js built-in modules with the `node:` prefix and the extglob patterns that the fixes affect, and how to adapt the configuration.
+- docs(#568): Add the dot files in element folders section to the v7.4.0 upgrade notes.
+
+### Changed
+
+- docs(#510): The Modules classification page says that the built-in modules that only exist with the `node:` prefix are `core` only with it.
+- feat: New visual foundation for the site: color palette, self-hosted Sora and IBM Plex typefaces, smaller base type. The navbar and footer now follow the light or dark theme.
+- feat: New home page: blueprint hero with a live-drawn architecture sheet, the three-step walkthrough, feature specification, live GitHub and npm numbers, and a playground preview. The navbar shows the live GitHub stars and a "Get started" button.
+- feat: Documentation pages adopt the new design: blueprint code blocks in both themes, semantic admonitions, restyled sidebar, table of contents, tables, search and 404 page.
+- feat: Links to the site show a new preview image, in the new design.
+- chore(#570): Document every prop of the site components in their TSDoc.
+
 ### Removed
-### Breaking Changes
+
+- feat: Remove the "Version 7 is here" announcement bar.
+
+### Fixed
+
+- fix: Wide tables and diff code blocks in the docs can be scrolled with the keyboard.
+- fix(#572): The element relationship table of the Dependency Metadata page had `relationship.from` and `relationship.to` swapped. It now matches what the plugin returns, and both pages that describe the properties say which side each one describes.
+
+## [7.3.0] - 2026-10-23
+
+### Added
+
+- docs(#495): Add the Upgrade Notes section to the Releases docs, starting with the v7.3.0 notes: how to find the files affected by the `basePattern` fix, and how to adapt the configuration.
+- docs(#494): Add the nested element paths section to the v7.3.0 upgrade notes.
+
+### Changed
+
+- docs(#492): The `capture` sections of the Elements and Files classification pages now say that captures use picomatch.
+- docs: The `boundaries/cache` setting now explains that it disables only the caches of results, and that compiled patterns and templates are always reused.
 
 ## [7.1.0] - 2026-07-20
 

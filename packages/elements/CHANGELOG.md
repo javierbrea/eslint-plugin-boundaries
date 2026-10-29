@@ -5,6 +5,68 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- chore: The mutation testing badge of the README shows the score of this package instead of the score of the whole repository.
+- chore: The homepage of the package is its own README instead of the README of the plugin, and its folder in the repository is declared in the `directory` field that npm reads.
+- chore: The TypeScript configuration no longer sets the `baseUrl` option, which TypeScript 6 deprecates. The build output does not change.
+
+## [3.3.0] - 2026-10-27
+
+### Added
+
+- feat(#510): The browser build works without polyfills of Node.js modules or globals, such as `path` or `process`, whether it is imported or required. Outside Node.js, dependencies are described as `core` when they are built-in modules of Node.js 24.
+
+### Changed
+
+- chore(#510): Upgrade `picomatch` to 4.0.7, which no longer requires Node.js modules.
+- chore(#570): Fix the `@param` tags in the TSDoc of the exported classes, such as the `Matcher` constructor or the `getSelectorMatching` methods, which named parameters that do not exist or missed some. The TSDoc of the `kind` option of `DependencyDescriptorOptions` lists the right dependency kinds.
+- chore(#572): The README and the TSDoc of the `relationship` selector say which side `from` and `to` describe: `from` is what the source element is to the target, and `to` what the target is to the source.
+
+### Fixed
+
+- fix(#510): Built-in modules only available with the `node:` prefix, such as `node:test` or `node:sqlite`, are described as `core` instead of `external`.
+- fix(#510): Some extglob patterns now match all the paths they describe, as the same patterns without extglobs do. For example, `src/@(foo/**)` now matches `src/foo`, like `src/foo/**`.
+- fix(#510): The ES module build for Node.js no longer throws `Dynamic require of "module" is not supported` when a matcher is created.
+- fix(#568): With the `cache` option enabled, `describeElement` no longer gives the files of a folder the description of the first one described, such as a dot file, and returns the same descriptions as with the cache disabled: read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-4-0/#dot-files-in-element-folders) to find the affected files.
+
+## [3.2.0] - 2026-10-23
+
+### Changed
+
+- perf: Matching is about 2.5 times faster than in 3.1.2: 60% less linting time with flat config and 57% less with legacy config, measured on the `eslint-plugin` E2E performance fixture. Handlebars templates are compiled once per matcher, and selectors are normalized once per selector object (#524). Normalized selectors and match results are now shared objects: treat them as read-only, and do not mutate a selector after its first use.
+- perf(#489): `capture` compiles each pattern once and reuses it for every path. ([@joernroeder](https://github.com/joernroeder))
+- perf: The `cache` option now disables only the caches of results (descriptions, matches and captures). Compiled patterns and templates are always kept, and `Matcher.clearCache()` clears them.
+- chore(#511): Remove the unused `eslint-module-utils` and `eslint-import-resolver-node` dependencies.
+
+### Fixed
+
+- fix(#494): The element `path` is resolved from where the descriptor `pattern` matched, instead of from the first place its folders appear in the file path. Nested elements whose folder name starts with, or equals, the name of an ancestor now get the right `path`, `fileInternalPath` and parent.
+- fix(#495): `capture` returns `null` when the path does not match, as its type declares. As a result, descriptors with `basePattern` only match paths whose left side also matches it, as documented. ([@edoroshenko](https://github.com/edoroshenko))
+
+### Security
+
+- fix(#492): Replace `micromatch` with `picomatch` 2.3.2, which removes the transitive `braces` dependency ([GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm), with no patched release). Glob syntax, captures and Windows paths are unchanged. ([@edoroshenko](https://github.com/edoroshenko))
+
+## [3.1.2] - 2026-10-21
+
+### Changed
+
+- chore: Upgrade `eslint-module-utils` to 2.14.0 and `is-core-module` to 2.17.0.
+- chore: Update devDependencies to their latest patch and minor versions.
+
+### Security
+
+- chore: Upgrade `handlebars` to 4.7.10, which fixes JavaScript injection advisories affecting 4.0.0 to 4.7.9.
+
+## [3.1.1] - 2026-08-09
+
+### Fixed
+
+- fix(#479): A matching file descriptor without `capture` no longer resets `file.captured`. Captured values are now merged from every matching file descriptor regardless of declaration order, matching the element descriptor behavior. `exclusive` descriptors still reset captured values.
+
 ## [3.1.0] - 2026-07-20
 
 ### Added

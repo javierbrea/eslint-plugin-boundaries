@@ -32,6 +32,13 @@ The core elements package that powers the plugin.
 - [Changelog](https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/packages/elements/CHANGELOG.md)
 - [Release Notes](https://github.com/javierbrea/eslint-plugin-boundaries/releases)
 
+## Upgrade Notes
+
+Some patch and minor releases fix behaviors that a configuration may rely on. Their upgrade notes explain how to check whether your project is affected, and how to adapt your configuration:
+
+- [Upgrading to v7.4.0](./upgrade-notes/v7-4-0.mdx): built-in modules only available with the `node:` prefix are `core`, some extglob patterns match all the paths they describe, and the files next to a dot file no longer share its description when the cache is enabled
+- [Upgrading to v7.3.0](./upgrade-notes/v7-3-0.mdx): `basePattern` restricts element matching again, and nested elements get the right `path` and `fileInternalPath`
+
 ## Migration Guides
 
 For breaking changes, we provide detailed migration guides to help you upgrade:

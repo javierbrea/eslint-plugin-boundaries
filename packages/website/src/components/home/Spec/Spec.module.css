@@ -1,0 +1,87 @@
+.spec {
+  padding-block: 5rem;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 3rem;
+  margin: 0;
+}
+
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 1rem;
+  min-width: 0;
+  padding: 1.1rem 0;
+  border-top: 1px solid var(--jsb-line);
+}
+
+/* Accent bar that grows on the left edge on hover */
+.row::before {
+  content: "";
+  position: absolute;
+  top: 1.1rem;
+  bottom: 1.1rem;
+  left: -12px;
+  width: 2px;
+  background: var(--jsb-accent);
+  transform: scaleY(0);
+  transition: transform 0.3s var(--jsb-ease);
+}
+
+.row:hover::before {
+  transform: scaleY(1);
+}
+
+.term {
+  padding-top: 3px;
+  font-family: var(--jsb-font-mono);
+  font-size: 0.74rem;
+  font-weight: 400;
+  color: var(--jsb-accent);
+}
+
+.definition {
+  margin: 0;
+  font-size: 0.93rem;
+  color: var(--jsb-muted);
+}
+
+.definition strong {
+  display: block;
+  margin-bottom: 2px;
+  font-family: var(--jsb-font-display);
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--jsb-ink);
+}
+
+.definition code {
+  padding: 1px 5px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--jsb-accent-soft);
+  color: var(--jsb-ink);
+  font-size: 0.74rem;
+  white-space: nowrap;
+  vertical-align: baseline;
+}
+
+@media (max-width: 900px) {
+  .list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .row {
+    grid-template-columns: 110px minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row::before {
+    transition: none;
+  }
+}

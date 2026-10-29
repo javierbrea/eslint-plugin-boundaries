@@ -20,7 +20,12 @@
   ],
   "author": "Javier Brea",
   "license": "MIT",
-  "repository": "https://github.com/javierbrea/eslint-plugin-boundaries",
+  "homepage": "https://www.jsboundaries.dev/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/javierbrea/eslint-plugin-boundaries.git",
+    "directory": "packages/eslint-plugin"
+  },
   "files": [
     "dist"
   ],
@@ -69,20 +74,20 @@
     "eslint": ">=6.0.0"
   },
   "dependencies": {
+    "@boundaries/config": "workspace:*",
     "@boundaries/elements": "workspace:*",
     "chalk": "4.1.2",
     "eslint-import-resolver-node": "0.3.9",
-    "eslint-module-utils": "2.12.1",
-    "handlebars": "4.7.9",
-    "micromatch": "4.0.8"
+    "eslint-module-utils": "2.14.0",
+    "handlebars": "4.7.10"
   },
   "engines": {
     "node": ">=18.18"
   },
   "devDependencies": {
-    "@types/estree": "1.0.8",
-    "@types/micromatch": "4.0.10",
-    "eslint-plugin-eslint-plugin": "7.3.2",
+    "@types/estree": "1.0.9",
+    "eslint": "9.39.5",
+    "eslint-plugin-eslint-plugin": "7.6.2",
     "eslint-plugin-local-rules": "3.0.2"
   }
 }

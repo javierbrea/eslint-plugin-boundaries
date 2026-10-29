@@ -1,10 +1,13 @@
 import {
+  getRuleOptionsSchema,
+  normalizeDependenciesRuleOptions,
+} from "@boundaries/config";
+import {
   normalizeEntitySelector,
   DEPENDENCY_RELATIONSHIPS_MAP,
 } from "@boundaries/elements";
 
 import {
-  rulesOptionsSchema,
   warnMigrationToDependencies,
   validateAndWarnRuleOptions,
   deprecatedRuleInfo,
@@ -82,10 +85,7 @@ export default dependencyRule<EntryPointRuleOptions>(
     ruleName: RULE_ENTRY_POINT,
     description: `Check elements entry point`,
     deprecated: deprecatedRuleInfo(RULE_NAMES_MAP.DEPENDENCIES),
-    schema: rulesOptionsSchema({
-      rulesMainKey: "target",
-      isLegacy: true,
-    }),
+    schema: getRuleOptionsSchema(RULE_ENTRY_POINT),
   },
   function ({ dependency, node, context, settings, options }) {
     warnMigrationToDependencies(RULE_NAMES_MAP.ENTRY_POINT);
@@ -107,7 +107,7 @@ export default dependencyRule<EntryPointRuleOptions>(
         options?.policies ?? options?.rules ?? []
       );
       evaluatePoliciesAndReport({
-        rules,
+        rules: normalizeDependenciesRuleOptions({ policies: rules }).policies,
         settings,
         context,
         node,

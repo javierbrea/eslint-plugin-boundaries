@@ -222,7 +222,7 @@ describe("PathHelper", () => {
       );
 
       // Act
-      const result = helper.getCapturedValues(["foo", "bar"], undefined);
+      const result = helper.getCapturedValues(["foo", "bar"]);
 
       // Assert
       expect(result).toBeNull();

@@ -17,120 +17,88 @@
 [release-image]: https://img.shields.io/github/release-date/javierbrea/eslint-plugin-boundaries.svg
 [release-url]: https://github.com/javierbrea/eslint-plugin-boundaries/releases
 
-# ESLint Plugin Boundaries
+# JS Boundaries
 
-Enforce architectural boundaries in your JavaScript and TypeScript projects.
+**Lint your architecture, not just your syntax.**
 
-**ESLint Plugin Boundaries** is an ESLint plugin that helps you maintain clean architecture by enforcing boundaries between different parts of your codebase. Define your architectural layers, specify how they can interact, and get instant feedback when boundaries are violated.
+An ESLint plugin for JavaScript and TypeScript projects. Classify your files, write policies for who may depend on whom, and get an ESLint error the moment a boundary is crossed. In your IDE, in CI, with nothing new to run.
 
-- **Architectural Enforcement**: Define dependency rules that match your project's architecture
-- **Multi-Layer Classification**: Every file or dependency in your project can be described across three independent dimensions simultaneously — its architectural element, its own file category, and its origin. Define rules for any combination.
-- **Flexible Configuration**: Adapt the plugin to any project structure. It works with monorepos, modular architectures, layered patterns, and any custom structure you can imagine
-- **Real-time Feedback**: Get immediate ESLint errors when imports violate your architectural rules
+**Documentation: [jsboundaries.dev](https://www.jsboundaries.dev/)** · [Quick start](https://www.jsboundaries.dev/docs/quick-start/)
 
-## Documentation
-
-The full documentation is available on the [JS Boundaries website](https://www.jsboundaries.dev/docs/overview/).
-
-### Key Sections
-
-- **[Overview](https://www.jsboundaries.dev/docs/overview/)** - Introduction to the plugin and its core concepts
-- **[Quick Start](https://www.jsboundaries.dev/docs/quick-start/)** - Set up the plugin in 5 minutes
-- **[Classification](https://www.jsboundaries.dev/docs/classification/)** - How to classify files and folders for your architecture
-- **[Selectors](https://www.jsboundaries.dev/docs/selectors/)** - How to match classified files, elements, and modules in your rules
-- **[Policies](https://www.jsboundaries.dev/docs/policies/)** - How to define dependency rules between classified files, elements, and modules
-- **[Rules Reference](https://www.jsboundaries.dev/docs/rules/)** - Complete documentation for all available rules
-- **[TypeScript Support](https://www.jsboundaries.dev/docs/guides/typescript-support/)** - Use with TypeScript projects
-
-## Quick Example
-
-Install the plugin using npm:
+## Installation
 
 ```bash
-npm install eslint eslint-plugin-boundaries --save-dev
+npm install --save-dev eslint eslint-plugin-boundaries
 ```
 
-Define your architectural elements:
+<!-- The steps and snippets of this section repeat packages/website/src/components/home/Steps/Steps.tsx; a change to one needs the same change in the other. -->
+## How it works
 
-```javascript
-import boundaries from "eslint-plugin-boundaries";
+From folder tree to enforced architecture in three edits.
 
-export default [
-  {
-    plugins: { boundaries },
-    settings: {
-      "boundaries/elements": [
-        { type: "controller", pattern: "controllers/*" },
-        { type: "model", pattern: "models/*" },
-        { type: "view", pattern: "views/*" }
-      ],
-      "boundaries/files": [
-        { category: "test", pattern: "**/*.test.js" }
-      ]
-    }
-  }
-];
-```
+### 1. Classify files and elements
 
-Define your dependency rules:
+Element descriptors match folders. File descriptors match files on their own, so a file can be a `component` and a `test` at the same time. You only need one of the two to start.
 
-```javascript
-{
-  rules: {
-    "boundaries/dependencies": [2, {
-      default: "disallow",
-      policies: [
-        // Allow controllers to depend on models and views
-        {
-          from: { element: { type: "controller" } },
-          allow: {
-            to: { element: { types: { anyOf: ["model", "view"] } } },
-          },
-        },
-        // Allow views to depend on models
-        {
-          from: { element: { type: "view" } },
-          allow: {
-            to: { element: { type: "model" } },
-          },
-        },
-        // Disallow any element from importing a test file
-        {
-          disallow: {
-            to: { file: { categories: "test" } },
-          },
-        },
-        // Only controllers may use the `axios` package
-        {
-          from: { element: { type: "!controller" } },
-          disallow: {
-            to: { module: { origin: "external", source: "axios" } },
-          },
-        },
-      ]
-    }]
-  }
+```js
+settings: {
+  "boundaries/elements": [
+    { type: "helper",    pattern: "helpers/*" },
+    { type: "component", pattern: "components/*/*" },
+    { type: "module",    pattern: "modules/*" },
+  ],
+  "boundaries/files": [
+    { pattern: "**/*.spec.js", category: "test" },
+  ],
 }
 ```
 
-Now ESLint will catch violations:
+### 2. Write the policies
 
-```javascript
-// In src/models/model/index.js
-import View from "../../views/view"; // ❌ Error: Architectural boundary violated
+Pick a default, then allow or disallow by any combination of element type, file category, module origin and dependency kind. Captured path fragments let one policy cover a whole family of elements.
+
+```js
+"boundaries/dependencies": [2, {
+  default: "disallow",
+  policies: [
+    { from: { element: { type: "component" } },
+      allow: { to: { element: { type: "helper" } } } },
+    { from: { element: { type: "module" } },
+      allow: { to: { element: { types: ["component", "helper"] } } } },
+    { disallow: { to: { file: { categories: "test" } } },
+      message: "Never import test files from {{ from.element.types.[0] }}s" },
+  ],
+}]
 ```
+
+### 3. Read the error where you wrote the import
+
+Violations are ordinary ESLint errors: editor squiggles, CI failures, templated messages with the element types on both sides. Three more rules catch files outside your architecture, unknown dependencies and ignored ones.
+
+```text
+src/helpers/format/index.js
+  1:22  error  There is no policy allowing dependencies from
+         elements of type "helper" to elements of type "component"
+         boundaries/dependencies
+
+✖ 1 problem (1 error, 0 warnings)
+```
+
+The [quick start](https://www.jsboundaries.dev/docs/quick-start/) puts these pieces together in a complete `eslint.config.js`.
+
+## Packages
+
+This repository holds the packages of JS Boundaries:
+
+| Package | Description |
+| --- | --- |
+| [`eslint-plugin-boundaries`](https://www.jsboundaries.dev/) | The ESLint plugin, also published as `@boundaries/eslint-plugin`. |
+| [`@boundaries/elements`](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/packages/elements#readme) | Entity descriptors and matchers for `@boundaries` tools. |
+| [`@boundaries/config`](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/packages/config#readme) | Normalization and validation of the settings and rule options of the plugin, without ESLint. |
 
 ## Contributing
 
-To everyone who has opened an issue, suggested improvements, fixed bugs, added features, or improved documentation: **Thank you**. Your contributions, no matter how small, make a real difference. Every bug report helps us improve, every feature request guides our roadmap, and every pull request strengthens the project.
-
-Special recognition goes to [those who have contributed code to the project](https://github.com/javierbrea/eslint-plugin-boundaries/graphs/contributors). Your technical contributions are the foundation of what makes this plugin valuable to the community.
-
-Want to contribute? We'd love to have you! Here are some ways to get involved:
-
-- **Report Issues**: [Open an issue](https://github.com/javierbrea/eslint-plugin-boundaries/issues) if you find a bug or have a suggestion
-- **Participate in Discussions**: Join the conversation on our [GitHub Discussions](https://github.com/javierbrea/eslint-plugin-boundaries/discussions). Review RFCs, share ideas, and help shape the future of the project.
-- **Contribute Code**: Check out our [Contributing Guidelines](https://github.com/javierbrea/eslint-plugin-boundaries/blob/main/.github/CONTRIBUTING.md)
+Thank you to everyone who has reported issues, suggested improvements or [contributed code](https://github.com/javierbrea/eslint-plugin-boundaries/graphs/contributors). To get involved, [open an issue](https://github.com/javierbrea/eslint-plugin-boundaries/issues), join the [discussions](https://github.com/javierbrea/eslint-plugin-boundaries/discussions) or read the [contributing guidelines](https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/.github/CONTRIBUTING.md).
 
 ## License
 

@@ -1,0 +1,50 @@
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 34px;
+  margin-inline: 0.3rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--jsb-line);
+  border-radius: var(--jsb-radius);
+  font-family: var(--jsb-font-mono);
+  font-size: 0.78rem;
+  color: var(--jsb-muted);
+  text-decoration: none;
+  transition:
+    border-color 0.25s var(--jsb-ease),
+    color 0.25s var(--jsb-ease);
+}
+
+.stars:hover {
+  border-color: var(--jsb-accent);
+  color: var(--jsb-ink);
+  text-decoration: none;
+}
+
+/* Below the desktop breakpoint Docusaurus moves navbar items into the mobile sidebar */
+@media (max-width: 996px) {
+  .stars {
+    display: none;
+  }
+}
+
+.stars:focus-visible {
+  outline: 2px solid var(--jsb-accent);
+  outline-offset: 3px;
+}
+
+.icon {
+  flex: none;
+  width: 14px;
+  height: 14px;
+}
+
+.count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* In the mobile sidebar the item is a plain menu link with the icon inline */
+:global(.menu__link) .icon {
+  margin-right: 0.4rem;
+}

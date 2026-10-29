@@ -1,4 +1,4 @@
-import micromatch from "micromatch";
+import picomatch from "picomatch";
 
 import type { Matcher, ModuleDescription } from "../index";
 import { Elements, isOriginDescription } from "../index";
@@ -50,7 +50,7 @@ describe("describeModule | Integration", () => {
     });
 
     it("should return local origin when no filePath and no source are provided", () => {
-      const description = matcher.describeModule(undefined, undefined);
+      const description = matcher.describeModule();
 
       expect(isOriginDescription(description)).toBe(true);
       expect(description.origin).toBe("local");
@@ -423,7 +423,7 @@ describe("describeModule | Integration", () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      isMatchSpy = jest.spyOn(micromatch, "isMatch");
+      isMatchSpy = jest.spyOn(picomatch, "isMatch");
       elementsWithPatterns = new Elements({
         flagAsExternal: { customSourcePatterns: ["@vendor/*"] },
       });

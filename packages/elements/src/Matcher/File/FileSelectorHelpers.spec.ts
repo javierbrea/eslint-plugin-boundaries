@@ -184,6 +184,28 @@ describe("FileSelectorHelpers", () => {
   });
 
   describe("normalizeFileSelector", () => {
+    it("should return the same normalized selector for the same selector object", () => {
+      // Arrange
+      const selector: FileSingleSelector = { categories: "components" };
+
+      // Act
+      const first = normalizeFileSelector(selector);
+      const second = normalizeFileSelector(selector);
+
+      // Assert
+      expect(second).toBe(first);
+    });
+
+    it("should normalize again a different selector object with the same content", () => {
+      // Act
+      const first = normalizeFileSelector({ categories: "components" });
+      const second = normalizeFileSelector({ categories: "components" });
+
+      // Assert
+      expect(second).toEqual(first);
+      expect(second).not.toBe(first);
+    });
+
     it("should wrap a single selector in an array", () => {
       const selector: FileSingleSelector = { categories: "components" };
 

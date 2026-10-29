@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "skipLibCheck": true,
     "rootDir": ".",
     "declaration": true,
@@ -8,13 +7,14 @@
     "strict": true,
     "strictNullChecks": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "module": "es2022",
     "useDefineForClassFields": true,
     "importsNotUsedAsValues": "remove",
     "forceConsistentCasingInFileNames": true,
     "noUnusedParameters": true,
     "isolatedModules": true,
+    "types": ["node"],
     "strictPropertyInitialization": false
   }
 }

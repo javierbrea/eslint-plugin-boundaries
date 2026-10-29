@@ -1094,6 +1094,38 @@ describe("ElementSelectorHelpers", () => {
   });
 
   describe("normalizeElementSelector", () => {
+    it("should return the same normalized selector for the same selector object", () => {
+      // Arrange
+      const selector = { type: "components" };
+
+      // Act
+      const first = normalizeElementSelector(selector);
+      const second = normalizeElementSelector(selector);
+
+      // Assert
+      expect(second).toBe(first);
+    });
+
+    it("should normalize again a different selector object with the same content", () => {
+      // Act
+      const first = normalizeElementSelector({ type: "components" });
+      const second = normalizeElementSelector({ type: "components" });
+
+      // Assert
+      expect(second).toEqual(first);
+      expect(second).not.toBe(first);
+    });
+
+    it("should normalize a string selector on every call", () => {
+      // Act
+      const first = normalizeElementSelector("components");
+      const second = normalizeElementSelector("components");
+
+      // Assert
+      expect(second).toEqual(first);
+      expect(second).not.toBe(first);
+    });
+
     it("should wrap a single string selector in an array", () => {
       expect(normalizeElementSelector("components")).toEqual([
         { type: "components" },

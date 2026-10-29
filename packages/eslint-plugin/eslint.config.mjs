@@ -47,7 +47,7 @@ export default [
           policies: [
             // External / Node core imports are unrestricted; we enforce internal layering only
             { allow: { to: { module: { origin: ["external", "core"] } } } },
-            // Shared is the universal foundation: anything may import it (except public, see below)
+            // Shared is the universal foundation: anything may import it
             { allow: { to: { element: { type: "shared" } } } },
             // Same-element (same-folder) imports are always allowed
             { allow: { dependency: { relationship: { to: "internal" } } } },
@@ -92,10 +92,10 @@ export default [
                 },
               },
             },
-            // Public API surface: re-exports downward from messages/settings; consumed only by entry + config
+            // Public API surface: re-exports downward from messages (and from @boundaries/config); consumed only by entry + config
             {
               from: { element: { type: "public" } },
-              allow: { to: { element: { type: ["messages", "settings"] } } },
+              allow: { to: { element: { type: "messages" } } },
             },
             {
               from: { element: { type: "config" } },
@@ -140,6 +140,12 @@ export default [
     files: ["test/**/*.js", "test/**/*.ts", "**/*.spec.ts"],
     rules: {
       "@typescript-eslint/no-require-imports": [0],
+    },
+  },
+  {
+    files: ["test/rules/**/*.spec.ts"],
+    rules: {
+      "sonarjs/no-empty-test-file": [0], // NOTE: RuleTester registers the test cases of these specs.
     },
   },
   {

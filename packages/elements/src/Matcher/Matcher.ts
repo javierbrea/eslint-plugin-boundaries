@@ -43,6 +43,7 @@ import type {
   MatcherOptions,
   EntityMatcherOptions,
 } from "./Shared";
+import { memoizeByIdentityPair } from "./Shared";
 
 /**
  * Matcher class to evaluate if elements or dependencies match given selectors.
@@ -57,11 +58,18 @@ export class Matcher {
   private readonly _descriptorOptions: DescriptorOptionsNormalized;
   private readonly _micromatch: Micromatch;
   private readonly _descriptors: Descriptors;
+  /**
+   * Returns the extra template data with legacy aliases for a dependency description. It is computed once per description and extra template data pair, because the same dependency is matched against every selector of every policy.
+   */
+  private readonly _getDependencyExtraTemplateData = memoizeByIdentityPair(
+    getLegacyDependencySelectorExtraTemplateData
+  );
 
   /**
    * Constructor for the Matcher class.
    * @param options The options to configure the Matcher instance, including descriptors, matchers for elements and dependencies, and micromatch instance for pattern matching.
    * @param options.descriptors The descriptors configuration to use for describing elements and dependencies.
+   * @param options.options The normalized options for descriptors and matchers.
    * @param options.options.descriptors The normalized descriptor options to use for describing elements and dependencies.
    * @param options.options.matchers The matchers configuration for elements and dependencies.
    * @param options.micromatch The micromatch instance to use for pattern matching.
@@ -200,7 +208,7 @@ export class Matcher {
     const description = this._descriptors.describeDependency(dependencyData);
     const matcherOptions = {
       ...options,
-      extraTemplateData: getLegacyDependencySelectorExtraTemplateData(
+      extraTemplateData: this._getDependencyExtraTemplateData(
         description,
         options?.extraTemplateData
       ),
@@ -357,7 +365,7 @@ export class Matcher {
     const description = this._descriptors.describeDependency(dependencyData);
     const matcherOptions = {
       ...options,
-      extraTemplateData: getLegacyDependencySelectorExtraTemplateData(
+      extraTemplateData: this._getDependencyExtraTemplateData(
         description,
         options?.extraTemplateData
       ),
@@ -454,7 +462,7 @@ export class Matcher {
   ): DependencySingleSelectorMatchResult | null {
     const matcherOptions = {
       ...options,
-      extraTemplateData: getLegacyDependencySelectorExtraTemplateData(
+      extraTemplateData: this._getDependencyExtraTemplateData(
         description,
         options?.extraTemplateData
       ),
@@ -530,6 +538,11 @@ export class Matcher {
    */
   public clearCache() {
     this._descriptors.clearCache();
+    this._elementsMatcher.clearCache();
+    this._filesMatcher.clearCache();
+    this._modulesMatcher.clearCache();
+    this._entitiesMatcher.clearCache();
+    this._dependenciesMatcher.clearCache();
   }
 
   /**
@@ -545,6 +558,7 @@ export class Matcher {
   /**
    * Sets the descriptors matchers cache from a serialized object.
    * @param serializedCache The serialized cache
+   * @param serializedCache.descriptors The serialized cache of the descriptors.
    */
   public setCacheFromSerialized(serializedCache: {
     descriptors: ReturnType<Descriptors["serializeCache"]>;

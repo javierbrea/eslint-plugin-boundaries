@@ -3,8 +3,9 @@ description: Setup the runner environment, by installing dependencies and restor
 
 inputs:
   node-version:
-    description: The Node.js version to use
-    required: true
+    description: The Node.js version to use. Defaults to the version in .nvmrc
+    required: false
+    default: ''
   windows-fix-symlinks:
     description: Whether to apply Windows-specific PNPM symlink fixes
     required: false
@@ -14,18 +15,19 @@ runs:
   using: composite
   steps:
     - name: Install pnpm
-      uses: pnpm/action-setup@v4
+      uses: pnpm/action-setup@v4.4.0
 
     - name: Install Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7.1.0
       with:
         node-version: ${{ inputs.node-version }}
+        node-version-file: ${{ inputs.node-version == '' && '.nvmrc' || '' }}
         cache: 'pnpm'
         registry-url: 'https://registry.npmjs.org/'
 
     - name: Cache dependencies
       id: cache-pnpm
-      uses: actions/cache@v4
+      uses: actions/cache@v6.1.0
       with:
         path: node_modules
         key: pnpm-windows-${{ hashFiles('pnpm-lock.yaml') }}

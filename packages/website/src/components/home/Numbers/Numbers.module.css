@@ -1,0 +1,37 @@
+.numbers {
+  padding-block: 4rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2rem;
+}
+
+.number {
+  display: grid;
+  gap: 0.3rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--jsb-ink);
+}
+
+.value {
+  font-family: var(--jsb-font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  font-size: 0.88rem;
+  color: var(--jsb-muted);
+}
+
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.2rem;
+  }
+}

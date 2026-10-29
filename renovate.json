@@ -3,23 +3,70 @@
   "extends": [
     "github>javierbrea/renovate-config"
   ],
-  "constraints": {
-    "pnpm": "9.4.0",
-    "node": "22.4.0"
-  },
   "baseBranchPatterns": [
     "release"
   ],
   "rangeStrategy": "pin",
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/fixtures/**"
+  ],
   "packageRules": [
     {
+      "description": "chalk 5 is ESM-only, and the plugin is published as CommonJS",
       "matchFileNames": [
-        "**/package.json"
+        "packages/eslint-plugin/package.json"
       ],
       "matchPackageNames": [
         "chalk"
       ],
       "allowedVersions": "<5.0.0"
+    },
+    {
+      "description": "ESLint 10 requires Node.js >=20.19, but unit tests still run on Node.js 18 to cover the published packages' supported engines. Keep eslint and @eslint/js aligned on v9 until migrating to ESLint 10",
+      "matchFileNames": [
+        "**/package.json"
+      ],
+      "matchPackageNames": [
+        "eslint",
+        "@eslint/js"
+      ],
+      "allowedVersions": "<10.0.0"
+    },
+    {
+      "description": "eslint-import-resolver-node 0.3.10 and later use resolve 2.x, which no longer resolves relative imports when the directory of the linted file does not exist",
+      "matchFileNames": [
+        "**/package.json"
+      ],
+      "matchPackageNames": [
+        "eslint-import-resolver-node"
+      ],
+      "allowedVersions": "<0.3.10"
+    },
+    {
+      "description": "packages/website commits font files copied from these packages",
+      "matchFileNames": [
+        "packages/website/package.json"
+      ],
+      "matchPackageNames": [
+        "@fontsource/*"
+      ],
+      "groupName": "fontsource",
+      "prBodyNotes": [
+        "Run `pnpm --filter website sync:fonts` and `pnpm --filter website social-card`, and commit `packages/website/static/fonts/` and `packages/website/static/img/og-image.png`."
+      ]
+    },
+    {
+      "description": "support/eslint-config turns off the rules of the sonarjs recommended config that the SonarCloud profile does not run",
+      "matchFileNames": [
+        "support/eslint-config/package.json"
+      ],
+      "matchPackageNames": [
+        "eslint-plugin-sonarjs"
+      ],
+      "prBodyNotes": [
+        "Check `SONARJS_RULES_NOT_IN_SONARCLOUD` in `support/eslint-config/index.js` again against the recommended config of the new `eslint-plugin-sonarjs` version and the \"Sonar way comprehensive\" profile of SonarCloud."
+      ]
     }
   ]
 }
