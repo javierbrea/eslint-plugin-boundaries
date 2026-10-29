@@ -363,6 +363,9 @@ export type RootPathSetting = string;
  */
 export type AliasSetting = Record<string, string>;
 
+/**
+ * Filters of the debug traces, which print only the files and dependencies that match their selectors.
+ */
 export type DebugFilterSetting = {
   /** File or entity selectors used to filter file debug messages */
   files?: FileSelector | BackwardCompatibleEntitySelector;
@@ -370,6 +373,9 @@ export type DebugFilterSetting = {
   dependencies?: BackwardCompatibleEntitySelector;
 };
 
+/**
+ * Debug settings, which enable the debug traces, choose which messages they print and filter them with selectors.
+ */
 export type DebugSetting = {
   /** Enables debug output when true */
   enabled?: boolean;
@@ -671,7 +677,10 @@ export type EntryPointPolicy = {
   message?: string;
 };
 
-/** @deprecated Use `EntryPointPolicy` instead. */
+/**
+ * Policy that defines entry points for specific element types, controlling which files can be imported.
+ * @deprecated Use `EntryPointPolicy` instead.
+ */
 export type EntryPointRule = EntryPointPolicy;
 
 /**
@@ -744,7 +753,10 @@ export type ExternalPolicy = {
   message?: string;
 };
 
-/** @deprecated Use `ExternalPolicy` instead. */
+/**
+ * Policy that defines allowed or disallowed external library imports for specific element types.
+ * @deprecated Use `ExternalPolicy` instead.
+ */
 export type ExternalRule = ExternalPolicy;
 
 /**
