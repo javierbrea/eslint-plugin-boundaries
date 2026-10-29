@@ -211,7 +211,7 @@ If you encounter issues with TypeScript support:
 
 ### Default imports fail to type-check with `nodenext`, `node16` or `require()`
 
-With `module` and `moduleResolution` set to `nodenext` or `node16`, the default imports of `eslint-plugin-boundaries`, `eslint-plugin-boundaries/recommended` and `eslint-plugin-boundaries/strict` fail to type-check, and so does their `require()` in a CommonJS file that TypeScript checks. The errors look like:
+With `module` and `moduleResolution` set to `nodenext` or `node16`, the default imports of `eslint-plugin-boundaries`, `eslint-plugin-boundaries/recommended` and `eslint-plugin-boundaries/strict` fail to type-check in an ES module file (a `.mts` file, or a `.ts` file in a package with `"type": "module"`), and so does their `require()` in a CommonJS file that TypeScript checks. The errors look like:
 
 ```text
 error TS2339: Property 'rules' does not exist on type 'typeof import(".../dist/Config/Strict")'.
@@ -228,7 +228,7 @@ Don't read `.default` to silence the error: it type-checks, but it is `undefined
 <details>
 <summary>Why it happens, and a full example</summary>
 
-The type declarations say `export default`, which describes a `module.exports` with a `default` property, but the CommonJS build sets `module.exports` to the plugin or the config itself. TypeScript types `require()` and, with `nodenext` or `node16`, the default import as that `module.exports`, so it sees `{ default: ... }` where Node.js returns the plugin or the config. The named exports of `/config` are typed right with any module resolution, with `import` and with `require()`. The fix of the declarations is planned for v8.0.0 ([#584](https://github.com/javierbrea/eslint-plugin-boundaries/issues/584)).
+The type declarations say `export default`, which describes a `module.exports` with a `default` property, but the CommonJS build sets `module.exports` to the plugin or the config itself. TypeScript types `require()` and, in an ES module file with `nodenext` or `node16`, the default import as that `module.exports`, so it sees `{ default: ... }` where Node.js returns the plugin or the config. The named exports of `/config` are typed right with any module resolution, with `import` and with `require()`. The fix of the declarations is planned for v8.0.0 ([#584](https://github.com/javierbrea/eslint-plugin-boundaries/issues/584)).
 
 ```ts
 import { createConfig, recommended } from "eslint-plugin-boundaries/config";
