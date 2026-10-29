@@ -149,8 +149,14 @@ declare namespace publicInterface {
    */
   export type RootPathSetting = Public.RootPathSetting;
 
+  /**
+   * Debug settings, which enable the debug traces, choose which messages they print and filter them with selectors.
+   */
   export type DebugSetting = Public.DebugSetting;
 
+  /**
+   * Filters of the debug traces, which print only the files and dependencies that match their selectors.
+   */
   export type DebugFilterSetting = Public.DebugFilterSetting;
 
   /**
@@ -245,6 +251,7 @@ declare namespace publicInterface {
   export type EntryPointPolicy = Public.EntryPointPolicy;
 
   /**
+   * Policy that defines entry points for specific element types, controlling which files can be imported.
    * @deprecated Use `EntryPointPolicy` instead.
    */
   export type EntryPointRule = Public.EntryPointRule;
@@ -260,6 +267,7 @@ declare namespace publicInterface {
   export type ExternalPolicy = Public.ExternalPolicy;
 
   /**
+   * Policy that defines allowed or disallowed external library imports for specific element types.
    * @deprecated Use `ExternalPolicy` instead.
    */
   export type ExternalRule = Public.ExternalRule;
@@ -310,6 +318,9 @@ declare namespace publicInterface {
    */
   export type ImportKind = Public.ImportKind;
 
+  /**
+   * Context about the policy that matched the dependency, if any.
+   */
   export type CustomMessageTemplatePolicyContext =
     Public.CustomMessageTemplatePolicyContext;
 

@@ -27,6 +27,9 @@ export type CustomMessageTemplatePolicyEntitySelectorContext = Omit<
     >["fileInternalPath"];
   };
 
+/**
+ * Context about the policy that matched the dependency, if any.
+ */
 export type CustomMessageTemplatePolicyContext = {
   /** Index of the policy that triggered the error */
   index: number | null;

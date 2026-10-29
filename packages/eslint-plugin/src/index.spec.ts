@@ -106,6 +106,19 @@ describe("package", () => {
       expect(Object.keys(publicTypes).length).toBeGreaterThan(0);
       expect(pluginTypes).toEqual(publicTypes);
     });
+
+    it("should document every public type with TSDoc", () => {
+      // Arrange
+      const publicTypes = getTypeExports("Public/index.ts");
+
+      // Act
+      const undocumentedTypes = Object.entries(publicTypes)
+        .filter(([, summary]) => summary.documentation === "")
+        .map(([name]) => name);
+
+      // Assert
+      expect(undocumentedTypes).toEqual([]);
+    });
   });
 
   describe("rules property", () => {
