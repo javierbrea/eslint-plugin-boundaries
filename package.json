@@ -17,9 +17,9 @@
     "check:spell": "cspell --quiet *.* .vscode/*.* .husky/*.* .github/**/*.* docs/**/*.* scripts/**/*.*"
   },
   "devDependencies": {
-    "@babel/core": "7.29.7",
-    "@babel/preset-env": "7.29.7",
-    "@babel/preset-typescript": "7.29.7",
+    "@babel/core": "8.0.9",
+    "@babel/preset-env": "8.0.7",
+    "@babel/preset-typescript": "8.0.7",
     "@playwright/test": "1.64.1",
     "@stryker-mutator/api": "9.6.1",
     "@stryker-mutator/core": "9.6.1",
