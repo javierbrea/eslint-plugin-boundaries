@@ -16,6 +16,7 @@
   "dependencies": {
     "@boundaries/config": "workspace:*",
     "@boundaries/elements": "workspace:*",
+    "@boundaries/policies": "workspace:*",
     "esbuild": "0.28.2"
   }
 }

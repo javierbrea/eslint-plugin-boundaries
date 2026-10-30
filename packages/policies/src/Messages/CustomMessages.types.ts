@@ -44,13 +44,6 @@ export type CustomMessageTemplatePolicyContext = {
     | null;
 } | null;
 
-/**
- * Context about the rule that matched the dependency, if any.
- * @deprecated Use `CustomMessageTemplatePolicyContext` instead.
- */
-export type CustomMessageTemplateRuleContext =
-  CustomMessageTemplatePolicyContext;
-
 /** Type alias for the normalized selector exposed in `policy.selector`. */
 export type CustomMessageTemplatePolicySelectorContext =
   NonNullable<CustomMessageTemplatePolicyContext>["selector"];

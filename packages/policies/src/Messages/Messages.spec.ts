@@ -2,6 +2,7 @@ import type {
   DependencyDescription,
   DependencySingleSelectorMatchResult,
   ElementDescription,
+  ElementParent,
   EntityDescription,
 } from "@boundaries/elements";
 
@@ -619,6 +620,194 @@ describe("Messages", () => {
         'Dependencies with source "@scope/helpers" are not allowed. Denied by policy at index 1'
       );
     });
+
+    it("renders only the captured keys selected in the parent selector", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          element: {
+            parents: [
+              {
+                types: ["module"],
+                category: null,
+                path: "/repo/src/components/button",
+                captured: { area: "primary", variant: "large" },
+              },
+            ],
+          },
+        },
+      });
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: {
+            parent: { captured: { area: "*" } },
+          },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in elements of parent captured values: area="primary". Denied by policy at index 1'
+      );
+    });
+
+    it("renders null parent values selected in the parent selector", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          element: {
+            parents: [
+              {
+                types: ["module"],
+                category: null,
+                path: "/repo/src/components/button",
+                captured: null,
+              },
+            ],
+          },
+        },
+      });
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          element: {
+            parent: { category: "*", captured: { area: "*" } },
+          },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in elements of parent category "null" and captured "null". Denied by policy at index 1'
+      );
+    });
+
+    it("renders only the captured keys selected in the file selector", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          file: { captured: { scope: "frontend", team: "core" } },
+        },
+      });
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          file: { captured: { scope: "*" } },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in file of captured values: scope="frontend". Denied by policy at index 1'
+      );
+    });
+
+    it("renders null file values selected in the file selector", () => {
+      const dependency = createDependencyDescription({
+        from: {
+          file: { categories: null, captured: null },
+        },
+      });
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          file: { categories: null, captured: { scope: "*" } },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in file of category "null" and captured "null". Denied by policy at index 1'
+      );
+    });
+
+    it("renders null module values selected in the module selector", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        from: {
+          module: { origin: "local", source: null },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies are not allowed in module with origin "local" and source "null". Denied by policy at index 1'
+      );
+    });
+
+    it("renders null module source and internalPath via legacy to.module selector", () => {
+      const dependency = createDependencyDescription({
+        to: {
+          module: { origin: "local", source: null, internalPath: null },
+        },
+      });
+      const matchResult: DependencySingleSelectorMatchResult = {
+        to: { module: { source: null, internalPath: null } },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies with module source "null" and module internalPath "null" are not allowed. Denied by policy at index 1'
+      );
+    });
+
+    it("renders null dependency values selected in the dependency selector", () => {
+      const dependency = createDependencyDescription({
+        dependency: {
+          nodeKind: null,
+          specifiers: null,
+          relationship: { from: null, to: "sibling" },
+        },
+      });
+      const matchResult: DependencySingleSelectorMatchResult = {
+        dependency: {
+          nodeKind: null,
+          specifiers: null,
+          relationship: { from: null, to: "*" },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies with nodeKind "null", specifiers "null", relationship from "null" and relationship to "sibling" are not allowed. Denied by policy at index 1'
+      );
+    });
+
+    it("renders only the relationship sides selected in the dependency selector", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        dependency: {
+          relationship: { to: "*" },
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies with relationship to "sibling" are not allowed. Denied by policy at index 1'
+      );
+    });
+
+    it("renders both relationship sides when the dependency selector has an undefined relationship", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        dependency: {
+          relationship: undefined,
+        },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies with relationship from "sibling" and relationship to "sibling" are not allowed. Denied by policy at index 1'
+      );
+    });
+
+    it("renders the module origin description when the to selector has a null module origin", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        to: { module: { origin: null } },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies to entities of module with origin "external" are not allowed. Denied by policy at index 1'
+      );
+    });
+
+    it("appends the legacy module source fragment after the dependency fragments when there are no specifiers", () => {
+      const dependency = createDependencyDescription();
+      const matchResult: DependencySingleSelectorMatchResult = {
+        to: { module: { source: "@scope/helpers" } },
+        dependency: { source: "*", kind: "*" },
+      };
+
+      expect(dependenciesRuleMatchedMessage(matchResult, 1, dependency)).toBe(
+        'Dependencies with source "@scope/helpers", kind "type" and module source "@scope/helpers" are not allowed. Denied by policy at index 1'
+      );
+    });
   });
 
   describe("elementDescriptionMessage", () => {
@@ -701,6 +890,27 @@ describe("Messages", () => {
       expect(elementDescriptionMessage(element, ["type", "parent"])).toBe(
         'elements of type "component"'
       );
+    });
+
+    it("separates several captured values with commas", () => {
+      const element = createElement({
+        captured: { family: "atoms", scope: "frontend" },
+      });
+
+      expect(elementDescriptionMessage(element, ["captured"])).toBe(
+        'elements of captured values: family="atoms", scope="frontend"'
+      );
+    });
+
+    it("returns an empty string for the parent property when the described element is a parent, which has no parents", () => {
+      const parent: ElementParent = {
+        types: ["module"],
+        category: null,
+        path: "/repo/src/components",
+        captured: null,
+      };
+
+      expect(elementDescriptionMessage(parent, ["parent"])).toBe("");
     });
   });
 
@@ -971,6 +1181,30 @@ describe("Messages", () => {
 
       expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
         'There is no policy allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" to entities of module with origin "external" and module source "@scope/helpers"'
+      );
+    });
+
+    it("builds no-rule message without module source when the destination is a local module with no entity details", () => {
+      const dependency = createDependencyDescription({
+        to: {
+          element: {
+            types: null,
+            category: null,
+            captured: null,
+          },
+          file: {
+            categories: null,
+            captured: null,
+          },
+          module: {
+            origin: "local",
+            source: null,
+          },
+        },
+      });
+
+      expect(dependenciesRuleDefaultErrorMessage(null, null, dependency)).toBe(
+        'There is no policy allowing dependencies from file of categories "ui", "feature" and captured values: scope="frontend" belonging to elements of type "component", category "ui" and captured values: family="atoms" to entities of module with origin "local"'
       );
     });
   });

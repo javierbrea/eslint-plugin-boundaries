@@ -172,15 +172,18 @@ export default dependencyRule<ExternalRuleOptions>(
 
     const origin = dependency.to.module.origin;
     if (origin === ORIGINS_MAP.EXTERNAL || origin === ORIGINS_MAP.CORE) {
-      const rules = transformToDependenciesRules(
+      const policies = transformToDependenciesRules(
         options?.policies ?? options?.rules ?? []
       );
       evaluatePoliciesAndReport({
-        rules: normalizeDependenciesRuleOptions({ policies: rules }).policies,
+        options: normalizeDependenciesRuleOptions({
+          default: options?.default,
+          message: options?.message,
+          policies,
+        }),
         settings,
         context,
         node,
-        options,
         dependency,
       });
     }

@@ -1,3 +1,4 @@
+import { PLUGIN_ISSUES_URL } from "@boundaries/config";
 import type {
   DependencyDescription,
   DependencyInfoDescription,
@@ -13,13 +14,7 @@ import type {
   ModuleSingleSelector,
 } from "@boundaries/elements";
 
-import {
-  PLUGIN_ISSUES_URL,
-  isArray,
-  isObject,
-  isUndefined,
-  isNull,
-} from "../Shared";
+import { isArray, isObject, isUndefined, isNull } from "../Shared";
 
 const MESSAGE_ERROR = `Not able to create a message for this violation. Please report this at: ${PLUGIN_ISSUES_URL}`;
 const NO_RULE_MESSAGE = "There is no policy allowing dependencies";
@@ -39,13 +34,13 @@ function quote(value: unknown): string {
  * @returns Joined message string with proper comma and "and" placement.
  */
 function joinWithCommasAndAnd(parts: string[]): string {
-  /* istanbul ignore next -- Defensive: callers always guard against empty array */
   if (parts.length === 0) {
     return "";
   }
   if (parts.length === 1) {
     return parts[0];
   }
+  // Surviving Stryker mutant: replacing the condition with `false`, or the block with an empty one, survives because two parts reach the last return, which joins them with " and " as well.
   if (parts.length === 2) {
     return `${parts[0]} and ${parts[1]}`;
   }
@@ -70,10 +65,6 @@ function formatPropertyValue(value: unknown): string {
  * @returns Message with the first character capitalized.
  */
 function capitalizeFirstLetter(message: string): string {
-  /* istanbul ignore next -- Defensive: capitalizeFirstLetter is always called with non-empty message strings */
-  if (!message.length) {
-    return message;
-  }
   return `${message.charAt(0).toUpperCase()}${message.slice(1)}`;
 }
 
@@ -114,7 +105,7 @@ function buildSinglePropertyFragments(
   if (propertyName === "captured") {
     return buildCapturedFragments(
       value,
-      options?.capturedKeys,
+      options.capturedKeys,
       includeNullValues
     );
   }
@@ -162,19 +153,21 @@ function buildElementPropertyFragments(
  * Builds a message fragment for the first parent element when requested.
  * @param elementDescription - Element that may include parent information.
  * @param options - Selector-driven options for parent and captured properties.
+ * @param options.capturedKeys - Captured keys of the element itself, not used for the parent.
+ * @param options.parentProperties - Parent properties to include in the description.
+ * @param options.parentCapturedKeys - If the parent properties include "captured", specifies which captured keys of the parent to include in the description.
+ * @param options.includeNullValues - Whether null values should be included in the output.
  * @param includeNullValues - Whether null parent values should be rendered.
  * @returns Parent fragment string, or null when no parent information should be emitted.
  */
 function buildParentFragment(
   elementDescription: ElementDescription | ElementParent,
-  options:
-    | {
-        capturedKeys?: string[];
-        parentProperties?: string[];
-        parentCapturedKeys?: string[];
-        includeNullValues?: boolean;
-      }
-    | undefined,
+  options: {
+    capturedKeys?: string[];
+    parentProperties?: string[];
+    parentCapturedKeys?: string[];
+    includeNullValues?: boolean;
+  },
   includeNullValues: boolean
 ): string | null {
   const firstParent = (elementDescription as ElementDescription).parents?.[0];
@@ -182,12 +175,13 @@ function buildParentFragment(
     return includeNullValues ? `parent ${quote(null)}` : null;
   }
 
-  const parentProperties = options?.parentProperties ?? [];
+  // Stryker disable next-line ArrayDeclaration: Equivalent. A property name that the parent does not have resolves to undefined, which is skipped like the empty list.
+  const parentProperties = options.parentProperties ?? [];
   const parentFragments = buildElementPropertyFragments(
     firstParent,
     parentProperties,
     {
-      capturedKeys: options?.parentCapturedKeys,
+      capturedKeys: options.parentCapturedKeys,
       includeNullValues,
     }
   );
@@ -317,10 +311,7 @@ function buildRelationshipFragments(
   includeNullValues: boolean
 ): string[] {
   const fragments: string[] = [];
-  for (const relationshipKey of /* istanbul ignore next -- Defensive: callers always derive relationshipKeys from the selector */ relationshipKeys ?? [
-    "from",
-    "to",
-  ]) {
+  for (const relationshipKey of relationshipKeys ?? ["from", "to"]) {
     const fragment = buildRelationshipFragment(
       relationship,
       relationshipKey,
@@ -377,6 +368,7 @@ function elementDescriptionMessageFromSelector(
     return null;
   }
   const properties = Object.keys(selectorData);
+  // Surviving Stryker mutant: replacing the condition with `false`, or the block with an empty one, survives because without properties the fragments are empty and the check below returns null as well.
   if (!properties.length) {
     return null;
   }
@@ -430,7 +422,7 @@ function buildFilePropertyFragments(
       fragments.push(
         ...buildCapturedFragments(
           value,
-          options?.capturedKeys,
+          options.capturedKeys,
           includeNullValues
         )
       );
@@ -458,21 +450,17 @@ function buildFilePropertyFragments(
  * Describes file metadata using selected relevant properties.
  * @param fileDescription - File metadata to describe.
  * @param properties - List of file properties to include in the description.
- * @param options - Formatting options.
- * @param options.includeNullValues - Whether null values should be included in the output.
  * @returns Formatted message describing the file.
  */
 function fileDescriptionMessage(
   fileDescription: FileDescription,
-  properties: string[],
-  { includeNullValues = false }: { includeNullValues?: boolean } = {}
+  properties: string[]
 ): string {
   const propertyFragments = buildFilePropertyFragments(
     fileDescription,
     properties,
-    {
-      includeNullValues,
-    }
+    // Stryker disable next-line ObjectLiteral: Equivalent. Without includeNullValues the option is undefined, which skips null values as false does.
+    { includeNullValues: false }
   );
   if (!propertyFragments.length) {
     return "";
@@ -494,6 +482,7 @@ function fileDescriptionMessageFromSelector(
     return null;
   }
   const properties = Object.keys(selectorData);
+  // Surviving Stryker mutant: replacing the condition with `false`, or the block with an empty one, survives because without properties the fragments are empty and the check below returns null as well.
   if (!properties.length) {
     return null;
   }
@@ -552,6 +541,7 @@ function moduleDescriptionMessageFromSelector(
     return null;
   }
   const properties = Object.keys(selectorData);
+  // Surviving Stryker mutant: replacing the condition with `false`, or the block with an empty one, survives because without properties the fragments are empty and the check below returns null as well.
   if (!properties.length) {
     return null;
   }
@@ -579,14 +569,9 @@ function moduleDescriptionMessageFromSelector(
  */
 function entityDescriptionMessageFromSelector(
   entityDescription: EntityDescription,
-  selectorData: DependencySingleSelectorMatchResult["from"] | null | undefined,
+  selectorData: NonNullable<DependencySingleSelectorMatchResult["from"]>,
   { includeModule = true }: { includeModule?: boolean } = {}
 ): string | null {
-  /* istanbul ignore next -- Defensive: callers always guard with selector key length > 0 */
-  if (!selectorData) {
-    return null;
-  }
-
   const elementPart = elementDescriptionMessageFromSelector(
     entityDescription.element,
     selectorData.element ?? null
@@ -602,6 +587,7 @@ function entityDescriptionMessageFromSelector(
       )
     : null;
 
+  // Surviving Stryker mutant: replacing the condition with `false`, or the block with an empty one, survives because without parts mainPart is null, so the last return gives null as well.
   if (!elementPart && !filePart && !modulePart) {
     return null;
   }
@@ -692,23 +678,25 @@ function entityDescriptionMessageForNoRule(
 function buildDependencyPropertyFragments(
   dependencyInfo: DependencyInfoDescription,
   properties: string[],
-  options?: {
+  options: {
     relationshipKeys?: Array<"from" | "to">;
     includeNullValues?: boolean;
   }
 ): string[] {
   const fragments: string[] = [];
-  const includeNullValues = options?.includeNullValues ?? false;
+  // Stryker disable next-line BooleanLiteral: Equivalent. The only call without includeNullValues asks for the `source` property, which is always a string, so there is no null value to render.
+  const includeNullValues = options.includeNullValues ?? false;
   for (const propertyName of properties) {
     const value = dependencyInfo[propertyName as keyof typeof dependencyInfo];
     if (!shouldRenderDependencyValue(value, includeNullValues)) {
       continue;
     }
+    // Surviving Stryker mutant: replacing the first operand with `true`, or the `&&` with `||`, survives because `relationship` always holds an object and no other property of the dependency description does.
     if (propertyName === "relationship" && isObject(value)) {
       fragments.push(
         ...buildRelationshipFragments(
           value,
-          options?.relationshipKeys,
+          options.relationshipKeys,
           includeNullValues
         )
       );
@@ -723,22 +711,18 @@ function buildDependencyPropertyFragments(
  * Describes dependency metadata using selected relevant properties.
  * @param dependencyInfo - Dependency metadata to describe.
  * @param properties - List of dependency metadata properties to include in the description.
- * @param options - Formatting options.
- * @param options.includeNullValues - Whether null values should be included in the output.
  * @returns Formatted message describing the dependency metadata based on the selected properties.
  */
 function dependencyDescriptionMessage(
   dependencyInfo: DependencyInfoDescription,
-  properties: string[],
-  options?: { includeNullValues?: boolean }
+  properties: string[]
 ): string {
   const propertyFragments = buildDependencyPropertyFragments(
     dependencyInfo,
     properties,
-    {
-      includeNullValues: options?.includeNullValues,
-    }
+    {}
   );
+  // Surviving Stryker mutant: replacing the condition with `false`, or the block with an empty one, survives because joinWithCommasAndAnd returns an empty string for an empty list as well.
   if (!propertyFragments.length) {
     return "";
   }
@@ -753,17 +737,9 @@ function dependencyDescriptionMessage(
  */
 function dependencyDescriptionFragmentsFromSelector(
   dependencyInfo: DependencyInfoDescription,
-  selectorData: DependencyInfoSingleSelector | null
+  selectorData: DependencyInfoSingleSelector
 ): string[] {
-  /* istanbul ignore next -- Defensive: caller only invokes when the selector has at least one key */
-  if (!selectorData) {
-    return [];
-  }
   const properties = Object.keys(selectorData);
-  /* istanbul ignore next -- Defensive: caller only invokes when the selector has at least one key */
-  if (!properties.length) {
-    return [];
-  }
   const relationshipKeys = isObject(selectorData.relationship)
     ? (Object.keys(selectorData.relationship) as Array<"from" | "to">)
     : undefined;
@@ -907,15 +883,18 @@ export function dependenciesRuleMatchedMessage(
   ruleIndex: number,
   dependency: DependencyDescription
 ): string {
-  const fromProperties = Object.keys(matchResult?.from ?? {});
-  const toProperties = Object.keys(matchResult?.to ?? {});
-  const dependencyProperties = Object.keys(matchResult?.dependency ?? {});
+  const fromSelector = matchResult?.from ?? {};
+  const toSelector = matchResult?.to ?? {};
+  const dependencySelector = matchResult?.dependency ?? {};
+  const fromProperties = Object.keys(fromSelector);
+  const toProperties = Object.keys(toSelector);
+  const dependencyProperties = Object.keys(dependencySelector);
 
   const fromPart = fromProperties.length
-    ? entityDescriptionMessageFromSelector(dependency.from, matchResult!.from)
+    ? entityDescriptionMessageFromSelector(dependency.from, fromSelector)
     : null;
   const toEntityPart = toProperties.length
-    ? entityDescriptionMessageFromSelector(dependency.to, matchResult!.to, {
+    ? entityDescriptionMessageFromSelector(dependency.to, toSelector, {
         includeModule: false,
       })
     : null;
@@ -929,8 +908,7 @@ export function dependenciesRuleMatchedMessage(
   const dependencyFragments = dependencyProperties.length
     ? dependencyDescriptionFragmentsFromSelector(
         dependency.dependency,
-        /* istanbul ignore next -- Defensive: dependencyProperties.length guard ensures matchResult.dependency is defined */
-        matchResult!.dependency ?? null
+        dependencySelector
       )
     : [];
   const dependencyToSourceFragments = dependencySourceFromToSelectorMessage(
@@ -938,6 +916,7 @@ export function dependenciesRuleMatchedMessage(
     dependency
   );
 
+  // Surviving Stryker mutant: replacing the condition with `true` survives because inserting an empty list of fragments leaves the list as it is.
   if (dependencyToSourceFragments.length) {
     const specifiersIndex = dependencyFragments.findIndex((fragment) =>
       fragment.startsWith("specifiers ")

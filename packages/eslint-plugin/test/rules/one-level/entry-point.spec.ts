@@ -410,6 +410,52 @@ testCapture(
   ]
 );
 
+// Custom messages of a policy with several targets: each translated policy reports the message of the user's policy at its own index
+
+const severalTargetsMessagesOptions = [
+  {
+    default: "allow",
+    message: "global",
+    policies: [
+      {
+        target: [{ type: "components" }, { type: "modules" }],
+        disallow: "*",
+        message: "m0",
+      },
+      { target: { type: "helpers" }, disallow: "*", message: "m1" },
+    ],
+  },
+];
+
+const severalTargetsMessagesRuleTester = createRuleTester(SETTINGS.oneLevel);
+severalTargetsMessagesRuleTester.run(RULE, rule, {
+  valid: [],
+  invalid: [
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import ModuleA from 'modules/module-a/ModuleA.js'",
+      options: severalTargetsMessagesOptions,
+      errors: [
+        {
+          message: "m1",
+          type: "Literal",
+        },
+      ],
+    },
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import HelperA from 'helpers/helper-a/HelperA.js'",
+      options: severalTargetsMessagesOptions,
+      errors: [
+        {
+          message: "global",
+          type: "Literal",
+        },
+      ],
+    },
+  ],
+});
+
 const noRulesRuleTester = createRuleTester(SETTINGS.oneLevel);
 noRulesRuleTester.run(RULE, rule, {
   valid: [

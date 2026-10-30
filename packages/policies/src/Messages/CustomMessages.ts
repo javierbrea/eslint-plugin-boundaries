@@ -308,7 +308,7 @@ function replaceLegacyTemplateVariables(
   }
   if (dependency.to.element.parents?.[0]) {
     const toParentProperties = parentPropertiesToReplaceInLegacyTemplate({
-      parent: dependency.to.element.parents?.[0],
+      parent: dependency.to.element.parents[0],
       dependency: dependency.dependency,
     });
     replacedMessage = replaceObjectValuesInLegacyTemplate(
@@ -347,6 +347,7 @@ function replaceLegacyTemplateVariables(
  * @param ruleIndex - Index of the rule that triggered the error, if applicable.
  * @param matchResult - Full result of the dependency matching process, if applicable.
  * @returns Rendered, user-facing error message.
+ * @throws The Handlebars error when the template fails to render, such as one with invalid syntax or an unknown helper.
  */
 export function customErrorMessage(
   template: string,

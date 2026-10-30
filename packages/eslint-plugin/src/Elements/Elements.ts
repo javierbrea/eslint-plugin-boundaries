@@ -1,10 +1,13 @@
-import { Elements } from "@boundaries/elements";
 import type {
-  Matcher,
   DependencyDescription,
   DependencyKind,
   EntityDescription,
 } from "@boundaries/elements";
+import {
+  describeDependency,
+  describeEntity,
+  getMatcher,
+} from "@boundaries/policies";
 import type { Rule } from "eslint";
 import resolve from "eslint-module-utils/resolve";
 import type { Identifier, ImportSpecifier } from "estree";
@@ -13,45 +16,6 @@ import { debugDescription } from "../Debug";
 import type { SettingsNormalized } from "../Shared";
 
 import type { EslintLiteralNode } from "./Elements.types";
-
-const elements = new Elements();
-
-/**
- * Memoizes the resolved Matcher by normalized-settings identity. `getSettings` returns the
- * same SettingsNormalized reference for a given config across the whole ESLint run, so this
- * avoids rebuilding the config and re-hashing all descriptors on every visited node.
- */
-const matchersBySettings = new WeakMap<SettingsNormalized, Matcher>();
-
-/**
- * Returns the elements matcher based on the ESLint rule context settings already normalized, filtering out invalid descriptors
- * @param settings The ESLint rule context settings normalized
- * @returns The elements matcher
- */
-export function getElementsMatcher(settings: SettingsNormalized): Matcher {
-  const cachedMatcher = matchersBySettings.get(settings);
-  if (cachedMatcher) {
-    return cachedMatcher;
-  }
-  const elementsMatcher = elements.getMatcher(
-    {
-      elements: settings.elementDescriptors,
-      files: settings.fileDescriptors,
-      elementsSingleMatch: settings.elementsSingleMatch,
-      filesSingleMatch: settings.filesSingleMatch,
-    },
-    {
-      ignorePaths: settings.ignorePaths,
-      includePaths: settings.includePaths,
-      legacyTemplates: settings.legacyTemplates,
-      cache: settings.cache,
-      flagAsExternal: settings.flagAsExternal,
-      rootPath: settings.rootPath,
-    }
-  );
-  matchersBySettings.set(settings, elementsMatcher);
-  return elementsMatcher;
-}
 
 /**
  * Returns the specifiers used in an import or export statement
@@ -96,9 +60,8 @@ export function entityDescription(
   fileName: string,
   settings: SettingsNormalized
 ): EntityDescription {
-  const matcher = getElementsMatcher(settings);
-  const result = matcher.describeEntity(fileName);
-  debugDescription(result, settings, matcher);
+  const result = describeEntity(settings, fileName);
+  debugDescription(result, settings, getMatcher(settings));
   return result;
 }
 
@@ -131,10 +94,9 @@ export function dependencyDescription(
   context: Rule.RuleContext
 ): DependencyDescription {
   const source = String(node.value);
-  const matcher = getElementsMatcher(settings);
   const resolvedPath = resolve(source, context);
 
-  const description = matcher.describeDependency({
+  const description = describeDependency(settings, {
     from: fileName,
     to: resolvedPath || undefined,
     source,
@@ -143,7 +105,7 @@ export function dependencyDescription(
     specifiers: getSpecifiers(node),
   });
 
-  debugDescription(description, settings, matcher);
+  debugDescription(description, settings, getMatcher(settings));
 
   return description;
 }
