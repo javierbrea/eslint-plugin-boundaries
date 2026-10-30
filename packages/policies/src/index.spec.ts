@@ -3,6 +3,7 @@ import type { DependenciesRuleOptionsNormalized } from "@boundaries/config";
 import type { DependencyDescriptorOptions } from "@boundaries/elements";
 
 import {
+  DEPENDENCY_SKIP_REASONS_MAP,
   describeDependency,
   describeEntity,
   evaluateDependency,
@@ -138,7 +139,10 @@ describe("policies", () => {
         nodeKind: "import",
       });
 
-      expect(evaluation).toEqual({ checked: false, reason: "not-local" });
+      expect(evaluation).toEqual({
+        checked: false,
+        reason: DEPENDENCY_SKIP_REASONS_MAP.NOT_LOCAL,
+      });
     });
   });
 });

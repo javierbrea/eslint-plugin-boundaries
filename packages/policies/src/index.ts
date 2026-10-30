@@ -9,6 +9,7 @@ export type {
   PolicyEvaluation,
 } from "./Evaluation";
 export {
+  DEPENDENCY_SKIP_REASONS_MAP,
   getDependencySkipReason,
   evaluatePolicies,
   evaluateDependency,

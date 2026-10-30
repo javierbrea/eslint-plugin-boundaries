@@ -127,6 +127,8 @@ The `dependencies` rule does not evaluate every dependency. `getDependencySkipRe
 
 It reads only the `check*` options, so it takes the options as the user wrote them or normalized. `evaluateDependency` returns `{ checked: false, reason }` when there is a reason.
 
+`DEPENDENCY_SKIP_REASONS_MAP` holds the reasons as constants, from `FROM_IGNORED: "from-ignored"` to `INTERNAL: "internal"`, to compare a reason without writing its string.
+
 ### Evaluation of the Policies
 
 `evaluatePolicies` merges the `from`, `to` and `dependency` selectors of each policy with each entry of its `allow` and `disallow`, and matches the dependency against them:
