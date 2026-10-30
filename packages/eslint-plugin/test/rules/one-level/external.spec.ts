@@ -120,6 +120,25 @@ const runTest = (
           },
         ],
       },
+      // Helpers can't require react with a template literal
+      {
+        filename: absoluteFilePath("helpers/helper-a/HelperA.js"),
+        code: "const React = require(`react`)",
+        options,
+        errors: [
+          {
+            message: errorMessage(
+              errorMessages,
+              0,
+              externalNoRuleMessage({
+                file: "'helpers' with elementName 'helper-a'",
+                dep: "react",
+              })
+            ),
+            type: "TemplateLiteral",
+          },
+        ],
+      },
       // Components can't import react-router-dom
       {
         filename: absoluteFilePath("components/component-a/ComponentA.js"),

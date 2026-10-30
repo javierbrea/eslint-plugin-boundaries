@@ -107,6 +107,18 @@ const runTest = (
           },
         ],
       },
+      // Not index.js with default config, required with a template literal
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "const ComponentB = require(`../component-b/ComponentB.js`)",
+        options: defaultOptions,
+        errors: [
+          {
+            message: errorMessages[0],
+            type: "TemplateLiteral",
+          },
+        ],
+      },
       // folder with config not set to index.js
       {
         filename: absoluteFilePath("components/component-a/ComponentA.js"),

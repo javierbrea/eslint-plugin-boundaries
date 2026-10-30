@@ -858,6 +858,96 @@ describe("Settings/Settings", () => {
         expect(result.dependencyNodes).toHaveLength(expectedCount);
       });
 
+      it("returns the selectors of every default dependency node when not provided", () => {
+        const result = normalize({
+          [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],
+        });
+
+        expect(result.dependencyNodes).toEqual([
+          {
+            selector: "ImportDeclaration:not([importKind=type]) > Literal",
+            kind: "value",
+            name: "import",
+          },
+          {
+            selector: "ImportDeclaration[importKind=type] > Literal",
+            kind: "type",
+            name: "import",
+          },
+          {
+            selector: "ExportAllDeclaration:not([exportKind=type]) > Literal",
+            kind: "value",
+            name: "export",
+          },
+          {
+            selector: "ExportAllDeclaration[exportKind=type] > Literal",
+            kind: "type",
+            name: "export",
+          },
+          {
+            selector: "ExportNamedDeclaration:not([exportKind=type]) > Literal",
+            kind: "value",
+            name: "export",
+          },
+          {
+            selector: "ExportNamedDeclaration[exportKind=type] > Literal",
+            kind: "type",
+            name: "export",
+          },
+          {
+            selector: "CallExpression[callee.name=require] > Literal",
+            kind: "value",
+            name: "require",
+          },
+          {
+            selector:
+              "CallExpression[callee.name=require] > TemplateLiteral[expressions.length=0]",
+            kind: "value",
+            name: "require",
+          },
+          {
+            selector:
+              "CallExpression[callee.name=require] > :matches(TSAsExpression, TSSatisfiesExpression, TSTypeAssertion, TSNonNullExpression)",
+            kind: "value",
+            name: "require",
+          },
+          {
+            selector:
+              "TSImportEqualsDeclaration[importKind=value] > TSExternalModuleReference > Literal",
+            kind: "value",
+            name: "require",
+          },
+          {
+            selector:
+              "TSImportEqualsDeclaration[importKind=type] > TSExternalModuleReference > Literal",
+            kind: "type",
+            name: "require",
+          },
+          {
+            selector: "ImportExpression > Literal",
+            kind: "value",
+            name: "dynamic-import",
+          },
+          {
+            selector:
+              "ImportExpression > TemplateLiteral[expressions.length=0]",
+            kind: "value",
+            name: "dynamic-import",
+          },
+          {
+            selector:
+              "ImportExpression > :matches(TSAsExpression, TSSatisfiesExpression, TSTypeAssertion, TSNonNullExpression)",
+            kind: "value",
+            name: "dynamic-import",
+          },
+          {
+            selector: "TSImportType > Literal",
+            kind: "type",
+            name: "dynamic-import",
+          },
+        ]);
+      });
+
       it("warns and returns an empty list when the value is not an array", () => {
         const result = normalize({
           [SETTINGS_KEYS_MAP.ELEMENTS]: [validElementDescriptor],

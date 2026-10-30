@@ -135,6 +135,7 @@ const sidebars: SidebarsConfig = {
           label: "Upgrade Notes",
           collapsed: false,
           items: [
+            "releases/upgrade-notes/v7-4-1",
             "releases/upgrade-notes/v7-4-0",
             "releases/upgrade-notes/v7-3-0",
           ],

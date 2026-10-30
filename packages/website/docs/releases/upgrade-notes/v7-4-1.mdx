@@ -1,0 +1,109 @@
+---
+id: v7-4-1
+title: Upgrading to v7.4.1
+sidebar_label: v7.4.1
+description: Learn whether the dependencies that ESLint Plugin Boundaries v7.4.1 checks for the first time, written with template literals, TypeScript assertions, import x = require() or type imports, affect your project, and how to adapt your configuration.
+tags:
+  - configuration
+  - migration
+  - troubleshooting
+keywords:
+  - eslint-plugin-boundaries
+  - upgrade notes
+  - release
+  - v7.4.1
+  - dependency nodes
+  - template literals
+  - TypeScript assertions
+  - import require
+  - typeof import
+  - dynamic import
+---
+
+import CodeDiff from "@site/src/components/CodeDiff";
+
+# Upgrading to v7.4.1
+
+## Overview
+
+v7.4.1 is a patch release, and most projects can upgrade without any change. However, it fixes a bug that may report new errors:
+
+- **[Newly checked dependencies](#newly-checked-dependencies)**: dependencies written with a template literal, such as `` import(`./foo.js`) ``, inside a TypeScript assertion, such as `import("./foo.js" as string)`, with `import x = require()` or with a type import, such as `typeof import("./foo.js")`, were not checked.
+
+This page explains how to check whether your project is affected, and how to adapt your configuration if it is.
+
+## Newly checked dependencies
+
+Before v7.4.1, the plugin checked `require()` and `import()` only when their source was a string written directly in the call, such as `import("./foo.js")`. From v7.4.1, it also checks these dependencies, because their source is known without running the code:
+
+| Code | [`boundaries/dependency-nodes`](../../settings/settings.md#boundariesdependency-nodes) value | `dependency.kind` |
+| --- | --- | --- |
+| `` require(`./foo.js`) `` | `require` | `value` |
+| `require("./foo.js" as string)` | `require` | `value` |
+| `import foo = require("./foo.js")` | `require` | `value` |
+| `import type foo = require("./foo.js")` | `require` | `type` |
+| `` import(`./foo.js`) `` | `dynamic-import` | `value` |
+| `import("./foo.js" as string)` | `dynamic-import` | `value` |
+| `typeof import("./foo.js")`, `import("./foo.js").Foo` | `dynamic-import` | `type` |
+
+The TypeScript assertions `as`, `satisfies`, `<T>` and `!` are all checked, nested or not, around a string or a template literal without substitutions.
+
+Dependencies whose source is built at runtime are still not checked, such as `` import(`./${name}.js`) ``, `import("./" + "foo.js")` or `import(path as string)`.
+
+### Who is affected
+
+Your project is affected only if both of these conditions are true:
+
+- Your code has dependencies written in one of the ways of the table above. The TypeScript ones are only checked in the files parsed as TypeScript, for example with `@typescript-eslint/parser`.
+- Your configuration disallows some of them. For example, a **[`boundaries/dependencies`](../../rules/dependencies.md)** policy disallows the element or the file that they import.
+
+After upgrading, the rules may report these dependencies, like they report the same dependencies written with a string. This applies to every rule that checks dependencies, such as **[`boundaries/dependencies`](../../rules/dependencies.md)** or **[`boundaries/no-unknown-dependencies`](../../rules/no-unknown-dependencies.md)**.
+
+### Find the affected dependencies
+
+Search your code for these dependencies, for example:
+
+```bash
+grep -rnE '(require|import)\((\s*[`<]|[^)]*\b(as|satisfies)\b|[^)]*!\))|import\s+(type\s+)?\w+\s*=\s*require\(|typeof import\(|import\([^)]*\)\.' src
+```
+
+The search also lists dependencies that are still not checked, such as template literals with substitutions. If it finds none, your project is not affected.
+
+To list only the affected dependencies, lint your project after upgrading, and look for the errors reported on the lines that the search found.
+
+### Adapt your configuration
+
+Review the new errors after upgrading. They break the same policies as the dependencies written with a string, so:
+
+- Fix the dependency, if it should not exist.
+- Allow it with a policy, if it is expected. Policies are processed in order, and the last one that matches wins. For example, to allow the files of the `app` category to import the files of the `forbidden` category only with `import()`:
+
+<CodeDiff language="javascript">{`
+. policies: [
+.   {
+.     from: { file: { categories: "app" } },
+.     disallow: { to: { file: { categories: "forbidden" } } },
+.   },
++   {
++     from: { file: { categories: "app" } },
++     allow: {
++       to: { file: { categories: "forbidden" } },
++       dependency: { nodeKind: "dynamic-import" },
++     },
++   },
+. ]
+`}</CodeDiff>
+
+If you added **[`boundaries/additional-dependency-nodes`](../../settings/settings.md#boundariesadditional-dependency-nodes)** selectors to check these dependencies, remove them. Otherwise, each dependency is reported twice:
+
+<CodeDiff language="javascript">{`
+. settings: {
+.   "boundaries/additional-dependency-nodes": [
+-     {
+-       selector: "ImportExpression > TSAsExpression > Literal",
+-       kind: "value",
+-       name: "dynamic-import",
+-     },
+.   ],
+. }
+`}</CodeDiff>
