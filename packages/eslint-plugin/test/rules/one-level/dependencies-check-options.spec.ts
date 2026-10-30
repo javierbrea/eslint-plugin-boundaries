@@ -32,6 +32,18 @@ checkInternalsRuleTester.run(RULE, rule, {
       code: INTERNAL_IMPORT,
       options: [{ default: "disallow", checkInternals: false }],
     },
+    // The other options do not check internal dependencies
+    {
+      filename: COMPONENT_A,
+      code: INTERNAL_IMPORT,
+      options: [
+        {
+          default: "disallow",
+          checkAllOrigins: true,
+          checkUnknownLocals: true,
+        },
+      ],
+    },
     // A checked internal dependency is evaluated against the policies
     {
       filename: COMPONENT_A,
