@@ -11,7 +11,7 @@ The name of a rule and the schema of its options belong to `@boundaries/config`:
 
 ## Messages are dynamic, not static
 
-Rule messages are built at runtime from configuration and reported dependency data (see `packages/policies/src/Messages/`), not from static `messageId` templates. This is why `packages/eslint-plugin/eslint.config.mjs` disables `eslint-plugin/prefer-message-ids` and `eslint-plugin/require-meta-type` for this package — don't "fix" a rule by forcing a static `messageId`; follow the existing `Messages` module instead.
+Rule messages are built at runtime from configuration and reported dependency data (see `packages/policies/src/Messages/`), not from static `messageId` templates. This is why `packages/eslint-plugin/eslint.config.mjs` disables `eslint-plugin/prefer-message-ids` and `eslint-plugin/require-meta-type` for this package — don't "fix" a rule by forcing a static `messageId`; build the message at runtime, as the existing rules do.
 
 ## Testing a rule
 

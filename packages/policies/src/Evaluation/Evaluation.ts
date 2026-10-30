@@ -183,8 +183,8 @@ export function resolveCustomMessage(
 /**
  * Renders a custom message, naming it and where it is set when it fails to render.
  * @param customMessage The custom message and where it is set.
- * @param customMessage.template
- * @param customMessage.policyIndex
+ * @param customMessage.template The template of the message, as the user wrote it.
+ * @param customMessage.policyIndex The index of the policy that sets the message, or null when the rule options set it.
  * @param dependency The dependency description.
  * @param ruleIndex The index of the policy that produced the violation, if any.
  * @param matchResult The result of matching the dependency against the policy selector, if any.
