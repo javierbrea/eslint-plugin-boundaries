@@ -347,7 +347,7 @@ function replaceLegacyTemplateVariables(
  * @param ruleIndex - Index of the rule that triggered the error, if applicable.
  * @param matchResult - Full result of the dependency matching process, if applicable.
  * @returns Rendered, user-facing error message.
- * @throws The Handlebars parse error when the template has invalid Handlebars syntax.
+ * @throws The Handlebars error when the template fails to render, such as one with invalid syntax or an unknown helper.
  */
 export function customErrorMessage(
   template: string,

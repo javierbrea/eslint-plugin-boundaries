@@ -214,7 +214,7 @@ export function buildErrorMessage({
  * @param options The options of the rule, normalized by `@boundaries/config`.
  * @param dependency The description of the dependency.
  * @returns The verdict, the deciding policy and match, the message of a violation, and the problems found while matching.
- * @throws The Handlebars parse error when the dependency is not allowed and its custom `message` has invalid syntax.
+ * @throws The Handlebars error when the dependency is not allowed and its custom `message` fails to render, such as one with invalid syntax or an unknown helper.
  */
 export function evaluatePolicies(
   settings: SettingsNormalized,
@@ -337,7 +337,7 @@ export function getDependencySkipReason(
  * @param options The options of the rule, normalized by `@boundaries/config`.
  * @param dependency The description of the dependency.
  * @returns The reason why the dependency is not evaluated, or the evaluation of the policies.
- * @throws The Handlebars parse error when the dependency is not allowed and its custom `message` has invalid syntax.
+ * @throws The Handlebars error when the dependency is not allowed and its custom `message` fails to render, such as one with invalid syntax or an unknown helper.
  */
 export function evaluateDependency(
   settings: SettingsNormalized,

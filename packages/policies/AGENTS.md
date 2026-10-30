@@ -18,7 +18,7 @@ The layering is not lint-enforced: linting this package with the workspace plugi
 ## Hard constraints
 
 - The package runs in browsers (`.agents/rules/browser-code.md`) and does not depend on the platform: `src` never imports `eslint`, `estree`, `eslint-module-utils`, `chalk` or a `node:*` module, and never reads a Node.js global, not even from `globalThis`.
-- Functions never print. A problem found while evaluating is a `Diagnostic` of `@boundaries/config` in the result, with the paths of the affected entries from the root of the options. The exception is a custom `message` with invalid Handlebars syntax: rendering it throws, as it does in the plugin.
+- Functions never print. A problem found while evaluating is a `Diagnostic` of `@boundaries/config` in the result, with the paths of the affected entries from the root of the options. The exception is a custom `message` that fails to render, such as one with invalid Handlebars syntax or an unknown helper: rendering it throws, as it does in the plugin.
 - The messages are the texts the plugin reports, so changing one changes the plugin's output, and its changelog.
 - Which dependencies `getDependencySkipReason` skips, and in which order it checks the reasons, is what the `dependencies` rule does: the plugin calls it before normalizing the policies, so that an invalid selector does not fail on a file whose dependencies are all skipped.
 - Memoization is by object identity in `WeakMap`s: the matcher by `SettingsNormalized`, and the dependency selectors by `DependenciesPolicyNormalized`. Results are shared with the caches and are never mutated, and neither is the input.
