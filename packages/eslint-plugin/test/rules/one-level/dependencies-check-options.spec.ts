@@ -131,7 +131,7 @@ checkUnknownLocalsRuleTester.run(RULE, rule, {
         },
       ],
     },
-    // The option applies to the target only: dependencies of unknown files are never checked
+    // The rule does not visit files that belong to no element, so checkUnknownLocals does not check their dependencies
     {
       filename: absoluteFilePath("foo/index.js"),
       code: "import HelperA from '../helpers/helper-a'",
