@@ -96,7 +96,7 @@ const dependency = describeDependency(settings, {
 
 const evaluation = evaluateDependency(
   settings,
-  rules.dependencies.options,
+  rules.dependencies!.options,
   dependency
 );
 
@@ -135,7 +135,7 @@ It reads only the `check*` options, so it takes the options as the user wrote th
 - Within a policy, `allow` is not evaluated when `disallow` matched.
 - When no policy matches, the `default` option decides, and `policyIndex` and `match` are `null`.
 
-When the dependency is not allowed, `message` is the message the plugin reports: the custom `message` of the deciding policy, or of the options, rendered with its template, or the default message.
+When the dependency is not allowed, `message` is the message the plugin reports: the custom `message` of the deciding policy, or of the options, rendered with its template, or the default message. The exception is a custom `message` with invalid Handlebars syntax: rendering it throws, as it does in the plugin.
 
 ### Memoization
 
