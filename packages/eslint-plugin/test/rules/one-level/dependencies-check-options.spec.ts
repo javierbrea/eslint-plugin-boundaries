@@ -111,6 +111,14 @@ checkUnknownLocalsRuleTester.run(RULE, rule, {
       code: UNKNOWN_LOCAL_IMPORT,
       options: [{ default: "disallow", checkUnknownLocals: false }],
     },
+    // The other options do not check unknown local dependencies
+    {
+      filename: COMPONENT_A,
+      code: UNKNOWN_LOCAL_IMPORT,
+      options: [
+        { default: "disallow", checkAllOrigins: true, checkInternals: true },
+      ],
+    },
     // A checked unknown local dependency is evaluated against the policies
     {
       filename: COMPONENT_A,
