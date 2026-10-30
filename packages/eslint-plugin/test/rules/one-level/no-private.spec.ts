@@ -134,6 +134,19 @@ const runTest = (settings: RuleTesterSettings) => {
           },
         ],
       },
+      // Private elements can't be required with a template literal
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "const ComponentD = require(`./components/component-c/components/component-d`)",
+        options,
+        errors: [
+          {
+            message:
+              'Dependency is private of element of type "components" and captured values: elementName="component-c"',
+            type: "TemplateLiteral",
+          },
+        ],
+      },
       // Component C is private of component A, so module A can't use it
       {
         filename: absoluteFilePath("modules/module-a/ModuleA.js"),

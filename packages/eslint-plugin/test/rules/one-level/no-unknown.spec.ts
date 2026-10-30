@@ -64,6 +64,17 @@ const runTest = (settings: RuleTesterSettings) => {
           },
         ],
       },
+      // Not recognized type, required with a template literal
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "const Foo = require(`../../foo`)",
+        errors: [
+          {
+            message: ERROR_MESSAGE,
+            type: "TemplateLiteral",
+          },
+        ],
+      },
     ],
   });
 };

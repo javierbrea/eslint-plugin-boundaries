@@ -61,6 +61,18 @@ const runTest = (settings: RuleTesterSettings) => {
           },
         ],
       },
+      // Recognized but ignored type, required with a template literal
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "const ComponentB = require(`../component-b`)",
+        settings: customSettings,
+        errors: [
+          {
+            message: ERROR_MESSAGE,
+            type: "TemplateLiteral",
+          },
+        ],
+      },
       // Recognized but ignored type with alias
       {
         filename: absoluteFilePath("components/component-a/ComponentA.js"),

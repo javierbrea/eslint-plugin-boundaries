@@ -2,11 +2,16 @@ import { moreInfoSettingsLink } from "@boundaries/config";
 import type { Rule } from "eslint";
 
 import { warnOnce } from "../../Debug";
-import { entityDescription, dependencyDescription } from "../../Elements";
-import type { EslintLiteralNode } from "../../Elements";
+import {
+  entityDescription,
+  dependencyDescription,
+  getDependencySource,
+  isTypeScriptAssertion,
+} from "../../Elements";
+import type { EslintDependencyNode } from "../../Elements";
 import { getSettings } from "../../Settings";
 import type { RuleOptions, RuleMetaDefinition } from "../../Shared";
-import { SETTINGS, isString } from "../../Shared";
+import { SETTINGS } from "../../Shared";
 
 import type {
   DependencyRuleRunner,
@@ -49,18 +54,25 @@ export function dependencyRule<Options extends RuleOptions>(
 
       return settings.dependencyNodes.reduce(
         (visitors, { selector, kind, name }) => {
-          visitors[selector] = (node: EslintLiteralNode) => {
-            /* istanbul ignore next - Defensive check */
-            if (!isString(node.value)) {
-              warnOnce(
-                `Dependency node value is not a string, skipping node.`,
-                `Please check your ${ADDITIONAL_DEPENDENCY_NODES} setting. ${moreInfoSettingsLink()}`
-              );
+          visitors[selector] = (node: EslintDependencyNode) => {
+            const source = getDependencySource(node);
+            if (source === null) {
+              // Template literals with substitutions and assertions around other expressions are only known at runtime, so they are skipped silently, like "import(path)"
+              if (
+                node.type !== "TemplateLiteral" &&
+                !isTypeScriptAssertion(node)
+              ) {
+                warnOnce(
+                  `Dependency node value is not a string, skipping node.`,
+                  `Please check your ${ADDITIONAL_DEPENDENCY_NODES} setting. ${moreInfoSettingsLink()}`
+                );
+              }
               return;
             }
             const dependency = dependencyDescription(
               {
                 node,
+                source,
                 kind,
                 nodeKind: name,
               },
@@ -74,7 +86,7 @@ export function dependencyRule<Options extends RuleOptions>(
 
           return visitors;
         },
-        {} as Record<string, (node: EslintLiteralNode) => void>
+        {} as Record<string, (node: EslintDependencyNode) => void>
       );
     },
   };
