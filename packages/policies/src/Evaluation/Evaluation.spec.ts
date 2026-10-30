@@ -1753,7 +1753,7 @@ describe("Evaluation", () => {
         })
       );
 
-      expect(result).toBe("policy-msg");
+      expect(result).toEqual({ template: "policy-msg", policyIndex: 1 });
     });
 
     it("falls back to the options message when there is no policy message", () => {
@@ -1762,7 +1762,7 @@ describe("Evaluation", () => {
         normalizeOptions({ message: "global", policies: [{}] })
       );
 
-      expect(result).toBe("global");
+      expect(result).toEqual({ template: "global", policyIndex: null });
     });
 
     it("returns the options message when policyIndex is null", () => {
@@ -1774,7 +1774,7 @@ describe("Evaluation", () => {
         })
       );
 
-      expect(result).toBe("global");
+      expect(result).toEqual({ template: "global", policyIndex: null });
     });
   });
 
@@ -1784,7 +1784,7 @@ describe("Evaluation", () => {
       const result = buildErrorMessage({
         matchResult: null,
         ruleIndex: 2,
-        customMessage: "boom",
+        customMessage: { template: "boom", policyIndex: 2 },
         dependency,
       });
 
@@ -1814,6 +1814,82 @@ describe("Evaluation", () => {
         dependency
       );
       expect(result).toBe("default-message");
+    });
+
+    it("uses the default message when the custom message is empty", () => {
+      const dependency = createDependencyDescription();
+
+      const result = buildErrorMessage({
+        matchResult: null,
+        ruleIndex: 0,
+        customMessage: { template: "", policyIndex: 0 },
+        dependency,
+      });
+
+      expect(customErrorMessageMock).not.toHaveBeenCalled();
+      expect(result).toBe("default-message");
+    });
+
+    it("throws an error naming the message and its policy when the message of a policy fails to render", () => {
+      const renderError = new Error('Missing helper: "foo"');
+      customErrorMessageMock.mockImplementationOnce(() => {
+        throw renderError;
+      });
+
+      const build = () =>
+        buildErrorMessage({
+          matchResult: null,
+          ruleIndex: 1,
+          customMessage: { template: "{{foo from.type}}", policyIndex: 1 },
+          dependency: createDependencyDescription(),
+        });
+
+      expect(build).toThrow(
+        expect.objectContaining({
+          message:
+            'The custom message "{{foo from.type}}" of the policy at index 1 failed to render: Missing helper: "foo"',
+          cause: renderError,
+        })
+      );
+    });
+
+    it("throws an error naming the rule options when the message of the options fails to render", () => {
+      customErrorMessageMock.mockImplementationOnce(() => {
+        throw new Error("Parse error on line 1");
+      });
+
+      const build = () =>
+        buildErrorMessage({
+          matchResult: null,
+          ruleIndex: 0,
+          customMessage: {
+            template: "{{#if from.type}}bad",
+            policyIndex: null,
+          },
+          dependency: createDependencyDescription(),
+        });
+
+      expect(build).toThrow(
+        'The custom message "{{#if from.type}}bad" of the rule options failed to render: Parse error on line 1'
+      );
+    });
+
+    it("names a thrown value that is not an error with its string", () => {
+      customErrorMessageMock.mockImplementationOnce(() => {
+        throw "boom";
+      });
+
+      const build = () =>
+        buildErrorMessage({
+          matchResult: null,
+          ruleIndex: null,
+          customMessage: { template: "{{x}}", policyIndex: null },
+          dependency: createDependencyDescription(),
+        });
+
+      expect(build).toThrow(
+        'The custom message "{{x}}" of the rule options failed to render: boom'
+      );
     });
   });
 
@@ -1877,6 +1953,58 @@ describe("Evaluation", () => {
       );
 
       expect(result.message).toBe("custom-message::global");
+    });
+
+    it("names the deciding policy when its message fails to render", () => {
+      const matcher = createMatcher();
+      setMatcherReturns(matcher, [null, { matched: true }]);
+      getMatcherMock.mockReturnValue(matcher);
+      customErrorMessageMock.mockImplementation(() => {
+        throw new Error('Missing helper: "foo"');
+      });
+
+      const evaluate = () =>
+        evaluatePolicies(
+          createSettings(),
+          normalizeOptions({
+            message: "global",
+            policies: [
+              { disallow: [{ to: [{ element: [{ type: "x" }] }] }] },
+              {
+                disallow: [{ to: [{ element: [{ type: "y" }] }] }],
+                message: "{{foo from.type}}",
+              },
+            ],
+          }),
+          createDependencyDescription()
+        );
+
+      expect(evaluate).toThrow(
+        'The custom message "{{foo from.type}}" of the policy at index 1 failed to render: Missing helper: "foo"'
+      );
+    });
+
+    it("names the rule options when the deciding policy has no message and the message of the options fails to render", () => {
+      const matcher = createMatcher();
+      setMatcherReturns(matcher, [{ matched: true }]);
+      getMatcherMock.mockReturnValue(matcher);
+      customErrorMessageMock.mockImplementation(() => {
+        throw new Error('Missing helper: "foo"');
+      });
+
+      const evaluate = () =>
+        evaluatePolicies(
+          createSettings(),
+          normalizeOptions({
+            message: "{{foo from.type}}",
+            policies: [{ disallow: [{ to: [{ element: [{ type: "x" }] }] }] }],
+          }),
+          createDependencyDescription()
+        );
+
+      expect(evaluate).toThrow(
+        'The custom message "{{foo from.type}}" of the rule options failed to render: Missing helper: "foo"'
+      );
     });
 
     it("keeps the deciding policy and its match when the dependency is allowed", () => {

@@ -26,7 +26,7 @@ import {
   customErrorMessage,
   dependenciesRuleDefaultErrorMessage,
 } from "../Messages";
-import { isNull, isObject } from "../Shared";
+import { isNull, isObject, isUndefined } from "../Shared";
 
 import { DEPENDENCY_SKIP_REASONS_MAP } from "./Evaluation.types";
 import type {
@@ -153,26 +153,68 @@ function getCapturedTemplateData(
       };
 }
 
+/** A custom message, with the index of the policy that sets it, or null when the options set it. */
+type ResolvedCustomMessage = {
+  template: string;
+  policyIndex: number | null;
+};
+
 /**
  * Resolves the custom error message of a violation, preferring the message of the deciding policy over the message of the options.
  * @param policyIndex The index of the policy that decided, if any.
  * @param options The normalized options of the rule.
- * @returns The custom message, or undefined when there is none.
+ * @returns The custom message and where it is set, or undefined when there is none.
  */
 export function resolveCustomMessage(
   policyIndex: number | null,
   options: DependenciesRuleOptionsNormalized
-): string | undefined {
+): ResolvedCustomMessage | undefined {
   const policyMessage = isNull(policyIndex)
     ? undefined
     : options.policies[policyIndex].message;
-  return policyMessage ?? options.message;
+  if (!isUndefined(policyMessage)) {
+    return { template: policyMessage, policyIndex };
+  }
+  return isUndefined(options.message)
+    ? undefined
+    : { template: options.message, policyIndex: null };
+}
+
+/**
+ * Renders a custom message, naming it and where it is set when it fails to render.
+ * @param customMessage The custom message and where it is set.
+ * @param customMessage.template
+ * @param customMessage.policyIndex
+ * @param dependency The dependency description.
+ * @param ruleIndex The index of the policy that produced the violation, if any.
+ * @param matchResult The result of matching the dependency against the policy selector, if any.
+ * @returns The rendered message.
+ * @throws An error naming the message and where it is set, with the Handlebars error as its `cause`, when the message fails to render.
+ */
+function renderCustomMessage(
+  { template, policyIndex }: ResolvedCustomMessage,
+  dependency: DependencyDescription,
+  ruleIndex: number | null,
+  matchResult: DependencySingleSelectorMatchResult | null
+): string {
+  try {
+    return customErrorMessage(template, dependency, ruleIndex, matchResult);
+  } catch (error) {
+    const owner = isNull(policyIndex)
+      ? "the rule options"
+      : `the policy at index ${policyIndex}`;
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `The custom message ${JSON.stringify(template)} of ${owner} failed to render: ${reason}`,
+      { cause: error }
+    );
+  }
 }
 
 type BuildErrorMessageParams = {
   matchResult: DependencySingleSelectorMatchResult | null;
   ruleIndex: number | null;
-  customMessage: string | undefined;
+  customMessage: ResolvedCustomMessage | undefined;
   dependency: DependencyDescription;
 };
 
@@ -181,9 +223,10 @@ type BuildErrorMessageParams = {
  * @param params Violation information.
  * @param params.matchResult The result of matching the dependency against the policy selector, if any.
  * @param params.ruleIndex The index of the policy that produced the violation, if any.
- * @param params.customMessage The custom message configured for the violation, if any.
+ * @param params.customMessage The custom message configured for the violation and where it is set, if any.
  * @param params.dependency The dependency description.
  * @returns The error message.
+ * @throws An error naming the custom message and where it is set, with the Handlebars error as its `cause`, when the custom message fails to render.
  */
 export function buildErrorMessage({
   matchResult,
@@ -191,8 +234,8 @@ export function buildErrorMessage({
   customMessage,
   dependency,
 }: BuildErrorMessageParams): string {
-  if (customMessage) {
-    return customErrorMessage(
+  if (customMessage?.template) {
+    return renderCustomMessage(
       customMessage,
       dependency,
       ruleIndex,
@@ -214,7 +257,7 @@ export function buildErrorMessage({
  * @param options The options of the rule, normalized by `@boundaries/config`.
  * @param dependency The description of the dependency.
  * @returns The verdict, the deciding policy and match, the message of a violation, and the problems found while matching.
- * @throws The Handlebars error when the dependency is not allowed and its custom `message` fails to render, such as one with invalid syntax or an unknown helper.
+ * @throws An error naming the custom `message` and where it is set, with the Handlebars error as its `cause`, when the dependency is not allowed and its custom `message` fails to render, such as one with invalid syntax or an unknown helper.
  */
 export function evaluatePolicies(
   settings: SettingsNormalized,
@@ -337,7 +380,7 @@ export function getDependencySkipReason(
  * @param options The options of the rule, normalized by `@boundaries/config`.
  * @param dependency The description of the dependency.
  * @returns The reason why the dependency is not evaluated, or the evaluation of the policies.
- * @throws The Handlebars error when the dependency is not allowed and its custom `message` fails to render, such as one with invalid syntax or an unknown helper.
+ * @throws An error naming the custom `message` and where it is set, with the Handlebars error as its `cause`, when the dependency is not allowed and its custom `message` fails to render, such as one with invalid syntax or an unknown helper.
  */
 export function evaluateDependency(
   settings: SettingsNormalized,
