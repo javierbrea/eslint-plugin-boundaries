@@ -6,7 +6,6 @@ import {
   entityDescription,
   dependencyDescription,
   getDependencySource,
-  isTypeScriptAssertion,
 } from "../../Elements";
 import type { EslintDependencyNode } from "../../Elements";
 import { getSettings } from "../../Settings";
@@ -55,13 +54,10 @@ export function dependencyRule<Options extends RuleOptions>(
       return settings.dependencyNodes.reduce(
         (visitors, { selector, kind, name }) => {
           visitors[selector] = (node: EslintDependencyNode) => {
-            const source = getDependencySource(node);
-            if (source === null) {
-              // Template literals with substitutions and assertions around other expressions are only known at runtime, so they are skipped silently, like "import(path)"
-              if (
-                node.type !== "TemplateLiteral" &&
-                !isTypeScriptAssertion(node)
-              ) {
+            const dependencySource = getDependencySource(node);
+            if (dependencySource.source === null) {
+              // Sources only known at runtime are skipped silently, like "import(path)"
+              if (!dependencySource.runtime) {
                 warnOnce(
                   `Dependency node value is not a string, skipping node.`,
                   `Please check your ${ADDITIONAL_DEPENDENCY_NODES} setting. ${moreInfoSettingsLink()}`
@@ -72,7 +68,7 @@ export function dependencyRule<Options extends RuleOptions>(
             const dependency = dependencyDescription(
               {
                 node,
-                source,
+                source: dependencySource.source,
                 kind,
                 nodeKind: name,
               },

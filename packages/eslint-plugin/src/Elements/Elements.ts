@@ -17,44 +17,46 @@ import type { SettingsNormalized } from "../Shared";
 import { isString } from "../Shared";
 
 import type {
+  DependencySource,
   EslintDependencyNode,
   TypeScriptAssertion,
   TypeScriptAssertionType,
 } from "./Elements.types";
 
-const TYPESCRIPT_ASSERTION_TYPES: TypeScriptAssertionType[] = [
-  "TSAsExpression",
-  "TSSatisfiesExpression",
-  "TSTypeAssertion",
-  "TSNonNullExpression",
-];
+const TYPESCRIPT_ASSERTION_TYPES: ReadonlySet<string> =
+  new Set<TypeScriptAssertionType>([
+    "TSAsExpression",
+    "TSSatisfiesExpression",
+    "TSTypeAssertion",
+    "TSNonNullExpression",
+  ]);
 
 /**
  * Returns whether a node is a TypeScript assertion, which asserts the type of an expression without changing its value
  * @param node The node to check
  * @returns True if the node is a TypeScript assertion, false otherwise
  */
-export function isTypeScriptAssertion(
+function isTypeScriptAssertion(
   node: Expression | TypeScriptAssertion
 ): node is TypeScriptAssertion {
-  return TYPESCRIPT_ASSERTION_TYPES.includes(
-    node.type as TypeScriptAssertionType
-  );
+  return TYPESCRIPT_ASSERTION_TYPES.has(node.type);
 }
 
 /**
- * Returns the source of a dependency when it is known statically: a string literal or a template literal without substitutions, inside any number of TypeScript assertions
+ * Returns the source of a dependency when it is known without running the code: a string literal or a template literal without substitutions, inside any number of TypeScript assertions
  * @param node The node matched by a dependency node selector
- * @returns The source of the dependency, or null when it is only known at runtime or the node does not define one
+ * @returns The source of the dependency, or a null source that tells whether it is only known at runtime or the node does not define one
  */
-export function getDependencySource(node: EslintDependencyNode): string | null {
+export function getDependencySource(
+  node: EslintDependencyNode
+): DependencySource {
   let expression: Expression | TypeScriptAssertion = node;
   while (isTypeScriptAssertion(expression)) {
     expression = expression.expression;
   }
 
-  if (expression.type === "Literal") {
-    return isString(expression.value) ? expression.value : null;
+  if (expression.type === "Literal" && isString(expression.value)) {
+    return { source: expression.value };
   }
 
   if (
@@ -62,15 +64,20 @@ export function getDependencySource(node: EslintDependencyNode): string | null {
     expression.expressions.length === 0
   ) {
     const source = expression.quasis[0].value.cooked;
-    return isString(source) ? source : null;
+    if (isString(source)) {
+      return { source };
+    }
   }
 
-  return null;
+  return {
+    source: null,
+    runtime: node.type === "TemplateLiteral" || isTypeScriptAssertion(node),
+  };
 }
 
 /**
  * Returns the specifiers used in an import or export statement
- * @param node The source literal of the import or export
+ * @param node The node matched by a dependency node selector
  * @returns The list of specifiers used in the import or export
  */
 export function getSpecifiers(node: EslintDependencyNode): string[] {
