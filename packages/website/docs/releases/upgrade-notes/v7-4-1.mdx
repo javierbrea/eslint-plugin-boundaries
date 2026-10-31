@@ -67,9 +67,9 @@ Search your code for these dependencies, for example:
 grep -rnE '(require|import)\((\s*[`<]|[^)]*\b(as|satisfies)\b|[^)]*!\))|import\s+(type\s+)?\w+\s*=\s*require\(|typeof import\(|import\([^)]*\)\.' src
 ```
 
-The search also lists dependencies that are still not checked, such as template literals with substitutions. If it finds none, your project is not affected.
+The search also lists dependencies that were already checked, such as `import("./foo.js").then()`, and dependencies that are still not checked, such as template literals with substitutions. It misses the calls split across lines, as Prettier writes the long ones.
 
-To list only the affected dependencies, lint your project after upgrading, and look for the errors reported on the lines that the search found.
+To list exactly the affected dependencies, lint your project before and after upgrading, and compare the errors.
 
 ### Adapt your configuration
 
