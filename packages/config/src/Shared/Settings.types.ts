@@ -243,10 +243,10 @@ export const SETTINGS = {
         kind: "value",
         name: DEPENDENCY_NODE_KEYS_MAP.REQUIRE,
       },
-      // Note: detects "import x = require('source')"
+      // Note: detects "import x = require('source')", also with parsers that do not set "importKind", such as @typescript-eslint/parser 4.0.0
       {
         selector:
-          "TSImportEqualsDeclaration[importKind=value] > TSExternalModuleReference > Literal",
+          "TSImportEqualsDeclaration:not([importKind=type]) > TSExternalModuleReference > Literal",
         kind: "value",
         name: DEPENDENCY_NODE_KEYS_MAP.REQUIRE,
       },
@@ -292,9 +292,10 @@ export const SETTINGS = {
         kind: "value",
         name: DEPENDENCY_NODE_KEYS_MAP.DYNAMIC_IMPORT,
       },
-      // Note: detects "typeof import('source')" and "import('source').T"
+      // Note: detects "typeof import('source')" and "import('source').T". "TSImportType > TSLiteralType > Literal" is the AST of @typescript-eslint/parser < 8.48.0
       {
-        selector: "TSImportType > Literal",
+        selector:
+          ":matches(TSImportType > Literal, TSImportType > TSLiteralType > Literal)",
         kind: "type",
         name: DEPENDENCY_NODE_KEYS_MAP.DYNAMIC_IMPORT,
       },

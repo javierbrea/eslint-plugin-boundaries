@@ -913,7 +913,7 @@ describe("Settings/Settings", () => {
           },
           {
             selector:
-              "TSImportEqualsDeclaration[importKind=value] > TSExternalModuleReference > Literal",
+              "TSImportEqualsDeclaration:not([importKind=type]) > TSExternalModuleReference > Literal",
             kind: "value",
             name: "require",
           },
@@ -941,7 +941,8 @@ describe("Settings/Settings", () => {
             name: "dynamic-import",
           },
           {
-            selector: "TSImportType > Literal",
+            selector:
+              ":matches(TSImportType > Literal, TSImportType > TSLiteralType > Literal)",
             kind: "type",
             name: "dynamic-import",
           },
