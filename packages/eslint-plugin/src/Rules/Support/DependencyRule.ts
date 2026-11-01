@@ -56,7 +56,7 @@ export function dependencyRule<Options extends RuleOptions>(
           visitors[selector] = (node: EslintDependencyNode) => {
             const dependencySource = getDependencySource(node);
             if (dependencySource.source === null) {
-              // Sources only known at runtime are skipped silently, like "import(path)"
+              // Sources only known at runtime, like "import(name as string)", are skipped silently
               if (!dependencySource.runtime) {
                 warnOnce(
                   `Dependency node value is not a string, skipping node.`,
