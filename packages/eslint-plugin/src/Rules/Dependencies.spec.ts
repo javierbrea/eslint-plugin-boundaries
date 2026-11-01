@@ -17,7 +17,7 @@ import type { PolicyEvaluation } from "@boundaries/policies";
 import type { Rule } from "eslint";
 
 import { warnOnce, printDependenciesRuleResult } from "../Debug";
-import type { EslintLiteralNode } from "../Elements";
+import type { EslintDependencyNode } from "../Elements";
 import type { DependenciesRuleOptions, SettingsNormalized } from "../Shared";
 import { RULE_NAMES_MAP } from "../Shared";
 
@@ -49,7 +49,7 @@ jest.mock("./Support", () => ({
       meta: unknown,
       handler: (args: {
         dependency: DependencyDescription;
-        node: EslintLiteralNode;
+        node: EslintDependencyNode;
         context: Rule.RuleContext;
         settings: SettingsNormalized;
         options?: DependenciesRuleOptions;
@@ -71,7 +71,7 @@ const dependencyRuleMock = jest.mocked(dependencyRule);
 
 type DependencyRuleHandler = (args: {
   dependency: DependencyDescription;
-  node: EslintLiteralNode;
+  node: EslintDependencyNode;
   context: Rule.RuleContext;
   settings: SettingsNormalized;
   options?: DependenciesRuleOptions;
@@ -187,7 +187,7 @@ describe("Dependencies", () => {
       };
     };
 
-    const baseNode = {} as EslintLiteralNode;
+    const baseNode = {} as EslintDependencyNode;
 
     it("evaluates the policies with the options, the settings and the dependency", () => {
       const { context } = createReportContext();
@@ -297,7 +297,7 @@ describe("Dependencies", () => {
       options?: DependenciesRuleOptions
     ) => ({
       dependency,
-      node: {} as EslintLiteralNode,
+      node: {} as EslintDependencyNode,
       context: { report: jest.fn() } as unknown as Rule.RuleContext,
       settings: createSettings(),
       options,

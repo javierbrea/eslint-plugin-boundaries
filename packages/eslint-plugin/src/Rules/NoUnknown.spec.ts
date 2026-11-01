@@ -6,7 +6,7 @@ import { ORIGINS_MAP } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
 import { warnOnce } from "../Debug";
-import type { EslintLiteralNode } from "../Elements";
+import type { EslintDependencyNode } from "../Elements";
 import type { NoUnknownDependenciesOptions } from "../Shared";
 import { RULE_NAMES_MAP } from "../Shared";
 
@@ -20,7 +20,7 @@ jest.mock("./Support", () => ({
       meta: unknown,
       handler: (args: {
         dependency: DependencyDescription;
-        node: EslintLiteralNode;
+        node: EslintDependencyNode;
         context: Rule.RuleContext;
         options?: NoUnknownDependenciesOptions;
       }) => void
@@ -38,7 +38,7 @@ const dependencyRuleMock = dependencyRule as jest.MockedFunction<
 
 type NoUnknownHandler = (args: {
   dependency: DependencyDescription;
-  node: EslintLiteralNode;
+  node: EslintDependencyNode;
   context: Rule.RuleContext;
   options?: NoUnknownDependenciesOptions;
 }) => void;
@@ -109,7 +109,7 @@ const createCallArgs = (
   options?: NoUnknownDependenciesOptions
 ) => ({
   dependency,
-  node: {} as EslintLiteralNode,
+  node: {} as EslintDependencyNode,
   context: { report: jest.fn() } as unknown as Rule.RuleContext,
   options,
 });

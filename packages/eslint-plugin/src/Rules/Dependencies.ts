@@ -15,7 +15,7 @@ import {
   warnDiagnostics,
   warnOnce,
 } from "../Debug";
-import type { EslintLiteralNode } from "../Elements";
+import type { EslintDependencyNode } from "../Elements";
 import {
   validateAndWarnRuleOptions,
   deprecatedRuleInfo,
@@ -51,7 +51,7 @@ export function evaluatePoliciesAndReport({
   options: DependenciesRuleOptionsNormalized;
   settings: SettingsNormalized;
   context: Rule.RuleContext;
-  node: EslintLiteralNode;
+  node: EslintDependencyNode;
   dependency: DependencyDescription;
 }): void {
   const evaluation = evaluatePolicies(settings, options, dependency);

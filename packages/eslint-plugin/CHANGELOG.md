@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - fix: Warn when the `boundaries/elements`, `boundaries/types` or `boundaries/files` setting is not an array. The plugin ignored it without saying why.
+- fix(#589): Check the dependencies written with a template literal without substitutions, inside the TypeScript assertions `as`, `satisfies`, `<T>` or `!`, with `import x = require()` or with a type import such as `typeof import()`, which were skipped: read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-4-1/#newly-checked-dependencies) to check whether your project is affected.
 
 ## [7.4.0] - 2026-10-27
 

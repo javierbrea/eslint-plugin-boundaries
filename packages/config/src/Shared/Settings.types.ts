@@ -229,6 +229,34 @@ export const SETTINGS = {
         kind: "value",
         name: DEPENDENCY_NODE_KEYS_MAP.REQUIRE,
       },
+      // Note: detects "require(`source`)"
+      {
+        selector:
+          "CallExpression[callee.name=require] > TemplateLiteral[expressions.length=0]",
+        kind: "value",
+        name: DEPENDENCY_NODE_KEYS_MAP.REQUIRE,
+      },
+      // Note: detects "require('source' as string)", "require('source' satisfies string)", "require(<string>'source')" and "require('source'!)"
+      {
+        selector:
+          "CallExpression[callee.name=require] > :matches(TSAsExpression, TSSatisfiesExpression, TSTypeAssertion, TSNonNullExpression)",
+        kind: "value",
+        name: DEPENDENCY_NODE_KEYS_MAP.REQUIRE,
+      },
+      // Note: detects "import x = require('source')", also with parsers that do not set "importKind", such as @typescript-eslint/parser 4.0.0
+      {
+        selector:
+          "TSImportEqualsDeclaration:not([importKind=type]) > TSExternalModuleReference > Literal",
+        kind: "value",
+        name: DEPENDENCY_NODE_KEYS_MAP.REQUIRE,
+      },
+      // Note: detects "import type x = require('source')"
+      {
+        selector:
+          "TSImportEqualsDeclaration[importKind=type] > TSExternalModuleReference > Literal",
+        kind: "type",
+        name: DEPENDENCY_NODE_KEYS_MAP.REQUIRE,
+      },
     ],
     [DEPENDENCY_NODE_KEYS_MAP.IMPORT]: [
       // Note: detects "import x from 'source'"
@@ -249,6 +277,26 @@ export const SETTINGS = {
       {
         selector: "ImportExpression > Literal",
         kind: "value",
+        name: DEPENDENCY_NODE_KEYS_MAP.DYNAMIC_IMPORT,
+      },
+      // Note: detects "import(`source`)"
+      {
+        selector: "ImportExpression > TemplateLiteral[expressions.length=0]",
+        kind: "value",
+        name: DEPENDENCY_NODE_KEYS_MAP.DYNAMIC_IMPORT,
+      },
+      // Note: detects "import('source' as string)", "import('source' satisfies string)", "import(<string>'source')" and "import('source'!)"
+      {
+        selector:
+          "ImportExpression > :matches(TSAsExpression, TSSatisfiesExpression, TSTypeAssertion, TSNonNullExpression)",
+        kind: "value",
+        name: DEPENDENCY_NODE_KEYS_MAP.DYNAMIC_IMPORT,
+      },
+      // Note: detects "typeof import('source')" and "import('source').T". "TSImportType > TSLiteralType > Literal" is the AST of @typescript-eslint/parser < 8.48.0
+      {
+        selector:
+          ":matches(TSImportType > Literal, TSImportType > TSLiteralType > Literal)",
+        kind: "type",
         name: DEPENDENCY_NODE_KEYS_MAP.DYNAMIC_IMPORT,
       },
     ],
