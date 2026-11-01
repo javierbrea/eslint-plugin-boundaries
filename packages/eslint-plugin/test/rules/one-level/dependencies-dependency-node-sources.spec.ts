@@ -167,7 +167,7 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
       code: "const name = 'modules/module-a'; require(name as string)",
       options,
     },
-    // Assertions around the options of a dynamic import are not dependency sources
+    // An assertion around a variable in the options of a dynamic import is skipped
     {
       filename: HELPER_A_TS,
       code: "const opts = {}; import('helpers/helper-b', opts as ImportCallOptions)",
@@ -182,7 +182,7 @@ createRuleTester(typescriptSettings).run(RULE, rule, {
     // Templates with substitutions inside assertions are only known at runtime
     {
       filename: HELPER_A_TS,
-      code: "const name = 'module-a'; import(`modules/${name}` as string)",
+      code: "const suffix = ''; import(`modules/module-a${suffix}` as string)",
       options,
     },
   ],
@@ -383,7 +383,7 @@ createRuleTester({
   valid: [
     {
       filename: HELPER_A_TS,
-      code: "const name = 'module-a'; mock(`modules/${name}`)",
+      code: "const suffix = ''; mock(`modules/module-a${suffix}`)",
       options,
     },
     // Tagged templates with invalid escapes have no value
@@ -477,7 +477,7 @@ describe("dependencies - dependency nodes without a static source", () => {
 
   it("skips the node without warning when its source is only known at runtime", () => {
     const messages = lintHelper(
-      "const name = 'module-a'; mock(`modules/${name}`); mock`modules/module-a\\unicode`; import(name as string); require(`modules/${name}` as string)",
+      "const name = 'module-a'; const suffix = ''; mock(`modules/module-a${suffix}`); mock`modules/module-a\\unicode`; import(name as string); require(`modules/module-a${suffix}` as string)",
       [
         "CallExpression[callee.name=mock] > TemplateLiteral",
         "TaggedTemplateExpression[tag.name=mock] > TemplateLiteral",
