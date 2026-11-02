@@ -23,7 +23,7 @@
       "allowedVersions": "<5.0.0"
     },
     {
-      "description": "ESLint 10 requires Node.js >=20.19, but unit tests still run on Node.js 18 to cover the published packages' supported engines. Keep eslint and @eslint/js aligned on v9 until migrating to ESLint 10",
+      "description": "ESLint 10 requires Node.js >=20.19, but unit tests still run on Node.js 18 to cover the published packages' supported engines. Keep eslint and @eslint/js aligned on v9 until #595 drops Node.js 18",
       "matchFileNames": [
         "**/package.json"
       ],
@@ -32,6 +32,16 @@
         "@eslint/js"
       ],
       "allowedVersions": "<10.0.0"
+    },
+    {
+      "description": "Babel 8 requires Node.js ^22.18.0 || >=24.11.0 and is ESM-only, but unit tests still run on Node.js 18 and 20 to cover the published packages' supported engines. Keep Babel on v7 until #595 drops them",
+      "matchFileNames": [
+        "**/package.json"
+      ],
+      "matchPackageNames": [
+        "@babel/*"
+      ],
+      "allowedVersions": "<8.0.0"
     },
     {
       "description": "eslint-import-resolver-node 0.3.10 and later use resolve 2.x, which no longer resolves relative imports when the directory of the linted file does not exist",
