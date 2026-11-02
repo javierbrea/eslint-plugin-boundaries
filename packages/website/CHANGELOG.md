@@ -8,12 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > [!INFO]
 > Versions marked as `-docs` are documentation-only releases that do not include any code changes. Other versions are code releases that may include documentation changes as well, and are paired with a corresponding release in the `eslint-plugin-boundaries` package.
 
-## [Unreleased]
+## [7.4.1] - 2026-11-02
 
 ### Added
 
 - docs(#589): Upgrade notes for v7.4.1, which explain how to check whether the newly checked dependencies affect your project.
 - docs(#584): The troubleshooting section of the TypeScript Support guide explains how to fix the type errors of the default imports with `nodenext`, `node16` or `require()`: import from `eslint-plugin-boundaries/config`.
+- docs: The Releases page lists the new `@boundaries/config` and `@boundaries/policies` packages, with links to their docs and changelogs.
 
 ### Changed
 

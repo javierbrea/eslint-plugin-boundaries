@@ -32,6 +32,22 @@ The core elements package that powers the plugin.
 - [Changelog](https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/packages/elements/CHANGELOG.md)
 - [Release Notes](https://github.com/javierbrea/eslint-plugin-boundaries/releases)
 
+### @boundaries/config
+
+Normalizes and validates the settings and rule options of the plugin, without ESLint.
+
+- [Docs](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/packages/config/README.md)
+- [Changelog](https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/packages/config/CHANGELOG.md)
+- [Release Notes](https://github.com/javierbrea/eslint-plugin-boundaries/releases)
+
+### @boundaries/policies
+
+Describes files and dependencies and evaluates the policies of the `dependencies` rule, without ESLint.
+
+- [Docs](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/packages/policies/README.md)
+- [Changelog](https://github.com/javierbrea/eslint-plugin-boundaries/blob/master/packages/policies/CHANGELOG.md)
+- [Release Notes](https://github.com/javierbrea/eslint-plugin-boundaries/releases)
+
 ## Upgrade Notes
 
 Some patch and minor releases fix behaviors that a configuration may rely on. Their upgrade notes explain how to check whether your project is affected, and how to adapt your configuration:
