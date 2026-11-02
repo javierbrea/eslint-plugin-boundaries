@@ -3,7 +3,7 @@
 
 Index of the plan. The plan is split so that an independent session can implement one phase with no other context than the files named here plus the repository's own agent files. The source of every design decision is [RFC #538](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538); the tracking issue is #539 and the milestone is [Playground](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/45).
 
-Status (2026-11-02): the extraction is done and released. Merged into `release`: phase 0 (#556), phase 2 (#561), phase 3 (#588), #510 (#560), #557 (#582) and #558 (#583); phase 1 is done (RFC #559 accepted, with Amendment 1). The release of decision 13 is v7.4.1 (#592, 2026-11-02): `config` and `policies` 1.0.0, `elements` 3.3.1. `release` was merged into this branch on 2026-11-02 (e1712596), so phase 4 (#551) can start; no playground phase has started.
+Status (2026-11-02): the extraction is done and released. Merged into `release`: phase 0 (#556), phase 2 (#561), phase 3 (#588), #510 (#560), #557 (#582) and #558 (#583); phase 1 is done (RFC #559 accepted, with Amendment 1). The release of decision 13 is v7.4.1 (#592, 2026-11-02): `config` and `policies` 1.0.0, `elements` 3.3.1. `release` was merged into this branch on 2026-11-02 (e1712596). Phase 4 (#551) started on 2026-11-02: research notes 1, 3 and 4 are posted on #539 and the stack is decided (decisions 14 and 15); the package and the website shell are next.
 
 This plan lives on the integration branch `feat/539/playground`. How it is shared, kept true and removed is in the "Where it lives" and "Starting a phase" sections of the `write-plan` skill; phase 9 removes it.
 
@@ -57,7 +57,7 @@ The branching model and the merge strategies are in `.github/CONTRIBUTING.md` ("
 Taken in RFC #538 unless another source is named. A session does not reopen them; a session that finds one unworkable stops and asks the maintainer.
 
 1. Two packages are extracted from the plugin, `@boundaries/config` (what the user wrote) and `@boundaries/policies` (how it is evaluated, messages included), both pure, browser-ready and consumed through public interfaces only; the exact cut and the interfaces are fixed by [RFC #559](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/559) (phase 1), not by this plan, which copies them into `02-config.md` and `03-policies.md`.
-2. The playground is `packages/playground` (`@boundaries/playground`, private), one React component plus one CSS file, host-agnostic through `ProjectSource` and `StateStore`; the website is the first host, a local app the second (out of scope).
+2. The playground is `packages/playground` (`@boundaries/playground`, private), one React component with no CSS file (its styles live in JavaScript, decision 15), host-agnostic through `ProjectSource` and `StateStore`; the website is the first host, a local app the second (out of scope).
 3. The website shell is `packages/website/src/pages/playground.tsx`: Docusaurus `Layout` + `BrowserOnly` + `React.lazy`; the chunk loads on that page only.
 4. Interface: explorer left, node in focus middle, inspector right, problems panel bottom with focus tabs; `eslint.config.js` is a node of the sketch holding `{ settings, rules }` as JSON5, the only free text; dependencies are a model entered through a picker and rendered as import statements; desktop only.
 5. Visual language and tokens of the website redesign (`--jsb-*`, teal `allow`, vermilion `disallow`); any component library is scoped to the playground root and never restyles the site (redesign decision 7).
@@ -69,11 +69,11 @@ Taken in RFC #538 unless another source is named. A session does not reopen them
 11. `@playwright/test` is a root devDependency, pinned; every script that uses a browser installs the browser it needs through it and never uses a local Chrome, so that renders and tests run on the same browser build everywhere (maintainer, 2026-10-26; #557).
 12. [RFC #559](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/559) is accepted as proposed (maintainer, 2026-10-26): the cut, the interfaces, the plugin adapters, no self-lint for `config` and `policies`, `1.0.0` for both packages and a patch for the plugin. `02-config.md` and `03-policies.md` copy it; a later change is an amendment of the RFC and a plan edit. Amendment 1 (2026-10-29) adds `getDependencySkipReason` to `policies`, so that the plugin keeps normalizing policies only for the dependencies it checks.
 13. A release follows phase 3, before the playground phases: `config` and `policies` at `1.0.0`, a patch of the plugin, and whatever else `release` holds, with the `release` skill (maintainer, 2026-10-29).
+14. The config node is parsed with `@humanwhocodes/momoa` in JSON5 mode and edited with CodeMirror 6, the JSON5 grammar of `codemirror-json5` and `@codemirror/lint` (research note 3, maintainer, 2026-11-02).
+15. The widgets are MUI (`@mui/material`, `@mui/x-tree-view`), chosen over React Aria Components because the later local app and its graph view build on it (research note 4, maintainer, 2026-11-02). The theme reads the `--jsb-*` tokens through `cssVariables: { nativeColor: true }`, scoped with `rootSelector` and `colorSchemeSelector` to the playground root and the host's `data-theme`; Emotion uses its own cache key; no `CssBaseline`; overlays render into the root. React, React DOM, `@mui/material`, `@emotion/react` and `@emotion/styled` are peer dependencies, so that each host has one instance of their context. Split panes are `react-resizable-panels`.
 
 ## Open questions
 
 | Question | Decided by | Needed by |
 | --- | --- | --- |
-| Config editor and parser (JSON5 with locations vs `acorn`; CodeMirror vs plain editor) | Phase 4, research note 3 | Phase 5 |
-| Component stack (MUI scoped, headless primitives, CSS Modules only) | Phase 4, research note 4 | Phase 5 |
 | Website version after phase 8 (code release or `-docs.N`) | Maintainer, `release` skill | Shipping |

@@ -8,7 +8,7 @@ Issue: #552. Branch `feat/552/playground-identify` from `feat/539/playground`; P
 Read first:
 
 - RFC #538, "Interface" (decisions 1 to 7, the layout drawing, the problems panel states, the pane by pane description) and the sketches on the branch `rfc/538-playground-assets` (`playground-layout-*.png`, `playground-problems-*.png`, `playground-picker-*.png`): the RFC sketches are the starting point of the mockup, not its result.
-- `04-scaffold.md` hand-offs: stack, contract, layout, CSS scheme, breakpoint.
+- `04-scaffold.md` hand-offs: the theme and root element, the libraries to add, contract, layout, breakpoint; decisions 14 and 15 of the index for the stack.
 - The redesign's home mockup process as a model: PR #536 and #537 descriptions, and the fact that the mockup (`mockup-b-blueprint.html`) was a single HTML file with the site's tokens, rendered at both widths in both themes by a Playwright script before any component was written.
 - `packages/website/src/css/tokens.css`, `fonts.css`; `packages/website/src/components/home/PlaygroundTeaser/` for the result rows' vocabulary (`element · component · captured { name: "Price" }`).
 - `packages/config` README and `AGENTS.md` for the diagnostics shape; `packages/policies` README for `describeEntity`.
@@ -40,7 +40,7 @@ Following the approved mockup and the RFC "Pane by pane":
 - Node in focus, config: the editor chosen in note 3, with the JSON5 text, syntax highlighting themed by tokens, diagnostics underlined at their range with the message on hover, and a gutter highlight API (used by phase 6 for "Open policy in config").
 - Inspector: for a file, the three rows in the teaser vocabulary (element type and captured values, file categories, module origin) from `describeEntity`; for the config node, the element types declared and how many files each matches; for nothing, the sketch in numbers (files, element types, policies).
 - Problems panel: the `Sketch` tab with the config diagnostics (count in the tab, click opens the config node at the range); the tab strip and the resizable, collapsible panel. The file and dependency tabs arrive in phase 6, but the strip handles n tabs now.
-- Layout: the four regions with resizable splits (library of the stack or a small custom splitter), minimum widths from the mockup; below the breakpoint, the host renders the note (phase 4), and the component also refuses to render below it (defensive).
+- Layout: the four regions with resizable splits (`react-resizable-panels`, decision 15), minimum widths from the mockup; below the breakpoint, the host renders the note (phase 4), and the component also refuses to render below it (defensive).
 - Default state: the quick-start example of the docs (`packages/website/docs/quick-start.mdx`: its tree and its config), as a `examples/quickStart.ts` in the package.
 
 ### 4. Tests and harness
