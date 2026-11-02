@@ -34,13 +34,23 @@
       ]
     },
     "check:types": {
-      // Only `lint` uses the workspace eslint-plugin, so the default `^build` is dropped
-      "dependsOn": []
+      // The page imports the built playground; the default `^build` would also build the workspace eslint-plugin, which only `lint` uses
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["playground"]
+        }
+      ]
     },
     "build": {
       "cache": true,
-      // Only `lint` uses the workspace eslint-plugin, so the default `^build` is dropped
-      "dependsOn": [],
+      // The site bundles the built playground; the default `^build` would also build the workspace eslint-plugin, which only `lint` uses
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["playground"]
+        }
+      ],
       "outputs": ["{projectRoot}/build"],
       "inputs": [
         { "dependentTasksOutputFiles": "**/*", "transitive": true },

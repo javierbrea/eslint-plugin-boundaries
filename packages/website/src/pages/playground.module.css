@@ -1,0 +1,62 @@
+.page {
+  padding-block: 3.5rem 4.5rem;
+}
+
+.head {
+  display: grid;
+  gap: 0.8rem;
+  justify-items: start;
+  max-width: 60ch;
+  margin-bottom: 2rem;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  margin: 0;
+  max-width: 54ch;
+  font-size: 1.04rem;
+  color: var(--jsb-muted);
+}
+
+.stage,
+.loading {
+  min-height: 420px;
+  border: 1px solid var(--jsb-line);
+  border-radius: var(--jsb-radius-lg);
+  background: var(--jsb-paper-2);
+}
+
+.loading {
+  display: grid;
+  place-items: center;
+  color: var(--jsb-muted);
+  font-family: var(--jsb-font-mono);
+  font-size: 0.9rem;
+}
+
+.note {
+  margin: 0;
+  padding: 1.25rem 1.5rem;
+  border: 1px dashed var(--jsb-line-strong);
+  border-radius: var(--jsb-radius-lg);
+  color: var(--jsb-muted);
+}
+
+/* The mobile navbar breakpoint of Docusaurus, as NARROW_QUERY in playground.tsx */
+@media (min-width: 997px) {
+  .note {
+    display: none;
+  }
+}
+
+@media (max-width: 996px) {
+  .loading {
+    display: none;
+  }
+}

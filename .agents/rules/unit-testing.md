@@ -1,19 +1,21 @@
 ---
 paths:
   - "**/*.spec.ts"
+  - "**/*.spec.tsx"
 ---
 
 # Unit testing conventions (Jest + TypeScript)
 
 ## Placement and naming
 
-Use `.spec.ts` for all test files, never `.test.ts`. Placement depends on the package:
+Use `.spec.ts` for all test files, or `.spec.tsx` for those that render React components, never `.test.ts`. Placement depends on the package:
 
 | Package | Convention |
 |---|---|
 | `elements` | Colocated with source (`src/Cache/Cache.spec.ts`) |
 | `config` | Colocated with source (`src/Config/Config.spec.ts`) |
 | `policies` | Colocated with source (`src/Evaluation/Evaluation.spec.ts`) |
+| `playground` | Colocated with source (`src/Playground.spec.tsx`), in jsdom |
 | `eslint-plugin` | Rule tests in `test/rules/<scenario>/`, run against the fixture projects in `test/fixtures/<scenario>/`; a test may use another scenario's fixtures. Everything else (e.g. `src/index.spec.ts`) is colocated with source |
 
 ## Structure
