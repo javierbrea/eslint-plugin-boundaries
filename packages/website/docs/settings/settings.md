@@ -164,12 +164,31 @@ Modifies which built-in dependency nodes are analyzed. By default, all of the fo
 
 **Available values:**
 
-- `'import'` - Analyze `import` statements
-- `'require'` - Analyze `require` statements
-- `'export'` - Analyze `export` statements
-- `'dynamic-import'` - Analyze [dynamic import](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) statements (`import()`)
+- `'import'` - Analyze `import` statements, including `import type`
+- `'require'` - Analyze `require()` calls, and TypeScript `import x = require()` statements. The `kind` of `import type x = require()` is `type`
+- `'export'` - Analyze `export ... from` statements, including `export type`
+- `'dynamic-import'` - Analyze [dynamic import](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) expressions (`import()`), and TypeScript type imports, such as `typeof import()` or `import().T`, whose `kind` is `type`
 
 All plugin rules will be applied to the nodes defined in this setting. **Modify the default value only if you want to exclude some of the built-in dependency nodes from analysis.**
+
+The plugin checks a dependency only when its source is known without running the code. Sources built at runtime, such as `` import(`./${name}.js`) ``, are not checked.
+
+<details>
+<summary>Which sources are checked in `require()` and `import()`</summary>
+
+Checked:
+
+- A string: `import("./foo.js")`
+- A template literal without substitutions: `` import(`./foo.js`) ``
+- One of the above inside TypeScript assertions, nested or not: `import("./foo.js" as string)`, `import("./foo.js" satisfies string)`, `import(<string>"./foo.js")`, `import("./foo.js"!)`
+
+Not checked:
+
+- A template literal with substitutions: `` import(`./${name}.js`) ``
+- A concatenation: `import("./" + "foo.js")`
+- A variable or any other expression, even inside a TypeScript assertion: `import(path as string)`
+
+</details>
 
 ```js
 export default [{
@@ -193,7 +212,12 @@ Defines custom dependency nodes to analyze beyond the built-in ones. All plugin 
 
 **Object structure:**
 
-- **`selector`** - The [esquery selector](https://github.com/estools/esquery) for the `Literal` node where the dependency source is defined
+- **`selector`** - The [esquery selector](https://github.com/estools/esquery) for the node where the dependency source is defined. It can point at:
+  - A string `Literal`.
+  - A `TemplateLiteral`. It is checked only when it has no substitutions, and skipped otherwise.
+  - A TypeScript assertion (`TSAsExpression`, `TSSatisfiesExpression`, `TSTypeAssertion` or `TSNonNullExpression`) around one of the above, nested or not. It is skipped when it wraps any other expression.
+
+  Any other node is skipped with a warning.
 - **`name`** (optional) - A name for the custom node, so you can **use it in policy configuration using `dependency.nodeKind`** (e.g., to forbid or allow this kind of dependency node in some rules or to use it in custom messages templates variables)
 - **`kind`** - Assigns the **`dependency.kind` property in dependency descriptions**, which you can use in policy configuration or custom message templates to target specific dependency kinds. Possible values are `"value"`, `"type"`, or `"typeof"`.
 

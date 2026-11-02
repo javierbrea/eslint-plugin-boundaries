@@ -22,6 +22,10 @@ export type RevealProps = {
 /**
  * Fades and lifts its content in once it scrolls into view. Without JS, or with reduced motion, the content is always visible. Once revealed, the element carries `data-revealed`, so descendants can start their own transitions from CSS.
  * @param props Reveal props.
+ * @param props.as Element to render.
+ * @param props.delay Delay of the reveal transition, in seconds, to stagger siblings.
+ * @param props.className Extra class names.
+ * @param props.children Content.
  * @returns The wrapped content.
  */
 export default function Reveal({
@@ -30,7 +34,7 @@ export default function Reveal({
   className,
   children,
   ...attributes
-}: RevealProps): ReactNode {
+}: Readonly<RevealProps>): ReactNode {
   const ref = useRef<HTMLElement>(null);
   const isIn = useReveal(ref, { once: true });
   const style =

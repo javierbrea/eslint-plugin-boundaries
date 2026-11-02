@@ -113,6 +113,7 @@ export class FilesDescriptor {
 
   /**
    * Validates the file descriptors to ensure they are correctly defined.
+   * @param fileDescriptors The file descriptors to validate.
    */
   private _validateDescriptors(fileDescriptors: FileDescriptors): void {
     let index = 0;
@@ -209,8 +210,8 @@ export class FilesDescriptor {
 
   /**
    * Retrieves the description of a local file given its path.
-   * @param elementPath The path of the element to describe.
-   * @returns The description of the element.
+   * @param filePath The path of the file to describe.
+   * @returns The description of the file.
    */
   private _getFileDescription(filePath?: string): FileDescription {
     if (!filePath) {

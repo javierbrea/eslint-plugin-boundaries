@@ -11,6 +11,7 @@ import styles from "./styles.module.css";
 /**
  * Content of the 404 page: eyebrow, title, lead and a link to the docs index.
  * @param props Not found content props.
+ * @param props.className Extra class names.
  * @returns The page content.
  */
 export default function NotFoundContent({ className }: Props): ReactNode {

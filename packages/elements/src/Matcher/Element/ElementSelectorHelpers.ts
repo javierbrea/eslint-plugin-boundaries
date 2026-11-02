@@ -214,6 +214,7 @@ export function normalizeLegacySimpleElementSingleSelector(
  *
  * Legacy properties are mapped to the new model as follows:
  * - `elementPath` -> `path`
+ * @param selector The legacy parent element single selector to convert.
  */
 function normalizeLegacyParentElementSingleSelector(
   selector: LegacyParentElementSingleSelector

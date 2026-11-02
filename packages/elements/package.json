@@ -1,6 +1,6 @@
 {
   "name": "@boundaries/elements",
-  "version": "3.2.0",
+  "version": "3.3.1",
   "description": "Element descriptors and matchers for @boundaries tools",
   "keywords": [
     "boundaries",
@@ -9,10 +9,11 @@
   ],
   "author": "Javier Brea",
   "license": "MIT",
+  "homepage": "https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/packages/elements#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/javierbrea/eslint-plugin-boundaries.git",
-    "folder": "packages/elements"
+    "directory": "packages/elements"
   },
   "files": [
     "dist"
@@ -71,7 +72,7 @@
     "@types/is-core-module": "2.2.2",
     "@types/object-hash": "3.0.6",
     "@types/picomatch": "4.0.3",
-    "esbuild": "0.28.1",
+    "esbuild": "0.28.2",
     "tsup": "8.5.1",
     "typescript": "5.9.3"
   }

@@ -61,15 +61,14 @@ export default [{
 
 ### Path Mapping Support
 
-The `eslint-import-resolver-typescript` automatically detects custom path mappings defined in your `tsconfig.json` file, making it fully compatible with TypeScript path aliases:
+The `eslint-import-resolver-typescript` automatically detects custom path mappings defined in your `tsconfig.json` file, making it fully compatible with TypeScript path aliases. Without `baseUrl`, which TypeScript 6 deprecates, the `paths` are relative to the `tsconfig.json` file, so they start with `./`:
 
 ```json
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
-      "@modules/*": ["src/modules/*"],
-      "@shared/*": ["src/shared/*"]
+      "@modules/*": ["./src/modules/*"],
+      "@shared/*": ["./src/shared/*"]
     }
   }
 }
@@ -148,7 +147,7 @@ In addition to the main `Config` type, the plugin exports individual subtypes fo
 - `IgnoreSetting`, `IncludeSetting`, `RootPathSetting`, `DebugSetting`, `SettingsKey` - other [settings](../settings/settings.md) types.
 - `FileDescriptor`, `FileDescriptors` - an entry (or array) of the [`boundaries/files`](../settings/settings.md#boundariesfiles) setting.
 
-The deprecated-rule option types (`EntryPointPolicy`, `EntryPointRuleOptions`, `ExternalPolicy`, `ExternalRuleOptions`, `NoPrivateOptions`) and constants/guards (`SETTINGS_KEYS_MAP`, `RULE_NAMES_MAP`, `DEPENDENCY_KINDS_MAP`, `isSettingsKey`, `isDependencyKind`, `isFileDescriptor`, and more) are also exported. See the package types for the complete list.
+The deprecated-rule option types (`EntryPointPolicy`, `EntryPointRuleOptions`, `ExternalPolicy`, `ExternalRuleOptions`, `NoPrivateOptions`) are also exported; see the package types for the complete list. The constants and type guards (`SETTINGS_KEYS_MAP`, `RULE_NAMES_MAP`, `DEPENDENCY_KINDS_MAP`, `isSettingsKey`, `isDependencyKind`, `isFileDescriptor`, and more) are exported from `eslint-plugin-boundaries/config`, along with every type: see [Type Constants and Guards](../settings/config-helpers.md#type-constants-and-guards).
 
 This modular approach lets you import only what you need while keeping autocomplete and type checking:
 
@@ -209,6 +208,46 @@ If you encounter issues with TypeScript support:
 3. Check that your `tsconfig.json` is valid and accessible
 4. Confirm that the TypeScript parser is correctly specified in `languageOptions`
 5. Refer to the [TypeScript example](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/examples/typescript) in the repository for a known working configuration
+
+### Default imports fail to type-check with `nodenext`, `node16` or `require()`
+
+With `module` and `moduleResolution` set to `nodenext` or `node16`, the default imports of `eslint-plugin-boundaries`, `eslint-plugin-boundaries/recommended` and `eslint-plugin-boundaries/strict` fail to type-check in an ES module file (a `.mts` file, or a `.ts` file in a package with `"type": "module"`), and so does their `require()` in a CommonJS file that TypeScript checks. The errors look like:
+
+```text
+error TS2339: Property 'rules' does not exist on type 'typeof import(".../dist/Config/Strict")'.
+```
+
+Import the configs and [`createConfig`](../settings/config-helpers.md), which registers the plugin, from `eslint-plugin-boundaries/config` instead:
+
+```ts
+import { createConfig, recommended, strict } from "eslint-plugin-boundaries/config";
+```
+
+Don't read `.default` to silence the error: it type-checks, but it is `undefined` at runtime.
+
+<details>
+<summary>Why it happens, and a full example</summary>
+
+The type declarations say `export default`, which describes a `module.exports` with a `default` property, but the CommonJS build sets `module.exports` to the plugin or the config itself. TypeScript types `require()` and, in an ES module file with `nodenext` or `node16`, the default import as that `module.exports`, so it sees `{ default: ... }` where Node.js returns the plugin or the config. The named exports of `/config` are typed right with any module resolution, with `import` and with `require()`. The fix of the declarations is planned for v8.0.0 ([#584](https://github.com/javierbrea/eslint-plugin-boundaries/issues/584)).
+
+```ts
+import { createConfig, recommended } from "eslint-plugin-boundaries/config";
+
+export default [
+  createConfig({
+    files: ["**/*.ts"],
+    settings: {
+      ...recommended.settings,
+      "boundaries/elements": [{ type: "module", pattern: "src/modules/*" }],
+    },
+    rules: {
+      ...recommended.rules,
+    },
+  }),
+];
+```
+
+</details>
 
 ## Further Reading
 

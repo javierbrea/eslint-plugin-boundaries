@@ -1,5 +1,10 @@
+import {
+  getRuleOptionsSchema,
+  migrationToV7GuideLink,
+} from "@boundaries/config";
+
 import { warnOnce } from "../Debug";
-import { migrationToV7GuideLink, deprecatedRuleInfo } from "../Settings";
+import { deprecatedRuleInfo } from "../Settings";
 import type { RuleName } from "../Shared";
 import { RULE_NAMES_MAP } from "../Shared";
 
@@ -18,7 +23,7 @@ export default function getNoIgnoredDependenciesRule(
 ) {
   return dependencyRule(
     {
-      schema: [],
+      schema: getRuleOptionsSchema(ruleName),
       ruleName,
       description: `Prevent dependencies to ignored files from recognized elements`,
       deprecated:

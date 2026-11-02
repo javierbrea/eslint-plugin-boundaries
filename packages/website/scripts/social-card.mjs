@@ -4,14 +4,14 @@
 //
 // Usage: pnpm --filter website social-card
 //
-// Uses the local Chrome through playwright-core; without Chrome, run `pnpm --filter website exec playwright-core install chromium` first.
+// Runs on the Chromium of the @playwright/test version in the root package.json, which the package script installs first.
 
 /* global document -- used inside a callback that runs in the page */
 
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { chromium } from "playwright-core";
+import { chromium } from "@playwright/test";
 
 const WEBSITE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const OUTPUT = resolve(WEBSITE_ROOT, "static/img/og-image.png");
@@ -30,15 +30,7 @@ function sourceFile(pathname) {
   return resolve(WEBSITE_ROOT, `static${pathname}`);
 }
 
-async function launchBrowser() {
-  try {
-    return await chromium.launch({ channel: "chrome" });
-  } catch {
-    return chromium.launch();
-  }
-}
-
-const browser = await launchBrowser();
+const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: CARD });
 const missing = [];
 

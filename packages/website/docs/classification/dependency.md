@@ -37,22 +37,25 @@ When the plugin analyzes a dependency, the dependency metadata is available as `
 | `kind` | `<"value" \| "type" \| "typeof">` | The dependency kind. A regular import is a `value`; a TypeScript `import type` is a `type`; an `import typeof` is a `typeof`. |
 | `nodeKind` | `<string \| null>` | The `name` of the AST dependency node that produced it (see [`boundaries/additional-dependency-nodes`](../settings/settings.md#boundariesadditional-dependency-nodes)), or `null`. |
 | `specifiers` | `<array \| null>` | The imported or exported specifier names, or `null` when there are none. |
-| `relationship.from` | `<string \| null>` | The relationship from the importer's perspective. One of `"internal"`, `"child"`, `"descendant"`, `"sibling"`, `"parent"`, `"uncle"`, `"nephew"`, `"ancestor"`. It is `null` when the target is not a known local element (for example an external package). |
-| `relationship.to` | `<string \| null>` | The relationship from the imported element's perspective, the inverse of `relationship.from`. |
+| `relationship.from` | `<string \| null>` | What the importer is to the target, for example `"parent"` when the target is a direct child of the importer. One of `"internal"`, `"child"`, `"descendant"`, `"sibling"`, `"parent"`, `"uncle"`, `"nephew"`, `"ancestor"`. It is `null` when either side is not a known local element (for example an external package), or when the two elements have none of the relationships below, such as two top-level elements. |
+| `relationship.to` | `<string \| null>` | What the target is to the importer, for example `"child"` when the target is a direct child of the importer. It is the inverse of `relationship.from`. |
 
 ## Element Relationship
 
-When both sides of a dependency are known local elements, the plugin computes the structural **relationship** between them from their positions in the element hierarchy. The `from` and `to` perspectives are inverses of each other — a `child` seen from one side is a `parent` seen from the other:
+When both sides of a dependency are known local elements, the plugin computes the structural **relationship** between them from their positions in the element hierarchy. `relationship.from` says what the importer is to the target, and `relationship.to` what the target is to the importer, so each one is the inverse of the other:
 
 | `relationship.from` | `relationship.to` | Meaning |
 | --- | --- | --- |
 | `internal` | `internal` | Both files belong to the same element. |
-| `child` | `parent` | The target is a direct child of the importer. |
-| `descendant` | `ancestor` | The target is nested deeper inside the importer. |
+| `parent` | `child` | The target is a direct child of the importer. |
+| `ancestor` | `descendant` | The target is nested deeper inside the importer. |
 | `sibling` | `sibling` | Both elements share the same parent. |
-| `uncle` | `nephew` | The target is a sibling of one of the importer's ancestors. |
+| `nephew` | `uncle` | The target is a sibling of one of the importer's ancestors. |
+| `child` | `parent` | The target is the direct parent of the importer. |
+| `descendant` | `ancestor` | The importer is nested deeper inside the target. |
+| `uncle` | `nephew` | The importer is a sibling of one of the target's ancestors. |
 
-When the target is not a known local element (for example an external package or an unknown file), both `relationship.from` and `relationship.to` are `null`.
+Both `relationship.from` and `relationship.to` are `null` when either side is not a known local element (for example an external package or an unknown file), or when the two elements have none of these relationships, such as two top-level elements.
 
 ## Matching Dependency Metadata using Selectors
 

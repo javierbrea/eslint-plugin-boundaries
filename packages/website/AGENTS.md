@@ -9,7 +9,7 @@ The website's version and the release steps that change it are in step 2 of "Pub
 ## Structure
 
 - `docs/` is the current, unreleased documentation, organized by topic (`classification`, `guides`, `policies`, `rules`, `selectors`, `settings`, …); `sidebars.ts` defines its navigation.
-- `versioned_docs/version-<X.Y.Z>/` + `versioned_sidebars/` + `versions.json` are frozen per-release snapshots created by Docusaurus' own versioning command — never hand-edit a file under `versioned_docs/`, except to backport a docs change deliberately to a still-supported release, applied identically to `docs/`.
+- `versioned_docs/version-<X.Y.Z>/` + `versioned_sidebars/` + `versions.json` are per-release snapshots created by Docusaurus' own versioning command. The snapshot of the latest release (the first entry in `versions.json`) is the published documentation: a change to it (a fix, a clarification, a missing page) is made in that snapshot and its sidebar, and the same change is made in `docs/`, so both stay aligned and the next release keeps it. A change that only describes unreleased behavior goes in `docs/` alone. Snapshots of older releases are never edited.
 - `algolia-config.json` is the configuration of the Algolia search index scraper.
 
 ## Source layering

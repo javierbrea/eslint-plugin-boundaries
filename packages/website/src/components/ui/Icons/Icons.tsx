@@ -8,7 +8,7 @@ export type IconProps = SVGProps<SVGSVGElement>;
  * @param props SVG attributes.
  * @returns The decorative icon.
  */
-export function ArrowIcon(props: IconProps): ReactNode {
+export function ArrowIcon(props: Readonly<IconProps>): ReactNode {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -30,7 +30,7 @@ export function ArrowIcon(props: IconProps): ReactNode {
  * @param props SVG attributes.
  * @returns The decorative icon.
  */
-export function CopyIcon(props: IconProps): ReactNode {
+export function CopyIcon(props: Readonly<IconProps>): ReactNode {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -51,7 +51,7 @@ export function CopyIcon(props: IconProps): ReactNode {
  * @param props SVG attributes.
  * @returns The decorative icon.
  */
-export function StarIcon(props: IconProps): ReactNode {
+export function StarIcon(props: Readonly<IconProps>): ReactNode {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
       <path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z" />

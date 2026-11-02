@@ -213,6 +213,8 @@ export function isBackwardCompatibleDependencySelector(
  * The `dependency` array in the legacy model uses OR semantics between items, and each item
  * may pair a `source` with a `module`. Collecting all modules into a single array would break
  * that pairing, so `module` must stay bound to its own entity selector per dependency item.
+ * @param entitySelector The normalized entity selector to add the module to.
+ * @param legacyDependencySelector The `dependency` property of the legacy dependency selector.
  */
 function addModuleToEntitySelectorNormalized(
   entitySelector: EntitySelectorNormalized | undefined,

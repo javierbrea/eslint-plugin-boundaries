@@ -1,0 +1,28 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "browser-e2e",
+  "projectType": "application",
+  "tags": [
+    "type:e2e"
+  ],
+  "targets": {
+    "lint": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      "dependsOn": [
+        {
+          "target": "eslint:config",
+          "projects": ["eslint-config"]
+        },
+        "^build"
+      ]
+    }
+  },
+  "implicitDependencies": [
+    "eslint-config",
+    "cspell-config"
+  ]
+}

@@ -19,7 +19,7 @@ export type DependencyDescriptorOptions = {
   to?: string;
   /** Source of the dependency (import/export path) */
   source: string;
-  /** Kind of the dependency (type, runtime) */
+  /** Kind of the dependency: `value`, `type` or `typeof` */
   kind: DependencyKind;
   /** Type of the node creating the dependency in the dependent element */
   nodeKind?: string;

@@ -1,4 +1,4 @@
-[![License][license-image]][license-url] [![Build status][build-image]][build-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Quality Gate][quality-gate-image]][quality-gate-url] [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fjavierbrea%2Feslint-plugin-boundaries%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/javierbrea/eslint-plugin-boundaries/master) 
+[![License][license-image]][license-url] [![Build status][build-image]][build-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Quality Gate][quality-gate-image]][quality-gate-url] [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fjavierbrea%2Feslint-plugin-boundaries%2Fmaster%3Fmodule%3Delements)](https://dashboard.stryker-mutator.io/reports/github.com/javierbrea/eslint-plugin-boundaries/master?module=elements) 
 
 [![NPM downloads][npm-downloads-image]][npm-downloads-url] [![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com) [![Last commit][last-commit-image]][last-commit-url] [![Last release][release-image]][release-url]
 
@@ -444,7 +444,7 @@ console.log(dep.dependency.kind);        // "value"
 The `relationship` field describes how the two entities relate to each other structurally. Possible values: `"internal"`, `"child"`, `"parent"`, `"sibling"`, `"descendant"`, `"ancestor"`, `"uncle"`, `"nephew"`, or `null`.
 
 - `relationship.to` — how `to` relates to `from` (e.g., `"child"` means the target is a child of the source)
-- `relationship.from` — the inverse perspective
+- `relationship.from` — how `from` relates to `to`, the inverse of `relationship.to` (e.g., `"parent"` when the target is a child of the source)
 
 ### Matching Entities
 
@@ -671,9 +671,9 @@ matcher.isDependencyMatch(
   - **`source`** (`string | string[]`): Pattern(s) to match the import/export source
   - **`specifiers`** (`string | string[]`): Pattern(s) for import/export specifiers
   - **`nodeKind`** (`string | string[]`): Pattern(s) for the AST node type
-  - **`relationship`** (`object`): Relationship selectors from both perspectives:
-    - **`from`** (`string | string[]`): Relationship from the source perspective
-    - **`to`** (`string | string[]`): Relationship from the target perspective (e.g., `"internal"`, `"child"`, `"parent"`, `"sibling"`, `"descendant"`, `"ancestor"`, `"uncle"`, `"nephew"`)
+  - **`relationship`** (`object`): Relationship between both elements, one of `"internal"`, `"child"`, `"parent"`, `"sibling"`, `"descendant"`, `"ancestor"`, `"uncle"` or `"nephew"` on each side:
+    - **`from`** (`string | string[]`): Pattern(s) for what the source element is to the target, e.g., `"parent"` when the target is a direct child of the source
+    - **`to`** (`string | string[]`): Pattern(s) for what the target element is to the source, e.g., `"child"` when the target is a direct child of the source
 
 > **Important:** All properties within a single selector must match for it to be considered a match (AND logic). Use arrays of selectors for OR logic.
 

@@ -74,6 +74,11 @@
         "^build"
       ]
     },
+    "test:mutation": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
     "build": {
       "cache": true,
       "inputs": [

@@ -134,7 +134,7 @@ export class BaseElementsMatcher {
   /**
    * Returns rendered templates using the provided template data.
    * @param template The templates to render.
-   * @param extraTemplateData The data to use for replace in the templates.
+   * @param templateData The data to use for replace in the templates.
    * @returns The rendered templates.
    */
   protected getRenderedTemplates(
@@ -227,6 +227,10 @@ export class BaseElementsMatcher {
   /**
    * Whether the given element key matches the selector key as booleans.
    * @param param0 The parameters object.
+   * @param param0.object The object to check.
+   * @param param0.selector The selector to check against.
+   * @param param0.objectKey The key of the object to check.
+   * @param param0.selectorKey The key of the selector to check against.
    * @returns Whether the object key matches the selector key.
    */
   protected isObjectKeyBooleanMatch<
@@ -380,6 +384,9 @@ export class BaseElementsMatcher {
    * String array query matcher with `expand` item support.
    * Expands `{ expand }` operand items against the template data, then evaluates
    * with the standard template-micromatch element matcher.
+   * @param array The array of strings to check.
+   * @param query The string array query to check against.
+   * @param templateData The template data to resolve the expand items and render the patterns.
    */
   protected isStringArrayQueryMatch(
     array: readonly string[] | null,
@@ -395,6 +402,12 @@ export class BaseElementsMatcher {
   /**
    * Whether the given object key matches the selector key using micromatch.
    * @param param0 The parameters object.
+   * @param param0.object The object to check.
+   * @param param0.selector The selector to check against.
+   * @param param0.objectKey The key of the object to check.
+   * @param param0.selectorKey The key of the selector to check against.
+   * @param param0.selectorValue The value of the selector key to check against.
+   * @param param0.templateData Data to pass when the selector value is rendered as a template.
    * @returns Whether the object key matches the selector key.
    */
   protected isObjectKeyMicromatchMatch<

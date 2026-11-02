@@ -14,6 +14,8 @@ import { isArray, isUndefined, isObject } from "../Shared";
  * - `fileInternalPath` -> `internalPath`
  * - `parents[].path` -> `parents[].elementPath`
  * - `module.origin` -> `origin` (only when provided)
+ * @param element The element description.
+ * @param moduleDescription The description of the module of the element, if any.
  */
 function getLegacyElementSelectorTemplateData(
   element: ElementDescription,
@@ -41,6 +43,7 @@ function getLegacyElementSelectorTemplateData(
 
 /**
  * Builds extra template data with legacy aliases for entity selector matching.
+ * @param entity The entity description.
  */
 export function getLegacyEntitySelectorExtraTemplateData(
   entity: EntityDescription
@@ -57,6 +60,8 @@ export function getLegacyEntitySelectorExtraTemplateData(
 
 /**
  * Builds extra template data with legacy aliases for element selector matching.
+ * @param element The element description.
+ * @param moduleDescription The description of the module of the element, if any.
  */
 export function getLegacyElementSelectorExtraTemplateData(
   element: ElementDescription,
@@ -69,6 +74,8 @@ export function getLegacyElementSelectorExtraTemplateData(
 
 /**
  * Builds extra template data with legacy aliases for dependency selector matching.
+ * @param dependency The dependency description.
+ * @param extraTemplateData The extra template data passed to the matcher, merged into the from, to and dependency data.
  */
 export function getLegacyDependencySelectorExtraTemplateData(
   dependency: DependencyDescription,

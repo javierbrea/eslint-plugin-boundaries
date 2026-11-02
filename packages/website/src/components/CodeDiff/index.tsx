@@ -35,12 +35,14 @@ function SuccessIcon() {
 /**
  * Code block whose lines are marked as added, deleted or unchanged, highlighted on the always-dark palette shared by both color modes.
  * @param props Code diff props.
+ * @param props.children Code, each line prefixed with a marker and a space: `+` for added, `-` for deleted, and any other character, such as `.`, for unchanged.
+ * @param props.language Prism language of the code.
  * @returns The code block.
  */
 export default function CodeDiff({
   children,
   language = "typescript",
-}: CodeDiffProps) {
+}: Readonly<CodeDiffProps>) {
   // Convert children to string
   const codeString = React.Children.toArray(children)
     .map((child) => (typeof child === "string" ? child : ""))

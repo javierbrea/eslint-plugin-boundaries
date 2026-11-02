@@ -1,6 +1,6 @@
 import picomatch from "picomatch";
 
-import type { Matcher } from "../index";
+import type { ElementDescription, ElementDescriptors, Matcher } from "../index";
 import {
   Elements,
   isIgnoredElementDescription,
@@ -929,5 +929,145 @@ describe("describeElement | Integration", () => {
         })
       );
     });
+  });
+
+  describe("files of the same folder", () => {
+    const CACHE_AND_ORDERS = [
+      ["enabled", "in order", true],
+      ["enabled", "in reverse order", true],
+      ["disabled", "in order", false],
+      ["disabled", "in reverse order", false],
+    ] as const;
+
+    function describeFiles(
+      elementDescriptors: ElementDescriptors,
+      cache: boolean,
+      files: string[],
+      order: "in order" | "in reverse order"
+    ): Map<string, ElementDescription> {
+      const folderMatcher = new Elements().getMatcher(
+        { elements: elementDescriptors },
+        { cache }
+      );
+      const filesToDescribe =
+        order === "in order" ? files : [...files].reverse();
+      return new Map(
+        filesToDescribe.map((file) => [
+          file,
+          folderMatcher.describeElement(file),
+        ])
+      );
+    }
+
+    it.each(CACHE_AND_ORDERS)(
+      "should describe the files next to a dot file as their element with the cache %s, describing the files %s",
+      (_title, order, cache) => {
+        const results = describeFiles(
+          [{ type: "module", pattern: "src/*" }],
+          cache,
+          ["src/x/.b.ts", "src/x/a.ts"],
+          order
+        );
+
+        expect(results.get("src/x/.b.ts")).toEqual(
+          expect.objectContaining({ isUnknown: true, path: null })
+        );
+        expect(results.get("src/x/a.ts")).toEqual({
+          types: ["module"],
+          category: null,
+          captured: null,
+          isIgnored: false,
+          filePath: "src/x/a.ts",
+          fileInternalPath: "a.ts",
+          path: "src/x",
+          isUnknown: false,
+          parents: [],
+        });
+      }
+    );
+
+    it.each(CACHE_AND_ORDERS)(
+      "should give each file its own path when a folder pattern matches the files of a folder, with the cache %s, describing the files %s",
+      (_title, order, cache) => {
+        const results = describeFiles(
+          [{ type: "module", pattern: "src/*/**" }],
+          cache,
+          ["src/x/a.ts", "src/x/b.ts"],
+          order
+        );
+
+        expect(results.get("src/x/a.ts")).toEqual(
+          expect.objectContaining({
+            path: "src/x/a.ts",
+            fileInternalPath: "src/x/a.ts",
+          })
+        );
+        expect(results.get("src/x/b.ts")).toEqual(
+          expect.objectContaining({
+            path: "src/x/b.ts",
+            fileInternalPath: "src/x/b.ts",
+          })
+        );
+      }
+    );
+
+    it.each(CACHE_AND_ORDERS)(
+      "should give each file its own captured values when a descriptor has more capture names than its pattern has wildcards, with the cache %s, describing the files %s",
+      (_title, order, cache) => {
+        const results = describeFiles(
+          [
+            {
+              type: "module",
+              pattern: "src/*",
+              capture: ["name", "rest", "file"],
+            },
+          ],
+          cache,
+          ["src/x/a.ts", "src/x/b.ts"],
+          order
+        );
+
+        expect(results.get("src/x/a.ts")?.captured).toEqual({
+          name: "x",
+          rest: "",
+          file: "a.ts",
+        });
+        expect(results.get("src/x/b.ts")?.captured).toEqual({
+          name: "x",
+          rest: "",
+          file: "b.ts",
+        });
+      }
+    );
+
+    it.each(CACHE_AND_ORDERS)(
+      "should give each file its own captured values when a descriptor has more baseCapture names than its basePattern has wildcards, with the cache %s, describing the files %s",
+      (_title, order, cache) => {
+        const results = describeFiles(
+          [
+            {
+              type: "module",
+              pattern: "x",
+              basePattern: "src",
+              baseCapture: ["join", "rest", "file"],
+            },
+          ],
+          cache,
+          ["src/x/a.ts", "src/x/b.ts"],
+          order
+        );
+
+        expect(results.get("src/x/a.ts")?.captured).toEqual({
+          join: "",
+          rest: "",
+          file: "a.ts",
+        });
+        expect(results.get("src/x/b.ts")?.captured).toEqual({
+          join: "",
+          rest: "",
+          file: "b.ts",
+        });
+      }
+    );
   });
 });

@@ -11,7 +11,7 @@ For reference-doc structure and tone, defer to the `documentation-writer` skill 
 
 ## `packages/website/docs/`
 
-This is the **current, unreleased** version of the documentation, published from the working tree. `versioned_docs/version-<X.Y.Z>/` and `versioned_sidebars/` are frozen snapshots of past releases plus their entry in `versions.json`; the rule for editing them is in `packages/website/AGENTS.md`. A docs fix applies to `docs/` (and, if it affects a still-supported release, is backported deliberately). Per-rule reference pages live under `docs/rules/` and mirror the rule names in `packages/eslint-plugin/src/Rules/`.
+This is the **current, unreleased** version of the documentation, published from the working tree. `versioned_docs/version-<X.Y.Z>/` and `versioned_sidebars/` are snapshots of past releases plus their entry in `versions.json`; when a change here also applies to the published documentation, `packages/website/AGENTS.md` says which snapshot it goes to as well. Per-rule reference pages live under `docs/rules/` and mirror the rule names in `packages/eslint-plugin/src/Rules/`.
 
 ## Repo-root `docs/`
 

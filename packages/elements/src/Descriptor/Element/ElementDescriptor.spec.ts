@@ -202,6 +202,32 @@ describe("ElementsDescriptor", () => {
         expect(result.path).toBeNull();
         expect(result.types).toBeNull();
       });
+
+      it("should not match a pattern against an empty segment above the first folder of the path", () => {
+        // picomatch matches "*/src/**/*" against "/src/index.ts", so the matching loop must stop at the first segment
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "*/src/**/*::/src/index.ts": ["", "", "index.ts"],
+          }),
+          makeRe: createMakeReLookup({
+            "*/src": /^[^/]*\/src$/,
+          }),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({ pattern: "*/src", type: "app" }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const result = descriptor.describeElement("src/index.ts");
+
+        expect(result.isUnknown).toBe(true);
+        expect(result.path).toBeNull();
+      });
     });
 
     describe("ignored elements", () => {
@@ -322,6 +348,38 @@ describe("ElementsDescriptor", () => {
         expect(result.isUnknown).toBe(false);
         expect(result.category).toBe("helper");
       });
+
+      it.each([
+        ["no mode", {}],
+        ["mode folder", { mode: "folder" }],
+        ["partialMatch false", { mode: "file", partialMatch: false }],
+      ] as const)(
+        "should keep the whole path in the fileInternalPath when a pattern with %s matches the file path",
+        (_title, overrides) => {
+          const micromatch = createMicromatchMock({
+            capture: createCaptureLookup({
+              "src/*/**/**/*::src/x/index.ts": ["x", "", "index.ts"],
+            }),
+            makeRe: createMakeReLookup({
+              "src/*/**": /^src\/[^/]+\/.+$/,
+            }),
+          });
+          const config = createConfig();
+          const descriptors: ElementDescriptors = [
+            createDescriptor({ pattern: "src/*/**", type: "x", ...overrides }),
+          ];
+          const descriptor = new ElementsDescriptor(
+            descriptors,
+            config,
+            micromatch
+          );
+
+          const result = descriptor.describeElement("src/x/index.ts");
+
+          expect(result.path).toBe("src/x/index.ts");
+          expect(result.fileInternalPath).toBe("src/x/index.ts");
+        }
+      );
     });
 
     describe("known elements with file mode", () => {
@@ -352,6 +410,65 @@ describe("ElementsDescriptor", () => {
         expect(result.isUnknown).toBe(false);
         expect(result.types).toEqual(["service"]);
         expect(result.captured).toEqual({ serviceName: "auth" });
+      });
+
+      it("should set the fileInternalPath to the file name when partialMatch is true", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "helpers/*.ts::helpers/a.ts": ["a"],
+          }),
+          makeRe: createMakeReLookup({
+            "helpers/*.ts": /^helpers\/[^/]+\.ts$/,
+          }),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "helpers/*.ts",
+            type: "helper",
+            mode: "file",
+            partialMatch: true,
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const result = descriptor.describeElement("src/helpers/a.ts");
+
+        expect(result.path).toBe("src/helpers/a.ts");
+        expect(result.fileInternalPath).toBe("a.ts");
+      });
+
+      it("should set the fileInternalPath relative to the element path when the pattern matches a folder", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "helpers/**::helpers/sub/a.ts": ["sub/a.ts"],
+          }),
+          makeRe: createMakeReLookup({
+            "helpers/**": /^helpers(?:\/.*)?$/,
+          }),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({
+            pattern: "helpers/**",
+            type: "helper",
+            mode: "file",
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const result = descriptor.describeElement("src/helpers/sub/a.ts");
+
+        expect(result.path).toBe("src/helpers");
+        expect(result.fileInternalPath).toBe("sub/a.ts");
       });
     });
 
@@ -446,6 +563,53 @@ describe("ElementsDescriptor", () => {
         expect(result.isUnknown).toBe(false);
         expect(result.captured).toHaveProperty("moduleName");
       });
+
+      it("should detect a parent element with basePattern when the main element uses a different pattern", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "src/**/components/*/**/*::src/components/A/features/B/f.ts": [
+              "",
+              "A",
+              "features/B",
+              "f.ts",
+            ],
+            "features/*/**/*::features/B/f.ts": ["B", "", "f.ts"],
+            "src/**/components/*::src/components/A": ["", "A"],
+            "components/*::components/A": ["A"],
+          }),
+          makeRe: createMakeReLookup({
+            "features/*": /^features\/[^/]+$/,
+            "components/*": /^components\/[^/]+$/,
+          }),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({ pattern: "features/*", type: "feature" }),
+          createDescriptor({
+            pattern: "components/*",
+            type: "component",
+            basePattern: "src",
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const result = descriptor.describeElement(
+          "src/components/A/features/B/f.ts"
+        );
+
+        expect(result.types).toEqual(["feature"]);
+        expect(result.path).toBe("src/components/A/features/B");
+        expect(result.parents).toEqual([
+          expect.objectContaining({
+            types: ["component"],
+            path: "src/components/A",
+          }),
+        ]);
+      });
     });
 
     describe("multi-type matching", () => {
@@ -478,6 +642,31 @@ describe("ElementsDescriptor", () => {
 
         expect(result.isUnknown).toBe(false);
         expect(result.types).toContain("component");
+      });
+
+      it("should keep captured as null when several descriptors without capture match at main level", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "shared/*/**/*::shared/Button/index.ts": ["Button", "", "index.ts"],
+          }),
+          makeRe: jest.fn().mockReturnValue(/^shared\/[^/]+$/),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({ pattern: "shared/*", type: "component" }),
+          createDescriptor({ pattern: "shared/*", type: "shared" }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch,
+          false
+        );
+
+        const result = descriptor.describeElement("shared/Button/index.ts");
+
+        expect(result.types).toEqual(["component", "shared"]);
+        expect(result.captured).toBeNull();
       });
 
       it("should keep only first matching type when singleType is true", () => {
@@ -1441,46 +1630,8 @@ describe("ElementsDescriptor", () => {
 
         expect(first).toBe(second);
       });
-    });
 
-    describe("folder-level caching", () => {
-      it("should reuse the folder-stable base for sibling files, recomputing only fileInternalPath", () => {
-        const micromatch = createMicromatchMock({
-          capture: createCaptureLookup({
-            "components/*/**/*::components/Button/index.ts": ["Button"],
-          }),
-          makeRe: jest.fn().mockReturnValue(/^components\/[^/]+$/),
-        });
-        const config = createConfig();
-        const descriptors: ElementDescriptors = [
-          createDescriptor({
-            pattern: "components/*",
-            type: "component",
-            capture: ["componentName"],
-          }),
-        ];
-        const descriptor = new ElementsDescriptor(
-          descriptors,
-          config,
-          micromatch
-        );
-
-        // Populate the folder base from the first file.
-        descriptor.describeElement("components/Button/index.ts");
-        // The sibling has no capture lookup entry; a correct result proves the
-        // folder base was reused instead of running the matching loop again.
-        const second = descriptor.describeElement(
-          "components/Button/styles.css"
-        );
-
-        expect(second.path).toBe("components/Button");
-        expect(second.types).toEqual(["component"]);
-        expect(second.captured).toEqual({ componentName: "Button" });
-        expect(second.fileInternalPath).toBe("styles.css");
-        expect(second.filePath).toBe("components/Button/styles.css");
-      });
-
-      it("should not run the matching loop for sibling files, and recompute it after clearCache", () => {
+      it("should not run the matching loop again for the same path, and run it again after clearCache", () => {
         const captureMock = createCaptureLookup({
           "components/*/**/*::components/Button/index.ts": ["Button"],
         });
@@ -1503,7 +1654,7 @@ describe("ElementsDescriptor", () => {
 
         expect(callsAfterFirst).toBeGreaterThan(0);
 
-        descriptor.describeElement("components/Button/styles.ts");
+        descriptor.describeElement("components/Button/index.ts");
 
         expect(captureMock).toHaveBeenCalledTimes(callsAfterFirst);
 
@@ -1513,7 +1664,181 @@ describe("ElementsDescriptor", () => {
         expect(captureMock.mock.calls.length).toBeGreaterThan(callsAfterFirst);
       });
 
-      it("should evaluate isIgnored per file over a shared folder base", () => {
+      it.each([
+        ["first", ["src/x/.b.ts", "src/x/a.ts"]],
+        ["last", ["src/x/a.ts", "src/x/.b.ts"]],
+      ])(
+        "should describe the files next to a dot file as their element when the dot file is described %s",
+        (_title, files) => {
+          // The folder pattern does not match the dot file, as "*" does not match names starting with a dot
+          const micromatch = createMicromatchMock({
+            capture: createCaptureLookup({
+              "src/*/**/*::src/x/a.ts": ["x", "", "a.ts"],
+            }),
+            makeRe: createMakeReLookup({ "src/*": /^src\/[^/]+$/ }),
+          });
+          const config = createConfig({ cache: true });
+          const descriptors: ElementDescriptors = [
+            createDescriptor({ pattern: "src/*", type: "module" }),
+          ];
+          const descriptor = new ElementsDescriptor(
+            descriptors,
+            config,
+            micromatch
+          );
+
+          const results = new Map(
+            files.map((file) => [file, descriptor.describeElement(file)])
+          );
+
+          expect(results.get("src/x/.b.ts")?.isUnknown).toBe(true);
+          expect(results.get("src/x/a.ts")).toEqual(
+            expect.objectContaining({
+              isUnknown: false,
+              types: ["module"],
+              path: "src/x",
+              fileInternalPath: "a.ts",
+            })
+          );
+        }
+      );
+
+      it.each([
+        ["first", ["src/x/a.ts", "src/x/b.ts"]],
+        ["last", ["src/x/b.ts", "src/x/a.ts"]],
+      ])(
+        "should give each file its own path when a folder pattern matches the files of a folder and another file of the folder is described %s",
+        (_title, files) => {
+          const micromatch = createMicromatchMock({
+            capture: createCaptureLookup({
+              "src/*/**/**/*::src/x/a.ts": ["x", "", "", "a.ts"],
+              "src/*/**/**/*::src/x/b.ts": ["x", "", "", "b.ts"],
+            }),
+            makeRe: createMakeReLookup({ "src/*/**": /^src\/[^/]+\/.+$/ }),
+          });
+          const config = createConfig({ cache: true });
+          const descriptors: ElementDescriptors = [
+            createDescriptor({ pattern: "src/*/**", type: "module" }),
+          ];
+          const descriptor = new ElementsDescriptor(
+            descriptors,
+            config,
+            micromatch
+          );
+
+          const results = new Map(
+            files.map((file) => [file, descriptor.describeElement(file)])
+          );
+
+          expect(results.get("src/x/a.ts")).toEqual(
+            expect.objectContaining({
+              path: "src/x/a.ts",
+              fileInternalPath: "src/x/a.ts",
+            })
+          );
+          expect(results.get("src/x/b.ts")).toEqual(
+            expect.objectContaining({
+              path: "src/x/b.ts",
+              fileInternalPath: "src/x/b.ts",
+            })
+          );
+        }
+      );
+
+      it.each([
+        ["first", ["src/x/a.ts", "src/x/b.ts"]],
+        ["last", ["src/x/b.ts", "src/x/a.ts"]],
+      ])(
+        "should give each file its own captured values when a descriptor has more capture names than its pattern has wildcards and another file of the folder is described %s",
+        (_title, files) => {
+          const micromatch = createMicromatchMock({
+            capture: createCaptureLookup({
+              "src/*/**/*::src/x/a.ts": ["x", "", "a.ts"],
+              "src/*/**/*::src/x/b.ts": ["x", "", "b.ts"],
+            }),
+            makeRe: createMakeReLookup({ "src/*": /^src\/[^/]+$/ }),
+          });
+          const config = createConfig({ cache: true });
+          const descriptors: ElementDescriptors = [
+            createDescriptor({
+              pattern: "src/*",
+              type: "module",
+              capture: ["name", "rest", "file"],
+            }),
+          ];
+          const descriptor = new ElementsDescriptor(
+            descriptors,
+            config,
+            micromatch
+          );
+
+          const results = new Map(
+            files.map((file) => [file, descriptor.describeElement(file)])
+          );
+
+          expect(results.get("src/x/a.ts")?.captured).toEqual({
+            name: "x",
+            rest: "",
+            file: "a.ts",
+          });
+          expect(results.get("src/x/b.ts")?.captured).toEqual({
+            name: "x",
+            rest: "",
+            file: "b.ts",
+          });
+        }
+      );
+
+      it.each([
+        ["first", ["src/x/a.ts", "src/x/b.ts"]],
+        ["last", ["src/x/b.ts", "src/x/a.ts"]],
+      ])(
+        "should give each file its own captured values when a descriptor has more baseCapture names than its basePattern has wildcards and another file of the folder is described %s",
+        (_title, files) => {
+          const micromatch = createMicromatchMock({
+            capture: createCaptureLookup({
+              "src/**/x/**/*::src/x/a.ts": ["", "", "a.ts"],
+              "src/**/x/**/*::src/x/b.ts": ["", "", "b.ts"],
+              "x/**/*::x/a.ts": ["", "a.ts"],
+              "x/**/*::x/b.ts": ["", "b.ts"],
+            }),
+            makeRe: createMakeReLookup({ x: /^x$/ }),
+          });
+          const config = createConfig({ cache: true });
+          const descriptors: ElementDescriptors = [
+            createDescriptor({
+              pattern: "x",
+              type: "module",
+              basePattern: "src",
+              baseCapture: ["join", "rest", "file"],
+            }),
+          ];
+          const descriptor = new ElementsDescriptor(
+            descriptors,
+            config,
+            micromatch
+          );
+
+          const results = new Map(
+            files.map((file) => [file, descriptor.describeElement(file)])
+          );
+
+          expect(results.get("src/x/a.ts")?.captured).toEqual({
+            join: "",
+            rest: "",
+            file: "a.ts",
+          });
+          expect(results.get("src/x/b.ts")?.captured).toEqual({
+            join: "",
+            rest: "",
+            file: "b.ts",
+          });
+        }
+      );
+    });
+
+    describe("files of the same folder", () => {
+      it("should describe an ignored file as ignored after describing a known file of the same folder", () => {
         const micromatch = createMicromatchMock({
           capture: createCaptureLookup({
             "components/*/**/*::components/Button/index.ts": ["Button"],
@@ -1544,7 +1869,7 @@ describe("ElementsDescriptor", () => {
         expect(ignored.path).toBe("components/Button/Button.test.ts");
       });
 
-      it("should mark all sibling files as unknown when the folder matches no descriptor", () => {
+      it("should describe all the files of a folder as unknown when the folder matches no descriptor", () => {
         const micromatch = createMicromatchMock();
         const config = createConfig();
         const descriptors: ElementDescriptors = [
@@ -1583,9 +1908,7 @@ describe("ElementsDescriptor", () => {
         expect(first.isUnknown).toBe(true);
         expect(second.isUnknown).toBe(true);
       });
-    });
 
-    describe("folder caching disabled for file and full modes", () => {
       it("should match sibling files independently when a descriptor uses file mode", () => {
         const micromatch = createMicromatchMock({
           capture: createCaptureLookup({
@@ -1609,8 +1932,7 @@ describe("ElementsDescriptor", () => {
         );
 
         const matched = descriptor.describeElement("services/auth.service.ts");
-        // No lookup entry for the sibling: because folder caching is disabled it is
-        // matched independently and stays unknown.
+        // No lookup entry for the sibling, so it matches no descriptor
         const sibling = descriptor.describeElement("services/auth.helper.ts");
 
         expect(matched.isUnknown).toBe(false);
@@ -1618,13 +1940,12 @@ describe("ElementsDescriptor", () => {
         expect(sibling.isUnknown).toBe(true);
       });
 
-      it("should keep running the matching loop for every file when a full-mode descriptor is present", () => {
-        const captureMock = createCaptureLookup({
-          "components/*/**/*::components/Button/index.ts": ["Button"],
-          "components/*/**/*::components/Button/styles.ts": ["Button"],
-        });
+      it("should describe sibling files of a folder element when a full-mode descriptor is present", () => {
         const micromatch = createMicromatchMock({
-          capture: captureMock,
+          capture: createCaptureLookup({
+            "components/*/**/*::components/Button/index.ts": ["Button"],
+            "components/*/**/*::components/Button/styles.ts": ["Button"],
+          }),
           makeRe: jest.fn().mockReturnValue(/^components\/[^/]+$/),
         });
         const config = createConfig();
@@ -1643,7 +1964,6 @@ describe("ElementsDescriptor", () => {
         );
 
         const first = descriptor.describeElement("components/Button/index.ts");
-        const callsAfterFirst = captureMock.mock.calls.length;
         const second = descriptor.describeElement(
           "components/Button/styles.ts"
         );
@@ -1652,8 +1972,42 @@ describe("ElementsDescriptor", () => {
         expect(first.fileInternalPath).toBe("index.ts");
         expect(second.types).toEqual(["component"]);
         expect(second.fileInternalPath).toBe("styles.ts");
-        // Folder caching is disabled, so the sibling triggers the matching loop again.
-        expect(captureMock.mock.calls.length).toBeGreaterThan(callsAfterFirst);
+      });
+
+      it("should keep the subfolders in the fileInternalPath of a folder element", () => {
+        const micromatch = createMicromatchMock({
+          capture: createCaptureLookup({
+            "components/*/**/*::components/Button/sub/x.ts": [
+              "Button",
+              "sub",
+              "x.ts",
+            ],
+          }),
+          makeRe: createMakeReLookup({
+            "components/*": /^components\/[^/]+$/,
+          }),
+        });
+        const config = createConfig();
+        const descriptors: ElementDescriptors = [
+          createDescriptor({ pattern: "components/*", type: "component" }),
+          createDescriptor({
+            pattern: "helpers/*.ts",
+            type: "helper",
+            mode: "file",
+          }),
+        ];
+        const descriptor = new ElementsDescriptor(
+          descriptors,
+          config,
+          micromatch
+        );
+
+        const result = descriptor.describeElement(
+          "src/components/Button/sub/x.ts"
+        );
+
+        expect(result.path).toBe("src/components/Button");
+        expect(result.fileInternalPath).toBe("sub/x.ts");
       });
     });
 
@@ -1945,7 +2299,7 @@ describe("ElementsDescriptor", () => {
       expect(result.fileInternalPath).toBe("index.ts");
     });
 
-    it("should enable folder-level cache (second file in same folder reuses base)", () => {
+    it("should resolve every file of the same folder to the element folder", () => {
       const micromatch = createMicromatchMock({
         capture: createCaptureLookup({
           "src/components/*/**/*::src/components/Button/index.ts": [
@@ -2027,6 +2381,39 @@ describe("ElementsDescriptor", () => {
       expect(result.path).toBe("src/components/Button");
       // No duplicate parent with the same path as the main element
       expect(result.parents).toHaveLength(0);
+    });
+
+    it("should not match a pattern against a nested folder of the path", () => {
+      // The pattern matches the path from its nested "src" folder, but not from the root
+      const micromatch = createMicromatchMock({
+        capture: createCaptureLookup({
+          "src/components/*/**/*::src/components/Button/index.ts": [
+            "Button",
+            "",
+            "index.ts",
+          ],
+        }),
+      });
+      const config = createConfig();
+      const descriptors: ElementDescriptors = [
+        createDescriptor({
+          pattern: "src/components/*",
+          type: "component",
+          partialMatch: false,
+        }),
+      ];
+      const descriptor = new ElementsDescriptor(
+        descriptors,
+        config,
+        micromatch
+      );
+
+      const result = descriptor.describeElement(
+        "packages/x/src/components/Button/index.ts"
+      );
+
+      expect(result.isUnknown).toBe(true);
+      expect(result.path).toBeNull();
     });
   });
 });

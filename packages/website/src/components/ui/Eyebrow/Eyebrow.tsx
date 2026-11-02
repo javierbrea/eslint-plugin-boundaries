@@ -14,11 +14,13 @@ export type EyebrowProps = {
 /**
  * Small uppercase mono label above a heading, preceded by a short rule.
  * @param props Eyebrow props.
+ * @param props.className Extra class names.
+ * @param props.children Label.
  * @returns The label.
  */
 export default function Eyebrow({
   className,
   children,
-}: EyebrowProps): ReactNode {
+}: Readonly<EyebrowProps>): ReactNode {
   return <span className={clsx(styles.eyebrow, className)}>{children}</span>;
 }

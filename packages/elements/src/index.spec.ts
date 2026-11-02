@@ -38,12 +38,14 @@ function getPublicTypeOnlyExportNames(): string[] {
     .getExportsOfModule(moduleSymbol)
     .map((symbol) => symbol.getName())
     .filter((name) => !valueExportNames.has(name))
-    .sort();
+    .sort((a, b) => a.localeCompare(b, "en"));
 }
 
 describe("public API", () => {
   it("exposes the expected set of runtime exports", () => {
-    expect(Object.keys(publicApi).sort()).toMatchSnapshot();
+    expect(
+      Object.keys(publicApi).sort((a, b) => a.localeCompare(b, "en"))
+    ).toMatchSnapshot();
   });
 
   it("exposes the expected set of type-only exports", () => {

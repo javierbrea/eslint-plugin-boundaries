@@ -23,6 +23,11 @@ export type SectionHeadProps = {
 /**
  * Heading block of a home section: eyebrow, `h2` and optional lead.
  * @param props Section head props.
+ * @param props.eyebrow Label above the heading.
+ * @param props.title Section heading, rendered as an `h2`.
+ * @param props.lead Optional lead paragraph below the heading.
+ * @param props.className Extra class names.
+ * @param props.children Extra content after the lead, such as a call to action.
  * @returns The heading block.
  */
 export default function SectionHead({
@@ -31,7 +36,7 @@ export default function SectionHead({
   lead,
   className,
   children,
-}: SectionHeadProps): ReactNode {
+}: Readonly<SectionHeadProps>): ReactNode {
   return (
     <div className={clsx(styles.head, className)}>
       <Eyebrow>{eyebrow}</Eyebrow>

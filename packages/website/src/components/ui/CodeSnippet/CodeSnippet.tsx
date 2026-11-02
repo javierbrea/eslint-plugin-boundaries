@@ -19,13 +19,16 @@ export type CodeSnippetProps = {
 /**
  * Read-only highlighted code block on the always-dark palette, with a left accent rule.
  * @param props Code snippet props.
+ * @param props.code Source code to highlight.
+ * @param props.language Prism language of the code.
+ * @param props.className Extra class names.
  * @returns The code block.
  */
 export default function CodeSnippet({
   code,
   language = "js",
   className,
-}: CodeSnippetProps): ReactNode {
+}: Readonly<CodeSnippetProps>): ReactNode {
   return (
     <PrismHighlight code={code} language={language} theme={blueprintTheme}>
       {({ className: prismClassName, tokens, getLineProps, getTokenProps }) => (

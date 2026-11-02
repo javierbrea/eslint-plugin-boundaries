@@ -1,6 +1,5 @@
 import path from "node:path";
 
-// @ts-expect-error types are not being detected properly
 import * as typescriptParser from "@typescript-eslint/parser"; // eslint-disable-line import/no-namespace
 import type { Linter } from "eslint";
 import { RuleTester } from "eslint";

@@ -8,6 +8,7 @@ Infima
 jsboundaries
 importkind
 lockfiles
+NOSONAR
 nrwl
 nvmrc
 oxc
@@ -21,3 +22,5 @@ sonarsource
 subfolders
 extglob
 extglobs
+lintstagedrc
+quasis

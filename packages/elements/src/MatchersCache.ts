@@ -70,6 +70,8 @@ export class MatchersCache extends CacheManager<
   /**
    * Generates a unique key based on the configuration options and element descriptors
    * @param params The configuration and element descriptors
+   * @param params.config The normalized configuration options.
+   * @param params.descriptors The descriptors configuration.
    * @returns A unique string key
    */
   protected generateKey({
