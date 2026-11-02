@@ -5,21 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [7.4.1] - 2026-11-02
 
 ### Changed
 
 - refactor(#549): The normalization and validation of the settings and rule options move to the new `@boundaries/config` package, which the plugin depends on. The plugin reports the same warnings and errors as before.
 - refactor(#550): The descriptions of files and dependencies, the evaluation of the policies and the messages move to the new `@boundaries/policies` package, which the plugin depends on. The plugin reports the same errors as before.
-- feat(#550): When the custom `message` of a dependency that the `dependencies`, `entry-point` or `external` rule does not allow fails to render, for example because of invalid Handlebars syntax or an unknown helper, the error names the message and the policy that sets it, or the rule options. The plugin no longer prints the debug output and the matcher warnings of that dependency before failing.
 - chore(#549): Type-check the plugin against the types of ESLint 9.39, which the repository develops and tests it with.
 - chore: Lint the plugin with the SonarCloud rules that `eslint-plugin-sonarjs` implements.
 - chore: The homepage of the package is the [JS Boundaries website](https://www.jsboundaries.dev/), the README is a short introduction that links to it, and the folder of the package in the repository is declared in the `directory` field that npm reads.
 - chore: The TypeScript configuration no longer uses two options that TypeScript 6 deprecates: it resolves modules with `node16` instead of `node10`, and it no longer sets `baseUrl`. The build output does not change.
+- chore: Upgrade `@boundaries/elements` to 3.3.1.
 
 ### Fixed
 
 - fix: Warn when the `boundaries/elements`, `boundaries/types` or `boundaries/files` setting is not an array. The plugin ignored it without saying why.
+- fix(#550): When the custom `message` of a dependency that the `dependencies`, `entry-point` or `external` rule does not allow fails to render, for example because of invalid Handlebars syntax or an unknown helper, the error names the message and the policy that sets it, or the rule options. The plugin no longer prints the debug output and the matcher warnings of that dependency before failing.
 - fix(#589): Check the dependencies written with a template literal without substitutions, inside the TypeScript assertions `as`, `satisfies`, `<T>` or `!`, with `import x = require()` or with a type import such as `typeof import()`, which were skipped: read the [upgrade notes](https://www.jsboundaries.dev/docs/releases/upgrade-notes/v7-4-1/#newly-checked-dependencies) to check whether your project is affected.
 
 ## [7.4.0] - 2026-10-27
