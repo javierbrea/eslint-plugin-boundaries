@@ -8,7 +8,7 @@ Issue: #554. Branch `feat/554/playground-share` from `feat/539/playground`; PR i
 Read first:
 
 - RFC #538, "Research tasks" 5, "Milestones" M3, "Acceptance" (a state shared by URL opens identically elsewhere), "Dependencies" (the teaser and the navbar entry switch on with the first usable version).
-- `04-scaffold.md` hand-offs (`StateStore`), `05-m1-identify.md` and `06-m2-verdicts.md` hand-offs (`SketchSource`, examples).
+- `04-scaffold.md` hand-offs (`StateStore`), `05-m1-identify.md` and `06-m2-verdicts.md` hand-offs (`Sketch`, examples).
 - `packages/website/src/data/site/links.ts` (`GITHUB_PLAYGROUND_ISSUE`), `src/components/home/PlaygroundTeaser/`, `docusaurus.config.ts` navbar items, `src/components/CodeDiff/` (an existing MDX component of the docs, the model for the new one and its `docs-component` element type), `packages/website/docs/quick-start.mdx` (the first page to get a button, in phase 8).
 - Docusaurus docs on client-side routing and `useHistory` / `useLocation` for the hash check.
 
@@ -22,7 +22,7 @@ In: research note 5, the hash `StateStore`, Share and Reset, the example picker,
 
 ### 1. Research note 5
 
-Encode a `SketchSource` as JSON → deflate (`CompressionStream` where available, `fflate` or `lz-string` otherwise; compare sizes and support) → base64url in the hash (`#s=...`); measure the URL length for the quick-start example and for a 50-file sketch (the practical limit is browser and server dependent; stay under 8 KB and say what happens above: Share disabled with a note). Check that Docusaurus keeps the hash when navigating to `/playground/` from a docs link and when the page hydrates (`BrowserOnly` mounts after hydration; the hash must be read then, not at SSR). Post the note on #539 and update its first acceptance criterion (all five notes posted).
+Encode a `Sketch` as JSON → deflate (`CompressionStream` where available, `fflate` or `lz-string` otherwise; compare sizes and support) → base64url in the hash (`#s=...`); measure the URL length for the quick-start example and for a 50-file sketch (the practical limit is browser and server dependent; stay under 8 KB and say what happens above: Share disabled with a note). Check that Docusaurus keeps the hash when navigating to `/playground/` from a docs link and when the page hydrates (`BrowserOnly` mounts after hydration; the hash must be read then, not at SSR). Post the note on #539 and update its first acceptance criterion (all five notes posted).
 
 ### 2. The hash store
 

@@ -22,7 +22,7 @@ In: the dependency model and picker, rendering as import statements with verdict
 
 ### 1. The dependency model
 
-`SketchSource.dependencies`: `{ from: path, target: { kind: "node", path } | { kind: "external", name }, syntax: "import" | "export-from" | "require" | "dynamic-import", importKind: "value" | "type", specifiers: Array<{ kind: "default" | "named" | "namespace", name, alias? }> }`. A renderer turns it into the import statement text (`import format, { round } from "../../helpers/format";`, relative paths computed from `from` to the target node, `import type` for `type`, `require("...")`, `import("...")`, `export { x } from "..."`); the text is display only.
+`Sketch.dependencies`, typed by phase 4 in `src/contract/Sketch.types.ts`: `{ from: path, target: { kind: "node", path } | { kind: "external", name }, syntax: "import" | "export-from" | "require" | "dynamic-import", importKind: "value" | "type", specifiers: Array<{ kind: "default" | "named" | "namespace", name, alias? }> }`. A renderer turns it into the import statement text (`import format, { round } from "../../helpers/format";`, relative paths computed from `from` to the target node, `import type` for `type`, `require("...")`, `import("...")`, `export { x } from "..."`); the text is display only.
 
 ### 2. Evaluation
 
@@ -52,7 +52,7 @@ The home's step 3 scenario as a fixture: the verdict, the policy index and the m
 
 ## Hand-offs
 
-- To phase 7: the complete `SketchSource` (tree, config, dependencies) to serialize; the engine as the single evaluation entry.
+- To phase 7: the complete `Sketch` (tree, config, dependencies) to serialize; the engine as the single evaluation entry.
 - To phase 8: the message texts and the picker vocabulary the guide page documents.
 
 ## Open points

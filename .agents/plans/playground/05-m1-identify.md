@@ -17,7 +17,7 @@ Preconditions: for the mockup, none (it can start any time, even before phase 4 
 
 ## Scope
 
-In: the mockup and its approval loop; the project pane (tree and text mode), the config node and editor with diagnostics, the file pane without dependencies, the inspector, the problems panel with the `Sketch` tab, live re-evaluation, resizable panes, the quick-start example as default state; the `SketchSource` model for tree and config. Out: dependencies and verdicts (phase 6), URL state, Share, example picker, navbar and teaser (phase 7).
+In: the mockup and its approval loop; the project pane (tree and text mode), the config node and editor with diagnostics, the file pane without dependencies, the inspector, the problems panel with the `Sketch` tab, live re-evaluation, resizable panes, the quick-start example as default state; the `Sketch` model for tree and config. Out: dependencies and verdicts (phase 6), URL state, Share, example picker, navbar and teaser (phase 7).
 
 ## Steps
 
@@ -29,19 +29,19 @@ In: the mockup and its approval loop; the project pane (tree and text mode), the
 
 ### 2. The sketch model and the engine adapter
 
-`src/contract/`: `SketchSource` holds `{ tree: Node[], config: string, dependencies: [] }` where a node is `{ path, kind: "file" | "folder" }` and the config is the JSON5 text; `src/engine/`: parse the config with the parser chosen in research note 3 into a value plus a location map (JSON path → range); call `normalizeConfig` of `config` on the parsed value and map its diagnostics (JSON paths rooted at the config object) to ranges; call `describeEntity` of `policies` for every file path with the normalized settings; expose one `evaluate(sketch) → { files: Map<path, description>, configDiagnostics, ... }` function, pure and memoized by sketch identity, run after a debounce (150 ms) from the component. Module origin: every file of the sketch is `local`, anything else `external` (RFC research 1).
+`src/contract/Sketch.types.ts` (phase 4) is the model: a `Sketch` is `{ config, tree, dependencies }`, where `config` is the JSON5 text, a node of `tree` is `{ path, kind: "file" | "folder" }`, and `dependencies` has the shape of phase 6 (empty until then); `SketchSource` serves one. `src/engine/` (declared in the lint config by phase 4, with no file yet): parse the config with the parser chosen in research note 3 into a value plus a location map (JSON path → range); call `normalizeConfig` of `config` on the parsed value and map its diagnostics (JSON paths rooted at the config object) to ranges; call `describeEntity` of `policies` for every file path with the normalized settings; expose one `evaluate(sketch) → { files: Map<path, description>, configDiagnostics, ... }` function, pure and memoized by sketch identity, run after a debounce (150 ms) from the component. Module origin: every file of the sketch is `local`, anything else `external` (RFC research 1).
 
 ### 3. The panes
 
 Following the approved mockup and the RFC "Pane by pane":
 
-- Project pane: tree component of the stack with add file / add folder / rename / delete, `eslint.config.js` pinned at the root, red state and count placeholders (counts arrive in phase 6), and the `⌨ text` mode: a textarea with one path per line (folders end with `/`), parsed back into the tree on blur or after a debounce; both modes edit the same `SketchSource`.
+- Project pane: tree component of the stack with add file / add folder / rename / delete, `eslint.config.js` pinned at the root, red state and count placeholders (counts arrive in phase 6), and the `⌨ text` mode: a textarea with one path per line (folders end with `/`), parsed back into the tree on blur or after a debounce; both modes edit the same `Sketch`.
 - Node in focus, file: the path as header and the (empty) dependency list with the `[+ dependency]` button disabled with a tooltip "Dependencies arrive in the next milestone" until phase 6; the mockup shows the final state.
 - Node in focus, config: the editor chosen in note 3, with the JSON5 text, syntax highlighting themed by tokens, diagnostics underlined at their range with the message on hover, and a gutter highlight API (used by phase 6 for "Open policy in config").
 - Inspector: for a file, the three rows in the teaser vocabulary (element type and captured values, file categories, module origin) from `describeEntity`; for the config node, the element types declared and how many files each matches; for nothing, the sketch in numbers (files, element types, policies).
 - Problems panel: the `Sketch` tab with the config diagnostics (count in the tab, click opens the config node at the range); the tab strip and the resizable, collapsible panel. The file and dependency tabs arrive in phase 6, but the strip handles n tabs now.
 - Layout: the four regions with resizable splits (`react-resizable-panels`, decision 15), minimum widths from the mockup; below the breakpoint, the host renders the note (phase 4), and the component also refuses to render below it (defensive).
-- Default state: the quick-start example of the docs (`packages/website/docs/quick-start.mdx`: its tree and its config), as a `examples/quickStart.ts` in the package.
+- Default state: the quick-start example of the docs (`packages/website/docs/quick-start.mdx`: its tree and its config), as `src/examples/quickStart.ts` in the package, a new element type in `eslint.config.mjs`; the website's lazy factory passes it to its `SketchSource`.
 
 ### 4. Tests and harness
 
@@ -56,8 +56,8 @@ Component tests for: the text mode round trip; the diagnostics mapping (a wrong 
 
 ## Hand-offs
 
-- To phase 6: the `SketchSource` shape with the `dependencies` field reserved, the engine `evaluate` function to extend with verdicts, the gutter highlight API of the editor, the tab strip API of the problems panel, the red-state placeholders of the tree.
-- To phase 7: the `examples/` folder shape the example picker lists, and the `SketchSource` serialization the URL store needs.
+- To phase 6: the `Sketch` model with its `dependencies`, the engine `evaluate` function to extend with verdicts, the gutter highlight API of the editor, the tab strip API of the problems panel, the red-state placeholders of the tree.
+- To phase 7: the `src/examples/` folder the example picker lists, and the sketch serialization the URL store needs.
 
 ## Decisions of the mockup
 
