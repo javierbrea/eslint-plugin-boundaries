@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > [!INFO]
 > Versions marked as `-docs` are documentation-only releases that do not include any code changes. Other versions are code releases that may include documentation changes as well, and are paired with a corresponding release in the `eslint-plugin-boundaries` package.
 
+## [7.4.1] - 2026-11-02
+
+### Added
+
+- docs(#589): Upgrade notes for v7.4.1, which explain how to check whether the newly checked dependencies affect your project.
+- docs(#584): The troubleshooting section of the TypeScript Support guide explains how to fix the type errors of the default imports with `nodenext`, `node16` or `require()`: import from `eslint-plugin-boundaries/config`.
+- docs: The Releases page lists the new `@boundaries/config` and `@boundaries/policies` packages, with links to their docs and changelogs.
+
+### Changed
+
+- docs(#589): The `boundaries/dependency-nodes` and `boundaries/additional-dependency-nodes` settings say which dependencies and nodes they check.
+- chore: Mark the props of the site components as read-only.
+- chore(#557): Render the link preview image with the Chromium of the pinned Playwright version, so it is the same on every machine.
+- docs(#584): The path aliases example of the TypeScript Support guide no longer sets `baseUrl`, which TypeScript 6 deprecates.
+
+### Fixed
+
+- docs(#584): The TypeScript Support guide says that the constants and type guards are exported from `eslint-plugin-boundaries/config`; the main entry doesn't export them at runtime.
+
 ## [7.4.0] - 2026-10-27
 
 ### Added

@@ -1,10 +1,13 @@
 import {
+  getRuleOptionsSchema,
+  normalizeDependenciesRuleOptions,
+} from "@boundaries/config";
+import {
   normalizeEntitySelector,
   DEPENDENCY_RELATIONSHIPS_MAP,
 } from "@boundaries/elements";
 
 import {
-  rulesOptionsSchema,
   warnMigrationToDependencies,
   validateAndWarnRuleOptions,
   deprecatedRuleInfo,
@@ -70,7 +73,8 @@ function transformToDependenciesRules(
             }
           : undefined,
         importKind: rule.importKind,
-        message: rule.message,
+        // The message of the user's policy at the index of the translated one, not of `rule`, as the rule always reported it: a policy with several targets shifts the messages of the next ones
+        message: rules[newRules.length]?.message,
       });
     }
   }
@@ -82,10 +86,7 @@ export default dependencyRule<EntryPointRuleOptions>(
     ruleName: RULE_ENTRY_POINT,
     description: `Check elements entry point`,
     deprecated: deprecatedRuleInfo(RULE_NAMES_MAP.DEPENDENCIES),
-    schema: rulesOptionsSchema({
-      rulesMainKey: "target",
-      isLegacy: true,
-    }),
+    schema: getRuleOptionsSchema(RULE_ENTRY_POINT),
   },
   function ({ dependency, node, context, settings, options }) {
     warnMigrationToDependencies(RULE_NAMES_MAP.ENTRY_POINT);
@@ -103,15 +104,18 @@ export default dependencyRule<EntryPointRuleOptions>(
       dependency.dependency.relationship.to !==
         DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL
     ) {
-      const rules = transformToDependenciesRules(
+      const policies = transformToDependenciesRules(
         options?.policies ?? options?.rules ?? []
       );
       evaluatePoliciesAndReport({
-        rules,
+        options: normalizeDependenciesRuleOptions({
+          default: options?.default,
+          message: options?.message,
+          policies,
+        }),
         settings,
         context,
         node,
-        options,
         dependency,
       });
     }

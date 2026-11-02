@@ -412,7 +412,7 @@ describe("Descriptors", () => {
       const mocks = setupSubDescriptorMocks();
       const descriptors = createDescriptors();
 
-      descriptors.describeElement(undefined);
+      descriptors.describeElement();
 
       expect(mocks.elements.describeElement).toHaveBeenCalledWith(undefined);
     });

@@ -1,13 +1,13 @@
 import type { DependencyDescription } from "@boundaries/elements";
 import type { Rule } from "eslint";
 
-import type { EslintLiteralNode } from "../../Elements";
+import type { EslintDependencyNode } from "../../Elements";
 import type { ValidateRulesOptions, SettingsNormalized } from "../../Shared";
 
 export type DependencyRuleRunner<Options> = (options: {
   dependency: DependencyDescription;
   options?: Options;
-  node: EslintLiteralNode;
+  node: EslintDependencyNode;
   context: Rule.RuleContext;
   settings: SettingsNormalized;
 }) => void;

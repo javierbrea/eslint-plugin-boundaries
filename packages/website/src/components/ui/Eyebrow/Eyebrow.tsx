@@ -21,6 +21,6 @@ export type EyebrowProps = {
 export default function Eyebrow({
   className,
   children,
-}: EyebrowProps): ReactNode {
+}: Readonly<EyebrowProps>): ReactNode {
   return <span className={clsx(styles.eyebrow, className)}>{children}</span>;
 }

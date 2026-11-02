@@ -34,7 +34,7 @@ export default function Reveal({
   className,
   children,
   ...attributes
-}: RevealProps): ReactNode {
+}: Readonly<RevealProps>): ReactNode {
   const ref = useRef<HTMLElement>(null);
   const isIn = useReveal(ref, { once: true });
   const style =

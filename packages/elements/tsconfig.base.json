@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "skipLibCheck": true,
     "rootDir": ".",
     "outDir": "dist",

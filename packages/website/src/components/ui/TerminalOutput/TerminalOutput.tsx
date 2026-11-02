@@ -23,7 +23,9 @@ export type TerminalFragmentProps = {
  * @param props.children Text of the fragment.
  * @returns The colored fragment.
  */
-export function TermPath({ children }: TerminalFragmentProps): ReactNode {
+export function TermPath({
+  children,
+}: Readonly<TerminalFragmentProps>): ReactNode {
   return <span className={styles.path}>{children}</span>;
 }
 
@@ -33,7 +35,9 @@ export function TermPath({ children }: TerminalFragmentProps): ReactNode {
  * @param props.children Text of the fragment.
  * @returns The colored fragment.
  */
-export function TermPosition({ children }: TerminalFragmentProps): ReactNode {
+export function TermPosition({
+  children,
+}: Readonly<TerminalFragmentProps>): ReactNode {
   return <span className={styles.position}>{children}</span>;
 }
 
@@ -43,7 +47,9 @@ export function TermPosition({ children }: TerminalFragmentProps): ReactNode {
  * @param props.children Text of the fragment.
  * @returns The colored fragment.
  */
-export function TermError({ children }: TerminalFragmentProps): ReactNode {
+export function TermError({
+  children,
+}: Readonly<TerminalFragmentProps>): ReactNode {
   return <span className={styles.error}>{children}</span>;
 }
 
@@ -53,7 +59,9 @@ export function TermError({ children }: TerminalFragmentProps): ReactNode {
  * @param props.children Text of the fragment.
  * @returns The colored fragment.
  */
-export function TermQuoted({ children }: TerminalFragmentProps): ReactNode {
+export function TermQuoted({
+  children,
+}: Readonly<TerminalFragmentProps>): ReactNode {
   return <span className={styles.quoted}>{children}</span>;
 }
 
@@ -67,7 +75,7 @@ export function TermQuoted({ children }: TerminalFragmentProps): ReactNode {
 export default function TerminalOutput({
   children,
   className,
-}: TerminalOutputProps): ReactNode {
+}: Readonly<TerminalOutputProps>): ReactNode {
   return (
     <pre className={clsx(styles.output, className)}>
       <code>{children}</code>

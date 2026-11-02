@@ -9,6 +9,19 @@
     "eslint-config"
   ],
   "targets": {
+    "lint": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      "dependsOn": [
+        {
+          "target": "eslint:config",
+          "projects": ["eslint-config"]
+        }
+      ]
+    },
     "cspell:config": {
       "cache": true,
       "inputs": ["default"],

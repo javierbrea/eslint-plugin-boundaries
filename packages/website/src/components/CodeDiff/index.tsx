@@ -42,7 +42,7 @@ function SuccessIcon() {
 export default function CodeDiff({
   children,
   language = "typescript",
-}: CodeDiffProps) {
+}: Readonly<CodeDiffProps>) {
   // Convert children to string
   const codeString = React.Children.toArray(children)
     .map((child) => (typeof child === "string" ? child : ""))

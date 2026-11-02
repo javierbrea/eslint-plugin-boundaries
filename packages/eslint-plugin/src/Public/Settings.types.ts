@@ -20,8 +20,11 @@ export type {
   DependencyNodeKey,
   DependencyNodeSelector,
   AliasSetting,
-} from "../Shared";
+} from "@boundaries/config";
 
-export { DEPENDENCY_NODE_KEYS_MAP, SETTINGS_KEYS_MAP } from "../Shared";
+export {
+  DEPENDENCY_NODE_KEYS_MAP,
+  SETTINGS_KEYS_MAP,
+} from "@boundaries/config";
 
-export { isDependencyNodeKey, isSettingsKey } from "../Settings";
+export { isDependencyNodeKey, isSettingsKey } from "@boundaries/config";

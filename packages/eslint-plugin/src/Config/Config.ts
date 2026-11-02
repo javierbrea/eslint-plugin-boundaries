@@ -1,7 +1,7 @@
+import { isRuleShortName, isSettingsKey } from "@boundaries/config";
 import type { Linter } from "eslint";
 
 import plugin from "../index";
-import { isRuleShortName, isSettingsKey } from "../Settings";
 import type { Config, Rules } from "../Shared";
 import { PLUGIN_NAME } from "../Shared";
 

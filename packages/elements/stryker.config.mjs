@@ -7,6 +7,7 @@ const config = {
   reporters: ["html", "clear-text", "progress", "dashboard"],
   dashboard: {
     project: "github.com/javierbrea/eslint-plugin-boundaries",
+    module: "elements",
   },
   testRunner: "jest",
   coverageAnalysis: "perTest",

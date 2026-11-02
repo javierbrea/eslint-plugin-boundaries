@@ -27,7 +27,7 @@ export type {
   NoUnknownDependenciesRequire,
   RuleShortName,
   RuleName,
-} from "../Shared";
+} from "@boundaries/config";
 
 export {
   RULE_EFFECTS_MAP,
@@ -35,14 +35,14 @@ export {
   RULE_SHORT_NAMES_MAP,
   RULE_NAMES_MAP,
   NO_UNKNOWN_DEPENDENCIES_REQUIRE_MAP,
-} from "../Shared";
+} from "@boundaries/config";
 
 export {
   isRuleEffect,
   isRulePolicy,
   isRuleShortName,
   isRuleName,
-} from "../Settings";
+} from "@boundaries/config";
 
 /**
  * Kind of import that the rule applies to (e.g., "type", "value")

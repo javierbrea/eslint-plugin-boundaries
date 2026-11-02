@@ -33,6 +33,9 @@ jobs:
       env:
         HUSKY_SKIP_INSTALL: 1
 
+    # NOTE: check:all runs browser-e2e, which needs the browsers
+    - uses: ./.github/actions/install-browsers
+
     - run: pnpm check:all
 
     - name: Rename package to @javierbrea/eslint-plugin-boundaries

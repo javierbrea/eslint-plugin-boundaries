@@ -40,7 +40,7 @@ export default function Button({
   arrow = false,
   className,
   children,
-}: ButtonProps): ReactNode {
+}: Readonly<ButtonProps>): ReactNode {
   return (
     <Link
       to={to}

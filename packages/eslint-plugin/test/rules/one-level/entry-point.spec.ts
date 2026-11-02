@@ -107,6 +107,18 @@ const runTest = (
           },
         ],
       },
+      // Not index.js with default config, required with a template literal
+      {
+        filename: absoluteFilePath("components/component-a/ComponentA.js"),
+        code: "const ComponentB = require(`../component-b/ComponentB.js`)",
+        options: defaultOptions,
+        errors: [
+          {
+            message: errorMessages[0],
+            type: "TemplateLiteral",
+          },
+        ],
+      },
       // folder with config not set to index.js
       {
         filename: absoluteFilePath("components/component-a/ComponentA.js"),
@@ -409,6 +421,52 @@ testCapture(
     "Do not import any type of file from helpers with name *-a",
   ]
 );
+
+// Custom messages of a policy with several targets: each translated policy reports the message of the user's policy at its own index
+
+const severalTargetsMessagesOptions = [
+  {
+    default: "allow",
+    message: "global",
+    policies: [
+      {
+        target: [{ type: "components" }, { type: "modules" }],
+        disallow: "*",
+        message: "m0",
+      },
+      { target: { type: "helpers" }, disallow: "*", message: "m1" },
+    ],
+  },
+];
+
+const severalTargetsMessagesRuleTester = createRuleTester(SETTINGS.oneLevel);
+severalTargetsMessagesRuleTester.run(RULE, rule, {
+  valid: [],
+  invalid: [
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import ModuleA from 'modules/module-a/ModuleA.js'",
+      options: severalTargetsMessagesOptions,
+      errors: [
+        {
+          message: "m1",
+          type: "Literal",
+        },
+      ],
+    },
+    {
+      filename: absoluteFilePath("components/component-a/ComponentA.js"),
+      code: "import HelperA from 'helpers/helper-a/HelperA.js'",
+      options: severalTargetsMessagesOptions,
+      errors: [
+        {
+          message: "global",
+          type: "Literal",
+        },
+      ],
+    },
+  ],
+});
 
 const noRulesRuleTester = createRuleTester(SETTINGS.oneLevel);
 noRulesRuleTester.run(RULE, rule, {
