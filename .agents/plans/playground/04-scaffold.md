@@ -13,7 +13,7 @@ Read first:
 - `packages/elements/tsup.config.js` and `package.json` after #510 (browser build without shims), `packages/config` and `packages/policies` after phases 2 and 3.
 - The redesign's PR #544 description: the quality gates it established.
 
-Preconditions: #510 and phase 2 merged into `release` and `release` merged into `feat/539/playground`. Phase 3 is not required for the scaffold, but research note 1 measures `policies` too if it is merged; if not, the note measures `elements` + `config` and says so.
+Preconditions: met on 2026-11-02. #510, phase 2 and phase 3 are in `release`, released in v7.4.1, and `release` is merged into `feat/539/playground` (e1712596). Run `pnpm install` after checking out the phase branch: the merge added `policies` and `test/browser-e2e`.
 
 ## Scope
 
@@ -23,7 +23,7 @@ In: the three research notes posted on #539, the package, the contract types, th
 
 ### 1. Research note 1: browser bundle
 
-In a scratch folder outside the repo, bundle an entry that imports `@boundaries/elements`, `@boundaries/config` (and `policies` if available) with esbuild `platform: "browser"`, `minify: true`, no alias, run it in `node:vm` without Node.js globals calling `normalizeConfig` and `describeEntity` (and `describeDependency` with paths only, if `policies` is merged) on the quick-start example, and record: it runs, the gzipped size of each package, and that no module resolution is involved (the sketch is the universe: `to` is passed only for nodes of the sketch, and anything else is external or core, RFC #559, decision 4). Post the note on #539 ("Research note 1: browser bundle") with the numbers and the conclusion.
+In a scratch folder outside the repo, bundle an entry that imports `@boundaries/elements`, `@boundaries/config` and `@boundaries/policies` with esbuild `platform: "browser"`, `minify: true`, no alias, run it in `node:vm` without Node.js globals calling `normalizeConfig`, `describeEntity`, `describeDependency` (paths only) and `evaluateDependency` on the quick-start example, and record: it runs, the gzipped size of each package and of the three together, and that no module resolution is involved (the sketch is the universe: `to` is passed only for nodes of the sketch, and anything else is external or core, RFC #559, decision 4). Phase 3 measured 95.9 KB for the three on 2026-10-29 (esbuild 0.28.2); the note measures the released 1.0.0 packages the same way and links `test/browser-e2e` (#558) for the run in Chromium, Firefox and WebKit, instead of repeating it. Post the note on #539 ("Research note 1: browser bundle") with the numbers and the conclusion.
 
 ### 2. Research note 3: config input and editor
 
@@ -42,7 +42,8 @@ List the widgets the RFC interface needs (tree view with inline rename, tabs, re
 
 `packages/playground`:
 
-- `package.json`: name `@boundaries/playground`, `private: true`, `exports` with `.` (the component) and `./styles.css`; `peerDependencies: { react, react-dom }` at the website's major; dependencies `@boundaries/elements`, `@boundaries/config`, `@boundaries/policies` as `workspace:*` (policies may land in phase 6 if not merged yet), plus the libraries chosen in steps 2 and 3; devDependencies: the build tool, Vite for the harness, `@testing-library/react` and jest (jsdom) or Vitest (prefer jest for consistency with the other packages unless the stack forces Vitest; record the reason), `eslint-plugin-boundaries: "workspace:@boundaries/eslint-plugin@*"` for self-linting.
+- `package.json`: name `@boundaries/playground`, `private: true`, `exports` with `.` (the component) and `./styles.css`; `peerDependencies: { react, react-dom }` at the website's major; dependencies `@boundaries/elements`, `@boundaries/config`, `@boundaries/policies` as `workspace:*`, plus the libraries chosen in steps 2 and 3; devDependencies: the build tool, Vite for the harness, `@testing-library/react` and jest (jsdom) or Vitest (prefer jest for consistency with the other packages unless the stack forces Vitest; record the reason), `eslint-plugin-boundaries: "workspace:@boundaries/eslint-plugin@*"` for self-linting. The root has jest 30 and Babel with `preset-env` and `preset-typescript` only, so jest in jsdom also needs `jest-environment-jsdom` and the React JSX transform (`@babel/preset-react`) in the package.
+- Browser code: the package runs only in browsers. Its `eslint.config.mjs` composes `reactConfig`, `reactHooksConfig` and `createBrowserConfig` of `support/eslint-config`, whose `files` glob is `src/**/*.ts`: widen it to `src/**/*.{ts,tsx}` there (no other package has `.tsx` in `src`) so that the components are covered. No `test:e2e` bundle check in `node:vm` (`00-shared.md` section 4): a React component needs a DOM, so its tests run in jsdom and the website build bundles it; `test/browser-e2e` keeps testing the three engine packages only.
 - Build: tsup (as the other packages) with `platform: "browser"`, `format: ["esm"]`, `dts: true`, `external: ["react", "react-dom"]`, `injectStyle: false` and CSS emitted as one file. If CSS Modules are chosen, check tsup/esbuild emits them as one `styles.css` with hashed class names; otherwise plain CSS with a `jsb-play-` prefix (RFC decision 2 cons).
 - Source layout, lint-enforced in `eslint.config.mjs` with the workspace plugin and `no-unknown-files` on: `src/index.ts` (entry), `src/Playground.tsx` (the component), `src/contract/` (`ProjectSource`, `StateStore`, capability flags, `SketchSource`, `MemoryStore`), `src/engine/` (the adapter from the sketch model to `config` and `policies`, empty but typed now), `src/ui/` (panes later; now the placeholder), `src/styles/` (tokens consumption, base layout). Policies: `ui` → `contract`, `engine`; `engine` → `contract`; nothing imports `@docusaurus/*`, `@theme/*` or Infima classes (an ESLint `no-restricted-imports` rule in the package config makes this a lint error).
 - `project.json`: targets as the others; `build` depends on `^build`; `lint` depends on `eslint:config` and `^build` (it uses the workspace plugin).
@@ -53,14 +54,15 @@ List the widgets the RFC interface needs (tree view with inline rename, tabs, re
 ### 5. The website shell
 
 - `packages/website/package.json`: `"@boundaries/playground": "workspace:*"` in `dependencies` (it is bundled).
-- `packages/website/project.json`: `build` gains `dependsOn: ["^build"]` restricted to the playground if possible (`{ "projects": ["playground"], "target": "build" }`), and `check:types` likewise; `implicitDependencies` gains `playground`. Check `pnpm nx graph`.
+- `packages/website/project.json`: `build` gains `dependsOn: ["^build"]` restricted to the playground if possible (`{ "projects": ["playground"], "target": "build" }`), and `check:types` likewise (both have `dependsOn: []` today, with a comment saying only `lint` needs a build; rewrite that comment); `implicitDependencies` gains `playground`. Check `pnpm nx graph`.
+- Netlify builds through Nx (`00-shared.md` section 5), so this `dependsOn` also builds the playground before the site in the deploy; Netlify needs no change.
 - `src/pages/playground.tsx`: `Layout` with title `Playground` and the description from the RFC summary; the eyebrow `Drafting table` and the lead in the server render; `BrowserOnly` with a fallback skeleton; inside, `React.lazy(() => import("@boundaries/playground"))` wrapped in `Suspense`, with `import "@boundaries/playground/styles.css"` done inside the lazy module or through a dynamic import so that the CSS is not loaded on other pages; a media query (`useMediaQuery` from `src/components/motion`, or a CSS-only approach) that renders the desktop-only note below the tablet breakpoint (the website's breakpoints are in `custom.css`; use the one Docusaurus uses for the mobile navbar, 996 px, unless the mockup fixes another).
 - `eslint.config.mjs` of the website: the page is a `page`; no new element type needed unless a wrapper component is added under `src/components/`.
 - No navbar entry and no teaser change (phase 7). The page is reachable by URL only.
 
 ### 6. Agent files
 
-`repo-architecture` skill: the `playground` row (private, consumed by `website`) and the graph line `website build → playground build → policies / config / elements build`; website `AGENTS.md`: the page is client-only and the package is the only place playground code lives; root `AGENTS.md` overview sentence if it enumerates projects.
+`repo-architecture` skill: its opening sentence, the `playground` row of the component map (private, consumed by `website`) and the graph line `website build → playground build → policies / config / elements build`, which also changes the bullet that says the website depends only on the built `eslint-plugin`; website `AGENTS.md`: the page is client-only and the package is the only place playground code lives; root `AGENTS.md` "Repository Overview", which names the four published libraries and the website, gains the private playground.
 
 ## Verification
 

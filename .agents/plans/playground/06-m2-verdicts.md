@@ -12,7 +12,7 @@ Read first:
 - `packages/policies` README and `AGENTS.md`: `describeDependency` and its input (`DependencyDescriptorOptions`: `from`, `to`, `source`, `kind`, `nodeKind`, `specifiers`), `evaluateDependency` and its result (`checked` with a skip `reason`, or `allowed`, `policyIndex`, `match`, `message`, `diagnostics`); `03-policies.md` hand-offs.
 - `packages/website/src/components/home/Steps/` for the exact step 3 scenario and the message the home shows.
 
-Preconditions: phase 5 merged; phase 3 merged into `release` and `release` merged into `feat/539/playground`.
+Preconditions: phase 5 merged. Phase 3 is in `feat/539/playground` since the merge of `release` on 2026-11-02.
 
 ## Scope
 

@@ -3,7 +3,7 @@
 
 Index of the plan. The plan is split so that an independent session can implement one phase with no other context than the files named here plus the repository's own agent files. The source of every design decision is [RFC #538](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538); the tracking issue is #539 and the milestone is [Playground](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/45).
 
-Status (2026-10-29): phase 3 (#550) is PR #588 into `release`, draft, with `check:all` passing locally; the release of decision 13 follows its merge. Merged into `release`: phase 0 (#556), phase 2 (#561, 2026-10-28), #510 (#560, released in 7.4.0), #557 (#582) and #558 (#583). Phase 1 is done: [RFC #559](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/559) is accepted and has Amendment 1, #548 is closed, research note 2 is posted on #539 and #538 has Amendment 2. `release` was last merged into this branch on 2026-10-26, so phase 4 starts by merging it. No playground phase started.
+Status (2026-11-02): the extraction is done and released. Merged into `release`: phase 0 (#556), phase 2 (#561), phase 3 (#588), #510 (#560), #557 (#582) and #558 (#583); phase 1 is done (RFC #559 accepted, with Amendment 1). The release of decision 13 is v7.4.1 (#592, 2026-11-02): `config` and `policies` 1.0.0, `elements` 3.3.1. `release` was merged into this branch on 2026-11-02 (e1712596), so phase 4 (#551) can start; no playground phase has started.
 
 This plan lives on the integration branch `feat/539/playground`. How it is shared, kept true and removed is in the "Where it lives" and "Starting a phase" sections of the `write-plan` skill; phase 9 removes it.
 
