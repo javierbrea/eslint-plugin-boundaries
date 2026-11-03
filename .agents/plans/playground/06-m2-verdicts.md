@@ -9,7 +9,7 @@ Read first:
 
 - RFC #538, "Interface" decisions 3, 4 and 6, the picker drawing, the problems panel states, and "Milestones" M2.
 - The approved mockup (`playground/mockups/`) and "Decisions of the mockup" in `05-m1-identify.md`.
-- `packages/policies` README and `AGENTS.md`: `describeDependency` and its input (`DependencyDescriptorOptions`: `from`, `to`, `source`, `kind`, `nodeKind`, `specifiers`), `evaluateDependency` and its result (`checked` with a skip `reason`, or `allowed`, `policyIndex`, `match`, `message`, `diagnostics`); `03-policies.md` hand-offs.
+- `packages/policies` README and `AGENTS.md`: `describeDependency` and its input (`DependencyDescriptorOptions`: `from`, `to`, `source`, `kind`, `nodeKind`, `specifiers`), `evaluateDependency` and its result (`checked` with a skip `reason`, or `allowed`, `policyIndex`, `match`, `message`, `diagnostics`), whose `message` is set only when `allowed` is `false`; `getDependencySkipReason(options, description)` gives the skip reason alone.
 - `packages/website/src/components/home/Steps/` for the exact step 3 scenario and the message the home shows.
 
 Preconditions: phase 5 merged. Phase 3 is in `feat/539/playground` since the merge of `release` on 2026-11-02.
@@ -22,7 +22,7 @@ In: the dependency model and picker, rendering as import statements with verdict
 
 ### 1. The dependency model
 
-`SketchSource.dependencies`: `{ from: path, target: { kind: "node", path } | { kind: "external", name }, syntax: "import" | "export-from" | "require" | "dynamic-import", importKind: "value" | "type", specifiers: Array<{ kind: "default" | "named" | "namespace", name, alias? }> }`. A renderer turns it into the import statement text (`import format, { round } from "../../helpers/format";`, relative paths computed from `from` to the target node, `import type` for `type`, `require("...")`, `import("...")`, `export { x } from "..."`); the text is display only.
+`Sketch.dependencies`, typed by phase 4 in `src/contract/Sketch.types.ts`: `{ from: path, target: { kind: "node", path } | { kind: "external", name }, syntax: "import" | "export-from" | "require" | "dynamic-import", importKind: "value" | "type", specifiers: Array<{ kind: "default" | "named" | "namespace", name, alias? }> }`. A renderer turns it into the import statement text (`import format, { round } from "../../helpers/format";`, relative paths computed from `from` to the target node, `import type` for `type`, `require("...")`, `import("...")`, `export { x } from "..."`); the text is display only.
 
 ### 2. Evaluation
 
@@ -52,7 +52,7 @@ The home's step 3 scenario as a fixture: the verdict, the policy index and the m
 
 ## Hand-offs
 
-- To phase 7: the complete `SketchSource` (tree, config, dependencies) to serialize; the engine as the single evaluation entry.
+- To phase 7: the complete `Sketch` (tree, config, dependencies) to serialize; the engine as the single evaluation entry.
 - To phase 8: the message texts and the picker vocabulary the guide page documents.
 
 ## Open points
