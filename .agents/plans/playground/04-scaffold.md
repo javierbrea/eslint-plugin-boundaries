@@ -75,7 +75,7 @@ List the widgets the RFC interface needs (tree view with inline rename, tabs, re
 
 ## Hand-offs
 
-- To phase 5: the theme and the root element (`src/theme/`, where the mockup's values go: typography, shape, elevation, ripple; in the dark scheme, MUI's `Paper` adds a lighter overlay that the theme overrides); the libraries still to add (step 4); the sketch model (`src/contract/Sketch.types.ts`: `config`, `tree` and `dependencies` with the shapes of `05-m1-identify.md` and `06-m2-verdicts.md`, read-only data replaced on every edit); `Playground` loads the store's sketch first and the source's when the store has none; the harness; the element types to extend (`engine` is declared, `examples` is not); the 996 px breakpoint of the note.
+- To phase 5: the theme and the root element (`src/theme/`, where the mockup's values go: typography, shape, elevation, ripple; in the dark scheme, MUI's `Paper` adds a lighter overlay that the theme overrides); the libraries still to add (step 4); the sketch model (`src/contract/Sketch.types.ts`: `config`, `tree` and `dependencies` with the shapes of `05-m1-identify.md` and `06-m2-verdicts.md`, read-only data replaced on every edit); `Playground` loads the store's sketch first and the source's when the store has none, and shows the reason when the load fails; the harness (`pnpm nx dev playground`); the element types to extend (`engine` is declared, `examples` is not); the 996 px breakpoint of the note.
 - To phase 7: the `StateStore` interface the URL store implements (`load` and `save`, both asynchronous), and the website's lazy factory, where the URL store replaces the `MemoryStore`.
 
 ## Open points

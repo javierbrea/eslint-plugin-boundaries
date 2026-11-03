@@ -10,10 +10,11 @@ Preconditions: phases 4 to 8 merged. Anything the plan still holds that must sur
 ## Steps
 
 1. Read the plan once more and list every fact in it that is still true and not recorded in a committed file; add each one to the right place (`packages/playground/AGENTS.md`, `packages/website/AGENTS.md`, the `repo-architecture` skill) in this PR, following `.agents/rules/agents-md.md` (no status, no history).
-2. Delete `.agents/plans/playground.md` and `.agents/plans/playground/` (mockups and renders included: the approved mockup's facts live in the components now; if the maintainer wants to keep the mockup, move it to the orphan branch `rfc/538-playground-assets`).
-3. Restore `.gitignore` to the single line `.agents/plans/` (compare with `origin/release`).
-4. Delete the `screenshots/*` branches created by phases 4 to 8 (`git push origin --delete <branch>`), after the maintainer confirms their PRs no longer need the images.
-5. Update #539: tick the sub-issues, note that the plan was removed, and that the final PR into `release` can be opened (`playground.md`, "Integration plan", step 3).
+2. File every question still under "Open questions" in the index as an issue with the `create-issue` skill, so that none leaves with the plan.
+3. Delete `.agents/plans/playground.md` and `.agents/plans/playground/` (mockups and renders included: the approved mockup's facts live in the components now; if the maintainer wants to keep the mockup, move it to the orphan branch `rfc/538-playground-assets`).
+4. Restore `.gitignore` to the single line `.agents/plans/` (compare with `origin/release`).
+5. Delete the `screenshots/*` branches created by phases 4 to 8 (`git push origin --delete <branch>`), after the maintainer confirms their PRs no longer need the images.
+6. Update #539: tick the sub-issues, note that the plan was removed, and that the final PR into `release` can be opened (`playground.md`, "Integration plan", step 3).
 
 ## Verification
 
