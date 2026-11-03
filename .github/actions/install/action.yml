@@ -30,7 +30,7 @@ runs:
       uses: actions/cache@v6.1.0
       with:
         path: node_modules
-        key: pnpm-windows-${{ hashFiles('pnpm-lock.yaml') }}
+        key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
     - name: Fix PNPM symlinks on Windows
       if: ${{ inputs.windows-fix-symlinks == 'true' }}

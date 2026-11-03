@@ -4,16 +4,19 @@ description: Install Chromium, Firefox and WebKit of the Playwright version in t
 runs:
   using: composite
   steps:
-    - name: Get Playwright version
+    # NOTE: Playwright downloads a different build of each browser for each Linux distribution release, chosen from the ID and VERSION_ID in /etc/os-release, so the cache key includes them. Otherwise, a runner image upgrade restores browsers built for the previous release, which fail to load its system libraries
+    - name: Get Playwright version and Linux distribution
       id: playwright-version
       shell: bash
-      run: echo "version=$(node -p 'require("./package.json").devDependencies["@playwright/test"]')" >> "$GITHUB_OUTPUT"
+      run: |
+        echo "version=$(node -p 'require("./package.json").devDependencies["@playwright/test"]')" >> "$GITHUB_OUTPUT"
+        echo "distro=$(. /etc/os-release && echo "${ID}-${VERSION_ID}")" >> "$GITHUB_OUTPUT"
 
     - name: Cache Playwright browsers
       uses: actions/cache@v6.1.0
       with:
         path: ~/.cache/ms-playwright
-        key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+        key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.distro }}-${{ steps.playwright-version.outputs.version }}
 
     # NOTE: When the browsers come from the cache, it only installs their system dependencies
     - name: Install Playwright browsers
