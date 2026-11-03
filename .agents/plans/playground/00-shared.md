@@ -15,6 +15,7 @@ pnpm nx run-many -t check:all --all                          # everything, depen
 pnpm nx lint <project> <file> --output-style=stream --fix    # one file, autofix
 pnpm nx test:unit <project> <spec-path> --output-style=stream --coverage=false
 pnpm nx graph                                                # the live dependency graph; the plan's statements about it are checked here
+pnpm nx dev playground                                       # Vite harness of the package (packages/playground/dev)
 pnpm nx start website                                        # Docusaurus dev server, http://localhost:3000
 pnpm nx build website --output-style=stream                  # production build into packages/website/build
 pnpm --filter website screenshots [baseUrl] [paths...]      # Playwright visual check (overflow, console errors, both themes, 1440 and 390 px); it installs its pinned Chromium by itself
@@ -27,39 +28,22 @@ pnpm nx test:e2e browser-e2e --output-style=stream           # the packages in C
 
 ## 2. Branching, PRs, commits
 
-- Phase branches are named in the index ("Phases"): `feat/<issue>/<slug>`, from the branch their PR targets (`write-plan` skill, "Where it lives"). Extraction phases target `release`; playground phases target `feat/539/playground`. Never target `master`.
+- Phase branches are named in the index ("Phases"): `feat/<issue>/<slug>`, from `feat/539/playground`, which every phase left targets (`write-plan` skill, "Where it lives"). Never target `release` or `master`.
 - One PR per phase, draft, created with the `create-pr` skill (it fills the template, infers the issue from the branch name and adds `closes #N`). For PRs into `feat/539/playground` the `closes` line is kept: it acts when the integration branch reaches `master`.
-- Commit messages: Conventional Commits with the issue in the scope when there is one (`feat(#549): ...`), as the repository does; plan edits are `chore(playground): update the playground plan ...` on the integration branch.
+- Commit messages: Conventional Commits with the issue in the scope when there is one (`feat(#549): ...`), as the repository does; plan edits are `chore(playground): ...` commits of the phase's own PR (`write-plan` skill, "Where it lives").
 - The integration branch merges `release` (never rebases) whenever a phase needs something merged there; the merge is a plain `git merge origin/release` commit, pushed.
 - PR description: what changed and why, the acceptance criteria of the issue with how each was checked, measurements when the issue asks for them (bundle sizes, Lighthouse), and screenshots for UI phases (committed as contact sheets on an orphan `screenshots/<phase-branch>` branch and embedded by raw URL, as the redesign did; phase 9 deletes those branches).
 
-## 3. Package conventions (phases 2, 3, 4)
-
-A new package copies the shape of the closest existing one and changes only what differs:
-
-- `packages/config` is the model for a pure library (it follows `packages/elements`): tsup build for Node.js and the browser (`tsup.config.js`, `exports` with `browser` / `node` / `default` conditions), jest with 100% coverage thresholds, mutation tests (`stryker.config.mjs`, `test:mutation`), `tsconfig.json` + `tsconfig.eslint.json`, `cspell.config.js`, `eslint.config.mjs` composing `support/eslint-config` with `createBrowserConfig`, `sonar-project.properties`, `README.md`, `CHANGELOG.md` in the Keep a Changelog format with an `[Unreleased]` section, `LICENSE`, and `project.json` with `tags`, the `lint` dependency on `eslint:config` and `implicitDependencies: ["eslint-config", "cspell-config"]`.
-- `packages/eslint-plugin` is the model for dogfooding: its `eslint.config.mjs` declares the element types of `src/` and a `boundaries/dependencies` policy list, and `boundaries/no-unknown-files` keeps every source file classified. The playground lints itself with the workspace plugin (`eslint-plugin-boundaries: "workspace:@boundaries/eslint-plugin@*"` as a devDependency, `lint` depending on `^build`). `config` and `policies` do not (RFC #559, decision 8): they are build dependencies of the plugin, so declaring it as their devDependency makes the `^build` of each wait for the other, a cycle Nx refuses. Their layering is written in their `AGENTS.md`, as `elements` does.
-- The shared `jestConfig` of `support/eslint-config` enforces `jest/max-expects` (five per spec) in a new package; the plugin's `eslint.config.mjs` overrides those rules, so a spec moved from the plugin may need splitting (phase 2 did).
-- Each package has an `AGENTS.md` under 200 lines following `.agents/rules/agents-md.md`: its layering, hard constraints and entry points, nothing that is a status or a decision record. A `CLAUDE.md` with the single line `@AGENTS.md` sits next to it (see `packages/eslint-plugin/CLAUDE.md`).
-- Nx: standard target names (`lint`, `check:types`, `check:spell`, `build`, `test:unit`, `check:all`); `check:all` is `echo 'All checks passed'` and Nx runs the others as its dependencies through `nx.json` `targetDefaults`. Check `inputs`/`outputs` as `.agents/rules/nx-project-config.md` says.
-- Publishing: `pnpm -r publish` in `.github/workflows/publish.yml` publishes every non-private workspace package, so a new public package needs no workflow change beyond checking its `publishConfig` and `files`. `publish-to-github.yml` publishes only the plugin, renamed to `@javierbrea/eslint-plugin-boundaries`, whose dependencies resolve from npm: it needs no change either. What names packages and must gain a new one: `.github/workflows/build.yml` (the `test-node-versions` unit runs; the `build-windows` job, which runs the plugin's tests outside Nx and downloads the `elements-build` artifact, so it needs the build artifact of every package the plugin depends on; the coverage artifacts and the Coveralls and Sonar steps of `reports`), the matrix of `.github/workflows/test-mutation.yml`, `.github/CONTRIBUTING.md` "Publishing" (steps 1 and 6) and the `release` skill (`.agents/skills/release/SKILL.md`, the version checks and the commit and PR titles). A Sonar scan needs a SonarCloud project and a token secret per package, which only the maintainer can create; the step is guarded by its token, as the `elements` one is, so it is skipped until then. `CONTRIBUTING.md` ("Versioning") requires a bump of every package that depends on a changed one.
-- Changelog: one `[Unreleased]` entry per package changed, written for its users (`.agents/rules/changelog-and-versioning.md`, "Entry style"). A new package starts its changelog at its first version.
-- The `repo-architecture` skill (`.agents/skills/repo-architecture/SKILL.md`) lists the component map and the dependency graph; every phase that adds a project updates its tables in the same PR, and the root `AGENTS.md` "Repository Overview" names the published libraries.
-
-## 4. Browser readiness (phases 2, 3, 4)
-
-`config`, `policies` and `playground` run in the browser. The check that #510 adds to `elements` (PR #560) is the model: a `test:e2e` target runs `test/e2e/builds.spec.mjs` with `node:test`; it bundles an entry that imports the package by name with esbuild `platform: "browser"`, no aliases and no polyfills, once as an import and once as a require, runs each bundle in a `node:vm` context without Node.js globals, and requires the same results as the Node.js CommonJS and ES module builds. `check:all` runs `test:e2e` through `nx.json` `targetDefaults`. `createBrowserConfig` of `support/eslint-config` (#576) forbids the Node.js globals in `src`. Phases 2 and 3 copy both; phase 4 copies only the lint, because the playground is a React component that needs a DOM (`04-scaffold.md`, step 4). Nothing in these packages reads `process`, `path` or `fs`; what the plugin needs from Node.js (root path resolution, module resolution, console output) stays in the plugin as an adapter. The check bundles the workspace packages the package depends on too. The check runs on V8 and package by package; the Nx project `test/browser-e2e` (#558) runs the packages together in Chromium, Firefox and WebKit with `@playwright/test` and requires every scenario to return what it returns in Node.js. Each phase that adds a package adds its scenarios there. Known results (2026-10-26, esbuild 0.27.3): `ajv@6.15.0`, the `config` validator, bundles and runs that way at 30.6 KB gzipped; `handlebars` resolves to its browser build through its `browser` field.
-
-## 5. Website conventions (phases 4 to 8)
+## 3. Website conventions (phases 5 to 8)
 
 - The website is Docusaurus 3 with `trailingSlash: true` and `onBrokenLinks: "throw"`: every internal link ends with `/` and must exist. `packages/website/AGENTS.md` and `.agents/rules/docs-authoring.md` govern docs edits; `docs/` is the next version, `versioned_docs/` holds the published ones (the newest is the first entry of `versions.json`), and the playground adds pages to `docs/` only.
 - Design tokens are in `packages/website/src/css/tokens.css` (`--jsb-*`, light on `:root`, dark on `[data-theme="dark"]`); fonts are self-hosted (`fonts.css`); `infima-bridge.css` maps Infima onto the tokens. The playground reads the tokens and adds none to this file without the maintainer's agreement.
 - `src/` layering is lint-enforced in `packages/website/eslint.config.mjs` (element types `page`, `theme`, `client`, `home`, `site`, `ui`, `motion`, `docs-component`, `data`, `prism`; `boundaries/no-unknown-files` on). A new folder is classified there before it is used; the playground page is a `page`, and any MDX component for the docs is a `docs-component` or a new element type the phase declares.
 - The home teaser link is `GITHUB_PLAYGROUND_ISSUE` in `src/data/site/links.ts`; the navbar is in `docusaurus.config.ts`. Both change in phase 7 only.
-- The website `lint` builds `eslint-plugin` first (`^build`); after phase 4 its `build` also depends on `playground` build (today `build` has `dependsOn: []`, which phase 4 changes).
+- The website `build`, `check:types` and `start` build `playground` first, and its `lint` builds `eslint-plugin` first (`^build`).
 - Netlify deploys `master` and previews the PRs into it with the build command `pnpm nx run website:build` (base directory `/`, package directory `packages/website`, publish directory `packages/website/build`), set in the Netlify UI, not in the repo (maintainer, 2026-11-02). It goes through Nx, so the `dependsOn` of the website `build` decides what is built before the site.
 
-## 6. Quality gates (phases 4 to 8)
+## 4. Quality gates (phases 5 to 8)
 
 For `/playground/`, on the production build served locally (`pnpm --filter website serve`):
 
@@ -69,10 +53,10 @@ For `/playground/`, on the production build served locally (`pnpm --filter websi
 - At 390 px the page shows the title, the lead and the desktop-only note, no panes.
 - `pnpm nx check:all website` and `pnpm nx check:all playground` pass.
 
-## 7. Definition of done for a phase
+## 5. Definition of done for a phase
 
 - The acceptance criteria of its issue are checked and the PR description says how.
 - `pnpm nx run-many -t check:all --all` passes locally; CI is green on the PR.
 - The agent files it affects (`AGENTS.md` of the touched projects, `repo-architecture` skill, rules) are updated in the same PR, and say only what stays true.
-- The plan is true after the phase: its hand-offs are recorded, the index status line is rewritten, later phases are adjusted, and the plan edit is approved by the maintainer and committed on `feat/539/playground`.
+- The PR leaves the plan ready for the next phase (`write-plan` skill, "Finishing a phase"): hand-offs moved to the files of the phases that need them, its own phase file deleted, the index status line rewritten, each plan edit approved by the maintainer before it is committed in the PR.
 - The sub-issue is ticked in the `Plan` list of #539 when the PR merges.

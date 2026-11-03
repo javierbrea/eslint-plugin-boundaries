@@ -3,16 +3,15 @@
 
 Index of the plan. The plan is split so that an independent session can implement one phase with no other context than the files named here plus the repository's own agent files. The source of every design decision is [RFC #538](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538); the tracking issue is #539 and the milestone is [Playground](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/45).
 
-Status (2026-11-03): the extraction is done and released. Merged into `release`: phase 0 (#556), phase 2 (#561), phase 3 (#588), #510 (#560), #557 (#582) and #558 (#583); phase 1 is done (RFC #559 accepted, with Amendment 1). The release of decision 13 is v7.4.1 (#592, 2026-11-02): `config` and `policies` 1.0.0, `elements` 3.3.1. `release` was merged into this branch on 2026-11-03 (8d3a3f4c), with the WebKit fix of #601. The files of phases 1 to 3 are trimmed, as the `write-plan` skill change of #603 says for merged phases. Phase 4 (#551) is implemented on `feat/551/playground-scaffold` and in review in #599: research notes 1, 3 and 4 are posted on #539, the stack is decided (decisions 14 and 15), and `/playground/` renders the placeholder of the package; the review changes were pushed on 2026-11-03. Phase 5 (#552) starts with the mockup.
+Status (2026-11-03): the extraction is done and released in v7.4.1 (#592, 2026-11-02): `config` and `policies` 1.0.0, `elements` 3.3.1; phase 1 is RFC #559, accepted with Amendment 1. Phase 4 (#551) merged into this branch on 2026-11-03 (#599): `/playground/` renders the placeholder of `@boundaries/playground`, research notes 1, 3 and 4 are on #539, and the stack is decided (decisions 14 and 15); `release` was merged into this branch after it (0a033f7d). Phase 5 (#552) is in progress on `feat/552/playground-identify`, starting with the mockup.
 
-This plan lives on the integration branch `feat/539/playground`. How it is shared, kept true and removed is in the "Where it lives" and "Starting a phase" sections of the `write-plan` skill; phase 9 removes it.
+This plan lives on the integration branch `feat/539/playground`. How it is shared, kept true and removed is in the "Where it lives", "Starting a phase" and "Finishing a phase" sections of the `write-plan` skill; phase 9 removes it.
 
 ## Files
 
 | File | Read it when |
 | --- | --- |
 | `playground/00-shared.md` | Always. Environment, branching, package conventions, quality gates, definition of done. |
-| `playground/04-scaffold.md` | Phase 4 (#551): research notes 1, 3, 4; `packages/playground`; the website shell. |
 | `playground/05-m1-identify.md` | Phase 5 (#552): the HTML mockup of the interface, then M1. |
 | `playground/06-m2-verdicts.md` | Phase 6 (#553): M2. |
 | `playground/07-m3-share-embed.md` | Phase 7 (#554): M3. |
@@ -22,23 +21,23 @@ This plan lives on the integration branch `feat/539/playground`. How it is share
 
 ## Phases
 
-| Phase | Issue | Branch | Depends on | PR target | PR title |
-| --- | --- | --- | --- | --- | --- |
-| 0 Skills | — | `chore/539/issue-and-plan-skills` | — | `release` | `chore: Add the writing-style, create-issue and write-plan skills` |
-| 1 RFC | #548 | none (Discussion [RFC #559](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/559)) | — | — | — |
-| 2 config | #549 | `feat/549/config-package` | 1 done | `release` | `feat: Extract @boundaries/config from the plugin` |
-| 3 policies | #550 | `feat/550/policies-package` | 2 merged | `release` | `feat: Extract @boundaries/policies from the plugin` |
-| — Browser build | #510 | `feat/510-elements-in-browser` | — | `release` | as the issue says |
-| — Playwright | #557 | `chore/557/playwright-root-dependency` | — | `release` | `chore: Run the website browser scripts on Playwright's pinned Chromium` |
-| — Browser e2e | #558 | `chore/558/browser-e2e` | #510 and #557 merged | `release` | `chore: Test the browser builds in Chromium, Firefox and WebKit` |
-| 4 Scaffold | #551 | `feat/551/playground-scaffold` | #510 and 2 merged into `release` and `release` merged here | `feat/539/playground` | `feat(playground): scaffold the package and the website shell` |
-| 5 M1 | #552 | `feat/552/playground-identify` | 4 merged; the mockup can start before | `feat/539/playground` | `feat(playground): identify the files of a sketched project` |
-| 6 M2 | #553 | `feat/553/playground-verdicts` | 5 merged, 3 merged into `release` and `release` merged here | `feat/539/playground` | `feat(playground): verdicts of the dependencies` |
-| 7 M3 | #554 | `feat/554/playground-share` | 6 merged | `feat/539/playground` | `feat(playground): share by URL and embed in the docs` |
-| 8 Docs | #555 | `docs/555/playground-guide` | 7 merged | `feat/539/playground` | `docs(website): document the playground` |
-| 9 Cleanup | — | `chore/539/playground-cleanup` | 8 merged | `feat/539/playground` | `chore(playground): remove the playground plan` |
+| Phase | Issue | Branch | Depends on | PR target | PR title | PR |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 Skills | — | `chore/539/issue-and-plan-skills` | — | `release` | `chore: Add the writing-style, create-issue and write-plan skills` | #556 |
+| 1 RFC | #548 | none (Discussion [RFC #559](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/559)) | — | — | — | — |
+| 2 config | #549 | `feat/549/config-package` | 1 done | `release` | `feat: Extract @boundaries/config from the plugin` | #561 |
+| 3 policies | #550 | `feat/550/policies-package` | 2 merged | `release` | `feat: Extract @boundaries/policies from the plugin` | #588 |
+| — Browser build | #510 | `feat/510-elements-in-browser` | — | `release` | as the issue says | #560 |
+| — Playwright | #557 | `chore/557/playwright-root-dependency` | — | `release` | `chore: Run the website browser scripts on Playwright's pinned Chromium` | #582 |
+| — Browser e2e | #558 | `chore/558/browser-e2e` | #510 and #557 merged | `release` | `chore: Test the browser builds in Chromium, Firefox and WebKit` | #583 |
+| 4 Scaffold | #551 | `feat/551/playground-scaffold` | #510 and 2 merged into `release` and `release` merged here | `feat/539/playground` | `feat(playground): scaffold the package and the website shell` | #599 |
+| 5 M1 | #552 | `feat/552/playground-identify` | 4 merged | `feat/539/playground` | `feat(playground): identify the files of a sketched project` | |
+| 6 M2 | #553 | `feat/553/playground-verdicts` | 5 merged | `feat/539/playground` | `feat(playground): verdicts of the dependencies` | |
+| 7 M3 | #554 | `feat/554/playground-share` | 6 merged | `feat/539/playground` | `feat(playground): share by URL and embed in the docs` | |
+| 8 Docs | #555 | `docs/555/playground-guide` | 7 merged | `feat/539/playground` | `docs(website): document the playground` | |
+| 9 Cleanup | — | `chore/539/playground-cleanup` | 8 merged | `feat/539/playground` | `chore(playground): remove the playground plan` | |
 
-What can run in parallel: phase 1, #510 and #557 from the start; #558 after #510 and #557, alongside phases 2 and 3 (whichever merges second adds the scenarios of the other); the HTML mockup of phase 5 at any time (it needs no code); phases 2 and 3 are sequential; phase 4 waits for #510 and 2; phase 6 waits for 3. Two sessions at most at a time (user rule).
+What can run in parallel: phases 5 to 9 are sequential, each one on the merge of the previous one. Two sessions at most at a time (user rule).
 
 ## Integration plan
 

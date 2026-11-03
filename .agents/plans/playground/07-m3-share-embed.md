@@ -8,7 +8,8 @@ Issue: #554. Branch `feat/554/playground-share` from `feat/539/playground`; PR i
 Read first:
 
 - RFC #538, "Research tasks" 5, "Milestones" M3, "Acceptance" (a state shared by URL opens identically elsewhere), "Dependencies" (the teaser and the navbar entry switch on with the first usable version).
-- `04-scaffold.md` hand-offs (`StateStore`), `05-m1-identify.md` and `06-m2-verdicts.md` hand-offs (`Sketch`, examples).
+- `packages/playground/src/contract/StateStore.types.ts`, the interface the hash store implements (`load` and `save`, both asynchronous), and the lazy factory of `packages/website/src/pages/playground.tsx`, where the hash store replaces the `MemoryStore`.
+- `05-m1-identify.md` and `06-m2-verdicts.md` hand-offs (`Sketch`, examples).
 - `packages/website/src/data/site/links.ts` (`GITHUB_PLAYGROUND_ISSUE`), `src/components/home/PlaygroundTeaser/`, `docusaurus.config.ts` navbar items, `src/components/CodeDiff/` (an existing MDX component of the docs, the model for the new one and its `docs-component` element type), `packages/website/docs/quick-start.mdx` (the first page to get a button, in phase 8).
 - Docusaurus docs on client-side routing and `useHistory` / `useLocation` for the hash check.
 
@@ -45,7 +46,7 @@ A dropdown in the top bar listing `src/examples/*` (the quick-start one from pha
 ## Verification
 
 - Acceptance criteria of #554, each checked in the PR description: a URL produced in one browser opens identically in another (test with two profiles or a private window), at least one docs page opens its example, navbar and teaser updated.
-- Quality gates of `00-shared.md` section 6 on `/playground/` with a state in the hash, and on `/` (the teaser change must not regress the home's Lighthouse).
+- Quality gates of `00-shared.md` section 4 on `/playground/` with a state in the hash, and on `/` (the teaser change must not regress the home's Lighthouse).
 - Unit tests: encode/decode round trip, version handling, the size guard.
 
 ## Hand-offs
