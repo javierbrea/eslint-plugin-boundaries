@@ -54,6 +54,51 @@
       "allowedVersions": "<0.3.10"
     },
     {
+      "description": "tsup 9 requires Node.js ^22.18.0 || ^24.11.0 || >=26 and fails with ERR_REQUIRE_ESM on Node.js 18, where the test-node-versions job builds the packages before running their unit tests. Keep tsup on v8 until #595 drops Node.js 18 and 20",
+      "matchFileNames": [
+        "**/package.json"
+      ],
+      "matchPackageNames": [
+        "tsup"
+      ],
+      "allowedVersions": "<9.0.0"
+    },
+    {
+      "description": "TypeScript 6 breaks the dts build of tsup 8, which sets the deprecated baseUrl option (TS5101), and tsup 9 waits for #595. TypeScript 7 has no compiler JS API, which tsup and typescript-eslint need, and typescript-eslint supports typescript <6.1.0",
+      "matchFileNames": [
+        "**/package.json"
+      ],
+      "matchPackageNames": [
+        "typescript"
+      ],
+      "allowedVersions": "<6.0.0"
+    },
+    {
+      "description": "@boundaries/config validates rule options as ESLint does, with ajv 6 and the draft-04 meta schema, and ESLint 9 and 10 depend on ajv 6",
+      "matchFileNames": [
+        "packages/config/package.json"
+      ],
+      "matchPackageNames": [
+        "ajv"
+      ],
+      "allowedVersions": "<7.0.0"
+    },
+    {
+      "description": "pnpm 11 requires Node.js >=22.13, and the test-node-versions job installs and runs the workspace with pnpm on Node.js 18 and 20. Keep pnpm on v10 until #595 drops them. pnpm 12 is a rewrite that needs a manual migration",
+      "matchPackageNames": [
+        "pnpm"
+      ],
+      "allowedVersions": "<11.0.0"
+    },
+    {
+      "description": "Development runs on the Node.js of .nvmrc and @types/node follows its major. The test-node-versions job already covers Node.js 26, so moving development to it also replaces 26 with 24 in that matrix. Keep both on v24 until #595 changes the matrix",
+      "matchPackageNames": [
+        "node",
+        "@types/node"
+      ],
+      "allowedVersions": "<25.0.0"
+    },
+    {
       "description": "packages/website commits font files copied from these packages",
       "matchFileNames": [
         "packages/website/package.json"
