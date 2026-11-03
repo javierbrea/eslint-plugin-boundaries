@@ -9,7 +9,7 @@ Read first:
 
 - RFC #538, "Interface" decisions 3, 4 and 6, the picker drawing, the problems panel states, and "Milestones" M2.
 - The approved mockup (`playground/mockups/`) and "Decisions of the mockup" in `05-m1-identify.md`.
-- `packages/policies` README and `AGENTS.md`: `describeDependency` and its input (`DependencyDescriptorOptions`: `from`, `to`, `source`, `kind`, `nodeKind`, `specifiers`), `evaluateDependency` and its result (`checked` with a skip `reason`, or `allowed`, `policyIndex`, `match`, `message`, `diagnostics`); `03-policies.md` hand-offs.
+- `packages/policies` README and `AGENTS.md`: `describeDependency` and its input (`DependencyDescriptorOptions`: `from`, `to`, `source`, `kind`, `nodeKind`, `specifiers`), `evaluateDependency` and its result (`checked` with a skip `reason`, or `allowed`, `policyIndex`, `match`, `message`, `diagnostics`), whose `message` is set only when `allowed` is `false`; `getDependencySkipReason(options, description)` gives the skip reason alone.
 - `packages/website/src/components/home/Steps/` for the exact step 3 scenario and the message the home shows.
 
 Preconditions: phase 5 merged. Phase 3 is in `feat/539/playground` since the merge of `release` on 2026-11-02.
