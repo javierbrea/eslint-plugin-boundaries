@@ -20,7 +20,7 @@ Package-scoped agent instructions for `@boundaries/playground` (Nx project `play
 - Overlays render inside the root element, where the variables are. So while a dialog is open, MUI locks the scroll of the root element and not of the page, and the host's elements stay in the accessibility tree.
 - Styles follow the color scheme through CSS only (`theme.vars`, `theme.applyStyles`). With CSS variables, `useTheme().palette` is always the light scheme, and `useColorScheme()` follows the system preference instead of the host, so no code reads the scheme from either.
 - Every style lives in JavaScript, so the package exports no CSS file.
-- React, React DOM, `@mui/material`, `@emotion/react` and `@emotion/styled` are peer dependencies, so that each host has one instance of their context, and each host bundles the package. Each peer is also a devDependency at the exact version that `packages/website/package.json` has.
+- React, React DOM, `@mui/material`, `@emotion/react` and `@emotion/styled` are peer dependencies, so that each host has one instance of their context, and each host bundles the package. Each peer is also a devDependency at the exact version that `packages/website/package.json` has, and so is `@types/react`: with two versions installed, the website's type check fails and the website bundles a second copy of MUI and Emotion.
 
 ## Harness
 
