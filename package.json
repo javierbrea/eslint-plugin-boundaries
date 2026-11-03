@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Monorepo for @boundaries packages",
   "author": "Javier Brea",
-  "packageManager": "pnpm@10.34.8",
+  "packageManager": "pnpm@10.34.9",
   "license": "MIT",
   "scripts": {
     "nx": "nx",
@@ -26,7 +26,7 @@
     "@stryker-mutator/jest-runner": "9.6.1",
     "@types/jest": "30.0.0",
     "@types/node": "22.20.5",
-    "@typescript-eslint/parser": "8.72.0",
+    "@typescript-eslint/parser": "8.72.1",
     "cross-env": "10.1.0",
     "cspell": "9.8.0",
     "eslint": "9.39.5",
