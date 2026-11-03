@@ -18,7 +18,14 @@ import sonarjs from "eslint-plugin-sonarjs";
 import globals from "globals";
 
 export const jestConfig = {
-  files: ["**/*.spec.js", "**/*.test.js", "**/*.spec.ts", "**/*.test.ts"],
+  files: [
+    "**/*.spec.js",
+    "**/*.test.js",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/*.spec.tsx",
+    "**/*.test.tsx",
+  ],
   plugins: {
     jest: pluginJest,
   },
@@ -285,8 +292,8 @@ const NODE_GLOBALS = [
  */
 export function createBrowserConfig(hint) {
   return {
-    files: ["src/**/*.ts"],
-    ignores: ["src/**/*.spec.ts"],
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/**/*.spec.{ts,tsx}"],
     rules: {
       "no-restricted-globals": [
         "error",

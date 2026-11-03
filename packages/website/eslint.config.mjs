@@ -34,6 +34,25 @@ export default [
       ],
     },
   },
+  // The playground loads in its own chunk, so no file imports a value from it statically
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        2,
+        {
+          paths: [
+            {
+              name: "@boundaries/playground",
+              allowTypeImports: true,
+              message:
+                "Load the playground with import() inside React.lazy, so that only its page requests the chunk.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   // The site's own layering, enforced with the workspace eslint-plugin-boundaries
   {
     files: ["src/**/*.{ts,tsx}"],

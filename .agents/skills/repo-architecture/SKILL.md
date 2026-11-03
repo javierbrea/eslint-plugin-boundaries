@@ -5,11 +5,11 @@ description: Cross-cutting architecture reference for the eslint-plugin-boundari
 
 # eslint-plugin-boundaries repository architecture
 
-This is a pnpm + Nx monorepo publishing `@boundaries/elements`, `@boundaries/config`, `@boundaries/policies`, `@boundaries/eslint-plugin`, and the `jsboundaries.dev` documentation website. Its architecture is defined by each project's `AGENTS.md` plus this cross-cutting reference, not by convention alone.
+This is a pnpm + Nx monorepo publishing `@boundaries/elements`, `@boundaries/config`, `@boundaries/policies`, `@boundaries/eslint-plugin`, and the `jsboundaries.dev` documentation website, which bundles the private `@boundaries/playground`. Its architecture is defined by each project's `AGENTS.md` plus this cross-cutting reference, not by convention alone.
 
 ## Where the rules live
 
-The map of where each kind of rule lives is in the root `AGENTS.md`; read the `AGENTS.md` of the project you touch. `eslint-plugin` and `website` lint-enforce their own layering (their `eslint.config.mjs`, ground truth over prose); the layering of `elements`, `config` and `policies` is described in their `AGENTS.md`.
+The map of where each kind of rule lives is in the root `AGENTS.md`; read the `AGENTS.md` of the project you touch. `eslint-plugin`, `playground` and `website` lint-enforce their own layering (their `eslint.config.mjs`, ground truth over prose); the layering of `elements`, `config` and `policies` is described in their `AGENTS.md`.
 
 ## Component map
 
@@ -19,6 +19,7 @@ The map of where each kind of rule lives is in the root `AGENTS.md`; read the `A
 | `packages/config` | `config` | `@boundaries/config` | Normalization and validation of the settings and rule options, returning problems as diagnostics; no ESLint or Node.js dependency, runs in browsers |
 | `packages/policies` | `policies` | `@boundaries/policies` | Descriptions of files and dependencies, the evaluation of the `dependencies` policies and their messages; no ESLint or Node.js dependency, runs in browsers |
 | `packages/eslint-plugin` | `eslint-plugin` | `@boundaries/eslint-plugin` | The ESLint plugin itself: rules, AST reading, module resolution, and the adapters that print the `config` and `policies` diagnostics |
+| `packages/playground` | `playground` | (private, bundled by `website`) | React component that classifies a sketched project and evaluates its dependencies with `config` and `policies`, in the browser; host-agnostic, its host passes the project and the state store |
 | `packages/website` | `website` | (deployed, not published) | Docusaurus site for `jsboundaries.dev`; versioning in its `AGENTS.md` |
 | `examples/typescript` | `example-typescript` | (not published) | Minimal TypeScript project consuming the plugin, built against current source |
 | `examples/oxlint-integration` | `example-oxlint-integration` | (not published) | Demonstrates pairing the plugin with Oxlint |
@@ -29,8 +30,9 @@ The map of where each kind of rule lives is in the root `AGENTS.md`; read the `A
 
 ## Dependency graph and direction
 
-- **`elements` has no in-repo dependencies.** `config` depends on it for the selector type guards and normalization, `policies` depends on both to describe and evaluate, and `eslint-plugin` depends on the three: `eslint-plugin → policies → config → elements`, plus direct dependencies of `eslint-plugin` on `config` and `elements`. Neither `config` nor `policies` depends on `eslint-plugin`, not even as a devDependency to lint itself, because the `^build` of each would wait for the other. `eslint-plugin-e2e`, both `examples/*` and `website` depend on the *built* `eslint-plugin` (via Nx's `dependsOn: ["build"]` / `["^build"]` and a `workspace:` dependency, never a published version). `browser-e2e` depends the same way on the built `elements`, `config` and `policies`, the packages that run in browsers.
+- **`elements` has no in-repo dependencies.** `config` depends on it for the selector type guards and normalization, `policies` depends on both to describe and evaluate, and `eslint-plugin` depends on the three: `eslint-plugin → policies → config → elements`, plus direct dependencies of `eslint-plugin` on `config` and `elements`. Neither `config` nor `policies` depends on `eslint-plugin`, not even as a devDependency to lint itself, because the `^build` of each would wait for the other. `eslint-plugin-e2e` and both `examples/*` depend on the *built* `eslint-plugin` (via Nx's `dependsOn: ["build"]` / `["^build"]` and a `workspace:` dependency, never a published version); `playground` and `website` depend on it only to lint themselves. `browser-e2e` depends the same way on the built `elements`, `config` and `policies`, the packages that run in browsers.
 - **`support/eslint-config` and `support/cspell-config` are depended on by every project** via `implicitDependencies` in each `project.json`, and via each project's own `lint`/`check:spell` target depending on that support package's `eslint:config`/`cspell:config` target.
+- **`website build → playground build → policies / config / elements build`.** The website bundles the built `playground` into the lazy chunk of `/playground/`, and every target of both that needs a build depends on these builds only, so that only their `lint` builds `eslint-plugin`. The peer dependencies that `website` provides are in `packages/playground/AGENTS.md` ("Stack").
 - **`website` is downstream of `eslint-plugin`** conceptually (it documents the plugin's current API and versions its docs alongside plugin releases) and lints its own `src/` with it, so its `lint` builds `eslint-plugin` first — keep `packages/website/docs/rules/` in sync with `eslint-plugin` changes manually.
 - Run `pnpm nx graph` to see the live dependency graph rather than trusting this table if it's unclear whether it's stale.
 

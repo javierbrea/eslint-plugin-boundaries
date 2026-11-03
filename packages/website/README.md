@@ -29,13 +29,14 @@ pnpm i
 
 This command will install dependencies for all packages in the monorepo, including the website package.
 
-Then build the plugin once:
+Then build the plugin and the playground once:
 
 ```sh
 pnpm nx build eslint-plugin
+pnpm nx build playground
 ```
 
-The website lints its own `src/` with the workspace plugin, and the pre-commit hook loads it, so ESLint fails to load the website config until the plugin is built.
+The website lints its own `src/` with the workspace plugin, and the pre-commit hook loads it, so ESLint fails to load the website config until the plugin is built. The `/playground/` page bundles the built `@boundaries/playground`, so `pnpm start` fails to resolve it until the playground is built; `pnpm nx start website` builds it first.
 
 ### Starting the Development Server
 

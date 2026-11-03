@@ -1,19 +1,21 @@
 ---
 paths:
   - "**/*.spec.ts"
+  - "**/*.spec.tsx"
 ---
 
 # Unit testing conventions (Jest + TypeScript)
 
 ## Placement and naming
 
-Use `.spec.ts` for all test files, never `.test.ts`. Placement depends on the package:
+Use `.spec.ts` for all test files, or `.spec.tsx` for those that render React components, never `.test.ts`. Placement depends on the package:
 
 | Package | Convention |
 |---|---|
 | `elements` | Colocated with source (`src/Cache/Cache.spec.ts`) |
 | `config` | Colocated with source (`src/Config/Config.spec.ts`) |
 | `policies` | Colocated with source (`src/Evaluation/Evaluation.spec.ts`) |
+| `playground` | Colocated with source (`src/Playground.spec.tsx`), in jsdom |
 | `eslint-plugin` | Rule tests in `test/rules/<scenario>/`, run against the fixture projects in `test/fixtures/<scenario>/`; a test may use another scenario's fixtures. Everything else (e.g. `src/index.spec.ts`) is colocated with source |
 
 ## Structure
@@ -64,7 +66,7 @@ const config: any = { timeout: 5000 };
 
 ## Coverage — 100% required
 
-The `jest.config.js` of `packages/elements`, `packages/config`, `packages/policies` and `packages/eslint-plugin` sets `coverageThreshold.global` to 100% (branches, functions, lines, statements); a drop below fails the build. Prefer adding tests over suppressing coverage. See the `unit-testing` skill for the workflow to close remaining coverage gaps and for the `istanbul ignore` rules covering genuinely unreachable branches.
+The Jest config of `packages/elements`, `packages/config`, `packages/policies`, `packages/eslint-plugin` and `packages/playground` sets `coverageThreshold.global` to 100% (branches, functions, lines, statements); a drop below fails the build. Prefer adding tests over suppressing coverage. See the `unit-testing` skill for the workflow to close remaining coverage gaps and for the `istanbul ignore` rules covering genuinely unreachable branches.
 
 ## Anti-patterns
 

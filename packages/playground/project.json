@@ -1,0 +1,80 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "playground",
+  "projectType": "library",
+  "tags": [
+    "type:react:lib"
+  ],
+  "targets": {
+    "lint": {
+      "cache": true,
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default"
+      ],
+      // It lints itself with the workspace eslint-plugin-boundaries, a devDependency, so `^build` builds it first
+      "dependsOn": [
+        {
+          "target": "eslint:config",
+          "projects": ["eslint-config"]
+        },
+        "^build"
+      ]
+    },
+    "check:types": {
+      // Only `lint` uses the workspace eslint-plugin, so `^build` is narrowed to the packages the sources import
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["elements", "config", "policies"]
+        }
+      ]
+    },
+    "test:unit": {
+      // Only `lint` uses the workspace eslint-plugin, so `^build` is narrowed to the packages the sources import
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["elements", "config", "policies"]
+        }
+      ]
+    },
+    "dev": {
+      // The harness loads the packages the sources import from their builds
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["elements", "config", "policies"]
+        }
+      ]
+    },
+    "build": {
+      "cache": true,
+      // Only `lint` uses the workspace eslint-plugin, so `^build` is narrowed to the packages the sources import
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["elements", "config", "policies"]
+        }
+      ],
+      "outputs": ["{projectRoot}/dist"],
+      "inputs": [
+        { "dependentTasksOutputFiles": "**/*", "transitive": true },
+        "default",
+        "production",
+        "!{projectRoot}/dev/**/*",
+        "!{projectRoot}/vite.config.js",
+        // The package is an ES module, so the configs of the tools that never take part in the build are .cjs files; tsconfig.eslint.json is read by lint and check:types only
+        "!{projectRoot}/jest.config.cjs",
+        "!{projectRoot}/babel.config.cjs",
+        "!{projectRoot}/cspell.config.cjs",
+        "!{projectRoot}/tsconfig.eslint.json"
+      ]
+    }
+  },
+  "implicitDependencies": [
+    "eslint-plugin",
+    "eslint-config",
+    "cspell-config"
+  ]
+}

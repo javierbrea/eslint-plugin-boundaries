@@ -1,0 +1,70 @@
+{
+  "name": "@boundaries/playground",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Playground that classifies the files of a sketched project and evaluates its dependencies against a boundaries config, in the browser",
+  "author": "Javier Brea",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/javierbrea/eslint-plugin-boundaries.git",
+    "directory": "packages/playground"
+  },
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "eslint": "eslint",
+    "build": "tsup --config tsup.config.js",
+    "check:all": "echo 'All checks passed'",
+    "check:spell": "cspell --quiet .",
+    "check:types": "tsc --noEmit -p tsconfig.eslint.json",
+    "dev": "vite dev",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "pnpm test:unit",
+    "test:unit": "jest"
+  },
+  "dependencies": {
+    "@boundaries/config": "workspace:*",
+    "@boundaries/elements": "workspace:*",
+    "@boundaries/policies": "workspace:*",
+    "@emotion/cache": "11.14.0"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^9.5.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@babel/preset-react": "7.29.7",
+    "@emotion/react": "11.14.0",
+    "@emotion/styled": "11.14.1",
+    "@mui/material": "9.5.0",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.2.7",
+    "@vitejs/plugin-react": "6.1.2",
+    "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
+    "jest-environment-jsdom": "30.5.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3",
+    "vite": "8.3.5"
+  }
+}
