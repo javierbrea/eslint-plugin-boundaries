@@ -77,6 +77,10 @@ export default [
         { pattern: "src/index.ts", category: "entry" },
         { pattern: "src/Playground.tsx", category: "app" },
       ],
+      // The workspace packages resolve to their folders outside node_modules, so checkUnknownLocals would report them as unknown local files
+      "boundaries/flag-as-external": {
+        customSourcePatterns: ["@boundaries/*"],
+      },
     },
     rules: {
       ...boundaries.configs.recommended.rules,
