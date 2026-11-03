@@ -139,6 +139,70 @@ describe("Playground", () => {
       expect(view.queryByText("Loading the sketch…")).toBeNull();
     });
 
+    it("should show that the sketch is loading when the store changes, until the new store loads", async () => {
+      // Arrange
+      let resolveNext: (sketch: Sketch | undefined) => void = () => undefined;
+      const nextStore: jest.Mocked<StateStore> = {
+        load: jest.fn(
+          () =>
+            new Promise<Sketch | undefined>((resolve) => {
+              resolveNext = resolve;
+            })
+        ),
+        save: jest.fn(),
+      };
+      const source = new SketchSource(SOURCE_SKETCH);
+      const { rerender } = render(
+        <Playground source={source} store={new MemoryStore(SAVED_SKETCH)} />
+      );
+      await view.findByText("1 files in the sketch.");
+
+      // Act
+      rerender(<Playground source={source} store={nextStore} />);
+      const loading = view.queryByText("Loading the sketch…");
+      const previousSketch = view.queryByText("1 files in the sketch.");
+      await act(async () => {
+        resolveNext(undefined);
+      });
+
+      // Assert
+      expect(loading).not.toBeNull();
+      expect(previousSketch).toBeNull();
+      await expect(
+        view.findByText("2 files in the sketch.")
+      ).resolves.toBeDefined();
+    });
+
+    it("should stop showing why the sketch could not be loaded when the source changes, while the new source loads", async () => {
+      // Arrange
+      const failingSource: jest.Mocked<ProjectSource> = {
+        capabilities: {
+          editTree: true,
+          editDependencies: true,
+          editConfig: true,
+        },
+        load: jest.fn(() => Promise.reject(new Error("offline"))),
+      };
+      const nextSource: jest.Mocked<ProjectSource> = {
+        capabilities: failingSource.capabilities,
+        load: jest.fn(() => new Promise<Sketch>(() => undefined)),
+      };
+      const store = new MemoryStore();
+      const { rerender } = render(
+        <Playground source={failingSource} store={store} />
+      );
+      await view.findByText("The sketch could not be loaded: offline");
+
+      // Act
+      rerender(<Playground source={nextSource} store={store} />);
+
+      // Assert
+      expect(view.queryByText(/could not be loaded/)).toBeNull();
+      await expect(
+        view.findByText("Loading the sketch…")
+      ).resolves.toBeDefined();
+    });
+
     it("should show the sketch of the new store when the store changes before the previous one loads", async () => {
       // Arrange
       let resolvePrevious: (sketch: Sketch | undefined) => void = () =>

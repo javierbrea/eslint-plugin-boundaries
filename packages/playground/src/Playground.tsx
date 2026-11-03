@@ -6,6 +6,15 @@ import { Root } from "./theme";
 import { Placeholder } from "./ui";
 import type { SketchLoad } from "./ui";
 
+/** A settled load, with the source and the store it was loaded from */
+type SettledLoad = {
+  source: PlaygroundProps["source"];
+  store: PlaygroundProps["store"];
+  sketchLoad: SketchLoad;
+};
+
+const LOADING: SketchLoad = { status: "loading" };
+
 /**
  * Loads the sketch to show: the one saved in the store or, when nothing is saved, the one of the source.
  * @param source Where the project comes from.
@@ -16,9 +25,7 @@ function useSketch(
   source: PlaygroundProps["source"],
   store: PlaygroundProps["store"]
 ): SketchLoad {
-  const [sketchLoad, setSketchLoad] = useState<SketchLoad>({
-    status: "loading",
-  });
+  const [settledLoad, setSettledLoad] = useState<SettledLoad>();
 
   useEffect(() => {
     // A load that ends after the source or the store changed, or after unmounting, must not replace the newer one
@@ -27,11 +34,19 @@ function useSketch(
       try {
         const sketch = (await store.load()) ?? (await source.load());
         if (active) {
-          setSketchLoad({ status: "loaded", sketch });
+          setSettledLoad({
+            source,
+            store,
+            sketchLoad: { status: "loaded", sketch },
+          });
         }
       } catch (error) {
         if (active) {
-          setSketchLoad({ status: "failed", error });
+          setSettledLoad({
+            source,
+            store,
+            sketchLoad: { status: "failed", error },
+          });
         }
       }
     };
@@ -41,7 +56,10 @@ function useSketch(
     };
   }, [source, store]);
 
-  return sketchLoad;
+  // The sketch or the error of a previous source or store is not shown while the new ones load
+  return settledLoad?.source === source && settledLoad.store === store
+    ? settledLoad.sketchLoad
+    : LOADING;
 }
 
 /**
