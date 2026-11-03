@@ -1,64 +1,86 @@
-import { Elements } from "@boundaries/elements";
 import type {
-  Matcher,
   DependencyDescription,
   DependencyKind,
   EntityDescription,
 } from "@boundaries/elements";
+import {
+  describeDependency,
+  describeEntity,
+  getMatcher,
+} from "@boundaries/policies";
 import type { Rule } from "eslint";
 import resolve from "eslint-module-utils/resolve";
-import type { Identifier, ImportSpecifier } from "estree";
+import type { Expression, Identifier, ImportSpecifier } from "estree";
 
 import { debugDescription } from "../Debug";
 import type { SettingsNormalized } from "../Shared";
+import { isString } from "../Shared";
 
-import type { EslintLiteralNode } from "./Elements.types";
+import type {
+  DependencySource,
+  EslintDependencyNode,
+  TypeScriptAssertion,
+  TypeScriptAssertionType,
+} from "./Elements.types";
 
-const elements = new Elements();
+const TYPESCRIPT_ASSERTION_TYPES: ReadonlySet<string> =
+  new Set<TypeScriptAssertionType>([
+    "TSAsExpression",
+    "TSSatisfiesExpression",
+    "TSTypeAssertion",
+    "TSNonNullExpression",
+  ]);
 
 /**
- * Memoizes the resolved Matcher by normalized-settings identity. `getSettings` returns the
- * same SettingsNormalized reference for a given config across the whole ESLint run, so this
- * avoids rebuilding the config and re-hashing all descriptors on every visited node.
+ * Returns whether a node is a TypeScript assertion, which asserts the type of an expression without changing its value
+ * @param node The node to check
+ * @returns True if the node is a TypeScript assertion, false otherwise
  */
-const matchersBySettings = new WeakMap<SettingsNormalized, Matcher>();
+function isTypeScriptAssertion(
+  node: Expression | TypeScriptAssertion
+): node is TypeScriptAssertion {
+  return TYPESCRIPT_ASSERTION_TYPES.has(node.type);
+}
 
 /**
- * Returns the elements matcher based on the ESLint rule context settings already normalized, filtering out invalid descriptors
- * @param settings The ESLint rule context settings normalized
- * @returns The elements matcher
+ * Returns the source of a dependency when it is known without running the code: a string literal or a template literal without substitutions, inside any number of TypeScript assertions
+ * @param node The node matched by a dependency node selector
+ * @returns The source of the dependency, or a null source that tells whether it is only known at runtime or the node does not define one
  */
-export function getElementsMatcher(settings: SettingsNormalized): Matcher {
-  const cachedMatcher = matchersBySettings.get(settings);
-  if (cachedMatcher) {
-    return cachedMatcher;
+export function getDependencySource(
+  node: EslintDependencyNode
+): DependencySource {
+  let expression: Expression | TypeScriptAssertion = node;
+  while (isTypeScriptAssertion(expression)) {
+    expression = expression.expression;
   }
-  const elementsMatcher = elements.getMatcher(
-    {
-      elements: settings.elementDescriptors,
-      files: settings.fileDescriptors,
-      elementsSingleMatch: settings.elementsSingleMatch,
-      filesSingleMatch: settings.filesSingleMatch,
-    },
-    {
-      ignorePaths: settings.ignorePaths,
-      includePaths: settings.includePaths,
-      legacyTemplates: settings.legacyTemplates,
-      cache: settings.cache,
-      flagAsExternal: settings.flagAsExternal,
-      rootPath: settings.rootPath,
+
+  if (expression.type === "Literal" && isString(expression.value)) {
+    return { source: expression.value };
+  }
+
+  if (
+    expression.type === "TemplateLiteral" &&
+    expression.expressions.length === 0
+  ) {
+    const source = expression.quasis[0].value.cooked;
+    if (isString(source)) {
+      return { source };
     }
-  );
-  matchersBySettings.set(settings, elementsMatcher);
-  return elementsMatcher;
+  }
+
+  return {
+    source: null,
+    runtime: node.type === "TemplateLiteral" || isTypeScriptAssertion(node),
+  };
 }
 
 /**
  * Returns the specifiers used in an import or export statement
- * @param node The source literal of the import or export
+ * @param node The node matched by a dependency node selector
  * @returns The list of specifiers used in the import or export
  */
-export function getSpecifiers(node: EslintLiteralNode): string[] {
+export function getSpecifiers(node: EslintDependencyNode): string[] {
   if (node.parent.type === "ImportDeclaration") {
     return node.parent.specifiers
       .filter(
@@ -96,9 +118,8 @@ export function entityDescription(
   fileName: string,
   settings: SettingsNormalized
 ): EntityDescription {
-  const matcher = getElementsMatcher(settings);
-  const result = matcher.describeEntity(fileName);
-  debugDescription(result, settings, matcher);
+  const result = describeEntity(settings, fileName);
+  debugDescription(result, settings, getMatcher(settings));
   return result;
 }
 
@@ -106,6 +127,7 @@ export function entityDescription(
  * Returns the description of a dependency node
  * @param options The dependency node info
  * @param options.node The dependency node
+ * @param options.source The source of the dependency, as returned by getDependencySource
  * @param options.kind The kind of the dependency
  * @param options.nodeKind The kind of the node generating the dependency
  * @param fileName The file name (absolute path)
@@ -116,10 +138,12 @@ export function entityDescription(
 export function dependencyDescription(
   {
     node,
+    source,
     kind,
     nodeKind,
   }: {
-    node: EslintLiteralNode;
+    node: EslintDependencyNode;
+    source: string;
     kind: DependencyKind;
     nodeKind?: string;
   },
@@ -130,11 +154,9 @@ export function dependencyDescription(
   /** The ESLint rule context */
   context: Rule.RuleContext
 ): DependencyDescription {
-  const source = String(node.value);
-  const matcher = getElementsMatcher(settings);
   const resolvedPath = resolve(source, context);
 
-  const description = matcher.describeDependency({
+  const description = describeDependency(settings, {
     from: fileName,
     to: resolvedPath || undefined,
     source,
@@ -143,7 +165,7 @@ export function dependencyDescription(
     specifiers: getSpecifiers(node),
   });
 
-  debugDescription(description, settings, matcher);
+  debugDescription(description, settings, getMatcher(settings));
 
   return description;
 }

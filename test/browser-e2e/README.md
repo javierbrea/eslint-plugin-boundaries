@@ -1,6 +1,6 @@
 # Browser E2E Tests
 
-This private project checks that the browser builds of `@boundaries/elements` and `@boundaries/config` return the same results in Chromium, Firefox and WebKit as their Node.js builds. Each package checks its own browser build on V8 with `node:vm` (its own `test:e2e` target); this project loads the packages together in real browsers, through their `browser` export condition, as the playground and any other browser consumer does.
+This private project checks that the browser builds of `@boundaries/elements`, `@boundaries/config` and `@boundaries/policies` return the same results in Chromium, Firefox and WebKit as their Node.js builds. Each package checks its own browser build on V8 with `node:vm` (its own `test:e2e` target); this project loads the packages together in real browsers, through their `browser` export condition, as the playground and any other browser consumer does.
 
 ## How it works
 
@@ -29,7 +29,7 @@ pnpm exec playwright test --project=webkit
 
 ## Adding a scenario
 
-1. Add an entry to the scenarios of the package in `src/scenarios/` (`elements.js`, `config.js`). Inputs that several packages share, such as the quick-start example of the docs, are in `src/scenarios/quick-start.js`.
+1. Add an entry to the scenarios of the package in `src/scenarios/` (`elements.js`, `config.js`, `policies.js`). Inputs that several packages share, such as the quick-start example of the docs, are in `src/scenarios/quick-start.js`.
 2. `name` is unique and starts with the package name, such as `config: normalizeConfig of the quick-start example`. It is the title of the test.
 3. `run` takes no arguments and returns only JSON values that depend on its inputs alone: no Node.js modules or globals, and nothing read from the environment, the clock or a random source, so that Node.js and every browser return the same.
 

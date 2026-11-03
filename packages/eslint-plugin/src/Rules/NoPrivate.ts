@@ -4,8 +4,11 @@ import {
   DEPENDENCY_RELATIONSHIPS_MAP,
   type DependencyDescription,
 } from "@boundaries/elements";
+import {
+  customErrorMessage,
+  elementDescriptionMessage,
+} from "@boundaries/policies";
 
-import { customErrorMessage, elementDescriptionMessage } from "../Messages";
 import { warnMigrationToDependencies, deprecatedRuleInfo } from "../Settings";
 import type { NoPrivateOptions } from "../Shared";
 import { SETTINGS, RULE_NAMES_MAP, PLUGIN_ISSUES_URL } from "../Shared";

@@ -1,5 +1,6 @@
 import { CONFIG_SCENARIOS } from "./config.js";
 import { ELEMENTS_SCENARIOS } from "./elements.js";
+import { POLICIES_SCENARIOS } from "./policies.js";
 
 /**
  * @typedef {object} Scenario
@@ -11,7 +12,11 @@ import { ELEMENTS_SCENARIOS } from "./elements.js";
  * Every scenario, run in Node.js and in each browser.
  * @type {Scenario[]}
  */
-export const SCENARIOS = [...ELEMENTS_SCENARIOS, ...CONFIG_SCENARIOS];
+export const SCENARIOS = [
+  ...ELEMENTS_SCENARIOS,
+  ...CONFIG_SCENARIOS,
+  ...POLICIES_SCENARIOS,
+];
 
 /**
  * Runs a scenario.

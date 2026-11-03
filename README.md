@@ -95,6 +95,7 @@ This repository holds the packages of JS Boundaries:
 | [`eslint-plugin-boundaries`](https://www.jsboundaries.dev/) | The ESLint plugin, also published as `@boundaries/eslint-plugin`. |
 | [`@boundaries/elements`](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/packages/elements#readme) | Entity descriptors and matchers for `@boundaries` tools. |
 | [`@boundaries/config`](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/packages/config#readme) | Normalization and validation of the settings and rule options of the plugin, without ESLint. |
+| [`@boundaries/policies`](https://github.com/javierbrea/eslint-plugin-boundaries/tree/master/packages/policies#readme) | Evaluation of the dependency policies of the plugin and their messages, without ESLint. |
 
 ## Contributing
 

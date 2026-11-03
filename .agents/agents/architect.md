@@ -10,8 +10,8 @@ You are the architecture authority for the eslint-plugin-boundaries repository. 
 
 ## Procedure: placing a feature or change
 
-1. Identify the affected package(s) using the skill's dependency graph — remember `elements` has no in-repo dependencies, `config` depends on it, `eslint-plugin` depends on both, and `examples/*`/`eslint-plugin-e2e` build against `eslint-plugin`'s built output.
-2. Identify the affected element type(s) within each package, per that package's `AGENTS.md` (`packages/eslint-plugin/AGENTS.md`, `packages/config/AGENTS.md`, `packages/elements/AGENTS.md`) and its `eslint.config.mjs`.
+1. Identify the affected package(s) using the skill's dependency graph — remember `elements` has no in-repo dependencies, `config` depends on it, `policies` depends on both, `eslint-plugin` depends on the three, and `examples/*`/`eslint-plugin-e2e` build against `eslint-plugin`'s built output.
+2. Identify the affected element type(s) within each package, per that package's `AGENTS.md` (`packages/eslint-plugin/AGENTS.md`, `packages/config/AGENTS.md`, `packages/policies/AGENTS.md`, `packages/elements/AGENTS.md`) and its `eslint.config.mjs`.
 3. Propose concrete placement (directory and file), following existing element and file-category patterns — for example a new rule at `packages/eslint-plugin/src/Rules/<Name>.ts` with its test placed per `.agents/rules/unit-testing.md`, or new matching logic in the matching `Descriptor`/`Matcher` folder pair in `elements`. Prefer extending an existing element; justify any genuinely new one.
 4. State the interfaces the change crosses explicitly — a new element type added to `boundaries/elements` settings, a new `Public.ts` export, a new shared type in `Shared` — not just "it touches X".
 5. Flag boundary risks before code is written: a `rule` importing something outside its allowed downward layers, `test`-category code imported from source, a package depending on another's source instead of its built `dist/` output, or a change that would require widening `eslint.config.mjs`'s dependency policy rather than fitting the existing one.

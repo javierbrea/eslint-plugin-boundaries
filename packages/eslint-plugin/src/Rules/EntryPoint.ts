@@ -73,7 +73,8 @@ function transformToDependenciesRules(
             }
           : undefined,
         importKind: rule.importKind,
-        message: rule.message,
+        // The message of the user's policy at the index of the translated one, not of `rule`, as the rule always reported it: a policy with several targets shifts the messages of the next ones
+        message: rules[newRules.length]?.message,
       });
     }
   }
@@ -103,15 +104,18 @@ export default dependencyRule<EntryPointRuleOptions>(
       dependency.dependency.relationship.to !==
         DEPENDENCY_RELATIONSHIPS_MAP.INTERNAL
     ) {
-      const rules = transformToDependenciesRules(
+      const policies = transformToDependenciesRules(
         options?.policies ?? options?.rules ?? []
       );
       evaluatePoliciesAndReport({
-        rules: normalizeDependenciesRuleOptions({ policies: rules }).policies,
+        options: normalizeDependenciesRuleOptions({
+          default: options?.default,
+          message: options?.message,
+          policies,
+        }),
         settings,
         context,
         node,
-        options,
         dependency,
       });
     }

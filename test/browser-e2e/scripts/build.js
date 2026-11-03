@@ -12,7 +12,11 @@ import { build } from "esbuild";
 
 const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(PROJECT_ROOT, "dist");
-const PACKAGES = ["@boundaries/elements", "@boundaries/config"];
+const PACKAGES = [
+  "@boundaries/elements",
+  "@boundaries/config",
+  "@boundaries/policies",
+];
 
 const requireFromProject = createRequire(import.meta.url);
 

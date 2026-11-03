@@ -1,6 +1,6 @@
 {
   "name": "website",
-  "version": "7.4.0",
+  "version": "7.4.1",
   "private": true,
   "scripts": {
     "eslint": "eslint",
@@ -38,8 +38,8 @@
     "@fontsource/ibm-plex-mono": "5.3.0",
     "@fontsource/ibm-plex-sans": "5.3.0",
     "@fontsource/sora": "5.3.0",
-    "@types/react": "19.2.5",
-    "baseline-browser-mapping": "2.11.32",
+    "@types/react": "19.3.0",
+    "baseline-browser-mapping": "2.11.34",
     "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
     "typescript": "5.9.3"
   },
