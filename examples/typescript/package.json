@@ -20,6 +20,6 @@
     "eslint": "9.39.5",
     "eslint-import-resolver-typescript": "4.4.5",
     "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
-    "typescript": "5.9.3"
+    "typescript": "6.0.3"
   }
 }

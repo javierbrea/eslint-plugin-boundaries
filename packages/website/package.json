@@ -41,7 +41,7 @@
     "@types/react": "19.3.0",
     "baseline-browser-mapping": "2.11.34",
     "eslint-plugin-boundaries": "workspace:@boundaries/eslint-plugin@*",
-    "typescript": "5.9.3"
+    "typescript": "6.0.3"
   },
   "browserslist": {
     "production": [
