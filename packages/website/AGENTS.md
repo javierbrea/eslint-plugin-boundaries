@@ -18,4 +18,4 @@ The website's version and the release steps that change it are in step 2 of "Pub
 
 ## Playground
 
-The code of the playground lives in `packages/playground` only. `src/pages/playground.tsx` is its host: it renders the component in the browser only (`BrowserOnly` and `React.lazy`), creates its source and store inside the lazy chunk, and never imports a value from the package statically, so that no other page loads the chunk.
+The code of the playground lives in `packages/playground` only. `src/pages/playground.tsx` is its host: it renders the component in the browser only (`BrowserOnly` and `React.lazy`), creates its source and store inside the lazy chunk, and never imports a value from the package statically (lint-enforced in `eslint.config.mjs`), so that no other page loads the chunk.

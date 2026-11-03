@@ -45,6 +45,8 @@ export default [
                 "@docusaurus/*",
                 "@theme/*",
                 "@theme-original/*",
+                "@theme-init/*",
+                "@generated/*",
                 "@site/*",
                 "infima",
                 "infima/*",
@@ -84,6 +86,8 @@ export default [
         2,
         {
           default: "disallow",
+          // A relative import out of src/, such as one into the website, reaches no element, and is reported instead of skipped
+          checkUnknownLocals: true,
           policies: [
             // External, core and same-element imports are skipped with the default options (checkAllOrigins and checkInternals off); these keep them allowed if either option is enabled
             { allow: { to: { module: { origin: ["external", "core"] } } } },

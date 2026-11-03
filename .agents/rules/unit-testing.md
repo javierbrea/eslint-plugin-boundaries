@@ -66,7 +66,7 @@ const config: any = { timeout: 5000 };
 
 ## Coverage — 100% required
 
-The `jest.config.js` of `packages/elements`, `packages/config`, `packages/policies` and `packages/eslint-plugin` sets `coverageThreshold.global` to 100% (branches, functions, lines, statements); a drop below fails the build. Prefer adding tests over suppressing coverage. See the `unit-testing` skill for the workflow to close remaining coverage gaps and for the `istanbul ignore` rules covering genuinely unreachable branches.
+The Jest config of `packages/elements`, `packages/config`, `packages/policies`, `packages/eslint-plugin` and `packages/playground` sets `coverageThreshold.global` to 100% (branches, functions, lines, statements); a drop below fails the build. Prefer adding tests over suppressing coverage. See the `unit-testing` skill for the workflow to close remaining coverage gaps and for the `istanbul ignore` rules covering genuinely unreachable branches.
 
 ## Anti-patterns
 

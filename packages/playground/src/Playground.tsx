@@ -1,28 +1,38 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
-import type { PlaygroundProps, Sketch } from "./contract";
+import type { PlaygroundProps } from "./contract";
 import { Root } from "./theme";
 import { Placeholder } from "./ui";
+import type { SketchLoad } from "./ui";
 
 /**
  * Loads the sketch to show: the one saved in the store or, when nothing is saved, the one of the source.
  * @param source Where the project comes from.
  * @param store Where the state is kept.
- * @returns The sketch, or `undefined` while it loads.
+ * @returns The state of the load: loading, loaded with the sketch, or failed with the reason that the store or the source gave.
  */
 function useSketch(
   source: PlaygroundProps["source"],
   store: PlaygroundProps["store"]
-): Sketch | undefined {
-  const [sketch, setSketch] = useState<Sketch>();
+): SketchLoad {
+  const [sketchLoad, setSketchLoad] = useState<SketchLoad>({
+    status: "loading",
+  });
 
   useEffect(() => {
+    // A load that ends after the source or the store changed, or after unmounting, must not replace the newer one
     let active = true;
     const load = async () => {
-      const loaded = (await store.load()) ?? (await source.load());
-      if (active) {
-        setSketch(loaded);
+      try {
+        const sketch = (await store.load()) ?? (await source.load());
+        if (active) {
+          setSketchLoad({ status: "loaded", sketch });
+        }
+      } catch (error) {
+        if (active) {
+          setSketchLoad({ status: "failed", error });
+        }
       }
     };
     void load();
@@ -31,7 +41,7 @@ function useSketch(
     };
   }, [source, store]);
 
-  return sketch;
+  return sketchLoad;
 }
 
 /**
@@ -45,11 +55,11 @@ export function Playground({
   source,
   store,
 }: Readonly<PlaygroundProps>): ReactNode {
-  const sketch = useSketch(source, store);
+  const sketchLoad = useSketch(source, store);
 
   return (
     <Root>
-      <Placeholder sketch={sketch} />
+      <Placeholder sketchLoad={sketchLoad} />
     </Root>
   );
 }

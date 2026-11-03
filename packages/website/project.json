@@ -57,6 +57,15 @@
         "default",
         "production"
       ]
+    },
+    "start": {
+      // The dev server bundles the built playground
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["playground"]
+        }
+      ]
     }
   },
   "implicitDependencies": [

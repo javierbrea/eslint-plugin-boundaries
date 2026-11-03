@@ -7,6 +7,9 @@ export const ROOT_CLASS = "jsb-play-root";
 /** Key of the Emotion cache of the playground, the prefix of its class names */
 export const CACHE_KEY = "jsb-play";
 
+/** Prefix of the MUI variables of the playground, so that they never collide with those of a host that uses MUI */
+const CSS_VAR_PREFIX = "jsb-play";
+
 /**
  * Colors from the `--jsb-*` tokens of the host. The tokens already change with the host's theme, so both color schemes share them; MUI's own defaults of each scheme fill the rest.
  */
@@ -33,12 +36,14 @@ const PALETTE: PaletteOptions = {
 export function createPlaygroundTheme(
   getContainer: () => HTMLElement | null
 ): Theme {
-  return createTheme({
+  const theme = createTheme({
     cssVariables: {
       // Derives shades with color-mix() and contrast text with relative colors, because the palette is made of var() values
       nativeColor: true,
       rootSelector: `.${ROOT_CLASS}`,
       colorSchemeSelector: `[data-theme="%s"] .${ROOT_CLASS}`,
+      // MUI skips the variables of a theme whose prefix is the one of an outer MUI provider of the host, so the playground has its own
+      cssVarPrefix: CSS_VAR_PREFIX,
     },
     colorSchemes: {
       light: { palette: PALETTE },
@@ -63,4 +68,13 @@ export function createPlaygroundTheme(
       MuiPopper: { defaultProps: { container: getContainer } },
     },
   });
+
+  // nativeColor declares its helper variables on :root; they go on the root element, with the rest of the variables
+  const generateStyleSheets = theme.generateStyleSheets;
+  theme.generateStyleSheets = () =>
+    generateStyleSheets().map((sheet) =>
+      ":root" in sheet ? { [`.${ROOT_CLASS}`]: sheet[":root"] } : sheet
+    );
+
+  return theme;
 }

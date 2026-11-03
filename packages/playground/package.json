@@ -29,7 +29,7 @@
     "build": "tsup --config tsup.config.js",
     "check:all": "echo 'All checks passed'",
     "check:spell": "cspell --quiet .",
-    "check:types": "tsc --noEmit",
+    "check:types": "tsc --noEmit -p tsconfig.eslint.json",
     "dev": "vite dev",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

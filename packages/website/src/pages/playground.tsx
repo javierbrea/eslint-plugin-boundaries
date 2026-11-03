@@ -53,12 +53,13 @@ function Stage(): ReactNode {
     return null;
   }
 
+  // The fallback is outside the stage, so that it renders as the loading box of the server render
   return (
-    <div className={styles.stage}>
-      <Suspense fallback={<Loading />}>
+    <Suspense fallback={<Loading />}>
+      <div className={styles.stage}>
         <LazyPlayground />
-      </Suspense>
-    </div>
+      </div>
+    </Suspense>
   );
 }
 
