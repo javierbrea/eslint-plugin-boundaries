@@ -68,7 +68,7 @@ The pull request of the previous phase left the plan ready, so a phase starts by
 2. Re-read the phase's sources (RFC, issue, the code it touches, what merged since the plan was last edited) and correct the phase file and the later phases where they no longer fit: missing steps, wrong facts, decisions now taken, scope moved, preconditions changed.
 3. When the plan changes, rewrite the index status line and anything else in the index the changes affect, show the maintainer the diff with a short explanation of what changes and why, and wait for approval. Then commit it where "Where it lives" says and start the implementation.
 
-During the phase, a deviation that changes what a later phase does is written into the index, `00-shared.md` or that phase's file, with the same preview; any other deviation goes in the pull request description. The phase's own file is not kept up to date after its implementation starts, because its pull request deletes it.
+During the phase, every deviation from the plan is recorded in the pull request description, and one that changes what a later phase does is also written into the index, `00-shared.md` or that phase's file, with the same preview. The phase's own file is not kept up to date after its implementation starts, because its pull request deletes it.
 
 ## Finishing a phase
 
