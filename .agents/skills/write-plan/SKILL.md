@@ -1,6 +1,6 @@
 ---
 name: write-plan
-description: Write or update an implementation plan in .agents/plans/ for work that spans several pull requests or sessions — an index plus one file per phase, each self-contained for an agent with no other context — including how the plan is shared on an integration branch, removed before merging into release, and re-analyzed and updated at the start of every phase with a preview for the maintainer. Use when asked to plan a feature, break an RFC or an issue into phases, write or update a plan, or start a phase of an existing plan.
+description: Write or update an implementation plan in .agents/plans/ for work that spans several pull requests or sessions — an index plus one file per phase, each self-contained for an agent with no other context — including how the plan is shared on an integration branch, removed before merging into release, and re-analyzed and updated at the start of every phase with a preview for the maintainer, and trimmed of each phase once it merges. Use when asked to plan a feature, break an RFC or an issue into phases, write or update a plan, or start a phase of an existing plan.
 argument-hint: "[plan name] [phase]"
 ---
 
@@ -15,11 +15,11 @@ Use it for any work that needs more than one pull request, or that more than one
 ```
 .agents/plans/<name>.md             index
 .agents/plans/<name>/00-shared.md   facts two or more phases need (optional)
-.agents/plans/<name>/NN-<phase>.md  one file per phase
+.agents/plans/<name>/NN-<phase>.md  one file per phase not merged yet
 .agents/plans/<name>/<assets>       mockups, renders, data the phases need
 ```
 
-`<name>` is the feature in kebab-case (`website-redesign`, `playground`). Phases are numbered in the order they are expected to run; a phase that is dropped keeps its number out of the sequence rather than renumbering the rest.
+`<name>` is the feature in kebab-case (`website-redesign`, `playground`). Phases are numbered in the order they are expected to run; a phase that is dropped or merged keeps its number out of the sequence rather than renumbering the rest.
 
 ## Where it lives
 
@@ -55,7 +55,7 @@ Written so that an agent can implement the phase with no other context than this
 - **Scope**: what is in, what is out, and what is handed to a later phase.
 - **Steps**: grouped by concern, each naming the files it creates or changes and the behavior expected, in enough detail to be verified but without copying code the agent can read in the repository. Point to an existing file as the model to follow when there is one.
 - **Verification**: the commands and quality gates that must pass, and how each acceptance criterion of the issue is checked.
-- **Hand-offs**: facts later phases take from this one (names, interfaces, decisions to confirm).
+- **Hand-offs**: facts later phases take from this one (names, interfaces, decisions to confirm). They move to the files of those phases when this one merges.
 - **Open points**: what the implementing session must decide or ask, with the default to take when nobody answers.
 
 `00-shared.md` holds every fact that two or more phases need (environment, commands, branching, conventions specific to the plan, quality gates, definition of done). Phase files add only what is specific to them.
@@ -64,16 +64,27 @@ Written so that an agent can implement the phase with no other context than this
 
 The first task of every phase is to bring the plan up to date, because what earlier phases found changes what later ones must do:
 
-1. Re-read the phase's sources (RFC, issue, the code it touches, what the previous phases' pull requests recorded) and extend or correct the phase file: missing steps, wrong facts, decisions that are now taken.
-2. Check that the later phases still fit, and adjust them: scope moved, preconditions changed, hand-offs renamed.
-3. Rewrite the index status line and anything in the index the changes affect.
-4. Show the maintainer the diff of the plan with a short explanation of what changes and why, and wait for approval. Nothing of the plan is committed before it.
-5. Commit the approved edit on the integration branch and push it, then start the implementation on the phase branch.
+1. Trim the phases merged since the last plan edit ("When a phase merges").
+2. Re-read the phase's sources (RFC, issue, the code it touches, what the previous phases' pull requests recorded) and extend or correct the phase file: missing steps, wrong facts, decisions that are now taken.
+3. Check that the later phases still fit, and adjust them: scope moved, preconditions changed, hand-offs renamed.
+4. Rewrite the index status line and anything in the index the changes affect.
+5. Show the maintainer the diff of the plan with a short explanation of what changes and why, and wait for approval. Nothing of the plan is committed before it.
+6. Commit the approved edit on the integration branch and push it, then start the implementation on the phase branch.
 
-During the phase, a deviation from the plan is recorded in the pull request description and in the plan (same procedure: preview, then commit on the integration branch). The next phase starts from a plan that is already true.
+During the phase, a deviation from the plan is recorded in the pull request description and, when it changes what a later phase does, in the index or in that phase's file (same procedure: preview, then commit on the integration branch). The phase's own file is not kept up to date after its implementation starts: the pull request description is the record, and the file is deleted when the phase merges. The next phase starts from a plan that is already true.
+
+## When a phase merges
+
+The code, the `AGENTS.md` files and the pull request record what a merged phase did, so its file has no reader left. Only the index and the files of the phases still to run are kept true, and the file of a merged phase is trimmed instead of updated:
+
+1. Move each hand-off into the file of the phase that needs it, or into `00-shared.md` when two or more phases need it. Drop the ones that no later phase uses.
+2. Delete the phase file, its row in the files table of the index, and every pointer to it in the other files.
+3. Rewrite the status line of the index. The row of the phase in the phases table stays, with its pull request.
+
+A phase without a pull request (an RFC, a decision) is trimmed once the index records it as done. The trim is part of the first plan edit after the merge, at the latest step 1 of "Starting a phase", with the same preview and commit.
 
 ## Notes
 
 - Dates are absolute (`2026-10-25`), never relative.
-- A plan names only what exists or what it creates; a renamed file or command is renamed in the plan in the same change.
+- A plan names only what exists or what it creates; a renamed file or command is renamed in the index and in the files of the phases still to run in the same change.
 - Facts that stay true after the work is done (layering, constraints, conventions) do not belong in the plan: they go to the project's `AGENTS.md`, a rule or a skill as part of the phase that establishes them, and the plan points there.
