@@ -106,3 +106,14 @@ export function getAncestors(path: string): readonly string[] {
 export function isSameOrInside(path: string, folder: string): boolean {
   return path === folder || path.startsWith(`${folder}/`);
 }
+
+/**
+ * Moves a path and everything under it, as renaming a folder does.
+ * @param path The path to move.
+ * @param from The path of the file or folder that moves.
+ * @param to The path it moves to.
+ * @returns The new path, or the same one when it is outside what moves.
+ */
+export function movePath(path: string, from: string, to: string): string {
+  return isSameOrInside(path, from) ? `${to}${path.slice(from.length)}` : path;
+}

@@ -6,6 +6,7 @@ import {
   getPathError,
   isSameOrInside,
   joinPath,
+  movePath,
   normalizePath,
 } from "./Paths";
 
@@ -287,6 +288,32 @@ describe("Paths", () => {
 
       // Assert
       expect(result).toBe(false);
+    });
+  });
+
+  describe("movePath", () => {
+    it("should move the path of the node that moves", () => {
+      // Act
+      const result = movePath("src", "src", "lib");
+
+      // Assert
+      expect(result).toBe("lib");
+    });
+
+    it("should move a path inside the folder that moves, keeping the rest of it", () => {
+      // Act
+      const result = movePath("src/a/b.js", "src", "lib/core");
+
+      // Assert
+      expect(result).toBe("lib/core/a/b.js");
+    });
+
+    it("should leave a sibling that starts with the same text", () => {
+      // Act
+      const result = movePath("src-old/a.js", "src", "lib");
+
+      // Assert
+      expect(result).toBe("src-old/a.js");
     });
   });
 });

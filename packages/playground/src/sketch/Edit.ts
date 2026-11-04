@@ -1,6 +1,6 @@
 import type { Sketch, SketchDependency, SketchNode } from "../contract";
 
-import { isSameOrInside, joinPath } from "./Paths";
+import { isSameOrInside, joinPath, movePath } from "./Paths";
 import type { EditResult } from "./Sketch.types";
 import { canonicalizeNodes, getAddError, getNodeKind, hasNode } from "./Tree";
 
@@ -19,17 +19,6 @@ function addCounter(fileName: string, counter: number): string {
     (_match, stem: string, extension: string) =>
       `${stem}-${counter}${extension}`
   );
-}
-
-/**
- * Moves a path and everything under it, as renaming a folder does.
- * @param path The path to move.
- * @param from The path of the file or folder that moves.
- * @param to The path it moves to.
- * @returns The new path, or the same one when it is outside what moves.
- */
-function movePath(path: string, from: string, to: string): string {
-  return isSameOrInside(path, from) ? `${to}${path.slice(from.length)}` : path;
 }
 
 /**

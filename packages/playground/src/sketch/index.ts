@@ -10,6 +10,8 @@ export {
   getName,
   getParentPath,
   getPathError,
+  isSameOrInside,
+  movePath,
   normalizePath,
 } from "./Paths";
 export { buildTree, getFiles, hasNode } from "./Tree";
