@@ -216,7 +216,7 @@ jobs:
           flag-name: eslint-plugin
       - name: SonarCloud Scan - Elements
         if: env.SONAR_TOKEN_ELEMENTS != ''
-        uses: SonarSource/sonarqube-scan-action@v7.2.1
+        uses: SonarSource/sonarqube-scan-action@v8.4.0
         with:
           projectBaseDir: packages/elements
         env:
@@ -224,7 +224,7 @@ jobs:
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_ELEMENTS }}
       - name: SonarCloud Scan - Config
         if: env.SONAR_TOKEN_CONFIG != ''
-        uses: SonarSource/sonarqube-scan-action@v7.2.1
+        uses: SonarSource/sonarqube-scan-action@v8.4.0
         with:
           projectBaseDir: packages/config
         env:
@@ -232,7 +232,7 @@ jobs:
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_CONFIG }}
       - name: SonarCloud Scan - Policies
         if: env.SONAR_TOKEN_POLICIES != ''
-        uses: SonarSource/sonarqube-scan-action@v7.2.1
+        uses: SonarSource/sonarqube-scan-action@v8.4.0
         with:
           projectBaseDir: packages/policies
         env:
@@ -240,7 +240,7 @@ jobs:
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_POLICIES }}
       - name: SonarCloud Scan - Eslint Plugin
         if: env.SONAR_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@v7.2.1
+        uses: SonarSource/sonarqube-scan-action@v8.4.0
         with:
           projectBaseDir: packages/eslint-plugin
         env:
