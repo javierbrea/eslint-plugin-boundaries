@@ -98,10 +98,10 @@ function flatten(items: readonly TreeItem[]): SketchNode[] {
 
 /**
  * Builds the tree that the project pane shows. Folders are implied by the files under them, and a `folder` node adds an empty folder.
- * @param sketch The sketch to read.
+ * @param sketch The sketch to read: only its tree counts, so that a caller can keep the result while the config changes.
  * @returns The items of the root: folders first, then files, each sorted by name, numbers by value and ignoring the case.
  */
-export function buildTree(sketch: Sketch): readonly TreeItem[] {
+export function buildTree(sketch: Pick<Sketch, "tree">): readonly TreeItem[] {
   return toItems(sketch.tree);
 }
 
@@ -118,10 +118,10 @@ export function canonicalizeNodes(
 
 /**
  * Gets the paths of the files of a sketch.
- * @param sketch The sketch to read.
+ * @param sketch The sketch to read: only its tree counts.
  * @returns The file paths, in the order of the tree.
  */
-export function getFiles(sketch: Sketch): readonly string[] {
+export function getFiles(sketch: Pick<Sketch, "tree">): readonly string[] {
   return canonicalizeNodes(sketch.tree)
     .filter((node) => node.kind === "file")
     .map((node) => node.path);

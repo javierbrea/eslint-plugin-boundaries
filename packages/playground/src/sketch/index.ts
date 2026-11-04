@@ -25,4 +25,4 @@ export {
   setConfig,
 } from "./Edit";
 export { isSameProject } from "./Compare";
-export { fromText, toText } from "./TextMode";
+export { fromText, readTextProblems, toText } from "./TextMode";

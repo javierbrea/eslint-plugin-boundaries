@@ -1,7 +1,7 @@
 import type { Sketch, SketchDependency, SketchNode } from "../contract";
 import { QUICK_START_EXAMPLE } from "../examples";
 
-import { fromText, toText } from "./TextMode";
+import { fromText, readTextProblems, toText } from "./TextMode";
 
 /**
  * Creates a dependency of a file on a node of the sketch.
@@ -376,6 +376,38 @@ describe("TextMode", () => {
 
       // Assert
       expect(JSON.stringify(SKETCH)).toBe(before);
+    });
+  });
+
+  describe("readTextProblems", () => {
+    it("should report the lines that fromText leaves out", () => {
+      // Arrange
+      const text = "src/a.js\n  import x\nsrc/a.js\n../b.js\n";
+
+      // Act
+      const problems = readTextProblems(text);
+
+      // Assert
+      expect(problems).toEqual(fromText(text, SKETCH).problems);
+    });
+
+    it("should report the same lines whatever the sketch is", () => {
+      // Arrange
+      const text = "src/a.js/\nsrc/a.js\n";
+
+      // Act
+      const problems = readTextProblems(text);
+
+      // Assert
+      expect(problems).toEqual(fromText(text, createSketch([])).problems);
+    });
+
+    it("should report nothing for a text whose lines can all be read", () => {
+      // Act
+      const problems = readTextProblems(toText(SKETCH));
+
+      // Assert
+      expect(problems).toEqual([]);
     });
   });
 
