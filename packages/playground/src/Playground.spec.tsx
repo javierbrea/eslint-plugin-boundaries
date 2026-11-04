@@ -407,6 +407,52 @@ describe("Playground", () => {
       await expect(view.findByText("1 file ·")).resolves.toBeDefined();
     });
 
+    it("should edit the sketch of the new store when the store changes, and save it there only", async () => {
+      // Arrange
+      const source = new SketchSource(SOURCE_SKETCH);
+      const previousStore = new MemoryStore();
+      const nextStore = new MemoryStore(SAVED_SKETCH);
+      const savePrevious = jest.spyOn(previousStore, "save");
+      const saveNext = jest.spyOn(nextStore, "save");
+      const { rerender } = render(
+        <Playground source={source} store={previousStore} />
+      );
+      await view.findByText("2 files ·");
+      rerender(<Playground source={source} store={nextStore} />);
+      await view.findByText("1 file ·");
+
+      // Act
+      fireEvent.click(view.getByLabelText("Delete src/index.ts"));
+
+      // Assert
+      expect(savePrevious).not.toHaveBeenCalled();
+      expect(saveNext).toHaveBeenCalledTimes(1);
+      expect(saveNext.mock.calls[0][0].tree).toEqual([]);
+    });
+
+    it("should show the sketch saved in a store when the store changes back to it before the other one loads", async () => {
+      // Arrange
+      const source = new SketchSource(SOURCE_SKETCH);
+      const store = new MemoryStore();
+      const pendingStore: jest.Mocked<StateStore> = {
+        load: jest.fn(() => new Promise<Sketch | undefined>(() => undefined)),
+        save: jest.fn(),
+      };
+      const { rerender } = render(<Playground source={source} store={store} />);
+      await view.findByText("2 files ·");
+      fireEvent.click(view.getByLabelText("Delete src/index.ts"));
+      rerender(<Playground source={source} store={pendingStore} />);
+
+      // Act
+      rerender(<Playground source={source} store={store} />);
+      const loading = view.queryByText("Loading the sketch…");
+
+      // Assert
+      expect(loading).not.toBeNull();
+      await expect(view.findByText("1 file ·")).resolves.toBeDefined();
+      expect(view.queryByTitle("src/index.ts")).toBeNull();
+    });
+
     it("should keep working when the store cannot save", async () => {
       // Arrange
       const store: jest.Mocked<StateStore> = {
