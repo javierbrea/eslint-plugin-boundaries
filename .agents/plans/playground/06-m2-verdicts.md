@@ -14,6 +14,22 @@ Read first:
 
 Preconditions: phase 5 merged. Phase 3 is in `feat/539/playground` since the merge of `release` on 2026-11-02.
 
+## From phase 5
+
+The code is the reference; these are the seams phase 5 left for this phase.
+
+- `Sketch` (`src/contract/Sketch.types.ts`) already has `dependencies` in the shape of step 1, and every edit of `src/sketch/` keeps them coherent: `renameNode` moves their `from` and their node targets, `removeNode` drops the ones from or to what it removes, and `fromText` keeps the ones whose file and node target are still in the tree. `toText` writes no dependency, and `fromText` reports an indented line as a problem: step 4 changes both.
+- `evaluate(sketch)` (`src/engine/Evaluate.ts`) returns an `Evaluation` (`src/engine/Engine.types.ts`), memoized by sketch object and by config text: the files described, the config problems, `rulesValid`, the summaries of the element types, file categories and rules, and `rangeOf(path)`, the range of any path of the config, which places a policy for "Open policy in config". It never throws: `normalizeConfigSafely` (`src/engine/NormalizeConfigSafely.ts`) leaves out the rule entries with a policy that `@boundaries/elements` cannot normalize and reports an error at that policy. Step 2 adds the verdicts.
+- `Focus` (`src/ui/state/Focus.types.ts`) is `none`, `config` or `file`, and the dependency variant is this phase's. The reducer (`src/ui/state/WorkbenchReducer.ts`) selects the tab of the node in focus; its tab ids (`ProblemsTabId`) are `sketch` and `node`, and the dependency tab is added to them.
+- `ProblemCounts.byPath` is an empty map (`NO_PATH_COUNTS` in `src/ui/Workbench.tsx`). `ProjectTreeItem` already reads it: a file with a count has its name in `--jsb-bad`, a ✕ and the badge, and a folder has the badge.
+- `ProblemsPanel` takes any list of `ProblemsTab` (`id`, `label`, `mono`, `count`, `tone`, `icon`) and the body of the selected one. Problem rows are `ProblemItem`s with the ids `config:<index>` and `text:<index>`; the `Sketch` tab lists the config problems, then the text problems, and the failing dependencies join that list.
+- `ConfigEditor` and `ConfigPane` take `highlight`, a `TextRange` whose lines stay marked and follow the edits, and `reveal`, which scrolls to a range each time its key changes: "Open policy in config" uses both with `rangeOf`.
+- `FilePane` (`src/ui/node/FilePane.tsx`) shows `No dependencies yet.` and a disabled `+ Dependency` with the tooltip `Dependencies arrive in the next milestone`. This phase removes both texts, enables the button and adds the hint that the mockup draws below it, `Dependencies are added and edited with the picker. Click a line to see its verdict in Problems.` (maintainer, 2026-11-04, review of the phase 5 page).
+- The head hint of text mode is `One path per line` (`src/ui/project/ProjectPane.tsx`). This phase makes it `One path per line · dependencies indented`, as the mockup has it, when text mode reads dependencies (same review).
+- The inspector of a file ends after its three facets, the inspector with nothing open shows four numbers (files, element types, file categories, policies), and the top bar reads `n files · n problems`. The `n dependencies ✓ k ✕ k – k not checked` line, the dependencies and disallowed numbers, the allowed and not-checked counts and the dependencies count of the top bar are this phase's (`00-shared.md` section 6).
+- The picker widgets have no theme overrides yet: `InputLabel` (the floating label), `Autocomplete` and its listbox, `Chip` and `Radio` go into `src/theme/Theme.ts` with the picker.
+- The engine spec compares the descriptions of the quick-start files with `src/engine/__fixtures__/quickStartDescriptions.ts`, captured from `boundaries/debug`; its TSDoc says how to capture it again.
+
 ## Scope
 
 In: the dependency model and picker, rendering as import statements with verdict marks, evaluation through `policies`, red nodes and counts, the file and dependency tabs of the problems panel, "Open policy in config", the inspector additions, text mode extended with dependencies. Out: URL state, Share, example picker (phase 7).
@@ -42,7 +58,7 @@ A modal dialog of the stack (portal carrying the playground root class so that t
 
 ### 5. Tests
 
-The home's step 3 scenario as a fixture: the verdict, the policy index and the message equal the plugin's (reuse the fixture captured in phase 5 or run the plugin in a test to produce the expected values); the focus rule of the tabs; the text mode round trip with dependencies; the relative path rendering.
+The home's step 3 scenario as a fixture: the verdict, the policy index and the message equal the plugin's (captured from the plugin as `src/engine/__fixtures__/quickStartDescriptions.ts` was, or produced by running the plugin in a test); the focus rule of the tabs; the text mode round trip with dependencies; the relative path rendering.
 
 ## Verification
 

@@ -9,11 +9,18 @@ Read first:
 
 - RFC #538, "Research tasks" 5, "Milestones" M3, "Acceptance" (a state shared by URL opens identically elsewhere), "Dependencies" (the teaser and the navbar entry switch on with the first usable version).
 - `packages/playground/src/contract/StateStore.types.ts`, the interface the hash store implements (`load` and `save`, both asynchronous), and the lazy factory of `packages/website/src/pages/playground.tsx`, where the hash store replaces the `MemoryStore`.
-- `05-m1-identify.md` and `06-m2-verdicts.md` hand-offs (`Sketch`, examples).
+- "From phase 5" below (the examples, saving), and what phase 6 hands off (the complete `Sketch`).
 - `packages/website/src/data/site/links.ts` (`GITHUB_PLAYGROUND_ISSUE`), `src/components/home/PlaygroundTeaser/`, `docusaurus.config.ts` navbar items, `src/components/CodeDiff/` (an existing MDX component of the docs, the model for the new one and its `docs-component` element type), `packages/website/docs/quick-start.mdx` (the first page to get a button, in phase 8).
 - Docusaurus docs on client-side routing and `useHistory` / `useLocation` for the hash check.
 
 Preconditions: phase 6 merged.
+
+## From phase 5
+
+- `src/examples/` is an element type of its own: `Example` (`{ id, title, sketch }`, `src/examples/Example.types.ts`), `QUICK_START_EXAMPLE` (`src/examples/QuickStart.ts`) and `EXAMPLES`, the list the picker shows, all exported by the entry. The website's lazy factory and the harness create their `SketchSource` with `QUICK_START_EXAMPLE.sketch`.
+- Nothing serializes a sketch yet. A `Sketch` is plain data (strings, arrays and objects), so the encoder of step 1 takes it as it is.
+- `Playground` (`src/Playground.tsx`) saves every sketch that the workbench produces with `store.save`, never the loaded one, and shows nothing when a save fails, because the `MemoryStore` cannot fail: the hash store decides what a failed save shows.
+- The top bar (`src/ui/layout/TopBar.tsx`) draws the status only; the example picker, Help, Reset and Share go where `00-shared.md` section 6 places them.
 
 ## Scope
 
