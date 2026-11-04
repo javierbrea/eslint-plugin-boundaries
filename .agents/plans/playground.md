@@ -13,6 +13,7 @@ This plan lives on the integration branch `feat/539/playground`. How it is share
 | --- | --- |
 | `playground/00-shared.md` | Always. Environment, branching, package conventions, quality gates, definition of done, the interface. |
 | `playground/05-m1-identify.md` | Phase 5 (#552): the HTML mockup of the interface, then M1. |
+| `playground/05-m1-identify/` | Phase 5, implementation: the design of the components and one task file per subagent or session (`README.md` first). |
 | `playground/06-m2-verdicts.md` | Phase 6 (#553): M2. |
 | `playground/07-m3-share-embed.md` | Phase 7 (#554): M3. |
 | `playground/08-docs.md` | Phase 8 (#555): the guide page and the docs buttons. |
