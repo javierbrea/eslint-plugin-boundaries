@@ -56,7 +56,7 @@ export type RuleSummary = {
   readonly name: string;
   /** Policies of its options, 0 when it has none */
   readonly policies: number;
-  /** Its options pass the rule schema */
+  /** Its options pass the rule schema, and the selector of every policy can be normalized */
   readonly valid: boolean;
   readonly range: TextRange;
 };
@@ -67,7 +67,7 @@ export type Evaluation = {
   readonly configParsed: boolean;
   /** One per diagnostic path, parse problem first, in the order of `normalizeConfig` */
   readonly problems: readonly ConfigProblem[];
-  /** False when an entry of a rule of the plugin fails its schema: dependencies are not evaluated */
+  /** False when an entry of a rule of the plugin fails its schema or has a policy whose selector cannot be normalized: dependencies are not evaluated */
   readonly rulesValid: boolean;
   /** Every file of the tree, by path */
   readonly files: ReadonlyMap<string, EntityDescription>;

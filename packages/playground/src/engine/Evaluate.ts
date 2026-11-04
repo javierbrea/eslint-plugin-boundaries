@@ -7,6 +7,7 @@ import { areRulesValid, toConfigProblems } from "./Diagnostics";
 import type { Evaluation } from "./Engine.types";
 import type { ConfigAnalysis } from "./Evaluate.types";
 import { getRangeOf } from "./Locations";
+import { normalizeConfigSafely } from "./NormalizeConfigSafely";
 import { parseConfig } from "./ParseConfig";
 import {
   summarizeElementTypes,
@@ -40,7 +41,8 @@ function analyzeConfig(text: string): ConfigAnalysis {
     };
     return lastAnalysis;
   }
-  const normalized = normalizeConfig({
+  // A policy half typed in the editor makes `normalizeConfig` throw, which would break the workbench
+  const normalized = normalizeConfigSafely({
     settings: parsed.value.settings,
     rules: parsed.value.rules,
   });

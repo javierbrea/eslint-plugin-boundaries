@@ -105,6 +105,14 @@ const MOCKUP_CONFIG = [
   "}",
 ].join("\n");
 
+// The quick-start config with a policy that is half typed: `@boundaries/elements` cannot normalize an empty `disallow`
+const THROWING_POLICY = "{ disallow: {} }";
+
+const THROWING_CONFIG = QUICK_START_CONFIG.replace(
+  '"policies": [',
+  `"policies": [\n${THROWING_POLICY},`
+);
+
 /**
  * Creates a sketch with the files that are given and no dependencies.
  * @param config The config text.
@@ -405,6 +413,212 @@ describe("Evaluate", () => {
       });
     });
 
+    describe("when a policy has a selector that cannot be normalized", () => {
+      it("should return an evaluation instead of throwing", () => {
+        // Arrange
+        const sketch = createSketch(THROWING_CONFIG, QUICK_START_FILES);
+
+        // Act
+        const evaluation = evaluate(sketch);
+
+        // Assert
+        expect(evaluation.sketch).toBe(sketch);
+        expect(evaluation.configParsed).toBe(true);
+      });
+
+      it("should place the warning and the error at the range of the policy", () => {
+        // Arrange
+        const sketch = createSketch(THROWING_CONFIG, QUICK_START_FILES);
+        const from = THROWING_CONFIG.indexOf(THROWING_POLICY);
+        const range = {
+          from,
+          to: from + THROWING_POLICY.length,
+          line: 34,
+          column: 1,
+        };
+        const path = ["rules", "boundaries/dependencies", 1, "policies", 0];
+
+        // Act
+        const { problems } = evaluate(sketch);
+
+        // Assert
+        expect(problems).toEqual([
+          {
+            level: "warning",
+            title:
+              "[boundaries/dependencies] Detected an unrecognized selector shape in 1 policy at indices: 0.",
+            detail: expect.stringContaining("Check the 'disallow' property."),
+            path,
+            range,
+            source: "config",
+          },
+          {
+            level: "error",
+            title: "Invalid entity selector",
+            detail:
+              "ESLint stops with this error at the first dependency that the rule checks.",
+            path,
+            range,
+            source: "config",
+          },
+        ]);
+      });
+
+      it("should say that the rules are not valid and that the rule is not valid", () => {
+        // Arrange
+        const sketch = createSketch(THROWING_CONFIG, QUICK_START_FILES);
+
+        // Act
+        const { rulesValid, rules } = evaluate(sketch);
+
+        // Assert
+        expect(rulesValid).toBe(false);
+        expect(rules).toEqual([
+          expect.objectContaining({
+            name: "boundaries/dependencies",
+            policies: 4,
+            valid: false,
+          }),
+        ]);
+      });
+
+      it("should describe the files and summarize the settings as it does without the policy", () => {
+        // Arrange
+        const sketch = createSketch(THROWING_CONFIG, QUICK_START_FILES);
+        const withoutPolicy = evaluate(
+          createSketch(QUICK_START_CONFIG, QUICK_START_FILES)
+        );
+
+        // Act
+        const evaluation = evaluate(sketch);
+
+        // Assert
+        expect(evaluation.files).toEqual(withoutPolicy.files);
+        expect(evaluation.elementTypes).toEqual(
+          withoutPolicy.elementTypes.map((summary) => ({
+            ...summary,
+            range: expect.objectContaining({ from: expect.any(Number) }),
+          }))
+        );
+        expect(evaluation.fileCategories).toHaveLength(2);
+      });
+
+      it("should return an error for each policy of the entry that throws", () => {
+        // Arrange
+        const config = THROWING_CONFIG.replace(
+          THROWING_POLICY,
+          `${THROWING_POLICY}, { allow: {} }`
+        );
+        const sketch = createSketch(config, QUICK_START_FILES);
+
+        // Act
+        const { problems } = evaluate(sketch);
+
+        // Assert
+        expect(
+          problems
+            .filter(({ level }) => level === "error")
+            .map(({ path, range }) => [
+              path,
+              config.slice(range.from, range.to),
+            ])
+        ).toEqual([
+          [
+            ["rules", "boundaries/dependencies", 1, "policies", 0],
+            THROWING_POLICY,
+          ],
+          [
+            ["rules", "boundaries/dependencies", 1, "policies", 1],
+            "{ allow: {} }",
+          ],
+        ]);
+      });
+
+      it("should keep the problems of the rest of the config before those of the entry that throws", () => {
+        // Arrange
+        const config = `{
+  settings: { "boundaries/elements": [{ type: "helper", patern: "helpers/*" }] },
+  rules: {
+    "boundaries/dependencies": [2, { policies: [{ disallow: {} }] }],
+    "boundaries/element-types": ["error", { default: "dissallow" }],
+  },
+}`;
+        const sketch = createSketch(config, QUICK_START_FILES);
+
+        // Act
+        const { problems, rules } = evaluate(sketch);
+
+        // Assert
+        expect(problems.map(({ path }) => path)).toEqual([
+          ["settings", "boundaries/elements", 0],
+          ["settings"],
+          ["rules", "boundaries/element-types", 1, "default"],
+          ["rules", "boundaries/dependencies", 1, "policies", 0],
+          ["rules", "boundaries/dependencies", 1, "policies", 0],
+        ]);
+        expect(
+          rules.map(({ name: ruleName, valid }) => [ruleName, valid])
+        ).toEqual([
+          ["boundaries/dependencies", false],
+          ["boundaries/element-types", false],
+        ]);
+      });
+
+      it("should place the problems of the legacy rules option at the policy", () => {
+        // Arrange
+        const config = `{
+  rules: {
+    "boundaries/element-types": [2, { rules: [{ allow: {} }] }],
+  },
+}`;
+        const sketch = createSketch(config, QUICK_START_FILES);
+        const from = config.indexOf("{ allow: {} }");
+
+        // Act
+        const { problems, rulesValid } = evaluate(sketch);
+
+        // Assert
+        expect(rulesValid).toBe(false);
+        expect(
+          problems
+            .filter(({ source }) => source === "config")
+            .map(({ level, path, range }) => [level, path, range.from])
+        ).toEqual([
+          ["warning", ["settings"], 0],
+          [
+            "warning",
+            ["rules", "boundaries/element-types", 1, "rules", 0],
+            from,
+          ],
+          [
+            "deprecation",
+            ["rules", "boundaries/element-types", 1, "rules"],
+            from - 1,
+          ],
+          ["error", ["rules", "boundaries/element-types", 1, "rules", 0], from],
+        ]);
+      });
+
+      it("should not count a rule that is off as invalid", () => {
+        // Arrange
+        const config = `{
+  settings: { "boundaries/elements": [{ type: "helper", pattern: "helpers/*" }] },
+  rules: {
+    "boundaries/dependencies": ["off", { policies: [{ disallow: {} }] }],
+  },
+}`;
+        const sketch = createSketch(config, QUICK_START_FILES);
+
+        // Act
+        const { problems, rulesValid, rules } = evaluate(sketch);
+
+        // Assert
+        expect(problems).toEqual([]);
+        expect(rulesValid).toBe(true);
+        expect(rules.map(({ valid }) => valid)).toEqual([true]);
+      });
+    });
+
     describe("when the config has keys other than settings and rules", () => {
       it("should warn about them before the diagnostics of the config", () => {
         // Arrange
@@ -680,6 +894,39 @@ describe("Evaluate", () => {
 
         // Assert
         expect(normalizeConfig).toHaveBeenCalledTimes(3);
+      });
+
+      it("should return the same evaluation for the same sketch when the config has a policy that cannot be normalized", () => {
+        // Arrange
+        const sketch = createSketch(THROWING_CONFIG, QUICK_START_FILES);
+
+        // Act
+        const first = evaluate(sketch);
+        const second = evaluate(sketch);
+
+        // Assert
+        expect(second).toBe(first);
+      });
+
+      it("should not normalize a config with a policy that cannot be normalized again when an edit of the tree leaves its text as it was", () => {
+        // Arrange
+        const before = createSketch(THROWING_CONFIG, ["src/a.js"]);
+        const after = createSketch(THROWING_CONFIG, ["src/a.js", "src/b.js"]);
+        const evaluationBefore = evaluate(before);
+        const normalizations = jest.mocked(normalizeConfig).mock.calls.length;
+
+        // Act
+        const evaluationAfter = evaluate(after);
+
+        // Assert
+        expect(jest.mocked(normalizeConfig)).toHaveBeenCalledTimes(
+          normalizations
+        );
+        expect(evaluationAfter.problems).toBe(evaluationBefore.problems);
+        expect([...evaluationAfter.files.keys()]).toEqual([
+          "src/a.js",
+          "src/b.js",
+        ]);
       });
 
       it("should not read an unparsable text again either", () => {

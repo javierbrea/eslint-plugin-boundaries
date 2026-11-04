@@ -33,3 +33,5 @@ Measured on 2026-11-04 with the built `@boundaries/config`:
 ## Notes
 
 The texts that the plugin prints are not changed: the title is the message of the error and the warning is the one of `validateRuleOptions`. The note of the problems panel for invalid rule options (T8) stays as it is.
+
+Done (2026-11-04) in `src/engine/NormalizeConfigSafely.ts`. One deviation: an entry of a rule that is off (`"off"` or `0`) also throws, because `normalizeConfig` normalizes its options without validating them; the engine leaves it out and reports nothing for it, because ESLint never runs a rule that is off and `normalizeConfig` reports nothing for the options of one either.
