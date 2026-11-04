@@ -19,16 +19,14 @@ function getCache(): EmotionCache {
   return sharedCache;
 }
 
-// The base of the playground: the card, the ink and the body font. Dialogs, menus and tooltips render inside this element and not inside the workbench, so they take their text from it: without it, a dialog's text takes the 16 px of the host
-const Base = styled("div")({
+// The base of the playground: the card, the ink and the body text of the theme. Dialogs, menus and tooltips render inside this element and not inside the workbench, so they take their text from it: without it, a dialog's text takes the 16 px of the host
+const Base = styled("div")(({ theme }) => ({
   boxSizing: "border-box",
   height: "100%",
   backgroundColor: "var(--jsb-card)",
   color: "var(--jsb-ink)",
-  fontFamily: "var(--jsb-font-body)",
-  fontSize: 13,
-  lineHeight: 1.45,
-});
+  ...theme.typography.body1,
+}));
 
 /** Props of {@link Root}. */
 type RootProps = {

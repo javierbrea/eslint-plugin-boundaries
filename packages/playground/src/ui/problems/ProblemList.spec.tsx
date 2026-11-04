@@ -1,6 +1,9 @@
 import { fireEvent, render, screen as view } from "@testing-library/react";
 
 import type { TextRange } from "../../engine";
+import { FOCUS_RING } from "../../theme";
+import { OWN_CLASS, getStyle } from "../../theme/__fixtures__/GetStyle";
+import { renderInRoot } from "../../theme/__fixtures__/RenderInRoot";
 import type { ProblemItem } from "../state";
 
 import { ProblemList } from "./ProblemList";
@@ -60,6 +63,13 @@ const TEXT_ITEM: ProblemItem = {
 };
 
 const EMPTY = "No problems.";
+
+/** The text of a row, from the mono variant of the theme with the line height of the mockup's rows */
+const ROW_TEXT = {
+  fontFamily: "var(--jsb-font-mono)",
+  fontSize: "12.5px",
+  lineHeight: "1.5",
+};
 
 /**
  * Gets the icon of a row.
@@ -151,6 +161,90 @@ describe("ProblemList", () => {
 
       // Assert
       expect(getComputedStyle(meta).whiteSpace).toBe("pre-wrap");
+    });
+  });
+
+  describe("text", () => {
+    it("should set the text of a row in the mono font, whether the row opens something or not", () => {
+      // Arrange
+      renderInRoot(
+        <ProblemList
+          items={[ERROR, TEXT_ITEM]}
+          onOpen={jest.fn()}
+          empty={EMPTY}
+        />
+      );
+
+      // Act
+      const [opens, plain] = view.getAllByRole("listitem").map((item) => {
+        const { fontFamily, fontSize, lineHeight } = getComputedStyle(
+          item.firstElementChild as HTMLElement
+        );
+
+        return { fontFamily, fontSize, lineHeight };
+      });
+
+      // Assert
+      expect(opens).toEqual(ROW_TEXT);
+      expect(plain).toEqual(ROW_TEXT);
+    });
+
+    it("should say that there are no rows in the small body text", () => {
+      // Arrange
+      renderInRoot(<ProblemList items={[]} onOpen={jest.fn()} empty={EMPTY} />);
+
+      // Act
+      const style = getComputedStyle(view.getByText(EMPTY));
+
+      // Assert
+      expect(style.fontFamily).toBe("var(--jsb-font-body)");
+      expect(style.fontSize).toBe("12.5px");
+    });
+  });
+
+  describe("a row that opens something", () => {
+    it("should draw the focus ring of the theme inside the row, where the scroll of the panel cannot clip it", () => {
+      // Arrange
+      renderInRoot(
+        <ProblemList items={[ERROR]} onOpen={jest.fn()} empty={EMPTY} />
+      );
+
+      // Act
+      const style = getStyle(
+        view.getByRole("button"),
+        `${OWN_CLASS}:focus-visible`
+      );
+
+      // Assert
+      expect(style).toEqual({ outline: FOCUS_RING, "outline-offset": "-2px" });
+    });
+
+    it("should highlight on hover", () => {
+      // Arrange
+      renderInRoot(
+        <ProblemList items={[ERROR]} onOpen={jest.fn()} empty={EMPTY} />
+      );
+
+      // Act
+      const style = getStyle(view.getByRole("button"), `${OWN_CLASS}:hover`);
+
+      // Assert
+      expect(style["background-color"]).toBe("var(--jsb-accent-soft)");
+    });
+
+    it("should lay out its content in the grid of a row, which the button of MUI would center", () => {
+      // Arrange
+      renderInRoot(
+        <ProblemList items={[ERROR]} onOpen={jest.fn()} empty={EMPTY} />
+      );
+
+      // Act
+      const style = getComputedStyle(view.getByRole("button"));
+
+      // Assert
+      expect(style.display).toBe("grid");
+      expect(style.alignItems).toBe("normal");
+      expect(style.justifyContent).toBe("normal");
     });
   });
 

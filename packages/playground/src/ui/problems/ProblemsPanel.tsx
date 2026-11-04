@@ -6,6 +6,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { useId } from "react";
 import type { ReactNode } from "react";
 
+import { FOCUS_RING } from "../../theme";
 import { CountBadge, PaneHead, TONE_COLORS, formatCount } from "../common";
 import type { Tone } from "../common";
 import { Icon } from "../icons";
@@ -22,11 +23,12 @@ const Panel = styled("section")({
   minHeight: 0,
 });
 
-const MonoTab = styled(Tab, {
-  shouldForwardProp: (prop) => prop !== "mono",
-})<{ mono: boolean }>(({ mono }) =>
-  mono ? { fontFamily: "var(--jsb-font-mono)", fontSize: 12 } : {}
-);
+// The text of a path or a line, in the mono font; the weight and the line height are the ones of the tab around it
+const MonoLabel = styled("span")(({ theme }) => ({
+  ...theme.typography.monoSmall,
+  fontWeight: "inherit",
+  lineHeight: "inherit",
+}));
 
 const ToneIcon = styled("span", {
   shouldForwardProp: (prop) => prop !== "tone",
@@ -51,10 +53,7 @@ const TabPanel = styled("div")({
   // A note above a list sits 4 px from its first row, as in the mockup
   "& > [role='note'] + *": { marginTop: 4 },
   // The panel scrolls, so it takes the keyboard even when it holds nothing to focus
-  "&:focus-visible": {
-    outline: "2px solid var(--jsb-accent)",
-    outlineOffset: -2,
-  },
+  "&:focus-visible": { outline: FOCUS_RING, outlineOffset: -2 },
 });
 
 /**
@@ -74,11 +73,11 @@ function getTabElementId(prefix: string, tabId: string): string {
  * @returns The nodes inside the tab, laid out in a row by the theme of the tab.
  */
 function TabLabel({ tab }: Readonly<{ tab: ProblemsTab<string> }>): ReactNode {
-  const { label, icon, tone, count = 0 } = tab;
+  const { label, icon, tone, count = 0, mono = false } = tab;
 
   return (
     <>
-      {label}
+      {mono ? <MonoLabel>{label}</MonoLabel> : label}
       {icon === undefined ? null : (
         <ToneIcon tone={tone}>
           <Icon name={icon} />
@@ -135,10 +134,9 @@ export function ProblemsPanel<Id extends string>({
               onChange={(_event, id: Id) => onSelect(id)}
             >
               {tabs.map((tab) => (
-                <MonoTab
+                <Tab
                   key={tab.id}
                   value={tab.id}
-                  mono={tab.mono === true}
                   id={getTabElementId(prefix, tab.id)}
                   // `Tabs` reports a tab that is not the selected one, so pressing the selected tab of a collapsed panel is told apart here: it expands the panel
                   onClick={() => {

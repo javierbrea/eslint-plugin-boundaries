@@ -28,14 +28,10 @@ const Content = styled("div")({
 });
 
 // A host styles its headings, such as the website's tightened letter spacing, and the title has none in the mockup
-const Title = styled("h2")({
+const Title = styled("h2")(({ theme }) => ({
   margin: 0,
-  fontFamily: "var(--jsb-font-display)",
-  fontSize: 16,
-  fontWeight: 600,
-  letterSpacing: "normal",
-  lineHeight: 1.3,
-});
+  ...theme.typography.title,
+}));
 
 const Message = styled("p")({
   maxWidth: "44ch",

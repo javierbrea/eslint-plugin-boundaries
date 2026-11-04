@@ -17,12 +17,15 @@ const Line = styled("li")({
   paddingRight: 14,
 });
 
-const LineNumber = styled("span")({
+// The weight and the line height are the ones of the code area
+const LineNumber = styled("span")(({ theme }) => ({
   paddingRight: 14,
   color: "var(--jsb-code-comment)",
-  fontSize: 12,
+  ...theme.typography.monoSmall,
+  fontWeight: "inherit",
+  lineHeight: "inherit",
   textAlign: "right",
-});
+}));
 
 // A long path wraps instead of being cut: the path is what the line is about
 const Statement = styled("span")({

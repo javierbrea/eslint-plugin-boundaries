@@ -2,6 +2,9 @@ import { fireEvent, render, screen as view } from "@testing-library/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 
+import { FOCUS_RING } from "../../theme";
+import { OWN_CLASS, getStyle } from "../../theme/__fixtures__/GetStyle";
+import { renderInRoot } from "../../theme/__fixtures__/RenderInRoot";
 import { Note } from "../common";
 import type { ProblemItem } from "../state";
 
@@ -173,30 +176,33 @@ describe("ProblemsPanel", () => {
       expect(view.getByRole("tab").textContent).toBe("Sketch");
     });
 
-    it("should draw the label of a mono tab in the mono font", () => {
+    it("should draw the label of a mono tab in the small mono text, and leave the label of the others alone", () => {
       // Arrange
-      render(<ProblemsPanel {...createProps()} />);
+      renderInRoot(<ProblemsPanel {...createProps()} />);
 
       // Act
-      const mono = view.getByRole("tab", { name: "line 3" });
-      const body = view.getByRole("tab", { name: "Sketch 2 problems" });
+      const mono = getComputedStyle(view.getByText("line 3"));
+      const body = getComputedStyle(
+        view.getByRole("tab", { name: "Sketch 2 problems" })
+      );
 
       // Assert
-      expect(getComputedStyle(mono).fontFamily).toBe("var(--jsb-font-mono)");
-      expect(getComputedStyle(body).fontFamily).not.toBe(
-        "var(--jsb-font-mono)"
-      );
+      expect(mono.fontFamily).toBe("var(--jsb-font-mono)");
+      expect(mono.fontSize).toBe("12px");
+      expect(body.fontFamily).toBe("var(--jsb-font-body)");
+      expect(body.fontSize).toBe("12.5px");
     });
 
-    it("should not pass its own props to the DOM", () => {
+    it("should leave the weight and the line height of a mono label to its tab", () => {
       // Arrange
-      render(<ProblemsPanel {...createProps()} />);
+      renderInRoot(<ProblemsPanel {...createProps()} />);
 
       // Act
-      const tab = view.getByRole("tab", { name: "line 3" });
+      const style = getComputedStyle(view.getByText("line 3"));
 
       // Assert
-      expect(tab.hasAttribute("mono")).toBe(false);
+      expect(style.fontWeight).toBe("inherit");
+      expect(style.lineHeight).toBe("inherit");
     });
 
     it("should draw the icon of a tab in its tone, hidden from assistive technology", () => {
@@ -452,6 +458,23 @@ describe("ProblemsPanel", () => {
 
       // Assert
       expect(tabpanel.getAttribute("tabindex")).toBe("0");
+    });
+
+    it("should draw the focus ring inside the panel, where its scroll cannot clip it", () => {
+      // Arrange
+      renderInRoot(<ProblemsPanel {...createProps()} />);
+
+      // Act
+      const style = getStyle(
+        view.getByRole("tabpanel"),
+        `${OWN_CLASS}:focus-visible`
+      );
+
+      // Assert
+      expect(style).toMatchObject({
+        outline: FOCUS_RING,
+        "outline-offset": "-2px",
+      });
     });
 
     it("should hold the notes and the list that the workbench composes", () => {

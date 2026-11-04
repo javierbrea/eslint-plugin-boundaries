@@ -12,6 +12,7 @@ import type {
   Ref,
 } from "react";
 
+import { FOCUS_RING, HOVER_BACKGROUND } from "../../theme";
 import { CountBadge, formatCount } from "../common";
 import type { Tone } from "../common";
 import { Icon } from "../icons";
@@ -31,20 +32,13 @@ export const ProjectTreeContext = createContext<ProjectTreeContextValue | null>(
   null
 );
 
-/** Hover over a row: the soft accent, fainter than a selection */
-const HOVER_BACKGROUND =
-  "color-mix(in srgb, var(--jsb-accent-soft) 60%, transparent)";
-
 const Root = styled("li")({
   margin: 0,
   padding: 0,
   listStyle: "none",
   outline: 0,
   // The keyboard ring is the row's, which is what the user sees as the item
-  "&:focus-visible > div": {
-    outline: "2px solid var(--jsb-accent)",
-    outlineOffset: -2,
-  },
+  "&:focus-visible > div": { outline: FOCUS_RING, outlineOffset: -2 },
   // The separator below the config node: 4 px under its row, 6 px above the tree, inset from the rows
   "&[data-kind='config']": {
     position: "relative",
@@ -61,7 +55,7 @@ const Root = styled("li")({
   },
 });
 
-const Row = styled("div")({
+const Row = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   gap: 4,
@@ -73,7 +67,9 @@ const Row = styled("div")({
   paddingRight: 6,
   borderRadius: 4,
   color: "var(--jsb-ink)",
-  font: "12.5px/26px var(--jsb-font-mono)",
+  ...theme.typography.mono,
+  // The height of the row, so that the name is centered
+  lineHeight: "26px",
   whiteSpace: "nowrap",
   cursor: "default",
   "&:hover": { background: HOVER_BACKGROUND },
@@ -87,7 +83,7 @@ const Row = styled("div")({
   // The row actions show on hover and while the row has the focus
   "&:hover [data-actions], &[data-focused] [data-actions], &:focus-within [data-actions]":
     { maxWidth: 52, opacity: 1 },
-});
+}));
 
 const Chevron = styled("span")({
   display: "inline-flex",
@@ -96,11 +92,14 @@ const Chevron = styled("span")({
   color: "var(--jsb-faint)",
 });
 
-const Glyph = styled("span")({
+// The size of a badge, in the weight and line height of the row
+const Glyph = styled("span")(({ theme }) => ({
   flex: "none",
   color: "var(--jsb-faint)",
-  fontSize: 11,
-});
+  ...theme.typography.monoTiny,
+  fontWeight: "inherit",
+  lineHeight: "inherit",
+}));
 
 const Name = styled("span")({
   minWidth: 0,

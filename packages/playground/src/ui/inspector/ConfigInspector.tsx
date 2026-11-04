@@ -29,7 +29,7 @@ const List = styled("ul")({
 });
 
 // The status goes under the name when both do not fit, instead of breaking the name in the middle of a word: at the default width of the inspector, a rule name and `not evaluated` take all the room there is
-const RowButton = styled(ButtonBase)({
+const RowButton = styled(ButtonBase)(({ theme }) => ({
   display: "flex",
   flexWrap: "wrap",
   alignItems: "baseline",
@@ -38,12 +38,12 @@ const RowButton = styled(ButtonBase)({
   width: "100%",
   padding: "7px 10px",
   textAlign: "left",
-  font: "12px/1.45 var(--jsb-font-mono)",
+  ...theme.typography.monoSmall,
   color: "var(--jsb-ink)",
   "&:hover": { backgroundColor: "var(--jsb-accent-soft)" },
   // The list clips what is outside it
   "&:focus-visible": { outlineOffset: -2 },
-});
+}));
 
 // A name longer than the row still wraps, so that a long pattern never overflows it
 const Name = styled("span", {
@@ -64,27 +64,27 @@ const Status = styled("span", {
   whiteSpace: "nowrap",
 }));
 
-const Detail = styled("small")({
+const Detail = styled("small")(({ theme }) => ({
   flexBasis: "100%",
   textAlign: "left",
-  font: "11.5px var(--jsb-font-mono)",
+  ...theme.typography.monoCaption,
+  // The detail sits tight under the name
+  lineHeight: "normal",
   color: "var(--jsb-muted)",
   overflowWrap: "anywhere",
-});
+}));
 
-const SectionLabel = styled("h3")({
+const SectionLabel = styled("h3")(({ theme }) => ({
   margin: "4px 0 0",
-  font: "500 10.5px/1 var(--jsb-font-mono)",
-  letterSpacing: "0.14em",
-  textTransform: "uppercase",
+  ...theme.typography.paneLabel,
   color: "var(--jsb-faint)",
-});
+}));
 
-const None = styled("p")({
+const None = styled("p")(({ theme }) => ({
   margin: 0,
-  font: "12px/1.45 var(--jsb-font-mono)",
+  ...theme.typography.monoSmall,
   color: "var(--jsb-faint)",
-});
+}));
 
 /** Props of {@link RowList}. */
 type RowListProps = {

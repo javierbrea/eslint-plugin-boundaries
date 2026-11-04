@@ -15,7 +15,7 @@ import {
 /** Milliseconds after the last keystroke before the text is read */
 const READ_DELAY = 300;
 
-const Area = styled("textarea")({
+const Area = styled("textarea")(({ theme }) => ({
   boxSizing: "border-box",
   width: "100%",
   height: "100%",
@@ -28,10 +28,12 @@ const Area = styled("textarea")({
   boxShadow: "inset 0 0 0 1px var(--jsb-accent)",
   background: "var(--jsb-paper-2)",
   color: "var(--jsb-ink)",
-  font: "12px/20px var(--jsb-font-mono)",
+  ...theme.typography.monoSmall,
+  // A line is 20 px tall
+  lineHeight: "20px",
   resize: "none",
   whiteSpace: "pre",
-});
+}));
 
 /**
  * The project as text, one path per line: a textarea that edits the same sketch as the tree. What the user types is the draft of the store, which shows instead of the sketch's text and whose lines that cannot be read are listed as problems. The draft is read into the sketch 300 ms after the last keystroke, and on blur, which also goes back to the sketch's text when every line was read. Without `editTree` the text is read only.

@@ -2,7 +2,11 @@ import { HighlightStyle } from "@codemirror/language";
 import { EditorView } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 
+import { TYPOGRAPHY } from "../../theme";
+
 import { HIGHLIGHT_CLASS } from "./Highlight";
+
+const { body2, mono, monoCaption, fontWeightBold } = TYPOGRAPHY;
 
 /** The paths of the `i-cross` and `i-warn` icons of the mockup, which are 16 px wide and drawn with a 2 px stroke */
 const ICON_PATHS = {
@@ -51,7 +55,7 @@ const HIGHLIGHT =
   "color-mix(in srgb, var(--jsb-code-keyword) 13%, transparent)";
 
 /**
- * The theme of the editor: a code area on `--jsb-code` with the lint gutter, the problems and their tooltip. Every value is a token of the host. It is dark in both color schemes, as the file pane is.
+ * The theme of the editor: a code area on `--jsb-code` with the lint gutter, the problems and their tooltip. Every color is a token of the host. It is dark in both color schemes, as the file pane is. CodeMirror builds the theme when this module loads, before any MUI theme exists, so the text reads the type scale as constants and not through `theme.typography`.
  */
 export const editorTheme = EditorView.theme(
   {
@@ -59,12 +63,13 @@ export const editorTheme = EditorView.theme(
       height: "100%",
       backgroundColor: "var(--jsb-code)",
       color: "var(--jsb-code-fg)",
-      fontSize: "12.5px",
+      fontSize: mono.fontSize,
     },
     // No ring around the editor, as the mockup draws it (maintainer, 2026-11-04): the cursor and the active line show the focus. "none" overrides the dotted outline of the base theme of CodeMirror
     "&.cm-focused": { outline: "none" },
     ".cm-scroller": {
-      fontFamily: "var(--jsb-font-mono)",
+      fontFamily: mono.fontFamily,
+      // The pitch of a line of the code
       lineHeight: "22px",
       overflow: "auto",
     },
@@ -104,7 +109,7 @@ export const editorTheme = EditorView.theme(
       boxSizing: "border-box",
       minWidth: "36px",
       padding: "0 12px 0 0",
-      fontSize: "11.5px",
+      fontSize: monoCaption.fontSize,
     },
     ".cm-gutter-lint": { width: "18px" },
     ".cm-gutter-lint .cm-gutterElement": {
@@ -146,7 +151,10 @@ export const editorTheme = EditorView.theme(
       backgroundColor: "var(--jsb-card)",
       boxShadow: "var(--jsb-shadow)",
       color: "var(--jsb-ink)",
-      font: "12.5px/1.45 var(--jsb-font-body)",
+      fontFamily: body2.fontFamily,
+      fontSize: body2.fontSize,
+      fontWeight: body2.fontWeight,
+      lineHeight: body2.lineHeight,
     },
     ".cm-tooltip-lint": { maxWidth: "430px" },
     ".cm-diagnostic": {
@@ -158,7 +166,7 @@ export const editorTheme = EditorView.theme(
     ".cm-diagnosticText strong": {
       display: "block",
       marginBottom: "2px",
-      fontWeight: "600",
+      fontWeight: fontWeightBold,
     },
     ".cm-diagnosticText a": {
       whiteSpace: "nowrap",

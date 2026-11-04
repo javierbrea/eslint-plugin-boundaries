@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 /** Height of the head of a pane in pixels, border included. */
 const HEAD_HEIGHT = 34;
 
-const Head = styled("div")({
+const Head = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   gap: 10,
@@ -13,42 +13,39 @@ const Head = styled("div")({
   padding: "0 8px 0 14px",
   borderBottom: "1px solid var(--jsb-line)",
   color: "var(--jsb-muted)",
-  fontFamily: "var(--jsb-font-mono)",
-  fontSize: 10.5,
-  fontWeight: 500,
-  letterSpacing: "0.14em",
-  lineHeight: 1,
-  textTransform: "uppercase",
-});
+  ...theme.typography.paneLabel,
+}));
 
 const Label = styled("span")({ flex: "none", whiteSpace: "nowrap" });
 
-const Path = styled("span")({
+// Plain mono text in the head: the weight and the line height are the head's, and the letters are not spaced out nor uppercase
+const Path = styled("span")(({ theme }) => ({
   minWidth: 0,
   overflow: "hidden",
   color: "var(--jsb-ink)",
-  fontSize: 12,
+  ...theme.typography.monoSmall,
+  fontWeight: "inherit",
+  lineHeight: "inherit",
   letterSpacing: 0,
   textOverflow: "ellipsis",
   textTransform: "none",
   whiteSpace: "nowrap",
-});
+}));
 
 const Spacer = styled("span")({ flex: 1 });
 
-const Hint = styled("span")({
+// Plain text in the head: the letters are not spaced out nor uppercase, and the line height is the head's
+const Hint = styled("span")(({ theme }) => ({
   minWidth: 0,
   overflow: "hidden",
   color: "var(--jsb-faint)",
-  fontFamily: "var(--jsb-font-body)",
-  fontSize: 12,
-  // The label of the head is 500, and a hint reads as plain text
-  fontWeight: 400,
+  ...theme.typography.caption,
+  lineHeight: "inherit",
   letterSpacing: 0,
   textOverflow: "ellipsis",
   textTransform: "none",
   whiteSpace: "nowrap",
-});
+}));
 
 const End = styled("div")({
   display: "flex",

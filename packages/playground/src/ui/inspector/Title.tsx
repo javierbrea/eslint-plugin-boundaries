@@ -1,10 +1,12 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-const Heading = styled("div")({
-  font: "500 12.5px/1.4 var(--jsb-font-mono)",
+const Heading = styled("div")(({ theme }) => ({
+  ...theme.typography.mono,
+  fontWeight: theme.typography.fontWeightMedium,
+  lineHeight: 1.4,
   overflowWrap: "anywhere",
-});
+}));
 
 /** Props of {@link Title}. */
 type TitleProps = {

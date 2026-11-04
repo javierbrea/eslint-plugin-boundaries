@@ -8,19 +8,20 @@ import { formatValue } from "./FormatValue";
 import type { DescribedValue } from "./FormatValue.types";
 import { Title } from "./Title";
 
-const Box = styled("div")({
+const Box = styled("div")(({ theme }) => ({
   display: "grid",
   gap: 4,
   padding: "9px 10px",
   border: "1px solid var(--jsb-line)",
   borderRadius: "var(--jsb-radius)",
-  font: "12px/1.5 var(--jsb-font-mono)",
-});
+  ...theme.typography.monoSmall,
+  lineHeight: 1.5,
+}));
 
-const FacetName = styled("b")({
-  fontWeight: 500,
+const FacetName = styled("b")(({ theme }) => ({
+  fontWeight: theme.typography.fontWeightMedium,
   color: "var(--jsb-accent)",
-});
+}));
 
 const Entries = styled("dl")({
   display: "grid",

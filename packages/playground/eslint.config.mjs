@@ -134,6 +134,7 @@ export default [
                 },
               },
             },
+            // A pane imports the tokens that the MUI theme object does not carry: the focus ring and the hover of its own rows, and the type scale for CodeMirror, whose theme is built before any MUI theme exists. The rest of the theme reaches a pane through `styled`
             {
               from: { element: { type: "ui-pane" } },
               allow: {
@@ -174,7 +175,7 @@ export default [
             },
             {
               from: { element: { type: "ui-shared" } },
-              allow: { to: { element: { type: ["theme", "ui-shared"] } } },
+              allow: { to: { element: { type: "ui-shared" } } },
             },
             // The pure layers: operations on a sketch, its evaluation and the examples read the contract
             {

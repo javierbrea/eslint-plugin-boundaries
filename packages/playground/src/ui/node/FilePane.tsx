@@ -14,7 +14,7 @@ import { NodeFrame } from "./NodeFrame";
 /** The dependencies of a file, none until phase 6 reads them from the sketch. */
 const NO_LINES: readonly DependencyLine[] = [];
 
-const Code = styled("div")({
+const Code = styled("div")(({ theme }) => ({
   boxSizing: "border-box",
   flex: 1,
   minHeight: 0,
@@ -22,8 +22,8 @@ const Code = styled("div")({
   overflow: "auto",
   backgroundColor: "var(--jsb-code)",
   color: "var(--jsb-code-fg)",
-  font: "13px/28px var(--jsb-font-mono)",
-});
+  ...theme.typography.code,
+}));
 
 // Aligned with the statements of the lines, which start after the 44 px of the line numbers
 const Message = styled("p")({

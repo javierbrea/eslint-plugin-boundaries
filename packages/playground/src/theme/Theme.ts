@@ -1,6 +1,8 @@
 import { createTheme } from "@mui/material/styles";
 import type { Components, PaletteOptions, Theme } from "@mui/material/styles";
 
+import { TYPOGRAPHY } from "./Typography";
+
 /** Class of the root element of the playground, the scope of every MUI variable and style */
 export const ROOT_CLASS = "jsb-play-root";
 
@@ -28,11 +30,11 @@ const PALETTE: PaletteOptions = {
   background: { default: "var(--jsb-paper)", paper: "var(--jsb-card)" },
 };
 
-/** Keyboard focus ring of every button, tab and toggle */
-const FOCUS_RING = "2px solid var(--jsb-accent)";
+/** Keyboard focus ring of every button, tab and toggle. A pane that draws a ring of its own, such as a scrolling panel or a row of the tree, uses it too, with the offset that suits where it sits */
+export const FOCUS_RING = "2px solid var(--jsb-accent)";
 
 /** Hover over a row or a toggle: the soft accent, fainter than a selection */
-const HOVER_BACKGROUND =
+export const HOVER_BACKGROUND =
   "color-mix(in srgb, var(--jsb-accent-soft) 60%, transparent)";
 
 /** Backdrop of the dialogs in the dark scheme: 34% of `--jsb-ink`, which is light there, would brighten the page instead of dimming it */
@@ -99,7 +101,11 @@ const WIDGETS: Components<Omit<Theme, "components">> = {
         "&:hover": { backgroundColor: "var(--jsb-accent-soft)" },
         "&.Mui-disabled": { color: "var(--jsb-muted)" },
       },
-      sizeSmall: { height: 26, padding: "0 8px", fontSize: 12 },
+      sizeSmall: ({ theme }) => ({
+        height: 26,
+        padding: "0 8px",
+        fontSize: theme.typography.caption.fontSize,
+      }),
     },
   },
   MuiIconButton: {
@@ -127,14 +133,13 @@ const WIDGETS: Components<Omit<Theme, "components">> = {
   // The tooltip has no arrow: MUI draws none unless `arrow` is set
   MuiTooltip: {
     styleOverrides: {
-      tooltip: {
+      tooltip: ({ theme }) => ({
+        ...theme.typography.caption,
         backgroundColor: "var(--jsb-ink)",
         color: "var(--jsb-paper)",
-        fontSize: 12,
-        fontWeight: 400,
         borderRadius: 4,
         padding: "4px 8px",
-      },
+      }),
     },
   },
   MuiTabs: {
@@ -145,13 +150,13 @@ const WIDGETS: Components<Omit<Theme, "components">> = {
   },
   MuiTab: {
     styleOverrides: {
-      root: {
+      // The tab takes the size of the button from MUI, which spreads the `button` variant
+      root: ({ theme }) => ({
         gap: 7,
         minWidth: 0,
         minHeight: 34,
         padding: "0 12px",
-        fontSize: 12.5,
-        fontWeight: 500,
+        fontWeight: theme.typography.fontWeightMedium,
         letterSpacing: 0,
         lineHeight: 1,
         // A label next to an icon would stack them, as MUI puts the icon above the label by default
@@ -160,7 +165,7 @@ const WIDGETS: Components<Omit<Theme, "components">> = {
         "&.Mui-selected": { color: "var(--jsb-ink)" },
         // The scroller of the tabs clips a ring drawn outside the tab
         "&:focus-visible": { outlineOffset: -2 },
-      },
+      }),
     },
   },
   // The segmented look: a bordered track with a flat button inside
@@ -182,14 +187,14 @@ const WIDGETS: Components<Omit<Theme, "components">> = {
   },
   MuiToggleButton: {
     styleOverrides: {
-      root: {
+      root: ({ theme }) => ({
         minWidth: 0,
         height: 22,
         padding: "0 9px",
         border: 0,
         borderRadius: 4,
-        fontSize: 12,
-        fontWeight: 500,
+        fontSize: theme.typography.caption.fontSize,
+        fontWeight: theme.typography.fontWeightMedium,
         letterSpacing: 0,
         lineHeight: 1,
         textTransform: "none",
@@ -205,7 +210,7 @@ const WIDGETS: Components<Omit<Theme, "components">> = {
           opacity: 0.45,
           color: "var(--jsb-muted)",
         },
-      },
+      }),
     },
   },
   MuiPaper: {
@@ -235,15 +240,10 @@ const WIDGETS: Components<Omit<Theme, "components">> = {
   },
   MuiDialogTitle: {
     styleOverrides: {
-      root: {
+      root: ({ theme }) => ({
         padding: "18px 22px 6px",
-        fontFamily: "var(--jsb-font-display)",
-        fontSize: 18,
-        fontWeight: 600,
-        // A host styles its headings, such as the website's tightened letter spacing, and the title of a dialog has none in the mockup
-        letterSpacing: "normal",
-        lineHeight: 1.3,
-      },
+        ...theme.typography.dialogTitle,
+      }),
     },
   },
   MuiDialogContent: {
@@ -261,11 +261,10 @@ const WIDGETS: Components<Omit<Theme, "components">> = {
   // Every input is mono; the dense size is the one of the rename field of the tree
   MuiInputBase: {
     styleOverrides: {
-      root: {
-        fontFamily: "var(--jsb-font-mono)",
-        fontSize: 12.5,
+      root: ({ theme }) => ({
+        ...theme.typography.mono,
         lineHeight: 1.4,
-      },
+      }),
     },
   },
   MuiOutlinedInput: {
@@ -316,24 +315,7 @@ export function createPlaygroundTheme(
       light: { palette: PALETTE },
       dark: { palette: PALETTE },
     },
-    typography: {
-      fontFamily: "var(--jsb-font-body)",
-      h1: { fontFamily: "var(--jsb-font-display)" },
-      h2: { fontFamily: "var(--jsb-font-display)" },
-      h3: { fontFamily: "var(--jsb-font-display)" },
-      h4: { fontFamily: "var(--jsb-font-display)" },
-      h5: { fontFamily: "var(--jsb-font-display)" },
-      h6: { fontFamily: "var(--jsb-font-display)" },
-      // The body is 13 px; the buttons and the tabs are a notch smaller
-      body1: { fontSize: "13px", lineHeight: 1.45 },
-      body2: { fontSize: "12.5px", lineHeight: 1.45 },
-      button: {
-        fontSize: "12.5px",
-        fontWeight: 600,
-        letterSpacing: 0,
-        textTransform: "none",
-      },
-    },
+    typography: TYPOGRAPHY,
     shape: {
       // --jsb-radius
       borderRadius: 6,

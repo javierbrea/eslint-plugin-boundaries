@@ -12,7 +12,7 @@ const BACKGROUND_SHARES: Readonly<Record<Tone, string>> = {
 
 const Badge = styled("span", {
   shouldForwardProp: (prop) => prop !== "tone",
-})<{ tone: Tone }>(({ tone }) => ({
+})<{ tone: Tone }>(({ theme, tone }) => ({
   color: TONE_COLORS[tone],
   backgroundColor: `color-mix(in srgb, ${TONE_COLORS[tone]} ${BACKGROUND_SHARES[tone]}, transparent)`,
   display: "inline-grid",
@@ -22,10 +22,7 @@ const Badge = styled("span", {
   height: 18,
   padding: "0 5px",
   borderRadius: 9,
-  fontFamily: "var(--jsb-font-mono)",
-  fontSize: 11,
-  fontWeight: 500,
-  lineHeight: 1,
+  ...theme.typography.monoTiny,
 }));
 
 /** Props of {@link CountBadge}. */

@@ -73,6 +73,49 @@ describe("EditorTheme", () => {
       expect(editor).toContain("color: var(--jsb-code-fg)");
     });
 
+    it("should set the code in the mono text of the type scale, 12.5 px on a line of 22 px", () => {
+      // Arrange
+      const css = mountAndReadCss();
+
+      // Act
+      const editor = css
+        .split("\n")
+        .find((rule) => rule.includes("{height: 100%;"));
+      const scroller = getDeclarations(css, ".cm-scroller");
+
+      // Assert
+      expect(editor).toContain("font-size: 12.5px");
+      expect(scroller).toContain("font-family: var(--jsb-font-mono)");
+      expect(scroller).toContain("line-height: 22px");
+    });
+
+    it("should set the line numbers a notch smaller than the code", () => {
+      // Arrange
+      const css = mountAndReadCss();
+
+      // Act
+      const numbers = getDeclarations(css, ".cm-lineNumbers .cm-gutterElement");
+
+      // Assert
+      expect(numbers).toContain("font-size: 11.5px");
+    });
+
+    it("should set the tooltip of a problem in the small body text, with the title of the problem in bold", () => {
+      // Arrange
+      const css = mountAndReadCss();
+
+      // Act
+      const card = getDeclarations(css, ".cm-tooltip");
+      const title = getDeclarations(css, ".cm-diagnosticText strong");
+
+      // Assert
+      expect(card).toContain("font-family: var(--jsb-font-body)");
+      expect(card).toContain("font-size: 12.5px");
+      expect(card).toContain("font-weight: 400");
+      expect(card).toContain("line-height: 1.45");
+      expect(title).toContain("font-weight: 600");
+    });
+
     it("should use only the tokens of the host as colors", () => {
       // Arrange
       const css = mountAndReadCss();

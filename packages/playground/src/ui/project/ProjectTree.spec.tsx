@@ -1,6 +1,9 @@
 import { render, screen as view, within } from "@testing-library/react";
 
 import type { Sketch } from "../../contract";
+import { FOCUS_RING, HOVER_BACKGROUND } from "../../theme";
+import { OWN_CLASS, getStyle } from "../../theme/__fixtures__/GetStyle";
+import { renderInRoot } from "../../theme/__fixtures__/RenderInRoot";
 import type { CountBadge } from "../common";
 import type { ProblemCounts } from "../state";
 
@@ -57,6 +60,64 @@ function getItem(path: string): HTMLElement {
 }
 
 describe("ProjectTree", () => {
+  describe("rows", () => {
+    it("should set the name of a row in mono text, on a line as tall as the row", () => {
+      // Arrange
+      renderInRoot(<ProjectTree {...createProps()} />);
+
+      // Act
+      const style = getComputedStyle(
+        getItem("src/index.js").firstElementChild as HTMLElement
+      );
+
+      // Assert
+      expect(style.fontFamily).toBe("var(--jsb-font-mono)");
+      expect(style.fontSize).toBe("12.5px");
+      expect(style.lineHeight).toBe("26px");
+    });
+
+    it("should draw the focus ring of the theme on the row, inside it", () => {
+      // Arrange
+      renderInRoot(<ProjectTree {...createProps()} />);
+
+      // Act
+      const style = getStyle(
+        getItem("src/index.js"),
+        `${OWN_CLASS}:focus-visible>div`
+      );
+
+      // Assert
+      expect(style).toEqual({ outline: FOCUS_RING, "outline-offset": "-2px" });
+    });
+
+    it("should highlight a row on hover with the hover of the theme", () => {
+      // Arrange
+      renderInRoot(<ProjectTree {...createProps()} />);
+
+      // Act
+      const style = getStyle(
+        getItem("src/index.js").firstElementChild as HTMLElement,
+        `${OWN_CLASS}:hover`
+      );
+
+      // Assert
+      expect(style.background).toBe(HOVER_BACKGROUND);
+    });
+
+    it("should set the glyph of the config in the size of a badge, with the weight and the line height of the row", () => {
+      // Arrange
+      renderInRoot(<ProjectTree {...createProps()} />);
+
+      // Act
+      const style = getComputedStyle(view.getByText("{}"));
+
+      // Assert
+      expect(style.fontSize).toBe("11px");
+      expect(style.fontWeight).toBe("inherit");
+      expect(style.lineHeight).toBe("inherit");
+    });
+  });
+
   describe("badges", () => {
     it("should show the failing dependencies of a folder and of a file", () => {
       // Arrange

@@ -1,4 +1,6 @@
+import ButtonBase from "@mui/material/ButtonBase";
 import { styled } from "@mui/material/styles";
+import type { CSSObject, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 import type { ProblemLevel } from "../../engine";
@@ -17,41 +19,43 @@ const LEVELS: Readonly<Record<ProblemLevel, { icon: IconName; tone: Tone }>> = {
   deprecation: { icon: "warn", tone: "warn" },
 };
 
+/**
+ * The look of a row, whether it is a button or plain content. The text is the one of the mockup's rows, in the mono font.
+ * @param props The props of the styled component.
+ * @param props.theme The theme.
+ * @returns The styles.
+ */
+function getRowStyles({ theme }: { theme: Theme }): CSSObject {
+  return {
+    display: "grid",
+    gridTemplateColumns: "18px minmax(0, 1fr)",
+    gap: "1px 8px",
+    boxSizing: "border-box",
+    width: "100%",
+    padding: "6px 16px",
+    ...theme.typography.mono,
+    lineHeight: 1.5,
+    textAlign: "left",
+    // A path or a diagnostic without spaces would stretch the row instead of wrapping
+    overflowWrap: "anywhere",
+  };
+}
+
+const Row = styled("div")(getRowStyles);
+
+// A row that opens something is a button, so that it is reached with the keyboard, and it gets its focus ring from the theme, as the rows of the config inspector do. The grid of a row has its own alignment: the button of MUI centers its content
+const RowButton = styled(ButtonBase)(getRowStyles, {
+  alignItems: "normal",
+  justifyContent: "normal",
+  "&:hover": { backgroundColor: "var(--jsb-accent-soft)" },
+  // Inside the row: the scroll container of the panel would clip a ring drawn outside
+  "&:focus-visible": { outlineOffset: -2 },
+});
+
 const List = styled("ul")({
   margin: 0,
   padding: 0,
   listStyle: "none",
-});
-
-// The text of a row is the one of the mockup's rows, in the mono font
-const ROW_STYLES = {
-  display: "grid",
-  gridTemplateColumns: "18px minmax(0, 1fr)",
-  gap: "1px 8px",
-  boxSizing: "border-box",
-  width: "100%",
-  padding: "6px 16px",
-  font: "12.5px/1.5 var(--jsb-font-mono)",
-  textAlign: "left",
-  // A path or a diagnostic without spaces would stretch the row instead of wrapping
-  overflowWrap: "anywhere",
-} as const;
-
-const Row = styled("div")(ROW_STYLES);
-
-// A row that opens something is a button, so that it is reached with the keyboard
-const RowButton = styled("button")({
-  ...ROW_STYLES,
-  border: 0,
-  background: "transparent",
-  color: "inherit",
-  cursor: "pointer",
-  "&:hover": { backgroundColor: "var(--jsb-accent-soft)" },
-  // Inside the ring of the row: the scroll container of the panel would clip one drawn outside
-  "&:focus-visible": {
-    outline: "2px solid var(--jsb-accent)",
-    outlineOffset: -2,
-  },
 });
 
 const LevelIcon = styled("span", {
@@ -80,12 +84,12 @@ const Meta = styled("span")({
   whiteSpace: "pre-wrap",
 });
 
-const Empty = styled("p")({
+const Empty = styled("p")(({ theme }) => ({
   margin: 0,
   padding: "6px 16px",
   color: "var(--jsb-muted)",
-  fontSize: 12.5,
-});
+  ...theme.typography.body2,
+}));
 
 /**
  * What a row shows: an icon for the level, where the problem is, what is wrong and a meta line.
@@ -140,7 +144,7 @@ export function ProblemList({
                 <RowContent item={item} />
               </Row>
             ) : (
-              <RowButton type="button" onClick={() => onOpen(target)}>
+              <RowButton onClick={() => onOpen(target)}>
                 <RowContent item={item} />
               </RowButton>
             )}

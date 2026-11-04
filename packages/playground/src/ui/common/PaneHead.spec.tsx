@@ -1,5 +1,7 @@
 import { render, screen as view } from "@testing-library/react";
 
+import { renderInRoot } from "../../theme/__fixtures__/RenderInRoot";
+
 import { PaneHead } from "./PaneHead";
 
 /**
@@ -14,6 +16,52 @@ function getItemTexts(container: HTMLElement): (string | null)[] {
 }
 
 describe("PaneHead", () => {
+  it("should set the label in the small uppercase mono text of a pane", () => {
+    // Arrange
+    renderInRoot(<PaneHead label="Project" />);
+
+    // Act
+    const style = getComputedStyle(
+      view.getByText("Project").parentElement as HTMLElement
+    );
+
+    // Assert
+    expect(style.fontFamily).toBe("var(--jsb-font-mono)");
+    expect(style.fontSize).toBe("10.5px");
+    expect(style.fontWeight).toBe("500");
+    expect(style.letterSpacing).toBe("0.14em");
+    expect(style.textTransform).toBe("uppercase");
+  });
+
+  it("should set the path in plain mono text, without the spacing and the case of the label", () => {
+    // Arrange
+    renderInRoot(<PaneHead label="File" path="src/index.js" />);
+
+    // Act
+    const style = getComputedStyle(view.getByTitle("src/index.js"));
+
+    // Assert
+    expect(style.fontFamily).toBe("var(--jsb-font-mono)");
+    expect(style.fontSize).toBe("12px");
+    expect(style.letterSpacing).toBe("0");
+    expect(style.textTransform).toBe("none");
+  });
+
+  it("should set the hint in plain body text, without the spacing and the case of the label", () => {
+    // Arrange
+    renderInRoot(<PaneHead label="Project" hint="One path per line" />);
+
+    // Act
+    const style = getComputedStyle(view.getByText("One path per line"));
+
+    // Assert
+    expect(style.fontFamily).toBe("var(--jsb-font-body)");
+    expect(style.fontSize).toBe("12px");
+    expect(style.fontWeight).toBe("400");
+    expect(style.letterSpacing).toBe("0");
+    expect(style.textTransform).toBe("none");
+  });
+
   it("should show the label", () => {
     // Arrange
     render(<PaneHead label="Project" />);

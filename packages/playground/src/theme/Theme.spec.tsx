@@ -11,60 +11,44 @@ import Tabs from "@mui/material/Tabs";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Tooltip from "@mui/material/Tooltip";
-import { fireEvent, render, screen as view } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { fireEvent, screen as view } from "@testing-library/react";
 
-import { Root } from "./Root";
-import { CACHE_KEY, ROOT_CLASS, createPlaygroundTheme } from "./Theme";
+import { OWN_CLASS, getStyle } from "./__fixtures__/GetStyle";
+import { renderInRoot } from "./__fixtures__/RenderInRoot";
+import {
+  FOCUS_RING,
+  HOVER_BACKGROUND,
+  ROOT_CLASS,
+  createPlaygroundTheme,
+} from "./Theme";
+import { TYPOGRAPHY } from "./Typography";
 
-/** The placeholder of the element's own class in the selector passed to {@link getStyle}. */
-const OWN_CLASS = "{class}";
+/** A variant of the type scale, which the specs read from the theme. */
+type Variant =
+  | "paneLabel"
+  | "mono"
+  | "monoSmall"
+  | "monoCaption"
+  | "monoTiny"
+  | "code"
+  | "dialogTitle"
+  | "title"
+  | "figure"
+  | "caption";
 
-/**
- * Collects what the CSS rules of the playground declare for an element: its own Emotion class, or a selector built around it.
- * @param element The element that carries the class.
- * @param selector The selector to read, with {@link OWN_CLASS} where the class goes. It is the class alone by default.
- * @returns The declarations of the rules with that selector in the order they were inserted, so the last one of each property is the one that wins.
- */
-function getStyle(
-  element: Element,
-  selector: string = OWN_CLASS
-): Record<string, string> {
-  const selectors = Array.from(element.classList)
-    .filter(
-      (className) =>
-        className.startsWith(`${CACHE_KEY}-`) && className !== ROOT_CLASS
-    )
-    .map((className) => selector.replace(OWN_CLASS, `.${className}`));
-  const declarations: Record<string, string> = {};
+describe("tokens", () => {
+  it("should draw the keyboard focus ring as a 2 px accent line", () => {
+    // Assert
+    expect(FOCUS_RING).toBe("2px solid var(--jsb-accent)");
+  });
 
-  document.head
-    .querySelectorAll<HTMLStyleElement>(`style[data-emotion^="${CACHE_KEY}"]`)
-    .forEach((style) => {
-      Array.from(style.sheet?.cssRules ?? []).forEach((rule) => {
-        if (
-          rule instanceof CSSStyleRule &&
-          selectors.includes(rule.selectorText)
-        ) {
-          Array.from(rule.style).forEach((property) => {
-            declarations[property] = rule.style.getPropertyValue(property);
-          });
-        }
-      });
-    });
-
-  return declarations;
-}
-
-/**
- * Renders content inside the root element of the playground, which is where its theme applies.
- * @param children The content.
- * @returns The root element.
- */
-function renderInRoot(children: ReactNode): HTMLElement {
-  const { container } = render(<Root>{children}</Root>);
-  return container.querySelector(`.${ROOT_CLASS}`) as HTMLElement;
-}
+  it("should hover a row with 60% of the soft accent", () => {
+    // Assert
+    expect(HOVER_BACKGROUND).toBe(
+      "color-mix(in srgb, var(--jsb-accent-soft) 60%, transparent)"
+    );
+  });
+});
 
 describe("createPlaygroundTheme", () => {
   describe("typography", () => {
@@ -87,6 +71,65 @@ describe("createPlaygroundTheme", () => {
 
       // Assert
       expect(theme.typography.h2.fontFamily).toBe("var(--jsb-font-display)");
+    });
+
+    it("should make 600 the bold weight, the one of the buttons and the titles", () => {
+      // Arrange
+      const theme = createPlaygroundTheme(() => null);
+
+      // Assert
+      expect(theme.typography.fontWeightBold).toBe(600);
+      expect(theme.typography.button.fontWeight).toBe(600);
+    });
+
+    it.each<[Variant, string, string, number, number | string]>([
+      ["caption", "var(--jsb-font-body)", "12px", 400, 1.45],
+      ["paneLabel", "var(--jsb-font-mono)", "10.5px", 500, 1],
+      ["mono", "var(--jsb-font-mono)", "12.5px", 400, 1.45],
+      ["monoSmall", "var(--jsb-font-mono)", "12px", 400, 1.45],
+      ["monoCaption", "var(--jsb-font-mono)", "11.5px", 400, 1.45],
+      ["monoTiny", "var(--jsb-font-mono)", "11px", 500, 1],
+      ["code", "var(--jsb-font-mono)", "13px", 400, "28px"],
+      ["dialogTitle", "var(--jsb-font-display)", "18px", 600, 1.3],
+      ["title", "var(--jsb-font-display)", "16px", 600, 1.3],
+      ["figure", "var(--jsb-font-display)", "20px", 600, 1.1],
+    ])(
+      "should declare the %s variant of the type scale",
+      (variant, fontFamily, fontSize, fontWeight, lineHeight) => {
+        // Arrange
+        const theme = createPlaygroundTheme(() => null);
+
+        // Assert
+        expect(theme.typography[variant]).toMatchObject({
+          fontFamily,
+          fontSize,
+          fontWeight,
+          lineHeight,
+        });
+      }
+    );
+
+    it("should space out and uppercase only the label of a pane, and keep the titles free of the letter spacing of the host", () => {
+      // Arrange
+      const { typography } = createPlaygroundTheme(() => null);
+
+      // Assert
+      expect(typography.paneLabel).toMatchObject({
+        letterSpacing: "0.14em",
+        textTransform: "uppercase",
+      });
+      expect(typography.mono.letterSpacing).toBeUndefined();
+      expect(typography.dialogTitle.letterSpacing).toBe("normal");
+      expect(typography.title.letterSpacing).toBe("normal");
+    });
+
+    it("should be the type scale that the editor of the config reads", () => {
+      // Arrange
+      const { typography } = createPlaygroundTheme(() => null);
+
+      // Assert
+      expect(typography.mono).toEqual(TYPOGRAPHY.mono);
+      expect(typography.body2).toMatchObject(TYPOGRAPHY.body2);
     });
   });
 
@@ -326,7 +369,7 @@ describe("the widgets of MUI", () => {
 
       // Assert
       expect(style).toMatchObject({
-        outline: "2px solid var(--jsb-accent)",
+        outline: FOCUS_RING,
         "outline-offset": "2px",
       });
     });
@@ -463,6 +506,7 @@ describe("the widgets of MUI", () => {
         "background-color": "var(--jsb-ink)",
         color: "var(--jsb-paper)",
         "font-size": "12px",
+        "font-weight": "400",
         "border-radius": "4px",
         padding: "4px 8px",
       });
@@ -554,7 +598,7 @@ describe("the widgets of MUI", () => {
 
       // Assert
       expect(style).toMatchObject({
-        outline: "2px solid var(--jsb-accent)",
+        outline: FOCUS_RING,
         "outline-offset": "-2px",
       });
     });
@@ -620,7 +664,7 @@ describe("the widgets of MUI", () => {
         "font-size": "12px",
         "text-transform": "none",
       });
-      expect(hover["background-color"]).toContain("var(--jsb-accent-soft) 60%");
+      expect(hover["background-color"]).toBe(HOVER_BACKGROUND);
       expect(selected).toMatchObject({
         color: "var(--jsb-accent)",
         "background-color": "var(--jsb-accent-soft)",
@@ -726,6 +770,7 @@ describe("the widgets of MUI", () => {
         "font-size": "18px",
         "font-weight": "600",
         "letter-spacing": "normal",
+        "line-height": "1.3",
       });
       expect(content.padding).toBe("6px 22px 4px");
       expect(afterTitle["padding-top"]).toBe("6px");
@@ -752,6 +797,7 @@ describe("the widgets of MUI", () => {
       expect(root).toMatchObject({
         "font-family": "var(--jsb-font-mono)",
         "font-size": "12.5px",
+        "line-height": "1.4",
         "border-radius": "var(--jsb-radius)",
       });
       expect(outline["border-color"]).toBe("var(--jsb-line-strong)");

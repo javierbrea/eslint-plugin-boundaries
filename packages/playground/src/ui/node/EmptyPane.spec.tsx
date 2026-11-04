@@ -1,5 +1,7 @@
 import { fireEvent, render, screen as view } from "@testing-library/react";
 
+import { renderInRoot } from "../../theme/__fixtures__/RenderInRoot";
+
 import { EmptyPane } from "./EmptyPane";
 import type { EmptyPaneProps } from "./EmptyPane.types";
 
@@ -85,13 +87,26 @@ describe("EmptyPane", () => {
 
   it("should keep the title free of the letter spacing that a host gives to headings", () => {
     // Arrange
-    render(<EmptyPane {...createProps()} />);
+    renderInRoot(<EmptyPane {...createProps()} />);
 
     // Act
     const style = getComputedStyle(view.getByRole("heading"));
 
     // Assert
     expect(style.letterSpacing).toBe("normal");
+  });
+
+  it("should draw the title in the display font, 16 px and bold", () => {
+    // Arrange
+    renderInRoot(<EmptyPane {...createProps()} />);
+
+    // Act
+    const style = getComputedStyle(view.getByRole("heading"));
+
+    // Assert
+    expect(style.fontFamily).toBe("var(--jsb-font-display)");
+    expect(style.fontSize).toBe("16px");
+    expect(style.fontWeight).toBe("600");
   });
 
   it("should call onOpenConfig when the user chooses to open the config", () => {

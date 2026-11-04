@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 import { Icon } from "../icons";
 
-const Frame = styled("div")({
+const Frame = styled("div")(({ theme }) => ({
   display: "flex",
   gap: 8,
   margin: "6px 16px 0",
@@ -11,9 +11,8 @@ const Frame = styled("div")({
   border: "1px dashed var(--jsb-line-strong)",
   borderRadius: "var(--jsb-radius)",
   color: "var(--jsb-muted)",
-  fontSize: 12.5,
-  lineHeight: 1.45,
-});
+  ...theme.typography.body2,
+}));
 
 /** Props of {@link Note}. */
 type NoteProps = {

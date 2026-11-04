@@ -20,14 +20,12 @@ const Tile = styled("div")({
   "&:nth-of-type(n + 3)": { borderTop: "1px solid var(--jsb-line)" },
 });
 
-const Count = styled("b")({
-  fontFamily: "var(--jsb-font-display)",
-  fontSize: 20,
-  fontWeight: 600,
-  lineHeight: 1.1,
-});
+const Count = styled("b")(({ theme }) => theme.typography.figure);
 
-const Label = styled("span")({ fontSize: 12, color: "var(--jsb-muted)" });
+const Label = styled("span")(({ theme }) => ({
+  ...theme.typography.caption,
+  color: "var(--jsb-muted)",
+}));
 
 /** Props of {@link SketchInspector}. */
 type SketchInspectorProps = {

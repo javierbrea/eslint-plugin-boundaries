@@ -18,14 +18,15 @@ const Bar = styled("div")({
   borderBottom: "1px solid var(--jsb-line)",
 });
 
-const Status = styled("div")({
+const Status = styled("div")(({ theme }) => ({
   display: "inline-flex",
   alignItems: "center",
   gap: 8,
   marginLeft: 6,
   color: "var(--jsb-muted)",
-  font: "12px var(--jsb-font-mono)",
-});
+  ...theme.typography.monoSmall,
+  lineHeight: "normal",
+}));
 
 const Dot = styled("span", {
   shouldForwardProp: (prop) => prop !== "failing",
