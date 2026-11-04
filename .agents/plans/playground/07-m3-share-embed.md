@@ -21,6 +21,7 @@ Preconditions: phase 6 merged.
 - Nothing serializes a sketch yet. A `Sketch` is plain data (strings, arrays and objects), so the encoder of step 1 takes it as it is.
 - `Playground` (`src/Playground.tsx`) saves every sketch that the workbench produces with `store.save`, never the loaded one, and shows nothing when a save fails, because the `MemoryStore` cannot fail: the hash store decides what a failed save shows.
 - The top bar (`src/ui/layout/TopBar.tsx`) draws the status only; the example picker, Help, Reset and Share go where `00-shared.md` section 6 places them.
+- The workbench takes its sketch once (`initialSketch`), and its store owns it from then on (`src/ui/state/Store.ts`). `Playground` mounts a new workbench after each load of the source or the store, which is how a sketch from outside reaches the panes. The top bar reads the store through `WorkbenchTopBar` in `src/ui/Workbench.tsx`.
 
 ## Scope
 
