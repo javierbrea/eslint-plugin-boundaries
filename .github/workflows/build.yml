@@ -124,7 +124,7 @@ jobs:
           pnpm nx test:unit policies --output-style=stream --parallel=1
           pnpm nx test:unit eslint-plugin --output-style=stream --parallel=1
   build-windows:
-    runs-on: windows-2022
+    runs-on: windows-2025
     needs: build
     steps:
       - name: Checkout
