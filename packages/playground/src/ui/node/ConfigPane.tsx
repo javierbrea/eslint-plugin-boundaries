@@ -10,7 +10,17 @@ import { NodeFrame } from "./NodeFrame";
 // A definite height for the editor, which fills its container: the head takes its own, and the editor the rest
 const EditorSlot = styled("div")({ flex: 1, minHeight: 0 });
 
-const Mono = styled("code")({ fontFamily: "var(--jsb-font-mono)" });
+// A host styles its `code`, such as the chip of the website's docs: here it is the text of the hint in the mono font, with no box
+const Mono = styled("code")({
+  padding: 0,
+  border: 0,
+  borderRadius: 0,
+  backgroundColor: "transparent",
+  fontFamily: "var(--jsb-font-mono)",
+  fontSize: "inherit",
+  lineHeight: "inherit",
+  verticalAlign: "baseline",
+});
 
 /**
  * The node pane when the config is open: the editor of its text, with the problems marked at their ranges.

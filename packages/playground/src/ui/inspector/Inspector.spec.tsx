@@ -375,6 +375,9 @@ describe("Inspector", () => {
 
       // Act
       const ignored = getComputedStyle(view.getByText("ignored")).color;
+      const ignoredName = getComputedStyle(
+        view.getByRole("button", { name: /^component/ }).children[0]
+      ).color;
       const notEvaluated = getComputedStyle(
         view.getByText("not evaluated")
       ).color;
@@ -384,6 +387,7 @@ describe("Inspector", () => {
 
       // Assert
       expect(ignored).toBe("var(--jsb-warn)");
+      expect(ignoredName).toBe("var(--jsb-warn)");
       expect(notEvaluated).toBe("var(--jsb-bad)");
       expect(count).toBe("var(--jsb-muted)");
     });

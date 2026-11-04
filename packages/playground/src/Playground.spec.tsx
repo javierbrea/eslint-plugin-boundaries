@@ -17,6 +17,7 @@ import type {
 import { MemoryStore, SketchSource } from "./contract";
 import { Playground } from "./Playground";
 import { CACHE_KEY, ROOT_CLASS } from "./theme";
+import { stubResizeObserver } from "./ui/layout/StubResizeObserver";
 
 const SOURCE_SKETCH: Sketch = {
   config: "{ settings: {}, rules: {} }",
@@ -74,6 +75,8 @@ describe("Playground", () => {
     jest.restoreAllMocks();
     document.documentElement.setAttribute("data-theme", "dark");
     localStorage.clear();
+    // jsdom has no layout, and the panels of the workbench observe their size
+    stubResizeObserver();
     // jsdom has no matchMedia; with it, MUI resolves a light color scheme from the system preference, as in a browser
     window.matchMedia = jest.fn((media: string) => ({
       matches: false,
@@ -92,9 +95,7 @@ describe("Playground", () => {
       render(<Playground source={source} store={new MemoryStore()} />);
 
       // Assert
-      await expect(
-        view.findByText("2 files in the sketch.")
-      ).resolves.toBeDefined();
+      await expect(view.findByText("2 files ·")).resolves.toBeDefined();
     });
 
     it("should show the sketch of the store over the one of the source", async () => {
@@ -107,9 +108,7 @@ describe("Playground", () => {
       );
 
       // Assert
-      await expect(
-        view.findByText("1 files in the sketch.")
-      ).resolves.toBeDefined();
+      await expect(view.findByText("1 file ·")).resolves.toBeDefined();
     });
 
     it("should accept any host that implements the contract", async () => {
@@ -120,9 +119,7 @@ describe("Playground", () => {
       render(<Playground source={source} store={new MemoryStore()} />);
 
       // Assert
-      await expect(
-        view.findByText("2 files in the sketch.")
-      ).resolves.toBeDefined();
+      await expect(view.findByText("2 files ·")).resolves.toBeDefined();
     });
 
     it("should show that the sketch is loading until it loads", async () => {
@@ -132,7 +129,7 @@ describe("Playground", () => {
       // Act
       render(<Playground source={source} store={new MemoryStore()} />);
       const loading = view.queryByText("Loading the sketch…");
-      await view.findByText("2 files in the sketch.");
+      await view.findByText("2 files ·");
 
       // Assert
       expect(loading).not.toBeNull();
@@ -155,12 +152,12 @@ describe("Playground", () => {
       const { rerender } = render(
         <Playground source={source} store={new MemoryStore(SAVED_SKETCH)} />
       );
-      await view.findByText("1 files in the sketch.");
+      await view.findByText("1 file ·");
 
       // Act
       rerender(<Playground source={source} store={nextStore} />);
       const loading = view.queryByText("Loading the sketch…");
-      const previousSketch = view.queryByText("1 files in the sketch.");
+      const previousSketch = view.queryByText("1 file ·");
       await act(async () => {
         resolveNext(undefined);
       });
@@ -168,9 +165,7 @@ describe("Playground", () => {
       // Assert
       expect(loading).not.toBeNull();
       expect(previousSketch).toBeNull();
-      await expect(
-        view.findByText("2 files in the sketch.")
-      ).resolves.toBeDefined();
+      await expect(view.findByText("2 files ·")).resolves.toBeDefined();
     });
 
     it("should stop showing why the sketch could not be loaded when the source changes, while the new source loads", async () => {
@@ -223,7 +218,7 @@ describe("Playground", () => {
       rerender(
         <Playground source={source} store={new MemoryStore(SAVED_SKETCH)} />
       );
-      await view.findByText("1 files in the sketch.");
+      await view.findByText("1 file ·");
 
       // Act
       await act(async () => {
@@ -231,8 +226,8 @@ describe("Playground", () => {
       });
 
       // Assert
-      expect(view.queryAllByText("1 files in the sketch.")).toHaveLength(1);
-      expect(view.queryByText("2 files in the sketch.")).toBeNull();
+      expect(view.queryAllByText("1 file ·")).toHaveLength(1);
+      expect(view.queryByText("2 files ·")).toBeNull();
     });
 
     it("should show the sketch of the new store when the previous one fails after the store changes", async () => {
@@ -254,7 +249,7 @@ describe("Playground", () => {
       rerender(
         <Playground source={source} store={new MemoryStore(SAVED_SKETCH)} />
       );
-      await view.findByText("1 files in the sketch.");
+      await view.findByText("1 file ·");
 
       // Act
       await act(async () => {
@@ -262,7 +257,7 @@ describe("Playground", () => {
       });
 
       // Assert
-      expect(view.queryAllByText("1 files in the sketch.")).toHaveLength(1);
+      expect(view.queryAllByText("1 file ·")).toHaveLength(1);
       expect(view.queryByText(/could not be loaded/)).toBeNull();
     });
 
@@ -303,22 +298,159 @@ describe("Playground", () => {
     });
   });
 
-  describe("scope", () => {
-    it("should render the dialog inside the root element and close it from its button", async () => {
+  describe("workbench", () => {
+    it("should show the project of the sketch in the tree", async () => {
+      // Act
+      render(
+        <Playground
+          source={new SketchSource(SOURCE_SKETCH)}
+          store={new MemoryStore()}
+        />
+      );
+
+      // Assert
+      await expect(
+        view.findByTitle("src/components/Price/index.ts")
+      ).resolves.toBeDefined();
+    });
+
+    it("should not offer to add a file when the source cannot edit the tree", async () => {
+      // Act
+      render(
+        <Playground source={new ReadOnlySource()} store={new MemoryStore()} />
+      );
+      await view.findByRole("region", { name: "Playground" });
+
+      // Assert
+      expect(view.queryByRole("button", { name: "Add file" })).toBeNull();
+    });
+
+    it("should offer to add a file when the source can edit the tree", async () => {
+      // Act
+      render(
+        <Playground
+          source={new SketchSource(SOURCE_SKETCH)}
+          store={new MemoryStore()}
+        />
+      );
+
+      // Assert
+      await expect(
+        view.findByRole("button", { name: "Add file" })
+      ).resolves.toBeDefined();
+    });
+
+    it("should fill its container", async () => {
       // Arrange
       const { container } = render(
         <Playground source={new SketchSource()} store={new MemoryStore()} />
       );
+      await view.findByRole("region", { name: "Playground" });
       const root = container.querySelector(`.${ROOT_CLASS}`) as HTMLElement;
 
+      // Assert
+      expect(getComputedStyle(root).height).toBe("100%");
+    });
+  });
+
+  describe("saving", () => {
+    it("should not save the sketch it loads", async () => {
+      // Arrange
+      const store = new MemoryStore();
+      const save = jest.spyOn(store, "save");
+
       // Act
-      fireEvent.click(
-        view.getByRole("button", { name: "About the playground" })
+      render(
+        <Playground source={new SketchSource(SOURCE_SKETCH)} store={store} />
       );
-      const dialog = await within(root).findByRole("dialog", {
-        name: "About the playground",
+      await view.findByText("2 files ·");
+
+      // Assert
+      expect(save).not.toHaveBeenCalled();
+    });
+
+    it("should save the sketch that an edit makes, and never the one it loaded", async () => {
+      // Arrange
+      const store = new MemoryStore();
+      const save = jest.spyOn(store, "save");
+      render(
+        <Playground source={new SketchSource(SOURCE_SKETCH)} store={store} />
+      );
+      await view.findByText("2 files ·");
+
+      // Act
+      fireEvent.click(view.getByLabelText("Delete src/index.ts"));
+
+      // Assert
+      expect(save).toHaveBeenCalledTimes(1);
+
+      const saved = save.mock.calls[0][0];
+
+      expect(saved).not.toBe(SOURCE_SKETCH);
+      expect(saved.tree.map(({ path }) => path)).not.toContain("src/index.ts");
+      await expect(store.load()).resolves.toBe(saved);
+    });
+
+    it("should show the saved sketch the next time it is loaded", async () => {
+      // Arrange
+      const store = new MemoryStore();
+      const source = new SketchSource(SOURCE_SKETCH);
+      const first = render(<Playground source={source} store={store} />);
+      await view.findByText("2 files ·");
+      fireEvent.click(view.getByLabelText("Delete src/index.ts"));
+      first.unmount();
+
+      // Act
+      render(<Playground source={source} store={store} />);
+
+      // Assert
+      await expect(view.findByText("1 file ·")).resolves.toBeDefined();
+    });
+
+    it("should keep working when the store cannot save", async () => {
+      // Arrange
+      const store: jest.Mocked<StateStore> = {
+        load: jest.fn(() => Promise.resolve(undefined)),
+        save: jest.fn((_sketch: Sketch) =>
+          Promise.reject(new Error("quota exceeded"))
+        ),
+      };
+      render(
+        <Playground source={new SketchSource(SOURCE_SKETCH)} store={store} />
+      );
+      await view.findByText("2 files ·");
+
+      // Act
+      fireEvent.click(view.getByLabelText("Delete src/index.ts"));
+      await act(async () => {
+        await Promise.resolve();
       });
-      fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+
+      // Assert
+      expect(store.save).toHaveBeenCalledTimes(1);
+      expect(view.queryByTitle("src/index.ts")).toBeNull();
+      await expect(view.findByText("1 file ·")).resolves.toBeDefined();
+    });
+  });
+
+  describe("scope", () => {
+    it("should render the dialog inside the root element and close it from its button", async () => {
+      // Arrange
+      const { container } = render(
+        <Playground
+          source={new SketchSource(SOURCE_SKETCH)}
+          store={new MemoryStore()}
+        />
+      );
+      const root = container.querySelector(`.${ROOT_CLASS}`) as HTMLElement;
+      await view.findByText("2 files ·");
+
+      // Act
+      fireEvent.click(view.getByLabelText("Delete src"));
+      const dialog = await within(root).findByRole("dialog", {
+        name: "Delete src/ and its 2 files?",
+      });
+      fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
 
       // Assert
       await expect(
@@ -329,11 +461,13 @@ describe("Playground", () => {
     it("should close the dialog with the Escape key", async () => {
       // Arrange
       render(
-        <Playground source={new SketchSource()} store={new MemoryStore()} />
+        <Playground
+          source={new SketchSource(SOURCE_SKETCH)}
+          store={new MemoryStore()}
+        />
       );
-      fireEvent.click(
-        view.getByRole("button", { name: "About the playground" })
-      );
+      await view.findByText("2 files ·");
+      fireEvent.click(view.getByLabelText("Delete src"));
       const dialog = await view.findByRole("dialog");
 
       // Act
@@ -354,7 +488,7 @@ describe("Playground", () => {
       render(
         <Playground source={new SketchSource()} store={new MemoryStore()} />
       );
-      await view.findByText("0 files in the sketch.");
+      await view.findByRole("region", { name: "Playground" });
 
       // Assert
       expect(html.getAttribute("data-theme")).toBe("dark");
@@ -368,7 +502,7 @@ describe("Playground", () => {
       render(
         <Playground source={new SketchSource()} store={new MemoryStore()} />
       );
-      await view.findByText("0 files in the sketch.");
+      await view.findByRole("region", { name: "Playground" });
 
       // Assert
       expect(getPlaygroundRules()).toContainEqual(
@@ -394,7 +528,7 @@ describe("Playground", () => {
           <Playground source={new SketchSource()} store={new MemoryStore()} />
         </ThemeProvider>
       );
-      await view.findByText("0 files in the sketch.");
+      await view.findByRole("region", { name: "Playground" });
 
       // Assert
       expect(getPlaygroundRules()).toContainEqual(
@@ -408,7 +542,7 @@ describe("Playground", () => {
         const { unmount } = render(
           <Playground source={new SketchSource()} store={new MemoryStore()} />
         );
-        await view.findByText("0 files in the sketch.");
+        await view.findByRole("region", { name: "Playground" });
         unmount();
         return getPlaygroundRules().length;
       };

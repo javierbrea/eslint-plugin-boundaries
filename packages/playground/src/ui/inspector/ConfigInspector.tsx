@@ -27,6 +27,8 @@ type ConfigRow = {
   key: string;
   /** The type, the category or the rule. */
   name: string;
+  /** The color of the name, when the entry itself is what the user has to look at, such as an ignored descriptor. */
+  nameTone?: StatusTone;
   /** At the end of the row: how many files or policies, or what is wrong. */
   status: string;
   tone: StatusTone;
@@ -66,7 +68,13 @@ const RowButton = styled(ButtonBase)({
 });
 
 // A name longer than the row still wraps, so that a long pattern never overflows it
-const Name = styled("span")({ overflowWrap: "anywhere", textAlign: "left" });
+const Name = styled("span", {
+  shouldForwardProp: (prop) => prop !== "tone",
+})<{ tone?: StatusTone }>(({ tone }) => ({
+  overflowWrap: "anywhere",
+  textAlign: "left",
+  color: tone === undefined ? undefined : TONE_COLORS[tone],
+}));
 
 const Status = styled("span", {
   shouldForwardProp: (prop) => prop !== "tone",
@@ -134,6 +142,7 @@ function toElementTypeRow({
     ? {
         key,
         name: type,
+        nameTone: "warn",
         status: "ignored",
         tone: "warn",
         detail: `invalid descriptor, line ${range.line}`,
@@ -234,7 +243,7 @@ function RowList({ rows, onReveal }: Readonly<RowListProps>): ReactNode {
       {rows.map((row) => (
         <li key={row.key}>
           <RowButton onClick={() => onReveal(row.range)}>
-            <Name>{row.name}</Name>
+            <Name tone={row.nameTone}>{row.name}</Name>
             <Status tone={row.tone}>{row.status}</Status>
             {row.detail === undefined ? null : <Detail>{row.detail}</Detail>}
           </RowButton>

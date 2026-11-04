@@ -26,3 +26,15 @@ Read first: `README.md` of this folder (design and data flow); every committed t
 - `pnpm nx check:all playground --output-style=stream` and `pnpm nx check:all website --output-style=stream` pass.
 - `pnpm nx dev playground` renders the quick-start example; screenshot the harness with Playwright in both themes at 1440×900 in the states `empty`, `file` and `config` (with the mockup's two typos typed in), and put the images next to the mockup's renders of the same states in the report, with every visible difference listed.
 - Every element the panes add renders the same in the harness and on the website (`pnpm nx start website`, `/playground/`), where Infima's element styles apply (`../05-m1-identify.md`, "From phase 4").
+
+## Done (2026-11-04)
+
+Deviations, for T9 and the PR:
+
+- `Root` is `height: 100%`, so the host gives the container its height (the harness stage, the website `.stage`); `packages/playground/AGENTS.md` and `README.md` say so.
+- `+ File` of the empty pane adds a free `new-file.js` at the root and opens it; `ProjectPane` has no way to start a rename from outside, so the user renames it in the tree.
+- The `Sketch` tab lists the config problems and then the text problems; the invalid-rules note shows in the `Sketch` and config tabs; a text problem row opens nothing.
+- The top bar reads `0 problems` in `--jsb-muted` when there are none.
+- Changes to committed files of other tasks: `ProblemsPanel` expands when its selected tab is pressed while collapsed (T7); `EmptyPane` and `ConfigPane` reset Infima's `code` chip and the `h2` letter spacing, and `MuiDialogTitle` has `letterSpacing: normal` (T3, T6); and, from the coordinator's review of the screenshots, the `PaneHead` hint is weight 400, the disabled `+ Dependency` stays dashed, and an ignored element type has its name in `--jsb-warn` (T3, T6).
+
+Differences from the mockup that are not M1 by design, for T9 step 3: the config problems come in the engine's order (the warning at 5:7 before the error at 15:16); the warning row appends its detail (`Invalid descriptors: [...]`); the lint tooltip opens above the range; the open config editor shows its focus ring; the selected tree row shows its rename and delete actions while it has focus.

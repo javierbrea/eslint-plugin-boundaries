@@ -1,5 +1,16 @@
 /* The page around the playground, standing in for a host */
 
+html,
+body,
+#harness {
+  height: 100%;
+}
+
+#harness {
+  display: flex;
+  flex-direction: column;
+}
+
 body {
   margin: 0;
   background: var(--jsb-paper);
@@ -7,7 +18,13 @@ body {
   font-family: var(--jsb-font-body);
 }
 
+.harness-stage {
+  flex: 1;
+  min-height: 0;
+}
+
 .harness-bar {
+  flex: none;
   display: flex;
   justify-content: flex-end;
   padding: 12px 24px;

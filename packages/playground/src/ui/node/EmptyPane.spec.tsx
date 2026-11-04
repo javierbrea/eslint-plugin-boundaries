@@ -67,6 +67,33 @@ describe("EmptyPane", () => {
     expect(text.querySelector("code")?.textContent).toBe("eslint.config.js");
   });
 
+  it("should keep the name of the config free of the box that a host gives to code", () => {
+    // Arrange
+    render(<EmptyPane {...createProps()} />);
+
+    // Act
+    const style = getComputedStyle(
+      view.getByText("eslint.config.js", { selector: "code" })
+    );
+
+    // Assert
+    expect(style.padding).toBe("0px");
+    expect(style.backgroundColor).toBe("rgba(0, 0, 0, 0)");
+    expect(style.fontSize).toBe("inherit");
+    expect(style.fontFamily).toBe("var(--jsb-font-mono)");
+  });
+
+  it("should keep the title free of the letter spacing that a host gives to headings", () => {
+    // Arrange
+    render(<EmptyPane {...createProps()} />);
+
+    // Act
+    const style = getComputedStyle(view.getByRole("heading"));
+
+    // Assert
+    expect(style.letterSpacing).toBe("normal");
+  });
+
   it("should call onOpenConfig when the user chooses to open the config", () => {
     // Arrange
     const props = createProps();

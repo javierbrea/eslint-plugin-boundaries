@@ -5,3 +5,12 @@ export type SketchLoad =
   | { status: "loading" }
   | { status: "loaded"; sketch: Sketch }
   | { status: "failed"; error: unknown };
+
+/** A load that has not produced a sketch: the states that {@link LoadState} describes. */
+export type PendingLoad = Exclude<SketchLoad, { status: "loaded" }>;
+
+/** Props of {@link LoadState}. */
+export type LoadStateProps = {
+  /** The state of the load of the sketch. */
+  load: PendingLoad;
+};

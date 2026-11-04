@@ -26,11 +26,13 @@ const Content = styled("div")({
   textAlign: "center",
 });
 
+// A host styles its headings, such as the website's tightened letter spacing, and the title has none in the mockup
 const Title = styled("h2")({
   margin: 0,
   fontFamily: "var(--jsb-font-display)",
   fontSize: 16,
   fontWeight: 600,
+  letterSpacing: "normal",
   lineHeight: 1.3,
 });
 
@@ -40,7 +42,17 @@ const Message = styled("p")({
   color: "var(--jsb-muted)",
 });
 
-const Mono = styled("code")({ fontFamily: "var(--jsb-font-mono)" });
+// A host styles its `code`, such as the chip of the website's docs: here it is the text of the line in the mono font, with no box
+const Mono = styled("code")({
+  padding: 0,
+  border: 0,
+  borderRadius: 0,
+  backgroundColor: "transparent",
+  fontFamily: "var(--jsb-font-mono)",
+  fontSize: "inherit",
+  lineHeight: "inherit",
+  verticalAlign: "baseline",
+});
 
 const Actions = styled("div")({
   display: "flex",

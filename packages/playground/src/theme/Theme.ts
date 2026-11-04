@@ -240,6 +240,8 @@ const WIDGETS: Components<Omit<Theme, "components">> = {
         fontFamily: "var(--jsb-font-display)",
         fontSize: 18,
         fontWeight: 600,
+        // A host styles its headings, such as the website's tightened letter spacing, and the title of a dialog has none in the mockup
+        letterSpacing: "normal",
         lineHeight: 1.3,
       },
     },

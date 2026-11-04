@@ -123,6 +123,22 @@ describe("ConfigPane", () => {
     ).toEqual(["settings", "rules"]);
   });
 
+  it("should keep the words of the hint free of the box that a host gives to code", () => {
+    // Arrange
+    render(<ConfigPane {...createProps()} />);
+
+    // Act
+    const style = getComputedStyle(
+      view.getByText("settings", { selector: "code" })
+    );
+
+    // Assert
+    expect(style.padding).toBe("0px");
+    expect(style.backgroundColor).toBe("rgba(0, 0, 0, 0)");
+    expect(style.fontSize).toBe("inherit");
+    expect(style.fontFamily).toBe("var(--jsb-font-mono)");
+  });
+
   it("should show the config in an editor that is named after the file", () => {
     // Arrange
     render(<ConfigPane {...createProps()} />);

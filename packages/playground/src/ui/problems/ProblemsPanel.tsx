@@ -156,6 +156,12 @@ export function ProblemsPanel({
                   value={tab.id}
                   mono={tab.mono === true}
                   id={getTabElementId(prefix, tab.id)}
+                  // `Tabs` reports a tab that is not the selected one, so pressing the selected tab of a collapsed panel is told apart here: it expands the panel
+                  onClick={() => {
+                    if (collapsed && tab.id === selected) {
+                      onCollapsedChange(false);
+                    }
+                  }}
                   // Only the selected tab has a panel, and none while the panel is collapsed
                   aria-controls={
                     !collapsed && tab.id === selected ? panelId : undefined

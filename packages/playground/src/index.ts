@@ -12,3 +12,5 @@ export type {
   StateStore,
 } from "./contract";
 export { EMPTY_SKETCH, MemoryStore, SketchSource } from "./contract";
+export type { Example } from "./examples";
+export { EXAMPLES, QUICK_START_EXAMPLE } from "./examples";

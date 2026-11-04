@@ -5,7 +5,7 @@ Package-scoped agent instructions for `@boundaries/playground` (Nx project `play
 ## Host contract
 
 - The package exports one component, `Playground`, whose props are the whole contract with a host: a `ProjectSource` (where the project comes from, and what can be edited) and a `StateStore` (where the state is kept). They live in `src/contract/`, with their in-memory implementations.
-- The host owns the page, its layout and its theme. The package never imports from a host (the Docusaurus aliases, Infima, or a relative path into the website; lint-enforced in `eslint.config.mjs`), never adds global styles, and touches `window` and `document` only in effects and event handlers.
+- The host owns the page, its layout and its theme, and gives the container of the playground its height: the playground fills it. The package never imports from a host (the Docusaurus aliases, Infima, or a relative path into the website; lint-enforced in `eslint.config.mjs`), never adds global styles, and touches `window` and `document` only in effects and event handlers.
 - It reads the `--jsb-*` tokens of the host (`packages/website/src/css/tokens.css`) and follows the host's `data-theme` attribute on `<html>`. It never changes the attributes of `<html>` and never reads or writes `localStorage`; `src/theme/Root.tsx` keeps MUI from doing so.
 - It runs only in browsers: `src` never reads a Node.js global, and its tests run in jsdom.
 
@@ -24,4 +24,4 @@ Package-scoped agent instructions for `@boundaries/playground` (Nx project `play
 
 ## Harness
 
-`pnpm nx dev playground` starts the Vite harness in `dev/`: the website's tokens and fonts, a sample sketch, and a button that toggles `data-theme` as the website does. It is not part of the build.
+`pnpm nx dev playground` starts the Vite harness in `dev/`: the website's tokens and fonts, the Quick start example, as on the website, and a button that toggles `data-theme` as the website does. It is not part of the build.

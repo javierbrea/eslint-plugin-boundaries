@@ -725,6 +725,7 @@ describe("the widgets of MUI", () => {
         "font-family": "var(--jsb-font-display)",
         "font-size": "18px",
         "font-weight": "600",
+        "letter-spacing": "normal",
       });
       expect(content.padding).toBe("6px 22px 4px");
       expect(afterTitle["padding-top"]).toBe("6px");

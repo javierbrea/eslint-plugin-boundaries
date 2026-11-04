@@ -42,6 +42,8 @@ const Hint = styled("span")({
   color: "var(--jsb-faint)",
   fontFamily: "var(--jsb-font-body)",
   fontSize: 12,
+  // The label of the head is 500, and a hint reads as plain text
+  fontWeight: 400,
   letterSpacing: 0,
   textOverflow: "ellipsis",
   textTransform: "none",

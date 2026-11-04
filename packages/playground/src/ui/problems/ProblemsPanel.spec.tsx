@@ -597,5 +597,51 @@ describe("ProblemsPanel", () => {
       // Assert
       expect(onSelect).toHaveBeenCalledWith(LINE_ID);
     });
+
+    it("should ask to expand when the selected tab is pressed while it is collapsed", () => {
+      // Arrange
+      const onCollapsedChange = jest.fn();
+      const onSelect = jest.fn();
+      render(
+        <ProblemsPanel
+          {...createProps({ collapsed: true, onCollapsedChange, onSelect })}
+        />
+      );
+
+      // Act
+      fireEvent.click(view.getByRole("tab", { name: "Sketch 2 problems" }));
+
+      // Assert
+      expect(onCollapsedChange).toHaveBeenCalledWith(false);
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it("should not ask to expand when the selected tab is pressed while it is open", () => {
+      // Arrange
+      const onCollapsedChange = jest.fn();
+      render(<ProblemsPanel {...createProps({ onCollapsedChange })} />);
+
+      // Act
+      fireEvent.click(view.getByRole("tab", { name: "Sketch 2 problems" }));
+
+      // Assert
+      expect(onCollapsedChange).not.toHaveBeenCalled();
+    });
+
+    it("should leave the collapsing to the selection when another tab is pressed while it is collapsed", () => {
+      // Arrange
+      const onCollapsedChange = jest.fn();
+      render(
+        <ProblemsPanel
+          {...createProps({ collapsed: true, onCollapsedChange })}
+        />
+      );
+
+      // Act
+      fireEvent.click(view.getByRole("tab", { name: "line 3" }));
+
+      // Assert
+      expect(onCollapsedChange).not.toHaveBeenCalled();
+    });
   });
 });

@@ -43,7 +43,9 @@ const AddButton = styled(Button)({
   borderStyle: "dashed",
   borderColor: "color-mix(in srgb, var(--jsb-code-fg) 35%, transparent)",
   color: "var(--jsb-code-fg)",
+  // The disabled outlined button of MUI sets the whole border, which would make it solid
   "&.Mui-disabled": {
+    borderStyle: "dashed",
     borderColor: "color-mix(in srgb, var(--jsb-code-fg) 35%, transparent)",
     color: "var(--jsb-code-fg)",
   },

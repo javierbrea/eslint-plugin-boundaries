@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
-import type { PlaygroundProps } from "./contract";
+import type { PlaygroundProps, Sketch } from "./contract";
 import { Root } from "./theme";
-import { Placeholder } from "./ui";
+import { LoadState, Workbench } from "./ui";
 import type { SketchLoad } from "./ui";
 
 /** A settled load, with the source and the store it was loaded from */
@@ -75,9 +75,29 @@ export function Playground({
 }: Readonly<PlaygroundProps>): ReactNode {
   const sketchLoad = useSketch(source, store);
 
+  // The workbench reports the sketches that edits make, and never the one that was loaded. A save that fails shows nothing in M1: the memory store cannot fail, and what a store that can fail does is for the host that has one
+  const save = useCallback(
+    async (sketch: Sketch) => {
+      try {
+        await store.save(sketch);
+      } catch {
+        // Nothing to show: the sketch stays on screen, and the next edit saves again
+      }
+    },
+    [store]
+  );
+
   return (
     <Root>
-      <Placeholder sketchLoad={sketchLoad} />
+      {sketchLoad.status === "loaded" ? (
+        <Workbench
+          initialSketch={sketchLoad.sketch}
+          capabilities={source.capabilities}
+          onSketchChange={(sketch) => void save(sketch)}
+        />
+      ) : (
+        <LoadState load={sketchLoad} />
+      )}
     </Root>
   );
 }

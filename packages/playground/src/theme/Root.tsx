@@ -1,7 +1,7 @@
 import createCache from "@emotion/cache";
 import type { EmotionCache } from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
-import { ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider, styled } from "@mui/material/styles";
 import { useId, useState } from "react";
 import type { ReactNode } from "react";
 
@@ -19,6 +19,17 @@ function getCache(): EmotionCache {
   return sharedCache;
 }
 
+// The base of the playground: the card, the ink and the body font. Dialogs, menus and tooltips render inside this element and not inside the workbench, so they take their text from it: without it, a dialog's text takes the 16 px of the host
+const Base = styled("div")({
+  boxSizing: "border-box",
+  height: "100%",
+  backgroundColor: "var(--jsb-card)",
+  color: "var(--jsb-ink)",
+  fontFamily: "var(--jsb-font-body)",
+  fontSize: 13,
+  lineHeight: 1.45,
+});
+
 /** Props of {@link Root}. */
 type RootProps = {
   /** Content of the playground. */
@@ -26,7 +37,7 @@ type RootProps = {
 };
 
 /**
- * Root element of the playground, which scopes the MUI theme and the Emotion styles to it. The host keeps its own theme: the root follows its `data-theme` attribute and never changes it.
+ * Root element of the playground, which scopes the MUI theme and the Emotion styles to it, and gives the playground its base: the card background, the ink color and the 13 px body font. It is as tall as its container, which the host sizes. The host keeps its own theme: the root follows its `data-theme` attribute and never changes it.
  * @param props Root props.
  * @param props.children Content of the playground.
  * @returns The root element.
@@ -43,9 +54,9 @@ export function Root({ children }: Readonly<RootProps>): ReactNode {
     <CacheProvider value={cache}>
       {/* Without a color scheme node, MUI would set its own data-theme on <html>; without a storage manager, it would read and follow the mode saved in localStorage */}
       <ThemeProvider theme={theme} colorSchemeNode={null} storageManager={null}>
-        <div id={rootId} className={ROOT_CLASS}>
+        <Base id={rootId} className={ROOT_CLASS}>
           {children}
-        </div>
+        </Base>
       </ThemeProvider>
     </CacheProvider>
   );
