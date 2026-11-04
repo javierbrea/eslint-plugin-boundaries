@@ -1,6 +1,8 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
+import { TONE_COLORS, formatCount } from "../common";
+
 import type { TopBarProps } from "./TopBar.types";
 
 /** Height of the bar in pixels, border included. */
@@ -40,16 +42,6 @@ const Count = styled("span", {
 })<{ color?: string }>(({ color }) => ({ color }));
 
 /**
- * Pluralizes a noun for a count.
- * @param count The count.
- * @param noun The noun in the singular.
- * @returns The count and the noun, such as `1 file` or `6 files`.
- */
-function countOf(count: number, noun: string): string {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
-}
-
-/**
  * The top bar: the status of the sketch, with how many files it has and how many problems, or that the config has errors. The dependencies count is for the next milestone, and the example picker, help, reset and share for the one after.
  * @param props TopBar props.
  * @param props.files How many files the sketch has.
@@ -69,12 +61,12 @@ export function TopBar({
       <Status>
         <Dot failing={configHasErrors} aria-hidden="true" />
         <span>
-          {countOf(files, "file")} ·{" "}
+          {formatCount(files, "file", "files")} ·{" "}
           {configHasErrors ? (
-            <Count color="var(--jsb-bad)">config has errors</Count>
+            <Count color={TONE_COLORS.bad}>config has errors</Count>
           ) : (
-            <Count color={problems > 0 ? `var(--jsb-${tone})` : undefined}>
-              {countOf(problems, "problem")}
+            <Count color={problems > 0 ? TONE_COLORS[tone] : undefined}>
+              {formatCount(problems, "problem", "problems")}
             </Count>
           )}
         </span>

@@ -3,12 +3,16 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 
 import { Note } from "../common";
+import type { ProblemItem } from "../state";
 
 import { ProblemList } from "./ProblemList";
-import type { ProblemItem, ProblemsPanelProps } from "./Problems.types";
+import type { ProblemsPanelProps } from "./Problems.types";
 import { ProblemsPanel } from "./ProblemsPanel";
 
-const TABS: ProblemsPanelProps["tabs"] = [
+/** The ids of the tabs that the specs declare: free text, as a path or a line has spaces and slashes. */
+type PanelProps = ProblemsPanelProps<string>;
+
+const TABS: PanelProps["tabs"] = [
   { id: "sketch", label: "Sketch", count: 2, tone: "bad" },
   {
     id: "file:src/modules/checkout/index.js",
@@ -31,9 +35,7 @@ const LINE_ID = "line 3";
  * @param overrides The props that differ.
  * @returns The props.
  */
-function createProps(
-  overrides: Partial<ProblemsPanelProps> = {}
-): ProblemsPanelProps {
+function createProps(overrides: Partial<PanelProps> = {}): PanelProps {
   return {
     tabs: TABS,
     selected: SKETCH_ID,
@@ -50,7 +52,7 @@ function createProps(
  * @param props The props of the panel; the ones that the state owns are the initial values.
  * @returns The panel.
  */
-function Controlled(props: Readonly<ProblemsPanelProps>): ReactNode {
+function Controlled(props: Readonly<PanelProps>): ReactNode {
   const [selected, setSelected] = useState(props.selected);
   const [collapsed, setCollapsed] = useState(props.collapsed);
 
@@ -127,7 +129,7 @@ describe("ProblemsPanel", () => {
 
     it("should draw the count in the tone of the tab", () => {
       // Arrange
-      const tabs: ProblemsPanelProps["tabs"] = [
+      const tabs: PanelProps["tabs"] = [
         { id: "sketch", label: "Sketch", count: 3, tone: "warn" },
       ];
       render(<ProblemsPanel {...createProps({ tabs })} />);
@@ -141,7 +143,7 @@ describe("ProblemsPanel", () => {
 
     it("should draw the count as bad when the tab has no tone", () => {
       // Arrange
-      const tabs: ProblemsPanelProps["tabs"] = [
+      const tabs: PanelProps["tabs"] = [
         { id: "sketch", label: "Sketch", count: 3 },
       ];
       render(<ProblemsPanel {...createProps({ tabs })} />);
@@ -158,7 +160,7 @@ describe("ProblemsPanel", () => {
       ["has a count of 0", 0],
     ])("should draw no badge when a tab %s", (_case, count) => {
       // Arrange
-      const tabs: ProblemsPanelProps["tabs"] = [
+      const tabs: PanelProps["tabs"] = [
         { id: "sketch", label: "Sketch", count, tone: "bad" },
       ];
       render(<ProblemsPanel {...createProps({ tabs })} />);
@@ -218,7 +220,7 @@ describe("ProblemsPanel", () => {
 
     it("should draw the icon in the warning color for the warn tone", () => {
       // Arrange
-      const tabs: ProblemsPanelProps["tabs"] = [
+      const tabs: PanelProps["tabs"] = [
         { id: "line 3", label: "line 3", icon: "warn", tone: "warn" },
       ];
       render(<ProblemsPanel {...createProps({ tabs, selected: "line 3" })} />);
@@ -234,7 +236,7 @@ describe("ProblemsPanel", () => {
 
     it("should leave the icon in the color of the label when the tab has no tone", () => {
       // Arrange
-      const tabs: ProblemsPanelProps["tabs"] = [
+      const tabs: PanelProps["tabs"] = [
         { id: "line 3", label: "line 3", icon: "check" },
       ];
       render(<ProblemsPanel {...createProps({ tabs, selected: "line 3" })} />);
@@ -250,7 +252,7 @@ describe("ProblemsPanel", () => {
 
     it("should draw the icon before the count", () => {
       // Arrange
-      const tabs: ProblemsPanelProps["tabs"] = [
+      const tabs: PanelProps["tabs"] = [
         { id: "sketch", label: "Sketch", icon: "warn", count: 2, tone: "warn" },
       ];
       render(<ProblemsPanel {...createProps({ tabs })} />);
@@ -310,6 +312,32 @@ describe("ProblemsPanel", () => {
       // Assert
       expect(onSelect).toHaveBeenCalledTimes(1);
       expect(onSelect).toHaveBeenCalledWith(FILE_ID);
+    });
+
+    it("should give onSelect the ids that the caller declared, not plain text", () => {
+      // Arrange
+      type StoreTabId = "sketch" | "node";
+      const received: StoreTabId[] = [];
+      render(
+        <ProblemsPanel<StoreTabId>
+          tabs={[
+            { id: "sketch", label: "Sketch" },
+            { id: "node", label: "eslint.config.js", mono: true },
+          ]}
+          selected="sketch"
+          onSelect={(id) => received.push(id)}
+          collapsed={false}
+          onCollapsedChange={jest.fn()}
+        >
+          <p>Body of the tab</p>
+        </ProblemsPanel>
+      );
+
+      // Act
+      fireEvent.click(view.getByRole("tab", { name: "eslint.config.js" }));
+
+      // Assert
+      expect(received).toEqual(["node"]);
     });
 
     it("should not change the selected tab by itself", () => {
@@ -430,12 +458,13 @@ describe("ProblemsPanel", () => {
       // Arrange
       const items: ProblemItem[] = [
         {
-          id: "config:0",
+          key: "config:0",
           level: "error",
           location: "eslint.config.js",
           position: ":15:16",
           message: "Invalid rule options.",
           meta: "error · rules",
+          target: { kind: "config" },
         },
       ];
       const onOpen = jest.fn();
@@ -455,7 +484,7 @@ describe("ProblemsPanel", () => {
       expect(view.getByRole("note").textContent).toBe(
         "Dependencies are not evaluated."
       );
-      expect(onOpen).toHaveBeenCalledWith("config:0");
+      expect(onOpen).toHaveBeenCalledWith({ kind: "config" });
     });
   });
 

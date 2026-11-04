@@ -36,6 +36,9 @@ const FROM_PROPS = Annotation.define<boolean>();
 /** Holds the extensions that depend on the props `label` and `readOnly`, which change while the view lives */
 const propsCompartment = new Compartment();
 
+/** Holds the listener of the edits, which belongs to the component that shows the view: a state restored from a snapshot gets the listener of its new component */
+const listenerCompartment = new Compartment();
+
 /** The lines above a revealed range that stay visible, so that the range is not stuck to the top edge, as the mockup scrolls the policy */
 const REVEAL_MARGIN = 120;
 
@@ -56,10 +59,11 @@ const EXTENSIONS: Extension[] = [
   highlightExtension,
   editorTheme,
   propsCompartment.of([]),
+  listenerCompartment.of([]),
 ];
 
 /**
- * The editor of the config node: JSON5 in a code area, with the problems of the config underlined at their ranges, marked in the gutter and explained on hover.
+ * The editor of the config node: JSON5 in a code area, with the problems of the config underlined at their ranges, marked in the gutter and explained on hover. With a snapshot, it opens as it was left: the main loop of the playground is to edit the config, check a file and go back, and the undo history must survive it.
  * @param props Editor props.
  * @param props.value The config text.
  * @param props.onChange Called with the text after each edit of the user.
@@ -68,6 +72,7 @@ const EXTENSIONS: Extension[] = [
  * @param props.readOnly Whether the text cannot be edited.
  * @param props.highlight The lines to mark.
  * @param props.reveal The range to scroll to.
+ * @param props.snapshot Where the editor leaves its state when it unmounts and starts from when it mounts.
  * @returns The editor, as tall as its container.
  */
 export function ConfigEditor({
@@ -78,6 +83,7 @@ export function ConfigEditor({
   readOnly = false,
   highlight,
   reveal,
+  snapshot,
 }: Readonly<ConfigEditorProps>): ReactNode {
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -92,32 +98,41 @@ export function ConfigEditor({
   });
 
   useEffect(() => {
+    const saved = snapshot?.current;
     const view = new EditorView({
       // The element is there when effects run
       parent: hostRef.current as HTMLDivElement,
-      state: EditorState.create({
-        doc: initialValue,
-        extensions: [
-          ...EXTENSIONS,
-          EditorView.updateListener.of((update) => {
-            const fromProps = update.transactions.some((transaction) =>
-              transaction.annotation(FROM_PROPS)
-            );
-            if (update.docChanged && !fromProps) {
-              onChangeRef.current(update.state.doc.toString());
-            }
-          }),
-        ],
-      }),
+      state:
+        saved?.state ??
+        EditorState.create({ doc: initialValue, extensions: EXTENSIONS }),
+      scrollTo: saved?.scroll,
+    });
+    view.dispatch({
+      effects: listenerCompartment.reconfigure(
+        EditorView.updateListener.of((update) => {
+          const fromProps = update.transactions.some((transaction) =>
+            transaction.annotation(FROM_PROPS)
+          );
+          if (update.docChanged && !fromProps) {
+            onChangeRef.current(update.state.doc.toString());
+          }
+        })
+      ),
     });
     viewRef.current = view;
     return () => {
+      if (snapshot) {
+        snapshot.current = {
+          state: view.state,
+          scroll: view.scrollSnapshot(),
+        };
+      }
       view.destroy();
       viewRef.current = null;
       // A view created again, such as the one of a development double mount, shows the range again
       revealedKeyRef.current = undefined;
     };
-  }, [initialValue]);
+  }, [initialValue, snapshot]);
 
   useEffect(() => {
     const view = viewRef.current;

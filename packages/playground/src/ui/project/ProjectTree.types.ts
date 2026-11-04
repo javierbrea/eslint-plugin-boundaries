@@ -1,5 +1,5 @@
 import type { Sketch } from "../../contract";
-import type { ProblemCounts } from "../state/Focus.types";
+import type { ProblemCounts } from "../state";
 
 /** An item of the tree view: the config node, or a node of the sketch. Its id is its path, and the id of the config node is `eslint.config.js` */
 export type ProjectItem = {
@@ -17,8 +17,8 @@ export type ProjectItem = {
 
 /** Props of {@link ProjectTree}. */
 export type ProjectTreeProps = {
-  /** The sketch to show as a tree */
-  readonly sketch: Sketch;
+  /** The nodes of the sketch to show as a tree. The items are built again only when they change, not when the config does */
+  readonly tree: Sketch["tree"];
   /** Problems per node, for the badges */
   readonly counts: ProblemCounts;
   /** Whether nodes can be renamed and removed */

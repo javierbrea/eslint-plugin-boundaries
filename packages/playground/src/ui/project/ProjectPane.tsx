@@ -7,13 +7,20 @@ import DialogTitle from "@mui/material/DialogTitle";
 import { styled } from "@mui/material/styles";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import { useId } from "react";
+import { memo, useId } from "react";
 import type { ReactNode } from "react";
 
-import { PaneHead } from "../common";
+import { PaneHead, formatCount } from "../common";
 import { Icon } from "../icons";
+import {
+  useCapabilities,
+  useProblemCounts,
+  useSetView,
+  useTree,
+  useView,
+} from "../state";
+import type { ProjectView } from "../state";
 
-import type { ProjectPaneProps, ProjectView } from "./ProjectPane.types";
 import { ProjectTree } from "./ProjectTree";
 import { TextMode } from "./TextMode";
 import { useProjectTree } from "./useProjectTree";
@@ -38,40 +45,17 @@ const Foot = styled("div")({
 const Spacer = styled("span")({ flex: 1 });
 
 /**
- * The left pane: the sketch as a tree with `eslint.config.js` pinned first, or as text, and a foot to add files and folders and to switch between the two. Both views edit the same sketch through the operations of `src/sketch/`; the pane keeps no copy of it.
- * @param props ProjectPane props.
- * @param props.sketch The sketch to show.
- * @param props.focus What is in focus.
- * @param props.view How the project is shown.
- * @param props.counts Problems per node, for the badges of the tree.
- * @param props.capabilities What the user can change.
- * @param props.onViewChange Called with the view the user asks for.
- * @param props.onSketchChange Called with the new sketch after each edit.
- * @param props.onFocus Called with what the user opens.
- * @param props.onTextProblems Called with the lines of text mode that could not be read.
+ * The left pane: the sketch as a tree with `eslint.config.js` pinned first, or as text, and a foot to add files and folders and to switch between the two. Both views edit the sketch of the store through its transitions.
  * @returns The pane, as tall as its container.
  */
-export function ProjectPane({
-  sketch,
-  focus: openNode,
-  view,
-  counts,
-  capabilities,
-  onViewChange,
-  onSketchChange,
-  onFocus,
-  onTextProblems,
-}: Readonly<ProjectPaneProps>): ReactNode {
-  const tree = useProjectTree({
-    sketch,
-    focus: openNode,
-    view,
-    onViewChange,
-    onSketchChange,
-    onFocus,
-  });
+function ProjectPaneContent(): ReactNode {
+  const view = useView();
+  const nodes = useTree();
+  const counts = useProblemCounts();
+  const { editTree } = useCapabilities();
+  const setView = useSetView();
+  const tree = useProjectTree();
   const dialogTitleId = useId();
-  const { editTree } = capabilities;
   const { path, files } = tree.deleteRequest;
 
   return (
@@ -82,7 +66,7 @@ export function ProjectPane({
       />
       {view === "tree" ? (
         <ProjectTree
-          sketch={sketch}
+          tree={nodes}
           counts={counts}
           editable={editTree}
           selectedId={tree.selectedId}
@@ -98,12 +82,7 @@ export function ProjectPane({
           onDelete={tree.requestDelete}
         />
       ) : (
-        <TextMode
-          sketch={sketch}
-          readOnly={!editTree}
-          onSketchChange={onSketchChange}
-          onTextProblems={onTextProblems}
-        />
+        <TextMode />
       )}
       <Foot>
         {editTree ? (
@@ -135,7 +114,7 @@ export function ProjectPane({
           onChange={(_event, next: ProjectView | null) => {
             // The selected button reports `null` when it is pressed again
             if (next !== null) {
-              onViewChange(next);
+              setView(next);
             }
           }}
         >
@@ -151,7 +130,7 @@ export function ProjectPane({
         slotProps={{ transition: { onExited: tree.deleteExited } }}
       >
         <DialogTitle id={dialogTitleId}>
-          {`Delete ${path}/ and its ${files} ${files === 1 ? "file" : "files"}?`}
+          {`Delete ${path}/ and its ${formatCount(files, "file", "files")}?`}
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -171,3 +150,6 @@ export function ProjectPane({
     </Pane>
   );
 }
+
+/** The project pane. It reads the store, so it renders again only when what it shows changes. */
+export const ProjectPane = memo(ProjectPaneContent);

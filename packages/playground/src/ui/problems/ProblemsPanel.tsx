@@ -6,20 +6,12 @@ import Tooltip from "@mui/material/Tooltip";
 import { useId } from "react";
 import type { ReactNode } from "react";
 
-import { CountBadge, PaneHead } from "../common";
+import { CountBadge, PaneHead, TONE_COLORS, formatCount } from "../common";
+import type { Tone } from "../common";
 import { Icon } from "../icons";
+import type { ProblemsTab } from "../state";
 
-import type {
-  ProblemTone,
-  ProblemsPanelProps,
-  ProblemsTab,
-} from "./Problems.types";
-
-/** The color of an icon in each tone. */
-const TONE_COLORS: Readonly<Record<ProblemTone, string>> = {
-  bad: "var(--jsb-bad)",
-  warn: "var(--jsb-warn)",
-};
+import type { ProblemsPanelProps } from "./Problems.types";
 
 const Panel = styled("section")({
   display: "flex",
@@ -38,7 +30,7 @@ const MonoTab = styled(Tab, {
 
 const ToneIcon = styled("span", {
   shouldForwardProp: (prop) => prop !== "tone",
-})<{ tone?: ProblemTone }>(({ tone }) => ({
+})<{ tone?: Tone }>(({ tone }) => ({
   display: "inline-flex",
   color: tone === undefined ? undefined : TONE_COLORS[tone],
 }));
@@ -66,15 +58,6 @@ const TabPanel = styled("div")({
 });
 
 /**
- * Says how many problems a count is about.
- * @param count The count, a positive number.
- * @returns The count with its unit, such as `2 problems`.
- */
-function getCountLabel(count: number): string {
-  return `${count} ${count === 1 ? "problem" : "problems"}`;
-}
-
-/**
  * Builds the id of the element of a tab. The id of a tab can have spaces and slashes, such as a path, and an element id with a space breaks `aria-labelledby`, so it is encoded.
  * @param prefix The prefix that is unique to the panel.
  * @param tabId The id of the tab.
@@ -90,7 +73,7 @@ function getTabElementId(prefix: string, tabId: string): string {
  * @param props.tab The tab.
  * @returns The nodes inside the tab, laid out in a row by the theme of the tab.
  */
-function TabLabel({ tab }: Readonly<{ tab: ProblemsTab }>): ReactNode {
+function TabLabel({ tab }: Readonly<{ tab: ProblemsTab<string> }>): ReactNode {
   const { label, icon, tone, count = 0 } = tab;
 
   return (
@@ -105,7 +88,7 @@ function TabLabel({ tab }: Readonly<{ tab: ProblemsTab }>): ReactNode {
         <CountBadge
           count={count}
           tone={tone ?? "bad"}
-          label={getCountLabel(count)}
+          label={formatCount(count, "problem", "problems")}
         />
       ) : null}
     </>
@@ -113,7 +96,7 @@ function TabLabel({ tab }: Readonly<{ tab: ProblemsTab }>): ReactNode {
 }
 
 /**
- * The bottom pane: a head with a strip of tabs and a button that collapses the panel, and the body of the selected tab. The tabs and the body come from the workbench, which knows what is in focus, so the panel handles any number of tabs and draws no problem by itself. Collapsed, only the head shows.
+ * The bottom pane: a head with a strip of tabs and a button that collapses the panel, and the body of the selected tab. The tabs and the body come from the problems pane, which knows what is in focus, so the panel handles any number of tabs and draws no problem by itself. It is generic over the ids of its tabs, so that `onSelect` receives the ids the caller declared. Collapsed, only the head shows.
  * @param props ProblemsPanel props.
  * @param props.tabs The tabs, in order.
  * @param props.selected The id of the selected tab.
@@ -123,14 +106,14 @@ function TabLabel({ tab }: Readonly<{ tab: ProblemsTab }>): ReactNode {
  * @param props.children The body of the selected tab.
  * @returns The panel, as tall as its container.
  */
-export function ProblemsPanel({
+export function ProblemsPanel<Id extends string>({
   tabs,
   selected,
   onSelect,
   collapsed,
   onCollapsedChange,
   children,
-}: Readonly<ProblemsPanelProps>): ReactNode {
+}: Readonly<ProblemsPanelProps<Id>>): ReactNode {
   const prefix = useId();
   const collapseLabel = collapsed
     ? "Expand the problems"
@@ -148,7 +131,8 @@ export function ProblemsPanel({
               variant="scrollable"
               scrollButtons={false}
               aria-label="Problem lists"
-              onChange={(_event, id: string) => onSelect(id)}
+              // `Tabs` reports the value of one of the tabs, which are the ids given
+              onChange={(_event, id: Id) => onSelect(id)}
             >
               {tabs.map((tab) => (
                 <MonoTab

@@ -1,27 +1,20 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-/** What a count is about: something that fails, or something to look at. */
-type CountTone = "bad" | "warn";
+import { TONE_COLORS } from "./Tone";
+import type { Tone } from "./Tone.types";
 
-/** Text color and background of each tone. */
-const TONES: Readonly<
-  Record<CountTone, { color: string; backgroundColor: string }>
-> = {
-  bad: {
-    color: "var(--jsb-bad)",
-    backgroundColor: "color-mix(in srgb, var(--jsb-bad) 14%, transparent)",
-  },
-  warn: {
-    color: "var(--jsb-warn)",
-    backgroundColor: "color-mix(in srgb, var(--jsb-warn) 16%, transparent)",
-  },
+/** How much of the color of each tone the background of the badge takes. */
+const BACKGROUND_SHARES: Readonly<Record<Tone, string>> = {
+  bad: "14%",
+  warn: "16%",
 };
 
 const Badge = styled("span", {
   shouldForwardProp: (prop) => prop !== "tone",
-})<{ tone: CountTone }>(({ tone }) => ({
-  ...TONES[tone],
+})<{ tone: Tone }>(({ tone }) => ({
+  color: TONE_COLORS[tone],
+  backgroundColor: `color-mix(in srgb, ${TONE_COLORS[tone]} ${BACKGROUND_SHARES[tone]}, transparent)`,
   display: "inline-grid",
   placeItems: "center",
   boxSizing: "border-box",
@@ -40,7 +33,7 @@ type CountBadgeProps = {
   /** The number to show. */
   count: number;
   /** The color of the badge. */
-  tone: CountTone;
+  tone: Tone;
   /** What the number counts, such as `2 problems`: assistive technology reads it instead of the bare number. */
   label: string;
 };

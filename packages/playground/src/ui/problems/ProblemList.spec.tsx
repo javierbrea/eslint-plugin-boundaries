@@ -1,34 +1,62 @@
 import { fireEvent, render, screen as view } from "@testing-library/react";
 
+import type { TextRange } from "../../engine";
+import type { ProblemItem } from "../state";
+
 import { ProblemList } from "./ProblemList";
-import type { ProblemItem } from "./Problems.types";
+
+const ERROR_RANGE: TextRange = { from: 410, to: 421, line: 15, column: 16 };
+
+const WARNING_RANGE: TextRange = { from: 120, to: 150, line: 5, column: 7 };
 
 const ERROR: ProblemItem = {
-  id: "config:0",
+  key: "config:0",
   level: "error",
   location: "eslint.config.js",
   position: ":15:16",
   message:
     '[boundaries/dependencies] Invalid rule options. Value "dissallow" should be equal to one of the allowed values.',
   meta: "error · rules › boundaries/dependencies › 1 › default",
+  target: { kind: "config", range: ERROR_RANGE },
 };
 
 const WARNING: ProblemItem = {
-  id: "config:1",
+  key: "config:1",
   level: "warning",
   location: "eslint.config.js",
   position: ":5:7",
   message: "Some element descriptors are invalid and will be ignored.",
   meta: "warning · settings › boundaries/elements › 1",
+  target: { kind: "config", range: WARNING_RANGE },
 };
 
 const DEPRECATION: ProblemItem = {
-  id: "config:2",
+  key: "config:2",
   level: "deprecation",
   location: "eslint.config.js",
   position: ":9:3",
   message: "This option is deprecated.",
   meta: "deprecation · settings › boundaries/ignore",
+  target: { kind: "config", range: { from: 60, to: 70, line: 9, column: 3 } },
+};
+
+const FILE_ITEM: ProblemItem = {
+  key: "file:0",
+  level: "error",
+  location: "src/index.js",
+  message: "A dependency is not allowed.",
+  meta: "error · src/index.js",
+  target: { kind: "file", path: "src/index.js" },
+};
+
+// A line of text mode is already in front of the user, so its row opens nothing
+const TEXT_ITEM: ProblemItem = {
+  key: "text:0",
+  level: "error",
+  location: "Project text",
+  position: ":3",
+  message: "Not a path.",
+  meta: "  import { format } from './format'",
 };
 
 const EMPTY = "No problems.";
@@ -180,7 +208,7 @@ describe("ProblemList", () => {
   });
 
   describe("onOpen", () => {
-    it("should be called with the id of the row that is pressed", () => {
+    it("should be called with the target of the row that is pressed", () => {
       // Arrange
       const onOpen = jest.fn();
       render(
@@ -192,7 +220,25 @@ describe("ProblemList", () => {
 
       // Assert
       expect(onOpen).toHaveBeenCalledTimes(1);
-      expect(onOpen).toHaveBeenCalledWith("config:1");
+      expect(onOpen).toHaveBeenCalledWith({
+        kind: "config",
+        range: WARNING_RANGE,
+      });
+    });
+
+    it("should be called with the target of a row that opens a file", () => {
+      // Arrange
+      const onOpen = jest.fn();
+      render(<ProblemList items={[FILE_ITEM]} onOpen={onOpen} empty={EMPTY} />);
+
+      // Act
+      fireEvent.click(view.getByRole("button"));
+
+      // Assert
+      expect(onOpen).toHaveBeenCalledWith({
+        kind: "file",
+        path: "src/index.js",
+      });
     });
 
     it("should not be called before a row is pressed", () => {
@@ -206,7 +252,7 @@ describe("ProblemList", () => {
       expect(onOpen).not.toHaveBeenCalled();
     });
 
-    it("should draw each row as a button that does not submit a form", () => {
+    it("should draw each row with a target as a button that does not submit a form", () => {
       // Arrange
       render(<ProblemList items={[ERROR]} onOpen={jest.fn()} empty={EMPTY} />);
 
@@ -215,6 +261,70 @@ describe("ProblemList", () => {
 
       // Assert
       expect(row.getAttribute("type")).toBe("button");
+    });
+  });
+
+  describe("a row without a target", () => {
+    it("should be plain content and not a button", () => {
+      // Arrange
+      render(
+        <ProblemList items={[TEXT_ITEM]} onOpen={jest.fn()} empty={EMPTY} />
+      );
+
+      // Act
+      const buttons = view.queryAllByRole("button");
+
+      // Assert
+      expect(buttons).toHaveLength(0);
+      expect(view.getByText(TEXT_ITEM.message)).toBeTruthy();
+    });
+
+    it("should draw the same content as a row that opens something", () => {
+      // Arrange
+      render(
+        <ProblemList items={[TEXT_ITEM]} onOpen={jest.fn()} empty={EMPTY} />
+      );
+
+      // Act
+      const where = view.getByText("Project text", { exact: false });
+      const meta = view.getByText("import { format } from './format'");
+
+      // Assert
+      expect(where.textContent).toBe("Project text:3");
+      expect(getComputedStyle(meta).whiteSpace).toBe("pre-wrap");
+      expect(
+        getIcon(meta.parentElement as HTMLElement).getAttribute("aria-hidden")
+      ).toBe("true");
+    });
+
+    it("should do nothing when it is pressed", () => {
+      // Arrange
+      const onOpen = jest.fn();
+      render(<ProblemList items={[TEXT_ITEM]} onOpen={onOpen} empty={EMPTY} />);
+
+      // Act
+      fireEvent.click(view.getByText(TEXT_ITEM.message));
+
+      // Assert
+      expect(onOpen).not.toHaveBeenCalled();
+    });
+
+    it("should sit among rows that open something, which are the only buttons", () => {
+      // Arrange
+      render(
+        <ProblemList
+          items={[ERROR, TEXT_ITEM, WARNING]}
+          onOpen={jest.fn()}
+          empty={EMPTY}
+        />
+      );
+
+      // Act
+      const buttons = view.getAllByRole("button");
+
+      // Assert
+      expect(view.getAllByRole("listitem")).toHaveLength(3);
+      expect(buttons).toHaveLength(2);
     });
   });
 

@@ -1,5 +1,5 @@
-import type { Evaluation, TextRange } from "../../engine";
-import type { Focus } from "../state/Focus.types";
+import type { Evaluation } from "../../engine";
+import type { Focus, Target } from "../state";
 
 /** Props of the inspector. */
 export type InspectorProps = {
@@ -7,6 +7,6 @@ export type InspectorProps = {
   readonly focus: Focus;
   /** What the engine says about the sketch. */
   readonly evaluation: Evaluation;
-  /** Called with the range of the config that a row of the config inspector is about, so that the workbench opens the config there. */
-  readonly onReveal: (range: TextRange) => void;
+  /** Called with what a row opens, such as the entry of the config that a row of the config inspector is about. */
+  readonly onOpen: (target: Target) => void;
 };

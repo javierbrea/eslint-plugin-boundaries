@@ -2,22 +2,18 @@ import type { Sketch } from "../../contract";
 
 import { getFolderIds, getProjectItems } from "./ProjectItems";
 
-const SKETCH: Sketch = {
-  config: "{}",
-  tree: [
-    { path: "src/components/Button.js", kind: "file" },
-    { path: "src/index.js", kind: "file" },
-    { path: "docs", kind: "folder" },
-    { path: "index.js", kind: "file" },
-  ],
-  dependencies: [],
-};
+const TREE: Sketch["tree"] = [
+  { path: "src/components/Button.js", kind: "file" },
+  { path: "src/index.js", kind: "file" },
+  { path: "docs", kind: "folder" },
+  { path: "index.js", kind: "file" },
+];
 
 describe("ProjectItems", () => {
   describe("getProjectItems", () => {
     it("should put the config node first, with its path as its id", () => {
       // Act
-      const [config] = getProjectItems(SKETCH);
+      const [config] = getProjectItems(TREE);
 
       // Assert
       expect(config).toEqual({
@@ -31,7 +27,7 @@ describe("ProjectItems", () => {
 
     it("should follow with the tree: folders first, with a slash after their name, then files", () => {
       // Act
-      const items = getProjectItems(SKETCH).slice(1);
+      const items = getProjectItems(TREE).slice(1);
 
       // Assert
       expect(items.map((item) => [item.id, item.label, item.kind])).toEqual([
@@ -43,7 +39,7 @@ describe("ProjectItems", () => {
 
     it("should nest the children of a folder, with their own path as id and their name", () => {
       // Act
-      const src = getProjectItems(SKETCH)[2];
+      const src = getProjectItems(TREE)[2];
 
       // Assert
       expect(src.children.map((child) => [child.id, child.name])).toEqual([
@@ -52,12 +48,20 @@ describe("ProjectItems", () => {
       ]);
       expect(src.children[0].children[0].id).toBe("src/components/Button.js");
     });
+
+    it("should list only the config node when the tree is empty", () => {
+      // Act
+      const items = getProjectItems([]);
+
+      // Assert
+      expect(items.map((item) => item.id)).toEqual(["eslint.config.js"]);
+    });
   });
 
   describe("getFolderIds", () => {
     it("should list the folders at any depth, and not the files or the config", () => {
       // Act
-      const folders = getFolderIds(getProjectItems(SKETCH));
+      const folders = getFolderIds(getProjectItems(TREE));
 
       // Assert
       expect(folders).toEqual(["docs", "src", "src/components"]);

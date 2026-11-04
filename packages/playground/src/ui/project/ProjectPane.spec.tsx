@@ -1,20 +1,24 @@
+// cspell:ignore dissallow patern -- deliberate typos, the mistakes of the config that the tests report
 import {
   act,
   fireEvent,
-  render,
   screen as view,
   waitFor,
   waitForElementToBeRemoved,
   within,
 } from "@testing-library/react";
-import { useState } from "react";
-import type { ReactNode } from "react";
 
 import type { ProjectCapabilities, Sketch } from "../../contract";
-import type { Focus, ProblemCounts } from "../state/Focus.types";
+import { QUICK_START_EXAMPLE } from "../../examples";
+import { EVALUATION_DELAY } from "../state";
+import type { Focus, ProjectView, Target, WorkbenchStore } from "../state";
+import {
+  NO_CAPABILITIES,
+  renderInWorkbench,
+} from "../state/__fixtures__/RenderInWorkbench";
+import type { WorkbenchRender } from "../state/__fixtures__/RenderInWorkbench";
 
 import { ProjectPane } from "./ProjectPane";
-import type { ProjectPaneProps, ProjectView } from "./ProjectPane.types";
 
 const SKETCH: Sketch = {
   config: "{ settings: {}, rules: {} }",
@@ -42,118 +46,85 @@ const SKETCH: Sketch = {
   ],
 };
 
-const NO_FOCUS: Focus = { kind: "none" };
+const QUICK_START_CONFIG = QUICK_START_EXAMPLE.sketch.config;
 
-const NO_COUNTS: ProblemCounts = {
-  config: 0,
-  configHasErrors: false,
-  byPath: new Map(),
-};
+/** The quick-start config with a `default` that is not an option: one error, which turns the config node red. */
+const CONFIG_WITH_ERROR = QUICK_START_CONFIG.replace(
+  'default: "disallow"',
+  'default: "dissallow"'
+);
 
-const EDITABLE: ProjectCapabilities = {
-  editTree: true,
-  editDependencies: true,
-  editConfig: true,
-};
+/** The quick-start config with a descriptor that is not valid: one warning. */
+const CONFIG_WITH_WARNING = QUICK_START_CONFIG.replace(
+  'pattern: "components/*/*"',
+  'patern: "components/*/*"'
+);
 
-const READ_ONLY: ProjectCapabilities = {
-  editTree: false,
-  editDependencies: false,
-  editConfig: false,
-};
+/** The quick-start config with both mistakes: an error and a warning. */
+const CONFIG_WITH_BOTH = CONFIG_WITH_WARNING.replace(
+  'default: "disallow"',
+  'default: "dissallow"'
+);
 
-/** The callbacks of the pane, to see what it asked for */
-type Spies = {
-  onViewChange: jest.Mock<void, [ProjectView]>;
-  onSketchChange: jest.Mock<void, [Sketch]>;
-  onFocus: jest.Mock<void, [Focus]>;
-  onTextProblems: jest.Mock;
-};
-
-/**
- * Creates the callbacks of the pane.
- * @returns Spies that do nothing.
- */
-function createSpies(): Spies {
-  return {
-    onViewChange: jest.fn(),
-    onSketchChange: jest.fn(),
-    onFocus: jest.fn(),
-    onTextProblems: jest.fn(),
-  };
-}
-
-/**
- * Creates the props of the pane, with spies for its callbacks.
- * @param overrides What differs from an editable pane that shows the tree with nothing in focus.
- * @returns The props.
- */
-function createProps(
-  overrides: Partial<Omit<ProjectPaneProps, keyof Spies>> = {}
-): ProjectPaneProps & Spies {
-  return {
-    sketch: SKETCH,
-    focus: NO_FOCUS,
-    view: "tree",
-    counts: NO_COUNTS,
-    capabilities: EDITABLE,
-    ...createSpies(),
-    ...overrides,
-  };
-}
-
-/** What the harness starts with */
-type HarnessProps = {
-  spies: Spies;
+/** What the pane starts with */
+type PaneOptions = {
+  /** The sketch to start from. */
   sketch?: Sketch;
-  focus?: Focus;
+  /** What the user can change; everything when it is unset. */
+  capabilities?: ProjectCapabilities;
+  /** What is in focus when the pane starts. */
+  focus?: Target;
+  /** How the pane shows the project when it starts. */
   view?: ProjectView;
-  counts?: ProblemCounts;
 };
 
 /**
- * Holds the sketch, the focus and the view as the workbench does, so that an edit shows in the next render, and reports each change to the spies.
- * @param props The first state, and the spies.
- * @param props.spies
- * @param props.sketch
- * @param props.focus
- * @param props.view
- * @param props.counts
- * @returns The pane.
+ * Renders the pane in a workbench and puts the store in the state a test starts from, as the user would: with a file opened, or the project shown as text.
+ * @param options What the pane starts with.
+ * @param options.sketch The sketch to start from.
+ * @param options.capabilities What the user can change.
+ * @param options.focus What is in focus.
+ * @param options.view How the pane shows the project.
+ * @returns The render, the store and the spy of the sketches.
  */
-function Harness({
-  spies,
-  sketch: firstSketch = SKETCH,
-  focus: firstFocus = NO_FOCUS,
-  view: firstView = "tree",
-  counts = NO_COUNTS,
-}: Readonly<HarnessProps>): ReactNode {
-  const [sketch, setSketch] = useState(firstSketch);
-  const [openNode, setOpenNode] = useState(firstFocus);
-  const [projectView, setProjectView] = useState(firstView);
+function renderPane({
+  sketch = SKETCH,
+  capabilities,
+  focus: target,
+  view: projectView = "tree",
+}: PaneOptions = {}): WorkbenchRender {
+  const rendered = renderInWorkbench(<ProjectPane />, {
+    sketch,
+    capabilities,
+  });
 
-  return (
-    <ProjectPane
-      sketch={sketch}
-      focus={openNode}
-      view={projectView}
-      counts={counts}
-      capabilities={EDITABLE}
-      onSketchChange={(next) => {
-        spies.onSketchChange(next);
-        setSketch(next);
-      }}
-      onFocus={(next) => {
-        spies.onFocus(next);
-        setOpenNode(next);
-      }}
-      onViewChange={(next) => {
-        spies.onViewChange(next);
-        setProjectView(next);
-      }}
-      onTextProblems={spies.onTextProblems}
-    />
-  );
+  if (target !== undefined) {
+    act(() => rendered.store.open(target));
+  }
+  if (projectView !== "tree") {
+    act(() => rendered.store.setView(projectView));
+  }
+  return rendered;
+}
+
+/**
+ * Reads what is in focus.
+ * @param store The store of the pane.
+ * @returns Its focus.
+ */
+function getFocus(store: WorkbenchStore): Focus {
+  return store.getState().focus;
+}
+
+/**
+ * Types the whole text of the project in the textarea, and leaves it, as the user does when the text is done.
+ * @param text The text.
+ */
+function typeProjectText(text: string): void {
+  const area = view.getByRole("textbox", { name: "Project as text" });
+
+  fireEvent.change(area, { target: { value: text } });
+  fireEvent.blur(area);
 }
 
 /**
@@ -272,15 +243,19 @@ function getTreePaths(sketch: Sketch): string[] {
  * @param spy The spy of `onSketchChange`.
  * @returns The sketch.
  */
-function getLastSketch(spy: Spies["onSketchChange"]): Sketch {
+function getLastSketch(spy: WorkbenchRender["onSketchChange"]): Sketch {
   return spy.mock.calls[spy.mock.calls.length - 1][0];
 }
 
 describe("ProjectPane", () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   describe("tree", () => {
     it("should name the pane Project", () => {
       // Arrange
-      render(<ProjectPane {...createProps()} />);
+      renderPane();
 
       // Act
       const pane = view.getByRole("region", { name: "Project" });
@@ -291,7 +266,7 @@ describe("ProjectPane", () => {
 
     it("should pin eslint.config.js first and put folders before files, each by name", () => {
       // Arrange
-      render(<ProjectPane {...createProps()} />);
+      renderPane();
 
       // Act
       const names = view
@@ -313,7 +288,7 @@ describe("ProjectPane", () => {
 
     it("should show the full path of a node as the title of its name", () => {
       // Arrange
-      render(<ProjectPane {...createProps()} />);
+      renderPane();
 
       // Act
       const paths = getPaths();
@@ -331,7 +306,7 @@ describe("ProjectPane", () => {
 
     it("should start with every folder open", () => {
       // Arrange
-      render(<ProjectPane {...createProps()} />);
+      renderPane();
 
       // Act
       const folders = view
@@ -346,8 +321,7 @@ describe("ProjectPane", () => {
 
     it("should close a folder when it is clicked, and open it when it is clicked again", () => {
       // Arrange
-      const props = createProps();
-      render(<ProjectPane {...props} />);
+      renderPane();
 
       // Act
       fireEvent.click(getRow("src/components"));
@@ -360,28 +334,41 @@ describe("ProjectPane", () => {
       expect(pathsOpen).toContain("src/components/Button.js");
     });
 
+    it("should remember in the store the folders that were closed", () => {
+      // Arrange
+      const { store } = renderPane();
+
+      // Act
+      fireEvent.click(getRow("src/components"));
+
+      // Assert
+      expect(Array.from(store.getState().closedFolders)).toEqual([
+        "src/components",
+      ]);
+    });
+
     it("should not open anything when a folder is clicked", () => {
       // Arrange
-      const props = createProps({ focus: { kind: "file", path: "index.js" } });
-      render(<ProjectPane {...props} />);
+      const { store } = renderPane({
+        focus: { kind: "file", path: "index.js" },
+      });
 
       // Act
       fireEvent.click(getRow("src"));
 
       // Assert
-      expect(props.onFocus).not.toHaveBeenCalled();
+      expect(getFocus(store)).toEqual({ kind: "file", path: "index.js" });
     });
 
     it("should open a file when it is clicked", () => {
       // Arrange
-      const props = createProps();
-      render(<ProjectPane {...props} />);
+      const { store } = renderPane();
 
       // Act
       fireEvent.click(getRow("src/index.js"));
 
       // Assert
-      expect(props.onFocus).toHaveBeenCalledWith({
+      expect(getFocus(store)).toEqual({
         kind: "file",
         path: "src/index.js",
       });
@@ -389,22 +376,18 @@ describe("ProjectPane", () => {
 
     it("should open the config when it is clicked", () => {
       // Arrange
-      const props = createProps();
-      render(<ProjectPane {...props} />);
+      const { store } = renderPane();
 
       // Act
       fireEvent.click(getRow("eslint.config.js"));
 
       // Assert
-      expect(props.onFocus).toHaveBeenCalledWith({ kind: "config" });
+      expect(getFocus(store)).toEqual({ kind: "config" });
     });
 
     it("should select the file that is in focus", () => {
       // Arrange
-      const props = createProps({
-        focus: { kind: "file", path: "src/index.js" },
-      });
-      render(<ProjectPane {...props} />);
+      renderPane({ focus: { kind: "file", path: "src/index.js" } });
 
       // Act
       const selected = view
@@ -417,8 +400,7 @@ describe("ProjectPane", () => {
 
     it("should select the config when it is in focus", () => {
       // Arrange
-      const props = createProps({ focus: { kind: "config" } });
-      render(<ProjectPane {...props} />);
+      renderPane({ focus: { kind: "config" } });
 
       // Act
       const config = getItem("eslint.config.js");
@@ -429,7 +411,7 @@ describe("ProjectPane", () => {
 
     it("should select nothing when nothing is in focus", () => {
       // Arrange
-      render(<ProjectPane {...createProps()} />);
+      renderPane();
 
       // Act
       const selected = view
@@ -442,8 +424,9 @@ describe("ProjectPane", () => {
 
     it("should select a folder the user clicked, and keep what is in focus", () => {
       // Arrange
-      const props = createProps({ focus: { kind: "file", path: "index.js" } });
-      render(<ProjectPane {...props} />);
+      const { store } = renderPane({
+        focus: { kind: "file", path: "index.js" },
+      });
 
       // Act
       fireEvent.click(getRow("src"));
@@ -451,12 +434,12 @@ describe("ProjectPane", () => {
       // Assert
       expect(getItem("src").getAttribute("aria-selected")).toBe("true");
       expect(getItem("index.js").getAttribute("aria-selected")).toBe("false");
+      expect(getFocus(store)).toEqual({ kind: "file", path: "index.js" });
     });
 
     it("should select the file again when it is clicked after a folder", () => {
       // Arrange
-      const props = createProps({ focus: { kind: "file", path: "index.js" } });
-      render(<ProjectPane {...props} />);
+      renderPane({ focus: { kind: "file", path: "index.js" } });
       fireEvent.click(getRow("src"));
 
       // Act
@@ -469,12 +452,11 @@ describe("ProjectPane", () => {
 
     it("should drop the selected folder when something else takes the focus", () => {
       // Arrange
-      const props = createProps();
-      const { rerender } = render(<ProjectPane {...props} />);
+      const { store } = renderPane();
       fireEvent.click(getRow("src"));
 
       // Act
-      rerender(<ProjectPane {...props} focus={{ kind: "config" }} />);
+      act(() => store.open({ kind: "config" }));
 
       // Assert
       expect(getItem("src").getAttribute("aria-selected")).toBe("false");
@@ -485,58 +467,69 @@ describe("ProjectPane", () => {
 
     it("should keep what is in focus when the keyboard clears the selection", () => {
       // Arrange
-      const props = createProps({ focus: { kind: "file", path: "index.js" } });
-      render(<ProjectPane {...props} />);
+      const { store } = renderPane({
+        focus: { kind: "file", path: "index.js" },
+      });
+      const listener = jest.fn();
+
+      store.subscribe(listener);
 
       // Act
       fireEvent.keyDown(getItem("index.js"), { key: " " });
 
       // Assert
-      expect(props.onFocus).not.toHaveBeenCalled();
+      expect(listener).not.toHaveBeenCalled();
+      expect(getFocus(store)).toEqual({ kind: "file", path: "index.js" });
       expect(getItem("index.js").getAttribute("aria-selected")).toBe("true");
     });
 
     it("should open the folders above a file that takes the focus", () => {
       // Arrange
-      const props = createProps();
-      const { rerender } = render(<ProjectPane {...props} />);
+      const { store } = renderPane();
       fireEvent.click(getRow("src/components"));
       fireEvent.click(getRow("src"));
 
       // Act
-      rerender(
-        <ProjectPane
-          {...props}
-          focus={{ kind: "file", path: "src/components/Button.js" }}
-        />
-      );
+      act(() => store.open({ kind: "file", path: "src/components/Button.js" }));
 
       // Assert
       expect(getPaths()).toContain("src/components/Button.js");
     });
 
-    it("should show where it is when the focus goes to nothing", () => {
+    it("should select nothing when the file in focus is removed", () => {
       // Arrange
-      const props = createProps({ focus: { kind: "file", path: "index.js" } });
-      const { rerender } = render(<ProjectPane {...props} />);
+      const { store } = renderPane({
+        focus: { kind: "file", path: "index.js" },
+      });
 
       // Act
-      rerender(<ProjectPane {...props} focus={NO_FOCUS} />);
+      act(() => store.removeNode("index.js"));
 
       // Assert
-      expect(getItem("index.js").getAttribute("aria-selected")).toBe("false");
+      expect(
+        view
+          .getAllByRole("treeitem")
+          .filter((item) => item.getAttribute("aria-selected") === "true")
+      ).toEqual([]);
+    });
+
+    it("should show a node that another pane adds to the store", () => {
+      // Arrange
+      const { store } = renderPane();
+
+      // Act
+      act(() => store.addNode("file"));
+
+      // Assert
+      expect(getField("new-file.js").value).toBe("new-file.js");
+      expect(getTreePaths(store.getState().sketch)).toContain("new-file.js");
     });
   });
 
   describe("badges", () => {
     it("should show the problems of the config in red when it has errors", () => {
       // Arrange
-      const counts: ProblemCounts = {
-        config: 2,
-        configHasErrors: true,
-        byPath: new Map(),
-      };
-      render(<ProjectPane {...createProps({ counts })} />);
+      renderPane({ sketch: { ...SKETCH, config: CONFIG_WITH_BOTH } });
 
       // Act
       const badge = within(getItem("eslint.config.js")).getByRole("img", {
@@ -550,12 +543,7 @@ describe("ProjectPane", () => {
 
     it("should show the problems of the config in the warning color when it has no errors", () => {
       // Arrange
-      const counts: ProblemCounts = {
-        config: 1,
-        configHasErrors: false,
-        byPath: new Map(),
-      };
-      render(<ProjectPane {...createProps({ counts })} />);
+      renderPane({ sketch: { ...SKETCH, config: CONFIG_WITH_WARNING } });
 
       // Act
       const badge = within(getItem("eslint.config.js")).getByRole("img", {
@@ -568,7 +556,7 @@ describe("ProjectPane", () => {
 
     it("should draw no badge when the config has no problems", () => {
       // Arrange
-      render(<ProjectPane {...createProps()} />);
+      renderPane({ sketch: { ...SKETCH, config: QUICK_START_CONFIG } });
 
       // Act
       const badges = within(getItem("eslint.config.js")).queryAllByRole("img");
@@ -577,87 +565,64 @@ describe("ProjectPane", () => {
       expect(badges).toEqual([]);
     });
 
-    it("should show the failing dependencies of a folder and of a file", () => {
+    it("should draw no badge on a folder or a file until dependencies are evaluated", () => {
       // Arrange
-      const counts: ProblemCounts = {
-        config: 0,
-        configHasErrors: false,
-        byPath: new Map([
-          ["src", 2],
-          ["src/index.js", 1],
-        ]),
-      };
-      render(<ProjectPane {...createProps({ counts })} />);
+      renderPane({ sketch: { ...SKETCH, config: CONFIG_WITH_BOTH } });
 
       // Act
-      const folderBadge = within(getItem("src")).getAllByRole("img", {
-        name: "2 failing dependencies",
-      });
-      const fileBadge = within(getItem("src/index.js")).getByRole("img", {
-        name: "1 failing dependency",
-      });
+      const badges = [getItem("src"), getItem("src/index.js")].flatMap((item) =>
+        within(item).queryAllByRole("img")
+      );
 
       // Assert
-      expect(folderBadge.map((badge) => badge.textContent)).toEqual(["2"]);
-      expect(fileBadge.textContent).toBe("1");
-    });
-
-    it("should mark a file with failures with its name in red and a cross", () => {
-      // Arrange
-      const counts: ProblemCounts = {
-        config: 0,
-        configHasErrors: false,
-        byPath: new Map([["src/index.js", 1]]),
-      };
-      render(<ProjectPane {...createProps({ counts })} />);
-
-      // Act
-      const failing = getItem("src/index.js");
-      const passing = getItem("index.js");
-
-      // Assert
-      expect(failing.querySelector("[data-bad]")?.tagName).toBe("DIV");
-      expect(passing.querySelector("[data-bad]")).toBeNull();
-    });
-
-    it("should not turn a folder with failures red", () => {
-      // Arrange
-      const counts: ProblemCounts = {
-        config: 0,
-        configHasErrors: false,
-        byPath: new Map([["src", 1]]),
-      };
-      render(<ProjectPane {...createProps({ counts })} />);
-
-      // Act
-      const folderRow = getItem("src").firstElementChild;
-
-      // Assert
-      expect(folderRow?.hasAttribute("data-bad")).toBe(false);
+      expect(badges).toEqual([]);
     });
 
     it("should turn the config red when it has errors, and not otherwise", () => {
       // Arrange
-      const counts: ProblemCounts = {
-        config: 1,
-        configHasErrors: true,
-        byPath: new Map(),
-      };
-      const { rerender } = render(<ProjectPane {...createProps({ counts })} />);
-
-      // Act
+      jest.useFakeTimers();
+      const { store } = renderPane({
+        sketch: { ...SKETCH, config: CONFIG_WITH_ERROR },
+      });
       const withErrors = getItem("eslint.config.js").firstElementChild;
       const withErrorsBad = withErrors?.hasAttribute("data-bad");
-      rerender(
-        <ProjectPane
-          {...createProps({ counts: { ...counts, configHasErrors: false } })}
-        />
-      );
+
+      // Act
+      act(() => store.changeConfig(CONFIG_WITH_WARNING));
+      act(() => {
+        jest.advanceTimersByTime(EVALUATION_DELAY);
+      });
       const withoutErrors = getItem("eslint.config.js").firstElementChild;
 
       // Assert
       expect(withErrorsBad).toBe(true);
       expect(withoutErrors?.hasAttribute("data-bad")).toBe(false);
+    });
+
+    it("should keep the badge of the config while an edit of the config waits to be evaluated", () => {
+      // Arrange
+      jest.useFakeTimers();
+      const { store } = renderPane({
+        sketch: { ...SKETCH, config: CONFIG_WITH_ERROR },
+      });
+
+      // Act
+      act(() => store.changeConfig(QUICK_START_CONFIG));
+      act(() => {
+        jest.advanceTimersByTime(EVALUATION_DELAY - 1);
+      });
+      const whileWaiting = within(getItem("eslint.config.js")).queryAllByRole(
+        "img"
+      );
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+
+      // Assert
+      expect(whileWaiting).toHaveLength(1);
+      expect(within(getItem("eslint.config.js")).queryAllByRole("img")).toEqual(
+        []
+      );
     });
   });
 
@@ -668,8 +633,7 @@ describe("ProjectPane", () => {
 
     it("should rename a file in place from its row action", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
 
       // Act
       fireEvent.click(view.getByLabelText("Rename src/index.js"));
@@ -677,7 +641,7 @@ describe("ProjectPane", () => {
       fireEvent.keyDown(field, { key: "Enter" });
 
       // Assert
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).toContain(
+      expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
         "src/main.js"
       );
       expect(getPaths()).toContain("src/main.js");
@@ -686,8 +650,7 @@ describe("ProjectPane", () => {
 
     it("should start the rename on double click", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
 
       // Act
       fireEvent.doubleClick(getRow("src/index.js"));
@@ -698,8 +661,7 @@ describe("ProjectPane", () => {
 
     it("should start the rename with F2", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
 
       // Act
       fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
@@ -710,8 +672,7 @@ describe("ProjectPane", () => {
 
     it("should start with the current name, selected, without the slash of a folder", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
 
       // Act
       fireEvent.doubleClick(getRow("src/components"));
@@ -726,8 +687,7 @@ describe("ProjectPane", () => {
 
     it("should not open or select the row when the field is clicked", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { store } = renderPane();
       fireEvent.doubleClick(getRow("src/components"));
 
       // Act
@@ -737,13 +697,12 @@ describe("ProjectPane", () => {
 
       // Assert
       expect(getPaths()).toContain("src/components/Button.js");
-      expect(spies.onFocus).not.toHaveBeenCalled();
+      expect(getFocus(store)).toEqual({ kind: "none" });
     });
 
     it("should not pass the keys of the field to the tree", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { store } = renderPane();
       fireEvent.doubleClick(getRow("src/index.js"));
       const field = view.getByRole("textbox", {
         name: "New name of src/index.js",
@@ -753,22 +712,21 @@ describe("ProjectPane", () => {
       fireEvent.keyDown(field, { key: " " });
 
       // Assert
-      expect(spies.onFocus).not.toHaveBeenCalled();
+      expect(getFocus(store)).toEqual({ kind: "none" });
     });
 
     it("should follow the rename with the focus", () => {
       // Arrange
-      const spies = createSpies();
-      render(
-        <Harness spies={spies} focus={{ kind: "file", path: "src/index.js" }} />
-      );
+      const { store } = renderPane({
+        focus: { kind: "file", path: "src/index.js" },
+      });
 
       // Act
       fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
       fireEvent.keyDown(typeName("src/index.js", "main.js"), { key: "Enter" });
 
       // Assert
-      expect(spies.onFocus).toHaveBeenCalledWith({
+      expect(getFocus(store)).toEqual({
         kind: "file",
         path: "src/main.js",
       });
@@ -777,20 +735,16 @@ describe("ProjectPane", () => {
 
     it("should follow the rename of a folder with the file in focus inside it", () => {
       // Arrange
-      const spies = createSpies();
-      render(
-        <Harness
-          spies={spies}
-          focus={{ kind: "file", path: "src/components/Button.js" }}
-        />
-      );
+      const { store } = renderPane({
+        focus: { kind: "file", path: "src/components/Button.js" },
+      });
 
       // Act
       fireEvent.keyDown(getItem("src"), { key: "F2" });
       fireEvent.keyDown(typeName("src", "lib"), { key: "Enter" });
 
       // Assert
-      expect(spies.onFocus).toHaveBeenCalledWith({
+      expect(getFocus(store)).toEqual({
         kind: "file",
         path: "lib/components/Button.js",
       });
@@ -798,23 +752,21 @@ describe("ProjectPane", () => {
 
     it("should leave the focus alone when the renamed node is not the file in focus", () => {
       // Arrange
-      const spies = createSpies();
-      render(
-        <Harness spies={spies} focus={{ kind: "file", path: "index.js" }} />
-      );
+      const { store } = renderPane({
+        focus: { kind: "file", path: "index.js" },
+      });
 
       // Act
       fireEvent.keyDown(getItem("src"), { key: "F2" });
       fireEvent.keyDown(typeName("src", "lib"), { key: "Enter" });
 
       // Assert
-      expect(spies.onFocus).not.toHaveBeenCalled();
+      expect(getFocus(store)).toEqual({ kind: "file", path: "index.js" });
     });
 
     it("should keep a renamed folder closed, and keep its children's dependencies", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
       fireEvent.click(getRow("src/components"));
 
       // Act
@@ -828,18 +780,15 @@ describe("ProjectPane", () => {
         "lib/index.js",
         "index.js",
       ]);
-      expect(getLastSketch(spies.onSketchChange).dependencies[0]).toMatchObject(
-        {
-          from: "lib/index.js",
-          target: { kind: "node", path: "lib/components/Button.js" },
-        }
-      );
+      expect(getLastSketch(onSketchChange).dependencies[0]).toMatchObject({
+        from: "lib/index.js",
+        target: { kind: "node", path: "lib/components/Button.js" },
+      });
     });
 
     it("should keep the selected folder selected when it is renamed", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
       fireEvent.click(getRow("src"));
 
       // Act
@@ -852,8 +801,7 @@ describe("ProjectPane", () => {
 
     it("should rename a file inside a folder, keeping the folder", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
 
       // Act
       fireEvent.keyDown(getItem("src/components/Price.js"), { key: "F2" });
@@ -862,15 +810,14 @@ describe("ProjectPane", () => {
       });
 
       // Assert
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).toContain(
+      expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
         "src/components/Cost.js"
       );
     });
 
     it("should move a node into a folder when the name has a path", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
 
       // Act
       fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
@@ -879,15 +826,14 @@ describe("ProjectPane", () => {
       });
 
       // Assert
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).toContain(
+      expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
         "src/app/main.js"
       );
     });
 
     it("should open the closed folder that a node moves into, and give the keyboard to the node", async () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
       fireEvent.click(getRow("src/components"));
       fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
 
@@ -907,8 +853,7 @@ describe("ProjectPane", () => {
 
     it("should rename when the field loses the focus, and leave the focus where the user put it", async () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
       fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
       typeName("src/index.js", "main.js");
 
@@ -917,18 +862,17 @@ describe("ProjectPane", () => {
       await settleFocus();
 
       // Assert
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).toContain(
+      expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
         "src/main.js"
       );
-      expect(spies.onSketchChange).toHaveBeenCalledTimes(1);
+      expect(onSketchChange).toHaveBeenCalledTimes(1);
       expect(getPaths()).toContain("src/main.js");
       expect(document.activeElement).toBe(other);
     });
 
     it("should give up when Escape is pressed", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
       fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
       const field = typeName("src/index.js", "main.js");
 
@@ -937,15 +881,14 @@ describe("ProjectPane", () => {
       fireEvent.blur(field);
 
       // Assert
-      expect(spies.onSketchChange).not.toHaveBeenCalled();
+      expect(onSketchChange).not.toHaveBeenCalled();
       expect(view.queryByRole("textbox")).toBeNull();
       expect(getPaths()).toContain("src/index.js");
     });
 
     it("should ignore the other keys", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
       fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
 
       // Act
@@ -953,13 +896,12 @@ describe("ProjectPane", () => {
 
       // Assert
       expect(getField("src/index.js").value).toBe("main.js");
-      expect(spies.onSketchChange).not.toHaveBeenCalled();
+      expect(onSketchChange).not.toHaveBeenCalled();
     });
 
     it("should close the field without an edit when the name did not change", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
       fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
 
       // Act
@@ -968,14 +910,13 @@ describe("ProjectPane", () => {
       });
 
       // Assert
-      expect(spies.onSketchChange).not.toHaveBeenCalled();
+      expect(onSketchChange).not.toHaveBeenCalled();
       expect(view.queryByRole("textbox")).toBeNull();
     });
 
     it("should refuse a name that is taken, say why next to the field and keep the field open", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
       fireEvent.keyDown(getItem("src/components/Price.js"), { key: "F2" });
 
       // Act
@@ -990,14 +931,13 @@ describe("ProjectPane", () => {
       expect(field.getAttribute("aria-describedby")).toBe(
         view.getByRole("tooltip").id
       );
-      expect(spies.onSketchChange).not.toHaveBeenCalled();
+      expect(onSketchChange).not.toHaveBeenCalled();
       expect(view.getByRole("textbox")).toBe(field);
     });
 
     it("should clear the reason when the user types again, and rename with the fixed name", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
       fireEvent.keyDown(getItem("src/components/Price.js"), { key: "F2" });
       const field = typeName("src/components/Price.js", "Button.js");
       fireEvent.keyDown(field, { key: "Enter" });
@@ -1015,15 +955,14 @@ describe("ProjectPane", () => {
       expect(invalidAfterTyping).toBe("false");
       expect(describedAfterTyping).toBeNull();
       expect(titleAfterTyping).toBeNull();
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).toContain(
+      expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
         "src/components/Cost.js"
       );
     });
 
     it("should refuse an empty name, in a folder and at the root", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
       fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
       fireEvent.keyDown(typeName("src/index.js", " "), { key: "Enter" });
       const reasonInFolder = view.getByRole("tooltip").textContent;
@@ -1042,22 +981,20 @@ describe("ProjectPane", () => {
 
     it("should refuse a folder that would move into itself", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
       fireEvent.keyDown(getItem("src"), { key: "F2" });
 
       // Act
       fireEvent.keyDown(typeName("src", "src/inner"), { key: "Enter" });
 
       // Assert
-      expect(spies.onSketchChange).not.toHaveBeenCalled();
+      expect(onSketchChange).not.toHaveBeenCalled();
       expect(view.getByRole("tooltip").textContent).not.toBe("");
     });
 
     it("should give up when the field loses the focus with a refused name, and leave the focus where the user put it", async () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
       fireEvent.keyDown(getItem("src/components/Price.js"), { key: "F2" });
       typeName("src/components/Price.js", "Button.js");
 
@@ -1067,15 +1004,14 @@ describe("ProjectPane", () => {
 
       // Assert
       expect(view.queryByRole("textbox")).toBeNull();
-      expect(spies.onSketchChange).not.toHaveBeenCalled();
+      expect(onSketchChange).not.toHaveBeenCalled();
       expect(getPaths()).toContain("src/components/Price.js");
       expect(document.activeElement).toBe(other);
     });
 
     it("should close the field and leave the focus where the user put it when the name did not change", async () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
       fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
 
       // Act
@@ -1084,15 +1020,14 @@ describe("ProjectPane", () => {
 
       // Assert
       expect(view.queryByRole("textbox")).toBeNull();
-      expect(spies.onSketchChange).not.toHaveBeenCalled();
+      expect(onSketchChange).not.toHaveBeenCalled();
       expect(document.activeElement).toBe(other);
     });
 
     it("should not touch the item while the focus is on its way to where the user clicked", async () => {
       // Arrange
       const focusSpy = jest.spyOn(HTMLElement.prototype, "focus");
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
       fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
       const field = typeName("src/index.js", "main.js");
       const other = view.getByRole("button", { name: "Tree" });
@@ -1117,8 +1052,7 @@ describe("ProjectPane", () => {
 
     it("should give the keyboard back to the renamed item", async () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
       fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
 
       // Act
@@ -1131,8 +1065,7 @@ describe("ProjectPane", () => {
 
     it("should give the keyboard back to the item when the user gives up", async () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
       fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
 
       // Act
@@ -1145,8 +1078,7 @@ describe("ProjectPane", () => {
 
     it("should announce the F2 and Delete shortcuts on the rows that can be edited, and not on the config", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
 
       // Act
       const shortcuts = ["src", "src/index.js", "eslint.config.js"].map(
@@ -1159,8 +1091,7 @@ describe("ProjectPane", () => {
 
     it("should have no row actions, rename or delete for the config", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
 
       // Act
       const config = getItem("eslint.config.js");
@@ -1171,25 +1102,23 @@ describe("ProjectPane", () => {
       // Assert
       expect(within(config).queryAllByRole("button")).toEqual([]);
       expect(view.queryByRole("textbox")).toBeNull();
-      expect(spies.onSketchChange).not.toHaveBeenCalled();
+      expect(onSketchChange).not.toHaveBeenCalled();
     });
 
     it("should not open the row when its action is clicked", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { store } = renderPane();
 
       // Act
       fireEvent.click(view.getByLabelText("Rename src/index.js"));
 
       // Assert
-      expect(spies.onFocus).not.toHaveBeenCalled();
+      expect(getFocus(store)).toEqual({ kind: "none" });
     });
 
     it("should ignore the keys that come from inside the item", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
 
       // Act
       fireEvent.keyDown(view.getByLabelText("Rename src/index.js"), {
@@ -1206,14 +1135,13 @@ describe("ProjectPane", () => {
   describe("delete", () => {
     it("should remove a file right away from its row action", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
 
       // Act
       fireEvent.click(view.getByLabelText("Delete src/index.js"));
 
       // Assert
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).not.toContain(
+      expect(getTreePaths(getLastSketch(onSketchChange))).not.toContain(
         "src/index.js"
       );
       expect(getPaths()).not.toContain("src/index.js");
@@ -1221,74 +1149,68 @@ describe("ProjectPane", () => {
 
     it("should remove the dependencies of the file with it", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
 
       // Act
       fireEvent.click(view.getByLabelText("Delete src/index.js"));
 
       // Assert
-      expect(getLastSketch(spies.onSketchChange).dependencies).toHaveLength(1);
+      expect(getLastSketch(onSketchChange).dependencies).toHaveLength(1);
     });
 
     it("should remove a file with the Delete key", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
 
       // Act
       fireEvent.keyDown(getItem("index.js"), { key: "Delete" });
 
       // Assert
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).not.toContain(
+      expect(getTreePaths(getLastSketch(onSketchChange))).not.toContain(
         "index.js"
       );
     });
 
     it("should leave the other keys alone", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
 
       // Act
       fireEvent.keyDown(getItem("index.js"), { key: "Backspace" });
 
       // Assert
-      expect(spies.onSketchChange).not.toHaveBeenCalled();
+      expect(onSketchChange).not.toHaveBeenCalled();
     });
 
     it("should put nothing in focus when the file in focus is removed", () => {
       // Arrange
-      const spies = createSpies();
-      render(
-        <Harness spies={spies} focus={{ kind: "file", path: "index.js" }} />
-      );
+      const { store } = renderPane({
+        focus: { kind: "file", path: "index.js" },
+      });
 
       // Act
       fireEvent.keyDown(getItem("index.js"), { key: "Delete" });
 
       // Assert
-      expect(spies.onFocus).toHaveBeenCalledWith({ kind: "none" });
+      expect(getFocus(store)).toEqual({ kind: "none" });
     });
 
     it("should leave the focus when another file is removed", () => {
       // Arrange
-      const spies = createSpies();
-      render(
-        <Harness spies={spies} focus={{ kind: "file", path: "index.js" }} />
-      );
+      const { store } = renderPane({
+        focus: { kind: "file", path: "index.js" },
+      });
 
       // Act
       fireEvent.keyDown(getItem("src/index.js"), { key: "Delete" });
 
       // Assert
-      expect(spies.onFocus).not.toHaveBeenCalled();
+      expect(getFocus(store)).toEqual({ kind: "file", path: "index.js" });
     });
 
     it("should ask before it removes a folder with files", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
 
       // Act
       fireEvent.click(view.getByLabelText("Delete src"));
@@ -1297,17 +1219,16 @@ describe("ProjectPane", () => {
       const dialog = view.getByRole("dialog");
 
       expect(dialog.textContent).toContain("Delete src/ and its 3 files?");
-      expect(spies.onSketchChange).not.toHaveBeenCalled();
+      expect(onSketchChange).not.toHaveBeenCalled();
     });
 
     it("should say file, not files, for a folder with one", () => {
       // Arrange
-      const spies = createSpies();
       const sketch: Sketch = {
         ...SKETCH,
         tree: [...SKETCH.tree, { path: "docs/readme.md", kind: "file" }],
       };
-      render(<Harness spies={spies} sketch={sketch} />);
+      renderPane({ sketch });
 
       // Act
       fireEvent.click(view.getByLabelText("Delete docs"));
@@ -1320,8 +1241,7 @@ describe("ProjectPane", () => {
 
     it("should count the files of the folder at any depth, and not the folders", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
 
       // Act
       fireEvent.click(view.getByLabelText("Delete src/components"));
@@ -1334,8 +1254,7 @@ describe("ProjectPane", () => {
 
     it("should name the dialog by its title", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
 
       // Act
       fireEvent.click(view.getByLabelText("Delete src"));
@@ -1350,8 +1269,7 @@ describe("ProjectPane", () => {
 
     it("should remove the folder and its files when the user confirms", async () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
       fireEvent.click(view.getByLabelText("Delete src"));
 
       // Act
@@ -1359,16 +1277,13 @@ describe("ProjectPane", () => {
       await waitForElementToBeRemoved(() => view.queryByRole("dialog"));
 
       // Assert
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).toEqual([
-        "index.js",
-      ]);
+      expect(getTreePaths(getLastSketch(onSketchChange))).toEqual(["index.js"]);
       expect(getPaths()).toEqual(["index.js"]);
     });
 
     it("should give the keyboard to the parent of the folder once the dialog is gone", async () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
       askToDelete("src/components");
 
       // Act
@@ -1383,7 +1298,6 @@ describe("ProjectPane", () => {
 
     it("should give the keyboard to the nearest folder that is left when the parent goes with it", async () => {
       // Arrange
-      const spies = createSpies();
       const sketch: Sketch = {
         ...SKETCH,
         tree: [
@@ -1391,7 +1305,7 @@ describe("ProjectPane", () => {
           { path: "a/y.js", kind: "file" },
         ],
       };
-      render(<Harness spies={spies} sketch={sketch} />);
+      renderPane({ sketch });
       askToDelete("a/b/c");
 
       // Act
@@ -1406,7 +1320,6 @@ describe("ProjectPane", () => {
 
     it("should give the keyboard to the config when no folder is left above the removed one", async () => {
       // Arrange
-      const spies = createSpies();
       const sketch: Sketch = {
         ...SKETCH,
         tree: [
@@ -1414,7 +1327,7 @@ describe("ProjectPane", () => {
           { path: "index.js", kind: "file" },
         ],
       };
-      render(<Harness spies={spies} sketch={sketch} />);
+      renderPane({ sketch });
       askToDelete("docs/guide");
 
       // Act
@@ -1429,8 +1342,7 @@ describe("ProjectPane", () => {
 
     it("should leave the keyboard on the folder when the user cancels", async () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
       askToDelete("src/components");
 
       // Act
@@ -1444,8 +1356,7 @@ describe("ProjectPane", () => {
 
     it("should keep the folder when the user cancels", async () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
       fireEvent.click(view.getByLabelText("Delete src"));
 
       // Act
@@ -1453,32 +1364,27 @@ describe("ProjectPane", () => {
       await waitForElementToBeRemoved(() => view.queryByRole("dialog"));
 
       // Assert
-      expect(spies.onSketchChange).not.toHaveBeenCalled();
+      expect(onSketchChange).not.toHaveBeenCalled();
       expect(getPaths()).toContain("src");
     });
 
     it("should put nothing in focus when the file in focus was inside the removed folder", () => {
       // Arrange
-      const spies = createSpies();
-      render(
-        <Harness
-          spies={spies}
-          focus={{ kind: "file", path: "src/components/Button.js" }}
-        />
-      );
+      const { store } = renderPane({
+        focus: { kind: "file", path: "src/components/Button.js" },
+      });
       fireEvent.keyDown(getItem("src"), { key: "Delete" });
 
       // Act
       fireEvent.click(view.getByRole("button", { name: "Delete" }));
 
       // Assert
-      expect(spies.onFocus).toHaveBeenCalledWith({ kind: "none" });
+      expect(getFocus(store)).toEqual({ kind: "none" });
     });
 
     it("should drop the selection of a folder that is removed", async () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
       fireEvent.click(getRow("src/components"));
       fireEvent.keyDown(getItem("src/components"), { key: "Delete" });
 
@@ -1496,8 +1402,7 @@ describe("ProjectPane", () => {
 
     it("should keep the selection of a folder when another is removed", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
       fireEvent.click(getRow("src"));
 
       // Act
@@ -1509,49 +1414,45 @@ describe("ProjectPane", () => {
 
     it("should remove a folder with no files without asking", () => {
       // Arrange
-      const spies = createSpies();
       const sketch: Sketch = {
         ...SKETCH,
         tree: [...SKETCH.tree, { path: "docs", kind: "folder" }],
       };
-      render(<Harness spies={spies} sketch={sketch} />);
+      const { onSketchChange } = renderPane({ sketch });
 
       // Act
       fireEvent.click(view.getByLabelText("Delete docs"));
 
       // Assert
       expect(view.queryByRole("dialog")).toBeNull();
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).not.toContain(
-        "docs"
-      );
+      expect(getTreePaths(getLastSketch(onSketchChange))).not.toContain("docs");
     });
 
     it("should ignore a confirmation for a folder that is gone", () => {
       // Arrange
-      const props = createProps();
-      const { rerender } = render(<ProjectPane {...props} />);
+      const { onSketchChange, store } = renderPane();
       fireEvent.click(view.getByLabelText("Delete src"));
-      rerender(<ProjectPane {...props} sketch={{ ...SKETCH, tree: [] }} />);
+      act(() => store.removeNode("src"));
 
       // Act
       fireEvent.click(view.getByRole("button", { name: "Delete" }));
 
       // Assert
-      expect(props.onSketchChange).not.toHaveBeenCalled();
+      expect(onSketchChange).toHaveBeenCalledTimes(1);
+      expect(getTreePaths(store.getState().sketch)).toEqual(["index.js"]);
     });
   });
 
   describe("add", () => {
     it("should add a file at the root and start renaming it", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
 
       // Act
       fireEvent.click(view.getByRole("button", { name: "Add file" }));
 
       // Assert
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).toContain(
+      expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
         "new-file.js"
       );
       expect(getField("new-file.js").value).toBe("new-file.js");
@@ -1559,14 +1460,13 @@ describe("ProjectPane", () => {
 
     it("should select the new file, open it and focus its field", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { store } = renderPane();
 
       // Act
       fireEvent.click(view.getByRole("button", { name: "Add file" }));
 
       // Assert
-      expect(spies.onFocus).toHaveBeenCalledWith({
+      expect(getFocus(store)).toEqual({
         kind: "file",
         path: "new-file.js",
       });
@@ -1580,111 +1480,87 @@ describe("ProjectPane", () => {
 
     it("should add the file in the folder of the file in focus", () => {
       // Arrange
-      const spies = createSpies();
-      render(
-        <Harness
-          spies={spies}
-          focus={{ kind: "file", path: "src/components/Button.js" }}
-        />
-      );
+      const { onSketchChange } = renderPane({
+        focus: { kind: "file", path: "src/components/Button.js" },
+      });
 
       // Act
       fireEvent.click(view.getByRole("button", { name: "Add file" }));
 
       // Assert
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).toContain(
+      expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
         "src/components/new-file.js"
       );
     });
 
     it("should add the file at the root when the config is in focus", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} focus={{ kind: "config" }} />);
+      const { onSketchChange } = renderPane({ focus: { kind: "config" } });
 
       // Act
       fireEvent.click(view.getByRole("button", { name: "Add file" }));
 
       // Assert
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).toContain(
+      expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
         "new-file.js"
       );
     });
 
     it("should add the file inside the folder that is selected", () => {
       // Arrange
-      const spies = createSpies();
-      render(
-        <Harness spies={spies} focus={{ kind: "file", path: "index.js" }} />
-      );
+      const { onSketchChange } = renderPane({
+        focus: { kind: "file", path: "index.js" },
+      });
       fireEvent.click(getRow("src/components"));
 
       // Act
       fireEvent.click(view.getByRole("button", { name: "Add file" }));
 
       // Assert
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).toContain(
+      expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
         "src/components/new-file.js"
       );
     });
 
     it("should add the file at the root when the selected folder is gone", () => {
       // Arrange
-      const props = createProps();
-      const { rerender } = render(<ProjectPane {...props} />);
+      const { onSketchChange } = renderPane();
       fireEvent.click(getRow("src/components"));
-      rerender(
-        <ProjectPane
-          {...props}
-          sketch={{ ...SKETCH, tree: [{ path: "index.js", kind: "file" }] }}
-        />
-      );
+      fireEvent.click(view.getByRole("button", { name: "Text" }));
+      typeProjectText("index.js\n");
 
       // Act
       fireEvent.click(view.getByRole("button", { name: "Add file" }));
 
       // Assert
-      expect(getTreePaths(getLastSketch(props.onSketchChange))).toContain(
-        "new-file.js"
-      );
+      expect(getTreePaths(getLastSketch(onSketchChange))).toEqual([
+        "index.js",
+        "new-file.js",
+      ]);
     });
 
     it("should add the file at the root when the selected folder became a file", () => {
       // Arrange
-      const props = createProps();
-      const { rerender } = render(<ProjectPane {...props} />);
+      const { onSketchChange, store } = renderPane();
       fireEvent.click(getRow("src/components"));
-      rerender(
-        <ProjectPane
-          {...props}
-          sketch={{
-            ...SKETCH,
-            tree: [
-              { path: "src/components", kind: "file" },
-              { path: "index.js", kind: "file" },
-            ],
-          }}
-        />
-      );
+      fireEvent.click(view.getByRole("button", { name: "Text" }));
+      typeProjectText("src/components\nindex.js\n");
 
       // Act
       fireEvent.click(view.getByRole("button", { name: "Add file" }));
 
       // Assert
-      expect(props.onSketchChange).toHaveBeenCalledTimes(1);
-      expect(getTreePaths(getLastSketch(props.onSketchChange))).toContain(
-        "new-file.js"
-      );
-      expect(props.onFocus).toHaveBeenCalledWith({
-        kind: "file",
-        path: "new-file.js",
-      });
+      expect(getTreePaths(getLastSketch(onSketchChange))).toEqual([
+        "src/components",
+        "index.js",
+        "new-file.js",
+      ]);
+      expect(getFocus(store)).toEqual({ kind: "file", path: "new-file.js" });
     });
 
     it("should pick a free name when the first one is taken", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
       fireEvent.click(view.getByRole("button", { name: "Add file" }));
       fireEvent.keyDown(
         view.getByRole("textbox", { name: "New name of new-file.js" }),
@@ -1700,29 +1576,27 @@ describe("ProjectPane", () => {
 
     it("should add a folder, select it and start renaming it", () => {
       // Arrange
-      const spies = createSpies();
-      render(
-        <Harness spies={spies} focus={{ kind: "file", path: "index.js" }} />
-      );
+      const { onSketchChange, store } = renderPane({
+        focus: { kind: "file", path: "index.js" },
+      });
 
       // Act
       fireEvent.click(view.getByRole("button", { name: "Add folder" }));
 
       // Assert
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).toContain(
+      expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
         "new-folder"
       );
       expect(getRenamingItem("new-folder").getAttribute("aria-selected")).toBe(
         "true"
       );
       expect(getField("new-folder").value).toBe("new-folder");
-      expect(spies.onFocus).not.toHaveBeenCalled();
+      expect(getFocus(store)).toEqual({ kind: "file", path: "index.js" });
     });
 
     it("should add the next node inside the folder it just added", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { onSketchChange } = renderPane();
       fireEvent.click(view.getByRole("button", { name: "Add folder" }));
       fireEvent.keyDown(
         view.getByRole("textbox", { name: "New name of new-folder" }),
@@ -1733,15 +1607,14 @@ describe("ProjectPane", () => {
       fireEvent.click(view.getByRole("button", { name: "Add file" }));
 
       // Assert
-      expect(getTreePaths(getLastSketch(spies.onSketchChange))).toContain(
+      expect(getTreePaths(getLastSketch(onSketchChange))).toContain(
         "new-folder/new-file.js"
       );
     });
 
     it("should open the folders above the new node", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      renderPane();
       fireEvent.click(getRow("src/components"));
       fireEvent.click(getRow("src"));
 
@@ -1755,34 +1628,38 @@ describe("ProjectPane", () => {
 
     it("should show the tree, where the node is renamed, when it adds from the text", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} view="text" />);
+      const { store } = renderPane({ view: "text" });
 
       // Act
       fireEvent.click(view.getByRole("button", { name: "Add file" }));
 
       // Assert
-      expect(spies.onViewChange).toHaveBeenCalledWith("tree");
+      expect(store.getState().view).toBe("tree");
       expect(getField("new-file.js").value).toBe("new-file.js");
     });
 
     it("should not change the view when it adds from the tree", () => {
       // Arrange
-      const spies = createSpies();
-      render(<Harness spies={spies} />);
+      const { store } = renderPane();
+      const changes = jest.fn();
+
+      store.subscribe(() => changes(store.getState().view));
 
       // Act
       fireEvent.click(view.getByRole("button", { name: "Add folder" }));
 
       // Assert
-      expect(spies.onViewChange).not.toHaveBeenCalled();
+      expect(changes).toHaveBeenCalled();
+      expect(
+        changes.mock.calls.every(([viewAfter]) => viewAfter === "tree")
+      ).toBe(true);
     });
   });
 
   describe("view", () => {
     it("should offer the tree and the text, with the current view pressed", () => {
       // Arrange
-      render(<ProjectPane {...createProps({ view: "text" })} />);
+      renderPane({ view: "text" });
 
       // Act
       const group = view.getByRole("group", { name: "Project view" });
@@ -1800,33 +1677,38 @@ describe("ProjectPane", () => {
       ]);
     });
 
-    it("should ask for the other view when its button is pressed", () => {
+    it("should show the other view when its button is pressed", () => {
       // Arrange
-      const props = createProps();
-      render(<ProjectPane {...props} />);
+      const { store } = renderPane();
 
       // Act
       fireEvent.click(view.getByRole("button", { name: "Text" }));
 
       // Assert
-      expect(props.onViewChange).toHaveBeenCalledWith("text");
+      expect(store.getState().view).toBe("text");
+      expect(
+        view.getByRole("textbox", { name: "Project as text" })
+      ).toBeTruthy();
     });
 
-    it("should ask for nothing when the current view is pressed again", () => {
+    it("should change nothing when the current view is pressed again", () => {
       // Arrange
-      const props = createProps();
-      render(<ProjectPane {...props} />);
+      const { store } = renderPane();
+      const listener = jest.fn();
+
+      store.subscribe(listener);
 
       // Act
       fireEvent.click(view.getByRole("button", { name: "Tree" }));
 
       // Assert
-      expect(props.onViewChange).not.toHaveBeenCalled();
+      expect(listener).not.toHaveBeenCalled();
+      expect(store.getState().view).toBe("tree");
     });
 
     it("should show the text, with the hint, instead of the tree", () => {
       // Arrange
-      render(<ProjectPane {...createProps({ view: "text" })} />);
+      renderPane({ view: "text" });
 
       // Act
       const text = view.getByRole("textbox", { name: "Project as text" });
@@ -1850,7 +1732,7 @@ describe("ProjectPane", () => {
 
     it("should show no hint with the tree", () => {
       // Arrange
-      render(<ProjectPane {...createProps()} />);
+      renderPane();
 
       // Act
       const hint = view.queryByText("One path per line");
@@ -1861,64 +1743,47 @@ describe("ProjectPane", () => {
 
     it("should keep the closed folders when the text is shown and the tree comes back", () => {
       // Arrange
-      const props = createProps();
-      const { rerender } = render(<ProjectPane {...props} />);
+      renderPane();
       fireEvent.click(getRow("src/components"));
 
       // Act
-      rerender(<ProjectPane {...props} view="text" />);
-      rerender(<ProjectPane {...props} view="tree" />);
+      fireEvent.click(view.getByRole("button", { name: "Text" }));
+      fireEvent.click(view.getByRole("button", { name: "Tree" }));
 
       // Assert
       expect(getPaths()).not.toContain("src/components/Button.js");
     });
 
-    it("should read the text and report its problems through the pane", () => {
+    it("should read the text into the sketch of the store, and keep the lines that cannot be read as a draft", () => {
       // Arrange
-      const props = createProps({ view: "text" });
-      render(<ProjectPane {...props} />);
-      const text = view.getByRole("textbox", { name: "Project as text" });
+      const { onSketchChange, store } = renderPane({ view: "text" });
 
       // Act
-      fireEvent.change(text, { target: { value: "a.js\n  indented\n" } });
-      fireEvent.blur(text);
+      typeProjectText("a.js\n  indented\n");
 
       // Assert
-      expect(props.onSketchChange).toHaveBeenCalledTimes(1);
-      expect(getTreePaths(getLastSketch(props.onSketchChange))).toEqual([
-        "a.js",
-      ]);
-      expect(props.onTextProblems).toHaveBeenCalledWith([
-        {
-          line: 2,
-          text: "  indented",
-          reason: "Dependencies are not written in text mode yet.",
-        },
-      ]);
+      expect(onSketchChange).toHaveBeenCalledTimes(1);
+      expect(getTreePaths(getLastSketch(onSketchChange))).toEqual(["a.js"]);
+      expect(store.getState().textDraft).toBe("a.js\n  indented\n");
     });
 
     it("should drop the lines that were not read when the view goes back to the tree", () => {
       // Arrange
-      const props = createProps({ view: "text" });
-      const { rerender } = render(<ProjectPane {...props} />);
-      fireEvent.change(view.getByRole("textbox", { name: "Project as text" }), {
-        target: { value: "  indented\n" },
-      });
-      fireEvent.blur(view.getByRole("textbox", { name: "Project as text" }));
-      props.onTextProblems.mockClear();
+      const { store } = renderPane({ view: "text" });
+      typeProjectText("  indented\n");
 
       // Act
-      rerender(<ProjectPane {...props} view="tree" />);
+      fireEvent.click(view.getByRole("button", { name: "Tree" }));
 
       // Assert
-      expect(props.onTextProblems).toHaveBeenCalledWith([]);
+      expect(store.getState().textDraft).toBeUndefined();
     });
   });
 
   describe("without edit capabilities", () => {
     it("should draw no add buttons", () => {
       // Arrange
-      render(<ProjectPane {...createProps({ capabilities: READ_ONLY })} />);
+      renderPane({ capabilities: NO_CAPABILITIES });
 
       // Act
       const buttons = view
@@ -1931,7 +1796,7 @@ describe("ProjectPane", () => {
 
     it("should draw no row actions", () => {
       // Arrange
-      render(<ProjectPane {...createProps({ capabilities: READ_ONLY })} />);
+      renderPane({ capabilities: NO_CAPABILITIES });
 
       // Act
       const actions = view.queryByLabelText("Rename src/index.js");
@@ -1942,7 +1807,7 @@ describe("ProjectPane", () => {
 
     it("should announce no shortcuts on the rows", () => {
       // Arrange
-      render(<ProjectPane {...createProps({ capabilities: READ_ONLY })} />);
+      renderPane({ capabilities: NO_CAPABILITIES });
 
       // Act
       const shortcuts = view
@@ -1955,8 +1820,7 @@ describe("ProjectPane", () => {
 
     it("should neither rename nor remove with the keyboard or the mouse", () => {
       // Arrange
-      const props = createProps({ capabilities: READ_ONLY });
-      render(<ProjectPane {...props} />);
+      const { onSketchChange } = renderPane({ capabilities: NO_CAPABILITIES });
 
       // Act
       fireEvent.keyDown(getItem("index.js"), { key: "F2" });
@@ -1965,31 +1829,23 @@ describe("ProjectPane", () => {
 
       // Assert
       expect(view.queryByRole("textbox")).toBeNull();
-      expect(props.onSketchChange).not.toHaveBeenCalled();
+      expect(onSketchChange).not.toHaveBeenCalled();
     });
 
     it("should still open files and the config", () => {
       // Arrange
-      const props = createProps({ capabilities: READ_ONLY });
-      render(<ProjectPane {...props} />);
+      const { store } = renderPane({ capabilities: NO_CAPABILITIES });
 
       // Act
       fireEvent.click(getRow("index.js"));
 
       // Assert
-      expect(props.onFocus).toHaveBeenCalledWith({
-        kind: "file",
-        path: "index.js",
-      });
+      expect(getFocus(store)).toEqual({ kind: "file", path: "index.js" });
     });
 
     it("should show the text read only", () => {
       // Arrange
-      render(
-        <ProjectPane
-          {...createProps({ capabilities: READ_ONLY, view: "text" })}
-        />
-      );
+      renderPane({ capabilities: NO_CAPABILITIES, view: "text" });
 
       // Act
       const text = view.getByRole("textbox", { name: "Project as text" });
@@ -2000,7 +1856,7 @@ describe("ProjectPane", () => {
 
     it("should leave the text editable with edit capabilities", () => {
       // Arrange
-      render(<ProjectPane {...createProps({ view: "text" })} />);
+      renderPane({ view: "text" });
 
       // Act
       const text = view.getByRole("textbox", { name: "Project as text" });

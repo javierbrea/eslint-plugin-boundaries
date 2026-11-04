@@ -6,7 +6,7 @@ import {
   getCountTone,
   getTabLabel,
   getTextProblemItems,
-} from "./Items";
+} from "./ProblemItems";
 
 /** The two problems of the mockup's config state, as the engine returns them. */
 const INVALID_OPTIONS: ConfigProblem = {
@@ -28,7 +28,7 @@ const IGNORED_DESCRIPTORS: ConfigProblem = {
   source: "config",
 };
 
-describe("Items", () => {
+describe("ProblemItems", () => {
   describe("getConfigProblemItems", () => {
     it("should build the rows of the mockup's config state", () => {
       // Arrange
@@ -40,21 +40,23 @@ describe("Items", () => {
       // Assert
       expect(items).toEqual([
         {
-          id: "config:0",
+          key: "config:0",
           level: "error",
           location: "eslint.config.js",
           position: ":15:16",
           message:
             '[boundaries/dependencies] Invalid rule options. Value "dissallow" should be equal to one of the allowed values.',
           meta: "error · rules › boundaries/dependencies › 1 › default",
+          target: { kind: "config", range: INVALID_OPTIONS.range },
         },
         {
-          id: "config:1",
+          key: "config:1",
           level: "warning",
           location: "eslint.config.js",
           position: ":5:7",
           message: "Some element descriptors are invalid and will be ignored.",
           meta: "warning · settings › boundaries/elements › 1",
+          target: { kind: "config", range: IGNORED_DESCRIPTORS.range },
         },
       ]);
     });
@@ -67,15 +69,31 @@ describe("Items", () => {
       expect(items).toEqual([]);
     });
 
-    it("should give each row an id of its own, by its position", () => {
+    it("should give each row a key of its own, by its position", () => {
       // Arrange
       const problems = [IGNORED_DESCRIPTORS, IGNORED_DESCRIPTORS];
 
       // Act
-      const ids = getConfigProblemItems(problems).map(({ id }) => id);
+      const keys = getConfigProblemItems(problems).map(({ key }) => key);
 
       // Assert
-      expect(ids).toEqual(["config:0", "config:1"]);
+      expect(keys).toEqual(["config:0", "config:1"]);
+    });
+
+    it("should make each row open the config at the range of its problem", () => {
+      // Arrange
+      const problems = [INVALID_OPTIONS, IGNORED_DESCRIPTORS];
+
+      // Act
+      const targets = getConfigProblemItems(problems).map(
+        ({ target }) => target
+      );
+
+      // Assert
+      expect(targets).toEqual([
+        { kind: "config", range: { from: 380, to: 391, line: 15, column: 16 } },
+        { kind: "config", range: { from: 120, to: 170, line: 5, column: 7 } },
+      ]);
     });
 
     it("should keep the level of a deprecation", () => {
@@ -155,13 +173,14 @@ describe("Items", () => {
 
       // Assert
       expect(item).toEqual({
-        id: "config:0",
+        key: "config:0",
         level: "error",
         location: "eslint.config.js",
         position: ":1:5",
         message:
           "The config is one JSON5 object { settings, rules }. Unexpected token Number found.",
         meta: "error",
+        target: { kind: "config", range: problem.range },
       });
     });
   });
@@ -183,7 +202,7 @@ describe("Items", () => {
       // Assert
       expect(items).toEqual([
         {
-          id: "text:0",
+          key: "text:0",
           level: "error",
           location: "Project text",
           position: ":4",
@@ -210,7 +229,7 @@ describe("Items", () => {
       expect(item?.meta).toBe("  import { format } from './format'");
     });
 
-    it("should give each row an id of its own, by its position", () => {
+    it("should give each row a key of its own, by its position", () => {
       // Arrange
       const problems: TextProblem[] = [
         { line: 1, text: "a", reason: "First." },
@@ -218,10 +237,23 @@ describe("Items", () => {
       ];
 
       // Act
-      const ids = getTextProblemItems(problems).map(({ id }) => id);
+      const keys = getTextProblemItems(problems).map(({ key }) => key);
 
       // Assert
-      expect(ids).toEqual(["text:0", "text:1"]);
+      expect(keys).toEqual(["text:0", "text:1"]);
+    });
+
+    it("should make no row open anything, because the line is already in front of the user", () => {
+      // Arrange
+      const problems: TextProblem[] = [
+        { line: 1, text: "a", reason: "First." },
+      ];
+
+      // Act
+      const [item] = getTextProblemItems(problems);
+
+      // Assert
+      expect(item).not.toHaveProperty("target");
     });
 
     it("should give no rows for no problems", () => {

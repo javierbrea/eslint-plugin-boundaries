@@ -30,11 +30,11 @@ function toProjectItem(item: TreeItem): ProjectItem {
 
 /**
  * Builds the items the tree view shows: the config node first, then the tree of the sketch.
- * @param sketch The sketch to show.
+ * @param tree The nodes of the sketch to show.
  * @returns The items of the root of the tree view.
  */
-export function getProjectItems(sketch: Sketch): ProjectItem[] {
-  return [CONFIG_ITEM, ...buildTree(sketch).map(toProjectItem)];
+export function getProjectItems(tree: Sketch["tree"]): ProjectItem[] {
+  return [CONFIG_ITEM, ...buildTree({ tree }).map(toProjectItem)];
 }
 
 /**

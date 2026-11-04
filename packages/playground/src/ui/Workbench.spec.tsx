@@ -1,4 +1,5 @@
 // cspell:ignore patern dissallow -- deliberate typos, the mistakes of the config that the tests show
+import { undo } from "@codemirror/commands";
 import { EditorView } from "@codemirror/view";
 import {
   act,
@@ -243,6 +244,17 @@ function getProblemRow(startsWith: string): HTMLElement {
 }
 
 /**
+ * Gets the item of the problem list that starts with a location, whether it opens something or not.
+ * @param startsWith What the item says first, such as `Project text:9`.
+ * @returns The item.
+ */
+function getProblemItem(startsWith: string): HTMLElement {
+  return within(getProblems())
+    .getAllByRole("listitem")
+    .find((item) => item.textContent?.startsWith(startsWith)) as HTMLElement;
+}
+
+/**
  * Lets the delays of the workbench go by.
  * @param milliseconds How long.
  */
@@ -304,16 +316,12 @@ describe("Workbench", () => {
       expect(view.getAllByRole("separator")).toHaveLength(3);
     });
 
-    it("should carry the note for narrow screens, which the CSS shows below the breakpoint", () => {
+    it("should leave the decision about narrow screens to the host", () => {
       // Act
       renderWorkbench();
 
       // Assert
-      expect(
-        view.getByText(
-          "The playground needs a wider screen. Open this page on a desktop browser to use it."
-        )
-      ).toBeTruthy();
+      expect(view.queryByText(/needs a wider screen/)).toBeNull();
     });
   });
 
@@ -350,19 +358,74 @@ describe("Workbench", () => {
       expect(getStatus()).toBe("6 files · 1 problem");
     });
 
-    it("should count the files with the sketch that an edit makes, a moment after it", () => {
+    it("should count the files with the sketch that an edit of the tree makes, at once", () => {
       // Arrange
       useFakeTimeouts();
       renderWorkbench();
 
       // Act
       fireEvent.click(view.getByLabelText("Delete src/index.js"));
-      const before = getStatus();
-      wait(EVALUATION_WAIT);
 
       // Assert
-      expect(before).toBe("6 files · 0 problems");
       expect(getStatus()).toBe("5 files · 0 problems");
+    });
+
+    it("should count the files at once after a node is added and after one is renamed", () => {
+      // Arrange
+      useFakeTimeouts();
+      renderWorkbench();
+
+      // Act
+      fireEvent.click(view.getByRole("button", { name: "Add file" }));
+      const added = getStatus();
+      fireEvent.keyDown(
+        view.getByRole("textbox", { name: "New name of new-file.js" }),
+        { key: "Escape" }
+      );
+      rename("src/index.js", "main.spec.js");
+
+      // Assert
+      expect(added).toBe("7 files · 0 problems");
+      expect(getStatus()).toBe("7 files · 0 problems");
+      expect(within(getProject()).getByTitle("src/main.spec.js")).toBeTruthy();
+    });
+
+    it("should count the files at once after the text of the project is read", () => {
+      // Arrange
+      useFakeTimeouts();
+      renderWorkbench();
+      fireEvent.click(view.getByRole("button", { name: "Text" }));
+
+      // Act
+      typeProjectText(`${getProjectText().value}\nsrc/extra.js`);
+      wait(TEXT_READ_WAIT);
+
+      // Assert
+      expect(getStatus()).toBe("7 files · 0 problems");
+    });
+
+    it("should evaluate the config together with the tree when an edit of the tree comes before the config is evaluated", () => {
+      // Arrange
+      useFakeTimeouts();
+      const { container } = renderWorkbench();
+      openConfig();
+      const editor = getEditorView(container);
+      const at = QUICK_START.config.indexOf('"disallow"');
+
+      // Act
+      act(() => {
+        editor.dispatch({
+          changes: {
+            from: at,
+            to: at + '"disallow"'.length,
+            insert: '"dissallow"',
+          },
+        });
+      });
+      fireEvent.click(view.getByLabelText("Delete src/index.js"));
+
+      // Assert
+      expect(getStatus()).toBe("5 files · config has errors");
     });
   });
 
@@ -426,11 +489,105 @@ describe("Workbench", () => {
 
       // Assert
       expect(within(getNodePane()).getByText("new-file.js")).toBeTruthy();
-      expect(within(getProject()).getByTitle("new-file.js")).toBeTruthy();
+      expect(
+        view.getByRole("textbox", { name: "New name of new-file.js" })
+      ).toBeTruthy();
       expect(onSketchChange).toHaveBeenCalledTimes(1);
       expect(
         (onSketchChange.mock.calls[0][0] as Sketch).tree.map(({ path }) => path)
       ).toContain("new-file.js");
+    });
+
+    it("should add the file the way the tree does: opened, with the tree showing and its name being edited", () => {
+      // Arrange
+      renderWorkbench();
+
+      // Act
+      fireEvent.click(
+        within(getNodePane()).getByRole("button", { name: "File" })
+      );
+
+      // Assert
+      const field = view.getByRole("textbox", {
+        name: "New name of new-file.js",
+      });
+
+      expect(field).toBe(document.activeElement);
+      expect(getTabs()).toEqual(["Sketch", "new-file.js*"]);
+      expect(
+        field.closest("[role='treeitem']")?.getAttribute("aria-selected")
+      ).toBe("true");
+    });
+
+    it("should add the file in the folder that the user picked in the tree", () => {
+      // Arrange
+      const { onSketchChange } = renderWorkbench();
+      fireEvent.click(within(getProject()).getByTitle("src/modules"));
+
+      // Act
+      fireEvent.click(
+        within(getNodePane()).getByRole("button", { name: "File" })
+      );
+
+      // Assert
+      expect(
+        (onSketchChange.mock.lastCall?.[0] as Sketch).tree.map(
+          ({ path }) => path
+        )
+      ).toContain("src/modules/new-file.js");
+      expect(
+        within(getNodePane()).getByText("src/modules/new-file.js")
+      ).toBeTruthy();
+    });
+
+    it("should add the file at the root when no folder is picked", () => {
+      // Arrange
+      const { onSketchChange } = renderWorkbench();
+
+      // Act
+      fireEvent.click(
+        within(getNodePane()).getByRole("button", { name: "File" })
+      );
+
+      // Assert
+      expect(
+        (onSketchChange.mock.lastCall?.[0] as Sketch).tree.map(
+          ({ path }) => path
+        )
+      ).toContain("new-file.js");
+    });
+
+    it("should show the tree, where the name is edited, when the project was shown as text", () => {
+      // Arrange
+      renderWorkbench();
+      fireEvent.click(view.getByRole("button", { name: "Text" }));
+
+      // Act
+      fireEvent.click(
+        within(getNodePane()).getByRole("button", { name: "File" })
+      );
+
+      // Assert
+      expect(
+        view.queryByRole("textbox", { name: "Project as text" })
+      ).toBeNull();
+      expect(
+        view.getByRole("textbox", { name: "New name of new-file.js" })
+      ).toBeTruthy();
+    });
+
+    it("should count the new file at once", () => {
+      // Arrange
+      useFakeTimeouts();
+      renderWorkbench();
+
+      // Act
+      fireEvent.click(
+        within(getNodePane()).getByRole("button", { name: "File" })
+      );
+
+      // Assert
+      expect(getStatus()).toBe("7 files · 0 problems");
     });
 
     it("should give the file it adds a name that is free", () => {
@@ -633,6 +790,37 @@ describe("Workbench", () => {
   });
 
   describe("the problems of the config", () => {
+    it("should wait for the last keystroke before the config is evaluated", () => {
+      // Arrange
+      useFakeTimeouts();
+      const { container } = renderWorkbench();
+      openConfig();
+      const editor = getEditorView(container);
+      const at = QUICK_START.config.indexOf('"disallow"');
+
+      // Act
+      act(() => {
+        editor.dispatch({
+          changes: { from: at + 1, insert: "x" },
+          userEvent: "input.type",
+        });
+      });
+      wait(EVALUATION_WAIT - 50);
+      act(() => {
+        editor.dispatch({
+          changes: { from: at + 2, insert: "y" },
+          userEvent: "input.type",
+        });
+      });
+      wait(EVALUATION_WAIT - 1);
+      const beforeTheLastDelay = getStatus();
+      wait(1);
+
+      // Assert
+      expect(beforeTheLastDelay).toBe("6 files · 0 problems");
+      expect(getStatus()).toBe("6 files · config has errors");
+    });
+
     it("should show the error of an edit that makes describing the files throw, a moment after it", () => {
       // Arrange
       useFakeTimeouts();
@@ -753,17 +941,103 @@ describe("Workbench", () => {
       expect(getCursor(container)).toBe(MISTAKES.config.indexOf('"dissallow"'));
     });
 
-    it("should not scroll the editor to an old range when the config is opened again", () => {
+    it("should not scroll the editor to an old range when the config is opened again, and leave the cursor where the user put it", () => {
       // Arrange
       const { container } = renderWorkbench({ initialSketch: MISTAKES });
       fireEvent.click(getProblemRow("eslint.config.js:15:16"));
+      moveCursor(container, 3);
       openFile(FILE);
 
       // Act
       openConfig();
 
       // Assert
-      expect(getCursor(container)).toBe(0);
+      expect(getCursor(container)).toBe(3);
+    });
+
+    it("should open the config at the range of a problem that is pressed while the config is open", () => {
+      // Arrange
+      const { container } = renderWorkbench({ initialSketch: MISTAKES });
+      openConfig();
+      moveCursor(container, 0);
+
+      // Act
+      fireEvent.click(getProblemRow("eslint.config.js:15:16"));
+
+      // Assert
+      expect(getCursor(container)).toBe(MISTAKES.config.indexOf('"dissallow"'));
+    });
+
+    it("should keep the undo history of the config when a file is opened and the config comes back", () => {
+      // Arrange
+      const { container, onSketchChange } = renderWorkbench();
+      openConfig();
+      act(() => {
+        getEditorView(container).dispatch({
+          changes: { from: 0, insert: "// note\n" },
+          userEvent: "input.type",
+        });
+      });
+      openFile(FILE);
+      openConfig();
+      const editor = getEditorView(container);
+
+      // Act
+      let undone = false;
+
+      act(() => {
+        undone = undo(editor);
+      });
+
+      // Assert
+      expect(undone).toBe(true);
+      expect(editor.state.doc.toString()).toBe(QUICK_START.config);
+      expect((onSketchChange.mock.lastCall?.[0] as Sketch).config).toBe(
+        QUICK_START.config
+      );
+    });
+
+    it("should keep the text that the user typed when a file is opened and the config comes back", () => {
+      // Arrange
+      const { container } = renderWorkbench();
+      openConfig();
+      act(() => {
+        getEditorView(container).dispatch({
+          changes: { from: 0, insert: "// note\n" },
+          userEvent: "input.type",
+        });
+      });
+      openFile(FILE);
+
+      // Act
+      openConfig();
+
+      // Assert
+      expect(getEditorView(container).state.doc.toString()).toBe(
+        `// note\n${QUICK_START.config}`
+      );
+    });
+
+    it("should report the edits of the editor that opens again, and only once", () => {
+      // Arrange
+      const { container, onSketchChange } = renderWorkbench();
+      openConfig();
+      openFile(FILE);
+      openConfig();
+
+      // Act
+      act(() => {
+        getEditorView(container).dispatch({
+          changes: { from: 0, insert: " " },
+          userEvent: "input.type",
+        });
+      });
+
+      // Assert
+      expect(onSketchChange).toHaveBeenCalledTimes(1);
+      expect((onSketchChange.mock.calls[0][0] as Sketch).config).toBe(
+        ` ${QUICK_START.config}`
+      );
     });
 
     it("should open the config at an entry that the inspector points at", () => {
@@ -833,7 +1107,6 @@ describe("Workbench", () => {
       typeProjectText(`${getProjectText().value}\nsrc/extra.js`);
       wait(TEXT_READ_WAIT);
       fireEvent.click(view.getByRole("button", { name: "Tree" }));
-      wait(EVALUATION_WAIT);
 
       // Assert
       expect(within(getProject()).getByTitle("src/extra.js")).toBeTruthy();
@@ -858,9 +1131,27 @@ describe("Workbench", () => {
       // Assert
       expect(getTabs()).toEqual(["Sketch1*"]);
       expect(getStatus()).toBe("6 files · 1 problem");
-      expect(getProblemRow("Project text:9").textContent).toContain(
+      expect(getProblemItem("Project text:9").textContent).toContain(
         "The path cannot have `.` or `..` segments."
       );
+    });
+
+    it("should list a line that could not be read as plain content, and not as a button", () => {
+      // Arrange
+      renderWorkbench({ initialSketch: MISTAKES });
+      fireEvent.click(view.getByRole("button", { name: "Text" }));
+
+      // Act
+      typeProjectText(`${getProjectText().value}\nsrc/../outside.js`);
+      fireEvent.blur(getProjectText());
+
+      // Assert
+      expect(
+        within(getProblemItem("Project text:9")).queryByRole("button")
+      ).toBeNull();
+      expect(getProblemItem("Project text:9").tagName).toBe("LI");
+      // The rows of the config are still buttons
+      expect(getProblemRow("eslint.config.js:15:16")).toBeTruthy();
     });
 
     it("should open nothing when a line that could not be read is pressed", () => {
@@ -871,7 +1162,7 @@ describe("Workbench", () => {
       fireEvent.blur(getProjectText());
 
       // Act
-      fireEvent.click(getProblemRow("Project text:9"));
+      fireEvent.click(getProblemItem("Project text:9"));
 
       // Assert
       expect(
@@ -964,7 +1255,7 @@ describe("Workbench", () => {
       expect(getTabs()).toEqual(["Sketch", "checkout/index.js*"]);
     });
 
-    it("should describe the renamed file in the inspector a moment after the rename", () => {
+    it("should describe the renamed file in the inspector at once, without lagging behind the rename", () => {
       // Arrange
       useFakeTimeouts();
       renderWorkbench();
@@ -972,13 +1263,57 @@ describe("Workbench", () => {
 
       // Act
       rename("src/modules", "features");
-      const inspector = view.getByRole("complementary", { name: "Inspector" });
-      const before = within(inspector).queryByText("element");
-      wait(EVALUATION_WAIT);
 
       // Assert
-      expect(before).toBeNull();
+      const inspector = view.getByRole("complementary", { name: "Inspector" });
+
+      expect(
+        within(inspector).getByText("src/features/checkout/index.js")
+      ).toBeTruthy();
       expect(within(inspector).getByText("element")).toBeTruthy();
+    });
+
+    it("should show the status of the renamed project at once", () => {
+      // Arrange
+      useFakeTimeouts();
+      renderWorkbench();
+      openFile(FILE);
+
+      // Act
+      rename("src/modules", "features");
+
+      // Assert
+      expect(getStatus()).toBe("6 files · 0 problems");
+    });
+
+    it("should keep the tab of the sketch when the file in focus is renamed while that tab is selected", () => {
+      // Arrange
+      renderWorkbench();
+      openFile(FILE);
+      fireEvent.click(
+        within(getProblems()).getByRole("tab", { name: /Sketch/ })
+      );
+
+      // Act
+      rename("src/modules", "features");
+
+      // Assert
+      expect(getTabs()).toEqual(["Sketch*", "checkout/index.js"]);
+      expect(
+        within(getNodePane()).getByText("src/features/checkout/index.js")
+      ).toBeTruthy();
+    });
+
+    it("should keep the tab of the file when the file in focus is renamed while that tab is selected", () => {
+      // Arrange
+      renderWorkbench();
+      openFile("src/index.js");
+
+      // Act
+      rename("src/index.js", "main.js");
+
+      // Assert
+      expect(getTabs()).toEqual(["Sketch", "src/main.js*"]);
     });
 
     it("should leave nothing in focus when the file in focus is removed", () => {
@@ -1022,6 +1357,22 @@ describe("Workbench", () => {
 
       // Assert
       expect(within(getNodePane()).getByText(FILE)).toBeTruthy();
+    });
+
+    it("should describe the sketch in the inspector at once after a file is removed", () => {
+      // Arrange
+      useFakeTimeouts();
+      renderWorkbench();
+
+      // Act
+      fireEvent.click(view.getByLabelText(`Delete ${FILE}`));
+
+      // Assert
+      const inspector = view.getByRole("complementary", { name: "Inspector" });
+
+      expect(
+        within(inspector).getByText("files").previousSibling?.textContent
+      ).toBe("5");
     });
   });
 
@@ -1225,6 +1576,46 @@ describe("Workbench", () => {
       expect(onSketchChange).not.toHaveBeenCalled();
     });
 
+    it("should not report the sketch again when it renders with another callback", () => {
+      // Arrange
+      const first = jest.fn();
+      const second = jest.fn();
+      const props: WorkbenchProps = {
+        initialSketch: QUICK_START,
+        capabilities: EDITABLE,
+        onSketchChange: first,
+      };
+      const { rerender } = render(<Workbench {...props} />);
+      fireEvent.click(view.getByLabelText("Delete src/index.js"));
+
+      // Act
+      rerender(<Workbench {...props} onSketchChange={second} />);
+
+      // Assert
+      expect(first).toHaveBeenCalledTimes(1);
+      expect(second).not.toHaveBeenCalled();
+    });
+
+    it("should report the next edit to the callback it renders with", () => {
+      // Arrange
+      const first = jest.fn();
+      const second = jest.fn();
+      const props: WorkbenchProps = {
+        initialSketch: QUICK_START,
+        capabilities: EDITABLE,
+        onSketchChange: first,
+      };
+      const { rerender } = render(<Workbench {...props} />);
+      rerender(<Workbench {...props} onSketchChange={second} />);
+
+      // Act
+      fireEvent.click(view.getByLabelText("Delete src/index.js"));
+
+      // Assert
+      expect(first).not.toHaveBeenCalled();
+      expect(second).toHaveBeenCalledTimes(1);
+    });
+
     it("should report the sketch after an edit of the tree", () => {
       // Arrange
       const { onSketchChange } = renderWorkbench();
@@ -1237,6 +1628,174 @@ describe("Workbench", () => {
       expect(
         (onSketchChange.mock.calls[0][0] as Sketch).tree.map(({ path }) => path)
       ).not.toContain("src/index.js");
+    });
+  });
+
+  describe("instances", () => {
+    it("should not share the edits of its sketch with another workbench on the page", () => {
+      // Arrange
+      const first = jest.fn();
+      const second = jest.fn();
+      render(
+        <>
+          <section aria-label="First">
+            <Workbench
+              initialSketch={QUICK_START}
+              capabilities={EDITABLE}
+              onSketchChange={first}
+            />
+          </section>
+          <section aria-label="Second">
+            <Workbench
+              initialSketch={QUICK_START}
+              capabilities={EDITABLE}
+              onSketchChange={second}
+            />
+          </section>
+        </>
+      );
+      const [firstProject] = view.getAllByRole("region", { name: "Project" });
+
+      // Act
+      fireEvent.click(within(firstProject).getByLabelText(`Delete ${FILE}`));
+
+      // Assert
+      expect(
+        view.getAllByText(/^\d+ files? ·/).map((bar) => bar.textContent)
+      ).toEqual(["5 files · 0 problems", "6 files · 0 problems"]);
+      expect(first).toHaveBeenCalledTimes(1);
+      expect(second).not.toHaveBeenCalled();
+    });
+
+    it("should not share how the project is shown with another workbench on the page", () => {
+      // Arrange
+      render(
+        <>
+          <section aria-label="First">
+            <Workbench
+              initialSketch={QUICK_START}
+              capabilities={EDITABLE}
+              onSketchChange={jest.fn()}
+            />
+          </section>
+          <section aria-label="Second">
+            <Workbench
+              initialSketch={QUICK_START}
+              capabilities={EDITABLE}
+              onSketchChange={jest.fn()}
+            />
+          </section>
+        </>
+      );
+      const [firstProject, secondProject] = view.getAllByRole("region", {
+        name: "Project",
+      });
+
+      // Act
+      fireEvent.click(
+        within(firstProject).getByRole("button", { name: "Text" })
+      );
+
+      // Assert
+      expect(
+        within(firstProject).queryByRole("tree", { name: "Project files" })
+      ).toBeNull();
+      expect(
+        within(secondProject).getByRole("tree", { name: "Project files" })
+      ).toBeTruthy();
+    });
+
+    it("should not share the open node or the tabs with another workbench", () => {
+      // Arrange
+      render(
+        <>
+          <section aria-label="First">
+            <Workbench
+              initialSketch={QUICK_START}
+              capabilities={EDITABLE}
+              onSketchChange={jest.fn()}
+            />
+          </section>
+          <section aria-label="Second">
+            <Workbench
+              initialSketch={MISTAKES}
+              capabilities={EDITABLE}
+              onSketchChange={jest.fn()}
+            />
+          </section>
+        </>
+      );
+      const [firstProject] = view.getAllByRole("region", { name: "Project" });
+
+      // Act
+      fireEvent.click(within(firstProject).getByTitle(FILE));
+
+      // Assert
+      const [firstProblems, secondProblems] = view.getAllByRole("region", {
+        name: "Problems",
+      });
+
+      expect(
+        within(firstProblems)
+          .getAllByRole("tab")
+          .map((tab) => tab.textContent)
+      ).toEqual(["Sketch", "checkout/index.js"]);
+      expect(
+        within(secondProblems)
+          .getAllByRole("tab")
+          .map((tab) => tab.textContent)
+      ).toEqual(["Sketch2"]);
+      expect(
+        within(
+          view.getAllByRole("region", { name: "Node in focus" })[1]
+        ).getByText("Open a file or the config")
+      ).toBeTruthy();
+    });
+
+    it("should evaluate each workbench with its own sketch", () => {
+      // Arrange
+      useFakeTimeouts();
+
+      // Act
+      render(
+        <>
+          <section aria-label="First">
+            <Workbench
+              initialSketch={QUICK_START}
+              capabilities={EDITABLE}
+              onSketchChange={jest.fn()}
+            />
+          </section>
+          <section aria-label="Second">
+            <Workbench
+              initialSketch={MISTAKES}
+              capabilities={EDITABLE}
+              onSketchChange={jest.fn()}
+            />
+          </section>
+        </>
+      );
+
+      // Assert
+      expect(
+        view.getAllByText(/^\d+ files? ·/).map((bar) => bar.textContent)
+      ).toEqual(["6 files · 0 problems", "6 files · config has errors"]);
+    });
+
+    it("should ignore a sketch that comes after the first, as the workbench owns it from then on", () => {
+      // Arrange
+      const props: WorkbenchProps = {
+        initialSketch: QUICK_START,
+        capabilities: EDITABLE,
+        onSketchChange: jest.fn(),
+      };
+      const { rerender } = render(<Workbench {...props} />);
+
+      // Act
+      rerender(<Workbench {...props} initialSketch={MISTAKES} />);
+
+      // Assert
+      expect(getStatus()).toBe("6 files · 0 problems");
     });
   });
 });

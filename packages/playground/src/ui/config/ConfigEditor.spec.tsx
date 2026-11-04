@@ -7,8 +7,10 @@ import { EditorView, runScopeHandlers } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 import { render, screen as view } from "@testing-library/react";
 import { StrictMode } from "react";
+import type { RefObject } from "react";
 
 import type { ConfigProblem, TextRange } from "../../engine";
+import type { ConfigEditorSnapshot } from "../state";
 
 import { ConfigEditor } from "./ConfigEditor";
 import type { ConfigEditorProps } from "./ConfigEditor.types";
@@ -79,6 +81,24 @@ function createProps(
     label: LABEL,
     ...overrides,
   };
+}
+
+/**
+ * Creates the place where the editor leaves its snapshot, as the provider of the workbench does.
+ * @returns A ref with no snapshot yet.
+ */
+function createSnapshot(): RefObject<ConfigEditorSnapshot | undefined> {
+  return { current: undefined };
+}
+
+/**
+ * Reads the scroll that a view still has to apply. jsdom has no layout, so the target that the view keeps until its next measure is the only trace of a scroll restored from a snapshot.
+ * @param editor The view.
+ * @returns The target, or `null` when there is none.
+ */
+function getPendingScroll(editor: EditorView): unknown {
+  return (editor as unknown as { viewState: { scrollTarget: unknown } })
+    .viewState.scrollTarget;
 }
 
 /**
@@ -812,6 +832,290 @@ describe("ConfigEditor", () => {
       expect(
         view.getByRole("textbox", { name: "Config of the example" })
       ).toBeTruthy();
+    });
+  });
+
+  describe("snapshot", () => {
+    it("should start from the value and leave nothing in the snapshot while it is mounted", () => {
+      // Arrange
+      const snapshot = createSnapshot();
+
+      // Act
+      const { container } = render(
+        <ConfigEditor {...createProps({ snapshot })} />
+      );
+
+      // Assert
+      expect(getEditorView(container).state.doc.toString()).toBe(TEXT);
+      expect(snapshot.current).toBeUndefined();
+    });
+
+    it("should leave its state in the snapshot when it unmounts", () => {
+      // Arrange
+      const snapshot = createSnapshot();
+      const { container, unmount } = render(
+        <ConfigEditor {...createProps({ snapshot })} />
+      );
+      getEditorView(container).dispatch({
+        changes: { from: 0, insert: " " },
+        userEvent: "input.type",
+      });
+
+      // Act
+      unmount();
+
+      // Assert
+      expect(snapshot.current?.state.doc.toString()).toBe(` ${TEXT}`);
+    });
+
+    it("should leave its scroll in the snapshot when it unmounts", () => {
+      // Arrange
+      const snapshot = createSnapshot();
+      const scrollSnapshot = jest.spyOn(EditorView.prototype, "scrollSnapshot");
+      const { unmount } = render(
+        <ConfigEditor {...createProps({ snapshot })} />
+      );
+
+      // Act
+      unmount();
+
+      // Assert
+      expect(scrollSnapshot).toHaveBeenCalledTimes(1);
+      expect(snapshot.current?.scroll).toBe(
+        scrollSnapshot.mock.results[0].value
+      );
+    });
+
+    it("should replace the snapshot each time it unmounts", () => {
+      // Arrange
+      const snapshot = createSnapshot();
+      const first = render(<ConfigEditor {...createProps({ snapshot })} />);
+      first.unmount();
+      const stateOfFirst = snapshot.current?.state;
+      const second = render(<ConfigEditor {...createProps({ snapshot })} />);
+      getEditorView(second.container).dispatch({
+        changes: { from: 0, insert: " " },
+        userEvent: "input.type",
+      });
+
+      // Act
+      second.unmount();
+
+      // Assert
+      expect(snapshot.current?.state).not.toBe(stateOfFirst);
+      expect(snapshot.current?.state.doc.toString()).toBe(` ${TEXT}`);
+    });
+
+    it("should start from the state of the snapshot when it mounts again", () => {
+      // Arrange
+      const snapshot = createSnapshot();
+      const first = render(<ConfigEditor {...createProps({ snapshot })} />);
+      getEditorView(first.container).dispatch({
+        changes: { from: 0, insert: " " },
+        userEvent: "input.type",
+      });
+      first.unmount();
+
+      // Act
+      const { container } = render(
+        <ConfigEditor {...createProps({ snapshot, value: ` ${TEXT}` })} />
+      );
+
+      // Assert
+      expect(getEditorView(container).state.doc).toBe(
+        snapshot.current?.state.doc
+      );
+      expect(getEditorView(container).state.doc.toString()).toBe(` ${TEXT}`);
+    });
+
+    it("should keep the undo history when it mounts again", () => {
+      // Arrange
+      const snapshot = createSnapshot();
+      const first = render(<ConfigEditor {...createProps({ snapshot })} />);
+      getEditorView(first.container).dispatch({
+        changes: { from: 0, insert: " " },
+        userEvent: "input.type",
+      });
+      first.unmount();
+      const { container } = render(
+        <ConfigEditor {...createProps({ snapshot, value: ` ${TEXT}` })} />
+      );
+      const editor = getEditorView(container);
+
+      // Act
+      const undone = undo(editor);
+
+      // Assert
+      expect(undone).toBe(true);
+      expect(editor.state.doc.toString()).toBe(TEXT);
+    });
+
+    it("should start with an empty history when there is no snapshot", () => {
+      // Arrange
+      const first = render(<ConfigEditor {...createProps()} />);
+      getEditorView(first.container).dispatch({
+        changes: { from: 0, insert: " " },
+        userEvent: "input.type",
+      });
+      first.unmount();
+      const { container } = render(
+        <ConfigEditor {...createProps({ value: ` ${TEXT}` })} />
+      );
+
+      // Act
+      const undone = undo(getEditorView(container));
+
+      // Assert
+      expect(undone).toBe(false);
+    });
+
+    it("should keep the selection when it mounts again", () => {
+      // Arrange
+      const snapshot = createSnapshot();
+      const first = render(<ConfigEditor {...createProps({ snapshot })} />);
+      getEditorView(first.container).dispatch({
+        selection: EditorSelection.range(4, 9),
+      });
+      first.unmount();
+
+      // Act
+      const { container } = render(
+        <ConfigEditor {...createProps({ snapshot })} />
+      );
+
+      // Assert
+      const { anchor, head } = getEditorView(container).state.selection.main;
+
+      expect([anchor, head]).toEqual([4, 9]);
+    });
+
+    it("should scroll to where it was left when it mounts again", () => {
+      // Arrange
+      const snapshot = createSnapshot();
+      const first = render(<ConfigEditor {...createProps({ snapshot })} />);
+      getEditorView(first.container).dispatch({
+        effects: EditorView.scrollIntoView(120, { y: "start" }),
+      });
+      first.unmount();
+      const scrollLeft = snapshot.current?.scroll;
+
+      // Act
+      const { container } = render(
+        <ConfigEditor {...createProps({ snapshot })} />
+      );
+
+      // Assert
+      expect(scrollLeft).toBeDefined();
+      expect(getPendingScroll(getEditorView(container))).not.toBeNull();
+    });
+
+    it("should have no scroll to apply when it starts without a snapshot", () => {
+      // Act
+      const { container } = render(<ConfigEditor {...createProps()} />);
+
+      // Assert
+      expect(getPendingScroll(getEditorView(container))).toBeNull();
+    });
+
+    it("should call the onChange of the component that mounts it again", () => {
+      // Arrange
+      const snapshot = createSnapshot();
+      const onChangeOfFirst = jest.fn();
+      const onChangeOfSecond = jest.fn();
+      const first = render(
+        <ConfigEditor
+          {...createProps({ snapshot, onChange: onChangeOfFirst })}
+        />
+      );
+      first.unmount();
+      const { container } = render(
+        <ConfigEditor
+          {...createProps({ snapshot, onChange: onChangeOfSecond })}
+        />
+      );
+
+      // Act
+      getEditorView(container).dispatch({
+        changes: { from: 0, insert: " " },
+        userEvent: "input.type",
+      });
+
+      // Assert
+      expect(onChangeOfFirst).not.toHaveBeenCalled();
+      expect(onChangeOfSecond).toHaveBeenCalledTimes(1);
+      expect(onChangeOfSecond).toHaveBeenCalledWith(` ${TEXT}`);
+    });
+
+    it("should report an edit once after a double mount, as the development mode of React does", () => {
+      // Arrange
+      const snapshot = createSnapshot();
+      const props = createProps({ snapshot });
+      const { container } = render(
+        <StrictMode>
+          <ConfigEditor {...props} />
+        </StrictMode>
+      );
+
+      // Act
+      getEditorView(container).dispatch({
+        changes: { from: 0, insert: " " },
+        userEvent: "input.type",
+      });
+
+      // Assert
+      expect(container.querySelectorAll(".cm-editor")).toHaveLength(1);
+      expect(props.onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it("should start from the value when the document of the snapshot differs from it", () => {
+      // Arrange
+      const snapshot = createSnapshot();
+      const first = render(<ConfigEditor {...createProps({ snapshot })} />);
+      first.unmount();
+      const props = createProps({ snapshot, value: "{}" });
+
+      // Act
+      const { container } = render(<ConfigEditor {...props} />);
+
+      // Assert
+      expect(getEditorView(container).state.doc.toString()).toBe("{}");
+      expect(props.onChange).not.toHaveBeenCalled();
+    });
+
+    it("should mark the problems it is given, and not the ones the snapshot kept", () => {
+      // Arrange
+      const snapshot = createSnapshot();
+      const first = render(
+        <ConfigEditor
+          {...createProps({ snapshot, problems: [WARNING, ERROR] })}
+        />
+      );
+      first.unmount();
+
+      // Act
+      const { container } = render(
+        <ConfigEditor {...createProps({ snapshot, problems: [ERROR] })} />
+      );
+
+      // Assert
+      expect(getDiagnostics(getEditorView(container).state)).toHaveLength(1);
+      expect(container.querySelector(".cm-lintRange-warning")).toBeNull();
+    });
+
+    it("should honor read only after it mounts again", () => {
+      // Arrange
+      const snapshot = createSnapshot();
+      const first = render(<ConfigEditor {...createProps({ snapshot })} />);
+      first.unmount();
+      const props = createProps({ snapshot, readOnly: true });
+      const { container } = render(<ConfigEditor {...props} />);
+      const editor = getEditorView(container);
+
+      // Act
+      insertNewlineAndIndent(editor);
+
+      // Assert
+      expect(editor.state.doc.toString()).toBe(TEXT);
     });
   });
 

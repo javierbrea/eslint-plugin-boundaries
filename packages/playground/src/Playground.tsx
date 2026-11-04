@@ -94,6 +94,13 @@ export function Playground({
     },
     [store]
   );
+  // The workbench reports a sketch again when its callback changes, so the callback changes only with the store
+  const handleSketchChange = useCallback(
+    (sketch: Sketch) => {
+      void save(sketch);
+    },
+    [save]
+  );
 
   return (
     <Root>
@@ -101,7 +108,7 @@ export function Playground({
         <Workbench
           initialSketch={sketchLoad.sketch}
           capabilities={source.capabilities}
-          onSketchChange={(sketch) => void save(sketch)}
+          onSketchChange={handleSketchChange}
         />
       ) : (
         <LoadState load={sketchLoad} />

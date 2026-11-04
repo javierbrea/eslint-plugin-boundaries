@@ -391,6 +391,63 @@ describe("Playground", () => {
       await expect(store.load()).resolves.toBe(saved);
     });
 
+    it("should save once the sketch of an edit, and not again when it renders again", async () => {
+      // Arrange
+      const store = new MemoryStore();
+      const source = new SketchSource(SOURCE_SKETCH);
+      const save = jest.spyOn(store, "save");
+      const { rerender } = render(<Playground source={source} store={store} />);
+      await view.findByText("2 files ·");
+      fireEvent.click(view.getByLabelText("Delete src/index.ts"));
+
+      // Act
+      rerender(<Playground source={source} store={store} />);
+      rerender(<Playground source={source} store={store} />);
+
+      // Assert
+      expect(save).toHaveBeenCalledTimes(1);
+    });
+
+    it("should save once for each edit, in order", async () => {
+      // Arrange
+      const store = new MemoryStore();
+      const save = jest.spyOn(store, "save");
+      render(
+        <Playground source={new SketchSource(SOURCE_SKETCH)} store={store} />
+      );
+      await view.findByText("2 files ·");
+
+      // Act
+      fireEvent.click(view.getByLabelText("Delete src/index.ts"));
+      fireEvent.click(
+        view.getByLabelText("Delete src/components/Price/index.ts")
+      );
+
+      // Assert
+      expect(save).toHaveBeenCalledTimes(2);
+      expect(save.mock.calls.map(([saved]) => saved.tree.length)).toEqual([
+        1, 0,
+      ]);
+    });
+
+    it("should save nothing when the user only opens things", async () => {
+      // Arrange
+      const store = new MemoryStore();
+      const save = jest.spyOn(store, "save");
+      render(
+        <Playground source={new SketchSource(SOURCE_SKETCH)} store={store} />
+      );
+      await view.findByText("2 files ·");
+
+      // Act
+      fireEvent.click(view.getByTitle("src/index.ts"));
+      fireEvent.click(view.getByText("eslint.config.js"));
+      fireEvent.click(view.getByRole("button", { name: "Text" }));
+
+      // Assert
+      expect(save).not.toHaveBeenCalled();
+    });
+
     it("should show the saved sketch the next time it is loaded", async () => {
       // Arrange
       const store = new MemoryStore();

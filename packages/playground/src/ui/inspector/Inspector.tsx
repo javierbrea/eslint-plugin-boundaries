@@ -33,19 +33,19 @@ const Content = styled("div")({
  * @param props Inspector props.
  * @param props.focus What is in focus.
  * @param props.evaluation What the engine says about the sketch.
- * @param props.onReveal Called with the range of the config that a row is about.
+ * @param props.onOpen Called with what a row opens.
  * @returns The content for a file, for the config, or for the sketch when nothing is open.
  */
 function InspectorContent({
   focus: current,
   evaluation,
-  onReveal,
+  onOpen,
 }: Readonly<InspectorProps>): ReactNode {
   if (current.kind === "file") {
     return <FileInspector path={current.path} evaluation={evaluation} />;
   }
   if (current.kind === "config") {
-    return <ConfigInspector evaluation={evaluation} onReveal={onReveal} />;
+    return <ConfigInspector evaluation={evaluation} onOpen={onOpen} />;
   }
   return <SketchInspector evaluation={evaluation} />;
 }
@@ -55,13 +55,13 @@ function InspectorContent({
  * @param props Inspector props.
  * @param props.focus What is in focus.
  * @param props.evaluation What the engine says about the sketch.
- * @param props.onReveal Called with the range of the config that a row is about, so that the workbench opens the config there.
+ * @param props.onOpen Called with what a row opens, such as the entry of the config that a row of the config inspector is about.
  * @returns The pane.
  */
 export function Inspector({
   focus: current,
   evaluation,
-  onReveal,
+  onOpen,
 }: Readonly<InspectorProps>): ReactNode {
   return (
     <Frame aria-label="Inspector">
@@ -70,7 +70,7 @@ export function Inspector({
         <InspectorContent
           focus={current}
           evaluation={evaluation}
-          onReveal={onReveal}
+          onOpen={onOpen}
         />
       </Content>
     </Frame>

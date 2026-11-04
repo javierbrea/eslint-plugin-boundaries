@@ -1,5 +1,2 @@
 export { ConfigEditor } from "./ConfigEditor";
-export type {
-  ConfigEditorProps,
-  ConfigEditorReveal,
-} from "./ConfigEditor.types";
+export type { ConfigEditorProps } from "./ConfigEditor.types";

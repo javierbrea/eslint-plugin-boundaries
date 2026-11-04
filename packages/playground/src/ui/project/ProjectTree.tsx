@@ -3,7 +3,11 @@ import { useMemo } from "react";
 import type { ReactNode } from "react";
 
 import { getFolderIds, getProjectItems } from "./ProjectItems";
-import type { ProjectItem, ProjectTreeProps } from "./ProjectTree.types";
+import type {
+  ProjectItem,
+  ProjectTreeContextValue,
+  ProjectTreeProps,
+} from "./ProjectTree.types";
 import { ProjectTreeContext, ProjectTreeItem } from "./ProjectTreeItem";
 
 /** The tree fills its pane and scrolls when it does not fit */
@@ -15,9 +19,9 @@ const TREE_STYLES = {
 } as const;
 
 /**
- * The tree of the sketch, with `eslint.config.js` pinned first: folders open and close, files and the config are selected, and the rows can be renamed and removed. It shows the state it is given and reports what the user does; the project pane keeps the state.
+ * The tree of the sketch, with `eslint.config.js` pinned first: folders open and close, files and the config are selected, and the rows can be renamed and removed. It shows the state it is given and reports what the user does; the store keeps the state. The handlers must be stable, so that an item renders again only when what it shows changes.
  * @param props ProjectTree props.
- * @param props.sketch The sketch to show.
+ * @param props.tree The nodes of the sketch to show.
  * @param props.counts Problems per node, for the badges.
  * @param props.editable Whether nodes can be renamed and removed.
  * @param props.selectedId The id of the selected item.
@@ -34,7 +38,7 @@ const TREE_STYLES = {
  * @returns The tree.
  */
 export function ProjectTree({
-  sketch,
+  tree,
   counts,
   editable,
   selectedId,
@@ -49,26 +53,39 @@ export function ProjectTree({
   onRenameCancel,
   onDelete,
 }: Readonly<ProjectTreeProps>): ReactNode {
-  const items = useMemo(() => getProjectItems(sketch), [sketch]);
+  const items = useMemo(() => getProjectItems(tree), [tree]);
   const expandedItems = useMemo(
     () => getFolderIds(items).filter((id) => !collapsed.has(id)),
     [items, collapsed]
   );
+  // The tree view keeps its items from rendering again while their props do not change; a new context value would render all of them
+  const context = useMemo<ProjectTreeContextValue>(
+    () => ({
+      counts,
+      editable,
+      renaming,
+      focusRequest,
+      onFocusDone,
+      onRename,
+      onRenameCommit,
+      onRenameCancel,
+      onDelete,
+    }),
+    [
+      counts,
+      editable,
+      renaming,
+      focusRequest,
+      onFocusDone,
+      onRename,
+      onRenameCommit,
+      onRenameCancel,
+      onDelete,
+    ]
+  );
 
   return (
-    <ProjectTreeContext
-      value={{
-        counts,
-        editable,
-        renaming,
-        focusRequest,
-        onFocusDone,
-        onRename,
-        onRenameCommit,
-        onRenameCancel,
-        onDelete,
-      }}
-    >
+    <ProjectTreeContext value={context}>
       <RichTreeView<ProjectItem, false>
         aria-label="Project files"
         items={items}

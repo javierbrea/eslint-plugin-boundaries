@@ -5,7 +5,7 @@ import type { Sketch } from "../../contract";
 import { createEngine } from "../../engine";
 import type { Evaluation } from "../../engine";
 import { QUICK_START_EXAMPLE } from "../../examples";
-import type { Focus } from "../state/Focus.types";
+import type { Focus } from "../state";
 
 import { Inspector } from "./Inspector";
 import type { InspectorProps } from "./Inspector.types";
@@ -51,7 +51,7 @@ function renderInspector(
   current: Focus,
   evaluation: Evaluation = evaluate(QUICK_START)
 ): InspectorProps {
-  const props = { focus: current, evaluation, onReveal: jest.fn() };
+  const props = { focus: current, evaluation, onOpen: jest.fn() };
   render(<Inspector {...props} />);
   return props;
 }
@@ -405,7 +405,7 @@ describe("Inspector", () => {
       expect(rows).toHaveLength(2);
     });
 
-    it("should reveal the entry of an element type when its row is chosen", () => {
+    it("should open the config at the entry of an element type when its row is chosen", () => {
       // Arrange
       const evaluation = evaluate(QUICK_START);
       const props = renderInspector(CONFIG, evaluation);
@@ -414,13 +414,14 @@ describe("Inspector", () => {
       fireEvent.click(view.getByRole("button", { name: /^component/ }));
 
       // Assert
-      expect(props.onReveal).toHaveBeenCalledTimes(1);
-      expect(props.onReveal).toHaveBeenCalledWith(
-        evaluation.elementTypes[1].range
-      );
+      expect(props.onOpen).toHaveBeenCalledTimes(1);
+      expect(props.onOpen).toHaveBeenCalledWith({
+        kind: "config",
+        range: evaluation.elementTypes[1].range,
+      });
     });
 
-    it("should reveal the entry of a file category when its row is chosen", () => {
+    it("should open the config at the entry of a file category when its row is chosen", () => {
       // Arrange
       const evaluation = evaluate(QUICK_START);
       const props = renderInspector(CONFIG, evaluation);
@@ -429,13 +430,14 @@ describe("Inspector", () => {
       fireEvent.click(view.getByRole("button", { name: /^style/ }));
 
       // Assert
-      expect(props.onReveal).toHaveBeenCalledTimes(1);
-      expect(props.onReveal).toHaveBeenCalledWith(
-        evaluation.fileCategories[1].range
-      );
+      expect(props.onOpen).toHaveBeenCalledTimes(1);
+      expect(props.onOpen).toHaveBeenCalledWith({
+        kind: "config",
+        range: evaluation.fileCategories[1].range,
+      });
     });
 
-    it("should reveal the entry of a rule when its row is chosen", () => {
+    it("should open the config at the entry of a rule when its row is chosen", () => {
       // Arrange
       const evaluation = evaluate(QUICK_START);
       const props = renderInspector(CONFIG, evaluation);
@@ -446,11 +448,14 @@ describe("Inspector", () => {
       );
 
       // Assert
-      expect(props.onReveal).toHaveBeenCalledTimes(1);
-      expect(props.onReveal).toHaveBeenCalledWith(evaluation.rules[0].range);
+      expect(props.onOpen).toHaveBeenCalledTimes(1);
+      expect(props.onOpen).toHaveBeenCalledWith({
+        kind: "config",
+        range: evaluation.rules[0].range,
+      });
     });
 
-    it("should reveal the descriptor that is ignored, where the mistake is", () => {
+    it("should open the config at the descriptor that is ignored, where the mistake is", () => {
       // Arrange
       const evaluation = evaluate(WITH_PROBLEMS);
       const props = renderInspector(CONFIG, evaluation);
@@ -459,9 +464,10 @@ describe("Inspector", () => {
       fireEvent.click(view.getByRole("button", { name: /^component/ }));
 
       // Assert
-      expect(props.onReveal).toHaveBeenCalledWith(
-        expect.objectContaining({ line: 5 })
-      );
+      expect(props.onOpen).toHaveBeenCalledWith({
+        kind: "config",
+        range: expect.objectContaining({ line: 5 }),
+      });
     });
 
     it("should say that a group has nothing when the config has no entries for it", () => {

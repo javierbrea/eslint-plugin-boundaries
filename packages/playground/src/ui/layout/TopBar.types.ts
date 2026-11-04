@@ -1,4 +1,4 @@
-import type { ProblemTone } from "../problems";
+import type { Tone } from "../common";
 
 /** Props of {@link TopBar}. */
 export type TopBarProps = {
@@ -7,7 +7,7 @@ export type TopBarProps = {
   /** How many problems the sketch has: those of the config and the lines of text mode that could not be read. */
   readonly problems: number;
   /** The color of the number of problems: `bad` when any is an error, `warn` when they are all warnings. */
-  readonly tone: ProblemTone;
+  readonly tone: Tone;
   /** Whether the config has errors. The status says so instead of counting the problems, and its dot turns red. */
   readonly configHasErrors: boolean;
 };

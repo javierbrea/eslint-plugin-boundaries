@@ -1,11 +1,15 @@
-import { act, fireEvent, render, screen as view } from "@testing-library/react";
-import { useState } from "react";
+import { act, fireEvent, screen as view } from "@testing-library/react";
 import type { ReactNode } from "react";
 
 import type { Sketch } from "../../contract";
+import { useTextProblems } from "../state";
+import {
+  NO_CAPABILITIES,
+  renderInWorkbench,
+} from "../state/__fixtures__/RenderInWorkbench";
+import type { WorkbenchRender } from "../state/__fixtures__/RenderInWorkbench";
 
 import { TextMode } from "./TextMode";
-import type { TextModeProps } from "./TextMode.types";
 
 const SKETCH: Sketch = {
   config: "{ settings: {}, rules: {} }",
@@ -27,41 +31,37 @@ const SKETCH: Sketch = {
 };
 
 /**
- * Creates the props of the text, with mocks for its callbacks.
- * @param overrides What differs from an editable text of the sketch.
- * @returns The props.
+ * Lists the lines of text mode that cannot be read, as the problems pane reads them.
+ * @returns The lines, one per element.
  */
-function createProps(overrides: Partial<TextModeProps> = {}): TextModeProps & {
-  onSketchChange: jest.Mock;
-  onTextProblems: jest.Mock;
-} {
-  return {
-    sketch: SKETCH,
-    readOnly: false,
-    ...overrides,
-    onSketchChange: jest.fn(),
-    onTextProblems: jest.fn(),
-  };
+function TextProblemsProbe(): ReactNode {
+  const problems = useTextProblems();
+
+  return (
+    <ul aria-label="Lines that cannot be read">
+      {problems.map(({ line, text, reason }) => (
+        <li key={line}>{`${line}|${text}|${reason}`}</li>
+      ))}
+    </ul>
+  );
 }
 
 /**
- * Holds the sketch as the workbench does, so that what the text reads shows in the next render.
- * @param props The first sketch, and the mock of the problems.
- * @param props.onTextProblems
- * @returns The text.
+ * Renders the text of a sketch in a workbench, with the lines that cannot be read listed next to it.
+ * @param sketch The sketch to start from.
+ * @param capabilities What the user can change.
+ * @returns The render, the store and the spy of the sketches.
  */
-function Stateful({
-  onTextProblems,
-}: Readonly<{ onTextProblems: jest.Mock }>): ReactNode {
-  const [sketch, setSketch] = useState(SKETCH);
-
-  return (
-    <TextMode
-      sketch={sketch}
-      readOnly={false}
-      onSketchChange={setSketch}
-      onTextProblems={onTextProblems}
-    />
+function renderText(
+  sketch: Sketch = SKETCH,
+  capabilities?: Parameters<typeof renderInWorkbench>[1]["capabilities"]
+): WorkbenchRender {
+  return renderInWorkbench(
+    <>
+      <TextMode />
+      <TextProblemsProbe />
+    </>,
+    { sketch, capabilities }
   );
 }
 
@@ -105,6 +105,20 @@ function getLastPaths(onSketchChange: jest.Mock): string[] {
   return sketch.tree.map((node) => node.path);
 }
 
+/**
+ * Lists the lines of text mode that cannot be read.
+ * @returns The line, the text and the reason of each one.
+ */
+function getTextProblems(): string[] {
+  return view
+    .getAllByRole("list", { name: "Lines that cannot be read" })
+    .flatMap((list) =>
+      Array.from(list.querySelectorAll("li")).map(
+        (item) => item.textContent as string
+      )
+    );
+}
+
 describe("TextMode", () => {
   beforeEach(() => {
     jest.useFakeTimers();
@@ -116,7 +130,7 @@ describe("TextMode", () => {
 
   it("should write the sketch with eslint.config.js first, a path per line and a slash after an empty folder", () => {
     // Arrange
-    render(<TextMode {...createProps()} />);
+    renderText();
 
     // Act
     const text = getText().value;
@@ -135,24 +149,32 @@ describe("TextMode", () => {
 
   it("should show the new text of a sketch that changes while nothing was typed", () => {
     // Arrange
-    const props = createProps();
-    const { rerender } = render(<TextMode {...props} />);
+    const { store } = renderText();
 
     // Act
-    rerender(
-      <TextMode
-        {...props}
-        sketch={{ ...SKETCH, tree: [{ path: "a.js", kind: "file" }] }}
-      />
-    );
+    act(() => {
+      store.removeNode("docs");
+      store.removeNode("src");
+    });
 
     // Assert
-    expect(getText().value).toBe("eslint.config.js\na.js\n");
+    expect(getText().value).toBe("eslint.config.js\n");
+  });
+
+  it("should show the new text after a node is added to the tree", () => {
+    // Arrange
+    const { store } = renderText();
+
+    // Act
+    act(() => store.addNode("file"));
+
+    // Assert
+    expect(getText().value).toContain("new-file.js");
   });
 
   it("should draw a read only text when it cannot be edited", () => {
     // Arrange
-    render(<TextMode {...createProps({ readOnly: true })} />);
+    renderText(SKETCH, NO_CAPABILITIES);
 
     // Act
     const readOnly = getText().readOnly;
@@ -163,7 +185,22 @@ describe("TextMode", () => {
 
   it("should be editable otherwise", () => {
     // Arrange
-    render(<TextMode {...createProps()} />);
+    renderText();
+
+    // Act
+    const readOnly = getText().readOnly;
+
+    // Assert
+    expect(readOnly).toBe(false);
+  });
+
+  it("should be editable when the host allows the tree to change, whatever else it allows", () => {
+    // Arrange
+    renderText(SKETCH, {
+      editTree: true,
+      editDependencies: false,
+      editConfig: false,
+    });
 
     // Act
     const readOnly = getText().readOnly;
@@ -174,7 +211,7 @@ describe("TextMode", () => {
 
   it("should not let the browser correct or wrap the paths", () => {
     // Arrange
-    render(<TextMode {...createProps()} />);
+    renderText();
 
     // Act
     const text = getText();
@@ -186,31 +223,43 @@ describe("TextMode", () => {
   });
 
   describe("reading what the user typed", () => {
-    it("should show what the user types", () => {
+    it("should show what the user types and keep it as the draft of the store", () => {
       // Arrange
-      render(<TextMode {...createProps()} />);
+      const { store } = renderText();
 
       // Act
       type("src/index.js\nsrc/new.js");
 
       // Assert
       expect(getText().value).toBe("src/index.js\nsrc/new.js");
+      expect(store.getState().textDraft).toBe("src/index.js\nsrc/new.js");
+    });
+
+    it("should not touch the sketch until the text is read", () => {
+      // Arrange
+      const { store, onSketchChange } = renderText();
+
+      // Act
+      type("src/index.js\nsrc/new.js\n");
+
+      // Assert
+      expect(store.getState().sketch).toBe(SKETCH);
+      expect(onSketchChange).not.toHaveBeenCalled();
     });
 
     it("should read the text 300 ms after the last keystroke", () => {
       // Arrange
-      const props = createProps();
-      render(<TextMode {...props} />);
+      const { onSketchChange } = renderText();
 
       // Act
       type("src/index.js\nsrc/new.js\n");
       wait(299);
-      const before = props.onSketchChange.mock.calls.length;
+      const before = onSketchChange.mock.calls.length;
       wait(1);
 
       // Assert
       expect(before).toBe(0);
-      expect(getLastPaths(props.onSketchChange)).toEqual([
+      expect(getLastPaths(onSketchChange)).toEqual([
         "src/index.js",
         "src/new.js",
       ]);
@@ -218,37 +267,32 @@ describe("TextMode", () => {
 
     it("should wait again after each keystroke", () => {
       // Arrange
-      const props = createProps();
-      render(<TextMode {...props} />);
+      const { onSketchChange } = renderText();
       type("src/a.js\n");
       wait(200);
 
       // Act
       type("src/a.js\nsrc/b.js\n");
       wait(200);
-      const before = props.onSketchChange.mock.calls.length;
+      const before = onSketchChange.mock.calls.length;
       wait(100);
 
       // Assert
       expect(before).toBe(0);
-      expect(props.onSketchChange).toHaveBeenCalledTimes(1);
-      expect(getLastPaths(props.onSketchChange)).toEqual([
-        "src/a.js",
-        "src/b.js",
-      ]);
+      expect(onSketchChange).toHaveBeenCalledTimes(1);
+      expect(getLastPaths(onSketchChange)).toEqual(["src/a.js", "src/b.js"]);
     });
 
     it("should read the text when the textarea loses the focus, without waiting", () => {
       // Arrange
-      const props = createProps();
-      render(<TextMode {...props} />);
+      const { onSketchChange } = renderText();
       type("src/index.js\nsrc/new.js\n");
 
       // Act
       fireEvent.blur(getText());
 
       // Assert
-      expect(getLastPaths(props.onSketchChange)).toEqual([
+      expect(getLastPaths(onSketchChange)).toEqual([
         "src/index.js",
         "src/new.js",
       ]);
@@ -256,8 +300,7 @@ describe("TextMode", () => {
 
     it("should read the text once when the delay goes by after a blur", () => {
       // Arrange
-      const props = createProps();
-      render(<TextMode {...props} />);
+      const { onSketchChange } = renderText();
       type("src/index.js\nsrc/new.js\n");
       fireEvent.blur(getText());
 
@@ -265,12 +308,12 @@ describe("TextMode", () => {
       wait(1000);
 
       // Assert
-      expect(props.onSketchChange).toHaveBeenCalledTimes(1);
+      expect(onSketchChange).toHaveBeenCalledTimes(1);
     });
 
     it("should write the text again, in the order of the tree, when the text was read without problems and the textarea lost the focus", () => {
       // Arrange
-      render(<Stateful onTextProblems={jest.fn()} />);
+      const { store } = renderText();
       type("src/index.js\nsrc/a.js\n");
 
       // Act
@@ -280,71 +323,62 @@ describe("TextMode", () => {
       expect(getText().value).toBe(
         "eslint.config.js\nsrc/a.js\nsrc/index.js\n"
       );
+      expect(store.getState().textDraft).toBeUndefined();
     });
 
-    it("should report no problems when the text is valid", () => {
+    it("should report no lines that cannot be read when the text is valid", () => {
       // Arrange
-      const props = createProps();
-      render(<TextMode {...props} />);
+      renderText();
 
       // Act
       type("src/new.js\n");
       wait(300);
 
       // Assert
-      expect(props.onTextProblems).toHaveBeenCalledWith([]);
+      expect(getTextProblems()).toEqual([]);
     });
 
-    it("should keep the draft while it is read, as the sketch changes under it", () => {
+    it("should keep the draft once it is read, while the user is typing", () => {
       // Arrange
-      const props = createProps();
-      const { rerender } = render(<TextMode {...props} />);
+      const { store } = renderText();
       type("src/index.js\nsrc/new.js");
-      wait(300);
 
       // Act
-      rerender(
-        <TextMode
-          {...props}
-          sketch={{
-            ...SKETCH,
-            tree: [
-              { path: "src/index.js", kind: "file" },
-              { path: "src/new.js", kind: "file" },
-            ],
-          }}
-        />
-      );
+      wait(300);
 
       // Assert: the text is the one being typed, without the config line or the final newline that the sketch's has
       expect(getText().value).toBe("src/index.js\nsrc/new.js");
+      expect(store.getState().textDraft).toBe("src/index.js\nsrc/new.js");
+      expect(store.getState().sketch.tree.map((node) => node.path)).toEqual([
+        "src/index.js",
+        "src/new.js",
+      ]);
     });
 
     it("should call nothing when the text, once read, is the sketch it was", () => {
       // Arrange
-      const props = createProps();
-      render(<TextMode {...props} />);
+      const { onSketchChange, store } = renderText();
 
       // Act
       type("docs/\nsrc/components/Button.js\nsrc/index.js\n\n\n");
       wait(300);
 
       // Assert
-      expect(props.onSketchChange).not.toHaveBeenCalled();
-      expect(props.onTextProblems).toHaveBeenCalledWith([]);
+      expect(onSketchChange).not.toHaveBeenCalled();
+      expect(store.getState().sketch).toBe(SKETCH);
+      expect(getTextProblems()).toEqual([]);
     });
 
     it("should call the change when a line is replaced and the number of lines does not change", () => {
       // Arrange
-      const props = createProps();
-      render(<TextMode {...props} />);
+      const { onSketchChange } = renderText();
 
       // Act
       type("docs/\nsrc/components/Button.js\nsrc/main.js\n");
       wait(300);
 
       // Assert
-      expect(getLastPaths(props.onSketchChange)).toEqual([
+      expect(getLastPaths(onSketchChange)).toEqual([
         "docs",
         "src/components/Button.js",
         "src/main.js",
@@ -353,8 +387,7 @@ describe("TextMode", () => {
 
     it("should drop a dependency that has no file or target in the text, and keep the others", () => {
       // Arrange
-      const props = createProps();
-      render(<TextMode {...props} />);
+      const { onSketchChange } = renderText();
 
       // Act
       type("src/index.js\nsrc/components/Button.js\n");
@@ -363,7 +396,7 @@ describe("TextMode", () => {
       wait(300);
 
       // Assert
-      const calls = props.onSketchChange.mock.calls;
+      const calls = onSketchChange.mock.calls;
 
       expect((calls[0][0] as Sketch).dependencies).toHaveLength(1);
       expect((calls[1][0] as Sketch).dependencies).toEqual([]);
@@ -384,99 +417,103 @@ describe("TextMode", () => {
           },
         ],
       };
-      const props = createProps({ sketch: dangling });
-      render(<TextMode {...props} />);
+      const { onSketchChange } = renderText(dangling);
 
       // Act
       type("docs/\nsrc/components/Button.js\nsrc/index.js\n");
       wait(300);
 
       // Assert
-      expect(props.onSketchChange).toHaveBeenCalledTimes(1);
-      expect(
-        (props.onSketchChange.mock.calls[0][0] as Sketch).dependencies
-      ).toEqual(SKETCH.dependencies);
+      expect(onSketchChange).toHaveBeenCalledTimes(1);
+      expect((onSketchChange.mock.calls[0][0] as Sketch).dependencies).toEqual(
+        SKETCH.dependencies
+      );
     });
 
     it("should read the text against the latest sketch, not the one of the keystroke", () => {
       // Arrange
-      const props = createProps();
-      const { rerender } = render(<TextMode {...props} />);
+      const { onSketchChange, store } = renderText();
       type("src/index.js\nsrc/components/Button.js\nsrc/new.js\n");
-      const withExtra: Sketch = {
-        ...SKETCH,
-        config: "{ settings: { later: true } }",
-      };
 
       // Act
-      rerender(<TextMode {...props} sketch={withExtra} />);
+      act(() => store.changeConfig("{ settings: { later: true } }"));
       wait(300);
 
       // Assert
-      expect((props.onSketchChange.mock.calls[0][0] as Sketch).config).toBe(
+      expect(store.getState().sketch.config).toBe(
         "{ settings: { later: true } }"
       );
+      expect((onSketchChange.mock.lastCall?.[0] as Sketch).config).toBe(
+        "{ settings: { later: true } }"
+      );
+      expect(getLastPaths(onSketchChange)).toEqual([
+        "src/components/Button.js",
+        "src/index.js",
+        "src/new.js",
+      ]);
     });
 
     it("should not read anything when the textarea loses the focus and nothing was typed", () => {
       // Arrange
-      const props = createProps();
-      render(<TextMode {...props} />);
+      const { onSketchChange, store } = renderText();
 
       // Act
       fireEvent.blur(getText());
 
       // Assert
-      expect(props.onSketchChange).not.toHaveBeenCalled();
-      expect(props.onTextProblems).not.toHaveBeenCalled();
+      expect(onSketchChange).not.toHaveBeenCalled();
+      expect(store.getState().textDraft).toBeUndefined();
+      expect(getTextProblems()).toEqual([]);
     });
   });
 
   describe("lines that cannot be read", () => {
-    it("should report them with their line, their text and why", () => {
+    it("should be listed with their line, their text and why", () => {
       // Arrange
-      const props = createProps();
-      render(<TextMode {...props} />);
+      renderText();
 
       // Act
       type("src/index.js\n  import x from 'y';\nsrc/../up.js\n");
       wait(300);
 
       // Assert
-      expect(props.onTextProblems).toHaveBeenCalledWith([
-        {
-          line: 2,
-          text: "  import x from 'y';",
-          reason: "Dependencies are not written in text mode yet.",
-        },
-        {
-          line: 3,
-          text: "src/../up.js",
-          reason: "The path cannot have `.` or `..` segments.",
-        },
+      expect(getTextProblems()).toEqual([
+        "2|  import x from 'y';|Dependencies are not written in text mode yet.",
+        "3|src/../up.js|The path cannot have `.` or `..` segments.",
       ]);
     });
 
-    it("should apply the valid lines", () => {
+    it("should be listed as soon as the user types, before the text is read", () => {
       // Arrange
-      const props = createProps();
-      render(<TextMode {...props} />);
+      renderText();
+
+      // Act
+      type("src/../up.js\n");
+
+      // Assert
+      expect(getTextProblems()).toEqual([
+        "1|src/../up.js|The path cannot have `.` or `..` segments.",
+      ]);
+    });
+
+    it("should leave the valid lines applied", () => {
+      // Arrange
+      const { onSketchChange } = renderText();
 
       // Act
       type("src/index.js\nsrc/../up.js\nsrc/new.js\n");
       wait(300);
 
       // Assert
-      expect(getLastPaths(props.onSketchChange)).toEqual([
+      expect(getLastPaths(onSketchChange)).toEqual([
         "src/index.js",
         "src/new.js",
       ]);
     });
 
-    it("should keep them in the draft when the textarea loses the focus", () => {
+    it("should stay in the draft when the textarea loses the focus", () => {
       // Arrange
-      const props = createProps();
-      render(<TextMode {...props} />);
+      renderText();
       type("src/index.js\nsrc/../up.js\n");
 
       // Act
@@ -484,12 +521,12 @@ describe("TextMode", () => {
 
       // Assert
       expect(getText().value).toBe("src/index.js\nsrc/../up.js\n");
+      expect(getTextProblems()).toHaveLength(1);
     });
 
     it("should write the text again once the user fixes them and the textarea loses the focus", () => {
       // Arrange
-      const onTextProblems = jest.fn();
-      render(<Stateful onTextProblems={onTextProblems} />);
+      renderText();
       type("src/index.js\nsrc/../up.js\n");
       fireEvent.blur(getText());
 
@@ -498,16 +535,15 @@ describe("TextMode", () => {
       fireEvent.blur(getText());
 
       // Assert
-      expect(onTextProblems).toHaveBeenLastCalledWith([]);
+      expect(getTextProblems()).toEqual([]);
       expect(getText().value).toBe(
         "eslint.config.js\nsrc/index.js\nsrc/up.js\n"
       );
     });
 
-    it("should report an empty list for the lines that were fixed, while the textarea keeps the focus", () => {
+    it("should be listed no more once the user fixes them, while the textarea keeps the focus", () => {
       // Arrange
-      const props = createProps();
-      render(<TextMode {...props} />);
+      renderText();
       type("src/../up.js\n");
       wait(300);
 
@@ -516,60 +552,27 @@ describe("TextMode", () => {
       wait(300);
 
       // Assert
-      expect(props.onTextProblems).toHaveBeenLastCalledWith([]);
+      expect(getTextProblems()).toEqual([]);
     });
 
-    it("should drop them and report an empty list when the view is left", () => {
+    it("should go with the draft when the project goes back to the tree", () => {
       // Arrange
-      const props = createProps();
-      const { unmount } = render(<TextMode {...props} />);
+      const { store } = renderText();
+      act(() => store.setView("text"));
       type("src/../up.js\n");
       wait(300);
-      props.onTextProblems.mockClear();
 
       // Act
-      unmount();
+      act(() => store.setView("tree"));
 
       // Assert
-      expect(props.onTextProblems).toHaveBeenCalledTimes(1);
-      expect(props.onTextProblems).toHaveBeenCalledWith([]);
-    });
-
-    it("should report nothing when the view is left without problems", () => {
-      // Arrange
-      const props = createProps();
-      const { unmount } = render(<TextMode {...props} />);
-      type("src/up.js\n");
-      wait(300);
-      props.onTextProblems.mockClear();
-
-      // Act
-      unmount();
-
-      // Assert
-      expect(props.onTextProblems).not.toHaveBeenCalled();
-    });
-
-    it("should report with the latest callback when the view is left", () => {
-      // Arrange
-      const props = createProps();
-      const { rerender, unmount } = render(<TextMode {...props} />);
-      type("src/../up.js\n");
-      wait(300);
-      const latest = jest.fn();
-
-      // Act
-      rerender(<TextMode {...props} onTextProblems={latest} />);
-      unmount();
-
-      // Assert
-      expect(latest).toHaveBeenCalledWith([]);
+      expect(store.getState().textDraft).toBeUndefined();
+      expect(getTextProblems()).toEqual([]);
     });
 
     it("should read nothing after the view is left", () => {
       // Arrange
-      const props = createProps();
-      const { unmount } = render(<TextMode {...props} />);
+      const { onSketchChange, store, unmount } = renderText();
       type("src/new.js\n");
 
       // Act
@@ -577,7 +580,8 @@ describe("TextMode", () => {
       wait(1000);
 
       // Assert
-      expect(props.onSketchChange).not.toHaveBeenCalled();
+      expect(onSketchChange).not.toHaveBeenCalled();
+      expect(store.getState().sketch).toBe(SKETCH);
     });
   });
 });

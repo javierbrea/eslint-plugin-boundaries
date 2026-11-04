@@ -1,12 +1,7 @@
-import type { ConfigProblem, TextRange } from "../../engine";
+import type { RefObject } from "react";
 
-/** A request to show a range of the config: the editor scrolls to it and puts the cursor at its start each time the key changes */
-export type ConfigEditorReveal = {
-  /** The range to show */
-  readonly range: TextRange;
-  /** Changes for each request, so that the same range can be shown again after the user scrolled away */
-  readonly key: number;
-};
+import type { ConfigProblem, TextRange } from "../../engine";
+import type { ConfigEditorSnapshot, ConfigReveal } from "../state";
 
 /** Props of {@link ConfigEditor}. */
 export type ConfigEditorProps = {
@@ -22,6 +17,8 @@ export type ConfigEditorProps = {
   readonly readOnly?: boolean;
   /** Lines to mark until it is unset, such as the policy that "Open policy in config" points at. It is read when its offsets change; the lines follow the edits of the user, and are dropped when `value` replaces the text */
   readonly highlight?: TextRange;
-  /** Scrolls to a range when its key changes */
-  readonly reveal?: ConfigEditorReveal;
+  /** Scrolls to a range and puts the cursor at its start when its key changes */
+  readonly reveal?: ConfigReveal;
+  /** Where the editor leaves its state and its scroll when it unmounts, and starts from when it mounts again: the undo history, the selection and the scroll survive closing the config. Without it the editor starts from `value` each time */
+  readonly snapshot?: RefObject<ConfigEditorSnapshot | undefined>;
 };

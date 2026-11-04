@@ -1,8 +1,9 @@
-import type { ConfigProblem } from "../../engine";
+import type { ConfigProblem, ProblemLevel } from "../../engine";
 import { CONFIG_PATH } from "../../sketch";
 import type { TextProblem } from "../../sketch";
+import type { Tone } from "../common";
 
-import type { ProblemItem, ProblemLevel, ProblemTone } from "./Problems.types";
+import type { ProblemItem } from "./Problems.types";
 
 /** Where the problems of text mode are placed: they are about the project as a whole, and not about a file. */
 const TEXT_LOCATION = "Project text";
@@ -32,31 +33,32 @@ function getConfigMeta(problem: ConfigProblem): string {
 /**
  * Turns the problems of the config into rows of the problem list.
  * @param problems The problems of the config, as the engine returns them.
- * @returns One row for each problem, in the same order, with the id `config:<index>`.
+ * @returns One row for each problem, in the same order, with the key `config:<index>`. Each opens the config at the range of its problem.
  */
 export function getConfigProblemItems(
   problems: readonly ConfigProblem[]
 ): ProblemItem[] {
   return problems.map((problem, index) => ({
-    id: `config:${index}`,
+    key: `config:${index}`,
     level: problem.level,
     location: CONFIG_PATH,
     position: `:${problem.range.line}:${problem.range.column}`,
     message: getConfigMessage(problem),
     meta: getConfigMeta(problem),
+    target: { kind: "config", range: problem.range },
   }));
 }
 
 /**
  * Turns the lines of text mode that could not be read into rows of the problem list.
  * @param problems The lines that were left out, as `fromText` returns them.
- * @returns One row for each line, in the same order, with the id `text:<index>`. Each is an error that shows the reason and, below it, the line as it was written.
+ * @returns One row for each line, in the same order, with the key `text:<index>`. Each is an error that shows the reason and, below it, the line as it was written. It opens nothing: the line is already in front of the user, in the text it is about.
  */
 export function getTextProblemItems(
   problems: readonly TextProblem[]
 ): ProblemItem[] {
   return problems.map(({ line, text, reason }, index) => ({
-    id: `text:${index}`,
+    key: `text:${index}`,
     level: "error",
     location: TEXT_LOCATION,
     position: `:${line}`,
@@ -79,6 +81,6 @@ export function getTabLabel(path: string): string {
  * @param levels The levels of the problems that are counted.
  * @returns `bad` when any of them is an error, and `warn` otherwise.
  */
-export function getCountTone(levels: readonly ProblemLevel[]): ProblemTone {
+export function getCountTone(levels: readonly ProblemLevel[]): Tone {
   return levels.includes("error") ? "bad" : "warn";
 }

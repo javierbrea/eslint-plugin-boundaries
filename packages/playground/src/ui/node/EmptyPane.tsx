@@ -2,7 +2,8 @@ import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-import { PaneHead } from "../common";
+import { CONFIG_PATH } from "../../sketch";
+import { Mono, PaneHead } from "../common";
 import { Icon } from "../icons";
 
 import type { EmptyPaneProps } from "./EmptyPane.types";
@@ -42,18 +43,6 @@ const Message = styled("p")({
   color: "var(--jsb-muted)",
 });
 
-// A host styles its `code`, such as the chip of the website's docs: here it is the text of the line in the mono font, with no box
-const Mono = styled("code")({
-  padding: 0,
-  border: 0,
-  borderRadius: 0,
-  backgroundColor: "transparent",
-  fontFamily: "var(--jsb-font-mono)",
-  fontSize: "inherit",
-  lineHeight: "inherit",
-  verticalAlign: "baseline",
-});
-
 const Actions = styled("div")({
   display: "flex",
   gap: 8,
@@ -80,12 +69,11 @@ export function EmptyPane({
         <Title>Open a file or the config</Title>
         <Message>
           Pick a file in the project to see its dependencies and their verdicts,
-          or open <Mono>eslint.config.js</Mono> to edit the settings and the
-          rules.
+          or open <Mono>{CONFIG_PATH}</Mono> to edit the settings and the rules.
         </Message>
         <Actions>
           <Button variant="outlined" onClick={onOpenConfig}>
-            Open eslint.config.js
+            Open {CONFIG_PATH}
           </Button>
           {canAddFile ? (
             <Button

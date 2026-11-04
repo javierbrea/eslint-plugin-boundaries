@@ -12,9 +12,10 @@ import type {
   Ref,
 } from "react";
 
-import { CountBadge } from "../common";
+import { CountBadge, formatCount } from "../common";
+import type { Tone } from "../common";
 import { Icon } from "../icons";
-import type { ProblemCounts } from "../state/Focus.types";
+import type { ProblemCounts } from "../state";
 
 import type { ProjectItem, ProjectTreeContextValue } from "./ProjectTree.types";
 import { RenameField } from "./RenameField";
@@ -131,21 +132,6 @@ const Failure = styled("span")({
 const Group = styled("ul")({ margin: 0, padding: 0, listStyle: "none" });
 
 /**
- * Writes a count with its noun.
- * @param count The number.
- * @param singular The noun for one.
- * @param plural The noun for any other number.
- * @returns The count and its noun, such as `1 problem` or `2 problems`.
- */
-function describeCount(
-  count: number,
-  singular: string,
-  plural: string
-): string {
-  return `${count} ${count === 1 ? singular : plural}`;
-}
-
-/**
  * Gets what the badge of an item counts: the problems of the config, or the failing dependencies of a file or a folder. The config is red only when it has errors.
  * @param item The item.
  * @param counts Problems per node.
@@ -154,12 +140,12 @@ function describeCount(
 function getBadge(
   item: ProjectItem,
   counts: ProblemCounts
-): { count: number; tone: "bad" | "warn"; label: string } {
+): { count: number; tone: Tone; label: string } {
   if (item.kind === "config") {
     return {
       count: counts.config,
       tone: counts.configHasErrors ? "bad" : "warn",
-      label: describeCount(counts.config, "problem", "problems"),
+      label: formatCount(counts.config, "problem", "problems"),
     };
   }
 
@@ -168,7 +154,7 @@ function getBadge(
   return {
     count,
     tone: "bad",
-    label: describeCount(count, "failing dependency", "failing dependencies"),
+    label: formatCount(count, "failing dependency", "failing dependencies"),
   };
 }
 

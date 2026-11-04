@@ -1,10 +1,16 @@
 import { styled } from "@mui/material/styles";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { ChangeEvent, ReactNode } from "react";
 
-import { fromText, isSameProject, toText } from "../../sketch";
-
-import type { TextModeProps } from "./TextMode.types";
+import { toText } from "../../sketch";
+import {
+  useCapabilities,
+  useReadText,
+  useSetTextDraft,
+  useSettleText,
+  useTextDraft,
+  useTree,
+} from "../state";
 
 /** Milliseconds after the last keystroke before the text is read */
 const READ_DELAY = 300;
@@ -28,87 +34,43 @@ const Area = styled("textarea")({
 });
 
 /**
- * The project as text, one path per line: a textarea that edits the same sketch as the tree. While the user types it shows the draft, and it reads it 300 ms after the last keystroke and on blur. Lines that cannot be read are reported and stay in the draft until the text is valid, so that the user can fix them; leaving the view drops them.
- * @param props TextMode props.
- * @param props.sketch The sketch to write as text.
- * @param props.readOnly Whether the text cannot be edited.
- * @param props.onSketchChange Called with the new sketch when the text differs from it.
- * @param props.onTextProblems Called with the lines that could not be read.
+ * The project as text, one path per line: a textarea that edits the same sketch as the tree. What the user types is the draft of the store, which shows instead of the sketch's text and whose lines that cannot be read are listed as problems. The draft is read into the sketch 300 ms after the last keystroke, and on blur, which also goes back to the sketch's text when every line was read. Without `editTree` the text is read only.
  * @returns The textarea, as tall as its container.
  */
-export function TextMode({
-  sketch,
-  readOnly,
-  onSketchChange,
-  onTextProblems,
-}: Readonly<TextModeProps>): ReactNode {
-  // What the user has typed since the text was last in sync with the sketch; without it the text is the sketch's
-  const [draft, setDraft] = useState<string | undefined>(undefined);
+export function TextMode(): ReactNode {
+  const tree = useTree();
+  const draft = useTextDraft();
+  const { editTree } = useCapabilities();
+  const setTextDraft = useSetTextDraft();
+  const readText = useReadText();
+  const settleText = useSettleText();
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const hasProblemsRef = useRef(false);
-  // The timer and the unmount read the latest props, not the ones of the render that scheduled them
-  const latestRef = useRef({ sketch, onSketchChange, onTextProblems });
-  const text = useMemo(() => toText(sketch), [sketch]);
+  const text = useMemo(() => toText({ tree }), [tree]);
 
-  useEffect(() => {
-    latestRef.current = { sketch, onSketchChange, onTextProblems };
-  });
-
-  // Going back to the tree drops the lines that were not read, and so does their report
-  useEffect(
-    () => () => {
-      clearTimeout(timerRef.current);
-      if (hasProblemsRef.current) {
-        latestRef.current.onTextProblems([]);
-      }
-    },
-    []
-  );
-
-  /**
-   * Reads the text against the latest sketch and reports what came out of it.
-   * @param value The text to read.
-   * @returns Whether every line could be read.
-   */
-  function read(value: string): boolean {
-    const latest = latestRef.current;
-    const result = fromText(value, latest.sketch);
-
-    if (!isSameProject(latest.sketch, result.sketch)) {
-      latest.onSketchChange(result.sketch);
-    }
-    hasProblemsRef.current = result.problems.length > 0;
-    latest.onTextProblems(result.problems);
-    return result.problems.length === 0;
-  }
+  // Going back to the tree drops the draft in the store; the read that was waiting goes with it
+  useEffect(() => () => clearTimeout(timerRef.current), []);
 
   /**
    * Keeps what the user typed and schedules reading it.
    * @param changeEvent The change of the textarea.
    */
   function handleChange(changeEvent: ChangeEvent<HTMLTextAreaElement>): void {
-    const value = changeEvent.target.value;
-
-    setDraft(value);
+    setTextDraft(changeEvent.target.value);
     clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => read(value), READ_DELAY);
+    timerRef.current = setTimeout(readText, READ_DELAY);
   }
 
-  /** Reads what the user typed without waiting, and goes back to the sketch's text if every line could be read. */
+  /** Reads what the user typed without waiting. */
   function handleBlur(): void {
     clearTimeout(timerRef.current);
-    // Without a draft there is nothing the user typed to read
-    if (draft !== undefined && read(draft)) {
-      // The sketch has it all: the text goes back to the sketch's, in the order of the tree
-      setDraft(undefined);
-    }
+    settleText();
   }
 
   return (
     <Area
       aria-label="Project as text"
       value={draft ?? text}
-      readOnly={readOnly}
+      readOnly={!editTree}
       spellCheck={false}
       autoCapitalize="off"
       autoComplete="off"

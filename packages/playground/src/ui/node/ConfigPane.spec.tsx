@@ -1,11 +1,14 @@
 // cspell:ignore dissallow -- a deliberate typo, the mistake of the config that the test reports
+import { undo } from "@codemirror/commands";
 import { forEachDiagnostic } from "@codemirror/lint";
 import type { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { render, screen as view } from "@testing-library/react";
+import type { RefObject } from "react";
 
 import type { ConfigProblem, TextRange } from "../../engine";
 import { highlightField } from "../config/Highlight";
+import type { ConfigEditorSnapshot } from "../state";
 
 import { ConfigPane } from "./ConfigPane";
 import type { ConfigPaneProps } from "./ConfigPane.types";
@@ -248,6 +251,73 @@ describe("ConfigPane", () => {
     });
 
     expect(lines).toEqual([4]);
+  });
+
+  describe("snapshot", () => {
+    it("should leave the state of the editor in the snapshot when the pane closes", () => {
+      // Arrange
+      const snapshot: RefObject<ConfigEditorSnapshot | undefined> = {
+        current: undefined,
+      };
+      const { container, unmount } = render(
+        <ConfigPane {...createProps({ snapshot })} />
+      );
+      getEditorView(container).dispatch({
+        changes: { from: CONFIG.length, insert: "\n// done" },
+        userEvent: "input.type",
+      });
+
+      // Act
+      unmount();
+
+      // Assert
+      expect(snapshot.current?.state.doc.toString()).toBe(`${CONFIG}\n// done`);
+    });
+
+    it("should keep the undo history of the editor when the pane opens again", () => {
+      // Arrange
+      const snapshot: RefObject<ConfigEditorSnapshot | undefined> = {
+        current: undefined,
+      };
+      const first = render(<ConfigPane {...createProps({ snapshot })} />);
+      getEditorView(first.container).dispatch({
+        changes: { from: CONFIG.length, insert: "\n// done" },
+        userEvent: "input.type",
+      });
+      first.unmount();
+      const { container } = render(
+        <ConfigPane
+          {...createProps({ snapshot, config: `${CONFIG}\n// done` })}
+        />
+      );
+      const editor = getEditorView(container);
+
+      // Act
+      const undone = undo(editor);
+
+      // Assert
+      expect(undone).toBe(true);
+      expect(editor.state.doc.toString()).toBe(CONFIG);
+    });
+
+    it("should start from the config when there is no snapshot", () => {
+      // Arrange
+      const first = render(<ConfigPane {...createProps()} />);
+      getEditorView(first.container).dispatch({
+        changes: { from: CONFIG.length, insert: "\n// done" },
+        userEvent: "input.type",
+      });
+      first.unmount();
+      const { container } = render(
+        <ConfigPane {...createProps({ config: `${CONFIG}\n// done` })} />
+      );
+
+      // Act
+      const undone = undo(getEditorView(container));
+
+      // Assert
+      expect(undone).toBe(false);
+    });
   });
 
   it("should give the editor the height that the head leaves", () => {
