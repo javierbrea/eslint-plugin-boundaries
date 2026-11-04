@@ -71,7 +71,14 @@ export default [
         { type: "sketch", pattern: "src/sketch" },
         { type: "engine", pattern: "src/engine" },
         { type: "examples", pattern: "src/examples" },
-        { type: "ui", pattern: "src/ui" },
+        // The state of an instance and its hooks: the panes depend on it, never the other way round
+        { type: "ui-state", pattern: "src/ui/state" },
+        // Presentational pieces that every pane uses, which know nothing of the state
+        { type: "ui-shared", pattern: "src/ui/{common,icons}" },
+        // A pane and its parts, such as the project pane or the problems panel
+        { type: "ui-pane", pattern: "src/ui/*", capture: ["pane"] },
+        // The workbench, which creates the state and lays out the panes
+        { type: "ui-root", pattern: "src/ui" },
         { type: "theme", pattern: "src/theme" },
       ],
       "boundaries/files": [
@@ -114,16 +121,60 @@ export default [
             {
               from: { file: { categories: "app" } },
               allow: {
-                to: { element: { type: ["contract", "ui", "theme"] } },
+                to: { element: { type: ["contract", "ui-root", "theme"] } },
               },
             },
             {
-              from: { element: { type: "ui" } },
+              from: { element: { type: "ui-root" } },
               allow: {
                 to: {
-                  element: { type: ["contract", "sketch", "engine", "theme"] },
+                  element: {
+                    type: ["contract", "ui-state", "ui-shared", "ui-pane"],
+                  },
                 },
               },
+            },
+            {
+              from: { element: { type: "ui-pane" } },
+              allow: {
+                to: {
+                  element: {
+                    type: [
+                      "contract",
+                      "sketch",
+                      "engine",
+                      "theme",
+                      "ui-state",
+                      "ui-shared",
+                    ],
+                  },
+                },
+              },
+            },
+            // The node pane shows the config with the editor of the config pane
+            {
+              from: {
+                element: { type: "ui-pane", captured: { pane: "node" } },
+              },
+              allow: {
+                to: {
+                  element: { type: "ui-pane", captured: { pane: "config" } },
+                },
+              },
+            },
+            {
+              from: { element: { type: "ui-state" } },
+              allow: {
+                to: {
+                  element: {
+                    type: ["contract", "sketch", "engine", "ui-shared"],
+                  },
+                },
+              },
+            },
+            {
+              from: { element: { type: "ui-shared" } },
+              allow: { to: { element: { type: ["theme", "ui-shared"] } } },
             },
             // The pure layers: operations on a sketch, its evaluation and the examples read the contract
             {
