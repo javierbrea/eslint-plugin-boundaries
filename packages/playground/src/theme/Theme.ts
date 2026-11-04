@@ -1,5 +1,5 @@
 import { createTheme } from "@mui/material/styles";
-import type { PaletteOptions, Theme } from "@mui/material/styles";
+import type { Components, PaletteOptions, Theme } from "@mui/material/styles";
 
 /** Class of the root element of the playground, the scope of every MUI variable and style */
 export const ROOT_CLASS = "jsb-play-root";
@@ -26,6 +26,271 @@ const PALETTE: PaletteOptions = {
   },
   divider: "var(--jsb-line)",
   background: { default: "var(--jsb-paper)", paper: "var(--jsb-card)" },
+};
+
+/** Keyboard focus ring of every button, tab and toggle */
+const FOCUS_RING = "2px solid var(--jsb-accent)";
+
+/** Hover over a row or a toggle: the soft accent, fainter than a selection */
+const HOVER_BACKGROUND =
+  "color-mix(in srgb, var(--jsb-accent-soft) 60%, transparent)";
+
+/** Backdrop of the dialogs in the dark scheme: 34% of `--jsb-ink`, which is light there, would brighten the page instead of dimming it */
+const DARK_BACKDROP = "rgba(0, 0, 0, 0.55)";
+
+/** Shadow of the dialogs, the only one that is not a token */
+const DIALOG_SHADOW = "0 30px 80px -30px rgba(0, 0, 0, 0.5)";
+
+/**
+ * Look of the MUI widgets that the panes use, from the approved mockup: a pane that renders one of them needs no styles of its own. Values are `var(--jsb-*)` strings, so they follow the host's theme through CSS only, and nothing reads the palette at runtime.
+ */
+const WIDGETS: Components<Omit<Theme, "components">> = {
+  // No ripple: the keyboard ring and the hover are the only feedback of a button
+  MuiButtonBase: {
+    defaultProps: { disableRipple: true },
+    styleOverrides: {
+      root: {
+        "&:focus-visible": { outline: FOCUS_RING, outlineOffset: 2 },
+      },
+    },
+  },
+  MuiButton: {
+    defaultProps: { disableElevation: true },
+    styleOverrides: {
+      root: {
+        gap: 6,
+        minWidth: 0,
+        height: 30,
+        padding: "0 12px",
+        borderRadius: "var(--jsb-radius)",
+        // The border is always there, so that the three variants are as tall and as wide
+        border: "1px solid transparent",
+        lineHeight: 1,
+        whiteSpace: "nowrap",
+        "&[aria-pressed='true']": {
+          backgroundColor: "var(--jsb-accent-soft)",
+          color: "var(--jsb-accent)",
+        },
+        "&.Mui-disabled": { opacity: 0.45 },
+      },
+      startIcon: { margin: 0 },
+      endIcon: { margin: 0 },
+      outlined: {
+        color: "var(--jsb-ink)",
+        borderColor: "var(--jsb-line-strong)",
+        "&:hover": {
+          backgroundColor: "var(--jsb-accent-soft)",
+          borderColor: "var(--jsb-line-strong)",
+        },
+        // The disabled state of MUI greys the button out with its own colors
+        "&.Mui-disabled": {
+          color: "var(--jsb-ink)",
+          borderColor: "var(--jsb-line-strong)",
+        },
+      },
+      contained: {
+        "&.Mui-disabled": {
+          color: "var(--variant-containedColor)",
+          backgroundColor: "var(--variant-containedBg)",
+        },
+      },
+      text: {
+        color: "var(--jsb-muted)",
+        "&:hover": { backgroundColor: "var(--jsb-accent-soft)" },
+        "&.Mui-disabled": { color: "var(--jsb-muted)" },
+      },
+      sizeSmall: { height: 26, padding: "0 8px", fontSize: 12 },
+    },
+  },
+  MuiIconButton: {
+    styleOverrides: {
+      root: {
+        width: 30,
+        height: 30,
+        padding: 0,
+        borderRadius: "var(--jsb-radius)",
+        // MUI draws the hover only while the ripple is on
+        "&:hover": { backgroundColor: "var(--jsb-accent-soft)" },
+        "&[aria-pressed='true']": {
+          backgroundColor: "var(--jsb-accent-soft)",
+          color: "var(--jsb-accent)",
+        },
+        "&.Mui-disabled": { opacity: 0.45, color: "var(--jsb-muted)" },
+      },
+      sizeSmall: { width: 24, height: 24, borderRadius: 4 },
+    },
+    // Only the default color, so that `color="inherit"` keeps the color of a code area
+    variants: [
+      { props: { color: "default" }, style: { color: "var(--jsb-muted)" } },
+    ],
+  },
+  // The tooltip has no arrow: MUI draws none unless `arrow` is set
+  MuiTooltip: {
+    styleOverrides: {
+      tooltip: {
+        backgroundColor: "var(--jsb-ink)",
+        color: "var(--jsb-paper)",
+        fontSize: 12,
+        fontWeight: 400,
+        borderRadius: 4,
+        padding: "4px 8px",
+      },
+    },
+  },
+  MuiTabs: {
+    styleOverrides: {
+      root: { minHeight: 34 },
+      indicator: { height: 2, backgroundColor: "var(--jsb-accent)" },
+    },
+  },
+  MuiTab: {
+    styleOverrides: {
+      root: {
+        gap: 7,
+        minWidth: 0,
+        minHeight: 34,
+        padding: "0 12px",
+        fontSize: 12.5,
+        fontWeight: 500,
+        letterSpacing: 0,
+        lineHeight: 1,
+        // A label next to an icon would stack them, as MUI puts the icon above the label by default
+        flexDirection: "row",
+        color: "var(--jsb-muted)",
+        "&.Mui-selected": { color: "var(--jsb-ink)" },
+        // The scroller of the tabs clips a ring drawn outside the tab
+        "&:focus-visible": { outlineOffset: -2 },
+      },
+    },
+  },
+  // The segmented look: a bordered track with a flat button inside
+  MuiToggleButtonGroup: {
+    styleOverrides: {
+      root: {
+        padding: 2,
+        border: "1px solid var(--jsb-line)",
+        borderRadius: "var(--jsb-radius)",
+      },
+      // The group draws the edges between its buttons, which the track makes needless
+      grouped: {
+        margin: 0,
+        border: 0,
+        borderRadius: 4,
+        "&.Mui-disabled": { border: 0 },
+      },
+    },
+  },
+  MuiToggleButton: {
+    styleOverrides: {
+      root: {
+        minWidth: 0,
+        height: 22,
+        padding: "0 9px",
+        border: 0,
+        borderRadius: 4,
+        fontSize: 12,
+        fontWeight: 500,
+        letterSpacing: 0,
+        lineHeight: 1,
+        textTransform: "none",
+        color: "var(--jsb-muted)",
+        "&:hover": { backgroundColor: HOVER_BACKGROUND },
+        "&.Mui-selected": {
+          color: "var(--jsb-accent)",
+          backgroundColor: "var(--jsb-accent-soft)",
+          "&:hover": { backgroundColor: "var(--jsb-accent-soft)" },
+        },
+        "&.Mui-disabled": {
+          border: 0,
+          opacity: 0.45,
+          color: "var(--jsb-muted)",
+        },
+      },
+    },
+  },
+  MuiPaper: {
+    styleOverrides: {
+      root: {
+        backgroundColor: "var(--jsb-card)",
+        border: "1px solid var(--jsb-line)",
+        // The dark scheme of MUI lightens a surface with its elevation
+        backgroundImage: "none",
+      },
+    },
+  },
+  MuiDialog: {
+    styleOverrides: {
+      paper: {
+        borderRadius: "var(--jsb-radius-xl)",
+        boxShadow: DIALOG_SHADOW,
+      },
+      backdrop: ({ theme }) => [
+        {
+          backgroundColor:
+            "color-mix(in srgb, var(--jsb-ink) 34%, transparent)",
+        },
+        theme.applyStyles("dark", { backgroundColor: DARK_BACKDROP }),
+      ],
+    },
+  },
+  MuiDialogTitle: {
+    styleOverrides: {
+      root: {
+        padding: "18px 22px 6px",
+        fontFamily: "var(--jsb-font-display)",
+        fontSize: 18,
+        fontWeight: 600,
+        lineHeight: 1.3,
+      },
+    },
+  },
+  MuiDialogContent: {
+    styleOverrides: {
+      root: {
+        padding: "6px 22px 4px",
+        // MUI takes the top padding away from the content that follows a title
+        ".MuiDialogTitle-root + &": { paddingTop: 6 },
+      },
+    },
+  },
+  MuiDialogActions: {
+    styleOverrides: { root: { padding: "12px 22px 18px" } },
+  },
+  // Every input is mono; the dense size is the one of the rename field of the tree
+  MuiInputBase: {
+    styleOverrides: {
+      root: {
+        fontFamily: "var(--jsb-font-mono)",
+        fontSize: 12.5,
+        lineHeight: 1.4,
+      },
+    },
+  },
+  MuiOutlinedInput: {
+    styleOverrides: {
+      root: {
+        borderRadius: "var(--jsb-radius)",
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor: "var(--jsb-line-strong)",
+        },
+        "&.Mui-focused": { boxShadow: "0 0 0 3px var(--jsb-accent-soft)" },
+        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+          borderColor: "var(--jsb-accent)",
+          borderWidth: 1,
+        },
+        "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+          borderColor: "var(--jsb-bad)",
+        },
+      },
+      // 38 px tall; a textarea keeps the padding of the root, which is the one of the input
+      input: { "&:not(textarea)": { padding: 10 } },
+      multiline: { padding: 10 },
+      // 20 px tall: the input has no class of its own for the size
+      sizeSmall: {
+        "& .MuiOutlinedInput-input:not(textarea)": { padding: "1px 6px" },
+      },
+    },
+  },
 };
 
 /**
@@ -57,12 +322,22 @@ export function createPlaygroundTheme(
       h4: { fontFamily: "var(--jsb-font-display)" },
       h5: { fontFamily: "var(--jsb-font-display)" },
       h6: { fontFamily: "var(--jsb-font-display)" },
+      // The body is 13 px; the buttons and the tabs are a notch smaller
+      body1: { fontSize: "13px", lineHeight: 1.45 },
+      body2: { fontSize: "12.5px", lineHeight: 1.45 },
+      button: {
+        fontSize: "12.5px",
+        fontWeight: 600,
+        letterSpacing: 0,
+        textTransform: "none",
+      },
     },
     shape: {
       // --jsb-radius
       borderRadius: 6,
     },
     components: {
+      ...WIDGETS,
       MuiModal: { defaultProps: { container: getContainer } },
       MuiPopover: { defaultProps: { container: getContainer } },
       MuiPopper: { defaultProps: { container: getContainer } },

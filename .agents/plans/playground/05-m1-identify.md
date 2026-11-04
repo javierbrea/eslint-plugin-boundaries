@@ -75,7 +75,7 @@ Component tests for: the text mode round trip; the diagnostics mapping (a wrong 
 
 ## Hand-offs
 
-- To phase 6: the `Sketch` model with its `dependencies`, the engine `evaluate` function to extend with verdicts, the gutter highlight API of the editor, the tab strip API of the problems panel, the red-state placeholders of the tree.
+- To phase 6: the `Sketch` model with its `dependencies`, the engine `evaluate` function to extend with verdicts, the gutter highlight API of the editor, the tab strip API of the problems panel, the red-state placeholders of the tree; and the theme overrides of the picker widgets, which phase 5 does not use and does not write: `InputLabel` (the floating label), `Autocomplete` and its listbox, `Chip` and `Radio`, in `src/theme/Theme.ts`.
 - To phase 7: the `src/examples/` folder the example picker lists, and the sketch serialization the URL store needs.
 
 ## Open points
