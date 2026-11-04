@@ -3,7 +3,7 @@
 
 Index of the plan. The plan is split so that an independent session can implement one phase with no other context than the files named here plus the repository's own agent files. The source of every design decision is [RFC #538](https://github.com/javierbrea/eslint-plugin-boundaries/discussions/538); the tracking issue is #539 and the milestone is [Playground](https://github.com/javierbrea/eslint-plugin-boundaries/milestone/45).
 
-Status (2026-11-03): the extraction is done and released in v7.4.1 (#592, 2026-11-02): `config` and `policies` 1.0.0, `elements` 3.3.1; phase 1 is RFC #559, accepted with Amendment 1. Phase 4 (#551) merged into this branch on 2026-11-03 (#599): `/playground/` renders the placeholder of `@boundaries/playground`, research notes 1, 3 and 4 are on #539, and the stack is decided (decisions 14 and 15); `release` was merged into this branch after it (0a033f7d). Phase 5 (#552) is in progress on `feat/552/playground-identify`, starting with the mockup.
+Status (2026-11-04): the extraction is done and released in v7.4.1 (#592, 2026-11-02): `config` and `policies` 1.0.0, `elements` 3.3.1; phase 1 is RFC #559, accepted with Amendment 1. Phase 4 (#551) merged into this branch on 2026-11-03 (#599): `/playground/` renders the placeholder of `@boundaries/playground`, research notes 1, 3 and 4 are on #539, and the stack is decided (decisions 14 and 15); `release` was merged into this branch after it (0a033f7d). Phase 5 (#552) is in progress on `feat/552/playground-identify`: the interface mockup is approved (2026-11-04, decision 16, `00-shared.md` section 6), the components are next.
 
 This plan lives on the integration branch `feat/539/playground`. How it is shared, kept true and removed is in the "Where it lives", "Starting a phase" and "Finishing a phase" sections of the `write-plan` skill; phase 9 removes it.
 
@@ -11,7 +11,7 @@ This plan lives on the integration branch `feat/539/playground`. How it is share
 
 | File | Read it when |
 | --- | --- |
-| `playground/00-shared.md` | Always. Environment, branching, package conventions, quality gates, definition of done. |
+| `playground/00-shared.md` | Always. Environment, branching, package conventions, quality gates, definition of done, the interface. |
 | `playground/05-m1-identify.md` | Phase 5 (#552): the HTML mockup of the interface, then M1. |
 | `playground/06-m2-verdicts.md` | Phase 6 (#553): M2. |
 | `playground/07-m3-share-embed.md` | Phase 7 (#554): M3. |
@@ -67,6 +67,7 @@ Taken in RFC #538 unless another source is named. A session does not reopen them
 13. A release follows phase 3, before the playground phases: `config` and `policies` at `1.0.0`, a patch of the plugin, and whatever else `release` holds, with the `release` skill (maintainer, 2026-10-29).
 14. The config node is parsed with `@humanwhocodes/momoa` in JSON5 mode and edited with CodeMirror 6, the JSON5 grammar of `codemirror-json5` and `@codemirror/lint` (research note 3, maintainer, 2026-11-02).
 15. The widgets are MUI (`@mui/material`, `@mui/x-tree-view`), chosen over React Aria Components because the later local app and its graph view build on it (research note 4, maintainer, 2026-11-02). The theme reads the `--jsb-*` tokens through `cssVariables: { nativeColor: true }`, scoped with `rootSelector` and `colorSchemeSelector` to the playground root and the host's `data-theme`; Emotion uses its own cache key; no `CssBaseline`; overlays render into the root; the `ThemeProvider` gets `colorSchemeNode={null}` and `storageManager={null}`, because MUI otherwise sets its own `data-theme` attribute on `<html>` and reads and follows the mode saved in `localStorage` (phase 4, 2026-11-02; corrected in the review of #599). The MUI variables have their own prefix, `jsb-play`, and overlays stay in the root, with the limits that `packages/playground/AGENTS.md` ("Stack") records (review of #599, maintainer, 2026-11-03). React, React DOM, `@mui/material`, `@emotion/react` and `@emotion/styled` are peer dependencies, so that each host has one instance of their context. Split panes are `react-resizable-panels`.
+16. The interface follows the mockup in `playground/mockups/`, approved by the maintainer on 2026-11-04 and described in `00-shared.md` section 6: the page has no visible header and the playground fills it below the navbar, with a help dialog in the top bar in place of the lead.
 
 ## Open questions
 

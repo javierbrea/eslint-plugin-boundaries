@@ -8,7 +8,7 @@ Issue: #553. Branch `feat/553/playground-verdicts` from `feat/539/playground`; P
 Read first:
 
 - RFC #538, "Interface" decisions 3, 4 and 6, the picker drawing, the problems panel states, and "Milestones" M2.
-- The approved mockup (`playground/mockups/`) and section 6 "Interface" of `00-shared.md`, which phase 5 writes when the mockup is approved.
+- The approved mockup (`playground/mockups/`, the `dependency`, `picker` and `policy` states) and section 6 "Interface" of `00-shared.md`.
 - `packages/policies` README and `AGENTS.md`: `describeDependency` and its input (`DependencyDescriptorOptions`: `from`, `to`, `source`, `kind`, `nodeKind`, `specifiers`), `evaluateDependency` and its result (`checked` with a skip `reason`, or `allowed`, `policyIndex`, `match`, `message`, `diagnostics`), whose `message` is set only when `allowed` is `false`; `getDependencySkipReason(options, description)` gives the skip reason alone.
 - `packages/website/src/components/home/Steps/` for the exact step 3 scenario and the message the home shows.
 
