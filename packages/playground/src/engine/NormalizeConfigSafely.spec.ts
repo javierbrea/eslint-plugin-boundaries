@@ -82,6 +82,19 @@ describe("NormalizeConfigSafely", () => {
         expect(result).toEqual(normalizeConfig(config));
         expect(result.diagnostics).toHaveLength(1);
       });
+
+      it("should pass the options to normalizeConfig", () => {
+        // Arrange
+        const config = createConfig({});
+
+        // Act
+        const { value } = normalizeConfigSafely(config, {
+          rootPath: "packages/app",
+        });
+
+        // Assert
+        expect(value.settings.rootPath).toBe("packages/app");
+      });
     });
 
     describe("when a policy has a selector that cannot be normalized", () => {
@@ -148,6 +161,21 @@ describe("NormalizeConfigSafely", () => {
         expect(value.settings).toEqual(
           normalizeConfig(createConfig({})).value.settings
         );
+      });
+
+      it("should pass the options to normalizeConfig for the rest of the config", () => {
+        // Arrange
+        const config = createConfig({
+          "boundaries/dependencies": [2, { policies: [{ disallow: {} }] }],
+        });
+
+        // Act
+        const { value } = normalizeConfigSafely(config, {
+          rootPath: "packages/app",
+        });
+
+        // Assert
+        expect(value.settings.rootPath).toBe("packages/app");
       });
 
       it("should return an error for each policy that throws, and none for the others", () => {

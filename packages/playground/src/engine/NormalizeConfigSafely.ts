@@ -10,6 +10,7 @@ import type {
   DependenciesPolicy,
   DependenciesRuleOptions,
   Diagnostic,
+  NormalizeConfigOptions,
   RuleName,
 } from "@boundaries/config";
 
@@ -43,13 +44,18 @@ function getThrownMessage(normalize: () => unknown): string | undefined {
  * Tells whether the entry of a rule throws when it is normalized with the settings.
  * @param settings The settings as written.
  * @param listEntry The entry and its key in `rules`.
+ * @param options The options of `normalizeConfig`.
  * @returns `true` when `normalizeConfig` throws for a config that has only this entry.
  */
-function throwsAlone(settings: unknown, listEntry: ListEntry): boolean {
+function throwsAlone(
+  settings: unknown,
+  listEntry: ListEntry,
+  options: NormalizeConfigOptions
+): boolean {
   const { ruleId, entry } = listEntry;
   return (
     getThrownMessage(() =>
-      normalizeConfig({ settings, rules: { [ruleId]: entry } })
+      normalizeConfig({ settings, rules: { [ruleId]: entry } }, options)
     ) !== undefined
   );
 }
@@ -110,15 +116,19 @@ function diagnoseThrowingEntry(
  * @param config The config object, as written.
  * @param config.settings The settings.
  * @param config.rules The rules, which are an object because only the normalization of their entries throws.
+ * @param options The options of `normalizeConfig`.
  * @returns The normalized config without the entries that throw, and its diagnostics followed by those of the entries that throw.
  */
-function normalizeWithoutThrowingEntries({
-  settings,
-  rules,
-}: {
-  settings: unknown;
-  rules: unknown;
-}): ConfigResult<ConfigNormalized> {
+function normalizeWithoutThrowingEntries(
+  {
+    settings,
+    rules,
+  }: {
+    settings: unknown;
+    rules: unknown;
+  },
+  options: NormalizeConfigOptions
+): ConfigResult<ConfigNormalized> {
   const entries = Object.entries(rules as Record<string, unknown>);
   const throwing = entries
     .filter(([, entry]) => Array.isArray(entry))
@@ -128,15 +138,18 @@ function normalizeWithoutThrowingEntries({
         entry: entry as unknown[],
       })
     )
-    .filter((listEntry) => throwsAlone(settings, listEntry));
+    .filter((listEntry) => throwsAlone(settings, listEntry, options));
   const throwingIds = new Set(throwing.map(({ ruleId }) => ruleId));
 
-  const rest = normalizeConfig({
-    settings,
-    rules: Object.fromEntries(
-      entries.filter(([ruleId]) => !throwingIds.has(ruleId))
-    ),
-  });
+  const rest = normalizeConfig(
+    {
+      settings,
+      rules: Object.fromEntries(
+        entries.filter(([ruleId]) => !throwingIds.has(ruleId))
+      ),
+    },
+    options
+  );
   const { legacyWarnings } = rest.value.settings;
 
   return {
@@ -155,15 +168,19 @@ function normalizeWithoutThrowingEntries({
  * @param config The config object, as written.
  * @param config.settings The settings.
  * @param config.rules The rules.
+ * @param options The options of `normalizeConfig`, such as the root path that the host resolved.
  * @returns The normalized config and its diagnostics. For each entry that throws, they end with the diagnostics of its options and an error at each policy that throws, with the message of the error and a period as its title.
  */
-export function normalizeConfigSafely(config: {
-  settings: unknown;
-  rules: unknown;
-}): ConfigResult<ConfigNormalized> {
+export function normalizeConfigSafely(
+  config: {
+    settings: unknown;
+    rules: unknown;
+  },
+  options: NormalizeConfigOptions = {}
+): ConfigResult<ConfigNormalized> {
   try {
-    return normalizeConfig(config);
+    return normalizeConfig(config, options);
   } catch {
-    return normalizeWithoutThrowingEntries(config);
+    return normalizeWithoutThrowingEntries(config, options);
   }
 }

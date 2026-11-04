@@ -9,6 +9,7 @@ import type { ConfigAnalysis } from "./Evaluate.types";
 import { getRangeOf } from "./Locations";
 import { normalizeConfigSafely } from "./NormalizeConfigSafely";
 import { parseConfig } from "./ParseConfig";
+import { resolveRootPath } from "./RootPath";
 import {
   summarizeElementTypes,
   summarizeFileCategories,
@@ -41,11 +42,14 @@ function analyzeConfig(text: string): ConfigAnalysis {
     };
     return lastAnalysis;
   }
-  // A policy half typed in the editor makes `normalizeConfig` throw, which would break the workbench
-  const normalized = normalizeConfigSafely({
-    settings: parsed.value.settings,
-    rules: parsed.value.rules,
-  });
+  // A policy half typed in the editor makes `normalizeConfig` throw, which would break the workbench. The playground is the host that resolves the root path, as the plugin does for ESLint
+  const normalized = normalizeConfigSafely(
+    {
+      settings: parsed.value.settings,
+      rules: parsed.value.rules,
+    },
+    { rootPath: resolveRootPath(parsed.value.settings) }
+  );
   lastAnalysis = {
     text,
     parsed,
@@ -67,7 +71,7 @@ function evaluateSketch(sketch: Sketch): Evaluation {
   const { parsed, normalized, problems } = analyzeConfig(sketch.config);
   const { settings } = normalized.value;
 
-  // Sketch paths are relative to its root, which is what `describeEntity` takes without a root path. Every file is local, so there are no sources to describe
+  // Sketch paths are relative to its root, and so is the root path of the settings. Every file is local, so there are no sources to describe
   const files = new Map(
     sketch.tree
       .filter(({ kind }) => kind === "file")

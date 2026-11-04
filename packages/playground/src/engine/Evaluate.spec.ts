@@ -236,6 +236,67 @@ describe("Evaluate", () => {
         );
       });
 
+      it("should describe the files as it does without a root path when the root path is absolute, because the sketch is the project at that path", () => {
+        // Arrange
+        const sketch = createSketch(
+          JSON.stringify({
+            settings: {
+              ...QUICK_START_SETTINGS,
+              "boundaries/root-path": "/project",
+              "boundaries/flag-as-external": { outsideRootPath: true },
+            },
+            rules: QUICK_START_RULES,
+          }),
+          QUICK_START_FILES
+        );
+
+        // Act
+        const { files } = evaluate(sketch);
+
+        // Assert
+        expect(
+          QUICK_START_FILES.map((path) => pickDescribed(files.get(path)!))
+        ).toEqual(
+          QUICK_START_FILES.map((path) =>
+            pickDescribed(QUICK_START_DESCRIPTIONS[path])
+          )
+        );
+      });
+
+      it("should describe the files under a relative root path as the plugin does with that path under the root of the project", () => {
+        // Arrange
+        const rootPathSettings = {
+          ...QUICK_START_SETTINGS,
+          "boundaries/root-path": "./src/",
+          "boundaries/flag-as-external": { outsideRootPath: true },
+        };
+        const sketch = createSketch(
+          JSON.stringify({
+            settings: rootPathSettings,
+            rules: QUICK_START_RULES,
+          }),
+          [...QUICK_START_FILES, "scripts/build.js"]
+        );
+        const { settings } = normalizeConfig(
+          { settings: rootPathSettings, rules: QUICK_START_RULES },
+          { rootPath: "/project/src" }
+        ).value;
+
+        // Act
+        const { files } = evaluate(sketch);
+
+        // Assert
+        expect(
+          QUICK_START_FILES.map((path) => pickDescribed(files.get(path)!))
+        ).toEqual(
+          QUICK_START_FILES.map((path) =>
+            pickDescribed(describeEntity(settings, `/project/${path}`))
+          )
+        );
+        expect(files.get("src/index.js")!.module.origin).toBe("local");
+        expect(files.get("scripts/build.js")!.module.origin).toBe("external");
+      });
+
       it("should say which files each element type matches", () => {
         // Arrange
         const sketch = createSketch(QUICK_START_CONFIG, QUICK_START_FILES);
