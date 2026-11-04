@@ -61,10 +61,8 @@ export const editorTheme = EditorView.theme(
       color: "var(--jsb-code-fg)",
       fontSize: "12.5px",
     },
-    "&.cm-focused": {
-      outline: "2px solid var(--jsb-code-keyword)",
-      outlineOffset: "-2px",
-    },
+    // No ring around the editor, as the mockup draws it (maintainer, 2026-11-04): the cursor and the active line show the focus. "none" overrides the dotted outline of the base theme of CodeMirror
+    "&.cm-focused": { outline: "none" },
     ".cm-scroller": {
       fontFamily: "var(--jsb-font-mono)",
       lineHeight: "22px",
