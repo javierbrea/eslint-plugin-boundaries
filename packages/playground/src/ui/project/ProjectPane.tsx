@@ -147,6 +147,8 @@ export function ProjectPane({
         open={tree.isDeleteOpen}
         onClose={tree.cancelDelete}
         aria-labelledby={dialogTitleId}
+        // The dialog keeps the focus while it fades out, so the tree can take it back only when it is gone
+        slotProps={{ transition: { onExited: tree.deleteExited } }}
       >
         <DialogTitle id={dialogTitleId}>
           {`Delete ${path}/ and its ${files} ${files === 1 ? "file" : "files"}?`}

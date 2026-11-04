@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import type { Sketch } from "../../contract";
 import {
@@ -51,19 +51,45 @@ function getFocusId(openNode: Focus): string | undefined {
 /**
  * Gets the folder that a new node goes in: the folder the user selected, the folder of the file in focus, or the root.
  * @param sketch The sketch.
- * @param pickedFolder The folder the user selected last, if any. It can be gone if the sketch was edited since.
+ * @param files The paths of the files of the sketch.
+ * @param pickedFolder The folder the user selected last, if any. It can be gone, or be a file, if the sketch was edited since.
  * @param openNode What is in focus.
  * @returns The path of the folder, or an empty string for the root.
  */
 function getTargetFolder(
   sketch: Sketch,
+  files: ReadonlySet<string>,
   pickedFolder: string | undefined,
   openNode: Focus
 ): string {
-  if (pickedFolder !== undefined && hasNode(sketch, pickedFolder)) {
+  // Nothing can be added under a file, and `hasNode` is true for one
+  if (
+    pickedFolder !== undefined &&
+    hasNode(sketch, pickedFolder) &&
+    !files.has(pickedFolder)
+  ) {
     return pickedFolder;
   }
   return openNode.kind === "file" ? getParentPath(openNode.path) : "";
+}
+
+/**
+ * Gets the item that takes the keyboard focus after a folder is removed: the nearest folder above it that the removal leaves, since a folder with nothing else in it goes with the last of its nodes.
+ * @param sketch The sketch after the removal.
+ * @param removedPath The path of the folder that was removed.
+ * @returns The path of the folder, or the id of the config node when no folder is left above.
+ */
+function getItemAfterRemoval(sketch: Sketch, removedPath: string): string {
+  for (
+    let folder = getParentPath(removedPath);
+    folder !== "";
+    folder = getParentPath(folder)
+  ) {
+    if (hasNode(sketch, folder)) {
+      return folder;
+    }
+  }
+  return CONFIG_PATH;
 }
 
 /**
@@ -137,6 +163,8 @@ export function useProjectTree({
   const [focusRequest, setFocusRequest] = useState<string | undefined>(
     undefined
   );
+  // Where the keyboard goes once the dialog is gone after the user confirmed: the dialog has the focus until then, and the folder it asked about does not exist any more
+  const afterDeleteRef = useRef<string | undefined>(undefined);
   const files = useMemo(() => new Set(getFiles(sketch)), [sketch]);
 
   const focusId = getFocusId(openNode);
@@ -197,7 +225,7 @@ export function useProjectTree({
    * @param kind Whether to add a file or a folder.
    */
   function add(kind: "file" | "folder"): void {
-    const folder = getTargetFolder(sketch, pickedFolder, openNode);
+    const folder = getTargetFolder(sketch, files, pickedFolder, openNode);
     const path = getUniquePath(sketch, folder, NEW_NAMES[kind]);
 
     // The path is free and valid, and no file is above it: the folder is a folder of the sketch, or the root
@@ -245,8 +273,12 @@ export function useProjectTree({
     if (pickedFolder !== undefined) {
       setPickedFolder(movePath(pickedFolder, path, newPath));
     }
+    // The node can move into a closed folder, which opens so that the node shows
     setCollapsed(
-      new Set(Array.from(collapsed, (id) => movePath(id, path, newPath)))
+      openAncestors(
+        new Set(Array.from(collapsed, (id) => movePath(id, path, newPath))),
+        newPath
+      )
     );
     finishRename(newPath);
     return undefined;
@@ -255,15 +287,19 @@ export function useProjectTree({
   /**
    * Removes a node and everything under it. If it holds what is in focus, nothing is in focus after.
    * @param path The path of the node.
+   * @returns The sketch without the node, or the same sketch when there was no such node.
    */
-  function remove(path: string): void {
-    apply(removeNode(sketch, path), onSketchChange);
+  function remove(path: string): Sketch {
+    const result = removeNode(sketch, path);
+
+    apply(result, onSketchChange);
     if (openNode.kind === "file" && isSameOrInside(openNode.path, path)) {
       onFocus({ kind: "none" });
     }
     if (pickedFolder !== undefined && isSameOrInside(pickedFolder, path)) {
       setPickedFolder(undefined);
     }
+    return "error" in result ? sketch : result.sketch;
   }
 
   /**
@@ -283,10 +319,18 @@ export function useProjectTree({
     }
   }
 
-  /** Removes the folder the dialog asked about, and closes the dialog. */
+  /** Removes the folder the dialog asked about, and closes the dialog. The keyboard goes back to the tree when the dialog is gone. */
   function confirmDelete(): void {
-    remove(deleteRequest.path);
+    const next = remove(deleteRequest.path);
+
+    afterDeleteRef.current = getItemAfterRemoval(next, deleteRequest.path);
     setIsDeleteOpen(false);
+  }
+
+  /** Gives the keyboard to the tree when the dialog is gone after a removal. Closing the dialog without one leaves the keyboard where the dialog restores it, on the folder, which is still there. */
+  function deleteExited(): void {
+    setFocusRequest(afterDeleteRef.current);
+    afterDeleteRef.current = undefined;
   }
 
   return {
@@ -306,5 +350,6 @@ export function useProjectTree({
     requestDelete,
     confirmDelete,
     cancelDelete: () => setIsDeleteOpen(false),
+    deleteExited,
   };
 }

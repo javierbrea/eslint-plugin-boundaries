@@ -62,4 +62,6 @@ export type ProjectTreeController = {
   readonly confirmDelete: () => void;
   /** Closes the dialog and removes nothing */
   readonly cancelDelete: () => void;
+  /** The dialog is gone from the page, which is when the keyboard can go back to the tree */
+  readonly deleteExited: () => void;
 };

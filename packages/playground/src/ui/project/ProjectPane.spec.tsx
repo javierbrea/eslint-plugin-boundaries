@@ -1,7 +1,9 @@
 import {
+  act,
   fireEvent,
   render,
   screen as view,
+  waitFor,
   waitForElementToBeRemoved,
   within,
 } from "@testing-library/react";
@@ -218,6 +220,42 @@ function typeName(path: string, typed: string): HTMLElement {
 
   fireEvent.change(field, { target: { value: typed } });
   return field;
+}
+
+/**
+ * Moves the keyboard focus out of the tree, to the button of the Tree view, as a click or the Tab key outside the tree does. `fireEvent.blur` only dispatches the event and never moves the focus, so it cannot tell where the focus ends.
+ * @returns The element that has the focus now.
+ */
+function moveFocusAway(): HTMLElement {
+  const other = view.getByRole("button", { name: "Tree" });
+
+  act(() => other.focus());
+  return other;
+}
+
+/**
+ * Waits until the focus is on an element, which is when the tree took it back after the rename or the dialog went. The focus is on the body until then.
+ */
+async function waitForFocus(): Promise<void> {
+  await waitFor(() => expect(document.activeElement).not.toBe(document.body));
+}
+
+/**
+ * Lets the timers that are already set run. An item takes the keyboard back one task after a rename, to see where the focus went, so a test that expects it to stay where the user put it waits for that task.
+ */
+async function settleFocus(): Promise<void> {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
+/**
+ * Opens the confirmation dialog of a folder the way a keyboard user does: the item of the folder has the focus, and Delete is pressed.
+ * @param path The path of the folder.
+ */
+function askToDelete(path: string): void {
+  act(() => getItem(path).focus());
+  fireEvent.keyDown(getItem(path), { key: "Delete" });
 }
 
 /**
@@ -624,6 +662,10 @@ describe("ProjectPane", () => {
   });
 
   describe("rename", () => {
+    beforeEach(() => {
+      jest.restoreAllMocks();
+    });
+
     it("should rename a file in place from its row action", () => {
       // Arrange
       const spies = createSpies();
@@ -842,21 +884,45 @@ describe("ProjectPane", () => {
       );
     });
 
-    it("should rename when the field loses the focus", () => {
+    it("should open the closed folder that a node moves into, and give the keyboard to the node", async () => {
+      // Arrange
+      const spies = createSpies();
+      render(<Harness spies={spies} />);
+      fireEvent.click(getRow("src/components"));
+      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
+
+      // Act
+      fireEvent.keyDown(typeName("src/index.js", "components/moved.js"), {
+        key: "Enter",
+      });
+      await waitForFocus();
+
+      // Assert
+      expect(getItem("src/components").getAttribute("aria-expanded")).toBe(
+        "true"
+      );
+      expect(getPaths()).toContain("src/components/moved.js");
+      expect(document.activeElement).toBe(getItem("src/components/moved.js"));
+    });
+
+    it("should rename when the field loses the focus, and leave the focus where the user put it", async () => {
       // Arrange
       const spies = createSpies();
       render(<Harness spies={spies} />);
       fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
-      const field = typeName("src/index.js", "main.js");
+      typeName("src/index.js", "main.js");
 
       // Act
-      fireEvent.blur(field);
+      const other = moveFocusAway();
+      await settleFocus();
 
       // Assert
       expect(getTreePaths(getLastSketch(spies.onSketchChange))).toContain(
         "src/main.js"
       );
       expect(spies.onSketchChange).toHaveBeenCalledTimes(1);
+      expect(getPaths()).toContain("src/main.js");
+      expect(document.activeElement).toBe(other);
     });
 
     it("should give up when Escape is pressed", () => {
@@ -988,23 +1054,68 @@ describe("ProjectPane", () => {
       expect(view.getByRole("tooltip").textContent).not.toBe("");
     });
 
-    it("should give up when the field loses the focus with a refused name", () => {
+    it("should give up when the field loses the focus with a refused name, and leave the focus where the user put it", async () => {
       // Arrange
       const spies = createSpies();
       render(<Harness spies={spies} />);
       fireEvent.keyDown(getItem("src/components/Price.js"), { key: "F2" });
-      const field = typeName("src/components/Price.js", "Button.js");
+      typeName("src/components/Price.js", "Button.js");
 
       // Act
-      fireEvent.blur(field);
+      const other = moveFocusAway();
+      await settleFocus();
 
       // Assert
       expect(view.queryByRole("textbox")).toBeNull();
       expect(spies.onSketchChange).not.toHaveBeenCalled();
       expect(getPaths()).toContain("src/components/Price.js");
+      expect(document.activeElement).toBe(other);
     });
 
-    it("should give the keyboard back to the renamed item", () => {
+    it("should close the field and leave the focus where the user put it when the name did not change", async () => {
+      // Arrange
+      const spies = createSpies();
+      render(<Harness spies={spies} />);
+      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
+
+      // Act
+      const other = moveFocusAway();
+      await settleFocus();
+
+      // Assert
+      expect(view.queryByRole("textbox")).toBeNull();
+      expect(spies.onSketchChange).not.toHaveBeenCalled();
+      expect(document.activeElement).toBe(other);
+    });
+
+    it("should not touch the item while the focus is on its way to where the user clicked", async () => {
+      // Arrange
+      const focusSpy = jest.spyOn(HTMLElement.prototype, "focus");
+      const spies = createSpies();
+      render(<Harness spies={spies} />);
+      fireEvent.keyDown(getItem("src/index.js"), { key: "F2" });
+      const field = typeName("src/index.js", "main.js");
+      const other = view.getByRole("button", { name: "Tree" });
+      focusSpy.mockClear();
+
+      // Act
+      // A browser runs the handlers of the blur while the focus is on the body, and puts it on its target when they return
+      act(() => {
+        fireEvent.blur(field);
+      });
+      act(() => other.focus());
+      await settleFocus();
+
+      // Assert
+      const roles = focusSpy.mock.contexts.map((element) =>
+        element.getAttribute("role")
+      );
+
+      expect(roles).not.toContain("treeitem");
+      expect(document.activeElement).toBe(other);
+    });
+
+    it("should give the keyboard back to the renamed item", async () => {
       // Arrange
       const spies = createSpies();
       render(<Harness spies={spies} />);
@@ -1012,12 +1123,13 @@ describe("ProjectPane", () => {
 
       // Act
       fireEvent.keyDown(typeName("src/index.js", "main.js"), { key: "Enter" });
+      await waitForFocus();
 
       // Assert
       expect(document.activeElement).toBe(getItem("src/main.js"));
     });
 
-    it("should give the keyboard back to the item when the user gives up", () => {
+    it("should give the keyboard back to the item when the user gives up", async () => {
       // Arrange
       const spies = createSpies();
       render(<Harness spies={spies} />);
@@ -1025,9 +1137,24 @@ describe("ProjectPane", () => {
 
       // Act
       fireEvent.keyDown(typeName("src/index.js", "main.js"), { key: "Escape" });
+      await waitForFocus();
 
       // Assert
       expect(document.activeElement).toBe(getItem("src/index.js"));
+    });
+
+    it("should announce the F2 and Delete shortcuts on the rows that can be edited, and not on the config", () => {
+      // Arrange
+      const spies = createSpies();
+      render(<Harness spies={spies} />);
+
+      // Act
+      const shortcuts = ["src", "src/index.js", "eslint.config.js"].map(
+        (path) => getItem(path).getAttribute("aria-keyshortcuts")
+      );
+
+      // Assert
+      expect(shortcuts).toEqual(["F2 Delete", "F2 Delete", null]);
     });
 
     it("should have no row actions, rename or delete for the config", () => {
@@ -1238,6 +1365,83 @@ describe("ProjectPane", () => {
       expect(getPaths()).toEqual(["index.js"]);
     });
 
+    it("should give the keyboard to the parent of the folder once the dialog is gone", async () => {
+      // Arrange
+      const spies = createSpies();
+      render(<Harness spies={spies} />);
+      askToDelete("src/components");
+
+      // Act
+      fireEvent.click(view.getByRole("button", { name: "Delete" }));
+      await waitForElementToBeRemoved(() => view.queryByRole("dialog"));
+      await waitForFocus();
+
+      // Assert
+      expect(getPaths()).not.toContain("src/components");
+      expect(document.activeElement).toBe(getItem("src"));
+    });
+
+    it("should give the keyboard to the nearest folder that is left when the parent goes with it", async () => {
+      // Arrange
+      const spies = createSpies();
+      const sketch: Sketch = {
+        ...SKETCH,
+        tree: [
+          { path: "a/b/c/x.js", kind: "file" },
+          { path: "a/y.js", kind: "file" },
+        ],
+      };
+      render(<Harness spies={spies} sketch={sketch} />);
+      askToDelete("a/b/c");
+
+      // Act
+      fireEvent.click(view.getByRole("button", { name: "Delete" }));
+      await waitForElementToBeRemoved(() => view.queryByRole("dialog"));
+      await waitForFocus();
+
+      // Assert
+      expect(getPaths()).toEqual(["a", "a/y.js"]);
+      expect(document.activeElement).toBe(getItem("a"));
+    });
+
+    it("should give the keyboard to the config when no folder is left above the removed one", async () => {
+      // Arrange
+      const spies = createSpies();
+      const sketch: Sketch = {
+        ...SKETCH,
+        tree: [
+          { path: "docs/guide/a.md", kind: "file" },
+          { path: "index.js", kind: "file" },
+        ],
+      };
+      render(<Harness spies={spies} sketch={sketch} />);
+      askToDelete("docs/guide");
+
+      // Act
+      fireEvent.click(view.getByRole("button", { name: "Delete" }));
+      await waitForElementToBeRemoved(() => view.queryByRole("dialog"));
+      await waitForFocus();
+
+      // Assert
+      expect(getPaths()).toEqual(["index.js"]);
+      expect(document.activeElement).toBe(getItem("eslint.config.js"));
+    });
+
+    it("should leave the keyboard on the folder when the user cancels", async () => {
+      // Arrange
+      const spies = createSpies();
+      render(<Harness spies={spies} />);
+      askToDelete("src/components");
+
+      // Act
+      fireEvent.click(view.getByRole("button", { name: "Cancel" }));
+      await waitForElementToBeRemoved(() => view.queryByRole("dialog"));
+      await waitForFocus();
+
+      // Assert
+      expect(document.activeElement).toBe(getItem("src/components"));
+    });
+
     it("should keep the folder when the user cancels", async () => {
       // Arrange
       const spies = createSpies();
@@ -1443,6 +1647,38 @@ describe("ProjectPane", () => {
       expect(getTreePaths(getLastSketch(props.onSketchChange))).toContain(
         "new-file.js"
       );
+    });
+
+    it("should add the file at the root when the selected folder became a file", () => {
+      // Arrange
+      const props = createProps();
+      const { rerender } = render(<ProjectPane {...props} />);
+      fireEvent.click(getRow("src/components"));
+      rerender(
+        <ProjectPane
+          {...props}
+          sketch={{
+            ...SKETCH,
+            tree: [
+              { path: "src/components", kind: "file" },
+              { path: "index.js", kind: "file" },
+            ],
+          }}
+        />
+      );
+
+      // Act
+      fireEvent.click(view.getByRole("button", { name: "Add file" }));
+
+      // Assert
+      expect(props.onSketchChange).toHaveBeenCalledTimes(1);
+      expect(getTreePaths(getLastSketch(props.onSketchChange))).toContain(
+        "new-file.js"
+      );
+      expect(props.onFocus).toHaveBeenCalledWith({
+        kind: "file",
+        path: "new-file.js",
+      });
     });
 
     it("should pick a free name when the first one is taken", () => {
@@ -1702,6 +1938,19 @@ describe("ProjectPane", () => {
 
       // Assert
       expect(actions).toBeNull();
+    });
+
+    it("should announce no shortcuts on the rows", () => {
+      // Arrange
+      render(<ProjectPane {...createProps({ capabilities: READ_ONLY })} />);
+
+      // Act
+      const shortcuts = view
+        .getAllByRole("treeitem")
+        .map((item) => item.getAttribute("aria-keyshortcuts"));
+
+      // Assert
+      expect(shortcuts.every((keys) => keys === null)).toBe(true);
     });
 
     it("should neither rename nor remove with the keyboard or the mouse", () => {
