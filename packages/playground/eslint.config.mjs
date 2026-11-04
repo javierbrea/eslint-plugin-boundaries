@@ -68,7 +68,9 @@ export default [
     settings: {
       "boundaries/elements": [
         { type: "contract", pattern: "src/contract" },
+        { type: "sketch", pattern: "src/sketch" },
         { type: "engine", pattern: "src/engine" },
+        { type: "examples", pattern: "src/examples" },
         { type: "ui", pattern: "src/ui" },
         { type: "theme", pattern: "src/theme" },
       ],
@@ -101,7 +103,7 @@ export default [
               allow: {
                 to: [
                   { file: { categories: "app" } },
-                  { element: { type: "contract" } },
+                  { element: { type: ["contract", "examples"] } },
                 ],
               },
             },
@@ -113,10 +115,15 @@ export default [
             },
             {
               from: { element: { type: "ui" } },
-              allow: { to: { element: { type: ["contract", "engine"] } } },
+              allow: {
+                to: {
+                  element: { type: ["contract", "sketch", "engine", "theme"] },
+                },
+              },
             },
+            // The pure layers: operations on a sketch, its evaluation and the examples read only the contract
             {
-              from: { element: { type: "engine" } },
+              from: { element: { type: ["sketch", "engine", "examples"] } },
               allow: { to: { element: { type: "contract" } } },
             },
             // Test files are never imported from source code
