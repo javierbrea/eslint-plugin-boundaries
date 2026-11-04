@@ -1,9 +1,11 @@
 export type {
   ConfigProblem,
   ElementTypeSummary,
+  Engine,
   Evaluation,
   FileCategorySummary,
+  ProblemLevel,
   RuleSummary,
   TextRange,
 } from "./Engine.types";
-export { evaluate } from "./Evaluate";
+export { createEngine } from "./Evaluate";

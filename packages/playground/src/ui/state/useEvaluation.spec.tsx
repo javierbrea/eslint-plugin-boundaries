@@ -1,17 +1,35 @@
 import { act, renderHook } from "@testing-library/react";
 
 import type { Sketch } from "../../contract";
-import { evaluate } from "../../engine";
+import { createEngine } from "../../engine";
+import type { Engine } from "../../engine";
 
 import { EVALUATION_DELAY, useEvaluation } from "./useEvaluation";
 
-// The real engine, which the tests only count
-jest.mock<{ evaluate: typeof evaluate }>("../../engine", () => {
-  const actual = jest.requireActual<{ evaluate: typeof evaluate }>(
+// The real engines, whose evaluations the tests only count
+jest.mock<{ createEngine: typeof createEngine }>("../../engine", () => {
+  const actual = jest.requireActual<{ createEngine: typeof createEngine }>(
     "../../engine"
   );
-  return { ...actual, evaluate: jest.fn(actual.evaluate) };
+  return {
+    ...actual,
+    createEngine: jest.fn(() => {
+      const engine = actual.createEngine();
+      return { evaluate: jest.fn(engine.evaluate) };
+    }),
+  };
 });
+
+/**
+ * Gets the `evaluate` of an engine that the hook created.
+ * @param index The position of the engine among the ones created since the test began.
+ * @returns The `evaluate` of the engine, which counts its calls.
+ */
+function getEvaluate(index = 0): jest.MockedFunction<Engine["evaluate"]> {
+  return jest.mocked(
+    jest.mocked(createEngine).mock.results[index].value.evaluate
+  );
+}
 
 const FIRST: Sketch = {
   config: "{ settings: {}, rules: {} }",
@@ -32,7 +50,6 @@ const THIRD: Sketch = {
 describe("useEvaluation", () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.mocked(evaluate).mockClear();
   });
 
   afterEach(() => {
@@ -56,7 +73,7 @@ describe("useEvaluation", () => {
     act(() => jest.advanceTimersByTime(EVALUATION_DELAY * 2));
 
     // Assert
-    expect(evaluate).toHaveBeenCalledTimes(1);
+    expect(getEvaluate()).toHaveBeenCalledTimes(1);
   });
 
   it("should keep the previous evaluation until the delay after a change has passed", () => {
@@ -96,7 +113,7 @@ describe("useEvaluation", () => {
       ({ sketch }) => useEvaluation(sketch),
       { initialProps: { sketch: FIRST } }
     );
-    jest.mocked(evaluate).mockClear();
+    getEvaluate().mockClear();
 
     // Act
     rerender({ sketch: SECOND });
@@ -109,8 +126,8 @@ describe("useEvaluation", () => {
     // Assert
     expect(midway).toBe(FIRST);
     expect(result.current.sketch).toBe(THIRD);
-    expect(evaluate).toHaveBeenCalledTimes(1);
-    expect(evaluate).toHaveBeenCalledWith(THIRD);
+    expect(getEvaluate()).toHaveBeenCalledTimes(1);
+    expect(getEvaluate()).toHaveBeenCalledWith(THIRD);
   });
 
   it("should not evaluate when the sketch goes back to the one that is evaluated", () => {
@@ -119,7 +136,7 @@ describe("useEvaluation", () => {
       ({ sketch }) => useEvaluation(sketch),
       { initialProps: { sketch: FIRST } }
     );
-    jest.mocked(evaluate).mockClear();
+    getEvaluate().mockClear();
 
     // Act
     rerender({ sketch: SECOND });
@@ -128,7 +145,7 @@ describe("useEvaluation", () => {
 
     // Assert
     expect(result.current.sketch).toBe(FIRST);
-    expect(evaluate).not.toHaveBeenCalled();
+    expect(getEvaluate()).not.toHaveBeenCalled();
   });
 
   it("should clear the delay when it unmounts", () => {
@@ -138,7 +155,7 @@ describe("useEvaluation", () => {
       { initialProps: { sketch: FIRST } }
     );
     rerender({ sketch: SECOND });
-    jest.mocked(evaluate).mockClear();
+    getEvaluate().mockClear();
 
     // Act
     unmount();
@@ -146,6 +163,34 @@ describe("useEvaluation", () => {
 
     // Assert
     expect(jest.getTimerCount()).toBe(0);
-    expect(evaluate).not.toHaveBeenCalled();
+    expect(getEvaluate()).not.toHaveBeenCalled();
+  });
+
+  it("should create the engine once for the hook, whatever the number of renders", () => {
+    // Arrange
+    const { rerender } = renderHook(({ sketch }) => useEvaluation(sketch), {
+      initialProps: { sketch: FIRST },
+    });
+
+    // Act
+    rerender({ sketch: SECOND });
+    act(() => jest.advanceTimersByTime(EVALUATION_DELAY));
+    rerender({ sketch: THIRD });
+    act(() => jest.advanceTimersByTime(EVALUATION_DELAY));
+
+    // Assert
+    expect(createEngine).toHaveBeenCalledTimes(1);
+  });
+
+  it("should give each use of the hook an engine of its own, so that playgrounds on one page share no evaluations", () => {
+    // Act
+    renderHook(() => useEvaluation(FIRST));
+    renderHook(() => useEvaluation(FIRST));
+
+    // Assert
+    expect(createEngine).toHaveBeenCalledTimes(2);
+    expect(getEvaluate(0)).toHaveBeenCalledWith(FIRST);
+    expect(getEvaluate(1)).toHaveBeenCalledWith(FIRST);
+    expect(getEvaluate(0)).not.toBe(getEvaluate(1));
   });
 });

@@ -17,7 +17,7 @@ import type {
 import { MemoryStore, SketchSource } from "./contract";
 import { Playground } from "./Playground";
 import { CACHE_KEY, ROOT_CLASS } from "./theme";
-import { stubResizeObserver } from "./ui/layout/StubResizeObserver";
+import { stubResizeObserver } from "./ui/layout/__fixtures__/StubResizeObserver";
 
 const SOURCE_SKETCH: Sketch = {
   config: "{ settings: {}, rules: {} }",

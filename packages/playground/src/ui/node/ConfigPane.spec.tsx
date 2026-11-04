@@ -32,6 +32,7 @@ const PROBLEM: ConfigProblem = {
   level: "error",
   title: "[boundaries/dependencies] Invalid rule options.",
   detail: 'Value "dissallow" should be equal to one of the allowed values.',
+  links: [],
   path: ["rules", "boundaries/dependencies", 1, "default"],
   range: OPTION_RANGE,
   source: "config",

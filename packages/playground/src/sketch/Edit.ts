@@ -1,7 +1,13 @@
 import type { Sketch, SketchDependency, SketchNode } from "../contract";
 
-import { isSameOrInside, joinPath, movePath } from "./Paths";
-import type { EditResult } from "./Sketch.types";
+import {
+  getParentPath,
+  isSameOrInside,
+  joinPath,
+  movePath,
+  normalizePath,
+} from "./Paths";
+import type { EditResult, RenameResult } from "./Sketch.types";
 import { canonicalizeNodes, getAddError, getNodeKind, hasNode } from "./Tree";
 
 const NOT_FOUND = "There is no file or folder at that path.";
@@ -115,6 +121,32 @@ export function renameNode(
       dependencies: moveDependencies(sketch.dependencies, path, newPath),
     },
   };
+}
+
+/**
+ * Renames a file or a folder with the name a user typed for it, in the folder it is in. The name can have a path, which moves the node: it is joined to the folder, as {@link renameNode} takes it.
+ * @param sketch The sketch to edit. It is not changed.
+ * @param path The path of the file or folder to rename.
+ * @param typedName The name as typed. It is cleaned up as {@link normalizePath} does, and an empty name is refused as an empty path is.
+ * @returns The new sketch and the new path of the node, or the reason why the node cannot be renamed, as {@link renameNode} gives it. When the name leaves the path as it was, the same sketch and path: nothing is edited.
+ */
+export function renameInFolder(
+  sketch: Sketch,
+  path: string,
+  typedName: string
+): RenameResult {
+  const { path: cleaned } = normalizePath(typedName);
+  // An empty name has no folder in front of it, so that the reason is the one of an empty path
+  const newPath =
+    cleaned === "" ? cleaned : joinPath(getParentPath(path), cleaned);
+
+  if (newPath === path) {
+    return { sketch, path };
+  }
+
+  const result = renameNode(sketch, path, newPath);
+
+  return "error" in result ? result : { sketch: result.sketch, path: newPath };
 }
 
 /**

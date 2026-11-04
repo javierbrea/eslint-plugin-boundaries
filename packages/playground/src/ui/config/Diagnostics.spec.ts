@@ -9,6 +9,8 @@ const RANGE: TextRange = { from: 10, to: 24, line: 2, column: 5 };
 
 const LINK = "https://www.jsboundaries.dev/docs/settings/";
 
+const OTHER_LINK = "https://www.jsboundaries.dev/docs/rules/dependencies/";
+
 /**
  * Creates a problem of the config.
  * @param overrides What differs from a warning at `RANGE` with only a title.
@@ -18,6 +20,7 @@ function createProblem(overrides: Partial<ConfigProblem> = {}): ConfigProblem {
   return {
     level: "warning",
     title: "Some element descriptors are invalid and will be ignored.",
+    links: [],
     path: ["settings", "boundaries/elements", 1],
     range: RANGE,
     source: "config",
@@ -147,6 +150,36 @@ describe("Diagnostics", () => {
       // Assert
       expect(diagnostic.message).toBe("Invalid.\nFix it.");
     });
+
+    it("should put the links under the detail in the message, one on each line", () => {
+      // Arrange
+      const problems = [
+        createProblem({
+          title: "Invalid.",
+          detail: "Fix it.",
+          links: [LINK, OTHER_LINK],
+        }),
+      ];
+
+      // Act
+      const [diagnostic] = toDiagnostics(problems, 100);
+
+      // Assert
+      expect(diagnostic.message).toBe(
+        `Invalid.\nFix it.\n${LINK}\n${OTHER_LINK}`
+      );
+    });
+
+    it("should put the links under the title in the message of a problem without detail", () => {
+      // Arrange
+      const problems = [createProblem({ title: "Invalid.", links: [LINK] })];
+
+      // Act
+      const [diagnostic] = toDiagnostics(problems, 100);
+
+      // Assert
+      expect(diagnostic.message).toBe(`Invalid.\n${LINK}`);
+    });
   });
 
   describe("renderMessage", () => {
@@ -177,43 +210,12 @@ describe("Diagnostics", () => {
       );
     });
 
-    it("should replace the docs link of the detail, and the label that introduces it, with a More info link", () => {
+    it("should draw the links after the detail, each as a More info link", () => {
       // Arrange
       const problem = createProblem({
         title: "Invalid.",
-        detail: `Value "x" should be one of the allowed values.\nMore info: ${LINK}`,
-      });
-
-      // Act
-      const message = renderMessage(problem);
-
-      // Assert
-      const link = message.querySelector("a") as HTMLAnchorElement;
-
-      expect(message.querySelector("div")?.textContent).toBe(
-        'Value "x" should be one of the allowed values. More info'
-      );
-      expect(link.textContent).toBe("More info");
-      expect(link.href).toBe(LINK);
-    });
-
-    it("should open the link in a new tab without giving the page to the site it opens", () => {
-      // Arrange
-      const problem = createProblem({ detail: `More info: ${LINK}` });
-
-      // Act
-      const message = renderMessage(problem);
-
-      // Assert
-      const link = message.querySelector("a") as HTMLAnchorElement;
-
-      expect([link.target, link.rel]).toEqual(["_blank", "noreferrer"]);
-    });
-
-    it("should keep a sentence that follows a link, and the lines of the detail", () => {
-      // Arrange
-      const problem = createProblem({
-        detail: `First line.\nSecond line. More info: ${LINK} Then more text.`,
+        detail: 'Value "x" should be one of the allowed values.',
+        links: [LINK],
       });
 
       // Act
@@ -221,56 +223,87 @@ describe("Diagnostics", () => {
 
       // Assert
       expect(message.querySelector("div")?.innerHTML).toBe(
-        `First line.\nSecond line. <a href="${LINK}" target="_blank" rel="noreferrer">More info</a> Then more text.`
+        `Value "x" should be one of the allowed values. <a href="${LINK}" target="_blank" rel="noreferrer">More info</a>`
       );
     });
 
-    it("should link a URL that has no label before it", () => {
-      // Arrange
-      const problem = createProblem({ detail: `Read ${LINK}` });
-
-      // Act
-      const message = renderMessage(problem);
-
-      // Assert
-      expect(message.querySelector("a")?.textContent).toBe("More info");
-    });
-
-    it("should separate two links with a space", () => {
-      // Arrange
-      const problem = createProblem({ detail: `${LINK} ${LINK}other` });
-
-      // Act
-      const message = renderMessage(problem);
-
-      // Assert
-      expect(message.querySelector("div")?.textContent).toBe(
-        "More info More info"
-      );
-    });
-
-    it("should not draw a text node for an empty piece around a link", () => {
-      // Arrange
-      const problem = createProblem({ detail: LINK });
-
-      // Act
-      const message = renderMessage(problem);
-
-      // Assert
-      expect(message.querySelector("div")?.childNodes).toHaveLength(1);
-    });
-
-    it("should not draw a link for text that is not an http or https URL", () => {
+    it("should keep the lines of the detail", () => {
       // Arrange
       const problem = createProblem({
-        detail: "Use javascript:alert(1) or ftp://x.dev",
+        detail: "First line.\nSecond line.",
+        links: [LINK],
       });
 
       // Act
       const message = renderMessage(problem);
 
       // Assert
-      expect(message.querySelector("a")).toBeNull();
+      expect(message.querySelector("div")?.textContent).toBe(
+        "First line.\nSecond line. More info"
+      );
+    });
+
+    it("should open the link in a new tab without giving the page to the site it opens", () => {
+      // Arrange
+      const problem = createProblem({ links: [LINK] });
+
+      // Act
+      const message = renderMessage(problem);
+
+      // Assert
+      const link = message.querySelector("a") as HTMLAnchorElement;
+
+      expect([link.href, link.target, link.rel]).toEqual([
+        LINK,
+        "_blank",
+        "noreferrer",
+      ]);
+    });
+
+    it("should separate each link from what comes before it with a space", () => {
+      // Arrange
+      const problem = createProblem({
+        detail: "Fix it.",
+        links: [LINK, OTHER_LINK],
+      });
+
+      // Act
+      const message = renderMessage(problem);
+
+      // Assert
+      const links = [...message.querySelectorAll("a")];
+
+      expect(message.querySelector("div")?.textContent).toBe(
+        "Fix it. More info More info"
+      );
+      expect(links.map(({ href }) => href)).toEqual([LINK, OTHER_LINK]);
+    });
+
+    it("should draw a link alone, without a space before it, when there is no detail", () => {
+      // Arrange
+      const problem = createProblem({ title: "Invalid.", links: [LINK] });
+
+      // Act
+      const message = renderMessage(problem);
+
+      // Assert
+      expect(message.innerHTML).toBe(
+        `<strong>Invalid.</strong><div><a href="${LINK}" target="_blank" rel="noreferrer">More info</a></div>`
+      );
+    });
+
+    it("should draw only the space between two links when there is no detail", () => {
+      // Arrange
+      const problem = createProblem({ links: [LINK, OTHER_LINK] });
+
+      // Act
+      const message = renderMessage(problem);
+
+      // Assert
+      expect(message.querySelector("div")?.childNodes).toHaveLength(3);
+      expect(message.querySelector("div")?.textContent).toBe(
+        "More info More info"
+      );
     });
   });
 });

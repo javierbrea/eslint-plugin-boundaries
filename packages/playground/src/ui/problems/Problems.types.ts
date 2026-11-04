@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
+import type { ProblemLevel } from "../../engine";
 import type { IconName } from "../icons";
 
-/** How serious a problem is. A deprecation is shown as a warning. */
-export type ProblemLevel = "error" | "warning" | "deprecation";
+export type { ProblemLevel };
 
 /** The color of a count or an icon: what fails, or what is worth a look. */
 export type ProblemTone = "bad" | "warn";

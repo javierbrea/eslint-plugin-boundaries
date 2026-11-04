@@ -1,22 +1,17 @@
 import type { Diagnostic } from "@codemirror/lint";
 import type { EditorView } from "@codemirror/view";
 
-import type { ConfigProblem, TextRange } from "../../engine";
+import type { ConfigProblem, ProblemLevel, TextRange } from "../../engine";
 
 /** The severity of CodeMirror that each level of a problem is shown with: a deprecation is a warning that the editor does not tell apart */
 const SEVERITIES = {
   error: "error",
   warning: "warning",
   deprecation: "warning",
-} as const satisfies Record<ConfigProblem["level"], Diagnostic["severity"]>;
+} as const satisfies Record<ProblemLevel, Diagnostic["severity"]>;
 
-/** The text of the link that replaces a URL of the detail */
+/** The text of the link to a URL of the problem */
 const LINK_TEXT = "More info";
-
-/**
- * Matches a URL of the detail with the whitespace before it and the `More info:` label that `@boundaries/config` writes in front of its docs links. The URL is the only group, so that `split` keeps it between the texts around it.
- */
-const URL_IN_DETAIL = /\s*(?:More info:\s*)?(https?:\/\/\S+)/;
 
 /**
  * Keeps the offsets of a range inside the document. The problems come from the text that was evaluated, and the document can be shorter by the time they arrive.
@@ -35,33 +30,46 @@ export function fitToDocument(
 }
 
 /**
- * Builds the nodes of a detail: its text, with each URL replaced by a link.
- * @param ownerDocument The document that creates the nodes.
- * @param detail The detail of a problem.
- * @returns The nodes, in order.
+ * Builds the link to a URL of a problem.
+ * @param ownerDocument The document that creates the link.
+ * @param url The URL.
+ * @returns A link that opens the URL in a new tab, without giving the page to the site it opens.
  */
-function renderDetail(ownerDocument: Document, detail: string): Node[] {
-  const parts = detail.split(URL_IN_DETAIL);
-  return parts.flatMap<Node>((part, index) => {
-    // `split` puts the texts at the even positions and the URLs between them
-    if (index % 2 === 0) {
-      return part === "" ? [] : [ownerDocument.createTextNode(part)];
-    }
-    const link = ownerDocument.createElement("a");
-    link.href = part;
-    link.target = "_blank";
-    link.rel = "noreferrer";
-    link.textContent = LINK_TEXT;
-    // The whitespace before the link was matched with it, so a space separates the link from what comes before
-    const hasContentBefore = index > 1 || parts[0] !== "";
-    return hasContentBefore
-      ? [ownerDocument.createTextNode(" "), link]
-      : [link];
-  });
+function createLink(ownerDocument: Document, url: string): HTMLAnchorElement {
+  const link = ownerDocument.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "noreferrer";
+  link.textContent = LINK_TEXT;
+  return link;
 }
 
 /**
- * Creates the function that draws the message of a problem in the tooltip: the title in bold, and the detail below it.
+ * Builds the nodes of the detail of a problem: its text, followed by a link for each of its URLs.
+ * @param ownerDocument The document that creates the nodes.
+ * @param problem The problem.
+ * @param problem.detail
+ * @param problem.links
+ * @returns The nodes, in order; a space separates each link from what comes before it. None when the problem has no detail and no link.
+ */
+function renderDetail(
+  ownerDocument: Document,
+  { detail, links }: ConfigProblem
+): Node[] {
+  const nodes: Node[] =
+    detail === undefined ? [] : [ownerDocument.createTextNode(detail)];
+
+  for (const url of links) {
+    if (nodes.length > 0) {
+      nodes.push(ownerDocument.createTextNode(" "));
+    }
+    nodes.push(createLink(ownerDocument, url));
+  }
+  return nodes;
+}
+
+/**
+ * Creates the function that draws the message of a problem in the tooltip: the title in bold, and the detail with its links below it.
  * @param problem The problem.
  * @returns The function CodeMirror calls when it shows the tooltip.
  */
@@ -74,9 +82,10 @@ function createMessageRenderer(
     const title = ownerDocument.createElement("strong");
     title.textContent = problem.title;
     message.append(title);
-    if (problem.detail !== undefined) {
+    const nodes = renderDetail(ownerDocument, problem);
+    if (nodes.length > 0) {
       const detail = ownerDocument.createElement("div");
-      detail.append(...renderDetail(ownerDocument, problem.detail));
+      detail.append(...nodes);
       message.append(detail);
     }
     return message;
@@ -96,10 +105,9 @@ export function toDiagnostics(
   return problems.map((problem) => ({
     ...fitToDocument(problem.range, documentLength),
     severity: SEVERITIES[problem.level],
-    message:
-      problem.detail === undefined
-        ? problem.title
-        : `${problem.title}\n${problem.detail}`,
+    message: [problem.title, problem.detail, ...problem.links]
+      .filter((line) => line !== undefined)
+      .join("\n"),
     renderMessage: createMessageRenderer(problem),
   }));
 }

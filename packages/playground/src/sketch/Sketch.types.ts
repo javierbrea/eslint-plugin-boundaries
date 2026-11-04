@@ -27,6 +27,11 @@ export type EditResult =
   | { readonly sketch: Sketch }
   | { readonly error: string };
 
+/** The result of renaming a node with the name typed for it: the new sketch and the path the node has in it, or why the rename is refused */
+export type RenameResult =
+  | { readonly sketch: Sketch; readonly path: string }
+  | { readonly error: string };
+
 /** A path as a user wrote it, cleaned up */
 export type NormalizedPath = {
   /** Path without the leading `./` or `/` and without the trailing `/` */

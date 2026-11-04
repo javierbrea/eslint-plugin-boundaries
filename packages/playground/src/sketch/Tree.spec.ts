@@ -3,6 +3,7 @@ import type { Sketch, SketchNode } from "../contract";
 import {
   buildTree,
   canonicalizeNodes,
+  countFilesUnder,
   getAddError,
   getFiles,
   getNodeKind,
@@ -249,6 +250,68 @@ describe("Tree", () => {
 
       // Assert
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("countFilesUnder", () => {
+    const sketch = createSketch([
+      ...files(
+        "src/index.js",
+        "src/helpers/format.js",
+        "src/helpers/date/parse.js",
+        "src/helpersAndMore/index.js"
+      ),
+      { path: "docs", kind: "folder" },
+    ]);
+
+    it("should count the files of a folder at any depth", () => {
+      // Act
+      const result = countFilesUnder(sketch, "src");
+
+      // Assert
+      expect(result).toBe(4);
+    });
+
+    it("should count the files of a folder inside another", () => {
+      // Act
+      const result = countFilesUnder(sketch, "src/helpers");
+
+      // Assert
+      expect(result).toBe(2);
+    });
+
+    it("should not count the files of a folder that only shares the start of the name", () => {
+      // Act
+      const result = countFilesUnder(sketch, "src/helpers/date");
+
+      // Assert
+      expect(result).toBe(1);
+    });
+
+    it("should count the files under a node that is declared as a file, which is a folder when it has nodes under it", () => {
+      // Arrange
+      const declared = createSketch([
+        { path: "src", kind: "file" },
+        ...files("src/index.js"),
+      ]);
+
+      // Act
+      const result = countFilesUnder(declared, "src");
+
+      // Assert
+      expect(result).toBe(1);
+    });
+
+    it.each([
+      ["an empty folder", "docs"],
+      ["a file", "src/index.js"],
+      ["a path with no node", "lib"],
+    ])("should count no file for %s", (_case, path) => {
+      // Act
+      const result = countFilesUnder(sketch, path);
+
+      // Assert
+      expect(result).toBe(0);
     });
   });
 

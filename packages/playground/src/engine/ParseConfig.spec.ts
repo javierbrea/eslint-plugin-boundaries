@@ -101,6 +101,7 @@ describe("ParseConfig", () => {
           level: "error",
           title: ACCEPTS,
           detail: "Unexpected token Identifier found. (4:5)",
+          links: [],
           path: [],
           range: { from: 29, to: 30, line: 4, column: 5 },
           source: "parse",
@@ -195,6 +196,7 @@ describe("ParseConfig", () => {
           level: "error",
           title: ACCEPTS,
           detail: "The parser broke",
+          links: [],
           path: [],
           range: { from: 0, to: text.length, line: 1, column: 1 },
           source: "parse",
@@ -234,6 +236,7 @@ describe("ParseConfig", () => {
           level: "error",
           title: ACCEPTS,
           detail: "The text is an array.",
+          links: [],
           path: [],
           range: { from: 1, to: 21, line: 2, column: 1 },
           source: "parse",
@@ -288,6 +291,7 @@ describe("ParseConfig", () => {
                   'The key "files" is not part of the config and is ignored.',
                 detail:
                   'The config takes only the keys "settings" and "rules".',
+                links: [],
                 path: ["files"],
                 range: {
                   from: text.indexOf("["),
@@ -303,6 +307,7 @@ describe("ParseConfig", () => {
                   'The key "plugins" is not part of the config and is ignored.',
                 detail:
                   'The config takes only the keys "settings" and "rules".',
+                links: [],
                 path: ["plugins"],
                 range: {
                   from: text.indexOf("{ boundaries"),

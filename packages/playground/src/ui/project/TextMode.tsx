@@ -2,8 +2,7 @@ import { styled } from "@mui/material/styles";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, ReactNode } from "react";
 
-import type { Sketch } from "../../contract";
-import { fromText, toText } from "../../sketch";
+import { fromText, isSameProject, toText } from "../../sketch";
 
 import type { TextModeProps } from "./TextMode.types";
 
@@ -27,19 +26,6 @@ const Area = styled("textarea")({
   resize: "none",
   whiteSpace: "pre",
 });
-
-/**
- * Tells whether reading the text left the project as it was.
- * @param current The sketch the text was read against.
- * @param next The sketch that the text makes.
- * @returns Whether the tree and the dependencies are the same.
- */
-function isSameSketch(current: Sketch, next: Sketch): boolean {
-  const project = ({ tree, dependencies }: Sketch): string =>
-    JSON.stringify({ tree, dependencies });
-
-  return project(current) === project(next);
-}
 
 /**
  * The project as text, one path per line: a textarea that edits the same sketch as the tree. While the user types it shows the draft, and it reads it 300 ms after the last keystroke and on blur. Lines that cannot be read are reported and stay in the draft until the text is valid, so that the user can fix them; leaving the view drops them.
@@ -88,7 +74,7 @@ export function TextMode({
     const latest = latestRef.current;
     const result = fromText(value, latest.sketch);
 
-    if (!isSameSketch(latest.sketch, result.sketch)) {
+    if (!isSameProject(latest.sketch, result.sketch)) {
       latest.onSketchChange(result.sketch);
     }
     hasProblemsRef.current = result.problems.length > 0;

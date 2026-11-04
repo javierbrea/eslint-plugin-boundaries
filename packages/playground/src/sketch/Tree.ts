@@ -128,6 +128,16 @@ export function getFiles(sketch: Sketch): readonly string[] {
 }
 
 /**
+ * Counts the files inside a folder, at any depth.
+ * @param sketch The sketch to read.
+ * @param path The path of the folder.
+ * @returns How many files {@link getFiles} gives that are under the path. It is 0 for a file, for a path with no node, and for a folder with no file in it.
+ */
+export function countFilesUnder(sketch: Sketch, path: string): number {
+  return getFiles(sketch).filter((file) => file.startsWith(`${path}/`)).length;
+}
+
+/**
  * Tells what is at a path of a list of nodes. A path with a node under it is a folder, declared or not.
  * @param nodes The nodes to look into.
  * @param path A path of the sketch.

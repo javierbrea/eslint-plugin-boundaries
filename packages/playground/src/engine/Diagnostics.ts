@@ -5,6 +5,30 @@ import type { ConfigProblem } from "./Engine.types";
 import { getRangeOf } from "./Locations";
 
 /**
+ * Matches a URL of a detail with the whitespace before it and the `More info:` label that `@boundaries/config` writes in front of its docs links, which come after the text of the detail or on a line of their own. The URL is the only group.
+ */
+const LINK_IN_DETAIL = /\s*(?:More info:\s*)?(https?:\/\/\S+)/g;
+
+/**
+ * Splits the detail of a diagnostic into its text and the links it points to.
+ * @param detail The detail as `@boundaries/config` writes it.
+ * @returns The URLs in the order they were written, and the detail without them, with the label and the whitespace that introduced each one, and trimmed. The text is `undefined` when nothing but links was there, or there was no detail.
+ */
+function splitDetail(detail: string | undefined): {
+  readonly text: string | undefined;
+  readonly links: readonly string[];
+} {
+  if (detail === undefined) {
+    return { text: undefined, links: [] };
+  }
+  const text = detail.replace(LINK_IN_DETAIL, "").trim();
+  return {
+    text: text === "" ? undefined : text,
+    links: Array.from(detail.matchAll(LINK_IN_DETAIL), ([, url]) => url),
+  };
+}
+
+/**
  * Tells whether a path starts with another one.
  * @param path The path to check.
  * @param prefix The path it should start with.
@@ -21,24 +45,27 @@ function startsWith(
  * Maps the diagnostics of `normalizeConfig` to problems placed in the config text.
  * @param diagnostics The diagnostics, with paths from the config object.
  * @param ast The tree of the config text.
- * @returns One problem for each path of each diagnostic, in the order of the diagnostics. The `title`, `detail` and `level` are the ones that the ESLint plugin prints.
+ * @returns One problem for each path of each diagnostic, in the order of the diagnostics. The `title` and `level` are the ones that the ESLint plugin prints, and so is the `detail`, with the links it points to apart in `links`.
  */
 export function toConfigProblems(
   diagnostics: readonly Diagnostic[],
   ast: DocumentNode
 ): ConfigProblem[] {
-  return diagnostics.flatMap(({ level, title, detail, paths }) =>
-    paths.map(
+  return diagnostics.flatMap(({ level, title, detail, paths }) => {
+    const { text, links } = splitDetail(detail);
+
+    return paths.map(
       (path): ConfigProblem => ({
         level,
         title,
-        detail,
+        detail: text,
+        links,
         path,
         range: getRangeOf(ast, path),
         source: "config",
       })
-    )
-  );
+    );
+  });
 }
 
 /**

@@ -1,6 +1,7 @@
 export type {
   EditResult,
   NormalizedPath,
+  RenameResult,
   TextProblem,
   TextResult,
   TreeItem,
@@ -14,12 +15,14 @@ export {
   movePath,
   normalizePath,
 } from "./Paths";
-export { buildTree, getFiles, hasNode } from "./Tree";
+export { buildTree, countFilesUnder, getFiles, hasNode } from "./Tree";
 export {
   addNode,
   getUniquePath,
   removeNode,
+  renameInFolder,
   renameNode,
   setConfig,
 } from "./Edit";
+export { isSameProject } from "./Compare";
 export { fromText, toText } from "./TextMode";

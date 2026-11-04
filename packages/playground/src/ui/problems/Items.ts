@@ -8,18 +8,14 @@ import type { ProblemItem, ProblemLevel, ProblemTone } from "./Problems.types";
 const TEXT_LOCATION = "Project text";
 
 /**
- * Matches a link of a detail with the whitespace before it and the `More info:` label that `@boundaries/config` writes in front of its docs links. A row of the list is a button, which cannot hold a link, and the editor already shows the link in the tooltip of the problem.
- */
-const LINK_IN_DETAIL = /\s*(?:More info:\s*)?https?:\/\/\S+/g;
-
-/**
- * Writes the message of a config problem: its title and its detail as one sentence, without the links.
+ * Writes the message of a config problem: its title and its detail as one sentence. A row of the list is a button, which cannot hold a link, so the links of the problem are left out; the editor shows them in the tooltip.
  * @param problem The problem.
- * @returns The title, followed by the detail when it has text besides links.
+ * @returns The title, followed by the detail when it has one.
  */
 function getConfigMessage(problem: ConfigProblem): string {
-  const text = problem.detail?.replace(LINK_IN_DETAIL, "").trim() ?? "";
-  return text === "" ? problem.title : `${problem.title} ${text}`;
+  return problem.detail === undefined
+    ? problem.title
+    : `${problem.title} ${problem.detail}`;
 }
 
 /**

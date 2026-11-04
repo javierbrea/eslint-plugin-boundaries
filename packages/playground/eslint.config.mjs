@@ -75,7 +75,11 @@ export default [
         { type: "theme", pattern: "src/theme" },
       ],
       "boundaries/files": [
-        { pattern: "**/*.spec.{ts,tsx}", category: "test" },
+        // The fixtures hold what only specs load, such as captured data and the stubs of browser APIs
+        {
+          pattern: ["**/*.spec.{ts,tsx}", "**/__fixtures__/**"],
+          category: "test",
+        },
         { pattern: "src/index.ts", category: "entry" },
         { pattern: "src/Playground.tsx", category: "app" },
       ],
@@ -121,10 +125,15 @@ export default [
                 },
               },
             },
-            // The pure layers: operations on a sketch, its evaluation and the examples read only the contract
+            // The pure layers: operations on a sketch, its evaluation and the examples read the contract
             {
               from: { element: { type: ["sketch", "engine", "examples"] } },
               allow: { to: { element: { type: "contract" } } },
+            },
+            // The engine also reads the sketch, so that both agree on which nodes are files
+            {
+              from: { element: { type: "engine" } },
+              allow: { to: { element: { type: "sketch" } } },
             },
             // Test files are never imported from source code
             {

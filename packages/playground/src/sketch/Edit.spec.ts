@@ -4,10 +4,11 @@ import {
   addNode,
   getUniquePath,
   removeNode,
+  renameInFolder,
   renameNode,
   setConfig,
 } from "./Edit";
-import type { EditResult } from "./Sketch.types";
+import type { EditResult, RenameResult } from "./Sketch.types";
 
 /**
  * Creates a dependency of a file on a node of the sketch.
@@ -71,6 +72,17 @@ function getError(result: EditResult): string {
     throw new Error("The edit was not refused");
   }
   return result.error;
+}
+
+/**
+ * Gets the sketch and the path of a rename that is not an error.
+ * @param result The result of renaming a node by its typed name.
+ */
+function getRenamed(result: RenameResult): { sketch: Sketch; path: string } {
+  if ("error" in result) {
+    throw new Error(`The rename was refused: ${result.error}`);
+  }
+  return result;
 }
 
 // In the order of the tree: what an edit returns
@@ -405,6 +417,149 @@ describe("Edit", () => {
       expect(error).toBe(
         '"src/index.js" is a file, so nothing can be added under it.'
       );
+    });
+  });
+
+  describe("renameInFolder", () => {
+    it("should rename a file in the folder it is in", () => {
+      // Act
+      const { sketch, path } = getRenamed(
+        renameInFolder(SKETCH, "src/index.js", "main.js")
+      );
+
+      // Assert
+      expect(path).toBe("src/main.js");
+      expect(sketch.tree.map((node) => node.path)).toEqual([
+        "docs",
+        "src/components/Price/index.js",
+        "src/components/Price/Price.css",
+        "src/helpers/format.js",
+        "src/main.js",
+      ]);
+    });
+
+    it("should rename a node at the root without a folder in front of the name", () => {
+      // Act
+      const { sketch, path } = getRenamed(
+        renameInFolder(SKETCH, "docs", "guides")
+      );
+
+      // Assert
+      expect(path).toBe("guides");
+      expect(sketch.tree).toContainEqual({ path: "guides", kind: "folder" });
+    });
+
+    it("should rename a folder and move everything under it", () => {
+      // Act
+      const { sketch, path } = getRenamed(
+        renameInFolder(SKETCH, "src/components", "ui")
+      );
+
+      // Assert
+      expect(path).toBe("src/ui");
+      expect(sketch.tree.map((node) => node.path)).toContain(
+        "src/ui/Price/index.js"
+      );
+    });
+
+    it("should clean up the typed name before joining it to the folder", () => {
+      // Act
+      const { path } = getRenamed(
+        renameInFolder(SKETCH, "src/index.js", "  ./main.js  ")
+      );
+
+      // Assert
+      expect(path).toBe("src/main.js");
+    });
+
+    it("should move the node to another folder when the typed name has a path", () => {
+      // Act
+      const { sketch, path } = getRenamed(
+        renameInFolder(SKETCH, "src/index.js", "helpers\\index.js")
+      );
+
+      // Assert
+      expect(path).toBe("src/helpers/index.js");
+      expect(sketch.tree.map((node) => node.path)).toContain(
+        "src/helpers/index.js"
+      );
+    });
+
+    it("should make the dependencies follow the renamed node", () => {
+      // Arrange
+      const withDependencies = createSketch(SKETCH.tree, [
+        toNode("src/index.js", "src/helpers/format.js"),
+      ]);
+
+      // Act
+      const { sketch } = getRenamed(
+        renameInFolder(withDependencies, "src/helpers/format.js", "fmt.js")
+      );
+
+      // Assert
+      expect(sketch.dependencies).toEqual([
+        toNode("src/index.js", "src/helpers/fmt.js"),
+      ]);
+    });
+
+    it("should return the same sketch and path when the name leaves the node where it is", () => {
+      // Act
+      const result = renameInFolder(SKETCH, "src/index.js", " ./index.js ");
+
+      // Assert
+      expect(result).toEqual({ sketch: SKETCH, path: "src/index.js" });
+      expect(getRenamed(result).sketch).toBe(SKETCH);
+    });
+
+    it.each(["", "   ", "./"])(
+      "should refuse the empty name %j as an empty path",
+      (typedName) => {
+        // Act
+        const error = getError(
+          renameInFolder(SKETCH, "src/index.js", typedName)
+        );
+
+        // Assert
+        expect(error).toBe("The path is empty.");
+      }
+    );
+
+    it("should refuse a name with a `..` segment", () => {
+      // Act
+      const error = getError(
+        renameInFolder(SKETCH, "src/helpers/format.js", "../index.js")
+      );
+
+      // Assert
+      expect(error).toBe("The path cannot have `.` or `..` segments.");
+    });
+
+    it("should refuse a path that already exists", () => {
+      // Act
+      const error = getError(
+        renameInFolder(SKETCH, "src/index.js", "helpers/format.js")
+      );
+
+      // Assert
+      expect(error).toBe("That path already exists.");
+    });
+
+    it("should refuse to move a folder into itself", () => {
+      // Act
+      const error = getError(
+        renameInFolder(SKETCH, "src/components", "components/ui")
+      );
+
+      // Assert
+      expect(error).toBe("A folder cannot be moved into itself.");
+    });
+
+    it("should refuse a path where there is no node", () => {
+      // Act
+      const error = getError(renameInFolder(SKETCH, "src/missing.js", "a.js"));
+
+      // Assert
+      expect(error).toBe("There is no file or folder at that path.");
     });
   });
 

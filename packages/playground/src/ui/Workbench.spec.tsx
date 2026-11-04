@@ -10,10 +10,10 @@ import {
 } from "@testing-library/react";
 
 import type { ProjectCapabilities, Sketch } from "../contract";
-import { evaluate } from "../engine";
+import { createEngine } from "../engine";
 import { QUICK_START_EXAMPLE } from "../examples";
 
-import { stubResizeObserver } from "./layout/StubResizeObserver";
+import { stubResizeObserver } from "./layout/__fixtures__/StubResizeObserver";
 import { Workbench } from "./Workbench";
 import type { WorkbenchProps } from "./Workbench.types";
 
@@ -30,6 +30,8 @@ const READ_ONLY: ProjectCapabilities = {
 };
 
 const QUICK_START = QUICK_START_EXAMPLE.sketch;
+
+const { evaluate } = createEngine();
 
 const FILE = "src/modules/checkout/index.js";
 

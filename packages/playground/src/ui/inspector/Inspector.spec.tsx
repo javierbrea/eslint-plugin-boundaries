@@ -2,7 +2,7 @@
 import { fireEvent, render, screen as view } from "@testing-library/react";
 
 import type { Sketch } from "../../contract";
-import { evaluate } from "../../engine";
+import { createEngine } from "../../engine";
 import type { Evaluation } from "../../engine";
 import { QUICK_START_EXAMPLE } from "../../examples";
 import type { Focus } from "../state/Focus.types";
@@ -11,6 +11,8 @@ import { Inspector } from "./Inspector";
 import type { InspectorProps } from "./Inspector.types";
 
 const QUICK_START = QUICK_START_EXAMPLE.sketch;
+
+const { evaluate } = createEngine();
 
 const NOTHING: Focus = { kind: "none" };
 const CONFIG: Focus = { kind: "config" };

@@ -6,7 +6,8 @@ import { describeEntity } from "@boundaries/policies";
 import type { Sketch, SketchNode } from "../contract";
 
 import { QUICK_START_DESCRIPTIONS } from "./__fixtures__/quickStartDescriptions";
-import { evaluate } from "./Evaluate";
+import type { Engine } from "./Engine.types";
+import { createEngine } from "./Evaluate";
 
 // The real normalization, which the tests only count
 jest.mock<{ normalizeConfig: typeof normalizeConfig }>(
@@ -63,11 +64,26 @@ const QUICK_START_FILES = [
   "src/index.js",
 ];
 
+// The same files in the order of the tree, which is the order of the files of an evaluation: folders first, then files, each by name
+const QUICK_START_FILES_IN_TREE_ORDER = [
+  "src/components/atoms/Button/Button.css",
+  "src/components/atoms/Button/Button.spec.js",
+  "src/components/atoms/Button/index.js",
+  "src/helpers/format/index.js",
+  "src/modules/checkout/index.js",
+  "src/index.js",
+];
+
 const QUICK_START_CONFIG = JSON.stringify(
   { settings: QUICK_START_SETTINGS, rules: QUICK_START_RULES },
   null,
   2
 );
+
+// The docs pages that the diagnostics of `@boundaries/config` point to
+const ELEMENTS_LINK = "https://www.jsboundaries.dev/docs/settings/";
+const DEPENDENCIES_LINK =
+  "https://www.jsboundaries.dev/docs/rules/dependencies/";
 
 // The config of the `config` state of the mockup: `patern` in the second element descriptor and `"dissallow"` as the default
 const MOCKUP_CONFIG = [
@@ -166,7 +182,47 @@ function pickDescribed({
 }
 
 describe("Evaluate", () => {
+  describe("createEngine", () => {
+    it("should not share the evaluation of a sketch between engines", () => {
+      // Arrange
+      const config = '{ settings: { "boundaries/cache": true } } // engines';
+      const sketch = createSketch(config, ["src/a.js"]);
+      const first = createEngine();
+      const second = createEngine();
+
+      // Act
+      const evaluationOfFirst = first.evaluate(sketch);
+      const evaluationOfSecond = second.evaluate(sketch);
+
+      // Assert
+      expect(evaluationOfSecond).not.toBe(evaluationOfFirst);
+      expect(evaluationOfSecond).toEqual(evaluationOfFirst);
+      expect(normalizeConfig).toHaveBeenCalledTimes(2);
+    });
+
+    it("should not share the memory of the last config text between engines", () => {
+      // Arrange
+      const config = '{ settings: { "boundaries/cache": true } } // last text';
+      const first = createEngine();
+      const second = createEngine();
+      first.evaluate(createSketch(config, ["src/a.js"]));
+
+      // Act
+      second.evaluate(createSketch(config, ["src/b.js"]));
+      first.evaluate(createSketch(config, ["src/c.js"]));
+
+      // Assert
+      expect(normalizeConfig).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe("evaluate", () => {
+    let evaluate: Engine["evaluate"];
+
+    beforeEach(() => {
+      evaluate = createEngine().evaluate;
+    });
+
     describe("with the quick-start config", () => {
       it("should return the sketch it evaluated", () => {
         // Arrange
@@ -192,7 +248,7 @@ describe("Evaluate", () => {
         expect(evaluation.rulesValid).toBe(true);
       });
 
-      it("should describe the six files, and no folder", () => {
+      it("should describe the six files, and no folder, in the order of the tree", () => {
         // Arrange
         const sketch = createSketch(QUICK_START_CONFIG, QUICK_START_FILES);
 
@@ -200,7 +256,9 @@ describe("Evaluate", () => {
         const evaluation = evaluate(sketch);
 
         // Assert
-        expect([...evaluation.files.keys()]).toEqual(QUICK_START_FILES);
+        expect([...evaluation.files.keys()]).toEqual(
+          QUICK_START_FILES_IN_TREE_ORDER
+        );
       });
 
       it.each(QUICK_START_FILES)(
@@ -379,6 +437,7 @@ describe("Evaluate", () => {
           level: "warning",
           title: "Some element descriptors are invalid and will be ignored.",
           detail: expect.stringContaining("patern"),
+          links: [ELEMENTS_LINK],
           path: ["settings", "boundaries/elements", 1],
           range: {
             from: MOCKUP_CONFIG.indexOf(
@@ -409,6 +468,7 @@ describe("Evaluate", () => {
           level: "error",
           title: "[boundaries/dependencies] Invalid rule options.",
           detail: expect.stringContaining('Value "dissallow" should be equal'),
+          links: [DEPENDENCIES_LINK],
           path: ["rules", "boundaries/dependencies", 1, "default"],
           range: {
             from: MOCKUP_CONFIG.indexOf('"dissallow"'),
@@ -515,6 +575,7 @@ describe("Evaluate", () => {
             title:
               "[boundaries/dependencies] Detected an unrecognized selector shape in 1 policy at indices: 0.",
             detail: expect.stringContaining("Check the 'disallow' property."),
+            links: [DEPENDENCIES_LINK],
             path,
             range,
             source: "config",
@@ -524,6 +585,7 @@ describe("Evaluate", () => {
             title: "Invalid entity selector.",
             detail:
               "ESLint stops with this error at the first dependency that the rule checks.",
+            links: [],
             path,
             range,
             source: "config",
@@ -721,6 +783,7 @@ describe("Evaluate", () => {
             title: "descriptor.capture.join is not a function.",
             detail:
               "ESLint stops with this error when it loads a rule of the plugin, whatever file it lints.",
+            links: [],
             path: ["settings", "boundaries/elements", 0],
             range: {
               from,
@@ -861,7 +924,9 @@ describe("Evaluate", () => {
         const evaluation = evaluate(sketch);
 
         // Assert
-        expect([...evaluation.files.keys()]).toEqual(QUICK_START_FILES);
+        expect([...evaluation.files.keys()]).toEqual(
+          QUICK_START_FILES_IN_TREE_ORDER
+        );
         expect(
           [...evaluation.files.values()].map(({ element }) => element.types)
         ).toEqual([null, null, null, null, null, null]);
@@ -882,72 +947,25 @@ describe("Evaluate", () => {
         ]).toEqual([[], [], []]);
         expect(evaluation.rulesValid).toBe(true);
       });
-
-      it("should not place any path in the text", () => {
-        // Arrange
-        const sketch = createSketch("[]", QUICK_START_FILES);
-
-        // Act
-        const { rangeOf } = evaluate(sketch);
-
-        // Assert
-        expect(rangeOf([])).toBeUndefined();
-        expect(rangeOf(["settings"])).toBeUndefined();
-      });
     });
 
-    describe("rangeOf", () => {
-      it("should return the range of the value at a path of the config", () => {
+    describe("with a file node that has nodes under it", () => {
+      it("should describe the files that the tree shows, as the sketch counts them", () => {
         // Arrange
-        const sketch = createSketch(MOCKUP_CONFIG);
+        const sketch: Sketch = {
+          config: QUICK_START_CONFIG,
+          tree: [
+            { path: "a", kind: "file" },
+            { path: "a/b.js", kind: "file" },
+          ],
+          dependencies: [],
+        };
 
         // Act
-        const range = evaluate(sketch).rangeOf([
-          "rules",
-          "boundaries/dependencies",
-          1,
-          "policies",
-          2,
-        ]);
+        const { files } = evaluate(sketch);
 
         // Assert
-        expect(range?.line).toBe(25);
-        expect(range?.column).toBe(9);
-        expect(
-          MOCKUP_CONFIG.slice(range?.from, range?.to).startsWith("{\n")
-        ).toBe(true);
-      });
-
-      it("should return the range of the deepest value reached when the path is not written", () => {
-        // Arrange
-        const sketch = createSketch(MOCKUP_CONFIG);
-        const { rangeOf } = evaluate(sketch);
-
-        // Act
-        const range = rangeOf([
-          "rules",
-          "boundaries/no-private",
-          "allowUncles",
-        ]);
-
-        // Assert
-        expect(range).toEqual(rangeOf(["rules"]));
-      });
-
-      it("should return the whole config for an empty path", () => {
-        // Arrange
-        const sketch = createSketch(MOCKUP_CONFIG);
-
-        // Act
-        const range = evaluate(sketch).rangeOf([]);
-
-        // Assert
-        expect(range).toEqual({
-          from: 0,
-          to: MOCKUP_CONFIG.length,
-          line: 1,
-          column: 1,
-        });
+        expect([...files.keys()]).toEqual(["a/b.js"]);
       });
     });
 
@@ -1013,7 +1031,6 @@ describe("Evaluate", () => {
         expect(evaluation).toEqual({
           ...evaluate(first),
           sketch: second,
-          rangeOf: expect.any(Function),
         });
       });
 

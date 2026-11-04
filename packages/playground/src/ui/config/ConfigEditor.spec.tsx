@@ -47,8 +47,8 @@ function rangeOf(snippet: string): TextRange {
 const WARNING: ConfigProblem = {
   level: "warning",
   title: "Some element descriptors are invalid and will be ignored.",
-  detail:
-    "Invalid descriptors: [].\nMore info: https://www.jsboundaries.dev/docs/settings/",
+  detail: "Invalid descriptors: [].",
+  links: ["https://www.jsboundaries.dev/docs/settings/"],
   path: ["settings", "boundaries/elements", 0],
   range: rangeOf('{ type: "helper", patern: "x" }'),
   source: "config",
@@ -58,6 +58,7 @@ const ERROR: ConfigProblem = {
   level: "error",
   title: "[boundaries/dependencies] Invalid rule options.",
   detail: 'Value "dissallow" should be equal to one of the allowed values.',
+  links: [],
   path: ["rules", "boundaries/dependencies", 1, "default"],
   range: rangeOf('"dissallow"'),
   source: "config",
@@ -410,7 +411,7 @@ describe("ConfigEditor", () => {
           from: WARNING.range.from,
           to: WARNING.range.to,
           severity: "warning",
-          message: `${WARNING.title}\n${WARNING.detail}`,
+          message: `${WARNING.title}\n${WARNING.detail}\n${WARNING.links[0]}`,
         },
         {
           from: ERROR.range.from,
@@ -504,6 +505,7 @@ describe("ConfigEditor", () => {
         level: "error",
         title: "The config must be one JSON5 object.",
         detail: "Unexpected token.",
+        links: [],
         path: [],
         range: { ...position, to: position.from },
         source: "parse",

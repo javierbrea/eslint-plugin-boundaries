@@ -2,9 +2,9 @@ import { act, render, screen as view } from "@testing-library/react";
 import type { ComponentProps, createElement, useImperativeHandle } from "react";
 import type { Panel, PanelImperativeHandle } from "react-resizable-panels";
 
+import { stubResizeObserver } from "./__fixtures__/StubResizeObserver";
 import { Regions } from "./Regions";
 import type { RegionsProps } from "./Regions.types";
-import { stubResizeObserver } from "./StubResizeObserver";
 
 /** What the library's panel receives: the sizes and the callbacks the regions give it */
 type PanelProps = ComponentProps<typeof Panel>;

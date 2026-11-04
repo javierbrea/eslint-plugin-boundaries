@@ -12,8 +12,8 @@ import {
 const INVALID_OPTIONS: ConfigProblem = {
   level: "error",
   title: "[boundaries/dependencies] Invalid rule options.",
-  detail:
-    'Value "dissallow" should be equal to one of the allowed values. More info: https://www.jsboundaries.dev/docs/rules/dependencies/#options',
+  detail: 'Value "dissallow" should be equal to one of the allowed values.',
+  links: ["https://www.jsboundaries.dev/docs/rules/dependencies/#options"],
   path: ["rules", "boundaries/dependencies", 1, "default"],
   range: { from: 380, to: 391, line: 15, column: 16 },
   source: "config",
@@ -22,6 +22,7 @@ const INVALID_OPTIONS: ConfigProblem = {
 const IGNORED_DESCRIPTORS: ConfigProblem = {
   level: "warning",
   title: "Some element descriptors are invalid and will be ignored.",
+  links: [],
   path: ["settings", "boundaries/elements", 1],
   range: { from: 120, to: 170, line: 5, column: 7 },
   source: "config",
@@ -96,30 +97,38 @@ describe("Items", () => {
 
     it.each([
       [
-        "keep the text of a detail that has no link",
+        "a detail",
         "The config takes only the keys settings and rules.",
+        [],
         "Some element descriptors are invalid and will be ignored. The config takes only the keys settings and rules.",
       ],
       [
-        "leave out a link that closes the detail",
-        "Value is not valid. More info: https://www.jsboundaries.dev/docs/",
+        "a detail and links, which are left out",
+        "Value is not valid.",
+        ["https://www.jsboundaries.dev/docs/"],
         "Some element descriptors are invalid and will be ignored. Value is not valid.",
       ],
       [
-        "leave out a link that is the whole detail",
-        "More info: https://www.jsboundaries.dev/docs/",
+        "links and no detail, which are left out",
+        undefined,
+        ["https://www.jsboundaries.dev/docs/", "https://example.com/"],
         "Some element descriptors are invalid and will be ignored.",
       ],
       [
-        "leave out every link of the detail",
-        "See https://example.com/one and https://example.com/two for more.",
-        "Some element descriptors are invalid and will be ignored. See and for more.",
+        "no detail",
+        undefined,
+        [],
+        "Some element descriptors are invalid and will be ignored.",
       ],
     ])(
-      "should join the title and the detail, and %s",
-      (_case, detail, message) => {
+      "should write the message of a problem with %s",
+      (_case, detail, links, message) => {
         // Arrange
-        const problem: ConfigProblem = { ...IGNORED_DESCRIPTORS, detail };
+        const problem: ConfigProblem = {
+          ...IGNORED_DESCRIPTORS,
+          detail,
+          links,
+        };
 
         // Act
         const [item] = getConfigProblemItems([problem]);
@@ -135,6 +144,7 @@ describe("Items", () => {
         level: "error",
         title: "The config is one JSON5 object { settings, rules }.",
         detail: "Unexpected token Number found.",
+        links: [],
         path: [],
         range: { from: 4, to: 5, line: 1, column: 5 },
         source: "parse",

@@ -14,12 +14,18 @@ export type TextRange = {
   readonly column: number;
 };
 
+/** How serious a problem is. A deprecation is shown as a warning */
+export type ProblemLevel = "error" | "warning" | "deprecation";
+
 /** A problem of the config, placed in its text */
 export type ConfigProblem = {
-  readonly level: "error" | "warning" | "deprecation";
+  readonly level: ProblemLevel;
   /** The diagnostic title, or for a parse problem what the config accepts, with the parser message in `detail` */
   readonly title: string;
+  /** What the diagnostic says besides the title, trimmed and without its links. `undefined` when there is no text besides the links */
   readonly detail?: string;
+  /** The URLs that the detail pointed to, such as the docs page of a setting, in the order they were written and without the `More info:` label in front of them */
+  readonly links: readonly string[];
   /** The entry it is about, from the config object; `[]` for the whole config */
   readonly path: readonly (string | number)[];
   /** The value at `path`; the parse position for a parse error */
@@ -74,8 +80,14 @@ export type Evaluation = {
   readonly elementTypes: readonly ElementTypeSummary[];
   readonly fileCategories: readonly FileCategorySummary[];
   readonly rules: readonly RuleSummary[];
-  /** The value at a path of the config; phase 6 places policies with it. `undefined` when the config is not parsed */
-  readonly rangeOf: (
-    path: readonly (string | number)[]
-  ) => TextRange | undefined;
+};
+
+/** Evaluates sketches, and remembers what it did so that an edit that does not touch the config does not read it again. Each playground has its own, so playgrounds on one page share nothing */
+export type Engine = {
+  /**
+   * Evaluates a sketch: reads its config and places the problems in its text, and describes every file of its tree as the plugin does. It is pure and memoized, so evaluating the same sketch object again returns the same evaluation, and a sketch with the same config text as the last one does not read the config again.
+   * @param sketch The sketch to evaluate.
+   * @returns What the engine says about the sketch.
+   */
+  readonly evaluate: (sketch: Sketch) => Evaluation;
 };
