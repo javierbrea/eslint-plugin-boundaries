@@ -1,7 +1,7 @@
 // cspell:ignore patern -- deliberate typos, the mistakes of the config that the tests evaluate
 import { normalizeConfig } from "@boundaries/config";
-import { describeEntity } from "@boundaries/policies";
 
+import { describeFiles } from "./DescribeFiles";
 import type { TextRange } from "./Engine.types";
 import { parseConfig } from "./ParseConfig";
 import {
@@ -64,7 +64,7 @@ function createInput(text: string, files: string[] = []): SummariesInput {
     config,
     settings: value.settings,
     diagnostics,
-    descriptions: files.map((file) => describeEntity(value.settings, file)),
+    described: describeFiles(value.settings, files),
   };
 }
 
@@ -82,7 +82,7 @@ function slice(text: string, { from, to }: TextRange): string {
 
 describe("Summaries", () => {
   describe("summarizeElementTypes", () => {
-    it("should summarize each element descriptor with the files that have its type", () => {
+    it("should summarize each element descriptor with the files whose element it gives its type to", () => {
       // Arrange
       const input = createInput(QUICK_START_CONFIG, QUICK_START_FILES);
 
@@ -191,7 +191,7 @@ describe("Summaries", () => {
       ]);
     });
 
-    it("should name a descriptor without a type by its index, and count no files for it", () => {
+    it("should name a descriptor without a type by its index, and count the files it matches", () => {
       // Arrange
       const text = `{
   settings: {
@@ -215,10 +215,99 @@ describe("Summaries", () => {
           index: 1,
           type: "#1",
           patterns: ["legacy/*", "old/*"],
-          files: 0,
+          files: 1,
           ignored: false,
         })
       );
+    });
+
+    it("should count the files of each descriptor when descriptors share a type", () => {
+      // Arrange
+      const text = `{
+  settings: {
+    "boundaries/elements": [
+      { type: "helper", pattern: "helpers/*" },
+      { type: "helper", pattern: "utils/*" },
+      { type: "module", pattern: "modules/*" },
+    ],
+  },
+}`;
+      const input = createInput(text, [
+        "src/helpers/format/index.js",
+        "src/utils/dates/index.js",
+        "src/utils/numbers/index.js",
+      ]);
+
+      // Act
+      const summaries = summarizeElementTypes(input);
+
+      // Assert
+      expect(summaries.map(({ type, files }) => [type, files])).toEqual([
+        ["helper", 1],
+        ["helper", 2],
+        ["module", 0],
+      ]);
+    });
+
+    it.each([
+      [
+        "only for the first one, which is the only one that labels it",
+        "",
+        [1, 0],
+      ],
+      [
+        "for each one when elements-single-match is off",
+        '"boundaries/elements-single-match": false,',
+        [1, 1],
+      ],
+    ])(
+      "should count a file that two descriptors match %s",
+      (_title, singleMatch, expected) => {
+        // Arrange
+        const text = `{
+  settings: {
+    ${singleMatch}
+    "boundaries/elements": [
+      { type: "helper", pattern: "helpers/*" },
+      { type: "helper", pattern: "helpers/*" },
+    ],
+  },
+}`;
+        const input = createInput(text, ["src/helpers/format/index.js"]);
+
+        // Act
+        const summaries = summarizeElementTypes(input);
+
+        // Assert
+        expect(summaries.map(({ files }) => files)).toEqual(expected);
+      }
+    );
+
+    it("should mark as ignored a descriptor that makes describing the files throw, and count no files for it", () => {
+      // Arrange
+      const text = `{
+  settings: {
+    "boundaries/elements": [
+      { type: "helper", pattern: "helpers/*", capture: "name" },
+      { type: "module", pattern: "modules/*" },
+    ],
+  },
+}`;
+      const input = createInput(text, [
+        "src/helpers/format/index.js",
+        "src/modules/checkout/index.js",
+      ]);
+
+      // Act
+      const summaries = summarizeElementTypes(input);
+
+      // Assert
+      expect(
+        summaries.map(({ type, files, ignored }) => [type, files, ignored])
+      ).toEqual([
+        ["helper", 0, true],
+        ["module", 1, false],
+      ]);
     });
 
     it("should name an entry that is not an object by its index, as ignored", () => {
@@ -294,7 +383,7 @@ describe("Summaries", () => {
   });
 
   describe("summarizeFileCategories", () => {
-    it("should summarize each file descriptor with the files that have its category", () => {
+    it("should summarize each file descriptor with the files it gives its category to", () => {
       // Arrange
       const input = createInput(QUICK_START_CONFIG, QUICK_START_FILES);
 
@@ -370,6 +459,51 @@ describe("Summaries", () => {
           line: 7,
         },
       ]);
+    });
+
+    it("should count the files of each descriptor when descriptors share a category", () => {
+      // Arrange
+      const text = `{
+  settings: {
+    "boundaries/files": [
+      { pattern: "**/*.css", category: "style" },
+      { pattern: "**/*.scss", category: "style" },
+    ],
+  },
+}`;
+      const input = createInput(text, ["a.css", "b.scss", "c.scss"]);
+
+      // Act
+      const summaries = summarizeFileCategories(input);
+
+      // Assert
+      expect(summaries.map(({ category, files }) => [category, files])).toEqual(
+        [
+          ["style", 1],
+          ["style", 2],
+        ]
+      );
+    });
+
+    it("should leave out a descriptor that makes describing the files throw, and keep the index of the others", () => {
+      // Arrange
+      const text = `{
+  settings: {
+    "boundaries/files": [
+      { pattern: "**/*.css", category: "style", capture: 5 },
+      { pattern: "**/*.js", category: "script" },
+    ],
+  },
+}`;
+      const input = createInput(text, ["a.css", "b.js"]);
+
+      // Act
+      const summaries = summarizeFileCategories(input);
+
+      // Assert
+      expect(
+        summaries.map(({ index, category, files }) => [index, category, files])
+      ).toEqual([[1, "script", 1]]);
     });
 
     it.each([

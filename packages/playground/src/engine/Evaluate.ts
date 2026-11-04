@@ -1,8 +1,8 @@
 import { normalizeConfig } from "@boundaries/config";
-import { describeEntity } from "@boundaries/policies";
 
 import type { Sketch } from "../contract";
 
+import { describeFiles } from "./DescribeFiles";
 import { areRulesValid, toConfigProblems } from "./Diagnostics";
 import type { Evaluation } from "./Engine.types";
 import type { ConfigAnalysis } from "./Evaluate.types";
@@ -15,6 +15,7 @@ import {
   summarizeFileCategories,
   summarizeRules,
 } from "./Summaries";
+import { diagnoseFailures } from "./WrittenConfig";
 
 /** The evaluation of each sketch, which never changes, so the same object is the same evaluation */
 const evaluations = new WeakMap<Sketch, Evaluation>();
@@ -72,11 +73,11 @@ function evaluateSketch(sketch: Sketch): Evaluation {
   const { settings } = normalized.value;
 
   // Sketch paths are relative to its root, and so is the root path of the settings. Every file is local, so there are no sources to describe
-  const files = new Map(
-    sketch.tree
-      .filter(({ kind }) => kind === "file")
-      .map(({ path }) => [path, describeEntity(settings, path)] as const)
+  const described = describeFiles(
+    settings,
+    sketch.tree.filter(({ kind }) => kind === "file").map(({ path }) => path)
   );
+  const { files, failures } = described;
 
   if (!parsed.parsed) {
     return {
@@ -96,13 +97,23 @@ function evaluateSketch(sketch: Sketch): Evaluation {
     config: parsed,
     settings,
     diagnostics: normalized.diagnostics,
-    descriptions: [...files.values()],
+    described,
   };
 
   return {
     sketch,
     configParsed: true,
-    problems,
+    // Without descriptors that fail, the problems are the same array while the text of the config does not change
+    problems:
+      failures.length === 0
+        ? problems
+        : [
+            ...problems,
+            ...toConfigProblems(
+              diagnoseFailures(parsed, normalized.diagnostics, failures),
+              parsed.ast
+            ),
+          ],
     rulesValid: areRulesValid(normalized.diagnostics),
     files,
     elementTypes: summarizeElementTypes(input),

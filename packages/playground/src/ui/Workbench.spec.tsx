@@ -52,6 +52,15 @@ const WARNING_ONLY: Sketch = {
   ),
 };
 
+/** The quick-start config with a capture that is not a list, which makes describing the files throw */
+const CAPTURE_NOT_A_LIST: Sketch = {
+  ...QUICK_START,
+  config: QUICK_START.config.replace(
+    'pattern: "helpers/*"',
+    'pattern: "helpers/*", capture: "name"'
+  ),
+};
+
 const NOTE_TEXT =
   "Dependencies are not evaluated while the rule options are invalid: ESLint does not run a rule whose options fail its schema.";
 
@@ -318,6 +327,14 @@ describe("Workbench", () => {
     it("should say that the config has errors when it has", () => {
       // Act
       renderWorkbench({ initialSketch: MISTAKES });
+
+      // Assert
+      expect(getStatus()).toBe("6 files · config has errors");
+    });
+
+    it("should say that the config has errors when a descriptor makes describing the files throw", () => {
+      // Act
+      renderWorkbench({ initialSketch: CAPTURE_NOT_A_LIST });
 
       // Assert
       expect(getStatus()).toBe("6 files · config has errors");
@@ -614,6 +631,29 @@ describe("Workbench", () => {
   });
 
   describe("the problems of the config", () => {
+    it("should show the error of an edit that makes describing the files throw, a moment after it", () => {
+      // Arrange
+      useFakeTimeouts();
+      const { container } = renderWorkbench();
+      openConfig();
+      const editor = getEditorView(container);
+      const at =
+        QUICK_START.config.indexOf('pattern: "helpers/*"') +
+        'pattern: "helpers/*"'.length;
+
+      // Act
+      act(() => {
+        editor.dispatch({ changes: { from: at, insert: ', capture: "name"' } });
+      });
+      wait(EVALUATION_WAIT);
+
+      // Assert
+      expect(getStatus()).toBe("6 files · config has errors");
+      expect(getProblemRow("eslint.config.js:4:7").textContent).toContain(
+        "descriptor.capture.join is not a function."
+      );
+    });
+
     it("should list them in the sketch tab with their count", () => {
       // Act
       renderWorkbench({ initialSketch: MISTAKES });

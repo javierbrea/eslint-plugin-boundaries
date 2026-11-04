@@ -35,7 +35,7 @@ export type ElementTypeSummary = {
   readonly type: string;
   readonly patterns: readonly string[];
   readonly files: number;
-  /** A diagnostic of `config` says it is invalid and ignored */
+  /** A diagnostic of `config` says it is invalid and ignored, or describing the files with it throws and the engine leaves it out */
   readonly ignored: boolean;
   readonly range: TextRange;
 };
@@ -65,7 +65,7 @@ export type RuleSummary = {
 export type Evaluation = {
   readonly sketch: Sketch;
   readonly configParsed: boolean;
-  /** One per diagnostic path, parse problem first, in the order of `normalizeConfig` */
+  /** One per diagnostic path, parse problem first, in the order of `normalizeConfig`, then an error at each descriptor that makes describing the files throw */
   readonly problems: readonly ConfigProblem[];
   /** False when an entry of a rule of the plugin fails its schema or has a policy whose selector cannot be normalized: dependencies are not evaluated */
   readonly rulesValid: boolean;
