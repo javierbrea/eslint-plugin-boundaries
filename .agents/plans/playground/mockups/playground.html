@@ -87,6 +87,35 @@
         color: var(--jsb-muted);
       }
 
+      .site-footer {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        padding: 32px 16px;
+        border-top: 1px solid var(--jsb-line);
+        background: var(--jsb-card);
+        color: var(--jsb-muted);
+        font-size: 15px;
+      }
+
+      .site-footer b {
+        margin-top: 14px;
+        font: 500 10.5px var(--jsb-font-mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .site-footer b:first-child {
+        margin-top: 0;
+      }
+
+      .site-footer small {
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid var(--jsb-line);
+        font: 12px var(--jsb-font-mono);
+      }
+
       /* ---------- The playground root ---------- */
 
       .play {
@@ -393,6 +422,22 @@
       .tree li.is-selected {
         background: var(--jsb-accent-soft);
         box-shadow: inset 2px 0 0 var(--jsb-accent);
+      }
+
+      /* Rename and delete: on the row under the pointer, and on the selected row while it has the focus */
+      .tree li .actions {
+        display: inline-flex;
+        color: var(--jsb-muted);
+      }
+
+      .tree li .actions .icon-btn {
+        width: 26px;
+        height: 26px;
+      }
+
+      /* The help dialog opens over the file state and takes the focus from the row */
+      [data-state="help"] .tree li .actions {
+        display: none;
       }
 
       .tree li.is-bad .name {
@@ -703,9 +748,11 @@
         font-weight: 600;
       }
 
+      /* The link never wraps: it moves to its own line when it does not fit */
       .lint-tip a {
         color: var(--jsb-accent);
         text-decoration: none;
+        white-space: nowrap;
       }
 
       .empty {
@@ -1357,6 +1404,10 @@
         .note {
           display: block;
         }
+
+        .site-footer {
+          display: flex;
+        }
       }
 
       /* ---------- Mockup-only controls, hidden in the renders ---------- */
@@ -1441,6 +1492,7 @@
         <span class="status" data-show="file dependency picker text empty policy">
           <span class="dot"></span>6 files · 9 dependencies · <span class="bad">2 problems</span>
         </span>
+        <!-- With no problems, the count reads "0 problems" in --jsb-muted after the --jsb-ok dot (00-shared.md section 6) -->
         <span class="status" data-show="config">
           <span class="dot" style="background: var(--jsb-bad)"></span>6 files · 9 dependencies · <span class="bad">config has errors</span>
         </span>
@@ -1508,7 +1560,7 @@
             </li>
             <li style="--depth: 3" data-selected-in="file dependency picker" data-bad-in="file dependency picker empty policy">
               <span class="spacer-chev"></span><span class="name">index.js</span>
-              <span class="end" data-show="file dependency picker empty policy"><svg class="icon bad"><use href="#i-cross" /></svg><span class="count bad">1</span></span>
+              <span class="end" data-show="file dependency picker empty policy"><span class="actions" data-show="file"><button class="icon-btn" type="button" aria-label="Rename src/modules/checkout/index.js"><svg class="icon"><use href="#i-edit" /></svg></button><button class="icon-btn" type="button" aria-label="Delete src/modules/checkout/index.js"><svg class="icon"><use href="#i-trash" /></svg></button></span><svg class="icon bad"><use href="#i-cross" /></svg><span class="count bad">1</span></span>
             </li>
             <li style="--depth: 1"><span class="spacer-chev"></span><span class="name">index.js</span></li>
           </ul>
@@ -1624,7 +1676,8 @@ src/pages/<span class="caret"></span>
               <li class="line"><span class="gut"></span><span class="ln">31</span><span class="stmt">  },</span></li>
               <li class="line"><span class="gut"></span><span class="ln">32</span><span class="stmt">}</span></li>
             </ol>
-            <div class="lint-tip" style="top: 344px" data-show="config">
+            <!-- Above the range and from its start, where @codemirror/lint opens its hover tooltip -->
+            <div class="lint-tip" style="top: 240px; left: 167px" data-show="config">
               <b>[boundaries/dependencies] Invalid rule options.</b>
               Value "dissallow" should be equal to one of the allowed values.
               <a href="#">More info</a>
@@ -1770,17 +1823,18 @@ src/pages/<span class="caret"></span>
               <svg class="icon"><use href="#i-info" /></svg>
               Dependencies are not evaluated while the rule options are invalid: ESLint does not run a rule whose options fail its schema.
             </div>
+            <!-- In the order of the engine (normalizeConfig: settings before rules); a row reads the title and the detail, without its More info link -->
+            <div class="problem">
+              <svg class="icon warn"><use href="#i-warn" /></svg>
+              <span class="where">eslint.config.js<span class="line-no">:5:7</span></span>
+              <span class="msg">Some element descriptors are invalid and will be ignored. Invalid descriptors: [{"match":"folder","type":"component","patern":"components/*/*"}].</span>
+              <span class="meta">warning · settings › boundaries/elements › 1</span>
+            </div>
             <div class="problem">
               <svg class="icon bad"><use href="#i-cross" /></svg>
               <span class="where">eslint.config.js<span class="line-no">:15:16</span></span>
               <span class="msg">[boundaries/dependencies] Invalid rule options. Value "dissallow" should be equal to one of the allowed values.</span>
               <span class="meta">error · rules › boundaries/dependencies › 1 › default</span>
-            </div>
-            <div class="problem">
-              <svg class="icon warn"><use href="#i-warn" /></svg>
-              <span class="where">eslint.config.js<span class="line-no">:5:7</span></span>
-              <span class="msg">Some element descriptors are invalid and will be ignored.</span>
-              <span class="meta">warning · settings › boundaries/elements › 1</span>
             </div>
           </div>
 
@@ -1901,6 +1955,18 @@ src/pages/<span class="caret"></span>
         </footer>
       </div>
     </div>
+
+    <!-- The site footer, drawn short: the page hides it on wide screens only (section 6, "Page") -->
+    <footer class="site-footer">
+      <b>Docs</b>
+      <span>Getting Started</span>
+      <span>Settings</span>
+      <span>Rules</span>
+      <b>Community</b>
+      <span>Discussions</span>
+      <span>Contribute</span>
+      <small>Copyright © 2020-2026 Javier Brea. MIT licensed.</small>
+    </footer>
 
     <!-- Mockup-only: switches the state and the theme -->
     <div class="mockup-bar" aria-hidden="true">
