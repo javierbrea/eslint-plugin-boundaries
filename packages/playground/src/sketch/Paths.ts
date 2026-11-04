@@ -51,8 +51,9 @@ export function getPathError(path: string): string | undefined {
   if (Array.from(path).some(isControlCharacter)) {
     return "The path cannot have control characters.";
   }
-  if (path === CONFIG_PATH) {
-    return `${CONFIG_PATH} at the root is the config node, not a file.`;
+  // A path under it would make a folder with the path, and the id in the tree, of the config node
+  if (isSameOrInside(path, CONFIG_PATH)) {
+    return `${CONFIG_PATH} at the root is the config node, not a file or a folder.`;
   }
   return undefined;
 }

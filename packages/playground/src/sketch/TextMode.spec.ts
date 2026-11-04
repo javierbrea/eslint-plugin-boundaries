@@ -250,7 +250,8 @@ describe("TextMode", () => {
 
     it("should leave out an invalid path as a problem", () => {
       // Arrange
-      const text = "src/../index.js\neslint.config.js/\nsrc/a\u0001b.js\n/\n";
+      const text =
+        "src/../index.js\neslint.config.js/\nsrc/a\u0001b.js\n/\neslint.config.js/index.js\n";
 
       // Act
       const { sketch, problems } = fromText(text, createSketch([]));
@@ -267,7 +268,7 @@ describe("TextMode", () => {
           line: 2,
           text: "eslint.config.js/",
           reason:
-            "eslint.config.js at the root is the config node, not a file.",
+            "eslint.config.js at the root is the config node, not a file or a folder.",
         },
         {
           line: 3,
@@ -275,6 +276,12 @@ describe("TextMode", () => {
           reason: "The path cannot have control characters.",
         },
         { line: 4, text: "/", reason: "The path is empty." },
+        {
+          line: 5,
+          text: "eslint.config.js/index.js",
+          reason:
+            "eslint.config.js at the root is the config node, not a file or a folder.",
+        },
       ]);
     });
 

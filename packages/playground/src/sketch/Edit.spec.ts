@@ -162,7 +162,7 @@ describe("Edit", () => {
 
       // Assert
       expect(error).toBe(
-        "eslint.config.js at the root is the config node, not a file."
+        "eslint.config.js at the root is the config node, not a file or a folder."
       );
     });
 
@@ -363,6 +363,18 @@ describe("Edit", () => {
 
       // Assert
       expect(error).toBe("The path has an empty segment.");
+    });
+
+    it("should refuse a new path under the config node", () => {
+      // Act
+      const error = getError(
+        renameNode(SKETCH, "src/index.js", "eslint.config.js/index.js")
+      );
+
+      // Assert
+      expect(error).toBe(
+        "eslint.config.js at the root is the config node, not a file or a folder."
+      );
     });
 
     it("should refuse a new path that is taken", () => {

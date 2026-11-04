@@ -188,8 +188,29 @@ describe("Paths", () => {
 
       // Assert
       expect(error).toBe(
-        "eslint.config.js at the root is the config node, not a file."
+        "eslint.config.js at the root is the config node, not a file or a folder."
       );
+    });
+
+    it("should refuse a path under the config file at the root", () => {
+      // Act
+      const error = getPathError("eslint.config.js/index.js");
+
+      // Assert
+      expect(error).toBe(
+        "eslint.config.js at the root is the config node, not a file or a folder."
+      );
+    });
+
+    it("should accept the config file and a path under it out of the root", () => {
+      // Act
+      const errors = [
+        getPathError("src/eslint.config.js"),
+        getPathError("src/eslint.config.js/index.js"),
+      ];
+
+      // Assert
+      expect(errors).toEqual([undefined, undefined]);
     });
   });
 
