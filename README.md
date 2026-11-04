@@ -1,0 +1,1 @@
+Screenshots for the pull request of phase 5 of the playground (#552): each image shows the render of the approved mockup next to the page. This branch holds no code and is deleted once the playground is merged.
