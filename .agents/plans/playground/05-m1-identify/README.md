@@ -3,7 +3,7 @@
 
 Work breakdown of the implementation part of phase 5 (`../05-m1-identify.md`, steps 2 to 4), so that each task runs in its own subagent or session. It is temporary: the PR of phase 5 deletes this folder with the phase file.
 
-Status (2026-11-04): the mockup is approved and committed (`ed7185ab`); the setup (libraries and element types) and T1 to T6 are committed. Next: wave 4, T7. Open: `evaluate` throws `Invalid entity selector` for a policy whose selector `@boundaries/elements` cannot normalize, such as `disallow: {}` (found in T6), and the maintainer decides where that is fixed.
+Status (2026-11-04): the mockup is approved and committed (`ed7185ab`); the setup (libraries and element types) and T1 to T6 are committed. Next: wave 4, T7 and T10.
 
 ## How a task runs
 
@@ -36,6 +36,7 @@ pnpm exec cspell --quiet <files>
 | T5 Project pane | `T5-project.md` | `src/ui/project/` | T1, T3 | 3 | Done |
 | T6 Node panes and inspector | `T6-node-inspector.md` | `src/ui/node/`, `src/ui/inspector/` | T2, T3, T4 | 3 | Done |
 | T7 Problems panel | `T7-problems.md` | `src/ui/problems/` | T2, T3 | 4 | |
+| T10 A selector that the engine cannot normalize | `T10-engine-throw.md` | `src/engine/` | T2 | 4 | |
 | T8 Workbench, page and harness | `T8-workbench.md` | `src/ui/Workbench*`, `src/ui/state/`, `src/ui/layout/`, `src/theme/Root.tsx`, `src/Playground.tsx`, `src/index.ts`, `dev/`, the website page | all | 5 | |
 | T9 Verification and PR | `T9-verification.md` | none | T8 | 6 | |
 

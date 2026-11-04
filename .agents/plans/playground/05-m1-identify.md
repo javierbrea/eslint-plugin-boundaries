@@ -45,7 +45,7 @@ In: the mockup and its approval loop; the project pane (tree and text mode), the
 `src/engine/`:
 
 - Parse the config with `@humanwhocodes/momoa` in JSON5 mode into a value plus a location map (JSON path → range). A parse error is a diagnostic at its position; momoa's messages name tokens (a spread reads as `Unexpected token Number found`), so the engine prefixes them with what the node accepts: one JSON5 object `{ settings, rules }` (RFC #538, Interface decision 5).
-- Call `normalizeConfig` of `config` on the parsed value and map each diagnostic to ranges: a diagnostic has one path per affected entry, rooted at the config object, and the empty path is the whole config. A path resolves to a range by walking it down the momoa tree (research note 3).
+- Call `normalizeConfig` of `config` on the parsed value and map each diagnostic to ranges: a diagnostic has one path per affected entry, rooted at the config object, and the empty path is the whole config. A path resolves to a range by walking it down the momoa tree (research note 3). `normalizeConfig` throws `Invalid entity selector` for a policy whose selector `@boundaries/elements` cannot normalize, such as `{ disallow: {} }`; the engine catches it and reports an error at that policy (`05-m1-identify/T10-engine-throw.md`), so `evaluate` never throws.
 - Call `describeEntity` of `policies` for every file path with the normalized settings.
 - Expose one `evaluate(sketch) → { files: Map<path, description>, configDiagnostics, ... }` function, pure and memoized by sketch identity, run after a debounce (150 ms) from the component. Module origin: every file of the sketch is `local` (research note 1).
 

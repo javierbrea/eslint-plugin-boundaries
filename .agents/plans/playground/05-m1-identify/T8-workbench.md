@@ -3,7 +3,7 @@
 
 Goal: the playground works end to end: `Workbench` holds the state and lays out the panes of T5 to T7 with resizable splits, `Playground` renders it and saves every edit to the store, the entry exports the example, the harness and the website render the quick-start example, and the website page has the layout of section 6 ("Page"). This task runs alone, so it may use Nx and the whole suite.
 
-Read first: `README.md` of this folder (design and data flow); every committed task (T1 to T7); `../05-m1-identify.md` steps 3 and 4 ("Layout", "Default state", tests and harness); `../00-shared.md` sections 3, 4 and 6 (all of it); the mockup and its renders; `packages/playground/src/Playground.tsx` and its spec, `dev/main.tsx`, `packages/website/src/pages/playground.tsx` and `playground.module.css`; `packages/website/AGENTS.md`; the docs of `react-resizable-panels` 4 in `packages/playground/node_modules/react-resizable-panels`.
+Read first: `README.md` of this folder (design and data flow); every committed task (T1 to T7 and T10); `../05-m1-identify.md` steps 3 and 4 ("Layout", "Default state", tests and harness); `../00-shared.md` sections 3, 4 and 6 (all of it); the mockup and its renders; `packages/playground/src/Playground.tsx` and its spec, `dev/main.tsx`, `packages/website/src/pages/playground.tsx` and `playground.module.css`; `packages/website/AGENTS.md`; the docs of `react-resizable-panels` 4 in `packages/playground/node_modules/react-resizable-panels`.
 
 ## Files
 
