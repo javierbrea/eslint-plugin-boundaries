@@ -454,7 +454,7 @@ describe("Evaluate", () => {
           },
           {
             level: "error",
-            title: "Invalid entity selector",
+            title: "Invalid entity selector.",
             detail:
               "ESLint stops with this error at the first dependency that the rule checks.",
             path,

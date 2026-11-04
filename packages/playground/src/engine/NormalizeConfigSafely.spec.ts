@@ -107,7 +107,7 @@ describe("NormalizeConfigSafely", () => {
             }),
             {
               level: "error",
-              title: "Invalid entity selector",
+              title: "Invalid entity selector.",
               detail: ERROR_DETAIL,
               paths: [["rules", "boundaries/dependencies", 1, "policies", 1]],
             },
@@ -195,7 +195,7 @@ describe("NormalizeConfigSafely", () => {
             "warning",
             "[boundaries/dependencies] Detected an unrecognized selector shape in 1 policy at indices: 0.",
           ],
-          ["error", "Invalid entity selector"],
+          ["error", "Invalid entity selector."],
         ]);
       });
 
@@ -276,7 +276,7 @@ describe("NormalizeConfigSafely", () => {
           ],
           [
             "error",
-            "Invalid entity selector",
+            "Invalid entity selector.",
             [["rules", "boundaries/element-types", 1, "rules", 1]],
           ],
         ]);
@@ -323,7 +323,7 @@ describe("NormalizeConfigSafely", () => {
     });
 
     describe("when what is thrown is not an error", () => {
-      it("should use it as the title of the error", () => {
+      it("should use it, with a period, as the title of the error", () => {
         // Arrange
         const config = createConfig({
           "boundaries/dependencies": [2, { policies: [{ disallow: {} }] }],
@@ -341,7 +341,7 @@ describe("NormalizeConfigSafely", () => {
         expect(diagnostics[1]).toEqual(
           expect.objectContaining({
             level: "error",
-            title: "The selector broke",
+            title: "The selector broke.",
           })
         );
       });

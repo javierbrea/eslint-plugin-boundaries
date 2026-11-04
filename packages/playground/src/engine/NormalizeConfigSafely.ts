@@ -94,7 +94,8 @@ function diagnoseThrowingEntry(
       : [
           {
             level: "error",
-            title: message,
+            // The message of the error has no closing period, and a problem row joins the title and the detail
+            title: `${message}.`,
             detail: THROWN_DETAIL,
             paths: [[...entryPath, policiesKey, index]],
           },
@@ -154,7 +155,7 @@ function normalizeWithoutThrowingEntries({
  * @param config The config object, as written.
  * @param config.settings The settings.
  * @param config.rules The rules.
- * @returns The normalized config and its diagnostics. For each entry that throws, they end with the diagnostics of its options and an error at each policy that throws, with the message of the error as its title.
+ * @returns The normalized config and its diagnostics. For each entry that throws, they end with the diagnostics of its options and an error at each policy that throws, with the message of the error and a period as its title.
  */
 export function normalizeConfigSafely(config: {
   settings: unknown;
