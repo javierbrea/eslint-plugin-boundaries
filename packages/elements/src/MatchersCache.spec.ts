@@ -136,6 +136,56 @@ describe("MatchersCache", () => {
       );
     });
 
+    it("should use 'no-capture' and 'no-base-capture' when element capture and baseCapture are null", () => {
+      // Arrange
+      const config = createConfig();
+      const elements = [
+        {
+          type: "util",
+          pattern: "src/utils/*",
+          basePattern: "src",
+          capture: null,
+          baseCapture: null,
+        },
+      ] as unknown as ElementDescriptors;
+
+      // Act
+      const key = matchersCache.getKey({
+        config,
+        descriptors: { elements },
+      });
+
+      // Assert
+      expect(key).toContain(
+        "src/utils/*|no-capture|util|undefined|undefined|src|no-base-capture|"
+      );
+    });
+
+    it("should use 'invalid-capture' and 'invalid-base-capture' when element capture and baseCapture are set and are not arrays", () => {
+      // Arrange
+      const config = createConfig();
+      const elements = [
+        {
+          type: "util",
+          pattern: "src/utils/*",
+          basePattern: "src",
+          capture: "name",
+          baseCapture: 5,
+        },
+      ] as unknown as ElementDescriptors;
+
+      // Act
+      const key = matchersCache.getKey({
+        config,
+        descriptors: { elements },
+      });
+
+      // Assert
+      expect(key).toContain(
+        "src/utils/*|invalid-capture|util|undefined|undefined|src|invalid-base-capture|"
+      );
+    });
+
     it("should join multiple capture values with comma", () => {
       const config = createConfig();
       const elements = [
@@ -296,6 +346,57 @@ describe("MatchersCache", () => {
       expect(key).toContain("|:files:|*.config.ts|no-capture|config");
     });
 
+    it("should use 'invalid-capture' when file descriptor capture is set and is not an array", () => {
+      // Arrange
+      const config = createConfig();
+      const files = [
+        {
+          category: "config",
+          pattern: "*.config.ts",
+          capture: {},
+        },
+      ] as unknown as FileDescriptors;
+
+      // Act
+      const key = matchersCache.getKey({
+        config,
+        descriptors: { files },
+      });
+
+      // Assert
+      expect(key).toContain("|:files:|*.config.ts|invalid-capture|config");
+    });
+
+    it("should include basePattern and baseCapture of file descriptors", () => {
+      // Arrange
+      const config = createConfig();
+      const files = [
+        {
+          category: "test",
+          pattern: "*.spec.ts",
+          basePattern: "src/*",
+          baseCapture: ["module"],
+        },
+        {
+          category: "test",
+          pattern: "*.spec.ts",
+          basePattern: "lib/*",
+          baseCapture: 5,
+        },
+      ] as unknown as FileDescriptors;
+
+      // Act
+      const key = matchersCache.getKey({
+        config,
+        descriptors: { files },
+      });
+
+      // Assert
+      expect(key).toContain(
+        "|:files:|*.spec.ts|no-capture|test|src/*|module|undefined|undefined,*.spec.ts|no-capture|test|lib/*|invalid-base-capture|undefined|undefined"
+      );
+    });
+
     it("should join multiple file descriptors with comma", () => {
       const config = createConfig();
       const files = [
@@ -316,7 +417,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "|:files:|src/**/*.spec.ts|name|test|undefined|undefined,*.config.ts|no-capture|config|undefined|undefined"
+        "|:files:|src/**/*.spec.ts|name|test|undefined|no-base-capture|undefined|undefined,*.config.ts|no-capture|config|undefined|no-base-capture|undefined|undefined"
       );
     });
   });

@@ -3,6 +3,7 @@
 import picomatch from "picomatch";
 
 import type {
+  DescriptorsConfig,
   FileDescription,
   FileSingleSelector,
   FileSelector,
@@ -89,6 +90,51 @@ describe("describeFile | Integration", () => {
       expect(isFileDescription(file)).toBe(true);
     });
 
+    it.each([
+      ["capture", { capture: {} }],
+      ["baseCapture", { basePattern: "src", baseCapture: 5 }],
+    ])(
+      "should throw the error of an invalid descriptor when its %s is set and is not an array",
+      (_property, captureOptions) => {
+        // Arrange
+        const descriptors = {
+          files: [
+            { pattern: "**/*.tsx", category: "react" },
+            { pattern: "**/*.ts", category: "ts", ...captureOptions },
+          ],
+        } as unknown as DescriptorsConfig;
+
+        // Act
+        const act = () => elements.getMatcher(descriptors);
+
+        // Assert
+        expect(act).toThrow(
+          "File descriptor at index 1 must have a pattern, and a 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
+        );
+      }
+    );
+
+    it("should throw for a descriptor whose baseCapture is not an array after building the matcher of the same descriptor without baseCapture", () => {
+      // Arrange
+      const descriptor = {
+        pattern: "*.ts",
+        category: "ts",
+        basePattern: "src",
+      };
+      elements.getMatcher({ files: [descriptor] });
+      const descriptors = {
+        files: [{ ...descriptor, baseCapture: 5 }],
+      } as unknown as DescriptorsConfig;
+
+      // Act
+      const act = () => elements.getMatcher(descriptors);
+
+      // Assert
+      expect(act).toThrow(
+        "File descriptor at index 0 must have a pattern, and a 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
+      );
+    });
+
     it("should throw an error for invalid descriptors", () => {
       expect(() =>
         elements.getMatcher({
@@ -100,7 +146,7 @@ describe("describeFile | Integration", () => {
           ],
         })
       ).toThrow(
-        "File descriptor at index 1 must have a pattern, and a 'category' defined."
+        "File descriptor at index 1 must have a pattern, and a 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
       );
     });
 

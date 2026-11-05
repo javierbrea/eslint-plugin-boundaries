@@ -1,6 +1,11 @@
 import picomatch from "picomatch";
 
-import type { ElementDescription, ElementDescriptors, Matcher } from "../index";
+import type {
+  DescriptorsConfig,
+  ElementDescription,
+  ElementDescriptors,
+  Matcher,
+} from "../index";
 import {
   Elements,
   isIgnoredElementDescription,
@@ -109,6 +114,47 @@ describe("describeElement | Integration", () => {
       expect(isElementDescription(element)).toBe(true);
     });
 
+    it.each([
+      ["capture", { capture: "name" }],
+      ["baseCapture", { basePattern: "src", baseCapture: true }],
+    ])(
+      "should throw the error of an invalid descriptor when its %s is set and is not an array",
+      (_property, captureOptions) => {
+        // Arrange
+        const descriptors = {
+          elements: [
+            { type: "component", pattern: "components/*" },
+            { type: "helper", pattern: "helpers/*", ...captureOptions },
+          ],
+        } as unknown as DescriptorsConfig;
+
+        // Act
+        const act = () => elements.getMatcher(descriptors);
+
+        // Assert
+        expect(act).toThrow(
+          "Element descriptor at index 1 must have a pattern, and either a 'type' or 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
+        );
+      }
+    );
+
+    it("should throw for a descriptor whose capture is not an array after building the matcher of the same descriptor without capture", () => {
+      // Arrange
+      const descriptor = { type: "helper", pattern: "helpers/*" };
+      elements.getMatcher({ elements: [descriptor] });
+      const descriptors = {
+        elements: [{ ...descriptor, capture: "name" }],
+      } as unknown as DescriptorsConfig;
+
+      // Act
+      const act = () => elements.getMatcher(descriptors);
+
+      // Assert
+      expect(act).toThrow(
+        "Element descriptor at index 0 must have a pattern, and either a 'type' or 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
+      );
+    });
+
     it("should throw an error for invalid descriptors", () => {
       expect(() =>
         elements.getMatcher(
@@ -132,7 +178,7 @@ describe("describeElement | Integration", () => {
           }
         )
       ).toThrow(
-        "Element descriptor at index 1 must have a pattern, and either a 'type' or 'category' defined."
+        "Element descriptor at index 1 must have a pattern, and either a 'type' or 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
       );
     });
 

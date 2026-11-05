@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- fix(#622): Warn about an element or file descriptor whose `capture` or `baseCapture` is set and is not an array, such as `capture: "name"`, and ignore it. ESLint stopped with `descriptor.capture.join is not a function` when it loaded any rule of the plugin.
+
 ## [7.4.1] - 2026-11-02
 
 ### Changed

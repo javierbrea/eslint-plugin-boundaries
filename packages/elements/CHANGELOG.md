@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- fix(#622): `isElementDescriptor` and `isFileDescriptor` return `false` for a descriptor whose `capture` or `baseCapture` is set and is not an array, and `getMatcher` throws the error of an invalid descriptor for it instead of `descriptor.capture.join is not a function`.
+
 ## [3.3.1] - 2026-11-02
 
 ### Changed

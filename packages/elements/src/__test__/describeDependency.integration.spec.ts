@@ -98,7 +98,7 @@ describe("describeDependency | Integration", () => {
           }
         )
       ).toThrow(
-        "Element descriptor at index 1 must have a pattern, and either a 'type' or 'category' defined."
+        "Element descriptor at index 1 must have a pattern, and either a 'type' or 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
       );
     });
 
