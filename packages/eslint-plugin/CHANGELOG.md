@@ -5,11 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [7.4.2] - 2026-11-05
+
+### Changed
+
+- chore: Upgrade `@boundaries/elements` to 3.3.2, `@boundaries/config` to 1.0.1 and `@boundaries/policies` to 1.0.1.
 
 ### Fixed
 
 - fix(#622): Warn about an element or file descriptor whose `capture` or `baseCapture` is set and is not an array, such as `capture: "name"`, and ignore it. ESLint stopped with an error such as `descriptor.capture.join is not a function` when it loaded any rule, except for the `baseCapture` of a file descriptor, which the plugin used taking each character as a name; write the names in an array to keep using that descriptor.
+- fix(#622): Each configuration block uses its own `boundaries/files` descriptors when the settings of several blocks differ only in the `basePattern` or `baseCapture` of a file descriptor. Since 7.0.0, the plugin used the descriptors of the first of those blocks it linted for all of them, so errors may appear or disappear in the others.
 
 ## [7.4.1] - 2026-11-02
 
