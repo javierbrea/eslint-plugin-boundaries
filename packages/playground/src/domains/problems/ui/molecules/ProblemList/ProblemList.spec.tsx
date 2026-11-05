@@ -427,6 +427,7 @@ describe("ProblemList", () => {
 
       // Assert
       expect(emptyText).toBe(EMPTY);
+      expect(list.holds(EMPTY)).toBe(true);
       expect(emptyStyle.color).toBe("var(--jsb-muted)");
     });
 
@@ -449,10 +450,10 @@ describe("ProblemList", () => {
       const list = new ProblemListPom();
 
       // Act
-      const { emptyText } = list;
+      const holdsEmpty = list.holds(EMPTY);
 
       // Assert
-      expect(emptyText).toBeNull();
+      expect(holdsEmpty).toBe(false);
     });
   });
 });

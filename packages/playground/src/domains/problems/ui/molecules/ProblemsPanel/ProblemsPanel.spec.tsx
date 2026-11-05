@@ -90,6 +90,22 @@ describe("ProblemsPanel", () => {
     });
   });
 
+  describe("test id", () => {
+    it("should take the test id it is given in place of its own", () => {
+      // Arrange
+      render(<ProblemsPanel {...createProps()} testId="problems-pane" />);
+      const given = new ProblemsPanelPom({ testId: "problems-pane" });
+      const own = new ProblemsPanelPom();
+
+      // Act
+      const { isRendered } = given;
+
+      // Assert
+      expect(isRendered).toBe(true);
+      expect(own.isRendered).toBe(false);
+    });
+  });
+
   describe("tabs", () => {
     it("should draw a tab for each tab it is given, in order", () => {
       // Arrange
@@ -367,10 +383,11 @@ describe("ProblemsPanel", () => {
       const panel = new ProblemsPanelPom();
 
       // Act
-      const { tablistLabel } = panel;
+      const { tablistLabel, tablistTabCount } = panel;
 
       // Assert
       expect(tablistLabel).toBe("Problem lists");
+      expect(tablistTabCount).toBe(TABS.length);
     });
   });
 

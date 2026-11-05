@@ -1,4 +1,4 @@
-import { fireEvent } from "@testing-library/react";
+import { fireEvent, within } from "@testing-library/react";
 
 import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
 import { Pom } from "@/shared/testing/pom";
@@ -11,7 +11,6 @@ import {
   EXPAND_PROBLEMS_LABEL,
   PROBLEMS_PANEL_LABEL,
   PROBLEMS_PANEL_TEST_ID,
-  PROBLEM_LISTS_LABEL,
 } from "./ProblemsPanel.constants";
 import type { ProblemsPanelLabelStyle } from "./ProblemsPanel.types";
 
@@ -20,8 +19,8 @@ const TOGGLE_NAME = new RegExp(
   `^(${COLLAPSE_PROBLEMS_LABEL}|${EXPAND_PROBLEMS_LABEL})$`
 );
 
-/** Page object of a tab of the problems panel. It has no test id: it finds the tabs within its parent, the one named by the `name` option (a string or a pattern, matched against the accessible name, such as `Sketch 2 problems`) when it is set, and the `index` and `containing` options pick among them. */
-export class ProblemsTabPom extends Pom {
+/** Page object of a tab of the problems panel, a part of the panel: the page object of the panel builds it, so it is exported only as a type. It has no test id: it finds the tabs within its parent, the one named by the `name` option (a string or a pattern, matched against the accessible name, such as `Sketch 2 problems`) when it is set, and the `index` and `containing` options pick among them. */
+class ProblemsTabPom extends Pom {
   protected readonly defaultTestId = "";
 
   /** @inheritdoc */
@@ -40,19 +39,19 @@ export class ProblemsTabPom extends Pom {
   }
 
   /**
+   * How many tabs its parent holds, whatever the `index`, `name` and `containing` options. A page object that lists them builds one `ProblemsTabPom` per index below this number.
+   * @returns The number of tabs within the parent.
+   */
+  get count(): number {
+    return this.searchBase.queryAllByRole("tab").length;
+  }
+
+  /**
    * Everything the tab says, which is its label followed by its count.
    * @returns The text of the tab.
    */
   get text(): string {
     return this.root.textContent;
-  }
-
-  /**
-   * The label of the tab, without its count.
-   * @returns The text of the first node of the tab, which is the label.
-   */
-  get label(): string {
-    return this.root.childNodes[0].textContent ?? "";
   }
 
   /**
@@ -104,23 +103,23 @@ export class ProblemsTabPom extends Pom {
   }
 
   /**
-   * Whether the tab draws an icon.
-   * @returns True when the tab has an icon.
-   */
-  get hasIcon(): boolean {
-    return this.icon.isRendered;
-  }
-
-  /**
    * What comes after the label, in order.
-   * @returns `icon` for the icon and `count` for the badge.
+   * @returns `icon` for what holds an `svg`, `count` for the badge, which is an image, and `other` for anything else.
    */
-  get partsAfterLabel(): ("icon" | "count")[] {
+  get partsAfterLabel(): ("icon" | "count" | "other")[] {
     return Array.from(this.root.childNodes)
       .slice(1)
-      .map((node) =>
-        (node as Element).getAttribute("role") === "img" ? "count" : "icon"
-      );
+      .map((node) => {
+        if (!(node instanceof Element)) {
+          return "other";
+        }
+
+        if (node.matches("svg") || node.querySelector("svg") !== null) {
+          return "icon";
+        }
+
+        return node.getAttribute("role") === "img" ? "count" : "other";
+      });
   }
 
   /**
@@ -142,8 +141,8 @@ export class ProblemsTabPom extends Pom {
   }
 }
 
-/** Page object of the body of the selected tab. It has no test id: it finds the tab panel within its parent, the one named by the `name` option (the accessible name of its tab) when it is set. */
-export class ProblemsTabPanelPom extends Pom {
+/** Page object of the body of the selected tab, a part of the panel: the page object of the panel builds it, so it is exported only as a type. It has no test id: it finds the tab panel within its parent, the one named by the `name` option (the accessible name of its tab) when it is set. */
+class ProblemsTabPanelPom extends Pom {
   protected readonly defaultTestId = "";
 
   /** @inheritdoc */
@@ -202,8 +201,8 @@ export class ProblemsTabPanelPom extends Pom {
   }
 }
 
-/** Page object of the button that collapses or expands the panel. It has no test id: it finds the button by its label, whichever of the two it has, within its parent. */
-export class ProblemsToggleButtonPom extends Pom {
+/** Page object of the button that collapses or expands the panel, a part of the panel: the page object of the panel builds it, so it is exported only as a type. It has no test id: it finds the button by its label, whichever of the two it has, within its parent. */
+class ProblemsToggleButtonPom extends Pom {
   protected readonly defaultTestId = "";
 
   /** @inheritdoc */
@@ -212,6 +211,15 @@ export class ProblemsToggleButtonPom extends Pom {
       this.searchBase.queryAllByRole("button", { name: TOGGLE_NAME }),
       `the role "button" named ${TOGGLE_NAME}`
     );
+  }
+
+  /**
+   * How many buttons that collapse or expand the panel its parent holds, whatever the `index` and `containing` options. A page object that lists them builds one `ProblemsToggleButtonPom` per index below this number.
+   * @returns The number of such buttons within the parent.
+   */
+  get count(): number {
+    return this.searchBase.queryAllByRole("button", { name: TOGGLE_NAME })
+      .length;
   }
 
   /**
@@ -242,10 +250,10 @@ export class ProblemsPanelPom extends Pom {
 
   /**
    * Whether assistive technology reads the panel as a region named after it.
-   * @returns True when the panel is among the regions of its parent named Problems.
+   * @returns True when the panel is among the regions of the element that holds it, whatever the parent of the page object, which a pane that is this panel makes its own root.
    */
   get isLandmark(): boolean {
-    return this.searchBase
+    return within(this.root.parentElement ?? document.body)
       .queryAllByRole("region", { name: PROBLEMS_PANEL_LABEL })
       .includes(this.root);
   }
@@ -259,15 +267,29 @@ export class ProblemsPanelPom extends Pom {
   }
 
   /**
+   * The strip of tabs.
+   * @returns The tab list, or null when the panel has none.
+   */
+  private get tablist(): HTMLElement | null {
+    return this.scope.queryByRole("tablist");
+  }
+
+  /**
    * The name of the strip of tabs.
-   * @returns The `aria-label` of the tab list, or null when the panel has none.
+   * @returns The `aria-label` of the tab list, or null when the panel has no tab list or it has none.
    */
   get tablistLabel(): string | null {
-    return (
-      this.scope
-        .queryByRole("tablist", { name: PROBLEM_LISTS_LABEL })
-        ?.getAttribute("aria-label") ?? null
-    );
+    return this.tablist?.getAttribute("aria-label") ?? null;
+  }
+
+  /**
+   * How many tabs the strip of tabs holds.
+   * @returns The number of tabs inside the tab list, which is zero when the panel has none.
+   */
+  get tablistTabCount(): number {
+    const { tablist } = this;
+
+    return tablist === null ? 0 : within(tablist).queryAllByRole("tab").length;
   }
 
   /**
@@ -275,9 +297,10 @@ export class ProblemsPanelPom extends Pom {
    * @returns One page object for each tab.
    */
   get tabs(): ProblemsTabPom[] {
-    return Array.from(
-      { length: this.scope.queryAllByRole("tab").length },
-      (_, index) => this.childPom(ProblemsTabPom, { index })
+    const { count } = this.childPom(ProblemsTabPom);
+
+    return Array.from({ length: count }, (_, index) =>
+      this.childPom(ProblemsTabPom, { index })
     );
   }
 
@@ -294,10 +317,7 @@ export class ProblemsPanelPom extends Pom {
    * @returns The text of the selected tab, or null when none is selected.
    */
   get selectedTabText(): string | null {
-    return (
-      this.scope.queryAllByRole("tab", { selected: true })[0]?.textContent ??
-      null
-    );
+    return this.tabs.find(({ isSelected }) => isSelected)?.text ?? null;
   }
 
   /**
@@ -331,9 +351,12 @@ export class ProblemsPanelPom extends Pom {
    * @returns The label of each such button, in order: one while the panel works.
    */
   get toggleLabels(): (string | null)[] {
-    return this.scope
-      .queryAllByRole("button", { name: TOGGLE_NAME })
-      .map((button) => button.getAttribute("aria-label"));
+    const { count } = this.childPom(ProblemsToggleButtonPom);
+
+    return Array.from(
+      { length: count },
+      (_, index) => this.childPom(ProblemsToggleButtonPom, { index }).label
+    );
   }
 
   /**
@@ -345,3 +368,5 @@ export class ProblemsPanelPom extends Pom {
     return this.scope.queryByText(text) !== null;
   }
 }
+
+export type { ProblemsTabPanelPom, ProblemsTabPom, ProblemsToggleButtonPom };

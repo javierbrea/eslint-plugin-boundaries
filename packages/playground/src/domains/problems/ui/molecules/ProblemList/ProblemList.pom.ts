@@ -11,8 +11,8 @@ import type {
   ProblemRowTextStyle,
 } from "./ProblemList.types";
 
-/** Page object of a row of the problem list. It has no test id: it finds the list items within its parent, and the `index` and `containing` options pick among them. */
-export class ProblemRowPom extends Pom {
+/** Page object of a row of the problem list, a part of the list: the page object of the list builds it, so it is exported only as a type. It has no test id: it finds the list items within its parent, and the `index` and `containing` options pick among them. */
+class ProblemRowPom extends Pom {
   protected readonly defaultTestId = "";
 
   /** @inheritdoc */
@@ -21,6 +21,14 @@ export class ProblemRowPom extends Pom {
       this.searchBase.queryAllByRole("listitem"),
       'the role "listitem"'
     );
+  }
+
+  /**
+   * How many rows its parent holds, whatever the `index` and `containing` options. A page object that lists them builds one `ProblemRowPom` per index below this number.
+   * @returns The number of list items within the parent.
+   */
+  get count(): number {
+    return this.searchBase.queryAllByRole("listitem").length;
   }
 
   /**
@@ -212,7 +220,7 @@ export class ProblemListPom extends Pom {
    * @returns The number of list items.
    */
   get rowCount(): number {
-    return this.scope.queryAllByRole("listitem").length;
+    return this.childPom(ProblemRowPom).count;
   }
 
   /**
@@ -251,6 +259,15 @@ export class ProblemListPom extends Pom {
   }
 
   /**
+   * Whether a text is among the content of the list, which is how a spec checks that the sentence for no rows is not drawn next to the rows.
+   * @param text The text of an element.
+   * @returns True when an element of the list, or the list itself, has that text.
+   */
+  holds(text: string): boolean {
+    return this.scope.queryByText(text) !== null;
+  }
+
+  /**
    * The text styles of the sentence that says there are no rows.
    * @returns The computed color, font family and font size.
    */
@@ -260,3 +277,5 @@ export class ProblemListPom extends Pom {
     return { color, fontFamily, fontSize };
   }
 }
+
+export type { ProblemRowPom };

@@ -73,6 +73,18 @@ describe("Note", () => {
     expect(classNames).toContain("placed");
   });
 
+  it("should have no outer margin, as the caller places it", () => {
+    // Arrange
+    render(<Note>The config has no problems.</Note>);
+    const note = new NotePom();
+
+    // Act
+    const { margin } = note;
+
+    // Assert
+    expect(margin).toBe("");
+  });
+
   it("should take the test id it is given in place of its own", () => {
     // Arrange
     render(<Note testId="rules-note">The config has no problems.</Note>);

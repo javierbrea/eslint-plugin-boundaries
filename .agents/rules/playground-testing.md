@@ -25,6 +25,7 @@ The tests of `packages/playground/src` reach the DOM only through page objects, 
 
 - Every `ui-kit`, `ui`, module and `app` component has `<Name>.pom.ts` exporting `class <Name>Pom extends Pom`.
 - Getters read state and child page objects (`get rows()`, `get isCollapsed()`); methods act (`open(index)`, `rename(name)`). Actions use `fireEvent`, and `act` when timers are involved. The package does not use `@testing-library/user-event`. Getters and methods return plain values (strings, booleans, numbers, child page objects), so specs assert on values.
+- A page object of a part of a component that is not an element (a tab, a row) lives in that component's `.pom.ts`, is built by the component's page object with `childPom`, and is exported only as a type (`export type { ProblemRowPom };` of a class that is not exported), so no other page object builds it over the whole document.
 - A page object never repeats a query that another element's page object owns: it composes that page object with `this.childPom(ChildPom, options)`. A chain stays at two or three levels; a parent may expose a shortcut for a grandchild it uses often.
 - MUI overlays render inside the playground root (`packages/playground/AGENTS.md`, "Stack"), so a page object uses `portal: true` only when the overlay is outside its parent's root.
 - Style assertions go through page object getters, which read `getComputedStyle` and use `src/shared/testing/emittedStyle` only for the rules that apply on hover or focus. A spec never reads CSS itself.

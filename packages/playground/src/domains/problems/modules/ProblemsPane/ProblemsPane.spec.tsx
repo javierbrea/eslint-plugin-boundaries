@@ -65,6 +65,16 @@ describe("ProblemsPane", () => {
     jest.useRealTimers();
   });
 
+  describe("the panel", () => {
+    it("should be the landmark of the problems", () => {
+      // Act
+      const { pane } = renderPane();
+
+      // Assert
+      expect(pane.panel.isLandmark).toBe(true);
+    });
+  });
+
   describe("the sketch", () => {
     it("should have only the tab of the sketch, selected, when nothing is open", () => {
       // Act
@@ -163,7 +173,7 @@ describe("ProblemsPane", () => {
       // Assert
       expect(getTabs(pane)).toEqual(["Sketch2", "eslint.config.js2*"]);
       expect(pane.note.isRendered).toBe(true);
-      expect(pane.list.row("eslint.config.js:15:16").isRendered).toBe(true);
+      expect(pane.list.row("eslint.config.js:15:16").opens).toBe(true);
     });
 
     it("should ask for a new scroll each time the same row is pressed", () => {
@@ -300,6 +310,7 @@ describe("ProblemsPane", () => {
       // Assert
       expect(getTabs(pane)).toEqual(["Sketch", "checkout/index.js*"]);
       expect(pane.list.emptyText).toBe("No problems in this file.");
+      expect(pane.panel.holds("No problems in this file.")).toBe(true);
     });
 
     it("should change to the tab of another file when another file is opened", () => {
@@ -326,8 +337,8 @@ describe("ProblemsPane", () => {
 
       // Assert
       expect(getTabs(pane)).toEqual(["Sketch2*", "checkout/index.js"]);
-      expect(pane.list.row("eslint.config.js:5:7").isRendered).toBe(true);
-      expect(pane.list.emptyText).toBeNull();
+      expect(pane.list.row("eslint.config.js:5:7").opens).toBe(true);
+      expect(pane.panel.holds("No problems in this file.")).toBe(false);
     });
 
     it("should go back to the tab of the file when the user selects it", () => {

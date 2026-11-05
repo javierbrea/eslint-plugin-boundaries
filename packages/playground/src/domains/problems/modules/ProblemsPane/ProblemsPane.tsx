@@ -33,7 +33,7 @@ function ProblemsPaneContent(): ReactNode {
   const selectTab = useSelectTab();
   const setProblemsCollapsed = useSetProblemsCollapsed();
   const openTarget = useOpen();
-  // Memoized on the facts, so the tabs and the rows keep their references while the facts do not change, as the hooks returned before
+  // Memoized on the facts, so the tabs and the rows keep their references while the facts do not change
   const tabs = useMemo(() => toProblemsTabs(tabFacts), [tabFacts]);
   const { items, empty, rulesNote } = useMemo(
     () => toProblemListContent(listFacts),

@@ -33,6 +33,14 @@ export class NotePom extends Pom {
   }
 
   /**
+   * The space around the note, which a caller sets to place it.
+   * @returns The computed margin.
+   */
+  get margin(): string {
+    return getComputedStyle(this.root).margin;
+  }
+
+  /**
    * The icon of the note.
    * @returns The page object of the info icon.
    */
