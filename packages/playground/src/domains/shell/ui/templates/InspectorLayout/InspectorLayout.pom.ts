@@ -21,12 +21,12 @@ export class InspectorLayoutPom extends Pom {
   }
 
   /**
-   * Whether assistive technology reads the layout as a complementary landmark.
-   * @returns True when the layout is among the complementary landmarks of the element that holds it, whatever the parent of the page object, which a module that is the layout makes its own root.
+   * Whether assistive technology reads the layout as a complementary landmark named after it.
+   * @returns True when the layout is among the complementary landmarks named `Inspector` of the element that holds it, whatever the parent of the page object, which a module that is the layout makes its own root.
    */
   get isLandmark(): boolean {
     return within(this.root.parentElement ?? document.body)
-      .queryAllByRole("complementary")
+      .queryAllByRole("complementary", { name: INSPECTOR_LAYOUT_LABEL })
       .includes(this.root);
   }
 

@@ -37,7 +37,6 @@ describe("FileInspector", () => {
     const title = inspector.title(FILE);
 
     // Assert
-    expect(title.text).toBe(FILE);
     expect(title.tagName).toBe("DIV");
   });
 

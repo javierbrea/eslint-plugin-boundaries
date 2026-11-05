@@ -7,6 +7,13 @@ import { Pom } from "@/shared/testing/pom";
 import { INSPECTOR_PANE_TEST_ID } from "./InspectorPane.constants";
 import type { InspectorPaneShown } from "./InspectorPane.types";
 
+/** The kinds of inspector the pane holds, each one the name of the getter of its page object. */
+const INSPECTOR_KINDS: readonly InspectorPaneShown[] = [
+  "file",
+  "config",
+  "project",
+];
+
 /** Page object of the inspector pane, which is the layout with the inspector of the node in focus. */
 export class InspectorPanePom extends Pom {
   protected readonly defaultTestId = INSPECTOR_PANE_TEST_ID;
@@ -14,19 +21,19 @@ export class InspectorPanePom extends Pom {
   /**
    * What the pane describes.
    * @returns `file` for a file, `config` for the config and `project` when nothing is open.
-   * @throws When the pane holds none of the inspectors.
+   * @throws When the pane holds none of the inspectors, or more than one.
    */
   get shown(): InspectorPaneShown {
-    if (this.file.isRendered) {
-      return "file";
+    const rendered = INSPECTOR_KINDS.filter((kind) => this[kind].isRendered);
+
+    if (rendered.length !== 1) {
+      const found = rendered.length === 0 ? "none" : rendered.join(", ");
+      throw new Error(
+        `${this.constructor.name} expected exactly one inspector in its root, found ${found}`
+      );
     }
-    if (this.config.isRendered) {
-      return "config";
-    }
-    if (this.project.isRendered) {
-      return "project";
-    }
-    throw new Error(`${this.constructor.name} found no inspector in its root`);
+
+    return rendered[0];
   }
 
   /**

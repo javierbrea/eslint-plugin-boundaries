@@ -62,7 +62,7 @@ describe("InspectorPane", () => {
 
       // Assert
       expect(pane.shown).toBe("project");
-      expect(pane.project.title.isRendered).toBe(true);
+      expect(pane.project.title.text).toBe("Sketch");
       expect(pane.project.count("files")).toBe("6");
     });
 
@@ -156,7 +156,7 @@ describe("InspectorPane", () => {
 
       // Assert
       expect(pane.shown).toBe("project");
-      expect(pane.project.title.isRendered).toBe(true);
+      expect(pane.project.title.text).toBe("Sketch");
     });
   });
 

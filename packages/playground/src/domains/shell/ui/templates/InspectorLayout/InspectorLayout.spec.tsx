@@ -17,7 +17,8 @@ describe("InspectorLayout", () => {
       expect(isLandmark).toBe(true);
       expect(label).toBe("Inspector");
       expect(text).toContain("Inspector");
-      expect(head.label).toBe("Inspector");
+      expect(text).toContain("What is in focus");
+      expect(head.itemTexts).toEqual(["Inspector", ""]);
     });
   });
 });

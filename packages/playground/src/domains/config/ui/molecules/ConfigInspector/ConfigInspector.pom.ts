@@ -2,6 +2,7 @@ import { fireEvent } from "@testing-library/react";
 
 import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
 import { Pom } from "@/shared/testing/pom";
+import type { PomOptions } from "@/shared/testing/pom";
 import { SectionTitlePom } from "@/ui-kit/atoms/SectionTitle/SectionTitle.pom";
 
 import { CONFIG_INSPECTOR_TEST_ID } from "./ConfigInspector.constants";
@@ -74,6 +75,17 @@ class ConfigRowPom extends Pom {
   }
 }
 
+/**
+ * The text of each row a page object holds, which is one row per button within it.
+ * @param rowOf Builds the page object of a row of the holder from the options that select it. The row built with no options is the one that counts them.
+ * @returns The text of each row, in order.
+ */
+function textsOfRows(rowOf: (options: PomOptions) => ConfigRowPom): string[] {
+  const { count } = rowOf({});
+
+  return Array.from({ length: count }, (_, index) => rowOf({ index }).text);
+}
+
 /** Page object of a group of rows, a part of the inspector: the page object of the inspector builds it, so it is exported only as a type. It has no test id: it finds the heading named by the `name` option, which is required, and takes the element that follows the heading as its root, which is the list of rows or the line that says there are none. */
 class ConfigGroupPom extends Pom {
   protected readonly defaultTestId = "";
@@ -95,12 +107,7 @@ class ConfigGroupPom extends Pom {
    * @returns The name, what is at the end and what is below of each row, joined by a bar, in order. Empty when the group says there are none.
    */
   get rowTexts(): string[] {
-    const { count } = this.childPom(ConfigRowPom);
-
-    return Array.from(
-      { length: count },
-      (_, index) => this.childPom(ConfigRowPom, { index }).text
-    );
+    return textsOfRows((options) => this.childPom(ConfigRowPom, options));
   }
 }
 
@@ -140,7 +147,7 @@ export class ConfigInspectorPom extends Pom {
    * @returns The name, what is at the end and what is below of each row, joined by a bar, in order. Empty when every group says there are none.
    */
   get rowTexts(): string[] {
-    return this.childPom(ConfigGroupPom, { root: this.root }).rowTexts;
+    return textsOfRows((options) => this.childPom(ConfigRowPom, options));
   }
 
   /**
