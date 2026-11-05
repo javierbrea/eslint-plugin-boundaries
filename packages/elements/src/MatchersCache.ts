@@ -8,7 +8,12 @@ import type {
 } from "./Descriptor";
 import { resolveElementsSingleMatch } from "./Descriptor";
 import type { Matcher } from "./Matcher";
-import { isArray } from "./Shared";
+import { isArray, isObject } from "./Shared";
+
+/**
+ * Hash of a descriptor that is not an object, so that building the matcher reports it as invalid instead of failing while the cache key is built.
+ */
+const INVALID_DESCRIPTOR_HASH = "invalid-descriptor";
 
 /**
  * Cache manager for Matcher instances, unique for each different configuration
@@ -25,7 +30,7 @@ export class MatchersCache extends CacheManager<
   }
 > {
   /**
-   * Calculates a hash for the `capture` or `baseCapture` of a descriptor to be used in the cache key. A value that is set and is not an array gets a hash of its own instead of failing here, so that building the matcher reports the descriptor as invalid, and a matcher cached for a valid descriptor is never returned for it.
+   * Calculates a hash for the `capture` or `baseCapture` of a descriptor to be used in the cache key. A list is hashed as its JSON text, so lists whose names join into the same text, such as `["a,b"]` and `["a", "b"]`, get different hashes, and no list gets the hash of a missing value. A value that is set and is not an array gets a hash of its own instead of failing here, so that building the matcher reports the descriptor as invalid, and a matcher cached for a valid descriptor is never returned for it.
    * @param capture The value of the property.
    * @param name The name of the property in the hash.
    * @returns A string hash representing the value of the property.
@@ -35,23 +40,23 @@ export class MatchersCache extends CacheManager<
     name: "capture" | "base-capture"
   ): string {
     if (isArray(capture)) {
-      return capture.join(",");
+      return JSON.stringify(capture);
     }
     return capture ? `invalid-${name}` : `no-${name}`;
   }
 
   /**
-   * Calculates a hash for the base properties of a descriptor to be used in the cache key.
+   * Calculates a hash for the base properties of a descriptor to be used in the cache key. The pattern is hashed as its JSON text, so a string and a list of patterns never get the same hash.
    * @param descriptor The descriptor to calculate the hash for.
    * @returns A string hash representing the base properties of the descriptor.
    */
   private _getBaseDescriptorsHash(descriptor: BaseDescriptor): string {
     const captureKey = this._getCaptureHash(descriptor.capture, "capture");
-    return `${descriptor.pattern}|${captureKey}`;
+    return `${JSON.stringify(descriptor.pattern)}|${captureKey}`;
   }
 
   /**
-   * Calculates a hash for the element descriptors to be used in the cache key.
+   * Calculates a hash for the element descriptors to be used in the cache key. An entry that is not an object gets a hash of its own, so that building the matcher reports it as invalid.
    * @param elementDescriptors The element descriptors to calculate the hash for.
    * @returns A string hash representing the element descriptors.
    */
@@ -60,6 +65,9 @@ export class MatchersCache extends CacheManager<
   ): string {
     return elementDescriptors
       .map((descriptor) => {
+        if (!isObject(descriptor)) {
+          return INVALID_DESCRIPTOR_HASH;
+        }
         const baseCaptureKey = this._getCaptureHash(
           descriptor.baseCapture,
           "base-capture"
@@ -70,21 +78,23 @@ export class MatchersCache extends CacheManager<
   }
 
   /**
-   * Calculates a hash for the file descriptors to be used in the cache key.
+   * Calculates a hash for the file descriptors to be used in the cache key. An entry that is not an object gets a hash of its own, so that building the matcher reports it as invalid.
    * @param fileDescriptors The file descriptors to calculate the hash for.
    * @returns A string hash representing the file descriptors.
    */
   private _getFileDescriptorsHash(fileDescriptors: FileDescriptors): string {
     return fileDescriptors
-      .map(
-        (descriptor) =>
-          `${this._getBaseDescriptorsHash(descriptor)}|${descriptor.category}|${descriptor.basePattern}|${this._getCaptureHash(descriptor.baseCapture, "base-capture")}|${descriptor.stopMatching}|${descriptor.exclusive}`
-      )
+      .map((descriptor) => {
+        if (!isObject(descriptor)) {
+          return INVALID_DESCRIPTOR_HASH;
+        }
+        return `${this._getBaseDescriptorsHash(descriptor)}|${descriptor.category}|${descriptor.basePattern}|${this._getCaptureHash(descriptor.baseCapture, "base-capture")}|${descriptor.stopMatching}|${descriptor.exclusive}`;
+      })
       .join(",");
   }
 
   /**
-   * Generates a unique key based on the configuration options and element descriptors
+   * Generates a unique key based on the configuration options and element descriptors. The patterns of the options are hashed as their JSON text, so a string and a list of patterns never get the same hash.
    * @param params The configuration and element descriptors
    * @param params.config The normalized configuration options.
    * @param params.descriptors The descriptors configuration.
@@ -97,11 +107,11 @@ export class MatchersCache extends CacheManager<
     config: ConfigOptionsNormalized;
     descriptors: DescriptorsConfig;
   }): string {
-    const configHash = `${config.legacyTemplates}|${config.includePaths}|${config.ignorePaths}|${
+    const configHash = `${config.legacyTemplates}|${JSON.stringify(config.includePaths)}|${JSON.stringify(config.ignorePaths)}|${
       config.cache
     }|${config.rootPath}|${config.flagAsExternal.inNodeModules}|${config.flagAsExternal.unresolvableAlias}|${
       config.flagAsExternal.outsideRootPath
-    }|${config.flagAsExternal.customSourcePatterns.join(",")}`;
+    }|${JSON.stringify(config.flagAsExternal.customSourcePatterns)}`;
 
     const elementDescriptorsHash = this._getElementDescriptorsHash(
       descriptors.elements || []

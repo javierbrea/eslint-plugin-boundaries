@@ -38,8 +38,59 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toBe(
-        "|:config:|true|src/**|dist/**|true|/root|true|false|true|@external/*|:elements:||:elementsSingleMatch:|false|:files:||:filesSingleMatch:|false"
+        '|:config:|true|["src/**"]|["dist/**"]|true|/root|true|false|true|["@external/*"]|:elements:||:elementsSingleMatch:|false|:files:||:filesSingleMatch:|false'
       );
+    });
+
+    it.each(["includePaths", "ignorePaths"])(
+      "should give different keys to %s given as a string and as a list whose patterns join into that string",
+      (option) => {
+        // Arrange
+        const stringConfig = createConfig({ [option]: "src/**,lib/**" });
+        const listConfig = createConfig({ [option]: ["src/**", "lib/**"] });
+
+        // Act
+        const stringKey = matchersCache.getKey({
+          config: stringConfig,
+          descriptors: {},
+        });
+        const listKey = matchersCache.getKey({
+          config: listConfig,
+          descriptors: {},
+        });
+
+        // Assert
+        expect(stringKey).not.toBe(listKey);
+      }
+    );
+
+    it("should give different keys to customSourcePatterns whose patterns join into the same text", () => {
+      // Arrange
+      const createFlagAsExternal = (customSourcePatterns: string[]) => ({
+        inNodeModules: true,
+        unresolvableAlias: false,
+        outsideRootPath: true,
+        customSourcePatterns,
+      });
+      const joinedConfig = createConfig({
+        flagAsExternal: createFlagAsExternal(["@a/*,@b/*"]),
+      });
+      const listConfig = createConfig({
+        flagAsExternal: createFlagAsExternal(["@a/*", "@b/*"]),
+      });
+
+      // Act
+      const joinedKey = matchersCache.getKey({
+        config: joinedConfig,
+        descriptors: {},
+      });
+      const listKey = matchersCache.getKey({
+        config: listConfig,
+        descriptors: {},
+      });
+
+      // Assert
+      expect(joinedKey).not.toBe(listKey);
     });
   });
 
@@ -64,7 +115,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toBe(
-        "|:config:|true|src/**|dist/**|true|/root|true|false|true|@external/*|:elements:|src/components/*.tsx|name|component|ui|file|src|baseName|undefined|undefined|undefined|:elementsSingleMatch:|false|:files:||:filesSingleMatch:|false"
+        '|:config:|true|["src/**"]|["dist/**"]|true|/root|true|false|true|["@external/*"]|:elements:|"src/components/*.tsx"|["name"]|component|ui|file|src|["baseName"]|undefined|undefined|undefined|:elementsSingleMatch:|false|:files:||:filesSingleMatch:|false'
       );
     });
 
@@ -109,7 +160,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "src/services/*.ts|no-capture|service|core|folder|src|base|undefined|undefined|undefined"
+        '"src/services/*.ts"|no-capture|service|core|folder|src|["base"]|undefined|undefined|undefined'
       );
     });
 
@@ -132,7 +183,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "src/utils/*.ts|name|util|shared|file|src|no-base-capture|undefined|undefined|undefined"
+        '"src/utils/*.ts"|["name"]|util|shared|file|src|no-base-capture|undefined|undefined|undefined'
       );
     });
 
@@ -157,7 +208,7 @@ describe("MatchersCache", () => {
 
       // Assert
       expect(key).toContain(
-        "src/utils/*|no-capture|util|undefined|undefined|src|no-base-capture|"
+        '"src/utils/*"|no-capture|util|undefined|undefined|src|no-base-capture|'
       );
     });
 
@@ -182,11 +233,11 @@ describe("MatchersCache", () => {
 
       // Assert
       expect(key).toContain(
-        "src/utils/*|invalid-capture|util|undefined|undefined|src|invalid-base-capture|"
+        '"src/utils/*"|invalid-capture|util|undefined|undefined|src|invalid-base-capture|'
       );
     });
 
-    it("should join multiple capture values with comma", () => {
+    it("should hash capture lists as their JSON text", () => {
       const config = createConfig();
       const elements = [
         {
@@ -206,9 +257,117 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "src/modules/*/*.ts|module,file|module|feature|folder|src|root,sub|undefined|undefined|undefined"
+        '"src/modules/*/*.ts"|["module","file"]|module|feature|folder|src|["root","sub"]|undefined|undefined|undefined'
       );
     });
+
+    it.each(["capture", "baseCapture"])(
+      "should give different keys to %s lists whose names join into the same text",
+      (property) => {
+        // Arrange
+        const config = createConfig();
+        const createElements = (names: string[]) =>
+          [
+            {
+              type: "module",
+              pattern: "src/modules/*/*",
+              basePattern: "src",
+              [property]: names,
+            },
+          ] as unknown as ElementDescriptors;
+
+        // Act
+        const joinedKey = matchersCache.getKey({
+          config,
+          descriptors: { elements: createElements(["a,b"]) },
+        });
+        const listKey = matchersCache.getKey({
+          config,
+          descriptors: { elements: createElements(["a", "b"]) },
+        });
+
+        // Assert
+        expect(joinedKey).not.toBe(listKey);
+      }
+    );
+
+    it.each([
+      ["capture", ["no-capture"], undefined],
+      ["capture", ["invalid-capture"], "name"],
+      ["baseCapture", ["no-base-capture"], undefined],
+      ["baseCapture", ["invalid-base-capture"], "name"],
+    ])(
+      "should give a %s list of %j a different key than the value %j",
+      (property, list, otherValue) => {
+        // Arrange
+        const config = createConfig();
+        const createElements = (value: unknown) =>
+          [
+            {
+              type: "module",
+              pattern: "src/modules/*",
+              basePattern: "src",
+              [property]: value,
+            },
+          ] as unknown as ElementDescriptors;
+
+        // Act
+        const listKey = matchersCache.getKey({
+          config,
+          descriptors: { elements: createElements(list) },
+        });
+        const otherKey = matchersCache.getKey({
+          config,
+          descriptors: { elements: createElements(otherValue) },
+        });
+
+        // Assert
+        expect(listKey).not.toBe(otherKey);
+      }
+    );
+
+    it("should give different keys to a pattern string and a list of patterns that joins into it", () => {
+      // Arrange
+      const config = createConfig();
+      const createElements = (pattern: string | string[]) =>
+        [{ type: "module", pattern }] as unknown as ElementDescriptors;
+
+      // Act
+      const stringKey = matchersCache.getKey({
+        config,
+        descriptors: { elements: createElements("src/*,lib/*") },
+      });
+      const listKey = matchersCache.getKey({
+        config,
+        descriptors: { elements: createElements(["src/*", "lib/*"]) },
+      });
+
+      // Assert
+      expect(stringKey).not.toBe(listKey);
+    });
+
+    it.each([null, undefined, "src/*"])(
+      "should use 'invalid-descriptor' for an element descriptor that is %j",
+      (descriptor) => {
+        // Arrange
+        const config = createConfig();
+        const elements = [
+          descriptor,
+          { type: "module", pattern: "src/*" },
+        ] as unknown as ElementDescriptors;
+
+        // Act
+        const key = matchersCache.getKey({
+          config,
+          descriptors: { elements },
+        });
+
+        // Assert
+        expect(key).toContain(
+          '|:elements:|invalid-descriptor,"src/*"|no-capture|module|'
+        );
+      }
+    );
 
     it("should include partialMatch: false in the hash", () => {
       const config = createConfig();
@@ -227,7 +386,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "src/components/*.tsx|no-capture|component|ui|undefined|undefined|no-base-capture|false|undefined|undefined"
+        '"src/components/*.tsx"|no-capture|component|ui|undefined|undefined|no-base-capture|false|undefined|undefined'
       );
     });
 
@@ -283,7 +442,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "|:elements:|src/components/*.tsx|name|component|ui|file|src|base|undefined|undefined|undefined,src/services/*.ts|svc|service|core|folder|lib|root|undefined|undefined|undefined|:elementsSingleMatch:|"
+        '|:elements:|"src/components/*.tsx"|["name"]|component|ui|file|src|["base"]|undefined|undefined|undefined,"src/services/*.ts"|["svc"]|service|core|folder|lib|["root"]|undefined|undefined|undefined|:elementsSingleMatch:|'
       );
     });
   });
@@ -304,7 +463,7 @@ describe("MatchersCache", () => {
         descriptors: { files },
       });
 
-      expect(key).toContain("|:files:|src/**/*.spec.ts|name|test");
+      expect(key).toContain('|:files:|"src/**/*.spec.ts"|["name"]|test');
     });
 
     it("should produce empty files section when files is undefined", () => {
@@ -343,7 +502,7 @@ describe("MatchersCache", () => {
         descriptors: { files },
       });
 
-      expect(key).toContain("|:files:|*.config.ts|no-capture|config");
+      expect(key).toContain('|:files:|"*.config.ts"|no-capture|config');
     });
 
     it("should use 'invalid-capture' when file descriptor capture is set and is not an array", () => {
@@ -364,7 +523,7 @@ describe("MatchersCache", () => {
       });
 
       // Assert
-      expect(key).toContain("|:files:|*.config.ts|invalid-capture|config");
+      expect(key).toContain('|:files:|"*.config.ts"|invalid-capture|config');
     });
 
     it("should include basePattern and baseCapture of file descriptors", () => {
@@ -393,9 +552,32 @@ describe("MatchersCache", () => {
 
       // Assert
       expect(key).toContain(
-        "|:files:|*.spec.ts|no-capture|test|src/*|module|undefined|undefined,*.spec.ts|no-capture|test|lib/*|invalid-base-capture|undefined|undefined"
+        '|:files:|"*.spec.ts"|no-capture|test|src/*|["module"]|undefined|undefined,"*.spec.ts"|no-capture|test|lib/*|invalid-base-capture|undefined|undefined'
       );
     });
+
+    it.each([null, undefined, "*.ts"])(
+      "should use 'invalid-descriptor' for a file descriptor that is %j",
+      (descriptor) => {
+        // Arrange
+        const config = createConfig();
+        const files = [
+          descriptor,
+          { category: "ts", pattern: "*.ts" },
+        ] as unknown as FileDescriptors;
+
+        // Act
+        const key = matchersCache.getKey({
+          config,
+          descriptors: { files },
+        });
+
+        // Assert
+        expect(key).toContain(
+          '|:files:|invalid-descriptor,"*.ts"|no-capture|ts|'
+        );
+      }
+    );
 
     it("should join multiple file descriptors with comma", () => {
       const config = createConfig();
@@ -417,7 +599,7 @@ describe("MatchersCache", () => {
       });
 
       expect(key).toContain(
-        "|:files:|src/**/*.spec.ts|name|test|undefined|no-base-capture|undefined|undefined,*.config.ts|no-capture|config|undefined|no-base-capture|undefined|undefined"
+        '|:files:|"src/**/*.spec.ts"|["name"]|test|undefined|no-base-capture|undefined|undefined,"*.config.ts"|no-capture|config|undefined|no-base-capture|undefined|undefined'
       );
     });
   });

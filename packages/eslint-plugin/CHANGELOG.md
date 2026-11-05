@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- fix(#622): Warn about an element or file descriptor whose `capture` or `baseCapture` is set and is not an array, such as `capture: "name"`, and ignore it. ESLint stopped with `descriptor.capture.join is not a function` when it loaded any rule of the plugin.
+- fix(#622): Warn about an element or file descriptor whose `capture` or `baseCapture` is set and is not an array, such as `capture: "name"`, and ignore it. ESLint stopped with an error such as `descriptor.capture.join is not a function` when it loaded any rule, except for the `baseCapture` of a file descriptor, which the plugin used taking each character as a name; write the names in an array to keep using that descriptor.
 
 ## [7.4.1] - 2026-11-02
 

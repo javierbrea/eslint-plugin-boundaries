@@ -283,6 +283,31 @@ describe("flagAsExternal configuration | Integration", () => {
       expect(dependency.to.module.origin).toBe("local");
     });
 
+    it("should not reuse the matcher of patterns that join into the same text", () => {
+      // Arrange
+      elements = new Elements();
+      const descriptors = {
+        elements: [{ type: "component", pattern: "src/components/*.ts" }],
+      };
+      elements.getMatcher(descriptors, {
+        flagAsExternal: { customSourcePatterns: ["@myorg/*,~/**"] },
+      });
+      matcher = elements.getMatcher(descriptors, {
+        flagAsExternal: { customSourcePatterns: ["@myorg/*", "~/**"] },
+      });
+
+      // Act
+      const dependency = matcher.describeDependency({
+        from: "/project/src/components/App.ts",
+        source: "@myorg/shared",
+        kind: "value",
+        to: "/project/packages/shared/index.ts",
+      });
+
+      // Assert
+      expect(dependency.to.module.origin).toBe("external");
+    });
+
     it("should work with empty patterns array", () => {
       elements = new Elements({
         flagAsExternal: {
