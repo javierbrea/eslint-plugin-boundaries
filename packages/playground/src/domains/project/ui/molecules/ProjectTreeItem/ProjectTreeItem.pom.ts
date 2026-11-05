@@ -7,7 +7,12 @@ import { Pom } from "@/shared/testing/pom";
 import { CountBadgePom } from "@/ui-kit/atoms/CountBadge/CountBadge.pom";
 import { IconPom } from "@/ui-kit/atoms/Icon/Icon.pom";
 
-import { PROJECT_TREE_ITEM_TEST_ID } from "./ProjectTreeItem.constants";
+import {
+  CONFIG_GLYPH,
+  DELETE_ACTION_LABEL,
+  PROJECT_TREE_ITEM_TEST_ID,
+  RENAME_ACTION_LABEL,
+} from "./ProjectTreeItem.constants";
 import type {
   ProjectRowGlyphStyle,
   ProjectRowTextStyle,
@@ -86,6 +91,14 @@ class ProjectRowPom extends Pom {
   }
 
   /**
+   * What the row reads, from the chevron to the badge.
+   * @returns The text of the row: the glyph of the config, the name, and the number of the badge.
+   */
+  get text(): string {
+    return this.root.textContent;
+  }
+
+  /**
    * The text styles of the row.
    * @returns The computed font family, size and line height.
    */
@@ -105,19 +118,19 @@ class ProjectRowPom extends Pom {
 
   /**
    * Whether the row draws the glyph that marks the config.
-   * @returns True when the row holds a `{}`.
+   * @returns True when the row holds the glyph.
    */
   get hasGlyph(): boolean {
-    return this.scope.queryByText("{}") !== null;
+    return this.scope.queryByText(CONFIG_GLYPH) !== null;
   }
 
   /**
    * The text styles of the glyph of the config.
-   * @returns The computed font size, weight and line height of the `{}` before its name.
+   * @returns The computed font size, weight and line height of the glyph before its name.
    */
   get glyphStyle(): ProjectRowGlyphStyle {
     const { fontSize, fontWeight, lineHeight } = getComputedStyle(
-      this.scope.getByText("{}")
+      this.scope.getByText(CONFIG_GLYPH)
     );
 
     return { fontSize, fontWeight, lineHeight };
@@ -128,7 +141,7 @@ class ProjectRowPom extends Pom {
    * @returns The `d` attribute of each icon's path, to compare with `ICON_PATHS`.
    */
   get iconPaths(): string[] {
-    const count = this.root.querySelectorAll("svg").length;
+    const { count } = this.childPom(IconPom);
 
     return Array.from(
       { length: count },
@@ -158,9 +171,12 @@ class ProjectRowPom extends Pom {
    * @returns The `aria-label` of each image of the row, in order; empty when the row has no badge.
    */
   get badgeLabels(): (string | null)[] {
-    return this.scope
-      .queryAllByRole("img")
-      .map((image) => image.getAttribute("aria-label"));
+    const { total } = this.childPom(CountBadgePom);
+
+    return Array.from(
+      { length: total },
+      (_, index) => this.childPom(CountBadgePom, { index }).label
+    );
   }
 
   /**
@@ -174,24 +190,9 @@ class ProjectRowPom extends Pom {
   }
 }
 
-/** Page object of an item of the project tree. It finds the item by the path of its node, the `name` option, which is required: the title of the name of the item, or the path in the label of the field while the item is renamed. The items inside a folder are not part of the item, and neither are their rows. */
+/** Page object of an item of the project tree. It finds the item by the path of its node, the `name` option when it is set: the title of the name of the item, or the path in the label of the field while the item is renamed. Without it, the `index` option picks among all the items of its parent, folders before the items inside them, in the order they are drawn. The items inside a folder are not part of the item, and neither are their rows. */
 export class ProjectTreeItemPom extends Pom {
   protected readonly defaultTestId = PROJECT_TREE_ITEM_TEST_ID;
-
-  /**
-   * The path of the node the item shows, which is the `name` option.
-   * @returns The path.
-   * @throws When the option is unset or is not a text.
-   */
-  private get path(): string {
-    const path = this.requireName();
-
-    if (typeof path !== "string") {
-      throw new Error(`${this.constructor.name} needs a path as its "name"`);
-    }
-
-    return path;
-  }
 
   /**
    * Gets the path of the node that an item shows, without looking at the items inside it.
@@ -216,17 +217,55 @@ export class ProjectTreeItemPom extends Pom {
       : null;
   }
 
+  /**
+   * Every item within the parent, whatever the options but the test id, in the order they are drawn.
+   * @returns The elements of the items.
+   */
+  private get items(): HTMLElement[] {
+    return this.searchBase.queryAllByTestId(
+      this.options.testId ?? this.defaultTestId
+    );
+  }
+
   /** @inheritdoc */
   protected findRoot(): HTMLElement {
-    const { path } = this;
+    const { name: path } = this.options;
     const testId = this.options.testId ?? this.defaultTestId;
 
+    if (path === undefined) {
+      return this.pickMatch(this.items, `the test id "${testId}"`);
+    }
+    if (typeof path !== "string") {
+      throw new Error(`${this.constructor.name} needs a path as its "name"`);
+    }
+
     return this.pickMatch(
-      this.searchBase
-        .queryAllByTestId(testId)
-        .filter((item) => ProjectTreeItemPom.getOwnPath(item) === path),
+      this.items.filter((item) => ProjectTreeItemPom.getOwnPath(item) === path),
       `the test id "${testId}" of the node ${path}`
     );
+  }
+
+  /**
+   * How many items its parent holds, whatever the `name`, `index` and `containing` options. A page object that lists them builds one `ProjectTreeItemPom` per index below this number.
+   * @returns The number of items within the parent, with those inside the folders.
+   */
+  get count(): number {
+    return this.items.length;
+  }
+
+  /**
+   * The path of the node the item shows, read from its own row and not from the items inside it.
+   * @returns The title of its name, or the path in the label of its field while the node is renamed.
+   * @throws When the row shows neither.
+   */
+  get path(): string {
+    const path = ProjectTreeItemPom.getOwnPath(this.root);
+
+    if (path === null) {
+      throw new Error(`${this.constructor.name} found no path in its row`);
+    }
+
+    return path;
   }
 
   /**
@@ -252,7 +291,9 @@ export class ProjectTreeItemPom extends Pom {
    * @returns The page object of the button, which is not rendered for the config, or while nodes cannot be edited or the node is being renamed.
    */
   get renameAction(): RowActionPom {
-    return this.childPom(RowActionPom, { name: `Rename ${this.path}` });
+    return this.childPom(RowActionPom, {
+      name: `${RENAME_ACTION_LABEL} ${this.path}`,
+    });
   }
 
   /**
@@ -260,7 +301,9 @@ export class ProjectTreeItemPom extends Pom {
    * @returns The page object of the button, which is not rendered for the config, or while nodes cannot be edited or the node is being renamed.
    */
   get deleteAction(): RowActionPom {
-    return this.childPom(RowActionPom, { name: `Delete ${this.path}` });
+    return this.childPom(RowActionPom, {
+      name: `${DELETE_ACTION_LABEL} ${this.path}`,
+    });
   }
 
   /**

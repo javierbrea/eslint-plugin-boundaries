@@ -52,6 +52,19 @@ function createProps(
 }
 
 describe("ProjectTree", () => {
+  describe("tree", () => {
+    it("should be named Project files for assistive technology", () => {
+      // Arrange
+      renderInRoot(<ProjectTree {...createProps()} />);
+
+      // Act
+      const { label } = new ProjectTreePom();
+
+      // Assert
+      expect(label).toBe("Project files");
+    });
+  });
+
   describe("rows", () => {
     it("should set the name of a row in mono text, on a line as tall as the row", () => {
       // Arrange
@@ -258,6 +271,68 @@ describe("ProjectTree", () => {
       // Assert
       expect(spy).toHaveBeenCalledTimes(2);
       expect(new ProjectTreePom().item("docs").isRendered).toBe(true);
+    });
+
+    it("should list the config first and the folders before the files, each by name", () => {
+      // Arrange
+      render(<ProjectTree {...createProps()} />);
+
+      // Act
+      const tree = new ProjectTreePom();
+      const { itemCount, itemPaths, itemLabels } = tree;
+
+      // Assert
+      expect(itemCount).toBe(6);
+      expect(itemPaths).toEqual([
+        "eslint.config.js",
+        "src",
+        "src/components",
+        "src/components/Button.js",
+        "src/index.js",
+        "index.js",
+      ]);
+      expect(itemLabels).toEqual([
+        "eslint.config.js",
+        "src/",
+        "components/",
+        "Button.js",
+        "index.js",
+        "index.js",
+      ]);
+    });
+
+    it("should keep the path of the item whose node is being renamed", () => {
+      // Arrange
+      render(<ProjectTree {...createProps({ renaming: "src/index.js" })} />);
+
+      // Act
+      const { itemPaths } = new ProjectTreePom();
+
+      // Assert
+      expect(itemPaths).toEqual([
+        "eslint.config.js",
+        "src",
+        "src/components",
+        "src/components/Button.js",
+        "src/index.js",
+        "index.js",
+      ]);
+    });
+
+    it("should list only the items of the open folders", () => {
+      // Arrange
+      render(
+        <ProjectTree
+          {...createProps({ collapsed: new Set(["src/components"]) })}
+        />
+      );
+
+      // Act
+      const { itemCount, itemPaths } = new ProjectTreePom();
+
+      // Assert
+      expect(itemCount).toBe(5);
+      expect(itemPaths).not.toContain("src/components/Button.js");
     });
 
     it("should hide the children of the folders that are closed", () => {

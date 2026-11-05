@@ -17,7 +17,12 @@ import { Icon } from "@/ui-kit/atoms/Icon";
 import { FOCUS_RING, HOVER_BACKGROUND } from "@/ui-kit/helpers/theme";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
-import { PROJECT_TREE_ITEM_TEST_ID } from "./ProjectTreeItem.constants";
+import {
+  CONFIG_GLYPH,
+  DELETE_ACTION_LABEL,
+  PROJECT_TREE_ITEM_TEST_ID,
+  RENAME_ACTION_LABEL,
+} from "./ProjectTreeItem.constants";
 import type { ProjectTreeItemProps } from "./ProjectTreeItem.types";
 
 const Root = styled("li")({
@@ -276,7 +281,9 @@ export function ProjectTreeItem({
               />
             ) : null}
           </Chevron>
-          {item.kind === "config" ? <Glyph aria-hidden>{"{}"}</Glyph> : null}
+          {item.kind === "config" ? (
+            <Glyph aria-hidden>{CONFIG_GLYPH}</Glyph>
+          ) : null}
           {isRenaming ? (
             <RenameField
               path={itemId}
@@ -300,11 +307,11 @@ export function ProjectTreeItem({
           <End>
             {canEdit && !isRenaming ? (
               <Actions data-actions="">
-                <Tooltip title="Rename">
+                <Tooltip title={RENAME_ACTION_LABEL}>
                   <IconButton
                     size="small"
                     tabIndex={-1}
-                    aria-label={`Rename ${itemId}`}
+                    aria-label={`${RENAME_ACTION_LABEL} ${itemId}`}
                     onClick={(clickEvent) => {
                       // The row would take the click as a selection
                       clickEvent.stopPropagation();
@@ -314,11 +321,11 @@ export function ProjectTreeItem({
                     <Icon name="edit" />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="Delete">
+                <Tooltip title={DELETE_ACTION_LABEL}>
                   <IconButton
                     size="small"
                     tabIndex={-1}
-                    aria-label={`Delete ${itemId}`}
+                    aria-label={`${DELETE_ACTION_LABEL} ${itemId}`}
                     onClick={(clickEvent) => {
                       clickEvent.stopPropagation();
                       context.onDelete(itemId);

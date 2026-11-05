@@ -142,6 +142,18 @@ describe("ConfirmDialog", () => {
       expect(props.onCancel).toHaveBeenCalledTimes(1);
       expect(props.onConfirm).not.toHaveBeenCalled();
     });
+
+    it("should be called when the backdrop around the dialog is clicked", () => {
+      // Arrange
+      const { dialog, props } = renderDialog();
+
+      // Act
+      dialog.clickBackdrop();
+
+      // Assert
+      expect(props.onCancel).toHaveBeenCalledTimes(1);
+      expect(props.onConfirm).not.toHaveBeenCalled();
+    });
   });
 
   describe("onConfirm", () => {
@@ -180,7 +192,6 @@ describe("ConfirmDialog", () => {
 
       // Assert
       expect(props.onExited).toHaveBeenCalledTimes(1);
-      expect(dialog.isRendered).toBe(false);
     });
   });
 

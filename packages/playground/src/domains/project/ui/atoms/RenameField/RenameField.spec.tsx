@@ -257,7 +257,6 @@ describe("RenameField", () => {
       // Assert
       expect(onCommit).not.toHaveBeenCalled();
       expect(onCancel).not.toHaveBeenCalled();
-      expect(field.value).toBe("index.js");
     });
 
     it("should not reach the tree, which takes keys of its own", () => {

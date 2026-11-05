@@ -2,6 +2,9 @@ import { Pom } from "@/shared/testing/pom";
 
 import type { IconWrapperStyle } from "./Icon.types";
 
+/** The selector of the element an icon is drawn in. */
+const ICON_SELECTOR = "svg";
+
 /** Page object of an icon. It has no test id: it finds the first `svg` within its parent, or the image named by the `name` option when the icon has a label. */
 export class IconPom extends Pom {
   protected readonly defaultTestId = "";
@@ -11,13 +14,21 @@ export class IconPom extends Pom {
     const { name: accessibleName } = this.options;
 
     if (accessibleName === undefined) {
-      return this.findRootBySelector("svg");
+      return this.findRootBySelector(ICON_SELECTOR);
     }
 
     return this.pickMatch(
       this.searchBase.queryAllByRole("img", { name: accessibleName }),
       `the role "img" named ${accessibleName}`
     );
+  }
+
+  /**
+   * How many icons its parent holds, whatever the `name`, `index` and `containing` options. A page object that lists them builds one `IconPom` per index below this number.
+   * @returns The number of `svg` elements within the parent.
+   */
+  get count(): number {
+    return this.searchBaseElement.querySelectorAll(ICON_SELECTOR).length;
   }
 
   /**

@@ -139,6 +139,17 @@ describe("ProjectTreeItem", () => {
       expect(glyphs).toEqual([true, false, false]);
     });
 
+    it("should write the glyph of the config before its name", () => {
+      // Arrange
+      renderItems();
+
+      // Act
+      const { text } = item("eslint.config.js").row;
+
+      // Assert
+      expect(text).toBe("{}eslint.config.js");
+    });
+
     it("should draw a chevron that points down on an open folder, and none on a file", () => {
       // Arrange
       renderItems({ editable: false });

@@ -127,6 +127,14 @@ export class ConfirmDialogPom extends Pom {
     fireEvent.keyDown(this.root, { key: "Escape" });
   }
 
+  /** Clicks outside the dialog, on the backdrop around it: the press starts and ends there, as a click that gives up does. */
+  clickBackdrop(): void {
+    const container = this.root.closest(".MuiDialog-container") as HTMLElement;
+
+    fireEvent.mouseDown(container);
+    fireEvent.click(container);
+  }
+
   /**
    * Waits for the dialog to be gone from the page, which MUI does when its transition ends after it closed.
    * @returns A promise that settles when the dialog is gone.

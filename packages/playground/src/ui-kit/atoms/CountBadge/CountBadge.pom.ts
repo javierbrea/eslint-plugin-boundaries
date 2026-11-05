@@ -4,19 +4,36 @@ import { Pom } from "@/shared/testing/pom";
 export class CountBadgePom extends Pom {
   protected readonly defaultTestId = "";
 
+  /**
+   * The images within the parent, which are the badges.
+   * @param accessibleName The accessible name to keep the images by. Every image is kept when it is unset.
+   * @returns The images, in document order.
+   */
+  private findBadges(accessibleName?: string | RegExp): HTMLElement[] {
+    return this.searchBase.queryAllByRole(
+      "img",
+      accessibleName === undefined ? {} : { name: accessibleName }
+    );
+  }
+
   /** @inheritdoc */
   protected findRoot(): HTMLElement {
     const { name: accessibleName } = this.options;
 
     return this.pickMatch(
-      this.searchBase.queryAllByRole(
-        "img",
-        accessibleName === undefined ? {} : { name: accessibleName }
-      ),
+      this.findBadges(accessibleName),
       accessibleName === undefined
         ? 'the role "img"'
         : `the role "img" named ${accessibleName}`
     );
+  }
+
+  /**
+   * How many badges its parent holds, whatever the `name`, `index` and `containing` options. A page object that lists them builds one `CountBadgePom` per index below this number. It is not `count`, which is the number a badge shows.
+   * @returns The number of images within the parent.
+   */
+  get total(): number {
+    return this.findBadges().length;
   }
 
   /**
