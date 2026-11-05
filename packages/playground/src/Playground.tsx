@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
+import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
+
 import type { PlaygroundProps, Sketch } from "./contract";
-import { Root } from "./theme";
 import { LoadState, Workbench } from "./ui";
 import type { SketchLoad } from "./ui";
 
@@ -103,7 +104,7 @@ export function Playground({
   );
 
   return (
-    <Root>
+    <ThemeRoot>
       {sketchLoad.status === "loaded" ? (
         <Workbench
           initialSketch={sketchLoad.sketch}
@@ -113,6 +114,6 @@ export function Playground({
       ) : (
         <LoadState load={sketchLoad} />
       )}
-    </Root>
+    </ThemeRoot>
   );
 }

@@ -1,7 +1,6 @@
-import { CACHE_KEY, ROOT_CLASS } from "@/theme/Theme";
+import { CACHE_KEY, ROOT_CLASS } from "@/ui-kit/helpers/theme";
 
-/** The placeholder of the element's own class in the selector passed to {@link getStyle}. */
-export const OWN_CLASS = "{class}";
+import { OWN_CLASS } from "./emittedStyle.constants";
 
 /**
  * Collects what the CSS rules of the playground declare for an element: its own Emotion class, or a selector built around it. jsdom cannot tell whether an element is hovered or has a keyboard focus ring, so a spec reads the rule instead of the computed style.

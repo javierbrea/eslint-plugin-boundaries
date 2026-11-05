@@ -1,13 +1,8 @@
 import { createTheme } from "@mui/material/styles";
 import type { Components, PaletteOptions, Theme } from "@mui/material/styles";
 
-import { TYPOGRAPHY } from "./Typography";
-
-/** Class of the root element of the playground, the scope of every MUI variable and style */
-export const ROOT_CLASS = "jsb-play-root";
-
-/** Key of the Emotion cache of the playground, the prefix of its class names */
-export const CACHE_KEY = "jsb-play";
+import { FOCUS_RING, HOVER_BACKGROUND, ROOT_CLASS } from "./theme.constants";
+import { TYPOGRAPHY } from "./typography";
 
 /** Prefix of the MUI variables of the playground, so that they never collide with those of a host that uses MUI */
 const CSS_VAR_PREFIX = "jsb-play";
@@ -29,13 +24,6 @@ const PALETTE: PaletteOptions = {
   divider: "var(--jsb-line)",
   background: { default: "var(--jsb-paper)", paper: "var(--jsb-card)" },
 };
-
-/** Keyboard focus ring of every button, tab and toggle. A pane that draws a ring of its own, such as a scrolling panel or a row of the tree, uses it too, with the offset that suits where it sits */
-export const FOCUS_RING = "2px solid var(--jsb-accent)";
-
-/** Hover over a row or a toggle: the soft accent, fainter than a selection */
-export const HOVER_BACKGROUND =
-  "color-mix(in srgb, var(--jsb-accent-soft) 60%, transparent)";
 
 /** Backdrop of the dialogs in the dark scheme: 34% of `--jsb-ink`, which is light there, would brighten the page instead of dimming it */
 const DARK_BACKDROP = "rgba(0, 0, 0, 0.55)";

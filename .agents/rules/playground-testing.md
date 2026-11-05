@@ -15,15 +15,15 @@ The tests of `packages/playground/src` reach the DOM only through page objects, 
 
 ## The page object base
 
-`src/shared/testing/pom` exports the base every page object extends:
+`src/shared/testing/pom` exports the base every page object extends (`Pom`) and `FixturePom`, the page object of the probe markup of a spec. Its TSDoc documents every member and option; read it before writing a page object. The facts that decide how to write one:
 
-- `PomOptions`, all optional: `root` (an explicit root element, which wins over everything), `parent` (the `Pom` whose root is searched), `testId` (overrides the default test id), `name` (accessible name, for atoms), `index` (nth match), `containing` (the match whose text includes it) and `portal` (resolve from `document.body`).
-- `abstract class Pom`: `protected abstract readonly defaultTestId: string`; `constructor(options: PomOptions = {})`; `protected get searchBase()` (the Testing Library queries bound to `document.body` when `portal`, to the parent's root when there is a parent, otherwise to `screen`); `protected findRoot()` (by test id within `searchBase`, filtered by `containing`, picked by `index`, and a descriptive error when nothing matches); `protected get root()` (the `root` option or `findRoot()`, resolved on every access and never cached); `protected get scope()` (`within(root)`); `protected get searchBaseElement()`; `protected findRootBySelector(selector)` (for a layout primitive with no role, label or text); `protected requireName()`; `get isRendered(): boolean`; and `protected childPom(Ctor, options)`, which builds a child page object whose parent is this one.
-- `FixturePom`: a page object for the probe markup of a spec. It requires `options.testId`.
+- The `PomOptions` select the root element: a test id, an `index`, a text it `contains`, a `parent`, an explicit `root` or `portal` for an overlay outside the parent. The root is resolved on every access and never cached.
+- A composite takes `defaultTestId` from its constants file. An atom sets `defaultTestId = ""` and overrides `findRoot()` to find its root by role, name, label or selector within `searchBase`, passing the candidates through `pickMatch(...)` so that `index` and `containing` still apply.
+- A child is built with `childPom(Ctor, options)`, which sets the parent.
 
 ## Page objects
 
-- Every `ui-kit`, `ui`, module and `app` component has `<Name>.pom.ts` exporting `class <Name>Pom extends Pom`. A composite takes `defaultTestId` from its constants file. An atom sets `defaultTestId = ""` and overrides `findRoot()` to resolve by role, name, label or selector within `searchBase`.
+- Every `ui-kit`, `ui`, module and `app` component has `<Name>.pom.ts` exporting `class <Name>Pom extends Pom`.
 - Getters read state and child page objects (`get rows()`, `get isCollapsed()`); methods act (`open(index)`, `rename(name)`). Actions use `fireEvent`, and `act` when timers are involved. The package does not use `@testing-library/user-event`. Getters and methods return plain values (strings, booleans, numbers, child page objects), so specs assert on values.
 - A page object never repeats a query that another element's page object owns: it composes that page object with `this.childPom(ChildPom, options)`. A chain stays at two or three levels; a parent may expose a shortcut for a grandchild it uses often.
 - MUI overlays render inside the playground root (`packages/playground/AGENTS.md`, "Stack"), so a page object uses `portal: true` only when the overlay is outside its parent's root.

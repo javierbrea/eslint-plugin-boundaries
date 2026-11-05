@@ -1,4 +1,4 @@
-import { TONE_COLORS } from "./Tone";
+import { TONE_COLORS } from "./tone.constants";
 
 describe("Tone", () => {
   describe("tONE_COLORS", () => {

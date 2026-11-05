@@ -1,7 +1,7 @@
 import type { ConfigProblem, ProblemLevel } from "@/engine";
 import { CONFIG_PATH } from "@/sketch";
 import type { TextProblem } from "@/sketch";
-import type { Tone } from "@/ui/common";
+import type { Tone } from "@/ui-kit/helpers/tone";
 
 import type { ProblemItem } from "./Problems.types";
 

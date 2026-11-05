@@ -8,6 +8,9 @@ import {
   within,
 } from "@testing-library/react";
 
+import { stubResizeObserver } from "@/shared/testing/resizeObserver";
+import { CACHE_KEY, ROOT_CLASS } from "@/ui-kit/helpers/theme";
+
 import type {
   ProjectCapabilities,
   ProjectSource,
@@ -16,8 +19,6 @@ import type {
 } from "./contract";
 import { MemoryStore, SketchSource } from "./contract";
 import { Playground } from "./Playground";
-import { CACHE_KEY, ROOT_CLASS } from "./theme";
-import { stubResizeObserver } from "./ui/layout/__fixtures__/StubResizeObserver";
 
 const SOURCE_SKETCH: Sketch = {
   config: "{ settings: {}, rules: {} }",

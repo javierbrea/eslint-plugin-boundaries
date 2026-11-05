@@ -1,0 +1,1 @@
+export { renderInRoot } from "./renderInRoot";

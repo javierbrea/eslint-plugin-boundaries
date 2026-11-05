@@ -5,7 +5,13 @@ import { ThemeProvider, styled } from "@mui/material/styles";
 import { useId, useState } from "react";
 import type { ReactNode } from "react";
 
-import { CACHE_KEY, ROOT_CLASS, createPlaygroundTheme } from "./Theme";
+import {
+  CACHE_KEY,
+  ROOT_CLASS,
+  createPlaygroundTheme,
+} from "@/ui-kit/helpers/theme";
+
+import type { ThemeRootProps } from "./ThemeRoot.types";
 
 /** The Emotion cache of every mount of the playground, created on first use: a new cache per mount would insert every rule again */
 let sharedCache: EmotionCache | undefined;
@@ -19,7 +25,7 @@ function getCache(): EmotionCache {
   return sharedCache;
 }
 
-// The base of the playground: the card, the ink and the body text of the theme. Dialogs, menus and tooltips render inside this element and not inside the workbench, so they take their text from it: without it, a dialog's text takes the 16 px of the host
+// The base of the playground: the card, the ink and the body text of the theme. Dialogs, menus and tooltips render inside this element and not inside the panes, so they take their text from it: without it, a dialog's text takes the 16 px of the host
 const Base = styled("div")(({ theme }) => ({
   boxSizing: "border-box",
   height: "100%",
@@ -28,19 +34,13 @@ const Base = styled("div")(({ theme }) => ({
   ...theme.typography.body1,
 }));
 
-/** Props of {@link Root}. */
-type RootProps = {
-  /** Content of the playground. */
-  children: ReactNode;
-};
-
 /**
  * Root element of the playground, which scopes the MUI theme and the Emotion styles to it, and gives the playground its base: the card background, the ink color and the 13 px body font. It is as tall as its container, which the host sizes. The host keeps its own theme: the root follows its `data-theme` attribute and never changes it.
- * @param props Root props.
+ * @param props ThemeRoot props.
  * @param props.children Content of the playground.
  * @returns The root element.
  */
-export function Root({ children }: Readonly<RootProps>): ReactNode {
+export function ThemeRoot({ children }: Readonly<ThemeRootProps>): ReactNode {
   const rootId = useId();
   const [cache] = useState(getCache);
   // MUI calls the getter when an overlay opens, after the root element is in the document

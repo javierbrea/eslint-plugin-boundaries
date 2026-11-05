@@ -1,4 +1,4 @@
-import { formatCount } from "./FormatCount";
+import { formatCount } from "./formatCount";
 
 describe("FormatCount", () => {
   describe("formatCount", () => {

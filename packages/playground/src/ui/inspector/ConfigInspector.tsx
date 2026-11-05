@@ -4,9 +4,9 @@ import type { ReactNode } from "react";
 
 import type { Evaluation } from "@/engine";
 import { CONFIG_PATH } from "@/sketch";
-import { TONE_COLORS } from "@/ui/common";
-import type { Tone } from "@/ui/common";
 import type { Target } from "@/ui/state";
+import { TONE_COLORS } from "@/ui-kit/helpers/tone";
+import type { Tone } from "@/ui-kit/helpers/tone";
 
 import {
   getElementTypeRow,

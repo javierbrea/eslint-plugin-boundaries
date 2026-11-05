@@ -2,11 +2,11 @@ import { fireEvent, render, screen as view } from "@testing-library/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 
-import { FOCUS_RING } from "@/theme";
-import { OWN_CLASS, getStyle } from "@/theme/__fixtures__/GetStyle";
-import { renderInRoot } from "@/theme/__fixtures__/RenderInRoot";
+import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
+import { renderInRoot } from "@/shared/testing/renderInRoot";
 import { Note } from "@/ui/common";
 import type { ProblemItem } from "@/ui/state";
+import { FOCUS_RING } from "@/ui-kit/helpers/theme";
 
 import { ProblemList } from "./ProblemList";
 import type { ProblemsPanelProps } from "./Problems.types";

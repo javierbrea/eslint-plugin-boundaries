@@ -10,7 +10,8 @@ import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { memo, useId } from "react";
 import type { ReactNode } from "react";
 
-import { PaneHead, formatCount } from "@/ui/common";
+import { formatCount } from "@/shared/helpers/formatCount";
+import { PaneHead } from "@/ui/common";
 import { Icon } from "@/ui/icons";
 import {
   useCapabilities,

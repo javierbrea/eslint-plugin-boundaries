@@ -4,11 +4,11 @@ import type { CSSObject, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 import type { ProblemLevel } from "@/engine";
-import { TONE_COLORS } from "@/ui/common";
-import type { Tone } from "@/ui/common";
 import { Icon } from "@/ui/icons";
 import type { IconName } from "@/ui/icons";
 import type { ProblemItem } from "@/ui/state";
+import type { Tone } from "@/ui-kit/helpers/tone";
+import { TONE_COLORS } from "@/ui-kit/helpers/tone";
 
 import type { ProblemListProps } from "./Problems.types";
 

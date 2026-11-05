@@ -3,7 +3,7 @@ import type {
   FileCategorySummary,
   RuleSummary,
 } from "@/engine";
-import { formatCount } from "@/ui/common";
+import { formatCount } from "@/shared/helpers/formatCount";
 
 import type { ConfigRow } from "./ConfigRows.types";
 

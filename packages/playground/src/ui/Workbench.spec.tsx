@@ -13,8 +13,8 @@ import {
 import type { ProjectCapabilities, Sketch } from "@/contract";
 import { createEngine } from "@/engine";
 import { QUICK_START_EXAMPLE } from "@/examples";
+import { stubResizeObserver } from "@/shared/testing/resizeObserver";
 
-import { stubResizeObserver } from "./layout/__fixtures__/StubResizeObserver";
 import { Workbench } from "./Workbench";
 import type { WorkbenchProps } from "./Workbench.types";
 

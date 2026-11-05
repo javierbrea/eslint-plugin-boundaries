@@ -1,8 +1,8 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-import { TONE_COLORS } from "./Tone";
-import type { Tone } from "./Tone.types";
+import { TONE_COLORS } from "@/ui-kit/helpers/tone";
+import type { Tone } from "@/ui-kit/helpers/tone";
 
 /** How much of the color of each tone the background of the badge takes. */
 const BACKGROUND_SHARES: Readonly<Record<Tone, string>> = {

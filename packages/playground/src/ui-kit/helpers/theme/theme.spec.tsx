@@ -13,15 +13,12 @@ import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Tooltip from "@mui/material/Tooltip";
 import { fireEvent, screen as view } from "@testing-library/react";
 
-import { OWN_CLASS, getStyle } from "./__fixtures__/GetStyle";
-import { renderInRoot } from "./__fixtures__/RenderInRoot";
-import {
-  FOCUS_RING,
-  HOVER_BACKGROUND,
-  ROOT_CLASS,
-  createPlaygroundTheme,
-} from "./Theme";
-import { TYPOGRAPHY } from "./Typography";
+import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
+import { renderInRoot } from "@/shared/testing/renderInRoot";
+
+import { createPlaygroundTheme } from "./theme";
+import { FOCUS_RING, HOVER_BACKGROUND, ROOT_CLASS } from "./theme.constants";
+import { TYPOGRAPHY } from "./typography";
 
 /** A variant of the type scale, which the specs read from the theme. */
 type Variant =

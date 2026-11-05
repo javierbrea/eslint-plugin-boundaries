@@ -1,11 +1,11 @@
 import { render, screen as view, within } from "@testing-library/react";
 
 import type { Sketch } from "@/contract";
-import { FOCUS_RING, HOVER_BACKGROUND } from "@/theme";
-import { OWN_CLASS, getStyle } from "@/theme/__fixtures__/GetStyle";
-import { renderInRoot } from "@/theme/__fixtures__/RenderInRoot";
+import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
+import { renderInRoot } from "@/shared/testing/renderInRoot";
 import type { CountBadge } from "@/ui/common";
 import type { ProblemCounts } from "@/ui/state";
+import { FOCUS_RING, HOVER_BACKGROUND } from "@/ui-kit/helpers/theme";
 
 import type { getProjectItems } from "./ProjectItems";
 import { ProjectTree } from "./ProjectTree";
