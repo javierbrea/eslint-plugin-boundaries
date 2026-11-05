@@ -17,11 +17,11 @@ Preconditions: phase 6 merged.
 
 ## From phase 5
 
-- `src/examples/` is an element type of its own: `Example` (`{ id, title, sketch }`, `src/examples/Example.types.ts`), `QUICK_START_EXAMPLE` (`src/examples/QuickStart.ts`) and `EXAMPLES`, the list the picker shows, all exported by the entry. The website's lazy factory and the harness create their `SketchSource` with `QUICK_START_EXAMPLE.sketch`.
+- `src/domains/examples/data/examples/` is an element of its own: `Example` (`{ id, title, sketch }`, `examples.types.ts`), `QUICK_START_EXAMPLE` (`quickStart.ts`) and `EXAMPLES` (`examples.ts`), the list the picker shows, all exported by the package entry (`src/index.ts`). The website's lazy factory and the harness create their `SketchSource` with `QUICK_START_EXAMPLE.sketch`.
 - Nothing serializes a sketch yet. A `Sketch` is plain data (strings, arrays and objects), so the encoder of step 1 takes it as it is.
-- `Playground` (`src/Playground.tsx`) saves every sketch that the workbench produces with `store.save`, never the loaded one, and shows nothing when a save fails, because the `MemoryStore` cannot fail: the hash store decides what a failed save shows.
-- The top bar (`src/ui/layout/TopBar.tsx`) draws the status only; the example picker, Help, Reset and Share go where `00-shared.md` section 6 places them.
-- The workbench takes its sketch once (`initialSketch`), and its store owns it from then on (`src/ui/state/Store.ts`). `Playground` mounts a new workbench after each load of the source or the store, which is how a sketch from outside reaches the panes. The top bar reads the store through `WorkbenchTopBar` in `src/ui/Workbench.tsx`.
+- `Playground` (`src/app/Playground.tsx`) saves every sketch that the shell produces with `store.save`, never the loaded one, and shows nothing when a save fails, because the `MemoryStore` cannot fail: the hash store decides what a failed save shows.
+- The top bar (`src/domains/shell/ui/atoms/TopBar/TopBar.tsx`) draws the status only; the example picker, Help, Reset and Share go where `00-shared.md` section 6 places them.
+- The shell takes its sketch once (`initialSketch`), and its store owns it from then on (`src/domains/session/data/store/store.ts`). `Playground` mounts a new shell after each load of the source or the store, which is how a sketch from outside reaches the panes. The top bar reads the store through `ShellTopBar` (`src/domains/shell/modules/ShellTopBar/`).
 
 ## Scope
 
@@ -41,7 +41,7 @@ A first measurement (2026-11-04, Node.js 24 `CompressionStream("deflate-raw")`, 
 
 ### 3. The example picker
 
-A dropdown in the top bar listing `src/examples/*` (the quick-start one from phase 5 plus the examples the docs use that fit a sketch: at least one per classification facet, taken from the docs pages' code blocks); choosing one replaces the state (confirm if the current sketch was edited).
+A dropdown in the top bar listing `src/domains/examples/data/examples/*` (the quick-start one from phase 5 plus the examples the docs use that fit a sketch: at least one per classification facet, taken from the docs pages' code blocks); choosing one replaces the state (confirm if the current sketch was edited).
 
 ### 4. Help
 
