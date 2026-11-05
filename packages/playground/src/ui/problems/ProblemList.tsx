@@ -3,7 +3,7 @@ import { styled } from "@mui/material/styles";
 import type { CSSObject, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-import type { ProblemLevel } from "@/engine";
+import type { ProblemLevel } from "@/domains/evaluation/helpers/engine";
 import { Icon } from "@/ui/icons";
 import type { IconName } from "@/ui/icons";
 import type { ProblemItem } from "@/ui/state";

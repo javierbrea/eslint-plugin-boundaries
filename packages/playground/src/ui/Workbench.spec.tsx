@@ -11,8 +11,8 @@ import {
 } from "@testing-library/react";
 
 import type { ProjectCapabilities, Sketch } from "@/contract";
-import { createEngine } from "@/engine";
-import { QUICK_START_EXAMPLE } from "@/examples";
+import { createEngine } from "@/domains/evaluation/helpers/engine";
+import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import { stubResizeObserver } from "@/shared/testing/resizeObserver";
 
 import { Workbench } from "./Workbench";

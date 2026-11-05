@@ -2,7 +2,7 @@ import { styled } from "@mui/material/styles";
 import { Fragment } from "react";
 import type { ReactNode } from "react";
 
-import type { Evaluation } from "@/engine";
+import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 
 import { formatValue } from "./FormatValue";
 import type { DescribedValue } from "./FormatValue.types";

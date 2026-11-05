@@ -1,6 +1,12 @@
-import type { ConfigProblem, ProblemLevel } from "@/engine";
-import { CONFIG_PATH, readTextProblems } from "@/sketch";
-import type { TextProblem } from "@/sketch";
+import type {
+  ConfigProblem,
+  ProblemLevel,
+} from "@/domains/evaluation/helpers/engine";
+import {
+  CONFIG_PATH,
+  readTextProblems,
+} from "@/domains/project/helpers/sketch";
+import type { TextProblem } from "@/domains/project/helpers/sketch";
 
 import type { Focus } from "./Focus.types";
 import {

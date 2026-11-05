@@ -2,7 +2,7 @@
 import { act, fireEvent, screen as view, within } from "@testing-library/react";
 
 import type { Sketch } from "@/contract";
-import { QUICK_START_EXAMPLE } from "@/examples";
+import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import { EVALUATION_DELAY } from "@/ui/state";
 import { renderInWorkbench } from "@/ui/state/__fixtures__/RenderInWorkbench";
 import type { WorkbenchRender } from "@/ui/state/__fixtures__/RenderInWorkbench";

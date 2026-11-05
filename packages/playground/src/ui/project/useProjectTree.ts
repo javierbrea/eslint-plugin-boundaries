@@ -1,7 +1,12 @@
 import { useCallback, useRef, useState } from "react";
 
 import type { Sketch } from "@/contract";
-import { CONFIG_PATH, countFilesUnder, getParentPath, hasNode } from "@/sketch";
+import {
+  CONFIG_PATH,
+  countFilesUnder,
+  getParentPath,
+  hasNode,
+} from "@/domains/project/helpers/sketch";
 import {
   useAddNode,
   useCancelRename,

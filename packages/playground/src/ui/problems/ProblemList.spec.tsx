@@ -1,6 +1,6 @@
 import { fireEvent, render, screen as view } from "@testing-library/react";
 
-import type { TextRange } from "@/engine";
+import type { TextRange } from "@/domains/evaluation/helpers/engine";
 import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
 import type { ProblemItem } from "@/ui/state";

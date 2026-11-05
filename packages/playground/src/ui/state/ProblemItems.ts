@@ -1,6 +1,9 @@
-import type { ConfigProblem, ProblemLevel } from "@/engine";
-import { CONFIG_PATH } from "@/sketch";
-import type { TextProblem } from "@/sketch";
+import type {
+  ConfigProblem,
+  ProblemLevel,
+} from "@/domains/evaluation/helpers/engine";
+import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
+import type { TextProblem } from "@/domains/project/helpers/sketch";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
 import type { ProblemItem } from "./Problems.types";

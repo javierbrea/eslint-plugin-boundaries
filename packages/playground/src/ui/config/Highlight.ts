@@ -12,7 +12,7 @@ import {
 } from "@codemirror/view";
 import type { DecorationSet } from "@codemirror/view";
 
-import type { TextRange } from "@/engine";
+import type { TextRange } from "@/domains/evaluation/helpers/engine";
 
 import { fitToDocument } from "./Diagnostics";
 

@@ -9,7 +9,7 @@ import {
 } from "@testing-library/react";
 
 import type { ProjectCapabilities, Sketch } from "@/contract";
-import { QUICK_START_EXAMPLE } from "@/examples";
+import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import { EVALUATION_DELAY } from "@/ui/state";
 import type { Focus, ProjectView, Target, WorkbenchStore } from "@/ui/state";
 import {

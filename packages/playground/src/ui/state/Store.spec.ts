@@ -1,22 +1,25 @@
 import type { Sketch } from "@/contract";
-import { createEngine } from "@/engine";
-import type { Engine } from "@/engine";
+import { createEngine } from "@/domains/evaluation/helpers/engine";
+import type { Engine } from "@/domains/evaluation/helpers/engine";
 
 import { EVALUATION_DELAY, createWorkbenchStore } from "./Store";
 
 // The real engines, whose evaluations the tests only count
-jest.mock<{ createEngine: typeof createEngine }>("@/engine", () => {
-  const actual = jest.requireActual<{ createEngine: typeof createEngine }>(
-    "@/engine"
-  );
-  return {
-    ...actual,
-    createEngine: jest.fn(() => {
-      const engine = actual.createEngine();
-      return { evaluate: jest.fn(engine.evaluate) };
-    }),
-  };
-});
+jest.mock<{ createEngine: typeof createEngine }>(
+  "@/domains/evaluation/helpers/engine",
+  () => {
+    const actual = jest.requireActual<{ createEngine: typeof createEngine }>(
+      "@/domains/evaluation/helpers/engine"
+    );
+    return {
+      ...actual,
+      createEngine: jest.fn(() => {
+        const engine = actual.createEngine();
+        return { evaluate: jest.fn(engine.evaluate) };
+      }),
+    };
+  }
+);
 
 /**
  * Gets the `evaluate` of an engine that a store created.

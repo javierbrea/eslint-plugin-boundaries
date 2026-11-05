@@ -1,7 +1,10 @@
 import type { Sketch } from "@/contract";
-import { createEngine } from "@/engine";
-import type { Evaluation, TextRange } from "@/engine";
-import { toText } from "@/sketch";
+import { createEngine } from "@/domains/evaluation/helpers/engine";
+import type {
+  Evaluation,
+  TextRange,
+} from "@/domains/evaluation/helpers/engine";
+import { toText } from "@/domains/project/helpers/sketch";
 
 import type { Focus } from "./Focus.types";
 import {

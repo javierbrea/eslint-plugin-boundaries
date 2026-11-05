@@ -2,7 +2,7 @@ import { styled } from "@mui/material/styles";
 import { useEffect, useMemo, useRef } from "react";
 import type { ChangeEvent, ReactNode } from "react";
 
-import { toText } from "@/sketch";
+import { toText } from "@/domains/project/helpers/sketch";
 import {
   useCapabilities,
   useReadText,

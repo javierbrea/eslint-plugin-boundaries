@@ -2,7 +2,7 @@ import type {
   ElementTypeSummary,
   FileCategorySummary,
   RuleSummary,
-} from "@/engine";
+} from "@/domains/evaluation/helpers/engine";
 import { formatCount } from "@/shared/helpers/formatCount";
 
 import type { ConfigRow } from "./ConfigRows.types";

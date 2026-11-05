@@ -1,6 +1,6 @@
 import type { Sketch } from "@/contract";
-import { CONFIG_PATH, buildTree } from "@/sketch";
-import type { TreeItem } from "@/sketch";
+import { CONFIG_PATH, buildTree } from "@/domains/project/helpers/sketch";
+import type { TreeItem } from "@/domains/project/helpers/sketch";
 
 import type { ProjectItem } from "./ProjectTree.types";
 

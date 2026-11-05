@@ -1,5 +1,5 @@
 import type { Sketch } from "@/contract";
-import { createEngine } from "@/engine";
+import { createEngine } from "@/domains/evaluation/helpers/engine";
 
 import type { WorkbenchStore } from "./Store.types";
 import {

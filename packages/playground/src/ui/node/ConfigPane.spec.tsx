@@ -6,7 +6,10 @@ import { EditorView } from "@codemirror/view";
 import { render, screen as view } from "@testing-library/react";
 import type { RefObject } from "react";
 
-import type { ConfigProblem, TextRange } from "@/engine";
+import type {
+  ConfigProblem,
+  TextRange,
+} from "@/domains/evaluation/helpers/engine";
 import { highlightField } from "@/ui/config/Highlight";
 import type { ConfigEditorSnapshot } from "@/ui/state";
 

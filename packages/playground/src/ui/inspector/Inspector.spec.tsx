@@ -2,9 +2,9 @@
 import { fireEvent, render, screen as view } from "@testing-library/react";
 
 import type { Sketch } from "@/contract";
-import { createEngine } from "@/engine";
-import type { Evaluation } from "@/engine";
-import { QUICK_START_EXAMPLE } from "@/examples";
+import { createEngine } from "@/domains/evaluation/helpers/engine";
+import type { Evaluation } from "@/domains/evaluation/helpers/engine";
+import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import type { Focus } from "@/ui/state";
 
 import { Inspector } from "./Inspector";

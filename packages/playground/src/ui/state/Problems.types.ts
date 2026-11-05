@@ -1,4 +1,4 @@
-import type { ProblemLevel } from "@/engine";
+import type { ProblemLevel } from "@/domains/evaluation/helpers/engine";
 import type { IconName } from "@/ui/icons";
 import type { Tone } from "@/ui-kit/helpers/tone";
 

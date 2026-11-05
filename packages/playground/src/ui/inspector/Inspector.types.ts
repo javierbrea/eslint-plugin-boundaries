@@ -1,4 +1,4 @@
-import type { Evaluation } from "@/engine";
+import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import type { Focus, Target } from "@/ui/state";
 
 /** Props of the inspector. */

@@ -1,7 +1,7 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
-import { CONFIG_PATH } from "@/sketch";
+import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
 import { Mono, PaneHead } from "@/ui/common";
 import { ConfigEditor } from "@/ui/config";
 

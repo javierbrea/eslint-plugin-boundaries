@@ -5,8 +5,8 @@ import { EditorView } from "@codemirror/view";
 import { act, fireEvent, screen as view } from "@testing-library/react";
 
 import type { Sketch } from "@/contract";
-import type { TextRange } from "@/engine";
-import { QUICK_START_EXAMPLE } from "@/examples";
+import type { TextRange } from "@/domains/evaluation/helpers/engine";
+import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import {
   NO_CAPABILITIES,
   renderInWorkbench,

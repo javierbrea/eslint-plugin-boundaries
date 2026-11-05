@@ -1,5 +1,8 @@
 import type { Sketch } from "@/contract";
-import type { Evaluation, TextRange } from "@/engine";
+import type {
+  Evaluation,
+  TextRange,
+} from "@/domains/evaluation/helpers/engine";
 
 import type { Focus } from "./Focus.types";
 

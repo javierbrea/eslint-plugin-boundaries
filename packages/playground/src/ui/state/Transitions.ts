@@ -1,5 +1,5 @@
 import type { Sketch } from "@/contract";
-import type { Evaluation } from "@/engine";
+import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import {
   CONFIG_PATH,
   addNode as addSketchNode,
@@ -14,8 +14,8 @@ import {
   removeNode as removeSketchNode,
   renameInFolder,
   setConfig,
-} from "@/sketch";
-import type { EditResult } from "@/sketch";
+} from "@/domains/project/helpers/sketch";
+import type { EditResult } from "@/domains/project/helpers/sketch";
 
 import type { Focus, Target } from "./Focus.types";
 import type { RenameTransition } from "./Transitions.types";
@@ -112,7 +112,7 @@ function replaceSketch(state: WorkbenchState, sketch: Sketch): WorkbenchState {
 /**
  * Applies an edit of the sketch, or leaves the state as it was when the edit is refused.
  * @param state The state before the edit.
- * @param result What the operation of `src/sketch/` returned.
+ * @param result What the operation of `src/domains/project/helpers/sketch/` returned.
  * @param apply Builds the state after the edit from the new sketch.
  * @returns The state after the edit.
  */

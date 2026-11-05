@@ -1,6 +1,9 @@
 import type { RefObject } from "react";
 
-import type { ConfigProblem, TextRange } from "@/engine";
+import type {
+  ConfigProblem,
+  TextRange,
+} from "@/domains/evaluation/helpers/engine";
 import type { ConfigEditorSnapshot, ConfigReveal } from "@/ui/state";
 
 /** Props of the config pane. */

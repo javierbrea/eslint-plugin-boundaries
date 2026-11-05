@@ -1,7 +1,10 @@
 // cspell:ignore patern -- a deliberate typo, the mistake of the config that the tests report
 import type { EditorView } from "@codemirror/view";
 
-import type { ConfigProblem, TextRange } from "@/engine";
+import type {
+  ConfigProblem,
+  TextRange,
+} from "@/domains/evaluation/helpers/engine";
 
 import { fitToDocument, toDiagnostics } from "./Diagnostics";
 
