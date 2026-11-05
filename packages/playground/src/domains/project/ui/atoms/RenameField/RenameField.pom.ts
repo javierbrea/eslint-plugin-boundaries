@@ -79,6 +79,14 @@ export class RenameFieldPom extends Pom {
   }
 
   /**
+   * The accessible name of the field.
+   * @returns The `aria-label` attribute, or null when the field has none.
+   */
+  get label(): string | null {
+    return this.root.getAttribute("aria-label");
+  }
+
+  /**
    * What the field holds.
    * @returns The value of the input.
    */

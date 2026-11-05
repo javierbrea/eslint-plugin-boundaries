@@ -2,11 +2,11 @@ import { useCallback } from "react";
 import type { ReactNode } from "react";
 
 import { useSketchLoad } from "@/domains/session/data/sketchLoad";
+import { Shell } from "@/domains/shell/modules/Shell";
 import { LoadState } from "@/domains/shell/ui/atoms/LoadState";
 import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
 
 import type { PlaygroundProps, Sketch } from "./contract";
-import { Workbench } from "./ui";
 
 /**
  * The playground: classifies the files of a project and evaluates its dependencies against a boundaries config. The host owns the page and its theme, and passes the project and the store.
@@ -21,7 +21,7 @@ export function Playground({
 }: Readonly<PlaygroundProps>): ReactNode {
   const sketchLoad = useSketchLoad(source, store);
 
-  // The workbench reports the sketches that edits make, and never the one that was loaded. A save that fails shows nothing in M1: the memory store cannot fail, and what a store that can fail does is for the host that has one
+  // The shell reports the sketches that edits make, and never the one that was loaded. A save that fails shows nothing in M1: the memory store cannot fail, and what a store that can fail does is for the host that has one
   const save = useCallback(
     async (sketch: Sketch) => {
       try {
@@ -32,7 +32,7 @@ export function Playground({
     },
     [store]
   );
-  // The workbench reports a sketch again when its callback changes, so the callback changes only with the store
+  // The shell reports a sketch again when its callback changes, so the callback changes only with the store
   const handleSketchChange = useCallback(
     (sketch: Sketch) => {
       void save(sketch);
@@ -43,7 +43,7 @@ export function Playground({
   return (
     <ThemeRoot>
       {sketchLoad.status === "loaded" ? (
-        <Workbench
+        <Shell
           initialSketch={sketchLoad.sketch}
           capabilities={source.capabilities}
           onSketchChange={handleSketchChange}

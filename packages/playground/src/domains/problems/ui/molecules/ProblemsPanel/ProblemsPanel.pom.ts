@@ -201,20 +201,22 @@ class ProblemsTabPanelPom extends Pom {
   }
 }
 
-/** Page object of the button that collapses or expands the panel, a part of the panel: the page object of the panel builds it, so it is exported only as a type. It has no test id: it finds the button by its label, whichever of the two it has, within its parent. */
+/** Page object of the button that collapses or expands the panel, a part of the panel: the page object of the panel builds it, so it is exported only as a type. It has no test id: it finds the button by its label within its parent, whichever of the two it has, or the one named by the `name` option when it is set. */
 class ProblemsToggleButtonPom extends Pom {
   protected readonly defaultTestId = "";
 
   /** @inheritdoc */
   protected findRoot(): HTMLElement {
+    const { name: accessibleName = TOGGLE_NAME } = this.options;
+
     return this.pickMatch(
-      this.searchBase.queryAllByRole("button", { name: TOGGLE_NAME }),
-      `the role "button" named ${TOGGLE_NAME}`
+      this.searchBase.queryAllByRole("button", { name: accessibleName }),
+      `the role "button" named ${accessibleName}`
     );
   }
 
   /**
-   * How many buttons that collapse or expand the panel its parent holds, whatever the `index` and `containing` options. A page object that lists them builds one `ProblemsToggleButtonPom` per index below this number.
+   * How many buttons that collapse or expand the panel its parent holds, whatever the `name`, `index` and `containing` options. A page object that lists them builds one `ProblemsToggleButtonPom` per index below this number.
    * @returns The number of such buttons within the parent.
    */
   get count(): number {
@@ -247,6 +249,14 @@ class ProblemsToggleButtonPom extends Pom {
 /** Page object of the problems panel. It finds its root by the test id of the panel, or by the `testId` option when a module that is this panel gives it another. */
 export class ProblemsPanelPom extends Pom {
   protected readonly defaultTestId: string = PROBLEMS_PANEL_TEST_ID;
+
+  /**
+   * The accessible name of the landmark.
+   * @returns The `aria-label` attribute, or null when the panel has none.
+   */
+  get label(): string | null {
+    return this.root.getAttribute("aria-label");
+  }
 
   /**
    * Whether assistive technology reads the panel as a region named after it.
@@ -344,6 +354,15 @@ export class ProblemsPanelPom extends Pom {
    */
   get toggle(): ProblemsToggleButtonPom {
     return this.childPom(ProblemsToggleButtonPom);
+  }
+
+  /**
+   * The button that collapses or expands the panel, picked by what it offers.
+   * @param accessibleName What the button offers, such as `Collapse the problems`.
+   * @returns The page object of the button, which is not rendered while the panel offers the other one.
+   */
+  toggleNamed(accessibleName: string): ProblemsToggleButtonPom {
+    return this.childPom(ProblemsToggleButtonPom, { name: accessibleName });
   }
 
   /**

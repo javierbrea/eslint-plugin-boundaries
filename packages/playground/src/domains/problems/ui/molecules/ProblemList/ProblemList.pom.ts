@@ -64,6 +64,14 @@ class ProblemRowPom extends Pom {
   }
 
   /**
+   * The element the row is drawn in.
+   * @returns The tag name of the root, in upper case.
+   */
+  get tagName(): string {
+    return this.root.tagName;
+  }
+
+  /**
    * Everything the row says.
    * @returns The text of the row: the location, the position, the message and the meta line.
    */

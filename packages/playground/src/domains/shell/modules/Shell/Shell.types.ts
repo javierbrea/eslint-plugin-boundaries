@@ -1,8 +1,8 @@
 import type { ProjectCapabilities, Sketch } from "@/contract";
 
-/** Props of {@link Workbench}. */
-export type WorkbenchProps = {
-  /** The sketch to start from. The workbench owns the sketch from then on: a later value is ignored, and a host that wants to show another one renders the workbench again. */
+/** Props of {@link Shell}. */
+export type ShellProps = {
+  /** The sketch to start from. The shell owns the sketch from then on: a later value is ignored, and a host that wants to show another one renders the shell again. */
   readonly initialSketch: Sketch;
   /** What the user can change in the project. */
   readonly capabilities: ProjectCapabilities;

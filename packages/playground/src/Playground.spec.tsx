@@ -76,7 +76,7 @@ describe("Playground", () => {
     jest.restoreAllMocks();
     document.documentElement.setAttribute("data-theme", "dark");
     localStorage.clear();
-    // jsdom has no layout, and the panels of the workbench observe their size
+    // jsdom has no layout, and the panels of the shell observe their size
     stubResizeObserver();
     // jsdom has no matchMedia; with it, MUI resolves a light color scheme from the system preference, as in a browser
     window.matchMedia = jest.fn((media: string) => ({
@@ -299,7 +299,7 @@ describe("Playground", () => {
     });
   });
 
-  describe("workbench", () => {
+  describe("shell", () => {
     it("should show the project of the sketch in the tree", async () => {
       // Act
       render(
