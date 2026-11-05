@@ -69,6 +69,14 @@ export class MonoPom extends Pom {
   }
 
   /**
+   * The background of its box, which a host may fill.
+   * @returns The computed background color.
+   */
+  get backgroundColor(): string {
+    return getComputedStyle(this.root).backgroundColor;
+  }
+
+  /**
    * The rounding of the corners of its box.
    * @returns The computed border radius.
    */

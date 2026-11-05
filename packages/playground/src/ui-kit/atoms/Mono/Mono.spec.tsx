@@ -41,10 +41,11 @@ describe("Mono", () => {
     const mono = new MonoPom();
 
     // Act
-    const { padding, borderRadius } = mono;
+    const { padding, borderRadius, backgroundColor } = mono;
 
     // Assert
     expect(parseFloat(padding)).toBe(0);
     expect(parseFloat(borderRadius)).toBe(0);
+    expect(backgroundColor).toBe("rgba(0, 0, 0, 0)");
   });
 });

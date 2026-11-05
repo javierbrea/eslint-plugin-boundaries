@@ -1,19 +1,53 @@
+import { within } from "@testing-library/react";
+
 import { Pom } from "@/shared/testing/pom";
 
-import { PANE_FRAME_LABEL } from "./PaneFrame.constants";
-
-/** Page object of the landmark of a pane. It has no test id: it finds the region within its parent, named {@link PANE_FRAME_LABEL} unless the `name` option says another. */
+/** Page object of the landmark of a pane. It has no test id: it finds the region within its parent, named by the `name` option, which is required, unless the `root` option is the frame itself, as a component that is the frame sets it. */
 export class PaneFramePom extends Pom {
   protected readonly defaultTestId = "";
 
   /** @inheritdoc */
   protected findRoot(): HTMLElement {
-    const regionName = this.options.name ?? PANE_FRAME_LABEL;
+    const regionName = this.requireName();
 
     return this.pickMatch(
       this.searchBase.queryAllByRole("region", { name: regionName }),
       `the role "region" named ${regionName}`
     );
+  }
+
+  /**
+   * The accessible name of the landmark.
+   * @returns The `aria-label` attribute, or null when the frame has none.
+   */
+  get label(): string | null {
+    return this.root.getAttribute("aria-label");
+  }
+
+  /**
+   * The element the frame is drawn in.
+   * @returns The tag name of the root, in upper case.
+   */
+  get tagName(): string {
+    return this.root.tagName;
+  }
+
+  /**
+   * The test id the frame renders, which a component that is the frame gives it.
+   * @returns The `data-testid` attribute, or null when the frame has none.
+   */
+  get renderedTestId(): string | null {
+    return this.root.getAttribute("data-testid");
+  }
+
+  /**
+   * Whether assistive technology reads the frame as a region.
+   * @returns True when the frame is among the regions of the element that holds it, whatever the parent of the page object, which a component that is the frame makes its own root.
+   */
+  get isLandmark(): boolean {
+    return within(this.root.parentElement ?? document.body)
+      .queryAllByRole("region")
+      .includes(this.root);
   }
 
   /**

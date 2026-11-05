@@ -66,6 +66,14 @@ export class PaneHeadPom extends Pom {
   }
 
   /**
+   * The element the label is drawn in.
+   * @returns The tag name of the label, in upper case.
+   */
+  get labelTag(): string {
+    return this.items[0].tagName;
+  }
+
+  /**
    * The path of what the pane shows.
    * @returns The text of the path, or null when the head has none.
    */

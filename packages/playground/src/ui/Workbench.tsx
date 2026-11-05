@@ -12,10 +12,10 @@ import {
   useSetProblemsCollapsed,
   useView,
 } from "@/domains/session/data/store";
+import { NodePane } from "@/domains/shell/modules/NodePane";
 
 import { InspectorPane } from "./inspector";
 import { Regions, TopBar } from "./layout";
-import { NodePane } from "./node";
 import { ProjectPane } from "./project";
 import type { WorkbenchProps } from "./Workbench.types";
 
