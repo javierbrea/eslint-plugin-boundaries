@@ -1,12 +1,31 @@
 import { Pom } from "@/shared/testing/pom";
 
+/** The selector of the element a name or a path in mono is drawn in. */
+const MONO_SELECTOR = "code";
+
 /** Page object of a name or a path in mono. It has no role, label or test id: it finds the `code` elements within its parent, and the `containing` option picks the one with a given text. */
 export class MonoPom extends Pom {
   protected readonly defaultTestId = "";
 
   /** @inheritdoc */
   protected findRoot(): HTMLElement {
-    return this.findRootBySelector("code");
+    return this.findRootBySelector(MONO_SELECTOR);
+  }
+
+  /**
+   * How many names or paths in mono its parent holds, whatever the `index` and `containing` options. A page object that lists them builds one `MonoPom` per index below this number.
+   * @returns The number of `code` elements within the parent.
+   */
+  get count(): number {
+    return this.searchBaseElement.querySelectorAll(MONO_SELECTOR).length;
+  }
+
+  /**
+   * The name or the path in mono.
+   * @returns The text of the element.
+   */
+  get text(): string {
+    return this.root.textContent;
   }
 
   /**

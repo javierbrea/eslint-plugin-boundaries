@@ -6,6 +6,6 @@ export type CountBadgeProps = {
   count: number;
   /** The color of the badge. */
   tone: Tone;
-  /** What the number counts, such as `2 problems`: assistive technology reads it instead of the bare number. */
+  /** What the number counts, such as `3 unread messages`: assistive technology reads it instead of the bare number. */
   label: string;
 };

@@ -93,6 +93,29 @@ describe("PaneHead", () => {
     expect(hasPath).toBe(false);
   });
 
+  it("should draw no path when only the end slot holds an element with a title", () => {
+    // Arrange
+    render(
+      <PaneHead
+        label="Problems"
+        end={
+          <button type="button" title="Collapse the panel">
+            Collapse
+          </button>
+        }
+        hint="A hint"
+      />
+    );
+    const head = new PaneHeadPom({ name: "Problems" });
+
+    // Act
+    const { hasPath, hint } = head;
+
+    // Assert
+    expect(hasPath).toBe(false);
+    expect(hint).toBe("A hint");
+  });
+
   it("should show the hint", () => {
     // Arrange
     render(
@@ -129,6 +152,28 @@ describe("PaneHead", () => {
 
     // Assert
     expect(hintCodeTexts).toEqual(["settings"]);
+  });
+
+  it("should list the code of the hint, and not the code of the end slot", () => {
+    // Arrange
+    render(
+      <PaneHead
+        label="Config"
+        end={<code>Action</code>}
+        hint={
+          <>
+            the <code>settings</code> and the <code>rules</code>
+          </>
+        }
+      />
+    );
+    const head = new PaneHeadPom({ name: "Config" });
+
+    // Act
+    const { hintCodeTexts } = head;
+
+    // Assert
+    expect(hintCodeTexts).toEqual(["settings", "rules"]);
   });
 
   it("should show what the end slot holds", () => {

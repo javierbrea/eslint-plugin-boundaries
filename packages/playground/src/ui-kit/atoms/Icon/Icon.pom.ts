@@ -20,9 +20,9 @@ export class IconPom extends Pom {
 
   /**
    * The attributes of the `svg` element.
-   * @returns Each attribute name with its value.
+   * @returns Each attribute name with its value; an attribute the element has not is undefined.
    */
-  get attributes(): Record<string, string> {
+  get attributes(): Partial<Record<string, string>> {
     return Object.fromEntries(
       Array.from(this.root.attributes).map((attribute) => [
         attribute.name,
@@ -41,18 +41,18 @@ export class IconPom extends Pom {
 
   /**
    * The width of the icon.
-   * @returns The `width` attribute in pixels.
+   * @returns The `width` attribute, or null when the icon has none.
    */
-  get width(): number {
-    return Number(this.root.getAttribute("width"));
+  get width(): string | null {
+    return this.root.getAttribute("width");
   }
 
   /**
    * The height of the icon.
-   * @returns The `height` attribute in pixels.
+   * @returns The `height` attribute, or null when the icon has none.
    */
-  get height(): number {
-    return Number(this.root.getAttribute("height"));
+  get height(): string | null {
+    return this.root.getAttribute("height");
   }
 
   /**

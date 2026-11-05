@@ -28,11 +28,11 @@ const Badge = styled("span", {
 }));
 
 /**
- * A count in an 18 px pill, next to a tab or a node of the tree.
+ * A count in an 18 px pill, next to a tab or a label.
  * @param props CountBadge props.
  * @param props.count The number to show.
- * @param props.tone The color of the badge: `bad` for problems, `warn` for warnings.
- * @param props.label What the number counts, such as `2 problems`.
+ * @param props.tone The color of the badge: `bad` for what fails, `warn` for what is worth a look.
+ * @param props.label What the number counts, such as `3 unread messages`.
  * @returns The badge.
  */
 export function CountBadge({

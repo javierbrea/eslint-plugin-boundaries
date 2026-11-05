@@ -1,6 +1,7 @@
 import { render } from "@testing-library/react";
 
 import { Icon } from "./Icon";
+import { ICON_PATHS } from "./Icon.constants";
 import { IconPom } from "./Icon.pom";
 import type { IconName } from "./Icon.types";
 
@@ -32,6 +33,7 @@ describe("Icon", () => {
     const { pathData } = icon;
 
     // Assert
+    expect(pathData).toBe(ICON_PATHS[iconName]);
     expect(pathData).toMatch(/^M[\w.\s-]+$/);
   });
 
@@ -63,8 +65,8 @@ describe("Icon", () => {
     const { width, height } = icon;
 
     // Assert
-    expect(width).toBe(14);
-    expect(height).toBe(14);
+    expect(width).toBe("14");
+    expect(height).toBe("14");
   });
 
   it("should be as big as the size says", () => {
@@ -76,8 +78,8 @@ describe("Icon", () => {
     const { width, height } = icon;
 
     // Assert
-    expect(width).toBe(16);
-    expect(height).toBe(16);
+    expect(width).toBe("16");
+    expect(height).toBe("16");
   });
 
   it("should not shrink inside a flex container", () => {
@@ -112,11 +114,11 @@ describe("Icon", () => {
     const icon = new IconPom({ name: "Disallowed" });
 
     // Act
-    const { isRendered, isHidden, label } = icon;
+    const { isRendered, attributes, label } = icon;
 
     // Assert
     expect(isRendered).toBe(true);
-    expect(isHidden).toBe(false);
+    expect(attributes["aria-hidden"]).toBeUndefined();
     expect(label).toBe("Disallowed");
   });
 

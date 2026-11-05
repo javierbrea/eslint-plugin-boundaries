@@ -112,7 +112,7 @@ export abstract class Pom {
   }
 
   /**
-   * The `name` option, for a page object that finds its root by role and accessible name.
+   * The `name` option, for a page object that finds its root by an accessible name or by a visible text.
    * @returns The name.
    * @throws When the option is not set.
    */

@@ -11,12 +11,13 @@ describe("Mono", () => {
         Open <Mono>eslint.config.js</Mono> to edit the settings.
       </p>
     );
-    const mono = new MonoPom({ containing: "eslint.config.js" });
+    const mono = new MonoPom();
 
     // Act
-    const { tagName, parentTagName } = mono;
+    const { text, tagName, parentTagName } = mono;
 
     // Assert
+    expect(text).toBe("eslint.config.js");
     expect(tagName).toBe("CODE");
     expect(parentTagName).toBe("P");
   });

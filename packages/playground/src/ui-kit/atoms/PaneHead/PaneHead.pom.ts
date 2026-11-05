@@ -1,4 +1,5 @@
 import { Pom } from "@/shared/testing/pom";
+import { MonoPom } from "@/ui-kit/atoms/Mono/Mono.pom";
 
 import type { PaneHeadTextStyle } from "./PaneHead.types";
 
@@ -12,6 +13,24 @@ function readTextStyle(element: Element): PaneHeadTextStyle {
     getComputedStyle(element);
 
   return { fontFamily, fontSize, fontWeight, letterSpacing, textTransform };
+}
+
+/** Page object of the hint of a head, so that the page objects of what the hint holds search within it. The page object of the head builds it with the hint as its `root`. */
+class HintPom extends Pom {
+  protected readonly defaultTestId = "";
+
+  /**
+   * The code the hint holds.
+   * @returns The text of each name or path in mono of the hint, in order.
+   */
+  get codeTexts(): string[] {
+    const { count } = this.childPom(MonoPom);
+
+    return Array.from(
+      { length: count },
+      (_, index) => this.childPom(MonoPom, { index }).text
+    );
+  }
 }
 
 /** Page object of the head of a pane. It has no role or test id: it finds the label of the head by the `name` option, which is required, and takes the parent of the label as its root. */
@@ -64,7 +83,7 @@ export class PaneHeadPom extends Pom {
 
   /**
    * Whether the head shows a path.
-   * @returns True when the head has an element with a title.
+   * @returns True when the head has a path.
    */
   get hasPath(): boolean {
     return this.pathElement !== null;
@@ -80,12 +99,14 @@ export class PaneHeadPom extends Pom {
 
   /**
    * The code the hint holds, when it accepts elements.
-   * @returns The text of each `code` element of the hint.
+   * @returns The text of each name or path in mono of the hint, in order; empty when the head has no hint.
    */
   get hintCodeTexts(): string[] {
-    return Array.from(this.hintElement?.querySelectorAll("code") ?? []).map(
-      (code) => code.textContent
-    );
+    const { hintElement } = this;
+
+    return hintElement === null
+      ? []
+      : this.childPom(HintPom, { root: hintElement }).codeTexts;
   }
 
   /**
@@ -131,22 +152,21 @@ export class PaneHeadPom extends Pom {
   }
 
   /**
-   * The element of the path, which is the one with a title.
+   * The element of the path, which is the one of the items of the head that has a title. What the end slot or the hint holds is not an item, so a title inside them is not the path.
    * @returns The element, or null when the head has none.
    */
   private get pathElement(): HTMLElement | null {
-    return this.root.querySelector<HTMLElement>("[title]");
+    return this.items.find((item) => item.hasAttribute("title")) ?? null;
   }
 
   /**
-   * The element of the hint, which is the last one of the head when it has one. A head holds the label, the path (if any), the end slot or the spacer, and the hint (if any).
+   * The element of the hint, which comes right after the end slot (or the spacer), which comes after the label and the path when there is one.
    * @returns The element, or null when the head has none.
    */
   private get hintElement(): HTMLElement | null {
-    const { items } = this;
-    const itemsWithoutHint = this.pathElement === null ? 2 : 3;
+    const itemsBeforeEndSlot = this.pathElement === null ? 1 : 2;
 
-    return items.length > itemsWithoutHint ? items[items.length - 1] : null;
+    return this.items.at(itemsBeforeEndSlot + 1) ?? null;
   }
 
   /**

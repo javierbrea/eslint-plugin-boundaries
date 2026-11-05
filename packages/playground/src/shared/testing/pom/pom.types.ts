@@ -13,7 +13,7 @@ export type PomOptions = {
   readonly parent?: Pom;
   /** The test id of the root element, in place of the default one of the component. */
   readonly testId?: string;
-  /** The accessible name of the root element, for a page object that resolves it by role. */
+  /** The accessible name of the root element, or its visible text for a page object whose TSDoc says so. */
   readonly name?: string | RegExp;
   /** The position of the root element among those that match, starting at 0. It is 0 by default. */
   readonly index?: number;

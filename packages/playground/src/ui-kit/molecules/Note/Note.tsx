@@ -18,7 +18,7 @@ const Frame = styled("div")(({ theme }) => ({
 }));
 
 /**
- * A dashed box with the info icon, for what a pane cannot show as a row: why there is nothing to list, or what is not evaluated. It has the margins of a note in the problems panel.
+ * A dashed box with the info icon, for a remark that does not fit as a row of a list, such as why there is nothing to list. It has its own margin: 6 px above and 16 px at the sides.
  * @param props Note props.
  * @param props.children What the note says.
  * @returns The note.

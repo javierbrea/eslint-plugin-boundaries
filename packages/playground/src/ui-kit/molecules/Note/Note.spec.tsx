@@ -44,4 +44,20 @@ describe("Note", () => {
     // Assert
     expect(codeTexts).toEqual(["2"]);
   });
+
+  it("should list in order the code it holds", () => {
+    // Arrange
+    render(
+      <Note>
+        Open <code>a.js</code> before <code>b.js</code>.
+      </Note>
+    );
+    const note = new NotePom();
+
+    // Act
+    const { codeTexts } = note;
+
+    // Assert
+    expect(codeTexts).toEqual(["a.js", "b.js"]);
+  });
 });

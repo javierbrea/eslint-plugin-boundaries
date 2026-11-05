@@ -1,5 +1,6 @@
 import { Pom } from "@/shared/testing/pom";
 import { IconPom } from "@/ui-kit/atoms/Icon/Icon.pom";
+import { MonoPom } from "@/ui-kit/atoms/Mono/Mono.pom";
 
 import { NOTE_TEST_ID } from "./Note.constants";
 
@@ -33,11 +34,14 @@ export class NotePom extends Pom {
 
   /**
    * The code a note holds, when it accepts elements as content.
-   * @returns The text of each `code` element of the note.
+   * @returns The text of each name or path in mono of the note, in order.
    */
   get codeTexts(): string[] {
-    return Array.from(this.root.querySelectorAll("code")).map(
-      (code) => code.textContent
+    const { count } = this.childPom(MonoPom);
+
+    return Array.from(
+      { length: count },
+      (_, index) => this.childPom(MonoPom, { index }).text
     );
   }
 }
