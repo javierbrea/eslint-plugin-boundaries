@@ -1,4 +1,3 @@
-import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 import { ConfigEditorSnapshotProvider } from "@/domains/config/ui/contexts/ConfigEditorSnapshotContext";
@@ -15,23 +14,11 @@ import {
 } from "@/domains/session/data/store";
 import { InspectorPane } from "@/domains/shell/modules/InspectorPane";
 import { NodePane } from "@/domains/shell/modules/NodePane";
+import { TopBar } from "@/domains/shell/ui/atoms/TopBar";
+import { ShellLayout } from "@/domains/shell/ui/templates/ShellLayout";
+import { ShellRegions } from "@/domains/shell/ui/templates/ShellRegions";
 
-import { Regions, TopBar } from "./layout";
 import type { WorkbenchProps } from "./Workbench.types";
-
-const Frame = styled("section")({
-  boxSizing: "border-box",
-  width: "100%",
-  height: "100%",
-  minWidth: 0,
-  minHeight: 0,
-});
-
-const Layout = styled("div")({
-  display: "grid",
-  gridTemplateRows: "44px minmax(0, 1fr)",
-  height: "100%",
-});
 
 /**
  * The top bar of the instance, with the numbers of the store.
@@ -61,7 +48,7 @@ function WorkbenchRegions(): ReactNode {
   const setProblemsCollapsed = useSetProblemsCollapsed();
 
   return (
-    <Regions
+    <ShellRegions
       project={<ProjectPane />}
       node={<NodePane />}
       inspector={<InspectorPane />}
@@ -93,12 +80,10 @@ export function Workbench({
       onSketchChange={onSketchChange}
     >
       <ConfigEditorSnapshotProvider>
-        <Frame aria-label="Playground">
-          <Layout>
-            <WorkbenchTopBar />
-            <WorkbenchRegions />
-          </Layout>
-        </Frame>
+        <ShellLayout
+          topBar={<WorkbenchTopBar />}
+          regions={<WorkbenchRegions />}
+        />
       </ConfigEditorSnapshotProvider>
     </SessionProvider>
   );

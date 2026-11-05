@@ -2,10 +2,11 @@ import { useCallback } from "react";
 import type { ReactNode } from "react";
 
 import { useSketchLoad } from "@/domains/session/data/sketchLoad";
+import { LoadState } from "@/domains/shell/ui/atoms/LoadState";
 import { ThemeRoot } from "@/ui-kit/providers/ThemeRoot";
 
 import type { PlaygroundProps, Sketch } from "./contract";
-import { LoadState, Workbench } from "./ui";
+import { Workbench } from "./ui";
 
 /**
  * The playground: classifies the files of a project and evaluates its dependencies against a boundaries config. The host owns the page and its theme, and passes the project and the store.

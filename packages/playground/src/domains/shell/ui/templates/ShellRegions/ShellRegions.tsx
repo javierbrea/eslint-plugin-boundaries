@@ -3,7 +3,8 @@ import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { Group, Panel, Separator, usePanelRef } from "react-resizable-panels";
 
-import type { RegionsProps } from "./Regions.types";
+import { SHELL_REGIONS_TEST_ID } from "./ShellRegions.constants";
+import type { ShellRegionsProps } from "./ShellRegions.types";
 
 /** Widths and heights in pixels: what each region starts with and the least it can have. Numbers are pixels for `react-resizable-panels`. */
 const SIZES = {
@@ -63,8 +64,8 @@ const RowSeparator = styled(Separator)({
 });
 
 /**
- * Lays out the four regions of the workbench with resizable splits: the project, the node in focus and the inspector in a row, over the problems panel. The project and the inspector keep their width when the page is resized, and the problems panel its height, so the node in focus takes the difference. The project pane takes room while the text is shown, and gives it back after; the problems panel collapses to its head.
- * @param props Regions props.
+ * Lays out the four regions of the shell with resizable splits: the project, the node in focus and the inspector in a row, over the problems panel. The project and the inspector keep their width when the page is resized, and the problems panel its height, so the node in focus takes the difference. The project pane takes room while the text is shown, and gives it back after; the problems panel collapses to its head.
+ * @param props ShellRegions props.
  * @param props.project The project pane.
  * @param props.node The node in focus.
  * @param props.inspector The inspector.
@@ -72,9 +73,10 @@ const RowSeparator = styled(Separator)({
  * @param props.isTextMode Whether the project is shown as text.
  * @param props.isProblemsCollapsed Whether the problems panel is collapsed.
  * @param props.onProblemsCollapsedChange Called when the panel collapses or expands on its own.
+ * @param props.testId The test id of the root element, in place of the default one.
  * @returns The regions, as large as their container.
  */
-export function Regions({
+export function ShellRegions({
   project,
   node,
   inspector,
@@ -82,7 +84,8 @@ export function Regions({
   isTextMode,
   isProblemsCollapsed,
   onProblemsCollapsedChange,
-}: Readonly<RegionsProps>): ReactNode {
+  testId = SHELL_REGIONS_TEST_ID,
+}: Readonly<ShellRegionsProps>): ReactNode {
   const projectRef = usePanelRef();
   const problemsRef = usePanelRef();
   // The width the project pane had before the text made it wider, to give it back
@@ -115,7 +118,7 @@ export function Regions({
   }, [isProblemsCollapsed, problemsRef]);
 
   return (
-    <Frame>
+    <Frame data-testid={testId}>
       <Group orientation="vertical">
         <Panel minSize={SIZES.body.min}>
           <Group orientation="horizontal">
@@ -147,7 +150,7 @@ export function Regions({
           collapsible
           collapsedSize={SIZES.problems.collapsed}
           groupResizeBehavior="preserve-pixel-size"
-          // The user can collapse the panel by dragging its separator down, which the workbench has to know
+          // The user can collapse the panel by dragging its separator down, which the shell has to know
           onResize={() =>
             onProblemsCollapsedChange(
               problemsRef.current?.isCollapsed() === true

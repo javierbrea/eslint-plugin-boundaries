@@ -1,11 +1,12 @@
-import { act, render, screen as view } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import type { ComponentProps, createElement, useImperativeHandle } from "react";
 import type { Panel, PanelImperativeHandle } from "react-resizable-panels";
 
 import { stubResizeObserver } from "@/shared/testing/resizeObserver";
 
-import { Regions } from "./Regions";
-import type { RegionsProps } from "./Regions.types";
+import { ShellRegions } from "./ShellRegions";
+import { ShellRegionsPom } from "./ShellRegions.pom";
+import type { ShellRegionsProps } from "./ShellRegions.types";
 
 /** What the library's panel receives: the sizes and the callbacks the regions give it */
 type PanelProps = ComponentProps<typeof Panel>;
@@ -78,7 +79,9 @@ jest.mock<{ Panel: typeof Panel }>("react-resizable-panels", () => {
  * @param overrides What differs from regions with the project as a tree and the problems panel open.
  * @returns The props.
  */
-function createProps(overrides: Partial<RegionsProps> = {}): RegionsProps {
+function createProps(
+  overrides: Partial<ShellRegionsProps> = {}
+): ShellRegionsProps {
   return {
     project: <p>The project</p>,
     node: <p>The node</p>,
@@ -88,6 +91,24 @@ function createProps(overrides: Partial<RegionsProps> = {}): RegionsProps {
     isProblemsCollapsed: false,
     onProblemsCollapsedChange: jest.fn(),
     ...overrides,
+  };
+}
+
+/**
+ * Renders the regions.
+ * @param overrides What differs from regions with the project as a tree and the problems panel open.
+ * @returns The page object of the regions, and a function that renders them again with other props.
+ */
+function renderRegions(overrides: Partial<ShellRegionsProps> = {}): {
+  regions: ShellRegionsPom;
+  update: (next: Partial<ShellRegionsProps>) => void;
+} {
+  const { rerender } = render(<ShellRegions {...createProps(overrides)} />);
+
+  return {
+    regions: new ShellRegionsPom(),
+    update: (next) =>
+      rerender(<ShellRegions {...createProps({ ...overrides, ...next })} />),
   };
 }
 
@@ -121,7 +142,7 @@ const INSPECTOR_WIDTH = 320;
 
 const PROBLEMS_HEIGHT = 212;
 
-describe("Regions", () => {
+describe("ShellRegions", () => {
   beforeEach(() => {
     mockRendered.length = 0;
     mockHandles.clear();
@@ -130,50 +151,53 @@ describe("Regions", () => {
 
   describe("regions", () => {
     it("should draw the four regions", () => {
+      // Arrange
+      const { regions } = renderRegions();
+
       // Act
-      render(<Regions {...createProps()} />);
+      const drawn = [
+        "The project",
+        "The node",
+        "The inspector",
+        "The problems",
+      ].map((text) => regions.holds(text));
 
       // Assert
-      expect(view.getByText("The project")).toBeTruthy();
-      expect(view.getByText("The node")).toBeTruthy();
-      expect(view.getByText("The inspector")).toBeTruthy();
-      expect(view.getByText("The problems")).toBeTruthy();
+      expect(drawn).toEqual([true, true, true, true]);
     });
 
     it("should stack the problems under the row of the other regions", () => {
       // Arrange
-      render(<Regions {...createProps()} />);
+      const { regions } = renderRegions();
 
       // Act
-      const [column, row] = Array.from(
-        document.querySelectorAll("[data-group]")
-      );
+      const { column, row } = regions;
 
       // Assert
-      expect((column as HTMLElement).style.flexDirection).toBe("column");
-      expect((row as HTMLElement).style.flexDirection).toBe("row");
-      expect(column.contains(view.getByText("The problems"))).toBe(true);
-      expect(row.contains(view.getByText("The problems"))).toBe(false);
+      expect(column.flexDirection).toBe("column");
+      expect(row.flexDirection).toBe("row");
+      expect(column.holds("The problems")).toBe(true);
+      expect(row.holds("The problems")).toBe(false);
     });
 
     it("should draw the project, the node and the inspector side by side", () => {
       // Arrange
-      render(<Regions {...createProps()} />);
+      const { regions } = renderRegions();
 
       // Act
-      const row = document.querySelectorAll("[data-group]")[1];
+      const { row } = regions;
 
       // Assert
-      expect(row.contains(view.getByText("The project"))).toBe(true);
-      expect(row.contains(view.getByText("The node"))).toBe(true);
-      expect(row.contains(view.getByText("The inspector"))).toBe(true);
+      expect(row.holds("The project")).toBe(true);
+      expect(row.holds("The node")).toBe(true);
+      expect(row.holds("The inspector")).toBe(true);
     });
   });
 
   describe("sizes", () => {
     it("should start the project at 264 px, with 200 px as its least, and keep its width when the page is resized", () => {
       // Act
-      render(<Regions {...createProps()} />);
+      renderRegions();
 
       // Assert
       expect(getPanel(PROJECT_WIDTH)).toMatchObject({
@@ -184,7 +208,7 @@ describe("Regions", () => {
 
     it("should start the inspector at 320 px, with 260 px as its least, and keep its width when the page is resized", () => {
       // Act
-      render(<Regions {...createProps()} />);
+      renderRegions();
 
       // Assert
       expect(getPanel(INSPECTOR_WIDTH)).toMatchObject({
@@ -195,7 +219,7 @@ describe("Regions", () => {
 
     it("should give the node at least 360 px and the rest of the width", () => {
       // Act
-      render(<Regions {...createProps()} />);
+      renderRegions();
 
       // Assert
       const node = mockRendered.find((props) => props.minSize === 360);
@@ -207,7 +231,7 @@ describe("Regions", () => {
 
     it("should start the problems at 212 px, with 120 px as its least, collapsible to a 34 px head", () => {
       // Act
-      render(<Regions {...createProps()} />);
+      renderRegions();
 
       // Assert
       expect(getPanel(PROBLEMS_HEIGHT)).toMatchObject({
@@ -221,15 +245,14 @@ describe("Regions", () => {
 
   describe("separators", () => {
     it("should draw a separator between the regions, named for what it resizes", () => {
+      // Arrange
+      const { regions } = renderRegions();
+
       // Act
-      render(<Regions {...createProps()} />);
+      const { separatorLabels } = regions;
 
       // Assert
-      expect(
-        view
-          .getAllByRole("separator")
-          .map((separator) => separator.getAttribute("aria-label"))
-      ).toEqual([
+      expect(separatorLabels).toEqual([
         "Resize the project pane",
         "Resize the inspector",
         "Resize the problems panel",
@@ -237,48 +260,52 @@ describe("Regions", () => {
     });
 
     it("should orient the separators across the regions they resize", () => {
+      // Arrange
+      const { regions } = renderRegions();
+
       // Act
-      render(<Regions {...createProps()} />);
+      const { separatorOrientations } = regions;
 
       // Assert
-      expect(
-        view
-          .getAllByRole("separator")
-          .map((separator) => separator.getAttribute("aria-orientation"))
-      ).toEqual(["vertical", "vertical", "horizontal"]);
+      expect(separatorOrientations).toEqual([
+        "vertical",
+        "vertical",
+        "horizontal",
+      ]);
     });
 
     it("should let the keyboard reach the separators", () => {
+      // Arrange
+      const { regions } = renderRegions();
+
       // Act
-      render(<Regions {...createProps()} />);
+      const { separatorTabIndexes } = regions;
 
       // Assert
-      expect(
-        view
-          .getAllByRole("separator")
-          .map((separator) => separator.getAttribute("tabindex"))
-      ).toEqual(["0", "0", "0"]);
+      expect(separatorTabIndexes).toEqual(["0", "0", "0"]);
     });
 
     it("should draw a line of 1 px between the regions", () => {
+      // Arrange
+      const { regions } = renderRegions();
+
       // Act
-      render(<Regions {...createProps()} />);
-      const [project, , problems] = view.getAllByRole("separator");
+      const [project, , problems] = regions.separators;
 
       // Assert
-      expect(getComputedStyle(project).width).toBe("1px");
-      expect(getComputedStyle(project).backgroundColor).toBe("var(--jsb-line)");
-      expect(getComputedStyle(problems).height).toBe("1px");
+      expect(project.width).toBe("1px");
+      expect(project.backgroundColor).toBe("var(--jsb-line)");
+      expect(problems.height).toBe("1px");
     });
   });
 
   describe("text mode", () => {
     it("should leave the width of the project alone while the project is a tree", () => {
       // Arrange
-      const { rerender } = render(<Regions {...createProps()} />);
+      const { update } = renderRegions();
 
       // Act
-      rerender(<Regions {...createProps()} />);
+      update({});
 
       // Assert
       expect(getHandle(PROJECT_WIDTH).resize).not.toHaveBeenCalled();
@@ -286,10 +313,10 @@ describe("Regions", () => {
 
     it("should widen the project to 420 px while the text is shown", () => {
       // Arrange
-      const { rerender } = render(<Regions {...createProps()} />);
+      const { update } = renderRegions();
 
       // Act
-      rerender(<Regions {...createProps({ isTextMode: true })} />);
+      update({ isTextMode: true });
 
       // Assert
       expect(getHandle(PROJECT_WIDTH).resize).toHaveBeenCalledTimes(1);
@@ -298,14 +325,14 @@ describe("Regions", () => {
 
     it("should give the project the width it had before the text", () => {
       // Arrange
-      const { rerender } = render(<Regions {...createProps()} />);
+      const { update } = renderRegions();
       const handle = getHandle(PROJECT_WIDTH);
       handle.getSize.mockReturnValue({ asPercentage: 18.3, inPixels: 264 });
-      rerender(<Regions {...createProps({ isTextMode: true })} />);
+      update({ isTextMode: true });
       handle.resize.mockClear();
 
       // Act
-      rerender(<Regions {...createProps({ isTextMode: false })} />);
+      update({ isTextMode: false });
 
       // Assert
       expect(handle.resize).toHaveBeenCalledTimes(1);
@@ -314,14 +341,14 @@ describe("Regions", () => {
 
     it("should give back the width the user chose before the text, not the default", () => {
       // Arrange
-      const { rerender } = render(<Regions {...createProps()} />);
+      const { update } = renderRegions();
       const handle = getHandle(PROJECT_WIDTH);
       handle.getSize.mockReturnValue({ asPercentage: 25, inPixels: 360 });
-      rerender(<Regions {...createProps({ isTextMode: true })} />);
+      update({ isTextMode: true });
       handle.resize.mockClear();
 
       // Act
-      rerender(<Regions {...createProps({ isTextMode: false })} />);
+      update({ isTextMode: false });
 
       // Assert
       expect(handle.resize).toHaveBeenCalledWith(360);
@@ -329,18 +356,14 @@ describe("Regions", () => {
 
     it("should give back the width only once", () => {
       // Arrange
-      const { rerender } = render(<Regions {...createProps()} />);
+      const { update } = renderRegions();
       const handle = getHandle(PROJECT_WIDTH);
-      rerender(<Regions {...createProps({ isTextMode: true })} />);
-      rerender(<Regions {...createProps({ isTextMode: false })} />);
+      update({ isTextMode: true });
+      update({ isTextMode: false });
       handle.resize.mockClear();
 
       // Act
-      rerender(
-        <Regions
-          {...createProps({ isTextMode: false, project: <p>Another</p> })}
-        />
-      );
+      update({ isTextMode: false, project: <p>Another</p> });
 
       // Assert
       expect(handle.resize).not.toHaveBeenCalled();
@@ -348,43 +371,41 @@ describe("Regions", () => {
   });
 
   describe("collapsing", () => {
-    it("should leave the problems expanded while the workbench does not collapse them", () => {
+    it("should leave the problems expanded while the shell does not collapse them", () => {
       // Act
-      render(<Regions {...createProps()} />);
+      renderRegions();
 
       // Assert
       expect(getHandle(PROBLEMS_HEIGHT).collapse).not.toHaveBeenCalled();
       expect(getHandle(PROBLEMS_HEIGHT).expand).not.toHaveBeenCalled();
     });
 
-    it("should collapse the problems when the workbench collapses them", () => {
+    it("should collapse the problems when the shell collapses them", () => {
       // Arrange
-      const { rerender } = render(<Regions {...createProps()} />);
+      const { update } = renderRegions();
 
       // Act
-      rerender(<Regions {...createProps({ isProblemsCollapsed: true })} />);
+      update({ isProblemsCollapsed: true });
 
       // Assert
       expect(getHandle(PROBLEMS_HEIGHT).collapse).toHaveBeenCalledTimes(1);
       expect(getHandle(PROBLEMS_HEIGHT).isCollapsed()).toBe(true);
     });
 
-    it("should collapse them from the start when the workbench starts with them collapsed", () => {
+    it("should collapse them from the start when the shell starts with them collapsed", () => {
       // Act
-      render(<Regions {...createProps({ isProblemsCollapsed: true })} />);
+      renderRegions({ isProblemsCollapsed: true });
 
       // Assert
       expect(getHandle(PROBLEMS_HEIGHT).collapse).toHaveBeenCalledTimes(1);
     });
 
-    it("should expand the problems when the workbench expands them", () => {
+    it("should expand the problems when the shell expands them", () => {
       // Arrange
-      const { rerender } = render(
-        <Regions {...createProps({ isProblemsCollapsed: true })} />
-      );
+      const { update } = renderRegions({ isProblemsCollapsed: true });
 
       // Act
-      rerender(<Regions {...createProps({ isProblemsCollapsed: false })} />);
+      update({ isProblemsCollapsed: false });
 
       // Assert
       expect(getHandle(PROBLEMS_HEIGHT).expand).toHaveBeenCalledTimes(1);
@@ -393,25 +414,19 @@ describe("Regions", () => {
 
     it("should not collapse a panel that is already collapsed", () => {
       // Arrange
-      const { rerender } = render(
-        <Regions {...createProps({ isProblemsCollapsed: true })} />
-      );
+      const { update } = renderRegions({ isProblemsCollapsed: true });
 
       // Act
-      rerender(
-        <Regions
-          {...createProps({ isProblemsCollapsed: true, node: <p>Another</p> })}
-        />
-      );
+      update({ isProblemsCollapsed: true, node: <p>Another</p> });
 
       // Assert
       expect(getHandle(PROBLEMS_HEIGHT).collapse).toHaveBeenCalledTimes(1);
     });
 
-    it("should tell the workbench when the user collapses the panel with its separator", () => {
+    it("should tell the shell when the user collapses the panel with its separator", () => {
       // Arrange
       const onProblemsCollapsedChange = jest.fn();
-      render(<Regions {...createProps({ onProblemsCollapsedChange })} />);
+      renderRegions({ onProblemsCollapsedChange });
       act(() => getHandle(PROBLEMS_HEIGHT).collapse());
 
       // Act
@@ -427,17 +442,10 @@ describe("Regions", () => {
       expect(onProblemsCollapsedChange).toHaveBeenCalledWith(true);
     });
 
-    it("should tell the workbench when the user expands the panel with its separator", () => {
+    it("should tell the shell when the user expands the panel with its separator", () => {
       // Arrange
       const onProblemsCollapsedChange = jest.fn();
-      render(
-        <Regions
-          {...createProps({
-            isProblemsCollapsed: true,
-            onProblemsCollapsedChange,
-          })}
-        />
-      );
+      renderRegions({ isProblemsCollapsed: true, onProblemsCollapsedChange });
       act(() => getHandle(PROBLEMS_HEIGHT).expand());
 
       // Act
@@ -451,6 +459,31 @@ describe("Regions", () => {
 
       // Assert
       expect(onProblemsCollapsedChange).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe("testId", () => {
+    it("should render the test id of the regions by default", () => {
+      // Arrange
+      renderRegions();
+
+      // Act
+      const { isRendered } = new ShellRegionsPom({ testId: "shell-regions" });
+
+      // Assert
+      expect(isRendered).toBe(true);
+    });
+
+    it("should render the test id of a module that is the regions in place of its own", () => {
+      // Arrange
+      render(<ShellRegions {...createProps()} testId="shell-panes" />);
+
+      // Act
+      const { isRendered } = new ShellRegionsPom({ testId: "shell-panes" });
+
+      // Assert
+      expect(isRendered).toBe(true);
+      expect(new ShellRegionsPom().isRendered).toBe(false);
     });
   });
 });

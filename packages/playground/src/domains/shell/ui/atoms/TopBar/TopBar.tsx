@@ -50,6 +50,7 @@ const Count = styled("span", {
  * @param props.problems How many problems it has.
  * @param props.tone The color of the number of problems.
  * @param props.configHasErrors Whether the config has errors.
+ * @param props.testId The test id of the root element, when the component that is the bar has one.
  * @returns The bar.
  */
 export function TopBar({
@@ -57,9 +58,10 @@ export function TopBar({
   problems,
   tone,
   configHasErrors,
+  testId,
 }: Readonly<TopBarProps>): ReactNode {
   return (
-    <Bar>
+    <Bar data-testid={testId}>
       <Status>
         <Dot failing={configHasErrors} aria-hidden="true" />
         <span>

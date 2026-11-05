@@ -17,7 +17,7 @@ const Message = styled("div", {
 }));
 
 /**
- * Describes why the sketch is not on screen: it is loading, or it could not be loaded and why. It fills its container, as the workbench does.
+ * Describes why the sketch is not on screen: it is loading, or it could not be loaded and why. It fills its container, as the shell does.
  * @param props LoadState props.
  * @param props.load The state of the load of the sketch.
  * @returns The message.
