@@ -113,9 +113,33 @@ describe("ElementsDescriptor", () => {
       expect(
         () => new ElementsDescriptor(descriptors, config, micromatch)
       ).toThrow(
-        "Element descriptor at index 0 must have a pattern, and either a 'type' or 'category' defined."
+        "Element descriptor at index 0 must have a pattern, and either a 'type' or 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
       );
     });
+
+    it.each([
+      ["capture", { capture: "name" }],
+      ["baseCapture", { basePattern: "src", baseCapture: 5 }],
+    ])(
+      "should throw when the %s of a descriptor is set and is not an array",
+      (_property, captureOptions) => {
+        // Arrange
+        const config = createConfig();
+        const micromatch = createMicromatchMock();
+        const descriptors = [
+          { type: "helper", pattern: "helpers/*", ...captureOptions },
+        ] as unknown as ElementDescriptors;
+
+        // Act
+        const act = () =>
+          new ElementsDescriptor(descriptors, config, micromatch);
+
+        // Assert
+        expect(act).toThrow(
+          "Element descriptor at index 0 must have a pattern, and either a 'type' or 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
+        );
+      }
+    );
 
     it("should throw when a descriptor has no type or category", () => {
       const config = createConfig();
@@ -127,7 +151,7 @@ describe("ElementsDescriptor", () => {
       expect(
         () => new ElementsDescriptor(descriptors, config, micromatch)
       ).toThrow(
-        "Element descriptor at index 0 must have a pattern, and either a 'type' or 'category' defined."
+        "Element descriptor at index 0 must have a pattern, and either a 'type' or 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
       );
     });
 

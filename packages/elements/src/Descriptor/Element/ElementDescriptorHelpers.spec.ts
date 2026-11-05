@@ -126,5 +126,71 @@ describe("ElementDescriptorHelpers", () => {
       // Assert
       expect(result).toBe(false);
     });
+
+    it("should return true when capture and baseCapture are arrays", () => {
+      // Arrange
+      const value = {
+        pattern: "src/helpers/*",
+        type: "helper",
+        basePattern: "src",
+        capture: ["name"],
+        baseCapture: ["base"],
+      };
+
+      // Act
+      const result = isElementDescriptor(value);
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it("should return true when capture and baseCapture are null, which captures nothing", () => {
+      // Arrange
+      const value = {
+        pattern: "src/helpers/*",
+        type: "helper",
+        capture: null,
+        baseCapture: null,
+      };
+
+      // Act
+      const result = isElementDescriptor(value);
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it.each(["name", 5, {}, true])(
+      "should return false when capture is %p, which is set and is not an array",
+      (capture) => {
+        // Arrange
+        const value = { pattern: "src/helpers/*", type: "helper", capture };
+
+        // Act
+        const result = isElementDescriptor(value);
+
+        // Assert
+        expect(result).toBe(false);
+      }
+    );
+
+    it.each(["base", 5, {}, true])(
+      "should return false when baseCapture is %p, which is set and is not an array",
+      (baseCapture) => {
+        // Arrange
+        const value = {
+          pattern: "src/helpers/*",
+          type: "helper",
+          basePattern: "src",
+          baseCapture,
+        };
+
+        // Act
+        const result = isElementDescriptor(value);
+
+        // Assert
+        expect(result).toBe(false);
+      }
+    );
   });
 });

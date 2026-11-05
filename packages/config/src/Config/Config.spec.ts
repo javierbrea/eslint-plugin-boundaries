@@ -123,6 +123,35 @@ describe("Config", () => {
       ]);
     });
 
+    it("ignores and reports a descriptor whose capture is not an array", () => {
+      // Arrange
+      const config = {
+        settings: {
+          "boundaries/elements": [
+            { type: "helper", pattern: "helpers/*", capture: "name" },
+            ...VALID_SETTINGS["boundaries/elements"],
+          ],
+        },
+      };
+
+      // Act
+      const { value, diagnostics } = normalizeConfig(config);
+
+      // Assert
+      expect(value.settings.elementDescriptors).toEqual(
+        VALID_SETTINGS["boundaries/elements"].map((descriptor) =>
+          expect.objectContaining(descriptor)
+        )
+      );
+      expect(diagnostics).toEqual([
+        expect.objectContaining({
+          level: "warning",
+          title: "Some element descriptors are invalid and will be ignored.",
+          paths: [["settings", "boundaries/elements", 0]],
+        }),
+      ]);
+    });
+
     it("gives a problem with the whole settings the path 'settings'", () => {
       const { diagnostics } = normalizeConfig({ settings: {} });
 

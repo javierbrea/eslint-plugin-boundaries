@@ -1,3 +1,12 @@
+jest.mock("../../../src/Debug", () => ({
+  ...jest.requireActual("../../../src/Debug"),
+  warnDiagnostics: jest.fn(),
+}));
+
+import { moreInfoSettingsLink } from "@boundaries/config";
+import { Linter } from "eslint";
+
+import { warnDiagnostics } from "../../../src/Debug";
 import ruleFactory from "../../../src/Rules/Dependencies";
 import { ELEMENT_TYPES as RULE } from "../../../src/Shared";
 import {
@@ -8,6 +17,7 @@ import {
 import type { RuleTesterSettings } from "../../support/helpers";
 
 const rule = ruleFactory();
+const warnDiagnosticsMock = jest.mocked(warnDiagnostics);
 const { absoluteFilePath } = pathResolvers("one-level");
 
 let testsCounter = 0;
@@ -198,3 +208,55 @@ runTest(
   [],
   {}
 );
+
+describe("dependencies - element descriptor whose capture is not an array", () => {
+  it("warns, ignores the descriptor and checks the dependencies with the other descriptors", () => {
+    // Arrange
+    const linter = new Linter();
+    const invalidDescriptor = {
+      type: "foo",
+      pattern: "foo/*",
+      capture: "elementName",
+    };
+    const oneLevelSettings = SETTINGS.oneLevel as unknown as Record<
+      string,
+      unknown[]
+    >;
+
+    // Act
+    const messages = linter.verify(
+      "import HelperB from 'helpers/helper-b'",
+      {
+        files: ["**/*.js"],
+        plugins: { boundaries: { rules: { dependencies: rule } } },
+        settings: {
+          ...oneLevelSettings,
+          "boundaries/elements": [
+            invalidDescriptor,
+            ...oneLevelSettings["boundaries/elements"],
+          ],
+        },
+        rules: { "boundaries/dependencies": [2, { default: "disallow" }] },
+      },
+      absoluteFilePath("helpers/helper-a/HelperA.js")
+    );
+
+    // Assert
+    expect(messages).toEqual([
+      expect.objectContaining({
+        message:
+          'There is no policy allowing dependencies from elements of type "helpers" and captured values: elementName="helper-a" to elements of type "helpers" and captured values: elementName="helper-b"',
+      }),
+    ]);
+    expect(warnDiagnosticsMock).toHaveBeenCalledWith([
+      {
+        level: "warning",
+        title: "Some element descriptors are invalid and will be ignored.",
+        detail: `Invalid descriptors:\n${JSON.stringify([
+          { match: "folder", ...invalidDescriptor },
+        ])}.\n${moreInfoSettingsLink()}`,
+        paths: [["boundaries/elements", 0]],
+      },
+    ]);
+  });
+});
