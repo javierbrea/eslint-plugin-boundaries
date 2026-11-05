@@ -133,4 +133,23 @@ describe("Icon", () => {
     // Assert
     expect(focusable).toBe("false");
   });
+
+  it("should leave its tone and its turn to the element that wraps it", () => {
+    // Arrange
+    render(
+      <span style={{ color: "red", transform: "rotate(180deg)" }}>
+        <Icon name="check" />
+      </span>
+    );
+    const icon = new IconPom();
+
+    // Act
+    const { wrapperStyle } = icon;
+
+    // Assert
+    expect(wrapperStyle).toEqual({
+      color: "rgb(255, 0, 0)",
+      transform: "rotate(180deg)",
+    });
+  });
 });

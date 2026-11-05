@@ -1,16 +1,19 @@
-import { fireEvent, render, screen as view } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 
 import type { ProblemItem } from "@/domains/problems/ui/helpers/problemItems";
-import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
+import { ProblemList } from "@/domains/problems/ui/molecules/ProblemList";
+import { ProblemListPom } from "@/domains/problems/ui/molecules/ProblemList/ProblemList.pom";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
+import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
 import { FOCUS_RING } from "@/ui-kit/helpers/theme";
 import { Note } from "@/ui-kit/molecules/Note";
+import { NotePom } from "@/ui-kit/molecules/Note/Note.pom";
 
-import { ProblemList } from "./ProblemList";
-import type { ProblemsPanelProps } from "./Problems.types";
 import { ProblemsPanel } from "./ProblemsPanel";
+import { ProblemsPanelPom } from "./ProblemsPanel.pom";
+import type { ProblemsPanelProps } from "./ProblemsPanel.types";
 
 /** The ids of the tabs that the specs declare: free text, as a path or a line has spaces and slashes. */
 type PanelProps = ProblemsPanelProps<string>;
@@ -51,7 +54,7 @@ function createProps(overrides: Partial<PanelProps> = {}): PanelProps {
 }
 
 /**
- * Renders a panel whose selected tab and collapsed state follow what the user asks for, as the workbench does.
+ * Renders a panel whose selected tab and collapsed state follow what the user asks for, as the shell does.
  * @param props The props of the panel; the ones that the state owns are the initial values.
  * @returns The panel.
  */
@@ -75,12 +78,15 @@ describe("ProblemsPanel", () => {
     it("should label the panel Problems", () => {
       // Arrange
       render(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const panel = view.getByRole("region", { name: "Problems" });
+      const { isLandmark } = panel;
+      const { label } = panel.head;
 
       // Assert
-      expect(panel.textContent).toContain("Problems");
+      expect(isLandmark).toBe(true);
+      expect(label).toBe("Problems");
     });
   });
 
@@ -88,16 +94,13 @@ describe("ProblemsPanel", () => {
     it("should draw a tab for each tab it is given, in order", () => {
       // Arrange
       render(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const tabs = view.getAllByRole("tab");
+      const { tabTexts } = panel;
 
       // Assert
-      expect(tabs.map((tab) => tab.textContent)).toEqual([
-        "Sketch2",
-        "checkout/index.js1",
-        "line 3",
-      ]);
+      expect(tabTexts).toEqual(["Sketch2", "checkout/index.js1", "line 3"]);
     });
 
     it("should draw as many tabs as it is given", () => {
@@ -107,9 +110,10 @@ describe("ProblemsPanel", () => {
         label: `Tab ${index}`,
       }));
       render(<ProblemsPanel {...createProps({ tabs, selected: "tab-0" })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const drawn = view.getAllByRole("tab");
+      const { tabs: drawn } = panel;
 
       // Assert
       expect(drawn).toHaveLength(8);
@@ -118,16 +122,15 @@ describe("ProblemsPanel", () => {
     it("should name each tab by its label and its count", () => {
       // Arrange
       render(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const sketch = view.getByRole("tab", { name: "Sketch 2 problems" });
-      const file = view.getByRole("tab", {
-        name: "checkout/index.js 1 problem",
-      });
+      const sketch = panel.tab("Sketch 2 problems");
+      const file = panel.tab("checkout/index.js 1 problem");
 
       // Assert
-      expect(sketch.textContent).toBe("Sketch2");
-      expect(file.textContent).toBe("checkout/index.js1");
+      expect(sketch.text).toBe("Sketch2");
+      expect(file.text).toBe("checkout/index.js1");
     });
 
     it("should draw the count in the tone of the tab", () => {
@@ -136,12 +139,13 @@ describe("ProblemsPanel", () => {
         { id: "sketch", label: "Sketch", count: 3, tone: "warn" },
       ];
       render(<ProblemsPanel {...createProps({ tabs })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const badge = view.getByRole("img", { name: "3 problems" });
+      const { color } = panel.tab("Sketch 3 problems").badge;
 
       // Assert
-      expect(getComputedStyle(badge).color).toBe("var(--jsb-warn)");
+      expect(color).toBe("var(--jsb-warn)");
     });
 
     it("should draw the count as bad when the tab has no tone", () => {
@@ -150,12 +154,13 @@ describe("ProblemsPanel", () => {
         { id: "sketch", label: "Sketch", count: 3 },
       ];
       render(<ProblemsPanel {...createProps({ tabs })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const badge = view.getByRole("img", { name: "3 problems" });
+      const { color } = panel.tab("Sketch 3 problems").badge;
 
       // Assert
-      expect(getComputedStyle(badge).color).toBe("var(--jsb-bad)");
+      expect(color).toBe("var(--jsb-bad)");
     });
 
     it.each([
@@ -167,24 +172,24 @@ describe("ProblemsPanel", () => {
         { id: "sketch", label: "Sketch", count, tone: "bad" },
       ];
       render(<ProblemsPanel {...createProps({ tabs })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const badges = view.queryAllByRole("img");
+      const [tab] = panel.tabs;
 
       // Assert
-      expect(badges).toHaveLength(0);
-      expect(view.getByRole("tab").textContent).toBe("Sketch");
+      expect(tab.hasBadge).toBe(false);
+      expect(tab.text).toBe("Sketch");
     });
 
     it("should draw the label of a mono tab in the small mono text, and leave the label of the others alone", () => {
       // Arrange
       renderInRoot(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const mono = getComputedStyle(view.getByText("line 3"));
-      const body = getComputedStyle(
-        view.getByRole("tab", { name: "Sketch 2 problems" })
-      );
+      const mono = panel.tab("line 3").labelStyle;
+      const body = panel.tab("Sketch 2 problems").labelStyle;
 
       // Assert
       expect(mono.fontFamily).toBe("var(--jsb-font-mono)");
@@ -196,32 +201,28 @@ describe("ProblemsPanel", () => {
     it("should leave the weight and the line height of a mono label to its tab", () => {
       // Arrange
       renderInRoot(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const style = getComputedStyle(view.getByText("line 3"));
+      const { fontWeight, lineHeight } = panel.tab("line 3").labelStyle;
 
       // Assert
-      expect(style.fontWeight).toBe("inherit");
-      expect(style.lineHeight).toBe("inherit");
+      expect(fontWeight).toBe("inherit");
+      expect(lineHeight).toBe("inherit");
     });
 
     it("should draw the icon of a tab in its tone, hidden from assistive technology", () => {
       // Arrange
       render(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const icon = view
-        .getByRole("tab", { name: "line 3" })
-        .querySelector("svg");
+      const { icon } = panel.tab("line 3");
 
       // Assert
-      expect(icon?.getAttribute("aria-hidden")).toBe("true");
-      expect(icon?.querySelector("path")?.getAttribute("d")).toBe(
-        "M4 4l8 8M12 4l-8 8"
-      );
-      expect(getComputedStyle(icon?.parentElement as HTMLElement).color).toBe(
-        "var(--jsb-bad)"
-      );
+      expect(icon.isHidden).toBe(true);
+      expect(icon.pathData).toBe(ICON_PATHS.cross);
+      expect(icon.wrapperStyle.color).toBe("var(--jsb-bad)");
     });
 
     it("should draw the icon in the warning color for the warn tone", () => {
@@ -230,14 +231,13 @@ describe("ProblemsPanel", () => {
         { id: "line 3", label: "line 3", icon: "warn", tone: "warn" },
       ];
       render(<ProblemsPanel {...createProps({ tabs, selected: "line 3" })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const icon = view.getByRole("tab").querySelector("svg");
+      const { icon } = panel.tab("line 3");
 
       // Assert
-      expect(getComputedStyle(icon?.parentElement as HTMLElement).color).toBe(
-        "var(--jsb-warn)"
-      );
+      expect(icon.wrapperStyle.color).toBe("var(--jsb-warn)");
     });
 
     it("should leave the icon in the color of the label when the tab has no tone", () => {
@@ -246,14 +246,13 @@ describe("ProblemsPanel", () => {
         { id: "line 3", label: "line 3", icon: "check" },
       ];
       render(<ProblemsPanel {...createProps({ tabs, selected: "line 3" })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const icon = view.getByRole("tab").querySelector("svg");
+      const { icon } = panel.tab("line 3");
 
       // Assert
-      expect(
-        getComputedStyle(icon?.parentElement as HTMLElement).color
-      ).not.toContain("var(--jsb-");
+      expect(icon.wrapperStyle.color).not.toContain("var(--jsb-");
     });
 
     it("should draw the icon before the count", () => {
@@ -262,17 +261,13 @@ describe("ProblemsPanel", () => {
         { id: "sketch", label: "Sketch", icon: "warn", count: 2, tone: "warn" },
       ];
       render(<ProblemsPanel {...createProps({ tabs })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const items = Array.from(view.getByRole("tab").childNodes).map((node) =>
-        node.nodeName.toLowerCase()
-      );
+      const { partsAfterLabel } = panel.tabs[0];
 
       // Assert
-      expect(items).toEqual(["#text", "span", "span"]);
-      expect(view.getByRole("tab").lastElementChild?.getAttribute("role")).toBe(
-        "img"
-      );
+      expect(partsAfterLabel).toEqual(["icon", "count"]);
     });
   });
 
@@ -280,40 +275,35 @@ describe("ProblemsPanel", () => {
     it("should select the tab that `selected` names", () => {
       // Arrange
       render(<ProblemsPanel {...createProps({ selected: FILE_ID })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const tabs = view.getAllByRole("tab");
+      const selection = panel.tabs.map((tab) => tab.isSelected);
 
       // Assert
-      expect(tabs.map((tab) => tab.getAttribute("aria-selected"))).toEqual([
-        "false",
-        "true",
-        "false",
-      ]);
+      expect(selection).toEqual([false, true, false]);
     });
 
     it("should follow `selected` when it changes", () => {
       // Arrange
       const { rerender } = render(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
       rerender(<ProblemsPanel {...createProps({ selected: LINE_ID })} />);
 
       // Assert
-      expect(view.getByRole("tab", { selected: true }).textContent).toBe(
-        "line 3"
-      );
+      expect(panel.selectedTabText).toBe("line 3");
     });
 
     it("should call onSelect with the id of the tab that is pressed", () => {
       // Arrange
       const onSelect = jest.fn();
       render(<ProblemsPanel {...createProps({ onSelect })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      fireEvent.click(
-        view.getByRole("tab", { name: "checkout/index.js 1 problem" })
-      );
+      panel.tab("checkout/index.js 1 problem").select();
 
       // Assert
       expect(onSelect).toHaveBeenCalledTimes(1);
@@ -338,9 +328,10 @@ describe("ProblemsPanel", () => {
           <p>Body of the tab</p>
         </ProblemsPanel>
       );
+      const panel = new ProblemsPanelPom();
 
       // Act
-      fireEvent.click(view.getByRole("tab", { name: "eslint.config.js" }));
+      panel.tab("eslint.config.js").select();
 
       // Assert
       expect(received).toEqual(["node"]);
@@ -349,38 +340,37 @@ describe("ProblemsPanel", () => {
     it("should not change the selected tab by itself", () => {
       // Arrange
       render(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      fireEvent.click(view.getByRole("tab", { name: "line 3" }));
+      panel.tab("line 3").select();
 
       // Assert
-      expect(view.getByRole("tab", { selected: true }).textContent).toBe(
-        "Sketch2"
-      );
+      expect(panel.selectedTabText).toBe("Sketch2");
     });
 
     it("should select the tab the user presses when the state follows onSelect", () => {
       // Arrange
       render(<Controlled {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      fireEvent.click(view.getByRole("tab", { name: "line 3" }));
+      panel.tab("line 3").select();
 
       // Assert
-      expect(view.getByRole("tab", { selected: true }).textContent).toBe(
-        "line 3"
-      );
+      expect(panel.selectedTabText).toBe("line 3");
     });
 
     it("should name the tablist", () => {
       // Arrange
       render(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const tablist = view.getByRole("tablist", { name: "Problem lists" });
+      const { tablistLabel } = panel;
 
       // Assert
-      expect(tablist.children.length).toBeGreaterThan(0);
+      expect(tablistLabel).toBe("Problem lists");
     });
   });
 
@@ -388,46 +378,46 @@ describe("ProblemsPanel", () => {
     it("should show the body of the selected tab in a tab panel", () => {
       // Arrange
       render(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const tabpanel = view.getByRole("tabpanel");
+      const { text } = panel.tabPanel();
 
       // Assert
-      expect(tabpanel.textContent).toBe("Body of the tab");
+      expect(text).toBe("Body of the tab");
     });
 
     it("should label the tab panel with the selected tab", () => {
       // Arrange
       render(<ProblemsPanel {...createProps({ selected: FILE_ID })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const tabpanel = view.getByRole("tabpanel", {
-        name: "checkout/index.js 1 problem",
-      });
+      const { text } = panel.tabPanel("checkout/index.js 1 problem");
 
       // Assert
-      expect(tabpanel.textContent).toBe("Body of the tab");
+      expect(text).toBe("Body of the tab");
     });
 
     it("should label the tab panel with a tab whose id has spaces", () => {
       // Arrange
       render(<ProblemsPanel {...createProps({ selected: LINE_ID })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const tabpanel = view.getByRole("tabpanel", { name: "line 3" });
+      const { labelledBy } = panel.tabPanel("line 3");
 
       // Assert
-      expect(tabpanel.getAttribute("aria-labelledby")).toBe(
-        view.getByRole("tab", { name: "line 3" }).id
-      );
+      expect(labelledBy).toBe(panel.tab("line 3").elementId);
     });
 
     it("should give the elements of the tabs ids that are valid in aria-labelledby", () => {
       // Arrange
       render(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const ids = view.getAllByRole("tab").map((tab) => tab.id);
+      const ids = panel.tabs.map((tab) => tab.elementId);
 
       // Assert
       expect(new Set(ids).size).toBe(3);
@@ -437,47 +427,43 @@ describe("ProblemsPanel", () => {
     it("should be controlled by the selected tab only", () => {
       // Arrange
       render(<ProblemsPanel {...createProps({ selected: FILE_ID })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const controls = view
-        .getAllByRole("tab")
-        .map((tab) => tab.getAttribute("aria-controls"));
+      const controls = panel.tabs.map((tab) => tab.controls);
 
       // Assert
-      expect(controls[0]).toBeNull();
-      expect(controls[1]).toBe(view.getByRole("tabpanel").id);
-      expect(controls[2]).toBeNull();
+      expect(controls).toEqual([null, panel.tabPanel().elementId, null]);
     });
 
     it("should take the keyboard, as it scrolls and may hold nothing to focus", () => {
       // Arrange
       render(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const tabpanel = view.getByRole("tabpanel");
+      const { tabIndex } = panel.tabPanel();
 
       // Assert
-      expect(tabpanel.getAttribute("tabindex")).toBe("0");
+      expect(tabIndex).toBe("0");
     });
 
     it("should draw the focus ring inside the panel, where its scroll cannot clip it", () => {
       // Arrange
       renderInRoot(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const style = getStyle(
-        view.getByRole("tabpanel"),
-        `${OWN_CLASS}:focus-visible`
-      );
+      const { focusStyle } = panel.tabPanel();
 
       // Assert
-      expect(style).toMatchObject({
+      expect(focusStyle).toMatchObject({
         outline: FOCUS_RING,
         "outline-offset": "-2px",
       });
     });
 
-    it("should hold the notes and the list that the workbench composes", () => {
+    it("should hold the notes and the list that the pane composes", () => {
       // Arrange
       const items: ProblemItem[] = [
         {
@@ -497,16 +483,14 @@ describe("ProblemsPanel", () => {
           <ProblemList items={items} onOpen={onOpen} empty="No problems." />
         </ProblemsPanel>
       );
+      const note = new NotePom();
+      const list = new ProblemListPom();
 
       // Act
-      fireEvent.click(
-        view.getByRole("button", { name: /Invalid rule options/ })
-      );
+      list.row("Invalid rule options").press();
 
       // Assert
-      expect(view.getByRole("note").textContent).toBe(
-        "Dependencies are not evaluated."
-      );
+      expect(note.text).toBe("Dependencies are not evaluated.");
       expect(onOpen).toHaveBeenCalledWith({ kind: "config" });
     });
   });
@@ -515,43 +499,36 @@ describe("ProblemsPanel", () => {
     it("should offer to collapse the panel while it is expanded", () => {
       // Arrange
       render(<ProblemsPanel {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const button = view.getByRole("button", {
-        name: "Collapse the problems",
-      });
+      const { toggleLabels } = panel;
 
       // Assert
-      expect(button.querySelector("svg")?.getAttribute("aria-hidden")).toBe(
-        "true"
-      );
+      expect(toggleLabels).toEqual(["Collapse the problems"]);
+      expect(panel.toggle.icon.isHidden).toBe(true);
     });
 
     it("should offer to expand the panel while it is collapsed", () => {
       // Arrange
       render(<ProblemsPanel {...createProps({ collapsed: true })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const button = view.queryByRole("button", {
-        name: "Expand the problems",
-      });
+      const { toggleLabels } = panel;
 
       // Assert
-      expect(button).not.toBeNull();
-      expect(
-        view.queryByRole("button", { name: "Collapse the problems" })
-      ).toBeNull();
+      expect(toggleLabels).toEqual(["Expand the problems"]);
     });
 
     it("should ask to collapse when the button is pressed while expanded", () => {
       // Arrange
       const onCollapsedChange = jest.fn();
       render(<ProblemsPanel {...createProps({ onCollapsedChange })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      fireEvent.click(
-        view.getByRole("button", { name: "Collapse the problems" })
-      );
+      panel.toggle.press();
 
       // Assert
       expect(onCollapsedChange).toHaveBeenCalledTimes(1);
@@ -566,11 +543,10 @@ describe("ProblemsPanel", () => {
           {...createProps({ collapsed: true, onCollapsedChange })}
         />
       );
+      const panel = new ProblemsPanelPom();
 
       // Act
-      fireEvent.click(
-        view.getByRole("button", { name: "Expand the problems" })
-      );
+      panel.toggle.press();
 
       // Assert
       expect(onCollapsedChange).toHaveBeenCalledTimes(1);
@@ -580,32 +556,25 @@ describe("ProblemsPanel", () => {
     it("should change its label when the state follows onCollapsedChange", () => {
       // Arrange
       render(<Controlled {...createProps()} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      fireEvent.click(
-        view.getByRole("button", { name: "Collapse the problems" })
-      );
+      panel.toggle.press();
 
       // Assert
-      expect(
-        view
-          .getByRole("button", { name: "Expand the problems" })
-          .getAttribute("aria-label")
-      ).toBe("Expand the problems");
-      expect(view.queryByRole("tabpanel")).toBeNull();
+      expect(panel.toggle.label).toBe("Expand the problems");
+      expect(panel.tabPanel().isRendered).toBe(false);
     });
 
     it("should turn the chevron up when it is collapsed", () => {
       // Arrange
       const { rerender } = render(<ProblemsPanel {...createProps()} />);
-      const getChevron = (): HTMLElement =>
-        view.getByRole("button").querySelector("svg")
-          ?.parentElement as HTMLElement;
-      const expanded = getComputedStyle(getChevron()).transform;
+      const panel = new ProblemsPanelPom();
+      const expanded = panel.toggle.icon.wrapperStyle.transform;
 
       // Act
       rerender(<ProblemsPanel {...createProps({ collapsed: true })} />);
-      const collapsed = getComputedStyle(getChevron()).transform;
+      const collapsed = panel.toggle.icon.wrapperStyle.transform;
 
       // Assert
       expect(expanded).toBe("");
@@ -615,24 +584,24 @@ describe("ProblemsPanel", () => {
     it("should show only the head while it is collapsed", () => {
       // Arrange
       render(<ProblemsPanel {...createProps({ collapsed: true })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const tabpanel = view.queryByRole("tabpanel");
+      const { isRendered } = panel.tabPanel();
 
       // Assert
-      expect(tabpanel).toBeNull();
-      expect(view.queryByText("Body of the tab")).toBeNull();
-      expect(view.getAllByRole("tab")).toHaveLength(3);
+      expect(isRendered).toBe(false);
+      expect(panel.holds("Body of the tab")).toBe(false);
+      expect(panel.tabs).toHaveLength(3);
     });
 
     it("should have no tab that controls a panel while it is collapsed", () => {
       // Arrange
       render(<ProblemsPanel {...createProps({ collapsed: true })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      const controls = view
-        .getAllByRole("tab")
-        .map((tab) => tab.getAttribute("aria-controls"));
+      const controls = panel.tabs.map((tab) => tab.controls);
 
       // Assert
       expect(controls).toEqual([null, null, null]);
@@ -642,9 +611,10 @@ describe("ProblemsPanel", () => {
       // Arrange
       const onSelect = jest.fn();
       render(<ProblemsPanel {...createProps({ collapsed: true, onSelect })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      fireEvent.click(view.getByRole("tab", { name: "line 3" }));
+      panel.tab("line 3").select();
 
       // Assert
       expect(onSelect).toHaveBeenCalledWith(LINE_ID);
@@ -659,9 +629,10 @@ describe("ProblemsPanel", () => {
           {...createProps({ collapsed: true, onCollapsedChange, onSelect })}
         />
       );
+      const panel = new ProblemsPanelPom();
 
       // Act
-      fireEvent.click(view.getByRole("tab", { name: "Sketch 2 problems" }));
+      panel.tab("Sketch 2 problems").select();
 
       // Assert
       expect(onCollapsedChange).toHaveBeenCalledWith(false);
@@ -672,9 +643,10 @@ describe("ProblemsPanel", () => {
       // Arrange
       const onCollapsedChange = jest.fn();
       render(<ProblemsPanel {...createProps({ onCollapsedChange })} />);
+      const panel = new ProblemsPanelPom();
 
       // Act
-      fireEvent.click(view.getByRole("tab", { name: "Sketch 2 problems" }));
+      panel.tab("Sketch 2 problems").select();
 
       // Assert
       expect(onCollapsedChange).not.toHaveBeenCalled();
@@ -688,9 +660,10 @@ describe("ProblemsPanel", () => {
           {...createProps({ collapsed: true, onCollapsedChange })}
         />
       );
+      const panel = new ProblemsPanelPom();
 
       // Act
-      fireEvent.click(view.getByRole("tab", { name: "line 3" }));
+      panel.tab("line 3").select();
 
       // Assert
       expect(onCollapsedChange).not.toHaveBeenCalled();

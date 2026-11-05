@@ -122,16 +122,16 @@ function getSubjectLabel(subject: ProblemSubject): string {
 export function toProblemsTabs(
   tabFacts: readonly ProblemTabFacts[]
 ): ProblemsTab<ProblemsTabId>[] {
-  return tabFacts.map(({ id, subject, count, hasErrors }) => {
+  return tabFacts.map(({ id, subject, badge }) => {
     const tab: ProblemsTab<ProblemsTabId> = {
       id,
       label: getSubjectLabel(subject),
       ...(subject.kind === "sketch" ? {} : { mono: true }),
     };
 
-    return count === undefined
+    return badge === undefined
       ? tab
-      : { ...tab, count, tone: getCountTone(hasErrors === true) };
+      : { ...tab, count: badge.count, tone: getCountTone(badge.hasErrors) };
   });
 }
 

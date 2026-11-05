@@ -225,8 +225,7 @@ describe("problemSelectors", () => {
         {
           id: "sketch",
           subject: { kind: "sketch" },
-          count: 3,
-          hasErrors: true,
+          badge: { count: 3, hasErrors: true },
         },
       ]);
     });
@@ -240,14 +239,12 @@ describe("problemSelectors", () => {
         {
           id: "sketch",
           subject: { kind: "sketch" },
-          count: 3,
-          hasErrors: true,
+          badge: { count: 3, hasErrors: true },
         },
         {
           id: "node",
           subject: { kind: "config" },
-          count: 2,
-          hasErrors: false,
+          badge: { count: 2, hasErrors: false },
         },
       ]);
     });
@@ -261,16 +258,14 @@ describe("problemSelectors", () => {
         {
           id: "sketch",
           subject: { kind: "sketch" },
-          count: 3,
-          hasErrors: true,
+          badge: { count: 3, hasErrors: true },
         },
         {
           id: "node",
           subject: { kind: "file", path: "src/modules/checkout/index.js" },
         },
       ]);
-      expect(tabs[1]).not.toHaveProperty("count");
-      expect(tabs[1]).not.toHaveProperty("hasErrors");
+      expect(tabs[1]).not.toHaveProperty("badge");
     });
   });
 

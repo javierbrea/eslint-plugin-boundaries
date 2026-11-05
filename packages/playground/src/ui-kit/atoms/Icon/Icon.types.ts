@@ -25,3 +25,6 @@ export type IconProps = {
   /** What the icon says, when it stands alone and carries meaning. Without it, the icon is hidden from assistive technology. */
   readonly label?: string;
 };
+
+/** The styles of the element that wraps an icon, as its page object reads them: a caller sets the tone and the turn of an icon there. */
+export type IconWrapperStyle = Pick<CSSStyleDeclaration, "color" | "transform">;

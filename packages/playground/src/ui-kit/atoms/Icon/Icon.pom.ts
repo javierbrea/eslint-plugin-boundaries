@@ -1,5 +1,7 @@
 import { Pom } from "@/shared/testing/pom";
 
+import type { IconWrapperStyle } from "./Icon.types";
+
 /** Page object of an icon. It has no test id: it finds the first `svg` within its parent, or the image named by the `name` option when the icon has a label. */
 export class IconPom extends Pom {
   protected readonly defaultTestId = "";
@@ -101,5 +103,17 @@ export class IconPom extends Pom {
    */
   get flexShrink(): string {
     return getComputedStyle(this.root).flexShrink;
+  }
+
+  /**
+   * The styles of the element that wraps the icon, where a caller sets the tone and the turn of an icon, since the icon takes the current color.
+   * @returns The computed color and transform of the parent of the icon.
+   */
+  get wrapperStyle(): IconWrapperStyle {
+    const { color, transform } = getComputedStyle(
+      this.root.parentElement as HTMLElement
+    );
+
+    return { color, transform };
   }
 }

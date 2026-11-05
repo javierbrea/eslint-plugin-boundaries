@@ -44,6 +44,14 @@ export class CountBadgePom extends Pom {
   }
 
   /**
+   * The color of the count, which is the one of its tone.
+   * @returns The computed value.
+   */
+  get color(): string {
+    return getComputedStyle(this.root).color;
+  }
+
+  /**
    * The font family of the count.
    * @returns The computed value.
    */

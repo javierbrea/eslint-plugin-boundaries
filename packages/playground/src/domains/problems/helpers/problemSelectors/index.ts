@@ -3,6 +3,7 @@ export type {
   ProblemListFacts,
   ProblemSubject,
   ProblemSummary,
+  ProblemTabBadge,
   ProblemTabFacts,
 } from "./problemSelectors.types";
 export {

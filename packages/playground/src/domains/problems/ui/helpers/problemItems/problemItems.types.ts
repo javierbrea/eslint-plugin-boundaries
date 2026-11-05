@@ -12,7 +12,7 @@ export type ProblemsTab<Id extends string = string> = {
   readonly mono?: boolean;
   /** How many problems the tab lists. The badge is drawn for a positive count only. */
   readonly count?: number;
-  /** The color of the badge and of the icon of the panel's tab. The badge is `bad` when it is unset, and the icon takes the color of the label. */
+  /** The color of the badge. The badge is `bad` when it is unset. */
   readonly tone?: Tone;
 };
 

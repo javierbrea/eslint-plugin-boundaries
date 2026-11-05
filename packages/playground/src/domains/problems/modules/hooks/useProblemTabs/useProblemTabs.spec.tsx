@@ -31,7 +31,11 @@ describe("useProblemTabs", () => {
 
     // Assert
     expect(result.current).toEqual([
-      { id: "sketch", subject: { kind: "sketch" }, count: 1, hasErrors: false },
+      {
+        id: "sketch",
+        subject: { kind: "sketch" },
+        badge: { count: 1, hasErrors: false },
+      },
     ]);
   });
 
@@ -44,8 +48,16 @@ describe("useProblemTabs", () => {
 
     // Assert
     expect(result.current).toEqual([
-      { id: "sketch", subject: { kind: "sketch" }, count: 1, hasErrors: false },
-      { id: "node", subject: { kind: "config" }, count: 1, hasErrors: false },
+      {
+        id: "sketch",
+        subject: { kind: "sketch" },
+        badge: { count: 1, hasErrors: false },
+      },
+      {
+        id: "node",
+        subject: { kind: "config" },
+        badge: { count: 1, hasErrors: false },
+      },
     ]);
   });
 

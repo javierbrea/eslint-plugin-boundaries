@@ -10,7 +10,8 @@ import type { IconName } from "@/ui-kit/atoms/Icon";
 import type { Tone } from "@/ui-kit/helpers/tone";
 import { TONE_COLORS } from "@/ui-kit/helpers/tone";
 
-import type { ProblemListProps } from "./Problems.types";
+import { PROBLEM_LIST_TEST_ID } from "./ProblemList.constants";
+import type { ProblemListProps } from "./ProblemList.types";
 
 /** The icon and the tone of each level: a deprecation is a warning that the list does not tell apart. */
 const LEVELS: Readonly<Record<ProblemLevel, { icon: IconName; tone: Tone }>> = {
@@ -129,11 +130,11 @@ export function ProblemList({
   empty,
 }: Readonly<ProblemListProps>): ReactNode {
   if (items.length === 0) {
-    return <Empty>{empty}</Empty>;
+    return <Empty data-testid={PROBLEM_LIST_TEST_ID}>{empty}</Empty>;
   }
 
   return (
-    <List>
+    <List data-testid={PROBLEM_LIST_TEST_ID}>
       {items.map((item) => {
         const { target } = item;
 

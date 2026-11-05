@@ -25,6 +25,14 @@ export class NotePom extends Pom {
   }
 
   /**
+   * The classes of the root element, which include the one a caller passes to place the note.
+   * @returns The class names.
+   */
+  get classNames(): string[] {
+    return Array.from(this.root.classList);
+  }
+
+  /**
    * The icon of the note.
    * @returns The page object of the info icon.
    */

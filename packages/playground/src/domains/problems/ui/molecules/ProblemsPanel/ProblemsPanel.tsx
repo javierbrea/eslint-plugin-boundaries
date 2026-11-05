@@ -14,7 +14,17 @@ import { FOCUS_RING } from "@/ui-kit/helpers/theme";
 import { TONE_COLORS } from "@/ui-kit/helpers/tone";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
-import type { ProblemsPanelProps, ProblemsPanelTab } from "./Problems.types";
+import {
+  COLLAPSE_PROBLEMS_LABEL,
+  EXPAND_PROBLEMS_LABEL,
+  PROBLEMS_PANEL_LABEL,
+  PROBLEMS_PANEL_TEST_ID,
+  PROBLEM_LISTS_LABEL,
+} from "./ProblemsPanel.constants";
+import type {
+  ProblemsPanelProps,
+  ProblemsPanelTab,
+} from "./ProblemsPanel.types";
 
 const Panel = styled("section")({
   display: "flex",
@@ -105,6 +115,7 @@ function TabLabel({ tab }: Readonly<{ tab: ProblemsPanelTab }>): ReactNode {
  * @param props.collapsed Whether only the head shows.
  * @param props.onCollapsedChange Called with what the user asks for when they press the collapse button.
  * @param props.children The body of the selected tab.
+ * @param props.testId The test id of the root element, in place of the default one.
  * @returns The panel, as tall as its container.
  */
 export function ProblemsPanel<Id extends string>({
@@ -114,24 +125,25 @@ export function ProblemsPanel<Id extends string>({
   collapsed,
   onCollapsedChange,
   children,
+  testId = PROBLEMS_PANEL_TEST_ID,
 }: Readonly<ProblemsPanelProps<Id>>): ReactNode {
   const prefix = useId();
   const collapseLabel = collapsed
-    ? "Expand the problems"
-    : "Collapse the problems";
+    ? EXPAND_PROBLEMS_LABEL
+    : COLLAPSE_PROBLEMS_LABEL;
   const panelId = `${prefix}-panel`;
 
   return (
-    <Panel aria-label="Problems">
+    <Panel aria-label={PROBLEMS_PANEL_LABEL} data-testid={testId}>
       <PaneHead
-        label="Problems"
+        label={PROBLEMS_PANEL_LABEL}
         end={
           <>
             <Tabs
               value={selected}
               variant="scrollable"
               scrollButtons={false}
-              aria-label="Problem lists"
+              aria-label={PROBLEM_LISTS_LABEL}
               // `Tabs` reports the value of one of the tabs, which are the ids given
               onChange={(_event, id: Id) => onSelect(id)}
             >

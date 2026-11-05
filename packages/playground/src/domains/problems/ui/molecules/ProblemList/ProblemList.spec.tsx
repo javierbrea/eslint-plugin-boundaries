@@ -1,12 +1,13 @@
-import { fireEvent, render, screen as view } from "@testing-library/react";
+import { render } from "@testing-library/react";
 
 import type { TextRange } from "@/domains/evaluation/helpers/engine";
 import type { ProblemItem } from "@/domains/problems/ui/helpers/problemItems";
-import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
+import { ICON_PATHS } from "@/ui-kit/atoms/Icon/Icon.constants";
 import { FOCUS_RING } from "@/ui-kit/helpers/theme";
 
 import { ProblemList } from "./ProblemList";
+import { ProblemListPom } from "./ProblemList.pom";
 
 const ERROR_RANGE: TextRange = { from: 410, to: 421, line: 15, column: 16 };
 
@@ -71,19 +72,6 @@ const ROW_TEXT = {
   lineHeight: "1.5",
 };
 
-/**
- * Gets the icon of a row.
- * @param row The row.
- * @returns The element that draws the icon.
- */
-function getIcon(row: HTMLElement): SVGElement {
-  const icon = row.querySelector("svg");
-  if (icon === null) {
-    throw new Error("The row has no icon");
-  }
-  return icon;
-}
-
 describe("ProblemList", () => {
   describe("rows", () => {
     it("should draw one row for each item, in order", () => {
@@ -95,12 +83,13 @@ describe("ProblemList", () => {
           empty={EMPTY}
         />
       );
+      const list = new ProblemListPom();
 
       // Act
-      const rows = view.getAllByRole("button");
+      const texts = list.rows.map((row) => row.text);
 
       // Assert
-      expect(rows.map((row) => row.textContent)).toEqual([
+      expect(texts).toEqual([
         `eslint.config.js:15:16${ERROR.message}${ERROR.meta}`,
         `eslint.config.js:5:7${WARNING.message}${WARNING.meta}`,
       ]);
@@ -109,43 +98,48 @@ describe("ProblemList", () => {
     it("should draw the location, the message and the meta of a row", () => {
       // Arrange
       render(<ProblemList items={[ERROR]} onOpen={jest.fn()} empty={EMPTY} />);
+      const [row] = new ProblemListPom().rows;
 
       // Act
-      const where = view.getByText("eslint.config.js", { exact: false });
-      const message = view.getByText(ERROR.message);
-      const meta = view.getByText(ERROR.meta);
+      const { locationWithPosition, message, meta, messageColor, metaColor } =
+        row;
 
       // Assert
-      expect(where.textContent).toBe("eslint.config.js:15:16");
-      expect(getComputedStyle(message).color).toBe("var(--jsb-ink)");
-      expect(getComputedStyle(meta).color).toBe("var(--jsb-muted)");
+      expect(locationWithPosition).toBe("eslint.config.js:15:16");
+      expect(message).toBe(ERROR.message);
+      expect(meta).toBe(ERROR.meta);
+      expect(messageColor).toBe("var(--jsb-ink)");
+      expect(metaColor).toBe("var(--jsb-muted)");
     });
 
     it("should draw the position in the muted color, next to the location", () => {
       // Arrange
       render(<ProblemList items={[ERROR]} onOpen={jest.fn()} empty={EMPTY} />);
+      const [row] = new ProblemListPom().rows;
 
       // Act
-      const position = view.getByText(":15:16");
+      const { position, positionColor, locationWithPosition } = row;
 
       // Assert
-      expect(getComputedStyle(position).color).toBe("var(--jsb-muted)");
-      expect(position.parentElement?.textContent).toBe(
-        "eslint.config.js:15:16"
-      );
+      expect(position).toBe(":15:16");
+      expect(positionColor).toBe("var(--jsb-muted)");
+      expect(row.location).toBe("eslint.config.js");
+      expect(locationWithPosition).toBe("eslint.config.js:15:16");
     });
 
     it("should draw a row without a position", () => {
       // Arrange
       const item: ProblemItem = { ...ERROR, position: undefined };
       render(<ProblemList items={[item]} onOpen={jest.fn()} empty={EMPTY} />);
+      const [row] = new ProblemListPom().rows;
 
       // Act
-      const where = view.getByText("eslint.config.js");
+      const { position, locationWithPosition } = row;
 
       // Assert
-      expect(where.textContent).toBe("eslint.config.js");
-      expect(where.children).toHaveLength(0);
+      expect(row.location).toBe("eslint.config.js");
+      expect(locationWithPosition).toBe("eslint.config.js");
+      expect(position).toBeNull();
     });
 
     it("should keep the spaces of the meta, as the line of text mode was written", () => {
@@ -155,12 +149,14 @@ describe("ProblemList", () => {
         meta: "  import { format } from './format'",
       };
       render(<ProblemList items={[item]} onOpen={jest.fn()} empty={EMPTY} />);
+      const [row] = new ProblemListPom().rows;
 
       // Act
-      const meta = view.getByText("import { format } from './format'");
+      const { meta, metaWhiteSpace } = row;
 
       // Assert
-      expect(getComputedStyle(meta).whiteSpace).toBe("pre-wrap");
+      expect(meta).toBe("  import { format } from './format'");
+      expect(metaWhiteSpace).toBe("pre-wrap");
     });
   });
 
@@ -174,15 +170,10 @@ describe("ProblemList", () => {
           empty={EMPTY}
         />
       );
+      const list = new ProblemListPom();
 
       // Act
-      const [opens, plain] = view.getAllByRole("listitem").map((item) => {
-        const { fontFamily, fontSize, lineHeight } = getComputedStyle(
-          item.firstElementChild as HTMLElement
-        );
-
-        return { fontFamily, fontSize, lineHeight };
-      });
+      const [opens, plain] = list.rows.map((row) => row.textStyle);
 
       // Assert
       expect(opens).toEqual(ROW_TEXT);
@@ -192,13 +183,14 @@ describe("ProblemList", () => {
     it("should say that there are no rows in the small body text", () => {
       // Arrange
       renderInRoot(<ProblemList items={[]} onOpen={jest.fn()} empty={EMPTY} />);
+      const list = new ProblemListPom();
 
       // Act
-      const style = getComputedStyle(view.getByText(EMPTY));
+      const { fontFamily, fontSize } = list.emptyStyle;
 
       // Assert
-      expect(style.fontFamily).toBe("var(--jsb-font-body)");
-      expect(style.fontSize).toBe("12.5px");
+      expect(fontFamily).toBe("var(--jsb-font-body)");
+      expect(fontSize).toBe("12.5px");
     });
   });
 
@@ -208,15 +200,16 @@ describe("ProblemList", () => {
       renderInRoot(
         <ProblemList items={[ERROR]} onOpen={jest.fn()} empty={EMPTY} />
       );
+      const [row] = new ProblemListPom().rows;
 
       // Act
-      const style = getStyle(
-        view.getByRole("button"),
-        `${OWN_CLASS}:focus-visible`
-      );
+      const { focusStyle } = row;
 
       // Assert
-      expect(style).toEqual({ outline: FOCUS_RING, "outline-offset": "-2px" });
+      expect(focusStyle).toEqual({
+        outline: FOCUS_RING,
+        "outline-offset": "-2px",
+      });
     });
 
     it("should highlight on hover", () => {
@@ -224,12 +217,13 @@ describe("ProblemList", () => {
       renderInRoot(
         <ProblemList items={[ERROR]} onOpen={jest.fn()} empty={EMPTY} />
       );
+      const [row] = new ProblemListPom().rows;
 
       // Act
-      const style = getStyle(view.getByRole("button"), `${OWN_CLASS}:hover`);
+      const { hoverStyle } = row;
 
       // Assert
-      expect(style["background-color"]).toBe("var(--jsb-accent-soft)");
+      expect(hoverStyle["background-color"]).toBe("var(--jsb-accent-soft)");
     });
 
     it("should lay out its content in the grid of a row, which the button of MUI would center", () => {
@@ -237,14 +231,17 @@ describe("ProblemList", () => {
       renderInRoot(
         <ProblemList items={[ERROR]} onOpen={jest.fn()} empty={EMPTY} />
       );
+      const [row] = new ProblemListPom().rows;
 
       // Act
-      const style = getComputedStyle(view.getByRole("button"));
+      const { layout } = row;
 
       // Assert
-      expect(style.display).toBe("grid");
-      expect(style.alignItems).toBe("normal");
-      expect(style.justifyContent).toBe("normal");
+      expect(layout).toEqual({
+        display: "grid",
+        alignItems: "normal",
+        justifyContent: "normal",
+      });
     });
   });
 
@@ -252,18 +249,14 @@ describe("ProblemList", () => {
     it("should draw a cross in the bad color for an error", () => {
       // Arrange
       render(<ProblemList items={[ERROR]} onOpen={jest.fn()} empty={EMPTY} />);
+      const [row] = new ProblemListPom().rows;
 
       // Act
-      const icon = getIcon(view.getByRole("button"));
+      const { icon } = row;
 
       // Assert
-      expect(icon.querySelector("path")?.getAttribute("d")).toBe(
-        "M4 4l8 8M12 4l-8 8"
-      );
-      expect(icon.parentElement).not.toBeNull();
-      expect(getComputedStyle(icon.parentElement as HTMLElement).color).toBe(
-        "var(--jsb-bad)"
-      );
+      expect(icon.pathData).toBe(ICON_PATHS.cross);
+      expect(icon.wrapperStyle.color).toBe("var(--jsb-bad)");
     });
 
     it.each([
@@ -274,30 +267,27 @@ describe("ProblemList", () => {
       (_level, item) => {
         // Arrange
         render(<ProblemList items={[item]} onOpen={jest.fn()} empty={EMPTY} />);
+        const [row] = new ProblemListPom().rows;
 
         // Act
-        const icon = getIcon(view.getByRole("button"));
+        const { icon } = row;
 
         // Assert
-        expect(icon.querySelector("path")?.getAttribute("d")).toBe(
-          "M8 2.5l6 11H2z M8 7v3 M8 12v.01"
-        );
-        expect(icon.parentElement).not.toBeNull();
-        expect(getComputedStyle(icon.parentElement as HTMLElement).color).toBe(
-          "var(--jsb-warn)"
-        );
+        expect(icon.pathData).toBe(ICON_PATHS.warn);
+        expect(icon.wrapperStyle.color).toBe("var(--jsb-warn)");
       }
     );
 
     it("should hide the icon from assistive technology, as the meta says the level", () => {
       // Arrange
       render(<ProblemList items={[ERROR]} onOpen={jest.fn()} empty={EMPTY} />);
+      const [row] = new ProblemListPom().rows;
 
       // Act
-      const icon = getIcon(view.getByRole("button"));
+      const { isHidden } = row.icon;
 
       // Assert
-      expect(icon.getAttribute("aria-hidden")).toBe("true");
+      expect(isHidden).toBe(true);
     });
   });
 
@@ -308,9 +298,10 @@ describe("ProblemList", () => {
       render(
         <ProblemList items={[ERROR, WARNING]} onOpen={onOpen} empty={EMPTY} />
       );
+      const list = new ProblemListPom();
 
       // Act
-      fireEvent.click(view.getAllByRole("button")[1] as HTMLElement);
+      list.rows[1].press();
 
       // Assert
       expect(onOpen).toHaveBeenCalledTimes(1);
@@ -324,9 +315,10 @@ describe("ProblemList", () => {
       // Arrange
       const onOpen = jest.fn();
       render(<ProblemList items={[FILE_ITEM]} onOpen={onOpen} empty={EMPTY} />);
+      const [row] = new ProblemListPom().rows;
 
       // Act
-      fireEvent.click(view.getByRole("button"));
+      row.press();
 
       // Assert
       expect(onOpen).toHaveBeenCalledWith({
@@ -349,12 +341,13 @@ describe("ProblemList", () => {
     it("should draw each row with a target as a button that does not submit a form", () => {
       // Arrange
       render(<ProblemList items={[ERROR]} onOpen={jest.fn()} empty={EMPTY} />);
+      const [row] = new ProblemListPom().rows;
 
       // Act
-      const row = view.getByRole("button");
+      const { buttonType } = row;
 
       // Assert
-      expect(row.getAttribute("type")).toBe("button");
+      expect(buttonType).toBe("button");
     });
   });
 
@@ -364,13 +357,14 @@ describe("ProblemList", () => {
       render(
         <ProblemList items={[TEXT_ITEM]} onOpen={jest.fn()} empty={EMPTY} />
       );
+      const list = new ProblemListPom();
 
       // Act
-      const buttons = view.queryAllByRole("button");
+      const { openableRowCount } = list;
 
       // Assert
-      expect(buttons).toHaveLength(0);
-      expect(view.getByText(TEXT_ITEM.message)).toBeTruthy();
+      expect(openableRowCount).toBe(0);
+      expect(list.rows[0].message).toBe(TEXT_ITEM.message);
     });
 
     it("should draw the same content as a row that opens something", () => {
@@ -378,26 +372,25 @@ describe("ProblemList", () => {
       render(
         <ProblemList items={[TEXT_ITEM]} onOpen={jest.fn()} empty={EMPTY} />
       );
+      const [row] = new ProblemListPom().rows;
 
       // Act
-      const where = view.getByText("Project text", { exact: false });
-      const meta = view.getByText("import { format } from './format'");
+      const { locationWithPosition, metaWhiteSpace, icon } = row;
 
       // Assert
-      expect(where.textContent).toBe("Project text:3");
-      expect(getComputedStyle(meta).whiteSpace).toBe("pre-wrap");
-      expect(
-        getIcon(meta.parentElement as HTMLElement).getAttribute("aria-hidden")
-      ).toBe("true");
+      expect(locationWithPosition).toBe("Project text:3");
+      expect(metaWhiteSpace).toBe("pre-wrap");
+      expect(icon.isHidden).toBe(true);
     });
 
     it("should do nothing when it is pressed", () => {
       // Arrange
       const onOpen = jest.fn();
       render(<ProblemList items={[TEXT_ITEM]} onOpen={onOpen} empty={EMPTY} />);
+      const [row] = new ProblemListPom().rows;
 
       // Act
-      fireEvent.click(view.getByText(TEXT_ITEM.message));
+      row.press();
 
       // Assert
       expect(onOpen).not.toHaveBeenCalled();
@@ -412,13 +405,14 @@ describe("ProblemList", () => {
           empty={EMPTY}
         />
       );
+      const list = new ProblemListPom();
 
       // Act
-      const buttons = view.getAllByRole("button");
+      const { rowCount, openableRowCount } = list;
 
       // Assert
-      expect(view.getAllByRole("listitem")).toHaveLength(3);
-      expect(buttons).toHaveLength(2);
+      expect(rowCount).toBe(3);
+      expect(openableRowCount).toBe(2);
     });
   });
 
@@ -426,34 +420,39 @@ describe("ProblemList", () => {
     it("should say it in the muted color when there are no items", () => {
       // Arrange
       render(<ProblemList items={[]} onOpen={jest.fn()} empty={EMPTY} />);
+      const list = new ProblemListPom();
 
       // Act
-      const text = view.getByText(EMPTY);
+      const { emptyText, emptyStyle } = list;
 
       // Assert
-      expect(getComputedStyle(text).color).toBe("var(--jsb-muted)");
+      expect(emptyText).toBe(EMPTY);
+      expect(emptyStyle.color).toBe("var(--jsb-muted)");
     });
 
     it("should draw no row when there are no items", () => {
       // Arrange
       render(<ProblemList items={[]} onOpen={jest.fn()} empty={EMPTY} />);
+      const list = new ProblemListPom();
 
       // Act
-      const rows = view.queryAllByRole("button");
+      const { openableRowCount } = list;
 
       // Assert
-      expect(rows).toHaveLength(0);
+      expect(openableRowCount).toBe(0);
+      expect(list.rows).toHaveLength(0);
     });
 
     it("should not say it when there are items", () => {
       // Arrange
       render(<ProblemList items={[ERROR]} onOpen={jest.fn()} empty={EMPTY} />);
+      const list = new ProblemListPom();
 
       // Act
-      const text = view.queryByText(EMPTY);
+      const { emptyText } = list;
 
       // Assert
-      expect(text).toBeNull();
+      expect(emptyText).toBeNull();
     });
   });
 });

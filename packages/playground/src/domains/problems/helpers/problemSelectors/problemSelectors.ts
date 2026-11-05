@@ -14,6 +14,9 @@ import type {
 /** No lines of text mode to report: the same array each time, so that what is derived from it does not change. */
 const NO_TEXT_PROBLEMS: readonly TextProblem[] = [];
 
+/** No problems of the config to report: the same array each time, as for the lines of text mode. */
+const NO_CONFIG_PROBLEMS: readonly ConfigProblem[] = [];
+
 /** The problems that name a file or a folder: none until phase 6 evaluates dependencies. */
 const NO_PATH_COUNTS: ProblemCounts["byPath"] = new Map();
 
@@ -93,8 +96,7 @@ export function getProblemTabs(
   const sketchTab: ProblemTabFacts = {
     id: "sketch",
     subject: SKETCH_SUBJECT,
-    count: summary.total,
-    hasErrors: summary.hasErrors,
+    badge: { count: summary.total, hasErrors: summary.hasErrors },
   };
 
   if (openNode.kind === "config") {
@@ -103,8 +105,10 @@ export function getProblemTabs(
       {
         id: "node",
         subject: CONFIG_SUBJECT,
-        count: summary.configCount,
-        hasErrors: summary.configHasErrors,
+        badge: {
+          count: summary.configCount,
+          hasErrors: summary.configHasErrors,
+        },
       },
     ];
   }
@@ -151,7 +155,7 @@ export function getProblemList(
   }
   return {
     subject: { kind: "file", path: openNode.path },
-    configProblems: [],
+    configProblems: NO_CONFIG_PROBLEMS,
     textProblems: NO_TEXT_PROBLEMS,
     rulesNote: false,
   };

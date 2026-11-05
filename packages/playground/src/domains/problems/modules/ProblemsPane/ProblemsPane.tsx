@@ -8,6 +8,9 @@ import {
   toProblemListContent,
   toProblemsTabs,
 } from "@/domains/problems/ui/helpers/problemItems";
+import { ProblemList } from "@/domains/problems/ui/molecules/ProblemList";
+import { ProblemsPanel } from "@/domains/problems/ui/molecules/ProblemsPanel";
+import { RulesNote } from "@/domains/problems/ui/molecules/RulesNote";
 import {
   useOpen,
   useProblemsCollapsed,
@@ -15,10 +18,8 @@ import {
   useSetProblemsCollapsed,
 } from "@/domains/session/data/store";
 import type { ProblemsTabId } from "@/domains/session/helpers/focus";
-import { Note } from "@/ui-kit/molecules/Note";
 
-import { ProblemList } from "./ProblemList";
-import { ProblemsPanel } from "./ProblemsPanel";
+import { PROBLEMS_PANE_TEST_ID } from "./ProblemsPane.constants";
 
 /**
  * The problems pane: the panel with a tab for the sketch and one for the node in focus, and the problems of the tab that shows. A row opens what it points at.
@@ -32,7 +33,7 @@ function ProblemsPaneContent(): ReactNode {
   const selectTab = useSelectTab();
   const setProblemsCollapsed = useSetProblemsCollapsed();
   const openTarget = useOpen();
-  // Memoized on the facts, so that the panel and the list render again only when what they show changes
+  // Memoized on the facts, so the tabs and the rows keep their references while the facts do not change, as the hooks returned before
   const tabs = useMemo(() => toProblemsTabs(tabFacts), [tabFacts]);
   const { items, empty, rulesNote } = useMemo(
     () => toProblemListContent(listFacts),
@@ -46,13 +47,9 @@ function ProblemsPaneContent(): ReactNode {
       onSelect={selectTab}
       collapsed={collapsed}
       onCollapsedChange={setProblemsCollapsed}
+      testId={PROBLEMS_PANE_TEST_ID}
     >
-      {rulesNote ? (
-        <Note>
-          Dependencies are not evaluated while the rule options are invalid:
-          ESLint does not run a rule whose options fail its schema.
-        </Note>
-      ) : null}
+      {rulesNote ? <RulesNote /> : null}
       <ProblemList items={items} empty={empty} onOpen={openTarget} />
     </ProblemsPanel>
   );

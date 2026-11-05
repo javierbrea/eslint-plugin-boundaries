@@ -327,8 +327,7 @@ describe("problemItems", () => {
     const SKETCH_TAB: ProblemTabFacts = {
       id: "sketch",
       subject: { kind: "sketch" },
-      count: 3,
-      hasErrors: true,
+      badge: { count: 3, hasErrors: true },
     };
 
     it("should give no tabs for no facts", () => {
@@ -351,7 +350,9 @@ describe("problemItems", () => {
 
     it("should tone the badge of a tab without errors as a warning", () => {
       // Act
-      const tabs = toProblemsTabs([{ ...SKETCH_TAB, hasErrors: false }]);
+      const tabs = toProblemsTabs([
+        { ...SKETCH_TAB, badge: { count: 3, hasErrors: false } },
+      ]);
 
       // Assert
       expect(tabs).toEqual([
@@ -366,8 +367,7 @@ describe("problemItems", () => {
         {
           id: "node",
           subject: { kind: "config" },
-          count: 2,
-          hasErrors: false,
+          badge: { count: 2, hasErrors: false },
         },
       ]);
 

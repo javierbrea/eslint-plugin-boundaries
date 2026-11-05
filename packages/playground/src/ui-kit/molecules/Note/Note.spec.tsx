@@ -60,4 +60,29 @@ describe("Note", () => {
     // Assert
     expect(codeTexts).toEqual(["a.js", "b.js"]);
   });
+
+  it("should put the class it is given on its root", () => {
+    // Arrange
+    render(<Note className="placed">The config has no problems.</Note>);
+    const note = new NotePom();
+
+    // Act
+    const { classNames } = note;
+
+    // Assert
+    expect(classNames).toContain("placed");
+  });
+
+  it("should take the test id it is given in place of its own", () => {
+    // Arrange
+    render(<Note testId="rules-note">The config has no problems.</Note>);
+    const note = new NotePom({ testId: "rules-note" });
+
+    // Act
+    const { text } = note;
+
+    // Assert
+    expect(text).toBe("The config has no problems.");
+    expect(new NotePom().isRendered).toBe(false);
+  });
 });

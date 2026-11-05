@@ -112,6 +112,7 @@ describe("useProblemList", () => {
     // Assert
     expect(result.current.subject).toEqual({ kind: "sketch" });
     expect(result.current.configProblems).toHaveLength(1);
+    expect(result.current.textProblems).toEqual([]);
   });
 
   it("should say that the rule options are invalid under the tabs of the sketch and of the config", () => {

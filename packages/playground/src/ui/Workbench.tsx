@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { ConfigEditorSnapshotProvider } from "@/domains/config/ui/contexts/ConfigEditorSnapshotContext";
 import { useProblemSummary } from "@/domains/problems/modules/hooks/useProblemSummary";
+import { ProblemsPane } from "@/domains/problems/modules/ProblemsPane";
 import { getCountTone } from "@/domains/problems/ui/helpers/problemItems";
 import {
   SessionProvider,
@@ -15,7 +16,6 @@ import {
 import { InspectorPane } from "./inspector";
 import { Regions, TopBar } from "./layout";
 import { NodePane } from "./node";
-import { ProblemsPane } from "./problems";
 import { ProjectPane } from "./project";
 import type { WorkbenchProps } from "./Workbench.types";
 

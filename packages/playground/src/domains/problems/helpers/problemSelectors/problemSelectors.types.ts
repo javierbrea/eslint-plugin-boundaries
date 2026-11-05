@@ -30,16 +30,22 @@ export type ProblemSubject =
   | { readonly kind: "config" }
   | { readonly kind: "file"; readonly path: string };
 
+/** What a tab counts: how many problems it lists, and whether any of them is an error. */
+export type ProblemTabBadge = {
+  /** How many problems the tab lists. */
+  readonly count: number;
+  /** Whether any problem the tab counts is an error. */
+  readonly hasErrors: boolean;
+};
+
 /** The facts of a tab of the problems panel. */
 export type ProblemTabFacts = {
   /** Identifies the tab among the tabs of the panel. */
   readonly id: ProblemsTabId;
   /** What the tab is about. */
   readonly subject: ProblemSubject;
-  /** How many problems the tab lists. A tab that does not count them, such as the one of a file, has none. */
-  readonly count?: number;
-  /** Whether any problem the tab counts is an error. A tab that does not count them has none. */
-  readonly hasErrors?: boolean;
+  /** What the tab counts. A tab that does not count its problems, such as the one of a file, has none. */
+  readonly badge?: ProblemTabBadge;
 };
 
 /** The facts of what the tab that shows lists. */

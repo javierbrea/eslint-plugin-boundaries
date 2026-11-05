@@ -56,4 +56,22 @@ describe("CountBadge", () => {
     // Assert
     expect(hasToneAttribute).toBe(false);
   });
+
+  it.each([
+    ["bad", "var(--jsb-bad)"],
+    ["warn", "var(--jsb-warn)"],
+  ] as const)(
+    "should draw the count in the color of the %s tone",
+    (tone, expected) => {
+      // Arrange
+      render(<CountBadge count={3} tone={tone} label="3 problems" />);
+      const badge = new CountBadgePom();
+
+      // Act
+      const { color } = badge;
+
+      // Assert
+      expect(color).toBe(expected);
+    }
+  );
 });
