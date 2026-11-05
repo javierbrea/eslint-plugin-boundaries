@@ -57,6 +57,7 @@ export class ProjectTreePom extends Pom {
 
 - A spec mounts with `render`, `renderInRoot` (`src/shared/testing/renderInRoot`) or `renderInSession` (`src/domains/session/data/store/store.mock.tsx`), builds page objects and asserts on what they return. It never imports `screen`, `within` or `fireEvent`, never takes `container` or a query from `render()`, and never calls `document.querySelector`. `render`, `renderHook`, `act`, `waitFor` and Jest's timers are allowed.
 - The specs under `helpers/`, `data/`, `contexts/` and `hooks/` folders, `src/shared/testing/` and `src/contract/` test no component, so they are exempt by path. They may drive probe components, through `FixturePom` when they render one.
+- A spec never asserts the value its page object used to find the root (a text, a role name, a test id constant), since that check cannot fail; it asserts something the component produced. A landmark or a named role is checked by its accessible name, not by its `aria-label` attribute.
 - A spec of a module renders its real children inside `renderInSession`: it does not `jest.mock` a child module. A component's spec covers its own props, and a module's spec keeps the cases that need the store.
 - `jest.mock` and `jest.requireActual` take the `@/` path of the module.
 - Mocks (`<name>.mock.ts(x)`) live in the element they wrap and are imported only by specs: lint fails a page object, another mock or production code that imports one.
