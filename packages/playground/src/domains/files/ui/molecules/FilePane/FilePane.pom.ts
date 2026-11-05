@@ -127,16 +127,24 @@ export class FilePanePom extends Pom {
   }
 
   /**
-   * The paragraph that says the file has no dependencies.
-   * @returns The paragraph, or null when the pane has none.
+   * The code area under the head, which is the second child of the frame.
+   * @returns The element, or undefined when the pane has none.
    */
-  private get messageElement(): HTMLParagraphElement | null {
-    return this.root.querySelector("p");
+  private get codeArea(): Element | undefined {
+    return this.root.children[1];
+  }
+
+  /**
+   * The element that says the file has no dependencies, which is the first of the code area while the file has none.
+   * @returns The element, or null when the code area has none.
+   */
+  private get messageElement(): Element | null {
+    return this.codeArea?.firstElementChild ?? null;
   }
 
   /**
    * What the pane says while the file has no dependencies.
-   * @returns The text of the paragraph of the pane, or null when it has none.
+   * @returns The text of the first element of the code area, or null when it has none.
    */
   get message(): string | null {
     return this.messageElement?.textContent ?? null;
@@ -144,7 +152,7 @@ export class FilePanePom extends Pom {
 
   /**
    * The element the message is drawn in.
-   * @returns The tag name of the paragraph, in upper case, or null when the pane has none.
+   * @returns The tag name of the first element of the code area, in upper case, or null when it has none.
    */
   get messageTag(): string | null {
     return this.messageElement?.tagName ?? null;

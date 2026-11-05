@@ -16,7 +16,7 @@ import { ConfigNodePom } from "./ConfigNode.pom";
 
 const QUICK_START = QUICK_START_EXAMPLE.sketch;
 
-const FRAME_LABEL = "Node in focus";
+const FRAME_LABEL = "Pane under test";
 
 /** The quick-start config with an option that is not valid: one error, placed at `"dissallow"`. */
 const WITH_ERROR: Sketch = {
@@ -151,18 +151,6 @@ describe("ConfigNode", () => {
 
     // Assert
     expect(underlined).toBe('"dissallow"');
-  });
-
-  it("should put the cursor at the start of the range that a target points at", () => {
-    // Arrange
-    const { node, store } = renderNode();
-    const range = rangeOf('"boundaries/dependencies"');
-
-    // Act
-    act(() => store.open({ kind: "config", range }));
-
-    // Assert
-    expect(node.editor.cursor).toBe(range.from);
   });
 
   it("should put the cursor at the start of a range again when it is requested again", () => {

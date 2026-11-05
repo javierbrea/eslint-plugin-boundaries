@@ -173,6 +173,21 @@ describe("NodePane", () => {
     });
   });
 
+  describe("the config", () => {
+    it("should put the cursor at the start of the range that a target points at", () => {
+      // Arrange
+      const { pane, store } = renderPane();
+      const range = rangeOf('"boundaries/dependencies"');
+
+      // Act
+      act(() => store.open({ kind: "config", range }));
+
+      // Assert
+      expect(pane.shown).toBe("config");
+      expect(pane.config.editor.cursor).toBe(range.from);
+    });
+  });
+
   describe("going back to the config", () => {
     it("should keep the undo history of the editor", () => {
       // Arrange

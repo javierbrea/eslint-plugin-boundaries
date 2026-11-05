@@ -3,7 +3,7 @@ import { render } from "@testing-library/react";
 import { PaneFrame } from "./PaneFrame";
 import { PaneFramePom } from "./PaneFrame.pom";
 
-const LABEL = "Node in focus";
+const LABEL = "Pane under test";
 
 /**
  * Renders a frame around the head and the body of a pane.

@@ -41,7 +41,7 @@ const PROBLEM: ConfigProblem = {
   source: "config",
 };
 
-const FRAME_LABEL = "Node in focus";
+const FRAME_LABEL = "Pane under test";
 
 /**
  * Creates the props of the pane.

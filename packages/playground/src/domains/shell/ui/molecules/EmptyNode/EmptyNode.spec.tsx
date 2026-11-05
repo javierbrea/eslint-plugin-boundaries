@@ -6,7 +6,7 @@ import { EmptyNode } from "./EmptyNode";
 import { EmptyNodePom } from "./EmptyNode.pom";
 import type { EmptyNodeProps } from "./EmptyNode.types";
 
-const FRAME_LABEL = "Node in focus";
+const FRAME_LABEL = "Pane under test";
 
 /**
  * Creates the props of the pane.

@@ -5,6 +5,7 @@ import { FilePanePom } from "@/domains/files/ui/molecules/FilePane/FilePane.pom"
 import { EMPTY_NODE_PANE_TEST_ID } from "@/domains/shell/modules/EmptyNodePane/EmptyNodePane.constants";
 import { EmptyNodePanePom } from "@/domains/shell/modules/EmptyNodePane/EmptyNodePane.pom";
 import { Pom } from "@/shared/testing/pom";
+import type { PomOptions } from "@/shared/testing/pom";
 import { PaneFramePom } from "@/ui-kit/atoms/PaneFrame/PaneFrame.pom";
 
 import type { NodePaneShown } from "./NodePane.types";
@@ -16,16 +17,28 @@ const PANE_TEST_IDS: readonly (readonly [NodePaneShown, string])[] = [
   ["empty", EMPTY_NODE_PANE_TEST_ID],
 ];
 
-/** Page object of the node pane. The node pane renders no element of its own: its root is the pane of the node in focus, which has its own test id. So it has no default test id and finds the pane that is rendered by any of them. */
+/** Page object of the node pane. The node pane renders no element of its own: its root is the pane of the node in focus, which has its own test id. So it has no default test id and finds the pane that is rendered by any of them. Only one pane shows at a time: it throws when two of them are rendered together. */
 export class NodePanePom extends Pom {
   protected readonly defaultTestId = "";
 
   /** @inheritdoc */
   protected findRoot(): HTMLElement {
     const testIds = PANE_TEST_IDS.map(([, testId]) => testId);
+    const candidates = this.searchBase.queryAllByTestId(
+      new RegExp(`^(${testIds.join("|")})$`)
+    );
+    const rendered = new Set(
+      candidates.map((candidate) => candidate.getAttribute("data-testid"))
+    );
+
+    if (rendered.size > 1) {
+      throw new Error(
+        `${this.constructor.name} found ${rendered.size} panes rendered at once (${[...rendered].join(", ")}), and only the pane of the node in focus shows`
+      );
+    }
 
     return this.pickMatch(
-      this.searchBase.queryAllByTestId(new RegExp(`^(${testIds.join("|")})$`)),
+      candidates,
       `the test id of a pane of the node in focus (${testIds.join(", ")})`
     );
   }
@@ -57,26 +70,51 @@ export class NodePanePom extends Pom {
   }
 
   /**
+   * Builds the page object of the pane that shows, which has the same root element.
+   * @param kind The kind of pane the page object is of.
+   * @param Ctor The class of the page object.
+   * @returns The page object of the pane.
+   * @throws When the node pane shows another kind of pane.
+   */
+  private paneOf<T extends Pom>(
+    kind: NodePaneShown,
+    Ctor: new (options: PomOptions) => T
+  ): T {
+    const { shown } = this;
+
+    if (shown !== kind) {
+      throw new Error(
+        `${this.constructor.name} shows the ${shown} pane, not the ${kind} pane`
+      );
+    }
+
+    return this.childPom(Ctor, { root: this.root });
+  }
+
+  /**
    * The pane of the file in focus.
    * @returns The page object of the file pane, which is the root element when a file is open.
+   * @throws When a file is not open.
    */
   get file(): FilePanePom {
-    return this.childPom(FilePanePom, { root: this.root });
+    return this.paneOf("file", FilePanePom);
   }
 
   /**
    * The config in focus.
    * @returns The page object of the config node, which is the root element when the config is open.
+   * @throws When the config is not open.
    */
   get config(): ConfigNodePom {
-    return this.childPom(ConfigNodePom, { root: this.root });
+    return this.paneOf("config", ConfigNodePom);
   }
 
   /**
    * The pane that shows when nothing is open.
    * @returns The page object of the empty node pane, which is the root element when nothing is open.
+   * @throws When something is open.
    */
   get empty(): EmptyNodePanePom {
-    return this.childPom(EmptyNodePanePom, { root: this.root });
+    return this.paneOf("empty", EmptyNodePanePom);
   }
 }

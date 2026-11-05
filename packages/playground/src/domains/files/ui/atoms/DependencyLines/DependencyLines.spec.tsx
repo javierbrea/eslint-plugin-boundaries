@@ -1,5 +1,8 @@
 import { render } from "@testing-library/react";
 
+import { renderInRoot } from "@/shared/testing/renderInRoot";
+import { ThemeRootPom } from "@/ui-kit/providers/ThemeRoot/ThemeRoot.pom";
+
 import { DependencyLines } from "./DependencyLines";
 import { DependencyLinesPom } from "./DependencyLines.pom";
 import type { DependencyLine } from "./DependencyLines.types";
@@ -13,14 +16,14 @@ describe("DependencyLines", () => {
   it("should draw nothing for an empty list", () => {
     // Arrange
     const lines: readonly DependencyLine[] = [];
-    render(<DependencyLines lines={lines} />);
-    const list = new DependencyLinesPom();
+    renderInRoot(<DependencyLines lines={lines} />);
+    const root = new ThemeRootPom();
 
     // Act
-    const { isRendered } = list;
+    const { isEmpty } = root;
 
     // Assert
-    expect(isRendered).toBe(false);
+    expect(isEmpty).toBe(true);
   });
 
   it("should draw one line for each dependency, in order", () => {

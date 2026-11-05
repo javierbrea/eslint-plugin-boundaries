@@ -13,7 +13,7 @@ import { EmptyNodePanePom } from "./EmptyNodePane.pom";
 
 const QUICK_START = QUICK_START_EXAMPLE.sketch;
 
-const FRAME_LABEL = "Node in focus";
+const FRAME_LABEL = "Pane under test";
 
 /** What {@link renderPane} returns: the render of the session, and the page object of the pane. */
 type PaneRender = SessionRender & { readonly pane: EmptyNodePanePom };

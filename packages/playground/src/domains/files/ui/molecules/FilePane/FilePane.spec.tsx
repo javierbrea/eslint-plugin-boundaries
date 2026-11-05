@@ -5,7 +5,7 @@ import { FilePanePom } from "./FilePane.pom";
 
 const PATH = "src/modules/checkout/index.js";
 
-const FRAME_LABEL = "Node in focus";
+const FRAME_LABEL = "Pane under test";
 
 /**
  * Renders the pane.

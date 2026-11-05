@@ -1,5 +1,6 @@
 import { fireEvent } from "@testing-library/react";
 
+import { CONFIG_PATH } from "@/domains/project/helpers/sketch/sketch.constants";
 import { Pom } from "@/shared/testing/pom";
 import { IconPom } from "@/ui-kit/atoms/Icon/Icon.pom";
 import { MonoPom } from "@/ui-kit/atoms/Mono/Mono.pom";
@@ -9,7 +10,7 @@ import { PaneHeadPom } from "@/ui-kit/atoms/PaneHead/PaneHead.pom";
 import { EMPTY_NODE_LABEL, EMPTY_NODE_TEST_ID } from "./EmptyNode.constants";
 
 /** The name of the button that opens the config. */
-const OPEN_CONFIG_NAME = /^Open /;
+const OPEN_CONFIG_NAME = `Open ${CONFIG_PATH}`;
 
 /** The name of the button that adds a file. */
 const ADD_FILE_NAME = "File";

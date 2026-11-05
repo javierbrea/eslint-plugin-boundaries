@@ -20,6 +20,14 @@ export class ThemeRootPom extends Pom {
   }
 
   /**
+   * Whether the content of the root draws no element, as when a component renders nothing.
+   * @returns True when the root has no child element.
+   */
+  get isEmpty(): boolean {
+    return this.root.childElementCount === 0;
+  }
+
+  /**
    * The background color of the root.
    * @returns The computed value.
    */
