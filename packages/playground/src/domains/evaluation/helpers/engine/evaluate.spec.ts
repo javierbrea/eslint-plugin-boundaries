@@ -300,32 +300,38 @@ describe("Evaluate", () => {
         );
       });
 
-      it("should describe the files as it does without a root path when the root path is absolute, because the sketch is the project at that path", () => {
-        // Arrange
-        const sketch = createSketch(
-          JSON.stringify({
-            settings: {
-              ...QUICK_START_SETTINGS,
-              "boundaries/root-path": "/project",
-              "boundaries/flag-as-external": { outsideRootPath: true },
-            },
-            rules: QUICK_START_RULES,
-          }),
-          QUICK_START_FILES
-        );
+      it.each([
+        ["absolute", "/project"],
+        ["above the root of the sketch", ".."],
+      ])(
+        "should describe the files as it does without a root path when the root path is %s, because the sketch is the project at that path",
+        (_title, rootPath) => {
+          // Arrange
+          const sketch = createSketch(
+            JSON.stringify({
+              settings: {
+                ...QUICK_START_SETTINGS,
+                "boundaries/root-path": rootPath,
+                "boundaries/flag-as-external": { outsideRootPath: true },
+              },
+              rules: QUICK_START_RULES,
+            }),
+            QUICK_START_FILES
+          );
 
-        // Act
-        const { files } = evaluate(sketch);
+          // Act
+          const { files } = evaluate(sketch);
 
-        // Assert
-        expect(
-          QUICK_START_FILES.map((path) => pickDescribed(files.get(path)!))
-        ).toEqual(
-          QUICK_START_FILES.map((path) =>
-            pickDescribed(QUICK_START_DESCRIPTIONS[path])
-          )
-        );
-      });
+          // Assert
+          expect(
+            QUICK_START_FILES.map((path) => pickDescribed(files.get(path)!))
+          ).toEqual(
+            QUICK_START_FILES.map((path) =>
+              pickDescribed(QUICK_START_DESCRIPTIONS[path])
+            )
+          );
+        }
+      );
 
       it("should describe the files under a relative root path as the plugin does with that path under the root of the project", () => {
         // Arrange

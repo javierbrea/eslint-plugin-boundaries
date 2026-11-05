@@ -51,14 +51,14 @@ describe("RootPath", () => {
       }
     );
 
-    it.each(["..", "../project", "packages/../../project"])(
-      "should return a path that no path of the sketch starts with for %s, which is above the root of the sketch",
+    it.each(["..", "../..", "../project", "packages/../../project"])(
+      "should return the root of the sketch for %s, which is above it, as the sketch is the project at that path",
       (setting) => {
         // Act
         const rootPath = resolveRootPath({ "boundaries/root-path": setting });
 
         // Assert
-        expect(rootPath).toBe("..");
+        expect(rootPath).toBe("");
       }
     );
   });
