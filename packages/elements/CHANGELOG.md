@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [3.3.2] - 2026-11-05
+
+### Fixed
+
+- fix(#622): `isElementDescriptor` and `isFileDescriptor` return `false` for a descriptor whose `capture` or `baseCapture` is set and is not an array, and `getMatcher` throws the error of an invalid descriptor for it and for a `null` or `undefined` descriptor. It threw an error such as `descriptor.capture.join is not a function` instead, except for the `baseCapture` of a file descriptor, whose characters it took as names.
+- fix(#622): `getMatcher` no longer returns the matcher of another configuration that differs only in the `basePattern` or `baseCapture` of a file descriptor, or in patterns or capture names that it wrote as the same text in its cache key, such as `pattern: "a,b"` and `pattern: ["a", "b"]`.
+
 ## [3.3.1] - 2026-11-02
 
 ### Changed

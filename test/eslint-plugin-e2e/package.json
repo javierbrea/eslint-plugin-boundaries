@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@boundaries/eslint-plugin": "workspace:*",
-    "chalk": "5.6.2",
+    "chalk": "6.0.1",
     "eslint": "9.39.5"
   }
 }

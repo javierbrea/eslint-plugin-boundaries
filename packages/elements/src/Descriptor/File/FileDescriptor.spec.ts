@@ -74,9 +74,32 @@ describe("FilesDescriptor", () => {
       expect(
         () => new FilesDescriptor(descriptors, config, micromatch)
       ).toThrow(
-        "File descriptor at index 0 must have a pattern, and a 'category' defined."
+        "File descriptor at index 0 must have a pattern, and a 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
       );
     });
+
+    it.each([
+      ["capture", { capture: {} }],
+      ["baseCapture", { basePattern: "src", baseCapture: 5 }],
+    ])(
+      "should throw an error when the %s of a file descriptor is set and is not an array",
+      (_property, captureOptions) => {
+        // Arrange
+        const config = createConfig();
+        const micromatch = createMicromatchMock();
+        const descriptors = [
+          { category: "service", pattern: "src/**/*.ts", ...captureOptions },
+        ] as unknown as FileDescriptors;
+
+        // Act
+        const act = () => new FilesDescriptor(descriptors, config, micromatch);
+
+        // Assert
+        expect(act).toThrow(
+          "File descriptor at index 0 must have a pattern, and a 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
+        );
+      }
+    );
 
     it("should throw an error indicating the index of the invalid descriptor", () => {
       const config = createConfig();
@@ -89,7 +112,7 @@ describe("FilesDescriptor", () => {
       expect(
         () => new FilesDescriptor(descriptors, config, micromatch)
       ).toThrow(
-        "File descriptor at index 1 must have a pattern, and a 'category' defined."
+        "File descriptor at index 1 must have a pattern, and a 'category' defined. Its 'capture' and 'baseCapture' must be arrays when set."
       );
     });
 

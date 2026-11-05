@@ -1,6 +1,7 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+// eslint-disable-next-line import/no-unresolved
 import chalk from "chalk";
 
 import createdConfigWithDefineLegacy from "./configs/createAndDefineConfig-legacy.config.js";

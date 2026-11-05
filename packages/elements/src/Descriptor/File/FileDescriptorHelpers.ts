@@ -1,5 +1,5 @@
 import { isString, isObjectWithProperty } from "../../Shared/TypeGuards";
-import { isBaseDescriptor } from "../Shared";
+import { isBaseDescriptor, isDescriptorCapture } from "../Shared";
 
 import type { FileDescriptor } from "./FileDescriptor.types";
 
@@ -12,6 +12,7 @@ export function isFileDescriptor(value: unknown): value is FileDescriptor {
   return (
     isBaseDescriptor(value) &&
     isObjectWithProperty(value, "category") &&
-    isString(value.category)
+    isString(value.category) &&
+    isDescriptorCapture(value.baseCapture)
   );
 }

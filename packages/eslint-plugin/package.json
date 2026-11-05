@@ -1,6 +1,6 @@
 {
   "name": "@boundaries/eslint-plugin",
-  "version": "7.4.1",
+  "version": "7.4.2",
   "description": "Eslint plugin checking architecture boundaries between elements",
   "keywords": [
     "eslint",
@@ -85,7 +85,7 @@
     "node": ">=18.18"
   },
   "devDependencies": {
-    "@types/estree": "1.0.9",
+    "@types/estree": "1.0.10",
     "eslint": "9.39.5",
     "eslint-plugin-eslint-plugin": "7.6.2",
     "eslint-plugin-local-rules": "3.0.2"
