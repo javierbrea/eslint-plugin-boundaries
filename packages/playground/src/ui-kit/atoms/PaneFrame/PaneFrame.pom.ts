@@ -51,6 +51,17 @@ export class PaneFramePom extends Pom {
   }
 
   /**
+   * Whether assistive technology reads the frame as a region with a given name, which is its accessible name and not only its `aria-label` attribute.
+   * @param accessibleName The accessible name.
+   * @returns True when the frame is among the regions of that name of the element that holds it, whatever the parent of the page object, which a component that is the frame makes its own root.
+   */
+  isRegionNamed(accessibleName: string): boolean {
+    return within(this.root.parentElement ?? document.body)
+      .queryAllByRole("region", { name: accessibleName })
+      .includes(this.root);
+  }
+
+  /**
    * Whether a text is among the content of the landmark.
    * @param text The text of an element.
    * @returns True when an element with that text is inside the landmark.

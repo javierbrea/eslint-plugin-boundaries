@@ -100,7 +100,7 @@ describe("NodePane", () => {
 
       // Assert
       expect(pane.shown).toBe("empty");
-      expect(pane.empty.node.title).toBe("Open a file or the config");
+      expect(pane.empty.title).toBe("Open a file or the config");
     });
 
     it("should open the config from its button", () => {
@@ -108,14 +108,12 @@ describe("NodePane", () => {
       const { pane, store } = renderPane();
 
       // Act
-      pane.empty.node.openConfigButton.press();
+      pane.empty.openConfigButton.press();
 
       // Assert
       expect(store.getState().focus).toEqual({ kind: "config" });
       expect(pane.shown).toBe("config");
-      expect(pane.config.pane.editorNamed("eslint.config.js").isRendered).toBe(
-        true
-      );
+      expect(pane.config.editorNamed("eslint.config.js").isRendered).toBe(true);
     });
 
     it("should show the file it adds in the pane of the file", () => {
@@ -123,7 +121,7 @@ describe("NodePane", () => {
       const { pane } = renderPane();
 
       // Act
-      pane.empty.node.addFileButton.press();
+      pane.empty.addFileButton.press();
 
       // Assert
       expect(pane.shown).toBe("file");
@@ -140,7 +138,7 @@ describe("NodePane", () => {
 
       // Assert
       expect(pane.shown).toBe("empty");
-      expect(pane.empty.node.title).toBe("Open a file or the config");
+      expect(pane.empty.title).toBe("Open a file or the config");
     });
   });
 

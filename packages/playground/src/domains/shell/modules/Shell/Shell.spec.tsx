@@ -5,6 +5,7 @@ import type { ProjectCapabilities, Sketch } from "@/contract";
 import { createEngine } from "@/domains/evaluation/helpers/engine";
 import { QUICK_START_EXAMPLE } from "@/domains/examples/data/examples";
 import type { ProblemRowPom } from "@/domains/problems/ui/molecules/ProblemList/ProblemList.pom";
+import { FixturePom } from "@/shared/testing/pom";
 import { stubResizeObserver } from "@/shared/testing/resizeObserver";
 
 import { Shell } from "./Shell";
@@ -62,6 +63,9 @@ const CAPTURE_NOT_A_LIST: Sketch = {
 const NOTE_TEXT =
   "Dependencies are not evaluated while the rule options are invalid: ESLint does not run a rule whose options fail its schema.";
 
+/** The test id of the probe element that {@link renderShellInProbe} mounts the shell in. */
+const PROBE_TEST_ID = "probe";
+
 const EVALUATION_WAIT = 150;
 
 const TEXT_READ_WAIT = 300;
@@ -105,6 +109,20 @@ function renderShell(overrides: Partial<ShellProps> = {}): ShellRender {
     onSketchChange,
     rerender: (changes) => rerender(<Shell {...props} {...changes} />),
   };
+}
+
+/**
+ * Renders an editable shell of the quick-start sketch inside a probe element, so that a case can assert on everything the shell renders, and not only on the parts that its page object reaches.
+ * @returns The page object of the probe.
+ */
+function renderShellInProbe(): FixturePom {
+  render(
+    <div data-testid={PROBE_TEST_ID}>
+      <Shell {...propsOf()} />
+    </div>
+  );
+
+  return new FixturePom({ testId: PROBE_TEST_ID });
 }
 
 /**
@@ -250,16 +268,15 @@ describe("Shell", () => {
       const { shell } = renderShell();
       const landmarks = [
         [shell.project.layout.isLandmark, shell.project.layout.label],
-        [shell.node.frame.isLandmark, shell.node.frame.label],
         [shell.inspector.layout.isLandmark, shell.inspector.layout.label],
         [shell.problems.panel.isLandmark, shell.problems.panel.label],
       ];
 
       // Assert
       expect(shell.layout.isRegionNamed("Playground")).toBe(true);
+      expect(shell.node.frame.isRegionNamed("Node in focus")).toBe(true);
       expect(landmarks).toEqual([
         [true, "Project"],
-        [true, "Node in focus"],
         [true, "Inspector"],
         [true, "Problems"],
       ]);
@@ -267,18 +284,18 @@ describe("Shell", () => {
 
     it("should separate the regions with separators the keyboard reaches", () => {
       // Act
-      const { shell } = renderShell();
+      const probe = renderShellInProbe();
 
       // Assert
-      expect(shell.panes.regions.separators).toHaveLength(3);
+      expect(probe.countByRole("separator")).toBe(3);
     });
 
     it("should leave the decision about narrow screens to the host", () => {
       // Act
-      const { shell } = renderShell();
+      const probe = renderShellInProbe();
 
       // Assert
-      expect(shell.holds(/needs a wider screen/)).toBe(false);
+      expect(probe.holds(/needs a wider screen/)).toBe(false);
     });
   });
 
@@ -385,7 +402,7 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.node.shown).toBe("empty");
-      expect(shell.node.empty.node.title).toBe("Open a file or the config");
+      expect(shell.node.empty.title).toBe("Open a file or the config");
     });
 
     it("should describe the sketch in the inspector", () => {
@@ -413,10 +430,10 @@ describe("Shell", () => {
       const { shell } = renderShell();
 
       // Act
-      shell.node.empty.node.openConfigButton.press();
+      shell.node.empty.openConfigButton.press();
 
       // Assert
-      expect(shell.node.config.pane.editorNamed(CONFIG).isRendered).toBe(true);
+      expect(shell.node.config.editorNamed(CONFIG).isRendered).toBe(true);
       expect(getTabs(shell)).toEqual(["Sketch", "eslint.config.js*"]);
     });
 
@@ -425,7 +442,7 @@ describe("Shell", () => {
       const { shell, onSketchChange } = renderShell();
 
       // Act
-      shell.node.empty.node.addFileButton.press();
+      shell.node.empty.addFileButton.press();
 
       // Assert
       expect(shell.node.file.head.path).toBe("new-file.js");
@@ -443,7 +460,7 @@ describe("Shell", () => {
       const { shell } = renderShell();
 
       // Act
-      shell.node.empty.node.addFileButton.press();
+      shell.node.empty.addFileButton.press();
 
       // Assert
       const item = shell.project.item("new-file.js");
@@ -460,7 +477,7 @@ describe("Shell", () => {
       shell.project.click("src/modules");
 
       // Act
-      shell.node.empty.node.addFileButton.press();
+      shell.node.empty.addFileButton.press();
 
       // Assert
       expect(getPaths(onSketchChange.mock.lastCall?.[0] as Sketch)).toContain(
@@ -474,7 +491,7 @@ describe("Shell", () => {
       const { shell, onSketchChange } = renderShell();
 
       // Act
-      shell.node.empty.node.addFileButton.press();
+      shell.node.empty.addFileButton.press();
 
       // Assert
       expect(getPaths(onSketchChange.mock.lastCall?.[0] as Sketch)).toContain(
@@ -488,7 +505,7 @@ describe("Shell", () => {
       shell.project.foot.pressView("Text");
 
       // Act
-      shell.node.empty.node.addFileButton.press();
+      shell.node.empty.addFileButton.press();
 
       // Assert
       expect(shell.project.text.isRendered).toBe(false);
@@ -503,7 +520,7 @@ describe("Shell", () => {
       const { shell } = renderShell();
 
       // Act
-      shell.node.empty.node.addFileButton.press();
+      shell.node.empty.addFileButton.press();
 
       // Assert
       expect(getStatus(shell)).toBe("7 files · 0 problems");
@@ -519,7 +536,7 @@ describe("Shell", () => {
       });
 
       // Act
-      shell.node.empty.node.addFileButton.press();
+      shell.node.empty.addFileButton.press();
 
       // Assert
       expect(shell.node.file.head.path).toBe("new-file-2.js");
@@ -530,7 +547,7 @@ describe("Shell", () => {
       const { shell } = renderShell({ capabilities: READ_ONLY });
 
       // Assert
-      expect(shell.node.empty.node.addFileButton.isRendered).toBe(false);
+      expect(shell.node.empty.addFileButton.isRendered).toBe(false);
     });
   });
 
@@ -779,7 +796,7 @@ describe("Shell", () => {
       expect(shell.node.config.editor.cursor).toBe(
         MISTAKES.config.indexOf('"dissallow"')
       );
-      expect(shell.node.config.pane.editorNamed(CONFIG).isRendered).toBe(true);
+      expect(shell.node.config.editorNamed(CONFIG).isRendered).toBe(true);
     });
 
     it("should select the tab of the config and keep the problems and the note in it", () => {
@@ -1028,7 +1045,7 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.node.shown).toBe("empty");
-      expect(shell.node.empty.node.title).toBe("Open a file or the config");
+      expect(shell.node.empty.title).toBe("Open a file or the config");
       expect(getTabs(shell)).toEqual(["Sketch1*"]);
     });
 
@@ -1065,7 +1082,7 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.node.shown).toBe("empty");
-      expect(shell.node.empty.node.title).toBe("Open a file or the config");
+      expect(shell.node.empty.title).toBe("Open a file or the config");
       expect(getTabs(shell)).toEqual(["Sketch*"]);
     });
 
@@ -1180,7 +1197,7 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.node.shown).toBe("empty");
-      expect(shell.node.empty.node.title).toBe("Open a file or the config");
+      expect(shell.node.empty.title).toBe("Open a file or the config");
       expect(getTabs(shell)).toEqual(["Sketch*"]);
     });
 
@@ -1196,7 +1213,7 @@ describe("Shell", () => {
 
       // Assert
       expect(shell.node.shown).toBe("empty");
-      expect(shell.node.empty.node.title).toBe("Open a file or the config");
+      expect(shell.node.empty.title).toBe("Open a file or the config");
     });
 
     it("should keep the file in focus when another file is removed", () => {
@@ -1484,7 +1501,7 @@ describe("Shell", () => {
       ]);
       expect(second.problems.tabs.map(({ text }) => text)).toEqual(["Sketch2"]);
       expect(second.node.shown).toBe("empty");
-      expect(second.node.empty.node.title).toBe("Open a file or the config");
+      expect(second.node.empty.title).toBe("Open a file or the config");
     });
 
     it("should evaluate each shell with its own sketch", () => {

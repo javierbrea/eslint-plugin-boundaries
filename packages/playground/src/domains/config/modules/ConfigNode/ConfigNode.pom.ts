@@ -23,4 +23,13 @@ export class ConfigNodePom extends Pom {
   get editor(): ConfigEditorPom {
     return this.pane.editor;
   }
+
+  /**
+   * The code editor that has an accessible name, which is the one of the config pane.
+   * @param accessibleName The name of the editor.
+   * @returns The page object of the editor.
+   */
+  editorNamed(accessibleName: string): ConfigEditorPom {
+    return this.pane.editorNamed(accessibleName);
+  }
 }

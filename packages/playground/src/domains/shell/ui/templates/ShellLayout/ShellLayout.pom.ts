@@ -26,6 +26,25 @@ export class ShellLayoutPom extends Pom {
   }
 
   /**
+   * The child of the grid in a position, which is a slot of the layout whatever the test id its content renders.
+   * @param position The position among the children of the grid: 0 for the top bar and 1 for the regions.
+   * @param slotName What the slot holds, for the error.
+   * @returns The element.
+   * @throws When the grid has no child in that position.
+   */
+  private slot(position: number, slotName: string): HTMLElement {
+    const slot = this.grid.children.item(position);
+
+    if (slot === null) {
+      throw new Error(
+        `${this.constructor.name} found no ${slotName} in the grid`
+      );
+    }
+
+    return slot as HTMLElement;
+  }
+
+  /**
    * The accessible name of the landmark.
    * @returns The `aria-label` attribute, or null when the layout has none.
    */
@@ -125,18 +144,20 @@ export class ShellLayoutPom extends Pom {
   }
 
   /**
-   * The top bar, when the layout holds the bar of the shell.
+   * The top bar, when the layout holds the bar of the shell. It is the first child of the grid, found by its position and not by a test id, so it is the same whatever test id the bar renders.
    * @returns The page object of the top bar.
+   * @throws When the grid has no child.
    */
   get topBar(): TopBarPom {
-    return this.childPom(TopBarPom);
+    return this.childPom(TopBarPom, { root: this.slot(0, "top bar") });
   }
 
   /**
-   * The regions, when the layout holds the regions of the shell.
+   * The regions, when the layout holds the regions of the shell. They are the second child of the grid, found by their position and not by a test id, so they are the same whatever test id the regions render, such as the one that the shell panes give them.
    * @returns The page object of the regions.
+   * @throws When the grid has fewer than two children.
    */
   get regions(): ShellRegionsPom {
-    return this.childPom(ShellRegionsPom);
+    return this.childPom(ShellRegionsPom, { root: this.slot(1, "regions") });
   }
 }
