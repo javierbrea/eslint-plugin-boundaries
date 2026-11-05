@@ -13,9 +13,9 @@ import type {
 } from "react";
 
 import { formatCount } from "@/shared/helpers/formatCount";
-import { CountBadge } from "@/ui/common";
-import { Icon } from "@/ui/icons";
 import type { ProblemCounts } from "@/ui/state";
+import { CountBadge } from "@/ui-kit/atoms/CountBadge";
+import { Icon } from "@/ui-kit/atoms/Icon";
 import { FOCUS_RING, HOVER_BACKGROUND } from "@/ui-kit/helpers/theme";
 import type { Tone } from "@/ui-kit/helpers/tone";
 

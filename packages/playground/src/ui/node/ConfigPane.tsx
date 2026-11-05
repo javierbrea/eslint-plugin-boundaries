@@ -2,11 +2,12 @@ import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
-import { Mono, PaneHead } from "@/ui/common";
 import { ConfigEditor } from "@/ui/config";
+import { Mono } from "@/ui-kit/atoms/Mono";
+import { PaneFrame } from "@/ui-kit/atoms/PaneFrame";
+import { PaneHead } from "@/ui-kit/atoms/PaneHead";
 
 import type { ConfigPaneProps } from "./ConfigPane.types";
-import { NodeFrame } from "./NodeFrame";
 
 // A definite height for the editor, which fills its container: the head takes its own, and the editor the rest
 const EditorSlot = styled("div")({ flex: 1, minHeight: 0 });
@@ -33,7 +34,7 @@ export function ConfigPane({
   onChange,
 }: Readonly<ConfigPaneProps>): ReactNode {
   return (
-    <NodeFrame>
+    <PaneFrame>
       <PaneHead
         label="Config"
         path={CONFIG_PATH}
@@ -56,6 +57,6 @@ export function ConfigPane({
           highlight={highlight}
         />
       </EditorSlot>
-    </NodeFrame>
+    </PaneFrame>
   );
 }

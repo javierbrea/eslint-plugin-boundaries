@@ -3,13 +3,13 @@ import { styled } from "@mui/material/styles";
 import Tooltip from "@mui/material/Tooltip";
 import type { ReactNode } from "react";
 
-import { PaneHead } from "@/ui/common";
-import { Icon } from "@/ui/icons";
+import { Icon } from "@/ui-kit/atoms/Icon";
+import { PaneFrame } from "@/ui-kit/atoms/PaneFrame";
+import { PaneHead } from "@/ui-kit/atoms/PaneHead";
 
 import { DependencyLines } from "./DependencyLines";
 import type { DependencyLine } from "./DependencyLines.types";
 import type { FilePaneProps } from "./FilePane.types";
-import { NodeFrame } from "./NodeFrame";
 
 /** The dependencies of a file, none until phase 6 reads them from the sketch. */
 const NO_LINES: readonly DependencyLine[] = [];
@@ -59,7 +59,7 @@ const AddButton = styled(Button)({
  */
 export function FilePane({ path }: Readonly<FilePaneProps>): ReactNode {
   return (
-    <NodeFrame>
+    <PaneFrame>
       <PaneHead label="File" path={path} />
       <Code>
         <DependencyLines lines={NO_LINES} />
@@ -77,6 +77,6 @@ export function FilePane({ path }: Readonly<FilePaneProps>): ReactNode {
           </Slot>
         </Tooltip>
       </Code>
-    </NodeFrame>
+    </PaneFrame>
   );
 }

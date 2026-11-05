@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import type { Evaluation } from "@/domains/evaluation/helpers/engine";
 import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
 import type { Target } from "@/ui/state";
+import { SectionTitle } from "@/ui-kit/atoms/SectionTitle";
 import { TONE_COLORS } from "@/ui-kit/helpers/tone";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
@@ -14,7 +15,6 @@ import {
   getRuleRow,
 } from "./ConfigRows";
 import type { ConfigRow } from "./ConfigRows.types";
-import { Title } from "./Title";
 
 const List = styled("ul")({
   display: "grid",
@@ -141,7 +141,7 @@ export function ConfigInspector({
 }: Readonly<ConfigInspectorProps>): ReactNode {
   return (
     <>
-      <Title>{CONFIG_PATH}</Title>
+      <SectionTitle>{CONFIG_PATH}</SectionTitle>
       <SectionLabel>Element types</SectionLabel>
       <RowList
         rows={evaluation.elementTypes.map(getElementTypeRow)}

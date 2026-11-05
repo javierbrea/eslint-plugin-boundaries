@@ -3,11 +3,12 @@ import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 import { CONFIG_PATH } from "@/domains/project/helpers/sketch";
-import { Mono, PaneHead } from "@/ui/common";
-import { Icon } from "@/ui/icons";
+import { Icon } from "@/ui-kit/atoms/Icon";
+import { Mono } from "@/ui-kit/atoms/Mono";
+import { PaneFrame } from "@/ui-kit/atoms/PaneFrame";
+import { PaneHead } from "@/ui-kit/atoms/PaneHead";
 
 import type { EmptyPaneProps } from "./EmptyPane.types";
-import { NodeFrame } from "./NodeFrame";
 
 // The grid of the drafting table: two hairlines every 16 px over the card
 const Content = styled("div")({
@@ -59,7 +60,7 @@ export function EmptyPane({
   onAddFile,
 }: Readonly<EmptyPaneProps>): ReactNode {
   return (
-    <NodeFrame>
+    <PaneFrame>
       <PaneHead label="Nothing open" />
       <Content>
         <Title>Open a file or the config</Title>
@@ -82,6 +83,6 @@ export function EmptyPane({
           ) : null}
         </Actions>
       </Content>
-    </NodeFrame>
+    </PaneFrame>
   );
 }

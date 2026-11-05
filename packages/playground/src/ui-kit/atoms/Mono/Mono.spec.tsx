@@ -1,6 +1,7 @@
-import { render, screen as view } from "@testing-library/react";
+import { render } from "@testing-library/react";
 
 import { Mono } from "./Mono";
+import { MonoPom } from "./Mono.pom";
 
 describe("Mono", () => {
   it("should draw what it holds as code, inside the sentence", () => {
@@ -10,36 +11,39 @@ describe("Mono", () => {
         Open <Mono>eslint.config.js</Mono> to edit the settings.
       </p>
     );
+    const mono = new MonoPom({ containing: "eslint.config.js" });
 
     // Act
-    const code = view.getByText("eslint.config.js");
+    const { tagName, parentTagName } = mono;
 
     // Assert
-    expect(code.tagName).toBe("CODE");
-    expect(code.parentElement?.tagName).toBe("P");
+    expect(tagName).toBe("CODE");
+    expect(parentTagName).toBe("P");
   });
 
   it("should use the mono font of the host and the size of the text around it", () => {
     // Arrange
     render(<Mono>src/index.js</Mono>);
+    const mono = new MonoPom();
 
     // Act
-    const style = getComputedStyle(view.getByText("src/index.js"));
+    const { fontFamily, fontSize } = mono;
 
     // Assert
-    expect(style.fontFamily).toBe("var(--jsb-font-mono)");
-    expect(style.fontSize).toBe("inherit");
+    expect(fontFamily).toBe("var(--jsb-font-mono)");
+    expect(fontSize).toBe("inherit");
   });
 
   it("should reset the box that a host draws around code", () => {
     // Arrange
     render(<Mono>src/index.js</Mono>);
+    const mono = new MonoPom();
 
     // Act
-    const style = getComputedStyle(view.getByText("src/index.js"));
+    const { padding, borderRadius } = mono;
 
     // Assert
-    expect(parseFloat(style.padding)).toBe(0);
-    expect(parseFloat(style.borderRadius)).toBe(0);
+    expect(parseFloat(padding)).toBe(0);
+    expect(parseFloat(borderRadius)).toBe(0);
   });
 });

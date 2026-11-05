@@ -4,9 +4,9 @@ import type { ReactNode } from "react";
 
 import { OWN_CLASS, getStyle } from "@/shared/testing/emittedStyle";
 import { renderInRoot } from "@/shared/testing/renderInRoot";
-import { Note } from "@/ui/common";
 import type { ProblemItem } from "@/ui/state";
 import { FOCUS_RING } from "@/ui-kit/helpers/theme";
+import { Note } from "@/ui-kit/molecules/Note";
 
 import { ProblemList } from "./ProblemList";
 import type { ProblemsPanelProps } from "./Problems.types";

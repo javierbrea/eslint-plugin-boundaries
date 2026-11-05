@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import { TONE_COLORS } from "@/ui-kit/helpers/tone";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
+import type { CountBadgeProps } from "./CountBadge.types";
+
 /** How much of the color of each tone the background of the badge takes. */
 const BACKGROUND_SHARES: Readonly<Record<Tone, string>> = {
   bad: "14%",
@@ -24,16 +26,6 @@ const Badge = styled("span", {
   borderRadius: 9,
   ...theme.typography.monoTiny,
 }));
-
-/** Props of {@link CountBadge}. */
-type CountBadgeProps = {
-  /** The number to show. */
-  count: number;
-  /** The color of the badge. */
-  tone: Tone;
-  /** What the number counts, such as `2 problems`: assistive technology reads it instead of the bare number. */
-  label: string;
-};
 
 /**
  * A count in an 18 px pill, next to a tab or a node of the tree.

@@ -1,6 +1,8 @@
 import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
+import type { PaneHeadProps } from "./PaneHead.types";
+
 /** Height of the head of a pane in pixels, border included. */
 const HEAD_HEIGHT = 34;
 
@@ -58,18 +60,6 @@ const End = styled("div")({
   "& .MuiTabs-root": { alignSelf: "stretch" },
   "& .MuiTabs-root, & .MuiTab-root": { minHeight: HEAD_HEIGHT - 1 },
 });
-
-/** Props of {@link PaneHead}. */
-type PaneHeadProps = {
-  /** Name of the pane, drawn as a small uppercase label. */
-  label: string;
-  /** Path of what the pane shows, in mono and cut with an ellipsis when it does not fit. */
-  path?: string;
-  /** Short help for the pane, at the end of the head. */
-  hint?: ReactNode;
-  /** Buttons or tabs. The slot takes the free width of the head, so give the last item `marginLeft: "auto"` to push it to the end. */
-  end?: ReactNode;
-};
 
 /**
  * Head of a pane: 34 px with its label, the path of what it shows, a hint and a slot for buttons or tabs.

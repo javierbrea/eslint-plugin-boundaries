@@ -11,8 +11,6 @@ import { memo, useId } from "react";
 import type { ReactNode } from "react";
 
 import { formatCount } from "@/shared/helpers/formatCount";
-import { PaneHead } from "@/ui/common";
-import { Icon } from "@/ui/icons";
 import {
   useCapabilities,
   useProblemCounts,
@@ -21,6 +19,8 @@ import {
   useView,
 } from "@/ui/state";
 import type { ProjectView } from "@/ui/state";
+import { Icon } from "@/ui-kit/atoms/Icon";
+import { PaneHead } from "@/ui-kit/atoms/PaneHead";
 
 import { ProjectTree } from "./ProjectTree";
 import { TextMode } from "./TextMode";

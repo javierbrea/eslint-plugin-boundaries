@@ -7,9 +7,10 @@ import { useId } from "react";
 import type { ReactNode } from "react";
 
 import { formatCount } from "@/shared/helpers/formatCount";
-import { CountBadge, PaneHead } from "@/ui/common";
-import { Icon } from "@/ui/icons";
 import type { ProblemsTab } from "@/ui/state";
+import { CountBadge } from "@/ui-kit/atoms/CountBadge";
+import { Icon } from "@/ui-kit/atoms/Icon";
+import { PaneHead } from "@/ui-kit/atoms/PaneHead";
 import { FOCUS_RING } from "@/ui-kit/helpers/theme";
 import { TONE_COLORS } from "@/ui-kit/helpers/tone";
 import type { Tone } from "@/ui-kit/helpers/tone";

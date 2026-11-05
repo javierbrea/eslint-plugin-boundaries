@@ -1,98 +1,96 @@
-import { render, screen as view } from "@testing-library/react";
+import { render } from "@testing-library/react";
 
 import { renderInRoot } from "@/shared/testing/renderInRoot";
 
 import { PaneHead } from "./PaneHead";
-
-/**
- * Reads the text of each item of the head, in order.
- * @param container The element that holds the head.
- * @returns The text of the items.
- */
-function getItemTexts(container: HTMLElement): (string | null)[] {
-  return Array.from(container.firstElementChild?.children ?? []).map(
-    (item) => item.textContent
-  );
-}
+import { PaneHeadPom } from "./PaneHead.pom";
 
 describe("PaneHead", () => {
   it("should set the label in the small uppercase mono text of a pane", () => {
     // Arrange
     renderInRoot(<PaneHead label="Project" />);
+    const head = new PaneHeadPom({ name: "Project" });
 
     // Act
-    const style = getComputedStyle(
-      view.getByText("Project").parentElement as HTMLElement
-    );
+    const { fontFamily, fontSize, fontWeight, letterSpacing, textTransform } =
+      head.labelStyle;
 
     // Assert
-    expect(style.fontFamily).toBe("var(--jsb-font-mono)");
-    expect(style.fontSize).toBe("10.5px");
-    expect(style.fontWeight).toBe("500");
-    expect(style.letterSpacing).toBe("0.14em");
-    expect(style.textTransform).toBe("uppercase");
+    expect(fontFamily).toBe("var(--jsb-font-mono)");
+    expect(fontSize).toBe("10.5px");
+    expect(fontWeight).toBe("500");
+    expect(letterSpacing).toBe("0.14em");
+    expect(textTransform).toBe("uppercase");
   });
 
   it("should set the path in plain mono text, without the spacing and the case of the label", () => {
     // Arrange
     renderInRoot(<PaneHead label="File" path="src/index.js" />);
+    const head = new PaneHeadPom({ name: "File" });
 
     // Act
-    const style = getComputedStyle(view.getByTitle("src/index.js"));
+    const { fontFamily, fontSize, letterSpacing, textTransform } =
+      head.pathStyle;
 
     // Assert
-    expect(style.fontFamily).toBe("var(--jsb-font-mono)");
-    expect(style.fontSize).toBe("12px");
-    expect(style.letterSpacing).toBe("0");
-    expect(style.textTransform).toBe("none");
+    expect(fontFamily).toBe("var(--jsb-font-mono)");
+    expect(fontSize).toBe("12px");
+    expect(letterSpacing).toBe("0");
+    expect(textTransform).toBe("none");
   });
 
   it("should set the hint in plain body text, without the spacing and the case of the label", () => {
     // Arrange
     renderInRoot(<PaneHead label="Project" hint="One path per line" />);
+    const head = new PaneHeadPom({ name: "Project" });
 
     // Act
-    const style = getComputedStyle(view.getByText("One path per line"));
+    const { fontFamily, fontSize, fontWeight, letterSpacing, textTransform } =
+      head.hintStyle;
 
     // Assert
-    expect(style.fontFamily).toBe("var(--jsb-font-body)");
-    expect(style.fontSize).toBe("12px");
-    expect(style.fontWeight).toBe("400");
-    expect(style.letterSpacing).toBe("0");
-    expect(style.textTransform).toBe("none");
+    expect(fontFamily).toBe("var(--jsb-font-body)");
+    expect(fontSize).toBe("12px");
+    expect(fontWeight).toBe("400");
+    expect(letterSpacing).toBe("0");
+    expect(textTransform).toBe("none");
   });
 
   it("should show the label", () => {
     // Arrange
     render(<PaneHead label="Project" />);
+    const head = new PaneHeadPom({ name: "Project" });
 
     // Act
-    const label = view.getByText("Project");
+    const { label } = head;
 
     // Assert
-    expect(label.textContent).toBe("Project");
+    expect(label).toBe("Project");
   });
 
   it("should show the path with its full text as the title", () => {
     // Arrange
     render(<PaneHead label="File" path="src/modules/checkout/index.js" />);
+    const head = new PaneHeadPom({ name: "File" });
 
     // Act
-    const path = view.getByText("src/modules/checkout/index.js");
+    const { path, pathTitle } = head;
 
     // Assert
-    expect(path.getAttribute("title")).toBe("src/modules/checkout/index.js");
+    expect(path).toBe("src/modules/checkout/index.js");
+    expect(pathTitle).toBe("src/modules/checkout/index.js");
   });
 
   it("should draw no path when it has none", () => {
     // Arrange
     render(<PaneHead label="Project" />);
+    const head = new PaneHeadPom({ name: "Project" });
 
     // Act
-    const titled = document.querySelector("[title]");
+    const { hasPath } = head;
 
     // Assert
-    expect(titled).toBeNull();
+    expect(hasPath).toBe(false);
   });
 
   it("should show the hint", () => {
@@ -103,12 +101,13 @@ describe("PaneHead", () => {
         hint="One path per line · dependencies indented"
       />
     );
+    const head = new PaneHeadPom({ name: "Project" });
 
     // Act
-    const hint = view.getByText("One path per line · dependencies indented");
+    const { hint } = head;
 
     // Assert
-    expect(hint.textContent).toBe("One path per line · dependencies indented");
+    expect(hint).toBe("One path per line · dependencies indented");
   });
 
   it("should accept elements as the hint", () => {
@@ -123,12 +122,13 @@ describe("PaneHead", () => {
         }
       />
     );
+    const head = new PaneHeadPom({ name: "Config" });
 
     // Act
-    const code = view.getByText("settings");
+    const { hintCodeTexts } = head;
 
     // Assert
-    expect(code.tagName).toBe("CODE");
+    expect(hintCodeTexts).toEqual(["settings"]);
   });
 
   it("should show what the end slot holds", () => {
@@ -144,20 +144,18 @@ describe("PaneHead", () => {
         }
       />
     );
+    const head = new PaneHeadPom({ name: "Problems" });
 
     // Act
-    const buttons = view.getAllByRole("button");
+    const { buttonLabels } = head;
 
     // Assert
-    expect(buttons.map((button) => button.textContent)).toEqual([
-      "Sketch",
-      "Collapse",
-    ]);
+    expect(buttonLabels).toEqual(["Sketch", "Collapse"]);
   });
 
   it("should place the label, the path, the end slot and the hint in that order", () => {
     // Arrange
-    const { container } = render(
+    render(
       <PaneHead
         label="Config"
         path="eslint.config.js"
@@ -165,22 +163,29 @@ describe("PaneHead", () => {
         hint="JSON5"
       />
     );
+    const head = new PaneHeadPom({ name: "Config" });
 
     // Act
-    const texts = getItemTexts(container);
+    const { itemTexts } = head;
 
     // Assert
-    expect(texts).toEqual(["Config", "eslint.config.js", "Action", "JSON5"]);
+    expect(itemTexts).toEqual([
+      "Config",
+      "eslint.config.js",
+      "Action",
+      "JSON5",
+    ]);
   });
 
   it("should keep the hint at the end when there is no end slot", () => {
     // Arrange
-    const { container } = render(<PaneHead label="Project" hint="A hint" />);
+    render(<PaneHead label="Project" hint="A hint" />);
+    const head = new PaneHeadPom({ name: "Project" });
 
     // Act
-    const texts = getItemTexts(container);
+    const { itemTexts } = head;
 
     // Assert
-    expect(texts).toEqual(["Project", "", "A hint"]);
+    expect(itemTexts).toEqual(["Project", "", "A hint"]);
   });
 });

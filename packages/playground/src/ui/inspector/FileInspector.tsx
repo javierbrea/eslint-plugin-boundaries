@@ -3,10 +3,10 @@ import { Fragment } from "react";
 import type { ReactNode } from "react";
 
 import type { Evaluation } from "@/domains/evaluation/helpers/engine";
+import { SectionTitle } from "@/ui-kit/atoms/SectionTitle";
 
 import { formatValue } from "./FormatValue";
 import type { DescribedValue } from "./FormatValue.types";
-import { Title } from "./Title";
 
 const Box = styled("div")(({ theme }) => ({
   display: "grid",
@@ -97,7 +97,7 @@ export function FileInspector({
 
   return (
     <>
-      <Title>{path}</Title>
+      <SectionTitle>{path}</SectionTitle>
       {description === undefined ? null : (
         <>
           <Facet

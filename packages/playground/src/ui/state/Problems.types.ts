@@ -1,5 +1,5 @@
 import type { ProblemLevel } from "@/domains/evaluation/helpers/engine";
-import type { IconName } from "@/ui/icons";
+import type { IconName } from "@/ui-kit/atoms/Icon";
 import type { Tone } from "@/ui-kit/helpers/tone";
 
 import type { Target } from "./Focus.types";

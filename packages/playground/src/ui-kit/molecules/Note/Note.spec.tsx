@@ -1,28 +1,32 @@
-import { render, screen as view } from "@testing-library/react";
+import { render } from "@testing-library/react";
 
 import { Note } from "./Note";
+import { NotePom } from "./Note.pom";
 
 describe("Note", () => {
   it("should show what it says as a note", () => {
     // Arrange
     render(<Note>The config has no problems.</Note>);
+    const note = new NotePom();
 
     // Act
-    const note = view.getByRole("note");
+    const { role, text } = note;
 
     // Assert
-    expect(note.textContent).toBe("The config has no problems.");
+    expect(role).toBe("note");
+    expect(text).toBe("The config has no problems.");
   });
 
   it("should draw the info icon, hidden from assistive technology", () => {
     // Arrange
     render(<Note>The config has no problems.</Note>);
+    const note = new NotePom();
 
     // Act
-    const icon = view.getByRole("note").querySelector("svg");
+    const { isHidden } = note.icon;
 
     // Assert
-    expect(icon?.getAttribute("aria-hidden")).toBe("true");
+    expect(isHidden).toBe(true);
   });
 
   it("should accept elements as content", () => {
@@ -32,11 +36,12 @@ describe("Note", () => {
         Policy <code>2</code> is highlighted.
       </Note>
     );
+    const note = new NotePom();
 
     // Act
-    const code = view.getByRole("note").querySelector("code");
+    const { codeTexts } = note;
 
     // Assert
-    expect(code?.textContent).toBe("2");
+    expect(codeTexts).toEqual(["2"]);
   });
 });

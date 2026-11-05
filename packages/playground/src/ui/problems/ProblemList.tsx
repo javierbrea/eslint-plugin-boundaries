@@ -4,9 +4,9 @@ import type { CSSObject, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 import type { ProblemLevel } from "@/domains/evaluation/helpers/engine";
-import { Icon } from "@/ui/icons";
-import type { IconName } from "@/ui/icons";
 import type { ProblemItem } from "@/ui/state";
+import { Icon } from "@/ui-kit/atoms/Icon";
+import type { IconName } from "@/ui-kit/atoms/Icon";
 import type { Tone } from "@/ui-kit/helpers/tone";
 import { TONE_COLORS } from "@/ui-kit/helpers/tone";
 

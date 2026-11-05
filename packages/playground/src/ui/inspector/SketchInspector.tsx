@@ -2,8 +2,7 @@ import { styled } from "@mui/material/styles";
 import type { ReactNode } from "react";
 
 import type { Evaluation } from "@/domains/evaluation/helpers/engine";
-
-import { Title } from "./Title";
+import { SectionTitle } from "@/ui-kit/atoms/SectionTitle";
 
 const Numbers = styled("div")({
   display: "grid",
@@ -55,7 +54,7 @@ export function SketchInspector({
 
   return (
     <>
-      <Title>Sketch</Title>
+      <SectionTitle>Sketch</SectionTitle>
       <Numbers>
         {numbers.map(({ label, count }) => (
           <Tile key={label}>
