@@ -50,7 +50,9 @@ function renderText(
   sketch: Sketch = SKETCH,
   capabilities?: Parameters<typeof renderInSession>[1]["capabilities"]
 ): TextRender {
-  const reported: { current: readonly TextProblem[] } = { current: [] };
+  const reported: { current: readonly TextProblem[] | undefined } = {
+    current: undefined,
+  };
 
   /**
    * Keeps the lines of text mode that cannot be read, as the latest render of the hook gave them.
@@ -70,10 +72,15 @@ function renderText(
       { sketch, capabilities }
     ),
     text: new ProjectTextPom(),
-    getTextProblems: () =>
-      reported.current.map(
+    getTextProblems: () => {
+      if (reported.current === undefined) {
+        throw new Error("The text problems probe never rendered");
+      }
+
+      return reported.current.map(
         ({ line, text, reason }) => `${line}|${text}|${reason}`
-      ),
+      );
+    },
   };
 }
 
@@ -276,6 +283,23 @@ describe("ProjectText", () => {
 
       // Assert
       expect(onSketchChange).toHaveBeenCalledTimes(1);
+    });
+
+    it("should not read the draft again when the delay goes by after a blur that kept the draft", () => {
+      // Arrange
+      const { onSketchChange, store, text } = renderText();
+      text.type("src/index.js\nsrc/new.js\nsrc/../up.js\n");
+      text.blur();
+
+      // Act
+      act(() => store.removeNode("src/new.js"));
+      wait(300);
+
+      // Assert
+      expect(store.getState().sketch.tree.map((node) => node.path)).toEqual([
+        "src/index.js",
+      ]);
+      expect(onSketchChange).toHaveBeenCalledTimes(2);
     });
 
     it("should write the text again, in the order of the tree, when the text was read without problems and the textarea lost the focus", () => {

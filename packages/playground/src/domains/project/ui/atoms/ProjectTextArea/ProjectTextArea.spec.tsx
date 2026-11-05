@@ -30,7 +30,7 @@ function renderArea(changes: Partial<ProjectTextAreaProps> = {}): Page {
 
   render(<ProjectTextArea {...props} />);
 
-  return { area: new ProjectTextAreaPom({ name: "Project as text" }), props };
+  return { area: new ProjectTextAreaPom(), props };
 }
 
 describe("ProjectTextArea", () => {
